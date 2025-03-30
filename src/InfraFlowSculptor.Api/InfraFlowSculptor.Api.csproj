@@ -5,8 +5,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <UserSecretsId>3af4547e-7898-4c08-bcb0-8f452e799be0</UserSecretsId>
         <RootNamespace>InfraFlowSculptor.Api</RootNamespace>
+        <UserSecretsId>629124f7-1b60-4fe0-aef6-523dede637e8</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,12 +18,6 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Content Include="..\.dockerignore">
-            <Link>.dockerignore</Link>
-        </Content>
     </ItemGroup>
 
     <ItemGroup>
