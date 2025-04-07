@@ -15,4 +15,8 @@
         <Folder Include="UserAggregate\Entities\"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\InfraFlowSculptor.BicepDirector\InfraFlowSculptor.BicepDirector.csproj" />
+    </ItemGroup>
+
 </Project>

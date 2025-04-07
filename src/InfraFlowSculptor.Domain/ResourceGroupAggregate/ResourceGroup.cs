@@ -5,26 +5,26 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.ResourceGroupAggregate;
 
-public sealed class ResourceGroup : AggregateRoot<ResourceGroupId>
+public sealed class ResourceGroup : AzureResourceConfiguration<ResourceGroupId>
 {
-    public string Name { get; private set; } = null!;
-    public Location Location { get; private set; } = null!;
-    
     public string? Prefix { get; private set; } = null!;
     public string? Suffix { get; private set; } = null!;
-    
-    private List<AzureResource> _azureResources = new List<AzureResource>();
-    public IReadOnlyList<AzureResource> AzureResources => _azureResources.AsReadOnly();
 
-    private ResourceGroup(ResourceGroupId id)
-        : base(id)
+    private ResourceGroup(ResourceGroupId id, string name, Location location, string? prefix, string? suffix) 
+        : base(id, name, location)
     {
-
+        Prefix = prefix;
+        Suffix = suffix;
     }
 
-    public static ResourceGroup Create()
+    public static ResourceGroup Create(string name, Location location, string? prefix, string? suffix)
     {
-        return new ResourceGroup(ResourceGroupId.CreateUnique());
+        return new ResourceGroup(
+            ResourceGroupId.CreateUnique(),
+            name,
+            location,
+            prefix, 
+            suffix);
     }
 
     public ResourceGroup()
