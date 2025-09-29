@@ -23,7 +23,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("IsAdmin", policy => policy.RequireRole("Admin"));
+    .AddPolicy("IsAdmin", policy => policy.RequireRole("Admin")); 
 
 builder.AddNpgsqlDataSource("infraDb");
 builder.AddNpgsqlDbContext<ProjectDbContext>(connectionName: "infraDb");

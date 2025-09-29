@@ -4,6 +4,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 var postgres = builder.AddPostgres("postgres")
     .WithImageTag("latest")
+    .WithPgAdmin()
     .WithLifetime(ContainerLifetime.Persistent);
 
 var database = postgres.AddDatabase("infraDb");
