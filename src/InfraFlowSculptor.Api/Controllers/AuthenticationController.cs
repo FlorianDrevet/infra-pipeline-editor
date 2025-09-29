@@ -28,7 +28,7 @@ public static class AuthenticationController
                             error => error.Result());
                     })
                 .WithName("Register")
-                //.RequireAuthorization("IsAdmin")
+                .RequireAuthorization("IsAdmin")
                 .WithOpenApi();
 
             endpoints.MapPost("/auth/login",

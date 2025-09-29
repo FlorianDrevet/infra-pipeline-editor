@@ -41,6 +41,7 @@ public static class DependencyInjection
         this IServiceCollection services)
     {
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IInfrastructureConfigRepository, InfrastructureConfigRepository>();
         return services;
     }
 

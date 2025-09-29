@@ -58,5 +58,6 @@ app.UseAuthorization();
 
 //Controllers
 app.UseAuthenticationController();
+app.UseInfrastructureConfigController();
 
 app.Run();

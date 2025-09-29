@@ -1,0 +1,3 @@
+namespace InfraFlowSculptor.Contracts.InfrastructureConfig;
+
+public record CreateInfrastructureConfigRequest(string Name);
