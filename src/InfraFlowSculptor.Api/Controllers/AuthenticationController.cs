@@ -13,7 +13,11 @@ public static class AuthenticationController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            endpoints.MapPost("/auth/register",
+            var auth = endpoints.MapGroup("/auth")
+                .WithTags("Authentication")
+                .WithOpenApi();
+            
+            auth.MapPost("/register",
                     async (RegisterRequest request, IMediator mediator, IMapper mapper) =>
                     {
                         var command = mapper.Map<RegisterCommand>(request);
@@ -31,7 +35,7 @@ public static class AuthenticationController
                 .RequireAuthorization("IsAdmin")
                 .WithOpenApi();
 
-            endpoints.MapPost("/auth/login",
+            auth.MapPost("/login",
                     async (LoginRequest request, IMediator mediator, IMapper mapper) =>
                     {
                         var query = mapper.Map<LoginQuery>(request);

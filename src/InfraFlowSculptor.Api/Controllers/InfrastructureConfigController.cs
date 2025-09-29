@@ -12,7 +12,11 @@ public static class InfrastructureConfigController
     {
         return builder.UseEndpoints(endpoints =>
         {
-            endpoints.MapPost("/infra-config",
+            var config = endpoints.MapGroup("/infra-config")
+                .WithTags("Infrastructure Configuration")
+                .WithOpenApi();
+            
+            config.MapPost("",
                     async (CreateInfrastructureConfigRequest request, IMediator mediator, IMapper mapper) =>
                     {
                         var command = new CreateInfrastructureConfigCommand(request.Name);
