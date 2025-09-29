@@ -18,6 +18,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder", "SolutionF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfraFlowSculptor.BicepDirector", "InfraFlowSculptor.BicepDirector\InfraFlowSculptor.BicepDirector.csproj", "{52767BBF-4FAB-482F-BF82-80547570FAD1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfraFlowSculptor.AppHost", "InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj", "{0CE89586-6CE1-4A00-AD55-B1C24F8D8674}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfraFlowSculptor.ServiceDefaults", "InfraFlowSculptor.ServiceDefaults\InfraFlowSculptor.ServiceDefaults.csproj", "{0A6B3653-E254-4403-BA64-81ADB035AC73}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +52,13 @@ Global
 		{52767BBF-4FAB-482F-BF82-80547570FAD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52767BBF-4FAB-482F-BF82-80547570FAD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52767BBF-4FAB-482F-BF82-80547570FAD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CE89586-6CE1-4A00-AD55-B1C24F8D8674}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CE89586-6CE1-4A00-AD55-B1C24F8D8674}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CE89586-6CE1-4A00-AD55-B1C24F8D8674}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CE89586-6CE1-4A00-AD55-B1C24F8D8674}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A6B3653-E254-4403-BA64-81ADB035AC73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A6B3653-E254-4403-BA64-81ADB035AC73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A6B3653-E254-4403-BA64-81ADB035AC73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A6B3653-E254-4403-BA64-81ADB035AC73}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
