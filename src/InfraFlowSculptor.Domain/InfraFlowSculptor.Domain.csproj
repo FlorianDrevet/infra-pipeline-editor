@@ -12,8 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Common\BaseModels\" />
-        <Folder Include="Common\ValueObjects\" />
         <Folder Include="UserAggregate\Entities\"/>
     </ItemGroup>
 
