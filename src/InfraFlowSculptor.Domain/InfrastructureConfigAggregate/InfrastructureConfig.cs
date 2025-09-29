@@ -8,18 +8,20 @@ namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 {
     public Name Name { get; private set; } = null!;
-    public List<ResourceGroup> ResourceGroups { get; set; } = new();
+    private List<ResourceGroup> _resourceGroups { get; set; } = new();
+    public IReadOnlyList<ResourceGroup> ResourceGroups => _resourceGroups.AsReadOnly();
+    
     //public List<EnvironmentVariable> Variables { get; set; } = new();
 
-    private InfrastructureConfig(InfrastructureConfigId id)
+    private InfrastructureConfig(InfrastructureConfigId id, Name name)
         : base(id)
     {
-
+        Name = name;
     }
 
-    public static InfrastructureConfig Create()
+    public static InfrastructureConfig Create(Name name)
     {
-        return new InfrastructureConfig(InfrastructureConfigId.CreateUnique());
+        return new InfrastructureConfig(InfrastructureConfigId.CreateUnique(), name);
     }
 
     public InfrastructureConfig()

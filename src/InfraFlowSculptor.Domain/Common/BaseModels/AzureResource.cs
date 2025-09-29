@@ -2,12 +2,13 @@
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.Common.BaseModels;
 
 public class AzureResource : AggregateRoot<AzureResourceId>
 {
-    public Guid ResourceGroupId { get; set; }
+    public ResourceGroupId ResourceGroupId { get; set; }
     public ResourceGroup ResourceGroup { get; set; } = null!;
 
     public Name Name { get; set; } = null!;
@@ -24,7 +25,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
 
     }
     
-    public static AzureResource Create(Guid resourceGroupId, Name name, Location location, List<AzureResource> dependencies)
+    public static AzureResource Create(ResourceGroupId resourceGroupId, Name name, Location location, List<AzureResource> dependencies)
     {
         return new AzureResource(AzureResourceId.CreateUnique())
         {

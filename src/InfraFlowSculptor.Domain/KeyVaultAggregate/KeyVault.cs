@@ -3,9 +3,11 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.KeyVaultAggregate;
 
-public class KeyVaultAggregate: AzureResource
+public class KeyVault: AzureResource
 {
-    public KeyVaultAggregate(): base()
+    public string Sku { get; set; } = string.Empty;
+    
+    public KeyVault(): base()
     {
     }
 }
