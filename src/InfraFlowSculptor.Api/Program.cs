@@ -4,6 +4,8 @@ using InfraFlowSculptor.Api.Controllers;
 using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
+using InfraFlowSculptor.Infrastructure.Persistence;
+using InfraFlowSculptor.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,11 +25,16 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("IsAdmin", policy => policy.RequireRole("Admin"));
 
+builder.AddNpgsqlDataSource("infraDb");
+builder.AddNpgsqlDbContext<ProjectDbContext>(connectionName: "infraDb");
+
 builder.Services
     .AddPresentation()
     .AddApplication()
     .AddInfrastructure(builder.Configuration)
     .AddRateLimiting();
+
+builder.AddServiceDefaults();
 
 var app = builder.Build();
 

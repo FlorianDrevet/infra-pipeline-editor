@@ -10,6 +10,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Authentication;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Infrastructure.Authentication;
+using InfraFlowSculptor.Infrastructure.Extensions;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 using InfraFlowSculptor.Infrastructure.Services;
@@ -23,16 +24,13 @@ public static class DependencyInjection
         this IServiceCollection services,
         ConfigurationManager builderConfiguration)
     {
-        var connectionString = builderConfiguration.GetConnectionString("ProjectDatabase");
-
         services
             .AddAuth(builderConfiguration)
-            .AddDbContext<ProjectDbContext>(options =>
-                options.UseSqlServer(connectionString)
-            )
             .AddAzureServices(builderConfiguration)
             .AddBlob(builderConfiguration)
             .AddRepositories();
+        
+        services.AddMigration<ProjectDbContext>();
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
