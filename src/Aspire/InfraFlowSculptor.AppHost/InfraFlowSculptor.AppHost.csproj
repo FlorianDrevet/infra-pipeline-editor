@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj" />
+    <ProjectReference Include="..\..\Api\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj" />
   </ItemGroup>
 
 </Project>

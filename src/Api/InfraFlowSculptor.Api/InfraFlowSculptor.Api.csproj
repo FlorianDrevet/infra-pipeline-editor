@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\InfraFlowSculptor.ServiceDefaults\InfraFlowSculptor.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\..\Aspire\InfraFlowSculptor.ServiceDefaults\InfraFlowSculptor.ServiceDefaults.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Contracts\InfraFlowSculptor.Contracts.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Application\InfraFlowSculptor.Application.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Infrastructure\InfraFlowSculptor.Infrastructure.csproj" />

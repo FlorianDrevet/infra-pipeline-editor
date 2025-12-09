@@ -27,4 +27,18 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     public InfrastructureConfig()
     {
     }
+    
+    public bool AddResourceGroup(ResourceGroup resourceGroup)
+    {
+        if (_resourceGroups.Any(rg => rg.Name == resourceGroup.Name))
+            return false;
+        
+        _resourceGroups.Add(resourceGroup);
+        return true;
+    }
+    
+    public bool RemoveResourceGroup(ResourceGroup resourceGroup)
+    {
+        return _resourceGroups.Remove(resourceGroup);
+    }
 }

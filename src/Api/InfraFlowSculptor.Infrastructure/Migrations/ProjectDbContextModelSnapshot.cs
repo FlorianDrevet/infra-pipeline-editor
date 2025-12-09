@@ -18,7 +18,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -37,7 +37,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("ResourceGroupId")
                         .HasColumnType("uuid");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Name", "InfraFlowSculptor.Domain.Common.BaseModels.AzureResource.Name#Name", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Name", "InfraFlowSculptor.Domain.Common.BaseModels.AzureResource.Name#Name", b1 =>
                         {
                             b1.IsRequired();
 
@@ -62,7 +62,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Name", "InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig.Name#Name", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Name", "InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig.Name#Name", b1 =>
                         {
                             b1.IsRequired();
 
@@ -87,7 +87,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<int>("Location")
                         .HasColumnType("integer");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Name", "InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup.Name#Name", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Name", "InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup.Name#Name", b1 =>
                         {
                             b1.IsRequired();
 
@@ -124,7 +124,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Name", "InfraFlowSculptor.Domain.UserAggregate.User.Name#Name", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Name", "InfraFlowSculptor.Domain.UserAggregate.User.Name#Name", b1 =>
                         {
                             b1.IsRequired();
 
