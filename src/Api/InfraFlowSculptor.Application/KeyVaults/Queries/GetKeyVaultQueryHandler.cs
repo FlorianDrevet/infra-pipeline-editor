@@ -12,7 +12,7 @@ public class GetKeyVaultQueryHandler(IKeyVaultRepository keyVaultRepository, IMa
 {
     public async Task<ErrorOr<KeyVaultResult>> Handle(GetKeyVaultQuery query, CancellationToken cancellationToken)
     {
-        var keyVault = await keyVaultRepository.GetByIdAsync(query.Id);
+        var keyVault = await keyVaultRepository.GetByIdAsync(query.Id, cancellationToken);
         if (keyVault is null)
         {
             return Errors.KeyVault.NotFoundError(query.Id);

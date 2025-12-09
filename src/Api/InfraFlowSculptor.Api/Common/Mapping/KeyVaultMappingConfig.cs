@@ -10,9 +10,9 @@ public class KeyVaultMappingConfig : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<Sku, string>()
-            .Map(dest => dest, src => src.Value.ToString());
+            .MapWith(src => src.Value.ToString());
         
         config.NewConfig<string, Sku>()
-            .Map(dest => dest, src => new Sku(Enum.Parse<Sku.SkuEnum>(src)));
+            .MapWith(src => new Sku(Enum.Parse<Sku.SkuEnum>(src)));
     }
 }

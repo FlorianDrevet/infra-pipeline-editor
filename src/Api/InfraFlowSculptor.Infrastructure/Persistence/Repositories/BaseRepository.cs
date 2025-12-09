@@ -38,7 +38,7 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
 
     public async Task<TEntity?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
     {
-        return await Context.Set<TEntity>().FindAsync(id, cancellationToken);
+        return await Context.Set<TEntity>().FindAsync(cancellationToken: cancellationToken, keyValues: [id]);
     }
 
     public async Task<IEnumerable<TEntity>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes)

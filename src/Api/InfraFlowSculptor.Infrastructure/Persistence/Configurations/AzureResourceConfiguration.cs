@@ -36,6 +36,10 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
         
         //builder.HasBaseType<AzureResource>();
         
-        builder.ComplexProperty(user => user.Name);
+        builder.Property(x => x.Name)
+            .IsRequired()
+            .HasConversion(
+                name => name.Value,
+                value => new Name(value));
     }
 }

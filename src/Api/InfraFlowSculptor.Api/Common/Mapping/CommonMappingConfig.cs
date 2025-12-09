@@ -1,3 +1,5 @@
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 using Mapster;
@@ -8,6 +10,12 @@ public class CommonMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
+        config.NewConfig<AzureResourceId, Guid>()
+            .MapWith(src => src.Value);
+        
+        config.NewConfig<Guid, AzureResourceId>()
+            .MapWith(src => AzureResourceId.Create(src));
+        
         config.ForType<Name, string>()
             .MapWith(src => src.Value);
         

@@ -53,8 +53,8 @@ public static class ResourceGroupController
                             {
                                 var response = mapper.Map<ResourceGroupResponse>(resourceGroup);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: "resource-group",
-                                    routeValues: resourceGroup.Id,
+                                    routeName: "GetResourceGroup",
+                                    routeValues: new { id = resourceGroup.Id.Value },
                                     value: response
                                 );
                             },
