@@ -1,15 +1,14 @@
-using InfraFlowSculptor.Application.KeyVaults.Common;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
-using ErrorOr;
 
-namespace InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
+namespace InfraFlowSculptor.Application.KeyVaults.Common;
 
-public record CreateKeyVaultCommand(
+public record KeyVaultResult(
+    AzureResourceId Id,
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
     Sku Sku
-) : IRequest<ErrorOr<KeyVaultResult>>;
+);

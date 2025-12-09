@@ -4,6 +4,7 @@ using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
+using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -20,5 +21,12 @@ public class KeyVaultConfiguration : IEntityTypeConfiguration<KeyVault>
     {
         builder.HasBaseType<AzureResource>()
             .ToTable("KeyVaults");
+        
+        builder.Property(order => order.Sku)
+            .IsRequired()
+            .HasConversion(
+                status => status.Value.ToString(),
+                value => new Sku(Enum.Parse<Sku.SkuEnum>(value))
+            );
     }
 }

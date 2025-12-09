@@ -42,6 +42,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IInfrastructureConfigRepository, InfrastructureConfigRepository>();
+        services.AddScoped<IKeyVaultRepository, KeyVaultRepository>();
         return services;
     }
 

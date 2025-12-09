@@ -1,20 +1,20 @@
-using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
-using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
+using MapsterMapper;
 using MediatR;
+using ErrorOr;
 
 namespace InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
 
-public class CreateKeyVaultCommandHandler : IRequestHandler<CreateKeyVaultCommand, CreateKeyVaultResult>
+public class CreateKeyVaultCommandHandler(IKeyVaultRepository keyVaultRepository, IMapper mapper) : IRequestHandler<CreateKeyVaultCommand, ErrorOr<KeyVaultResult>>
 {
-
-    public CreateKeyVaultCommandHandler()
+    public async Task<ErrorOr<KeyVaultResult>> Handle(CreateKeyVaultCommand request, CancellationToken cancellationToken)
     {
-    }
+        var keyVault = KeyVault.Create(request.ResourceGroupId, request.Name, request.Location, request.Sku);
 
-    public async Task<CreateKeyVaultResult> Handle(CreateKeyVaultCommand request, CancellationToken cancellationToken)
-    {
-        return null;
+        var savedKeyVault =  await keyVaultRepository.AddAsync(keyVault);
+
+        return mapper.Map<KeyVaultResult>(savedKeyVault);
     }
 }
