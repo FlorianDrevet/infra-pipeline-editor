@@ -1,6 +1,6 @@
 using InfraFlowSculptor.Api.Common.Mapping;
 
-namespace InfraFlowSculptor.Api;
+namespace InfraFlowSculptor.Api.Configuration;
 
 public static class DependencyInjection
 {
@@ -8,6 +8,7 @@ public static class DependencyInjection
     {
         services.AddMapping();
         services.AddAuthorization();
+        services.AddOpenApiExtensions();
         return services;
     }
 }

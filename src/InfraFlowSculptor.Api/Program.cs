@@ -1,11 +1,13 @@
 using InfraFlowSculptor.Api;
 using InfraFlowSculptor.Api.Common.RateLimiting;
+using InfraFlowSculptor.Api.Configuration;
 using InfraFlowSculptor.Api.Controllers;
 using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.ServiceDefaults;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +45,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.MapScalarApiReference(options => options.AddDocuments("v1"));
 }
 
 //Middleware
@@ -59,5 +62,6 @@ app.UseAuthorization();
 //Controllers
 app.UseAuthenticationController();
 app.UseInfrastructureConfigController();
+app.MapDefaultEndpoints();
 
 app.Run();
