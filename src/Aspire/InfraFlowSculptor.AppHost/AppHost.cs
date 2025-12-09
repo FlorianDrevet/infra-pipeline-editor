@@ -3,7 +3,7 @@ using Projects;
 var builder = DistributedApplication.CreateBuilder(args);
 
 var postgres = builder.AddPostgres("postgres")
-    .WithDbGate()
+    .WithDbGate(option => option.WithHostPort(51622))
     .WithDataVolume(isReadOnly: false)
     .WithLifetime(ContainerLifetime.Persistent);
 
