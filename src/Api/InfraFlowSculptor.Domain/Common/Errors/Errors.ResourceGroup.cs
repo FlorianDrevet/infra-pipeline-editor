@@ -1,4 +1,5 @@
 ﻿using ErrorOr;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.Common.Errors;
 
@@ -12,9 +13,10 @@ public static partial class Errors
             public const string AlreadyExistsCode = "ResourceGroup.AlreadyExists";
         }
         
-        public static Error NotFound() => Error.Validation(
+        public static Error NotFound(ResourceGroupId id) => Error.NotFound(
             code: Codes.NotFoundCode,
-            description: "Resource group not found."
+            description: $"Resource group not found with id {id}.",
+            metadata: new Dictionary<string, object> {{"id", id.ToString()}}
         );
 
         public static Error AlreadyExists() => Error.Validation(

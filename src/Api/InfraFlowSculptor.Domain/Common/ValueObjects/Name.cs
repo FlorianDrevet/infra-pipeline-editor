@@ -2,9 +2,14 @@
 
 namespace InfraFlowSculptor.Domain.Common.ValueObjects;
 
-public sealed class Name(string value) : ValueObject
+public sealed class Name: ValueObject
 {
-    public string Value { get; protected set; } = value;
+    public Name(string value)
+    {
+        Value = value;
+    }
+    
+    public string Value { get; protected set; }
 
     public override IEnumerable<object> GetEqualityComponents()
     {

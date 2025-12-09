@@ -30,8 +30,8 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
         builder.Property(order => order.Location)
             .IsRequired()
             .HasConversion(
-                status => (int)status.Value,
-                value => new Location((Location.LocationEnum)value)
+                status => status.Value.ToString(),
+                value => new Location(Enum.Parse<Location.LocationEnum>(value))
             );
         
         //builder.HasBaseType<AzureResource>();

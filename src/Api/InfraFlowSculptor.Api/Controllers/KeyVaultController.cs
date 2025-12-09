@@ -49,9 +49,9 @@ public static class KeyVaultControllerController
                             {
                                 var response = mapper.Map<KeyVaultResponse>(keyVault);
                                 return TypedResults.CreatedAtRoute(
-                                    routeName: nameof(GetKeyVaultQuery),
-                                    routeValues: new GetKeyVaultQuery(keyVault.Id),
-                                    value: result
+                                    routeName: "keyvault",
+                                    routeValues: keyVault.Id,
+                                    value: response
                                 );
                             },
                             errors => errors.Result()

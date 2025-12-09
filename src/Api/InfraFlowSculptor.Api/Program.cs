@@ -65,6 +65,7 @@ app.UseAuthorization();
 app.UseAuthenticationController();
 app.UseInfrastructureConfigController();
 app.UseKeyVaultControllerController();
+app.UseResourceGroupController();
 app.MapDefaultEndpoints();
 
 app.Run();
