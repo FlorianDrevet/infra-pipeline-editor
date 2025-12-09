@@ -10,10 +10,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Aspire.Npgsql" Version="9.5.0" />
-        <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.5.0" />
-        <PackageReference Include="Mapster" Version="7.4.0"/>
-        <PackageReference Include="Mapster.DependencyInjection" Version="1.0.1"/>
+        <PackageReference Include="Aspire.Npgsql" Version="13.0.2" />
+        <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.0.2" />
+        <PackageReference Include="Mapster" Version="7.4.0" />
+        <PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
             <PrivateAssets>all</PrivateAssets>
@@ -24,8 +24,8 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\InfraFlowSculptor.ServiceDefaults\InfraFlowSculptor.ServiceDefaults.csproj" />
-        <ProjectReference Include="..\InfraFlowSculptor.Contracts\InfraFlowSculptor.Contracts.csproj"/>
-        <ProjectReference Include="..\InfraFlowSculptor.Application\InfraFlowSculptor.Application.csproj"/>
-        <ProjectReference Include="..\InfraFlowSculptor.Infrastructure\InfraFlowSculptor.Infrastructure.csproj"/>
+        <ProjectReference Include="..\InfraFlowSculptor.Contracts\InfraFlowSculptor.Contracts.csproj" />
+        <ProjectReference Include="..\InfraFlowSculptor.Application\InfraFlowSculptor.Application.csproj" />
+        <ProjectReference Include="..\InfraFlowSculptor.Infrastructure\InfraFlowSculptor.Infrastructure.csproj" />
     </ItemGroup>
 </Project>

@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/SolutionFolder/">
+    <File Path=".gitignore" />
+    <File Path="NuGet.config" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="InfraFlowSculptor.AppHost/InfraFlowSculptor.AppHost.csproj" />
+  <Project Path="InfraFlowSculptor.BicepDirector/InfraFlowSculptor.BicepDirector.csproj" />
+  <Project Path="InfraFlowSculptor.ServiceDefaults/InfraFlowSculptor.ServiceDefaults.csproj" />
+  <Project Path="src/InfraFlowSculptor.Api/InfraFlowSculptor.Api.csproj" />
+  <Project Path="src/InfraFlowSculptor.Application/InfraFlowSculptor.Application.csproj" />
+  <Project Path="src/InfraFlowSculptor.Contracts/InfraFlowSculptor.Contracts.csproj" />
+  <Project Path="src/InfraFlowSculptor.Domain/InfraFlowSculptor.Domain.csproj" />
+  <Project Path="src/InfraFlowSculptor.Infrastructure/InfraFlowSculptor.Infrastructure.csproj" />
+</Solution>
