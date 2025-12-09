@@ -12,7 +12,6 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
 {
@@ -43,9 +42,13 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    app.MapScalarApiReference(options => options.AddDocuments("v1"));
+    app.UseDeveloperExceptionPage();
+    app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.AddDocuments("v1");
+        options.Layout = ScalarLayout.Classic;
+    });
 }
 
 //Middleware

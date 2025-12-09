@@ -2,6 +2,7 @@
   <Folder Name="/SolutionFolder/">
     <File Path=".gitignore" />
     <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
     <File Path="NuGet.config" />
     <File Path="README.md" />
   </Folder>
