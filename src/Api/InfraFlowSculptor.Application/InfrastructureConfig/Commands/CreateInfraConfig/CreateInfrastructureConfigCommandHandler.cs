@@ -1,16 +1,18 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using MapsterMapper;
 using MediatR;
 
-namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands;
+namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 
 public class CreateInfrastructureConfigCommandHandler(
-    IInfrastructureConfigRepository repository)
+    IInfrastructureConfigRepository repository, IMapper mapper)
     : IRequestHandler<CreateInfrastructureConfigCommand,
-        ErrorOr<Domain.InfrastructureConfigAggregate.InfrastructureConfig>>
+        ErrorOr<GetInfrastructureConfigResult>>
 {
-    public async Task<ErrorOr<Domain.InfrastructureConfigAggregate.InfrastructureConfig>> Handle(
+    public async Task<ErrorOr<GetInfrastructureConfigResult>> Handle(
         CreateInfrastructureConfigCommand command, CancellationToken cancellationToken)
     {
         var nameVo = new Name(command.Name);
@@ -18,6 +20,6 @@ public class CreateInfrastructureConfigCommandHandler(
 
         var saved = await repository.AddAsync(infra);
 
-        return saved;
+        return mapper.Map<GetInfrastructureConfigResult>(saved);
     }
 }

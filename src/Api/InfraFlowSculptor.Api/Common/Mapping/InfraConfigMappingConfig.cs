@@ -9,7 +9,5 @@ public class InfraConfigMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<Name, string>()
-            .Map(dest => dest, src => src.Value);
     }
 }

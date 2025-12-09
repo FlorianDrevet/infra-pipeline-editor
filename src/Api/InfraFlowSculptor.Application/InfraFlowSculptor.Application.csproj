@@ -19,10 +19,4 @@
         <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="InfrastructureConfig\Commands\" />
-      <Folder Include="InfrastructureConfig\Common\" />
-      <Folder Include="InfrastructureConfig\Queries\" />
-    </ItemGroup>
-
 </Project>
