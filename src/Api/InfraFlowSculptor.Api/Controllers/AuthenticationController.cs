@@ -4,6 +4,7 @@ using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Application.Authentication.Commands.Register;
 using InfraFlowSculptor.Application.Authentication.Queries.Login;
 using InfraFlowSculptor.Contracts.Authentication;
+using InfraFlowSculptor.Contracts.Authentication.Requests;
 
 namespace InfraFlowSculptor.Api.Controllers;
 

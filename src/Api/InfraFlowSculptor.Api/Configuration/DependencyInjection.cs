@@ -9,6 +9,7 @@ public static class DependencyInjection
         services.AddMapping();
         services.AddAuthorization();
         services.AddOpenApiExtensions();
+        services.AddValidation();
         return services;
     }
 }

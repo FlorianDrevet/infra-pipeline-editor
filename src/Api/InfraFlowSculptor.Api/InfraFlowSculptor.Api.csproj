@@ -7,6 +7,7 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <RootNamespace>InfraFlowSculptor.Api</RootNamespace>
         <UserSecretsId>629124f7-1b60-4fe0-aef6-523dede637e8</UserSecretsId>
+        <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.Http.Validation.Generated</InterceptorsNamespaces>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,3 +1,9 @@
-namespace InfraFlowSculptor.Contracts.InfrastructureConfig;
+using System.ComponentModel.DataAnnotations;
 
-public record CreateInfrastructureConfigRequest(string Name);
+namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
+
+public class CreateInfrastructureConfigRequest
+{
+    [Required]
+    public required string Name { get; init; }
+}

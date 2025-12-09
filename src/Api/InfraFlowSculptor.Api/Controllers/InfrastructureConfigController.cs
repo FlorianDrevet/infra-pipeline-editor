@@ -5,6 +5,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.GetResourceGroup;
 using MediatR;
 using InfraFlowSculptor.Contracts.InfrastructureConfig;
+using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Contracts.ResourceGroups.Responses;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
