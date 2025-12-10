@@ -14,4 +14,4 @@ builder.AddProject<InfraFlowSculptor_Api>("api")
     .WithReference(database)
     .WaitFor(database);
 
-builder.Build().Run();
+await builder.Build().RunAsync();
