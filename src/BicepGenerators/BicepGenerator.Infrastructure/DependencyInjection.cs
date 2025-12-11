@@ -5,12 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
-using BicepGenerator.Application.Common.Interfaces.Authentication;
-using BicepGenerator.Application.Common.Interfaces.Persistence;
 using BicepGenerator.Application.Common.Interfaces.Services;
-using BicepGenerator.Infrastructure.Authentication;
 using BicepGenerator.Infrastructure.Persistence;
-using BicepGenerator.Infrastructure.Persistence.Repositories;
 using BicepGenerator.Infrastructure.Services;
 using BicepGenerator.Infrastructure.Services.BlobService;
 
@@ -41,7 +37,6 @@ public static class DependencyInjection
     private static IServiceCollection AddRepositories(
         this IServiceCollection services)
     {
-        services.AddScoped<IUserRepository, UserRepository>();
         return services;
     }
 
@@ -76,12 +71,6 @@ public static class DependencyInjection
         this IServiceCollection services,
         ConfigurationManager builderConfiguration)
     {
-        var jwtSettings = new JwtSettings();
-        builderConfiguration.Bind(JwtSettings.SectionName, jwtSettings);
-
-        services.AddSingleton(Options.Create(jwtSettings));
-        services.AddSingleton<IJwtGenerator, JwtGenerator>();
-        services.AddSingleton<IHashPassword, HashPassword>();
         services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builderConfiguration.GetSection("AzureAd"));
 

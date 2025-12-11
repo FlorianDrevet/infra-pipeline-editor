@@ -11,8 +11,4 @@
         <PackageReference Include="ErrorOr"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="UserAggregate\Entities\"/>
-    </ItemGroup>
-
 </Project>

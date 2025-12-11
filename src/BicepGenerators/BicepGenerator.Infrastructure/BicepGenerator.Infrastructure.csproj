@@ -30,4 +30,8 @@
     <ItemGroup>
         <ProjectReference Include="..\BicepGenerator.Application\BicepGenerator.Application.csproj"/>
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Persistence\Configurations\" />
+    </ItemGroup>
 </Project>

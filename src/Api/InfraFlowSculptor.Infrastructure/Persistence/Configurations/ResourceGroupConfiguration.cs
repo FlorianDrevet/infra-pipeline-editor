@@ -3,8 +3,6 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using InfraFlowSculptor.Domain.UserAggregate;
-using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 

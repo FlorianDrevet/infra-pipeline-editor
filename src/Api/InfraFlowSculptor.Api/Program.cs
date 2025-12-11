@@ -62,7 +62,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 //Controllers
-app.UseAuthenticationController();
 app.UseInfrastructureConfigController();
 app.UseKeyVaultControllerController();
 app.UseResourceGroupController();
