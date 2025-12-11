@@ -1,7 +1,6 @@
 using Scalar.AspNetCore;
 using BicepGenerator.Api;
 using BicepGenerator.Api.Common.RateLimiting;
-using BicepGenerator.Api.Controllers;
 using BicepGenerator.Api.Errors;
 using BicepGenerator.Application;
 using BicepGenerator.Infrastructure;
@@ -55,6 +54,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 //Controllers
-app.UseAuthenticationController();
 
-app.Run();
+await app.RunAsync();

@@ -1,20 +1,16 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using InfraFlowSculptor.Application.Common.Interfaces.Authentication;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
-using InfraFlowSculptor.Infrastructure.Authentication;
 using InfraFlowSculptor.Infrastructure.Extensions;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 using InfraFlowSculptor.Infrastructure.Services;
 using InfraFlowSculptor.Infrastructure.Services.BlobService;
+using Microsoft.Identity.Web;
 
 namespace InfraFlowSculptor.Infrastructure;
 
@@ -40,7 +36,6 @@ public static class DependencyInjection
     private static IServiceCollection AddRepositories(
         this IServiceCollection services)
     {
-        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IInfrastructureConfigRepository, InfrastructureConfigRepository>();
         services.AddScoped<IKeyVaultRepository, KeyVaultRepository>();
         services.AddScoped<IResourceGroupRepository, ResourceGroupRepository>();
@@ -78,25 +73,9 @@ public static class DependencyInjection
         this IServiceCollection services,
         ConfigurationManager builderConfiguration)
     {
-        var jwtSettings = new JwtSettings();
-        builderConfiguration.Bind(JwtSettings.SectionName, jwtSettings);
-
-        services.AddSingleton(Options.Create(jwtSettings));
-        services.AddSingleton<IJwtGenerator, JwtGenerator>();
-        services.AddSingleton<IHashPassword, HashPassword>();
         services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options => options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtSettings.Issuer,
-                ValidAudience = jwtSettings.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(jwtSettings.Secret)
-                ),
-            });
+            .AddMicrosoftIdentityWebApi(builderConfiguration.GetSection("AzureAd"));
+        
         return services;
     }
 }
