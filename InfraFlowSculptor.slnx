@@ -6,18 +6,16 @@
     <File Path="NuGet.config" />
     <File Path="README.md" />
   </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/InfraDirector/InfraFlowSculptor.BicepDirector/InfraFlowSculptor.BicepDirector.csproj" />
+  <Folder Name="/src/" />
+  <Folder Name="/src/Aspire/">
+    <Project Path="src/Aspire/InfraFlowSculptor.AppHost/InfraFlowSculptor.AppHost.csproj" />
+    <Project Path="src/Aspire/InfraFlowSculptor.ServiceDefaults/InfraFlowSculptor.ServiceDefaults.csproj" />
   </Folder>
-  <Folder Name="/src/Api/">
+  <Folder Name="/src/InfrastructureConfigApi/">
     <Project Path="src/Api/InfraFlowSculptor.Api/InfraFlowSculptor.Api.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Application/InfraFlowSculptor.Application.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Contracts/InfraFlowSculptor.Contracts.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Domain/InfraFlowSculptor.Domain.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Infrastructure/InfraFlowSculptor.Infrastructure.csproj" />
-  </Folder>
-  <Folder Name="/src/Aspire/">
-    <Project Path="src/Aspire/InfraFlowSculptor.AppHost/InfraFlowSculptor.AppHost.csproj" />
-    <Project Path="src/Aspire/InfraFlowSculptor.ServiceDefaults/InfraFlowSculptor.ServiceDefaults.csproj" />
   </Folder>
 </Solution>
