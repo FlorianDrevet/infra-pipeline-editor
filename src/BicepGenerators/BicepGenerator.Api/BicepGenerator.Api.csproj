@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <UserSecretsId>3af4547e-7898-4c08-bcb0-8f452e799be0</UserSecretsId>
+        <RootNamespace>BicepGenerator.Api</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Mapster"/>
+        <PackageReference Include="Mapster.DependencyInjection"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Scalar.AspNetCore"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\BicepGenerator.Contracts\BicepGenerator.Contracts.csproj"/>
+        <ProjectReference Include="..\BicepGenerator.Application\BicepGenerator.Application.csproj"/>
+        <ProjectReference Include="..\BicepGenerator.Infrastructure\BicepGenerator.Infrastructure.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\BicepGenerator.Application\BicepGenerator.Application.csproj" />
+    </ItemGroup>
+</Project>

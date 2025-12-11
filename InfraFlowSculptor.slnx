@@ -11,12 +11,12 @@
     <Project Path="src/Aspire/InfraFlowSculptor.AppHost/InfraFlowSculptor.AppHost.csproj" />
     <Project Path="src/Aspire/InfraFlowSculptor.ServiceDefaults/InfraFlowSculptor.ServiceDefaults.csproj" />
   </Folder>
-  <Folder Name="/src/BicepGenerator/">
-    <Project Path="src/BicepGenerator/BicepGenerator.Api/BicepGenerator.Api.csproj" />
-    <Project Path="src/BicepGenerator/BicepGenerator.Application/BicepGenerator.Application.csproj" />
-    <Project Path="src/BicepGenerator/BicepGenerator.Contracts/BicepGenerator.Contracts.csproj" />
-    <Project Path="src/BicepGenerator/BicepGenerator.Domain/BicepGenerator.Domain.csproj" />
-    <Project Path="src/BicepGenerator/BicepGenerator.Infrastructure/BicepGenerator.Infrastructure.csproj" />
+  <Folder Name="/src/BicepGenerators/">
+    <Project Path="src/BicepGenerators/BicepGenerator.Api/BicepGenerator.Api.csproj" />
+    <Project Path="src/BicepGenerators/BicepGenerator.Application/BicepGenerator.Application.csproj" />
+    <Project Path="src/BicepGenerators/BicepGenerator.Contracts/BicepGenerator.Contracts.csproj" />
+    <Project Path="src/BicepGenerators/BicepGenerator.Domain/BicepGenerator.Domain.csproj" />
+    <Project Path="src/BicepGenerators/BicepGenerator.Infrastructure/BicepGenerator.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/InfrastructureConfigApi/">
     <Project Path="src/Api/InfraFlowSculptor.Api/InfraFlowSculptor.Api.csproj" />
