@@ -24,7 +24,7 @@ public static class InfrastructureConfigController
             var config = endpoints.MapGroup("/infra-config")
                 .WithTags("Infrastructure Configuration")
                 .WithOpenApi();
-            
+
             config.MapGet("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
                     {
@@ -40,9 +40,8 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetInfrastructureConfiguration")
-                .WithOpenApi();
-            
+                .WithName("GetInfrastructureConfiguration");
+
             config.MapPost("",
                     async (CreateInfrastructureConfigRequest request, IMediator mediator, IMapper mapper) =>
                     {
@@ -59,7 +58,12 @@ public static class InfrastructureConfigController
                         );
                     })
                 .WithName("CreateInfrastructureConfig")
-                .WithOpenApi();
+                .AddOpenApiOperationTransformer((operation, context, ct) =>
+                {
+                    operation.Summary = "Create a new Infrastructure Configuration";
+                    operation.Description = "Creates a new Infrastructure Configuration with the specified name.";
+                    return Task.CompletedTask;
+                });
         });
     }
 }

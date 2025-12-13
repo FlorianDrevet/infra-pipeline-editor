@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Api.Common.Mapping;
+using InfraFlowSculptor.Api.Configuration.OpenApiTransformers;
 using Microsoft.AspNetCore.Authorization;
 
 namespace InfraFlowSculptor.Api.Configuration;
@@ -12,7 +13,11 @@ public static class DependencyInjection
             .SetFallbackPolicy(new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .Build());
-        services.AddOpenApiExtensions();
+        services.AddOpenApi(options =>
+        {
+            options.AddDocumentTransformer<SecuritySchemeTransformer>();
+        });
+
         services.AddValidation();
         return services;
     }

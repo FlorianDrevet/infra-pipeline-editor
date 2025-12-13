@@ -2,6 +2,7 @@ using InfraFlowSculptor.Api.Common.RateLimiting;
 using InfraFlowSculptor.Api.Configuration;
 using InfraFlowSculptor.Api.Controllers;
 using InfraFlowSculptor.Api.Errors;
+using InfraFlowSculptor.Api.Options;
 using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
 using InfraFlowSculptor.Infrastructure.Persistence;
@@ -34,6 +35,15 @@ builder.Services
     .AddInfrastructure(builder.Configuration)
     .AddRateLimiting();
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services
+        .AddOptions<ScalarOAuthOptions>()
+        .Bind(builder.Configuration.GetSection(ScalarOAuthOptions.SectionName))
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+}
+
 builder.AddServiceDefaults();
 
 var app = builder.Build();
@@ -42,12 +52,26 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.MapOpenApi();
+    app.MapOpenApi().AllowAnonymous();
+    
+    var scalarOauthConfiguration = builder.Configuration
+        .GetSection(ScalarOAuthOptions.SectionName)
+        .Get<ScalarOAuthOptions>();
+    
     app.MapScalarApiReference(options =>
     {
-        options.AddDocuments("v1");
         options.Layout = ScalarLayout.Classic;
-    });
+        if (scalarOauthConfiguration is not null)
+        {
+            options.AddPreferredSecuritySchemes("OAuth2")
+                .AddImplicitFlow("OAuth2", flow =>
+                {
+                    flow.ClientId = scalarOauthConfiguration.ClientId;
+                    flow.SelectedScopes = scalarOauthConfiguration.Scopes.Select(s => $"{scalarOauthConfiguration.Audience}/{s}").ToArray();
+                    flow.AuthorizationUrl = scalarOauthConfiguration.AuthorizationUrl;
+                });
+        }
+    }).AllowAnonymous();
 }
 
 //Middleware

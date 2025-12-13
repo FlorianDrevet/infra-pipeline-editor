@@ -23,7 +23,7 @@ public static class ResourceGroupController
             var config = endpoints.MapGroup("/resource-group")
                 .WithTags("ResourceGroups")
                 .WithOpenApi();
-            
+
             config.MapGet("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
                     {
@@ -39,15 +39,14 @@ public static class ResourceGroupController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetResourceGroup")
-                .WithOpenApi();
-            
+                .WithName("GetResourceGroup");
+
             config.MapPost("",
                     async (CreateResourceGroupRequest request, IMediator mediator, IMapper mapper) =>
                     {
                         var command = mapper.Map<CreateResourceGroupCommand>(request);
                         var result = await mediator.Send(command);
-                        
+
                         return result.Match(
                             resourceGroup =>
                             {
@@ -61,8 +60,7 @@ public static class ResourceGroupController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateResourceGroup")
-                .WithOpenApi();
+                .WithName("CreateResourceGroup");
         });
     }
 }

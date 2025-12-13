@@ -19,7 +19,7 @@ public static class KeyVaultControllerController
             var config = endpoints.MapGroup("/keyvault")
                 .WithTags("KeyVaults")
                 .WithOpenApi();
-            
+
             config.MapGet("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
                     {
@@ -35,9 +35,8 @@ public static class KeyVaultControllerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetKeyVault")
-                .WithOpenApi();
-            
+                .WithName("GetKeyVault");
+
             config.MapPost("",
                     async (CreateKeyVaultRequest request, IMediator mediator, IMapper mapper) =>
                     {
@@ -57,8 +56,7 @@ public static class KeyVaultControllerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateKeyVault")
-                .WithOpenApi();
+                .WithName("CreateKeyVault");
         });
     }
 }
