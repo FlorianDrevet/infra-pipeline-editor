@@ -12,4 +12,6 @@ public abstract class AggregateRoot<TId> : Entity<TId>
     protected AggregateRoot() : base()
     {
     }
+    
+    public static implicit operator TId(AggregateRoot<TId> aggregateRoot) => aggregateRoot.Id;
 }

@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +30,9 @@ public static class DependencyInjection
         services.AddMigration<ProjectDbContext>();
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        
+        services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddHttpContextAccessor();
 
         return services;
     }
@@ -39,6 +43,8 @@ public static class DependencyInjection
         services.AddScoped<IInfrastructureConfigRepository, InfrastructureConfigRepository>();
         services.AddScoped<IKeyVaultRepository, KeyVaultRepository>();
         services.AddScoped<IResourceGroupRepository, ResourceGroupRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+
         return services;
     }
 

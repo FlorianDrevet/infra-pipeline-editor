@@ -6,6 +6,9 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Shared.Infrastructure.Persistence.Configurations;
+using Shared.Infrastructure.Persistence.Configurations.Converters;
+using Shared.Infrastructure.Persistence.Configurations.Extensions;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 
@@ -20,26 +23,17 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
     {
         builder.ToTable(nameof(AzureResource));
         builder.HasKey(user => user.Id);
-        builder.Property(user => user.Id)
-            .ValueGeneratedNever()
-            .HasConversion(
-                id => id.Value,
-                value => AzureResourceId.Create(value)
-            );
+        
+        builder.ConfigureAggregateRootId<AzureResource, AzureResourceId>();
         
         builder.Property(order => order.Location)
             .IsRequired()
-            .HasConversion(
-                status => status.Value.ToString(),
-                value => new Location(Enum.Parse<Location.LocationEnum>(value))
-            );
+            .HasConversion(new EnumValueConverter<Location, Location.LocationEnum>());
         
         //builder.HasBaseType<AzureResource>();
         
         builder.Property(x => x.Name)
             .IsRequired()
-            .HasConversion(
-                name => name.Value,
-                value => new Name(value));
+            .HasConversion(new SingleValueConverter<Name, string>());
     }
 }

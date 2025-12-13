@@ -7,6 +7,8 @@ using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Shared.Infrastructure.Persistence.Configurations.Converters;
+using Shared.Infrastructure.Persistence.Configurations.Extensions;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 
@@ -21,12 +23,9 @@ public class KeyVaultConfiguration : IEntityTypeConfiguration<KeyVault>
     {
         builder.HasBaseType<AzureResource>()
             .ToTable("KeyVaults");
-        
+
         builder.Property(order => order.Sku)
             .IsRequired()
-            .HasConversion(
-                status => status.Value.ToString(),
-                value => new Sku(Enum.Parse<Sku.SkuEnum>(value))
-            );
+            .HasConversion(new EnumValueConverter<Sku, Sku.SkuEnum>());
     }
 }

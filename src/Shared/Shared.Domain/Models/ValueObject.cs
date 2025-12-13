@@ -2,7 +2,7 @@ namespace Shared.Domain.Domain.Models;
 
 public abstract class ValueObject : IEquatable<ValueObject>
 {
-    public abstract IEnumerable<object> GetEqualityComponents();
+    public abstract IEnumerable<object?> GetEqualityComponents();
 
     public bool Equals(ValueObject? other)
     {

@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -8,7 +9,7 @@ using MediatR;
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 
 public class CreateInfrastructureConfigCommandHandler(
-    IInfrastructureConfigRepository repository, IMapper mapper)
+    IInfrastructureConfigRepository repository, ICurrentUser currentUser, IMapper mapper)
     : IRequestHandler<CreateInfrastructureConfigCommand,
         ErrorOr<GetInfrastructureConfigResult>>
 {
@@ -16,7 +17,8 @@ public class CreateInfrastructureConfigCommandHandler(
         CreateInfrastructureConfigCommand command, CancellationToken cancellationToken)
     {
         var nameVo = new Name(command.Name);
-        var infra = Domain.InfrastructureConfigAggregate.InfrastructureConfig.Create(nameVo);
+        var userId = await currentUser.GetUserIdAsync(cancellationToken);
+        var infra = Domain.InfrastructureConfigAggregate.InfrastructureConfig.Create(nameVo, userId);
 
         var saved = await repository.AddAsync(infra);
 

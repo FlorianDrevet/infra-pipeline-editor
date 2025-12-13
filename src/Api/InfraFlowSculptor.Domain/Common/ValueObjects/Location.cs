@@ -1,9 +1,10 @@
 ﻿using BicepGenerator.Domain.Common.Models;
 using Shared.Domain.Domain.Models;
+using Shared.Domain.Models;
 
 namespace InfraFlowSculptor.Domain.Common.ValueObjects;
 
-public class Location : ValueObject
+public class Location(Location.LocationEnum value) : EnumValueObject<Location.LocationEnum>(value)
 {
     public enum LocationEnum
     {
@@ -16,21 +17,5 @@ public class Location : ValueObject
         EastAsia,
         AustraliaEast,
         JapanEast,
-    }
-
-    public LocationEnum Value { get; protected set; }
-
-    public Location()
-    {
-    }
-
-    public Location(LocationEnum value)
-    {
-        this.Value = value;
-    }
-
-    public override IEnumerable<object> GetEqualityComponents()
-    {
-        yield return Value;
     }
 }
