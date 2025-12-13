@@ -1,11 +1,11 @@
 using System.Linq.Expressions;
-using BicepGenerator.Domain.Common.Models;
+using Shared.Domain.Domain.Models;
 
-namespace BicepGenerator.Application.Common.Interfaces.Persistence;
+namespace Shared.Application.Interfaces;
 
 public interface IRepository<T>
 {
-    Task<T?> GetByIdAsync(ValueObject id);
+    Task<T?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default);
     Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes);
     Task<T> AddAsync(T entity);
     Task<T> UpdateAsync(T entity);

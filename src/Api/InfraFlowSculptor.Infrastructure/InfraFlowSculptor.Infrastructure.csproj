@@ -36,6 +36,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Application\InfraFlowSculptor.Application.csproj" />
     </ItemGroup>
 </Project>

@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
+using Shared.Infrastructure.Persistence.Repositories;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 

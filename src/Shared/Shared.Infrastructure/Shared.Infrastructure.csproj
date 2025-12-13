@@ -1,17 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RootNamespace>InfraFlowSculptor.Domain</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="ErrorOr" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Shared\Shared.Domain\Shared.Domain.csproj" />
+      <ProjectReference Include="..\Shared.Application\Shared.Application.csproj" />
     </ItemGroup>
+
 </Project>

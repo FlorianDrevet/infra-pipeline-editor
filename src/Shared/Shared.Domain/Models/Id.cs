@@ -1,4 +1,4 @@
-﻿namespace InfraFlowSculptor.Domain.Common.Models;
+﻿namespace Shared.Domain.Domain.Models;
 
 public abstract class Id<TId> : ValueObject
 {

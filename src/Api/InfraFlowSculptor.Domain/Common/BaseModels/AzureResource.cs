@@ -1,8 +1,8 @@
 ﻿using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
+using Shared.Domain.Domain.Models;
 
 namespace InfraFlowSculptor.Domain.Common.BaseModels;
 

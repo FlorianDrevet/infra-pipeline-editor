@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Shared\Shared.Application\Shared.Application.csproj" />
         <ProjectReference Include="..\BicepGenerator.Domain\BicepGenerator.Domain.csproj"/>
     </ItemGroup>
 
@@ -16,6 +17,10 @@
         <PackageReference Include="FluentValidation.AspNetCore"/>
         <PackageReference Include="MediatR"/>
         <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Common\Interfaces\Persistence\" />
     </ItemGroup>
 
 </Project>

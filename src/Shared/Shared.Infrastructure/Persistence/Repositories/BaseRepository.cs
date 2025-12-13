@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Domain.Common.Models;
+using Shared.Application.Interfaces;
+using Shared.Domain.Domain.Models;
 
-namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
+namespace Shared.Infrastructure.Persistence.Repositories;
 
 public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
     where TEntity : class

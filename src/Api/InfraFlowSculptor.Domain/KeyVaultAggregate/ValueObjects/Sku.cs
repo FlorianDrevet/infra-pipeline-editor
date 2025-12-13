@@ -1,4 +1,4 @@
-using InfraFlowSculptor.Domain.Common.Models;
+using Shared.Domain.Domain.Models;
 
 namespace InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 

@@ -1,7 +1,7 @@
-﻿using InfraFlowSculptor.Domain.Common.Models;
-using InfraFlowSculptor.Domain.Common.ValueObjects;
+﻿using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
+using Shared.Domain.Domain.Models;
 
 namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 
@@ -13,8 +13,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     
     //public List<EnvironmentVariable> Variables { get; set; } = new();
 
-    private InfrastructureConfig(InfrastructureConfigId id, Name name)
-        : base(id)
+    private InfrastructureConfig(InfrastructureConfigId id, Name name): base(id)
     {
         Name = name;
     }

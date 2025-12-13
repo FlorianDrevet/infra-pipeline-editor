@@ -11,4 +11,12 @@
         <PackageReference Include="ErrorOr"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Common\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Shared\Shared.Domain\Shared.Domain.csproj" />
+    </ItemGroup>
+
 </Project>
