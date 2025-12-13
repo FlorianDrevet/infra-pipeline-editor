@@ -1,4 +1,4 @@
-namespace InfraFlowSculptor.Api.Options;
+namespace Shared.Api.Options;
 
 public class ScalarOAuthOptions
 {

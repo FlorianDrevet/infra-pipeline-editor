@@ -1,4 +1,3 @@
-using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Application.KeyVaults.Queries;
 using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Commands.CreateResourceGroup;
@@ -11,6 +10,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Api.Errors;
 
 namespace InfraFlowSculptor.Api.Controllers;
 
@@ -21,8 +21,7 @@ public static class ResourceGroupController
         return builder.UseEndpoints(endpoints =>
         {
             var config = endpoints.MapGroup("/resource-group")
-                .WithTags("ResourceGroups")
-                .WithOpenApi();
+                .WithTags("ResourceGroups");
 
             config.MapGet("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>

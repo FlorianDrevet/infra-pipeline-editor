@@ -1,7 +1,8 @@
 using ErrorOr;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace InfraFlowSculptor.Api.Errors;
+namespace Shared.Api.Errors;
 
 public static class ErrorOrExtended
 {

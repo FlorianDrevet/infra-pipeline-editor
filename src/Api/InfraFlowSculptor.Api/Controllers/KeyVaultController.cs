@@ -1,4 +1,3 @@
-using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Queries;
 using MediatR;
@@ -7,6 +6,7 @@ using InfraFlowSculptor.Contracts.KeyVaults.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Api.Errors;
 
 namespace InfraFlowSculptor.Api.Controllers;
 
@@ -17,8 +17,7 @@ public static class KeyVaultControllerController
         return builder.UseEndpoints(endpoints =>
         {
             var config = endpoints.MapGroup("/keyvault")
-                .WithTags("KeyVaults")
-                .WithOpenApi();
+                .WithTags("KeyVaults");
 
             config.MapGet("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>

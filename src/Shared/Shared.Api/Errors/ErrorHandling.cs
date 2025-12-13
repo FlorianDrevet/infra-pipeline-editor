@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 
-namespace BicepGenerator.Api.Errors;
+namespace Shared.Api.Errors;
 
 public static class ErrorHandling
 {

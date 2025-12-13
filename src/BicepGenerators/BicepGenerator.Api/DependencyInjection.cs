@@ -1,4 +1,6 @@
 using BicepGenerator.Api.Common.Mapping;
+using Microsoft.AspNetCore.Authorization;
+using Shared.Api.Configuration.OpenApiTransformers;
 
 namespace BicepGenerator.Api;
 
@@ -7,7 +9,18 @@ public static class DependencyInjection
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
         services.AddMapping();
-        services.AddAuthorization();
+        
+        services.AddAuthorizationBuilder()
+            .SetFallbackPolicy(new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build());
+        
+        services.AddOpenApi(options =>
+        {
+            options.AddDocumentTransformer<SecuritySchemeTransformer>();
+        });
+
+        services.AddValidation();
         return services;
     }
 }

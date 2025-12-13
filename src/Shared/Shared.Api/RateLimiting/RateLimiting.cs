@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace BicepGenerator.Api.Common.RateLimiting;
+namespace Shared.Api.RateLimiting;
 
 public static class DependencyInjection
 {

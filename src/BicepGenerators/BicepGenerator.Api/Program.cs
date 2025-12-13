@@ -1,9 +1,10 @@
 using Scalar.AspNetCore;
 using BicepGenerator.Api;
-using BicepGenerator.Api.Common.RateLimiting;
-using BicepGenerator.Api.Errors;
 using BicepGenerator.Application;
 using BicepGenerator.Infrastructure;
+using Shared.Api.Configuration;
+using Shared.Api.Errors;
+using Shared.Api.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,17 +31,7 @@ builder.Services
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-    app.MapOpenApi();
-    app.MapScalarApiReference(options =>
-    {
-        options.AddDocuments("v1");
-        options.Layout = ScalarLayout.Classic;
-    });
-}
+app.AddDevelopmentTools(builder.Configuration);
 
 //Middleware
 app.UseCors("CorsPolicy");

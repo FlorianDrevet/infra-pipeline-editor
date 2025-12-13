@@ -27,6 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Shared\Shared.Api\Shared.Api.csproj" />
         <ProjectReference Include="..\BicepGenerator.Contracts\BicepGenerator.Contracts.csproj"/>
         <ProjectReference Include="..\BicepGenerator.Application\BicepGenerator.Application.csproj"/>
         <ProjectReference Include="..\BicepGenerator.Infrastructure\BicepGenerator.Infrastructure.csproj"/>
