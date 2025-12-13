@@ -3,6 +3,7 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Shared.Infrastructure.Persistence.Configurations;
 using Shared.Infrastructure.Persistence.Configurations.Converters;
 using Shared.Infrastructure.Persistence.Configurations.Extensions;
 
@@ -22,7 +23,8 @@ public class ResourceGroupConfiguration : IEntityTypeConfiguration<ResourceGroup
         
         builder.ConfigureAggregateRootId<ResourceGroup, ResourceGroupId>();
         
-        builder.ComplexProperty(user => user.Name);
+        builder.Property(config => config.Name)
+            .HasConversion(new SingleValueConverter<Name, string>());
         
         builder.Property(order => order.Location)
             .IsRequired()
