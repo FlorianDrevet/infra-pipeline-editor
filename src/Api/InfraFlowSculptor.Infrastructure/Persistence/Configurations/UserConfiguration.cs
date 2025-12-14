@@ -26,7 +26,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ComplexProperty(user => user.Name);
         
         builder.Property(user => user.EntraId)
-            .HasConversion(new SingleValueConverter<EntraId, Guid>());
+            .HasConversion(new SingleValueConverter<Guid>());
         
         builder.HasIndex(user => user.EntraId).IsUnique();
     }

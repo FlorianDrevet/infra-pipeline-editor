@@ -4,13 +4,12 @@ using Shared.Domain.Models;
 
 namespace Shared.Infrastructure.Persistence.Configurations;
 
-public class SingleValueConverter<TSingleValueObject, TValue> : ValueConverter<TSingleValueObject, TValue>
-    where TSingleValueObject : SingleValueObject<TValue>
+public class SingleValueConverter<TValue> : ValueConverter<SingleValueObject<TValue>, TValue>
 {
     public SingleValueConverter()
         : base(
             id => id.Value,
-            value => (TSingleValueObject)new SingleValueObject<TValue>(value))
+            value => new SingleValueObject<TValue>(value))
     {
     }
 }

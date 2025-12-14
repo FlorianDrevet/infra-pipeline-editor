@@ -29,7 +29,7 @@ public class InfrastructureConfigConfiguration : IEntityTypeConfiguration<Infras
             .OnDelete(DeleteBehavior.Cascade); 
         
         builder.Property(config => config.Name)
-            .HasConversion(new SingleValueConverter<Name, string>());
+            .HasConversion(new SingleValueConverter<string>());
         
         
         builder
