@@ -34,6 +34,6 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
         
         builder.Property(x => x.Name)
             .IsRequired()
-            .HasConversion(new SingleValueConverter<string>());
+            .HasConversion(new SingleValueConverter<Name, string>());
     }
 }

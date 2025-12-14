@@ -5,6 +5,7 @@ using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Shared.Infrastructure.Persistence.Configurations;
+using Shared.Infrastructure.Persistence.Configurations.Converters;
 using Shared.Infrastructure.Persistence.Configurations.Extensions;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
@@ -26,7 +27,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ComplexProperty(user => user.Name);
         
         builder.Property(user => user.EntraId)
-            .HasConversion(new SingleValueConverter<Guid>());
+            .HasConversion(new SingleValueConverter<EntraId, Guid>());
         
         builder.HasIndex(user => user.EntraId).IsUnique();
     }

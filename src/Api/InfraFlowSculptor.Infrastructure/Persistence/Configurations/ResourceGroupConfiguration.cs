@@ -24,7 +24,7 @@ public class ResourceGroupConfiguration : IEntityTypeConfiguration<ResourceGroup
         builder.ConfigureAggregateRootId<ResourceGroup, ResourceGroupId>();
         
         builder.Property(config => config.Name)
-            .HasConversion(new SingleValueConverter<string>());
+            .HasConversion(new SingleValueConverter<Name, string>());
         
         builder.Property(order => order.Location)
             .IsRequired()

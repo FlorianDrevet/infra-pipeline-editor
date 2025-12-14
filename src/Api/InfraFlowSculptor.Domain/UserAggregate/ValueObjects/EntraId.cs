@@ -3,4 +3,11 @@ using Shared.Domain.Models;
 
 namespace InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 
-public sealed class EntraId(Guid entraId) : SingleValueObject<Guid>(entraId);
+public sealed class EntraId: SingleValueObject<Guid>
+{
+    private EntraId() { }
+
+    public EntraId(Guid value) : base(value)
+    {
+    }
+}

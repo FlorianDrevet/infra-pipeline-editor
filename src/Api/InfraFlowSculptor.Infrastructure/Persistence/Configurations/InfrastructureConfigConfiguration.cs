@@ -4,6 +4,7 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Shared.Infrastructure.Persistence.Configurations;
+using Shared.Infrastructure.Persistence.Configurations.Converters;
 using Shared.Infrastructure.Persistence.Configurations.Extensions;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
@@ -29,7 +30,7 @@ public class InfrastructureConfigConfiguration : IEntityTypeConfiguration<Infras
             .OnDelete(DeleteBehavior.Cascade); 
         
         builder.Property(config => config.Name)
-            .HasConversion(new SingleValueConverter<string>());
+            .HasConversion(new SingleValueConverter<Name, string>());
         
         
         builder

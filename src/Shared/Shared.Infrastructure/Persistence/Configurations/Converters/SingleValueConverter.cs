@@ -1,15 +1,20 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Shared.Domain.Domain.Models;
 using Shared.Domain.Models;
 
-namespace Shared.Infrastructure.Persistence.Configurations;
+namespace Shared.Infrastructure.Persistence.Configurations.Converters;
 
-public class SingleValueConverter<TValue> : ValueConverter<SingleValueObject<TValue>, TValue>
+public class SingleValueConverter<TValueObject, TValue>
+    : ValueConverter<TValueObject, TValue>
+    where TValueObject : SingleValueObject<TValue>
 {
     public SingleValueConverter()
         : base(
-            id => id.Value,
-            value => new SingleValueObject<TValue>(value))
+            vo => vo.Value,
+            value => (TValueObject)Activator.CreateInstance(
+                typeof(TValueObject),
+                value
+            )!
+        )
     {
     }
 }
