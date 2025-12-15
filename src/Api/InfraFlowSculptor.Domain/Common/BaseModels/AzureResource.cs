@@ -14,18 +14,24 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     public required Name Name { get; set; }
     public required Location Location { get; set; }
     
-    private List<AzureResource> _dependencies = new List<AzureResource>();
-    public IReadOnlyList<AzureResource> Dependencies => _dependencies.AsReadOnly();
+    private List<AzureResource> _dependsOn = new List<AzureResource>();
+    public IReadOnlyList<AzureResource> DependsOn => _dependsOn.AsReadOnly();
 
     //public ManagedIdentity? ManagedIdentity { get; set; }
-
-    protected AzureResource(AzureResourceId id)
-        : base(id)
+    
+    // Méthode métier
+    public void AddDependency(AzureResource resource)
     {
+        if (resource.Id == Id)
+            throw new InvalidOperationException("Une ressource ne peut pas dépendre d'elle-même.");
 
+        if (_dependsOn.Any(r => r.Id == resource.Id))
+            return;
+
+        _dependsOn.Add(resource);
     }
 
-    public AzureResource()
+    protected AzureResource()
     {
     }
 }

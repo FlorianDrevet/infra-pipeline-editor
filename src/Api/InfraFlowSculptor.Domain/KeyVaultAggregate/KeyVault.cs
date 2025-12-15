@@ -10,7 +10,7 @@ public class KeyVault: AzureResource
 {
     public required Sku Sku { get; set; }
     
-    public KeyVault(): base()
+    private KeyVault()
     {
     }
     

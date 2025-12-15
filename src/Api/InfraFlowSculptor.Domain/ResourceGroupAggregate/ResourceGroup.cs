@@ -54,7 +54,7 @@ public sealed class ResourceGroup : AggregateRoot<ResourceGroupId>
         if (!_resources.Contains(resource))
             return Errors.ResourceGroup.RemoveResource.ResourceNotInGroup();
 
-        var isDependency = _resources.Any(r => r.Dependencies.Contains(resource));
+        var isDependency = _resources.Any(r => r.DependsOn.Contains(resource));
         if (isDependency)
             return Errors.ResourceGroup.RemoveResource.ResourceIsDependency();
 

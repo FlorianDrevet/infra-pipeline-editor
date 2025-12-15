@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InfraFlowSculptor.Infrastructure.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    partial class ProjectDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251215081305_AzureResourceId")]
+    partial class AzureResourceId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,24 +26,12 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("AzureResourceDependency", b =>
-                {
-                    b.Property<Guid>("AzureResourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("DependsOnResourceId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("AzureResourceId", "DependsOnResourceId");
-
-                    b.HasIndex("DependsOnResourceId");
-
-                    b.ToTable("AzureResourceDependencies", (string)null);
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", b =>
                 {
                     b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AzureResourceId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Location")
@@ -55,6 +46,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AzureResourceId");
 
                     b.HasIndex("ResourceGroupId");
 
@@ -163,23 +156,12 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("KeyVaults", (string)null);
                 });
 
-            modelBuilder.Entity("AzureResourceDependency", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithMany()
-                        .HasForeignKey("AzureResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithMany()
-                        .HasForeignKey("DependsOnResourceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", b =>
                 {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithMany("Dependencies")
+                        .HasForeignKey("AzureResourceId");
+
                     b.HasOne("InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup", "ResourceGroup")
                         .WithMany("Resources")
                         .HasForeignKey("ResourceGroupId")
@@ -218,6 +200,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasForeignKey("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", b =>
+                {
+                    b.Navigation("Dependencies");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>
