@@ -1,9 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
 using InfraFlowSculptor.Infrastructure.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 
-namespace InfraFlowSculptor.Infrastructure.Services;
+namespace InfraFlowSculptor.Infrastructure.Services.Authentication;
 
 public interface IAzureAdService
 {

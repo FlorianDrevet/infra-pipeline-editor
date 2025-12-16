@@ -13,6 +13,7 @@ using InfraFlowSculptor.Infrastructure.Options;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 using InfraFlowSculptor.Infrastructure.Services;
+using InfraFlowSculptor.Infrastructure.Services.Authentication;
 using Microsoft.Identity.Web;
 using Refit;
 
