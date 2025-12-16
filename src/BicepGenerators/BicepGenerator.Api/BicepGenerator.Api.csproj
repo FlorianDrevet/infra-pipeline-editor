@@ -36,8 +36,4 @@
     <ItemGroup>
       <ProjectReference Include="..\BicepGenerator.Application\BicepGenerator.Application.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Controllers\" />
-    </ItemGroup>
 </Project>

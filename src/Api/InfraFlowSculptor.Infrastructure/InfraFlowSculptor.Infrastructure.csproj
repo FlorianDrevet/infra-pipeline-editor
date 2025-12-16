@@ -24,6 +24,8 @@
         <PackageReference Include="Microsoft.Identity.Web" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" />
+        <PackageReference Include="Refit" />
+        <PackageReference Include="Refit.HttpClientFactory" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
 
         <!-- Open Telemetry -->

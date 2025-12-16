@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Api\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj" />
+    <ProjectReference Include="..\..\BicepGenerators\BicepGenerator.Api\BicepGenerator.Api.csproj" />
   </ItemGroup>
 
 </Project>

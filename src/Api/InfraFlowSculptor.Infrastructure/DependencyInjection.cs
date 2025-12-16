@@ -1,17 +1,20 @@
+using System.Text.Json;
+using InfraFlowSculptor.Application.Common.Clients;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Infrastructure.Extensions;
+using InfraFlowSculptor.Infrastructure.Factories;
+using InfraFlowSculptor.Infrastructure.Options;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 using InfraFlowSculptor.Infrastructure.Services;
-using InfraFlowSculptor.Infrastructure.Services.BlobService;
 using Microsoft.Identity.Web;
+using Refit;
 
 namespace InfraFlowSculptor.Infrastructure;
 
@@ -24,7 +27,7 @@ public static class DependencyInjection
         services
             .AddAuth(builderConfiguration)
             .AddAzureServices(builderConfiguration)
-            .AddBlob(builderConfiguration)
+            .AddBicepGeneratorApi(builderConfiguration)
             .AddRepositories();
         
         services.AddMigration<ProjectDbContext>();
@@ -62,19 +65,6 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddBlob(
-        this IServiceCollection services,
-        ConfigurationManager builderConfiguration)
-    {
-        var blobSettings = new BlobSettings();
-        builderConfiguration.Bind(BlobSettings.SectionName, blobSettings);
-
-        services.AddSingleton(Options.Create(blobSettings));
-        services.AddSingleton<IBlobService, BlobService>();
-        return services;
-    }
-
-
     private static IServiceCollection AddAuth(
         this IServiceCollection services,
         ConfigurationManager builderConfiguration)
@@ -82,6 +72,45 @@ public static class DependencyInjection
         services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builderConfiguration.GetSection("AzureAd"));
         
+        return services;
+    }
+    
+    private static IServiceCollection AddBicepGeneratorApi(
+        this IServiceCollection services,
+        ConfigurationManager builderConfiguration)
+    {
+        services.AddMemoryCache();
+        
+        services.AddOptions<AzureAdOptions>()
+            .Bind(builderConfiguration.GetSection(AzureAdOptions.SectionName))
+            .ValidateDataAnnotations();
+        
+        services.AddSingleton<IBearerTokenService, BearerTokenService>();
+        services.AddSingleton<IAzureAdService, AzureAdService>();
+
+        var options = new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+        var jsonSerializerOptions = new SystemTextJsonContentSerializer(options);
+        RefitSettings refitSettings = new()
+        {
+            // Tell Refit to use AuthBearerTokenFactory.GetBearerTokenAsync() whenever it needs an OAuth token string.
+            // This is a lambda, so it won't be called until a request is made.
+            AuthorizationHeaderValueGetter = (_, cancellationToken) => AuthBearerTokenFactory.GetBearerTokenAsync(cancellationToken),
+            ContentSerializer = jsonSerializerOptions
+        };
+
+        services.AddRefitClient<IGenerateBicepClient>(refitSettings)
+            .ConfigureHttpClient(client =>
+            {
+                var bicepGeneratorApiSettings = builderConfiguration
+                    .GetSection(BicepGeneratorOptions.SectionName)
+                    .Get<BicepGeneratorOptions>() ?? throw new ArgumentNullException(nameof(BicepGeneratorOptions));
+                
+                client.BaseAddress = bicepGeneratorApiSettings.BaseUri;
+            });
         return services;
     }
 }

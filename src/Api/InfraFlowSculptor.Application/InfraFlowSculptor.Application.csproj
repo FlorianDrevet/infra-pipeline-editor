@@ -18,6 +18,7 @@
         <PackageReference Include="Mapster" />
         <PackageReference Include="MediatR" />
         <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" />
+        <PackageReference Include="Refit" />
     </ItemGroup>
 
 </Project>

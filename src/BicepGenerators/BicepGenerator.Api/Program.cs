@@ -1,5 +1,6 @@
 using Scalar.AspNetCore;
 using BicepGenerator.Api;
+using BicepGenerator.Api.Controllers;
 using BicepGenerator.Application;
 using BicepGenerator.Infrastructure;
 using Shared.Api.Configuration;
@@ -45,5 +46,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 //Controllers
+app.UseBicepGenerationControllerController();
 
 await app.RunAsync();

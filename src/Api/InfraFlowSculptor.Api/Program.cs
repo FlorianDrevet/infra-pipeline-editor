@@ -2,7 +2,9 @@ using InfraFlowSculptor.Api;
 using InfraFlowSculptor.Api.Controllers;
 using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
+using InfraFlowSculptor.Infrastructure.Factories;
 using InfraFlowSculptor.Infrastructure.Persistence;
+using InfraFlowSculptor.Infrastructure.Services;
 using InfraFlowSculptor.ServiceDefaults;
 using Scalar.AspNetCore;
 using Shared.Api.Configuration;
@@ -48,6 +50,12 @@ if (builder.Environment.IsDevelopment())
 builder.AddServiceDefaults();
 
 var app = builder.Build();
+
+AuthBearerTokenFactory.SetBearerTokenGetterFunc(cancellationToken =>
+{
+    var client = app.Services.GetRequiredService<IBearerTokenService>();
+    return client.GetBearerTokenAsync(cancellationToken);
+});
 
 // Configure the HTTP request pipeline.
 app.AddDevelopmentTools(builder.Configuration);
