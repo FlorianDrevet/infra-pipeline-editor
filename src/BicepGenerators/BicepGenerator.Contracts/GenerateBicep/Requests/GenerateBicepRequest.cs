@@ -1,3 +1,3 @@
 namespace BicepGenerator.Contracts.GenerateBicep.Requests;
 
-public record GenerateBicepRequest();
+public record GenerateBicepRequest(Guid InfrastructureConfigId);

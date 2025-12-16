@@ -1,3 +1,4 @@
+using BicepGenerator.Contracts.GenerateBicep.Requests;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Clients;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
@@ -14,8 +15,9 @@ public class GenerateBicepCommandHandler(IInfrastructureConfigRepository infrast
         var infraId = new InfrastructureConfigId(command.InfraInfrastructureConfigId);
         var infrastructureConfig = await infrastructureConfigRepository.GetByIdAsync(infraId, cancellationToken);
         //TODO
-        
-        var bicepUri = await generateBicepClient.GenerateBicepAsync(cancellationToken);
-        return bicepUri;
+
+        var request = new GenerateBicepRequest(command.InfraInfrastructureConfigId);
+        var bicepUri = await generateBicepClient.GenerateBicepAsync(request, cancellationToken);
+        return bicepUri.BicepUri;
     }
 }
