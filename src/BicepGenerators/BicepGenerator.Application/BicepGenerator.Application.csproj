@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Common\Interfaces\Persistence\" />
+      <Folder Include="Common\Interfaces\Bicep\" />
     </ItemGroup>
 
 </Project>
