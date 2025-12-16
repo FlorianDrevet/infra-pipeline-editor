@@ -16,14 +16,14 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
         this.Context = context;
     }
 
-    public async Task<TEntity> AddAsync(TEntity entity)
+    public virtual async Task<TEntity> AddAsync(TEntity entity)
     {
         var res = Context.Set<TEntity>().Add(entity);
         await Context.SaveChangesAsync();
         return res.Entity;
     }
 
-    public async Task<bool> DeleteAsync(ValueObject id)
+    public virtual async Task<bool> DeleteAsync(ValueObject id)
     {
         var entity = await Context.Set<TEntity>().FindAsync(id);
         if (entity == null)
@@ -36,12 +36,12 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
         return true;
     }
 
-    public async Task<TEntity?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
+    public virtual async Task<TEntity?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
     {
         return await Context.Set<TEntity>().FindAsync(cancellationToken: cancellationToken, keyValues: [id]);
     }
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes)
+    public virtual async Task<IEnumerable<TEntity>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes)
     {
         IQueryable<TEntity> query = Context.Set<TEntity>();
 
@@ -53,7 +53,7 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
         return await query.ToListAsync();
     }
 
-    public async Task<TEntity> UpdateAsync(TEntity entity)
+    public virtual async Task<TEntity> UpdateAsync(TEntity entity)
     {
         Context.Entry(entity).State = EntityState.Modified;
         await Context.SaveChangesAsync();

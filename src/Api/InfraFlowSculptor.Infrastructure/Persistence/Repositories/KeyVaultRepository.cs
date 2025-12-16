@@ -4,7 +4,7 @@ using Shared.Infrastructure.Persistence.Repositories;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 
-public class KeyVaultRepository: BaseRepository<KeyVault, ProjectDbContext>, IKeyVaultRepository
+public class KeyVaultRepository: AzureResourceRepository<KeyVault>, IKeyVaultRepository
 {
     public KeyVaultRepository(ProjectDbContext context) : base(context)
     {

@@ -36,27 +36,22 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
             .IsRequired()
             .HasConversion(new SingleValueConverter<Name, string>());
 
-        //TODO
-        builder
-            .HasMany(x => x.DependsOn)
+        // Configuration de la relation DependsOn
+        builder.HasMany(r => r.DependsOn)
             .WithMany()
             .UsingEntity<Dictionary<string, object>>(
-                "AzureResourceDependency",
-                j => j
-                    .HasOne<AzureResource>()
+                "AzureResourceDependencies",
+                j => j.HasOne<AzureResource>()
                     .WithMany()
-                    .HasForeignKey("DependsOnResourceId")
+                    .HasForeignKey("DependsOnId")
                     .OnDelete(DeleteBehavior.Restrict),
-                j => j
-                    .HasOne<AzureResource>()
+                j => j.HasOne<AzureResource>()
                     .WithMany()
-                    .HasForeignKey("AzureResourceId")
-                    .OnDelete(DeleteBehavior.Cascade),
-                j =>
-                {
-                    j.HasKey("AzureResourceId", "DependsOnResourceId");
-                    j.ToTable("AzureResourceDependencies");
-                }
-            );
+                    .HasForeignKey("ResourceId")
+                    .OnDelete(DeleteBehavior.Cascade));
+        
+        builder.Navigation(r => r.DependsOn)
+            .HasField("_dependsOn")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }
