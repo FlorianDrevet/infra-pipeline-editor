@@ -13,11 +13,6 @@ public class InfrastructureConfigConfiguration : IEntityTypeConfiguration<Infras
 {
     public void Configure(EntityTypeBuilder<InfrastructureConfig> builder)
     {
-        ConfigureUsersTable(builder);
-    }
-
-    private void ConfigureUsersTable(EntityTypeBuilder<InfrastructureConfig> builder)
-    {
         builder.ToTable(nameof(InfrastructureConfig));
         builder.HasKey(user => user.Id);
         
@@ -38,5 +33,24 @@ public class InfrastructureConfigConfiguration : IEntityTypeConfiguration<Infras
             .WithOne(t => t.InfraConfig)
             .HasForeignKey(t => t.InfraConfigId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        ConfigureEnvironmentsTable(builder);
+    }
+
+    private void ConfigureEnvironmentsTable(EntityTypeBuilder<InfrastructureConfig> builder)
+    {
+        builder.OwnsMany(config => config.EnvironmentDefinitions, env =>
+        {
+            env.ToTable("Environments");
+            env.HasKey(e => e.Id);
+            env.Property(e => e.Name).HasConversion(new SingleValueConverter<Name, string>());
+            env.Property(e => e.Prefix).HasConversion(new SingleValueConverter<Prefix, string>());
+            env.Property(e => e.Suffix).HasConversion(new SingleValueConverter<Suffix, string>());
+            env.Property(e => e.SubscriptionId).HasConversion(new SingleValueConverter<SubscriptionId, Guid>());
+            env.Property(e => e.TenantId).HasConversion(new SingleValueConverter<TenantId, Guid>());
+            env.Property(e => e.Location).HasConversion(new EnumValueConverter<Location, Location.LocationEnum>());
+            env.Property(e => e.RequiresApproval).HasConversion(new SingleValueConverter<RequiresApproval, bool>());
+            env.Property(e => e.Order).HasConversion(new SingleValueConverter<Order, int>());
+        });
     }
 }

@@ -17,4 +17,7 @@ public abstract class SingleValueObject<T>: ValueObject
     {
         yield return Value;
     }
+    
+    public static implicit operator T(SingleValueObject<T> valueObject) => valueObject.Value;
+    public static implicit operator SingleValueObject<T>(T value) => (SingleValueObject<T>)Activator.CreateInstance(typeof(SingleValueObject<T>), value)!;
 }

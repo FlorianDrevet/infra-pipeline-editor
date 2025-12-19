@@ -16,6 +16,9 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     private readonly List<Member> _members = new();
     public IReadOnlyCollection<Member> Members => _members.AsReadOnly();
     
+    private readonly List<EnvironmentDefinition> _environmentDefinitions = new();
+    public IReadOnlyCollection<EnvironmentDefinition> EnvironmentDefinitions => _environmentDefinitions.AsReadOnly();
+    
     //public List<EnvironmentVariable> Variables { get; set; } = new();
 
     private InfrastructureConfig(InfrastructureConfigId id, Name name, UserId ownerId): base(id)
