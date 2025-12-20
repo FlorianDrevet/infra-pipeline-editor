@@ -15,9 +15,7 @@ public sealed class InputOutputLinkConfiguration
 {
     public void Configure(EntityTypeBuilder<InputOutputLink> builder)
     {
-        builder.ToTable("ResourceLinks", t => 
-            t.HasCheckConstraint("CK_ResourceLinks_SourceTarget_Different",
-                "[SourceResourceId] <> [TargetResourceId]"));
+        builder.ToTable("ResourceLinks");
 
         builder.HasKey(x => x.Id);
 
