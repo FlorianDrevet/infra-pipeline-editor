@@ -1,3 +1,5 @@
+using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
+using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
@@ -14,6 +16,10 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<KeyVault> KeyVaults { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Member> Members { get; set; } = null!;
+    public DbSet<ParameterDefinition> ParameterDefinitions { get; set; } = null!;
+    public DbSet<ResourceParameterUsage> ResourceParameterUsage { get; set; } = null!;
+    public DbSet<InputOutputLink> InputOutputLinks { get; set; } = null!;
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

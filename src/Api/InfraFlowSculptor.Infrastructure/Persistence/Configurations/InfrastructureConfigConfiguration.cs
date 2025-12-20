@@ -94,6 +94,16 @@ public sealed class InfrastructureConfigConfiguration
 
             env.Property(x => x.RequiresApproval)
                 .HasConversion(new SingleValueConverter<RequiresApproval, bool>());
+            
+            env.OwnsMany(x => x.Tags, tag =>
+            {
+                tag.ToTable("EnvironmentTags");
+                tag.WithOwner().HasForeignKey("EnvironmentId");
+                tag.HasKey("EnvironmentId", "Name"); 
+
+                tag.Property(t => t.Name).HasMaxLength(100);
+                tag.Property(t => t.Value).HasMaxLength(500);
+            });
 
             // ========================
             // EnvironmentParameterValues (OWNED OF OWNED)

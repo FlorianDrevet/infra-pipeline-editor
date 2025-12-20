@@ -1,4 +1,5 @@
-﻿using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+﻿using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
@@ -24,6 +25,13 @@ public class AzureResource : AggregateRoot<AzureResourceId>
 
     private readonly List<ResourceParameterUsage> _parameterUsages = new();
     public IReadOnlyCollection<ResourceParameterUsage> ParameterUsages => _parameterUsages;
+    
+    private readonly List<InputOutputLink> _inputs = new();
+    public IReadOnlyCollection<InputOutputLink> Inputs => _inputs;
+
+    private readonly List<InputOutputLink> _outputs = new();
+    public IReadOnlyCollection<InputOutputLink> Outputs => _outputs;
+
 
     //public ManagedIdentity? ManagedIdentity { get; set; }
     
