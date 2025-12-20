@@ -20,6 +20,10 @@ public sealed class EnvironmentDefinition : Entity<EnvironmentDefinitionId>
     public Order Order { get; set; } // Ordre de déploiement (dev=1, staging=2, prod=3)
     public RequiresApproval RequiresApproval { get; set; } // Pour les pipelines
     public IEnumerable<Tag> Tags { get; set; } // Tags Azure spécifiques
+    
+    private readonly List<EnvironmentParameterValue> _parameterValues = new();
+    public IReadOnlyCollection<EnvironmentParameterValue> ParameterValues => _parameterValues;
+
 
     private EnvironmentDefinition() { }
 

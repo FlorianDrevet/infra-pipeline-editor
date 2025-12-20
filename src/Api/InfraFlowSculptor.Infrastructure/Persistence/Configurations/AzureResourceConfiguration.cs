@@ -53,5 +53,10 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
         builder.Navigation(r => r.DependsOn)
             .HasField("_dependsOn")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+        
+        builder.HasMany(r => r.ParameterUsages)
+            .WithOne()
+            .HasForeignKey(x => x.ResourceId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

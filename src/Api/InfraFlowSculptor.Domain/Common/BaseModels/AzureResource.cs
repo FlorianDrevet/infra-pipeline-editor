@@ -1,5 +1,8 @@
 ﻿using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using Shared.Domain.Domain.Models;
@@ -16,6 +19,11 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     
     private List<AzureResource> _dependsOn = new List<AzureResource>();
     public IReadOnlyList<AzureResource> DependsOn => _dependsOn.AsReadOnly();
+    
+    protected virtual IReadOnlyCollection<ParameterUsage> AllowedParameterUsages { get; }
+
+    private readonly List<ResourceParameterUsage> _parameterUsages = new();
+    public IReadOnlyCollection<ResourceParameterUsage> ParameterUsages => _parameterUsages;
 
     //public ManagedIdentity? ManagedIdentity { get; set; }
     
@@ -29,6 +37,19 @@ public class AzureResource : AggregateRoot<AzureResourceId>
             return;
 
         _dependsOn.Add(resource);
+    }
+    
+    protected void AddParameterUsage(
+        ParameterDefinition parameter,
+        ParameterUsage usage)
+    {
+        //TODO
+        if (!AllowedParameterUsages.Contains(usage))
+            throw new Exception(
+                $"{GetType().Name} does not support parameter usage '{usage}'");
+
+        _parameterUsages.Add(
+            new ResourceParameterUsage(Id, parameter.Id, usage));
     }
 
     protected AzureResource()
