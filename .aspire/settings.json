@@ -1,3 +1,3 @@
 {
-  "appHostPath": "../InfraFlowSculptor.AppHost/InfraFlowSculptor.AppHost.csproj"
+  "appHostPath": "../src/Aspire/InfraFlowSculptor.AppHost/InfraFlowSculptor.AppHost.csproj"
 }
