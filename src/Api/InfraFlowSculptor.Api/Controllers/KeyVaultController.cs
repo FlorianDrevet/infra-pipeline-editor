@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Commands.DeleteKeyVault;
+using InfraFlowSculptor.Application.KeyVaults.Commands.UpdateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Queries;
 using MediatR;
 using InfraFlowSculptor.Contracts.KeyVaults.Requests;
@@ -57,6 +58,23 @@ public static class KeyVaultControllerController
                         );
                     })
                 .WithName("CreateKeyVault");
+
+            config.MapPut("/{id:guid}",
+                    async ([FromRoute] Guid id, UpdateKeyVaultRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = mapper.Map<UpdateKeyVaultCommand>((id, request));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            keyVault =>
+                            {
+                                var response = mapper.Map<KeyVaultResponse>(keyVault);
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("UpdateKeyVault");
 
             config.MapDelete("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator) =>
