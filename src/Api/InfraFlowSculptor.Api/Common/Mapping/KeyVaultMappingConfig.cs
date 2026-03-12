@@ -9,7 +9,7 @@ public class KeyVaultMappingConfig : IRegister
     {
         config.NewConfig<Sku, string>()
             .MapWith(src => src.Value.ToString());
-        
+
         config.NewConfig<string, Sku>()
             .MapWith(src => new Sku(Enum.Parse<Sku.SkuEnum>(src)));
     }

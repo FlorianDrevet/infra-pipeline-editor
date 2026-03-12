@@ -1,10 +1,13 @@
 using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Commands.DeleteKeyVault;
+using InfraFlowSculptor.Application.KeyVaults.Commands.UpdateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Queries;
 using MediatR;
 using InfraFlowSculptor.Contracts.KeyVaults.Requests;
 using InfraFlowSculptor.Contracts.KeyVaults.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Api.Errors;
@@ -57,6 +60,28 @@ public static class KeyVaultControllerController
                         );
                     })
                 .WithName("CreateKeyVault");
+
+            config.MapPut("/{id:guid}",
+                    async ([FromRoute] Guid id, UpdateKeyVaultRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new UpdateKeyVaultCommand(
+                            new AzureResourceId(id),
+                            mapper.Map<Name>(request.Name),
+                            mapper.Map<Location>(request.Location),
+                            mapper.Map<Sku>(request.Sku)
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            keyVault =>
+                            {
+                                var response = mapper.Map<KeyVaultResponse>(keyVault);
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("UpdateKeyVault");
 
             config.MapDelete("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator) =>

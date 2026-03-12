@@ -31,6 +31,13 @@ public class KeyVault: AzureResource
     {
     }
     
+    public void Update(Name name, Location location, Sku sku)
+    {
+        Name = name;
+        Location = location;
+        Sku = sku;
+    }
+
     public static KeyVault Create(ResourceGroupId resourceGroupId, Name name, Location location, Sku sku)
     {
         return new KeyVault
