@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
+using InfraFlowSculptor.Application.KeyVaults.Commands.DeleteKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Queries;
 using MediatR;
 using InfraFlowSculptor.Contracts.KeyVaults.Requests;
@@ -56,6 +57,19 @@ public static class KeyVaultControllerController
                         );
                     })
                 .WithName("CreateKeyVault");
+
+            config.MapDelete("/{id:guid}",
+                    async ([FromRoute] Guid id, IMediator mediator) =>
+                    {
+                        var command = new DeleteKeyVaultCommand(new AzureResourceId(id));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("DeleteKeyVault");
         });
     }
 }
