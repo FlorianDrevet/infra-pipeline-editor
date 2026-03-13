@@ -83,6 +83,7 @@ public class UpdateRedisCacheRequest
     }
 }
 
+[AttributeUsage(AttributeTargets.Property)]
 public sealed class RedisVersionValidationAttribute : ValidationAttribute
 {
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
