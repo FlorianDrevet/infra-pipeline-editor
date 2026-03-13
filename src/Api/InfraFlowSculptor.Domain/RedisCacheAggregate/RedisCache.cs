@@ -40,20 +40,16 @@ public class RedisCache : AzureResource
         Name name,
         Location location,
         RedisCacheSku sku,
-        int capacity,
-        int redisVersion,
-        bool enableNonSslPort,
-        TlsVersion minimumTlsVersion,
-        MaxMemoryPolicy maxMemoryPolicy)
+        RedisCacheSettings settings)
     {
         Name = name;
         Location = location;
         Sku = sku;
-        Capacity = capacity;
-        RedisVersion = redisVersion;
-        EnableNonSslPort = enableNonSslPort;
-        MinimumTlsVersion = minimumTlsVersion;
-        MaxMemoryPolicy = maxMemoryPolicy;
+        Capacity = settings.Capacity;
+        RedisVersion = settings.RedisVersion;
+        EnableNonSslPort = settings.EnableNonSslPort;
+        MinimumTlsVersion = settings.MinimumTlsVersion;
+        MaxMemoryPolicy = settings.MaxMemoryPolicy;
     }
 
     public static RedisCache Create(
@@ -61,11 +57,7 @@ public class RedisCache : AzureResource
         Name name,
         Location location,
         RedisCacheSku sku,
-        int capacity,
-        int redisVersion,
-        bool enableNonSslPort,
-        TlsVersion minimumTlsVersion,
-        MaxMemoryPolicy maxMemoryPolicy)
+        RedisCacheSettings settings)
     {
         return new RedisCache
         {
@@ -74,11 +66,11 @@ public class RedisCache : AzureResource
             Name = name,
             Location = location,
             Sku = sku,
-            Capacity = capacity,
-            RedisVersion = redisVersion,
-            EnableNonSslPort = enableNonSslPort,
-            MinimumTlsVersion = minimumTlsVersion,
-            MaxMemoryPolicy = maxMemoryPolicy
+            Capacity = settings.Capacity,
+            RedisVersion = settings.RedisVersion,
+            EnableNonSslPort = settings.EnableNonSslPort,
+            MinimumTlsVersion = settings.MinimumTlsVersion,
+            MaxMemoryPolicy = settings.MaxMemoryPolicy
         };
     }
 }

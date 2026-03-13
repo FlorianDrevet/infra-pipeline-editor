@@ -2,9 +2,9 @@ using Shared.Domain.Models;
 
 namespace InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 
-public class TlsVersion(TlsVersion.TlsVersionEnum value) : EnumValueObject<TlsVersion.TlsVersionEnum>(value)
+public class TlsVersion(TlsVersion.Version value) : EnumValueObject<TlsVersion.Version>(value)
 {
-    public enum TlsVersionEnum
+    public enum Version
     {
         Tls10,
         Tls11,

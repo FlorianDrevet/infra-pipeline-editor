@@ -2,9 +2,9 @@ using Shared.Domain.Models;
 
 namespace InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 
-public class MaxMemoryPolicy(MaxMemoryPolicy.MaxMemoryPolicyEnum value) : EnumValueObject<MaxMemoryPolicy.MaxMemoryPolicyEnum>(value)
+public class MaxMemoryPolicy(MaxMemoryPolicy.Policy value) : EnumValueObject<MaxMemoryPolicy.Policy>(value)
 {
-    public enum MaxMemoryPolicyEnum
+    public enum Policy
     {
         NoEviction,
         AllKeysLru,

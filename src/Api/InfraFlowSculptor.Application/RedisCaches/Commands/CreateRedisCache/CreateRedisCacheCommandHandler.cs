@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RedisCaches.Common;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
+using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 
@@ -12,16 +13,19 @@ public class CreateRedisCacheCommandHandler(IRedisCacheRepository redisCacheRepo
 {
     public async Task<ErrorOr<RedisCacheResult>> Handle(CreateRedisCacheCommand request, CancellationToken cancellationToken)
     {
-        var redisCache = RedisCache.Create(
-            request.ResourceGroupId,
-            request.Name,
-            request.Location,
-            request.Sku,
+        var settings = new RedisCacheSettings(
             request.Capacity,
             request.RedisVersion,
             request.EnableNonSslPort,
             request.MinimumTlsVersion,
             request.MaxMemoryPolicy);
+
+        var redisCache = RedisCache.Create(
+            request.ResourceGroupId,
+            request.Name,
+            request.Location,
+            request.Sku,
+            settings);
 
         var savedRedisCache = await redisCacheRepository.AddAsync(redisCache);
 

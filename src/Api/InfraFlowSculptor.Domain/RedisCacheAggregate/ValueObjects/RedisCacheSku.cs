@@ -2,9 +2,9 @@ using Shared.Domain.Models;
 
 namespace InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 
-public class RedisCacheSku(RedisCacheSku.RedisCacheSkuEnum value) : EnumValueObject<RedisCacheSku.RedisCacheSkuEnum>(value)
+public class RedisCacheSku(RedisCacheSku.Sku value) : EnumValueObject<RedisCacheSku.Sku>(value)
 {
-    public enum RedisCacheSkuEnum
+    public enum Sku
     {
         Basic,
         Standard,

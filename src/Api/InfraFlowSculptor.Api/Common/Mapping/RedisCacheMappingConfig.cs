@@ -30,18 +30,18 @@ public class RedisCacheMappingConfig : IRegister
             .MapWith(src => src.Value.ToString());
 
         config.NewConfig<string, RedisCacheSku>()
-            .MapWith(src => new RedisCacheSku(Enum.Parse<RedisCacheSku.RedisCacheSkuEnum>(src)));
+            .MapWith(src => new RedisCacheSku(Enum.Parse<RedisCacheSku.Sku>(src)));
 
         config.NewConfig<TlsVersion, string>()
             .MapWith(src => src.Value.ToString());
 
         config.NewConfig<string, TlsVersion>()
-            .MapWith(src => new TlsVersion(Enum.Parse<TlsVersion.TlsVersionEnum>(src)));
+            .MapWith(src => new TlsVersion(Enum.Parse<TlsVersion.Version>(src)));
 
         config.NewConfig<MaxMemoryPolicy, string>()
             .MapWith(src => src.Value.ToString());
 
         config.NewConfig<string, MaxMemoryPolicy>()
-            .MapWith(src => new MaxMemoryPolicy(Enum.Parse<MaxMemoryPolicy.MaxMemoryPolicyEnum>(src)));
+            .MapWith(src => new MaxMemoryPolicy(Enum.Parse<MaxMemoryPolicy.Policy>(src)));
     }
 }

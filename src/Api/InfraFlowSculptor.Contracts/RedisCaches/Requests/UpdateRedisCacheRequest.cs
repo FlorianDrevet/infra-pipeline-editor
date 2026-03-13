@@ -13,7 +13,7 @@ public class UpdateRedisCacheRequest
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
-    [Required, EnumValidation(typeof(RedisCacheSku.RedisCacheSkuEnum))]
+    [Required, EnumValidation(typeof(RedisCacheSku.Sku))]
     public required string Sku { get; init; }
 
     [Required, Range(0, 6)]
@@ -26,9 +26,9 @@ public class UpdateRedisCacheRequest
     [Required]
     public required bool EnableNonSslPort { get; init; }
 
-    [Required, EnumValidation(typeof(TlsVersion.TlsVersionEnum))]
+    [Required, EnumValidation(typeof(TlsVersion.Version))]
     public required string MinimumTlsVersion { get; init; }
 
-    [Required, EnumValidation(typeof(MaxMemoryPolicy.MaxMemoryPolicyEnum))]
+    [Required, EnumValidation(typeof(MaxMemoryPolicy.Policy))]
     public required string MaxMemoryPolicy { get; init; }
 }

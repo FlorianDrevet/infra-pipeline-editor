@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RedisCaches.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 
@@ -17,15 +18,18 @@ public class UpdateRedisCacheCommandHandler(IRedisCacheRepository redisCacheRepo
         if (redisCache is null)
             return Errors.RedisCache.NotFoundError(request.Id);
 
-        redisCache.Update(
-            request.Name,
-            request.Location,
-            request.Sku,
+        var settings = new RedisCacheSettings(
             request.Capacity,
             request.RedisVersion,
             request.EnableNonSslPort,
             request.MinimumTlsVersion,
             request.MaxMemoryPolicy);
+
+        redisCache.Update(
+            request.Name,
+            request.Location,
+            request.Sku,
+            settings);
 
         var updatedRedisCache = await redisCacheRepository.UpdateAsync(redisCache);
 

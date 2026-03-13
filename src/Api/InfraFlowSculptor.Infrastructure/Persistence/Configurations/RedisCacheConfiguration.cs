@@ -16,7 +16,7 @@ public class RedisCacheConfiguration : IEntityTypeConfiguration<RedisCache>
 
         builder.Property(r => r.Sku)
             .IsRequired()
-            .HasConversion(new EnumValueConverter<RedisCacheSku, RedisCacheSku.RedisCacheSkuEnum>());
+            .HasConversion(new EnumValueConverter<RedisCacheSku, RedisCacheSku.Sku>());
 
         builder.Property(r => r.Capacity)
             .IsRequired();
@@ -29,10 +29,10 @@ public class RedisCacheConfiguration : IEntityTypeConfiguration<RedisCache>
 
         builder.Property(r => r.MinimumTlsVersion)
             .IsRequired()
-            .HasConversion(new EnumValueConverter<TlsVersion, TlsVersion.TlsVersionEnum>());
+            .HasConversion(new EnumValueConverter<TlsVersion, TlsVersion.Version>());
 
         builder.Property(r => r.MaxMemoryPolicy)
             .IsRequired()
-            .HasConversion(new EnumValueConverter<MaxMemoryPolicy, MaxMemoryPolicy.MaxMemoryPolicyEnum>());
+            .HasConversion(new EnumValueConverter<MaxMemoryPolicy, MaxMemoryPolicy.Policy>());
     }
 }
