@@ -24,7 +24,7 @@ public class CreateRedisCacheRequest : IValidatableObject
     // Basic/Standard supports C0-C6 (0-6); Premium supports P1-P4 (1-4). Cross-SKU validation is enforced via object-level validation.
     public required int Capacity { get; init; }
 
-    [Required, Range(4, 6)]
+    [Required, RedisVersionValidation]
     public required int RedisVersion { get; init; }
 
     [Required]
@@ -39,14 +39,14 @@ public class CreateRedisCacheRequest : IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         // Let existing EnumValidation attribute handle invalid SKU values.
-        if (!Enum.TryParse<RedisCacheSku.RedisCacheSkuEnum>(Sku, ignoreCase: true, out var parsedSku))
+        if (!Enum.TryParse<RedisCacheSku.Sku>(Sku, ignoreCase: true, out var parsedSku))
         {
             yield break;
         }
 
         switch (parsedSku)
         {
-            case RedisCacheSku.RedisCacheSkuEnum.Premium:
+            case RedisCacheSku.Sku.Premium:
                 if (Capacity < 1 || Capacity > 4)
                 {
                     yield return new ValidationResult(
@@ -55,8 +55,8 @@ public class CreateRedisCacheRequest : IValidatableObject
                 }
                 break;
 
-            case RedisCacheSku.RedisCacheSkuEnum.Basic:
-            case RedisCacheSku.RedisCacheSkuEnum.Standard:
+            case RedisCacheSku.Sku.Basic:
+            case RedisCacheSku.Sku.Standard:
                 if (Capacity < 0 || Capacity > 6)
                 {
                     yield return new ValidationResult(

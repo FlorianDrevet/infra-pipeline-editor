@@ -52,13 +52,13 @@ public class UpdateRedisCacheRequest
             return ValidationResult.Success;
         }
 
-        if (!Enum.TryParse<RedisCacheSku.RedisCacheSkuEnum>(instance.Sku, ignoreCase: true, out var skuEnum))
+        if (!Enum.TryParse<RedisCacheSku.Sku>(instance.Sku, ignoreCase: true, out var skuEnum))
         {
             // EnumValidation attribute on Sku will surface a clearer error.
             return ValidationResult.Success;
         }
 
-        var isPremium = skuEnum == RedisCacheSku.RedisCacheSkuEnum.Premium;
+        var isPremium = skuEnum == RedisCacheSku.Sku.Premium;
 
         if (isPremium)
         {
