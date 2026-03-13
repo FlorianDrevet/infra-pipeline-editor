@@ -46,6 +46,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IInfrastructureConfigRepository, InfrastructureConfigRepository>();
         services.AddScoped<IKeyVaultRepository, KeyVaultRepository>();
+        services.AddScoped<IRedisCacheRepository, RedisCacheRepository>();
         services.AddScoped<IResourceGroupRepository, ResourceGroupRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
 
