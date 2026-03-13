@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Contracts.RedisCaches.Requests;
 
-public class CreateRedisCacheRequest
+public class CreateRedisCacheRequest : IValidatableObject
 {
     [Required, GuidValidation]
     public required Guid ResourceGroupId { get; init; }
@@ -20,7 +21,7 @@ public class CreateRedisCacheRequest
     public required string Sku { get; init; }
 
     [Required, Range(0, 6)]
-    // Basic/Standard supports C0-C6 (0-6); Premium supports P1-P4 (1-4). Cross-SKU validation is enforced at the domain level.
+    // Basic/Standard supports C0-C6 (0-6); Premium supports P1-P4 (1-4). Cross-SKU validation is enforced via object-level validation.
     public required int Capacity { get; init; }
 
     [Required, Range(4, 6)]
@@ -34,4 +35,39 @@ public class CreateRedisCacheRequest
 
     [Required, EnumValidation(typeof(MaxMemoryPolicy.Policy))]
     public required string MaxMemoryPolicy { get; init; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        // Let existing EnumValidation attribute handle invalid SKU values.
+        if (!Enum.TryParse<RedisCacheSku.RedisCacheSkuEnum>(Sku, ignoreCase: true, out var parsedSku))
+        {
+            yield break;
+        }
+
+        switch (parsedSku)
+        {
+            case RedisCacheSku.RedisCacheSkuEnum.Premium:
+                if (Capacity < 1 || Capacity > 4)
+                {
+                    yield return new ValidationResult(
+                        "For Premium SKU, capacity must be between 1 and 4.",
+                        new[] { nameof(Capacity) });
+                }
+                break;
+
+            case RedisCacheSku.RedisCacheSkuEnum.Basic:
+            case RedisCacheSku.RedisCacheSkuEnum.Standard:
+                if (Capacity < 0 || Capacity > 6)
+                {
+                    yield return new ValidationResult(
+                        "For Basic and Standard SKUs, capacity must be between 0 and 6.",
+                        new[] { nameof(Capacity) });
+                }
+                break;
+
+            default:
+                // For any other SKU types, rely on separate business rules or validations.
+                break;
+        }
+    }
 }
