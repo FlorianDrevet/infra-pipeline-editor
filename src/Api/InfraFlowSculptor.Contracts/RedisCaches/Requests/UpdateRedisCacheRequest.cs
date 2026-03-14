@@ -95,6 +95,8 @@ public sealed class RedisVersionValidationAttribute : ValidationAttribute
             return ValidationResult.Success;
         }
 
-        return new ValidationResult("RedisVersion must be either 4 or 6.");
+        return new ValidationResult(
+            "RedisVersion must be either 4 or 6.",
+            new[] { validationContext.MemberName ?? nameof(UpdateRedisCacheRequest.RedisVersion) });
     }
 }
