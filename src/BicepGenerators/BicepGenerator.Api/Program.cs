@@ -46,6 +46,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 //Controllers
-app.UseBicepGenerationControllerController();
+app.UseBicepGenerationController();
 
 await app.RunAsync();

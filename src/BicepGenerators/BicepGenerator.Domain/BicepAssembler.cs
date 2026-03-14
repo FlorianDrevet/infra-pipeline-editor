@@ -20,16 +20,59 @@ public static class BicepAssembler
             ModuleFiles = moduleFiles
         };
     }
-    
+
+    private static string GenerateMainBicep(
+        IReadOnlyCollection<GeneratedTypeModule> modules)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine("targetScope = 'resourceGroup'");
+        sb.AppendLine();
+        sb.AppendLine("param location string = 'westeurope'");
+        sb.AppendLine();
+
+        foreach (var module in modules)
+        {
+            foreach (var param in module.Parameters)
+            {
+                if (param.Key == "location")
+                    continue;
+
+                var bicepType = InferBicepType(param.Value);
+                sb.AppendLine($"param {param.Key} {bicepType}");
+            }
+        }
+
+        sb.AppendLine();
+
+        foreach (var module in modules)
+        {
+            sb.AppendLine($"module {module.ModuleName} './modules/{module.ModuleFileName}' = {{");
+            sb.AppendLine($"  name: '{module.ModuleName}'");
+            sb.AppendLine("  params: {");
+            sb.AppendLine("    location: location");
+
+            foreach (var param in module.Parameters.Keys)
+            {
+                if (param != "location")
+                    sb.AppendLine($"    {param}: {param}");
+            }
+
+            sb.AppendLine("  }");
+            sb.AppendLine("}");
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+
     private static string GenerateMainParameters(
         IReadOnlyCollection<GeneratedTypeModule> modules)
     {
         var sb = new StringBuilder();
 
-        sb.AppendLine("""
-                      using 'main.bicep'
-                      """);
-
+        sb.AppendLine("using 'main.bicep'");
+        sb.AppendLine();
         sb.AppendLine("param location = 'westeurope'");
         sb.AppendLine();
 
@@ -37,7 +80,7 @@ public static class BicepAssembler
         {
             foreach (var param in module.Parameters)
             {
-                if (param.Key == "location") 
+                if (param.Key == "location")
                     continue;
 
                 sb.AppendLine($"param {param.Key} = {SerializeToBicep(param.Value)}");
@@ -48,67 +91,30 @@ public static class BicepAssembler
         return sb.ToString();
     }
 
-
-    private static string GenerateMainBicep(
-        IReadOnlyCollection<GeneratedTypeModule> modules)
+    private static string InferBicepType(object value)
     {
-        var sb = new StringBuilder();
-
-        sb.AppendLine("""
-                      targetScope = 'resourceGroup'
-                      """);
-
-        sb.AppendLine("param location string");
-        sb.AppendLine();
-
-        // paramètres agrégés par module
-        foreach (var module in modules)
+        return value switch
         {
-            foreach (var param in module.Parameters.Keys)
-            {
-                if (param != "location")
-                    sb.AppendLine($"param {param} array");
-            }
-        }
-
-        sb.AppendLine();
-
-        foreach (var module in modules)
-        {
-            sb.AppendLine($$"""
-                            module {{module.ModuleName}} './modules/{{module.ModuleFileName}}' = {
-                              name: '{{module.ModuleName}}'
-                              params: {
-                                location: location
-                            """);
-
-            foreach (var param in module.Parameters.Keys)
-            {
-                if (param != "location")
-                    sb.AppendLine($"    {param}: {param}");
-            }
-
-            sb.AppendLine("""
-                            }
-                          }
-                          """);
-        }
-
-        return sb.ToString();
+            string => "string",
+            int or long or double => "int",
+            bool => "bool",
+            IEnumerable<object> => "array",
+            _ => "object"
+        };
     }
-    
+
     private static string SerializeToBicep(object value)
     {
         return value switch
         {
             string s => $"'{s}'",
             int or long or double or bool => value.ToString()!,
-            IEnumerable<object> arr => SerializeArray(arr),
+            IEnumerable<object> items => SerializeCollection(items),
             _ => SerializeObject(value)
         };
     }
 
-    private static string SerializeArray(IEnumerable<object> values)
+    private static string SerializeCollection(IEnumerable<object> values)
     {
         var sb = new StringBuilder();
         sb.AppendLine("[");
@@ -131,8 +137,9 @@ public static class BicepAssembler
 
         foreach (var p in props)
         {
-            var value = p.GetValue(obj);
-            sb.AppendLine($"  {p.Name}: {SerializeToBicep(value!)}");
+            var propValue = p.GetValue(obj);
+            if (propValue is not null)
+                sb.AppendLine($"  {p.Name}: {SerializeToBicep(propValue)}");
         }
 
         sb.Append("}");

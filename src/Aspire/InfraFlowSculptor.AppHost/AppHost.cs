@@ -10,7 +10,9 @@ var postgres = builder.AddPostgres("postgres")
 var database = postgres.AddDatabase("infraDb");
 
 var apiBicep = builder.AddProject<BicepGenerator_Api>("bicep-generator-api")
-    .WithExternalHttpEndpoints();
+    .WithExternalHttpEndpoints()
+    .WithReference(database)
+    .WaitFor(database);
 
 builder.AddProject<InfraFlowSculptor_Api>("infraflowsculptor-api")
     .WithExternalHttpEndpoints()

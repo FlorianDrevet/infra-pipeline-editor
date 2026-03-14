@@ -1,9 +1,9 @@
 namespace BicepGenerator.Domain;
 
-public sealed class StorageAccountTypeBicepGenerator 
+public sealed class StorageAccountTypeBicepGenerator
     : IResourceTypeBicepGenerator
 {
-    public string ResourceType 
+    public string ResourceType
         => "Microsoft.Storage/storageAccounts";
 
     public GeneratedTypeModule Generate(
@@ -22,27 +22,24 @@ public sealed class StorageAccountTypeBicepGenerator
                 {
                     name = r.Name,
                     sku = r.Sku,
-                }).ToArray()
+                }).ToList<object>()
             }
         };
     }
 
     private const string StorageAccountModuleTemplate = """
-                                                        param location string
-                                                        param storageAccounts array
+        param location string
+        param storageAccounts array
 
-                                                        resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = [
-                                                          for sa in storageAccounts: {
-                                                            name: sa.name
-                                                            location: location
-                                                            kind: 'StorageV2'
-                                                            sku: {
-                                                              name: sa.sku
-                                                            }
-                                                            properties: {
-                                                              accessTier: sa.accessTier
-                                                            }
-                                                          }
-                                                        ]
-                                                        """;
+        resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = [
+          for sa in storageAccounts: {
+            name: sa.name
+            location: location
+            kind: 'StorageV2'
+            sku: {
+              name: sa.sku
+            }
+          }
+        ]
+        """;
 }

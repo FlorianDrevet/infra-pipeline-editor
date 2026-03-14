@@ -1,4 +1,6 @@
+using System.Text;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
@@ -6,8 +8,7 @@ using BicepGenerator.Application.Common.Interfaces.Services;
 
 namespace BicepGenerator.Infrastructure.Services.BlobService;
 
-public class BlobService
-    : IBlobService
+public class BlobService : IBlobService
 {
     private readonly BlobContainerClient _blobContainerClient;
 
@@ -15,7 +16,8 @@ public class BlobService
         BlobServiceClient blobServiceClient,
         IOptions<BlobSettings> blobStorageSettings)
     {
-        _blobContainerClient = blobServiceClient.GetBlobContainerClient(blobStorageSettings.Value.ContainerName);
+        _blobContainerClient = blobServiceClient.GetBlobContainerClient(
+            blobStorageSettings.Value.ContainerName);
     }
 
     public async Task<Uri> UploadFileAsync(IFormFile formFile)
@@ -24,7 +26,23 @@ public class BlobService
         await using var stream = formFile.OpenReadStream();
 
         var blobClient = _blobContainerClient.GetBlobClient(fileName);
-        await blobClient.UploadAsync(stream, true);
+        await blobClient.UploadAsync(stream, overwrite: true);
+        return blobClient.Uri;
+    }
+
+    public async Task<Uri> UploadContentAsync(
+        string fileName,
+        string content,
+        string contentType = "text/plain")
+    {
+        var bytes = Encoding.UTF8.GetBytes(content);
+        using var stream = new MemoryStream(bytes);
+
+        var blobClient = _blobContainerClient.GetBlobClient(fileName);
+        await blobClient.UploadAsync(stream, new BlobUploadOptions
+        {
+            HttpHeaders = new BlobHttpHeaders { ContentType = contentType }
+        });
         return blobClient.Uri;
     }
 
