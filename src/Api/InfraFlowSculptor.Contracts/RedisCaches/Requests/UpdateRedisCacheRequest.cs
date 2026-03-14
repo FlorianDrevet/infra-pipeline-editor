@@ -52,7 +52,7 @@ public class UpdateRedisCacheRequest
             return ValidationResult.Success;
         }
 
-        if (!Enum.TryParse<RedisCacheSku.Sku>(instance.Sku, ignoreCase: true, out var skuEnum))
+        if (!Enum.TryParse<RedisCacheSku.Sku>(instance.Sku, ignoreCase: false, out var skuEnum))
         {
             // EnumValidation attribute on Sku will surface a clearer error.
             return ValidationResult.Success;
