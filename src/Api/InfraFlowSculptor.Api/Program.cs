@@ -75,6 +75,7 @@ app.UseAuthorization();
 app.UseInfrastructureConfigController();
 app.UseKeyVaultControllerController();
 app.UseResourceGroupController();
+app.UseRedisCacheController();
 app.MapDefaultEndpoints();
 
 await app.RunAsync();
