@@ -39,7 +39,7 @@ public class CreateRedisCacheRequest : IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         // Let existing EnumValidation attribute handle invalid SKU values.
-        if (!Enum.TryParse<RedisCacheSku.Sku>(Sku, ignoreCase: true, out var parsedSku))
+        if (!Enum.TryParse<RedisCacheSku.Sku>(Sku, ignoreCase: false, out var parsedSku))
         {
             yield break;
         }
