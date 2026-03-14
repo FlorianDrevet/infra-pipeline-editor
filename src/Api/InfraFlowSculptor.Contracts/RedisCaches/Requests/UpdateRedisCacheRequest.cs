@@ -83,6 +83,8 @@ public class UpdateRedisCacheRequest
     }
 }
 
+namespace InfraFlowSculptor.Contracts.ValidationAttributes;
+
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class RedisVersionValidationAttribute : ValidationAttribute
 {
