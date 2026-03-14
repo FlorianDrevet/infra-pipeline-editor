@@ -26,15 +26,11 @@ public static class DevelopmentTools
             if (scalarOauthConfiguration is not null)
             {
                 options.AddPreferredSecuritySchemes("OAuth2")
-                    .AddClientCredentialsFlow("OAuth2", flow =>
+                    .AddImplicitFlow("OAuth2", flow =>
                     {
                         flow.ClientId = scalarOauthConfiguration.ClientId;
-                        if (scalarOauthConfiguration.ClientSecret is not null)
-                            flow.ClientSecret = scalarOauthConfiguration.ClientSecret;
-                        flow.TokenUrl = scalarOauthConfiguration.TokenUrl;
-                        flow.SelectedScopes = scalarOauthConfiguration.Scopes
-                            .Select(s => $"{scalarOauthConfiguration.Audience}/{s}")
-                            .ToArray();
+                        flow.SelectedScopes = scalarOauthConfiguration.Scopes.Select(s => $"{scalarOauthConfiguration.Audience}/{s}").ToArray();
+                        flow.AuthorizationUrl = scalarOauthConfiguration.AuthorizationUrl;
                     });
             }
         }).AllowAnonymous();

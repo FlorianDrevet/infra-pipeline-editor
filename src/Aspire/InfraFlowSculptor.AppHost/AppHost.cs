@@ -17,7 +17,6 @@ var apiBicep = builder.AddProject<BicepGenerator_Api>("bicep-generator-api")
 builder.AddProject<InfraFlowSculptor_Api>("infraflowsculptor-api")
     .WithExternalHttpEndpoints()
     .WithReference(database)
-    .WaitFor(database)
-    .WithReference(apiBicep);
+    .WaitFor(database);
 
 await builder.Build().RunAsync();

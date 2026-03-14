@@ -1,6 +1,5 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBicep;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.GetResourceGroup;
 using MediatR;
@@ -64,23 +63,6 @@ public static class InfrastructureConfigController
                     operation.Description = "Creates a new Infrastructure Configuration with the specified name.";
                     return Task.CompletedTask;
                 });
-
-            config.MapPost("generate-bicep",
-                    async (GenerateBicepRequest request, IMediator mediator) =>
-                    {
-                        var command = new GenerateBicepCommand(request.InfrastructureConfigId);
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            bicepUri =>
-                            {
-                                var response = new GeneratedBicepResponse(bicepUri);
-                                return Results.Created($"", response);
-                            },
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("GenerateBicep");
         });
     }
 }
