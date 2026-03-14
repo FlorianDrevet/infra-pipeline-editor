@@ -22,6 +22,7 @@ public class BlobService : IBlobService
 
     public async Task<Uri> UploadFileAsync(IFormFile formFile)
     {
+        await _blobContainerClient.CreateIfNotExistsAsync();
         var fileName = Path.GetFileName(formFile.FileName);
         await using var stream = formFile.OpenReadStream();
 
@@ -35,6 +36,7 @@ public class BlobService : IBlobService
         string content,
         string contentType = "text/plain")
     {
+        await _blobContainerClient.CreateIfNotExistsAsync();
         var bytes = Encoding.UTF8.GetBytes(content);
         using var stream = new MemoryStream(bytes);
 
