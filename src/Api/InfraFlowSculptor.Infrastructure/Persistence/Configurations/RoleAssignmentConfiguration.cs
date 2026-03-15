@@ -1,0 +1,43 @@
+using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Shared.Infrastructure.Persistence.Configurations;
+using Shared.Infrastructure.Persistence.Configurations.Converters;
+
+namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
+
+public sealed class RoleAssignmentConfiguration : IEntityTypeConfiguration<RoleAssignment>
+{
+    public void Configure(EntityTypeBuilder<RoleAssignment> builder)
+    {
+        builder.ToTable("RoleAssignments");
+
+        builder.HasKey(r => r.Id);
+
+        builder.Property(r => r.Id)
+            .HasConversion(new IdValueConverter<RoleAssignmentId>())
+            .ValueGeneratedNever();
+
+        builder.Property(r => r.SourceResourceId)
+            .HasConversion(new IdValueConverter<AzureResourceId>())
+            .IsRequired();
+
+        builder.Property(r => r.TargetResourceId)
+            .HasConversion(new IdValueConverter<AzureResourceId>())
+            .IsRequired();
+
+        builder.Property(r => r.ManagedIdentityType)
+            .HasConversion(new EnumValueConverter<ManagedIdentityType, ManagedIdentityType.IdentityTypeEnum>())
+            .IsRequired();
+
+        builder.Property(r => r.RoleDefinitionId)
+            .IsRequired();
+
+        builder.HasOne<AzureResource>()
+            .WithMany()
+            .HasForeignKey(r => r.TargetResourceId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
