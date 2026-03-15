@@ -1,9 +1,7 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.RedisCaches.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
 using MediatR;
 
@@ -19,20 +17,12 @@ public class GetRedisCacheQueryHandler(
 {
     public async Task<ErrorOr<RedisCacheResult>> Handle(GetRedisCacheQuery query, CancellationToken cancellationToken)
     {
-        var redisCache = await redisCacheRepository.GetByIdAsync(query.Id, cancellationToken);
-        if (redisCache is null)
-            return Errors.RedisCache.NotFoundError(query.Id);
+        var result = await RedisCacheAccessHelper.GetWithReadAccessAsync(
+            query.Id, redisCacheRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(redisCache.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.RedisCache.NotFoundError(query.Id);
+        if (result.IsError)
+            return result.Errors;
 
-        var authResult = await InfraConfigAccessHelper.VerifyReadAccessAsync(
-            infraConfigRepository, currentUser, resourceGroup.InfraConfigId, cancellationToken);
-
-        if (authResult.IsError)
-            return Errors.RedisCache.NotFoundError(query.Id);
-
-        return mapper.Map<RedisCacheResult>(redisCache);
+        return mapper.Map<RedisCacheResult>(result.Value);
     }
 }
