@@ -30,9 +30,14 @@ public class CurrentUser:  ICurrentUser
         var nameClaim = principal.FindFirst(ClaimConstants.Name)?.Value
                         ?? throw new UnauthorizedAccessException("Missing name claim");
         
-        //TODO more checks
-        var firstName = nameClaim.Split(' ')[0];
-        var lastName = nameClaim.Split(' ')[1];
+        var firstName = string.Empty;
+        var lastName = nameClaim;
+        
+        if (nameClaim.Contains(' '))
+        {
+            firstName = nameClaim.Split(' ')[0];
+            lastName = nameClaim.Split(' ')[1];
+        }
 
         var user = await _userRepository.GetOrCreateByEntraIdAsync(entraId, firstName, lastName, cancellationToken);
 
