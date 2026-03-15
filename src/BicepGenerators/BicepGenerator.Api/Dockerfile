@@ -7,21 +7,26 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["VPD.Api/VPD.Api.csproj", "VPD.Api/"]
-COPY ["VPD.Application/VPD.Application.csproj", "VPD.Application/"]
-COPY ["VPD.Domain/VPD.Domain.csproj", "VPD.Domain/"]
-COPY ["VPD.Contracts/VPD.Contracts.csproj", "VPD.Contracts/"]
-COPY ["VPD.Infrastructure/VPD.Infrastructure.csproj", "VPD.Infrastructure/"]
-RUN dotnet restore "VPD.Api/VPD.Api.csproj"
-COPY . .
-WORKDIR "/src/VPD.Api"
-RUN dotnet build "VPD.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+COPY ["BicepGenerator.Api/BicepGenerator.Api.csproj", "BicepGenerator.Api/"]
+COPY ["BicepGenerator.Application/BicepGenerator.Application.csproj", "BicepGenerator.Application/"]
+COPY ["BicepGenerator.Domain/BicepGenerator.Domain.csproj", "BicepGenerator.Domain/"]
+COPY ["BicepGenerator.Contracts/BicepGenerator.Contracts.csproj", "BicepGenerator.Contracts/"]
+COPY ["BicepGenerator.Infrastructure/BicepGenerator.Infrastructure.csproj", "BicepGenerator.Infrastructure/"]
+RUN dotnet restore "BicepGenerator.Api/BicepGenerator.Api.csproj"
+COPY BicepGenerator.Api/ BicepGenerator.Api/
+COPY BicepGenerator.Application/ BicepGenerator.Application/
+COPY BicepGenerator.Domain/ BicepGenerator.Domain/
+COPY BicepGenerator.Contracts/ BicepGenerator.Contracts/
+COPY BicepGenerator.Infrastructure/ BicepGenerator.Infrastructure/
+WORKDIR "/src/BicepGenerator.Api"
+RUN dotnet build "BicepGenerator.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "VPD.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "BicepGenerator.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "VPD.Api.dll"]
+USER $APP_UID
+ENTRYPOINT ["dotnet", "BicepGenerator.Api.dll"]
