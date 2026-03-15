@@ -19,11 +19,11 @@ COPY BicepGenerator.Domain/ BicepGenerator.Domain/
 COPY BicepGenerator.Contracts/ BicepGenerator.Contracts/
 COPY BicepGenerator.Infrastructure/ BicepGenerator.Infrastructure/
 WORKDIR "/src/BicepGenerator.Api"
-RUN dotnet build "BicepGenerator.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "BicepGenerator.Api.csproj" -c "$BUILD_CONFIGURATION" -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "BicepGenerator.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "BicepGenerator.Api.csproj" -c "$BUILD_CONFIGURATION" -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app

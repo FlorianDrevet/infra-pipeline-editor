@@ -19,11 +19,11 @@ COPY InfraFlowSculptor.Domain/ InfraFlowSculptor.Domain/
 COPY InfraFlowSculptor.Contracts/ InfraFlowSculptor.Contracts/
 COPY InfraFlowSculptor.Infrastructure/ InfraFlowSculptor.Infrastructure/
 WORKDIR "/src/InfraFlowSculptor.Api"
-RUN dotnet build "InfraFlowSculptor.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "InfraFlowSculptor.Api.csproj" -c "$BUILD_CONFIGURATION" -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "InfraFlowSculptor.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "InfraFlowSculptor.Api.csproj" -c "$BUILD_CONFIGURATION" -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
