@@ -7,39 +7,35 @@ public sealed class StorageAccountTypeBicepGenerator
         => "Microsoft.Storage/storageAccounts";
 
     public GeneratedTypeModule Generate(
-        IReadOnlyCollection<ResourceDefinition> resources,
+        ResourceDefinition resource,
         EnvironmentDefinition environment)
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "storageAccounts",
-            ModuleFileName = "storageAccounts.bicep",
+            ModuleName = "storageAccount",
+            ModuleFileName = "storageAccount.bicep",
             ModuleBicepContent = StorageAccountModuleTemplate,
             Parameters = new Dictionary<string, object>
             {
                 ["location"] = environment.Location,
-                ["storageAccounts"] = resources.Select(r => new
-                {
-                    name = r.Name,
-                    sku = r.Sku,
-                }).ToList<object>()
+                ["name"] = resource.Name,
+                ["sku"] = resource.Sku,
             }
         };
     }
 
     private const string StorageAccountModuleTemplate = """
         param location string
-        param storageAccounts array
+        param name string
+        param sku string
 
-        resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = [
-          for sa in storageAccounts: {
-            name: sa.name
-            location: location
-            kind: 'StorageV2'
-            sku: {
-              name: sa.sku
-            }
+        resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+          name: name
+          location: location
+          kind: 'StorageV2'
+          sku: {
+            name: sku
           }
-        ]
+        }
         """;
 }

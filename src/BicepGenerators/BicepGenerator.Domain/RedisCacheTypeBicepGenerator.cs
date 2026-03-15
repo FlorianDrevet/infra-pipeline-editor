@@ -7,50 +7,51 @@ public sealed class RedisCacheTypeBicepGenerator
         => "Microsoft.Cache/Redis";
 
     public GeneratedTypeModule Generate(
-        IReadOnlyCollection<ResourceDefinition> resources,
+        ResourceDefinition resource,
         EnvironmentDefinition environment)
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "redisCaches",
-            ModuleFileName = "redisCaches.bicep",
+            ModuleName = "redisCache",
+            ModuleFileName = "redisCache.bicep",
             ModuleBicepContent = RedisCacheModuleTemplate,
             Parameters = new Dictionary<string, object>
             {
                 ["location"] = environment.Location,
-                ["redisCaches"] = resources.Select(r => new
-                {
-                    name = r.Name,
-                    skuName = r.Properties.GetValueOrDefault("skuName", "Basic"),
-                    skuFamily = r.Properties.GetValueOrDefault("skuFamily", "C"),
-                    capacity = int.TryParse(r.Properties.GetValueOrDefault("capacity", "1"), out var cap) ? cap : 1,
-                    redisVersion = r.Properties.GetValueOrDefault("redisVersion", "6"),
-                    enableNonSslPort = r.Properties.GetValueOrDefault("enableNonSslPort", "false") == "true",
-                    minimumTlsVersion = r.Properties.GetValueOrDefault("minimumTlsVersion", "1.2"),
-                }).ToList<object>()
+                ["name"] = resource.Name,
+                ["skuName"] = resource.Properties.GetValueOrDefault("skuName", "Basic"),
+                ["skuFamily"] = resource.Properties.GetValueOrDefault("skuFamily", "C"),
+                ["capacity"] = int.TryParse(resource.Properties.GetValueOrDefault("capacity", "1"), out var cap) ? cap : 1,
+                ["redisVersion"] = resource.Properties.GetValueOrDefault("redisVersion", "6"),
+                ["enableNonSslPort"] = resource.Properties.GetValueOrDefault("enableNonSslPort", "false") == "true",
+                ["minimumTlsVersion"] = resource.Properties.GetValueOrDefault("minimumTlsVersion", "1.2"),
             }
         };
     }
 
     private const string RedisCacheModuleTemplate = """
         param location string
-        param redisCaches array
+        param name string
+        param skuName string
+        param skuFamily string
+        param capacity int
+        param redisVersion string
+        param enableNonSslPort bool
+        param minimumTlsVersion string
 
-        resource redis 'Microsoft.Cache/Redis@2023-08-01' = [
-          for cache in redisCaches: {
-            name: cache.name
-            location: location
-            properties: {
-              sku: {
-                name: cache.skuName
-                family: cache.skuFamily
-                capacity: cache.capacity
-              }
-              redisVersion: cache.redisVersion
-              enableNonSslPort: cache.enableNonSslPort
-              minimumTlsVersion: cache.minimumTlsVersion
+        resource redis 'Microsoft.Cache/Redis@2023-08-01' = {
+          name: name
+          location: location
+          properties: {
+            sku: {
+              name: skuName
+              family: skuFamily
+              capacity: capacity
             }
+            redisVersion: redisVersion
+            enableNonSslPort: enableNonSslPort
+            minimumTlsVersion: minimumTlsVersion
           }
-        ]
+        }
         """;
 }

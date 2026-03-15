@@ -7,45 +7,41 @@ public sealed class KeyVaultTypeBicepGenerator
         => "Microsoft.KeyVault/vaults";
 
     public GeneratedTypeModule Generate(
-        IReadOnlyCollection<ResourceDefinition> resources,
+        ResourceDefinition resource,
         EnvironmentDefinition environment)
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "keyVaults",
-            ModuleFileName = "keyVaults.bicep",
+            ModuleName = "keyVault",
+            ModuleFileName = "keyVault.bicep",
             ModuleBicepContent = KeyVaultModuleTemplate,
             Parameters = new Dictionary<string, object>
             {
                 ["location"] = environment.Location,
-                ["keyVaults"] = resources.Select(r => new
-                {
-                    name = r.Name,
-                    sku = r.Sku.ToLower(),
-                }).ToList<object>()
+                ["name"] = resource.Name,
+                ["sku"] = resource.Sku.ToLower(),
             }
         };
     }
 
     private const string KeyVaultModuleTemplate = """
         param location string
-        param keyVaults array
+        param name string
+        param sku string
 
-        resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = [
-          for vault in keyVaults: {
-            name: vault.name
-            location: location
-            properties: {
-              sku: {
-                family: 'A'
-                name: vault.sku
-              }
-              tenantId: subscription().tenantId
-              enabledForDeployment: true
-              enabledForTemplateDeployment: true
-              enableSoftDelete: true
+        resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
+          name: name
+          location: location
+          properties: {
+            sku: {
+              family: 'A'
+              name: sku
             }
+            tenantId: subscription().tenantId
+            enabledForDeployment: true
+            enabledForTemplateDeployment: true
+            enableSoftDelete: true
           }
-        ]
+        }
         """;
 }

@@ -35,17 +35,14 @@ public static class BicepAssembler
         sb.AppendLine("param location string = 'westeurope'");
         sb.AppendLine();
 
-        // Outer param declarations — one param per module (using module name to ensure
-        // uniqueness across resource-group/type combinations and avoid BCP028).
+        // Outer param declarations — one param per property per resource instance,
+        // prefixed with the module name to ensure global uniqueness and avoid BCP028.
         foreach (var module in modules)
         {
-            foreach (var param in module.Parameters)
+            foreach (var (key, value) in module.Parameters.Where(p => p.Key != "location"))
             {
-                if (param.Key == "location")
-                    continue;
-
-                var bicepType = InferBicepType(param.Value);
-                sb.AppendLine($"param {module.ModuleName} {bicepType}");
+                var bicepType = InferBicepType(value);
+                sb.AppendLine($"param {module.ModuleName}{Capitalize(key)} {bicepType}");
             }
         }
 
@@ -61,7 +58,7 @@ public static class BicepAssembler
             sb.AppendLine();
         }
 
-        // Module declarations — symbol uses Module suffix to avoid BCP028 with param names
+        // One module declaration per resource instance
         foreach (var module in modules)
         {
             var rgSymbol = BicepIdentifierHelper.ToBicepIdentifier(module.ResourceGroupName);
@@ -74,8 +71,8 @@ public static class BicepAssembler
 
             foreach (var paramKey in module.Parameters.Keys.Where(paramKey => paramKey != "location"))
             {
-                // Map the module's internal param name to the outer param (= module name)
-                sb.AppendLine($"    {paramKey}: {module.ModuleName}");
+                // Bind the module's internal param to its uniquely-named outer param
+                sb.AppendLine($"    {paramKey}: {module.ModuleName}{Capitalize(paramKey)}");
             }
 
             sb.AppendLine("  }");
@@ -98,19 +95,20 @@ public static class BicepAssembler
 
         foreach (var module in modules)
         {
-            foreach (var param in module.Parameters)
+            foreach (var (key, value) in module.Parameters.Where(p => p.Key != "location"))
             {
-                if (param.Key == "location")
-                    continue;
-
-                // Outer param name = module name (matches the declaration in main.bicep)
-                sb.AppendLine($"param {module.ModuleName} = {SerializeToBicep(param.Value)}");
-                sb.AppendLine();
+                // Outer param name = moduleName + capitalised key (matches main.bicep declaration)
+                sb.AppendLine($"param {module.ModuleName}{Capitalize(key)} = {SerializeToBicep(value)}");
             }
+
+            sb.AppendLine();
         }
 
         return sb.ToString();
     }
+
+    private static string Capitalize(string s) =>
+        s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
     private static string InferBicepType(object value)
     {
@@ -119,7 +117,6 @@ public static class BicepAssembler
             string => "string",
             int or long or double => "int",
             bool => "bool",
-            IEnumerable<object> => "array",
             _ => "object"
         };
     }
@@ -131,23 +128,8 @@ public static class BicepAssembler
             string s => $"'{s}'",
             bool b => b ? "true" : "false",
             int or long or double => value.ToString()!,
-            IEnumerable<object> items => SerializeCollection(items),
             _ => SerializeObject(value)
         };
-    }
-
-    private static string SerializeCollection(IEnumerable<object> values)
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine("[");
-
-        foreach (var v in values)
-        {
-            sb.AppendLine($"  {SerializeToBicep(v)}");
-        }
-
-        sb.Append("]");
-        return sb.ToString();
     }
 
     private static string SerializeObject(object obj)
