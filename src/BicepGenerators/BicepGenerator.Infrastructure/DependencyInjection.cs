@@ -5,10 +5,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
+using BicepGenerator.Application.Common.Interfaces.Persistence;
 using BicepGenerator.Application.Common.Interfaces.Services;
-using BicepGenerator.Infrastructure.Persistence;
+using BicepGenerator.Infrastructure.Persistence.Repositories;
 using BicepGenerator.Infrastructure.Services;
 using BicepGenerator.Infrastructure.Services.BlobService;
+using InfraFlowSculptorDbContext = InfraFlowSculptor.Infrastructure.Persistence.ProjectDbContext;
 
 namespace BicepGenerator.Infrastructure;
 
@@ -18,13 +20,13 @@ public static class DependencyInjection
         this IServiceCollection services,
         ConfigurationManager builderConfiguration)
     {
-        var connectionString = builderConfiguration.GetConnectionString("ProjectDatabase");
+        var connectionString = builderConfiguration.GetConnectionString("infraDb")
+            ?? builderConfiguration.GetConnectionString("ProjectDatabase");
 
         services
             .AddAuth(builderConfiguration)
-            .AddDbContext<ProjectDbContext>(options =>
-                options.UseSqlServer(connectionString)
-            )
+            .AddDbContext<InfraFlowSculptorDbContext>(options =>
+                options.UseNpgsql(connectionString))
             .AddAzureServices(builderConfiguration)
             .AddBlob(builderConfiguration)
             .AddRepositories();
@@ -37,6 +39,7 @@ public static class DependencyInjection
     private static IServiceCollection AddRepositories(
         this IServiceCollection services)
     {
+        services.AddScoped<IInfrastructureConfigReadRepository, InfrastructureConfigReadRepository>();
         return services;
     }
 
@@ -46,9 +49,8 @@ public static class DependencyInjection
     {
         services.AddAzureClients(clientBuilder =>
         {
-            // Blob Service
-            string connectionString = builderConfiguration.GetConnectionString("AzureBlobStorageConnectionString") ??
-                                      string.Empty;
+            string connectionString = builderConfiguration.GetConnectionString("AzureBlobStorageConnectionString")
+                ?? string.Empty;
             clientBuilder.AddBlobServiceClient(connectionString);
         });
         return services;
@@ -65,7 +67,6 @@ public static class DependencyInjection
         services.AddSingleton<IBlobService, BlobService>();
         return services;
     }
-
 
     private static IServiceCollection AddAuth(
         this IServiceCollection services,

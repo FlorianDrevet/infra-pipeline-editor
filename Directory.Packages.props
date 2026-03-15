@@ -44,6 +44,7 @@
     <PackageVersion Include="Scalar.AspNetCore" Version="2.11.2" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.0.1" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
+    <PackageVersion Include="Aspire.Hosting.Azure.Storage" Version="13.1.2" />
     <PackageVersion Include="CommunityToolkit.Aspire.Hosting.SqlServer.Extensions" Version="13.0.0" />
   </ItemGroup>
 </Project>

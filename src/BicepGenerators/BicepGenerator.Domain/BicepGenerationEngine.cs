@@ -12,21 +12,26 @@ public sealed class BicepGenerationEngine
 
     public GenerationResult Generate(GenerationRequest request)
     {
-        var grouped = request.Resources
-            .GroupBy(r => r.Type);
-
         var modules = new List<GeneratedTypeModule>();
 
-        foreach (var group in grouped)
+        foreach (var resource in request.Resources)
         {
             var generator = _generators
-                .Single(g => g.ResourceType == group.Key);
+                .Single(g => g.ResourceType == resource.Type);
 
-            modules.Add(generator.Generate(
-                group.ToList(),
-                request.Environment));
+            var module = generator.Generate(resource, request.Environment);
+
+            var resourceIdentifier = BicepIdentifierHelper.ToBicepIdentifier(resource.Name);
+            modules.Add(module with
+            {
+                ModuleName = $"{module.ModuleName}{Capitalize(resourceIdentifier)}",
+                ResourceGroupName = resource.ResourceGroupName
+            });
         }
 
-        return BicepAssembler.Assemble(modules);
+        return BicepAssembler.Assemble(modules, request.ResourceGroups);
     }
+
+    private static string Capitalize(string s) =>
+        s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 }

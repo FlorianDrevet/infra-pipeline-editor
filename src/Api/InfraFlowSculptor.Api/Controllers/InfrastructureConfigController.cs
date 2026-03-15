@@ -1,15 +1,14 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddMember;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBicep;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveMember;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateMemberRole;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
-using InfraFlowSculptor.Application.ResourceGroups.Queries.GetResourceGroup;
+using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
 using MediatR;
-using InfraFlowSculptor.Contracts.InfrastructureConfig;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
-using InfraFlowSculptor.Contracts.ResourceGroups.Responses;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Api.Errors;
@@ -25,6 +24,25 @@ public static class InfrastructureConfigController
             var config = endpoints.MapGroup("/infra-config")
                 .WithTags("Infrastructure Configuration");
 
+            // GET "" - list my configs
+            config.MapGet("",
+                    async (IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListMyInfrastructureConfigsQuery();
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            configs =>
+                            {
+                                var responses = configs.Select(c => mapper.Map<InfrastructureConfigResponse>(c)).ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListMyInfrastructureConfigs");
+
+            // GET /{id:guid}
             config.MapGet("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
                     {
@@ -42,6 +60,7 @@ public static class InfrastructureConfigController
                     })
                 .WithName("GetInfrastructureConfiguration");
 
+            // POST ""
             config.MapPost("",
                     async (CreateInfrastructureConfigRequest request, IMediator mediator, IMapper mapper) =>
                     {
@@ -65,22 +84,63 @@ public static class InfrastructureConfigController
                     return Task.CompletedTask;
                 });
 
-            config.MapPost("generate-bicep",
-                    async (GenerateBicepRequest request, IMediator mediator) =>
+            // POST /{id:guid}/members - add a member
+            config.MapPost("/{id:guid}/members",
+                    async ([FromRoute] Guid id, AddMemberRequest request, IMediator mediator, IMapper mapper) =>
                     {
-                        var command = new GenerateBicepCommand(request.InfrastructureConfigId);
+                        var command = new AddMemberCommand(
+                            new InfrastructureConfigId(id),
+                            request.UserId,
+                            request.Role);
                         var result = await mediator.Send(command);
 
                         return result.Match(
-                            bicepUri =>
+                            infraConfig =>
                             {
-                                var response = new GeneratedBicepResponse(bicepUri);
-                                return Results.Created($"", response);
+                                var response = mapper.Map<InfrastructureConfigResponse>(infraConfig);
+                                return Results.Ok(response);
                             },
                             errors => errors.Result()
                         );
                     })
-                .WithName("GenerateBicep");
+                .WithName("AddMember");
+
+            // PUT /{id:guid}/members/{userId:guid} - update member role
+            config.MapPut("/{id:guid}/members/{userId:guid}",
+                    async ([FromRoute] Guid id, [FromRoute] Guid userId, UpdateMemberRoleRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new UpdateMemberRoleCommand(
+                            new InfrastructureConfigId(id),
+                            userId,
+                            request.NewRole);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            infraConfig =>
+                            {
+                                var response = mapper.Map<InfrastructureConfigResponse>(infraConfig);
+                                return Results.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("UpdateMemberRole");
+
+            // DELETE /{id:guid}/members/{userId:guid} - remove member
+            config.MapDelete("/{id:guid}/members/{userId:guid}",
+                    async ([FromRoute] Guid id, [FromRoute] Guid userId, IMediator mediator) =>
+                    {
+                        var command = new RemoveMemberCommand(
+                            new InfrastructureConfigId(id),
+                            userId);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveMember");
         });
     }
 }
