@@ -1,9 +1,7 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.RedisCaches.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
@@ -20,19 +18,11 @@ public class UpdateRedisCacheCommandHandler(
 {
     public async Task<ErrorOr<RedisCacheResult>> Handle(UpdateRedisCacheCommand request, CancellationToken cancellationToken)
     {
-        var redisCache = await redisCacheRepository.GetByIdAsync(request.Id, cancellationToken);
-        if (redisCache is null)
-            return Errors.RedisCache.NotFoundError(request.Id);
+        var rcResult = await RedisCacheAccessHelper.GetWithWriteAccessAsync(
+            request.Id, redisCacheRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(redisCache.ResourceGroupId, cancellationToken);
-        if (resourceGroup is null)
-            return Errors.RedisCache.NotFoundError(request.Id);
-
-        var authResult = await InfraConfigAccessHelper.VerifyWriteAccessAsync(
-            infraConfigRepository, currentUser, resourceGroup.InfraConfigId, cancellationToken);
-
-        if (authResult.IsError)
-            return authResult.Errors;
+        if (rcResult.IsError)
+            return rcResult.Errors;
 
         var settings = new RedisCacheSettings(
             request.Capacity,
@@ -41,13 +31,9 @@ public class UpdateRedisCacheCommandHandler(
             request.MinimumTlsVersion,
             request.MaxMemoryPolicy);
 
-        redisCache.Update(
-            request.Name,
-            request.Location,
-            request.Sku,
-            settings);
+        rcResult.Value.Update(request.Name, request.Location, request.Sku, settings);
 
-        var updatedRedisCache = await redisCacheRepository.UpdateAsync(redisCache);
+        var updatedRedisCache = await redisCacheRepository.UpdateAsync(rcResult.Value);
 
         return mapper.Map<RedisCacheResult>(updatedRedisCache);
     }
