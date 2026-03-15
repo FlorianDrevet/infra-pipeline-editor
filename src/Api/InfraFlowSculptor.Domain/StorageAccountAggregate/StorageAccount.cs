@@ -70,33 +70,23 @@ public class StorageAccount : AzureResource
     public void Update(
         Name name,
         Location location,
-        StorageAccountSku sku,
-        StorageAccountKind kind,
-        StorageAccessTier accessTier,
-        bool allowBlobPublicAccess,
-        bool enableHttpsTrafficOnly,
-        StorageAccountTlsVersion minimumTlsVersion)
+        StorageAccountSettings settings)
     {
         Name = name;
         Location = location;
-        Sku = sku;
-        Kind = kind;
-        AccessTier = accessTier;
-        AllowBlobPublicAccess = allowBlobPublicAccess;
-        EnableHttpsTrafficOnly = enableHttpsTrafficOnly;
-        MinimumTlsVersion = minimumTlsVersion;
+        Sku = settings.Sku;
+        Kind = settings.Kind;
+        AccessTier = settings.AccessTier;
+        AllowBlobPublicAccess = settings.AllowBlobPublicAccess;
+        EnableHttpsTrafficOnly = settings.EnableHttpsTrafficOnly;
+        MinimumTlsVersion = settings.MinimumTlsVersion;
     }
 
     public static StorageAccount Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        StorageAccountSku sku,
-        StorageAccountKind kind,
-        StorageAccessTier accessTier,
-        bool allowBlobPublicAccess,
-        bool enableHttpsTrafficOnly,
-        StorageAccountTlsVersion minimumTlsVersion)
+        StorageAccountSettings settings)
     {
         return new StorageAccount
         {
@@ -104,12 +94,12 @@ public class StorageAccount : AzureResource
             ResourceGroupId = resourceGroupId,
             Name = name,
             Location = location,
-            Sku = sku,
-            Kind = kind,
-            AccessTier = accessTier,
-            AllowBlobPublicAccess = allowBlobPublicAccess,
-            EnableHttpsTrafficOnly = enableHttpsTrafficOnly,
-            MinimumTlsVersion = minimumTlsVersion
+            Sku = settings.Sku,
+            Kind = settings.Kind,
+            AccessTier = settings.AccessTier,
+            AllowBlobPublicAccess = settings.AllowBlobPublicAccess,
+            EnableHttpsTrafficOnly = settings.EnableHttpsTrafficOnly,
+            MinimumTlsVersion = settings.MinimumTlsVersion
         };
     }
 }

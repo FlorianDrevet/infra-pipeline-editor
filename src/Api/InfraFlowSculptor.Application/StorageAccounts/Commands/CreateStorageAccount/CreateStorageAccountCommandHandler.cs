@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
+using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 
@@ -12,16 +13,19 @@ public class CreateStorageAccountCommandHandler(IStorageAccountRepository storag
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(CreateStorageAccountCommand request, CancellationToken cancellationToken)
     {
-        var storageAccount = StorageAccount.Create(
-            request.ResourceGroupId,
-            request.Name,
-            request.Location,
+        var settings = new StorageAccountSettings(
             request.Sku,
             request.Kind,
             request.AccessTier,
             request.AllowBlobPublicAccess,
             request.EnableHttpsTrafficOnly,
             request.MinimumTlsVersion);
+
+        var storageAccount = StorageAccount.Create(
+            request.ResourceGroupId,
+            request.Name,
+            request.Location,
+            settings);
 
         var saved = await storageAccountRepository.AddAsync(storageAccount);
 

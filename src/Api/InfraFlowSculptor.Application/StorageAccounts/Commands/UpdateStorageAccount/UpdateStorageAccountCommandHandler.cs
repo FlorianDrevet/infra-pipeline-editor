@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 
@@ -17,15 +18,15 @@ public class UpdateStorageAccountCommandHandler(IStorageAccountRepository storag
         if (storageAccount is null)
             return Errors.StorageAccount.NotFoundError(request.Id);
 
-        storageAccount.Update(
-            request.Name,
-            request.Location,
+        var settings = new StorageAccountSettings(
             request.Sku,
             request.Kind,
             request.AccessTier,
             request.AllowBlobPublicAccess,
             request.EnableHttpsTrafficOnly,
             request.MinimumTlsVersion);
+
+        storageAccount.Update(request.Name, request.Location, settings);
 
         var updated = await storageAccountRepository.UpdateAsync(storageAccount);
 
