@@ -14,19 +14,10 @@ public class RemoveBlobContainerCommandHandler(
     ICurrentUser currentUser)
     : IRequestHandler<RemoveBlobContainerCommand, ErrorOr<Deleted>>
 {
-    public async Task<ErrorOr<Deleted>> Handle(RemoveBlobContainerCommand request, CancellationToken cancellationToken)
-    {
-        var saResult = await StorageAccountAccessHelper.GetWithWriteAccessAsync(
-            request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
-
-        if (saResult.IsError)
-            return saResult.Errors;
-
-        var removed = await storageAccountRepository.RemoveBlobContainerAsync(request.ContainerId);
-
-        if (!removed)
-            return Errors.StorageAccount.BlobContainerNotFoundError(request.ContainerId);
-
-        return Result.Deleted;
-    }
+    public Task<ErrorOr<Deleted>> Handle(RemoveBlobContainerCommand request, CancellationToken cancellationToken) =>
+        StorageAccountAccessHelper.RemoveSubResourceAsync(
+            request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser,
+            () => storageAccountRepository.RemoveBlobContainerAsync(request.ContainerId),
+            () => Errors.StorageAccount.BlobContainerNotFoundError(request.ContainerId),
+            cancellationToken);
 }

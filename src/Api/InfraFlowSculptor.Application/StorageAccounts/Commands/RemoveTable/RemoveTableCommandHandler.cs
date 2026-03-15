@@ -14,19 +14,10 @@ public class RemoveTableCommandHandler(
     ICurrentUser currentUser)
     : IRequestHandler<RemoveTableCommand, ErrorOr<Deleted>>
 {
-    public async Task<ErrorOr<Deleted>> Handle(RemoveTableCommand request, CancellationToken cancellationToken)
-    {
-        var saResult = await StorageAccountAccessHelper.GetWithWriteAccessAsync(
-            request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
-
-        if (saResult.IsError)
-            return saResult.Errors;
-
-        var removed = await storageAccountRepository.RemoveTableAsync(request.TableId);
-
-        if (!removed)
-            return Errors.StorageAccount.TableNotFoundError(request.TableId);
-
-        return Result.Deleted;
-    }
+    public Task<ErrorOr<Deleted>> Handle(RemoveTableCommand request, CancellationToken cancellationToken) =>
+        StorageAccountAccessHelper.RemoveSubResourceAsync(
+            request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser,
+            () => storageAccountRepository.RemoveTableAsync(request.TableId),
+            () => Errors.StorageAccount.TableNotFoundError(request.TableId),
+            cancellationToken);
 }
