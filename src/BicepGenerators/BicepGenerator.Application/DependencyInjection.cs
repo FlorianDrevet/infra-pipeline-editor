@@ -24,6 +24,7 @@ public static class DependencyInjection
         // Domain services — Bicep generators
         services.AddSingleton<IResourceTypeBicepGenerator, StorageAccountTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, KeyVaultTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, RedisCacheTypeBicepGenerator>();
         services.AddSingleton<BicepGenerationEngine>();
 
         return services;

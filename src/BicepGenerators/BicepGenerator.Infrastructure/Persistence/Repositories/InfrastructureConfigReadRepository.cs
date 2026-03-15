@@ -4,6 +4,8 @@ using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
+using InfraFlowSculptor.Domain.RedisCacheAggregate;
+using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using InfraFlowSculptorDbContext = InfraFlowSculptor.Infrastructure.Persistence.ProjectDbContext;
 
@@ -72,7 +74,33 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                 {
                     ["sku"] = kv.Sku.Value.ToString().ToLower()
                 }),
+            RedisCache rc => new AzureResourceReadModel(
+                rc.Id.Value,
+                rc.Name.Value,
+                MapLocation(rc.Location),
+                "Microsoft.Cache/Redis",
+                new Dictionary<string, string>
+                {
+                    ["skuName"] = rc.Sku.Value.ToString(),
+                    ["skuFamily"] = rc.Sku.Value == RedisCacheSku.Sku.Premium ? "P" : "C",
+                    ["capacity"] = rc.Capacity.ToString(),
+                    ["redisVersion"] = rc.RedisVersion.ToString(),
+                    ["enableNonSslPort"] = rc.EnableNonSslPort.ToString().ToLower(),
+                    ["minimumTlsVersion"] = MapTlsVersion(rc.MinimumTlsVersion),
+                }),
             _ => null
+        };
+    }
+
+    private static string MapTlsVersion(TlsVersion tlsVersion)
+    {
+        return tlsVersion.Value switch
+        {
+            TlsVersion.Version.Tls10 => "1.0",
+            TlsVersion.Version.Tls11 => "1.1",
+            TlsVersion.Version.Tls12 => "1.2",
+            _ => throw new ArgumentOutOfRangeException(nameof(tlsVersion),
+                $"Unsupported TLS version: {tlsVersion.Value}")
         };
     }
 
