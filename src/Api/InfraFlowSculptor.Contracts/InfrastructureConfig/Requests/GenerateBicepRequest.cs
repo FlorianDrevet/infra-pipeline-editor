@@ -1,3 +1,0 @@
-namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
-
-public record GenerateBicepRequest(Guid InfrastructureConfigId);

@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 {
     public Name Name { get; private set; } = null!;
-    private List<ResourceGroup> _resourceGroups { get; set; } = new();
+    private readonly List<ResourceGroup> _resourceGroups = new();
     public IReadOnlyList<ResourceGroup> ResourceGroups => _resourceGroups.AsReadOnly();
     
     private readonly List<Member> _members = new();

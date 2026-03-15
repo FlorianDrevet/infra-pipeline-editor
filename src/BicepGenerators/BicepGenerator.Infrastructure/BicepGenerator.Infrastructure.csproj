@@ -15,8 +15,6 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.Design"/>
         <PackageReference Include="Microsoft.Extensions.Azure"/>
         <PackageReference Include="Microsoft.Extensions.Configuration"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"/>
@@ -29,11 +27,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\Api\InfraFlowSculptor.Infrastructure\InfraFlowSculptor.Infrastructure.csproj" />
         <ProjectReference Include="..\BicepGenerator.Application\BicepGenerator.Application.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Persistence\Configurations\" />
-      <Folder Include="Persistence\Repositories\" />
     </ItemGroup>
 </Project>
