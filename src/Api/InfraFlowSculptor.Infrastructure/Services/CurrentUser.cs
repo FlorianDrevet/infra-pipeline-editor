@@ -8,20 +8,20 @@ namespace InfraFlowSculptor.Infrastructure.Services;
 
 public class CurrentUser:  ICurrentUser
 {
-    private readonly IHttpContextAccessor httpContextAccessor;
-    private readonly IUserRepository userRepository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUserRepository _userRepository;
 
     public CurrentUser(
         IHttpContextAccessor httpContextAccessor,
         IUserRepository userRepository)
     {
-        this.httpContextAccessor = httpContextAccessor;
-        this.userRepository = userRepository;
+        _httpContextAccessor = httpContextAccessor;
+        _userRepository = userRepository;
     }
 
     public async Task<UserId> GetUserIdAsync(CancellationToken cancellationToken = default)
     {
-        var principal = httpContextAccessor.HttpContext?.User
+        var principal = _httpContextAccessor.HttpContext?.User
                         ?? throw new UnauthorizedAccessException();
 
         var entraId = principal.FindFirst(ClaimConstants.ObjectId)?.Value
@@ -34,7 +34,7 @@ public class CurrentUser:  ICurrentUser
         var firstName = nameClaim.Split(' ')[0];
         var lastName = nameClaim.Split(' ')[1];
 
-        var user = await userRepository.GetOrCreateByEntraIdAsync(entraId, firstName, lastName, cancellationToken);
+        var user = await _userRepository.GetOrCreateByEntraIdAsync(entraId, firstName, lastName, cancellationToken);
 
         return user.Id;
     }

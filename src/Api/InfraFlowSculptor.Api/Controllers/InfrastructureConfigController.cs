@@ -1,7 +1,6 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddMember;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBicep;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveMember;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateMemberRole;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
@@ -84,24 +83,6 @@ public static class InfrastructureConfigController
                     operation.Description = "Creates a new Infrastructure Configuration with the specified name.";
                     return Task.CompletedTask;
                 });
-
-            // POST generate-bicep
-            config.MapPost("generate-bicep",
-                    async (GenerateBicepRequest request, IMediator mediator) =>
-                    {
-                        var command = new GenerateBicepCommand(request.InfrastructureConfigId);
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            bicepUri =>
-                            {
-                                var response = new GeneratedBicepResponse(bicepUri);
-                                return Results.Created($"", response);
-                            },
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("GenerateBicep");
 
             // POST /{id:guid}/members - add a member
             config.MapPost("/{id:guid}/members",
