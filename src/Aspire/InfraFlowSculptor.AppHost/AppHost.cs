@@ -16,7 +16,7 @@ var postgres = builder.AddPostgres("postgres")
 
 var database = postgres.AddDatabase("infraDb");
 
-var apiBicep = builder.AddProject<BicepGenerator_Api>("bicep-generator-api")
+builder.AddProject<BicepGenerator_Api>("bicep-generator-api")
     .WithExternalHttpEndpoints()
     .WithReference(database)
     .WaitFor(database)

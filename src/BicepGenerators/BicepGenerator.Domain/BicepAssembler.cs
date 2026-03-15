@@ -52,9 +52,8 @@ public static class BicepAssembler
         sb.AppendLine();
 
         // Resource group declarations
-        foreach (var rg in resourceGroups)
+        foreach (var (rg, rgSymbol) in resourceGroups.Select(rg => (rg, BicepIdentifierHelper.ToBicepIdentifier(rg.Name))))
         {
-            var rgSymbol = BicepIdentifierHelper.ToBicepIdentifier(rg.Name);
             sb.AppendLine($"resource {rgSymbol} 'Microsoft.Resources/resourceGroups@2022-09-01' = {{");
             sb.AppendLine($"  name: '{rg.Name}'");
             sb.AppendLine("  location: location");
@@ -73,11 +72,10 @@ public static class BicepAssembler
             sb.AppendLine("  params: {");
             sb.AppendLine("    location: location");
 
-            foreach (var paramKey in module.Parameters.Keys)
+            foreach (var paramKey in module.Parameters.Keys.Where(paramKey => paramKey != "location"))
             {
-                if (paramKey != "location")
-                    // Map the module's internal param name to the outer param (= module name)
-                    sb.AppendLine($"    {paramKey}: {module.ModuleName}");
+                // Map the module's internal param name to the outer param (= module name)
+                sb.AppendLine($"    {paramKey}: {module.ModuleName}");
             }
 
             sb.AppendLine("  }");
