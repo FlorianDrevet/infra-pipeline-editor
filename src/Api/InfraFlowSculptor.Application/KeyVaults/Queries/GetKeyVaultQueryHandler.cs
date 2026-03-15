@@ -1,5 +1,7 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
@@ -7,18 +9,30 @@ using MediatR;
 
 namespace InfraFlowSculptor.Application.KeyVaults.Queries;
 
-public class GetKeyVaultQueryHandler(IKeyVaultRepository keyVaultRepository, IMapper mapper)   
+public class GetKeyVaultQueryHandler(
+    IKeyVaultRepository keyVaultRepository,
+    IResourceGroupRepository resourceGroupRepository,
+    IInfrastructureConfigRepository infraConfigRepository,
+    ICurrentUser currentUser,
+    IMapper mapper)
     : IRequestHandler<GetKeyVaultQuery, ErrorOr<KeyVaultResult>>
 {
     public async Task<ErrorOr<KeyVaultResult>> Handle(GetKeyVaultQuery query, CancellationToken cancellationToken)
     {
         var keyVault = await keyVaultRepository.GetByIdAsync(query.Id, cancellationToken);
         if (keyVault is null)
-        {
             return Errors.KeyVault.NotFoundError(query.Id);
-        }
 
-        var keyVaultResult = mapper.Map<KeyVaultResult>(keyVault);
-        return keyVaultResult;
+        var resourceGroup = await resourceGroupRepository.GetByIdAsync(keyVault.ResourceGroupId, cancellationToken);
+        if (resourceGroup is null)
+            return Errors.KeyVault.NotFoundError(query.Id);
+
+        var authResult = await InfraConfigAccessHelper.VerifyReadAccessAsync(
+            infraConfigRepository, currentUser, resourceGroup.InfraConfigId, cancellationToken);
+
+        if (authResult.IsError)
+            return Errors.KeyVault.NotFoundError(query.Id);
+
+        return mapper.Map<KeyVaultResult>(keyVault);
     }
 }

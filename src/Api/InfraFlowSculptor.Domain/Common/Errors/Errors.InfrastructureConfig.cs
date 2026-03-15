@@ -13,5 +13,10 @@ public static partial class Errors
             description: $"A InfrastructureConfig with the given id {id} does not exist.",
             metadata: new Dictionary<string, object> { { "Id", id.ToString() } }
         );
+
+        public static Error ForbiddenError() => Error.Forbidden(
+            code: "InfrastructureConfig.Forbidden",
+            description: "You do not have sufficient permissions to perform this action on this configuration."
+        );
     }
 }

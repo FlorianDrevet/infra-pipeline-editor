@@ -146,13 +146,26 @@ services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 ```
 
-### 4.3 Shared Authorization Helper
+### 4.3 Shared Authorization Helpers
 
-For member management commands (Owner-only), use the shared helper:
+**Member management (Owner-only):**
 ```csharp
 // MemberCommandHelper.AuthorizeOwnerAndFindTargetAsync(...)
 // Location: src/Api/InfraFlowSculptor.Application/InfrastructureConfig/Common/MemberCommandHelper.cs
 ```
+
+**Resource CRUD authorization (membership check):**
+```csharp
+// InfraConfigAccessHelper.VerifyReadAccessAsync(...)   → any member (any role)
+// InfraConfigAccessHelper.VerifyWriteAccessAsync(...)  → Owner or Contributor only (returns ForbiddenError for Reader)
+// Location: src/Api/InfraFlowSculptor.Application/InfrastructureConfig/Common/InfraConfigAccessHelper.cs
+```
+
+Access check pattern for resource handlers:
+- **ResourceGroup**: has `InfraConfigId` directly → call helper with it
+- **KeyVault / RedisCache**: have `ResourceGroupId` → load ResourceGroup → use `resourceGroup.InfraConfigId`
+- Read operations: `VerifyReadAccessAsync` — returns `NotFound` (no info leak) if not a member
+- Write operations: `VerifyWriteAccessAsync` — returns `NotFound` for non-members, `Forbidden` for Readers
 
 ---
 
@@ -381,3 +394,4 @@ No test projects currently exist.
 |------|--------|--------|
 | 2026-03-15 | copilot | Initial MEMORY.md created from full project exploration |
 | 2026-03-15 | copilot | Fixed `InvalidOperationException` in `InfrastructureConfigRepository.GetByIdWithMembersAsync`: `c.Id.Value == id.Value` → `c.Id == id` (EF Core cannot translate `.Value` property access on value objects in LINQ queries) |
+| 2026-03-15 | copilot | Added authorization checks to all resource CRUD endpoints (ResourceGroup, KeyVault, RedisCache): created `InfraConfigAccessHelper` (`VerifyReadAccessAsync`/`VerifyWriteAccessAsync`), added `Errors.InfrastructureConfig.ForbiddenError()`, overrode `ResourceGroupRepository.GetByIdAsync` with safe LINQ pattern |
