@@ -1,4 +1,5 @@
 using System.Reflection;
+using BicepGenerator.Domain;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,13 @@ public static class DependencyInjection
 
         // Validators
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+        // Domain services — Bicep generators
+        services.AddSingleton<IResourceTypeBicepGenerator, StorageAccountTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, KeyVaultTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, RedisCacheTypeBicepGenerator>();
+        services.AddSingleton<BicepGenerationEngine>();
+
         return services;
     }
 }

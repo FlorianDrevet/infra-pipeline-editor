@@ -1,38 +1,43 @@
 using BicepGenerator.Application.Commands.GenerateBicep;
 using BicepGenerator.Contracts.GenerateBicep.Requests;
 using BicepGenerator.Contracts.GenerateBicep.Responses;
-using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Api.Errors;
 
 namespace BicepGenerator.Api.Controllers;
 
-public static class KeyVaultControllerController
+public static class BicepGenerationController
 {
-    public static IApplicationBuilder UseBicepGenerationControllerController(this IApplicationBuilder builder)
+    public static IApplicationBuilder UseBicepGenerationController(this IApplicationBuilder builder)
     {
         return builder.UseEndpoints(endpoints =>
         {
-            var config = endpoints.MapGroup("/generate-bicep")
+            var group = endpoints.MapGroup("/generate-bicep")
                 .WithTags("Generate Bicep");
 
-            config.MapPost("",
+            group.MapPost("",
                     async (GenerateBicepRequest request, IMediator mediator) =>
                     {
-                        var command = new GenerateBicepCommand();
+                        var command = new GenerateBicepCommand(request.InfrastructureConfigId);
                         var result = await mediator.Send(command);
 
                         return result.Match(
-                            bicepUri =>
+                            value =>
                             {
-                                var response = new GenerateBicepResponse(bicepUri);
-                                return Results.Created($"", response);
+                                var response = new GenerateBicepResponse(
+                                    value.MainBicepUri,
+                                    value.ParametersUri,
+                                    value.ModuleUris);
+                                return Results.Created(value.MainBicepUri.ToString(), response);
                             },
                             errors => errors.Result()
                         );
                     })
-                .WithName("GenerateBicep");
+                .WithName("GenerateBicep")
+                .Produces<GenerateBicepResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status500InternalServerError);
         });
     }
 }
