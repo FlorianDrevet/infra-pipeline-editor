@@ -5,13 +5,16 @@ namespace BicepGenerator.Domain;
 public static class BicepAssembler
 {
     public static GenerationResult Assemble(
-        IReadOnlyCollection<GeneratedTypeModule> modules)
+        IReadOnlyCollection<GeneratedTypeModule> modules,
+        IReadOnlyList<ResourceGroupDefinition> resourceGroups)
     {
-        var main = GenerateMainBicep(modules);
+        var main = GenerateMainBicep(modules, resourceGroups);
         var parameters = GenerateMainParameters(modules);
-        var moduleFiles = modules.ToDictionary(
-            m => $"modules/{m.ModuleFileName}",
-            m => m.ModuleBicepContent);
+        var moduleFiles = modules
+            .DistinctBy(m => m.ModuleFileName)
+            .ToDictionary(
+                m => $"modules/{m.ModuleFileName}",
+                m => m.ModuleBicepContent);
 
         return new GenerationResult
         {
@@ -22,15 +25,18 @@ public static class BicepAssembler
     }
 
     private static string GenerateMainBicep(
-        IReadOnlyCollection<GeneratedTypeModule> modules)
+        IReadOnlyCollection<GeneratedTypeModule> modules,
+        IReadOnlyList<ResourceGroupDefinition> resourceGroups)
     {
         var sb = new StringBuilder();
 
-        sb.AppendLine("targetScope = 'resourceGroup'");
+        sb.AppendLine("targetScope = 'subscription'");
         sb.AppendLine();
         sb.AppendLine("param location string = 'westeurope'");
         sb.AppendLine();
 
+        // Outer param declarations — one param per module (using module name to ensure
+        // uniqueness across resource-group/type combinations and avoid BCP028).
         foreach (var module in modules)
         {
             foreach (var param in module.Parameters)
@@ -39,23 +45,39 @@ public static class BicepAssembler
                     continue;
 
                 var bicepType = InferBicepType(param.Value);
-                sb.AppendLine($"param {param.Key} {bicepType}");
+                sb.AppendLine($"param {module.ModuleName} {bicepType}");
             }
         }
 
         sb.AppendLine();
 
+        // Resource group declarations
+        foreach (var rg in resourceGroups)
+        {
+            var rgSymbol = BicepIdentifierHelper.ToBicepIdentifier(rg.Name);
+            sb.AppendLine($"resource {rgSymbol} 'Microsoft.Resources/resourceGroups@2022-09-01' = {{");
+            sb.AppendLine($"  name: '{rg.Name}'");
+            sb.AppendLine("  location: location");
+            sb.AppendLine("}");
+            sb.AppendLine();
+        }
+
+        // Module declarations — symbol uses Module suffix to avoid BCP028 with param names
         foreach (var module in modules)
         {
-            sb.AppendLine($"module {module.ModuleName} './modules/{module.ModuleFileName}' = {{");
+            var rgSymbol = BicepIdentifierHelper.ToBicepIdentifier(module.ResourceGroupName);
+            var moduleSymbol = $"{module.ModuleName}Module";
+            sb.AppendLine($"module {moduleSymbol} './modules/{module.ModuleFileName}' = {{");
             sb.AppendLine($"  name: '{module.ModuleName}'");
+            sb.AppendLine($"  scope: {rgSymbol}");
             sb.AppendLine("  params: {");
             sb.AppendLine("    location: location");
 
-            foreach (var param in module.Parameters.Keys)
+            foreach (var paramKey in module.Parameters.Keys)
             {
-                if (param != "location")
-                    sb.AppendLine($"    {param}: {param}");
+                if (paramKey != "location")
+                    // Map the module's internal param name to the outer param (= module name)
+                    sb.AppendLine($"    {paramKey}: {module.ModuleName}");
             }
 
             sb.AppendLine("  }");
@@ -83,7 +105,8 @@ public static class BicepAssembler
                 if (param.Key == "location")
                     continue;
 
-                sb.AppendLine($"param {param.Key} = {SerializeToBicep(param.Value)}");
+                // Outer param name = module name (matches the declaration in main.bicep)
+                sb.AppendLine($"param {module.ModuleName} = {SerializeToBicep(param.Value)}");
                 sb.AppendLine();
             }
         }
@@ -108,7 +131,8 @@ public static class BicepAssembler
         return value switch
         {
             string s => $"'{s}'",
-            int or long or double or bool => value.ToString()!,
+            bool b => b ? "true" : "false",
+            int or long or double => value.ToString()!,
             IEnumerable<object> items => SerializeCollection(items),
             _ => SerializeObject(value)
         };

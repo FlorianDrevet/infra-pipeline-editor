@@ -27,14 +27,18 @@ public class GenerateBicepCommandHandler(
                 $"Infrastructure configuration '{command.InfrastructureConfigId}' was not found.");
 
         var resources = config.ResourceGroups
-            .SelectMany(rg => rg.Resources)
-            .Select(r => new ResourceDefinition
+            .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
             {
                 Name = r.Name,
                 Type = r.ResourceType,
+                ResourceGroupName = rg.Name,
                 Sku = r.Properties.GetValueOrDefault("sku", string.Empty),
                 Properties = r.Properties
-            })
+            }))
+            .ToList();
+
+        var resourceGroups = config.ResourceGroups
+            .Select(rg => new ResourceGroupDefinition { Name = rg.Name, Location = rg.Location })
             .ToList();
 
         var defaultLocation = config.Environments.FirstOrDefault()?.Location
@@ -44,6 +48,7 @@ public class GenerateBicepCommandHandler(
         var generationRequest = new GenerationRequest
         {
             Resources = resources,
+            ResourceGroups = resourceGroups,
             Environment = new EnvironmentDefinition { Location = defaultLocation }
         };
 

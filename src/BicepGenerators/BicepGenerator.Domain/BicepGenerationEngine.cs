@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace BicepGenerator.Domain;
 
 public sealed class BicepGenerationEngine
@@ -13,20 +15,32 @@ public sealed class BicepGenerationEngine
     public GenerationResult Generate(GenerationRequest request)
     {
         var grouped = request.Resources
-            .GroupBy(r => r.Type);
+            .GroupBy(r => (r.ResourceGroupName, r.Type));
 
         var modules = new List<GeneratedTypeModule>();
 
         foreach (var group in grouped)
         {
-            var generator = _generators
-                .Single(g => g.ResourceType == group.Key);
+            var (rgName, type) = group.Key;
 
-            modules.Add(generator.Generate(
+            var generator = _generators
+                .Single(g => g.ResourceType == type);
+
+            var module = generator.Generate(
                 group.ToList(),
-                request.Environment));
+                request.Environment);
+
+            var rgIdentifier = BicepIdentifierHelper.ToBicepIdentifier(rgName);
+            modules.Add(module with
+            {
+                ModuleName = $"{module.ModuleName}{Capitalize(rgIdentifier)}",
+                ResourceGroupName = rgName
+            });
         }
 
-        return BicepAssembler.Assemble(modules);
+        return BicepAssembler.Assemble(modules, request.ResourceGroups);
     }
+
+    private static string Capitalize(string s) =>
+        s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 }
