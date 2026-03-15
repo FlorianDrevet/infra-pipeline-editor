@@ -18,7 +18,7 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     {
         return await Context.InfrastructureConfigs
             .Include(c => c.Members)
-            .FirstOrDefaultAsync(c => c.Id.Value == id.Value, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
     public async Task<List<InfrastructureConfig>> GetAllForUserAsync(UserId userId, CancellationToken cancellationToken = default)

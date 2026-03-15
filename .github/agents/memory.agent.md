@@ -298,7 +298,7 @@ dotnet ef migrations add Add{AggregateName} \
 - **Toujours utiliser `ErrorOr<T>`** pour les retours de handlers
 - **Ne jamais appeler EF Core directement** depuis les handlers — passer par les repositories
 - **Namespace ambiguïté** : utiliser le nom complet `Domain.InfrastructureConfigAggregate.InfrastructureConfig` si nécessaire
-- **Conversions EF Core** : utiliser `SingleValueConverter`, `EnumValueConverter`, `IdValueConverter` — ne pas stocker les value objects directement
+- **Comparaisons EF Core par ID** : toujours écrire `x.Id == id` (jamais `x.Id.Value == id.Value`) dans les prédicats LINQ. EF Core utilise `IdValueConverter<T>` pour traduire la comparaison de value object en SQL. Utiliser `.Value` lève `InvalidOperationException: The LINQ expression could not be translated`.
 - **Validators** : toujours créer un validator FluentValidation pour chaque commande
 - **Méthodes non-statiques** dans les configurations EF Core : certaines méthodes peuvent déclencher S2325 (SonarQube) — rendre les méthodes `static` si elles n'accèdent pas à `this`
 

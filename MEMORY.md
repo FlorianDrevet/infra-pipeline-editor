@@ -298,8 +298,11 @@ public class XyzRepository(ProjectDbContext context)
 {
     public async Task<Xyz?> GetByIdWithRelatedAsync(XyzId id, CancellationToken ct = default)
         => await Context.Xyzs.Include(x => x.Related)
-            .FirstOrDefaultAsync(x => x.Id.Value == id.Value, ct);
+            .FirstOrDefaultAsync(x => x.Id == id, ct);  // ✅ correct: compare value objects, NOT .Value
 }
+```
+
+**⚠️ IMPORTANT EF Core pitfall:** Never use `x.Id.Value == id.Value` in LINQ-to-EF queries. EF Core cannot translate navigation into `.Value` on a value object. Always compare the whole value object: `x.Id == id`. EF Core uses the registered `IdValueConverter<T>` to translate this to a SQL `=` comparison on the underlying `Guid` column. Using `.Value` causes `InvalidOperationException: The LINQ expression could not be translated`.
 ```
 
 `IRepository<T>` methods: `GetByIdAsync`, `GetAllAsync`, `AddAsync`, `UpdateAsync` (returns T), `DeleteAsync`.
@@ -377,4 +380,4 @@ No test projects currently exist.
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-03-15 | copilot | Initial MEMORY.md created from full project exploration |
-| 2026-03-15 | copilot | Added RBAC membership system (Owner/Contributor/Reader) with `MemberCommandHelper` to avoid code duplication |
+| 2026-03-15 | copilot | Fixed `InvalidOperationException` in `InfrastructureConfigRepository.GetByIdWithMembersAsync`: `c.Id.Value == id.Value` → `c.Id == id` (EF Core cannot translate `.Value` property access on value objects in LINQ queries) |
