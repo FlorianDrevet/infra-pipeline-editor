@@ -1,22 +1,30 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.StorageAccounts.Commands.UpdateStorageAccount;
 
-public class UpdateStorageAccountCommandHandler(IStorageAccountRepository storageAccountRepository, IMapper mapper)
+public class UpdateStorageAccountCommandHandler(
+    IStorageAccountRepository storageAccountRepository,
+    IResourceGroupRepository resourceGroupRepository,
+    IInfrastructureConfigRepository infraConfigRepository,
+    ICurrentUser currentUser,
+    IMapper mapper)
     : IRequestHandler<UpdateStorageAccountCommand, ErrorOr<StorageAccountResult>>
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(UpdateStorageAccountCommand request, CancellationToken cancellationToken)
     {
-        var storageAccount = await storageAccountRepository.GetByIdWithSubResourcesAsync(request.Id, cancellationToken);
+        var saResult = await StorageAccountAccessHelper.GetWithWriteAccessAsync(
+            request.Id, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
 
-        if (storageAccount is null)
-            return Errors.StorageAccount.NotFoundError(request.Id);
+        if (saResult.IsError)
+            return saResult.Errors;
+
+        var storageAccount = saResult.Value;
 
         var settings = new StorageAccountSettings(
             request.Sku,

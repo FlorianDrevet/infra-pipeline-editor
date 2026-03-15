@@ -1,22 +1,28 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.StorageAccounts.Queries;
 
-public class GetStorageAccountQueryHandler(IStorageAccountRepository storageAccountRepository, IMapper mapper)
+public class GetStorageAccountQueryHandler(
+    IStorageAccountRepository storageAccountRepository,
+    IResourceGroupRepository resourceGroupRepository,
+    IInfrastructureConfigRepository infraConfigRepository,
+    ICurrentUser currentUser,
+    IMapper mapper)
     : IRequestHandler<GetStorageAccountQuery, ErrorOr<StorageAccountResult>>
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(GetStorageAccountQuery query, CancellationToken cancellationToken)
     {
-        var storageAccount = await storageAccountRepository.GetByIdWithSubResourcesAsync(query.Id, cancellationToken);
+        var result = await StorageAccountAccessHelper.GetWithReadAccessAsync(
+            query.Id, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
 
-        if (storageAccount is null)
-            return Errors.StorageAccount.NotFoundError(query.Id);
+        if (result.IsError)
+            return result.Errors;
 
-        return mapper.Map<StorageAccountResult>(storageAccount);
+        return mapper.Map<StorageAccountResult>(result.Value);
     }
 }
