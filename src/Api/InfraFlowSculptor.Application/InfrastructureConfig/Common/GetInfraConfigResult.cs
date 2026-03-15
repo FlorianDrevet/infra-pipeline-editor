@@ -3,4 +3,7 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Common;
 
-public record GetInfrastructureConfigResult(InfrastructureConfigId Id, Name Name);
+public record GetInfrastructureConfigResult(
+    InfrastructureConfigId Id,
+    Name Name,
+    IReadOnlyList<MemberResult> Members);

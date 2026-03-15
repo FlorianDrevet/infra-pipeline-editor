@@ -1,3 +1,3 @@
 namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 
-public record InfrastructureConfigResponse(string Id, string Name);
+public record InfrastructureConfigResponse(string Id, string Name, IReadOnlyList<MemberResponse> Members);
