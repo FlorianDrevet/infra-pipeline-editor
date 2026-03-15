@@ -1,6 +1,5 @@
 ---
 description: 'Architecte CQRS avec mémoire persistante.'
-tools: []
 ---
 # Agent : memory — Architecte CQRS avec mémoire persistante
 
