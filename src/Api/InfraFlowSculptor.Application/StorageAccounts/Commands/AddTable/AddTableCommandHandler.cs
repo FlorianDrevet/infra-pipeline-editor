@@ -22,7 +22,9 @@ public class AddTableCommandHandler(IStorageAccountRepository storageAccountRepo
         await storageAccountRepository.AddTableAsync(table);
 
         var updated = await storageAccountRepository.GetByIdWithSubResourcesAsync(request.StorageAccountId, cancellationToken);
+        if (updated is null)
+            return Errors.StorageAccount.NotFoundError(request.StorageAccountId);
 
-        return mapper.Map<StorageAccountResult>(updated!);
+        return mapper.Map<StorageAccountResult>(updated);
     }
 }

@@ -22,7 +22,9 @@ public class AddBlobContainerCommandHandler(IStorageAccountRepository storageAcc
         await storageAccountRepository.AddBlobContainerAsync(container);
 
         var updated = await storageAccountRepository.GetByIdWithSubResourcesAsync(request.StorageAccountId, cancellationToken);
+        if (updated is null)
+            return Errors.StorageAccount.NotFoundError(request.StorageAccountId);
 
-        return mapper.Map<StorageAccountResult>(updated!);
+        return mapper.Map<StorageAccountResult>(updated);
     }
 }
