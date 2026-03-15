@@ -32,9 +32,9 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     private readonly List<InputOutputLink> _outputs = new();
     public IReadOnlyCollection<InputOutputLink> Outputs => _outputs;
 
+    private readonly List<RoleAssignment> _roleAssignments = new();
+    public IReadOnlyCollection<RoleAssignment> RoleAssignments => _roleAssignments.AsReadOnly();
 
-    //public ManagedIdentity? ManagedIdentity { get; set; }
-    
     // Méthode métier
     public void AddDependency(AzureResource resource)
     {
@@ -46,7 +46,31 @@ public class AzureResource : AggregateRoot<AzureResourceId>
 
         _dependsOn.Add(resource);
     }
-    
+
+    public void AddRoleAssignment(
+        AzureResourceId targetResourceId,
+        ManagedIdentityType managedIdentityType,
+        string roleDefinitionId)
+    {
+        if (targetResourceId == Id)
+            throw new InvalidOperationException("A resource cannot assign a role to itself.");
+
+        if (_roleAssignments.Any(r =>
+                r.TargetResourceId == targetResourceId &&
+                r.RoleDefinitionId == roleDefinitionId &&
+                r.ManagedIdentityType.Value == managedIdentityType.Value))
+            return;
+
+        _roleAssignments.Add(RoleAssignment.Create(Id, targetResourceId, managedIdentityType, roleDefinitionId));
+    }
+
+    public void RemoveRoleAssignment(RoleAssignmentId roleAssignmentId)
+    {
+        var assignment = _roleAssignments.FirstOrDefault(r => r.Id == roleAssignmentId);
+        if (assignment is not null)
+            _roleAssignments.Remove(assignment);
+    }
+
     protected void AddParameterUsage(
         ParameterDefinition parameter,
         ParameterUsage usage)

@@ -58,5 +58,14 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
             .WithOne()
             .HasForeignKey(x => x.ResourceId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(r => r.RoleAssignments)
+            .WithOne()
+            .HasForeignKey(r => r.SourceResourceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(r => r.RoleAssignments)
+            .HasField("_roleAssignments")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }
