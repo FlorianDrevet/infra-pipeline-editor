@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<IKeyVaultRepository, KeyVaultRepository>();
         services.AddScoped<IRedisCacheRepository, RedisCacheRepository>();
         services.AddScoped<IResourceGroupRepository, ResourceGroupRepository>();
+        services.AddScoped<IStorageAccountRepository, StorageAccountRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
 
         return services;
