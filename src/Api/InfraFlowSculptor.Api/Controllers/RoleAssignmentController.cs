@@ -37,7 +37,16 @@ public static class RoleAssignmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListRoleAssignments");
+                .WithName("ListRoleAssignments")
+                .AddOpenApiOperationTransformer((operation, context, ct) =>
+                {
+                    operation.Summary = "List role assignments for a resource";
+                    operation.Description =
+                        "Returns all RBAC role assignments where the specified Azure resource is the source (identity bearer). " +
+                        "Each entry describes the target resource, the managed identity type (SystemAssigned or UserAssigned), " +
+                        "and the Azure role definition ID granted.";
+                    return Task.CompletedTask;
+                });
 
             group.MapPost("",
                     async ([FromRoute] Guid resourceId, [FromBody] AddRoleAssignmentRequest request,
@@ -59,7 +68,17 @@ public static class RoleAssignmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddRoleAssignment");
+                .WithName("AddRoleAssignment")
+                .AddOpenApiOperationTransformer((operation, context, ct) =>
+                {
+                    operation.Summary = "Add a role assignment to a resource";
+                    operation.Description =
+                        "Assigns an Azure RBAC role to a target resource using the managed identity of the source resource. " +
+                        "Specify 'SystemAssigned' or 'UserAssigned' for the managed identity type, and provide a valid " +
+                        "Azure role definition ID (e.g. 'b24988ac-6180-42a0-ab88-20f7382dd24c' for Contributor). " +
+                        "Duplicate assignments (same target, role, and identity type) are silently ignored.";
+                    return Task.CompletedTask;
+                });
 
             group.MapDelete("/{roleAssignmentId:guid}",
                     async ([FromRoute] Guid resourceId, [FromRoute] Guid roleAssignmentId, IMediator mediator) =>
@@ -74,7 +93,16 @@ public static class RoleAssignmentController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveRoleAssignment");
+                .WithName("RemoveRoleAssignment")
+                .AddOpenApiOperationTransformer((operation, context, ct) =>
+                {
+                    operation.Summary = "Remove a role assignment from a resource";
+                    operation.Description =
+                        "Deletes the specified role assignment from the source resource. " +
+                        "The caller must have write access (Owner or Contributor) on the infrastructure configuration " +
+                        "that owns the resource. Returns 204 No Content on success.";
+                    return Task.CompletedTask;
+                });
         });
     }
 }
