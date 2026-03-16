@@ -18,7 +18,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     public required Name Name { get; set; }
     public required Location Location { get; set; }
     
-    private List<AzureResource> _dependsOn = new List<AzureResource>();
+    private readonly List<AzureResource> _dependsOn = new List<AzureResource>();
     public IReadOnlyList<AzureResource> DependsOn => _dependsOn.AsReadOnly();
     
     protected virtual IReadOnlyCollection<ParameterUsage> AllowedParameterUsages { get; }
@@ -35,7 +35,6 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     private readonly List<RoleAssignment> _roleAssignments = new();
     public IReadOnlyCollection<RoleAssignment> RoleAssignments => _roleAssignments.AsReadOnly();
 
-    // Méthode métier
     public void AddDependency(AzureResource resource)
     {
         if (resource.Id == Id)
@@ -75,9 +74,8 @@ public class AzureResource : AggregateRoot<AzureResourceId>
         ParameterDefinition parameter,
         ParameterUsage usage)
     {
-        //TODO
         if (!AllowedParameterUsages.Contains(usage))
-            throw new Exception(
+            throw new InvalidOperationException(
                 $"{GetType().Name} does not support parameter usage '{usage}'");
 
         _parameterUsages.Add(

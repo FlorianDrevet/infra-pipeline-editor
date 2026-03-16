@@ -26,7 +26,7 @@ public static partial class Errors
 
         public static class AddResource
         {
-            public static class Codes
+            public static class ErrorCodes
             {
                 public const string ResourceGroupResourceLimitReached = "ResourceGroup.AddResource.ResourceLimitReached";
                 public const string ResourceAlreadyInGroupCode = "ResourceGroup.AddResource.ResourceAlreadyInGroup";
@@ -35,36 +35,36 @@ public static partial class Errors
 
 
             public static Error ResourceGroupResourceLimitReached() => Error.Validation(
-                code: Codes.ResourceGroupResourceLimitReached,
+                code: ErrorCodes.ResourceGroupResourceLimitReached,
                 description: "Resource group has reached the maximum number of resources allowed."
             );
 
             public static Error ResourceAlreadyInGroup() => Error.Validation(
-                code: Codes.ResourceAlreadyInGroupCode,
+                code: ErrorCodes.ResourceAlreadyInGroupCode,
                 description: "The resource is already in the group."
             );
             
             public static Error ResourceNotInSameLocation() => Error.Validation(
-                code: Codes.ResourceNotInSameLocationCode,
+                code: ErrorCodes.ResourceNotInSameLocationCode,
                 description: "The resource must be in the same location as the resource group."
             );
         }
         
         public static class RemoveResource
         {
-            public static class Codes
+            public static class ErrorCodes
             {
                 public const string ResourceNotInGroupCode = "ResourceGroup.RemoveResource.ResourceNotInGroup";
                 public const string ResourceIsDependencyCode = "ResourceGroup.RemoveResource.ResourceIsDependency";
             }
             
             public static Error ResourceNotInGroup() => Error.Validation(
-                code: Codes.ResourceNotInGroupCode,
+                code: ErrorCodes.ResourceNotInGroupCode,
                 description: "The resource is not in the group."
             );
             
             public static Error ResourceIsDependency() => Error.Validation(
-                code: Codes.ResourceIsDependencyCode,
+                code: ErrorCodes.ResourceIsDependencyCode,
                 description: "The resource is a dependency for other resources in the group and cannot be removed."
             );
         }

@@ -19,7 +19,7 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
         ConfigureUsersTable(builder);
     }
 
-    private void ConfigureUsersTable(EntityTypeBuilder<AzureResource> builder)
+    private static void ConfigureUsersTable(EntityTypeBuilder<AzureResource> builder)
     {
         builder.ToTable(nameof(AzureResource));
         builder.HasKey(user => user.Id);
@@ -29,8 +29,6 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
         builder.Property(order => order.Location)
             .IsRequired()
             .HasConversion(new EnumValueConverter<Location, Location.LocationEnum>());
-        
-        //builder.HasBaseType<AzureResource>();
         
         builder.Property(x => x.Name)
             .IsRequired()

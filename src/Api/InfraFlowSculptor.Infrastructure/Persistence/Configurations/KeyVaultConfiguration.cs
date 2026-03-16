@@ -19,7 +19,7 @@ public class KeyVaultConfiguration : IEntityTypeConfiguration<KeyVault>
         ConfigureUsersTable(builder);
     }
 
-    private void ConfigureUsersTable(EntityTypeBuilder<KeyVault> builder)
+    private static void ConfigureUsersTable(EntityTypeBuilder<KeyVault> builder)
     {
         builder.HasBaseType<AzureResource>()
             .ToTable("KeyVaults");

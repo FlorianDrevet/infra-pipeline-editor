@@ -16,7 +16,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-
+            // This migration is forward-only and does not support downgrade.
         }
     }
 }
