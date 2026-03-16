@@ -24,5 +24,17 @@ public static partial class Errors
             description: $"A role assignment with the given id {id} does not exist.",
             metadata: new Dictionary<string, object> { { "Id", id.ToString() } }
         );
+
+        public static Error InvalidRoleDefinitionForResourceType(string roleDefinitionId, string resourceType) =>
+            Error.Validation(
+                code: "RoleAssignment.InvalidRoleDefinition",
+                description: $"The role definition '{roleDefinitionId}' is not applicable to resource type '{resourceType}'. " +
+                             $"Use GET /azure-resources/{{resourceId}}/role-assignments/available-role-definitions to see the supported roles.",
+                metadata: new Dictionary<string, object>
+                {
+                    { "RoleDefinitionId", roleDefinitionId },
+                    { "ResourceType", resourceType },
+                }
+            );
     }
 }

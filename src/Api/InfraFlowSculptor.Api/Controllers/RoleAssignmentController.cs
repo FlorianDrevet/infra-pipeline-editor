@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.RoleAssignments.Commands.AddRoleAssignment;
 using InfraFlowSculptor.Application.RoleAssignments.Commands.RemoveRoleAssignment;
+using InfraFlowSculptor.Application.RoleAssignments.Queries.ListAvailableRoleDefinitions;
 using InfraFlowSculptor.Application.RoleAssignments.Queries.ListRoleAssignments;
 using InfraFlowSculptor.Contracts.RoleAssignments.Requests;
 using InfraFlowSculptor.Contracts.RoleAssignments.Responses;
@@ -48,6 +49,35 @@ public static class RoleAssignmentController
                     return Task.CompletedTask;
                 });
 
+            group.MapGet("/available-role-definitions",
+                    async ([FromRoute] Guid resourceId, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListAvailableRoleDefinitionsQuery(new AzureResourceId(resourceId));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            roles =>
+                            {
+                                var response = roles
+                                    .Select(r => mapper.Map<AzureRoleDefinitionResponse>(r))
+                                    .ToList();
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListAvailableRoleDefinitions")
+                .AddOpenApiOperationTransformer((operation, context, ct) =>
+                {
+                    operation.Summary = "List available role definitions for a resource type";
+                    operation.Description =
+                        "Returns the Azure built-in RBAC role definitions applicable to the type of the specified resource " +
+                        "(e.g. Key Vault roles for a KeyVault resource, Redis Cache roles for a RedisCache resource). " +
+                        "Each entry includes the role definition ID, display name, description, and a link to the Azure documentation. " +
+                        "Use the role definition ID from this list when calling the POST endpoint to add a role assignment.";
+                    return Task.CompletedTask;
+                });
+
             group.MapPost("",
                     async ([FromRoute] Guid resourceId, [FromBody] AddRoleAssignmentRequest request,
                         IMediator mediator, IMapper mapper) =>
@@ -75,7 +105,8 @@ public static class RoleAssignmentController
                     operation.Description =
                         "Assigns an Azure RBAC role to a target resource using the managed identity of the source resource. " +
                         "Specify 'SystemAssigned' or 'UserAssigned' for the managed identity type, and provide a valid " +
-                        "Azure role definition ID (e.g. 'b24988ac-6180-42a0-ab88-20f7382dd24c' for Contributor). " +
+                        "Azure role definition ID applicable to the source resource type. " +
+                        "Use GET /available-role-definitions to retrieve the list of valid role definition IDs for the resource. " +
                         "Duplicate assignments (same target, role, and identity type) are silently ignored.";
                     return Task.CompletedTask;
                 });
@@ -106,3 +137,4 @@ public static class RoleAssignmentController
         });
     }
 }
+

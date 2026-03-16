@@ -31,5 +31,12 @@ public class RoleAssignmentMappingConfig : IRegister
                 src.TargetResourceId.Value,
                 src.ManagedIdentityType.Value.ToString(),
                 src.RoleDefinitionId));
+
+        config.NewConfig<AzureRoleDefinitionResult, AzureRoleDefinitionResponse>()
+            .MapWith(src => new AzureRoleDefinitionResponse(
+                src.Id,
+                src.Name,
+                src.Description,
+                src.DocumentationUrl));
     }
 }
