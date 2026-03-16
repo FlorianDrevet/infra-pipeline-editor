@@ -1,40 +1,18 @@
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
-using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Contracts.RedisCaches.Requests;
 
-public class CreateRedisCacheRequest : IValidatableObject
+public class CreateRedisCacheRequest : RedisCacheRequestBase, IValidatableObject
 {
     [Required, GuidValidation]
     public required Guid ResourceGroupId { get; init; }
 
-    [Required]
-    public required string Name { get; init; }
-
-    [Required, EnumValidation(typeof(Location.LocationEnum))]
-    public required string Location { get; init; }
-
-    [Required, EnumValidation(typeof(RedisCacheSku.Sku))]
-    public required string Sku { get; init; }
-
     [Required, Range(0, 6)]
     // Basic/Standard supports C0-C6 (0-6); Premium supports P1-P4 (1-4). Cross-SKU validation is enforced via object-level validation.
     public required int Capacity { get; init; }
-
-    [Required, RedisVersionValidation]
-    public required int RedisVersion { get; init; }
-
-    [Required]
-    public required bool EnableNonSslPort { get; init; }
-
-    [Required, EnumValidation(typeof(TlsVersion.Version))]
-    public required string MinimumTlsVersion { get; init; }
-
-    [Required, EnumValidation(typeof(MaxMemoryPolicy.Policy))]
-    public required string MaxMemoryPolicy { get; init; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
