@@ -2,8 +2,8 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Shared.Infrastructure.Persistence.Configurations;
 using Shared.Infrastructure.Persistence.Configurations.Converters;
-using Shared.Infrastructure.Persistence.Configurations.Extensions;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 
@@ -16,7 +16,9 @@ public sealed class ResourceNamingTemplateConfiguration
 
         builder.HasKey(x => x.Id);
 
-        builder.ConfigureAggregateRootId<ResourceNamingTemplate, ResourceNamingTemplateId>();
+        builder.Property(x => x.Id)
+            .HasConversion(new IdValueConverter<ResourceNamingTemplateId>())
+            .ValueGeneratedNever();
 
         builder.Property(x => x.InfraConfigId)
             .HasConversion(new IdValueConverter<InfrastructureConfigId>());
