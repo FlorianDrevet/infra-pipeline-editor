@@ -388,10 +388,41 @@ No test projects currently exist.
 
 ---
 
-## 14. Changelog
+## 14. Azure DevOps Integration
+
+### Organisation et Projet
+
+| Paramètre | Valeur |
+|-----------|--------|
+| Organisation | `florian-drevet` |
+| Projet | `Infra Flow Sculptor` |
+| URL | `https://dev.azure.com/florian-drevet/Infra%20Flow%20Sculptor` |
+
+### Process Template
+
+Le process cible est **Scrum hérité** (custom process nommé `InfraFlowSculptor`) avec les types de work items suivants :
+- **Epic** — Initiatives stratégiques (ex: "Gestion des ressources Azure")
+- **User Story (US)** — Besoins utilisateur avec valeur métier
+- **Technical Story (TS)** — Tâches techniques pures (custom type à ajouter)
+- **Task** — Sous-tâches atomiques (1-4h)
+- **Bug** — Défauts à corriger
+
+### Documentation ADO
+
+- `docs/azuredevops/process-setup.md` — Guide de configuration du process (types, colonnes, sprints, areas)
+- `docs/azuredevops/board-backlog.md` — Backlog initialisé avec tous les work items déjà réalisés (~129 story points complétés)
+
+### Outils MCP ADO
+
+Les outils MCP Azure DevOps sont disponibles dans l'environnement GitHub Copilot mais nécessitent des credentials Azure pour s'authentifier (az login, VS Code Azure, ou Az PowerShell). En sandbox CI ils ne peuvent pas s'authentifier automatiquement.
+
+---
+
+## 15. Changelog
 
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-03-15 | copilot | Initial MEMORY.md created from full project exploration |
 | 2026-03-15 | copilot | Fixed `InvalidOperationException` in `InfrastructureConfigRepository.GetByIdWithMembersAsync`: `c.Id.Value == id.Value` → `c.Id == id` (EF Core cannot translate `.Value` property access on value objects in LINQ queries) |
 | 2026-03-15 | copilot | Added authorization checks to all resource CRUD endpoints (ResourceGroup, KeyVault, RedisCache): created `InfraConfigAccessHelper` (`VerifyReadAccessAsync`/`VerifyWriteAccessAsync`), added `Errors.InfrastructureConfig.ForbiddenError()`, overrode `ResourceGroupRepository.GetByIdAsync` with safe LINQ pattern |
+| 2026-03-16 | copilot | Created Azure DevOps board documentation: `docs/azuredevops/process-setup.md` (process config: Epic/US/TS/Task) and `docs/azuredevops/board-backlog.md` (129 story points of completed work items initialized from MEMORY.md). Added section 14 (ADO Integration) to MEMORY.md |
