@@ -14,10 +14,13 @@ public class RemoveQueueCommandHandler(
     ICurrentUser currentUser)
     : IRequestHandler<RemoveQueueCommand, ErrorOr<Deleted>>
 {
-    public Task<ErrorOr<Deleted>> Handle(RemoveQueueCommand request, CancellationToken cancellationToken) =>
-        StorageAccountAccessHelper.RemoveSubResourceAsync(
-            request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser,
+    public Task<ErrorOr<Deleted>> Handle(RemoveQueueCommand request, CancellationToken cancellationToken)
+    {
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        return StorageAccountAccessHelper.RemoveSubResourceAsync(
+            ctx,
             () => storageAccountRepository.RemoveQueueAsync(request.StorageAccountId, request.QueueId),
             () => Errors.StorageAccount.QueueNotFoundError(request.QueueId),
             cancellationToken);
+    }
 }

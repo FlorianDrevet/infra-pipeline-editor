@@ -15,10 +15,13 @@ public class AddTableCommandHandler(
     IMapper mapper)
     : IRequestHandler<AddTableCommand, ErrorOr<StorageAccountResult>>
 {
-    public Task<ErrorOr<StorageAccountResult>> Handle(AddTableCommand request, CancellationToken cancellationToken) =>
-        StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
-            request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser,
+    public Task<ErrorOr<StorageAccountResult>> Handle(AddTableCommand request, CancellationToken cancellationToken)
+    {
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        return StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
+            ctx,
             sa => sa.AddTable(request.Name),
             storageAccountRepository.AddTableAsync,
             mapper, cancellationToken);
+    }
 }

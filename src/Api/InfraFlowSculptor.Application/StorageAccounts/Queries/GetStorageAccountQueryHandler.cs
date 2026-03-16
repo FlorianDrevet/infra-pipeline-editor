@@ -17,8 +17,8 @@ public class GetStorageAccountQueryHandler(
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(GetStorageAccountQuery query, CancellationToken cancellationToken)
     {
-        var result = await StorageAccountAccessHelper.GetWithReadAccessAsync(
-            query.Id, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
+        var ctx = new StorageAccountAccessContext(query.Id, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        var result = await StorageAccountAccessHelper.GetWithReadAccessAsync(ctx, cancellationToken);
 
         if (result.IsError)
             return result.Errors;

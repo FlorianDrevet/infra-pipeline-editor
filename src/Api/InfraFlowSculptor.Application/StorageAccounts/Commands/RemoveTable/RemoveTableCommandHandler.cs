@@ -14,10 +14,13 @@ public class RemoveTableCommandHandler(
     ICurrentUser currentUser)
     : IRequestHandler<RemoveTableCommand, ErrorOr<Deleted>>
 {
-    public Task<ErrorOr<Deleted>> Handle(RemoveTableCommand request, CancellationToken cancellationToken) =>
-        StorageAccountAccessHelper.RemoveSubResourceAsync(
-            request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser,
+    public Task<ErrorOr<Deleted>> Handle(RemoveTableCommand request, CancellationToken cancellationToken)
+    {
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        return StorageAccountAccessHelper.RemoveSubResourceAsync(
+            ctx,
             () => storageAccountRepository.RemoveTableAsync(request.StorageAccountId, request.TableId),
             () => Errors.StorageAccount.TableNotFoundError(request.TableId),
             cancellationToken);
+    }
 }

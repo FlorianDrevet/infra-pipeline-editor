@@ -18,8 +18,8 @@ public class UpdateStorageAccountCommandHandler(
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(UpdateStorageAccountCommand request, CancellationToken cancellationToken)
     {
-        var saResult = await StorageAccountAccessHelper.GetWithWriteAccessAsync(
-            request.Id, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
+        var ctx = new StorageAccountAccessContext(request.Id, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        var saResult = await StorageAccountAccessHelper.GetWithWriteAccessAsync(ctx, cancellationToken);
 
         if (saResult.IsError)
             return saResult.Errors;

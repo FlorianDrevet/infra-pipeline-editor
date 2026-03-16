@@ -15,10 +15,13 @@ public class AddBlobContainerCommandHandler(
     IMapper mapper)
     : IRequestHandler<AddBlobContainerCommand, ErrorOr<StorageAccountResult>>
 {
-    public Task<ErrorOr<StorageAccountResult>> Handle(AddBlobContainerCommand request, CancellationToken cancellationToken) =>
-        StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
-            request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser,
+    public Task<ErrorOr<StorageAccountResult>> Handle(AddBlobContainerCommand request, CancellationToken cancellationToken)
+    {
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        return StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
+            ctx,
             sa => sa.AddBlobContainer(request.Name, request.PublicAccess),
             storageAccountRepository.AddBlobContainerAsync,
             mapper, cancellationToken);
+    }
 }

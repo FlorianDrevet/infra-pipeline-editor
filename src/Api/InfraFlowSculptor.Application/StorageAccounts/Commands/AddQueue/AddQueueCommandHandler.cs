@@ -15,10 +15,13 @@ public class AddQueueCommandHandler(
     IMapper mapper)
     : IRequestHandler<AddQueueCommand, ErrorOr<StorageAccountResult>>
 {
-    public Task<ErrorOr<StorageAccountResult>> Handle(AddQueueCommand request, CancellationToken cancellationToken) =>
-        StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
-            request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser,
+    public Task<ErrorOr<StorageAccountResult>> Handle(AddQueueCommand request, CancellationToken cancellationToken)
+    {
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        return StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
+            ctx,
             sa => sa.AddQueue(request.Name),
             storageAccountRepository.AddQueueAsync,
             mapper, cancellationToken);
+    }
 }

@@ -14,10 +14,13 @@ public class RemoveBlobContainerCommandHandler(
     ICurrentUser currentUser)
     : IRequestHandler<RemoveBlobContainerCommand, ErrorOr<Deleted>>
 {
-    public Task<ErrorOr<Deleted>> Handle(RemoveBlobContainerCommand request, CancellationToken cancellationToken) =>
-        StorageAccountAccessHelper.RemoveSubResourceAsync(
-            request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser,
+    public Task<ErrorOr<Deleted>> Handle(RemoveBlobContainerCommand request, CancellationToken cancellationToken)
+    {
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        return StorageAccountAccessHelper.RemoveSubResourceAsync(
+            ctx,
             () => storageAccountRepository.RemoveBlobContainerAsync(request.StorageAccountId, request.ContainerId),
             () => Errors.StorageAccount.BlobContainerNotFoundError(request.ContainerId),
             cancellationToken);
+    }
 }

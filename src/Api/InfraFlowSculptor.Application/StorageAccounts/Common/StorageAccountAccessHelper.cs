@@ -1,8 +1,5 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Helpers;
-using InfraFlowSculptor.Application.Common.Interfaces;
-using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
 using MapsterMapper;
@@ -17,16 +14,12 @@ internal static class StorageAccountAccessHelper
     /// the existence of the resource to non-members.
     /// </summary>
     public static Task<ErrorOr<StorageAccount>> GetWithReadAccessAsync(
-        AzureResourceId storageAccountId,
-        IStorageAccountRepository storageAccountRepository,
-        IResourceGroupRepository resourceGroupRepository,
-        IInfrastructureConfigRepository infraConfigRepository,
-        ICurrentUser currentUser,
+        StorageAccountAccessContext ctx,
         CancellationToken cancellationToken) =>
         AzureResourceAccessHelper.GetWithReadAccessAsync(
-            storageAccountId, storageAccountRepository.GetByIdWithSubResourcesAsync,
+            ctx.StorageAccountId, ctx.StorageAccountRepository.GetByIdWithSubResourcesAsync,
             Errors.StorageAccount.NotFoundError,
-            resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
+            ctx.ResourceGroupRepository, ctx.InfraConfigRepository, ctx.CurrentUser, cancellationToken);
 
     /// <summary>
     /// Loads a StorageAccount (with sub-resources) and verifies the current user has write access
@@ -35,16 +28,12 @@ internal static class StorageAccountAccessHelper
     /// Returns ForbiddenError if the user has read-only access.
     /// </summary>
     public static Task<ErrorOr<StorageAccount>> GetWithWriteAccessAsync(
-        AzureResourceId storageAccountId,
-        IStorageAccountRepository storageAccountRepository,
-        IResourceGroupRepository resourceGroupRepository,
-        IInfrastructureConfigRepository infraConfigRepository,
-        ICurrentUser currentUser,
+        StorageAccountAccessContext ctx,
         CancellationToken cancellationToken) =>
         AzureResourceAccessHelper.GetWithWriteAccessAsync(
-            storageAccountId, storageAccountRepository.GetByIdWithSubResourcesAsync,
+            ctx.StorageAccountId, ctx.StorageAccountRepository.GetByIdWithSubResourcesAsync,
             Errors.StorageAccount.NotFoundError,
-            resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
+            ctx.ResourceGroupRepository, ctx.InfraConfigRepository, ctx.CurrentUser, cancellationToken);
 
     /// <summary>
     /// Verifies write access, adds a sub-resource to the aggregate, persists it, reloads the
@@ -52,18 +41,13 @@ internal static class StorageAccountAccessHelper
     /// Eliminates the repetitive auth + add + reload + map pattern shared by Add*CommandHandlers.
     /// </summary>
     public static async Task<ErrorOr<StorageAccountResult>> AddSubResourceAndReloadAsync<TSubResource>(
-        AzureResourceId storageAccountId,
-        IStorageAccountRepository storageAccountRepository,
-        IResourceGroupRepository resourceGroupRepository,
-        IInfrastructureConfigRepository infraConfigRepository,
-        ICurrentUser currentUser,
+        StorageAccountAccessContext ctx,
         Func<StorageAccount, TSubResource> addToAggregate,
         Func<TSubResource, Task> persistSubResource,
         IMapper mapper,
         CancellationToken cancellationToken)
     {
-        var saResult = await GetWithWriteAccessAsync(
-            storageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
+        var saResult = await GetWithWriteAccessAsync(ctx, cancellationToken);
 
         if (saResult.IsError)
             return saResult.Errors;
@@ -71,9 +55,9 @@ internal static class StorageAccountAccessHelper
         var subResource = addToAggregate(saResult.Value);
         await persistSubResource(subResource);
 
-        var updated = await storageAccountRepository.GetByIdWithSubResourcesAsync(storageAccountId, cancellationToken);
+        var updated = await ctx.StorageAccountRepository.GetByIdWithSubResourcesAsync(ctx.StorageAccountId, cancellationToken);
         if (updated is null)
-            return Errors.StorageAccount.NotFoundError(storageAccountId);
+            return Errors.StorageAccount.NotFoundError(ctx.StorageAccountId);
 
         return mapper.Map<StorageAccountResult>(updated);
     }
@@ -83,17 +67,12 @@ internal static class StorageAccountAccessHelper
     /// Eliminates the repetitive auth + remove pattern shared by Remove*CommandHandlers.
     /// </summary>
     public static async Task<ErrorOr<Deleted>> RemoveSubResourceAsync(
-        AzureResourceId storageAccountId,
-        IStorageAccountRepository storageAccountRepository,
-        IResourceGroupRepository resourceGroupRepository,
-        IInfrastructureConfigRepository infraConfigRepository,
-        ICurrentUser currentUser,
+        StorageAccountAccessContext ctx,
         Func<Task<bool>> removeSubResource,
         Func<Error> subResourceNotFound,
         CancellationToken cancellationToken)
     {
-        var saResult = await GetWithWriteAccessAsync(
-            storageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
+        var saResult = await GetWithWriteAccessAsync(ctx, cancellationToken);
 
         if (saResult.IsError)
             return saResult.Errors;
