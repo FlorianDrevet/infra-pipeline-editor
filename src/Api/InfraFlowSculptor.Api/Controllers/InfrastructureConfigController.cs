@@ -1,7 +1,13 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddEnvironment;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddMember;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveEnvironment;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveMember;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveResourceNamingTemplate;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetDefaultNamingTemplate;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetResourceNamingTemplate;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateEnvironment;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateMemberRole;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
@@ -141,6 +147,134 @@ public static class InfrastructureConfigController
                         );
                     })
                 .WithName("RemoveMember");
+
+            // ── Environments ────────────────────────────────────────────────
+
+            // POST /{id:guid}/environments - add an environment
+            config.MapPost("/{id:guid}/environments",
+                    async ([FromRoute] Guid id, AddEnvironmentRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new AddEnvironmentCommand(
+                            new InfrastructureConfigId(id),
+                            request.Name,
+                            request.Prefix,
+                            request.Suffix,
+                            request.Location,
+                            request.TenantId,
+                            request.SubscriptionId,
+                            request.Order,
+                            request.RequiresApproval,
+                            request.Tags.Select(t => (t.Name, t.Value)).ToList()
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            env =>
+                            {
+                                var response = mapper.Map<EnvironmentDefinitionResponse>(env);
+                                return Results.Created($"/infra-config/{id}/environments/{response.Id}", response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("AddEnvironment");
+
+            // PUT /{id:guid}/environments/{envId:guid} - update an environment
+            config.MapPut("/{id:guid}/environments/{envId:guid}",
+                    async ([FromRoute] Guid id, [FromRoute] Guid envId, UpdateEnvironmentRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new UpdateEnvironmentCommand(
+                            new InfrastructureConfigId(id),
+                            new EnvironmentDefinitionId(envId),
+                            request.Name,
+                            request.Prefix,
+                            request.Suffix,
+                            request.Location,
+                            request.TenantId,
+                            request.SubscriptionId,
+                            request.Order,
+                            request.RequiresApproval,
+                            request.Tags.Select(t => (t.Name, t.Value)).ToList()
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            env => Results.Ok(mapper.Map<EnvironmentDefinitionResponse>(env)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("UpdateEnvironment");
+
+            // DELETE /{id:guid}/environments/{envId:guid} - remove an environment
+            config.MapDelete("/{id:guid}/environments/{envId:guid}",
+                    async ([FromRoute] Guid id, [FromRoute] Guid envId, IMediator mediator) =>
+                    {
+                        var command = new RemoveEnvironmentCommand(
+                            new InfrastructureConfigId(id),
+                            new EnvironmentDefinitionId(envId)
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveEnvironment");
+
+            // ── Naming Conventions ───────────────────────────────────────────
+
+            // PUT /{id:guid}/naming/default - set (or clear) the default naming template
+            config.MapPut("/{id:guid}/naming/default",
+                    async ([FromRoute] Guid id, SetDefaultNamingTemplateRequest request, IMediator mediator) =>
+                    {
+                        var command = new SetDefaultNamingTemplateCommand(
+                            new InfrastructureConfigId(id),
+                            request.Template
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetDefaultNamingTemplate");
+
+            // PUT /{id:guid}/naming/resources/{resourceType} - set per-resource-type template
+            config.MapPut("/{id:guid}/naming/resources/{resourceType}",
+                    async ([FromRoute] Guid id, [FromRoute] string resourceType, SetResourceNamingTemplateRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new SetResourceNamingTemplateCommand(
+                            new InfrastructureConfigId(id),
+                            resourceType,
+                            request.Template
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            tpl => Results.Ok(mapper.Map<ResourceNamingTemplateResponse>(tpl)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetResourceNamingTemplate");
+
+            // DELETE /{id:guid}/naming/resources/{resourceType} - remove per-resource-type template
+            config.MapDelete("/{id:guid}/naming/resources/{resourceType}",
+                    async ([FromRoute] Guid id, [FromRoute] string resourceType, IMediator mediator) =>
+                    {
+                        var command = new RemoveResourceNamingTemplateCommand(
+                            new InfrastructureConfigId(id),
+                            resourceType
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveResourceNamingTemplate");
         });
     }
 }

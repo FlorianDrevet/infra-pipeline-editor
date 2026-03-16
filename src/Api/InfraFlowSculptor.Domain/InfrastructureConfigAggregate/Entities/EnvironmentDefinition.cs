@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using BicepGenerator.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
@@ -27,6 +28,7 @@ public sealed class EnvironmentDefinition : Entity<EnvironmentDefinitionId>
 
     private EnvironmentDefinition() { }
 
+    [SetsRequiredMembers]
     internal EnvironmentDefinition(InfrastructureConfigId infraConfigId,
         Name name,
         Prefix prefix,
