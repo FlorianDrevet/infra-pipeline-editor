@@ -17,7 +17,7 @@ public class RemoveBlobContainerCommandHandler(
     public Task<ErrorOr<Deleted>> Handle(RemoveBlobContainerCommand request, CancellationToken cancellationToken) =>
         StorageAccountAccessHelper.RemoveSubResourceAsync(
             request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser,
-            () => storageAccountRepository.RemoveBlobContainerAsync(request.ContainerId),
+            () => storageAccountRepository.RemoveBlobContainerAsync(request.StorageAccountId, request.ContainerId),
             () => Errors.StorageAccount.BlobContainerNotFoundError(request.ContainerId),
             cancellationToken);
 }

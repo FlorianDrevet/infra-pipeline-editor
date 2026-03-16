@@ -17,7 +17,7 @@ public class RemoveTableCommandHandler(
     public Task<ErrorOr<Deleted>> Handle(RemoveTableCommand request, CancellationToken cancellationToken) =>
         StorageAccountAccessHelper.RemoveSubResourceAsync(
             request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser,
-            () => storageAccountRepository.RemoveTableAsync(request.TableId),
+            () => storageAccountRepository.RemoveTableAsync(request.StorageAccountId, request.TableId),
             () => Errors.StorageAccount.TableNotFoundError(request.TableId),
             cancellationToken);
 }

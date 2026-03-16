@@ -17,7 +17,7 @@ public class RemoveQueueCommandHandler(
     public Task<ErrorOr<Deleted>> Handle(RemoveQueueCommand request, CancellationToken cancellationToken) =>
         StorageAccountAccessHelper.RemoveSubResourceAsync(
             request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser,
-            () => storageAccountRepository.RemoveQueueAsync(request.QueueId),
+            () => storageAccountRepository.RemoveQueueAsync(request.StorageAccountId, request.QueueId),
             () => Errors.StorageAccount.QueueNotFoundError(request.QueueId),
             cancellationToken);
 }
