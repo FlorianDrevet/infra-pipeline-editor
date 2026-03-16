@@ -28,14 +28,14 @@ public static partial class Errors
         {
             public static class ErrorCodes
             {
-                public const string ResourceGroupResourceLimitReached = "ResourceGroup.AddResource.ResourceLimitReached";
+                public const string ResourceGroupResourceLimitReachedCode = "ResourceGroup.AddResource.ResourceLimitReached";
                 public const string ResourceAlreadyInGroupCode = "ResourceGroup.AddResource.ResourceAlreadyInGroup";
                 public const string ResourceNotInSameLocationCode = "ResourceGroup.AddResource.ResourceNotInSameLocation";
             }
 
 
             public static Error ResourceGroupResourceLimitReached() => Error.Validation(
-                code: ErrorCodes.ResourceGroupResourceLimitReached,
+                code: ErrorCodes.ResourceGroupResourceLimitReachedCode,
                 description: "Resource group has reached the maximum number of resources allowed."
             );
 
