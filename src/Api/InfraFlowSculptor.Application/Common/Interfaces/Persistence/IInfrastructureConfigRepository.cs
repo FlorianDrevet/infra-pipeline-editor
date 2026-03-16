@@ -9,4 +9,14 @@ public interface IInfrastructureConfigRepository : IRepository<Domain.Infrastruc
 {
     Task<Domain.InfrastructureConfigAggregate.InfrastructureConfig?> GetByIdWithMembersAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default);
     Task<List<Domain.InfrastructureConfigAggregate.InfrastructureConfig>> GetAllForUserAsync(UserId userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Loads the InfrastructureConfig with EnvironmentDefinitions and Members (for authorization).
+    /// </summary>
+    Task<Domain.InfrastructureConfigAggregate.InfrastructureConfig?> GetByIdWithEnvironmentsAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Loads the InfrastructureConfig with ResourceNamingTemplates and Members (for authorization).
+    /// </summary>
+    Task<Domain.InfrastructureConfigAggregate.InfrastructureConfig?> GetByIdWithNamingTemplatesAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default);
 }

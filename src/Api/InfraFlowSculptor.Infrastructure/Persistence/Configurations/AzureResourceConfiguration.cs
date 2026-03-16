@@ -36,6 +36,10 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
             .IsRequired()
             .HasConversion(new SingleValueConverter<Name, string>());
 
+        builder.Property(x => x.CustomNameOverride)
+            .IsRequired(false)
+            .HasMaxLength(260);
+
         // Configuration de la relation DependsOn
         builder.HasMany(r => r.DependsOn)
             .WithMany()

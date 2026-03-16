@@ -1,0 +1,37 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
+
+public class AddEnvironmentRequest
+{
+    [Required]
+    public required string Name { get; init; }
+
+    public string Prefix { get; init; } = string.Empty;
+
+    public string Suffix { get; init; } = string.Empty;
+
+    [Required]
+    public required string Location { get; init; }
+
+    [Required]
+    public required Guid TenantId { get; init; }
+
+    [Required]
+    public required Guid SubscriptionId { get; init; }
+
+    public int Order { get; init; } = 0;
+
+    public bool RequiresApproval { get; init; } = false;
+
+    public IReadOnlyList<TagRequest> Tags { get; init; } = [];
+}
+
+public class TagRequest
+{
+    [Required]
+    public required string Name { get; init; }
+
+    [Required]
+    public required string Value { get; init; }
+}
