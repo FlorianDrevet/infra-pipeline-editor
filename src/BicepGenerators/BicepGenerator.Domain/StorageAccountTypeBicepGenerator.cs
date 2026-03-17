@@ -39,6 +39,19 @@ public sealed class StorageAccountTypeBicepGenerator
         param supportsHttpsTrafficOnly bool
         param minimumTlsVersion string
 
+        var storagePropertiesBase = {
+          allowBlobPublicAccess: allowBlobPublicAccess
+          supportsHttpsTrafficOnly: supportsHttpsTrafficOnly
+          minimumTlsVersion: minimumTlsVersion
+        }
+
+        var storageAccessTierProperties = contains([
+          'BlobStorage'
+          'StorageV2'
+        ], kind) ? {
+          accessTier: accessTier
+        } : {}
+
         resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
           name: name
           location: location
@@ -46,12 +59,7 @@ public sealed class StorageAccountTypeBicepGenerator
           sku: {
             name: sku
           }
-          properties: {
-            accessTier: accessTier
-            allowBlobPublicAccess: allowBlobPublicAccess
-            supportsHttpsTrafficOnly: supportsHttpsTrafficOnly
-            minimumTlsVersion: minimumTlsVersion
-          }
+          properties: union(storagePropertiesBase, storageAccessTierProperties)
         }
         """;
 }
