@@ -1,0 +1,23 @@
+// ─── Responses ───────────────────────────────────────────────────────────────
+
+export interface ResourceGroupResponse {
+  id: string;
+  infraConfigId: string;
+  name: string;
+  location: string;
+}
+
+export interface AzureResourceResponse {
+  id: string;
+  resourceType: string;
+  name: string;
+  location: string;
+}
+
+// ─── Requests ────────────────────────────────────────────────────────────────
+
+export interface CreateResourceGroupRequest {
+  infraConfigId: string;
+  name: string;
+  location: string;
+}

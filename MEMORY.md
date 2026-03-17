@@ -474,6 +474,32 @@ Format : `type(scope): description courte du but principal`
 - Root app title initialized to `InfraFlowSculptor` in `src/Front/src/app/app.component.ts`
 - Front README rewritten to include stack, commands, environment config, and structure
 
+### 15.4 Backend contracts and API clients ([2026-03-17])
+
+All backend request/response contracts from `InfraFlowSculptor.Contracts` are mirrored as TypeScript interfaces in `src/Front/src/app/shared/interfaces/`:
+
+| File | Contents |
+|------|----------|
+| `infra-config.interface.ts` | `InfrastructureConfigResponse`, `MemberResponse`, `EnvironmentDefinitionResponse`, `ResourceNamingTemplateResponse`, `TagResponse`, plus all request types |
+| `resource-group.interface.ts` | `ResourceGroupResponse`, `AzureResourceResponse`, `CreateResourceGroupRequest` |
+| `key-vault.interface.ts` | `KeyVaultResponse`, `CreateKeyVaultRequest`, `UpdateKeyVaultRequest` |
+| `redis-cache.interface.ts` | `RedisCacheResponse`, `CreateRedisCacheRequest`, `UpdateRedisCacheRequest` |
+| `storage-account.interface.ts` | `StorageAccountResponse`, `BlobContainerResponse`, `StorageQueueResponse`, `StorageTableResponse`, plus all request types |
+| `role-assignment.interface.ts` | `RoleAssignmentResponse`, `AzureRoleDefinitionResponse`, `AddRoleAssignmentRequest` |
+
+Angular API services in `src/Front/src/app/shared/services/` (all `providedIn: 'root'`, use `AxiosService.request$<T>()`):
+
+| Service | API prefix | Key methods |
+|---------|-----------|-------------|
+| `InfraConfigService` | `/infra-config` | `getAll`, `getById`, `getResourceGroups`, `create`, `addMember`, `updateMemberRole`, `removeMember`, `addEnvironment`, `updateEnvironment`, `removeEnvironment`, `setDefaultNamingTemplate`, `setResourceNamingTemplate`, `removeResourceNamingTemplate` |
+| `ResourceGroupService` | `/resource-group` | `getById`, `getResources`, `create` |
+| `KeyVaultService` | `/keyvault` | `getById`, `create`, `update`, `delete` |
+| `RedisCacheService` | `/redis-cache` | `getById`, `create`, `update`, `delete` |
+| `StorageAccountService` | `/storage-accounts` | `getById`, `create`, `update`, `delete`, `addBlobContainer`, `removeBlobContainer`, `addQueue`, `removeQueue`, `addTable`, `removeTable` |
+| `RoleAssignmentService` | `/azure-resources/{id}/role-assignments` | `getByResourceId`, `getAvailableRoleDefinitions`, `add`, `remove` |
+
+Type mapping convention (C# → TypeScript): `Guid` → `string`, `IReadOnlyList<T>` → `T[]`, `string?` → `string | null`, `bool` → `boolean`, `int` → `number`.
+
 ---
 
 ## 16. Changelog
@@ -493,3 +519,4 @@ Format : `type(scope): description courte du but principal`
 | 2026-03-17 | copilot | Explored and initialized Angular frontend template (`src/Front`): renamed package/project identifiers, set application title, updated frontend README, and documented frontend architecture/conventions in memory and `.github` agent instructions. |
 | 2026-03-17 | copilot | Fixed startup crash `42P07: relation "InfrastructureConfigs" already exists`: migration `20260317163342_StorageAccount` was generated from a corrupted/empty EF Core snapshot, causing it to recreate all tables from scratch. Fixed by replacing the `Up()`/`Down()` bodies with empty methods and regenerating `Designer.cs` from the correct `ProjectDbContextModelSnapshot.cs`. All tables already existed in the DB; only the snapshot was out of sync. **Pattern to watch:** if a new migration contains `CREATE TABLE` for tables that should already exist, the snapshot was corrupted — fix with empty `Up()`/`Down()` + regenerated `Designer.cs`. |
 | 2026-03-17 | copilot | Added Azure Storage Account Bicep generation: `StorageAccountTypeBicepGenerator` now uses all properties (`sku`, `kind`, `accessTier`, `allowBlobPublicAccess`, `supportsHttpsTrafficOnly`, `minimumTlsVersion`) from `resource.Properties`. Added `StorageAccount` case in `InfrastructureConfigReadRepository.MapResource()` with `MapStorageTlsVersion()` helper mapping Tls10/11/12 → TLS1_0/TLS1_1/TLS1_2. Azure Bicep property name is `supportsHttpsTrafficOnly` (not `enableHttpsTrafficOnly`). |
+| 2026-03-17 | copilot | Added all backend contracts as TypeScript interfaces and Angular API services in `src/Front/src/app/shared/`. Interfaces in `interfaces/` folder (infra-config, resource-group, key-vault, redis-cache, storage-account, role-assignment). Services in `services/` folder (InfraConfigService, ResourceGroupService, KeyVaultService, RedisCacheService, StorageAccountService, RoleAssignmentService) — all `providedIn: 'root'`, using `AxiosService.request$<T>()`. |
