@@ -67,7 +67,9 @@
       <p class="form-subtitle">Sign in to your account to continue</p>
 
       @if (errorMessage()) {
-        <div class="error-banner">{{ errorMessage() }}</div>
+        <div class="error-banner" role="alert" aria-live="polite">
+          {{ errorMessage() }}
+        </div>
       }
 
       <!-- Microsoft Sign In -->
