@@ -31,7 +31,7 @@ export class MsalAuthService {
           }
 
           // Restore account from MSAL cache so auth survives page refresh
-    this.authService.setAuthToken(result.accessToken);
+          const accounts = this.msalInstance.getAllAccounts();
           if (accounts.length > 0) {
             this.authService.setMsalAccount(accounts[0]);
           }
@@ -86,7 +86,6 @@ export class MsalAuthService {
   public async logout(): Promise<void> {
     await this.initialize();
     const account = await this.getActiveAccount();
-    this.authService.logout();
     await this.msalInstance.logoutPopup({ account: account ?? undefined });
     this.authService.logout();
   }
