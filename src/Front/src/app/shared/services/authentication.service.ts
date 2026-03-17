@@ -3,6 +3,7 @@ import {JwtHelperService} from "@auth0/angular-jwt";
 import {CookieService} from "ngx-cookie-service";
 import {Role} from "../enums/role.enum";
 import {Router} from "@angular/router";
+import {AccountInfo} from "@azure/msal-browser";
 
 @Injectable({
   providedIn: 'root'
@@ -12,11 +13,20 @@ export class AuthenticationService {
   cookieService = inject(CookieService)
   router = inject(Router)
   private _token = signal<string | null>(null)
+  private _msalAccount = signal<AccountInfo | null>(null)
   private _isAuthenticated = signal<boolean>(false)
   private _isAdmin = computed(() => {
     if (!this._isAuthenticated())
       return false;
-    return this.jwtHelper.decodeToken(this._token()!).role === Role.ADMIN
+    const decoded = this.jwtHelper.decodeToken(this._token()!);
+    // Support backend JWT role claim and Azure AD roles claim (array)
+    if (decoded?.role) {
+      return decoded.role === Role.ADMIN;
+    }
+    if (Array.isArray(decoded?.roles)) {
+      return decoded.roles.includes(Role.ADMIN);
+    }
+    return false;
   })
 
   constructor() {
@@ -29,6 +39,14 @@ export class AuthenticationService {
 
   public get getIsAdmin(): boolean {
     return this._isAdmin()
+  }
+
+  public get getMsalAccount(): AccountInfo | null {
+    return this._msalAccount()
+  }
+
+  public setMsalAccount(account: AccountInfo | null): void {
+    this._msalAccount.set(account)
   }
 
   public getBearerToken(): string | null {
@@ -57,6 +75,7 @@ export class AuthenticationService {
 
   public logout() {
     this._deleteToken()
+    this._msalAccount.set(null)
     this._isAuthenticated.set(false)
     this.router.navigate(['/login'])
   }
