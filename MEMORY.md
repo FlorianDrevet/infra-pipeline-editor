@@ -388,7 +388,39 @@ No test projects currently exist.
 
 ---
 
-## 14. Changelog
+## 14. Pull Request Conventions
+
+### Titre obligatoire
+
+Format : `type(scope): description courte du but principal`
+
+| type       | usage                                   |
+|------------|-----------------------------------------|
+| `feat`     | nouvelle fonctionnalité                 |
+| `fix`      | correction de bug                       |
+| `refactor` | refactoring sans changement fonctionnel |
+| `perf`     | amélioration des performances           |
+| `docs`     | documentation uniquement                |
+| `test`     | tests                                   |
+| `chore`    | maintenance, dépendances                |
+| `ci`       | pipelines CI/CD                         |
+| `style`    | formatage, lint                         |
+| `revert`   | annulation                              |
+
+- Le scope est en kebab-case (ex : `key-vault`, `storage-account`, `bicep`)
+- Le titre décrit le **but global**, jamais la dernière tâche effectuée
+- Référence complète : `.github/agents/pr-conventions.agent.md`
+
+### Description de PR
+
+- Utiliser le template `.github/PULL_REQUEST_TEMPLATE.md`
+- Lister chaque fichier créé/modifié dans sa section de couche
+- Indiquer le nom de la migration EF Core si applicable
+- Valider toute la checklist avant soumission
+
+---
+
+## 15. Changelog
 
 | Date | Author | Change |
 |------|--------|--------|
@@ -396,3 +428,4 @@ No test projects currently exist.
 | 2026-03-15 | copilot | Fixed `InvalidOperationException` in `InfrastructureConfigRepository.GetByIdWithMembersAsync`: `c.Id.Value == id.Value` → `c.Id == id` (EF Core cannot translate `.Value` property access on value objects in LINQ queries) |
 | 2026-03-15 | copilot | Added authorization checks to all resource CRUD endpoints (ResourceGroup, KeyVault, RedisCache): created `InfraConfigAccessHelper` (`VerifyReadAccessAsync`/`VerifyWriteAccessAsync`), added `Errors.InfrastructureConfig.ForbiddenError()`, overrode `ResourceGroupRepository.GetByIdAsync` with safe LINQ pattern |
 | 2026-03-15 | copilot | Added RBAC role assignment feature: `RoleAssignment` entity on `AzureResource`, `ManagedIdentityType` value object, `IAzureResourceRepository`, `AzureResourceBaseRepository`, `AddRoleAssignment`/`RemoveRoleAssignment`/`ListRoleAssignments` CQRS handlers, EF Core migration `AddRoleAssignmentsTable`, REST endpoints under `/azure-resources/{id}/role-assignments` |
+| 2026-03-17 | copilot | Added PR conventions: `.github/PULL_REQUEST_TEMPLATE.md`, `.github/agents/pr-conventions.agent.md`, updated `copilot-instructions.md`, `memory.agent.md`, `cqrs.agent.md` with mandatory PR title format `type(scope): description` and description template |
