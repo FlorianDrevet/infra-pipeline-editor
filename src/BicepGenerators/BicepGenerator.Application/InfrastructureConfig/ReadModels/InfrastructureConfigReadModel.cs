@@ -17,7 +17,15 @@ public record AzureResourceReadModel(
     string Name,
     string Location,
     string ResourceType,
-    IReadOnlyDictionary<string, string> Properties);
+    IReadOnlyDictionary<string, string> Properties,
+    IReadOnlyList<RoleAssignmentReadModel> RoleAssignments);
+
+public record RoleAssignmentReadModel(
+    Guid Id,
+    Guid SourceResourceId,
+    Guid TargetResourceId,
+    string ManagedIdentityType,
+    string RoleDefinitionId);
 
 public record EnvironmentDefinitionReadModel(
     Guid Id,

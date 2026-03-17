@@ -41,6 +41,33 @@ public class GenerateBicepCommandHandler(
             .Select(rg => new ResourceGroupDefinition { Name = rg.Name, Location = rg.Location })
             .ToList();
 
+        // Build a lookup from resource ID → (resourceGroupName, resource) for resolving role assignments
+        var resourceById = config.ResourceGroups
+            .SelectMany(rg => rg.Resources.Select(r => (rg.Name, r)))
+            .ToDictionary(x => x.r.Id, x => (ResourceGroupName: x.Name, Resource: x.r));
+
+        var roleAssignments = config.ResourceGroups
+            .SelectMany(rg => rg.Resources)
+            .SelectMany(r => r.RoleAssignments
+                .Where(ra => resourceById.ContainsKey(ra.TargetResourceId))
+                .Select(ra =>
+                {
+                    var target = resourceById[ra.TargetResourceId];
+                    var sourceRgName = resourceById[r.Id].ResourceGroupName;
+                    return new RoleAssignmentDefinition
+                    {
+                        SourceResourceName = r.Name,
+                        SourceResourceType = r.ResourceType,
+                        SourceResourceGroupName = sourceRgName,
+                        TargetResourceName = target.Resource.Name,
+                        TargetResourceType = target.Resource.ResourceType,
+                        TargetResourceGroupName = target.ResourceGroupName,
+                        ManagedIdentityType = ra.ManagedIdentityType,
+                        RoleDefinitionId = ra.RoleDefinitionId
+                    };
+                }))
+            .ToList();
+
         var defaultLocation = config.Environments.FirstOrDefault()?.Location
             ?? config.ResourceGroups.FirstOrDefault()?.Location
             ?? DefaultLocation;
@@ -49,7 +76,8 @@ public class GenerateBicepCommandHandler(
         {
             Resources = resources,
             ResourceGroups = resourceGroups,
-            Environment = new EnvironmentDefinition { Location = defaultLocation }
+            Environment = new EnvironmentDefinition { Location = defaultLocation },
+            RoleAssignments = roleAssignments
         };
 
         var result = bicepGenerationEngine.Generate(generationRequest);

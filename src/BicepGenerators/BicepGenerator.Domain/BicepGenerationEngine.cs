@@ -29,7 +29,7 @@ public sealed class BicepGenerationEngine
             });
         }
 
-        return BicepAssembler.Assemble(modules, request.ResourceGroups);
+        return BicepAssembler.Assemble(modules, request.ResourceGroups, request.RoleAssignments);
     }
 
     private static string Capitalize(string s) =>

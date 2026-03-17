@@ -6,6 +6,8 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.StorageAccountAggregate;
+using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using InfraFlowSculptorDbContext = InfraFlowSculptor.Infrastructure.Persistence.ProjectDbContext;
 
@@ -23,6 +25,7 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
         var config = await dbContext.InfrastructureConfigs
             .Include(c => c.ResourceGroups)
                 .ThenInclude(rg => rg.Resources)
+                    .ThenInclude(r => r.RoleAssignments)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == configId, cancellationToken);
 
@@ -63,6 +66,15 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
     /// </summary>
     private static AzureResourceReadModel? MapResource(AzureResource resource)
     {
+        var roleAssignments = resource.RoleAssignments
+            .Select(ra => new RoleAssignmentReadModel(
+                ra.Id.Value,
+                ra.SourceResourceId.Value,
+                ra.TargetResourceId.Value,
+                ra.ManagedIdentityType.Value.ToString(),
+                ra.RoleDefinitionId))
+            .ToList();
+
         return resource switch
         {
             KeyVault kv => new AzureResourceReadModel(
@@ -73,7 +85,8 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                 new Dictionary<string, string>
                 {
                     ["sku"] = kv.Sku.Value.ToString().ToLower()
-                }),
+                },
+                roleAssignments),
             RedisCache rc => new AzureResourceReadModel(
                 rc.Id.Value,
                 rc.Name.Value,
@@ -87,7 +100,23 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                     ["redisVersion"] = rc.RedisVersion.ToString(),
                     ["enableNonSslPort"] = rc.EnableNonSslPort.ToString().ToLower(),
                     ["minimumTlsVersion"] = MapTlsVersion(rc.MinimumTlsVersion),
-                }),
+                },
+                roleAssignments),
+            StorageAccount sa => new AzureResourceReadModel(
+                sa.Id.Value,
+                sa.Name.Value,
+                MapLocation(sa.Location),
+                "Microsoft.Storage/storageAccounts",
+                new Dictionary<string, string>
+                {
+                    ["sku"] = sa.Sku.Value.ToString(),
+                    ["kind"] = sa.Kind.Value.ToString(),
+                    ["accessTier"] = sa.AccessTier.Value.ToString(),
+                    ["allowBlobPublicAccess"] = sa.AllowBlobPublicAccess.ToString().ToLower(),
+                    ["supportsHttpsTrafficOnly"] = sa.EnableHttpsTrafficOnly.ToString().ToLower(),
+                    ["minimumTlsVersion"] = MapStorageTlsVersion(sa.MinimumTlsVersion),
+                },
+                roleAssignments),
             _ => null
         };
     }
@@ -99,6 +128,18 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
             TlsVersion.Version.Tls10 => "1.0",
             TlsVersion.Version.Tls11 => "1.1",
             TlsVersion.Version.Tls12 => "1.2",
+            _ => throw new ArgumentOutOfRangeException(nameof(tlsVersion),
+                $"Unsupported TLS version: {tlsVersion.Value}")
+        };
+    }
+
+    private static string MapStorageTlsVersion(StorageAccountTlsVersion tlsVersion)
+    {
+        return tlsVersion.Value switch
+        {
+            StorageAccountTlsVersion.Version.Tls10 => "TLS1_0",
+            StorageAccountTlsVersion.Version.Tls11 => "TLS1_1",
+            StorageAccountTlsVersion.Version.Tls12 => "TLS1_2",
             _ => throw new ArgumentOutOfRangeException(nameof(tlsVersion),
                 $"Unsupported TLS version: {tlsVersion.Value}")
         };
