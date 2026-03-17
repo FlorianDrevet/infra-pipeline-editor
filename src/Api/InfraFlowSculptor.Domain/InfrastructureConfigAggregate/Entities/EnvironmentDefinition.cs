@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using BicepGenerator.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
@@ -19,35 +20,35 @@ public sealed class EnvironmentDefinition : Entity<EnvironmentDefinitionId>
     public required SubscriptionId SubscriptionId { get; set; }
     public Order Order { get; set; } // Ordre de déploiement (dev=1, staging=2, prod=3)
     public RequiresApproval RequiresApproval { get; set; } // Pour les pipelines
-    public IEnumerable<Tag> Tags { get; set; } // Tags Azure spécifiques
-    
+
+    private readonly List<Tag> _tags = new();
+    public IReadOnlyCollection<Tag> Tags => _tags; // Tags Azure spécifiques
+
+    public void SetTags(IEnumerable<Tag> tags)
+    {
+        _tags.Clear();
+        _tags.AddRange(tags);
+    }
+
     private readonly List<EnvironmentParameterValue> _parameterValues = new();
     public IReadOnlyCollection<EnvironmentParameterValue> ParameterValues => _parameterValues;
 
 
     private EnvironmentDefinition() { }
 
-    internal EnvironmentDefinition(InfrastructureConfigId infraConfigId,
-        Name name,
-        Prefix prefix,
-        Suffix suffix,
-        Location location,
-        TenantId tenantId,
-        SubscriptionId subscriptionId,
-        Order order,
-        RequiresApproval requiresApproval,
-        IEnumerable<Tag> tags)
+    [SetsRequiredMembers]
+    internal EnvironmentDefinition(InfrastructureConfigId infraConfigId, EnvironmentDefinitionData data)
         : base(EnvironmentDefinitionId.CreateUnique())
     {
         InfraConfigId = infraConfigId;
-        Name = name;
-        Prefix = prefix;
-        Suffix = suffix;
-        Location = location;
-        TenantId = tenantId;
-        SubscriptionId = subscriptionId;
-        Order = order;
-        RequiresApproval = requiresApproval;
-        Tags = tags;
+        Name = data.Name;
+        Prefix = data.Prefix;
+        Suffix = data.Suffix;
+        Location = data.Location;
+        TenantId = data.TenantId;
+        SubscriptionId = data.SubscriptionId;
+        Order = data.Order;
+        RequiresApproval = data.RequiresApproval;
+        _tags.AddRange(data.Tags);
     }
 }

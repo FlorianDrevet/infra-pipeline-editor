@@ -1,3 +1,5 @@
+using InfraFlowSculptor.Application.ResourceGroups.Common;
+using InfraFlowSculptor.Contracts.ResourceGroups.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using Mapster;
@@ -16,5 +18,10 @@ public class ResourceGroupMappingConfig : IRegister
 
         config.NewConfig<AzureResource, AzureResource>()
             .MapWith(src => src);
+
+        config.NewConfig<AzureResourceResult, AzureResourceResponse>()
+            .Map(dest => dest.Id, src => src.Id.Value)
+            .Map(dest => dest.Name, src => src.Name.Value)
+            .Map(dest => dest.Location, src => src.Location.Value.ToString());
     }
 }

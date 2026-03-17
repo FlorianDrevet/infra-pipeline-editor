@@ -27,6 +27,8 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<ParameterDefinition> ParameterDefinitions { get; set; } = null!;
     public DbSet<ResourceParameterUsage> ResourceParameterUsage { get; set; } = null!;
     public DbSet<InputOutputLink> InputOutputLinks { get; set; } = null!;
+    public DbSet<ResourceNamingTemplate> ResourceNamingTemplates { get; set; } = null!;
+    public DbSet<RoleAssignment> RoleAssignments { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

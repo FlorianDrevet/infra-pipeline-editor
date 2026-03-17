@@ -61,20 +61,11 @@ internal static class MigrateDbContextExtensions
         where TContext : DbContext
     {
         using var activity = ActivitySource.StartActivity($"Migrating {typeof(TContext).Name}");
-
-        try
-        {
-            await context.Database.MigrateAsync();
-            await seeder(context, services);
-        }
-        catch (Exception ex)
-        {
-
-            throw;
-        }
+        await context.Database.MigrateAsync();
+        await seeder(context, services);
     }
 
-    private class MigrationHostedService<TContext>(IServiceProvider serviceProvider, Func<TContext, IServiceProvider, Task> seeder)
+    private sealed class MigrationHostedService<TContext>(IServiceProvider serviceProvider, Func<TContext, IServiceProvider, Task> seeder)
         : BackgroundService where TContext : DbContext
     {
         public override Task StartAsync(CancellationToken cancellationToken)
@@ -82,7 +73,7 @@ internal static class MigrateDbContextExtensions
             return serviceProvider.MigrateDbContextAsync(seeder);
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken _)
         {
             return Task.CompletedTask;
         }

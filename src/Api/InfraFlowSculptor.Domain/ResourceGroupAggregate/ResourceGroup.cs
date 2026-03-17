@@ -18,7 +18,7 @@ public sealed class ResourceGroup : AggregateRoot<ResourceGroupId>
 
     public Location Location { get; set; } = null!;
 
-    private List<AzureResource> _resources = new();
+    private readonly List<AzureResource> _resources = new();
     public IReadOnlyCollection<AzureResource> Resources => _resources.AsReadOnly();
 
     private ResourceGroup(ResourceGroupId id, Name name, InfrastructureConfigId infraConfigId, Location location)

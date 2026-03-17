@@ -1,7 +1,7 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.KeyVaults.Common;
+using InfraFlowSculptor.Domain.Common.Errors;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.KeyVaults.Commands.DeleteKeyVault;
@@ -9,14 +9,20 @@ namespace InfraFlowSculptor.Application.KeyVaults.Commands.DeleteKeyVault;
 public class DeleteKeyVaultCommandHandler(
     IKeyVaultRepository keyVaultRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser)
+    IInfraConfigAccessService accessService)
     : IRequestHandler<DeleteKeyVaultCommand, ErrorOr<Deleted>>
 {
     public async Task<ErrorOr<Deleted>> Handle(DeleteKeyVaultCommand request, CancellationToken cancellationToken)
     {
-        var authResult = await KeyVaultAccessHelper.GetWithWriteAccessAsync(
-            request.Id, keyVaultRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
+        var keyVault = await keyVaultRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (keyVault is null)
+            return Errors.KeyVault.NotFoundError(request.Id);
+
+        var resourceGroup = await resourceGroupRepository.GetByIdAsync(keyVault.ResourceGroupId, cancellationToken);
+        if (resourceGroup is null)
+            return Errors.KeyVault.NotFoundError(request.Id);
+
+        var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return authResult.Errors;

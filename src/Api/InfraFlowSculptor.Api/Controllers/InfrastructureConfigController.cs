@@ -1,15 +1,17 @@
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddMember;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveMember;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateMemberRole;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
+using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupsByConfig;
 using MediatR;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
+using InfraFlowSculptor.Contracts.ResourceGroups.Responses;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Api.Errors;
 
@@ -24,7 +26,8 @@ public static class InfrastructureConfigController
             var config = endpoints.MapGroup("/infra-config")
                 .WithTags("Infrastructure Configuration");
 
-            // GET "" - list my configs
+            // ── Core CRUD ────────────────────────────────────────────────────
+
             config.MapGet("",
                     async (IMediator mediator, IMapper mapper) =>
                     {
@@ -40,9 +43,12 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListMyInfrastructureConfigs");
+                .WithName("ListMyInfrastructureConfigs")
+                .WithSummary("List my Infrastructure Configurations")
+                .WithDescription("Returns all Infrastructure Configurations the current user is a member of.")
+                .Produces<IReadOnlyList<InfrastructureConfigResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            // GET /{id:guid}
             config.MapGet("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
                     {
@@ -58,7 +64,32 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetInfrastructureConfiguration");
+                .WithName("GetInfrastructureConfiguration")
+                .WithSummary("Get an Infrastructure Configuration")
+                .WithDescription("Returns the full details of a single Infrastructure Configuration, including members, environments, and naming templates.")
+                .Produces<InfrastructureConfigResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+            // GET /{id:guid}/resource-groups
+            config.MapGet("/{id:guid}/resource-groups",
+                    async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListResourceGroupsByConfigQuery(new InfrastructureConfigId(id));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            resourceGroups =>
+                            {
+                                var responses = resourceGroups
+                                    .Select(rg => mapper.Map<ResourceGroupResponse>(rg))
+                                    .ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListResourceGroupsByConfig");
 
             // POST ""
             config.MapPost("",
@@ -77,14 +108,14 @@ public static class InfrastructureConfigController
                         );
                     })
                 .WithName("CreateInfrastructureConfig")
-                .AddOpenApiOperationTransformer((operation, context, ct) =>
-                {
-                    operation.Summary = "Create a new Infrastructure Configuration";
-                    operation.Description = "Creates a new Infrastructure Configuration with the specified name.";
-                    return Task.CompletedTask;
-                });
+                .WithSummary("Create an Infrastructure Configuration")
+                .WithDescription("Creates a new Infrastructure Configuration. The current user is automatically added as Owner.")
+                .Produces<InfrastructureConfigResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            // POST /{id:guid}/members - add a member
+            // ── Members ───────────────────────────────────────────────────────
+
             config.MapPost("/{id:guid}/members",
                     async ([FromRoute] Guid id, AddMemberRequest request, IMediator mediator, IMapper mapper) =>
                     {
@@ -103,9 +134,14 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddMember");
+                .WithName("AddMember")
+                .WithSummary("Add a member")
+                .WithDescription("Adds a user to an Infrastructure Configuration with the specified role. Requires Owner or Contributor access.")
+                .Produces<InfrastructureConfigResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // PUT /{id:guid}/members/{userId:guid} - update member role
             config.MapPut("/{id:guid}/members/{userId:guid}",
                     async ([FromRoute] Guid id, [FromRoute] Guid userId, UpdateMemberRoleRequest request, IMediator mediator, IMapper mapper) =>
                     {
@@ -124,9 +160,14 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateMemberRole");
+                .WithName("UpdateMemberRole")
+                .WithSummary("Update a member's role")
+                .WithDescription("Changes the role assigned to a member of an Infrastructure Configuration. Requires Owner access.")
+                .Produces<InfrastructureConfigResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // DELETE /{id:guid}/members/{userId:guid} - remove member
             config.MapDelete("/{id:guid}/members/{userId:guid}",
                     async ([FromRoute] Guid id, [FromRoute] Guid userId, IMediator mediator) =>
                     {
@@ -140,7 +181,12 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveMember");
+                .WithName("RemoveMember")
+                .WithSummary("Remove a member")
+                .WithDescription("Removes a user from an Infrastructure Configuration. Requires Owner access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
 }

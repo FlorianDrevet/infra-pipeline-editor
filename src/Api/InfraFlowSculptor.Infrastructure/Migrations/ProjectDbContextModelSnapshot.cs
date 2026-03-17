@@ -43,6 +43,10 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CustomNameOverride")
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("text");
@@ -61,6 +65,34 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("AzureResource", (string)null);
 
                     b.UseTptMappingStrategy();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ManagedIdentityType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleDefinitionId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SourceResourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TargetResourceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceResourceId");
+
+                    b.HasIndex("TargetResourceId");
+
+                    b.ToTable("RoleAssignments", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.InputOutputLink", b =>
@@ -172,10 +204,38 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("ParameterDefinitions", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ResourceNamingTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InfraConfigId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ResourceType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Template")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InfraConfigId", "ResourceType")
+                        .IsUnique();
+
+                    b.ToTable("ResourceNamingTemplates", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("DefaultNamingTemplate")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -207,67 +267,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasIndex("InfraConfigId");
 
                     b.ToTable("ResourceGroup", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.Entities.BlobContainer", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PublicAccess")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("StorageAccountId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StorageAccountId");
-
-                    b.ToTable("BlobContainers", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.Entities.StorageQueue", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("StorageAccountId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StorageAccountId");
-
-                    b.ToTable("StorageQueues", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.Entities.StorageTable", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("StorageAccountId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StorageAccountId");
-
-                    b.ToTable("StorageTables", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.UserAggregate.User", b =>
@@ -336,35 +335,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.ToTable("RedisCaches", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", b =>
-                {
-                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
-
-                    b.Property<string>("AccessTier")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("AllowBlobPublicAccess")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("EnableHttpsTrafficOnly")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Kind")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("MinimumTlsVersion")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Sku")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.ToTable("StorageAccounts", (string)null);
                 });
 
             modelBuilder.Entity("AzureResourceDependencies", b =>
@@ -449,6 +419,17 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasForeignKey("InfraConfigId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ResourceNamingTemplate", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", "InfraConfig")
+                        .WithMany("ResourceNamingTemplates")
+                        .HasForeignKey("InfraConfigId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InfraConfig");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>
@@ -568,33 +549,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("InfraConfig");
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.Entities.BlobContainer", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", null)
-                        .WithMany("BlobContainers")
-                        .HasForeignKey("StorageAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.Entities.StorageQueue", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", null)
-                        .WithMany("Queues")
-                        .HasForeignKey("StorageAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.Entities.StorageTable", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", null)
-                        .WithMany("Tables")
-                        .HasForeignKey("StorageAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
@@ -613,12 +567,18 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", b =>
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithOne()
-                        .HasForeignKey("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", "Id")
+                        .WithMany("RoleAssignments")
+                        .HasForeignKey("SourceResourceId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithMany()
+                        .HasForeignKey("TargetResourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -629,6 +589,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("Outputs");
 
                     b.Navigation("ParameterUsages");
+
+                    b.Navigation("RoleAssignments");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>
@@ -638,20 +600,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("ParameterDefinitions");
 
                     b.Navigation("ResourceGroups");
+
+                    b.Navigation("ResourceNamingTemplates");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup", b =>
                 {
                     b.Navigation("Resources");
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", b =>
-                {
-                    b.Navigation("BlobContainers");
-
-                    b.Navigation("Queues");
-
-                    b.Navigation("Tables");
                 });
 #pragma warning restore 612, 618
         }

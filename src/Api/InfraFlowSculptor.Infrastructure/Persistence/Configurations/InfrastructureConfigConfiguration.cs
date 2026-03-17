@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.EnvironmentParameterValue;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ParameterDefinition;
@@ -24,6 +25,10 @@ public sealed class InfrastructureConfigConfiguration
 
         builder.Property(x => x.Name)
             .HasConversion(new SingleValueConverter<Name, string>());
+
+        builder.Property(x => x.DefaultNamingTemplate)
+            .HasConversion(new SingleValueConverter<NamingTemplate, string>())
+            .IsRequired(false);
 
         // ========================
         // ResourceGroups (Entity)
@@ -53,6 +58,14 @@ public sealed class InfrastructureConfigConfiguration
         // EnvironmentDefinitions (OWNED)
         // ========================
         ConfigureEnvironments(builder);
+
+        // ========================
+        // ResourceNamingTemplates (Entity)
+        // ========================
+        builder.HasMany(x => x.ResourceNamingTemplates)
+            .WithOne(x => x.InfraConfig)
+            .HasForeignKey(x => x.InfraConfigId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     private static void ConfigureEnvironments(
@@ -94,12 +107,12 @@ public sealed class InfrastructureConfigConfiguration
 
             env.Property(x => x.RequiresApproval)
                 .HasConversion(new SingleValueConverter<RequiresApproval, bool>());
-            
+
             env.OwnsMany(x => x.Tags, tag =>
             {
                 tag.ToTable("EnvironmentTags");
                 tag.WithOwner().HasForeignKey("EnvironmentId");
-                tag.HasKey("EnvironmentId", "Name"); 
+                tag.HasKey("EnvironmentId", "Name");
 
                 tag.Property(t => t.Name).HasMaxLength(100);
                 tag.Property(t => t.Value).HasMaxLength(500);

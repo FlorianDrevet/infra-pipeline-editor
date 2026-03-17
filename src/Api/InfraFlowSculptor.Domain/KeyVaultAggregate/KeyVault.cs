@@ -20,9 +20,8 @@ public class KeyVault: AzureResource
 
     public void AddSecret(ParameterDefinition parameter)
     {
-        //TODO
         if (!parameter.IsSecret)
-            throw new Exception("Only secret parameters can be stored in KeyVault");
+            throw new InvalidOperationException("Only secret parameters can be stored in KeyVault");
 
         AddParameterUsage(parameter, ParameterUsage.Secret);
     }

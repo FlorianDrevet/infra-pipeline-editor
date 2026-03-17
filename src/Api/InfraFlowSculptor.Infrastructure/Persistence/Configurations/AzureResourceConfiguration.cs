@@ -19,7 +19,7 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
         ConfigureUsersTable(builder);
     }
 
-    private void ConfigureUsersTable(EntityTypeBuilder<AzureResource> builder)
+    private static void ConfigureUsersTable(EntityTypeBuilder<AzureResource> builder)
     {
         builder.ToTable(nameof(AzureResource));
         builder.HasKey(user => user.Id);
@@ -30,11 +30,13 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
             .IsRequired()
             .HasConversion(new EnumValueConverter<Location, Location.LocationEnum>());
         
-        //builder.HasBaseType<AzureResource>();
-        
         builder.Property(x => x.Name)
             .IsRequired()
             .HasConversion(new SingleValueConverter<Name, string>());
+
+        builder.Property(x => x.CustomNameOverride)
+            .IsRequired(false)
+            .HasMaxLength(260);
 
         // Configuration de la relation DependsOn
         builder.HasMany(r => r.DependsOn)
@@ -58,5 +60,14 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
             .WithOne()
             .HasForeignKey(x => x.ResourceId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(r => r.RoleAssignments)
+            .WithOne()
+            .HasForeignKey(r => r.SourceResourceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(r => r.RoleAssignments)
+            .HasField("_roleAssignments")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

@@ -1,7 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.ResourceGroups.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
@@ -11,8 +10,7 @@ namespace InfraFlowSculptor.Application.ResourceGroups.Queries.GetResourceGroup;
 
 public class GetResourceGroupQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser,
+    IInfraConfigAccessService accessService,
     IMapper mapper)
     : IRequestHandler<GetResourceGroupQuery, ErrorOr<ResourceGroupResult>>
 {
@@ -22,8 +20,7 @@ public class GetResourceGroupQueryHandler(
         if (resourceGroup is null)
             return Errors.ResourceGroup.NotFound(query.Id);
 
-        var authResult = await InfraConfigAccessHelper.VerifyReadAccessAsync(
-            infraConfigRepository, currentUser, resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return Errors.ResourceGroup.NotFound(query.Id);

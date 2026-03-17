@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.KeyVaults.Common;
+using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
 using MediatR;
 
@@ -10,22 +11,28 @@ namespace InfraFlowSculptor.Application.KeyVaults.Commands.UpdateKeyVault;
 public class UpdateKeyVaultCommandHandler(
     IKeyVaultRepository keyVaultRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser,
+    IInfraConfigAccessService accessService,
     IMapper mapper)
     : IRequestHandler<UpdateKeyVaultCommand, ErrorOr<KeyVaultResult>>
 {
     public async Task<ErrorOr<KeyVaultResult>> Handle(UpdateKeyVaultCommand request, CancellationToken cancellationToken)
     {
-        var kvResult = await KeyVaultAccessHelper.GetWithWriteAccessAsync(
-            request.Id, keyVaultRepository, resourceGroupRepository, infraConfigRepository, currentUser, cancellationToken);
+        var keyVault = await keyVaultRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (keyVault is null)
+            return Errors.KeyVault.NotFoundError(request.Id);
 
-        if (kvResult.IsError)
-            return kvResult.Errors;
+        var resourceGroup = await resourceGroupRepository.GetByIdAsync(keyVault.ResourceGroupId, cancellationToken);
+        if (resourceGroup is null)
+            return Errors.KeyVault.NotFoundError(request.Id);
 
-        kvResult.Value.Update(request.Name, request.Location, request.Sku);
+        var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
-        var updatedKeyVault = await keyVaultRepository.UpdateAsync(kvResult.Value);
+        if (authResult.IsError)
+            return authResult.Errors;
+
+        keyVault.Update(request.Name, request.Location, request.Sku);
+
+        var updatedKeyVault = await keyVaultRepository.UpdateAsync(keyVault);
 
         return mapper.Map<KeyVaultResult>(updatedKeyVault);
     }
