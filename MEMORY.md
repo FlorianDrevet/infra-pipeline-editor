@@ -42,6 +42,11 @@ src/
 │   ├── BicepGenerator.Domain               Generation engines (strategy pattern)
 │   ├── BicepGenerator.Infrastructure       Read repositories, blob services
 │   └── BicepGenerator.Contracts            DTOs for generation
+├── Front/                                  Angular frontend (UI + API consumption)
+│   ├── src/app/core                        Layout components (navigation/footer)
+│   ├── src/app/shared                      Cross-cutting frontend services/guards/facades
+│   ├── src/environments                    API base URL and runtime environment config
+│   └── src/scss                            Global theming variables and style modules
 ├── Shared/                                 Cross-cutting code
 │   ├── Shared.Api                          Error handling, rate limiting, OpenAPI, auth
 │   ├── Shared.Application                  IRepository<T> interface
@@ -372,6 +377,12 @@ dotnet run --project src/Api/InfraFlowSculptor.Api/InfraFlowSculptor.Api.csproj
 
 # Run Bicep generator API only
 dotnet run --project src/BicepGenerators/BicepGenerator.Api/BicepGenerator.Api.csproj
+
+# Frontend commands (run from src/Front)
+npm install
+npm run start
+npm run build
+npm run typecheck
 ```
 
 No test projects currently exist.
@@ -438,7 +449,34 @@ Format : `type(scope): description courte du but principal`
 
 ---
 
-## 15. Changelog
+## 15. Frontend (Angular)
+
+### 15.1 Current frontend baseline
+
+- Angular 19 standalone app in `src/Front`
+- Zoneless change detection enabled in `src/Front/src/app/app.config.ts`
+- Material theme and Tailwind are both active (`src/Front/src/styles.scss`)
+- Shared HTTP client uses Axios (`src/Front/src/app/shared/services/axios.service.ts`)
+- JWT auth and cookie persistence handled by `AuthenticationService`
+
+### 15.2 Frontend structure conventions
+
+- `core/` for layout/shell components (navigation/footer)
+- `shared/` for reusable cross-cutting concerns (services, facades, guards, enums, interfaces)
+- `environments/` is the single source of truth for backend base URL
+- Keep DTO/interface updates in sync with backend contract changes in `InfraFlowSculptor.Contracts`
+
+### 15.3 Initialization status ([2026-03-17])
+
+- Template app name replaced with `infra-flow-sculptor-front` in `src/Front/package.json`
+- Angular project key renamed from `template_angular` to `infra_flow_sculptor_front` in `src/Front/angular.json`
+- Browser title initialized to `InfraFlowSculptor` in `src/Front/src/index.html`
+- Root app title initialized to `InfraFlowSculptor` in `src/Front/src/app/app.component.ts`
+- Front README rewritten to include stack, commands, environment config, and structure
+
+---
+
+## 16. Changelog
 
 | Date | Author | Change |
 |------|--------|--------|
@@ -452,4 +490,5 @@ Format : `type(scope): description courte du but principal`
 | 2026-03-17 | copilot | Fixed environment body GUID validation: `AddEnvironmentRequest`/`UpdateEnvironmentRequest` now use `string` + `[GuidValidation]`, `GuidValidation` accepts strings and `Guid`, and `InfrastructureConfigController` parses IDs after validation to avoid `BadHttpRequestException` on invalid JSON GUIDs |
 | 2026-03-17 | copilot | Updated InfrastructureConfig command handlers (`AddEnvironment`, `UpdateEnvironment`, `RemoveEnvironment`, `SetDefaultNamingTemplate`, `SetResourceNamingTemplate`, `RemoveResourceNamingTemplate`) to use `IInfraConfigAccessService` instead of removed `InfraConfigAccessHelper`. |
 | 2026-03-17 | copilot | Updated StorageAccount commands/queries to use `IInfraConfigAccessService`; added `StorageAccountAccessHelper` and updated `StorageAccountAccessContext` to carry `IInfraConfigAccessService` instead of legacy `IInfrastructureConfigRepository` + `ICurrentUser`. |
+| 2026-03-17 | copilot | Explored and initialized Angular frontend template (`src/Front`): renamed package/project identifiers, set application title, updated frontend README, and documented frontend architecture/conventions in memory and `.github` agent instructions. |
 | 2026-03-17 | copilot | Fixed startup crash `42P07: relation "InfrastructureConfigs" already exists`: migration `20260317163342_StorageAccount` was generated from a corrupted/empty EF Core snapshot, causing it to recreate all tables from scratch. Fixed by replacing the `Up()`/`Down()` bodies with empty methods and regenerating `Designer.cs` from the correct `ProjectDbContextModelSnapshot.cs`. All tables already existed in the DB; only the snapshot was out of sync. **Pattern to watch:** if a new migration contains `CREATE TABLE` for tables that should already exist, the snapshot was corrupted — fix with empty `Up()`/`Down()` + regenerated `Designer.cs`. |
