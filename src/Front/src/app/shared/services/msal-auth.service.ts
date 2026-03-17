@@ -76,7 +76,7 @@ export class MsalAuthService {
     try {
       const request: SilentRequest = { ...loginRequest, account };
       const result = await this.msalInstance.acquireTokenSilent(request);
-      return result.accessToken || result.idToken;
+      return result.accessToken || null;
     } catch (err) {
       console.warn('MsalAuthService: silent token acquisition failed', err);
       return null;
