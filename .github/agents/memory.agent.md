@@ -333,4 +333,44 @@ Quand tu génères une feature CQRS complète, valide chaque étape :
 - [ ] Migration EF Core créée
 - [ ] Build vérifié (`dotnet build`)
 - [ ] `MEMORY.md` mis à jour avec les nouveautés
+- [ ] PR créée avec titre et description conformes (voir ci-dessous)
 - [ ] `report_progress` appelé pour pousser les changements
+
+---
+
+## Création de Pull Request — Règles obligatoires
+
+> Consulter `.github/agents/pr-conventions.agent.md` pour la référence complète.
+
+### Titre de la PR
+
+Format **obligatoire** :
+```
+type(scope): description courte du but principal
+```
+
+- `type` : `feat` | `fix` | `refactor` | `perf` | `docs` | `test` | `chore` | `ci` | `style` | `revert`
+- `scope` : aggregate ou composant en kebab-case (ex : `key-vault`, `storage-account`, `bicep`)
+- `description` : phrase courte, présent, sans majuscule initiale, sans point final
+
+⚠️ Le titre doit décrire le **but global** de la PR, jamais la dernière tâche effectuée.
+
+**Exemples corrects :**
+- `feat(storage-account): add StorageAccount aggregate with full CRUD`
+- `fix(key-vault): correct EF Core LINQ translation for KeyVaultId comparison`
+
+**Exemples incorrects ❌ :**
+- `Add StorageAccountConfiguration.cs` ← dernière tâche, pas le but
+- `WIP` ou `Update files` ← trop vague
+
+### Description de la PR
+
+Utiliser le template `.github/PULL_REQUEST_TEMPLATE.md`. Remplir **obligatoirement** :
+1. But principal en une phrase
+2. Type(s) de changement cochés
+3. Changements listés **par couche** (Domain, Application, Infrastructure, Contracts, API, BicepGenerators, Shared, Aspire/CI)
+4. Nom de la migration EF Core si applicable
+5. Checklist validée
+
+Chaque fichier créé ou modifié doit apparaître dans au moins une section.
+

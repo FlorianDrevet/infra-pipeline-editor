@@ -17,7 +17,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         ConfigureUsersTable(builder);
     }
 
-    private void ConfigureUsersTable(EntityTypeBuilder<User> builder)
+    private static void ConfigureUsersTable(EntityTypeBuilder<User> builder)
     {
         builder.ToTable(nameof(User));
         builder.HasKey(user => user.Id);
