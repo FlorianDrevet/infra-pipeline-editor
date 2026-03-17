@@ -37,27 +37,18 @@ public sealed class EnvironmentDefinition : Entity<EnvironmentDefinitionId>
     private EnvironmentDefinition() { }
 
     [SetsRequiredMembers]
-    internal EnvironmentDefinition(InfrastructureConfigId infraConfigId,
-        Name name,
-        Prefix prefix,
-        Suffix suffix,
-        Location location,
-        TenantId tenantId,
-        SubscriptionId subscriptionId,
-        Order order,
-        RequiresApproval requiresApproval,
-        IEnumerable<Tag> tags)
+    internal EnvironmentDefinition(InfrastructureConfigId infraConfigId, EnvironmentDefinitionData data)
         : base(EnvironmentDefinitionId.CreateUnique())
     {
         InfraConfigId = infraConfigId;
-        Name = name;
-        Prefix = prefix;
-        Suffix = suffix;
-        Location = location;
-        TenantId = tenantId;
-        SubscriptionId = subscriptionId;
-        Order = order;
-        RequiresApproval = requiresApproval;
-        _tags.AddRange(tags);
+        Name = data.Name;
+        Prefix = data.Prefix;
+        Suffix = data.Suffix;
+        Location = data.Location;
+        TenantId = data.TenantId;
+        SubscriptionId = data.SubscriptionId;
+        Order = data.Order;
+        RequiresApproval = data.RequiresApproval;
+        _tags.AddRange(data.Tags);
     }
 }

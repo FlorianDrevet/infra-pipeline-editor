@@ -107,48 +107,30 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 
     // ─── Environment Definitions ────────────────────────────────────────────
 
-    public EnvironmentDefinition AddEnvironment(
-        Name name,
-        Prefix prefix,
-        Suffix suffix,
-        Location location,
-        TenantId tenantId,
-        SubscriptionId subscriptionId,
-        Order order,
-        RequiresApproval requiresApproval,
-        IEnumerable<Tag> tags)
+    public EnvironmentDefinition AddEnvironment(EnvironmentDefinitionData data)
     {
-        var env = new EnvironmentDefinition(Id, name, prefix, suffix, location,
-            tenantId, subscriptionId, order, requiresApproval, tags);
+        var env = new EnvironmentDefinition(Id, data);
         _environmentDefinitions.Add(env);
         return env;
     }
 
     public EnvironmentDefinition? UpdateEnvironment(
         EnvironmentDefinitionId envId,
-        Name name,
-        Prefix prefix,
-        Suffix suffix,
-        Location location,
-        TenantId tenantId,
-        SubscriptionId subscriptionId,
-        Order order,
-        RequiresApproval requiresApproval,
-        IEnumerable<Tag> tags)
+        EnvironmentDefinitionData data)
     {
         var env = _environmentDefinitions.FirstOrDefault(e => e.Id == envId);
         if (env is null)
             return null;
 
-        env.Name = name;
-        env.Prefix = prefix;
-        env.Suffix = suffix;
-        env.Location = location;
-        env.TenantId = tenantId;
-        env.SubscriptionId = subscriptionId;
-        env.Order = order;
-        env.RequiresApproval = requiresApproval;
-        env.SetTags(tags);
+        env.Name = data.Name;
+        env.Prefix = data.Prefix;
+        env.Suffix = data.Suffix;
+        env.Location = data.Location;
+        env.TenantId = data.TenantId;
+        env.SubscriptionId = data.SubscriptionId;
+        env.Order = data.Order;
+        env.RequiresApproval = data.RequiresApproval;
+        env.SetTags(data.Tags);
         return env;
     }
 

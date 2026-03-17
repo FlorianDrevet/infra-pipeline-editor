@@ -3,6 +3,7 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using MapsterMapper;
@@ -33,7 +34,7 @@ public class AddEnvironmentCommandHandler(
 
         var tags = command.Tags.Select(t => new Tag(t.Name, t.Value));
 
-        var env = infraConfig.AddEnvironment(
+        var data = new EnvironmentDefinitionData(
             new Name(command.Name),
             new Prefix(command.Prefix),
             new Suffix(command.Suffix),
@@ -43,6 +44,8 @@ public class AddEnvironmentCommandHandler(
             new Order(command.Order),
             new RequiresApproval(command.RequiresApproval),
             tags);
+
+        var env = infraConfig.AddEnvironment(data);
 
         await repository.UpdateAsync(infraConfig);
 
