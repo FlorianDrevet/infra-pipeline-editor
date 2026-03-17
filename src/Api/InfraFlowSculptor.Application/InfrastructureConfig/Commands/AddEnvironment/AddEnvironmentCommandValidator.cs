@@ -13,5 +13,16 @@ public class AddEnvironmentCommandValidator : AbstractValidator<AddEnvironmentCo
         RuleFor(x => x.TenantId).NotEmpty();
         RuleFor(x => x.SubscriptionId).NotEmpty();
         RuleFor(x => x.Order).GreaterThanOrEqualTo(0);
+
+        RuleForEach(x => x.Tags).ChildRules(tag =>
+        {
+            tag.RuleFor(t => t.Name)
+                .NotEmpty()
+                .MaximumLength(100);
+
+            tag.RuleFor(t => t.Value)
+                .NotEmpty()
+                .MaximumLength(100);
+        });
     }
 }
