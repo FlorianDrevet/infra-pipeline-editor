@@ -8,7 +8,7 @@ export const msalConfig: Configuration = {
     redirectUri: environment.msalConfig.redirectUri,
   },
   cache: {
-    cacheLocation: BrowserCacheLocation.LocalStorage,
+    cacheLocation: BrowserCacheLocation.SessionStorage,
   },
 };
 
