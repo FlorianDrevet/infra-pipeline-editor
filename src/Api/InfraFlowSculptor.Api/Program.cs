@@ -69,6 +69,7 @@ app.UseNamingTemplateController();
 app.UseKeyVaultControllerController();
 app.UseResourceGroupController();
 app.UseRedisCacheController();
+app.UseRoleAssignmentController();
 app.MapDefaultEndpoints();
 
 await app.RunAsync();

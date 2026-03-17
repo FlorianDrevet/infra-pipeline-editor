@@ -18,3 +18,23 @@ Tu partiras soit d'un model d'entity que tu devras créer dans la couche domain,
 soit d'une entité déjà existante dans la couche domain pour laquelle tu devras uniquement créer les commandes/queries, endpoint, requests/reponses, les services et les handlers associés.
 
 Il doit également générer les configurations EF Core associées dans le dossier src/Api/InfraFlowSculptor.Api/Persistence/Configurations.
+
+---
+
+## Pull Request — Règles obligatoires
+
+Avant de créer ou soumettre une PR, consulter `.github/agents/pr-conventions.agent.md`.
+
+### Titre de la PR
+
+```
+type(scope): description courte du but principal
+```
+
+- `type` : `feat` | `fix` | `refactor` | `perf` | `docs` | `test` | `chore` | `ci` | `style` | `revert`
+- `scope` : aggregate ou composant en kebab-case (ex : `key-vault`, `storage-account`, `bicep`)
+- Le titre décrit le **but global**, jamais la dernière tâche effectuée.
+
+### Description de la PR
+
+Utiliser le template `.github/PULL_REQUEST_TEMPLATE.md` et lister tous les fichiers créés/modifiés par couche (Domain, Application, Infrastructure, Contracts, API, etc.).

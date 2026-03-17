@@ -35,8 +35,6 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     public IReadOnlyCollection<ParameterDefinition> ParameterDefinitions => _parameterDefinitions;
 
     
-    //public List<EnvironmentVariable> Variables { get; set; } = new();
-
     private InfrastructureConfig(InfrastructureConfigId id, Name name, UserId ownerId): base(id)
     {
         Name = name;
@@ -73,11 +71,6 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 
     public void AddMember(UserId userId, Role role)
     {
-        /*
-        if (_members.Any(m => m.UserId == userId))
-            throw new DomainException("User already member of project");
-        */
-
         _members.Add(new Member(Id, userId, role));
     }
 
@@ -90,19 +83,12 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     public void RemoveMember(UserId userId)
     {
         var member = GetMember(userId);
-
-        /*
-        if (member.Role.Value == Role.RoleEnum.Owner)
-            throw new DomainException("Cannot remove project owner");
-        */
-
         _members.Remove(member);
     }
 
     private Member? GetMember(UserId userId)
     {
-        return _members.FirstOrDefault(m => m.UserId == userId);/*
-               ?? throw new DomainException("User is not a member of this project");*/
+        return _members.FirstOrDefault(m => m.UserId == userId);
     }
 
     // ─── Environment Definitions ────────────────────────────────────────────

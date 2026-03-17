@@ -146,7 +146,7 @@ services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 ```
 
-### 4.3 Shared Authorization Helpers
+### 4.3 Shared Authorization Service
 
 **Member management (Owner-only):**
 ```csharp
@@ -154,15 +154,28 @@ services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 // Location: src/Api/InfraFlowSculptor.Application/InfrastructureConfig/Common/MemberCommandHelper.cs
 ```
 
-**Resource CRUD authorization (membership check):**
+**Resource CRUD authorization — `IInfraConfigAccessService` (injectable service):**
+
+The access control logic is exposed via an injectable service, not a static helper.
+Register once in the Application DI; inject into handlers via the constructor.
+
 ```csharp
-// InfraConfigAccessHelper.VerifyReadAccessAsync(...)   → any member (any role)
-// InfraConfigAccessHelper.VerifyWriteAccessAsync(...)  → Owner or Contributor only (returns ForbiddenError for Reader)
-// Location: src/Api/InfraFlowSculptor.Application/InfrastructureConfig/Common/InfraConfigAccessHelper.cs
+// Interface: src/Api/InfraFlowSculptor.Application/Common/Interfaces/IInfraConfigAccessService.cs
+// Implementation: src/Api/InfraFlowSculptor.Application/InfrastructureConfig/Common/InfraConfigAccessService.cs
+// DI registration: services.AddScoped<IInfraConfigAccessService, InfraConfigAccessService>();  (Application/DependencyInjection.cs)
+
+// In a handler constructor:
+public class MyCommandHandler(IInfraConfigAccessService accessService, ...) { }
+
+// Read (any member):
+var authResult = await accessService.VerifyReadAccessAsync(infraConfigId, cancellationToken);
+
+// Write (Owner or Contributor only):
+var authResult = await accessService.VerifyWriteAccessAsync(infraConfigId, cancellationToken);
 ```
 
 Access check pattern for resource handlers:
-- **ResourceGroup**: has `InfraConfigId` directly → call helper with it
+- **ResourceGroup**: has `InfraConfigId` directly → call `accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, ct)`
 - **KeyVault / RedisCache**: have `ResourceGroupId` → load ResourceGroup → use `resourceGroup.InfraConfigId`
 - Read operations: `VerifyReadAccessAsync` — returns `NotFound` (no info leak) if not a member
 - Write operations: `VerifyWriteAccessAsync` — returns `NotFound` for non-members, `Forbidden` for Readers
@@ -393,11 +406,47 @@ No test projects currently exist.
 
 ---
 
-## 14. Changelog
+## 14. Pull Request Conventions
+
+### Titre obligatoire
+
+Format : `type(scope): description courte du but principal`
+
+| type       | usage                                   |
+|------------|-----------------------------------------|
+| `feat`     | nouvelle fonctionnalité                 |
+| `fix`      | correction de bug                       |
+| `refactor` | refactoring sans changement fonctionnel |
+| `perf`     | amélioration des performances           |
+| `docs`     | documentation uniquement                |
+| `test`     | tests                                   |
+| `chore`    | maintenance, dépendances                |
+| `ci`       | pipelines CI/CD                         |
+| `style`    | formatage, lint                         |
+| `revert`   | annulation                              |
+
+- Le scope est en kebab-case (ex : `key-vault`, `storage-account`, `bicep`)
+- Le titre décrit le **but global**, jamais la dernière tâche effectuée
+- Référence complète : `.github/agents/pr-conventions.agent.md`
+
+### Description de PR
+
+- Utiliser le template `.github/PULL_REQUEST_TEMPLATE.md`
+- Lister chaque fichier créé/modifié dans sa section de couche
+- Indiquer le nom de la migration EF Core si applicable
+- Valider toute la checklist avant soumission
+
+---
+
+## 15. Changelog
 
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-03-15 | copilot | Initial MEMORY.md created from full project exploration |
 | 2026-03-15 | copilot | Fixed `InvalidOperationException` in `InfrastructureConfigRepository.GetByIdWithMembersAsync`: `c.Id.Value == id.Value` → `c.Id == id` (EF Core cannot translate `.Value` property access on value objects in LINQ queries) |
 | 2026-03-15 | copilot | Added authorization checks to all resource CRUD endpoints (ResourceGroup, KeyVault, RedisCache): created `InfraConfigAccessHelper` (`VerifyReadAccessAsync`/`VerifyWriteAccessAsync`), added `Errors.InfrastructureConfig.ForbiddenError()`, overrode `ResourceGroupRepository.GetByIdAsync` with safe LINQ pattern |
+| 2026-03-15 | copilot | Added RBAC role assignment feature: `RoleAssignment` entity on `AzureResource`, `ManagedIdentityType` value object, `IAzureResourceRepository`, `AzureResourceBaseRepository`, `AddRoleAssignment`/`RemoveRoleAssignment`/`ListRoleAssignments` CQRS handlers, EF Core migration `AddRoleAssignmentsTable`, REST endpoints under `/azure-resources/{id}/role-assignments` |
+| 2026-03-17 | copilot | Added PR conventions: `.github/PULL_REQUEST_TEMPLATE.md`, `.github/agents/pr-conventions.agent.md`, updated `copilot-instructions.md`, `memory.agent.md`, `cqrs.agent.md` with mandatory PR title format `type(scope): description` and description template |
+| 2026-03-17 | copilot | Added `GET /infra-config/{id}/resource-groups` endpoint: new `ListResourceGroupsByConfigQuery` + handler, `IResourceGroupRepository.GetByInfraConfigIdAsync` |
+| 2026-03-17 | copilot | Refactored `InfraConfigAccessHelper` (static) → `IInfraConfigAccessService` injectable service. Interface in `Application/Common/Interfaces/`, implementation in `InfrastructureConfig/Common/InfraConfigAccessService.cs`. Updated all 11 handlers (ResourceGroup, KeyVault, RedisCache) to inject the service. |
 | 2026-03-17 | copilot | Fixed environment body GUID validation: `AddEnvironmentRequest`/`UpdateEnvironmentRequest` now use `string` + `[GuidValidation]`, `GuidValidation` accepts strings and `Guid`, and `InfrastructureConfigController` parses IDs after validation to avoid `BadHttpRequestException` on invalid JSON GUIDs |

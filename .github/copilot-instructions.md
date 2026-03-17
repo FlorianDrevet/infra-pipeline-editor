@@ -39,3 +39,36 @@
 - Validation is implemented with FluentValidation and enforced through the MediatR `ValidationBehavior`.
 - Authentication uses Microsoft Entra ID / JWT bearer auth. The API projects set a fallback authenticated policy, expose an `IsAdmin` policy, and use `ICurrentUser`/`CurrentUser` for user context access.
 - The GitHub prompt and agent files describe the product goal as storing infrastructure configuration in one API and generating Azure Bicep and Azure DevOps pipeline output in the second API. Keep that split in mind when deciding which project should own new behavior.
+
+## Pull Request conventions
+
+Every PR created by a Copilot agent **must** follow these rules. Full details are in `.github/agents/pr-conventions.agent.md`.
+
+### PR title format
+
+```
+type(scope): short description of the main goal
+```
+
+- **type** (required): `feat` | `fix` | `refactor` | `perf` | `docs` | `test` | `chore` | `ci` | `style` | `revert`
+- **scope** (recommended): aggregate or component in kebab-case (e.g. `key-vault`, `role-assignment`, `bicep`)
+- **description**: short sentence in present tense, no leading capital, no trailing period
+
+The title must describe the **overall goal** of the PR, never the last task performed.
+
+**Correct examples:**
+- `feat(storage-account): add StorageAccount aggregate with full CRUD`
+- `fix(key-vault): correct EF Core LINQ translation for KeyVaultId comparison`
+- `refactor(member): extract MemberCommandHelper to reduce duplication`
+
+### PR description
+
+Use the template at `.github/PULL_REQUEST_TEMPLATE.md`. It must include:
+1. A one-sentence summary of the main goal.
+2. Type of change (checkboxes).
+3. Changes listed **per layer** (Domain, Application, Infrastructure, Contracts, API, BicepGenerators, Shared, Aspire/CI).
+4. EF Core migration name if applicable.
+5. Completed checklist before merge.
+
+Every created or modified file must appear in at least one section of the description.
+

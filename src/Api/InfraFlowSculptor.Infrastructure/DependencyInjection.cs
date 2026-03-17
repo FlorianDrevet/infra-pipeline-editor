@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<IRedisCacheRepository, RedisCacheRepository>();
         services.AddScoped<IResourceGroupRepository, ResourceGroupRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IAzureResourceRepository, AzureResourceBaseRepository>();
 
         return services;
     }

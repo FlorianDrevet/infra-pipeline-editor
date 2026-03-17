@@ -1,7 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.RedisCaches.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
@@ -14,8 +13,7 @@ namespace InfraFlowSculptor.Application.RedisCaches.Commands.CreateRedisCache;
 public class CreateRedisCacheCommandHandler(
     IRedisCacheRepository redisCacheRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser,
+    IInfraConfigAccessService accessService,
     IMapper mapper)
     : IRequestHandler<CreateRedisCacheCommand, ErrorOr<RedisCacheResult>>
 {
@@ -25,8 +23,7 @@ public class CreateRedisCacheCommandHandler(
         if (resourceGroup is null)
             return Errors.ResourceGroup.NotFound(request.ResourceGroupId);
 
-        var authResult = await InfraConfigAccessHelper.VerifyWriteAccessAsync(
-            infraConfigRepository, currentUser, resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return authResult.Errors;

@@ -67,6 +67,34 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.UseTptMappingStrategy();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ManagedIdentityType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleDefinitionId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SourceResourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TargetResourceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceResourceId");
+
+                    b.HasIndex("TargetResourceId");
+
+                    b.ToTable("RoleAssignments", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.InputOutputLink", b =>
                 {
                     b.Property<Guid>("Id")
@@ -539,6 +567,21 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithMany("RoleAssignments")
+                        .HasForeignKey("SourceResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithMany()
+                        .HasForeignKey("TargetResourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", b =>
                 {
                     b.Navigation("Inputs");
@@ -546,6 +589,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("Outputs");
 
                     b.Navigation("ParameterUsages");
+
+                    b.Navigation("RoleAssignments");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>

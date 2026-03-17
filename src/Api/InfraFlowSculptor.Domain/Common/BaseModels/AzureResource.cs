@@ -24,7 +24,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// </summary>
     public string? CustomNameOverride { get; set; }
     
-    private List<AzureResource> _dependsOn = new List<AzureResource>();
+    private readonly List<AzureResource> _dependsOn = new List<AzureResource>();
     public IReadOnlyList<AzureResource> DependsOn => _dependsOn.AsReadOnly();
     
     protected virtual IReadOnlyCollection<ParameterUsage> AllowedParameterUsages { get; }
@@ -38,10 +38,9 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     private readonly List<InputOutputLink> _outputs = new();
     public IReadOnlyCollection<InputOutputLink> Outputs => _outputs;
 
+    private readonly List<RoleAssignment> _roleAssignments = new();
+    public IReadOnlyCollection<RoleAssignment> RoleAssignments => _roleAssignments.AsReadOnly();
 
-    //public ManagedIdentity? ManagedIdentity { get; set; }
-    
-    // Méthode métier
     public void AddDependency(AzureResource resource)
     {
         if (resource.Id == Id)
@@ -52,14 +51,37 @@ public class AzureResource : AggregateRoot<AzureResourceId>
 
         _dependsOn.Add(resource);
     }
-    
+
+    public void AddRoleAssignment(
+        AzureResourceId targetResourceId,
+        ManagedIdentityType managedIdentityType,
+        string roleDefinitionId)
+    {
+        if (targetResourceId == Id)
+            throw new InvalidOperationException("A resource cannot assign a role to itself.");
+
+        if (_roleAssignments.Any(r =>
+                r.TargetResourceId == targetResourceId &&
+                r.RoleDefinitionId == roleDefinitionId &&
+                r.ManagedIdentityType.Value == managedIdentityType.Value))
+            return;
+
+        _roleAssignments.Add(RoleAssignment.Create(Id, targetResourceId, managedIdentityType, roleDefinitionId));
+    }
+
+    public void RemoveRoleAssignment(RoleAssignmentId roleAssignmentId)
+    {
+        var assignment = _roleAssignments.FirstOrDefault(r => r.Id == roleAssignmentId);
+        if (assignment is not null)
+            _roleAssignments.Remove(assignment);
+    }
+
     protected void AddParameterUsage(
         ParameterDefinition parameter,
         ParameterUsage usage)
     {
-        //TODO
         if (!AllowedParameterUsages.Contains(usage))
-            throw new Exception(
+            throw new InvalidOperationException(
                 $"{GetType().Name} does not support parameter usage '{usage}'");
 
         _parameterUsages.Add(

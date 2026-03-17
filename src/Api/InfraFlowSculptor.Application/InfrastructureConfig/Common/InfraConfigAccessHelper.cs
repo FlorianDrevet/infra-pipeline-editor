@@ -6,18 +6,14 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Common;
 
-internal static class InfraConfigAccessHelper
+internal sealed class InfraConfigAccessService(
+    IInfrastructureConfigRepository repository,
+    ICurrentUser currentUser)
+    : IInfraConfigAccessService
 {
-    /// <summary>
-    /// Verifies the current user is a member of the given InfrastructureConfig (any role).
-    /// Returns NotFoundError if the config does not exist or the user is not a member,
-    /// to avoid leaking the existence of the configuration to non-members.
-    /// </summary>
-    public static async Task<ErrorOr<Domain.InfrastructureConfigAggregate.InfrastructureConfig>> VerifyReadAccessAsync(
-        IInfrastructureConfigRepository repository,
-        ICurrentUser currentUser,
+    public async Task<ErrorOr<Domain.InfrastructureConfigAggregate.InfrastructureConfig>> VerifyReadAccessAsync(
         InfrastructureConfigId infraConfigId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         var userId = await currentUser.GetUserIdAsync(cancellationToken);
         var infraConfig = await repository.GetByIdWithMembersAsync(infraConfigId, cancellationToken);
@@ -28,16 +24,9 @@ internal static class InfraConfigAccessHelper
         return infraConfig;
     }
 
-    /// <summary>
-    /// Verifies the current user is an Owner or Contributor in the given InfrastructureConfig.
-    /// Returns NotFoundError if the config does not exist or the user is not a member.
-    /// Returns ForbiddenError if the user is a Reader (insufficient role for write operations).
-    /// </summary>
-    public static async Task<ErrorOr<Domain.InfrastructureConfigAggregate.InfrastructureConfig>> VerifyWriteAccessAsync(
-        IInfrastructureConfigRepository repository,
-        ICurrentUser currentUser,
+    public async Task<ErrorOr<Domain.InfrastructureConfigAggregate.InfrastructureConfig>> VerifyWriteAccessAsync(
         InfrastructureConfigId infraConfigId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         var userId = await currentUser.GetUserIdAsync(cancellationToken);
         var infraConfig = await repository.GetByIdWithMembersAsync(infraConfigId, cancellationToken);

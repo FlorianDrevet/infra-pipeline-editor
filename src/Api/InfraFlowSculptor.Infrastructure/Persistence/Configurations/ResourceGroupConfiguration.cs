@@ -16,7 +16,7 @@ public class ResourceGroupConfiguration : IEntityTypeConfiguration<ResourceGroup
         ConfigureUsersTable(builder);
     }
 
-    private void ConfigureUsersTable(EntityTypeBuilder<ResourceGroup> builder)
+    private static void ConfigureUsersTable(EntityTypeBuilder<ResourceGroup> builder)
     {
         builder.ToTable(nameof(ResourceGroup));
         builder.HasKey(user => user.Id);

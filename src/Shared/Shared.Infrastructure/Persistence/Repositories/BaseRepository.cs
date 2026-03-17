@@ -11,7 +11,7 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
 {
     protected readonly TContext Context;
 
-    public BaseRepository(TContext context)
+    protected BaseRepository(TContext context)
     {
         this.Context = context;
     }
@@ -36,7 +36,7 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
         return true;
     }
 
-    public virtual async Task<TEntity?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken)
+    public virtual async Task<TEntity?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default)
     {
         return await Context.Set<TEntity>().FindAsync(cancellationToken: cancellationToken, keyValues: [id]);
     }
