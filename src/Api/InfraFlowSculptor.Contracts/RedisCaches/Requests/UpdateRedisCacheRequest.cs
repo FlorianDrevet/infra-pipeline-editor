@@ -3,8 +3,13 @@ using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Contracts.RedisCaches.Requests;
 
+/// <summary>Request body for updating an existing Redis Cache resource. All fields are replaced.</summary>
 public class UpdateRedisCacheRequest : RedisCacheRequestBase
 {
+    /// <summary>
+    /// Cache size (capacity tier). For <c>Basic</c>/<c>Standard</c> SKUs, accepted values are 0–6 (C0–C6).
+    /// For <c>Premium</c> SKU, accepted values are 1–4 (P1–P4).
+    /// </summary>
     [Required, Range(0, 6)]
     // Basic/Standard supports C0-C6 (0-6); Premium supports P1-P4 (1-4). Cross-SKU validation is enforced here via CustomValidation.
     [CustomValidation(typeof(UpdateRedisCacheRequest), nameof(ValidateCapacityForSku))]

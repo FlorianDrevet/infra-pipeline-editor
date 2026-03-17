@@ -7,6 +7,7 @@ using InfraFlowSculptor.Contracts.KeyVaults.Requests;
 using InfraFlowSculptor.Contracts.KeyVaults.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Api.Errors;
 
@@ -36,7 +37,12 @@ public static class KeyVaultControllerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetKeyVault");
+                .WithName("GetKeyVault")
+                .WithSummary("Get a Key Vault")
+                .WithDescription("Returns the full details of a single Azure Key Vault resource.")
+                .Produces<KeyVaultResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapPost("",
                     async (CreateKeyVaultRequest request, IMediator mediator, IMapper mapper) =>
@@ -57,7 +63,13 @@ public static class KeyVaultControllerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateKeyVault");
+                .WithName("CreateKeyVault")
+                .WithSummary("Create a Key Vault")
+                .WithDescription("Creates a new Azure Key Vault resource inside the specified Resource Group. Requires Owner or Contributor access.")
+                .Produces<KeyVaultResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapPut("/{id:guid}",
                     async ([FromRoute] Guid id, UpdateKeyVaultRequest request, IMediator mediator, IMapper mapper) =>
@@ -74,7 +86,13 @@ public static class KeyVaultControllerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateKeyVault");
+                .WithName("UpdateKeyVault")
+                .WithSummary("Update a Key Vault")
+                .WithDescription("Replaces all mutable properties of an existing Key Vault. Requires Owner or Contributor access.")
+                .Produces<KeyVaultResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapDelete("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator) =>
@@ -87,7 +105,12 @@ public static class KeyVaultControllerController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteKeyVault");
+                .WithName("DeleteKeyVault")
+                .WithSummary("Delete a Key Vault")
+                .WithDescription("Permanently deletes an Azure Key Vault resource. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
 }
