@@ -16,8 +16,8 @@ public class AddRoleAssignmentCommandValidator : AbstractValidator<AddRoleAssign
             .Must(value => Enum.TryParse<ManagedIdentityType.IdentityTypeEnum>(value, ignoreCase: true, out _))
             .WithMessage($"ManagedIdentityType must be one of: {string.Join(", ", Enum.GetNames<ManagedIdentityType.IdentityTypeEnum>())}.");
 
-        RuleFor(x => x)
-            .Must(x => x.SourceResourceId != x.TargetResourceId)
+        RuleFor(x => x.TargetResourceId)
+            .Must((command, targetResourceId) => targetResourceId != command.SourceResourceId)
             .WithMessage("Source and target resources must be different.");
     }
 }
