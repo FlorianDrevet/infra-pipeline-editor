@@ -9,13 +9,12 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Commands.DeleteStorageAc
 public class DeleteStorageAccountCommandHandler(
     IStorageAccountRepository storageAccountRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser)
+    IInfraConfigAccessService accessService)
     : IRequestHandler<DeleteStorageAccountCommand, ErrorOr<Deleted>>
 {
     public async Task<ErrorOr<Deleted>> Handle(DeleteStorageAccountCommand request, CancellationToken cancellationToken)
     {
-        var ctx = new StorageAccountAccessContext(request.Id, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        var ctx = new StorageAccountAccessContext(request.Id, storageAccountRepository, resourceGroupRepository, accessService);
         var saResult = await StorageAccountAccessHelper.GetWithWriteAccessAsync(ctx, cancellationToken);
 
         if (saResult.IsError)

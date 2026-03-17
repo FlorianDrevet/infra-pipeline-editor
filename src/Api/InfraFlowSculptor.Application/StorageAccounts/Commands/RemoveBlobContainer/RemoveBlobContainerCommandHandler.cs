@@ -10,13 +10,12 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Commands.RemoveBlobConta
 public class RemoveBlobContainerCommandHandler(
     IStorageAccountRepository storageAccountRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser)
+    IInfraConfigAccessService accessService)
     : IRequestHandler<RemoveBlobContainerCommand, ErrorOr<Deleted>>
 {
     public Task<ErrorOr<Deleted>> Handle(RemoveBlobContainerCommand request, CancellationToken cancellationToken)
     {
-        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, accessService);
         return StorageAccountAccessHelper.RemoveSubResourceAsync(
             ctx,
             () => storageAccountRepository.RemoveBlobContainerAsync(request.StorageAccountId, request.ContainerId),

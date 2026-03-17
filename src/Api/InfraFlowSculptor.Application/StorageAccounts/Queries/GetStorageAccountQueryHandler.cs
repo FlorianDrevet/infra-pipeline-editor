@@ -10,14 +10,13 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Queries;
 public class GetStorageAccountQueryHandler(
     IStorageAccountRepository storageAccountRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser,
+    IInfraConfigAccessService accessService,
     IMapper mapper)
     : IRequestHandler<GetStorageAccountQuery, ErrorOr<StorageAccountResult>>
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(GetStorageAccountQuery query, CancellationToken cancellationToken)
     {
-        var ctx = new StorageAccountAccessContext(query.Id, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        var ctx = new StorageAccountAccessContext(query.Id, storageAccountRepository, resourceGroupRepository, accessService);
         var result = await StorageAccountAccessHelper.GetWithReadAccessAsync(ctx, cancellationToken);
 
         if (result.IsError)

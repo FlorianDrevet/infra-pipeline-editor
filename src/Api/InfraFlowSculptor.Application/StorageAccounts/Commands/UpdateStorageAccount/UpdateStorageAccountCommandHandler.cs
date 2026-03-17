@@ -11,14 +11,13 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Commands.UpdateStorageAc
 public class UpdateStorageAccountCommandHandler(
     IStorageAccountRepository storageAccountRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser,
+    IInfraConfigAccessService accessService,
     IMapper mapper)
     : IRequestHandler<UpdateStorageAccountCommand, ErrorOr<StorageAccountResult>>
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(UpdateStorageAccountCommand request, CancellationToken cancellationToken)
     {
-        var ctx = new StorageAccountAccessContext(request.Id, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        var ctx = new StorageAccountAccessContext(request.Id, storageAccountRepository, resourceGroupRepository, accessService);
         var saResult = await StorageAccountAccessHelper.GetWithWriteAccessAsync(ctx, cancellationToken);
 
         if (saResult.IsError)

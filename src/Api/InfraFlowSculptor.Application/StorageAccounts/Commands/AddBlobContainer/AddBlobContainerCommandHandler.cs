@@ -10,14 +10,13 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Commands.AddBlobContaine
 public class AddBlobContainerCommandHandler(
     IStorageAccountRepository storageAccountRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser,
+    IInfraConfigAccessService accessService,
     IMapper mapper)
     : IRequestHandler<AddBlobContainerCommand, ErrorOr<StorageAccountResult>>
 {
     public Task<ErrorOr<StorageAccountResult>> Handle(AddBlobContainerCommand request, CancellationToken cancellationToken)
     {
-        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, accessService);
         return StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
             ctx,
             sa => sa.AddBlobContainer(request.Name, request.PublicAccess),

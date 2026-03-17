@@ -12,5 +12,4 @@ internal record StorageAccountAccessContext(
     AzureResourceId StorageAccountId,
     IStorageAccountRepository StorageAccountRepository,
     IResourceGroupRepository ResourceGroupRepository,
-    IInfrastructureConfigRepository InfraConfigRepository,
-    ICurrentUser CurrentUser);
+    IInfraConfigAccessService AccessService);

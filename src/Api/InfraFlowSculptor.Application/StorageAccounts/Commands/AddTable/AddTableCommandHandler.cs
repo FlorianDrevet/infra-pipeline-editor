@@ -10,14 +10,13 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Commands.AddTable;
 public class AddTableCommandHandler(
     IStorageAccountRepository storageAccountRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser,
+    IInfraConfigAccessService accessService,
     IMapper mapper)
     : IRequestHandler<AddTableCommand, ErrorOr<StorageAccountResult>>
 {
     public Task<ErrorOr<StorageAccountResult>> Handle(AddTableCommand request, CancellationToken cancellationToken)
     {
-        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, infraConfigRepository, currentUser);
+        var ctx = new StorageAccountAccessContext(request.StorageAccountId, storageAccountRepository, resourceGroupRepository, accessService);
         return StorageAccountAccessHelper.AddSubResourceAndReloadAsync(
             ctx,
             sa => sa.AddTable(request.Name),
