@@ -1,7 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MediatR;
 
@@ -9,14 +8,13 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveReso
 
 public class RemoveResourceNamingTemplateCommandHandler(
     IInfrastructureConfigRepository repository,
-    ICurrentUser currentUser)
+    IInfraConfigAccessService accessService)
     : IRequestHandler<RemoveResourceNamingTemplateCommand, ErrorOr<Deleted>>
 {
     public async Task<ErrorOr<Deleted>> Handle(
         RemoveResourceNamingTemplateCommand command, CancellationToken cancellationToken)
     {
-        var authResult = await InfraConfigAccessHelper.VerifyWriteAccessAsync(
-            repository, currentUser, command.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyWriteAccessAsync(command.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return authResult.Errors;

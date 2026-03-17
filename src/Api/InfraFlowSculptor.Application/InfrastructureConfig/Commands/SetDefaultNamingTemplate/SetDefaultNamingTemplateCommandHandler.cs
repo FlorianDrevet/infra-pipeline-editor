@@ -10,14 +10,13 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetDefault
 
 public class SetDefaultNamingTemplateCommandHandler(
     IInfrastructureConfigRepository repository,
-    ICurrentUser currentUser)
+    IInfraConfigAccessService accessService)
     : IRequestHandler<SetDefaultNamingTemplateCommand, ErrorOr<Updated>>
 {
     public async Task<ErrorOr<Updated>> Handle(
         SetDefaultNamingTemplateCommand command, CancellationToken cancellationToken)
     {
-        var authResult = await InfraConfigAccessHelper.VerifyWriteAccessAsync(
-            repository, currentUser, command.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyWriteAccessAsync(command.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return authResult.Errors;

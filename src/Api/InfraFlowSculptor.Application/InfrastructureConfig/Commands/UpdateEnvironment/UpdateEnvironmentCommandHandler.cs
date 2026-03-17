@@ -15,15 +15,14 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateEnvi
 
 public class UpdateEnvironmentCommandHandler(
     IInfrastructureConfigRepository repository,
-    ICurrentUser currentUser,
+    IInfraConfigAccessService accessService,
     IMapper mapper)
     : IRequestHandler<UpdateEnvironmentCommand, ErrorOr<EnvironmentDefinitionResult>>
 {
     public async Task<ErrorOr<EnvironmentDefinitionResult>> Handle(
         UpdateEnvironmentCommand command, CancellationToken cancellationToken)
     {
-        var authResult = await InfraConfigAccessHelper.VerifyWriteAccessAsync(
-            repository, currentUser, command.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyWriteAccessAsync(command.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return authResult.Errors;

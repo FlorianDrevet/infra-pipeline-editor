@@ -11,15 +11,14 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetResourc
 
 public class SetResourceNamingTemplateCommandHandler(
     IInfrastructureConfigRepository repository,
-    ICurrentUser currentUser,
+    IInfraConfigAccessService accessService,
     IMapper mapper)
     : IRequestHandler<SetResourceNamingTemplateCommand, ErrorOr<ResourceNamingTemplateResult>>
 {
     public async Task<ErrorOr<ResourceNamingTemplateResult>> Handle(
         SetResourceNamingTemplateCommand command, CancellationToken cancellationToken)
     {
-        var authResult = await InfraConfigAccessHelper.VerifyWriteAccessAsync(
-            repository, currentUser, command.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyWriteAccessAsync(command.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return authResult.Errors;
