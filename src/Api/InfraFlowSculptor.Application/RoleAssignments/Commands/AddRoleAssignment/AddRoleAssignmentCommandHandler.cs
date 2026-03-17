@@ -1,7 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
@@ -13,8 +12,7 @@ namespace InfraFlowSculptor.Application.RoleAssignments.Commands.AddRoleAssignme
 public class AddRoleAssignmentCommandHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser)
+    IInfraConfigAccessService accessService)
     : IRequestHandler<AddRoleAssignmentCommand, ErrorOr<RoleAssignmentResult>>
 {
     public async Task<ErrorOr<RoleAssignmentResult>> Handle(
@@ -37,8 +35,7 @@ public class AddRoleAssignmentCommandHandler(
         if (resourceGroup is null)
             return Errors.ResourceGroup.NotFound(sourceResource.ResourceGroupId);
 
-        var authResult = await InfraConfigAccessHelper.VerifyWriteAccessAsync(
-            infraConfigRepository, currentUser, resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return authResult.Errors;
