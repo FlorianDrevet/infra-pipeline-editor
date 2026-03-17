@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InfraFlowSculptor.Infrastructure.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    partial class ProjectDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260315100910_AddStorageAccountTable")]
+    partial class AddStorageAccountTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,10 +45,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("CustomNameOverride")
-                        .HasMaxLength(260)
-                        .HasColumnType("character varying(260)");
 
                     b.Property<string>("Location")
                         .IsRequired()
@@ -92,34 +91,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ResourceLinks", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ManagedIdentityType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("RoleDefinitionId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("SourceResourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("TargetResourceId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SourceResourceId");
-
-                    b.HasIndex("TargetResourceId");
-
-                    b.ToTable("RoleAssignments", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.Models.ResourceParameterUsage", b =>
@@ -204,38 +175,10 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("ParameterDefinitions", (string)null);
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ResourceNamingTemplate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("InfraConfigId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ResourceType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Template")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InfraConfigId", "ResourceType")
-                        .IsUnique();
-
-                    b.ToTable("ResourceNamingTemplates", (string)null);
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("DefaultNamingTemplate")
-                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -472,21 +415,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("TargetResource");
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithMany("RoleAssignments")
-                        .HasForeignKey("SourceResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithMany()
-                        .HasForeignKey("TargetResourceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.Models.ResourceParameterUsage", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
@@ -524,17 +452,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasForeignKey("InfraConfigId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ResourceNamingTemplate", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", "InfraConfig")
-                        .WithMany("ResourceNamingTemplates")
-                        .HasForeignKey("InfraConfigId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("InfraConfig");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>
@@ -715,8 +632,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("Outputs");
 
                     b.Navigation("ParameterUsages");
-
-                    b.Navigation("RoleAssignments");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>
@@ -726,8 +641,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("ParameterDefinitions");
 
                     b.Navigation("ResourceGroups");
-
-                    b.Navigation("ResourceNamingTemplates");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup", b =>

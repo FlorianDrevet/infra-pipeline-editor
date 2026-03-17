@@ -5,6 +5,8 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
+using InfraFlowSculptor.Domain.StorageAccountAggregate;
+using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.UserAggregate;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +18,10 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<ResourceGroup> ResourceGroups { get; set; } = null!;
     public DbSet<KeyVault> KeyVaults { get; set; } = null!;
     public DbSet<RedisCache> RedisCaches { get; set; } = null!;
+    public DbSet<StorageAccount> StorageAccounts { get; set; } = null!;
+    public DbSet<BlobContainer> BlobContainers { get; set; } = null!;
+    public DbSet<StorageQueue> StorageQueues { get; set; } = null!;
+    public DbSet<StorageTable> StorageTables { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Member> Members { get; set; } = null!;
     public DbSet<ParameterDefinition> ParameterDefinitions { get; set; } = null!;

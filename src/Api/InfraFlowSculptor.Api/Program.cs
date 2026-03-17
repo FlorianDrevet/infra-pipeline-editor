@@ -70,6 +70,7 @@ app.UseKeyVaultControllerController();
 app.UseResourceGroupController();
 app.UseRedisCacheController();
 app.UseRoleAssignmentController();
+app.UseStorageAccountController();
 app.MapDefaultEndpoints();
 
 await app.RunAsync();
