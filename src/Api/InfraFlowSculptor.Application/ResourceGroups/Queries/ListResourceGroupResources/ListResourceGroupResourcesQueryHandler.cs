@@ -10,8 +10,7 @@ namespace InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroup
 
 public class ListResourceGroupResourcesQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser)
+    IInfraConfigAccessService accessService)
     : IRequestHandler<ListResourceGroupResourcesQuery, ErrorOr<List<AzureResourceResult>>>
 {
     public async Task<ErrorOr<List<AzureResourceResult>>> Handle(
@@ -21,8 +20,7 @@ public class ListResourceGroupResourcesQueryHandler(
         if (resourceGroup is null)
             return Errors.ResourceGroup.NotFound(query.Id);
 
-        var authResult = await InfraConfigAccessHelper.VerifyReadAccessAsync(
-            infraConfigRepository, currentUser, resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return Errors.ResourceGroup.NotFound(query.Id);
