@@ -2,6 +2,7 @@ using InfraFlowSculptor.Application.KeyVaults.Queries;
 using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.GetResourceGroup;
+using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupResources;
 using InfraFlowSculptor.Contracts.KeyVaults.Responses;
 using MediatR;
 using InfraFlowSculptor.Contracts.ResourceGroups.Requests;
@@ -39,6 +40,23 @@ public static class ResourceGroupController
                         );
                     })
                 .WithName("GetResourceGroup");
+
+            config.MapGet("/{id:guid}/resources",
+                    async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListResourceGroupResourcesQuery(new ResourceGroupId(id));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            resources =>
+                            {
+                                var response = resources.Select(r => mapper.Map<AzureResourceResponse>(r)).ToList();
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListResourceGroupResources");
 
             config.MapPost("",
                     async (CreateResourceGroupRequest request, IMediator mediator, IMapper mapper) =>
