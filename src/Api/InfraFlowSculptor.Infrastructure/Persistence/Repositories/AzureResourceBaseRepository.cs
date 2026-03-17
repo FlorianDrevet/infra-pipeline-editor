@@ -34,7 +34,6 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
 
     public async Task<AzureResource> UpdateAsync(AzureResource resource, CancellationToken cancellationToken = default)
     {
-        context.Entry(resource).State = EntityState.Modified;
         await context.SaveChangesAsync(cancellationToken);
         return resource;
     }
