@@ -1,7 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MediatR;
 
@@ -10,8 +9,7 @@ namespace InfraFlowSculptor.Application.KeyVaults.Commands.DeleteKeyVault;
 public class DeleteKeyVaultCommandHandler(
     IKeyVaultRepository keyVaultRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser)
+    IInfraConfigAccessService accessService)
     : IRequestHandler<DeleteKeyVaultCommand, ErrorOr<Deleted>>
 {
     public async Task<ErrorOr<Deleted>> Handle(DeleteKeyVaultCommand request, CancellationToken cancellationToken)
@@ -24,8 +22,7 @@ public class DeleteKeyVaultCommandHandler(
         if (resourceGroup is null)
             return Errors.KeyVault.NotFoundError(request.Id);
 
-        var authResult = await InfraConfigAccessHelper.VerifyWriteAccessAsync(
-            infraConfigRepository, currentUser, resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return authResult.Errors;

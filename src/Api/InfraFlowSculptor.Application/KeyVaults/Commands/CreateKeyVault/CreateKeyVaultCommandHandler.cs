@@ -1,6 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
@@ -13,8 +12,7 @@ namespace InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
 public class CreateKeyVaultCommandHandler(
     IKeyVaultRepository keyVaultRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser,
+    IInfraConfigAccessService accessService,
     IMapper mapper)
     : IRequestHandler<CreateKeyVaultCommand, ErrorOr<KeyVaultResult>>
 {
@@ -24,8 +22,7 @@ public class CreateKeyVaultCommandHandler(
         if (resourceGroup is null)
             return Errors.ResourceGroup.NotFound(request.ResourceGroupId);
 
-        var authResult = await InfraConfigAccessHelper.VerifyWriteAccessAsync(
-            infraConfigRepository, currentUser, resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return authResult.Errors;
