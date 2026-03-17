@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 
 namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 
@@ -17,7 +18,7 @@ public class AddEnvironmentRequest
     public string Suffix { get; init; } = string.Empty;
 
     /// <summary>Azure region where resources in this environment will be deployed (e.g. "westeurope").</summary>
-    [Required]
+    [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
     /// <summary>Azure Active Directory tenant ID associated with this environment.</summary>

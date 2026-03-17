@@ -148,7 +148,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         env.SubscriptionId = subscriptionId;
         env.Order = order;
         env.RequiresApproval = requiresApproval;
-        env.Tags = tags;
+        env.SetTags(tags);
         return env;
     }
 

@@ -20,8 +20,16 @@ public sealed class EnvironmentDefinition : Entity<EnvironmentDefinitionId>
     public required SubscriptionId SubscriptionId { get; set; }
     public Order Order { get; set; } // Ordre de déploiement (dev=1, staging=2, prod=3)
     public RequiresApproval RequiresApproval { get; set; } // Pour les pipelines
-    public IEnumerable<Tag> Tags { get; set; } // Tags Azure spécifiques
-    
+
+    private readonly List<Tag> _tags = new();
+    public IReadOnlyCollection<Tag> Tags => _tags; // Tags Azure spécifiques
+
+    public void SetTags(IEnumerable<Tag> tags)
+    {
+        _tags.Clear();
+        _tags.AddRange(tags);
+    }
+
     private readonly List<EnvironmentParameterValue> _parameterValues = new();
     public IReadOnlyCollection<EnvironmentParameterValue> ParameterValues => _parameterValues;
 
@@ -50,6 +58,6 @@ public sealed class EnvironmentDefinition : Entity<EnvironmentDefinitionId>
         SubscriptionId = subscriptionId;
         Order = order;
         RequiresApproval = requiresApproval;
-        Tags = tags;
+        _tags.AddRange(tags);
     }
 }
