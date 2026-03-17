@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using InfraFlowSculptor.Contracts.ValidationAttributes;
 
 namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 
@@ -14,10 +15,10 @@ public class UpdateEnvironmentRequest
     [Required]
     public required string Location { get; init; }
 
-    [Required]
+    [Required, GuidValidation]
     public required Guid TenantId { get; init; }
 
-    [Required]
+    [Required, GuidValidation]
     public required Guid SubscriptionId { get; init; }
 
     public int Order { get; init; } = 0;

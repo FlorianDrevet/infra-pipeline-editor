@@ -5,13 +5,24 @@ namespace InfraFlowSculptor.Contracts.ValidationAttributes;
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class GuidValidation : ValidationAttribute
 {
-    public override bool IsValid(object? value)
+    public GuidValidation()
     {
-        if (value is not Guid guid)
-        {
-            return false;
-        }
+        ErrorMessage = "The {0} field must be a valid non-empty GUID.";
+    }
 
-        return guid != Guid.Empty;
+    protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+    {
+        var isValid = value switch
+        {
+            null => true,
+            string stringValue when string.IsNullOrWhiteSpace(stringValue) => true,
+            string stringValue => Guid.TryParse(stringValue, out var parsedGuid) && parsedGuid != Guid.Empty,
+            Guid guid => guid != Guid.Empty,
+            _ => false
+        };
+
+        return isValid
+            ? ValidationResult.Success
+            : new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
     }
 }
