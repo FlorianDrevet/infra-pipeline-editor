@@ -13,5 +13,20 @@ public class UpdateEnvironmentCommandValidator : AbstractValidator<UpdateEnviron
         RuleFor(x => x.TenantId).NotEmpty();
         RuleFor(x => x.SubscriptionId).NotEmpty();
         RuleFor(x => x.Order).GreaterThanOrEqualTo(0);
+
+        RuleFor(x => x.Tags)
+            .NotNull();
+
+        RuleForEach(x => x.Tags)
+            .ChildRules(tag =>
+            {
+                tag.RuleFor(t => t.Name)
+                    .NotEmpty()
+                    .MaximumLength(100);
+
+                tag.RuleFor(t => t.Value)
+                    .NotEmpty()
+                    .MaximumLength(200);
+            });
     }
 }
