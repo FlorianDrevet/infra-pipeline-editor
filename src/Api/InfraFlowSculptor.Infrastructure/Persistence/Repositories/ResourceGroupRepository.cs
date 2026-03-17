@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Shared.Domain.Domain.Models;
 using Shared.Infrastructure.Persistence.Repositories;
@@ -27,5 +28,12 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
             .Where(r => r.InfraConfigId == infraConfigId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<ResourceGroup?> GetByIdWithResourcesAsync(ResourceGroupId id, CancellationToken ct = default)
+    {
+        return await Context.Set<ResourceGroup>()
+            .Include(r => r.Resources)
+            .FirstOrDefaultAsync(r => r.Id == id, ct);
     }
 }
