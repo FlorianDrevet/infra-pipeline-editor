@@ -474,6 +474,40 @@ Format : `type(scope): description courte du but principal`
 - Root app title initialized to `InfraFlowSculptor` in `src/Front/src/app/app.component.ts`
 - Front README rewritten to include stack, commands, environment config, and structure
 
+### 15.4 Entra ID (MSAL) authentication ([2026-03-17])
+
+#### Package
+- `@azure/msal-browser@^5` installed as npm dependency (no `@azure/msal-angular` needed — HTTP layer is Axios-based)
+- **⚠️ MSAL v5 breaking change:** `storeAuthStateInCookie` no longer exists in `CacheOptions` — remove it if upgrading from v2/v3
+
+#### New / modified files
+
+| File | Role |
+|------|------|
+| `src/app/shared/interfaces/environment.interface.ts` | Added `MsalConfigInterface` (`clientId`, `authority`, `redirectUri`) + `msalConfig` field on `EnvironmentInterface` |
+| `src/environments/environment.ts` | MSAL config for production (`redirectUri: '/'`) |
+| `src/environments/environment.development.ts` | MSAL config for dev (`redirectUri: 'http://localhost:4200'`) |
+| `src/app/shared/configs/msal.config.ts` | `msalConfig: Configuration` (reads from env) + `loginRequest: PopupRequest` with scopes `openid profile email` |
+| `src/app/shared/services/msal-auth.service.ts` | `MsalAuthService`: lazy-initializes `PublicClientApplication`, calls `initialize()` + `handleRedirectPromise()` once, exposes `loginPopup()`, `getActiveAccount()`, `logout()` |
+| `src/app/shared/services/authentication.service.ts` | Added `_msalAccount` signal, `setMsalAccount(account)`, `getMsalAccount` getter; updated `_isAdmin` to support both string `role` claim and array `roles` claim (Azure AD) |
+| `src/app/features/login/login.component.*` | **New login page**: split-panel (50/50), blue gradient left panel (logo + branding + feature list), white right panel ("Sign in with Microsoft" button + email/password fallback form); lazy-loaded |
+| `src/app/app-routing.ts` | Added `/login` route (lazy), wildcard `**` with `AuthenticationGuard` |
+| `src/app/app.component.ts` | Uses `toSignal` + `NavigationEnd` filter to compute `isLoginPage` signal |
+| `src/app/app.component.html` | Hides `<app-navigation>` and `<app-footer>` when `isLoginPage()` is true |
+
+#### Feature structure
+- Feature pages live under `src/Front/src/app/features/<feature-name>/`
+- The login component is the first entry in `features/`
+
+#### App Registration (Azure Portal) required settings
+
+For clientId `24c34231-a984-43b3-8ac3-9278ebd067ef`:
+1. **Authentication → Platform → Single-page application (SPA)**
+2. **Redirect URIs:** `http://localhost:4200` (dev) + production URL
+3. **Implicit grant → unchecked** (PKCE is used automatically for SPA)
+4. **API permissions:** Microsoft Graph → `openid`, `profile`, `email` (delegated)
+5. **Supported account types:** single-tenant (or multitenant as needed)
+
 ---
 
 ## 16. Changelog
@@ -493,3 +527,4 @@ Format : `type(scope): description courte du but principal`
 | 2026-03-17 | copilot | Explored and initialized Angular frontend template (`src/Front`): renamed package/project identifiers, set application title, updated frontend README, and documented frontend architecture/conventions in memory and `.github` agent instructions. |
 | 2026-03-17 | copilot | Fixed startup crash `42P07: relation "InfrastructureConfigs" already exists`: migration `20260317163342_StorageAccount` was generated from a corrupted/empty EF Core snapshot, causing it to recreate all tables from scratch. Fixed by replacing the `Up()`/`Down()` bodies with empty methods and regenerating `Designer.cs` from the correct `ProjectDbContextModelSnapshot.cs`. All tables already existed in the DB; only the snapshot was out of sync. **Pattern to watch:** if a new migration contains `CREATE TABLE` for tables that should already exist, the snapshot was corrupted — fix with empty `Up()`/`Down()` + regenerated `Designer.cs`. |
 | 2026-03-17 | copilot | Added Azure Storage Account Bicep generation: `StorageAccountTypeBicepGenerator` now uses all properties (`sku`, `kind`, `accessTier`, `allowBlobPublicAccess`, `supportsHttpsTrafficOnly`, `minimumTlsVersion`) from `resource.Properties`. Added `StorageAccount` case in `InfrastructureConfigReadRepository.MapResource()` with `MapStorageTlsVersion()` helper mapping Tls10/11/12 → TLS1_0/TLS1_1/TLS1_2. Azure Bicep property name is `supportsHttpsTrafficOnly` (not `enableHttpsTrafficOnly`). |
+| 2026-03-17 | copilot | Added Microsoft Entra ID (MSAL) authentication to Angular frontend: installed `@azure/msal-browser@^5`, created `MsalAuthService` + `msal.config.ts`, added `MsalConfigInterface` to `EnvironmentInterface`, created split-panel login page under `src/app/features/login/`, updated `AuthenticationService` to support Azure AD `roles[]` claim, added lazy `/login` route, hid nav/footer on login page. App registration `24c34231-a984-43b3-8ac3-9278ebd067ef` requires: SPA platform, redirect URIs `http://localhost:4200` + prod URL, Graph `openid`/`profile`/`email` permissions, implicit grant unchecked. |
