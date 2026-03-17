@@ -88,5 +88,6 @@ export class MsalAuthService {
     const account = await this.getActiveAccount();
     this.authService.logout();
     await this.msalInstance.logoutPopup({ account: account ?? undefined });
+    this.authService.logout();
   }
 }
