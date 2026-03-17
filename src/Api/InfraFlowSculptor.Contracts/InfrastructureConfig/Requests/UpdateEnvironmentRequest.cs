@@ -3,27 +3,37 @@ using InfraFlowSculptor.Contracts.ValidationAttributes;
 
 namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 
+/// <summary>Request body for updating an existing environment definition.</summary>
 public class UpdateEnvironmentRequest
 {
+    /// <summary>New display name for the environment.</summary>
     [Required]
     public required string Name { get; init; }
 
+    /// <summary>Short prefix prepended to generated resource names.</summary>
     public string Prefix { get; init; } = string.Empty;
 
+    /// <summary>Short suffix appended to generated resource names.</summary>
     public string Suffix { get; init; } = string.Empty;
 
+    /// <summary>Azure region where resources in this environment will be deployed.</summary>
     [Required]
     public required string Location { get; init; }
 
+    /// <summary>Azure Active Directory tenant ID associated with this environment.</summary>
     [Required, GuidValidation]
     public required Guid TenantId { get; init; }
 
+    /// <summary>Azure subscription ID where resources in this environment will be created.</summary>
     [Required, GuidValidation]
     public required Guid SubscriptionId { get; init; }
 
+    /// <summary>Deployment ordering index. Lower values are deployed first.</summary>
     public int Order { get; init; } = 0;
 
+    /// <summary>When true, deployments targeting this environment require explicit approval before proceeding.</summary>
     public bool RequiresApproval { get; init; } = false;
 
+    /// <summary>Full replacement list of Azure tags for this environment.</summary>
     public IReadOnlyList<TagRequest> Tags { get; init; } = [];
 }

@@ -16,6 +16,7 @@ using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Api.Errors;
 
@@ -30,7 +31,8 @@ public static class InfrastructureConfigController
             var config = endpoints.MapGroup("/infra-config")
                 .WithTags("Infrastructure Configuration");
 
-            // GET "" - list my configs
+            // ── Core CRUD ────────────────────────────────────────────────────
+
             config.MapGet("",
                     async (IMediator mediator, IMapper mapper) =>
                     {
@@ -46,9 +48,12 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListMyInfrastructureConfigs");
+                .WithName("ListMyInfrastructureConfigs")
+                .WithSummary("List my Infrastructure Configurations")
+                .WithDescription("Returns all Infrastructure Configurations the current user is a member of.")
+                .Produces<IReadOnlyList<InfrastructureConfigResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            // GET /{id:guid}
             config.MapGet("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
                     {
@@ -64,9 +69,13 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetInfrastructureConfiguration");
+                .WithName("GetInfrastructureConfiguration")
+                .WithSummary("Get an Infrastructure Configuration")
+                .WithDescription("Returns the full details of a single Infrastructure Configuration, including members, environments, and naming templates.")
+                .Produces<InfrastructureConfigResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            // POST ""
             config.MapPost("",
                     async (CreateInfrastructureConfigRequest request, IMediator mediator, IMapper mapper) =>
                     {
@@ -83,14 +92,14 @@ public static class InfrastructureConfigController
                         );
                     })
                 .WithName("CreateInfrastructureConfig")
-                .AddOpenApiOperationTransformer((operation, context, ct) =>
-                {
-                    operation.Summary = "Create a new Infrastructure Configuration";
-                    operation.Description = "Creates a new Infrastructure Configuration with the specified name.";
-                    return Task.CompletedTask;
-                });
+                .WithSummary("Create an Infrastructure Configuration")
+                .WithDescription("Creates a new Infrastructure Configuration. The current user is automatically added as Owner.")
+                .Produces<InfrastructureConfigResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            // POST /{id:guid}/members - add a member
+            // ── Members ───────────────────────────────────────────────────────
+
             config.MapPost("/{id:guid}/members",
                     async ([FromRoute] Guid id, AddMemberRequest request, IMediator mediator, IMapper mapper) =>
                     {
@@ -109,9 +118,14 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddMember");
+                .WithName("AddMember")
+                .WithSummary("Add a member")
+                .WithDescription("Adds a user to an Infrastructure Configuration with the specified role. Requires Owner or Contributor access.")
+                .Produces<InfrastructureConfigResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // PUT /{id:guid}/members/{userId:guid} - update member role
             config.MapPut("/{id:guid}/members/{userId:guid}",
                     async ([FromRoute] Guid id, [FromRoute] Guid userId, UpdateMemberRoleRequest request, IMediator mediator, IMapper mapper) =>
                     {
@@ -130,9 +144,14 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateMemberRole");
+                .WithName("UpdateMemberRole")
+                .WithSummary("Update a member's role")
+                .WithDescription("Changes the role assigned to a member of an Infrastructure Configuration. Requires Owner access.")
+                .Produces<InfrastructureConfigResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // DELETE /{id:guid}/members/{userId:guid} - remove member
             config.MapDelete("/{id:guid}/members/{userId:guid}",
                     async ([FromRoute] Guid id, [FromRoute] Guid userId, IMediator mediator) =>
                     {
@@ -146,11 +165,15 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveMember");
+                .WithName("RemoveMember")
+                .WithSummary("Remove a member")
+                .WithDescription("Removes a user from an Infrastructure Configuration. Requires Owner access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Environments ────────────────────────────────────────────────
+            // ── Environments ─────────────────────────────────────────────────
 
-            // POST /{id:guid}/environments - add an environment
             config.MapPost("/{id:guid}/environments",
                     async ([FromRoute] Guid id, AddEnvironmentRequest request, IMediator mediator, IMapper mapper) =>
                     {
@@ -177,9 +200,14 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddEnvironment");
+                .WithName("AddEnvironment")
+                .WithSummary("Add an environment definition")
+                .WithDescription("Adds a new target environment (e.g. Dev, Staging, Production) to an Infrastructure Configuration. Requires Owner or Contributor access.")
+                .Produces<EnvironmentDefinitionResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // PUT /{id:guid}/environments/{envId:guid} - update an environment
             config.MapPut("/{id:guid}/environments/{envId:guid}",
                     async ([FromRoute] Guid id, [FromRoute] Guid envId, UpdateEnvironmentRequest request, IMediator mediator, IMapper mapper) =>
                     {
@@ -203,9 +231,14 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateEnvironment");
+                .WithName("UpdateEnvironment")
+                .WithSummary("Update an environment definition")
+                .WithDescription("Updates all fields of an existing environment definition. All fields are replaced — partial updates are not supported. Requires Owner or Contributor access.")
+                .Produces<EnvironmentDefinitionResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // DELETE /{id:guid}/environments/{envId:guid} - remove an environment
             config.MapDelete("/{id:guid}/environments/{envId:guid}",
                     async ([FromRoute] Guid id, [FromRoute] Guid envId, IMediator mediator) =>
                     {
@@ -220,11 +253,15 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveEnvironment");
+                .WithName("RemoveEnvironment")
+                .WithSummary("Remove an environment definition")
+                .WithDescription("Permanently removes an environment definition from an Infrastructure Configuration. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Naming Conventions ───────────────────────────────────────────
+            // ── Naming Conventions ────────────────────────────────────────────
 
-            // PUT /{id:guid}/naming/default - set (or clear) the default naming template
             config.MapPut("/{id:guid}/naming/default",
                     async ([FromRoute] Guid id, SetDefaultNamingTemplateRequest request, IMediator mediator) =>
                     {
@@ -239,9 +276,17 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetDefaultNamingTemplate");
+                .WithName("SetDefaultNamingTemplate")
+                .WithSummary("Set the default naming template")
+                .WithDescription(
+                    "Sets or clears the default naming template for all resource types that do not have a specific override. " +
+                    "Template supports placeholders: {name}, {prefix}, {suffix}, {env}, {resourceType}, {location}. " +
+                    "Send null or omit the field to clear the template. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // PUT /{id:guid}/naming/resources/{resourceType} - set per-resource-type template
             config.MapPut("/{id:guid}/naming/resources/{resourceType}",
                     async ([FromRoute] Guid id, [FromRoute] string resourceType, SetResourceNamingTemplateRequest request, IMediator mediator, IMapper mapper) =>
                     {
@@ -257,9 +302,18 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("SetResourceNamingTemplate");
+                .WithName("SetResourceNamingTemplate")
+                .WithSummary("Set a per-resource-type naming template")
+                .WithDescription(
+                    "Creates or replaces the naming template for a specific Azure resource type (e.g. 'KeyVault', 'StorageAccount'). " +
+                    "This override takes precedence over the default naming template. " +
+                    "Template supports placeholders: {name}, {prefix}, {suffix}, {env}, {resourceType}, {location}. " +
+                    "Requires Owner or Contributor access.")
+                .Produces<ResourceNamingTemplateResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // DELETE /{id:guid}/naming/resources/{resourceType} - remove per-resource-type template
             config.MapDelete("/{id:guid}/naming/resources/{resourceType}",
                     async ([FromRoute] Guid id, [FromRoute] string resourceType, IMediator mediator) =>
                     {
@@ -274,7 +328,12 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveResourceNamingTemplate");
+                .WithName("RemoveResourceNamingTemplate")
+                .WithSummary("Remove a per-resource-type naming template")
+                .WithDescription("Removes the naming template override for a specific Azure resource type. The default naming template will be used instead. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
 }

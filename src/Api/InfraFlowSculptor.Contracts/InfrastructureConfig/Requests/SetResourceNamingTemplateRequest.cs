@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 
+/// <summary>Request body for setting or replacing the naming template for a specific Azure resource type.</summary>
 public class SetResourceNamingTemplateRequest
 {
     /// <summary>
