@@ -1,6 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using Microsoft.EntityFrameworkCore;
 using Shared.Domain.Domain.Models;
