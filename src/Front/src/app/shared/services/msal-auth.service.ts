@@ -31,7 +31,7 @@ export class MsalAuthService {
           }
 
           // Restore account from MSAL cache so auth survives page refresh
-          const accounts = this.msalInstance.getAllAccounts();
+    this.authService.setAuthToken(result.accessToken);
           if (accounts.length > 0) {
             this.authService.setMsalAccount(accounts[0]);
           }
