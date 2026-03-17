@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InfraFlowSculptor.Infrastructure.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    partial class ProjectDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260316162738_AddEnvironmentsAndNamingConventions")]
+    partial class AddEnvironmentsAndNamingConventions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,34 +68,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("AzureResource", (string)null);
 
                     b.UseTptMappingStrategy();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ManagedIdentityType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("RoleDefinitionId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("SourceResourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("TargetResourceId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SourceResourceId");
-
-                    b.HasIndex("TargetResourceId");
-
-                    b.ToTable("RoleAssignments", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.InputOutputLink", b =>
@@ -567,21 +542,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithMany("RoleAssignments")
-                        .HasForeignKey("SourceResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithMany()
-                        .HasForeignKey("TargetResourceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", b =>
                 {
                     b.Navigation("Inputs");
@@ -589,8 +549,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("Outputs");
 
                     b.Navigation("ParameterUsages");
-
-                    b.Navigation("RoleAssignments");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>

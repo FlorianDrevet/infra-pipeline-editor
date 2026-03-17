@@ -18,7 +18,7 @@ public class GetInfrastructureConfigQueryHandler(
         GetInfrastructureConfigQuery command, CancellationToken cancellationToken)
     {
         var userId = await currentUser.GetUserIdAsync(cancellationToken);
-        var infraConfig = await infrastructureConfigRepository.GetByIdWithMembersAsync(command.Id, cancellationToken);
+        var infraConfig = await infrastructureConfigRepository.GetByIdWithEnvironmentsAsync(command.Id, cancellationToken);
 
         if (infraConfig is null)
             return Errors.InfrastructureConfig.NotFoundError(command.Id);

@@ -64,6 +64,8 @@ app.UseAuthorization();
 
 //Controllers
 app.UseInfrastructureConfigController();
+app.UseEnvironmentDefinitionController();
+app.UseNamingTemplateController();
 app.UseKeyVaultControllerController();
 app.UseResourceGroupController();
 app.UseRedisCacheController();

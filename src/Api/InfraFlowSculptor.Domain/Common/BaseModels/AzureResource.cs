@@ -17,6 +17,12 @@ public class AzureResource : AggregateRoot<AzureResourceId>
 
     public required Name Name { get; set; }
     public required Location Location { get; set; }
+
+    /// <summary>
+    /// When set, overrides any naming template and uses this value as the resolved resource name.
+    /// Set this at resource creation time when the user explicitly provides a full name.
+    /// </summary>
+    public string? CustomNameOverride { get; set; }
     
     private readonly List<AzureResource> _dependsOn = new List<AzureResource>();
     public IReadOnlyList<AzureResource> DependsOn => _dependsOn.AsReadOnly();
