@@ -6,6 +6,8 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.StorageAccountAggregate;
+using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using InfraFlowSculptorDbContext = InfraFlowSculptor.Infrastructure.Persistence.ProjectDbContext;
 
@@ -88,6 +90,20 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                     ["enableNonSslPort"] = rc.EnableNonSslPort.ToString().ToLower(),
                     ["minimumTlsVersion"] = MapTlsVersion(rc.MinimumTlsVersion),
                 }),
+            StorageAccount sa => new AzureResourceReadModel(
+                sa.Id.Value,
+                sa.Name.Value,
+                MapLocation(sa.Location),
+                "Microsoft.Storage/storageAccounts",
+                new Dictionary<string, string>
+                {
+                    ["sku"] = sa.Sku.Value.ToString(),
+                    ["kind"] = sa.Kind.Value.ToString(),
+                    ["accessTier"] = sa.AccessTier.Value.ToString(),
+                    ["allowBlobPublicAccess"] = sa.AllowBlobPublicAccess.ToString().ToLower(),
+                    ["supportsHttpsTrafficOnly"] = sa.EnableHttpsTrafficOnly.ToString().ToLower(),
+                    ["minimumTlsVersion"] = MapStorageTlsVersion(sa.MinimumTlsVersion),
+                }),
             _ => null
         };
     }
@@ -99,6 +115,18 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
             TlsVersion.Version.Tls10 => "1.0",
             TlsVersion.Version.Tls11 => "1.1",
             TlsVersion.Version.Tls12 => "1.2",
+            _ => throw new ArgumentOutOfRangeException(nameof(tlsVersion),
+                $"Unsupported TLS version: {tlsVersion.Value}")
+        };
+    }
+
+    private static string MapStorageTlsVersion(StorageAccountTlsVersion tlsVersion)
+    {
+        return tlsVersion.Value switch
+        {
+            StorageAccountTlsVersion.Version.Tls10 => "TLS1_0",
+            StorageAccountTlsVersion.Version.Tls11 => "TLS1_1",
+            StorageAccountTlsVersion.Version.Tls12 => "TLS1_2",
             _ => throw new ArgumentOutOfRangeException(nameof(tlsVersion),
                 $"Unsupported TLS version: {tlsVersion.Value}")
         };
