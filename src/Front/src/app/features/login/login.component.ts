@@ -20,11 +20,10 @@ export class LoginComponent {
     this.isMsalLoading.set(true);
     this.errorMessage.set('');
     try {
-      await this.msalAuthService.loginPopup();
-      await this.router.navigate(['/']);
+      await this.msalAuthService.loginRedirect(`${window.location.origin}/`);
     } catch {
       this.errorMessage.set('Microsoft authentication failed. Please try again.');
-    } finally {
+      await this.router.navigate(['/login']);
       this.isMsalLoading.set(false);
     }
   }

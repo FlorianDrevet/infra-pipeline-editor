@@ -1,4 +1,4 @@
-import { BrowserCacheLocation, Configuration, PopupRequest } from '@azure/msal-browser';
+import { BrowserCacheLocation, Configuration } from '@azure/msal-browser';
 import { environment } from '../../../environments/environment';
 
 export const msalConfig: Configuration = {
@@ -12,6 +12,6 @@ export const msalConfig: Configuration = {
   },
 };
 
-export const loginRequest: PopupRequest = {
+export const loginRequest = {
   scopes: ['openid', 'profile', 'email'],
 };

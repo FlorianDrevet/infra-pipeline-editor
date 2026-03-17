@@ -3,6 +3,7 @@ import {
   AccountInfo,
   AuthenticationResult,
   PublicClientApplication,
+  RedirectRequest,
   SilentRequest,
 } from '@azure/msal-browser';
 import { msalConfig, loginRequest } from '../configs/msal.config';
@@ -23,7 +24,12 @@ export class MsalAuthService {
       this.initPromise = this.msalInstance
         .initialize()
         .then(() => this.msalInstance.handleRedirectPromise())
-        .then(() => {
+        .then((redirectResult) => {
+          if (redirectResult?.account) {
+            this.authService.setMsalAccount(redirectResult.account);
+            return;
+          }
+
           // Restore account from MSAL cache so auth survives page refresh
           const accounts = this.msalInstance.getAllAccounts();
           if (accounts.length > 0) {
@@ -44,6 +50,15 @@ export class MsalAuthService {
     const result = await this.msalInstance.loginPopup(loginRequest);
     this.authService.setMsalAccount(result.account);
     return result;
+  }
+
+  public async loginRedirect(redirectStartPage?: string): Promise<void> {
+    await this.initialize();
+    const request: RedirectRequest = {
+      ...loginRequest,
+      ...(redirectStartPage ? { redirectStartPage } : {}),
+    };
+    await this.msalInstance.loginRedirect(request);
   }
 
   public async getActiveAccount(): Promise<AccountInfo | null> {
