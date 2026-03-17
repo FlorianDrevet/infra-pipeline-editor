@@ -5,9 +5,11 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveMember;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateMemberRole;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
+using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupsByConfig;
 using MediatR;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
+using InfraFlowSculptor.Contracts.ResourceGroups.Responses;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -59,6 +61,26 @@ public static class InfrastructureConfigController
                         );
                     })
                 .WithName("GetInfrastructureConfiguration");
+
+            // GET /{id:guid}/resource-groups
+            config.MapGet("/{id:guid}/resource-groups",
+                    async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListResourceGroupsByConfigQuery(new InfrastructureConfigId(id));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            resourceGroups =>
+                            {
+                                var responses = resourceGroups
+                                    .Select(rg => mapper.Map<ResourceGroupResponse>(rg))
+                                    .ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListResourceGroupsByConfig");
 
             // POST ""
             config.MapPost("",
