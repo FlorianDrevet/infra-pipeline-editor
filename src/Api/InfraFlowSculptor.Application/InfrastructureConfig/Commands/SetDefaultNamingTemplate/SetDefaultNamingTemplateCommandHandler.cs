@@ -22,9 +22,7 @@ public class SetDefaultNamingTemplateCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        var infraConfig = await repository.GetByIdAsync(command.InfraConfigId, cancellationToken);
-        if (infraConfig is null)
-            return Errors.InfrastructureConfig.NotFoundError(command.InfraConfigId);
+        var infraConfig = authResult.Value;
 
         var template = command.Template is not null
             ? new NamingTemplate(command.Template)
