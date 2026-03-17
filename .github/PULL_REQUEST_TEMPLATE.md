@@ -60,6 +60,13 @@
 
 - 
 
+### Frontend (`src/Front`)
+<!-- Components, routes, services Axios, facades, guards, environnements, theming -->
+<!-- Ex : - Alignement des interfaces frontend avec les contrats backend -->
+<!-- Supprimer la section si non concernée -->
+
+- 
+
 ### BicepGenerators (`BicepGenerator.*`)
 <!-- Générateurs, stratégies Bicep, blob storage ajoutés ou modifiés -->
 <!-- Supprimer la section si non concernée -->

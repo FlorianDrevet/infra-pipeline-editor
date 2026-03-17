@@ -1,48 +1,46 @@
-# Template Angular Project
+# Frontend - InfraFlowSculptor
 
-Init with :
+Frontend Angular 19 base pour piloter l'API CQRS du projet.
 
-- Angular 19 (standalone components, zoneless change detection)
-- Tailwind CSS 3
+## Stack
+
+- Angular 19 (standalone + zoneless change detection)
 - Angular Material 19
+- Tailwind CSS 3
+- Axios + JWT (`@auth0/angular-jwt`) + cookies
 
-# Tailwind
+## Commandes
 
-Possible to add font, add in tailwind.config.js :
-```
-theme: {
-    fontFamily: {
-      'wedding': ["Wedding"],
-      "windsong": ["WindSong"],
-      "librebaskerville": ["LibreBaskerville"],
-    },
-    extend: {},
-  },
+```bash
+npm install
+npm run start
+npm run build
+npm run build:dev
+npm run typecheck
 ```
 
-# Material Angular
+## Configuration API
 
-## Theme
-A custom theme is created in styles.scss: https://material.angular.io/guide/theming#defining-a-theme
+- Environnement dev: `src/environments/environment.development.ts`
+- Environnement prod: `src/environments/environment.ts`
+- URL API utilisée par Axios: `environment.api_url`
 
+Par defaut, l'URL est `http://localhost:8080`.
 
-# TODO when starting app
+## Structure
 
-It is possible to navigate between the different TODO thanks to the IDE. This is the list of the different changes to do at the init:
+- `src/app/core`: layouts globaux (navigation, footer)
+- `src/app/shared`: briques transverses (services, facades, guards, enums, interfaces)
+- `src/environments`: configuration runtime par environnement
+- `src/scss`: variables et theming global
 
-# Name Application
+## Theming
 
-It is important to go in package.json and change the name of the application. 
+- Theme Material defini dans `src/styles.scss`
+- Tailwind configure dans `tailwind.config.js`
 
-## Title 
+## Azure Storage Emulator (optionnel)
 
-Change in index.html the title of the website
-Change in app.component.ts the title of the website
-
-# Icon Website
-
-Add in public/ folder the icon of the app. Change in index.html the path to the icon
-
-# Azurite command
-
+```bash
 azurite --silent --location c:\azurite --debug c:\azurite\debug.log
+```

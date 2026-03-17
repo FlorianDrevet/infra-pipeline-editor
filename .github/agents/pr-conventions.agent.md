@@ -75,6 +75,7 @@ Utiliser le **template `.github/PULL_REQUEST_TEMPLATE.md`** fourni dans ce dép�
    - Infrastructure : configurations EF Core, repositories, migrations
    - Contrats : requests, responses
    - API : endpoints, mappings Mapster
+   - Frontend : components/routes/services/facades/guards/environments dans `src/Front`
 4. **Migration EF Core** — indiquer si une migration a été ajoutée et son nom
 5. **Checklist** — valider chaque point avant de soumettre
 

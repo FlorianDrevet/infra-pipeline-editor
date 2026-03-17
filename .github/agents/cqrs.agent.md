@@ -17,7 +17,9 @@ et toute la configuration de Mapster se trouve dans src/Api/InfraFlowSculptor.Ap
 Tu partiras soit d'un model d'entity que tu devras créer dans la couche domain, avec les repositories associés et la configuration EF Core,
 soit d'une entité déjà existante dans la couche domain pour laquelle tu devras uniquement créer les commandes/queries, endpoint, requests/reponses, les services et les handlers associés.
 
-Il doit également générer les configurations EF Core associées dans le dossier src/Api/InfraFlowSculptor.Api/Persistence/Configurations.
+Il doit également générer les configurations EF Core associées dans le dossier src/Api/InfraFlowSculptor.Infrastructure/Persistence/Configurations.
+
+Si un contrat backend est modifié, il doit vérifier l'impact frontend dans src/Front (interfaces/services/facades) et proposer la mise à jour associée.
 
 ---
 

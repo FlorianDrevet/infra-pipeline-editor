@@ -11,5 +11,5 @@ import { NavigationComponent } from './core/layouts/navigation/navigation.compon
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
-  title = 'Template Angular'; //TODO Change title
+  title = 'InfraFlowSculptor';
 }

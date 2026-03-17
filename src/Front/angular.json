@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "template_angular": {
+    "infra_flow_sculptor_front": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -24,7 +24,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/template_angular",
+            "outputPath": "dist/infra-flow-sculptor-front",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -76,10 +76,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "template_angular:build:production"
+              "buildTarget": "infra_flow_sculptor_front:build:production"
             },
             "development": {
-              "buildTarget": "template_angular:build:development"
+              "buildTarget": "infra_flow_sculptor_front:build:development"
             }
           },
           "defaultConfiguration": "development"
