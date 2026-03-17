@@ -7,6 +7,7 @@ using InfraFlowSculptor.Contracts.RedisCaches.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Api.Errors;
 
@@ -36,7 +37,12 @@ public static class RedisCacheController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetRedisCache");
+                .WithName("GetRedisCache")
+                .WithSummary("Get a Redis Cache")
+                .WithDescription("Returns the full details of a single Azure Redis Cache resource.")
+                .Produces<RedisCacheResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapPost("",
                     async (CreateRedisCacheRequest request, IMediator mediator, IMapper mapper) =>
@@ -57,7 +63,13 @@ public static class RedisCacheController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateRedisCache");
+                .WithName("CreateRedisCache")
+                .WithSummary("Create a Redis Cache")
+                .WithDescription("Creates a new Azure Redis Cache resource inside the specified Resource Group. Requires Owner or Contributor access.")
+                .Produces<RedisCacheResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapPut("/{id:guid}",
                     async ([FromRoute] Guid id, UpdateRedisCacheRequest request, IMediator mediator, IMapper mapper) =>
@@ -74,7 +86,13 @@ public static class RedisCacheController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateRedisCache");
+                .WithName("UpdateRedisCache")
+                .WithSummary("Update a Redis Cache")
+                .WithDescription("Replaces all mutable properties of an existing Redis Cache. Requires Owner or Contributor access.")
+                .Produces<RedisCacheResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapDelete("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator) =>
@@ -87,7 +105,12 @@ public static class RedisCacheController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteRedisCache");
+                .WithName("DeleteRedisCache")
+                .WithSummary("Delete a Redis Cache")
+                .WithDescription("Permanently deletes an Azure Redis Cache resource. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
 }
