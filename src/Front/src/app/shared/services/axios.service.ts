@@ -35,7 +35,9 @@ export class AxiosService {
       },
       function (error) {
         if (error.response && error.response.status === 401) {
-          msalAuth.logout().catch(() => undefined);
+          // Redirect to login page instead of triggering a popup-based logout,
+          // which may be blocked when initiated from a network callback.
+          window.location.href = '/login';
         }
         return Promise.reject(error);
       }
