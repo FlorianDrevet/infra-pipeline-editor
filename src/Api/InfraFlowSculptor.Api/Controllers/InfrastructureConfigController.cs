@@ -89,7 +89,12 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListResourceGroupsByConfig");
+                .WithName("ListResourceGroupsByConfig")
+                .WithSummary("List resource groups for a configuration")
+                .WithDescription("Returns all Resource Groups that belong to the specified Infrastructure Configuration.")
+                .Produces<IReadOnlyList<ResourceGroupResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // POST ""
             config.MapPost("",

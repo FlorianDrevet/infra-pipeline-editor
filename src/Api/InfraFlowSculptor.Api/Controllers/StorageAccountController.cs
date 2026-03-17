@@ -14,6 +14,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Api.Errors;
 
@@ -43,7 +44,12 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetStorageAccount");
+                .WithName("GetStorageAccount")
+                .WithSummary("Get a Storage Account")
+                .WithDescription("Returns the full details of a single Azure Storage Account, including its Blob Containers, Queues, and Tables.")
+                .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapPost("",
                     async (CreateStorageAccountRequest request, IMediator mediator, IMapper mapper) =>
@@ -64,7 +70,13 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateStorageAccount");
+                .WithName("CreateStorageAccount")
+                .WithSummary("Create a Storage Account")
+                .WithDescription("Creates a new Azure Storage Account resource inside the specified Resource Group. Requires Owner or Contributor access.")
+                .Produces<StorageAccountResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapPut("/{id:guid}",
                     async ([FromRoute] Guid id, UpdateStorageAccountRequest request, IMediator mediator, IMapper mapper) =>
@@ -81,7 +93,13 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("UpdateStorageAccount");
+                .WithName("UpdateStorageAccount")
+                .WithSummary("Update a Storage Account")
+                .WithDescription("Replaces all mutable properties of an existing Storage Account. Requires Owner or Contributor access.")
+                .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapDelete("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator) =>
@@ -94,7 +112,12 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("DeleteStorageAccount");
+                .WithName("DeleteStorageAccount")
+                .WithSummary("Delete a Storage Account")
+                .WithDescription("Permanently deletes an Azure Storage Account resource and all its sub-resources (Blob Containers, Queues, Tables). Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // Blob Containers
             storageAccounts.MapPost("/{id:guid}/blob-containers",
@@ -115,7 +138,13 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddBlobContainer");
+                .WithName("AddBlobContainer")
+                .WithSummary("Add a Blob Container")
+                .WithDescription("Adds a new Blob Container to the specified Storage Account. Returns the updated Storage Account. Requires Owner or Contributor access.")
+                .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapDelete("/{id:guid}/blob-containers/{containerId:guid}",
                     async ([FromRoute] Guid id, [FromRoute] Guid containerId, IMediator mediator) =>
@@ -130,7 +159,12 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveBlobContainer");
+                .WithName("RemoveBlobContainer")
+                .WithSummary("Remove a Blob Container")
+                .WithDescription("Removes a Blob Container from the specified Storage Account. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // Queues
             storageAccounts.MapPost("/{id:guid}/queues",
@@ -148,7 +182,13 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddQueue");
+                .WithName("AddQueue")
+                .WithSummary("Add a Storage Queue")
+                .WithDescription("Adds a new Storage Queue to the specified Storage Account. Returns the updated Storage Account. Requires Owner or Contributor access.")
+                .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapDelete("/{id:guid}/queues/{queueId:guid}",
                     async ([FromRoute] Guid id, [FromRoute] Guid queueId, IMediator mediator) =>
@@ -163,7 +203,12 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveQueue");
+                .WithName("RemoveQueue")
+                .WithSummary("Remove a Storage Queue")
+                .WithDescription("Removes a Storage Queue from the specified Storage Account. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // Tables
             storageAccounts.MapPost("/{id:guid}/tables",
@@ -181,7 +226,13 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("AddTable");
+                .WithName("AddTable")
+                .WithSummary("Add a Storage Table")
+                .WithDescription("Adds a new Storage Table to the specified Storage Account. Returns the updated Storage Account. Requires Owner or Contributor access.")
+                .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapDelete("/{id:guid}/tables/{tableId:guid}",
                     async ([FromRoute] Guid id, [FromRoute] Guid tableId, IMediator mediator) =>
@@ -196,7 +247,12 @@ public static class StorageAccountController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveTable");
+                .WithName("RemoveTable")
+                .WithSummary("Remove a Storage Table")
+                .WithDescription("Removes a Storage Table from the specified Storage Account. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
 }

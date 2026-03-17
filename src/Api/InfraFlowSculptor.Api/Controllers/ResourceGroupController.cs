@@ -10,6 +10,7 @@ using InfraFlowSculptor.Contracts.ResourceGroups.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Api.Errors;
 
@@ -39,7 +40,12 @@ public static class ResourceGroupController
                             errors => errors.Result()
                         );
                     })
-                .WithName("GetResourceGroup");
+                .WithName("GetResourceGroup")
+                .WithSummary("Get a Resource Group")
+                .WithDescription("Returns the full details of a single Resource Group, including its Azure region.")
+                .Produces<ResourceGroupResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapGet("/{id:guid}/resources",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
@@ -56,7 +62,12 @@ public static class ResourceGroupController
                             errors => errors.Result()
                         );
                     })
-                .WithName("ListResourceGroupResources");
+                .WithName("ListResourceGroupResources")
+                .WithSummary("List resources in a Resource Group")
+                .WithDescription("Returns a lightweight list of all Azure resources (Key Vaults, Storage Accounts, Redis Caches, etc.) that belong to the specified Resource Group.")
+                .Produces<IReadOnlyList<AzureResourceResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapPost("",
                     async (CreateResourceGroupRequest request, IMediator mediator, IMapper mapper) =>
@@ -77,7 +88,13 @@ public static class ResourceGroupController
                             errors => errors.Result()
                         );
                     })
-                .WithName("CreateResourceGroup");
+                .WithName("CreateResourceGroup")
+                .WithSummary("Create a Resource Group")
+                .WithDescription("Creates a new Azure Resource Group inside an existing Infrastructure Configuration. Requires Owner or Contributor access.")
+                .Produces<ResourceGroupResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
 }

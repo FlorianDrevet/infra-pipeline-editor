@@ -5,11 +5,17 @@ using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Contracts.RedisCaches.Requests;
 
+/// <summary>Request body for creating a new Redis Cache resource inside a Resource Group.</summary>
 public class CreateRedisCacheRequest : RedisCacheRequestBase, IValidatableObject
 {
+    /// <summary>Unique identifier of the Resource Group that will own this Redis Cache.</summary>
     [Required, GuidValidation]
     public required Guid ResourceGroupId { get; init; }
 
+    /// <summary>
+    /// Cache size (capacity tier). For <c>Basic</c>/<c>Standard</c> SKUs, accepted values are 0–6 (C0–C6).
+    /// For <c>Premium</c> SKU, accepted values are 1–4 (P1–P4).
+    /// </summary>
     [Required, Range(0, 6)]
     // Basic/Standard supports C0-C6 (0-6); Premium supports P1-P4 (1-4). Cross-SKU validation is enforced via object-level validation.
     public required int Capacity { get; init; }
