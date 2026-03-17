@@ -26,6 +26,7 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
     {
         return await Context.Set<ResourceGroup>()
             .Where(r => r.InfraConfigId == infraConfigId)
+            .AsNoTracking()
             .ToListAsync(cancellationToken);
     }
 }
