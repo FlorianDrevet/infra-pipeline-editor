@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 
 namespace Shared.Api.Errors;
@@ -12,13 +11,9 @@ public static class ErrorHandling
             => exceptionHandlerApp.Run(async context
                     =>
                 {
-                    var (statusCode, message) = context.Features.Get<IExceptionHandlerFeature>()?.Error switch
-                    {
-                        _ => (StatusCodes.Status500InternalServerError, "An error occurred.")
-                    };
                     await Results.Problem(
-                            statusCode: statusCode,
-                            detail: message
+                            statusCode: StatusCodes.Status500InternalServerError,
+                            detail: "An error occurred."
                         )
                         .ExecuteAsync(context);
                 }

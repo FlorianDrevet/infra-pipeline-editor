@@ -14,6 +14,7 @@ public static class ErrorOrExtended
             ErrorType.Unauthorized => StatusCodes.Status401Unauthorized,
             ErrorType.NotFound => StatusCodes.Status404NotFound,
             ErrorType.Validation => StatusCodes.Status400BadRequest,
+            ErrorType.Forbidden  => StatusCodes.Status403Forbidden,
             _ => StatusCodes.Status500InternalServerError
         };
     }

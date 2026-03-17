@@ -1,7 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
@@ -12,8 +11,7 @@ namespace InfraFlowSculptor.Application.KeyVaults.Queries;
 public class GetKeyVaultQueryHandler(
     IKeyVaultRepository keyVaultRepository,
     IResourceGroupRepository resourceGroupRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
-    ICurrentUser currentUser,
+    IInfraConfigAccessService accessService,
     IMapper mapper)
     : IRequestHandler<GetKeyVaultQuery, ErrorOr<KeyVaultResult>>
 {
@@ -27,8 +25,7 @@ public class GetKeyVaultQueryHandler(
         if (resourceGroup is null)
             return Errors.KeyVault.NotFoundError(query.Id);
 
-        var authResult = await InfraConfigAccessHelper.VerifyReadAccessAsync(
-            infraConfigRepository, currentUser, resourceGroup.InfraConfigId, cancellationToken);
+        var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
             return Errors.KeyVault.NotFoundError(query.Id);
