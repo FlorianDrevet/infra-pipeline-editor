@@ -12,6 +12,8 @@ export const msalConfig: Configuration = {
   },
 };
 
+const apiScopes: string[] = environment.msalConfig?.apiScopes ?? [];
+
 export const loginRequest = {
-  scopes: ['openid', 'profile', 'email'],
+  scopes: ['openid', 'profile', 'email', ...apiScopes],
 };
