@@ -3,6 +3,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Shared.Domain.Domain.Models;
 
@@ -32,6 +33,18 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
             .Include(s => s.Queues)
             .Include(s => s.Tables)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+    }
+
+    public async Task<List<StorageAccount>> GetByResourceGroupIdAsync(ResourceGroupId resourceGroupId, CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<StorageAccount>()
+            .Include(s => s.DependsOn)
+            .Include(s => s.BlobContainers)
+            .Include(s => s.Queues)
+            .Include(s => s.Tables)
+            .Where(s => s.ResourceGroupId == resourceGroupId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<BlobContainer> AddBlobContainerAsync(BlobContainer container)
