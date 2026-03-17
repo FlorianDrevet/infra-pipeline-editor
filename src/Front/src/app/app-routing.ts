@@ -8,8 +8,8 @@ export const routes: Routes = [
       import('./features/login/login.component').then((m) => m.LoginComponent),
   },
   {
-    path: '**',
+    path: '',
     canActivate: [AuthenticationGuard],
-    redirectTo: '',
+    children: [],
   },
 ];

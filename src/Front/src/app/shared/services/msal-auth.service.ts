@@ -3,6 +3,7 @@ import {
   AccountInfo,
   AuthenticationResult,
   PublicClientApplication,
+  SilentRequest,
 } from '@azure/msal-browser';
 import { msalConfig, loginRequest } from '../configs/msal.config';
 import { AuthenticationService } from './authentication.service';
@@ -22,7 +23,18 @@ export class MsalAuthService {
       this.initPromise = this.msalInstance
         .initialize()
         .then(() => this.msalInstance.handleRedirectPromise())
-        .then(() => undefined);
+        .then(() => {
+          // Restore account from MSAL cache so auth survives page refresh
+          const accounts = this.msalInstance.getAllAccounts();
+          if (accounts.length > 0) {
+            this.authService.setMsalAccount(accounts[0]);
+          }
+        })
+        .catch((err) => {
+          // Reset so the next call can retry
+          this.initPromise = null;
+          throw err;
+        });
     }
     return this.initPromise;
   }
@@ -31,7 +43,6 @@ export class MsalAuthService {
     await this.initialize();
     const result = await this.msalInstance.loginPopup(loginRequest);
     this.authService.setMsalAccount(result.account);
-    this.authService.setAuthToken(result.idToken);
     return result;
   }
 
@@ -41,9 +52,26 @@ export class MsalAuthService {
     return accounts.length > 0 ? accounts[0] : null;
   }
 
+  public async getAccessToken(): Promise<string | null> {
+    await this.initialize();
+    const account = await this.getActiveAccount();
+    if (!account) {
+      return null;
+    }
+    try {
+      const request: SilentRequest = { ...loginRequest, account };
+      const result = await this.msalInstance.acquireTokenSilent(request);
+      return result.accessToken || result.idToken;
+    } catch (err) {
+      console.warn('MsalAuthService: silent token acquisition failed', err);
+      return null;
+    }
+  }
+
   public async logout(): Promise<void> {
     await this.initialize();
     const account = await this.getActiveAccount();
+    this.authService.logout();
     await this.msalInstance.logoutPopup({ account: account ?? undefined });
   }
 }

@@ -2,37 +2,26 @@ import { inject, Injectable } from '@angular/core';
 import axios from 'axios';
 import { environment } from '../../../environments/environment';
 import { MethodEnum } from '../enums/method.enum';
-import { Router } from '@angular/router';
-import { AuthenticationService } from './authentication.service';
+import { MsalAuthService } from './msal-auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AxiosService {
-  private auth = inject(AuthenticationService);
-  private router = inject(Router);
+  private msalAuth = inject(MsalAuthService);
 
   constructor() {
-    const auth = this.auth;
-    const router = this.router;
+    const msalAuth = this.msalAuth;
 
     axios.defaults.baseURL = environment.api_url;
 
     axios.interceptors.request.use(
-      function (config) {
-        if (config.url === '/auth/login') {
-          return config;
+      async function (config) {
+        const token = await msalAuth.getAccessToken();
+        if (!token) {
+          return Promise.reject(new Error('No active session. Please sign in.'));
         }
-
-        const token = auth.getBearerToken();
-
-        if (token) {
-          config.headers['Authorization'] = token;
-        } else {
-          router.navigate(['login']).then(null);
-          return Promise.reject('No token found');
-        }
-
+        config.headers['Authorization'] = `Bearer ${token}`;
         return config;
       },
       function (error) {
@@ -46,8 +35,7 @@ export class AxiosService {
       },
       function (error) {
         if (error.response && error.response.status === 401) {
-          auth.logout();
-          router.navigate(['login']).then(null);
+          msalAuth.logout().catch(() => undefined);
         }
         return Promise.reject(error);
       }

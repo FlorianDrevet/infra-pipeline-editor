@@ -74,7 +74,7 @@
       <button
         type="button"
         class="ms-signin-btn"
-        [disabled]="isMsalLoading() || isLoading()"
+        [disabled]="isMsalLoading()"
         (click)="loginWithMicrosoft()">
         @if (isMsalLoading()) {
           <span class="spinner"></span>
@@ -89,51 +89,6 @@
         <span>Sign in with Microsoft</span>
       </button>
 
-      <!-- Divider -->
-      <div class="divider">
-        <span>OR CONTINUE WITH EMAIL</span>
-      </div>
-
-      <!-- Email / Password Form -->
-      <form (ngSubmit)="loginWithEmail($event)">
-        <div class="field-group">
-          <label for="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            placeholder="name@company.com"
-            autocomplete="email"
-            [ngModel]="email()"
-            (ngModelChange)="email.set($event)"
-            name="email"
-            required />
-        </div>
-
-        <div class="field-group">
-          <label for="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            autocomplete="current-password"
-            [ngModel]="password()"
-            (ngModelChange)="password.set($event)"
-            name="password"
-            required />
-        </div>
-
-        <button
-          type="submit"
-          class="signin-btn"
-          [disabled]="isLoading() || isMsalLoading()">
-          @if (isLoading()) {
-            <span class="spinner spinner-white"></span>
-          } @else {
-            Sign in
-          }
-        </button>
-      </form>
-
-      <p class="demo-note">Demo credentials: Any email + password</p>
     </div>
 
     <!-- Help button -->
