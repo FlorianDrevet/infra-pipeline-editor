@@ -11,8 +11,8 @@ import { AuthenticationService } from './authentication.service';
 
 @Injectable({ providedIn: 'root' })
 export class MsalAuthService {
-  private authService = inject(AuthenticationService);
-  private msalInstance: PublicClientApplication;
+  private readonly authService = inject(AuthenticationService);
+  private readonly msalInstance: PublicClientApplication;
   private initPromise: Promise<void> | null = null;
 
   constructor() {
@@ -20,29 +20,26 @@ export class MsalAuthService {
   }
 
   private initialize(): Promise<void> {
-    if (!this.initPromise) {
-      this.initPromise = this.msalInstance
-        .initialize()
-        .then(() => this.msalInstance.handleRedirectPromise())
-        .then((redirectResult) => {
-          if (redirectResult?.account) {
-            this.authService.setMsalAccount(redirectResult.account);
-            return;
-          }
+    return (this.initPromise ??= this.msalInstance
+      .initialize()
+      .then(() => this.msalInstance.handleRedirectPromise())
+      .then((redirectResult) => {
+        if (redirectResult?.account) {
+          this.authService.setMsalAccount(redirectResult.account);
+          return;
+        }
 
-          // Restore account from MSAL cache so auth survives page refresh
-          const accounts = this.msalInstance.getAllAccounts();
-          if (accounts.length > 0) {
-            this.authService.setMsalAccount(accounts[0]);
-          }
-        })
-        .catch((err) => {
-          // Reset so the next call can retry
-          this.initPromise = null;
-          throw err;
-        });
-    }
-    return this.initPromise;
+        // Restore account from MSAL cache so auth survives page refresh
+        const accounts = this.msalInstance.getAllAccounts();
+        if (accounts.length > 0) {
+          this.authService.setMsalAccount(accounts[0]);
+        }
+      })
+      .catch((err) => {
+        // Reset so the next call can retry
+        this.initPromise = null;
+        throw err;
+      }));
   }
 
   public async loginPopup(): Promise<AuthenticationResult> {

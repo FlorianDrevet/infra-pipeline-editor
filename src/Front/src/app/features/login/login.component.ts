@@ -10,8 +10,8 @@ import { MsalAuthService } from '../../shared/services/msal-auth.service';
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
-  private router = inject(Router);
-  private msalAuthService = inject(MsalAuthService);
+  private readonly router = inject(Router);
+  private readonly msalAuthService = inject(MsalAuthService);
 
   protected isMsalLoading = signal(false);
   protected errorMessage = signal('');
@@ -20,7 +20,7 @@ export class LoginComponent {
     this.isMsalLoading.set(true);
     this.errorMessage.set('');
     try {
-      await this.msalAuthService.loginRedirect(`${window.location.origin}/`);
+      await this.msalAuthService.loginRedirect(`${globalThis.location.origin}/`);
     } catch {
       this.errorMessage.set('Microsoft authentication failed. Please try again.');
       await this.router.navigate(['/login']);

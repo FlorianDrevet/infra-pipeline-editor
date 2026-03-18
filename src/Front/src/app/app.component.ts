@@ -15,7 +15,7 @@ import { filter, map, startWith } from 'rxjs';
 export class AppComponent {
   title = 'InfraFlowSculptor';
 
-  private router = inject(Router);
+  private readonly router = inject(Router);
 
   protected isLoginPage = toSignal(
     this.router.events.pipe(

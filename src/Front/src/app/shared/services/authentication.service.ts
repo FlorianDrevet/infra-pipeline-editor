@@ -5,8 +5,8 @@ import { AccountInfo } from '@azure/msal-browser';
   providedIn: 'root'
 })
 export class AuthenticationService {
-  private _msalAccount = signal<AccountInfo | null>(null);
-  private _isAuthenticated = signal<boolean>(false);
+  private readonly _msalAccount = signal<AccountInfo | null>(null);
+  private readonly _isAuthenticated = signal<boolean>(false);
 
   public get getIsAuthenticated(): boolean {
     return this._isAuthenticated();
