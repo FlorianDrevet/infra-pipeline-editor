@@ -21,7 +21,14 @@ export class AxiosService {
         if (!token) {
           return Promise.reject(new Error('No active session. Please sign in.'));
         }
-        config.headers['Authorization'] = `Bearer ${token}`;
+        if (config.headers && typeof (config.headers as any).set === 'function') {
+          (config.headers as any).set('Authorization', `Bearer ${token}`);
+        } else {
+          if (!config.headers) {
+            config.headers = {};
+          }
+          (config.headers as any)['Authorization'] = `Bearer ${token}`;
+        }
         return config;
       },
       function (error) {

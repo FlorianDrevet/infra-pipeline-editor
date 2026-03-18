@@ -585,9 +585,9 @@ Format : `type(scope): description courte du but principal`
 | `src/environments/environment.development.ts` | MSAL config for dev (`redirectUri: 'http://localhost:4200'`) |
 | `src/app/shared/configs/msal.config.ts` | `msalConfig: Configuration` (reads from env) + `loginRequest: PopupRequest` with scopes `openid profile email` |
 | `src/app/shared/services/msal-auth.service.ts` | `MsalAuthService`: lazy-initializes `PublicClientApplication`, calls `initialize()` + `handleRedirectPromise()` once, exposes `loginPopup()`, `getActiveAccount()`, `logout()` |
-| `src/app/shared/services/authentication.service.ts` | Added `_msalAccount` signal, `setMsalAccount(account)`, `getMsalAccount` getter; updated `_isAdmin` to support both string `role` claim and array `roles` claim (Azure AD) |
-| `src/app/features/login/login.component.*` | **New login page**: split-panel (50/50), blue gradient left panel (logo + branding + feature list), white right panel ("Sign in with Microsoft" button + email/password fallback form); lazy-loaded |
-| `src/app/app-routing.ts` | Added `/login` route (lazy), wildcard `**` with `AuthenticationGuard` |
+| `src/app/shared/services/authentication.service.ts` | Added `_msalAccount` signal with `setMsalAccount(account)` and `getMsalAccount` accessor used to track the current MSAL account |
+| `src/app/features/login/login.component.*` | **New login page**: split-panel (50/50), blue gradient left panel (logo + branding + feature list), white right panel with "Sign in with Microsoft" entry point; lazy-loaded |
+| `src/app/app-routing.ts` | Added `/login` route (lazy) wired into the auth flow |
 | `src/app/app.component.ts` | Uses `toSignal` + `NavigationEnd` filter to compute `isLoginPage` signal |
 | `src/app/app.component.html` | Hides `<app-navigation>` and `<app-footer>` when `isLoginPage()` is true |
 

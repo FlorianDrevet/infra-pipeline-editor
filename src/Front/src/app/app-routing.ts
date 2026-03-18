@@ -12,4 +12,8 @@ export const routes: Routes = [
     canActivate: [AuthenticationGuard],
     children: [],
   },
+  {
+    path: '**',
+    redirectTo: 'login',
+  },
 ];
