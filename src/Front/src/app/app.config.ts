@@ -1,4 +1,4 @@
-import { APP_INITIALIZER, ApplicationConfig, provideExperimentalZonelessChangeDetection } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideExperimentalZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
@@ -13,12 +13,9 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     ...(environment.otlpEnabled
       ? [
-          {
-            provide: APP_INITIALIZER,
-            useFactory: (telemetry: TelemetryService) => () => telemetry.initialize(),
-            deps: [TelemetryService],
-            multi: true,
-          },
+          provideAppInitializer(() => {
+            inject(TelemetryService).initialize();
+          }),
         ]
       : []),
   ],
