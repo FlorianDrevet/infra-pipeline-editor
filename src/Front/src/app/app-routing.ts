@@ -14,14 +14,14 @@ export const routes: Routes = [
       {
         path: 'configs',
         loadComponent: () =>
-          import('./features/infrastructure-configs/pages/configs-list.component').then(
+          import('./features/infrastructure-configs/pages/configs-list/configs-list.component').then(
             (m) => m.ConfigsListComponent
           ),
       },
       {
         path: 'configs/:id',
         loadComponent: () =>
-          import('./features/infrastructure-configs/pages/config-details.component').then(
+          import('./features/infrastructure-configs/pages/config-details/config-details.component').then(
             (m) => m.ConfigDetailsComponent
           ),
       },

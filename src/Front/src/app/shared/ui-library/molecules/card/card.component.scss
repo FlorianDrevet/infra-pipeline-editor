@@ -1,0 +1,46 @@
+.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &--default {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  &--outlined {
+    border: 1px solid #e0e0e0;
+
+    &:hover {
+      border-color: #1976d2;
+    }
+  }
+
+  &--elevated {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+
+    &:hover {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  &--clickable {
+    cursor: pointer;
+
+    &:hover {
+      transform: translateY(-4px);
+    }
+  }
+
+  mat-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+}

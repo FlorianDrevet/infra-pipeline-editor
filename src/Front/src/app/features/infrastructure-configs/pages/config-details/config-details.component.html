@@ -1,0 +1,175 @@
+<div class="details-container">
+  <!-- Back button -->
+  <button mat-icon-button class="back-btn" (click)="goBack()" matTooltip="Back">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+
+  <!-- Loading state -->
+  <app-loading-spinner
+    *ngIf="isLoading()"
+    diameter="50"
+    message="Loading configuration..."
+  ></app-loading-spinner>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading() && currentConfig()" class="config-details">
+    <!-- Header -->
+    <div class="header-section">
+      <div class="header-content">
+        <h1>{{ currentConfig()!.name }}</h1>
+        <p class="config-id">ID: {{ currentConfig()!.id }}</p>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button>
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+        <button mat-stroked-button color="warn">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <!-- Resources Tab -->
+      <div class="tab-section">
+        <div class="tab-header">
+          <mat-icon>storage</mat-icon>
+          <h2>Resources</h2>
+        </div>
+
+        <div class="tab-content">
+          <app-data-table
+            [columns]="resourceGroupColumns"
+            [dataSource]="resourceGroups()"
+            emptyMessage="No resource groups configured"
+            emptyIcon="folder_open"
+          ></app-data-table>
+        </div>
+      </div>
+
+      <!-- Environments Tab -->
+      <div class="tab-section">
+        <div class="tab-header">
+          <mat-icon>cloud_queue</mat-icon>
+          <h2>Environments</h2>
+        </div>
+
+        <div class="tab-content">
+          <div class="env-list" *ngIf="currentConfig()!.environmentDefinitions.length > 0">
+            <div class="env-card" *ngFor="let env of currentConfig()!.environmentDefinitions">
+              <div class="env-header">
+                <h3>{{ env.name }}</h3>
+                <mat-chip variant="filled" color="accent">
+                  Order: {{ env.order }}
+                </mat-chip>
+              </div>
+
+              <div class="env-details">
+                <div class="detail-row">
+                  <span class="label">Location:</span>
+                  <span class="value">{{ env.location }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Prefix:</span>
+                  <span class="value">{{ env.prefix }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Suffix:</span>
+                  <span class="value">{{ env.suffix }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Requires Approval:</span>
+                  <mat-icon class="approval-icon" [class.approved]="env.requiresApproval">
+                    {{ env.requiresApproval ? 'check_circle' : 'cancel' }}
+                  </mat-icon>
+                </div>
+              </div>
+
+              <div class="env-tags" *ngIf="env.tags && env.tags.length > 0">
+                <p class="tags-label">Tags</p>
+                <div class="tags-list">
+                  <mat-chip *ngFor="let tag of env.tags" variant="outlined">
+                    {{ tag.name }} = {{ tag.value }}
+                  </mat-chip>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <app-empty-state
+            *ngIf="currentConfig()!.environmentDefinitions.length === 0"
+            icon="cloud_off"
+            title="No environments"
+            description="No environments defined yet"
+            [fullHeight]="false"
+          ></app-empty-state>
+        </div>
+      </div>
+
+      <!-- Members Tab -->
+      <div class="tab-section">
+        <div class="tab-header">
+          <mat-icon>people</mat-icon>
+          <h2>Team Members</h2>
+        </div>
+
+        <div class="tab-content">
+          <div class="members-list" *ngIf="currentConfig()!.members && currentConfig()!.members.length > 0">
+            <div class="member-row" *ngFor="let member of currentConfig()!.members">
+              <div class="member-info">
+                <app-avatar
+                  [initials]="getMemberInitial(member.userId)"
+                  size="lg"
+                  [variant]="getRoleVariant(member.role)"
+                ></app-avatar>
+                <div class="member-details">
+                  <p class="member-name">{{ member.userId }}</p>
+                  <p class="member-id">{{ member.id }}</p>
+                </div>
+              </div>
+
+              <mat-chip [class]="'role-' + member.role.toLowerCase()" variant="filled">
+                {{ member.role }}
+              </mat-chip>
+
+              <div class="member-actions">
+                <button mat-icon-button matTooltip="Change role">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Remove" color="warn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <app-empty-state
+            *ngIf="!currentConfig()!.members || currentConfig()!.members.length === 0"
+            icon="person_off"
+            title="No members"
+            description="No members in this configuration"
+            [fullHeight]="false"
+          ></app-empty-state>
+
+          <div class="add-member-section">
+            <button mat-raised-button color="primary">
+              <mat-icon>person_add</mat-icon>
+              Add Member
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Not found state -->
+  <app-empty-state
+    *ngIf="!isLoading() && !currentConfig()"
+    icon="error_outline"
+    title="Configuration not found"
+    description="The configuration you're looking for doesn't exist."
+  ></app-empty-state>
+</div>

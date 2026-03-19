@@ -1,0 +1,12 @@
+<mat-tab-group class="tabbed-view" [style.backgroundColor]="backgroundColor">
+  <mat-tab *ngFor="let tab of tabs">
+    <ng-template mat-tab-label>
+      <mat-icon *ngIf="tab.icon" class="tab-icon">{{ tab.icon }}</mat-icon>
+      <span>{{ tab.label }}</span>
+    </ng-template>
+
+    <div class="tab-content">
+      <ng-content></ng-content>
+    </div>
+  </mat-tab>
+</mat-tab-group>

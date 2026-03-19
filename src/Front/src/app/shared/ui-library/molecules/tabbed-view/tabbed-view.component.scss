@@ -1,0 +1,28 @@
+::ng-deep {
+  .tabbed-view {
+    .mdc-tab-bar {
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .mdc-tab__text-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+
+      &.tab-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    .mat-mdc-tab-body-content {
+      padding: 24px 0;
+    }
+  }
+}
+
+.tab-content {
+  min-height: 400px;
+}

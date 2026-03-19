@@ -1,0 +1,17 @@
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #666;
+
+  &.full-height {
+    min-height: 400px;
+  }
+
+  .loading-message {
+    margin: 0;
+    font-size: 14px;
+  }
+}
