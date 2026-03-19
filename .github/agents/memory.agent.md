@@ -349,14 +349,14 @@ Quand tu génères une feature CQRS complète, valide chaque étape :
 - [ ] Frontend vérifié (`npm run build` ou `npm run typecheck` dans `src/Front`)
 - [ ] `MEMORY.md` mis à jour avec les nouveautés
 - [ ] PR créée avec titre et description conformes (voir ci-dessous)
-- [ ] Azure DevOps : Epic/US trouvée ou créée, Tasks ajoutées, lien PR → ADO établi, statuts mis à jour (voir section 5 de `pr-conventions.agent.md`)
+- [ ] Azure DevOps : Epic/US trouvée ou créée, Tasks ajoutées, lien PR → ADO établi, statuts mis à jour (voir section 5 de `pr-manager.agent.md`)
 - [ ] `report_progress` appelé pour pousser les changements
 
 ---
 
 ## Création de Pull Request — Règles obligatoires
 
-> Consulter `.github/agents/pr-conventions.agent.md` pour la référence complète.
+> Consulter `.github/agents/pr-manager.agent.md` pour la référence complète.
 
 ### Titre de la PR
 

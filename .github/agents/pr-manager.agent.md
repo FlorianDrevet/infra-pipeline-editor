@@ -358,4 +358,3 @@ outil : mcp_microsoft_azu_wit_update_work_items_batch
 | `mcp_microsoft_azu_wit_update_work_items_batch` | Mettre à jour l'état de plusieurs items |
 
 > **Note :** `mcp_microsoft_azu_wit_add_artifact_link` n'est **pas** utilisé pour les repos GitHub — la syntaxe `AB#` dans la description de la PR est la méthode officielle et bidirectionnelle.
-

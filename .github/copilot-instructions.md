@@ -53,7 +53,7 @@
 
 ## Pull Request conventions
 
-Every PR created by a Copilot agent **must** follow these rules. Full details are in `.github/agents/pr-conventions.agent.md`.
+Every PR created by a Copilot agent **must** follow these rules. Full details are in `.github/agents/pr-manager.agent.md`.
 
 ### PR title format
 
