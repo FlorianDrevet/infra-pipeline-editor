@@ -13,7 +13,7 @@
   <!-- Loading state -->
   <app-loading-spinner
     *ngIf="isLoading()"
-    diameter="50"
+    [diameter]="50"
     message="Loading configurations..."
   ></app-loading-spinner>
 
