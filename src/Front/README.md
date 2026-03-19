@@ -30,7 +30,10 @@ npm run typecheck
 - Environnement Aspire: `src/environments/environment.aspire.ts`
 - URL API utilisée par Axios: `environment.api_url`
 
-Par defaut, l'URL est `http://localhost:8080`.
+En développement, le frontend utilise le proxy `/api-proxy` et `/bicep-api-proxy`.
+Par défaut (hors variables Aspire), le proxy pointe vers:
+- API principale: `http://localhost:5257`
+- API Bicep: `http://localhost:5258`
 
 ## Structure
 

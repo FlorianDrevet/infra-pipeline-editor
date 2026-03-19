@@ -94,7 +94,8 @@
             },
             "development": {
               "buildTarget": "infra_flow_sculptor_front:build:development",
-              "port": 4201
+              "port": 4201,
+              "proxyConfig": "proxy.conf.js"
             },
             "aspire": {
               "buildTarget": "infra_flow_sculptor_front:build:aspire",
