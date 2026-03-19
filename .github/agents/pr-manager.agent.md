@@ -94,8 +94,14 @@ Quand un agent crée une PR, il doit :
 2. **Construire le titre** selon le format `type(scope): description`.
 3. **Remplir la description** en utilisant le template et en listant **tous** les fichiers créés ou modifiés, groupés par couche.
 4. **S'assurer que le build passe** (`dotnet build .\InfraFlowSculptor.slnx`) avant de soumettre.
-5. **Mettre à jour `MEMORY.md`** et inclure cette mise à jour dans la même PR.
-6. **Exécuter le protocole Azure DevOps** (section 5) : chercher ou créer Epic/US, ajouter les Tasks, lier la PR aux work items, mettre à jour les statuts.
+5. **Vérifier et mettre à jour la documentation** si les changements concernent la documentation ou s'il y a des informations à ajouter :
+   - Parcourir les changements effectués (architecture, conventions, nouvelles APIs, etc.)
+   - Vérifier les sections pertinentes dans `docs/`, `docs/azure/`, `README.md` ou `MEMORY.md`
+   - Créer des sections manquantes ou mettre à jour les informations existantes
+   - Si la feature est documentée dans une page wiki ADO, mettre à jour également
+   - Indiquer les fichiers docs modifiés/créés dans la description de PR sous la section "Docs"
+6. **Mettre à jour `MEMORY.md`** et inclure cette mise à jour dans la même PR.
+7. **Exécuter le protocole Azure DevOps** (section 5) : chercher ou créer Epic/US, ajouter les Tasks, lier la PR aux work items, mettre à jour les statuts.
 
 ---
 
