@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { AxiosService } from './axios.service';
 import { MethodEnum } from '../enums/method.enum';
 import {
@@ -18,6 +18,45 @@ import { ResourceGroupResponse } from '../interfaces/resource-group.interface';
 })
 export class InfraConfigService {
   private axios = inject(AxiosService);
+
+  // Signals for list view
+  configurations = signal<InfrastructureConfigResponse[]>([]);
+  isLoading = signal(false);
+  error = signal<string | null>(null);
+
+  // Signals for details view
+  currentConfig = signal<InfrastructureConfigResponse | null>(null);
+  isLoadingDetails = signal(false);
+
+  loadConfigurations(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+    
+    this.getAll()
+      .then((configs) => {
+        this.configurations.set(configs);
+        this.error.set(null);
+      })
+      .catch((err) => {
+        this.error.set(`Failed to load configurations: ${err.message || 'Unknown error'}`);
+        this.configurations.set([]);
+      })
+      .finally(() => this.isLoading.set(false));
+  }
+
+  loadConfigDetails(configId: string): void {
+    this.isLoadingDetails.set(true);
+    
+    this.getById(configId)
+      .then((config) => {
+        this.currentConfig.set(config);
+      })
+      .catch((err) => {
+        console.error('Failed to load config details:', err);
+        this.currentConfig.set(null);
+      })
+      .finally(() => this.isLoadingDetails.set(false));
+  }
 
   getAll(): Promise<InfrastructureConfigResponse[]> {
     return this.axios.request$<InfrastructureConfigResponse[]>(

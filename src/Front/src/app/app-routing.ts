@@ -10,7 +10,27 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [AuthenticationGuard],
-    children: [],
+    children: [
+      {
+        path: 'configs',
+        loadComponent: () =>
+          import('./features/infrastructure-configs/pages/configs-list.component').then(
+            (m) => m.ConfigsListComponent
+          ),
+      },
+      {
+        path: 'configs/:id',
+        loadComponent: () =>
+          import('./features/infrastructure-configs/pages/config-details.component').then(
+            (m) => m.ConfigDetailsComponent
+          ),
+      },
+      {
+        path: '',
+        redirectTo: 'configs',
+        pathMatch: 'full',
+      },
+    ],
   },
   {
     path: '**',

@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { AxiosService } from './axios.service';
 import { MethodEnum } from '../enums/method.enum';
 import {
@@ -12,6 +12,19 @@ import {
 })
 export class ResourceGroupService {
   private axios = inject(AxiosService);
+
+  // Signals
+  resourceGroups = signal<ResourceGroupResponse[]>([]);
+  isLoadingResourceGroups = signal(false);
+
+  loadResourceGroups(configId: string): void {
+    this.isLoadingResourceGroups.set(true);
+
+    // For now, return empty array - will be connected to actual API endpoint
+    // when the backend has the proper endpoint
+    this.resourceGroups.set([]);
+    this.isLoadingResourceGroups.set(false);
+  }
 
   getById(id: string): Promise<ResourceGroupResponse> {
     return this.axios.request$<ResourceGroupResponse>(
