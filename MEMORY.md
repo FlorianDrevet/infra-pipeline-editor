@@ -612,6 +612,29 @@ For clientId `24c34231-a984-43b3-8ac3-9278ebd067ef`:
 
 ---
 
+## 18. Documentation Azure ([2026-03-19])
+
+La documentation Azure est versionnée dans le dépôt GitHub dans le dossier `docs/azure/` :
+
+| Fichier | Contenu |
+|---------|---------|
+| `docs/README.md` | Index principal de la documentation |
+| `docs/azure/README.md` | Sommaire de la documentation Azure |
+| `docs/azure/architecture.md` | Architecture cloud, services Azure, flux auth |
+| `docs/azure/ressources.md` | Ressources provisionnées par l'app + ressources infra |
+| `docs/azure/securite-iam.md` | Entra ID, scopes, rôles, bonnes pratiques |
+| `docs/azure/conventions-nommage.md` | Règles de nommage ressources Azure |
+
+### Lien Azure DevOps
+
+Le wiki ADO `Infra-Flow-Sculptor-Wiki` contient la section `/Documentation-Azure` avec 4 sous-pages qui pointent vers les fichiers GitHub correspondants.
+
+### Limitation : "Publish code as wiki"
+
+La fonctionnalité Azure DevOps "Publish code as wiki" (sync auto Git → wiki) **ne fonctionne qu'avec Azure Repos**, pas GitHub. Pour l'activer sur GitHub, il faut d'abord créer un **service connection GitHub** dans Azure DevOps (Project Settings → Service connections). Les étapes manuelles sont décrites dans la page wiki `/Documentation-Azure`.
+
+---
+
 ## 16. Changelog
 
 | Date | Author | Change |
@@ -633,3 +656,4 @@ For clientId `24c34231-a984-43b3-8ac3-9278ebd067ef`:
 | 2026-03-18 | copilot | Integrated Angular frontend into Aspire: `AddJavaScriptApp` + `.WithNpm()` (Aspire 13.x API), `start:aspire` npm script, `environment.aspire.ts` with `/api-proxy` base URL, `proxy.conf.js` relaying `/api-proxy/*` → backend and `/otlp/*` → Aspire Dashboard, `TelemetryService` with OTel Web SDK v1.x (fetch instrumentation + OTLP export), `APP_INITIALIZER` in `app.config.ts` conditional on `otlpEnabled`, fixed `apiScopes` missing from `MsalConfigInterface`, added `allowedCommonJsDependencies` for protobufjs. |
 | 2026-03-18 | copilot | Validated Aspire MCP runtime inspection flow: use `list apphosts` + `list resources` + `list structured logs`/`list console logs` to quickly confirm stack health and retrieve latest startup events (EF migrations, listening URLs, Angular proxy targets). |
 | 2026-03-17 | copilot | Fixed frontend MSAL sign-in UX where popup ended on app UI: switched login action to redirect flow (`loginRedirect`) from `LoginComponent`, restored authenticated account from redirect result in `MsalAuthService`, and kept landing page on `/` in the main tab. |
+| 2026-03-19 | copilot | Added Azure documentation versioning: created `docs/azure/` folder in GitHub repo (README, architecture.md, ressources.md, securite-iam.md, conventions-nommage.md). Created ADO wiki section `/Documentation-Azure` with 4 sub-pages (Architecture-Cloud, Ressources-Managees, Securite-IAM, Conventions-Nommage) each linking back to the GitHub source file. Updated ADO wiki Home page to include the new section. Note: "Publish code as wiki" feature (auto-sync from Git to ADO wiki) requires the repo to be in Azure Repos or a GitHub service connection — manual steps described in `/Documentation-Azure` wiki page. |
