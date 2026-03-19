@@ -642,6 +642,14 @@ For clientId `24c34231-a984-43b3-8ac3-9278ebd067ef`:
 4. **API permissions:** Microsoft Graph → `openid`, `profile`, `email` (delegated)
 5. **Supported account types:** single-tenant (or multitenant as needed)
 
+### 16.6 Infrastructure Configs list UX ([2026-03-19])
+
+- Route de référence frontend alignée sur la maquette: `/infrastructure-configs` (+ `/infrastructure-configs/:id`), avec redirections de compatibilité maintenues depuis `/configs`.
+- `ConfigsListComponent` est passé d'une grille de cards à une vue tableau orientée gestion: recherche, filtre environnement, filtre statut.
+- Le statut est dérivé côté UI: `Active` si au moins un environnement, sinon `Draft`.
+- L'affichage met en avant les environnements par configuration (badges), le nombre de membres et le nombre de templates de nommage.
+- La navigation détail utilise désormais le chemin `/infrastructure-configs/:id`.
+
 ---
 
 ## 18. Documentation Azure ([2026-03-19])
@@ -713,3 +721,4 @@ La fonctionnalité Azure DevOps "Publish code as wiki" (sync auto Git → wiki) 
 | 2026-03-19 | copilot | Dev API endpoint alignment: `InfraFlowSculptor.Api` launch profile runs on `http://localhost:5257` (not `8080`). Updated frontend development mode to use proxy paths (`/api-proxy`, `/bicep-api-proxy`) and configured `serve.development.proxyConfig` with fallback targets `5257/5258` to avoid `ERR_CONNECTION_REFUSED` on `/infra-config` when the frontend is run manually on `4201`. |
 | 2026-03-19 | copilot | **Frontend infrastructure configs UI**: created feature `src/Front/src/app/features/infrastructure-configs/` with list page (cards grid), details page (3-tabs view: Resources, Environments, Members). Enriched `InfraConfigService` and `ResourceGroupService` with Angular signals for reactive state management (`configurations`, `currentConfig`, `isLoading`, `isLoadingDetails`). Added methods `loadConfigurations()` and `loadConfigDetails(id)`. Updated routing: added `/configs` (list) and `/configs/:id` (details) as authenticated children routes. Created reusable `ConfigCardComponent` displaying resource count, environment count, member count with avatars and 3-column stat layout. Built `ConfigDetailsComponent` with `mat-tabs` showing: Resources tab (resource groups table), Environments tab (environment cards with details), Members tab (team members with role chips and actions). No dashboard changes yet; feature is routing-isolated. TypeScript typecheck passes. |
 | 2026-03-19 | copilot | **UI Component Library** (`src/Front/src/app/shared/ui-library/`): created reusable component library with Atomic Design pattern. **Atoms** (simple, autonomous): `AvatarComponent` (initials circle with size/variant), `StatItemComponent` (icon+value+label), `EmptyStateComponent` (icon+title+description+action), `LoadingSpinnerComponent` (spinner+message). **Molecules** (composite, reusable): `CardComponent` (flexible card with clickable mode and variants: default/outlined/elevated), `DataTableComponent` (dynamic table with column definitions and nested property support), `TabbedViewComponent` (Material tabs wrapper). All components: standalone, OnPush, files separated (*.ts, *.html, *.scss). Barrel export in `index.ts`. Infrastructure-configs feature now uses this library instead of inline components. READMEs created for both library and feature. TypeScript typecheck passes. |
+| 2026-03-19 | copilot | Reworked frontend infrastructure configurations list to match Figma intent: table-first layout with search + environment/status filters, per-configuration environment badges, route alignment to `/infrastructure-configs` with redirects from `/configs`, and updated details back navigation. Verified with `npm run build` and `npm run typecheck`. |
