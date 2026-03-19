@@ -14,15 +14,20 @@ Frontend Angular 19 base pour piloter l'API CQRS du projet.
 ```bash
 npm install
 npm run start
+npm run start:aspire
 npm run build
 npm run build:dev
 npm run typecheck
 ```
 
+- `npm run start` lance le frontend en mode développement manuel sur `http://localhost:4201`
+- `npm run start:aspire` réserve `http://localhost:4200` pour l'exécution orchestrée par Aspire
+
 ## Configuration API
 
 - Environnement dev: `src/environments/environment.development.ts`
 - Environnement prod: `src/environments/environment.ts`
+- Environnement Aspire: `src/environments/environment.aspire.ts`
 - URL API utilisée par Axios: `environment.api_url`
 
 Par defaut, l'URL est `http://localhost:8080`.
