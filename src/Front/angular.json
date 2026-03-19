@@ -31,6 +31,9 @@
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "allowedCommonJsDependencies": [
+              "protobufjs/minimal"
+            ],
             "assets": [
               {
                 "glob": "**/*",
@@ -68,6 +71,17 @@
                   "with": "src/environments/environment.development.ts"
                 }
               ]
+            },
+            "aspire": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.aspire.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -80,6 +94,11 @@
             },
             "development": {
               "buildTarget": "infra_flow_sculptor_front:build:development"
+            },
+            "aspire": {
+              "buildTarget": "infra_flow_sculptor_front:build:aspire",
+              "port": 4200,
+              "proxyConfig": "proxy.conf.js"
             }
           },
           "defaultConfiguration": "development"

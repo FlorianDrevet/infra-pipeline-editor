@@ -400,9 +400,105 @@ No test projects currently exist.
 
 ## 12. Aspire Integration
 
-- AppHost wires: PostgreSQL, DbGate (DB admin UI), main API, Bicep generator API
+- AppHost wires: PostgreSQL, DbGate (DB admin UI), main API, Bicep generator API, Angular frontend
 - Azure Blob Storage emulator: connection string exposed as `ConnectionStrings:AzureBlobStorageConnectionString`
-- Main API registered as `infra-api`, Bicep generator as `bicep-api`
+- Main API registered as `infraflowsculptor-api`, Bicep generator as `bicep-generator-api`, frontend as `angular-frontend`
+
+### 12.1 Frontend Angular dans Aspire ([2026-03-18])
+
+**Méthode Aspire 13.x :** `AddJavaScriptApp` + `.WithNpm()` (remplace l'ancienne `AddNpmApp` qui n'existe plus).
+
+```csharp
+builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
+    .WithNpm()
+    .WithReference(infraApi)
+    .WaitFor(infraApi)
+    .WithHttpEndpoint(targetPort: 4200, env: "NG_PORT")
+    .WithExternalHttpEndpoints();
+```
+
+- Port Angular fixé à 4200 via `WithHttpEndpoint(targetPort: 4200, env: "NG_PORT")`
+- Le script npm `start:aspire` lance `ng serve --configuration=aspire`
+- La configuration `aspire` dans `angular.json` remplace `environment.ts` par `environment.aspire.ts`
+
+### 12.2 Proxy Angular dev-server
+
+Fichier `src/Front/proxy.conf.js` : lit les variables d'environnement Aspire pour configurer le proxy :
+
+| Chemin | Variable Aspire | Destination |
+|--------|-----------------|-------------|
+| `/api-proxy/*` | `services__infraflowsculptor-api__https__0` ou `__http__0` | API backend |
+| `/otlp/*` | `OTEL_EXPORTER_OTLP_ENDPOINT` | Aspire Dashboard OTLP |
+
+- Le frontend utilise `api_url: '/api-proxy'` (environment.aspire.ts)
+- Le proxy supprime le préfixe `/api-proxy` avant de transmettre au backend
+- Pas de problème CORS : toutes les requêtes browser passent par localhost:4200
+
+### 12.3 Configurations Angular
+
+| Config | Fichier env | Usage |
+|--------|-------------|-------|
+| `development` | `environment.development.ts` | `npm run start` (dev standalone) |
+| `aspire` | `environment.aspire.ts` | `npm run start:aspire` (via Aspire) |
+| `production` | `environment.ts` | `npm run build` |
+
+### 12.4 Variables Aspire injectées pour le frontend
+
+| Variable | Description |
+|----------|-------------|
+| `services__infraflowsculptor-api__http__0` | URL HTTP de l'API principale |
+| `services__infraflowsculptor-api__https__0` | URL HTTPS de l'API principale |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | URL OTLP du dashboard Aspire (si WithOtlpExporter activé) |
+
+---
+
+## 17. OpenTelemetry Frontend ([2026-03-18])
+
+### Packages installés
+
+```
+@opentelemetry/api
+@opentelemetry/sdk-trace-web
+@opentelemetry/exporter-trace-otlp-http
+@opentelemetry/instrumentation
+@opentelemetry/instrumentation-fetch
+@opentelemetry/resources
+@opentelemetry/semantic-conventions
+```
+
+### TelemetryService
+
+Fichier : `src/Front/src/app/shared/services/telemetry.service.ts`
+
+- Initialisé via `APP_INITIALIZER` dans `app.config.ts` **uniquement si** `environment.otlpEnabled === true`
+- `FetchInstrumentation` injecte automatiquement le header W3C `traceparent` dans chaque requête Fetch/Axios
+- L'exporter OTLP pointe vers `/otlp/v1/traces` (proxy Angular → Aspire Dashboard)
+- **Pas actif en dev standalone ni en prod** (seul `environment.aspire.ts` a `otlpEnabled: true`)
+
+### API OTel v1.x (IMPORTANT)
+
+```typescript
+// ✅ Correct (v1.x)
+import { resourceFromAttributes } from '@opentelemetry/resources';
+import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
+
+const provider = new WebTracerProvider({
+  resource: resourceFromAttributes({ [ATTR_SERVICE_NAME]: 'service' }),
+  spanProcessors: [new BatchSpanProcessor(exporter)],
+});
+provider.register();
+
+// ❌ Obsolète (v0.x)
+// new Resource({ ... })
+// provider.addSpanProcessor(...)
+```
+
+### Warning CommonJS protobufjs
+
+Ajouter dans `angular.json` → `build.options` :
+```json
+"allowedCommonJsDependencies": ["protobufjs/minimal"]
+```
 
 ---
 
@@ -499,6 +595,45 @@ Angular API services in `src/Front/src/app/shared/services/` (all `providedIn: '
 | `RoleAssignmentService` | `/azure-resources/{id}/role-assignments` | `getByResourceId`, `getAvailableRoleDefinitions`, `add`, `remove` |
 
 Type mapping convention (C# → TypeScript): `Guid` → `string`, `IReadOnlyList<T>` → `T[]`, `string?` → `string | null`, `bool` → `boolean`, `int` → `number`.
+### 15.4 Entra ID (MSAL) authentication ([2026-03-17])
+
+#### Package
+- `@azure/msal-browser@^5` installed as npm dependency (no `@azure/msal-angular` needed — HTTP layer is Axios-based)
+- **⚠️ MSAL v5 breaking change:** `storeAuthStateInCookie` no longer exists in `CacheOptions` — remove it if upgrading from v2/v3
+
+#### New / modified files
+
+| File | Role |
+|------|------|
+| `src/app/shared/interfaces/environment.interface.ts` | Added `MsalConfigInterface` (`clientId`, `authority`, `redirectUri`) + `msalConfig` field on `EnvironmentInterface` |
+| `src/environments/environment.ts` | MSAL config for production (`redirectUri: '/'`) |
+| `src/environments/environment.development.ts` | MSAL config for dev (`redirectUri: 'http://localhost:4200'`) |
+| `src/app/shared/configs/msal.config.ts` | `msalConfig: Configuration` (reads from env) + `loginRequest: PopupRequest` with scopes `openid profile email` |
+| `src/app/shared/services/msal-auth.service.ts` | `MsalAuthService`: lazy-initializes `PublicClientApplication`, calls `initialize()` + `handleRedirectPromise()` once, exposes `loginPopup()`, `getActiveAccount()`, `logout()` |
+| `src/app/shared/services/authentication.service.ts` | Added `_msalAccount` signal with `setMsalAccount(account)` and `getMsalAccount` accessor used to track the current MSAL account |
+| `src/app/features/login/login.component.*` | **New login page**: split-panel (50/50), blue gradient left panel (logo + branding + feature list), white right panel with "Sign in with Microsoft" entry point; lazy-loaded |
+| `src/app/app-routing.ts` | Added `/login` route (lazy) wired into the auth flow |
+| `src/app/app.component.ts` | Uses `toSignal` + `NavigationEnd` filter to compute `isLoginPage` signal |
+| `src/app/app.component.html` | Hides `<app-navigation>` and `<app-footer>` when `isLoginPage()` is true |
+
+#### Auth UX fix ([2026-03-17])
+
+- `LoginComponent` now uses `MsalAuthService.loginRedirect()` (instead of popup flow) so Microsoft sign-in completes in the main browser tab and lands back on `/`
+- `MsalAuthService.initialize()` now prioritizes `handleRedirectPromise()` result account before falling back to cached accounts
+- `MsalAuthService` exposes `loginRedirect(redirectStartPage?)` to keep redirect behavior explicit per caller
+
+#### Feature structure
+- Feature pages live under `src/Front/src/app/features/<feature-name>/`
+- The login component is the first entry in `features/`
+
+#### App Registration (Azure Portal) required settings
+
+For clientId `24c34231-a984-43b3-8ac3-9278ebd067ef`:
+1. **Authentication → Platform → Single-page application (SPA)**
+2. **Redirect URIs:** `http://localhost:4200` (dev) + production URL
+3. **Implicit grant → unchecked** (PKCE is used automatically for SPA)
+4. **API permissions:** Microsoft Graph → `openid`, `profile`, `email` (delegated)
+5. **Supported account types:** single-tenant (or multitenant as needed)
 
 ---
 
@@ -520,3 +655,7 @@ Type mapping convention (C# → TypeScript): `Guid` → `string`, `IReadOnlyList
 | 2026-03-17 | copilot | Fixed startup crash `42P07: relation "InfrastructureConfigs" already exists`: migration `20260317163342_StorageAccount` was generated from a corrupted/empty EF Core snapshot, causing it to recreate all tables from scratch. Fixed by replacing the `Up()`/`Down()` bodies with empty methods and regenerating `Designer.cs` from the correct `ProjectDbContextModelSnapshot.cs`. All tables already existed in the DB; only the snapshot was out of sync. **Pattern to watch:** if a new migration contains `CREATE TABLE` for tables that should already exist, the snapshot was corrupted — fix with empty `Up()`/`Down()` + regenerated `Designer.cs`. |
 | 2026-03-17 | copilot | Added Azure Storage Account Bicep generation: `StorageAccountTypeBicepGenerator` now uses all properties (`sku`, `kind`, `accessTier`, `allowBlobPublicAccess`, `supportsHttpsTrafficOnly`, `minimumTlsVersion`) from `resource.Properties`. Added `StorageAccount` case in `InfrastructureConfigReadRepository.MapResource()` with `MapStorageTlsVersion()` helper mapping Tls10/11/12 → TLS1_0/TLS1_1/TLS1_2. Azure Bicep property name is `supportsHttpsTrafficOnly` (not `enableHttpsTrafficOnly`). |
 | 2026-03-17 | copilot | Added all backend contracts as TypeScript interfaces and Angular API services in `src/Front/src/app/shared/`. Interfaces in `interfaces/` folder (infra-config, resource-group, key-vault, redis-cache, storage-account, role-assignment). Services in `services/` folder (InfraConfigService, ResourceGroupService, KeyVaultService, RedisCacheService, StorageAccountService, RoleAssignmentService) — all `providedIn: 'root'`, using `AxiosService.request$<T>()`. |
+| 2026-03-17 | copilot | Added Microsoft Entra ID (MSAL) authentication to Angular frontend: installed `@azure/msal-browser@^5`, created `MsalAuthService` + `msal.config.ts`, added `MsalConfigInterface` to `EnvironmentInterface`, created split-panel login page under `src/app/features/login/`, updated `AuthenticationService` to support Azure AD `roles[]` claim, added lazy `/login` route, hid nav/footer on login page. App registration `24c34231-a984-43b3-8ac3-9278ebd067ef` requires: SPA platform, redirect URIs `http://localhost:4200` + prod URL, Graph `openid`/`profile`/`email` permissions, implicit grant unchecked. |
+| 2026-03-18 | copilot | Integrated Angular frontend into Aspire: `AddJavaScriptApp` + `.WithNpm()` (Aspire 13.x API), `start:aspire` npm script, `environment.aspire.ts` with `/api-proxy` base URL, `proxy.conf.js` relaying `/api-proxy/*` → backend and `/otlp/*` → Aspire Dashboard, `TelemetryService` with OTel Web SDK v1.x (fetch instrumentation + OTLP export), `APP_INITIALIZER` in `app.config.ts` conditional on `otlpEnabled`, fixed `apiScopes` missing from `MsalConfigInterface`, added `allowedCommonJsDependencies` for protobufjs. |
+| 2026-03-18 | copilot | Validated Aspire MCP runtime inspection flow: use `list apphosts` + `list resources` + `list structured logs`/`list console logs` to quickly confirm stack health and retrieve latest startup events (EF migrations, listening URLs, Angular proxy targets). |
+| 2026-03-17 | copilot | Fixed frontend MSAL sign-in UX where popup ended on app UI: switched login action to redirect flow (`loginRedirect`) from `LoginComponent`, restored authenticated account from redirect result in `MsalAuthService`, and kept landing page on `/` in the main tab. |
