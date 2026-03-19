@@ -4,10 +4,10 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.1.2" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.1.2" />
-    <PackageVersion Include="Aspire.Npgsql" Version="13.1.2" />
-    <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.1.2" />
+    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.1.3" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.1.3" />
+    <PackageVersion Include="Aspire.Npgsql" Version="13.1.3" />
+    <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.1.3" />
     <PackageVersion Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="9.9.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.26.0" />
     <PackageVersion Include="CommunityToolkit.Aspire.Hosting.DbGate" Version="13.0.0" />
@@ -44,7 +44,7 @@
     <PackageVersion Include="Scalar.AspNetCore" Version="2.11.2" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.0.1" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
-    <PackageVersion Include="Aspire.Hosting.Azure.Storage" Version="13.1.2" />
+    <PackageVersion Include="Aspire.Hosting.Azure.Storage" Version="13.1.3" />
     <PackageVersion Include="CommunityToolkit.Aspire.Hosting.SqlServer.Extensions" Version="13.0.0" />
   </ItemGroup>
 </Project>
