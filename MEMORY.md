@@ -428,10 +428,13 @@ Fichier `src/Front/proxy.conf.js` : lit les variables d'environnement Aspire pou
 | Chemin | Variable Aspire | Destination |
 |--------|-----------------|-------------|
 | `/api-proxy/*` | `services__infraflowsculptor-api__https__0` ou `__http__0` | API backend |
+| `/bicep-api-proxy/*` | `services__bicep-generator-api__https__0` ou `__http__0` | Bicep Generator API |
 | `/otlp/*` | `OTEL_EXPORTER_OTLP_ENDPOINT` | Aspire Dashboard OTLP |
 
 - Le frontend utilise `api_url: '/api-proxy'` (environment.aspire.ts)
+- Le frontend utilise `bicep_api_url: '/bicep-api-proxy'` (environment.aspire.ts)
 - Le proxy supprime le préfixe `/api-proxy` avant de transmettre au backend
+- Le proxy supprime aussi le préfixe `/bicep-api-proxy` avant de transmettre au Bicep Generator API
 - Pas de problème CORS : toutes les requêtes browser passent par localhost:4200
 
 ### 12.3 Configurations Angular
@@ -448,6 +451,8 @@ Fichier `src/Front/proxy.conf.js` : lit les variables d'environnement Aspire pou
 |----------|-------------|
 | `services__infraflowsculptor-api__http__0` | URL HTTP de l'API principale |
 | `services__infraflowsculptor-api__https__0` | URL HTTPS de l'API principale |
+| `services__bicep-generator-api__http__0` | URL HTTP de l'API Bicep Generator |
+| `services__bicep-generator-api__https__0` | URL HTTPS de l'API Bicep Generator |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | URL OTLP du dashboard Aspire (si WithOtlpExporter activé) |
 
 ---
@@ -559,7 +564,7 @@ Format : `type(scope): description courte du but principal`
 
 - `core/` for layout/shell components (navigation/footer)
 - `shared/` for reusable cross-cutting concerns (services, facades, guards, enums, interfaces)
-- `environments/` is the single source of truth for backend base URL
+- `environments/` is the single source of truth for backend base URLs (`api_url` + `bicep_api_url`)
 - Keep DTO/interface updates in sync with backend contract changes in `InfraFlowSculptor.Contracts`
 
 ### 16.3 Initialization status ([2026-03-17])
@@ -582,6 +587,7 @@ All backend request/response contracts from `InfraFlowSculptor.Contracts` are mi
 | `redis-cache.interface.ts` | `RedisCacheResponse`, `CreateRedisCacheRequest`, `UpdateRedisCacheRequest` |
 | `storage-account.interface.ts` | `StorageAccountResponse`, `BlobContainerResponse`, `StorageQueueResponse`, `StorageTableResponse`, plus all request types |
 | `role-assignment.interface.ts` | `RoleAssignmentResponse`, `AzureRoleDefinitionResponse`, `AddRoleAssignmentRequest` |
+| `bicep-generator.interface.ts` | `GenerateBicepRequest`, `GenerateBicepResponse` |
 
 Angular API services in `src/Front/src/app/shared/services/` (all `providedIn: 'root'`, use `AxiosService.request$<T>()`):
 
@@ -593,6 +599,7 @@ Angular API services in `src/Front/src/app/shared/services/` (all `providedIn: '
 | `RedisCacheService` | `/redis-cache` | `getById`, `create`, `update`, `delete` |
 | `StorageAccountService` | `/storage-accounts` | `getById`, `create`, `update`, `delete`, `addBlobContainer`, `removeBlobContainer`, `addQueue`, `removeQueue`, `addTable`, `removeTable` |
 | `RoleAssignmentService` | `/azure-resources/{id}/role-assignments` | `getByResourceId`, `getAvailableRoleDefinitions`, `add`, `remove` |
+| `BicepGeneratorService` | `${environment.bicep_api_url}/generate-bicep` | `generate` |
 
 Type mapping convention (C# → TypeScript): `Guid` → `string`, `IReadOnlyList<T>` → `T[]`, `string?` → `string | null`, `bool` → `boolean`, `int` → `number`.
 ### 16.5 Entra ID (MSAL) authentication ([2026-03-17])
@@ -686,3 +693,4 @@ La fonctionnalité Azure DevOps "Publish code as wiki" (sync auto Git → wiki) 
 | 2026-03-17 | copilot | Fixed frontend MSAL sign-in UX where popup ended on app UI: switched login action to redirect flow (`loginRedirect`) from `LoginComponent`, restored authenticated account from redirect result in `MsalAuthService`, and kept landing page on `/` in the main tab. |
 | 2026-03-19 | copilot | Added Azure documentation versioning: created `docs/azure/` folder in GitHub repo (README, architecture.md, ressources.md, securite-iam.md, conventions-nommage.md). Created ADO wiki section `/Documentation-Azure` with 4 sub-pages (Architecture-Cloud, Ressources-Managees, Securite-IAM, Conventions-Nommage) each linking back to the GitHub source file. Updated ADO wiki Home page to include the new section. Note: "Publish code as wiki" feature (auto-sync from Git to ADO wiki) requires the repo to be in Azure Repos or a GitHub service connection — manual steps described in `/Documentation-Azure` wiki page. |
 | 2026-03-19 | copilot | Cleaned post-merge `MEMORY.md` structure: harmonized section numbering (13→17 block), fixed duplicated frontend subsection index (`16.4`/`16.5`), and kept all historical entries intact. |
+| 2026-03-19 | copilot | Connected frontend to Bicep Generator API: added `bicep_api_url` in Angular environments, added `/bicep-api-proxy` in `proxy.conf.js`, injected `bicep-generator-api` reference into AppHost Angular app, and created typed frontend `BicepGeneratorService.generate()` calling `POST /generate-bicep`. |

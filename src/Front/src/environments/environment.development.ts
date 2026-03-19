@@ -4,6 +4,7 @@ export const environment : EnvironmentInterface =
   {
     production: false,
     api_url: "http://localhost:8080",
+    bicep_api_url: "http://localhost:5258",
     msalConfig: {
       clientId: '24c34231-a984-43b3-8ac3-9278ebd067ef',
       authority: 'https://login.microsoftonline.com/cc625709-6696-4cf6-a330-7baf406f6a99',
