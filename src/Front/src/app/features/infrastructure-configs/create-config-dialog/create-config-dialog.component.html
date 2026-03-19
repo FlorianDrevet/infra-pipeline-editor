@@ -1,0 +1,23 @@
+<h2 mat-dialog-title>New Configuration</h2>
+<mat-dialog-content>
+  <mat-form-field class="w-full mt-2">
+    <mat-label>Configuration name</mat-label>
+    <input
+      matInput
+      [value]="configName()"
+      (input)="configName.set($any($event.target).value)"
+      placeholder="My infrastructure config"
+      required
+    />
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-raised-button color="primary" (click)="submit()" [disabled]="!configName() || isLoading()">
+    @if (isLoading()) {
+      Creating...
+    } @else {
+      Create
+    }
+  </button>
+</mat-dialog-actions>

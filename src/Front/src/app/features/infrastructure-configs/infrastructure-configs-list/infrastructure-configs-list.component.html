@@ -1,0 +1,75 @@
+<div class="p-8">
+  <!-- Header -->
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Infrastructure Configurations</h1>
+      <p class="text-gray-500 mt-1">Manage your Azure infrastructure configurations and generate Bicep artifacts</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="openNewConfigDialog()">
+      + New Configuration
+    </button>
+  </div>
+
+  <!-- Loading state -->
+  @if (isLoading()) {
+    <div class="flex justify-center py-12">
+      <mat-spinner></mat-spinner>
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (error()) {
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">{{ error() }}</div>
+  }
+
+  <!-- Table -->
+  @if (!isLoading() && !error()) {
+    @if (configs().length === 0) {
+      <div class="text-center py-16 bg-white rounded-lg border border-gray-200">
+        <p class="text-gray-500">No configurations yet.</p>
+        <button mat-raised-button color="primary" class="mt-4" (click)="openNewConfigDialog()">
+          Create your first configuration
+        </button>
+      </div>
+    } @else {
+      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Environments</th>
+              <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Members</th>
+              <th class="px-6 py-3"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            @for (config of configs(); track config.id) {
+              <tr class="hover:bg-gray-50 cursor-pointer" (click)="viewDetail(config.id)">
+                <td class="px-6 py-4">
+                  <span class="font-medium text-gray-900">{{ config.name }}</span>
+                </td>
+                <td class="px-6 py-4 text-gray-600">
+                  {{ config.environmentDefinitions.length }}
+                  {{ config.environmentDefinitions.length !== 1 ? 'environments' : 'environment' }}
+                </td>
+                <td class="px-6 py-4 text-gray-600">
+                  {{ config.members.length }}
+                  {{ config.members.length !== 1 ? 'members' : 'member' }}
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <button
+                    mat-icon-button
+                    (click)="$event.stopPropagation(); viewDetail(config.id)"
+                    title="View details"
+                  >
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
