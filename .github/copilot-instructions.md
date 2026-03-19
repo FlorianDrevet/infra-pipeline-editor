@@ -7,6 +7,11 @@
 - Run the full local stack with Aspire via `dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj`.
 - Run the infrastructure configuration API only with `dotnet run --project .\src\Api\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj`.
 - Run the Bicep generator API only with `dotnet run --project .\src\BicepGenerators\BicepGenerator.Api\BicepGenerator.Api.csproj`.
+- Frontend Angular commands run from `src\Front`:
+  - `npm install`
+  - `npm run start`
+  - `npm run build`
+  - `npm run typecheck`
 - The repository is also used as a `dotnet new` template source: `dotnet new install .` then `dotnet new templatewebcqrs -o ProjectName`.
 - No test projects are currently present in the repository, so there is no supported full-suite or single-test command yet.
 - No repository-specific lint or formatting command is defined in the checked-in files.
@@ -21,6 +26,7 @@
   - `InfraFlowSculptor.Infrastructure`: EF Core persistence, repository implementations, auth services, Azure integrations, and the Refit client used to call the Bicep generator API.
   - `InfraFlowSculptor.Contracts`: request/response DTOs grouped by feature.
 - `src\BicepGenerators` mirrors the same layered split for the API that generates Bicep output and stores artifacts.
+- `src\Front` contains the Angular frontend (standalone components, Angular Material, Tailwind, Axios services, auth facade/guards).
 - `src\Shared` holds reusable cross-cutting pieces used by both APIs: base DDD model types, shared application abstractions, shared API middleware/options, and persistence converters/repository helpers.
 - The main request flow is: Minimal API endpoint in `Api\Controllers` -> Mapster/request mapping -> MediatR command/query in `Application` -> handler/repository/service calls -> domain model changes or reads -> EF Core persistence -> Mapster/typed response DTO back to HTTP.
 
@@ -39,10 +45,15 @@
 - Validation is implemented with FluentValidation and enforced through the MediatR `ValidationBehavior`.
 - Authentication uses Microsoft Entra ID / JWT bearer auth. The API projects set a fallback authenticated policy, expose an `IsAdmin` policy, and use `ICurrentUser`/`CurrentUser` for user context access.
 - The GitHub prompt and agent files describe the product goal as storing infrastructure configuration in one API and generating Azure Bicep and Azure DevOps pipeline output in the second API. Keep that split in mind when deciding which project should own new behavior.
+- Frontend conventions:
+  - Keep feature code under `src\Front\src\app` with clear split between `core` and `shared`.
+  - Keep API endpoint URLs centralized through `src\Front\src\environments\environment*.ts` and consumed via shared HTTP services (currently Axios).
+  - Prefer standalone components and route-level lazy loading for new screens.
+  - Keep backend contracts aligned: if API request/response contracts change, update frontend DTO usage and mapping logic in the same change.
 
 ## Pull Request conventions
 
-Every PR created by a Copilot agent **must** follow these rules. Full details are in `.github/agents/pr-conventions.agent.md`.
+Every PR created by a Copilot agent **must** follow these rules. Full details are in `.github/agents/pr-manager.agent.md`.
 
 ### PR title format
 

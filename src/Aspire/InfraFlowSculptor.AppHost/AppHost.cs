@@ -16,18 +16,27 @@ var postgres = builder.AddPostgres("postgres")
 
 var database = postgres.AddDatabase("infraDb");
 
-builder.AddProject<BicepGenerator_Api>("bicep-generator-api")
+var bicepApi = builder.AddProject<BicepGenerator_Api>("bicep-generator-api")
     .WithExternalHttpEndpoints()
     .WithReference(database)
     .WaitFor(database)
     .WithReference(blobs)
     .WaitFor(blobs);
 
-builder.AddProject<InfraFlowSculptor_Api>("infraflowsculptor-api")
+var infraApi = builder.AddProject<InfraFlowSculptor_Api>("infraflowsculptor-api")
     .WithExternalHttpEndpoints()
     .WithReference(database)
     .WaitFor(database)
     .WithReference(blobs)
     .WaitFor(blobs);
+
+builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
+    .WithNpm()
+    .WithReference(infraApi)
+    .WaitFor(infraApi)
+    .WithReference(bicepApi)
+    .WaitFor(bicepApi)
+    .WithHttpEndpoint(targetPort: 4200, env: "NG_PORT")
+    .WithExternalHttpEndpoints();
 
 await builder.Build().RunAsync();

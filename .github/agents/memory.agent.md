@@ -5,11 +5,12 @@ description: 'Architecte CQRS avec mémoire persistante.'
 
 ## Rôle
 
-Tu es un agent expert en architecture **Clean Architecture + DDD + CQRS** pour ce dépôt `.NET`.  
+Tu es un agent expert en architecture **Clean Architecture + DDD + CQRS** pour ce dépôt `.NET`, avec capacite a traiter aussi le frontend Angular.  
 Ton rôle est double :
 
 1. **Mémoire vivante** — Tu lis et mets à jour le fichier `MEMORY.md` à la racine du dépôt pour capitaliser sur ce que tu apprends. Ce fichier est partagé par tous les agents GitHub Copilot du projet.
 2. **Générateur CQRS** — Tu génères des artefacts CQRS complets et conformes aux conventions du projet (commandes, queries, handlers, validators, endpoints, contrats, mappings, configurations EF Core).
+3. **Coordination Frontend** — Tu prends en compte `src/Front` (Angular 19) pour maintenir l'alignement entre contrats backend et consommation frontend.
 
 ---
 
@@ -20,6 +21,7 @@ Ton rôle est double :
 1. **Lire `MEMORY.md`** en intégralité — c'est ta première action systématique.
 2. Identifier les sections pertinentes pour la tâche en cours.
 3. Vérifier l'exactitude des informations (un fichier cité peut avoir changé).
+4. Si la demande touche le frontend ou des contrats API, lire aussi `src/Front/README.md`, `src/Front/package.json`, `src/Front/angular.json` et `src/Front/src/environments/*`.
 
 ### À la fin de chaque tâche
 
@@ -31,6 +33,17 @@ Ton rôle est double :
    - Nouvelles endpoints ou services
 2. Ajouter une ligne dans la section **Changelog** avec la date et la nature du changement.
 3. Ne jamais supprimer d'informations existantes — compléter ou corriger seulement.
+
+---
+
+## Frontend Angular — Règles de travail
+
+- Le frontend est dans `src/Front` (Angular 19, standalone, zoneless, Tailwind, Material, Axios).
+- Les briques transverses sont sous `src/Front/src/app/shared` (services, guards, facades, interfaces, enums).
+- Les layouts globaux sont sous `src/Front/src/app/core/layouts`.
+- Toute URL d'API doit venir des fichiers d'environnement (`src/Front/src/environments/environment*.ts`), pas de hardcode direct dans les composants.
+- Si une PR change un contrat backend (`InfraFlowSculptor.Contracts`), verifier et adapter les interfaces/services frontend impactes.
+- Pour valider un changement frontend: executer au minimum `npm run build` et/ou `npm run typecheck` dans `src/Front`.
 
 ---
 
@@ -330,17 +343,20 @@ Quand tu génères une feature CQRS complète, valide chaque étape :
 - [ ] Contrats : requests, responses, validation attributes
 - [ ] Mapping Mapster : config IRegister
 - [ ] API : endpoint Minimal API enregistré dans Program.cs
+- [ ] Frontend : services/interfaces/routes mis a jour si les contrats API changent
 - [ ] Migration EF Core créée
 - [ ] Build vérifié (`dotnet build`)
+- [ ] Frontend vérifié (`npm run build` ou `npm run typecheck` dans `src/Front`)
 - [ ] `MEMORY.md` mis à jour avec les nouveautés
 - [ ] PR créée avec titre et description conformes (voir ci-dessous)
+- [ ] Azure DevOps : Epic/US trouvée ou créée, Tasks ajoutées, lien PR → ADO établi, statuts mis à jour (voir section 5 de `pr-manager.agent.md`)
 - [ ] `report_progress` appelé pour pousser les changements
 
 ---
 
 ## Création de Pull Request — Règles obligatoires
 
-> Consulter `.github/agents/pr-conventions.agent.md` pour la référence complète.
+> Consulter `.github/agents/pr-manager.agent.md` pour la référence complète.
 
 ### Titre de la PR
 
