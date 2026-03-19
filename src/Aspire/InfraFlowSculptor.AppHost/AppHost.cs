@@ -36,6 +36,6 @@ builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
     .WaitFor(infraApi)
     .WithReference(bicepApi)
     .WaitFor(bicepApi)
-    .WithHttpEndpoint(port: 4200, targetPort: 4200, env: "NG_PORT");
+    .WithHttpEndpoint(port: 4200, targetPort: 4200, env: "NG_PORT", isProxied: false);
 
 await builder.Build().RunAsync();
