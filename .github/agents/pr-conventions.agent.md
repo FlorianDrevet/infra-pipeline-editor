@@ -241,40 +241,46 @@ outil : mcp_microsoft_azu_wit_add_child_work_items
 
 ---
 
-### 5.5 Étape 4 — Lier les work items à la PR GitHub
+### 5.5 Étape 4 — Lier les work items à la PR GitHub via `AB#`
 
-Utiliser **`mcp_microsoft_azu_wit_add_artifact_link`** pour lier l'US et l'Epic à la PR GitHub.
+> **Méthode officielle Microsoft** (source : [Link GitHub to Azure Boards](https://learn.microsoft.com/en-us/azure/devops/boards/github/link-to-from-github?view=azure-devops))  
+> La syntaxe `AB#ID` dans la **description** de la PR GitHub crée automatiquement un lien bidirectionnel visible dans la section "Development" du work item ADO.  
+> **Prérequis :** le repo GitHub doit être connecté au projet ADO via l'[Azure Boards GitHub App](https://github.com/apps/azure-boards).
 
-> Prérequis : récupérer d'abord le `projectId` (GUID) et le `repositoryId` (GUID) via `mcp_microsoft_azu_repo_get_repo_by_name_or_id` avec `repositoryName: "infra-pipeline-editor"`.
+#### Syntaxe `AB#` à placer dans la description de la PR GitHub
 
-**Lier l'US à la PR :**
+| Syntaxe | Effet |
+|---------|-------|
+| `AB#65` | Lie la PR au work item #65 sans changer son état |
+| `Fixed AB#65` | Lie + transitions l'US vers l'état `Resolved` quand la PR est mergée dans `main` |
+| `Closed AB#65` | Lie + transitions l'US vers l'état `Closed` quand la PR est mergée dans `main` |
+| `Fixed AB#65, Fixed AB#64` | Lie et transite les deux items |
+| `Fixes AB#65, AB#66, AB#67` | Lie et transite uniquement le premier (#65) |
+
+> **Important :** `AB#` ne fonctionne que dans la **description** (body) de la PR — pas dans le titre ni dans les commentaires.
+
+#### Ce que doit contenir la section "Issues / tickets liés" de la PR
+
 ```
-outil : mcp_microsoft_azu_wit_add_artifact_link
-  workItemId    : <ID_US>
-  project       : "Infra Flow Sculptor"
-  linkType      : "Pull Request"
-  pullRequestId : <N° de la PR GitHub>
-  projectId     : "<GUID du projet ADO>"
-  repositoryId  : "<GUID du repo GitHub dans ADO>"
-```
-
-**Lier l'Epic à la PR (même appel, workItemId différent) :**
-```
-outil : mcp_microsoft_azu_wit_add_artifact_link
-  workItemId    : <ID_EPIC>
-  project       : "Infra Flow Sculptor"
-  linkType      : "Pull Request"
-  pullRequestId : <N° de la PR GitHub>
-  projectId     : "<GUID du projet ADO>"
-  repositoryId  : "<GUID du repo GitHub dans ADO>"
+Fixes AB#<ID_US>
+AB#<ID_EPIC>
 ```
 
-#### Mentionner les items dans la description de la PR GitHub
+- `Fixes AB#<ID_US>` : lie l'US **et** la fait passer en `Resolved` à la fusion vers `main`
+- `AB#<ID_EPIC>` : lie l'Epic sans transition automatique d'état (la transition de l'Epic reste manuelle)
 
-Dans la section "Issues / tickets liés" de la PR, ajouter :
+#### Construire la description de la PR avec `mcp_io_github_git_update_pull_request`
+
+Lors de la création ou mise à jour de la PR, injecter `Fixes AB#<ID_US>` et `AB#<ID_EPIC>` dans la section "Issues / tickets liés" du corps de la PR :
+
 ```
-ADO Epic #<ID_EPIC> : <Titre Epic>
-ADO User Story #<ID_US> : <Titre US>
+outil : mcp_io_github_git_update_pull_request (ou create_pull_request)
+  body : "...
+## 🔗 Issues / tickets liés
+
+Fixes AB#<ID_US>
+AB#<ID_EPIC>
+  ..."
 ```
 
 ---
@@ -327,11 +333,14 @@ outil : mcp_microsoft_azu_wit_update_work_items_batch
 
 3. mcp_microsoft_azu_wit_add_child_work_items → créer toutes les Tasks sur l'US
 
-4. mcp_microsoft_azu_wit_add_artifact_link → lier US et Epic à la PR GitHub
+4. Injecter `Fixes AB#<ID_US>` et `AB#<ID_EPIC>` dans la description de la PR GitHub
+   via mcp_io_github_git_create_pull_request ou mcp_io_github_git_update_pull_request
+   → crée le lien bidirectionnel officiel dans la section "Development" d'ADO
+   → `Fixes` déclenche la transition vers Resolved à la fusion dans main
 
 5. mcp_microsoft_azu_wit_update_work_item (ou _batch) → mettre à jour les statuts
 
-6. Ajouter les références ADO dans la section "Issues / tickets liés" de la PR
+6. Vérifier que la section "Issues / tickets liés" de la PR contient `Fixes AB#<ID_US>` et `AB#<ID_EPIC>`
 ```
 
 ---
@@ -344,8 +353,9 @@ outil : mcp_microsoft_azu_wit_update_work_items_batch
 | `mcp_microsoft_azu_wit_create_work_item` | Créer une Epic ou une US |
 | `mcp_microsoft_azu_wit_add_child_work_items` | Créer toutes les Tasks en batch sous une US |
 | `mcp_microsoft_azu_wit_work_items_link` | Lier l'US à l'Epic (relation enfant/parent) |
-| `mcp_microsoft_azu_wit_add_artifact_link` | Lier un work item à la PR GitHub |
+| `mcp_io_github_git_create_pull_request` ou `mcp_io_github_git_update_pull_request` | Créer/mettre à jour la PR GitHub avec `Fixes AB#<ID>` dans la description |
 | `mcp_microsoft_azu_wit_update_work_item` | Mettre à jour l'état d'un item unique |
 | `mcp_microsoft_azu_wit_update_work_items_batch` | Mettre à jour l'état de plusieurs items |
-| `mcp_microsoft_azu_repo_get_repo_by_name_or_id` | Récupérer le GUID du repo (requis pour artifact link) |
+
+> **Note :** `mcp_microsoft_azu_wit_add_artifact_link` n'est **pas** utilisé pour les repos GitHub — la syntaxe `AB#` dans la description de la PR est la méthode officielle et bidirectionnelle.
 
