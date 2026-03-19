@@ -667,6 +667,14 @@ La fonctionnalité Azure DevOps "Publish code as wiki" (sync auto Git → wiki) 
 
 ---
 
+## 19. Agent custom merge-main ([2026-03-19])
+
+- Fichier: `.github/agents/merge-main.agent.md`
+- Responsabilite: fusionner `origin/main` sur la branche courante, resoudre les conflits en s'appuyant sur `MEMORY.md`, puis ajouter les adaptations necessaires quand des nouveautes de `main` impactent la branche courante sans conflit Git explicite.
+- Protocole impose: lecture complete de `MEMORY.md` au demarrage, verification de branche/etat local, `git fetch origin main --prune`, merge, resolution semantique des conflits, verification build/typecheck selon perimetre, mise a jour de `MEMORY.md` en fin d'execution.
+
+---
+
 ## 16. Changelog
 ## 17. Changelog
 
@@ -694,3 +702,4 @@ La fonctionnalité Azure DevOps "Publish code as wiki" (sync auto Git → wiki) 
 | 2026-03-19 | copilot | Added Azure documentation versioning: created `docs/azure/` folder in GitHub repo (README, architecture.md, ressources.md, securite-iam.md, conventions-nommage.md). Created ADO wiki section `/Documentation-Azure` with 4 sub-pages (Architecture-Cloud, Ressources-Managees, Securite-IAM, Conventions-Nommage) each linking back to the GitHub source file. Updated ADO wiki Home page to include the new section. Note: "Publish code as wiki" feature (auto-sync from Git to ADO wiki) requires the repo to be in Azure Repos or a GitHub service connection — manual steps described in `/Documentation-Azure` wiki page. |
 | 2026-03-19 | copilot | Cleaned post-merge `MEMORY.md` structure: harmonized section numbering (13→17 block), fixed duplicated frontend subsection index (`16.4`/`16.5`), and kept all historical entries intact. |
 | 2026-03-19 | copilot | Connected frontend to Bicep Generator API: added `bicep_api_url` in Angular environments, added `/bicep-api-proxy` in `proxy.conf.js`, injected `bicep-generator-api` reference into AppHost Angular app, and created typed frontend `BicepGeneratorService.generate()` calling `POST /generate-bicep`. |
+| 2026-03-19 | copilot | Added custom agent `.github/agents/merge-main.agent.md` to automate merge from `main` into current branch with conflict resolution guided by `MEMORY.md`, plus post-merge adaptations when new features from `main` require extra updates on the current branch. |
