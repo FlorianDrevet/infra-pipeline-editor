@@ -452,7 +452,7 @@ Fichier `src/Front/proxy.conf.js` : lit les variables d'environnement Aspire pou
 
 ---
 
-## 17. OpenTelemetry Frontend ([2026-03-18])
+## 13. OpenTelemetry Frontend ([2026-03-18])
 
 ### Packages installés
 
@@ -502,7 +502,7 @@ Ajouter dans `angular.json` → `build.options` :
 
 ---
 
-## 13. BicepGenerator Service
+## 14. BicepGenerator Service
 
 - Separate ASP.NET Core API at `src/BicepGenerators/`
 - Called from main API via Refit client (`IBicepGeneratorClient`)
@@ -513,7 +513,7 @@ Ajouter dans `angular.json` → `build.options` :
 
 ---
 
-## 14. Pull Request Conventions
+## 15. Pull Request Conventions
 
 ### Titre obligatoire
 
@@ -545,9 +545,9 @@ Format : `type(scope): description courte du but principal`
 
 ---
 
-## 15. Frontend (Angular)
+## 16. Frontend (Angular)
 
-### 15.1 Current frontend baseline
+### 16.1 Current frontend baseline
 
 - Angular 19 standalone app in `src/Front`
 - Zoneless change detection enabled in `src/Front/src/app/app.config.ts`
@@ -555,14 +555,14 @@ Format : `type(scope): description courte du but principal`
 - Shared HTTP client uses Axios (`src/Front/src/app/shared/services/axios.service.ts`)
 - JWT auth and cookie persistence handled by `AuthenticationService`
 
-### 15.2 Frontend structure conventions
+### 16.2 Frontend structure conventions
 
 - `core/` for layout/shell components (navigation/footer)
 - `shared/` for reusable cross-cutting concerns (services, facades, guards, enums, interfaces)
 - `environments/` is the single source of truth for backend base URL
 - Keep DTO/interface updates in sync with backend contract changes in `InfraFlowSculptor.Contracts`
 
-### 15.3 Initialization status ([2026-03-17])
+### 16.3 Initialization status ([2026-03-17])
 
 - Template app name replaced with `infra-flow-sculptor-front` in `src/Front/package.json`
 - Angular project key renamed from `template_angular` to `infra_flow_sculptor_front` in `src/Front/angular.json`
@@ -570,7 +570,32 @@ Format : `type(scope): description courte du but principal`
 - Root app title initialized to `InfraFlowSculptor` in `src/Front/src/app/app.component.ts`
 - Front README rewritten to include stack, commands, environment config, and structure
 
-### 15.4 Entra ID (MSAL) authentication ([2026-03-17])
+### 16.4 Backend contracts and API clients ([2026-03-17])
+
+All backend request/response contracts from `InfraFlowSculptor.Contracts` are mirrored as TypeScript interfaces in `src/Front/src/app/shared/interfaces/`:
+
+| File | Contents |
+|------|----------|
+| `infra-config.interface.ts` | `InfrastructureConfigResponse`, `MemberResponse`, `EnvironmentDefinitionResponse`, `ResourceNamingTemplateResponse`, `TagResponse`, plus all request types |
+| `resource-group.interface.ts` | `ResourceGroupResponse`, `AzureResourceResponse`, `CreateResourceGroupRequest` |
+| `key-vault.interface.ts` | `KeyVaultResponse`, `CreateKeyVaultRequest`, `UpdateKeyVaultRequest` |
+| `redis-cache.interface.ts` | `RedisCacheResponse`, `CreateRedisCacheRequest`, `UpdateRedisCacheRequest` |
+| `storage-account.interface.ts` | `StorageAccountResponse`, `BlobContainerResponse`, `StorageQueueResponse`, `StorageTableResponse`, plus all request types |
+| `role-assignment.interface.ts` | `RoleAssignmentResponse`, `AzureRoleDefinitionResponse`, `AddRoleAssignmentRequest` |
+
+Angular API services in `src/Front/src/app/shared/services/` (all `providedIn: 'root'`, use `AxiosService.request$<T>()`):
+
+| Service | API prefix | Key methods |
+|---------|-----------|-------------|
+| `InfraConfigService` | `/infra-config` | `getAll`, `getById`, `getResourceGroups`, `create`, `addMember`, `updateMemberRole`, `removeMember`, `addEnvironment`, `updateEnvironment`, `removeEnvironment`, `setDefaultNamingTemplate`, `setResourceNamingTemplate`, `removeResourceNamingTemplate` |
+| `ResourceGroupService` | `/resource-group` | `getById`, `getResources`, `create` |
+| `KeyVaultService` | `/keyvault` | `getById`, `create`, `update`, `delete` |
+| `RedisCacheService` | `/redis-cache` | `getById`, `create`, `update`, `delete` |
+| `StorageAccountService` | `/storage-accounts` | `getById`, `create`, `update`, `delete`, `addBlobContainer`, `removeBlobContainer`, `addQueue`, `removeQueue`, `addTable`, `removeTable` |
+| `RoleAssignmentService` | `/azure-resources/{id}/role-assignments` | `getByResourceId`, `getAvailableRoleDefinitions`, `add`, `remove` |
+
+Type mapping convention (C# → TypeScript): `Guid` → `string`, `IReadOnlyList<T>` → `T[]`, `string?` → `string | null`, `bool` → `boolean`, `int` → `number`.
+### 16.5 Entra ID (MSAL) authentication ([2026-03-17])
 
 #### Package
 - `@azure/msal-browser@^5` installed as npm dependency (no `@azure/msal-angular` needed — HTTP layer is Axios-based)
@@ -612,7 +637,7 @@ For clientId `24c34231-a984-43b3-8ac3-9278ebd067ef`:
 
 ---
 
-## 16. Changelog
+## 17. Changelog
 
 | Date | Author | Change |
 |------|--------|--------|
@@ -629,7 +654,9 @@ For clientId `24c34231-a984-43b3-8ac3-9278ebd067ef`:
 | 2026-03-17 | copilot | Explored and initialized Angular frontend template (`src/Front`): renamed package/project identifiers, set application title, updated frontend README, and documented frontend architecture/conventions in memory and `.github` agent instructions. |
 | 2026-03-17 | copilot | Fixed startup crash `42P07: relation "InfrastructureConfigs" already exists`: migration `20260317163342_StorageAccount` was generated from a corrupted/empty EF Core snapshot, causing it to recreate all tables from scratch. Fixed by replacing the `Up()`/`Down()` bodies with empty methods and regenerating `Designer.cs` from the correct `ProjectDbContextModelSnapshot.cs`. All tables already existed in the DB; only the snapshot was out of sync. **Pattern to watch:** if a new migration contains `CREATE TABLE` for tables that should already exist, the snapshot was corrupted — fix with empty `Up()`/`Down()` + regenerated `Designer.cs`. |
 | 2026-03-17 | copilot | Added Azure Storage Account Bicep generation: `StorageAccountTypeBicepGenerator` now uses all properties (`sku`, `kind`, `accessTier`, `allowBlobPublicAccess`, `supportsHttpsTrafficOnly`, `minimumTlsVersion`) from `resource.Properties`. Added `StorageAccount` case in `InfrastructureConfigReadRepository.MapResource()` with `MapStorageTlsVersion()` helper mapping Tls10/11/12 → TLS1_0/TLS1_1/TLS1_2. Azure Bicep property name is `supportsHttpsTrafficOnly` (not `enableHttpsTrafficOnly`). |
+| 2026-03-17 | copilot | Added all backend contracts as TypeScript interfaces and Angular API services in `src/Front/src/app/shared/`. Interfaces in `interfaces/` folder (infra-config, resource-group, key-vault, redis-cache, storage-account, role-assignment). Services in `services/` folder (InfraConfigService, ResourceGroupService, KeyVaultService, RedisCacheService, StorageAccountService, RoleAssignmentService) — all `providedIn: 'root'`, using `AxiosService.request$<T>()`. |
 | 2026-03-17 | copilot | Added Microsoft Entra ID (MSAL) authentication to Angular frontend: installed `@azure/msal-browser@^5`, created `MsalAuthService` + `msal.config.ts`, added `MsalConfigInterface` to `EnvironmentInterface`, created split-panel login page under `src/app/features/login/`, updated `AuthenticationService` to support Azure AD `roles[]` claim, added lazy `/login` route, hid nav/footer on login page. App registration `24c34231-a984-43b3-8ac3-9278ebd067ef` requires: SPA platform, redirect URIs `http://localhost:4200` + prod URL, Graph `openid`/`profile`/`email` permissions, implicit grant unchecked. |
+| 2026-03-17 | copilot | Fixed frontend MSAL sign-in UX where popup ended on app UI: switched login action to redirect flow (`loginRedirect`) from `LoginComponent`, restored authenticated account from redirect result in `MsalAuthService`, and kept landing page on `/` in the main tab. |
 | 2026-03-18 | copilot | Integrated Angular frontend into Aspire: `AddJavaScriptApp` + `.WithNpm()` (Aspire 13.x API), `start:aspire` npm script, `environment.aspire.ts` with `/api-proxy` base URL, `proxy.conf.js` relaying `/api-proxy/*` → backend and `/otlp/*` → Aspire Dashboard, `TelemetryService` with OTel Web SDK v1.x (fetch instrumentation + OTLP export), `APP_INITIALIZER` in `app.config.ts` conditional on `otlpEnabled`, fixed `apiScopes` missing from `MsalConfigInterface`, added `allowedCommonJsDependencies` for protobufjs. |
 | 2026-03-18 | copilot | Validated Aspire MCP runtime inspection flow: use `list apphosts` + `list resources` + `list structured logs`/`list console logs` to quickly confirm stack health and retrieve latest startup events (EF migrations, listening URLs, Angular proxy targets). |
-| 2026-03-17 | copilot | Fixed frontend MSAL sign-in UX where popup ended on app UI: switched login action to redirect flow (`loginRedirect`) from `LoginComponent`, restored authenticated account from redirect result in `MsalAuthService`, and kept landing page on `/` in the main tab. |
+| 2026-03-19 | copilot | Cleaned post-merge `MEMORY.md` structure: harmonized section numbering (13→17 block), fixed duplicated frontend subsection index (`16.4`/`16.5`), and kept all historical entries intact. |
