@@ -58,36 +58,50 @@ export class AddEnvironmentDialogComponent {
     .filter((e) => e.id !== this.data.existing?.id)
     .sort((a, b) => a.order - b.order);
 
-  /** Order bounds: in create mode min = 0, max = count; in edit mode same logic excluding self. */
-  protected readonly minOrder = 0;
-  protected readonly maxOrder = this.otherEnvironments.length;
+  /** Order bounds use a 1-based position range and include the final slot after the last environment. */
+  protected readonly minOrder = 1;
+  protected readonly maxOrder = this.otherEnvironments.length + 1;
 
-  /** Reactive signal tracking the current order value from the form. */
-  protected readonly currentOrder = signal(this.data.existing?.order ?? this.otherEnvironments.length);
+  /**
+   * Convert the existing backend order into a 1-based position among other environments.
+   * Position = how many other envs come before + 1.
+   */
+  private computeInitialPosition(): number {
+    if (!this.data.existing) return this.maxOrder;
+    const existingOrder = this.data.existing.order;
+    return this.otherEnvironments.filter((e) => e.order < existingOrder).length + 1;
+  }
+
+  /** The initial position (used to detect "no actual move" on submit). */
+  private readonly initialPosition = this.computeInitialPosition();
+
+  /** Reactive signal tracking the current 1-based position. */
+  protected readonly currentOrder = signal(this.initialPosition);
+
+  /** Reactive signal tracking the name typed in the form. */
+  protected readonly currentName = signal(this.data.existing?.name ?? '');
 
   /** Computed timeline that inserts the current environment at the right position among others. */
   protected readonly timelineItems = computed(() => {
-    const order = this.currentOrder();
-    const currentName = this.data.existing?.name ?? '?';
+    const position = this.currentOrder(); // 1-based
+    const currentName = this.currentName() || '?';
+    const insertIdx = position - 1; // 0-based index
 
-    // Build sorted list of other envs as timeline items
-    const others: { name: string; order: number; isCurrent: boolean }[] = this.otherEnvironments.map((e) => ({
-      name: e.name,
-      order: e.order,
-      isCurrent: false,
-    }));
+    const items: { name: string; isCurrent: boolean }[] = [];
 
-    // Insert the current env at the position indicated by the order value
-    const insertIdx = others.findIndex((item) => item.order >= order);
-    const current = { name: currentName, order, isCurrent: true };
-
-    if (insertIdx === -1) {
-      others.push(current);
-    } else {
-      others.splice(insertIdx, 0, current);
+    for (let i = 0; i < this.otherEnvironments.length; i++) {
+      if (i === insertIdx) {
+        items.push({ name: currentName, isCurrent: true });
+      }
+      items.push({ name: this.otherEnvironments[i].name, isCurrent: false });
     }
 
-    return others;
+    // If position is after all others, append at the end
+    if (insertIdx >= this.otherEnvironments.length) {
+      items.push({ name: currentName, isCurrent: true });
+    }
+
+    return items;
   });
 
   protected readonly form = this.fb.group({
@@ -100,12 +114,56 @@ export class AddEnvironmentDialogComponent {
     requiresApproval: [this.data.existing?.requiresApproval ?? false],
   });
 
+  private readonly _syncName = this.form.controls.name.valueChanges.subscribe((v) => this.currentName.set(v ?? ''));
+
   /** Move the current environment position by the given delta (-1 = left, +1 = right). */
   protected moveOrder(delta: number): void {
     const next = this.currentOrder() + delta;
     if (next >= this.minOrder && next <= this.maxOrder) {
       this.currentOrder.set(next);
     }
+  }
+
+  /**
+   * Convert the visual position (1-based) back to a backend order value
+   * that will produce the correct result when processed by the domain's
+   * ShiftOrdersUp (add) / ReorderEnvironments (update) logic.
+   *
+   * Key insight: the backend ReorderEnvironments works by shifting a range:
+   *   - Moving left  (newOrder < oldOrder): shifts [newOrder, oldOrder) UP by 1
+   *   - Moving right (newOrder > oldOrder): shifts (oldOrder, newOrder] DOWN by 1
+   *
+   * So for "move left"  we send the order of the env AT the target slot (others[pos-1]).
+   * For "move right" we send the order of the env we JUMP OVER   (others[pos-2]).
+   */
+  private computeTargetOrder(): number {
+    const position = this.currentOrder();
+    const others = this.otherEnvironments;
+
+    // No move in edit mode → keep original order unchanged
+    if (this.isEditMode && position === this.initialPosition) {
+      return this.data.existing!.order;
+    }
+
+    // Create mode: send the order of the env at the target slot; ShiftOrdersUp makes room
+    if (!this.isEditMode) {
+      if (position <= others.length) {
+        return others[position - 1].order;
+      }
+      return others.length === 0 ? 1 : others[others.length - 1].order + 1;
+    }
+
+    // Edit mode — direction matters
+    const movingRight = position > this.initialPosition;
+
+    if (movingRight) {
+      // Send the order of the env just before the target slot (the one we jump over)
+      const idx = position - 2;
+      return idx < others.length ? others[idx].order : others[others.length - 1].order;
+    }
+
+    // Moving left: send the order of the env at the target slot
+    return others[position - 1].order;
   }
 
   protected onCancel(): void {
@@ -126,7 +184,7 @@ export class AddEnvironmentDialogComponent {
       subscriptionId: values.subscriptionId!,
       prefix: values.prefix || undefined,
       suffix: values.suffix || undefined,
-      order: this.currentOrder(),
+      order: this.computeTargetOrder(),
       requiresApproval: values.requiresApproval ?? false,
     };
 

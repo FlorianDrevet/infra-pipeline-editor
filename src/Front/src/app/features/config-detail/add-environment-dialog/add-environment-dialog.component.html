@@ -50,7 +50,7 @@
 
       @if (timelineItems().length > 0) {
         <div class="order-timeline" role="list" [attr.aria-label]="'CONFIG_DETAIL.ENVIRONMENTS.FORM.TIMELINE_ARIA' | translate">
-          @for (item of timelineItems(); track item.name + item.order; let i = $index; let last = $last) {
+          @for (item of timelineItems(); track $index; let i = $index; let last = $last) {
             <div class="timeline-step" [class.timeline-step--current]="item.isCurrent" role="listitem">
               <div class="timeline-step__dot"></div>
               <span class="timeline-step__label">{{ item.name }}</span>
