@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthenticationService } from '../../../shared/services/authentication.service';
 import { AppLanguage, LanguageService } from '../../../shared/services/language.service';
@@ -8,7 +9,7 @@ import { MsalAuthService } from '../../../shared/services/msal-auth.service';
 @Component({
   selector: 'app-navigation',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, TranslateModule],
+  imports: [RouterLink, RouterLinkActive, MatIconModule, TranslateModule],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss',
 })
