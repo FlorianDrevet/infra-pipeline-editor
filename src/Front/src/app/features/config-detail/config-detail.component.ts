@@ -14,14 +14,16 @@ import {
   MemberResponse,
   UserResponse,
 } from '../../shared/interfaces/infra-config.interface';
-import { ResourceGroupResponse } from '../../shared/interfaces/resource-group.interface';
+import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AddMemberDialogComponent, AddMemberDialogData } from './add-member-dialog/add-member-dialog.component';
 import { AddEnvironmentDialogComponent, AddEnvironmentDialogData } from './add-environment-dialog/add-environment-dialog.component';
 import { AddResourceGroupDialogComponent, AddResourceGroupDialogData } from './add-resource-group-dialog/add-resource-group-dialog.component';
+import { AddResourceDialogComponent, AddResourceDialogData } from './add-resource-dialog/add-resource-dialog.component';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
+import { RESOURCE_TYPE_ICONS } from './enums/resource-type.enum';
 import { EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
@@ -63,6 +65,10 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly envActionId = signal<string | null>(null);
   protected readonly envErrorKey = signal('');
   protected readonly rgErrorKey = signal('');
+  protected readonly expandedRgId = signal<string | null>(null);
+  protected readonly rgResources = signal<{ [rgId: string]: AzureResourceResponse[] | undefined }>({});
+  protected readonly rgResourcesLoading = signal<string | null>(null);
+  protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
   protected readonly roles = ROLES;
 
   protected readonly membersByRole = computed(() => {
@@ -224,6 +230,46 @@ export class ConfigDetailComponent implements OnInit {
         } catch {
           this.rgErrorKey.set('CONFIG_DETAIL.RESOURCE_GROUPS.REFRESH_ERROR');
         }
+      }
+    });
+  }
+
+  protected async toggleRgExpand(rgId: string): Promise<void> {
+    if (this.expandedRgId() === rgId) {
+      this.expandedRgId.set(null);
+      return;
+    }
+    this.expandedRgId.set(rgId);
+    await this.loadRgResources(rgId);
+  }
+
+  private async loadRgResources(rgId: string): Promise<void> {
+    if (this.rgResources()[rgId]) return;
+    this.rgResourcesLoading.set(rgId);
+    try {
+      const resources = await this.resourceGroupService.getResources(rgId);
+      this.rgResources.update((prev) => ({ ...prev, [rgId]: resources }));
+    } catch {
+      this.rgResources.update((prev) => ({ ...prev, [rgId]: [] }));
+    } finally {
+      this.rgResourcesLoading.set(null);
+    }
+  }
+
+  protected openAddResourceDialog(rgId: string): void {
+    const dialogRef = this.dialog.open(AddResourceDialogComponent, {
+      data: { resourceGroupId: rgId } satisfies AddResourceDialogData,
+      width: '560px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (created: boolean) => {
+      if (created) {
+        this.rgResources.update((prev) => {
+          const updated = { ...prev };
+          delete updated[rgId];
+          return updated;
+        });
+        await this.loadRgResources(rgId);
       }
     });
   }

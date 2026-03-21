@@ -47,16 +47,60 @@
           }
 
           @if (resourceGroups().length > 0) {
-            <div class="rg-grid">
+            <div class="rg-list">
               @for (rg of resourceGroups(); track rg.id) {
-                <article class="rg-card">
-                  <div class="rg-card__info">
-                    <strong>{{ rg.name }}</strong>
-                    <span class="rg-card__location">
-                      <mat-icon>location_on</mat-icon>
-                      {{ rg.location }}
+                <article class="rg-accordion" [class.rg-accordion--expanded]="expandedRgId() === rg.id">
+                  <button class="rg-accordion__header" (click)="toggleRgExpand(rg.id)">
+                    <mat-icon class="rg-accordion__chevron">expand_more</mat-icon>
+                    <div class="rg-accordion__info">
+                      <strong>{{ rg.name }}</strong>
+                      <span class="rg-accordion__location">
+                        <mat-icon>location_on</mat-icon>
+                        {{ rg.location }}
+                      </span>
+                    </div>
+                    <span class="rg-accordion__count">
+                      {{ rgResources()[rg.id]?.length ?? '…' }}
                     </span>
-                  </div>
+                  </button>
+                  @if (expandedRgId() === rg.id) {
+                    <div class="rg-accordion__body">
+                      @if (rgResourcesLoading() === rg.id) {
+                        <div class="rg-resources-loading">
+                          <mat-spinner diameter="22"></mat-spinner>
+                          <span>{{ 'CONFIG_DETAIL.RESOURCES.LOADING' | translate }}</span>
+                        </div>
+                      } @else {
+                        <div class="rg-resources-toolbar">
+                          @if (canWrite()) {
+                            <button class="add-resource-btn" (click)="openAddResourceDialog(rg.id); $event.stopPropagation()">
+                              <mat-icon class="add-resource-btn__icon">add_circle_outline</mat-icon>
+                              {{ 'CONFIG_DETAIL.RESOURCES.ADD' | translate }}
+                            </button>
+                          }
+                        </div>
+                        @if ((rgResources()[rg.id] || []).length > 0) {
+                          <div class="resource-list">
+                            @for (res of rgResources()[rg.id]!; track res.id) {
+                              <div class="resource-item">
+                                <mat-icon class="resource-item__icon">{{ resourceTypeIcons[res.resourceType] || 'widgets' }}</mat-icon>
+                                <div class="resource-item__info">
+                                  <strong>{{ res.name }}</strong>
+                                  <span class="resource-item__type">{{ res.resourceType }}</span>
+                                </div>
+                                <span class="resource-item__location">{{ res.location }}</span>
+                              </div>
+                            }
+                          </div>
+                        } @else {
+                          <div class="rg-resources-empty">
+                            <mat-icon>widgets</mat-icon>
+                            <p>{{ 'CONFIG_DETAIL.RESOURCES.EMPTY' | translate }}</p>
+                          </div>
+                        }
+                      }
+                    </div>
+                  }
                 </article>
               }
             </div>

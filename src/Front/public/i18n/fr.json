@@ -226,6 +226,33 @@
         "ADD": "Ajouter"
       }
     },
+    "RESOURCES": {
+      "LOADING": "Chargement des ressources...",
+      "EMPTY": "Aucune ressource dans ce groupe.",
+      "ADD": "Ajouter une ressource",
+      "ADD_DIALOG_TITLE": "Choisir le type de ressource",
+      "ADD_DIALOG_TITLE_KeyVault": "Nouveau Key Vault",
+      "ADD_DIALOG_TITLE_RedisCache": "Nouveau Redis Cache",
+      "ADD_DIALOG_TITLE_StorageAccount": "Nouveau Storage Account",
+      "ADD_ERROR": "Erreur lors de la creation de la ressource.",
+      "FORM": {
+        "NAME": "Nom",
+        "NAME_PLACEHOLDER": "ex : kv-my-app",
+        "LOCATION": "Region Azure",
+        "SKU": "SKU",
+        "CAPACITY": "Capacite",
+        "REDIS_VERSION": "Version Redis",
+        "TLS_VERSION": "Version TLS minimum",
+        "EVICTION_POLICY": "Politique d'eviction",
+        "ENABLE_NON_SSL": "Activer le port non-SSL",
+        "KIND": "Type de compte",
+        "ACCESS_TIER": "Niveau d'acces",
+        "ALLOW_BLOB_PUBLIC": "Autoriser l'acces public aux blobs",
+        "HTTPS_ONLY": "Trafic HTTPS uniquement",
+        "CANCEL": "Annuler",
+        "ADD": "Ajouter"
+      }
+    },
     "NAMING_TEMPLATES": {
       "OVERLINE": "Conventions",
       "TITLE": "Templates de nommage",

@@ -226,6 +226,33 @@
         "ADD": "Add"
       }
     },
+    "RESOURCES": {
+      "LOADING": "Loading resources...",
+      "EMPTY": "No resources in this group.",
+      "ADD": "Add a resource",
+      "ADD_DIALOG_TITLE": "Choose resource type",
+      "ADD_DIALOG_TITLE_KeyVault": "New Key Vault",
+      "ADD_DIALOG_TITLE_RedisCache": "New Redis Cache",
+      "ADD_DIALOG_TITLE_StorageAccount": "New Storage Account",
+      "ADD_ERROR": "Failed to create the resource.",
+      "FORM": {
+        "NAME": "Name",
+        "NAME_PLACEHOLDER": "e.g. kv-my-app",
+        "LOCATION": "Azure region",
+        "SKU": "SKU",
+        "CAPACITY": "Capacity",
+        "REDIS_VERSION": "Redis version",
+        "TLS_VERSION": "Minimum TLS version",
+        "EVICTION_POLICY": "Eviction policy",
+        "ENABLE_NON_SSL": "Enable non-SSL port",
+        "KIND": "Account kind",
+        "ACCESS_TIER": "Access tier",
+        "ALLOW_BLOB_PUBLIC": "Allow public blob access",
+        "HTTPS_ONLY": "HTTPS traffic only",
+        "CANCEL": "Cancel",
+        "ADD": "Add"
+      }
+    },
     "NAMING_TEMPLATES": {
       "OVERLINE": "Conventions",
       "TITLE": "Naming templates",
