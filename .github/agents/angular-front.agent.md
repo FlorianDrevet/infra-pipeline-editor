@@ -880,6 +880,22 @@ h1 {
 
 **Piège validé :** contraindre `max-width` à une valeur trop faible (ex : `12ch`) force le titre à se découper en 6+ lignes, créant une masse visuelle lourde sur la gauche. Toujours garder `max-width ≥ 20ch` pour les titres hero.
 
+### Piège validé — Timeline d'ordre (position visuelle vs order backend)
+
+Pour les UIs de réordonnancement (flèches gauche/droite + timeline), **ne jamais** envoyer la position visuelle directement au backend.
+
+- La timeline manipule une position 1-based (`1..N+1`)
+- Le backend manipule une valeur `order` qui peut être non contiguë
+
+Règle de conversion en mode édition (critique) :
+
+- Déplacement vers la gauche: envoyer l'order de l'élément au slot cible (`others[position - 1].order`)
+- Déplacement vers la droite: envoyer l'order de l'élément "sauté" (`others[position - 2].order`)
+
+Cette conversion doit respecter la sémantique du backend (`ReorderEnvironments`) basé sur des décalages de plages.
+
+**Anti-pattern à éviter :** `payload.order = currentPosition` ou un mapping identique gauche/droite.
+
 ### Layout hero 2 colonnes
 
 ```scss
