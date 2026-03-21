@@ -33,6 +33,19 @@
           <span class="tab-count">{{ resourceGroups().length }}</span>
         </ng-template>
         <div class="tab-content">
+          <div class="tab-content__toolbar">
+            @if (canWrite()) {
+              <button class="add-rg-btn" (click)="openAddResourceGroupDialog()">
+                <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
+                {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (rgErrorKey()) {
+            <p class="rg-error">{{ rgErrorKey() | translate }}</p>
+          }
+
           @if (resourceGroups().length > 0) {
             <div class="rg-grid">
               @for (rg of resourceGroups(); track rg.id) {
@@ -51,6 +64,12 @@
             <div class="empty-state">
               <mat-icon class="empty-state__icon">dns</mat-icon>
               <p>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.EMPTY' | translate }}</p>
+              @if (canWrite()) {
+                <button class="add-rg-btn" (click)="openAddResourceGroupDialog()">
+                  <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
+                  {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD' | translate }}
+                </button>
+              }
             </div>
           }
         </div>

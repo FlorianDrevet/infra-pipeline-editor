@@ -213,7 +213,18 @@
     "RESOURCE_GROUPS": {
       "OVERLINE": "Ressources",
       "TITLE": "Groupes de ressources",
-      "EMPTY": "Aucun groupe de ressources."
+      "EMPTY": "Aucun groupe de ressources.",
+      "ADD": "Ajouter un groupe de ressources",
+      "ADD_DIALOG_TITLE": "Nouveau groupe de ressources",
+      "ADD_DIALOG_ERROR": "Erreur lors de la creation du groupe de ressources.",
+      "REFRESH_ERROR": "Erreur lors du rechargement des groupes de ressources.",
+      "FORM": {
+        "NAME": "Nom",
+        "NAME_PLACEHOLDER": "ex : rg-my-project-dev",
+        "LOCATION": "Region Azure",
+        "CANCEL": "Annuler",
+        "ADD": "Ajouter"
+      }
     },
     "NAMING_TEMPLATES": {
       "OVERLINE": "Conventions",

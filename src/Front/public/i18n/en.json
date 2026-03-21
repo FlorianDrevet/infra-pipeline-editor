@@ -213,7 +213,18 @@
     "RESOURCE_GROUPS": {
       "OVERLINE": "Resources",
       "TITLE": "Resource groups",
-      "EMPTY": "No resource groups."
+      "EMPTY": "No resource groups.",
+      "ADD": "Add resource group",
+      "ADD_DIALOG_TITLE": "New resource group",
+      "ADD_DIALOG_ERROR": "Failed to create the resource group.",
+      "REFRESH_ERROR": "Failed to reload resource groups.",
+      "FORM": {
+        "NAME": "Name",
+        "NAME_PLACEHOLDER": "e.g. rg-my-project-dev",
+        "LOCATION": "Azure region",
+        "CANCEL": "Cancel",
+        "ADD": "Add"
+      }
     },
     "NAMING_TEMPLATES": {
       "OVERLINE": "Conventions",

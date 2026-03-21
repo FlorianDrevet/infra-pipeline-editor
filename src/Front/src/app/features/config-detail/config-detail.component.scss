@@ -396,6 +396,34 @@
 
 // ─── Resource Groups ────
 
+.add-rg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(21, 101, 192, 0.2);
+  background: rgba(21, 101, 192, 0.06);
+  color: #1565c0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover { background: rgba(21, 101, 192, 0.12); border-color: rgba(21, 101, 192, 0.32); }
+}
+
+.add-rg-btn__icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
+
+.rg-error {
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  background: rgba(217, 45, 32, 0.07);
+  color: #a12d1f;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
 .rg-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));

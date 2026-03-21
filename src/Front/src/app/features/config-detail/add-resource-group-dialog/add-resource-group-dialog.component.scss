@@ -1,0 +1,29 @@
+:host {
+  display: block;
+}
+
+.rg-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 24rem;
+  padding-top: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+
+  .mdc-notched-outline__notch {
+    border-right-style: hidden;
+  }
+}
+
+.dialog-error {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  background: rgba(217, 45, 32, 0.07);
+  color: #a12d1f;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}

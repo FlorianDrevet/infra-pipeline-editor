@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>
+  {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD_DIALOG_TITLE' | translate }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="rg-form" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME' | translate }}</mat-label>
+      <input matInput formControlName="name"
+        [placeholder]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME_PLACEHOLDER' | translate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.LOCATION' | translate }}</mat-label>
+      <mat-select formControlName="location">
+        @for (option of locationOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (errorKey()) {
+      <p class="dialog-error">{{ errorKey() | translate }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+    {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.CANCEL' | translate }}
+  </button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || isSubmitting()">
+    @if (isSubmitting()) {
+      <mat-spinner diameter="18"></mat-spinner>
+    } @else {
+      {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.ADD' | translate }}
+    }
+  </button>
+</mat-dialog-actions>

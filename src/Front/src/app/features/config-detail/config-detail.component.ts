@@ -20,6 +20,8 @@ import { AuthenticationService } from '../../shared/services/authentication.serv
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AddMemberDialogComponent, AddMemberDialogData } from './add-member-dialog/add-member-dialog.component';
 import { AddEnvironmentDialogComponent, AddEnvironmentDialogData } from './add-environment-dialog/add-environment-dialog.component';
+import { AddResourceGroupDialogComponent, AddResourceGroupDialogData } from './add-resource-group-dialog/add-resource-group-dialog.component';
+import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
@@ -47,6 +49,7 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
 export class ConfigDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly infraConfigService = inject(InfraConfigService);
+  private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly authService = inject(AuthenticationService);
   private readonly dialog = inject(MatDialog);
 
@@ -59,6 +62,7 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly memberErrorKey = signal('');
   protected readonly envActionId = signal<string | null>(null);
   protected readonly envErrorKey = signal('');
+  protected readonly rgErrorKey = signal('');
   protected readonly roles = ROLES;
 
   protected readonly membersByRole = computed(() => {
@@ -197,6 +201,29 @@ export class ConfigDetailComponent implements OnInit {
       if (result) {
         const refreshed = await this.infraConfigService.getById(currentConfig.id);
         this.config.set(refreshed);
+      }
+    });
+  }
+
+  protected openAddResourceGroupDialog(): void {
+    const currentConfig = this.config();
+    if (!currentConfig) return;
+
+    const dialogRef = this.dialog.open(AddResourceGroupDialogComponent, {
+      data: {
+        infraConfigId: currentConfig.id,
+      } satisfies AddResourceGroupDialogData,
+      width: '440px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: import('../../shared/interfaces/resource-group.interface').ResourceGroupResponse | null) => {
+      if (result) {
+        try {
+          const resourceGroups = await this.infraConfigService.getResourceGroups(currentConfig.id);
+          this.resourceGroups.set(resourceGroups);
+        } catch {
+          this.rgErrorKey.set('CONFIG_DETAIL.RESOURCE_GROUPS.REFRESH_ERROR');
+        }
       }
     });
   }
