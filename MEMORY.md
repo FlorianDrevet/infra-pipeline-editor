@@ -520,12 +520,44 @@ Ajouter dans `angular.json` → `build.options` :
 
 ### 13.1 Runtime i18n frontend (FR/EN) ([2026-03-21])
 
-- Runtime translation now uses `@ngx-translate/core` + `@ngx-translate/http-loader` in `src/Front`.
-- Global providers are configured in `src/Front/src/app/app.config.ts` with `provideTranslateService(...)` + `provideTranslateHttpLoader(...)` and language bootstrap via `LanguageService.initialize()`.
-- `src/Front/src/app/shared/services/language.service.ts` centralizes language state, persistence (`localStorage`), and fallback order: persisted -> browser language -> `fr`.
-- Translation resources are served from `src/Front/public/i18n/fr.json` and `src/Front/public/i18n/en.json`.
-- The shell language switch is in `src/Front/src/app/core/layouts/navigation/` and is visible for authenticated pages.
-- Initial i18n coverage includes navigation, footer, login, and home (including key dynamic messages on login/home).
+- Runtime translation uses `@ngx-translate/core` + `@ngx-translate/http-loader` (both v17) in `src/Front`.
+- Global providers: `provideTranslateService({ lang: 'fr', fallbackLang: 'fr' })` + `provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' })` + `provideAppInitializer(() => inject(LanguageService).initialize())` in `app.config.ts`.
+- `src/Front/src/app/shared/services/language.service.ts` — central language state: `signal<AppLanguage>`, `localStorage` persistence (key: `infra-flow-sculptor.language`), fallback: persisted → `navigator.language` → `'fr'`.
+- Translation JSON files: `src/Front/public/i18n/fr.json` + `en.json` — 109 keys each.
+- Shell language switch: `src/Front/src/app/core/layouts/navigation/` — visible on all authenticated pages.
+- i18n coverage (as of 2026-03-21): navigation, footer, login, home (including dynamic params).
+
+#### Key usage patterns
+
+**1. Import `TranslateModule` in every component that displays text:**
+```typescript
+imports: [CommonModule, TranslateModule, /* ... */]
+```
+
+**2. Pipe `| translate` in templates:**
+```html
+{{ 'HOME.TITLE' | translate }}
+{{ 'HOME.FEEDBACK.SUCCESS' | translate: { name: itemName() } }}
+```
+
+**3. Error signal stores the i18n key, not the text:**
+```typescript
+protected errorKey = signal('');
+this.errorKey.set('LOGIN.ERROR.MSAL_FAILED');
+// Template: {{ errorKey() | translate }}
+```
+
+#### Translation key namespaces
+
+| Namespace | Composant |
+|-----------|-----------|
+| `LANGUAGE` | `LanguageService`, navigation |
+| `NAV` | `navigation.component` |
+| `FOOTER` | `footer.component` |
+| `LOGIN` | `login.component` |
+| `HOME` | `home.component` |
+
+**Rule:** every new screen adds its own root namespace. Always add keys to **both** `fr.json` and `en.json`.
 
 ## 15. Pull Request Conventions
 
@@ -650,7 +682,7 @@ For clientId `24c34231-a984-43b3-8ac3-9278ebd067ef`:
 
 ### 16.6 Shell layout and home page ([2026-03-21])
 
-- `src/Front/src/app/core/layouts/navigation/*` is now the authenticated shell header: brand link to `/`, single `Accueil` nav item, current Entra account summary, and logout action via `MsalAuthService.logout()`.
+- `src/Front/src/app/core/layouts/navigation/*` is now the authenticated shell header: brand link to `/`, single `Accueil` nav item, current Entra account summary, and logout action via `MsalAuthService.logout()`. Includes FR/EN language switch (pill-shaped button group, dark nav context).
 - `src/Front/src/app/core/layouts/footer/*` is now a lightweight informative footer aligned with the premium blue/cyan SaaS baseline from the login page.
 - Protected root route in `src/Front/src/app/app-routing.ts` now lazy-loads `features/home/home.component` at `/`.
 - `src/Front/src/app/features/home/*` provides the first authenticated landing page:
@@ -659,9 +691,49 @@ For clientId `24c34231-a984-43b3-8ac3-9278ebd067ef`:
     - exposes explicit loading, empty, error, success, and retry states,
     - keeps the main CTA visible above the fold and reuses the login page blue/cyan premium visual language.
 - `src/Front/src/app/app.component.*` now applies a real authenticated shell background instead of only a bare `main` min-height.
-3. **Implicit grant → unchecked** (PKCE is used automatically for SPA)
-4. **API permissions:** Microsoft Graph → `openid`, `profile`, `email` (delegated)
-5. **Supported account types:** single-tenant (or multitenant as needed)
+
+#### Visual baseline — palette and tokens (validated 2026-03-21)
+
+```scss
+// Background gradient — premium blue/cyan identity
+background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
+
+// Card / form surfaces
+background: rgba(255, 255, 255, 0.08);
+border: 1px solid rgba(255, 255, 255, 0.15);
+border-radius: 16px;
+backdrop-filter: blur(10px);
+
+// Text on dark background
+color: rgba(255, 255, 255, 0.9);    // primary
+color: rgba(148, 203, 255, 0.85);   // accent / secondary
+color: rgba(255, 255, 255, 0.6);    // tertiary / labels
+
+// CTA button
+background: linear-gradient(135deg, #0288d1, #00bcd4);
+border-radius: 12px;
+```
+
+#### Hero H1 typography — validated values
+
+```scss
+h1 {
+  font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+  line-height: 1.2;
+  max-width: 26ch;   // ≥ 20ch mandatory — narrow max-width creates heavy vertical stacking
+}
+```
+
+#### Hero 2-column grid — validated ratio
+
+```scss
+.hero-panel {
+  grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 1fr); // ~55/45 — balanced
+}
+.hero-panel__content {
+  justify-content: flex-start; // NOT space-between — avoids vertical stretch
+}
+```
 
 ---
 
