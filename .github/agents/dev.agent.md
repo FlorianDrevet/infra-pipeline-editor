@@ -1,17 +1,5 @@
 ---
 description: 'Point d''entrée principal. Orchestre MEMORY.md, délègue aux agents spécialisés et charge les Skills selon la tâche.'
-tools:
-  - read_file
-  - replace_string_in_file
-  - multi_replace_string_in_file
-  - create_file
-  - file_search
-  - grep_search
-  - run_in_terminal
-  - get_errors
-  - list_dir
-  - manage_todo_list
-  - semantic_search
 ---
 
 # Agent : dev — Orchestrateur principal

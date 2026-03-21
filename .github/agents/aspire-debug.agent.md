@@ -1,13 +1,5 @@
 ---
 description: 'Expert debug Aspire + MCP. Use this agent for runtime diagnostics, resource health checks, logs/traces analysis, and restart/recovery workflows in AppHost.'
-tools:
-  - read_file
-  - file_search
-  - grep_search
-  - list_dir
-  - run_in_terminal
-  - get_errors
-  - manage_todo_list
 ---
 
 # Agent : aspire-debug — Debug runtime Aspire + MCP

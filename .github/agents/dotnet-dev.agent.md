@@ -1,17 +1,5 @@
 ---
 description: 'Expert C# .NET 10 developer. Use this agent for ALL backend .NET tasks (Domain, Application, Infrastructure, Contracts, API, Shared).'
-tools:
-  - read_file
-  - replace_string_in_file
-  - multi_replace_string_in_file
-  - create_file
-  - file_search
-  - grep_search
-  - run_in_terminal
-  - get_errors
-  - list_dir
-  - manage_todo_list
-  - semantic_search
 ---
 
 # Agent : dotnet-dev — Expert C# .NET 10

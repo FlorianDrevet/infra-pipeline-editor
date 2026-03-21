@@ -1,17 +1,5 @@
 ---
 description: 'Expert Angular 19 frontend developer. Use this agent for ALL frontend tasks in src/Front.'
-tools:
-  - read_file
-  - replace_string_in_file
-  - multi_replace_string_in_file
-  - create_file
-  - file_search
-  - grep_search
-  - run_in_terminal
-  - get_errors
-  - list_dir
-  - manage_todo_list
-  - semantic_search
 ---
 
 # Agent : angular-front — Expert Angular 19 Frontend
