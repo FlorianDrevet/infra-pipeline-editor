@@ -342,6 +342,7 @@ export class ConfigDetailComponent implements OnInit {
       data: {
         configId: currentConfig.id,
         existing,
+        allEnvironments: currentConfig.environmentDefinitions,
       } satisfies AddEnvironmentDialogData,
       width: '520px',
     });

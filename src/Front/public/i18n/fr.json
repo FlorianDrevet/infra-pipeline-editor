@@ -204,6 +204,8 @@
         "SUFFIX": "Suffixe",
         "SUFFIX_PLACEHOLDER": "Exemple : 01, we",
         "ORDER": "Ordre de deploiement",
+        "ORDER_HINT": "Entre {{min}} et {{max}}",
+        "TIMELINE_ARIA": "Ordre de deploiement des environnements",
         "REQUIRES_APPROVAL": "Approbation requise avant deploiement",
         "CANCEL": "Annuler",
         "ADD": "Ajouter",

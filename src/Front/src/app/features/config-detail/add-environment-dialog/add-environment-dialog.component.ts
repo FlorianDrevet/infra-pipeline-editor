@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -20,6 +20,7 @@ import { LOCATION_OPTIONS } from '../enums/location.enum';
 export interface AddEnvironmentDialogData {
   configId: string;
   existing?: EnvironmentDefinitionResponse;
+  allEnvironments: EnvironmentDefinitionResponse[];
 }
 
 @Component({
@@ -52,6 +53,43 @@ export class AddEnvironmentDialogComponent {
   protected readonly errorKey = signal('');
   protected readonly locationOptions = LOCATION_OPTIONS;
 
+  /** Other environments (excluding the one being edited). */
+  private readonly otherEnvironments = this.data.allEnvironments
+    .filter((e) => e.id !== this.data.existing?.id)
+    .sort((a, b) => a.order - b.order);
+
+  /** Order bounds: in create mode min = 0, max = count; in edit mode same logic excluding self. */
+  protected readonly minOrder = 0;
+  protected readonly maxOrder = this.otherEnvironments.length;
+
+  /** Reactive signal tracking the current order value from the form. */
+  protected readonly currentOrder = signal(this.data.existing?.order ?? this.otherEnvironments.length);
+
+  /** Computed timeline that inserts the current environment at the right position among others. */
+  protected readonly timelineItems = computed(() => {
+    const order = this.currentOrder();
+    const currentName = this.data.existing?.name ?? '?';
+
+    // Build sorted list of other envs as timeline items
+    const others: { name: string; order: number; isCurrent: boolean }[] = this.otherEnvironments.map((e) => ({
+      name: e.name,
+      order: e.order,
+      isCurrent: false,
+    }));
+
+    // Insert the current env at the position indicated by the order value
+    const insertIdx = others.findIndex((item) => item.order >= order);
+    const current = { name: currentName, order, isCurrent: true };
+
+    if (insertIdx === -1) {
+      others.push(current);
+    } else {
+      others.splice(insertIdx, 0, current);
+    }
+
+    return others;
+  });
+
   protected readonly form = this.fb.group({
     name: [this.data.existing?.name ?? '', [Validators.required, Validators.minLength(1), Validators.maxLength(100)]],
     location: [this.data.existing?.location ?? '', [Validators.required]],
@@ -59,9 +97,16 @@ export class AddEnvironmentDialogComponent {
     subscriptionId: [this.data.existing?.subscriptionId ?? '', [Validators.required]],
     prefix: [this.data.existing?.prefix ?? ''],
     suffix: [this.data.existing?.suffix ?? ''],
-    order: [this.data.existing?.order ?? 0],
     requiresApproval: [this.data.existing?.requiresApproval ?? false],
   });
+
+  /** Move the current environment position by the given delta (-1 = left, +1 = right). */
+  protected moveOrder(delta: number): void {
+    const next = this.currentOrder() + delta;
+    if (next >= this.minOrder && next <= this.maxOrder) {
+      this.currentOrder.set(next);
+    }
+  }
 
   protected onCancel(): void {
     this.dialogRef.close();
@@ -81,7 +126,7 @@ export class AddEnvironmentDialogComponent {
       subscriptionId: values.subscriptionId!,
       prefix: values.prefix || undefined,
       suffix: values.suffix || undefined,
-      order: values.order ?? 0,
+      order: this.currentOrder(),
       requiresApproval: values.requiresApproval ?? false,
     };
 

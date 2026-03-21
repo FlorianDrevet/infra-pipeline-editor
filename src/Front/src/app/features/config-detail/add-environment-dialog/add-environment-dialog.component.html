@@ -45,10 +45,32 @@
       </mat-form-field>
     </div>
 
-    <mat-form-field appearance="outline" class="order-field">
-      <mat-label>{{ 'CONFIG_DETAIL.ENVIRONMENTS.FORM.ORDER' | translate }}</mat-label>
-      <input matInput type="number" formControlName="order" />
-    </mat-form-field>
+    <div class="order-section">
+      <span class="order-section__label">{{ 'CONFIG_DETAIL.ENVIRONMENTS.FORM.ORDER' | translate }}</span>
+
+      @if (timelineItems().length > 0) {
+        <div class="order-timeline" role="list" [attr.aria-label]="'CONFIG_DETAIL.ENVIRONMENTS.FORM.TIMELINE_ARIA' | translate">
+          @for (item of timelineItems(); track item.name + item.order; let i = $index; let last = $last) {
+            <div class="timeline-step" [class.timeline-step--current]="item.isCurrent" role="listitem">
+              <div class="timeline-step__dot"></div>
+              <span class="timeline-step__label">{{ item.name }}</span>
+            </div>
+            @if (!last) {
+              <div class="timeline-connector" [class.timeline-connector--before-current]="timelineItems()[i + 1].isCurrent" [class.timeline-connector--after-current]="item.isCurrent"></div>
+            }
+          }
+        </div>
+
+        <div class="order-arrows">
+          <button type="button" class="order-arrow-btn" [disabled]="currentOrder() <= minOrder" (click)="moveOrder(-1)">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <button type="button" class="order-arrow-btn" [disabled]="currentOrder() >= maxOrder" (click)="moveOrder(1)">
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
 
     <mat-slide-toggle formControlName="requiresApproval" color="primary">
       {{ 'CONFIG_DETAIL.ENVIRONMENTS.FORM.REQUIRES_APPROVAL' | translate }}
