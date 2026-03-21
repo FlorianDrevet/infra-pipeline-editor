@@ -126,6 +126,12 @@
     "HEADER": {
       "OVERLINE": "Detail de la configuration"
     },
+    "TABS": {
+      "RESOURCE_GROUPS": "Groupes de ressources",
+      "ENVIRONMENTS": "Environnements",
+      "MEMBERS": "Membres",
+      "NAMING_TEMPLATES": "Nommage"
+    },
     "STATE": {
       "LOADING_TITLE": "Chargement de la configuration",
       "LOADING_DESCRIPTION": "Recuperation des details depuis l'API."

@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import {
@@ -32,6 +33,7 @@ const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
     MatIconModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatTabsModule,
     MatTooltipModule,
   ],
   templateUrl: './config-detail.component.html',

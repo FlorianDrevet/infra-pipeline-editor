@@ -24,158 +24,193 @@
       </div>
     </section>
 
-    <section class="detail-section">
-      <div class="section-heading section-heading--row">
-        <div>
-          <span>{{ 'CONFIG_DETAIL.MEMBERS.OVERLINE' | translate }}</span>
-          <h2>{{ 'CONFIG_DETAIL.MEMBERS.TITLE' | translate }}</h2>
-        </div>
-        <button class="add-member-btn" (click)="openAddMemberDialog()">
-          <span class="add-member-btn__icon">+</span>
-          {{ 'CONFIG_DETAIL.MEMBERS.ADD' | translate }}
-        </button>
-      </div>
-
-      @if (memberErrorKey()) {
-        <p class="member-error">{{ memberErrorKey() | translate }}</p>
-      }
-
-      @if (config()!.members.length > 0) {
-        <div class="members-grid">
-          @for (member of config()!.members; track member.id) {
-            <article class="member-card" [class.member-card--busy]="memberActionId() === member.id">
-              @if (memberActionId() === member.id) {
-                <div class="member-card__spinner">
-                  <mat-spinner diameter="20"></mat-spinner>
-                </div>
+    <mat-tab-group class="config-tabs" animationDuration="200ms">
+      <!-- Resource Groups -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">dns</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.TABS.RESOURCE_GROUPS' | translate }}</span>
+          <span class="tab-count">{{ resourceGroups().length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          @if (resourceGroups().length > 0) {
+            <div class="rg-grid">
+              @for (rg of resourceGroups(); track rg.id) {
+                <article class="rg-card">
+                  <div class="rg-card__info">
+                    <strong>{{ rg.name }}</strong>
+                    <span class="rg-card__location">
+                      <mat-icon>location_on</mat-icon>
+                      {{ rg.location }}
+                    </span>
+                  </div>
+                </article>
               }
-              <div class="member-card__info">
-                <strong>{{ member.firstName }} {{ member.lastName }}</strong>
-              </div>
-              <div class="member-card__actions">
-                <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
-                  <mat-select
-                    [value]="member.role"
-                    [aria-label]="'CONFIG_DETAIL.MEMBERS.CHANGE_ROLE_ARIA' | translate"
-                    [disabled]="memberActionId() === member.id"
-                    (selectionChange)="onRoleChange(member, $event.value)">
-                    @for (role of roles; track role) {
-                      <mat-option [value]="role">{{ 'CONFIG_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-                <button
-                  class="remove-btn"
-                  [matTooltip]="'CONFIG_DETAIL.MEMBERS.REMOVE' | translate"
-                  [disabled]="memberActionId() === member.id"
-                  (click)="openRemoveDialog(member)">
-                  <mat-icon>close</mat-icon>
-                </button>
-              </div>
-            </article>
+            </div>
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">dns</mat-icon>
+              <p>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.EMPTY' | translate }}</p>
+            </div>
           }
         </div>
-      } @else {
-        <p class="empty-note">{{ 'CONFIG_DETAIL.MEMBERS.EMPTY' | translate }}</p>
-      }
-    </section>
+      </mat-tab>
 
-    <section class="detail-section">
-      <div class="section-heading">
-        <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.OVERLINE' | translate }}</span>
-        <h2>{{ 'CONFIG_DETAIL.ENVIRONMENTS.TITLE' | translate }}</h2>
-      </div>
-      @if (config()!.environmentDefinitions.length > 0) {
-        <div class="env-grid">
-          @for (env of config()!.environmentDefinitions; track env.id) {
-            <article class="env-card">
-              <div class="env-card__header">
-                <h3>{{ env.name }}</h3>
-                <span class="order-chip">{{ 'CONFIG_DETAIL.ENVIRONMENTS.ORDER' | translate }} {{ env.order }}</span>
-              </div>
-              <div class="env-card__details">
-                <div class="detail-row">
-                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.LOCATION' | translate }}</span>
-                  <strong>{{ env.location }}</strong>
-                </div>
-                <div class="detail-row">
-                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.PREFIX' | translate }}</span>
-                  <strong>{{ env.prefix || '—' }}</strong>
-                </div>
-                <div class="detail-row">
-                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.SUFFIX' | translate }}</span>
-                  <strong>{{ env.suffix || '—' }}</strong>
-                </div>
-                <div class="detail-row">
-                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.TENANT_ID' | translate }}</span>
-                  <strong class="mono">{{ env.tenantId }}</strong>
-                </div>
-                <div class="detail-row">
-                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.SUBSCRIPTION_ID' | translate }}</span>
-                  <strong class="mono">{{ env.subscriptionId }}</strong>
-                </div>
-                <div class="detail-row">
-                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.REQUIRES_APPROVAL' | translate }}</span>
-                  <strong>{{ env.requiresApproval ? ('CONFIG_DETAIL.BOOLEAN.YES' | translate) : ('CONFIG_DETAIL.BOOLEAN.NO' | translate) }}</strong>
-                </div>
-              </div>
-              @if (env.tags.length > 0) {
-                <div class="env-card__tags">
-                  @for (tag of env.tags; track tag.name) {
-                    <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
+      <!-- Environments -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">cloud_queue</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.TABS.ENVIRONMENTS' | translate }}</span>
+          <span class="tab-count">{{ config()!.environmentDefinitions.length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          @if (config()!.environmentDefinitions.length > 0) {
+            <div class="env-grid">
+              @for (env of config()!.environmentDefinitions; track env.id) {
+                <article class="env-card">
+                  <div class="env-card__header">
+                    <h3>{{ env.name }}</h3>
+                    <span class="order-chip">{{ 'CONFIG_DETAIL.ENVIRONMENTS.ORDER' | translate }} {{ env.order }}</span>
+                  </div>
+                  <div class="env-card__details">
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.LOCATION' | translate }}</span>
+                      <strong>{{ env.location }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.PREFIX' | translate }}</span>
+                      <strong>{{ env.prefix || '—' }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.SUFFIX' | translate }}</span>
+                      <strong>{{ env.suffix || '—' }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.TENANT_ID' | translate }}</span>
+                      <strong class="mono">{{ env.tenantId }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.SUBSCRIPTION_ID' | translate }}</span>
+                      <strong class="mono">{{ env.subscriptionId }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.REQUIRES_APPROVAL' | translate }}</span>
+                      <strong>{{ env.requiresApproval ? ('CONFIG_DETAIL.BOOLEAN.YES' | translate) : ('CONFIG_DETAIL.BOOLEAN.NO' | translate) }}</strong>
+                    </div>
+                  </div>
+                  @if (env.tags.length > 0) {
+                    <div class="env-card__tags">
+                      @for (tag of env.tags; track tag.name) {
+                        <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
+                      }
+                    </div>
                   }
-                </div>
+                </article>
               }
-            </article>
+            </div>
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">cloud_queue</mat-icon>
+              <p>{{ 'CONFIG_DETAIL.ENVIRONMENTS.EMPTY' | translate }}</p>
+            </div>
           }
         </div>
-      } @else {
-        <p class="empty-note">{{ 'CONFIG_DETAIL.ENVIRONMENTS.EMPTY' | translate }}</p>
-      }
-    </section>
+      </mat-tab>
 
-    <section class="detail-section">
-      <div class="section-heading">
-        <span>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.OVERLINE' | translate }}</span>
-        <h2>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.TITLE' | translate }}</h2>
-      </div>
-      @if (resourceGroups().length > 0) {
-        <div class="rg-grid">
-          @for (rg of resourceGroups(); track rg.id) {
-            <article class="rg-card">
-              <strong>{{ rg.name }}</strong>
-              <span>{{ rg.location }}</span>
-            </article>
-          }
-        </div>
-      } @else {
-        <p class="empty-note">{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.EMPTY' | translate }}</p>
-      }
-    </section>
+      <!-- Members -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">group</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.TABS.MEMBERS' | translate }}</span>
+          <span class="tab-count">{{ config()!.members.length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="tab-content__toolbar">
+            <button class="add-member-btn" (click)="openAddMemberDialog()">
+              <mat-icon class="add-member-btn__icon">person_add</mat-icon>
+              {{ 'CONFIG_DETAIL.MEMBERS.ADD' | translate }}
+            </button>
+          </div>
 
-    <section class="detail-section">
-      <div class="section-heading">
-        <span>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.OVERLINE' | translate }}</span>
-        <h2>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.TITLE' | translate }}</h2>
-      </div>
-      @if (config()!.defaultNamingTemplate) {
-        <div class="default-template">
-          <span>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
-          <code>{{ config()!.defaultNamingTemplate }}</code>
-        </div>
-      }
-      @if (config()!.resourceNamingTemplates.length > 0) {
-        <div class="template-list">
-          @for (tmpl of config()!.resourceNamingTemplates; track tmpl.id) {
-            <article class="template-row">
-              <strong>{{ tmpl.resourceType }}</strong>
-              <code>{{ tmpl.template }}</code>
-            </article>
+          @if (memberErrorKey()) {
+            <p class="member-error">{{ memberErrorKey() | translate }}</p>
+          }
+
+          @if (config()!.members.length > 0) {
+            <div class="members-grid">
+              @for (member of config()!.members; track member.id) {
+                <article class="member-card" [class.member-card--busy]="memberActionId() === member.id">
+                  @if (memberActionId() === member.id) {
+                    <div class="member-card__spinner">
+                      <mat-spinner diameter="20"></mat-spinner>
+                    </div>
+                  }
+                  <div class="member-card__info">
+                    <strong>{{ member.firstName }} {{ member.lastName }}</strong>
+                  </div>
+                  <div class="member-card__actions">
+                    <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
+                      <mat-select
+                        [value]="member.role"
+                        [aria-label]="'CONFIG_DETAIL.MEMBERS.CHANGE_ROLE_ARIA' | translate"
+                        [disabled]="memberActionId() === member.id"
+                        (selectionChange)="onRoleChange(member, $event.value)">
+                        @for (role of roles; track role) {
+                          <mat-option [value]="role">{{ 'CONFIG_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <button
+                      class="remove-btn"
+                      [matTooltip]="'CONFIG_DETAIL.MEMBERS.REMOVE' | translate"
+                      [disabled]="memberActionId() === member.id"
+                      (click)="openRemoveDialog(member)">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">group</mat-icon>
+              <p>{{ 'CONFIG_DETAIL.MEMBERS.EMPTY' | translate }}</p>
+            </div>
           }
         </div>
-      } @else {
-        <p class="empty-note">{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.EMPTY' | translate }}</p>
-      }
-    </section>
+      </mat-tab>
+
+      <!-- Naming Templates -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">label</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.TABS.NAMING_TEMPLATES' | translate }}</span>
+          <span class="tab-count">{{ config()!.resourceNamingTemplates.length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          @if (config()!.defaultNamingTemplate) {
+            <div class="default-template">
+              <span>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
+              <code>{{ config()!.defaultNamingTemplate }}</code>
+            </div>
+          }
+          @if (config()!.resourceNamingTemplates.length > 0) {
+            <div class="template-list">
+              @for (tmpl of config()!.resourceNamingTemplates; track tmpl.id) {
+                <article class="template-row">
+                  <strong>{{ tmpl.resourceType }}</strong>
+                  <code>{{ tmpl.template }}</code>
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">label</mat-icon>
+              <p>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.EMPTY' | translate }}</p>
+            </div>
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
   }
 </div>
