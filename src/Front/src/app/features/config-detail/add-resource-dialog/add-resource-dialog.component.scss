@@ -70,10 +70,6 @@
 
 .full-width {
   width: 100%;
-
-  .mdc-notched-outline__notch {
-    border-right-style: hidden;
-  }
 }
 
 .form-row {
@@ -83,10 +79,6 @@
 
 .half-width {
   flex: 1;
-
-  .mdc-notched-outline__notch {
-    border-right-style: hidden;
-  }
 }
 
 mat-slide-toggle {
