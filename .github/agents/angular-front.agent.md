@@ -637,13 +637,67 @@ protected errorMessage = signal('');
 
 ---
 
+## Enums TypeScript — Règles strictes
+
+### Placement et fichier dédié
+
+**Les enums DOIVENT être dans un fichier séparé** — jamais définis dans le même fichier que le composant.
+
+**Arborescence :**
+- Si l'enum est utilisé par **plusieurs features** → `src/Front/src/app/shared/enums/{enum-name}.enum.ts`
+- Si l'enum est utilisé par **une seule feature** → `src/Front/src/app/features/{feature}/enums/{enum-name}.enum.ts`
+
+### Backend Enum → Frontend Dropdown
+
+**Règle universelle** : Si un champ est un **enum au backend**, il DOIT avoir un **dropdown (`<mat-select>`)** au frontend, pas un input texte libre.
+
+**Exemple :**
+- Backend : `Location.LocationEnum` avec valeurs (EastUS, WestUS, etc.)
+- Frontend : Créer `src/Front/src/app/features/config-detail/enums/location.enum.ts`
+- UI Component : Utiliser `<mat-select>` avec `<mat-option>` pour chaque valeur enum
+- Constants partagées : Exporter `LOCATION_OPTIONS` (tableau `{ label, value }`) depuis le même fichier enum
+
+### Template avec dropdown
+
+```typescript
+// location.enum.ts
+export enum LocationEnum {
+  EastUS = 'EastUS',
+  WestUS = 'WestUS',
+  // ...
+}
+
+export const LOCATION_OPTIONS = Object.entries(LocationEnum).map(([key, value]) => ({
+  label: key,
+  value,
+}));
+
+// component.ts
+import { LOCATION_OPTIONS } from '../enums/location.enum';
+
+export class MyComponent {
+  protected readonly locationOptions = LOCATION_OPTIONS;
+}
+
+// component.html
+<mat-form-field appearance="outline">
+  <mat-label>Location</mat-label>
+  <mat-select formControlName="location">
+    @for (option of locationOptions; track option.value) {
+      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+    }
+  </mat-select>
+</mat-form-field>
+```
+
+---
+
 ## Conventions TypeScript
 
 - Utiliser `readonly` pour toutes les propriétés qui ne changent pas après l'initialisation.
 - Typer explicitement les retours de fonctions async : `async load(): Promise<void>`.
 - Préférer `const` et `let` plutôt que `var`.
 - Pas de `any` — utiliser des interfaces ou `unknown` + type guard si le type est inconnu.
-- Les enums TypeScript pour les valeurs constantes : `src/Front/src/app/shared/enums/`.
 - Utiliser `?.` (optional chaining) et `??` (nullish coalescing) plutôt que les vérifications manuelles.
 
 ---

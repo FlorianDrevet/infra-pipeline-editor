@@ -12,8 +12,11 @@
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>{{ 'CONFIG_DETAIL.ENVIRONMENTS.FORM.LOCATION' | translate }}</mat-label>
-      <input matInput formControlName="location"
-        [placeholder]="'CONFIG_DETAIL.ENVIRONMENTS.FORM.LOCATION_PLACEHOLDER' | translate" />
+      <mat-select formControlName="location">
+        @for (option of locationOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
     </mat-form-field>
 
     <div class="form-row">

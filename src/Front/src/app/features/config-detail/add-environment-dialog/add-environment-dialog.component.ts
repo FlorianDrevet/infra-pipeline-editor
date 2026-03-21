@@ -5,7 +5,9 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TranslateModule } from '@ngx-translate/core';
 import {
@@ -13,6 +15,7 @@ import {
   InfrastructureConfigResponse,
 } from '../../../shared/interfaces/infra-config.interface';
 import { InfraConfigService } from '../../../shared/services/infra-config.service';
+import { LOCATION_OPTIONS } from '../enums/location.enum';
 
 export interface AddEnvironmentDialogData {
   configId: string;
@@ -28,7 +31,9 @@ export interface AddEnvironmentDialogData {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatOptionModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
     MatSlideToggleModule,
     ReactiveFormsModule,
     TranslateModule,
@@ -45,6 +50,7 @@ export class AddEnvironmentDialogComponent {
   protected readonly isEditMode = !!this.data.existing;
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
+  protected readonly locationOptions = LOCATION_OPTIONS;
 
   protected readonly form = this.fb.group({
     name: [this.data.existing?.name ?? '', [Validators.required, Validators.minLength(1), Validators.maxLength(100)]],
@@ -56,6 +62,10 @@ export class AddEnvironmentDialogComponent {
     order: [this.data.existing?.order ?? 0],
     requiresApproval: [this.data.existing?.requiresApproval ?? false],
   });
+
+  protected onCancel(): void {
+    this.dialogRef.close();
+  }
 
   protected async onSubmit(): Promise<void> {
     if (this.form.invalid) return;
@@ -96,9 +106,5 @@ export class AddEnvironmentDialogComponent {
     } finally {
       this.isSubmitting.set(false);
     }
-  }
-
-  protected onCancel(): void {
-    this.dialogRef.close(null);
   }
 }
