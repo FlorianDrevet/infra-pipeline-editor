@@ -165,8 +165,8 @@
           }
 
           @if (sortedEnvironments().length > 0) {
-            <div class="env-grid">
-              @for (env of sortedEnvironments(); track env.id) {
+            <div class="env-pipeline">
+              @for (env of sortedEnvironments(); track env.id; let last = $last) {
                 <article class="env-card" [class.env-card--busy]="envActionId() === env.id">
                   @if (envActionId() === env.id) {
                     <div class="env-card__spinner">
@@ -176,7 +176,6 @@
                   <div class="env-card__header">
                     <h3>{{ env.name }}</h3>
                     <div class="env-card__header-actions">
-                      <span class="order-chip">{{ 'CONFIG_DETAIL.ENVIRONMENTS.ORDER' | translate }} {{ env.order }}</span>
                       @if (canWrite()) {
                         <button
                           class="env-action-btn env-action-btn--edit"
@@ -229,6 +228,11 @@
                     </div>
                   }
                 </article>
+                @if (!last) {
+                  <div class="env-pipeline__connector">
+                    <mat-icon>arrow_forward</mat-icon>
+                  </div>
+                }
               }
             </div>
           } @else {
