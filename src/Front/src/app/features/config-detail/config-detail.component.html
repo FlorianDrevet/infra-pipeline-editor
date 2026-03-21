@@ -40,6 +40,18 @@
                 {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD' | translate }}
               </button>
             }
+
+            @if (sortedEnvironments().length > 0) {
+              <mat-form-field appearance="outline" class="preview-env-select" subscriptSizing="dynamic">
+                <mat-label>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_ENV' | translate }}</mat-label>
+                <mat-select [ngModel]="previewEnvId()" (ngModelChange)="previewEnvId.set($event)">
+                  <mat-option [value]="null">{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_NONE' | translate }}</mat-option>
+                  @for (env of sortedEnvironments(); track env.id) {
+                    <mat-option [value]="env.id">{{ env.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
           </div>
 
           @if (rgErrorKey()) {
@@ -58,6 +70,12 @@
                         <mat-icon>location_on</mat-icon>
                         {{ rg.location }}
                       </span>
+                      @if (resolveNamingPreview(rg.name, 'ResourceGroup'); as preview) {
+                        <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                          <mat-icon class="naming-preview__icon">label</mat-icon>
+                          {{ preview }}
+                        </span>
+                      }
                     </div>
                     <span class="rg-accordion__count">
                       {{ rgResources()[rg.id]?.length ?? '…' }}
@@ -87,6 +105,12 @@
                                 <div class="resource-item__info">
                                   <strong>{{ res.name }}</strong>
                                   <span class="resource-item__type">{{ res.resourceType }}</span>
+                                  @if (resolveNamingPreview(res.name, res.resourceType); as preview) {
+                                    <span class="naming-preview naming-preview--inline" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                      <mat-icon class="naming-preview__icon">label</mat-icon>
+                                      {{ preview }}
+                                    </span>
+                                  }
                                 </div>
                                 <span class="resource-item__location">{{ res.location }}</span>
                               </div>

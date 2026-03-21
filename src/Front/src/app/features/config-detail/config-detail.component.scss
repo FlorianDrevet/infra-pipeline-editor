@@ -120,7 +120,7 @@
 
 .tab-content { padding: 1.4rem; }
 
-.tab-content__toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+.tab-content__toolbar { display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
 
 // ─── Members ────
 
@@ -500,6 +500,58 @@
 .rg-accordion__body {
   padding: 0 1.1rem 1rem;
   border-top: 1px solid rgba(146, 191, 235, 0.15);
+}
+
+// ─── Naming Preview ────
+
+.preview-env-select {
+  margin-left: auto;
+  width: 14rem;
+  flex-shrink: 0;
+
+  ::ng-deep .mat-mdc-form-field-infix {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    min-height: unset;
+  }
+
+  ::ng-deep .mat-mdc-select-trigger {
+    font-size: 0.82rem;
+  }
+
+  ::ng-deep .mdc-notched-outline__leading,
+  ::ng-deep .mdc-notched-outline__notch,
+  ::ng-deep .mdc-notched-outline__trailing {
+    border-color: rgba(146, 191, 235, 0.3) !important;
+  }
+}
+
+.naming-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(76, 175, 80, 0.09);
+  color: #2e7d32;
+  font-size: 0.76rem;
+  font-weight: 600;
+  font-family: 'Roboto Mono', monospace;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &__icon {
+    font-size: 0.85rem;
+    width: 0.85rem;
+    height: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  &--inline {
+    margin-top: 0.15rem;
+  }
 }
 
 .rg-resources-toolbar {

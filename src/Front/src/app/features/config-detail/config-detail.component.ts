@@ -30,7 +30,8 @@ import {
   AddNamingTemplateDialogResult,
 } from './add-naming-template-dialog/add-naming-template-dialog.component';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
-import { RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS } from './enums/resource-type.enum';
+import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS } from './enums/resource-type.enum';
+import { FormsModule } from '@angular/forms';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
@@ -42,6 +43,7 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
   imports: [
     TranslateModule,
     RouterLink,
+    FormsModule,
     MatButtonModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -117,6 +119,43 @@ export class ConfigDetailComponent implements OnInit {
     return [...envs].sort((a, b) => a.order - b.order);
   });
 
+  protected readonly previewEnvId = signal<string | null>(null);
+
+  protected readonly previewEnv = computed(() => {
+    const id = this.previewEnvId();
+    if (!id) return null;
+    return this.config()?.environmentDefinitions.find((e) => e.id === id) ?? null;
+  });
+
+  /**
+   * Resolves a naming template preview for a resource, replacing placeholders
+   * with values from the selected preview environment and the resource metadata.
+   */
+  protected resolveNamingPreview(resourceName: string, resourceType: string): string | null {
+    const env = this.previewEnv();
+    if (!env) return null;
+
+    const cfg = this.config();
+    if (!cfg) return null;
+
+    // Pick the resource-specific template override, or fall back to the default
+    const resourceOverride = cfg.resourceNamingTemplates.find((t) => t.resourceType === resourceType);
+    const template = resourceOverride?.template ?? cfg.defaultNamingTemplate;
+    if (!template) return null;
+
+    const replacements: Record<string, string> = {
+      name: resourceName,
+      prefix: env.prefix ?? '',
+      suffix: env.suffix ?? '',
+      env: env.name,
+      resourceType,
+      resourceAbbr: RESOURCE_TYPE_ABBREVIATIONS[resourceType] ?? resourceType.toLowerCase(),
+      location: env.location,
+    };
+
+    return template.replace(/\{(\w+)}/g, (_, key: string) => replacements[key] ?? `{${key}}`);
+  }
+
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
@@ -139,6 +178,12 @@ export class ConfigDetailComponent implements OnInit {
       this.config.set(config);
       this.resourceGroups.set(resourceGroups);
       this.availableUsers.set(users);
+
+      // Pre-select the first environment (by order) for the naming preview
+      const firstEnv = [...(config.environmentDefinitions ?? [])].sort((a, b) => a.order - b.order)[0];
+      if (firstEnv) {
+        this.previewEnvId.set(firstEnv.id);
+      }
     } catch {
       this.loadError.set('CONFIG_DETAIL.ERROR.LOAD_FAILED');
     } finally {
