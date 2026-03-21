@@ -1,11 +1,14 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, ElementRef, inject, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { RESOURCE_TYPE_OPTIONS } from '../enums/resource-type.enum';
 
@@ -29,11 +32,14 @@ export interface AddNamingTemplateDialogResult {
   standalone: true,
   imports: [
     MatButtonModule,
+    MatChipsModule,
     MatDialogModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatOptionModule,
     MatSelectModule,
+    MatTooltipModule,
     ReactiveFormsModule,
     TranslateModule,
   ],
@@ -45,8 +51,21 @@ export class AddNamingTemplateDialogComponent {
   private readonly data: AddNamingTemplateDialogData = inject(MAT_DIALOG_DATA);
   private readonly fb = inject(FormBuilder);
 
+  private readonly templateInput = viewChild<ElementRef<HTMLInputElement>>('templateInput');
+
   protected readonly isResourceMode = this.data.mode === 'resource';
   protected readonly isEditMode = this.data.isEditMode;
+
+  /** Available placeholder variables that can be inserted into the template. */
+  protected readonly placeholders: readonly string[] = [
+    'name',
+    'prefix',
+    'suffix',
+    'env',
+    'resourceType',
+    'resourceAbbr',
+    'location',
+  ];
 
   protected readonly dialogTitleKey = computed(() => {
     if (this.isResourceMode) {
@@ -83,6 +102,33 @@ export class AddNamingTemplateDialogComponent {
       [Validators.required, Validators.minLength(1), Validators.maxLength(500)],
     ],
   });
+
+  protected formatPlaceholder(placeholder: string): string {
+    return `{${placeholder}}`;
+  }
+
+  /** Inserts `{placeholder}` at the cursor position (or end) of the template input. */
+  protected insertPlaceholder(placeholder: string): void {
+    const token = this.formatPlaceholder(placeholder);
+    const inputEl = this.templateInput()?.nativeElement;
+    const ctrl = this.form.controls.template;
+    const current = ctrl.value ?? '';
+
+    if (inputEl) {
+      const start = inputEl.selectionStart ?? current.length;
+      const end = inputEl.selectionEnd ?? start;
+      const newValue = current.slice(0, start) + token + current.slice(end);
+      ctrl.setValue(newValue);
+      // Restore focus and place cursor right after the inserted token.
+      const cursorPos = start + token.length;
+      requestAnimationFrame(() => {
+        inputEl.focus();
+        inputEl.setSelectionRange(cursorPos, cursorPos);
+      });
+    } else {
+      ctrl.setValue(current + token);
+    }
+  }
 
   protected onCancel(): void {
     this.dialogRef.close(null);

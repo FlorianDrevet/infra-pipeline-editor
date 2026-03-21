@@ -23,3 +23,13 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   RedisCache: 'memory',
   StorageAccount: 'storage',
 };
+
+/**
+ * Standard abbreviations per resource type, matching backend ResourceAbbreviationCatalog.
+ */
+export const RESOURCE_TYPE_ABBREVIATIONS: Record<string, string> = {
+  KeyVault: 'kv',
+  RedisCache: 'redis',
+  StorageAccount: 'stg',
+  ResourceGroup: 'rg',
+};

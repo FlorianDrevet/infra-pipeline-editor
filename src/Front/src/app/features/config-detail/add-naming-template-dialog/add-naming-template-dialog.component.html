@@ -16,10 +16,26 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.FORM.TEMPLATE' | translate }}</mat-label>
       <input
+        #templateInput
         matInput
         formControlName="template"
         [placeholder]="'CONFIG_DETAIL.NAMING_TEMPLATES.FORM.TEMPLATE_PLACEHOLDER' | translate" />
     </mat-form-field>
+
+    <div class="placeholder-chips">
+      <span class="placeholder-chips-label">{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.FORM.AVAILABLE_VARIABLES' | translate }}</span>
+      <mat-chip-set>
+        @for (p of placeholders; track p) {
+          <mat-chip
+            (click)="insertPlaceholder(p)"
+            [matTooltip]="('CONFIG_DETAIL.NAMING_TEMPLATES.PLACEHOLDERS.' + p | translate)"
+            class="placeholder-chip">
+            <mat-icon matChipAvatar>add</mat-icon>
+            {{ formatPlaceholder(p) }}
+          </mat-chip>
+        }
+      </mat-chip-set>
+    </div>
 
     @if (isResourceMode && !isEditMode && resourceTypeOptions().length === 0) {
       <p class="dialog-hint">{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.ALL_RESOURCE_TYPES_CONFIGURED' | translate }}</p>

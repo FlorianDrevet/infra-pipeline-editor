@@ -14,7 +14,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 
     /// <summary>
     /// Default naming template applied to all resource types unless overridden.
-    /// Supports placeholders: {name}, {prefix}, {suffix}, {env}, {resourceType}, {location}.
+    /// Supports placeholders: {name}, {prefix}, {suffix}, {env}, {resourceType}, {resourceAbbr}, {location}.
     /// When null, the resource Name is used as-is.
     /// </summary>
     public NamingTemplate? DefaultNamingTemplate { get; private set; }

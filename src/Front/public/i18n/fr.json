@@ -276,10 +276,20 @@
       "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer le template de nommage pour {{resourceType}} ?",
       "REMOVE_CONFIRM_YES": "Supprimer",
       "REMOVE_CONFIRM_CANCEL": "Annuler",
+      "PLACEHOLDERS": {
+        "name": "Nom du projet",
+        "prefix": "Prefixe global",
+        "suffix": "Suffixe global",
+        "env": "Environnement (dev, staging, prod…)",
+        "resourceType": "Type de ressource (KeyVault, StorageAccount…)",
+        "resourceAbbr": "Abreviation du type de ressource (kv, stg, redis…)",
+        "location": "Region Azure (westeurope, eastus…)"
+      },
       "FORM": {
         "RESOURCE_TYPE": "Type de ressource",
         "TEMPLATE": "Template",
         "TEMPLATE_PLACEHOLDER": "Exemple : {env}-{name}",
+        "AVAILABLE_VARIABLES": "Variables disponibles",
         "CANCEL": "Annuler",
         "ADD": "Ajouter",
         "SAVE": "Enregistrer"

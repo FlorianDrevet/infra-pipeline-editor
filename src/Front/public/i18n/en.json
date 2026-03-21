@@ -276,10 +276,20 @@
       "REMOVE_CONFIRM_MESSAGE": "Are you sure you want to remove the naming template for {{resourceType}}?",
       "REMOVE_CONFIRM_YES": "Remove",
       "REMOVE_CONFIRM_CANCEL": "Cancel",
+      "PLACEHOLDERS": {
+        "name": "Project name",
+        "prefix": "Global prefix",
+        "suffix": "Global suffix",
+        "env": "Environment (dev, staging, prod…)",
+        "resourceType": "Resource type (KeyVault, StorageAccount…)",
+        "resourceAbbr": "Resource type abbreviation (kv, stg, redis…)",
+        "location": "Azure region (westeurope, eastus…)"
+      },
       "FORM": {
         "RESOURCE_TYPE": "Resource type",
         "TEMPLATE": "Template",
         "TEMPLATE_PLACEHOLDER": "Example: {env}-{name}",
+        "AVAILABLE_VARIABLES": "Available variables",
         "CANCEL": "Cancel",
         "ADD": "Add",
         "SAVE": "Save"
