@@ -559,6 +559,16 @@ this.errorKey.set('LOGIN.ERROR.MSAL_FAILED');
 
 **Rule:** every new screen adds its own root namespace. Always add keys to **both** `fr.json` and `en.json`.
 
+### 13.2 Config Detail naming template actions ([2026-03-21])
+
+- New dialog component: `src/Front/src/app/features/config-detail/add-naming-template-dialog/` (`.ts`, `.html`, `.scss`) used for default/resource naming template add/edit.
+- `config-detail.component.ts` now supports write actions for naming templates when `canWrite()` is true:
+    - set/edit default template (`setDefaultNamingTemplate`)
+    - add/edit resource template (`setResourceNamingTemplate`)
+    - remove resource template with confirmation (`removeResourceNamingTemplate`)
+- Naming actions use dedicated UI state signals in config detail (`namingActionKey`, `namingErrorKey`) for inline loading/error feedback.
+- i18n namespace extended in both `src/Front/public/i18n/fr.json` and `src/Front/public/i18n/en.json` under `CONFIG_DETAIL.NAMING_TEMPLATES.*`.
+
 ## 15. Pull Request Conventions
 
 ### Titre obligatoire
@@ -1006,3 +1016,4 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-21 | copilot | **Enum file organization constraint** — Refactored `LocationEnum` from inline in `add-environment-dialog.component.ts` to dedicated file `src/Front/src/app/features/config-detail/enums/location.enum.ts`. Established rule: **backend enums require frontend dropdowns (`<mat-select>`), and enums MUST live in separate `.enum.ts` files** (never inline in components). Updated `angular-front.agent.md` section "Enums TypeScript — Règles strictes" with file placement logic (shared → `src/app/shared/enums/`, feature-only → `src/app/features/{feature}/enums/`), template examples, and Material dropdown usage pattern. Updated `frontend-enum-convention.md` memory with detailed rule + file structure + usage example. |
 | 2026-03-21 | copilot | Added "Add Resource Group" dialog on config detail page: new `add-resource-group-dialog` component (3 files) with name + location (dropdown reusing `LOCATION_OPTIONS`) form, wired into Resource Groups tab with add button gated by `canWrite`. After creation, refreshes resource groups list. Added 10 i18n keys under `CONFIG_DETAIL.RESOURCE_GROUPS.*` in both FR/EN. |
 | 2026-03-21 | copilot | Refactored Resource Groups tab from flat cards to **expandable accordion** with lazy-loaded resources. New `add-resource-dialog` component (3 files) with multi-step flow: type picker (KeyVault / RedisCache / StorageAccount) → resource-specific form. New `resource-type.enum.ts` (`ResourceTypeEnum`, `RESOURCE_TYPE_OPTIONS`, `RESOURCE_TYPE_ICONS`). Resources loaded via `ResourceGroupService.getResources()` with caching in `rgResources` signal. Add-resource button gated by `canWrite`. Added 30+ i18n keys under `CONFIG_DETAIL.RESOURCES.*` in both FR/EN. Fixed Angular template strict-mode warnings by using `{ [rgId: string]: AzureResourceResponse[] | undefined }` type instead of `Record<string, T[]>`. |
+| 2026-03-21 | copilot | Added naming template management UI in config detail: new `add-naming-template-dialog` component (3 files), write actions for default and per-resource templates (add/edit/remove) in `config-detail`, inline loading/error states via `namingActionKey`/`namingErrorKey`, and i18n additions under `CONFIG_DETAIL.NAMING_TEMPLATES.*` in both `fr.json` and `en.json`. |

@@ -1,0 +1,37 @@
+<h2 mat-dialog-title>{{ dialogTitleKey() | translate }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="template-form" (ngSubmit)="onSubmit()">
+    @if (isResourceMode) {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.FORM.RESOURCE_TYPE' | translate }}</mat-label>
+        <mat-select formControlName="resourceType" [disabled]="isEditMode">
+          @for (option of resourceTypeOptions(); track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.FORM.TEMPLATE' | translate }}</mat-label>
+      <input
+        matInput
+        formControlName="template"
+        [placeholder]="'CONFIG_DETAIL.NAMING_TEMPLATES.FORM.TEMPLATE_PLACEHOLDER' | translate" />
+    </mat-form-field>
+
+    @if (isResourceMode && !isEditMode && resourceTypeOptions().length === 0) {
+      <p class="dialog-hint">{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.ALL_RESOURCE_TYPES_CONFIGURED' | translate }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="onCancel()">
+    {{ 'CONFIG_DETAIL.NAMING_TEMPLATES.FORM.CANCEL' | translate }}
+  </button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid">
+    {{ submitKey | translate }}
+  </button>
+</mat-dialog-actions>

@@ -12,7 +12,9 @@ import { TranslateModule } from '@ngx-translate/core';
 import {
   InfrastructureConfigResponse,
   MemberResponse,
+  ResourceNamingTemplateResponse,
   UserResponse,
+  EnvironmentDefinitionResponse,
 } from '../../shared/interfaces/infra-config.interface';
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
@@ -22,9 +24,13 @@ import { AddMemberDialogComponent, AddMemberDialogData } from './add-member-dial
 import { AddEnvironmentDialogComponent, AddEnvironmentDialogData } from './add-environment-dialog/add-environment-dialog.component';
 import { AddResourceGroupDialogComponent, AddResourceGroupDialogData } from './add-resource-group-dialog/add-resource-group-dialog.component';
 import { AddResourceDialogComponent, AddResourceDialogData } from './add-resource-dialog/add-resource-dialog.component';
+import {
+  AddNamingTemplateDialogComponent,
+  AddNamingTemplateDialogData,
+  AddNamingTemplateDialogResult,
+} from './add-naming-template-dialog/add-naming-template-dialog.component';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
-import { RESOURCE_TYPE_ICONS } from './enums/resource-type.enum';
-import { EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
+import { RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS } from './enums/resource-type.enum';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
@@ -64,11 +70,14 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly memberErrorKey = signal('');
   protected readonly envActionId = signal<string | null>(null);
   protected readonly envErrorKey = signal('');
+  protected readonly namingActionKey = signal<string | null>(null);
+  protected readonly namingErrorKey = signal('');
   protected readonly rgErrorKey = signal('');
   protected readonly expandedRgId = signal<string | null>(null);
   protected readonly rgResources = signal<{ [rgId: string]: AzureResourceResponse[] | undefined }>({});
   protected readonly rgResourcesLoading = signal<string | null>(null);
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
+  protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
   protected readonly roles = ROLES;
 
   protected readonly membersByRole = computed(() => {
@@ -96,6 +105,11 @@ export class ConfigDetailComponent implements OnInit {
     const members = this.config()?.members ?? [];
     const me = members.find((m) => m.entraId === oid);
     return me?.role === 'Owner' || me?.role === 'Contributor';
+  });
+
+  protected readonly canAddResourceNamingTemplate = computed(() => {
+    const configuredTypes = new Set((this.config()?.resourceNamingTemplates ?? []).map((item) => item.resourceType));
+    return this.resourceTypeOptions.some((option) => !configuredTypes.has(option.value));
   });
 
   protected readonly sortedEnvironments = computed(() => {
@@ -329,5 +343,136 @@ export class ConfigDetailComponent implements OnInit {
     } finally {
       this.envActionId.set(null);
     }
+  }
+
+  protected isNamingActionActive(actionKey: string): boolean {
+    return this.namingActionKey() === actionKey;
+  }
+
+  protected isResourceNamingTemplateBusy(resourceType: string): boolean {
+    const actionKey = this.namingActionKey();
+    return actionKey === `resource:${resourceType}` || actionKey === `resource-remove:${resourceType}`;
+  }
+
+  protected openDefaultNamingTemplateDialog(): void {
+    const currentConfig = this.config();
+    if (!currentConfig || !this.canWrite()) return;
+
+    const dialogRef = this.dialog.open(AddNamingTemplateDialogComponent, {
+      data: {
+        mode: 'default',
+        isEditMode: !!currentConfig.defaultNamingTemplate,
+        template: currentConfig.defaultNamingTemplate,
+      } satisfies AddNamingTemplateDialogData,
+      width: '460px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: AddNamingTemplateDialogResult | null) => {
+      if (!result) return;
+      await this.saveDefaultNamingTemplate(result.template);
+    });
+  }
+
+  protected openResourceNamingTemplateDialog(existing?: ResourceNamingTemplateResponse): void {
+    const currentConfig = this.config();
+    if (!currentConfig || !this.canWrite()) return;
+
+    const usedResourceTypes = currentConfig.resourceNamingTemplates
+      .map((item) => item.resourceType)
+      .filter((resourceType) => resourceType !== existing?.resourceType);
+
+    const availableResourceTypes = this.resourceTypeOptions
+      .map((option) => option.value)
+      .filter((resourceType) => !usedResourceTypes.includes(resourceType));
+
+    const dialogRef = this.dialog.open(AddNamingTemplateDialogComponent, {
+      data: {
+        mode: 'resource',
+        isEditMode: !!existing,
+        template: existing?.template ?? '',
+        resourceType: existing?.resourceType,
+        availableResourceTypes: existing ? [existing.resourceType] : availableResourceTypes,
+      } satisfies AddNamingTemplateDialogData,
+      width: '460px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: AddNamingTemplateDialogResult | null) => {
+      if (!result?.resourceType) return;
+      await this.saveResourceNamingTemplate(result.resourceType, result.template);
+    });
+  }
+
+  protected openRemoveResourceNamingTemplateDialog(template: ResourceNamingTemplateResponse): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'CONFIG_DETAIL.NAMING_TEMPLATES.REMOVE_CONFIRM_TITLE',
+        messageKey: 'CONFIG_DETAIL.NAMING_TEMPLATES.REMOVE_CONFIRM_MESSAGE',
+        messageParams: { resourceType: template.resourceType },
+        confirmKey: 'CONFIG_DETAIL.NAMING_TEMPLATES.REMOVE_CONFIRM_YES',
+        cancelKey: 'CONFIG_DETAIL.NAMING_TEMPLATES.REMOVE_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '400px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
+      if (!confirmed) return;
+      await this.removeResourceNamingTemplate(template.resourceType);
+    });
+  }
+
+  private async saveDefaultNamingTemplate(template: string): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.namingActionKey.set('default');
+    this.namingErrorKey.set('');
+
+    try {
+      await this.infraConfigService.setDefaultNamingTemplate(configId, { template });
+      await this.refreshConfig(configId);
+    } catch {
+      this.namingErrorKey.set('CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT_SAVE_ERROR');
+    } finally {
+      this.namingActionKey.set(null);
+    }
+  }
+
+  private async saveResourceNamingTemplate(resourceType: string, template: string): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.namingActionKey.set(`resource:${resourceType}`);
+    this.namingErrorKey.set('');
+
+    try {
+      await this.infraConfigService.setResourceNamingTemplate(configId, resourceType, { template });
+      await this.refreshConfig(configId);
+    } catch {
+      this.namingErrorKey.set('CONFIG_DETAIL.NAMING_TEMPLATES.RESOURCE_SAVE_ERROR');
+    } finally {
+      this.namingActionKey.set(null);
+    }
+  }
+
+  private async removeResourceNamingTemplate(resourceType: string): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.namingActionKey.set(`resource-remove:${resourceType}`);
+    this.namingErrorKey.set('');
+
+    try {
+      await this.infraConfigService.removeResourceNamingTemplate(configId, resourceType);
+      await this.refreshConfig(configId);
+    } catch {
+      this.namingErrorKey.set('CONFIG_DETAIL.NAMING_TEMPLATES.RESOURCE_REMOVE_ERROR');
+    } finally {
+      this.namingActionKey.set(null);
+    }
+  }
+
+  private async refreshConfig(configId: string): Promise<void> {
+    const refreshed = await this.infraConfigService.getById(configId);
+    this.config.set(refreshed);
   }
 }

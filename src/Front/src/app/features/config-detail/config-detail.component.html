@@ -306,18 +306,92 @@
           <span class="tab-count">{{ config()!.resourceNamingTemplates.length }}</span>
         </ng-template>
         <div class="tab-content">
-          @if (config()!.defaultNamingTemplate) {
-            <div class="default-template">
-              <span>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
-              <code>{{ config()!.defaultNamingTemplate }}</code>
-            </div>
+          <div class="tab-content__toolbar naming-toolbar">
+            @if (canWrite()) {
+              <button
+                class="template-action-btn template-action-btn--add"
+                [disabled]="namingActionKey() !== null"
+                (click)="openDefaultNamingTemplateDialog()">
+                <mat-icon>edit</mat-icon>
+                {{ (config()!.defaultNamingTemplate
+                  ? 'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT_DEFAULT'
+                  : 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_DEFAULT') | translate }}
+              </button>
+              <button
+                class="template-action-btn template-action-btn--add"
+                [disabled]="!canAddResourceNamingTemplate() || namingActionKey() !== null"
+                [matTooltip]="(!canAddResourceNamingTemplate() ? 'CONFIG_DETAIL.NAMING_TEMPLATES.ALL_RESOURCE_TYPES_CONFIGURED' : 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE') | translate"
+                (click)="openResourceNamingTemplateDialog()">
+                <mat-icon>add_circle_outline</mat-icon>
+                {{ 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (namingErrorKey()) {
+            <p class="naming-error">{{ namingErrorKey() | translate }}</p>
           }
+
+          <article class="default-template" [class.default-template--busy]="isNamingActionActive('default')">
+            @if (isNamingActionActive('default')) {
+              <div class="default-template__spinner">
+                <mat-spinner diameter="22"></mat-spinner>
+              </div>
+            }
+
+            <div class="default-template__header">
+              <span>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
+              @if (canWrite()) {
+                <button
+                  class="template-action-btn template-action-btn--inline"
+                  [disabled]="namingActionKey() !== null"
+                  (click)="openDefaultNamingTemplateDialog()">
+                  <mat-icon>edit</mat-icon>
+                  {{ 'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT' | translate }}
+                </button>
+              }
+            </div>
+
+            @if (config()!.defaultNamingTemplate) {
+              <code>{{ config()!.defaultNamingTemplate }}</code>
+            } @else {
+              <p class="default-template__empty">{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT_EMPTY' | translate }}</p>
+            }
+          </article>
+
           @if (config()!.resourceNamingTemplates.length > 0) {
             <div class="template-list">
               @for (tmpl of config()!.resourceNamingTemplates; track tmpl.id) {
-                <article class="template-row">
-                  <strong>{{ tmpl.resourceType }}</strong>
-                  <code>{{ tmpl.template }}</code>
+                <article class="template-row" [class.template-row--busy]="isResourceNamingTemplateBusy(tmpl.resourceType)">
+                  @if (isResourceNamingTemplateBusy(tmpl.resourceType)) {
+                    <div class="template-row__spinner">
+                      <mat-spinner diameter="18"></mat-spinner>
+                    </div>
+                  }
+
+                  <div class="template-row__meta">
+                    <strong>{{ tmpl.resourceType }}</strong>
+                    <code>{{ tmpl.template }}</code>
+                  </div>
+
+                  @if (canWrite()) {
+                    <div class="template-row__actions">
+                      <button
+                        class="template-action-btn template-action-btn--edit"
+                        [matTooltip]="'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
+                        [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
+                        (click)="openResourceNamingTemplateDialog(tmpl)">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button
+                        class="template-action-btn template-action-btn--delete"
+                        [matTooltip]="'CONFIG_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
+                        [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
+                        (click)="openRemoveResourceNamingTemplateDialog(tmpl)">
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
+                    </div>
+                  }
                 </article>
               }
             </div>

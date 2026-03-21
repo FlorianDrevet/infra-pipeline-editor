@@ -1,0 +1,31 @@
+:host {
+  display: block;
+}
+
+.template-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 24rem;
+  padding-top: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.dialog-hint {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  background: rgba(13, 101, 192, 0.07);
+  color: #1565c0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .template-form {
+    min-width: 100%;
+  }
+}

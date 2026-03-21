@@ -179,7 +179,8 @@
 .add-member-btn__icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
 
 .member-error,
-.env-error {
+.env-error,
+.naming-error {
   margin: 0 0 0.75rem;
   padding: 0.6rem 0.8rem;
   border-radius: 0.6rem;
@@ -589,27 +590,61 @@
 
 // ─── Naming Templates ────
 
+.naming-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 .default-template {
   padding: 0.95rem 1.1rem;
   border-radius: 1.15rem;
   background: rgba(0, 188, 212, 0.06);
   border: 1px solid rgba(0, 188, 212, 0.14);
   margin-bottom: 0.85rem;
+  position: relative;
+
+  &--busy {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+}
+
+.default-template__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin-bottom: 0.35rem;
 
   span {
     display: block;
     color: #00838f;
     font-size: 0.78rem;
     font-weight: 700;
-    margin-bottom: 0.35rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
+}
 
-  code {
-    color: #103454;
-    font-size: 0.9rem;
-  }
+.default-template__empty {
+  margin: 0;
+  color: #617892;
+  font-size: 0.84rem;
+}
+
+.default-template__spinner,
+.template-row__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.default-template code {
+  color: #103454;
+  font-size: 0.9rem;
 }
 
 .template-list {
@@ -626,6 +661,19 @@
   border-radius: 1rem;
   background: linear-gradient(180deg, #fff, #f6fbff);
   border: 1px solid rgba(146, 191, 235, 0.18);
+  position: relative;
+
+  &--busy {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+}
+
+.template-row__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
 
   strong {
     color: #103454;
@@ -636,6 +684,69 @@
     color: #617892;
     font-size: 0.84rem;
     word-break: break-all;
+  }
+}
+
+.template-row__actions {
+  display: inline-flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.template-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(146, 191, 235, 0.3);
+  background: rgba(13, 101, 192, 0.05);
+  color: #1565c0;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-height: 2rem;
+  min-width: 2rem;
+  padding: 0.3rem 0.65rem;
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  &:hover {
+    background: rgba(13, 101, 192, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &--add {
+    border-color: rgba(0, 188, 212, 0.28);
+    background: rgba(0, 188, 212, 0.06);
+    color: #00838f;
+    padding-inline: 0.8rem;
+
+    &:hover {
+      background: rgba(0, 188, 212, 0.14);
+    }
+  }
+
+  &--inline {
+    min-height: 1.9rem;
+  }
+
+  &--delete {
+    color: #c62828;
+    border-color: rgba(217, 45, 32, 0.22);
+    background: rgba(217, 45, 32, 0.05);
+
+    &:hover {
+      background: rgba(217, 45, 32, 0.12);
+    }
   }
 }
 
@@ -772,6 +883,11 @@
   .template-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .naming-toolbar {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .member-card {
