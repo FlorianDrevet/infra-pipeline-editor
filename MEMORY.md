@@ -518,6 +518,15 @@ Ajouter dans `angular.json` → `build.options` :
 
 ---
 
+### 13.1 Runtime i18n frontend (FR/EN) ([2026-03-21])
+
+- Runtime translation now uses `@ngx-translate/core` + `@ngx-translate/http-loader` in `src/Front`.
+- Global providers are configured in `src/Front/src/app/app.config.ts` with `provideTranslateService(...)` + `provideTranslateHttpLoader(...)` and language bootstrap via `LanguageService.initialize()`.
+- `src/Front/src/app/shared/services/language.service.ts` centralizes language state, persistence (`localStorage`), and fallback order: persisted -> browser language -> `fr`.
+- Translation resources are served from `src/Front/public/i18n/fr.json` and `src/Front/public/i18n/en.json`.
+- The shell language switch is in `src/Front/src/app/core/layouts/navigation/` and is visible for authenticated pages.
+- Initial i18n coverage includes navigation, footer, login, and home (including key dynamic messages on login/home).
+
 ## 15. Pull Request Conventions
 
 ### Titre obligatoire
@@ -638,6 +647,18 @@ Type mapping convention (C# → TypeScript): `Guid` → `string`, `IReadOnlyList
 For clientId `24c34231-a984-43b3-8ac3-9278ebd067ef`:
 1. **Authentication → Platform → Single-page application (SPA)**
 2. **Redirect URIs:** `http://localhost:4200` (dev) + production URL
+
+### 16.6 Shell layout and home page ([2026-03-21])
+
+- `src/Front/src/app/core/layouts/navigation/*` is now the authenticated shell header: brand link to `/`, single `Accueil` nav item, current Entra account summary, and logout action via `MsalAuthService.logout()`.
+- `src/Front/src/app/core/layouts/footer/*` is now a lightweight informative footer aligned with the premium blue/cyan SaaS baseline from the login page.
+- Protected root route in `src/Front/src/app/app-routing.ts` now lazy-loads `features/home/home.component` at `/`.
+- `src/Front/src/app/features/home/*` provides the first authenticated landing page:
+    - loads configurations with `InfraConfigService.getAll()` on init,
+    - creates a configuration with `InfraConfigService.create({ name })`,
+    - exposes explicit loading, empty, error, success, and retry states,
+    - keeps the main CTA visible above the fold and reuses the login page blue/cyan premium visual language.
+- `src/Front/src/app/app.component.*` now applies a real authenticated shell background instead of only a bare `main` min-height.
 3. **Implicit grant → unchecked** (PKCE is used automatically for SPA)
 4. **API permissions:** Microsoft Graph → `openid`, `profile`, `email` (delegated)
 5. **Supported account types:** single-tenant (or multitenant as needed)

@@ -1,11 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { MsalAuthService } from '../../shared/services/msal-auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [],
+  imports: [TranslateModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -14,15 +15,15 @@ export class LoginComponent {
   private readonly msalAuthService = inject(MsalAuthService);
 
   protected isMsalLoading = signal(false);
-  protected errorMessage = signal('');
+  protected errorMessageKey = signal('');
 
   protected async loginWithMicrosoft(): Promise<void> {
     this.isMsalLoading.set(true);
-    this.errorMessage.set('');
+    this.errorMessageKey.set('');
     try {
       await this.msalAuthService.loginRedirect(`${globalThis.location.origin}/`);
     } catch {
-      this.errorMessage.set('Microsoft authentication failed. Please try again.');
+      this.errorMessageKey.set('LOGIN.ERROR.MSAL_FAILED');
       await this.router.navigate(['/login']);
       this.isMsalLoading.set(false);
     }

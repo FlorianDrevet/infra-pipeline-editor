@@ -1,12 +1,12 @@
-<ng-container class="flex flex-col">
+<div class="app-shell">
   @if (!isLoginPage()) {
     <app-navigation></app-navigation>
   }
-  <main [class.ml-auto]="!isLoginPage()" [class.mr-auto]="!isLoginPage()">
+  <main class="app-main" [class.app-main--login]="isLoginPage()">
     <router-outlet></router-outlet>
   </main>
   @if (!isLoginPage()) {
     <app-footer></app-footer>
   }
-</ng-container>
+</div>
 

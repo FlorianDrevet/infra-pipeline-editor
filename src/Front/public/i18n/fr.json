@@ -1,0 +1,109 @@
+{
+  "LANGUAGE": {
+    "FRENCH_SHORT": "FR",
+    "ENGLISH_SHORT": "EN"
+  },
+  "NAV": {
+    "BRAND_ARIA": "Ouvrir la page d'accueil InfraFlowSculptor",
+    "BRAND_SUBTITLE": "Espace de travail infrastructure Azure",
+    "HOME": "Accueil",
+    "LANGUAGE_SELECTOR_ARIA": "Selection de la langue",
+    "USER_CARD_ARIA": "Utilisateur connecte",
+    "USER_DEFAULT_NAME": "Membre de l'espace",
+    "USER_DEFAULT_EMAIL": "Connecte avec Microsoft Entra ID",
+    "LOGGING_OUT": "Deconnexion...",
+    "LOGOUT": "Se deconnecter"
+  },
+  "FOOTER": {
+    "BRAND_DESCRIPTION": "Infrastructure as Data, Bicep as Code. Espace securise pour les equipes plateforme Azure.",
+    "HOME": "Accueil",
+    "SECURITY": "Securise avec Microsoft Entra ID",
+    "WORKFLOW": "Workflow Azure premium",
+    "LEGAL": "Concu pour les equipes de gouvernance et delivery cloud"
+  },
+  "LOGIN": {
+    "BRANDING": {
+      "TITLE_LINE_1": "Infrastructure as Data,",
+      "TITLE_LINE_2": "Bicep as Code",
+      "DESCRIPTION": "Simplifiez la configuration Azure avec des outils visuels, une generation Bicep automatisee et une integration DevOps fluide."
+    },
+    "FEATURES": {
+      "DESIGNER_TITLE": "Concepteur visuel d'infrastructure",
+      "DESIGNER_DESC": "Configurez les ressources Azure avec une interface intuitive",
+      "BICEP_TITLE": "Generation Bicep automatisee",
+      "BICEP_DESC": "Generez des artefacts IaC prets pour la production",
+      "SECURITY_TITLE": "Securite entreprise",
+      "SECURITY_DESC": "Integration Microsoft Entra ID avec RBAC"
+    },
+    "FORM": {
+      "TITLE": "Bon retour",
+      "SUBTITLE": "Connectez-vous pour continuer",
+      "SIGN_IN_WITH_MICROSOFT": "Se connecter avec Microsoft",
+      "HELP": "Aide"
+    },
+    "ERROR": {
+      "MSAL_FAILED": "L'authentification Microsoft a echoue. Veuillez reessayer."
+    }
+  },
+  "HOME": {
+    "HERO": {
+      "EYEBROW": "Espace de gouvernance Azure",
+      "TITLE": "Configurez votre catalogue d'infrastructure avant de generer Bicep et les assets de delivery.",
+      "DESCRIPTION": "Centralisez les conventions plateforme, accelerez l'onboarding des environnements et gardez chaque configuration visible dans un espace premium.",
+      "STATS": {
+        "ARIA": "Vue d'ensemble de l'espace",
+        "CONFIGS_TRACKED": "Configurations suivies",
+        "ENV_DEFINITIONS": "Definitions d'environnement",
+        "MAIN_CTA_TITLE": "Action principale",
+        "MAIN_CTA_DESC": "Commencez par nommer une nouvelle configuration d'infrastructure"
+      }
+    },
+    "ACTIONS": {
+      "ADD_CONFIGURATION": "Ajouter une configuration",
+      "REFRESHING": "Actualisation...",
+      "REFRESH_LIST": "Actualiser la liste",
+      "CREATING": "Creation de la configuration...",
+      "RETRY_SYNC": "Relancer la synchro",
+      "TRY_AGAIN": "Reessayer"
+    },
+    "CREATE": {
+      "OVERLINE": "Creation",
+      "TITLE": "Ajouter une nouvelle configuration d'infrastructure",
+      "DESCRIPTION": "Nommez un espace qui accueillera ensuite les membres, environnements, groupes de ressources et regles de nommage."
+    },
+    "FORM": {
+      "NAME_LABEL": "Nom de la configuration",
+      "NAME_PLACEHOLDER": "Exemple : Fondation plateforme globale",
+      "ERROR_REQUIRED": "Le nom de la configuration est requis.",
+      "ERROR_MIN_LENGTH": "Utilisez au moins 3 caracteres pour un nom pertinent.",
+      "ERROR_MAX_LENGTH": "Le nom doit rester sous 80 caracteres."
+    },
+    "FEEDBACK": {
+      "CREATE_SUCCESS": "Configuration \"{{name}}\" ajoutee avec succes.",
+      "CREATE_ERROR_FALLBACK": "Impossible de creer la configuration pour le moment. Veuillez reessayer.",
+      "LOAD_ERROR_FALLBACK": "Impossible de charger vos configurations d'infrastructure. Actualisez la page ou reessayez."
+    },
+    "STATE": {
+      "LOADING_TITLE": "Chargement des configurations",
+      "LOADING_DESCRIPTION": "Recuperation des espaces d'infrastructure depuis l'API.",
+      "LOAD_FAILED": "Echec du chargement",
+      "EMPTY_TITLE": "Aucune configuration",
+      "EMPTY_DESCRIPTION": "Creez votre premier espace d'infrastructure pour structurer les environnements, contributeurs et regles de nommage Azure.",
+      "EMPTY_CTA": "Creer la premiere configuration"
+    },
+    "LIST": {
+      "OVERLINE": "Catalogue des espaces",
+      "TITLE": "Configurations existantes",
+      "MEMBERS": "{{count}} membre(s)",
+      "TOP_ENVIRONMENTS": "Environnements principaux",
+      "NO_ENVIRONMENT": "Cette configuration n'a pas encore de definition d'environnement.",
+      "METRICS": {
+        "ENVIRONMENTS": "Environnements",
+        "NAMING_TEMPLATES": "Templates de nommage",
+        "BOOLEAN_TRUE": "Oui",
+        "BOOLEAN_FALSE": "Non",
+        "DEFAULT_NAMING": "Regle de nommage par defaut"
+      }
+    }
+  }
+}

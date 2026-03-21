@@ -1,4 +1,62 @@
-<nav>
-  navigation
+<nav class="shell-nav">
+  <div class="shell-nav__content">
+    <a class="brand" routerLink="/" [attr.aria-label]="'NAV.BRAND_ARIA' | translate">
+      <span class="brand__icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+          <path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 3.5 2.5 2.5L20 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="brand__copy">
+        <strong>InfraFlowSculptor</strong>
+        <span>{{ 'NAV.BRAND_SUBTITLE' | translate }}</span>
+      </span>
+    </a>
+
+    <div class="shell-nav__actions">
+      <a
+        class="nav-link"
+        routerLink="/"
+        routerLinkActive="nav-link--active"
+        [routerLinkActiveOptions]="{ exact: true }">
+        {{ 'NAV.HOME' | translate }}
+      </a>
+
+      <div class="language-switch" role="group" [attr.aria-label]="'NAV.LANGUAGE_SELECTOR_ARIA' | translate">
+        @for (language of availableLanguages; track language.code) {
+          <button
+            type="button"
+            class="language-switch__button"
+            [class.language-switch__button--active]="currentLanguage() === language.code"
+            (click)="changeLanguage(language.code)">
+            {{ language.labelKey | translate }}
+          </button>
+        }
+      </div>
+
+      <div class="user-card" [attr.aria-label]="'NAV.USER_CARD_ARIA' | translate">
+        <span class="user-card__avatar">{{ userInitials() }}</span>
+        <span class="user-card__details">
+          @if (userName()) {
+            <strong>{{ userName() }}</strong>
+          } @else {
+            <strong>{{ 'NAV.USER_DEFAULT_NAME' | translate }}</strong>
+          }
+          @if (userEmail()) {
+            <span>{{ userEmail() }}</span>
+          } @else {
+            <span>{{ 'NAV.USER_DEFAULT_EMAIL' | translate }}</span>
+          }
+        </span>
+      </div>
+
+      <button type="button" class="logout-button" [disabled]="isLoggingOut()" (click)="logout()">
+        @if (isLoggingOut()) {
+          {{ 'NAV.LOGGING_OUT' | translate }}
+        } @else {
+          {{ 'NAV.LOGOUT' | translate }}
+        }
+      </button>
+    </div>
+  </div>
 </nav>
 

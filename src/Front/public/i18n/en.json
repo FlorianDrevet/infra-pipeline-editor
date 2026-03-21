@@ -1,0 +1,109 @@
+{
+  "LANGUAGE": {
+    "FRENCH_SHORT": "FR",
+    "ENGLISH_SHORT": "EN"
+  },
+  "NAV": {
+    "BRAND_ARIA": "Open InfraFlowSculptor home page",
+    "BRAND_SUBTITLE": "Azure infrastructure workspace",
+    "HOME": "Home",
+    "LANGUAGE_SELECTOR_ARIA": "Language selector",
+    "USER_CARD_ARIA": "Current connected user",
+    "USER_DEFAULT_NAME": "Workspace member",
+    "USER_DEFAULT_EMAIL": "Connected with Microsoft Entra ID",
+    "LOGGING_OUT": "Signing out...",
+    "LOGOUT": "Sign out"
+  },
+  "FOOTER": {
+    "BRAND_DESCRIPTION": "Infrastructure as Data, Bicep as Code. Secure workspace for Azure platform teams.",
+    "HOME": "Home",
+    "SECURITY": "Microsoft Entra ID secured",
+    "WORKFLOW": "Premium Azure workflow",
+    "LEGAL": "Built for cloud governance and delivery teams"
+  },
+  "LOGIN": {
+    "BRANDING": {
+      "TITLE_LINE_1": "Infrastructure as Data,",
+      "TITLE_LINE_2": "Bicep as Code",
+      "DESCRIPTION": "Simplify Azure infrastructure configuration with visual tools, automated Bicep generation, and seamless DevOps integration."
+    },
+    "FEATURES": {
+      "DESIGNER_TITLE": "Visual Infrastructure Designer",
+      "DESIGNER_DESC": "Configure Azure resources with an intuitive UI",
+      "BICEP_TITLE": "Automated Bicep Generation",
+      "BICEP_DESC": "Generate production-ready IaC artifacts",
+      "SECURITY_TITLE": "Enterprise Security",
+      "SECURITY_DESC": "Microsoft Entra ID integration with RBAC"
+    },
+    "FORM": {
+      "TITLE": "Welcome back",
+      "SUBTITLE": "Sign in to your account to continue",
+      "SIGN_IN_WITH_MICROSOFT": "Sign in with Microsoft",
+      "HELP": "Help"
+    },
+    "ERROR": {
+      "MSAL_FAILED": "Microsoft authentication failed. Please try again."
+    }
+  },
+  "HOME": {
+    "HERO": {
+      "EYEBROW": "Azure governance workspace",
+      "TITLE": "Configure your infrastructure catalog before generating Bicep and delivery assets.",
+      "DESCRIPTION": "Centralize platform conventions, onboard new environments faster, and keep every infrastructure configuration visible in one premium workspace.",
+      "STATS": {
+        "ARIA": "Workspace overview",
+        "CONFIGS_TRACKED": "Configurations tracked",
+        "ENV_DEFINITIONS": "Environment definitions",
+        "MAIN_CTA_TITLE": "Main CTA",
+        "MAIN_CTA_DESC": "Start by naming a new infrastructure configuration"
+      }
+    },
+    "ACTIONS": {
+      "ADD_CONFIGURATION": "Add a configuration",
+      "REFRESHING": "Refreshing...",
+      "REFRESH_LIST": "Refresh list",
+      "CREATING": "Creating configuration...",
+      "RETRY_SYNC": "Retry sync",
+      "TRY_AGAIN": "Try again"
+    },
+    "CREATE": {
+      "OVERLINE": "Create",
+      "TITLE": "Add a new infrastructure configuration",
+      "DESCRIPTION": "Name a workspace that will later host members, environments, resource groups, and naming rules."
+    },
+    "FORM": {
+      "NAME_LABEL": "Configuration name",
+      "NAME_PLACEHOLDER": "Example: Global platform foundation",
+      "ERROR_REQUIRED": "A configuration name is required.",
+      "ERROR_MIN_LENGTH": "Use at least 3 characters for a meaningful workspace name.",
+      "ERROR_MAX_LENGTH": "Keep the name under 80 characters."
+    },
+    "FEEDBACK": {
+      "CREATE_SUCCESS": "Configuration \"{{name}}\" added successfully.",
+      "CREATE_ERROR_FALLBACK": "Unable to create the configuration right now. Please try again.",
+      "LOAD_ERROR_FALLBACK": "Unable to load your infrastructure configurations. Refresh the page or retry."
+    },
+    "STATE": {
+      "LOADING_TITLE": "Loading configurations",
+      "LOADING_DESCRIPTION": "Fetching your current infrastructure workspaces from the API.",
+      "LOAD_FAILED": "Load failed",
+      "EMPTY_TITLE": "No configuration yet",
+      "EMPTY_DESCRIPTION": "Create your first infrastructure workspace to start structuring environments, contributors, and Azure naming rules.",
+      "EMPTY_CTA": "Create the first configuration"
+    },
+    "LIST": {
+      "OVERLINE": "Workspace catalog",
+      "TITLE": "Existing configurations",
+      "MEMBERS": "{{count}} member(s)",
+      "TOP_ENVIRONMENTS": "Top environments",
+      "NO_ENVIRONMENT": "This configuration has no environment definition yet.",
+      "METRICS": {
+        "ENVIRONMENTS": "Environments",
+        "NAMING_TEMPLATES": "Naming templates",
+        "BOOLEAN_TRUE": "Yes",
+        "BOOLEAN_FALSE": "No",
+        "DEFAULT_NAMING": "Default naming rule"
+      }
+    }
+  }
+}

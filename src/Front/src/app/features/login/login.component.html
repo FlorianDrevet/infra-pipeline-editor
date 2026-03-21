@@ -14,11 +14,10 @@
     <!-- Main heading -->
     <div class="branding-content">
       <h1 class="branding-title">
-        Infrastructure as Data,<br>Bicep as Code
+        {{ 'LOGIN.BRANDING.TITLE_LINE_1' | translate }}<br>{{ 'LOGIN.BRANDING.TITLE_LINE_2' | translate }}
       </h1>
       <p class="branding-description">
-        Simplify your Azure infrastructure configuration with visual tools,
-        automated Bicep generation, and seamless DevOps integration.
+        {{ 'LOGIN.BRANDING.DESCRIPTION' | translate }}
       </p>
     </div>
 
@@ -31,8 +30,8 @@
           </svg>
         </div>
         <div>
-          <strong>Visual Infrastructure Designer</strong>
-          <p>Configure Azure resources with intuitive UI</p>
+          <strong>{{ 'LOGIN.FEATURES.DESIGNER_TITLE' | translate }}</strong>
+          <p>{{ 'LOGIN.FEATURES.DESIGNER_DESC' | translate }}</p>
         </div>
       </li>
       <li class="feature-item">
@@ -42,8 +41,8 @@
           </svg>
         </div>
         <div>
-          <strong>Automated Bicep Generation</strong>
-          <p>Generate production-ready IaC artifacts</p>
+          <strong>{{ 'LOGIN.FEATURES.BICEP_TITLE' | translate }}</strong>
+          <p>{{ 'LOGIN.FEATURES.BICEP_DESC' | translate }}</p>
         </div>
       </li>
       <li class="feature-item">
@@ -53,8 +52,8 @@
           </svg>
         </div>
         <div>
-          <strong>Enterprise Security</strong>
-          <p>Microsoft Entra ID integration with RBAC</p>
+          <strong>{{ 'LOGIN.FEATURES.SECURITY_TITLE' | translate }}</strong>
+          <p>{{ 'LOGIN.FEATURES.SECURITY_DESC' | translate }}</p>
         </div>
       </li>
     </ul>
@@ -63,12 +62,12 @@
   <!-- Right Panel: Login Form -->
   <div class="right-panel">
     <div class="login-form-container">
-      <h2 class="form-title">Welcome back</h2>
-      <p class="form-subtitle">Sign in to your account to continue</p>
+      <h2 class="form-title">{{ 'LOGIN.FORM.TITLE' | translate }}</h2>
+      <p class="form-subtitle">{{ 'LOGIN.FORM.SUBTITLE' | translate }}</p>
 
-      @if (errorMessage()) {
+      @if (errorMessageKey()) {
         <div class="error-banner" role="alert" aria-live="polite">
-          {{ errorMessage() }}
+          {{ errorMessageKey() | translate }}
         </div>
       }
 
@@ -88,7 +87,7 @@
             <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
           </svg>
         }
-        <span>Sign in with Microsoft</span>
+        <span>{{ 'LOGIN.FORM.SIGN_IN_WITH_MICROSOFT' | translate }}</span>
       </button>
 
     </div>
@@ -97,8 +96,8 @@
     <button
       type="button"
       class="help-btn"
-      title="Help"
-      aria-label="Help">
+      [title]="'LOGIN.FORM.HELP' | translate"
+      [attr.aria-label]="'LOGIN.FORM.HELP' | translate">
       ?
     </button>
   </div>

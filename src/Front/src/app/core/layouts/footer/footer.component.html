@@ -1,4 +1,20 @@
-<footer>
-  footer
+<footer class="shell-footer">
+  <div class="shell-footer__content">
+    <div class="shell-footer__brand">
+      <strong>InfraFlowSculptor</strong>
+      <p>{{ 'FOOTER.BRAND_DESCRIPTION' | translate }}</p>
+    </div>
+
+    <div class="shell-footer__meta">
+      <a routerLink="/">{{ 'FOOTER.HOME' | translate }}</a>
+      <span>{{ 'FOOTER.SECURITY' | translate }}</span>
+      <span>{{ 'FOOTER.WORKFLOW' | translate }}</span>
+    </div>
+
+    <div class="shell-footer__legal">
+      <span>&copy; {{ currentYear }} InfraFlowSculptor</span>
+      <span>{{ 'FOOTER.LEGAL' | translate }}</span>
+    </div>
+  </div>
 </footer>
 
