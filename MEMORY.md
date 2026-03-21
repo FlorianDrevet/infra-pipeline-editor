@@ -766,6 +766,12 @@ h1 {
 - "No results" empty state when search matches nothing
 - i18n keys: `HOME.SEARCH.*`, `HOME.SORT.*`
 
+### 16.9 Member name bug fix + Owner-only actions ([2025-07-24])
+
+- **Bug fix (name not showing after add):** `openAddMemberDialog()` and `onRoleChange()` now re-fetch config via `getById()` after mutation instead of using the direct API response. The backend `UpdateAsync` does not re-include `User` nav properties on newly added/modified members, causing empty `firstName`/`lastName`.
+- **EntraId in member response chain:** Added `EntraId` (Azure AD OID) to `MemberResult`, `MemberResponse`, and their Mapster mappings so the frontend can identify the current user.
+- **Owner-only UI gating:** `config-detail.component.ts` now injects `AuthenticationService`, computes `isOwner` by matching `AccountInfo.localAccountId` against `member.entraId`. The add-member button, role-change dropdown, and remove button are hidden for non-Owner users via `@if (isOwner())` in the template.
+
 ### 16.9 Create configuration dialog ([2026-03-22])
 
 - `src/Front/src/app/features/home/create-config-dialog/*` — Material dialog component (3 files)

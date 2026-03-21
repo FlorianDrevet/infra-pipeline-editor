@@ -34,6 +34,7 @@ public class InfraConfigMappingConfig : IRegister
         config.NewConfig<Member, MemberResult>()
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.UserId, src => src.UserId)
+            .Map(dest => dest.EntraId, src => src.User != null ? src.User.EntraId.Value : Guid.Empty)
             .Map(dest => dest.Role, src => src.Role.Value.ToString())
             .Map(dest => dest.FirstName, src => src.User != null ? src.User.Name.FirstName : string.Empty)
             .Map(dest => dest.LastName, src => src.User != null ? src.User.Name.LastName : string.Empty);
@@ -42,6 +43,7 @@ public class InfraConfigMappingConfig : IRegister
         config.NewConfig<MemberResult, MemberResponse>()
             .Map(dest => dest.Id, src => src.Id.Value)
             .Map(dest => dest.UserId, src => src.UserId.Value)
+            .Map(dest => dest.EntraId, src => src.EntraId)
             .Map(dest => dest.Role, src => src.Role)
             .Map(dest => dest.FirstName, src => src.FirstName)
             .Map(dest => dest.LastName, src => src.LastName);

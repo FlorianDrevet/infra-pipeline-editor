@@ -126,10 +126,12 @@
         </ng-template>
         <div class="tab-content">
           <div class="tab-content__toolbar">
-            <button class="add-member-btn" (click)="openAddMemberDialog()">
-              <mat-icon class="add-member-btn__icon">person_add</mat-icon>
-              {{ 'CONFIG_DETAIL.MEMBERS.ADD' | translate }}
-            </button>
+            @if (isOwner()) {
+              <button class="add-member-btn" (click)="openAddMemberDialog()">
+                <mat-icon class="add-member-btn__icon">person_add</mat-icon>
+                {{ 'CONFIG_DETAIL.MEMBERS.ADD' | translate }}
+              </button>
+            }
           </div>
 
           @if (memberErrorKey()) {
@@ -156,24 +158,26 @@
                         <strong>{{ member.firstName }} {{ member.lastName }}</strong>
                       </div>
                       <div class="member-card__actions">
-                        <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
-                          <mat-select
-                            [value]="member.role"
-                            [aria-label]="'CONFIG_DETAIL.MEMBERS.CHANGE_ROLE_ARIA' | translate"
+                        @if (isOwner()) {
+                          <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
+                            <mat-select
+                              [value]="member.role"
+                              [aria-label]="'CONFIG_DETAIL.MEMBERS.CHANGE_ROLE_ARIA' | translate"
+                              [disabled]="memberActionId() === member.id"
+                              (selectionChange)="onRoleChange(member, $event.value)">
+                              @for (role of roles; track role) {
+                                <mat-option [value]="role">{{ 'CONFIG_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <button
+                            class="remove-btn"
+                            [matTooltip]="'CONFIG_DETAIL.MEMBERS.REMOVE' | translate"
                             [disabled]="memberActionId() === member.id"
-                            (selectionChange)="onRoleChange(member, $event.value)">
-                            @for (role of roles; track role) {
-                              <mat-option [value]="role">{{ 'CONFIG_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
-                            }
-                          </mat-select>
-                        </mat-form-field>
-                        <button
-                          class="remove-btn"
-                          [matTooltip]="'CONFIG_DETAIL.MEMBERS.REMOVE' | translate"
-                          [disabled]="memberActionId() === member.id"
-                          (click)="openRemoveDialog(member)">
-                          <mat-icon>close</mat-icon>
-                        </button>
+                            (click)="openRemoveDialog(member)">
+                            <mat-icon>close</mat-icon>
+                          </button>
+                        }
                       </div>
                     </article>
                   }

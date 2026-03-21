@@ -16,6 +16,7 @@ import {
 } from '../../shared/interfaces/infra-config.interface';
 import { ResourceGroupResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
+import { AuthenticationService } from '../../shared/services/authentication.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AddMemberDialogComponent, AddMemberDialogData } from './add-member-dialog/add-member-dialog.component';
 
@@ -44,6 +45,7 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
 export class ConfigDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly infraConfigService = inject(InfraConfigService);
+  private readonly authService = inject(AuthenticationService);
   private readonly dialog = inject(MatDialog);
 
   protected readonly config = signal<InfrastructureConfigResponse | null>(null);
@@ -64,6 +66,14 @@ export class ConfigDetailComponent implements OnInit {
         members: members.filter((m) => m.role === role),
       }))
       .filter((group) => group.members.length > 0);
+  });
+
+  protected readonly isOwner = computed(() => {
+    const oid = this.authService.getMsalAccount?.localAccountId;
+    if (!oid) return false;
+    const members = this.config()?.members ?? [];
+    const me = members.find((m) => m.entraId === oid);
+    return me?.role === 'Owner';
   });
 
   async ngOnInit(): Promise<void> {
@@ -105,10 +115,11 @@ export class ConfigDetailComponent implements OnInit {
     this.memberErrorKey.set('');
 
     try {
-      const updated = await this.infraConfigService.updateMemberRole(configId, member.userId, {
+      await this.infraConfigService.updateMemberRole(configId, member.userId, {
         newRole,
       });
-      this.config.set(updated);
+      const refreshed = await this.infraConfigService.getById(configId);
+      this.config.set(refreshed);
     } catch {
       this.memberErrorKey.set('CONFIG_DETAIL.MEMBERS.ROLE_CHANGE_ERROR');
     } finally {
@@ -165,9 +176,10 @@ export class ConfigDetailComponent implements OnInit {
       width: '440px',
     });
 
-    dialogRef.afterClosed().subscribe((result: InfrastructureConfigResponse | null) => {
+    dialogRef.afterClosed().subscribe(async (result: InfrastructureConfigResponse | null) => {
       if (result) {
-        this.config.set(result);
+        const refreshed = await this.infraConfigService.getById(currentConfig.id);
+        this.config.set(refreshed);
       }
     });
   }
