@@ -8,7 +8,7 @@
       </p>
 
       <div class="hero-panel__actions">
-        <a class="primary-cta" href="#new-config">{{ 'HOME.ACTIONS.ADD_CONFIGURATION' | translate }}</a>
+        <button type="button" class="primary-cta" (click)="openCreateDialog()">{{ 'HOME.ACTIONS.ADD_CONFIGURATION' | translate }}</button>
         <button type="button" class="secondary-cta" (click)="refreshConfigs()" [disabled]="isLoading()">
           @if (isLoading()) {
             {{ 'HOME.ACTIONS.REFRESHING' | translate }}
@@ -49,39 +49,9 @@
         </div>
       }
 
-      @if (createError()) {
-        <div class="feedback-banner feedback-banner--error" role="alert" aria-live="assertive">
-          {{ createError() }}
-        </div>
-      }
-
-      <form class="create-form" [formGroup]="createForm" (ngSubmit)="createConfig()">
-        <label class="field" for="config-name">
-          <span>{{ 'HOME.FORM.NAME_LABEL' | translate }}</span>
-          <input
-            id="config-name"
-            type="text"
-            formControlName="name"
-            maxlength="80"
-            [placeholder]="'HOME.FORM.NAME_PLACEHOLDER' | translate" />
-        </label>
-
-        @if (nameControl.touched && nameControl.hasError('required')) {
-          <p class="field-error">{{ 'HOME.FORM.ERROR_REQUIRED' | translate }}</p>
-        } @else if (nameControl.touched && nameControl.hasError('minlength')) {
-          <p class="field-error">{{ 'HOME.FORM.ERROR_MIN_LENGTH' | translate }}</p>
-        } @else if (nameControl.touched && nameControl.hasError('maxlength')) {
-          <p class="field-error">{{ 'HOME.FORM.ERROR_MAX_LENGTH' | translate }}</p>
-        }
-
-        <button type="submit" class="submit-button" [disabled]="createForm.invalid || isCreating()">
-          @if (isCreating()) {
-            {{ 'HOME.ACTIONS.CREATING' | translate }}
-          } @else {
-            {{ 'HOME.ACTIONS.ADD_CONFIGURATION' | translate }}
-          }
-        </button>
-      </form>
+      <button type="button" class="submit-button" (click)="openCreateDialog()">
+        {{ 'HOME.ACTIONS.ADD_CONFIGURATION' | translate }}
+      </button>
     </article>
 
     <article class="list-panel">
@@ -115,12 +85,34 @@
           <p>
             {{ 'HOME.STATE.EMPTY_DESCRIPTION' | translate }}
           </p>
-          <a class="primary-cta primary-cta--small" href="#new-config">{{ 'HOME.STATE.EMPTY_CTA' | translate }}</a>
+          <a class="primary-cta primary-cta--small" href="javascript:void(0)" (click)="openCreateDialog()">{{ 'HOME.STATE.EMPTY_CTA' | translate }}</a>
         </div>
       } @else {
+        <div class="search-sort-bar">
+          <label class="field search-field">
+            <input
+              type="text"
+              [value]="searchQuery()"
+              (input)="onSearchInput($event)"
+              [placeholder]="'HOME.SEARCH.PLACEHOLDER' | translate" />
+          </label>
+          <label class="field sort-field">
+            <select (change)="onSortChange($event)">
+              <option value="name">{{ 'HOME.SORT.BY_NAME' | translate }}</option>
+              <option value="environments">{{ 'HOME.SORT.BY_ENVIRONMENTS' | translate }}</option>
+              <option value="members">{{ 'HOME.SORT.BY_MEMBERS' | translate }}</option>
+            </select>
+          </label>
+        </div>
+
+        @if (filteredConfigs().length === 0) {
+          <div class="state-card state-card--empty" aria-live="polite">
+            <strong>{{ 'HOME.SEARCH.NO_RESULTS' | translate }}</strong>
+          </div>
+        } @else {
         <div class="config-list">
-          @for (config of configs(); track config.id) {
-            <article class="config-card">
+          @for (config of filteredConfigs(); track config.id) {
+            <a class="config-card" [routerLink]="['/config', config.id]">
               <div class="config-card__header">
                 <div>
                   <h3>{{ config.name }}</h3>
@@ -161,9 +153,10 @@
                   {{ 'HOME.LIST.NO_ENVIRONMENT' | translate }}
                 </div>
               }
-            </article>
+            </a>
           }
         </div>
+        }
       }
     </article>
   </section>

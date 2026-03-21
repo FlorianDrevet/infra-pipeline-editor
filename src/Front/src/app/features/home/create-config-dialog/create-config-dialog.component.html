@@ -1,0 +1,44 @@
+<h2 mat-dialog-title>{{ 'HOME.DIALOG.TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  <p class="dialog-description">{{ 'HOME.DIALOG.DESCRIPTION' | translate }}</p>
+
+  @if (createError()) {
+    <div class="feedback-banner feedback-banner--error" role="alert" aria-live="assertive">
+      {{ createError() }}
+    </div>
+  }
+
+  <form [formGroup]="createForm" (ngSubmit)="onSubmit()" id="create-config-form">
+    <label class="field" for="dialog-config-name">
+      <span>{{ 'HOME.FORM.NAME_LABEL' | translate }}</span>
+      <input
+        id="dialog-config-name"
+        type="text"
+        formControlName="name"
+        maxlength="80"
+        [placeholder]="'HOME.FORM.NAME_PLACEHOLDER' | translate" />
+    </label>
+
+    @if (nameControl.touched && nameControl.hasError('required')) {
+      <p class="field-error">{{ 'HOME.FORM.ERROR_REQUIRED' | translate }}</p>
+    } @else if (nameControl.touched && nameControl.hasError('minlength')) {
+      <p class="field-error">{{ 'HOME.FORM.ERROR_MIN_LENGTH' | translate }}</p>
+    } @else if (nameControl.touched && nameControl.hasError('maxlength')) {
+      <p class="field-error">{{ 'HOME.FORM.ERROR_MAX_LENGTH' | translate }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button type="button" class="ghost-button" (click)="onCancel()">
+    {{ 'HOME.DIALOG.CANCEL' | translate }}
+  </button>
+  <button type="submit" form="create-config-form" class="submit-button" [disabled]="createForm.invalid || isCreating()">
+    @if (isCreating()) {
+      {{ 'HOME.ACTIONS.CREATING' | translate }}
+    } @else {
+      {{ 'HOME.DIALOG.CREATE' | translate }}
+    }
+  </button>
+</mat-dialog-actions>

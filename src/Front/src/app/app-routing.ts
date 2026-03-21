@@ -16,6 +16,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/home/home.component').then((m) => m.HomeComponent),
       },
+      {
+        path: 'config/:id',
+        loadComponent: () =>
+          import('./features/config-detail/config-detail.component').then(
+            (m) => m.ConfigDetailComponent
+          ),
+      },
     ],
   },
   {

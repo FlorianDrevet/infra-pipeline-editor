@@ -735,6 +735,38 @@ h1 {
 }
 ```
 
+### 16.7 Configuration detail page ([2026-03-22])
+
+- New route `config/:id` inside authenticated children in `src/Front/src/app/app-routing.ts`
+- `src/Front/src/app/features/config-detail/*` — standalone component (3 files)
+  - Reads route param `id` via `ActivatedRoute`
+  - Parallel fetch: `InfraConfigService.getById(id)` + `InfraConfigService.getResourceGroups(id)`
+  - Sections: header (name + ID), members table, environment cards (with tags), resource groups, naming templates
+  - Loading / error / empty states
+  - Back button navigating to `/`
+- Config cards on home page are now clickable `<a routerLink="/config/{{config.id}}">` elements with hover effect
+- i18n namespace: `CONFIG_DETAIL.*` in both `fr.json` and `en.json`
+
+### 16.8 Search and sort in config list ([2026-03-22])
+
+- `HomeComponent` now has `searchQuery` and `sortBy` signals, plus `filteredConfigs` computed signal
+- Search is case-insensitive on config name
+- Sort options: by name (alphabetical), by environment count, by member count
+- Search bar and sort dropdown rendered between list heading and config cards
+- "No results" empty state when search matches nothing
+- i18n keys: `HOME.SEARCH.*`, `HOME.SORT.*`
+
+### 16.9 Create configuration dialog ([2026-03-22])
+
+- `src/Front/src/app/features/home/create-config-dialog/*` — Material dialog component (3 files)
+  - Reactive form moved from `HomeComponent` into the dialog
+  - `MatDialogRef.close(createdConfig)` on success, cancel closes with no result
+  - Uses `mat-dialog-title`, `mat-dialog-content`, `mat-dialog-actions` directives
+- `HomeComponent` create panel simplified to a CTA card with "Add configuration" button that opens the dialog via `MatDialog.open()`
+- Hero CTA also opens the dialog instead of scrolling to anchor
+- Success feedback banner still shown in home page after dialog closes
+- i18n keys: `HOME.DIALOG.*`
+
 ---
 
 ## 18. Documentation Azure ([2026-03-19])
@@ -916,3 +948,4 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-21 | copilot | Added skill `.github/skills/ui-ux-front-saas/SKILL.md` for frontend UI/UX governance (based on login visual baseline + SaaS B2B cloud prompt). Enforced skill loading in `angular-front.agent.md`, registered routing in `dev.agent.md`, and added mandatory usage in `.github/copilot-instructions.md`. Added section 23 in MEMORY.md. |
 | 2026-03-21 | copilot | Added `.github/agents/aspire-debug.agent.md` for runtime diagnostics with Aspire MCP (resource health, structured logs, console logs, traces, restart/recovery workflow). Registered routing in `dev.agent.md` and specialized-agent policy in `.github/copilot-instructions.md`. Added section 24 in MEMORY.md with agent-vs-skill rationale. |
 | 2026-03-21 | copilot | Rebalanced home hero typography/layout in `src/Front/src/app/features/home/home.component.scss` to reduce the heavy left text block: smaller H1 scale, wider line length, lighter vertical distribution, and more balanced column ratio against stats cards. |
+| 2026-03-22 | copilot | Added 3 frontend features: (1) Configuration detail page at `/config/:id` with members, environments, resource groups, naming templates sections + back navigation. (2) Search (by name) + sort (name/environments/members) in home config list with computed signals. (3) Replaced inline create form with Material dialog (`create-config-dialog`), hero CTA now opens dialog. Added `CONFIG_DETAIL.*`, `HOME.SEARCH.*`, `HOME.SORT.*`, `HOME.DIALOG.*` i18n keys in both fr.json and en.json. New files: `features/config-detail/*` (3 files), `features/home/create-config-dialog/*` (3 files). Modified: `app-routing.ts`, `home.component.ts/html/scss`, `fr.json`, `en.json`. |

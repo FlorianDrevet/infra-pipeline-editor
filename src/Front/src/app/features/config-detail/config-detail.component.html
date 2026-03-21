@@ -1,0 +1,144 @@
+<div class="detail-page">
+  @if (isLoading()) {
+    <div class="state-card state-card--loading" aria-live="polite">
+      <div class="pulse-dot"></div>
+      <div>
+        <strong>{{ 'CONFIG_DETAIL.STATE.LOADING_TITLE' | translate }}</strong>
+        <p>{{ 'CONFIG_DETAIL.STATE.LOADING_DESCRIPTION' | translate }}</p>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="state-card state-card--error" role="alert" aria-live="assertive">
+      <strong>{{ loadError() | translate }}</strong>
+      <a class="ghost-button" routerLink="/">{{ 'CONFIG_DETAIL.ACTIONS.BACK' | translate }}</a>
+    </div>
+  } @else if (config()) {
+    <section class="detail-header">
+      <div class="detail-header__nav">
+        <a class="ghost-button" routerLink="/">{{ 'CONFIG_DETAIL.ACTIONS.BACK' | translate }}</a>
+      </div>
+      <div class="detail-header__info">
+        <span class="eyebrow">{{ 'CONFIG_DETAIL.HEADER.OVERLINE' | translate }}</span>
+        <h1>{{ config()!.name }}</h1>
+        <p class="detail-header__id">{{ config()!.id }}</p>
+      </div>
+    </section>
+
+    <section class="detail-section">
+      <div class="section-heading">
+        <span>{{ 'CONFIG_DETAIL.MEMBERS.OVERLINE' | translate }}</span>
+        <h2>{{ 'CONFIG_DETAIL.MEMBERS.TITLE' | translate }}</h2>
+      </div>
+      @if (config()!.members.length > 0) {
+        <div class="members-grid">
+          @for (member of config()!.members; track member.id) {
+            <article class="member-card">
+              <strong>{{ member.userId }}</strong>
+              <span class="role-chip">{{ member.role }}</span>
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="empty-note">{{ 'CONFIG_DETAIL.MEMBERS.EMPTY' | translate }}</p>
+      }
+    </section>
+
+    <section class="detail-section">
+      <div class="section-heading">
+        <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.OVERLINE' | translate }}</span>
+        <h2>{{ 'CONFIG_DETAIL.ENVIRONMENTS.TITLE' | translate }}</h2>
+      </div>
+      @if (config()!.environmentDefinitions.length > 0) {
+        <div class="env-grid">
+          @for (env of config()!.environmentDefinitions; track env.id) {
+            <article class="env-card">
+              <div class="env-card__header">
+                <h3>{{ env.name }}</h3>
+                <span class="order-chip">{{ 'CONFIG_DETAIL.ENVIRONMENTS.ORDER' | translate }} {{ env.order }}</span>
+              </div>
+              <div class="env-card__details">
+                <div class="detail-row">
+                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.LOCATION' | translate }}</span>
+                  <strong>{{ env.location }}</strong>
+                </div>
+                <div class="detail-row">
+                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.PREFIX' | translate }}</span>
+                  <strong>{{ env.prefix || '—' }}</strong>
+                </div>
+                <div class="detail-row">
+                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.SUFFIX' | translate }}</span>
+                  <strong>{{ env.suffix || '—' }}</strong>
+                </div>
+                <div class="detail-row">
+                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.TENANT_ID' | translate }}</span>
+                  <strong class="mono">{{ env.tenantId }}</strong>
+                </div>
+                <div class="detail-row">
+                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.SUBSCRIPTION_ID' | translate }}</span>
+                  <strong class="mono">{{ env.subscriptionId }}</strong>
+                </div>
+                <div class="detail-row">
+                  <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.REQUIRES_APPROVAL' | translate }}</span>
+                  <strong>{{ env.requiresApproval ? ('CONFIG_DETAIL.BOOLEAN.YES' | translate) : ('CONFIG_DETAIL.BOOLEAN.NO' | translate) }}</strong>
+                </div>
+              </div>
+              @if (env.tags.length > 0) {
+                <div class="env-card__tags">
+                  @for (tag of env.tags; track tag.name) {
+                    <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
+                  }
+                </div>
+              }
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="empty-note">{{ 'CONFIG_DETAIL.ENVIRONMENTS.EMPTY' | translate }}</p>
+      }
+    </section>
+
+    <section class="detail-section">
+      <div class="section-heading">
+        <span>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.OVERLINE' | translate }}</span>
+        <h2>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.TITLE' | translate }}</h2>
+      </div>
+      @if (resourceGroups().length > 0) {
+        <div class="rg-grid">
+          @for (rg of resourceGroups(); track rg.id) {
+            <article class="rg-card">
+              <strong>{{ rg.name }}</strong>
+              <span>{{ rg.location }}</span>
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="empty-note">{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.EMPTY' | translate }}</p>
+      }
+    </section>
+
+    <section class="detail-section">
+      <div class="section-heading">
+        <span>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.OVERLINE' | translate }}</span>
+        <h2>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.TITLE' | translate }}</h2>
+      </div>
+      @if (config()!.defaultNamingTemplate) {
+        <div class="default-template">
+          <span>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
+          <code>{{ config()!.defaultNamingTemplate }}</code>
+        </div>
+      }
+      @if (config()!.resourceNamingTemplates.length > 0) {
+        <div class="template-list">
+          @for (tmpl of config()!.resourceNamingTemplates; track tmpl.id) {
+            <article class="template-row">
+              <strong>{{ tmpl.resourceType }}</strong>
+              <code>{{ tmpl.template }}</code>
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="empty-note">{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.EMPTY' | translate }}</p>
+      }
+    </section>
+  }
+</div>

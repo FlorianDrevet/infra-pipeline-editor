@@ -104,6 +104,70 @@
         "BOOLEAN_FALSE": "No",
         "DEFAULT_NAMING": "Default naming rule"
       }
+    },
+    "SEARCH": {
+      "PLACEHOLDER": "Search configurations by name...",
+      "NO_RESULTS": "No configuration matches your search."
+    },
+    "SORT": {
+      "BY_NAME": "Sort by name",
+      "BY_ENVIRONMENTS": "Sort by environments",
+      "BY_MEMBERS": "Sort by members"
+    },
+    "DIALOG": {
+      "TITLE": "Create a configuration",
+      "DESCRIPTION": "Name a workspace that will later host members, environments, resource groups, and naming rules.",
+      "CANCEL": "Cancel",
+      "CREATE": "Create configuration",
+      "CREATE_ERROR_FALLBACK": "Unable to create the configuration right now. Please try again."
+    }
+  },
+  "CONFIG_DETAIL": {
+    "HEADER": {
+      "OVERLINE": "Configuration detail"
+    },
+    "STATE": {
+      "LOADING_TITLE": "Loading configuration",
+      "LOADING_DESCRIPTION": "Fetching details from the API."
+    },
+    "ERROR": {
+      "NO_ID": "Missing configuration identifier.",
+      "LOAD_FAILED": "Unable to load this configuration."
+    },
+    "ACTIONS": {
+      "BACK": "Back to home"
+    },
+    "MEMBERS": {
+      "OVERLINE": "Team",
+      "TITLE": "Members",
+      "EMPTY": "No members in this configuration."
+    },
+    "ENVIRONMENTS": {
+      "OVERLINE": "Deployment",
+      "TITLE": "Environment definitions",
+      "EMPTY": "No environment definitions.",
+      "ORDER": "Order",
+      "LOCATION": "Location",
+      "PREFIX": "Prefix",
+      "SUFFIX": "Suffix",
+      "TENANT_ID": "Tenant ID",
+      "SUBSCRIPTION_ID": "Subscription ID",
+      "REQUIRES_APPROVAL": "Requires approval"
+    },
+    "RESOURCE_GROUPS": {
+      "OVERLINE": "Resources",
+      "TITLE": "Resource groups",
+      "EMPTY": "No resource groups."
+    },
+    "NAMING_TEMPLATES": {
+      "OVERLINE": "Conventions",
+      "TITLE": "Naming templates",
+      "EMPTY": "No naming templates defined.",
+      "DEFAULT": "Default template"
+    },
+    "BOOLEAN": {
+      "YES": "Yes",
+      "NO": "No"
     }
   }
 }

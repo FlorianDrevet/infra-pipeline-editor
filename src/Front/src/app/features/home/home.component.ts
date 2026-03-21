@@ -1,31 +1,31 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ReactiveFormsModule, Validators, FormBuilder } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TranslateModule } from '@ngx-translate/core';
-import {
-  CreateInfrastructureConfigRequest,
-  InfrastructureConfigResponse,
-} from '../../shared/interfaces/infra-config.interface';
+import { InfrastructureConfigResponse } from '../../shared/interfaces/infra-config.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { LanguageService } from '../../shared/services/language.service';
+import { CreateConfigDialogComponent } from './create-config-dialog/create-config-dialog.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [ReactiveFormsModule, TranslateModule],
+  imports: [TranslateModule, RouterLink, MatDialogModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
 export class HomeComponent implements OnInit {
-  private readonly formBuilder = inject(FormBuilder);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly languageService = inject(LanguageService);
+  private readonly dialog = inject(MatDialog);
 
   protected readonly configs = signal<InfrastructureConfigResponse[]>([]);
   protected readonly isLoading = signal(false);
-  protected readonly isCreating = signal(false);
   protected readonly loadError = signal('');
-  protected readonly createError = signal('');
   protected readonly createdConfigName = signal('');
+  protected readonly searchQuery = signal('');
+  protected readonly sortBy = signal<'name' | 'environments' | 'members'>('name');
+
   protected readonly totalEnvironmentCount = computed(() =>
     this.configs().reduce(
       (count, config) => count + config.environmentDefinitions.length,
@@ -33,13 +33,26 @@ export class HomeComponent implements OnInit {
     )
   );
 
-  protected readonly createForm = this.formBuilder.nonNullable.group({
-    name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(80)]],
-  });
+  protected readonly filteredConfigs = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const sort = this.sortBy();
+    let filtered = this.configs();
 
-  protected get nameControl() {
-    return this.createForm.controls.name;
-  }
+    if (query) {
+      filtered = filtered.filter(c => c.name.toLowerCase().includes(query));
+    }
+
+    return [...filtered].sort((a, b) => {
+      switch (sort) {
+        case 'environments':
+          return b.environmentDefinitions.length - a.environmentDefinitions.length;
+        case 'members':
+          return b.members.length - a.members.length;
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+  });
 
   public async ngOnInit(): Promise<void> {
     await this.loadConfigs();
@@ -49,43 +62,27 @@ export class HomeComponent implements OnInit {
     await this.loadConfigs();
   }
 
-  protected async createConfig(): Promise<void> {
-    this.createdConfigName.set('');
-    this.createError.set('');
+  protected openCreateDialog(): void {
+    const dialogRef = this.dialog.open(CreateConfigDialogComponent, {
+      width: '480px',
+    });
 
-    if (this.createForm.invalid || this.isCreating()) {
-      this.createForm.markAllAsTouched();
-      return;
-    }
+    dialogRef.afterClosed().subscribe((result?: InfrastructureConfigResponse) => {
+      if (result) {
+        this.configs.update(configs => [result, ...configs]);
+        this.createdConfigName.set(result.name);
+      }
+    });
+  }
 
-    const rawName = this.nameControl.getRawValue().trim();
+  protected onSearchInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchQuery.set(input.value);
+  }
 
-    if (rawName.length < 3) {
-      this.nameControl.setValue(rawName);
-      this.nameControl.markAsTouched();
-      this.nameControl.setErrors({ minlength: true });
-      return;
-    }
-
-    this.isCreating.set(true);
-
-    try {
-      const request: CreateInfrastructureConfigRequest = { name: rawName };
-      const createdConfig = await this.infraConfigService.create(request);
-
-      this.configs.update((configs) => [createdConfig, ...configs]);
-      this.createForm.reset({ name: '' });
-      this.createdConfigName.set(createdConfig.name);
-    } catch (error) {
-      this.createError.set(
-        this.extractErrorMessage(
-          error,
-          'HOME.FEEDBACK.CREATE_ERROR_FALLBACK'
-        )
-      );
-    } finally {
-      this.isCreating.set(false);
-    }
+  protected onSortChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.sortBy.set(select.value as 'name' | 'environments' | 'members');
   }
 
   private async loadConfigs(): Promise<void> {
