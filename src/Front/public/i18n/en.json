@@ -7,6 +7,7 @@
     "BRAND_ARIA": "Open InfraFlowSculptor home page",
     "BRAND_SUBTITLE": "Azure infrastructure workspace",
     "HOME": "Home",
+    "PROJECTS": "Projects",
     "LANGUAGE_SELECTOR_ARIA": "Language selector",
     "USER_CARD_ARIA": "Current connected user",
     "USER_DEFAULT_NAME": "Workspace member",
@@ -304,5 +305,110 @@
       "YES": "Yes",
       "NO": "No"
     }
+  },
+  "PROJECTS": {
+    "HERO": {
+      "EYEBROW": "Project management",
+      "TITLE": "Organize your infrastructure configurations by project and manage access.",
+      "DESCRIPTION": "Group configurations together, invite collaborators, and control permissions for each member.",
+      "STATS": {
+        "TOTAL": "Active projects",
+        "CTA_TITLE": "New project",
+        "CTA_DESC": "Create a collaboration workspace for your Azure configurations"
+      }
+    },
+    "ACTIONS": {
+      "CREATE": "Create project",
+      "REFRESH": "Refresh",
+      "REFRESHING": "Refreshing...",
+      "RETRY_SYNC": "Retry sync",
+      "TRY_AGAIN": "Try again",
+      "BACK": "Back to projects"
+    },
+    "LIST": {
+      "OVERLINE": "Project catalog",
+      "TITLE": "My projects",
+      "MEMBERS_COUNT": "{{count}} member(s)"
+    },
+    "SEARCH": {
+      "PLACEHOLDER": "Search projects by name...",
+      "NO_RESULTS": "No project matches your search."
+    },
+    "STATE": {
+      "LOADING_TITLE": "Loading projects",
+      "LOADING_DESC": "Fetching your projects from the API.",
+      "LOAD_FAILED": "Load failed",
+      "LOAD_ERROR": "Unable to load your projects. Please try again.",
+      "EMPTY_TITLE": "No projects yet",
+      "EMPTY_DESC": "Create your first project to group configurations and invite collaborators.",
+      "EMPTY_CTA": "Create the first project"
+    },
+    "DIALOG": {
+      "TITLE": "Create a project",
+      "DESCRIPTION": "Name a project that will group infrastructure configurations and members.",
+      "CANCEL": "Cancel",
+      "CREATE": "Create project",
+      "CREATING": "Creating...",
+      "CREATE_ERROR": "Unable to create the project. Please try again."
+    },
+    "FORM": {
+      "NAME_LABEL": "Project name",
+      "NAME_PLACEHOLDER": "Example: Cloud Production Platform",
+      "DESCRIPTION_LABEL": "Description",
+      "DESCRIPTION_PLACEHOLDER": "Optional project description",
+      "ERROR_REQUIRED": "A project name is required.",
+      "ERROR_MIN_LENGTH": "Use at least 3 characters.",
+      "ERROR_MAX_LENGTH": "Keep the name under 80 characters."
+    },
+    "DETAIL": {
+      "OVERLINE": "Project detail"
+    },
+    "ERROR": {
+      "NO_ID": "Missing project identifier.",
+      "LOAD_FAILED": "Unable to load this project."
+    },
+    "TABS": {
+      "CONFIGURATIONS": "Configurations",
+      "MEMBERS": "Members"
+    },
+    "CONFIGS": {
+      "OVERLINE": "Configurations",
+      "TITLE": "Associated configurations",
+      "EMPTY": "No associated configurations.",
+      "ADD": "Associate",
+      "REMOVE": "Dissociate",
+      "SELECT_PLACEHOLDER": "Select a configuration...",
+      "ENVS": "{{count}} env.",
+      "MEMBERS_COUNT": "{{count}} member(s)",
+      "ADD_ERROR": "Unable to associate the configuration.",
+      "REMOVE_ERROR": "Unable to dissociate the configuration.",
+      "REFRESH_ERROR": "Unable to reload configurations."
+    },
+    "MEMBERS": {
+      "OVERLINE": "Team",
+      "TITLE": "Project members",
+      "EMPTY": "No members in this project.",
+      "ADD": "Add member",
+      "REMOVE": "Remove",
+      "ADD_DIALOG_TITLE": "Add a member to the project",
+      "ADD_DIALOG_CANCEL": "Cancel",
+      "ADD_DIALOG_ADD": "Add",
+      "ADDING": "Adding...",
+      "USER_ID_LABEL": "User identifier",
+      "USER_ID_PLACEHOLDER": "Enter the user identifier",
+      "ROLE_LABEL": "Role",
+      "CHANGE_ROLE_ARIA": "Change member role",
+      "ADD_ERROR": "Unable to add member. Please try again.",
+      "REMOVE_ERROR": "Unable to remove member.",
+      "ROLE_CHANGE_ERROR": "Unable to change role.",
+      "REMOVE_CONFIRM_TITLE": "Remove member",
+      "REMOVE_CONFIRM_MSG": "Are you sure you want to remove {{name}} from this project?",
+      "REMOVE_CONFIRM_YES": "Remove",
+      "REMOVE_CONFIRM_CANCEL": "Cancel"
+    },
+    "ROLES": {
+      "Owner": "Owner",
+      "Contributor": "Contributor",
+      "Reader": "Reader"
+    }
   }
-}

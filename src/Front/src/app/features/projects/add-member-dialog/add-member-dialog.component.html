@@ -1,0 +1,42 @@
+<h2 mat-dialog-title>{{ 'PROJECTS.MEMBERS.ADD_DIALOG_TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  @if (errorKey()) {
+    <div class="feedback-banner feedback-banner--error" role="alert" aria-live="assertive">
+      {{ errorKey() | translate }}
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" id="add-member-form">
+    <label class="field" for="dialog-user-id">
+      <span>{{ 'PROJECTS.MEMBERS.USER_ID_LABEL' | translate }}</span>
+      <input
+        id="dialog-user-id"
+        type="text"
+        formControlName="userId"
+        [placeholder]="'PROJECTS.MEMBERS.USER_ID_PLACEHOLDER' | translate" />
+    </label>
+
+    <label class="field" for="dialog-role">
+      <span>{{ 'PROJECTS.MEMBERS.ROLE_LABEL' | translate }}</span>
+      <select id="dialog-role" formControlName="role" class="select-field">
+        @for (option of roleOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </label>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button type="button" class="ghost-button" (click)="onCancel()">
+    {{ 'PROJECTS.MEMBERS.ADD_DIALOG_CANCEL' | translate }}
+  </button>
+  <button type="submit" form="add-member-form" class="submit-button" [disabled]="form.invalid || isSubmitting()">
+    @if (isSubmitting()) {
+      {{ 'PROJECTS.MEMBERS.ADDING' | translate }}
+    } @else {
+      {{ 'PROJECTS.MEMBERS.ADD_DIALOG_ADD' | translate }}
+    }
+  </button>
+</mat-dialog-actions>

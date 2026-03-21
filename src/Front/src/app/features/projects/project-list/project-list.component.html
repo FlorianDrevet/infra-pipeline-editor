@@ -1,0 +1,117 @@
+<div class="projects-page">
+  <section class="hero-panel">
+    <div class="hero-panel__content">
+      <span class="eyebrow">{{ 'PROJECTS.HERO.EYEBROW' | translate }}</span>
+      <h1>{{ 'PROJECTS.HERO.TITLE' | translate }}</h1>
+      <p>{{ 'PROJECTS.HERO.DESCRIPTION' | translate }}</p>
+
+      <div class="hero-panel__actions">
+        <button type="button" class="primary-cta" (click)="openCreateDialog()">
+          {{ 'PROJECTS.ACTIONS.CREATE' | translate }}
+        </button>
+        <button type="button" class="secondary-cta" (click)="refreshProjects()" [disabled]="isLoading()">
+          @if (isLoading()) {
+            {{ 'PROJECTS.ACTIONS.REFRESHING' | translate }}
+          } @else {
+            {{ 'PROJECTS.ACTIONS.REFRESH' | translate }}
+          }
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-panel__stats">
+      <article class="stat-card">
+        <strong>{{ projects().length }}</strong>
+        <span>{{ 'PROJECTS.HERO.STATS.TOTAL' | translate }}</span>
+      </article>
+      <article class="stat-card stat-card--accent">
+        <strong>{{ 'PROJECTS.HERO.STATS.CTA_TITLE' | translate }}</strong>
+        <span>{{ 'PROJECTS.HERO.STATS.CTA_DESC' | translate }}</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="list-panel">
+    <div class="section-heading section-heading--inline">
+      <div>
+        <span>{{ 'PROJECTS.LIST.OVERLINE' | translate }}</span>
+        <h2>{{ 'PROJECTS.LIST.TITLE' | translate }}</h2>
+      </div>
+      <button type="button" class="ghost-button" (click)="refreshProjects()" [disabled]="isLoading()">
+        {{ 'PROJECTS.ACTIONS.RETRY_SYNC' | translate }}
+      </button>
+    </div>
+
+    @if (isLoading()) {
+      <div class="state-card state-card--loading" aria-live="polite">
+        <div class="pulse-dot"></div>
+        <div>
+          <strong>{{ 'PROJECTS.STATE.LOADING_TITLE' | translate }}</strong>
+          <p>{{ 'PROJECTS.STATE.LOADING_DESC' | translate }}</p>
+        </div>
+      </div>
+    } @else if (loadErrorKey()) {
+      <div class="state-card state-card--error" role="alert" aria-live="assertive">
+        <strong>{{ 'PROJECTS.STATE.LOAD_FAILED' | translate }}</strong>
+        <p>{{ loadErrorKey() | translate }}</p>
+        <button type="button" class="ghost-button" (click)="refreshProjects()">
+          {{ 'PROJECTS.ACTIONS.TRY_AGAIN' | translate }}
+        </button>
+      </div>
+    } @else if (projects().length === 0) {
+      <div class="state-card state-card--empty" aria-live="polite">
+        <strong>{{ 'PROJECTS.STATE.EMPTY_TITLE' | translate }}</strong>
+        <p>{{ 'PROJECTS.STATE.EMPTY_DESC' | translate }}</p>
+        <button type="button" class="primary-cta primary-cta--small" (click)="openCreateDialog()">
+          {{ 'PROJECTS.STATE.EMPTY_CTA' | translate }}
+        </button>
+      </div>
+    } @else {
+      <div class="search-bar">
+        <label class="field search-field">
+          <input
+            type="text"
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)"
+            [placeholder]="'PROJECTS.SEARCH.PLACEHOLDER' | translate" />
+        </label>
+      </div>
+
+      @if (filteredProjects().length === 0) {
+        <div class="state-card state-card--empty" aria-live="polite">
+          <strong>{{ 'PROJECTS.SEARCH.NO_RESULTS' | translate }}</strong>
+        </div>
+      } @else {
+        <div class="project-grid">
+          @for (project of filteredProjects(); track project.id) {
+            <a class="project-card" [routerLink]="['/projects', project.id]">
+              <div class="project-card__header">
+                <div class="project-card__title">
+                  <mat-icon class="project-card__icon">folder_special</mat-icon>
+                  <h3>{{ project.name }}</h3>
+                </div>
+                @if (getMyRole(project); as role) {
+                  <span class="role-badge role-badge--{{ role | lowercase }}">
+                    <mat-icon>{{ getRoleIcon(role) }}</mat-icon>
+                    {{ 'PROJECTS.ROLES.' + role | translate }}
+                  </span>
+                }
+              </div>
+
+              @if (project.description) {
+                <p class="project-card__desc">{{ project.description }}</p>
+              }
+
+              <div class="project-card__footer">
+                <span class="project-chip">
+                  <mat-icon>group</mat-icon>
+                  {{ 'PROJECTS.LIST.MEMBERS_COUNT' | translate: { count: project.members.length } }}
+                </span>
+              </div>
+            </a>
+          }
+        </div>
+      }
+    }
+  </section>
+</div>

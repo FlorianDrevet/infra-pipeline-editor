@@ -1,5 +1,7 @@
 ﻿using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.ProjectAggregate;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Shared.Domain.Domain.Models;
@@ -11,6 +13,15 @@ namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 {
     public Name Name { get; private set; } = null!;
+
+    /// <summary>
+    /// Optional reference to the parent <see cref="Project"/>.
+    /// Null when the configuration is not associated with any project.
+    /// </summary>
+    public ProjectId? ProjectId { get; private set; }
+
+    /// <summary>Navigation property to the parent project.</summary>
+    public Project? Project { get; private set; }
 
     /// <summary>
     /// Default naming template applied to all resource types unless overridden.
@@ -209,5 +220,19 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
             return false;
         _resourceNamingTemplates.Remove(existing);
         return true;
+    }
+
+    // ─── Project Association ─────────────────────────────────────────────
+
+    /// <summary>Associates this configuration with a project.</summary>
+    public void AssignToProject(ProjectId projectId)
+    {
+        ProjectId = projectId;
+    }
+
+    /// <summary>Removes the project association from this configuration.</summary>
+    public void RemoveFromProject()
+    {
+        ProjectId = null;
     }
 }

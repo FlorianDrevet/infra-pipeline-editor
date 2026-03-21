@@ -44,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<IStorageAccountRepository, StorageAccountRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAzureResourceRepository, AzureResourceBaseRepository>();
+        services.AddScoped<IProjectRepository, ProjectRepository>();
 
         return services;
     }

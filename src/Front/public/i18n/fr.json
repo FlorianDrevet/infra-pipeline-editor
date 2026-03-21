@@ -7,6 +7,7 @@
     "BRAND_ARIA": "Ouvrir la page d'accueil InfraFlowSculptor",
     "BRAND_SUBTITLE": "Espace de travail infrastructure Azure",
     "HOME": "Accueil",
+    "PROJECTS": "Projets",
     "LANGUAGE_SELECTOR_ARIA": "Selection de la langue",
     "USER_CARD_ARIA": "Utilisateur connecte",
     "USER_DEFAULT_NAME": "Membre de l'espace",
@@ -304,5 +305,110 @@
       "YES": "Oui",
       "NO": "Non"
     }
+  },
+  "PROJECTS": {
+    "HERO": {
+      "EYEBROW": "Gestion des projets",
+      "TITLE": "Organisez vos configurations d'infrastructure par projet et gerez les acces.",
+      "DESCRIPTION": "Regroupez les configurations, invitez des collaborateurs et controlez les permissions de chaque membre.",
+      "STATS": {
+        "TOTAL": "Projets actifs",
+        "CTA_TITLE": "Nouveau projet",
+        "CTA_DESC": "Creez un espace de collaboration pour vos configurations Azure"
+      }
+    },
+    "ACTIONS": {
+      "CREATE": "Creer un projet",
+      "REFRESH": "Actualiser",
+      "REFRESHING": "Actualisation...",
+      "RETRY_SYNC": "Relancer la synchro",
+      "TRY_AGAIN": "Reessayer",
+      "BACK": "Retour aux projets"
+    },
+    "LIST": {
+      "OVERLINE": "Catalogue des projets",
+      "TITLE": "Mes projets",
+      "MEMBERS_COUNT": "{{count}} membre(s)"
+    },
+    "SEARCH": {
+      "PLACEHOLDER": "Rechercher un projet par nom...",
+      "NO_RESULTS": "Aucun projet ne correspond a votre recherche."
+    },
+    "STATE": {
+      "LOADING_TITLE": "Chargement des projets",
+      "LOADING_DESC": "Recuperation de vos projets depuis l'API.",
+      "LOAD_FAILED": "Echec du chargement",
+      "LOAD_ERROR": "Impossible de charger vos projets. Veuillez reessayer.",
+      "EMPTY_TITLE": "Aucun projet",
+      "EMPTY_DESC": "Creez votre premier projet pour regrouper des configurations et inviter des collaborateurs.",
+      "EMPTY_CTA": "Creer le premier projet"
+    },
+    "DIALOG": {
+      "TITLE": "Creer un projet",
+      "DESCRIPTION": "Nommez un projet qui regroupera des configurations d'infrastructure et des membres.",
+      "CANCEL": "Annuler",
+      "CREATE": "Creer le projet",
+      "CREATING": "Creation en cours...",
+      "CREATE_ERROR": "Impossible de creer le projet. Veuillez reessayer."
+    },
+    "FORM": {
+      "NAME_LABEL": "Nom du projet",
+      "NAME_PLACEHOLDER": "Exemple : Plateforme Cloud Production",
+      "DESCRIPTION_LABEL": "Description",
+      "DESCRIPTION_PLACEHOLDER": "Description optionnelle du projet",
+      "ERROR_REQUIRED": "Le nom du projet est requis.",
+      "ERROR_MIN_LENGTH": "Utilisez au moins 3 caracteres.",
+      "ERROR_MAX_LENGTH": "Le nom doit rester sous 80 caracteres."
+    },
+    "DETAIL": {
+      "OVERLINE": "Detail du projet"
+    },
+    "ERROR": {
+      "NO_ID": "Identifiant de projet manquant.",
+      "LOAD_FAILED": "Impossible de charger ce projet."
+    },
+    "TABS": {
+      "CONFIGURATIONS": "Configurations",
+      "MEMBERS": "Membres"
+    },
+    "CONFIGS": {
+      "OVERLINE": "Configurations",
+      "TITLE": "Configurations associees",
+      "EMPTY": "Aucune configuration associee.",
+      "ADD": "Associer",
+      "REMOVE": "Dissocier",
+      "SELECT_PLACEHOLDER": "Selectionner une configuration...",
+      "ENVS": "{{count}} env.",
+      "MEMBERS_COUNT": "{{count}} membre(s)",
+      "ADD_ERROR": "Impossible d'associer la configuration.",
+      "REMOVE_ERROR": "Impossible de dissocier la configuration.",
+      "REFRESH_ERROR": "Impossible de recharger les configurations."
+    },
+    "MEMBERS": {
+      "OVERLINE": "Equipe",
+      "TITLE": "Membres du projet",
+      "EMPTY": "Aucun membre dans ce projet.",
+      "ADD": "Ajouter un membre",
+      "REMOVE": "Retirer",
+      "ADD_DIALOG_TITLE": "Ajouter un membre au projet",
+      "ADD_DIALOG_CANCEL": "Annuler",
+      "ADD_DIALOG_ADD": "Ajouter",
+      "ADDING": "Ajout en cours...",
+      "USER_ID_LABEL": "Identifiant utilisateur",
+      "USER_ID_PLACEHOLDER": "Saisir l'identifiant de l'utilisateur",
+      "ROLE_LABEL": "Role",
+      "CHANGE_ROLE_ARIA": "Changer le role du membre",
+      "ADD_ERROR": "Impossible d'ajouter le membre. Veuillez reessayer.",
+      "REMOVE_ERROR": "Impossible de retirer le membre.",
+      "ROLE_CHANGE_ERROR": "Impossible de modifier le role.",
+      "REMOVE_CONFIRM_TITLE": "Retirer le membre",
+      "REMOVE_CONFIRM_MSG": "Voulez-vous vraiment retirer {{name}} de ce projet ?",
+      "REMOVE_CONFIRM_YES": "Retirer",
+      "REMOVE_CONFIRM_CANCEL": "Annuler"
+    },
+    "ROLES": {
+      "Owner": "Proprietaire",
+      "Contributor": "Contributeur",
+      "Reader": "Lecteur"
+    }
   }
-}

@@ -3,6 +3,8 @@ using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
+using InfraFlowSculptor.Domain.ProjectAggregate;
+using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
@@ -29,6 +31,8 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<InputOutputLink> InputOutputLinks { get; set; } = null!;
     public DbSet<ResourceNamingTemplate> ResourceNamingTemplates { get; set; } = null!;
     public DbSet<RoleAssignment> RoleAssignments { get; set; } = null!;
+    public DbSet<Project> Projects { get; set; } = null!;
+    public DbSet<ProjectMember> ProjectMembers { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

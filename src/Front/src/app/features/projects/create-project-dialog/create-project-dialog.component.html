@@ -1,0 +1,53 @@
+<h2 mat-dialog-title>{{ 'PROJECTS.DIALOG.TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  <p class="dialog-description">{{ 'PROJECTS.DIALOG.DESCRIPTION' | translate }}</p>
+
+  @if (createErrorKey()) {
+    <div class="feedback-banner feedback-banner--error" role="alert" aria-live="assertive">
+      {{ createErrorKey() | translate }}
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" id="create-project-form">
+    <label class="field" for="dialog-project-name">
+      <span>{{ 'PROJECTS.FORM.NAME_LABEL' | translate }}</span>
+      <input
+        id="dialog-project-name"
+        type="text"
+        formControlName="name"
+        maxlength="80"
+        [placeholder]="'PROJECTS.FORM.NAME_PLACEHOLDER' | translate" />
+    </label>
+
+    @if (nameControl.touched && nameControl.hasError('required')) {
+      <p class="field-error">{{ 'PROJECTS.FORM.ERROR_REQUIRED' | translate }}</p>
+    } @else if (nameControl.touched && nameControl.hasError('minlength')) {
+      <p class="field-error">{{ 'PROJECTS.FORM.ERROR_MIN_LENGTH' | translate }}</p>
+    } @else if (nameControl.touched && nameControl.hasError('maxlength')) {
+      <p class="field-error">{{ 'PROJECTS.FORM.ERROR_MAX_LENGTH' | translate }}</p>
+    }
+
+    <label class="field" for="dialog-project-description">
+      <span>{{ 'PROJECTS.FORM.DESCRIPTION_LABEL' | translate }}</span>
+      <textarea
+        id="dialog-project-description"
+        formControlName="description"
+        rows="3"
+        [placeholder]="'PROJECTS.FORM.DESCRIPTION_PLACEHOLDER' | translate"></textarea>
+    </label>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button type="button" class="ghost-button" (click)="onCancel()">
+    {{ 'PROJECTS.DIALOG.CANCEL' | translate }}
+  </button>
+  <button type="submit" form="create-project-form" class="submit-button" [disabled]="form.invalid || isCreating()">
+    @if (isCreating()) {
+      {{ 'PROJECTS.DIALOG.CREATING' | translate }}
+    } @else {
+      {{ 'PROJECTS.DIALOG.CREATE' | translate }}
+    }
+  </button>
+</mat-dialog-actions>

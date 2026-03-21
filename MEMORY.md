@@ -65,11 +65,12 @@ src/
 
 | Aggregate | Root | Key Entities | Notes |
 |-----------|------|-------------|-------|
-| `InfrastructureConfig` | `InfrastructureConfig` | `Member`, `EnvironmentDefinition`, `ParameterDefinition`, `ResourceParameterUsage`, `EnvironmentParameterValue` | Owns resource groups indirectly |
+| `InfrastructureConfig` | `InfrastructureConfig` | `Member`, `EnvironmentDefinition`, `ParameterDefinition`, `ResourceParameterUsage`, `EnvironmentParameterValue` | Owns resource groups indirectly; optional `ProjectId` FK to `Project` |
 | `ResourceGroup` | `ResourceGroup` | `AzureResource` (base), `InputOutputLink` | Hosts Azure resources |
 | `KeyVault` | `KeyVault` extends `AzureResource` | — | TPT in EF Core |
 | `RedisCache` | `RedisCache` extends `AzureResource` | — | TPT in EF Core |
 | `User` | `User` | — | Azure AD user info |
+| `Project` | `Project` | `ProjectMember` | Groups InfrastructureConfigs, has its own member/role access control |
 
 ### 3.2 Value Objects
 
@@ -86,6 +87,7 @@ Key value objects per aggregate:
 - **KeyVault:** `Sku` (enum: Premium/Standard)
 - **RedisCache:** `RedisCacheSku`, `TlsVersion`, `MaxMemoryPolicy`, `RedisCacheSettings`
 - **User:** `UserId`, `EntraId`, `Name`
+- **Project:** `ProjectId`, `ProjectMemberId`, `ProjectRole` (Owner/Contributor/Reader)
 
 ### 3.3 Domain Invariants
 
@@ -117,6 +119,7 @@ Existing error files:
 - `Errors.KeyVault.cs`
 - `Errors.RedisCache.cs`
 - `Errors.Member.cs`
+- `Errors.Project.cs`
 
 **Important:** When adding a new aggregate, add a new `Errors.AggregateName.cs` file following the same partial class pattern.
 
@@ -185,6 +188,15 @@ Access check pattern for resource handlers:
 - Read operations: `VerifyReadAccessAsync` — returns `NotFound` (no info leak) if not a member
 - Write operations: `VerifyWriteAccessAsync` — returns `NotFound` for non-members, `Forbidden` for Readers
 
+**Project-level authorization — `IProjectAccessService` (injectable service):**
+
+Same pattern as `IInfraConfigAccessService`, but scoped to the `Project` aggregate:
+```csharp
+// Interface: src/Api/InfraFlowSculptor.Application/Common/Interfaces/IProjectAccessService.cs
+// Implementation: src/Api/InfraFlowSculptor.Application/Projects/Common/ProjectAccessService.cs
+// DI registration: services.AddScoped<IProjectAccessService, ProjectAccessService>();  (Application/DependencyInjection.cs)
+```
+
 ---
 
 ## 5. API Layer
@@ -221,6 +233,15 @@ Registered in `Program.cs` via `app.UseXyzController()`.
 | `/resource-group` | GET/POST | `/{id:guid}` | Resource Group CRUD |
 | `/redis-cache` | GET/POST/PUT/DELETE | `/{id:guid}` | Redis Cache CRUD |
 | `/generate-bicep` | POST | `` | `GenerateBicepCommand` |
+| `/projects` | GET | `` | `ListMyProjectsQuery` |
+| `/projects` | GET | `/{id:guid}` | `GetProjectQuery` |
+| `/projects` | POST | `` | `CreateProjectCommand` |
+| `/projects` | GET | `/{id:guid}/configurations` | `ListProjectConfigsQuery` |
+| `/projects` | POST | `/{id:guid}/configurations` | `AddConfigToProjectCommand` |
+| `/projects` | DELETE | `/{id:guid}/configurations/{configId:guid}` | `RemoveConfigFromProjectCommand` |
+| `/projects` | POST | `/{id:guid}/members` | `AddProjectMemberCommand` |
+| `/projects` | PUT | `/{id:guid}/members/{userId:guid}` | `UpdateProjectMemberRoleCommand` |
+| `/projects` | DELETE | `/{id:guid}/members/{userId:guid}` | `RemoveProjectMemberCommand` |
 
 ### 5.3 Error Conversion
 
@@ -1028,3 +1049,4 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-22 | copilot | Added visual pipeline connector between environment cards in Environments tab: replaced `env-grid` (CSS grid) with `env-pipeline` (flex column), added `env-pipeline__connector` with a cyan `arrow_forward` icon (rotated 90°) between each card to visually convey deployment order flow. Removed `.order-chip` from card headers and SCSS (order is now implicit in the pipeline flow). |
 | 2026-03-21 | copilot | Fixed environment order collision bug: added order shifting logic in the `InfrastructureConfig` aggregate root. `AddEnvironment` shifts existing envs with order >= new order up by 1 (`ShiftOrdersUp`). `UpdateEnvironment` reorders siblings when order changes (`ReorderEnvironments` — shifts range up or down depending on direction). `RemoveEnvironment` closes the gap by shifting envs with order > removed down by 1 (`ShiftOrdersDown`). This ensures order uniqueness as a domain invariant. |
 | 2026-03-21 | copilot | Revamped navigation header: replaced dull dark `rgba(5,23,44,.78)` background with vibrant gradient `linear-gradient(135deg, #0d2f66, #1565c0, #0288d1)` matching login/home pages. Replaced inline SVG logo with `mat-icon cloud_circle` (added `MatIconModule` import). Updated brand icon to frosted glass style (`rgba(255,255,255,0.15)` bg, `#b3e5fc` icon color). Refreshed border to cyan glow (`rgba(0,188,212,0.3)`). Updated avatar, logout button, and action borders to use `rgba(255,255,255,*)` tones for consistency on the brighter gradient. |
+| 2026-03-22 | copilot | Added **Project** aggregate: full-stack feature grouping multiple InfrastructureConfigs with project-level access control (Owner/Contributor/Reader). **Domain**: `Project` aggregate root with `ProjectMember` entity, `ProjectId`/`ProjectMemberId`/`ProjectRole` value objects, `Errors.Project.cs`. **Application**: `IProjectRepository`, `IProjectAccessService`/`ProjectAccessService`, 6 commands (CreateProject, AddProjectMember, UpdateProjectMemberRole, RemoveProjectMember, AddConfigToProject, RemoveConfigFromProject), 3 queries (GetProject, ListMyProjects, ListProjectConfigs). **Infrastructure**: `ProjectConfiguration`/`ProjectMemberConfiguration` EF Core configs, `ProjectRepository`, migration `AddProject` (Projects + ProjectMembers tables, nullable ProjectId FK on InfrastructureConfigs). **Contracts**: 4 request DTOs, 2 response records. **API**: `ProjectController` (9 endpoints under `/projects`). **Frontend**: `ProjectResponse`/`ProjectMemberResponse` interfaces, `ProjectRoleEnum`, `ProjectService`, project-list page, project-detail page (Configurations + Members tabs), create-project dialog, add-member dialog, lazy routes `/projects` + `/projects/:id`, nav link, FR/EN i18n keys. |

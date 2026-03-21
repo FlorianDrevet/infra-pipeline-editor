@@ -4,6 +4,7 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.EnvironmentParameterValue;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ParameterDefinition;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Shared.Infrastructure.Persistence.Configurations;
@@ -28,6 +29,13 @@ public sealed class InfrastructureConfigConfiguration
 
         builder.Property(x => x.DefaultNamingTemplate)
             .HasConversion(new SingleValueConverter<NamingTemplate, string>())
+            .IsRequired(false);
+
+        // ========================
+        // Project (optional FK)
+        // ========================
+        builder.Property(x => x.ProjectId)
+            .HasConversion(new IdValueConverter<ProjectId>())
             .IsRequired(false);
 
         // ========================

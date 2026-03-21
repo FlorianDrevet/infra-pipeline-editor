@@ -2,6 +2,7 @@ using System.Reflection;
 using FluentValidation;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.Application.Projects.Common;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using InfraFlowSculptor.Application.Common.Behaviors;
@@ -22,8 +23,9 @@ public static class DependencyInjection
         // Validators
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-        // Access control service
+        // Access control services
         services.AddScoped<IInfraConfigAccessService, InfraConfigAccessService>();
+        services.AddScoped<IProjectAccessService, ProjectAccessService>();
 
         return services;
     }

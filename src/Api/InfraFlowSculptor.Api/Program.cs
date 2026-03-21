@@ -71,6 +71,7 @@ app.UseResourceGroupController();
 app.UseRedisCacheController();
 app.UseRoleAssignmentController();
 app.UseStorageAccountController();
+app.UseProjectController();
 app.MapDefaultEndpoints();
 
 await app.RunAsync();

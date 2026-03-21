@@ -1,0 +1,170 @@
+<div class="detail-page">
+  @if (isLoading()) {
+    <div class="state-card state-card--loading" aria-live="polite">
+      <div class="pulse-dot"></div>
+      <div>
+        <strong>{{ 'PROJECTS.STATE.LOADING_TITLE' | translate }}</strong>
+        <p>{{ 'PROJECTS.STATE.LOADING_DESC' | translate }}</p>
+      </div>
+    </div>
+  } @else if (loadErrorKey()) {
+    <div class="state-card state-card--error" role="alert" aria-live="assertive">
+      <strong>{{ 'PROJECTS.STATE.LOAD_FAILED' | translate }}</strong>
+      <p>{{ loadErrorKey() | translate }}</p>
+      <a class="ghost-button" routerLink="/projects">{{ 'PROJECTS.ACTIONS.BACK' | translate }}</a>
+    </div>
+  } @else if (project()) {
+    <!-- Header -->
+    <section class="detail-header">
+      <a class="back-link" routerLink="/projects">
+        <mat-icon>arrow_back</mat-icon>
+        {{ 'PROJECTS.ACTIONS.BACK' | translate }}
+      </a>
+      <div class="detail-header__info">
+        <span class="eyebrow">{{ 'PROJECTS.DETAIL.OVERLINE' | translate }}</span>
+        <h1>{{ project()!.name }}</h1>
+        @if (project()!.description) {
+          <p class="detail-header__desc">{{ project()!.description }}</p>
+        }
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <mat-tab-group animationDuration="200ms">
+      <!-- Configurations Tab -->
+      <mat-tab [label]="'PROJECTS.TABS.CONFIGURATIONS' | translate">
+        <section class="tab-content">
+          <div class="section-heading section-heading--inline">
+            <div>
+              <span class="overline-tag">{{ 'PROJECTS.CONFIGS.OVERLINE' | translate }}</span>
+              <h2>{{ 'PROJECTS.CONFIGS.TITLE' | translate }}</h2>
+            </div>
+          </div>
+
+          @if (configErrorKey()) {
+            <div class="feedback-banner feedback-banner--error" role="alert">
+              {{ configErrorKey() | translate }}
+            </div>
+          }
+
+          @if (canManage()) {
+            <div class="add-config-row">
+              <select class="select-field" [value]="selectedConfigId()" (change)="onConfigSelect($event)">
+                <option value="">{{ 'PROJECTS.CONFIGS.SELECT_PLACEHOLDER' | translate }}</option>
+                @for (config of availableConfigs(); track config.id) {
+                  <option [value]="config.id">{{ config.name }}</option>
+                }
+              </select>
+              <button
+                type="button"
+                class="primary-cta primary-cta--small"
+                [disabled]="!selectedConfigId()"
+                (click)="addConfiguration()">
+                {{ 'PROJECTS.CONFIGS.ADD' | translate }}
+              </button>
+            </div>
+          }
+
+          @if (configurations().length === 0) {
+            <div class="state-card state-card--empty">
+              <strong>{{ 'PROJECTS.CONFIGS.EMPTY' | translate }}</strong>
+            </div>
+          } @else {
+            <div class="config-list">
+              @for (config of configurations(); track config.id) {
+                <div class="config-row">
+                  <div class="config-row__info">
+                    <a class="config-row__name" [routerLink]="['/config', config.id]">
+                      <mat-icon>settings</mat-icon>
+                      {{ config.name }}
+                    </a>
+                    <span class="config-row__meta">
+                      {{ 'PROJECTS.CONFIGS.ENVS' | translate: { count: config.environmentDefinitions.length } }}
+                      · {{ 'PROJECTS.CONFIGS.MEMBERS_COUNT' | translate: { count: config.members.length } }}
+                    </span>
+                  </div>
+                  @if (canManage()) {
+                    <button
+                      type="button"
+                      class="icon-button icon-button--danger"
+                      [matTooltip]="'PROJECTS.CONFIGS.REMOVE' | translate"
+                      (click)="removeConfiguration(config.id)">
+                      <mat-icon>link_off</mat-icon>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </section>
+      </mat-tab>
+
+      <!-- Members Tab -->
+      <mat-tab [label]="'PROJECTS.TABS.MEMBERS' | translate">
+        <section class="tab-content">
+          <div class="section-heading section-heading--inline">
+            <div>
+              <span class="overline-tag">{{ 'PROJECTS.MEMBERS.OVERLINE' | translate }}</span>
+              <h2>{{ 'PROJECTS.MEMBERS.TITLE' | translate }}</h2>
+            </div>
+            @if (canManage()) {
+              <button type="button" class="primary-cta primary-cta--small" (click)="openAddMemberDialog()">
+                {{ 'PROJECTS.MEMBERS.ADD' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (memberErrorKey()) {
+            <div class="feedback-banner feedback-banner--error" role="alert">
+              {{ memberErrorKey() | translate }}
+            </div>
+          }
+
+          @if (sortedMembers().length === 0) {
+            <div class="state-card state-card--empty">
+              <strong>{{ 'PROJECTS.MEMBERS.EMPTY' | translate }}</strong>
+            </div>
+          } @else {
+            <div class="members-list">
+              @for (member of sortedMembers(); track member.id) {
+                <div class="member-row" [class.member-row--busy]="memberActionId() === member.userId">
+                  <div class="member-row__info">
+                    <span class="member-avatar">{{ member.firstName.charAt(0) }}{{ member.lastName.charAt(0) }}</span>
+                    <div>
+                      <strong>{{ member.firstName }} {{ member.lastName }}</strong>
+                      <span class="member-row__role-badge role-badge role-badge--{{ member.role | lowercase }}">
+                        <mat-icon>{{ getRoleIcon(member.role) }}</mat-icon>
+                        {{ 'PROJECTS.ROLES.' + member.role | translate }}
+                      </span>
+                    </div>
+                  </div>
+
+                  @if (canManage()) {
+                    <div class="member-row__actions">
+                      <select
+                        class="select-field select-field--compact"
+                        [value]="member.role"
+                        [attr.aria-label]="'PROJECTS.MEMBERS.CHANGE_ROLE_ARIA' | translate"
+                        (change)="onRoleChange(member, $any($event.target).value)">
+                        @for (role of roles; track role) {
+                          <option [value]="role">{{ 'PROJECTS.ROLES.' + role | translate }}</option>
+                        }
+                      </select>
+                      <button
+                        type="button"
+                        class="icon-button icon-button--danger"
+                        [matTooltip]="'PROJECTS.MEMBERS.REMOVE' | translate"
+                        (click)="confirmRemoveMember(member)">
+                        <mat-icon>person_remove</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </section>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>
