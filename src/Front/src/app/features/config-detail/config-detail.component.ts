@@ -257,8 +257,9 @@ export class ConfigDetailComponent implements OnInit {
   }
 
   protected openAddResourceDialog(rgId: string): void {
+    const rg = this.resourceGroups().find((r) => r.id === rgId);
     const dialogRef = this.dialog.open(AddResourceDialogComponent, {
-      data: { resourceGroupId: rgId } satisfies AddResourceDialogData,
+      data: { resourceGroupId: rgId, location: rg?.location ?? '' } satisfies AddResourceDialogData,
       width: '560px',
     });
 

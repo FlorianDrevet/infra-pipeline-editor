@@ -20,6 +20,7 @@ import { StorageAccountService } from '../../../shared/services/storage-account.
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
+  location: string;
 }
 
 const KEY_VAULT_SKU_OPTIONS = [
@@ -124,14 +125,14 @@ export class AddResourceDialogComponent {
   // Key Vault form
   protected readonly kvForm = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(80)]],
-    location: ['', [Validators.required]],
+    location: [this.data.location, [Validators.required]],
     sku: ['Standard', [Validators.required]],
   });
 
   // Redis Cache form
   protected readonly redisForm = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(80)]],
-    location: ['', [Validators.required]],
+    location: [this.data.location, [Validators.required]],
     sku: ['Standard', [Validators.required]],
     redisVersion: [6, [Validators.required, Validators.min(0), Validators.max(7)]],
     enableNonSslPort: [false],
@@ -143,7 +144,7 @@ export class AddResourceDialogComponent {
   // Storage Account form
   protected readonly storageForm = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(80)]],
-    location: ['', [Validators.required]],
+    location: [this.data.location, [Validators.required]],
     sku: ['Standard_LRS', [Validators.required]],
     kind: ['StorageV2', [Validators.required]],
     accessTier: ['Hot', [Validators.required]],
