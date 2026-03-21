@@ -670,6 +670,16 @@ Type mapping convention (C# → TypeScript): `Guid` → `string`, `IReadOnlyList
 - `MsalAuthService.initialize()` now prioritizes `handleRedirectPromise()` result account before falling back to cached accounts
 - `MsalAuthService` exposes `loginRedirect(redirectStartPage?)` to keep redirect behavior explicit per caller
 
+#### Auth loop fix ([2026-03-21])
+
+- Symptom: after sign-in, the app briefly showed `/` then redirected to `/login`.
+- Root cause: `MsalAuthService.getActiveAccount()` selected `getAllAccounts()[0]` when multiple cached accounts existed; this could pick the wrong account, causing API `401` and `axios` redirect to `/login`.
+- Fix in `src/Front/src/app/shared/services/msal-auth.service.ts`:
+    - set MSAL active account explicitly from `handleRedirectPromise()` result,
+    - deterministic fallback order (MSAL active account -> authService account if present in cache -> single cached account),
+    - never pick an arbitrary account when multiple cached accounts exist,
+    - reuse a single `resolveActiveAccount()` path for guard and token acquisition.
+
 #### Feature structure
 - Feature pages live under `src/Front/src/app/features/<feature-name>/`
 - The login component is the first entry in `features/`
@@ -973,5 +983,6 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-21 | copilot | Added skill `.github/skills/ui-ux-front-saas/SKILL.md` for frontend UI/UX governance (based on login visual baseline + SaaS B2B cloud prompt). Enforced skill loading in `angular-front.agent.md`, registered routing in `dev.agent.md`, and added mandatory usage in `.github/copilot-instructions.md`. Added section 23 in MEMORY.md. |
 | 2026-03-21 | copilot | Added `.github/agents/aspire-debug.agent.md` for runtime diagnostics with Aspire MCP (resource health, structured logs, console logs, traces, restart/recovery workflow). Registered routing in `dev.agent.md` and specialized-agent policy in `.github/copilot-instructions.md`. Added section 24 in MEMORY.md with agent-vs-skill rationale. |
 | 2026-03-21 | copilot | Rebalanced home hero typography/layout in `src/Front/src/app/features/home/home.component.scss` to reduce the heavy left text block: smaller H1 scale, wider line length, lighter vertical distribution, and more balanced column ratio against stats cards. |
+| 2026-03-21 | copilot | Fixed frontend post-login redirect loop to `/login`: `MsalAuthService` no longer selects `getAllAccounts()[0]` arbitrarily. It now sets/uses MSAL active account deterministically (redirect account first, then safe fallbacks) and avoids wrong-account token acquisition that triggered API `401` and forced login redirect. |
 | 2026-03-22 | copilot | Added 3 frontend features: (1) Configuration detail page at `/config/:id` with members, environments, resource groups, naming templates sections + back navigation. (2) Search (by name) + sort (name/environments/members) in home config list with computed signals. (3) Replaced inline create form with Material dialog (`create-config-dialog`), hero CTA now opens dialog. Added `CONFIG_DETAIL.*`, `HOME.SEARCH.*`, `HOME.SORT.*`, `HOME.DIALOG.*` i18n keys in both fr.json and en.json. New files: `features/config-detail/*` (3 files), `features/home/create-config-dialog/*` (3 files). Modified: `app-routing.ts`, `home.component.ts/html/scss`, `fr.json`, `en.json`. |
 | 2026-03-22 | copilot | Added member management: **Backend**: enriched `MemberResponse` with `FirstName`/`LastName` (added `User` nav property on `Member` entity, `.ThenInclude(m => m.User!)` in all InfrastructureConfigRepository queries, updated Mapster mappings). Added `GET /infra-config/users` endpoint (`ListUsersQuery`/`UserResponse`). Added `IUserRepository.GetAllAsync`/`GetByIdsAsync`. **Frontend**: updated `MemberResponse` interface with `firstName`/`lastName`, added `UserResponse` interface, `getUsers()` method on `InfraConfigService`. Config detail page shows member names instead of IDs, inline `mat-select` for role change (Owner/Contributor/Reader), remove button with confirm dialog, "Add member" button opening a dialog (`add-member-dialog`) with user picker + role selector. Created reusable `ConfirmDialogComponent`. Added 17 i18n keys under `CONFIG_DETAIL.MEMBERS` in both FR/EN. |
