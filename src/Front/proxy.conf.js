@@ -17,7 +17,7 @@
 const apiUrl =
   process.env['services__infraflowsculptor-api__https__0'] ||
   process.env['services__infraflowsculptor-api__http__0'] ||
-  'http://localhost:8080';
+  'http://localhost:5257';
 
 const bicepApiUrl =
   process.env['services__bicep-generator-api__https__0'] ||

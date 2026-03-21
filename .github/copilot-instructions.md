@@ -30,6 +30,32 @@
 - `src\Shared` holds reusable cross-cutting pieces used by both APIs: base DDD model types, shared application abstractions, shared API middleware/options, and persistence converters/repository helpers.
 - The main request flow is: Minimal API endpoint in `Api\Controllers` -> Mapster/request mapping -> MediatR command/query in `Application` -> handler/repository/service calls -> domain model changes or reads -> EF Core persistence -> Mapster/typed response DTO back to HTTP.
 
+## Specialized agents
+
+- **Main entry point** — Use the `dev` agent (`.github/agents/dev.agent.md`) as the primary entry point for any task. It reads `MEMORY.md`, routes to the right specialist, loads relevant Skills, and updates `MEMORY.md` at the end.
+- **Backend C#/.NET** — Any C# code generation or modification MUST follow `.github/agents/dotnet-dev.agent.md` conventions (XML docs, no magic strings, SOLID, async/await, EF Core, FluentValidation, sealed, guard clauses, no code smells).
+- **Frontend Angular** — Any work in `src\Front` MUST use the `angular-front` agent (`.github/agents/angular-front.agent.md`).
+- **Aspire runtime debugging** — Any runtime/AppHost investigation (resource failures, logs/traces, startup issues) MUST use the `aspire-debug` agent (`.github/agents/aspire-debug.agent.md`).
+- **CQRS feature generation** — Load the `cqrs-feature` skill (`.github/skills/cqrs-feature/SKILL.md`) for any new aggregate or CQRS feature.
+- **UI/UX frontend design quality** — Load the `ui-ux-front-saas` skill (`.github/skills/ui-ux-front-saas/SKILL.md`) for any UI-facing frontend task (pages, components, layouts, styles, UX states).
+- **Pull Requests** — Use the `pr-manager` agent (`.github/agents/pr-manager.agent.md`) for PR title/description conventions.
+
+## Skills
+
+Skills are **lazy-loaded knowledge files** (`SKILL.md`) that agents load on demand via `read_file` when the task matches the skill's domain.
+They differ from agents: no tools, pure structured knowledge, reusable across multiple agents.
+
+> **BLOCKING REQUIREMENT:** When a skill applies to the user's request, you MUST load and read the SKILL.md file IMMEDIATELY as your first action, BEFORE generating any code or taking action on the task.
+
+### Available project skills
+
+| Skill | When to load | File |
+|-------|-------------|------|
+| `cqrs-feature` | Generating a new aggregate, new CQRS commands/queries/handlers, full feature scaffolding | `.github/skills/cqrs-feature/SKILL.md` |
+| `ui-ux-front-saas` | Any frontend UI/UX work: page design, component visuals, layout, styling, UX states, handoff specs | `.github/skills/ui-ux-front-saas/SKILL.md` |
+
+---
+
 ## Repository-specific conventions
 
 - Treat the domain as strict DDD. When adding domain code, decide whether it belongs as an aggregate root, entity, value object, repository, or domain service before creating files. Shared base classes live in `src\Shared\Shared.Domain\Models`.
@@ -46,10 +72,16 @@
 - Authentication uses Microsoft Entra ID / JWT bearer auth. The API projects set a fallback authenticated policy, expose an `IsAdmin` policy, and use `ICurrentUser`/`CurrentUser` for user context access.
 - The GitHub prompt and agent files describe the product goal as storing infrastructure configuration in one API and generating Azure Bicep and Azure DevOps pipeline output in the second API. Keep that split in mind when deciding which project should own new behavior.
 - Frontend conventions:
-  - Keep feature code under `src\Front\src\app` with clear split between `core` and `shared`.
-  - Keep API endpoint URLs centralized through `src\Front\src\environments\environment*.ts` and consumed via shared HTTP services (currently Axios).
-  - Prefer standalone components and route-level lazy loading for new screens.
-  - Keep backend contracts aligned: if API request/response contracts change, update frontend DTO usage and mapping logic in the same change.
+  - **Any frontend work in `src\Front` MUST use the `angular-front` agent** (`.github/agents/angular-front.agent.md`). This agent owns all Angular 19 conventions, signals, standalone components, and project-specific patterns.
+  - **Any frontend UI task MUST load `ui-ux-front-saas` first** (`.github/skills/ui-ux-front-saas/SKILL.md`) to enforce SaaS B2B cloud UX rules and alignment with the existing login page visual baseline.
+  - Keep feature code under `src\Front\src\app` with clear split between `core`, `features`, and `shared`.
+  - Keep API endpoint URLs centralized through `src\Front\src\environments\environment*.ts` and consumed via `AxiosService` (never hardcode base URLs in services or components).
+  - Prefer standalone components and route-level lazy loading (`loadComponent`) for all new screens.
+  - Keep backend contracts aligned: if API request/response contracts change, update frontend interfaces and services in the same change.
+  - All Angular components use 3 separate files (`.ts`, `.html`, `.scss`) — never inline templates or styles.
+  - Use Signals exclusively for state management (`signal`, `computed`, `toSignal`). The project is zoneless (`provideExperimentalZonelessChangeDetection`).
+  - Use `inject()` for dependency injection — never constructor injection.
+  - Use the new Angular control flow syntax (`@if`, `@for`, `@switch`) — never `*ngIf`, `*ngFor`.
 
 ## Pull Request conventions
 
