@@ -13,7 +13,7 @@
 
 .hero-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 0.95fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 1fr);
   gap: 1.25rem;
   padding: 1.5rem;
   border-radius: 1.8rem;
@@ -70,14 +70,14 @@
 .hero-panel__content {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: flex-start;
+  gap: 1.1rem;
 
   h1 {
     margin: 0;
-    max-width: 12ch;
-    font-size: clamp(2rem, 3vw, 3.25rem);
-    line-height: 1.05;
+    max-width: 26ch;
+    font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+    line-height: 1.2;
   }
 
   p {
