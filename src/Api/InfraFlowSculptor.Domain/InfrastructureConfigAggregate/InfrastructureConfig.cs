@@ -14,7 +14,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 
     /// <summary>
     /// Default naming template applied to all resource types unless overridden.
-    /// Supports placeholders: {name}, {prefix}, {suffix}, {env}, {resourceType}, {location}.
+    /// Supports placeholders: {name}, {prefix}, {suffix}, {env}, {resourceType}, {resourceAbbr}, {location}.
     /// When null, the resource Name is used as-is.
     /// </summary>
     public NamingTemplate? DefaultNamingTemplate { get; private set; }
@@ -95,6 +95,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 
     public EnvironmentDefinition AddEnvironment(EnvironmentDefinitionData data)
     {
+        ShiftOrdersUp(data.Order.Value);
         var env = new EnvironmentDefinition(Id, data);
         _environmentDefinitions.Add(env);
         return env;
@@ -107,6 +108,12 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         var env = _environmentDefinitions.FirstOrDefault(e => e.Id == envId);
         if (env is null)
             return null;
+
+        var oldOrder = env.Order.Value;
+        var newOrder = data.Order.Value;
+
+        if (oldOrder != newOrder)
+            ReorderEnvironments(envId, oldOrder, newOrder);
 
         env.Name = data.Name;
         env.Prefix = data.Prefix;
@@ -125,8 +132,53 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         var env = _environmentDefinitions.FirstOrDefault(e => e.Id == envId);
         if (env is null)
             return false;
+
+        var removedOrder = env.Order.Value;
         _environmentDefinitions.Remove(env);
+        ShiftOrdersDown(removedOrder);
         return true;
+    }
+
+    /// <summary>
+    /// Shifts all environments with order &gt;= <paramref name="fromOrder"/> up by one
+    /// to make room for a new environment at that position.
+    /// </summary>
+    private void ShiftOrdersUp(int fromOrder)
+    {
+        foreach (var env in _environmentDefinitions.Where(e => e.Order.Value >= fromOrder))
+            env.Order = new Order(env.Order.Value + 1);
+    }
+
+    /// <summary>
+    /// Shifts all environments with order &gt; <paramref name="removedOrder"/> down by one
+    /// to close the gap left after removal.
+    /// </summary>
+    private void ShiftOrdersDown(int removedOrder)
+    {
+        foreach (var env in _environmentDefinitions.Where(e => e.Order.Value > removedOrder))
+            env.Order = new Order(env.Order.Value - 1);
+    }
+
+    /// <summary>
+    /// Reorders sibling environments when an existing environment moves from
+    /// <paramref name="oldOrder"/> to <paramref name="newOrder"/>.
+    /// </summary>
+    private void ReorderEnvironments(EnvironmentDefinitionId movingId, int oldOrder, int newOrder)
+    {
+        if (newOrder < oldOrder)
+        {
+            // Moving up: shift environments in [newOrder, oldOrder) up by one
+            foreach (var e in _environmentDefinitions
+                         .Where(e => e.Id != movingId && e.Order.Value >= newOrder && e.Order.Value < oldOrder))
+                e.Order = new Order(e.Order.Value + 1);
+        }
+        else
+        {
+            // Moving down: shift environments in (oldOrder, newOrder] down by one
+            foreach (var e in _environmentDefinitions
+                         .Where(e => e.Id != movingId && e.Order.Value > oldOrder && e.Order.Value <= newOrder))
+                e.Order = new Order(e.Order.Value - 1);
+        }
     }
 
     // ─── Naming Convention ───────────────────────────────────────────────────

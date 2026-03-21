@@ -1,0 +1,166 @@
+:host {
+  display: block;
+}
+
+.env-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 26rem;
+  padding-top: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.half-width {
+  flex: 1;
+}
+
+// ─── Order + Timeline Section ────
+
+.order-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  &__label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #103454;
+  }
+}
+
+.order-timeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 1rem;
+  background: rgba(13, 101, 192, 0.04);
+  border: 1px solid rgba(146, 191, 235, 0.2);
+  overflow-x: auto;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 3.5rem;
+  flex-shrink: 0;
+  position: relative;
+
+  &__dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background: #90a4ae;
+    border: 2px solid #cfd8dc;
+    transition: all 0.2s ease;
+  }
+
+  &__label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #617892;
+    text-align: center;
+    max-width: 5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+  }
+
+  &--current {
+    .timeline-step__dot {
+      width: 0.85rem;
+      height: 0.85rem;
+      background: #1565c0;
+      border-color: rgba(21, 101, 192, 0.3);
+      box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15);
+    }
+
+    .timeline-step__label {
+      color: #1565c0;
+      font-weight: 700;
+    }
+
+  }
+}
+
+.order-arrows {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.order-arrow-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  border: 1px solid rgba(21, 101, 192, 0.2);
+  background: rgba(21, 101, 192, 0.06);
+  color: #1565c0;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
+
+  &:hover:not(:disabled) {
+    background: rgba(21, 101, 192, 0.14);
+    border-color: rgba(21, 101, 192, 0.35);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+.timeline-connector {
+  flex: 1;
+  min-width: 1rem;
+  height: 2px;
+  background: #cfd8dc;
+  align-self: flex-start;
+  margin-top: 0.45rem;
+  transition: background 0.2s ease;
+
+  &--before-current,
+  &--after-current {
+    background: rgba(21, 101, 192, 0.4);
+  }
+}
+
+// ─── Misc ────
+
+mat-slide-toggle {
+  margin-bottom: 0.5rem;
+}
+
+.dialog-error {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  background: rgba(217, 45, 32, 0.07);
+  color: #a12d1f;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .env-form {
+    min-width: 100%;
+  }
+}

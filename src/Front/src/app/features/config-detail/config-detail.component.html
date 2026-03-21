@@ -1,0 +1,436 @@
+<div class="detail-page">
+  @if (isLoading()) {
+    <div class="state-card state-card--loading" aria-live="polite">
+      <div class="pulse-dot"></div>
+      <div>
+        <strong>{{ 'CONFIG_DETAIL.STATE.LOADING_TITLE' | translate }}</strong>
+        <p>{{ 'CONFIG_DETAIL.STATE.LOADING_DESCRIPTION' | translate }}</p>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="state-card state-card--error" role="alert" aria-live="assertive">
+      <strong>{{ loadError() | translate }}</strong>
+      <a class="ghost-button" routerLink="/">{{ 'CONFIG_DETAIL.ACTIONS.BACK' | translate }}</a>
+    </div>
+  } @else if (config()) {
+    <section class="detail-header">
+      <div class="detail-header__nav">
+        <a class="ghost-button" routerLink="/">{{ 'CONFIG_DETAIL.ACTIONS.BACK' | translate }}</a>
+      </div>
+      <div class="detail-header__info">
+        <span class="eyebrow">{{ 'CONFIG_DETAIL.HEADER.OVERLINE' | translate }}</span>
+        <h1>{{ config()!.name }}</h1>
+        <p class="detail-header__id">{{ config()!.id }}</p>
+      </div>
+    </section>
+
+    <mat-tab-group class="config-tabs" animationDuration="200ms">
+      <!-- Resource Groups -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">dns</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.TABS.RESOURCE_GROUPS' | translate }}</span>
+          <span class="tab-count">{{ resourceGroups().length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="tab-content__toolbar">
+            @if (canWrite()) {
+              <button class="add-rg-btn" (click)="openAddResourceGroupDialog()">
+                <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
+                {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD' | translate }}
+              </button>
+            }
+
+            @if (sortedEnvironments().length > 0) {
+              <mat-form-field appearance="outline" class="preview-env-select" subscriptSizing="dynamic">
+                <mat-label>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_ENV' | translate }}</mat-label>
+                <mat-select [ngModel]="previewEnvId()" (ngModelChange)="previewEnvId.set($event)">
+                  <mat-option [value]="null">{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_NONE' | translate }}</mat-option>
+                  @for (env of sortedEnvironments(); track env.id) {
+                    <mat-option [value]="env.id">{{ env.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+          </div>
+
+          @if (rgErrorKey()) {
+            <p class="rg-error">{{ rgErrorKey() | translate }}</p>
+          }
+
+          @if (resourceGroups().length > 0) {
+            <div class="rg-list">
+              @for (rg of resourceGroups(); track rg.id) {
+                <article class="rg-accordion" [class.rg-accordion--expanded]="expandedRgId() === rg.id">
+                  <button class="rg-accordion__header" (click)="toggleRgExpand(rg.id)">
+                    <mat-icon class="rg-accordion__chevron">expand_more</mat-icon>
+                    <div class="rg-accordion__info">
+                      <strong>{{ rg.name }}</strong>
+                      <span class="rg-accordion__location">
+                        <mat-icon>location_on</mat-icon>
+                        {{ rg.location }}
+                      </span>
+                      @if (resolveNamingPreview(rg.name, 'ResourceGroup'); as preview) {
+                        <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                          <mat-icon class="naming-preview__icon">label</mat-icon>
+                          {{ preview }}
+                        </span>
+                      }
+                    </div>
+                    <span class="rg-accordion__count">
+                      {{ rgResources()[rg.id]?.length ?? '…' }}
+                    </span>
+                  </button>
+                  @if (expandedRgId() === rg.id) {
+                    <div class="rg-accordion__body">
+                      @if (rgResourcesLoading() === rg.id) {
+                        <div class="rg-resources-loading">
+                          <mat-spinner diameter="22"></mat-spinner>
+                          <span>{{ 'CONFIG_DETAIL.RESOURCES.LOADING' | translate }}</span>
+                        </div>
+                      } @else {
+                        <div class="rg-resources-toolbar">
+                          @if (canWrite()) {
+                            <button class="add-resource-btn" (click)="openAddResourceDialog(rg.id); $event.stopPropagation()">
+                              <mat-icon class="add-resource-btn__icon">add_circle_outline</mat-icon>
+                              {{ 'CONFIG_DETAIL.RESOURCES.ADD' | translate }}
+                            </button>
+                          }
+                        </div>
+                        @if ((rgResources()[rg.id] || []).length > 0) {
+                          <div class="resource-list">
+                            @for (res of rgResources()[rg.id]!; track res.id) {
+                              <div class="resource-item">
+                                <mat-icon class="resource-item__icon">{{ resourceTypeIcons[res.resourceType] || 'widgets' }}</mat-icon>
+                                <div class="resource-item__info">
+                                  <strong>{{ res.name }}</strong>
+                                  <span class="resource-item__type">{{ res.resourceType }}</span>
+                                  @if (resolveNamingPreview(res.name, res.resourceType); as preview) {
+                                    <span class="naming-preview naming-preview--inline" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                      <mat-icon class="naming-preview__icon">label</mat-icon>
+                                      {{ preview }}
+                                    </span>
+                                  }
+                                </div>
+                                <span class="resource-item__location">{{ res.location }}</span>
+                              </div>
+                            }
+                          </div>
+                        } @else {
+                          <div class="rg-resources-empty">
+                            <mat-icon>widgets</mat-icon>
+                            <p>{{ 'CONFIG_DETAIL.RESOURCES.EMPTY' | translate }}</p>
+                          </div>
+                        }
+                      }
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">dns</mat-icon>
+              <p>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.EMPTY' | translate }}</p>
+              @if (canWrite()) {
+                <button class="add-rg-btn" (click)="openAddResourceGroupDialog()">
+                  <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
+                  {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.ADD' | translate }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Environments -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">cloud_queue</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.TABS.ENVIRONMENTS' | translate }}</span>
+          <span class="tab-count">{{ config()!.environmentDefinitions.length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="tab-content__toolbar">
+            @if (canWrite()) {
+              <button class="add-env-btn" (click)="openAddEnvironmentDialog()">
+                <mat-icon class="add-env-btn__icon">add_circle_outline</mat-icon>
+                {{ 'CONFIG_DETAIL.ENVIRONMENTS.ADD' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (envErrorKey()) {
+            <p class="env-error">{{ envErrorKey() | translate }}</p>
+          }
+
+          @if (sortedEnvironments().length > 0) {
+            <div class="env-pipeline">
+              @for (env of sortedEnvironments(); track env.id; let last = $last) {
+                <article class="env-card" [class.env-card--busy]="envActionId() === env.id">
+                  @if (envActionId() === env.id) {
+                    <div class="env-card__spinner">
+                      <mat-spinner diameter="24"></mat-spinner>
+                    </div>
+                  }
+                  <div class="env-card__header">
+                    <h3>{{ env.name }}</h3>
+                    <div class="env-card__header-actions">
+                      @if (canWrite()) {
+                        <button
+                          class="env-action-btn env-action-btn--edit"
+                          [matTooltip]="'CONFIG_DETAIL.ENVIRONMENTS.EDIT' | translate"
+                          [disabled]="envActionId() === env.id"
+                          (click)="openAddEnvironmentDialog(env)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                          class="env-action-btn env-action-btn--delete"
+                          [matTooltip]="'CONFIG_DETAIL.ENVIRONMENTS.REMOVE' | translate"
+                          [disabled]="envActionId() === env.id"
+                          (click)="openRemoveEnvironmentDialog(env)">
+                          <mat-icon>delete_outline</mat-icon>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                  <div class="env-card__details">
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.LOCATION' | translate }}</span>
+                      <strong>{{ env.location }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.PREFIX' | translate }}</span>
+                      <strong>{{ env.prefix || '—' }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.SUFFIX' | translate }}</span>
+                      <strong>{{ env.suffix || '—' }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.TENANT_ID' | translate }}</span>
+                      <strong class="mono">{{ env.tenantId }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.SUBSCRIPTION_ID' | translate }}</span>
+                      <strong class="mono">{{ env.subscriptionId }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.REQUIRES_APPROVAL' | translate }}</span>
+                      <strong>{{ env.requiresApproval ? ('CONFIG_DETAIL.BOOLEAN.YES' | translate) : ('CONFIG_DETAIL.BOOLEAN.NO' | translate) }}</strong>
+                    </div>
+                  </div>
+                  @if (env.tags.length > 0) {
+                    <div class="env-card__tags">
+                      @for (tag of env.tags; track tag.name) {
+                        <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
+                      }
+                    </div>
+                  }
+                </article>
+                @if (!last) {
+                  <div class="env-pipeline__connector">
+                    <mat-icon>arrow_forward</mat-icon>
+                  </div>
+                }
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">cloud_queue</mat-icon>
+              <p>{{ 'CONFIG_DETAIL.ENVIRONMENTS.EMPTY' | translate }}</p>
+              @if (canWrite()) {
+                <button class="add-env-btn" (click)="openAddEnvironmentDialog()">
+                  <mat-icon class="add-env-btn__icon">add_circle_outline</mat-icon>
+                  {{ 'CONFIG_DETAIL.ENVIRONMENTS.ADD' | translate }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Members -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">group</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.TABS.MEMBERS' | translate }}</span>
+          <span class="tab-count">{{ config()!.members.length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="tab-content__toolbar">
+            @if (isOwner()) {
+              <button class="add-member-btn" (click)="openAddMemberDialog()">
+                <mat-icon class="add-member-btn__icon">person_add</mat-icon>
+                {{ 'CONFIG_DETAIL.MEMBERS.ADD' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (memberErrorKey()) {
+            <p class="member-error">{{ memberErrorKey() | translate }}</p>
+          }
+
+          @if (config()!.members.length > 0) {
+            @for (group of membersByRole(); track group.role) {
+              <div class="role-section">
+                <div class="role-section__header">
+                  <mat-icon class="role-section__icon">{{ group.icon }}</mat-icon>
+                  <h3 class="role-section__title">{{ 'CONFIG_DETAIL.MEMBERS.ROLE_' + group.role.toUpperCase() | translate }}</h3>
+                  <span class="role-section__count">{{ group.members.length }}</span>
+                </div>
+                <div class="members-grid">
+                  @for (member of group.members; track member.id) {
+                    <article class="member-card" [class.member-card--busy]="memberActionId() === member.id">
+                      @if (memberActionId() === member.id) {
+                        <div class="member-card__spinner">
+                          <mat-spinner diameter="20"></mat-spinner>
+                        </div>
+                      }
+                      <div class="member-card__info">
+                        <strong>{{ member.firstName }} {{ member.lastName }}</strong>
+                      </div>
+                      <div class="member-card__actions">
+                        @if (isOwner()) {
+                          <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
+                            <mat-select
+                              [value]="member.role"
+                              [aria-label]="'CONFIG_DETAIL.MEMBERS.CHANGE_ROLE_ARIA' | translate"
+                              [disabled]="memberActionId() === member.id"
+                              (selectionChange)="onRoleChange(member, $event.value)">
+                              @for (role of roles; track role) {
+                                <mat-option [value]="role">{{ 'CONFIG_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <button
+                            class="remove-btn"
+                            [matTooltip]="'CONFIG_DETAIL.MEMBERS.REMOVE' | translate"
+                            [disabled]="memberActionId() === member.id"
+                            (click)="openRemoveDialog(member)">
+                            <mat-icon>close</mat-icon>
+                          </button>
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">group</mat-icon>
+              <p>{{ 'CONFIG_DETAIL.MEMBERS.EMPTY' | translate }}</p>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Naming Templates -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">label</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.TABS.NAMING_TEMPLATES' | translate }}</span>
+          <span class="tab-count">{{ config()!.resourceNamingTemplates.length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="tab-content__toolbar naming-toolbar">
+            @if (canWrite()) {
+              <button
+                class="template-action-btn template-action-btn--add"
+                [disabled]="namingActionKey() !== null"
+                (click)="openDefaultNamingTemplateDialog()">
+                <mat-icon>edit</mat-icon>
+                {{ (config()!.defaultNamingTemplate
+                  ? 'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT_DEFAULT'
+                  : 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_DEFAULT') | translate }}
+              </button>
+              <button
+                class="template-action-btn template-action-btn--add"
+                [disabled]="!canAddResourceNamingTemplate() || namingActionKey() !== null"
+                [matTooltip]="(!canAddResourceNamingTemplate() ? 'CONFIG_DETAIL.NAMING_TEMPLATES.ALL_RESOURCE_TYPES_CONFIGURED' : 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE') | translate"
+                (click)="openResourceNamingTemplateDialog()">
+                <mat-icon>add_circle_outline</mat-icon>
+                {{ 'CONFIG_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (namingErrorKey()) {
+            <p class="naming-error">{{ namingErrorKey() | translate }}</p>
+          }
+
+          <article class="default-template" [class.default-template--busy]="isNamingActionActive('default')">
+            @if (isNamingActionActive('default')) {
+              <div class="default-template__spinner">
+                <mat-spinner diameter="22"></mat-spinner>
+              </div>
+            }
+
+            <div class="default-template__header">
+              <span>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
+              @if (canWrite()) {
+                <button
+                  class="template-action-btn template-action-btn--inline"
+                  [disabled]="namingActionKey() !== null"
+                  (click)="openDefaultNamingTemplateDialog()">
+                  <mat-icon>edit</mat-icon>
+                  {{ 'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT' | translate }}
+                </button>
+              }
+            </div>
+
+            @if (config()!.defaultNamingTemplate) {
+              <code>{{ config()!.defaultNamingTemplate }}</code>
+            } @else {
+              <p class="default-template__empty">{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.DEFAULT_EMPTY' | translate }}</p>
+            }
+          </article>
+
+          @if (config()!.resourceNamingTemplates.length > 0) {
+            <div class="template-list">
+              @for (tmpl of config()!.resourceNamingTemplates; track tmpl.id) {
+                <article class="template-row" [class.template-row--busy]="isResourceNamingTemplateBusy(tmpl.resourceType)">
+                  @if (isResourceNamingTemplateBusy(tmpl.resourceType)) {
+                    <div class="template-row__spinner">
+                      <mat-spinner diameter="18"></mat-spinner>
+                    </div>
+                  }
+
+                  <div class="template-row__meta">
+                    <strong>{{ tmpl.resourceType }}</strong>
+                    <code>{{ tmpl.template }}</code>
+                  </div>
+
+                  @if (canWrite()) {
+                    <div class="template-row__actions">
+                      <button
+                        class="template-action-btn template-action-btn--edit"
+                        [matTooltip]="'CONFIG_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
+                        [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
+                        (click)="openResourceNamingTemplateDialog(tmpl)">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button
+                        class="template-action-btn template-action-btn--delete"
+                        [matTooltip]="'CONFIG_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
+                        [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
+                        (click)="openRemoveResourceNamingTemplateDialog(tmpl)">
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">label</mat-icon>
+              <p>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.EMPTY' | translate }}</p>
+            </div>
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

@@ -1,4 +1,60 @@
-<nav>
-  navigation
+<nav class="shell-nav">
+  <div class="shell-nav__content">
+    <a class="brand" routerLink="/" [attr.aria-label]="'NAV.BRAND_ARIA' | translate">
+      <span class="brand__icon" aria-hidden="true">
+        <mat-icon>cloud_circle</mat-icon>
+      </span>
+      <span class="brand__copy">
+        <strong>InfraFlowSculptor</strong>
+        <span>{{ 'NAV.BRAND_SUBTITLE' | translate }}</span>
+      </span>
+    </a>
+
+    <div class="shell-nav__actions">
+      <a
+        class="nav-link"
+        routerLink="/"
+        routerLinkActive="nav-link--active"
+        [routerLinkActiveOptions]="{ exact: true }">
+        {{ 'NAV.HOME' | translate }}
+      </a>
+
+      <div class="language-switch" role="group" [attr.aria-label]="'NAV.LANGUAGE_SELECTOR_ARIA' | translate">
+        @for (language of availableLanguages; track language.code) {
+          <button
+            type="button"
+            class="language-switch__button"
+            [class.language-switch__button--active]="currentLanguage() === language.code"
+            (click)="changeLanguage(language.code)">
+            {{ language.labelKey | translate }}
+          </button>
+        }
+      </div>
+
+      <div class="user-card" [attr.aria-label]="'NAV.USER_CARD_ARIA' | translate">
+        <span class="user-card__avatar">{{ userInitials() }}</span>
+        <span class="user-card__details">
+          @if (userName()) {
+            <strong>{{ userName() }}</strong>
+          } @else {
+            <strong>{{ 'NAV.USER_DEFAULT_NAME' | translate }}</strong>
+          }
+          @if (userEmail()) {
+            <span>{{ userEmail() }}</span>
+          } @else {
+            <span>{{ 'NAV.USER_DEFAULT_EMAIL' | translate }}</span>
+          }
+        </span>
+      </div>
+
+      <button type="button" class="logout-button" [disabled]="isLoggingOut()" (click)="logout()">
+        @if (isLoggingOut()) {
+          {{ 'NAV.LOGGING_OUT' | translate }}
+        } @else {
+          {{ 'NAV.LOGOUT' | translate }}
+        }
+      </button>
+    </div>
+  </div>
 </nav>
 

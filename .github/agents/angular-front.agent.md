@@ -1,17 +1,5 @@
 ---
 description: 'Expert Angular 19 frontend developer. Use this agent for ALL frontend tasks in src/Front.'
-tools:
-  - read_file
-  - replace_string_in_file
-  - multi_replace_string_in_file
-  - create_file
-  - file_search
-  - grep_search
-  - run_in_terminal
-  - get_errors
-  - list_dir
-  - manage_todo_list
-  - semantic_search
 ---
 
 # Agent : angular-front — Expert Angular 19 Frontend
@@ -649,13 +637,67 @@ protected errorMessage = signal('');
 
 ---
 
+## Enums TypeScript — Règles strictes
+
+### Placement et fichier dédié
+
+**Les enums DOIVENT être dans un fichier séparé** — jamais définis dans le même fichier que le composant.
+
+**Arborescence :**
+- Si l'enum est utilisé par **plusieurs features** → `src/Front/src/app/shared/enums/{enum-name}.enum.ts`
+- Si l'enum est utilisé par **une seule feature** → `src/Front/src/app/features/{feature}/enums/{enum-name}.enum.ts`
+
+### Backend Enum → Frontend Dropdown
+
+**Règle universelle** : Si un champ est un **enum au backend**, il DOIT avoir un **dropdown (`<mat-select>`)** au frontend, pas un input texte libre.
+
+**Exemple :**
+- Backend : `Location.LocationEnum` avec valeurs (EastUS, WestUS, etc.)
+- Frontend : Créer `src/Front/src/app/features/config-detail/enums/location.enum.ts`
+- UI Component : Utiliser `<mat-select>` avec `<mat-option>` pour chaque valeur enum
+- Constants partagées : Exporter `LOCATION_OPTIONS` (tableau `{ label, value }`) depuis le même fichier enum
+
+### Template avec dropdown
+
+```typescript
+// location.enum.ts
+export enum LocationEnum {
+  EastUS = 'EastUS',
+  WestUS = 'WestUS',
+  // ...
+}
+
+export const LOCATION_OPTIONS = Object.entries(LocationEnum).map(([key, value]) => ({
+  label: key,
+  value,
+}));
+
+// component.ts
+import { LOCATION_OPTIONS } from '../enums/location.enum';
+
+export class MyComponent {
+  protected readonly locationOptions = LOCATION_OPTIONS;
+}
+
+// component.html
+<mat-form-field appearance="outline">
+  <mat-label>Location</mat-label>
+  <mat-select formControlName="location">
+    @for (option of locationOptions; track option.value) {
+      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+    }
+  </mat-select>
+</mat-form-field>
+```
+
+---
+
 ## Conventions TypeScript
 
 - Utiliser `readonly` pour toutes les propriétés qui ne changent pas après l'initialisation.
 - Typer explicitement les retours de fonctions async : `async load(): Promise<void>`.
 - Préférer `const` et `let` plutôt que `var`.
 - Pas de `any` — utiliser des interfaces ou `unknown` + type guard si le type est inconnu.
-- Les enums TypeScript pour les valeurs constantes : `src/Front/src/app/shared/enums/`.
 - Utiliser `?.` (optional chaining) et `??` (nullish coalescing) plutôt que les vérifications manuelles.
 
 ---
@@ -690,6 +732,191 @@ protected errorMessage = signal('');
 
 ---
 
+## Internationalisation (i18n) — ngx-translate
+
+Le projet utilise `@ngx-translate/core` + `@ngx-translate/http-loader` pour le **runtime FR/EN** (switch sans rebuild).
+
+### Ajouter TranslateModule à un composant
+
+Tout composant qui affiche du texte UI **doit** importer `TranslateModule` :
+
+```typescript
+import { TranslateModule } from '@ngx-translate/core';
+
+@Component({
+  standalone: true,
+  imports: [CommonModule, MatButtonModule, TranslateModule /* ... */],
+  templateUrl: './my.component.html',
+})
+```
+
+### Pipe `| translate` dans les templates
+
+```html
+<!-- Texte simple -->
+<h1>{{ 'HOME.TITLE' | translate }}</h1>
+
+<!-- Avec paramètres dynamiques -->
+<p>{{ 'HOME.FEEDBACK.CREATE_SUCCESS' | translate: { name: createdConfigName() } }}</p>
+
+<!-- Attribut aria ou placeholder -->
+<input [placeholder]="'HOME.FORM.PLACEHOLDER' | translate" />
+```
+
+### Convention des namespaces de traduction
+
+Toutes les clés de traduction suivent une hiérarchie par écran/composant dans `src/Front/public/i18n/{fr,en}.json` :
+
+| Namespace | Fichier / composant | Exemple de clé |
+|-----------|--------------------|--------------------|
+| `LANGUAGE` | `LanguageService`, navigation | `LANGUAGE.FRENCH_SHORT` |
+| `NAV` | `navigation.component` | `NAV.HOME`, `NAV.LOGOUT` |
+| `FOOTER` | `footer.component` | `FOOTER.RIGHTS` |
+| `LOGIN` | `login.component` | `LOGIN.TITLE`, `LOGIN.ERROR.MSAL_FAILED` |
+| `HOME` | `home.component` | `HOME.FORM.LABEL_NAME`, `HOME.LIST.EMPTY` |
+| `<NEW_FEATURE>` | future composants | `<FEATURE>.TITLE`, `<FEATURE>.ERROR.*` |
+
+**Règle :** Ne jamais mettre de texte UI en dur dans un template — toujours passer par une clé de traduction.
+
+### Ajouter de nouvelles clés
+
+1. Ajouter la clé dans `src/Front/public/i18n/fr.json` (valeur française).
+2. Ajouter la même clé dans `src/Front/public/i18n/en.json` (valeur anglaise).
+3. Les deux fichiers doivent avoir exactement les mêmes clés — pas de clé manquante dans une langue.
+
+### Pattern pour les messages d'erreur
+
+Stocker la **clé** de traduction dans le signal, pas le texte final :
+
+```typescript
+// ✅ Correct : signal stocke une clé i18n
+protected errorMessageKey = signal('');
+
+// Dans la méthode d'erreur
+this.errorMessageKey.set('LOGIN.ERROR.MSAL_FAILED');
+
+// Dans le template
+@if (errorMessageKey()) {
+  <mat-error>{{ errorMessageKey() | translate }}</mat-error>
+}
+```
+
+```typescript
+// ❌ Interdit : signal stocke du texte en dur
+protected errorMessage = signal('Une erreur est survenue.');
+```
+
+### Utiliser LanguageService dans un composant
+
+Injecter `LanguageService` uniquement si le composant a besoin de :
+- Afficher le sélecteur de langue.
+- Réagir dynamiquement au changement de langue en TS (rare).
+
+```typescript
+import { LanguageService } from '../../../shared/services/language.service';
+
+protected readonly languageService = inject(LanguageService);
+
+// Signal readonly de la langue courante
+protected readonly currentLanguage = this.languageService.currentLanguage;
+
+// Dans le template, itérer les langues disponibles
+@for (lang of languageService.availableLanguages; track lang.code) {
+  <button
+    class="language-switch__button"
+    [class.language-switch__button--active]="currentLanguage() === lang.code"
+    (click)="languageService.setLanguage(lang.code)">
+    {{ lang.labelKey | translate }}
+  </button>
+}
+```
+
+---
+
+## Baseline visuelle — Login et Home
+
+Tous les nouveaux écrans **authenticated** doivent s'aligner sur la baseline visuelle validée.
+
+### Référence baseline
+
+- Page de connexion : `src/Front/src/app/features/login/login.component.{html,scss}`
+- Page d'accueil : `src/Front/src/app/features/home/home.component.{html,scss}`
+
+### Palette et tokens visuels
+
+```scss
+// Dégradé premium bleu/cyan — identité visuelle du projet
+background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
+
+// Surface secondaire (cartes, formulaires)
+background: rgba(255, 255, 255, 0.08);
+border: 1px solid rgba(255, 255, 255, 0.15);
+border-radius: 16px;
+backdrop-filter: blur(10px);
+
+// Texte sur fond sombre
+color: rgba(255, 255, 255, 0.9);      // texte principal
+color: rgba(148, 203, 255, 0.85);     // texte secondaire / accent
+color: rgba(255, 255, 255, 0.6);      // texte tertiaire / label
+
+// Bouton CTA principal
+background: linear-gradient(135deg, #0288d1, #00bcd4);
+color: #fff;
+border-radius: 12px;
+```
+
+### Convention typographique hero
+
+Pour un titre hero H1 (`clamp`-based pour responsive) :
+
+```scss
+h1 {
+  font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+  line-height: 1.2;
+  max-width: 26ch;   // Pas de max-width trop petit (< 15ch) — évite bloc de texte vertical imposant
+  font-weight: 700;
+}
+```
+
+**Piège validé :** contraindre `max-width` à une valeur trop faible (ex : `12ch`) force le titre à se découper en 6+ lignes, créant une masse visuelle lourde sur la gauche. Toujours garder `max-width ≥ 20ch` pour les titres hero.
+
+### Piège validé — Timeline d'ordre (position visuelle vs order backend)
+
+Pour les UIs de réordonnancement (flèches gauche/droite + timeline), **ne jamais** envoyer la position visuelle directement au backend.
+
+- La timeline manipule une position 1-based (`1..N+1`)
+- Le backend manipule une valeur `order` qui peut être non contiguë
+
+Règle de conversion en mode édition (critique) :
+
+- Déplacement vers la gauche: envoyer l'order de l'élément au slot cible (`others[position - 1].order`)
+- Déplacement vers la droite: envoyer l'order de l'élément "sauté" (`others[position - 2].order`)
+
+Cette conversion doit respecter la sémantique du backend (`ReorderEnvironments`) basé sur des décalages de plages.
+
+**Anti-pattern à éviter :** `payload.order = currentPosition` ou un mapping identique gauche/droite.
+
+### Layout hero 2 colonnes
+
+```scss
+.hero-panel {
+  display: grid;
+  // Ratio équilibré — la colonne texte ne doit pas dépasser ~55% de la largeur totale
+  grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.hero-panel__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;  // Pas space-between — évite l'étirement vertical
+  gap: 1.1rem;
+}
+```
+
+---
+
 ## Validation post-implémentation
 
 Après tout changement frontend, exécuter les deux commandes suivantes depuis `src/Front` :
@@ -700,6 +927,14 @@ npm run build       # Build de production complet (détecte erreurs template)
 ```
 
 Si l'une échoue, corriger les erreurs avant de committer.
+
+### Budgets de build Angular
+
+Les budgets de production sont définis dans `src/Front/angular.json` → `configurations.production.budgets` :
+- **`anyComponentStyle`** : warning 10 kB / error 20 kB
+- **`initial` bundle** : warning 500 kB / error 1 MB
+
+**Règle** : si un SCSS de composant dépasse le budget après ajout d'une feature légitime, **augmenter le budget** plutôt que compresser artificiellement les styles. Garder le seuil warning ≈ 50 % du seuil error.
 
 ---
 
@@ -718,6 +953,11 @@ Si l'une échoue, corriger les erreurs avant de committer.
 - [ ] Service dans `shared/services/` utilisant `AxiosService`
 - [ ] Pas d'URL hardcodée — via `AxiosService` + `environment`
 - [ ] Angular Material pour les composants UI, Tailwind pour le layout
+- [ ] `TranslateModule` importé dans tout composant qui affiche du texte UI
+- [ ] Pas de texte en dur dans les templates — toujours `| translate`
+- [ ] Nouvelles clés ajoutées dans `fr.json` **et** `en.json`
+- [ ] Messages d'erreur : signal stocke la **clé** i18n (pas le texte)
+- [ ] Visuel aligné sur la baseline login/home (palette, tokens, typography)
 - [ ] `npm run typecheck` passé
 - [ ] `npm run build` passé
 

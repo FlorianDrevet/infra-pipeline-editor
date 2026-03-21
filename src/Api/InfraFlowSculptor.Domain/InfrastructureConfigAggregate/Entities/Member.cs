@@ -1,5 +1,6 @@
 using BicepGenerator.Domain.Common.Models;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.UserAggregate;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
@@ -11,6 +12,12 @@ public sealed class Member : Entity<MemberId>
     
     public InfrastructureConfigId InfraConfigId { get; set; } = null!;
     public InfrastructureConfig InfraConfig { get; set; } = null!;
+
+    /// <summary>
+    /// Navigation property to the associated <see cref="UserAggregate.User"/>.
+    /// Populated by EF Core when the query includes the User relationship.
+    /// </summary>
+    public User? User { get; private set; }
 
     private Member() { }
 

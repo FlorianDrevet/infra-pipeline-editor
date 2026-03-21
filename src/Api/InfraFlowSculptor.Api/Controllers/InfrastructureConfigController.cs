@@ -4,6 +4,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveMember;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateMemberRole;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
+using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListUsers;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupsByConfig;
 using MediatR;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
@@ -117,6 +118,29 @@ public static class InfrastructureConfigController
                 .WithDescription("Creates a new Infrastructure Configuration. The current user is automatically added as Owner.")
                 .Produces<InfrastructureConfigResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+            // ── Users ──────────────────────────────────────────────────────
+
+            config.MapGet("/users",
+                    async (IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListUsersQuery();
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            users =>
+                            {
+                                var responses = users.Select(u => mapper.Map<UserResponse>(u)).ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListUsers")
+                .WithSummary("List registered users")
+                .WithDescription("Returns all registered users available for membership assignment.")
+                .Produces<IReadOnlyList<UserResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             // ── Members ───────────────────────────────────────────────────────

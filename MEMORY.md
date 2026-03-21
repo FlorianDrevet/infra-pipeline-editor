@@ -518,6 +518,57 @@ Ajouter dans `angular.json` → `build.options` :
 
 ---
 
+### 13.1 Runtime i18n frontend (FR/EN) ([2026-03-21])
+
+- Runtime translation uses `@ngx-translate/core` + `@ngx-translate/http-loader` (both v17) in `src/Front`.
+- Global providers: `provideTranslateService({ lang: 'fr', fallbackLang: 'fr' })` + `provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' })` + `provideAppInitializer(() => inject(LanguageService).initialize())` in `app.config.ts`.
+- `src/Front/src/app/shared/services/language.service.ts` — central language state: `signal<AppLanguage>`, `localStorage` persistence (key: `infra-flow-sculptor.language`), fallback: persisted → `navigator.language` → `'fr'`.
+- Translation JSON files: `src/Front/public/i18n/fr.json` + `en.json` — 109 keys each.
+- Shell language switch: `src/Front/src/app/core/layouts/navigation/` — visible on all authenticated pages.
+- i18n coverage (as of 2026-03-21): navigation, footer, login, home (including dynamic params).
+
+#### Key usage patterns
+
+**1. Import `TranslateModule` in every component that displays text:**
+```typescript
+imports: [CommonModule, TranslateModule, /* ... */]
+```
+
+**2. Pipe `| translate` in templates:**
+```html
+{{ 'HOME.TITLE' | translate }}
+{{ 'HOME.FEEDBACK.SUCCESS' | translate: { name: itemName() } }}
+```
+
+**3. Error signal stores the i18n key, not the text:**
+```typescript
+protected errorKey = signal('');
+this.errorKey.set('LOGIN.ERROR.MSAL_FAILED');
+// Template: {{ errorKey() | translate }}
+```
+
+#### Translation key namespaces
+
+| Namespace | Composant |
+|-----------|-----------|
+| `LANGUAGE` | `LanguageService`, navigation |
+| `NAV` | `navigation.component` |
+| `FOOTER` | `footer.component` |
+| `LOGIN` | `login.component` |
+| `HOME` | `home.component` |
+
+**Rule:** every new screen adds its own root namespace. Always add keys to **both** `fr.json` and `en.json`.
+
+### 13.2 Config Detail naming template actions ([2026-03-21])
+
+- New dialog component: `src/Front/src/app/features/config-detail/add-naming-template-dialog/` (`.ts`, `.html`, `.scss`) used for default/resource naming template add/edit.
+- `config-detail.component.ts` now supports write actions for naming templates when `canWrite()` is true:
+    - set/edit default template (`setDefaultNamingTemplate`)
+    - add/edit resource template (`setResourceNamingTemplate`)
+    - remove resource template with confirmation (`removeResourceNamingTemplate`)
+- Naming actions use dedicated UI state signals in config detail (`namingActionKey`, `namingErrorKey`) for inline loading/error feedback.
+- i18n namespace extended in both `src/Front/public/i18n/fr.json` and `src/Front/public/i18n/en.json` under `CONFIG_DETAIL.NAMING_TEMPLATES.*`.
+
 ## 15. Pull Request Conventions
 
 ### Titre obligatoire
@@ -566,6 +617,13 @@ Format : `type(scope): description courte du but principal`
 - `shared/` for reusable cross-cutting concerns (services, facades, guards, enums, interfaces)
 - `environments/` is the single source of truth for backend base URLs (`api_url` + `bicep_api_url`)
 - Keep DTO/interface updates in sync with backend contract changes in `InfraFlowSculptor.Contracts`
+
+### 16.2.1 Angular build budgets ([2026-03-21])
+
+- Production budgets in `src/Front/angular.json` → `configurations.production.budgets`
+- **`anyComponentStyle`**: warning 10 kB / error 20 kB (increased from 6/10 kB to accommodate growing feature pages with tabs, member management, environment management, etc.)
+- **`initial` bundle**: warning 500 kB / error 1 MB
+- **Rule:** if a component SCSS exceeds the budget after adding a legitimate feature, increase the budget rather than artificially compressing styles. Keep warning ≈ 50% of error.
 
 ### 16.3 Initialization status ([2026-03-17])
 
@@ -629,6 +687,16 @@ Type mapping convention (C# → TypeScript): `Guid` → `string`, `IReadOnlyList
 - `MsalAuthService.initialize()` now prioritizes `handleRedirectPromise()` result account before falling back to cached accounts
 - `MsalAuthService` exposes `loginRedirect(redirectStartPage?)` to keep redirect behavior explicit per caller
 
+#### Auth loop fix ([2026-03-21])
+
+- Symptom: after sign-in, the app briefly showed `/` then redirected to `/login`.
+- Root cause: `MsalAuthService.getActiveAccount()` selected `getAllAccounts()[0]` when multiple cached accounts existed; this could pick the wrong account, causing API `401` and `axios` redirect to `/login`.
+- Fix in `src/Front/src/app/shared/services/msal-auth.service.ts`:
+    - set MSAL active account explicitly from `handleRedirectPromise()` result,
+    - deterministic fallback order (MSAL active account -> authService account if present in cache -> single cached account),
+    - never pick an arbitrary account when multiple cached accounts exist,
+    - reuse a single `resolveActiveAccount()` path for guard and token acquisition.
+
 #### Feature structure
 - Feature pages live under `src/Front/src/app/features/<feature-name>/`
 - The login component is the first entry in `features/`
@@ -638,9 +706,124 @@ Type mapping convention (C# → TypeScript): `Guid` → `string`, `IReadOnlyList
 For clientId `24c34231-a984-43b3-8ac3-9278ebd067ef`:
 1. **Authentication → Platform → Single-page application (SPA)**
 2. **Redirect URIs:** `http://localhost:4200` (dev) + production URL
-3. **Implicit grant → unchecked** (PKCE is used automatically for SPA)
-4. **API permissions:** Microsoft Graph → `openid`, `profile`, `email` (delegated)
-5. **Supported account types:** single-tenant (or multitenant as needed)
+
+### 16.6 Shell layout and home page ([2026-03-21])
+
+- `src/Front/src/app/core/layouts/navigation/*` is now the authenticated shell header: brand link to `/`, single `Accueil` nav item, current Entra account summary, and logout action via `MsalAuthService.logout()`. Includes FR/EN language switch (pill-shaped button group, dark nav context).
+- `src/Front/src/app/core/layouts/footer/*` is now a lightweight informative footer aligned with the premium blue/cyan SaaS baseline from the login page.
+- Protected root route in `src/Front/src/app/app-routing.ts` now lazy-loads `features/home/home.component` at `/`.
+- `src/Front/src/app/features/home/*` provides the first authenticated landing page:
+    - loads configurations with `InfraConfigService.getAll()` on init,
+    - creates a configuration with `InfraConfigService.create({ name })`,
+    - exposes explicit loading, empty, error, success, and retry states,
+    - keeps the main CTA visible above the fold and reuses the login page blue/cyan premium visual language.
+- `src/Front/src/app/app.component.*` now applies a real authenticated shell background instead of only a bare `main` min-height.
+
+#### Visual baseline — palette and tokens (validated 2026-03-21)
+
+```scss
+// Background gradient — premium blue/cyan identity
+background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
+
+// Card / form surfaces
+background: rgba(255, 255, 255, 0.08);
+border: 1px solid rgba(255, 255, 255, 0.15);
+border-radius: 16px;
+backdrop-filter: blur(10px);
+
+// Text on dark background
+color: rgba(255, 255, 255, 0.9);    // primary
+color: rgba(148, 203, 255, 0.85);   // accent / secondary
+color: rgba(255, 255, 255, 0.6);    // tertiary / labels
+
+// CTA button
+background: linear-gradient(135deg, #0288d1, #00bcd4);
+border-radius: 12px;
+```
+
+#### Hero H1 typography — validated values
+
+```scss
+h1 {
+  font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+  line-height: 1.2;
+  max-width: 26ch;   // ≥ 20ch mandatory — narrow max-width creates heavy vertical stacking
+}
+```
+
+#### Hero 2-column grid — validated ratio
+
+```scss
+.hero-panel {
+  grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 1fr); // ~55/45 — balanced
+}
+.hero-panel__content {
+  justify-content: flex-start; // NOT space-between — avoids vertical stretch
+}
+```
+
+### 16.7 Configuration detail page ([2026-03-22])
+
+- New route `config/:id` inside authenticated children in `src/Front/src/app/app-routing.ts`
+- `src/Front/src/app/features/config-detail/*` — standalone component (3 files)
+  - Reads route param `id` via `ActivatedRoute`
+  - Parallel fetch: `InfraConfigService.getById(id)` + `InfraConfigService.getResourceGroups(id)`
+  - Sections: header (name + ID), members table, environment cards (with tags), resource groups, naming templates
+  - Loading / error / empty states
+  - Back button navigating to `/`
+- Config cards on home page are now clickable `<a routerLink="/config/{{config.id}}">` elements with hover effect
+- i18n namespace: `CONFIG_DETAIL.*` in both `fr.json` and `en.json`
+
+### 16.8 Search and sort in config list ([2026-03-22])
+
+- `HomeComponent` now has `searchQuery` and `sortBy` signals, plus `filteredConfigs` computed signal
+- Search is case-insensitive on config name
+- Sort options: by name (alphabetical), by environment count, by member count
+- Search bar and sort dropdown rendered between list heading and config cards
+- "No results" empty state when search matches nothing
+- i18n keys: `HOME.SEARCH.*`, `HOME.SORT.*`
+
+### 16.9 Member name bug fix + Owner-only actions ([2025-07-24])
+
+- **Bug fix (name not showing after add):** `openAddMemberDialog()` and `onRoleChange()` now re-fetch config via `getById()` after mutation instead of using the direct API response. The backend `UpdateAsync` does not re-include `User` nav properties on newly added/modified members, causing empty `firstName`/`lastName`.
+- **EntraId in member response chain:** Added `EntraId` (Azure AD OID) to `MemberResult`, `MemberResponse`, and their Mapster mappings so the frontend can identify the current user.
+- **Owner-only UI gating:** `config-detail.component.ts` now injects `AuthenticationService`, computes `isOwner` by matching `AccountInfo.localAccountId` against `member.entraId`. The add-member button, role-change dropdown, and remove button are hidden for non-Owner users via `@if (isOwner())` in the template.
+
+### 16.9 Create configuration dialog ([2026-03-22])
+
+- `src/Front/src/app/features/home/create-config-dialog/*` — Material dialog component (3 files)
+  - Reactive form moved from `HomeComponent` into the dialog
+  - `MatDialogRef.close(createdConfig)` on success, cancel closes with no result
+  - Uses `mat-dialog-title`, `mat-dialog-content`, `mat-dialog-actions` directives
+- `HomeComponent` create panel simplified to a CTA card with "Add configuration" button that opens the dialog via `MatDialog.open()`
+- Hero CTA also opens the dialog instead of scrolling to anchor
+- Success feedback banner still shown in home page after dialog closes
+- i18n keys: `HOME.DIALOG.*`
+
+### 16.10 Member management on config detail page ([2026-03-22])
+
+#### Backend enrichment
+- `MemberResponse` now includes `FirstName` and `LastName` (resolved via `User` navigation property on `Member` entity)
+- `Member` entity has `public User? User { get; private set; }` navigation property for EF Core read-side optimization
+- `MemberConfiguration` adds `HasOne(pm => pm.User).WithMany().HasForeignKey(pm => pm.UserId).OnDelete(DeleteBehavior.Restrict)`
+- All `InfrastructureConfigRepository` queries that `.Include(c => c.Members)` now also `.ThenInclude(m => m.User!)`
+- New endpoint `GET /infra-config/users` returns all registered users (`ListUsersQuery` → `UserResponse(Id, FirstName, LastName)`)
+- `IUserRepository` extended with `GetAllAsync` and `GetByIdsAsync`
+
+#### Frontend member management
+- `MemberResponse` interface updated with `firstName`, `lastName`
+- New `UserResponse` interface and `getUsers()` method on `InfraConfigService`
+- `addMember`/`updateMemberRole` return types changed to `Promise<InfrastructureConfigResponse>` (matching actual API response)
+- Config detail page members section:
+  - Shows `firstName lastName` instead of userId GUID
+  - Inline `mat-select` per member for role changing (Owner/Contributor/Reader)
+  - Remove button with confirmation dialog
+  - "Add member" button opening `AddMemberDialog` (user picker + role selector)
+- New components:
+  - `src/Front/src/app/features/config-detail/add-member-dialog/*` (3 files) — user select filtered to exclude existing members
+  - `src/Front/src/app/shared/components/confirm-dialog/*` (3 files) — reusable confirm dialog with i18n
+- Roles: `Owner`, `Contributor`, `Reader` (matching `Role.RoleEnum` in domain)
+- 17 new i18n keys under `CONFIG_DETAIL.MEMBERS.*` in both `fr.json` and `en.json`
 
 ---
 
@@ -822,3 +1005,26 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-21 | copilot | Refactored agent architecture: renamed `@memory` → `@dev` (new `dev.agent.md` orchestrator); extracted CQRS guide into lazy-loaded skill `.github/skills/cqrs-feature/SKILL.md`; deprecated `memory.agent.md` to a redirect notice; added Skills concept + `cqrs-feature` skill to `copilot-instructions.md`; added section 22 in MEMORY.md. |
 | 2026-03-21 | copilot | Added skill `.github/skills/ui-ux-front-saas/SKILL.md` for frontend UI/UX governance (based on login visual baseline + SaaS B2B cloud prompt). Enforced skill loading in `angular-front.agent.md`, registered routing in `dev.agent.md`, and added mandatory usage in `.github/copilot-instructions.md`. Added section 23 in MEMORY.md. |
 | 2026-03-21 | copilot | Added `.github/agents/aspire-debug.agent.md` for runtime diagnostics with Aspire MCP (resource health, structured logs, console logs, traces, restart/recovery workflow). Registered routing in `dev.agent.md` and specialized-agent policy in `.github/copilot-instructions.md`. Added section 24 in MEMORY.md with agent-vs-skill rationale. |
+| 2026-03-21 | copilot | Rebalanced home hero typography/layout in `src/Front/src/app/features/home/home.component.scss` to reduce the heavy left text block: smaller H1 scale, wider line length, lighter vertical distribution, and more balanced column ratio against stats cards. |
+| 2026-03-21 | copilot | Fixed frontend post-login redirect loop to `/login`: `MsalAuthService` no longer selects `getAllAccounts()[0]` arbitrarily. It now sets/uses MSAL active account deterministically (redirect account first, then safe fallbacks) and avoids wrong-account token acquisition that triggered API `401` and forced login redirect. |
+| 2026-03-22 | copilot | Added 3 frontend features: (1) Configuration detail page at `/config/:id` with members, environments, resource groups, naming templates sections + back navigation. (2) Search (by name) + sort (name/environments/members) in home config list with computed signals. (3) Replaced inline create form with Material dialog (`create-config-dialog`), hero CTA now opens dialog. Added `CONFIG_DETAIL.*`, `HOME.SEARCH.*`, `HOME.SORT.*`, `HOME.DIALOG.*` i18n keys in both fr.json and en.json. New files: `features/config-detail/*` (3 files), `features/home/create-config-dialog/*` (3 files). Modified: `app-routing.ts`, `home.component.ts/html/scss`, `fr.json`, `en.json`. |
+| 2026-03-22 | copilot | Added member management: **Backend**: enriched `MemberResponse` with `FirstName`/`LastName` (added `User` nav property on `Member` entity, `.ThenInclude(m => m.User!)` in all InfrastructureConfigRepository queries, updated Mapster mappings). Added `GET /infra-config/users` endpoint (`ListUsersQuery`/`UserResponse`). Added `IUserRepository.GetAllAsync`/`GetByIdsAsync`. **Frontend**: updated `MemberResponse` interface with `firstName`/`lastName`, added `UserResponse` interface, `getUsers()` method on `InfraConfigService`. Config detail page shows member names instead of IDs, inline `mat-select` for role change (Owner/Contributor/Reader), remove button with confirm dialog, "Add member" button opening a dialog (`add-member-dialog`) with user picker + role selector. Created reusable `ConfirmDialogComponent`. Added 17 i18n keys under `CONFIG_DETAIL.MEMBERS` in both FR/EN. |
+| 2026-03-22 | copilot | Refactored config detail page from stacked sections to **tabbed layout** using `MatTabsModule`. Tabs in order: Resource Groups (default), Environments, Members, Naming Templates. Each tab label has an icon + count badge. Improved empty states with centered icon + message. Added 4 TABS i18n keys in both FR/EN. Updated `angular.json` component style budget to `6kB warning / 10kB error` to accommodate growth from member management + tabs. |
+| 2026-03-22 | copilot | Improved Members tab UX: (1) Members now grouped by role sections (Owner > Contributor > Reader) with role icon, title, and count badge per section — uses computed signal `membersByRole`. (2) Add-member dialog: replaced `mat-select` user dropdown with `mat-autocomplete` search bar (type-ahead filtering by first/last name). Added `ADD_DIALOG_SEARCH_PLACEHOLDER` and `ADD_DIALOG_NO_RESULTS` i18n keys in both FR/EN. |
+| 2026-03-21 | copilot | Added environment management UI on config detail page: add/edit/remove environments via dialog (`add-environment-dialog` component, 3 files), sorted environment cards with edit/delete action buttons gated by `canWrite` computed (Owner or Contributor). Reusable confirm dialog for delete. Increased `anyComponentStyle` budget to 10kB warning / 20kB error in `angular.json`. Added 30+ i18n keys under `CONFIG_DETAIL.ENVIRONMENTS.*` in both FR/EN. |
+| 2026-03-21 | copilot | Fixed auth redirect loop root cause: **Backend port collision** — BicepGenerator.Api and InfraFlowSculptor.Api both configured for HTTPS port 7246 in `launchSettings.json`. Changed BicepGenerator to port 7247 to avoid conflict. When Aspire assigned port 7246 it served Bicep API instead of main API, causing all requests to go to wrong backend → 401 → auth loop. **Pattern to watch:** Ensure no port collisions in `launchSettings.json` profiles. |
+| 2026-03-21 | copilot | **Enum file organization constraint** — Refactored `LocationEnum` from inline in `add-environment-dialog.component.ts` to dedicated file `src/Front/src/app/features/config-detail/enums/location.enum.ts`. Established rule: **backend enums require frontend dropdowns (`<mat-select>`), and enums MUST live in separate `.enum.ts` files** (never inline in components). Updated `angular-front.agent.md` section "Enums TypeScript — Règles strictes" with file placement logic (shared → `src/app/shared/enums/`, feature-only → `src/app/features/{feature}/enums/`), template examples, and Material dropdown usage pattern. Updated `frontend-enum-convention.md` memory with detailed rule + file structure + usage example. |
+| 2026-03-21 | copilot | Added "Add Resource Group" dialog on config detail page: new `add-resource-group-dialog` component (3 files) with name + location (dropdown reusing `LOCATION_OPTIONS`) form, wired into Resource Groups tab with add button gated by `canWrite`. After creation, refreshes resource groups list. Added 10 i18n keys under `CONFIG_DETAIL.RESOURCE_GROUPS.*` in both FR/EN. |
+| 2026-03-21 | copilot | Refactored Resource Groups tab from flat cards to **expandable accordion** with lazy-loaded resources. New `add-resource-dialog` component (3 files) with multi-step flow: type picker (KeyVault / RedisCache / StorageAccount) → resource-specific form. New `resource-type.enum.ts` (`ResourceTypeEnum`, `RESOURCE_TYPE_OPTIONS`, `RESOURCE_TYPE_ICONS`). Resources loaded via `ResourceGroupService.getResources()` with caching in `rgResources` signal. Add-resource button gated by `canWrite`. Added 30+ i18n keys under `CONFIG_DETAIL.RESOURCES.*` in both FR/EN. Fixed Angular template strict-mode warnings by using `{ [rgId: string]: AzureResourceResponse[] | undefined }` type instead of `Record<string, T[]>`. |
+| 2026-03-21 | copilot | Added naming template management UI in config detail: new `add-naming-template-dialog` component (3 files), write actions for default and per-resource templates (add/edit/remove) in `config-detail`, inline loading/error states via `namingActionKey`/`namingErrorKey`, and i18n additions under `CONFIG_DETAIL.NAMING_TEMPLATES.*` in both `fr.json` and `en.json`. |
+| 2026-03-22 | copilot | Enhanced naming templates: **Backend**: added `{resourceAbbr}` placeholder to `NamingTemplateValidator.AllowedPlaceholders`, created `ResourceAbbreviationCatalog` (KeyVault→kv, RedisCache→redis, StorageAccount→stg, ResourceGroup→rg), modified `CreateInfrastructureConfigCommandHandler` to auto-set default naming template `{name}-{resourceAbbr}{suffix}` + resource overrides for ResourceGroup (`{resourceAbbr}-{name}{suffix}`) and StorageAccount (`{name}{resourceAbbr}{suffix}`). **Frontend**: added clickable placeholder variable chips in naming template dialog (click to insert `{placeholder}` at cursor position), `RESOURCE_TYPE_ABBREVIATIONS` in `resource-type.enum.ts`, i18n placeholder descriptions (`PLACEHOLDERS.name/prefix/suffix/env/resourceType/resourceAbbr/location`) in both FR/EN. |
+| 2026-03-22 | copilot | Added naming preview in Resource Groups tab: environment selector dropdown in toolbar to pick a preview environment, then each resource group and resource shows a green pill with the estimated deployment name resolved from naming templates (default + per-resource-type overrides) and the selected environment's `prefix`, `suffix`, `env`, `location` values. New `resolveNamingPreview()` method, `previewEnvId`/`previewEnv` signals, `FormsModule` import for `ngModel` binding. Added `PREVIEW_ENV`, `PREVIEW_NONE`, `PREVIEW_TOOLTIP` i18n keys in both FR/EN. |
+| 2026-03-22 | copilot | Improved environment dialog order UX: added interactive timeline visualization showing all environments in deployment order with the current environment highlighted (blue dot + bold label). When user changes the order value, the timeline reactively updates to show the new position. Order input is now bounded with `Validators.min(0)` / `Validators.max(count)` and a hint showing the valid range. Dialog now receives `allEnvironments` in its data. Added `ORDER_HINT`, `TIMELINE_ARIA` i18n keys in both FR/EN. |
+| 2026-03-22 | copilot | Replaced order input with left/right arrow buttons below the timeline in environment dialog. Removed `order` form control (now driven by `currentOrder` signal + `moveOrder(delta)`). Removed index numbers under timeline labels. |
+| 2026-03-22 | copilot | Fixed environment dialog timeline upper bound: order positions are now **1-based** with `minOrder = 1` and `maxOrder = otherEnvironments.length + 1`, so the right arrow can reach the true final slot after the last environment. Default create position also now starts at the far-right slot. |
+| 2026-03-22 | copilot | Fixed environment dialog order timeline navigation bugs: rewrote `timelineItems` computed to use **index-based positioning** instead of comparing raw backend order values. Old logic used `findIndex(item.order >= order)` which broke when backend orders were non-contiguous (e.g. [1,3] after excluding current env). New logic uses `insertIdx = position - 1` to splice current env at the correct array index. Added `computeInitialPosition()` to convert backend order into a 1-based position relative to other environments. **Pattern**: always treat timeline display as position-based (1..N+1), never compare against raw backend order values. |
+| 2026-03-22 | copilot | Fixed environment order save mismatch: `onSubmit` was sending the visual position (1-based) directly as the backend `order` value. When backend orders were non-contiguous (gaps from previous edits) this caused: move 1 → nothing changes, move 2 → only shifts by 1. Added `computeTargetOrder()` that converts visual position back to the correct backend order value by looking up `otherEnvironments[position-1].order`. For "after last" slot: CREATE sends `lastOrder+1` (so `ShiftOrdersUp` has nothing to shift), UPDATE sends `lastOrder` (so `ReorderEnvironments` shifts the last env down correctly). "No move" detection compares `currentOrder` against `initialPosition` to return the original order unchanged. **Pattern**: visual position ≠ backend order value; always convert before sending to API. |
+| 2026-03-22 | copilot | Fixed remaining edit-mode direction bug in `computeTargetOrder()`: moving **right by one slot** was overshooting by 2 positions after save. Root cause: using `others[position-1].order` for both directions. Final rule is direction-aware in edit mode: moving left → target `others[position-1].order`; moving right → jumped-over `others[position-2].order`. This aligns exactly with backend `ReorderEnvironments` range semantics and prevents over-shift. |
+| 2026-03-22 | copilot | Added visual pipeline connector between environment cards in Environments tab: replaced `env-grid` (CSS grid) with `env-pipeline` (flex column), added `env-pipeline__connector` with a cyan `arrow_forward` icon (rotated 90°) between each card to visually convey deployment order flow. Removed `.order-chip` from card headers and SCSS (order is now implicit in the pipeline flow). |
+| 2026-03-21 | copilot | Fixed environment order collision bug: added order shifting logic in the `InfrastructureConfig` aggregate root. `AddEnvironment` shifts existing envs with order >= new order up by 1 (`ShiftOrdersUp`). `UpdateEnvironment` reorders siblings when order changes (`ReorderEnvironments` — shifts range up or down depending on direction). `RemoveEnvironment` closes the gap by shifting envs with order > removed down by 1 (`ShiftOrdersDown`). This ensures order uniqueness as a domain invariant. |
+| 2026-03-21 | copilot | Revamped navigation header: replaced dull dark `rgba(5,23,44,.78)` background with vibrant gradient `linear-gradient(135deg, #0d2f66, #1565c0, #0288d1)` matching login/home pages. Replaced inline SVG logo with `mat-icon cloud_circle` (added `MatIconModule` import). Updated brand icon to frosted glass style (`rgba(255,255,255,0.15)` bg, `#b3e5fc` icon color). Refreshed border to cyan glow (`rgba(0,188,212,0.3)`). Updated avatar, logout button, and action borders to use `rgba(255,255,255,*)` tones for consistency on the brighter gradient. |

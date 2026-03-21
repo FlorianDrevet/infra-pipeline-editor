@@ -8,7 +8,16 @@ export interface TagResponse {
 export interface MemberResponse {
   id: string;
   userId: string;
+  entraId: string;
+  firstName: string;
+  lastName: string;
   role: string;
+}
+
+export interface UserResponse {
+  id: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface EnvironmentDefinitionResponse {

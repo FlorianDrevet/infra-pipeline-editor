@@ -25,15 +25,35 @@ export class MsalAuthService {
       .then(() => this.msalInstance.handleRedirectPromise())
       .then((redirectResult) => {
         if (redirectResult?.account) {
+          this.msalInstance.setActiveAccount(redirectResult.account);
           this.authService.setMsalAccount(redirectResult.account);
           return;
         }
 
-        // Restore account from MSAL cache so auth survives page refresh
-        const accounts = this.msalInstance.getAllAccounts();
-        if (accounts.length > 0) {
-          this.authService.setMsalAccount(accounts[0]);
+        const activeAccount = this.msalInstance.getActiveAccount();
+        if (activeAccount) {
+          this.authService.setMsalAccount(activeAccount);
+          return;
         }
+
+        const cachedAccounts = this.msalInstance.getAllAccounts();
+        const authServiceAccount = this.authService.getMsalAccount;
+        const matchedAccount = this.findCachedAccount(authServiceAccount, cachedAccounts);
+        if (matchedAccount) {
+          this.msalInstance.setActiveAccount(matchedAccount);
+          this.authService.setMsalAccount(matchedAccount);
+          return;
+        }
+
+        if (cachedAccounts.length === 1) {
+          const singleAccount = cachedAccounts[0];
+          this.msalInstance.setActiveAccount(singleAccount);
+          this.authService.setMsalAccount(singleAccount);
+          return;
+        }
+
+        this.msalInstance.setActiveAccount(null);
+        this.authService.setMsalAccount(null);
       })
       .catch((err) => {
         // Reset so the next call can retry
@@ -42,9 +62,54 @@ export class MsalAuthService {
       }));
   }
 
+  private findCachedAccount(
+    account: AccountInfo | null,
+    cachedAccounts: AccountInfo[] = this.msalInstance.getAllAccounts()
+  ): AccountInfo | null {
+    if (!account) {
+      return null;
+    }
+
+    return (
+      cachedAccounts.find((cached) => cached.homeAccountId === account.homeAccountId) ??
+      cachedAccounts.find((cached) => cached.localAccountId === account.localAccountId) ??
+      cachedAccounts.find((cached) => cached.username === account.username) ??
+      null
+    );
+  }
+
+  private resolveActiveAccount(): AccountInfo | null {
+    const activeAccount = this.msalInstance.getActiveAccount();
+    if (activeAccount) {
+      this.authService.setMsalAccount(activeAccount);
+      return activeAccount;
+    }
+
+    const cachedAccounts = this.msalInstance.getAllAccounts();
+    const authServiceAccount = this.authService.getMsalAccount;
+    const matchedAccount = this.findCachedAccount(authServiceAccount, cachedAccounts);
+    if (matchedAccount) {
+      this.msalInstance.setActiveAccount(matchedAccount);
+      this.authService.setMsalAccount(matchedAccount);
+      return matchedAccount;
+    }
+
+    if (cachedAccounts.length === 1) {
+      const singleAccount = cachedAccounts[0];
+      this.msalInstance.setActiveAccount(singleAccount);
+      this.authService.setMsalAccount(singleAccount);
+      return singleAccount;
+    }
+
+    this.msalInstance.setActiveAccount(null);
+    this.authService.setMsalAccount(null);
+    return null;
+  }
+
   public async loginPopup(): Promise<AuthenticationResult> {
     await this.initialize();
     const result = await this.msalInstance.loginPopup(loginRequest);
+    this.msalInstance.setActiveAccount(result.account);
     this.authService.setMsalAccount(result.account);
     return result;
   }
@@ -60,13 +125,12 @@ export class MsalAuthService {
 
   public async getActiveAccount(): Promise<AccountInfo | null> {
     await this.initialize();
-    const accounts = this.msalInstance.getAllAccounts();
-    return accounts.length > 0 ? accounts[0] : null;
+    return this.resolveActiveAccount();
   }
 
   public async getAccessToken(): Promise<string | null> {
     await this.initialize();
-    const account = await this.getActiveAccount();
+    const account = this.resolveActiveAccount();
     if (!account) {
       return null;
     }
@@ -82,8 +146,9 @@ export class MsalAuthService {
 
   public async logout(): Promise<void> {
     await this.initialize();
-    const account = await this.getActiveAccount();
+    const account = this.resolveActiveAccount();
     await this.msalInstance.logoutPopup({ account: account ?? undefined });
+    this.msalInstance.setActiveAccount(null);
     this.authService.logout();
   }
 }

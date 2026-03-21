@@ -169,6 +169,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId");
+
                     b.HasIndex("InfraConfigId", "UserId")
                         .IsUnique();
 
@@ -514,7 +516,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("InfraFlowSculptor.Domain.UserAggregate.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("InfraConfig");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ParameterDefinition", b =>

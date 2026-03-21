@@ -31,5 +31,10 @@ public sealed class MemberConfiguration
 
         builder.HasIndex(pm => new { pm.InfraConfigId, pm.UserId })
             .IsUnique();
+
+        builder.HasOne(pm => pm.User)
+            .WithMany()
+            .HasForeignKey(pm => pm.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

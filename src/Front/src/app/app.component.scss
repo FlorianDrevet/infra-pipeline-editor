@@ -1,3 +1,22 @@
-main {
-  min-height: calc(100vh - 120px);
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  background:
+    radial-gradient(circle at top left, rgba(0, 172, 193, 0.2), transparent 28%),
+    radial-gradient(circle at top right, rgba(21, 101, 192, 0.16), transparent 24%),
+    linear-gradient(180deg, #f4f9ff 0%, #eef5ff 100%);
+}
+
+.app-main--login {
+  background: transparent;
 }
