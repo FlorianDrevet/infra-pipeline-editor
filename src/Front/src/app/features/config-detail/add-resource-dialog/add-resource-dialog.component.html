@@ -78,7 +78,11 @@
       <div class="form-row">
         <mat-form-field appearance="outline" class="half-width">
           <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.REDIS_VERSION' | translate }}</mat-label>
-          <input matInput type="number" formControlName="redisVersion" />
+          <mat-select formControlName="redisVersion">
+            @for (option of redisVersionOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
         </mat-form-field>
         <mat-form-field appearance="outline" class="half-width">
           <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.TLS_VERSION' | translate }}</mat-label>

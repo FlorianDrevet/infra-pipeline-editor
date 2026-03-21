@@ -51,6 +51,11 @@ const REDIS_EVICTION_OPTIONS = [
   { label: 'VolatileLfu', value: 'VolatileLfu' },
 ];
 
+const REDIS_VERSION_OPTIONS = [
+  { label: 'Redis 4', value: 4 },
+  { label: 'Redis 6', value: 6 },
+];
+
 const STORAGE_SKU_OPTIONS = [
   { label: 'Standard_LRS', value: 'Standard_LRS' },
   { label: 'Standard_GRS', value: 'Standard_GRS' },
@@ -115,6 +120,7 @@ export class AddResourceDialogComponent {
   protected readonly redisSkuOptions = REDIS_SKU_OPTIONS;
   protected readonly redisTlsOptions = REDIS_TLS_OPTIONS;
   protected readonly redisEvictionOptions = REDIS_EVICTION_OPTIONS;
+  protected readonly redisVersionOptions = REDIS_VERSION_OPTIONS;
   protected readonly storageSkuOptions = STORAGE_SKU_OPTIONS;
   protected readonly storageKindOptions = STORAGE_KIND_OPTIONS;
   protected readonly storageAccessTierOptions = STORAGE_ACCESS_TIER_OPTIONS;
@@ -134,7 +140,7 @@ export class AddResourceDialogComponent {
     name: ['', [Validators.required, Validators.maxLength(80)]],
     location: [this.data.location, [Validators.required]],
     sku: ['Standard', [Validators.required]],
-    redisVersion: [6, [Validators.required, Validators.min(0), Validators.max(7)]],
+    redisVersion: [6, [Validators.required]],
     enableNonSslPort: [false],
     minimumTlsVersion: ['Tls12', [Validators.required]],
     maxMemoryPolicy: ['NoEviction', [Validators.required]],
