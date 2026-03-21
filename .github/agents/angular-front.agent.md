@@ -858,6 +858,14 @@ npm run build       # Build de production complet (détecte erreurs template)
 
 Si l'une échoue, corriger les erreurs avant de committer.
 
+### Budgets de build Angular
+
+Les budgets de production sont définis dans `src/Front/angular.json` → `configurations.production.budgets` :
+- **`anyComponentStyle`** : warning 10 kB / error 20 kB
+- **`initial` bundle** : warning 500 kB / error 1 MB
+
+**Règle** : si un SCSS de composant dépasse le budget après ajout d'une feature légitime, **augmenter le budget** plutôt que compresser artificiellement les styles. Garder le seuil warning ≈ 50 % du seuil error.
+
 ---
 
 ## Checklist de génération d'une feature frontend

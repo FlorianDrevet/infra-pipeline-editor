@@ -2,11 +2,11 @@
   display: block;
 }
 
-.add-member-form {
+.env-form {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  min-width: 22rem;
+  min-width: 26rem;
   padding-top: 0.5rem;
 }
 
@@ -18,6 +18,31 @@
   }
 }
 
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.half-width {
+  flex: 1;
+
+  .mdc-notched-outline__notch {
+    border-right-style: hidden;
+  }
+}
+
+.order-field {
+  width: 8rem;
+
+  .mdc-notched-outline__notch {
+    border-right-style: hidden;
+  }
+}
+
+mat-slide-toggle {
+  margin-bottom: 0.5rem;
+}
+
 .dialog-error {
   margin: 0;
   padding: 0.6rem 0.8rem;
@@ -26,13 +51,4 @@
   color: #a12d1f;
   font-size: 0.84rem;
   line-height: 1.45;
-}
-
-mat-dialog-actions {
-  gap: 0.5rem;
-  padding-top: 0.5rem;
-}
-
-mat-dialog-actions button mat-spinner {
-  display: inline-block;
 }

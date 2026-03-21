@@ -64,13 +64,49 @@
           <span class="tab-count">{{ config()!.environmentDefinitions.length }}</span>
         </ng-template>
         <div class="tab-content">
-          @if (config()!.environmentDefinitions.length > 0) {
+          <div class="tab-content__toolbar">
+            @if (canWrite()) {
+              <button class="add-env-btn" (click)="openAddEnvironmentDialog()">
+                <mat-icon class="add-env-btn__icon">add_circle_outline</mat-icon>
+                {{ 'CONFIG_DETAIL.ENVIRONMENTS.ADD' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (envErrorKey()) {
+            <p class="env-error">{{ envErrorKey() | translate }}</p>
+          }
+
+          @if (sortedEnvironments().length > 0) {
             <div class="env-grid">
-              @for (env of config()!.environmentDefinitions; track env.id) {
-                <article class="env-card">
+              @for (env of sortedEnvironments(); track env.id) {
+                <article class="env-card" [class.env-card--busy]="envActionId() === env.id">
+                  @if (envActionId() === env.id) {
+                    <div class="env-card__spinner">
+                      <mat-spinner diameter="24"></mat-spinner>
+                    </div>
+                  }
                   <div class="env-card__header">
                     <h3>{{ env.name }}</h3>
-                    <span class="order-chip">{{ 'CONFIG_DETAIL.ENVIRONMENTS.ORDER' | translate }} {{ env.order }}</span>
+                    <div class="env-card__header-actions">
+                      <span class="order-chip">{{ 'CONFIG_DETAIL.ENVIRONMENTS.ORDER' | translate }} {{ env.order }}</span>
+                      @if (canWrite()) {
+                        <button
+                          class="env-action-btn env-action-btn--edit"
+                          [matTooltip]="'CONFIG_DETAIL.ENVIRONMENTS.EDIT' | translate"
+                          [disabled]="envActionId() === env.id"
+                          (click)="openAddEnvironmentDialog(env)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                          class="env-action-btn env-action-btn--delete"
+                          [matTooltip]="'CONFIG_DETAIL.ENVIRONMENTS.REMOVE' | translate"
+                          [disabled]="envActionId() === env.id"
+                          (click)="openRemoveEnvironmentDialog(env)">
+                          <mat-icon>delete_outline</mat-icon>
+                        </button>
+                      }
+                    </div>
                   </div>
                   <div class="env-card__details">
                     <div class="detail-row">
@@ -112,6 +148,12 @@
             <div class="empty-state">
               <mat-icon class="empty-state__icon">cloud_queue</mat-icon>
               <p>{{ 'CONFIG_DETAIL.ENVIRONMENTS.EMPTY' | translate }}</p>
+              @if (canWrite()) {
+                <button class="add-env-btn" (click)="openAddEnvironmentDialog()">
+                  <mat-icon class="add-env-btn__icon">add_circle_outline</mat-icon>
+                  {{ 'CONFIG_DETAIL.ENVIRONMENTS.ADD' | translate }}
+                </button>
+              }
             </div>
           }
         </div>

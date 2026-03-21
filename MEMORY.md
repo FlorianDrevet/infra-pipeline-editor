@@ -608,6 +608,13 @@ Format : `type(scope): description courte du but principal`
 - `environments/` is the single source of truth for backend base URLs (`api_url` + `bicep_api_url`)
 - Keep DTO/interface updates in sync with backend contract changes in `InfraFlowSculptor.Contracts`
 
+### 16.2.1 Angular build budgets ([2026-03-21])
+
+- Production budgets in `src/Front/angular.json` → `configurations.production.budgets`
+- **`anyComponentStyle`**: warning 10 kB / error 20 kB (increased from 6/10 kB to accommodate growing feature pages with tabs, member management, environment management, etc.)
+- **`initial` bundle**: warning 500 kB / error 1 MB
+- **Rule:** if a component SCSS exceeds the budget after adding a legitimate feature, increase the budget rather than artificially compressing styles. Keep warning ≈ 50% of error.
+
 ### 16.3 Initialization status ([2026-03-17])
 
 - Template app name replaced with `infra-flow-sculptor-front` in `src/Front/package.json`
@@ -994,3 +1001,4 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-22 | copilot | Added member management: **Backend**: enriched `MemberResponse` with `FirstName`/`LastName` (added `User` nav property on `Member` entity, `.ThenInclude(m => m.User!)` in all InfrastructureConfigRepository queries, updated Mapster mappings). Added `GET /infra-config/users` endpoint (`ListUsersQuery`/`UserResponse`). Added `IUserRepository.GetAllAsync`/`GetByIdsAsync`. **Frontend**: updated `MemberResponse` interface with `firstName`/`lastName`, added `UserResponse` interface, `getUsers()` method on `InfraConfigService`. Config detail page shows member names instead of IDs, inline `mat-select` for role change (Owner/Contributor/Reader), remove button with confirm dialog, "Add member" button opening a dialog (`add-member-dialog`) with user picker + role selector. Created reusable `ConfirmDialogComponent`. Added 17 i18n keys under `CONFIG_DETAIL.MEMBERS` in both FR/EN. |
 | 2026-03-22 | copilot | Refactored config detail page from stacked sections to **tabbed layout** using `MatTabsModule`. Tabs in order: Resource Groups (default), Environments, Members, Naming Templates. Each tab label has an icon + count badge. Improved empty states with centered icon + message. Added 4 TABS i18n keys in both FR/EN. Updated `angular.json` component style budget to `6kB warning / 10kB error` to accommodate growth from member management + tabs. |
 | 2026-03-22 | copilot | Improved Members tab UX: (1) Members now grouped by role sections (Owner > Contributor > Reader) with role icon, title, and count badge per section — uses computed signal `membersByRole`. (2) Add-member dialog: replaced `mat-select` user dropdown with `mat-autocomplete` search bar (type-ahead filtering by first/last name). Added `ADD_DIALOG_SEARCH_PLACEHOLDER` and `ADD_DIALOG_NO_RESULTS` i18n keys in both FR/EN. |
+| 2026-03-21 | copilot | Added environment management UI on config detail page: add/edit/remove environments via dialog (`add-environment-dialog` component, 3 files), sorted environment cards with edit/delete action buttons gated by `canWrite` computed (Owner or Contributor). Reusable confirm dialog for delete. Increased `anyComponentStyle` budget to 10kB warning / 20kB error in `angular.json`. Added 30+ i18n keys under `CONFIG_DETAIL.ENVIRONMENTS.*` in both FR/EN. |

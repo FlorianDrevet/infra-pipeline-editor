@@ -19,6 +19,8 @@ import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AddMemberDialogComponent, AddMemberDialogData } from './add-member-dialog/add-member-dialog.component';
+import { AddEnvironmentDialogComponent, AddEnvironmentDialogData } from './add-environment-dialog/add-environment-dialog.component';
+import { EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
@@ -55,6 +57,8 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly loadError = signal('');
   protected readonly memberActionId = signal<string | null>(null);
   protected readonly memberErrorKey = signal('');
+  protected readonly envActionId = signal<string | null>(null);
+  protected readonly envErrorKey = signal('');
   protected readonly roles = ROLES;
 
   protected readonly membersByRole = computed(() => {
@@ -74,6 +78,19 @@ export class ConfigDetailComponent implements OnInit {
     const members = this.config()?.members ?? [];
     const me = members.find((m) => m.entraId === oid);
     return me?.role === 'Owner';
+  });
+
+  protected readonly canWrite = computed(() => {
+    const oid = this.authService.getMsalAccount?.localAccountId;
+    if (!oid) return false;
+    const members = this.config()?.members ?? [];
+    const me = members.find((m) => m.entraId === oid);
+    return me?.role === 'Owner' || me?.role === 'Contributor';
+  });
+
+  protected readonly sortedEnvironments = computed(() => {
+    const envs = this.config()?.environmentDefinitions ?? [];
+    return [...envs].sort((a, b) => a.order - b.order);
   });
 
   async ngOnInit(): Promise<void> {
@@ -182,5 +199,61 @@ export class ConfigDetailComponent implements OnInit {
         this.config.set(refreshed);
       }
     });
+  }
+
+  protected openAddEnvironmentDialog(existing?: EnvironmentDefinitionResponse): void {
+    const currentConfig = this.config();
+    if (!currentConfig) return;
+
+    const dialogRef = this.dialog.open(AddEnvironmentDialogComponent, {
+      data: {
+        configId: currentConfig.id,
+        existing,
+      } satisfies AddEnvironmentDialogData,
+      width: '520px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: InfrastructureConfigResponse | null) => {
+      if (result) {
+        const refreshed = await this.infraConfigService.getById(currentConfig.id);
+        this.config.set(refreshed);
+      }
+    });
+  }
+
+  protected openRemoveEnvironmentDialog(env: EnvironmentDefinitionResponse): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_TITLE',
+        messageKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_MESSAGE',
+        messageParams: { name: env.name },
+        confirmKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_YES',
+        cancelKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '400px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
+      if (!confirmed) return;
+      await this.removeEnvironment(env);
+    });
+  }
+
+  private async removeEnvironment(env: EnvironmentDefinitionResponse): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.envActionId.set(env.id);
+    this.envErrorKey.set('');
+
+    try {
+      await this.infraConfigService.removeEnvironment(configId, env.id);
+      const refreshed = await this.infraConfigService.getById(configId);
+      this.config.set(refreshed);
+    } catch {
+      this.envErrorKey.set('CONFIG_DETAIL.ENVIRONMENTS.REMOVE_ERROR');
+    } finally {
+      this.envActionId.set(null);
+    }
   }
 }
