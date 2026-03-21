@@ -10,6 +10,7 @@ import {
   UpdateEnvironmentRequest,
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
+  UserResponse,
 } from '../interfaces/infra-config.interface';
 import { ResourceGroupResponse } from '../interfaces/resource-group.interface';
 
@@ -50,8 +51,8 @@ export class InfraConfigService {
     );
   }
 
-  addMember(id: string, request: AddMemberRequest): Promise<void> {
-    return this.axios.request$<void>(
+  addMember(id: string, request: AddMemberRequest): Promise<InfrastructureConfigResponse> {
+    return this.axios.request$<InfrastructureConfigResponse>(
       MethodEnum.POST,
       `/infra-config/${id}/members`,
       request
@@ -62,11 +63,18 @@ export class InfraConfigService {
     id: string,
     userId: string,
     request: UpdateMemberRoleRequest
-  ): Promise<void> {
-    return this.axios.request$<void>(
+  ): Promise<InfrastructureConfigResponse> {
+    return this.axios.request$<InfrastructureConfigResponse>(
       MethodEnum.PUT,
       `/infra-config/${id}/members/${userId}`,
       request
+    );
+  }
+
+  getUsers(): Promise<UserResponse[]> {
+    return this.axios.request$<UserResponse[]>(
+      MethodEnum.GET,
+      '/infra-config/users'
     );
   }
 

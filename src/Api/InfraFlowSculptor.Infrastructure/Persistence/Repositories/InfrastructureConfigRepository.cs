@@ -18,6 +18,7 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     {
         return await Context.InfrastructureConfigs
             .Include(c => c.Members)
+                .ThenInclude(m => m.User!)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
@@ -26,6 +27,7 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
         return await Context.InfrastructureConfigs
             .AsNoTracking()
             .Include(c => c.Members)
+                .ThenInclude(m => m.User!)
             .Where(c => c.Members.Any(m => m.UserId == userId))
             .ToListAsync(cancellationToken);
     }
@@ -34,6 +36,7 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     {
         return await Context.InfrastructureConfigs
             .Include(c => c.Members)
+                .ThenInclude(m => m.User!)
             .Include(c => c.EnvironmentDefinitions)
             .Include(c => c.ResourceNamingTemplates)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
@@ -43,6 +46,7 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     {
         return await Context.InfrastructureConfigs
             .Include(c => c.Members)
+                .ThenInclude(m => m.User!)
             .Include(c => c.ResourceNamingTemplates)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }

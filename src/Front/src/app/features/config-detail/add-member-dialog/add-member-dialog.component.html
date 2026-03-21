@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>{{ 'CONFIG_DETAIL.MEMBERS.ADD_DIALOG_TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="add-member-form" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'CONFIG_DETAIL.MEMBERS.ADD_DIALOG_USER_LABEL' | translate }}</mat-label>
+      <mat-select formControlName="userId" [placeholder]="'CONFIG_DETAIL.MEMBERS.ADD_DIALOG_USER_PLACEHOLDER' | translate">
+        @for (user of filteredUsers; track user.id) {
+          <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'CONFIG_DETAIL.MEMBERS.ADD_DIALOG_ROLE_LABEL' | translate }}</mat-label>
+      <mat-select formControlName="role">
+        @for (role of roles; track role) {
+          <mat-option [value]="role">{{ 'CONFIG_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (errorKey()) {
+      <p class="dialog-error">{{ errorKey() | translate }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+    {{ 'CONFIG_DETAIL.MEMBERS.ADD_DIALOG_CANCEL' | translate }}
+  </button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || isSubmitting()">
+    @if (isSubmitting()) {
+      <mat-spinner diameter="18"></mat-spinner>
+    } @else {
+      {{ 'CONFIG_DETAIL.MEMBERS.ADD_DIALOG_ADD' | translate }}
+    }
+  </button>
+</mat-dialog-actions>

@@ -4,4 +4,6 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// <param name="Id">Unique identifier of the membership record.</param>
 /// <param name="UserId">User identifier.</param>
 /// <param name="Role">Role assigned to the user (e.g. "Owner", "Contributor", "Reader").</param>
-public record MemberResponse(Guid Id, Guid UserId, string Role);
+/// <param name="FirstName">First name of the user.</param>
+/// <param name="LastName">Last name of the user.</param>
+public record MemberResponse(Guid Id, Guid UserId, string Role, string FirstName, string LastName);

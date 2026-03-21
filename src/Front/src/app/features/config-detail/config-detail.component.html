@@ -25,16 +25,53 @@
     </section>
 
     <section class="detail-section">
-      <div class="section-heading">
-        <span>{{ 'CONFIG_DETAIL.MEMBERS.OVERLINE' | translate }}</span>
-        <h2>{{ 'CONFIG_DETAIL.MEMBERS.TITLE' | translate }}</h2>
+      <div class="section-heading section-heading--row">
+        <div>
+          <span>{{ 'CONFIG_DETAIL.MEMBERS.OVERLINE' | translate }}</span>
+          <h2>{{ 'CONFIG_DETAIL.MEMBERS.TITLE' | translate }}</h2>
+        </div>
+        <button class="add-member-btn" (click)="openAddMemberDialog()">
+          <span class="add-member-btn__icon">+</span>
+          {{ 'CONFIG_DETAIL.MEMBERS.ADD' | translate }}
+        </button>
       </div>
+
+      @if (memberErrorKey()) {
+        <p class="member-error">{{ memberErrorKey() | translate }}</p>
+      }
+
       @if (config()!.members.length > 0) {
         <div class="members-grid">
           @for (member of config()!.members; track member.id) {
-            <article class="member-card">
-              <strong>{{ member.userId }}</strong>
-              <span class="role-chip">{{ member.role }}</span>
+            <article class="member-card" [class.member-card--busy]="memberActionId() === member.id">
+              @if (memberActionId() === member.id) {
+                <div class="member-card__spinner">
+                  <mat-spinner diameter="20"></mat-spinner>
+                </div>
+              }
+              <div class="member-card__info">
+                <strong>{{ member.firstName }} {{ member.lastName }}</strong>
+              </div>
+              <div class="member-card__actions">
+                <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
+                  <mat-select
+                    [value]="member.role"
+                    [aria-label]="'CONFIG_DETAIL.MEMBERS.CHANGE_ROLE_ARIA' | translate"
+                    [disabled]="memberActionId() === member.id"
+                    (selectionChange)="onRoleChange(member, $event.value)">
+                    @for (role of roles; track role) {
+                      <mat-option [value]="role">{{ 'CONFIG_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <button
+                  class="remove-btn"
+                  [matTooltip]="'CONFIG_DETAIL.MEMBERS.REMOVE' | translate"
+                  [disabled]="memberActionId() === member.id"
+                  (click)="openRemoveDialog(member)">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
             </article>
           }
         </div>

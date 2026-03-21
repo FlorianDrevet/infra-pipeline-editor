@@ -140,7 +140,26 @@
     "MEMBERS": {
       "OVERLINE": "Equipe",
       "TITLE": "Membres",
-      "EMPTY": "Aucun membre dans cette configuration."
+      "EMPTY": "Aucun membre dans cette configuration.",
+      "ADD": "Ajouter un membre",
+      "REMOVE": "Retirer",
+      "REMOVE_CONFIRM_TITLE": "Retirer le membre",
+      "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment retirer {{name}} de cette configuration ?",
+      "REMOVE_CONFIRM_YES": "Retirer",
+      "REMOVE_CONFIRM_CANCEL": "Annuler",
+      "ROLE_OWNER": "Proprietaire",
+      "ROLE_CONTRIBUTOR": "Contributeur",
+      "ROLE_READER": "Lecteur",
+      "CHANGE_ROLE_ARIA": "Changer le role du membre",
+      "ADD_DIALOG_TITLE": "Ajouter un membre",
+      "ADD_DIALOG_USER_LABEL": "Selectionner un utilisateur",
+      "ADD_DIALOG_USER_PLACEHOLDER": "Choisir un utilisateur",
+      "ADD_DIALOG_ROLE_LABEL": "Role",
+      "ADD_DIALOG_CANCEL": "Annuler",
+      "ADD_DIALOG_ADD": "Ajouter",
+      "ADD_DIALOG_ERROR": "Impossible d'ajouter le membre. Veuillez reessayer.",
+      "REMOVE_ERROR": "Impossible de retirer le membre.",
+      "ROLE_CHANGE_ERROR": "Impossible de modifier le role."
     },
     "ENVIRONMENTS": {
       "OVERLINE": "Deploiement",

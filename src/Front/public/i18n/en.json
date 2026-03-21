@@ -140,7 +140,26 @@
     "MEMBERS": {
       "OVERLINE": "Team",
       "TITLE": "Members",
-      "EMPTY": "No members in this configuration."
+      "EMPTY": "No members in this configuration.",
+      "ADD": "Add member",
+      "REMOVE": "Remove",
+      "REMOVE_CONFIRM_TITLE": "Remove member",
+      "REMOVE_CONFIRM_MESSAGE": "Are you sure you want to remove {{name}} from this configuration?",
+      "REMOVE_CONFIRM_YES": "Remove",
+      "REMOVE_CONFIRM_CANCEL": "Cancel",
+      "ROLE_OWNER": "Owner",
+      "ROLE_CONTRIBUTOR": "Contributor",
+      "ROLE_READER": "Reader",
+      "CHANGE_ROLE_ARIA": "Change member role",
+      "ADD_DIALOG_TITLE": "Add a member",
+      "ADD_DIALOG_USER_LABEL": "Select a user",
+      "ADD_DIALOG_USER_PLACEHOLDER": "Choose a user",
+      "ADD_DIALOG_ROLE_LABEL": "Role",
+      "ADD_DIALOG_CANCEL": "Cancel",
+      "ADD_DIALOG_ADD": "Add",
+      "ADD_DIALOG_ERROR": "Unable to add member. Please try again.",
+      "REMOVE_ERROR": "Unable to remove member.",
+      "ROLE_CHANGE_ERROR": "Unable to change role."
     },
     "ENVIRONMENTS": {
       "OVERLINE": "Deployment",

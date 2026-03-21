@@ -2,6 +2,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.UserAggregate;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Mapster;
 
@@ -33,13 +34,17 @@ public class InfraConfigMappingConfig : IRegister
         config.NewConfig<Member, MemberResult>()
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.UserId, src => src.UserId)
-            .Map(dest => dest.Role, src => src.Role.Value.ToString());
+            .Map(dest => dest.Role, src => src.Role.Value.ToString())
+            .Map(dest => dest.FirstName, src => src.User != null ? src.User.Name.FirstName : string.Empty)
+            .Map(dest => dest.LastName, src => src.User != null ? src.User.Name.LastName : string.Empty);
 
         // MemberResult -> MemberResponse
         config.NewConfig<MemberResult, MemberResponse>()
             .Map(dest => dest.Id, src => src.Id.Value)
             .Map(dest => dest.UserId, src => src.UserId.Value)
-            .Map(dest => dest.Role, src => src.Role);
+            .Map(dest => dest.Role, src => src.Role)
+            .Map(dest => dest.FirstName, src => src.FirstName)
+            .Map(dest => dest.LastName, src => src.LastName);
 
         // EnvironmentDefinition entity -> EnvironmentDefinitionResult
         config.NewConfig<EnvironmentDefinition, EnvironmentDefinitionResult>()
@@ -99,5 +104,17 @@ public class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.Members, src => src.Members)
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
+
+        // User entity -> UserResult
+        config.NewConfig<User, UserResult>()
+            .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest.FirstName, src => src.Name.FirstName)
+            .Map(dest => dest.LastName, src => src.Name.LastName);
+
+        // UserResult -> UserResponse
+        config.NewConfig<UserResult, UserResponse>()
+            .Map(dest => dest.Id, src => src.Id.Value)
+            .Map(dest => dest.FirstName, src => src.FirstName)
+            .Map(dest => dest.LastName, src => src.LastName);
     }
 }

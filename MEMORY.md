@@ -767,6 +767,31 @@ h1 {
 - Success feedback banner still shown in home page after dialog closes
 - i18n keys: `HOME.DIALOG.*`
 
+### 16.10 Member management on config detail page ([2026-03-22])
+
+#### Backend enrichment
+- `MemberResponse` now includes `FirstName` and `LastName` (resolved via `User` navigation property on `Member` entity)
+- `Member` entity has `public User? User { get; private set; }` navigation property for EF Core read-side optimization
+- `MemberConfiguration` adds `HasOne(pm => pm.User).WithMany().HasForeignKey(pm => pm.UserId).OnDelete(DeleteBehavior.Restrict)`
+- All `InfrastructureConfigRepository` queries that `.Include(c => c.Members)` now also `.ThenInclude(m => m.User!)`
+- New endpoint `GET /infra-config/users` returns all registered users (`ListUsersQuery` → `UserResponse(Id, FirstName, LastName)`)
+- `IUserRepository` extended with `GetAllAsync` and `GetByIdsAsync`
+
+#### Frontend member management
+- `MemberResponse` interface updated with `firstName`, `lastName`
+- New `UserResponse` interface and `getUsers()` method on `InfraConfigService`
+- `addMember`/`updateMemberRole` return types changed to `Promise<InfrastructureConfigResponse>` (matching actual API response)
+- Config detail page members section:
+  - Shows `firstName lastName` instead of userId GUID
+  - Inline `mat-select` per member for role changing (Owner/Contributor/Reader)
+  - Remove button with confirmation dialog
+  - "Add member" button opening `AddMemberDialog` (user picker + role selector)
+- New components:
+  - `src/Front/src/app/features/config-detail/add-member-dialog/*` (3 files) — user select filtered to exclude existing members
+  - `src/Front/src/app/shared/components/confirm-dialog/*` (3 files) — reusable confirm dialog with i18n
+- Roles: `Owner`, `Contributor`, `Reader` (matching `Role.RoleEnum` in domain)
+- 17 new i18n keys under `CONFIG_DETAIL.MEMBERS.*` in both `fr.json` and `en.json`
+
 ---
 
 ## 18. Documentation Azure ([2026-03-19])
@@ -949,3 +974,4 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-21 | copilot | Added `.github/agents/aspire-debug.agent.md` for runtime diagnostics with Aspire MCP (resource health, structured logs, console logs, traces, restart/recovery workflow). Registered routing in `dev.agent.md` and specialized-agent policy in `.github/copilot-instructions.md`. Added section 24 in MEMORY.md with agent-vs-skill rationale. |
 | 2026-03-21 | copilot | Rebalanced home hero typography/layout in `src/Front/src/app/features/home/home.component.scss` to reduce the heavy left text block: smaller H1 scale, wider line length, lighter vertical distribution, and more balanced column ratio against stats cards. |
 | 2026-03-22 | copilot | Added 3 frontend features: (1) Configuration detail page at `/config/:id` with members, environments, resource groups, naming templates sections + back navigation. (2) Search (by name) + sort (name/environments/members) in home config list with computed signals. (3) Replaced inline create form with Material dialog (`create-config-dialog`), hero CTA now opens dialog. Added `CONFIG_DETAIL.*`, `HOME.SEARCH.*`, `HOME.SORT.*`, `HOME.DIALOG.*` i18n keys in both fr.json and en.json. New files: `features/config-detail/*` (3 files), `features/home/create-config-dialog/*` (3 files). Modified: `app-routing.ts`, `home.component.ts/html/scss`, `fr.json`, `en.json`. |
+| 2026-03-22 | copilot | Added member management: **Backend**: enriched `MemberResponse` with `FirstName`/`LastName` (added `User` nav property on `Member` entity, `.ThenInclude(m => m.User!)` in all InfrastructureConfigRepository queries, updated Mapster mappings). Added `GET /infra-config/users` endpoint (`ListUsersQuery`/`UserResponse`). Added `IUserRepository.GetAllAsync`/`GetByIdsAsync`. **Frontend**: updated `MemberResponse` interface with `firstName`/`lastName`, added `UserResponse` interface, `getUsers()` method on `InfraConfigService`. Config detail page shows member names instead of IDs, inline `mat-select` for role change (Owner/Contributor/Reader), remove button with confirm dialog, "Add member" button opening a dialog (`add-member-dialog`) with user picker + role selector. Created reusable `ConfirmDialogComponent`. Added 17 i18n keys under `CONFIG_DETAIL.MEMBERS` in both FR/EN. |
