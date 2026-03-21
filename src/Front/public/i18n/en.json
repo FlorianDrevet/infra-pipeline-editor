@@ -160,6 +160,8 @@
       "ADD_DIALOG_TITLE": "Add a member",
       "ADD_DIALOG_USER_LABEL": "Select a user",
       "ADD_DIALOG_USER_PLACEHOLDER": "Choose a user",
+      "ADD_DIALOG_SEARCH_PLACEHOLDER": "Search by name...",
+      "ADD_DIALOG_NO_RESULTS": "No users found",
       "ADD_DIALOG_ROLE_LABEL": "Role",
       "ADD_DIALOG_CANCEL": "Cancel",
       "ADD_DIALOG_ADD": "Add",

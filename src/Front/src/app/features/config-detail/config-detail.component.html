@@ -137,40 +137,49 @@
           }
 
           @if (config()!.members.length > 0) {
-            <div class="members-grid">
-              @for (member of config()!.members; track member.id) {
-                <article class="member-card" [class.member-card--busy]="memberActionId() === member.id">
-                  @if (memberActionId() === member.id) {
-                    <div class="member-card__spinner">
-                      <mat-spinner diameter="20"></mat-spinner>
-                    </div>
+            @for (group of membersByRole(); track group.role) {
+              <div class="role-section">
+                <div class="role-section__header">
+                  <mat-icon class="role-section__icon">{{ group.icon }}</mat-icon>
+                  <h3 class="role-section__title">{{ 'CONFIG_DETAIL.MEMBERS.ROLE_' + group.role.toUpperCase() | translate }}</h3>
+                  <span class="role-section__count">{{ group.members.length }}</span>
+                </div>
+                <div class="members-grid">
+                  @for (member of group.members; track member.id) {
+                    <article class="member-card" [class.member-card--busy]="memberActionId() === member.id">
+                      @if (memberActionId() === member.id) {
+                        <div class="member-card__spinner">
+                          <mat-spinner diameter="20"></mat-spinner>
+                        </div>
+                      }
+                      <div class="member-card__info">
+                        <strong>{{ member.firstName }} {{ member.lastName }}</strong>
+                      </div>
+                      <div class="member-card__actions">
+                        <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
+                          <mat-select
+                            [value]="member.role"
+                            [aria-label]="'CONFIG_DETAIL.MEMBERS.CHANGE_ROLE_ARIA' | translate"
+                            [disabled]="memberActionId() === member.id"
+                            (selectionChange)="onRoleChange(member, $event.value)">
+                            @for (role of roles; track role) {
+                              <mat-option [value]="role">{{ 'CONFIG_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                        <button
+                          class="remove-btn"
+                          [matTooltip]="'CONFIG_DETAIL.MEMBERS.REMOVE' | translate"
+                          [disabled]="memberActionId() === member.id"
+                          (click)="openRemoveDialog(member)">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    </article>
                   }
-                  <div class="member-card__info">
-                    <strong>{{ member.firstName }} {{ member.lastName }}</strong>
-                  </div>
-                  <div class="member-card__actions">
-                    <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
-                      <mat-select
-                        [value]="member.role"
-                        [aria-label]="'CONFIG_DETAIL.MEMBERS.CHANGE_ROLE_ARIA' | translate"
-                        [disabled]="memberActionId() === member.id"
-                        (selectionChange)="onRoleChange(member, $event.value)">
-                        @for (role of roles; track role) {
-                          <mat-option [value]="role">{{ 'CONFIG_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
-                    <button
-                      class="remove-btn"
-                      [matTooltip]="'CONFIG_DETAIL.MEMBERS.REMOVE' | translate"
-                      [disabled]="memberActionId() === member.id"
-                      (click)="openRemoveDialog(member)">
-                      <mat-icon>close</mat-icon>
-                    </button>
-                  </div>
-                </article>
-              }
-            </div>
+                </div>
+              </div>
+            }
           } @else {
             <div class="empty-state">
               <mat-icon class="empty-state__icon">group</mat-icon>

@@ -4,11 +4,24 @@
   <form [formGroup]="form" class="add-member-form" (ngSubmit)="onSubmit()">
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>{{ 'CONFIG_DETAIL.MEMBERS.ADD_DIALOG_USER_LABEL' | translate }}</mat-label>
-      <mat-select formControlName="userId" [placeholder]="'CONFIG_DETAIL.MEMBERS.ADD_DIALOG_USER_PLACEHOLDER' | translate">
-        @for (user of filteredUsers; track user.id) {
-          <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        type="text"
+        [placeholder]="'CONFIG_DETAIL.MEMBERS.ADD_DIALOG_SEARCH_PLACEHOLDER' | translate"
+        [matAutocomplete]="userAuto"
+        (input)="onSearchInput($event)" />
+      <mat-autocomplete
+        #userAuto="matAutocomplete"
+        [displayWith]="displayUserFn"
+        (optionSelected)="onUserSelected($event.option.value)">
+        @for (user of filteredUsers(); track user.id) {
+          <mat-option [value]="user">{{ user.firstName }} {{ user.lastName }}</mat-option>
         }
-      </mat-select>
+        @if (filteredUsers().length === 0) {
+          <mat-option disabled>{{ 'CONFIG_DETAIL.MEMBERS.ADD_DIALOG_NO_RESULTS' | translate }}</mat-option>
+        }
+      </mat-autocomplete>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
@@ -30,7 +43,7 @@
   <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
     {{ 'CONFIG_DETAIL.MEMBERS.ADD_DIALOG_CANCEL' | translate }}
   </button>
-  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || isSubmitting()">
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || !selectedUser() || isSubmitting()">
     @if (isSubmitting()) {
       <mat-spinner diameter="18"></mat-spinner>
     } @else {

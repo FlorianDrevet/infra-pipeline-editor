@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -20,6 +20,8 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/componen
 import { AddMemberDialogComponent, AddMemberDialogData } from './add-member-dialog/add-member-dialog.component';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
+const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
+const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit', Reader: 'visibility' };
 
 @Component({
   selector: 'app-config-detail',
@@ -52,6 +54,17 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly memberActionId = signal<string | null>(null);
   protected readonly memberErrorKey = signal('');
   protected readonly roles = ROLES;
+
+  protected readonly membersByRole = computed(() => {
+    const members = this.config()?.members ?? [];
+    return ROLES
+      .map((role) => ({
+        role,
+        icon: ROLE_ICONS[role],
+        members: members.filter((m) => m.role === role),
+      }))
+      .filter((group) => group.members.length > 0);
+  });
 
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');

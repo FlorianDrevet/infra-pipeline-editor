@@ -148,6 +148,41 @@
 
 // ─── Members ────
 
+.role-section { margin-bottom: 1.25rem; &:last-child { margin-bottom: 0; } }
+
+.role-section__header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid rgba(146, 191, 235, 0.15);
+}
+
+.role-section__icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; color: #1565c0; }
+
+.role-section__title {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #103454;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.role-section__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.2rem; height: 1.2rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: rgba(13, 101, 192, 0.08);
+  color: #1565c0;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
 .add-member-btn {
   display: inline-flex;
   align-items: center;
