@@ -675,6 +675,117 @@ La fonctionnalité Azure DevOps "Publish code as wiki" (sync auto Git → wiki) 
 
 ---
 
+## 20. Agent angular-front ([2026-03-21])
+
+- Fichier : `.github/agents/angular-front.agent.md`
+- Responsabilité : **Tout travail frontend dans `src/Front` doit passer par cet agent.**
+- Couvre : standalone components (3 fichiers obligatoires : `.ts`, `.html`, `.scss`), Signals (`signal`, `computed`, `effect`, `input`, `output`, `model`, `resource`, `toSignal`), zoneless change detection, `inject()`, nouvelle syntaxe template (`@if`/`@for`/`@switch`), Angular Material + Tailwind, Axios services, interfaces alignées sur les contrats backend, routes lazy loading, guards fonctions, environnements.
+- **Protocole de délégation :** L'agent `memory` délègue toute tâche `src/Front` à `angular-front` — il ne génère jamais de code Angular directement.
+- Validation post-implémentation : `npm run typecheck` + `npm run build` dans `src/Front`.
+
+---
+
+## 21. Agent dotnet-dev ([2026-03-21])
+
+- Fichier : `.github/agents/dotnet-dev.agent.md`
+- Responsabilité : **Toute génération ou modification de code C#/.NET doit respecter les règles de cet agent.**
+- Couvre :
+  - **Conventions de nommage Microsoft** : `PascalCase` classes/méthodes/props, `_camelCase` champs privés, `I` prefix interfaces, suffixe `Async` pour les Tasks.
+  - **Documentation XML obligatoire** sur tous les membres `public`/`protected` : `<summary>`, `<param>`, `<returns>`, `<exception>`, `<see cref="">`.
+  - **No magic strings** : constantes dédiées, `nameof()`, classes `Errors.*`, `AuthorizationPolicies`, `ConfigurationKeys`.
+  - **SOLID** : SRP (une responsabilité par classe), OCP (extension par composition), LSP, ISP (interfaces étroites), DIP (dépendance vers les abstractions).
+  - **Découpage** : extraire en helper statique si logique réutilisable sans état ; créer un service injectable si logique avec dépendances ; garder dans le handler si unique.
+  - **Async/Await** : suffixe `Async`, propager `CancellationToken`, jamais `.Result`/`.GetAwaiter().GetResult()`, `ConfigureAwait(false)` dans les librairies.
+  - **Gestion des nulls** : `<Nullable>enable</Nullable>`, guard clause `ArgumentNullException.ThrowIfNull`, pattern matching `is null`.
+  - **Immutabilité** : `record` pour les DTOs, `init` pour les propriétés, `readonly` pour les champs, `IReadOnlyCollection<T>` pour les collections exposées.
+  - **Pattern matching** et switch expressions pour remplacer les if/else chaînés.
+  - **Guard clauses** (early return) pour éviter les pyramides d'imbrication.
+  - **`sealed`** sur les classes non héritables (handlers, validators, configurations EF Core).
+  - **EF Core** : `AsNoTracking()` en lecture, `FirstOrDefaultAsync` plutôt que `ToListAsync().First()`, comparaisons sur value objects entiers (jamais `.Value`).
+  - **FluentValidation** : un validator par commande, `.WithMessage()` obligatoire.
+  - **Logging** : `ILogger<T>` injecté, structured logging (paramètres, pas interpolation), niveaux appropriés.
+  - **Code smells** : Long Method (< 30 lignes), Feature Envy, Primitive Obsession, Dead Code supprimé.
+  - **Sécurité** : pas de SQL par concaténation, pas de secrets hardcodés, `NotFound` pour non-membres (no info leak).
+- Validation : `dotnet build .\InfraFlowSculptor.slnx` obligatoire avant commit.
+
+---
+
+## 22. Refactoring agents — @memory → @dev + Skill cqrs-feature ([2026-03-21])
+
+### Changements
+
+| Avant | Après |
+|-------|-------|
+| `@memory` — agent monolithique (mémoire + CQRS + coordination) | `@dev` — orchestrateur léger (lire mémoire, router, charger skills, updater mémoire) |
+| Guide CQRS inline dans `memory.agent.md` | Skill `cqrs-feature` dans `.github/skills/cqrs-feature/SKILL.md` |
+| `memory.agent.md` actif | `memory.agent.md` déprécié (redirecteur vers `@dev`) |
+
+### Nouveaux fichiers
+- `.github/agents/dev.agent.md` — Point d'entrée principal, orchestrateur léger
+- `.github/skills/cqrs-feature/SKILL.md` — Guide des 9 étapes CQRS avec exemples, chargé à la demande
+- `.github/agents/memory.agent.md` — Réduit à un redirecteur vers `@dev`
+
+### Concept Skill
+Un **Skill** est un fichier `SKILL.md` de connaissance pure, chargé à la demande avec `read_file` quand la tâche le justifie.
+Pas d'outils, lazy-loaded, composable. Idéal pour centraliser un workflow réutilisable sans alourdir les agents.
+Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills disponibles.
+
+---
+
+## 23. Skill UI/UX frontend — ui-ux-front-saas ([2026-03-21])
+
+- Fichier : `.github/skills/ui-ux-front-saas/SKILL.md`
+- Décision d'architecture : **Skill** (et non nouvel agent) pour la couche UI/UX.
+
+### Pourquoi un Skill est plus pertinent qu'un agent ici
+
+| Option | Limite | Choix |
+|--------|--------|-------|
+| Nouvel agent UI/UX | Ajouterait un sous-agent de plus à orchestrer pour chaque tâche front, avec risque de doublon avec `angular-front` | Non retenu |
+| Skill UI/UX | Connaissance transversale, lazy-loaded, réutilisable par `dev` et `angular-front`, plus simple à maintenir | **Retenu** |
+
+### Règle d'usage
+
+- Toute tâche frontend qui touche un écran, un composant visuel, un layout, du HTML ou du SCSS doit charger ce skill en premier.
+- Le skill impose l'alignement avec la baseline visuelle login :
+    - `src/Front/src/app/features/login/login.component.html`
+    - `src/Front/src/app/features/login/login.component.scss`
+- Il encode le cadrage UX/UI SaaS B2B cloud, design system, accessibilité WCAG 2.1 AA, responsive, mode clair/sombre, et outputs handoff.
+
+### Fichiers mis à jour
+
+- `.github/agents/angular-front.agent.md` : skill UI/UX rendu obligatoire pour tâches UI
+- `.github/agents/dev.agent.md` : routing + skills catalog enrichis avec `ui-ux-front-saas`
+- `.github/copilot-instructions.md` : enregistrement global du skill + exigence frontend UI
+
+---
+
+## 24. Agent Aspire debug — aspire-debug ([2026-03-21])
+
+- Fichier : `.github/agents/aspire-debug.agent.md`
+- Décision d'architecture : **Agent** (et non skill) pour le debug runtime Aspire.
+
+### Pourquoi un Agent est plus pertinent qu'un Skill ici
+
+| Option | Limite | Choix |
+|--------|--------|-------|
+| Skill debug Aspire | Un skill n'apporte que de la connaissance, sans orchestration opérationnelle ni séparation de contexte dédiée | Non retenu |
+| Agent debug Aspire | Workflow outillé orienté diagnostics runtime (état ressources, logs structurés, console logs, traces, recovery/restart), facilement délégable depuis `dev` | **Retenu** |
+
+### Règle d'usage
+
+- Toute investigation runtime/AppHost (startup failure, ressource KO, dépendance indisponible, corrélation logs/traces) doit passer par `aspire-debug`.
+- Ordre de diagnostic imposé : apphost -> ressources -> structured logs -> console logs -> traces -> recovery minimal -> validation post-fix.
+- Le correctif code éventuel est ensuite délégué à `dotnet-dev` (backend) ou `angular-front` (frontend).
+
+### Fichiers mis à jour
+
+- `.github/agents/aspire-debug.agent.md` : nouvel agent spécialisé debug Aspire + MCP
+- `.github/agents/dev.agent.md` : ajout du routage "Debug runtime/AppHost Aspire"
+- `.github/copilot-instructions.md` : ajout de l'agent spécialisé Aspire runtime debugging
+
+---
+
 ## 16. Changelog
 ## 17. Changelog
 
@@ -706,3 +817,8 @@ La fonctionnalité Azure DevOps "Publish code as wiki" (sync auto Git → wiki) 
 | 2026-03-19 | copilot | Added Azure DevOps section (section 5) in `.github/agents/pr-manager.agent.md`: search or create Epic/US, add Tasks per action, link PR to ADO work items via `az boards`, update item statuses. Updated `memory.agent.md` checklist to include ADO step. ADO coordinates: org `florian-drevet`, project `Infra Flow Sculptor`. |
 | 2026-03-19 | copilot | Renamed `.github/agents/pr-conventions.agent.md` to `.github/agents/pr-manager.agent.md` and updated all references in `MEMORY.md`, `copilot-instructions.md`, and `memory.agent.md`. |
 | 2026-03-19 | copilot | Updated `.github/agents/pr-manager.agent.md`: added step 5 (documentation verification and update) in the PR creation protocol to check and update docs (`docs/`, `docs/azure/`, README, wiki) whenever changes impact documentation or require new information. |
+| 2026-03-21 | copilot | Created `.github/agents/angular-front.agent.md`: new specialized agent for all Angular 19 frontend work. Covers signals, standalone, zoneless, inject(), @if/@for/@switch, Material+Tailwind, Axios services, lazy routes. Updated `memory.agent.md` to delegate all `src/Front` tasks to this agent. Updated `copilot-instructions.md` with explicit agent reference and expanded frontend conventions. Added section 20 in MEMORY.md. |
+| 2026-03-21 | copilot | Created `.github/agents/dotnet-dev.agent.md`: new specialized agent for all C#/.NET backend work. Covers Microsoft naming conventions, XML documentation on all public members, no-magic-strings (constants/nameof), SOLID principles, async/await best practices, nullable reference types, immutability (record/init/readonly), pattern matching, guard clauses, sealed classes, EF Core pitfalls (AsNoTracking, value object comparisons), FluentValidation (WithMessage), ILogger<T> structured logging, code smell prevention (Long Method, Feature Envy, Primitive Obsession). Updated `memory.agent.md` and `copilot-instructions.md` with Specialized agents section. Added section 21 in MEMORY.md. |
+| 2026-03-21 | copilot | Refactored agent architecture: renamed `@memory` → `@dev` (new `dev.agent.md` orchestrator); extracted CQRS guide into lazy-loaded skill `.github/skills/cqrs-feature/SKILL.md`; deprecated `memory.agent.md` to a redirect notice; added Skills concept + `cqrs-feature` skill to `copilot-instructions.md`; added section 22 in MEMORY.md. |
+| 2026-03-21 | copilot | Added skill `.github/skills/ui-ux-front-saas/SKILL.md` for frontend UI/UX governance (based on login visual baseline + SaaS B2B cloud prompt). Enforced skill loading in `angular-front.agent.md`, registered routing in `dev.agent.md`, and added mandatory usage in `.github/copilot-instructions.md`. Added section 23 in MEMORY.md. |
+| 2026-03-21 | copilot | Added `.github/agents/aspire-debug.agent.md` for runtime diagnostics with Aspire MCP (resource health, structured logs, console logs, traces, restart/recovery workflow). Registered routing in `dev.agent.md` and specialized-agent policy in `.github/copilot-instructions.md`. Added section 24 in MEMORY.md with agent-vs-skill rationale. |

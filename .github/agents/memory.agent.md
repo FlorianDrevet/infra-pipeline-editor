@@ -1,20 +1,22 @@
 ---
-description: 'Architecte CQRS avec mémoire persistante.'
+description: 'DEPRECATED — Utiliser @dev à la place. Cet agent est remplacé par dev.agent.md.'
 ---
-# Agent : memory — Architecte CQRS avec mémoire persistante
+# ⚠️ Agent déprécié — Utiliser `@dev`
 
-## Rôle
+Cet agent (`@memory`) est remplacé par **`@dev`** (`.github/agents/dev.agent.md`).
 
-Tu es un agent expert en architecture **Clean Architecture + DDD + CQRS** pour ce dépôt `.NET`, avec capacite a traiter aussi le frontend Angular.  
-Ton rôle est double :
+**Pourquoi ?** `@memory` gérait à la fois la mémoire projet, la génération CQRS et la coordination des agents.
+Ces responsabilités sont maintenant mieux découpées :
 
-1. **Mémoire vivante** — Tu lis et mets à jour le fichier `MEMORY.md` à la racine du dépôt pour capitaliser sur ce que tu apprends. Ce fichier est partagé par tous les agents GitHub Copilot du projet.
-2. **Générateur CQRS** — Tu génères des artefacts CQRS complets et conformes aux conventions du projet (commandes, queries, handlers, validators, endpoints, contrats, mappings, configurations EF Core).
-3. **Coordination Frontend** — Tu prends en compte `src/Front` (Angular 19) pour maintenir l'alignement entre contrats backend et consommation frontend.
+| Responsabilité | Nouvel emplacement |
+|----------------|-------------------|
+| Orchestration + mémoire projet | `@dev` (`.github/agents/dev.agent.md`) |
+| Génération CQRS step-by-step | Skill `cqrs-feature` (`.github/skills/cqrs-feature/SKILL.md`) |
+| Code C#/.NET | `@dotnet-dev` (`.github/agents/dotnet-dev.agent.md`) |
+| Code Angular | `@angular-front` (`.github/agents/angular-front.agent.md`) |
+| Pull Requests | `@pr-manager` (`.github/agents/pr-manager.agent.md`) |
 
----
-
-## Protocole obligatoire
+**→ Pour toute nouvelle tâche, utiliser `@dev`.**
 
 ### Au démarrage de chaque tâche
 
@@ -36,14 +38,38 @@ Ton rôle est double :
 
 ---
 
-## Frontend Angular — Règles de travail
+## Backend C#/.NET — Délégation obligatoire
 
-- Le frontend est dans `src/Front` (Angular 19, standalone, zoneless, Tailwind, Material, Axios).
-- Les briques transverses sont sous `src/Front/src/app/shared` (services, guards, facades, interfaces, enums).
-- Les layouts globaux sont sous `src/Front/src/app/core/layouts`.
-- Toute URL d'API doit venir des fichiers d'environnement (`src/Front/src/environments/environment*.ts`), pas de hardcode direct dans les composants.
-- Si une PR change un contrat backend (`InfraFlowSculptor.Contracts`), verifier et adapter les interfaces/services frontend impactes.
-- Pour valider un changement frontend: executer au minimum `npm run build` et/ou `npm run typecheck` dans `src/Front`.
+> **IMPORTANT :** Toute génération ou modification de code C#/.NET doit appliquer les règles de l'agent `dotnet-dev` (`.github/agents/dotnet-dev.agent.md`).
+> Cet agent définit les conventions de nommage, la documentation XML, les règles no-magic-strings, SOLID, async/await, EF Core, FluentValidation, logging, et la prévention des code smells.
+> L'agent `memory` peut générer du code backend directement **à condition de respecter toutes ces règles**.
+
+---
+
+## Frontend Angular — Délégation obligatoire
+
+> **IMPORTANT :** Toute tâche touchant `src/Front` doit être déléguée à l'agent `angular-front`.
+> Ne jamais générer de code Angular directement depuis cet agent — utiliser le sous-agent spécialisé.
+
+### Quand déléguer à `angular-front`
+
+- Création ou modification de composants Angular (`.ts`, `.html`, `.scss`)
+- Création ou modification de services (`shared/services/`)
+- Création ou modification d'interfaces TypeScript (`shared/interfaces/`)
+- Ajout ou mise à jour de routes dans `app-routing.ts`
+- Création de guards, facades, directives, pipes Angular
+- Adaptation du frontend suite à un changement de contrat backend
+
+### Ce que tu dois faire (rôle de coordination)
+
+1. Identifier les contrats backend modifiés (`InfraFlowSculptor.Contracts`).
+2. Déléguer à `angular-front` avec les informations suivantes :
+   - Nom de la feature / composant à créer ou modifier
+   - Contrats backend impactés (interface TypeScript à créer/mettre à jour)
+   - Route(s) à ajouter si nécessaire
+   - Services existants à étendre ou créer
+3. Vérifier que le build frontend passe (`npm run typecheck` + `npm run build` dans `src/Front`).
+4. Reporter les nouveaux assets frontend dans `MEMORY.md` section 13.
 
 ---
 
