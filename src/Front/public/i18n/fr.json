@@ -298,6 +298,16 @@
     "BOOLEAN": {
       "YES": "Oui",
       "NO": "Non"
+    },
+    "INHERITANCE": {
+      "USE_PROJECT": "Heriter du projet",
+      "ENVIRONMENTS_INHERITED": "Environnements herites du projet",
+      "ENVIRONMENTS_OVERRIDDEN": "Environnements personnalises",
+      "NAMING_INHERITED": "Conventions de nommage heritees du projet",
+      "NAMING_OVERRIDDEN": "Conventions de nommage personnalisees",
+      "FROM_PROJECT": "Du projet",
+      "NO_PROJECT_ENVIRONMENTS": "Aucun environnement defini au niveau du projet.",
+      "NO_PROJECT_NAMING": "Aucun template de nommage defini au niveau du projet."
     }
   },
   "PROJECT_DETAIL": {
@@ -306,6 +316,8 @@
     },
     "TABS": {
       "CONFIGURATIONS": "Configurations",
+      "ENVIRONMENTS": "Environnements",
+      "NAMING_TEMPLATES": "Nommage",
       "MEMBERS": "Membres"
     },
     "STATE": {
@@ -356,6 +368,90 @@
       "ADD_DIALOG_ERROR": "Impossible d'ajouter le membre. Veuillez reessayer.",
       "REMOVE_ERROR": "Impossible de retirer le membre.",
       "ROLE_CHANGE_ERROR": "Impossible de modifier le role."
+    },
+    "ENVIRONMENTS": {
+      "ADD": "Ajouter un environnement",
+      "EMPTY": "Aucun environnement defini pour ce projet.",
+      "REMOVE_CONFIRM_TITLE": "Supprimer l'environnement",
+      "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer l'environnement « {{name}} » ?",
+      "REMOVE_CONFIRM_YES": "Supprimer",
+      "REMOVE_CONFIRM_CANCEL": "Annuler",
+      "REMOVE_ERROR": "Impossible de supprimer l'environnement.",
+      "ORDER": "Ordre",
+      "TENANT_ID": "Tenant ID",
+      "SUBSCRIPTION_ID": "Subscription ID",
+      "PREFIX": "Prefixe",
+      "SUFFIX": "Suffixe",
+      "REQUIRES_APPROVAL": "Approbation",
+      "FORM": {
+        "DIALOG_TITLE_ADD": "Ajouter un environnement",
+        "DIALOG_TITLE_EDIT": "Modifier l'environnement",
+        "DIALOG_DESCRIPTION_ADD": "Definissez un environnement au niveau du projet.",
+        "DIALOG_DESCRIPTION_EDIT": "Modifiez l'environnement du projet.",
+        "NAME": "Nom",
+        "NAME_PLACEHOLDER": "ex : dev, staging, prod",
+        "LOCATION": "Region",
+        "TENANT_ID": "Tenant ID",
+        "TENANT_ID_PLACEHOLDER": "ex : xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "SUBSCRIPTION_ID": "Subscription ID",
+        "SUBSCRIPTION_ID_PLACEHOLDER": "ex : xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "PREFIX": "Prefixe de nommage",
+        "PREFIX_PLACEHOLDER": "ex : myapp",
+        "SUFFIX": "Suffixe de nommage",
+        "SUFFIX_PLACEHOLDER": "ex : 01",
+        "REQUIRES_APPROVAL": "Necessite une approbation",
+        "CANCEL": "Annuler",
+        "ADD": "Ajouter",
+        "SAVE": "Enregistrer",
+        "ERROR_ADD": "Impossible d'ajouter l'environnement.",
+        "ERROR_EDIT": "Impossible de modifier l'environnement.",
+        "ORDER_HELP": "Position dans le pipeline",
+        "ORDER_LABEL": "Ordre de deploiement"
+      }
+    },
+    "NAMING_TEMPLATES": {
+      "DEFAULT": "Template par defaut",
+      "DEFAULT_EMPTY": "Aucun template par defaut configure pour le moment.",
+      "EMPTY": "Aucun template de nommage defini.",
+      "ADD_DEFAULT": "Ajouter le template par defaut",
+      "EDIT_DEFAULT": "Modifier le template par defaut",
+      "ADD_RESOURCE": "Ajouter un template de ressource",
+      "EDIT": "Modifier",
+      "REMOVE": "Supprimer",
+      "ALL_RESOURCE_TYPES_CONFIGURED": "Tous les types de ressource ont deja un template de nommage.",
+      "DEFAULT_ADD_DIALOG_TITLE": "Ajouter le template de nommage par defaut",
+      "DEFAULT_EDIT_DIALOG_TITLE": "Modifier le template de nommage par defaut",
+      "RESOURCE_ADD_DIALOG_TITLE": "Ajouter un template de nommage de ressource",
+      "RESOURCE_EDIT_DIALOG_TITLE": "Modifier le template de nommage de ressource",
+      "DEFAULT_SAVE_ERROR": "Impossible d'enregistrer le template de nommage par defaut.",
+      "RESOURCE_SAVE_ERROR": "Impossible d'enregistrer le template de nommage de ressource.",
+      "RESOURCE_REMOVE_ERROR": "Impossible de supprimer le template de nommage de ressource.",
+      "REMOVE_CONFIRM_TITLE": "Supprimer le template de nommage",
+      "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer le template de nommage pour {{resourceType}} ?",
+      "REMOVE_CONFIRM_YES": "Supprimer",
+      "REMOVE_CONFIRM_CANCEL": "Annuler",
+      "PLACEHOLDERS": {
+        "name": "Nom du projet",
+        "prefix": "Prefixe global",
+        "suffix": "Suffixe global",
+        "env": "Environnement (dev, staging, prod…)",
+        "resourceType": "Type de ressource (KeyVault, StorageAccount…)",
+        "resourceAbbr": "Abreviation du type de ressource (kv, stg, redis…)",
+        "location": "Region Azure (westeurope, eastus…)"
+      },
+      "FORM": {
+        "RESOURCE_TYPE": "Type de ressource",
+        "TEMPLATE": "Template",
+        "TEMPLATE_PLACEHOLDER": "Exemple : {env}-{name}",
+        "AVAILABLE_VARIABLES": "Variables disponibles",
+        "CANCEL": "Annuler",
+        "ADD": "Ajouter",
+        "SAVE": "Enregistrer"
+      }
+    },
+    "BOOLEAN": {
+      "YES": "Oui",
+      "NO": "Non"
     }
   }
 }

@@ -18,6 +18,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
 {
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<ProjectMember> ProjectMembers { get; set; } = null!;
+    public DbSet<ProjectResourceNamingTemplate> ProjectResourceNamingTemplates { get; set; } = null!;
     public DbSet<InfrastructureConfig> InfrastructureConfigs { get; set; } = null!;
     public DbSet<ResourceGroup> ResourceGroups { get; set; } = null!;
     public DbSet<KeyVault> KeyVaults { get; set; } = null!;

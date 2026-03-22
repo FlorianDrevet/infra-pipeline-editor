@@ -21,6 +21,18 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     /// </summary>
     public NamingTemplate? DefaultNamingTemplate { get; private set; }
 
+    /// <summary>
+    /// When <c>true</c>, this configuration inherits environments from the parent project.
+    /// When <c>false</c>, it uses its own environment definitions.
+    /// </summary>
+    public bool UseProjectEnvironments { get; private set; } = true;
+
+    /// <summary>
+    /// When <c>true</c>, this configuration inherits naming conventions from the parent project.
+    /// When <c>false</c>, it uses its own naming templates.
+    /// </summary>
+    public bool UseProjectNamingConventions { get; private set; } = true;
+
     private readonly List<ResourceGroup> _resourceGroups = new();
     public IReadOnlyList<ResourceGroup> ResourceGroups => _resourceGroups.AsReadOnly();
 
@@ -189,5 +201,19 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
             return false;
         _resourceNamingTemplates.Remove(existing);
         return true;
+    }
+
+    // ─── Inheritance Toggles ────────────────────────────────────────────────
+
+    /// <summary>Sets whether this configuration inherits environments from the parent project.</summary>
+    public void SetUseProjectEnvironments(bool value)
+    {
+        UseProjectEnvironments = value;
+    }
+
+    /// <summary>Sets whether this configuration inherits naming conventions from the parent project.</summary>
+    public void SetUseProjectNamingConventions(bool value)
+    {
+        UseProjectNamingConventions = value;
     }
 }

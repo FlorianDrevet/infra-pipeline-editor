@@ -7,8 +7,16 @@ import {
   AddProjectMemberRequest,
   UpdateProjectMemberRoleRequest,
 } from '../interfaces/project.interface';
-import { InfrastructureConfigResponse } from '../interfaces/infra-config.interface';
-import { UserResponse } from '../interfaces/infra-config.interface';
+import {
+  InfrastructureConfigResponse,
+  UserResponse,
+  EnvironmentDefinitionResponse,
+  ResourceNamingTemplateResponse,
+  AddEnvironmentRequest,
+  UpdateEnvironmentRequest,
+  SetDefaultNamingTemplateRequest,
+  SetResourceNamingTemplateRequest,
+} from '../interfaces/infra-config.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -63,6 +71,73 @@ export class ProjectService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/projects/${projectId}/members/${userId}`
+    );
+  }
+
+  // ─── Environments ───
+
+  addEnvironment(
+    projectId: string,
+    request: AddEnvironmentRequest
+  ): Promise<EnvironmentDefinitionResponse> {
+    return this.axios.request$<EnvironmentDefinitionResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/environments`,
+      request
+    );
+  }
+
+  updateEnvironment(
+    projectId: string,
+    envId: string,
+    request: UpdateEnvironmentRequest
+  ): Promise<EnvironmentDefinitionResponse> {
+    return this.axios.request$<EnvironmentDefinitionResponse>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/environments/${envId}`,
+      request
+    );
+  }
+
+  removeEnvironment(projectId: string, envId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/environments/${envId}`
+    );
+  }
+
+  // ─── Naming Templates ───
+
+  setDefaultNamingTemplate(
+    projectId: string,
+    request: SetDefaultNamingTemplateRequest
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/naming/default`,
+      request
+    );
+  }
+
+  setResourceNamingTemplate(
+    projectId: string,
+    resourceType: string,
+    request: SetResourceNamingTemplateRequest
+  ): Promise<ResourceNamingTemplateResponse> {
+    return this.axios.request$<ResourceNamingTemplateResponse>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/naming/resources/${resourceType}`,
+      request
+    );
+  }
+
+  removeResourceNamingTemplate(
+    projectId: string,
+    resourceType: string
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/naming/resources/${resourceType}`
     );
   }
 }

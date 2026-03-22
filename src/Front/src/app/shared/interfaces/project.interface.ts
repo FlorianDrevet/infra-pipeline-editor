@@ -1,3 +1,8 @@
+import {
+  EnvironmentDefinitionResponse,
+  ResourceNamingTemplateResponse,
+} from './infra-config.interface';
+
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface ProjectMemberResponse {
@@ -14,6 +19,9 @@ export interface ProjectResponse {
   name: string;
   description?: string;
   members: ProjectMemberResponse[];
+  environmentDefinitions: EnvironmentDefinitionResponse[];
+  defaultNamingTemplate: string | null;
+  resourceNamingTemplates: ResourceNamingTemplateResponse[];
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────

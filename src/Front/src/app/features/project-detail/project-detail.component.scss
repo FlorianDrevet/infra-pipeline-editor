@@ -197,8 +197,7 @@
     gap: 0.45rem;
     color: #617892;
     font-weight: 600;
-    font-size: 0.84rem;
-  }
+    font-size: 0.84rem;  }
 
   ::ng-deep .mdc-tab--active .mdc-tab__text-label {
     color: #1565c0;
@@ -500,4 +499,271 @@ a.config-card {
   width: 2.5rem;
   height: 2.5rem;
   color: rgba(21, 101, 192, 0.3);
+}
+
+// ─── Environments ────
+
+.add-env-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 188, 212, 0.2);
+  background: rgba(0, 188, 212, 0.06);
+  color: #00838f;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover { background: rgba(0, 188, 212, 0.12); border-color: rgba(0, 188, 212, 0.32); }
+}
+
+.add-env-btn__icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
+
+.env-pipeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.env-pipeline__connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0;
+  color: rgba(0, 188, 212, 0.55);
+
+  mat-icon {
+    font-size: 1.3rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    transform: rotate(90deg);
+  }
+}
+
+.env-card {
+  padding: 1.1rem;
+  border-radius: 1.2rem;
+  background: linear-gradient(180deg, #fff, #f6fbff);
+  border: 1px solid rgba(146, 191, 235, 0.24);
+  position: relative;
+  transition: opacity 0.2s ease;
+
+  &--busy { opacity: 0.6; pointer-events: none; }
+}
+
+.env-card__spinner {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.env-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h3 {
+    margin: 0;
+    color: #103454;
+    font-size: 1.05rem;
+  }
+}
+
+.env-card__header-actions { display: flex; align-items: center; gap: 0.4rem; }
+
+.env-action-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem; border-radius: 50%;
+  border: 1px solid transparent; background: transparent; cursor: pointer;
+  mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
+  &:disabled { opacity: 0.4; cursor: default; }
+  &--edit { color: #1565c0; border-color: rgba(21, 101, 192, 0.18); background: rgba(21, 101, 192, 0.05); &:hover { background: rgba(21, 101, 192, 0.12); } }
+  &--delete { color: #c62828; border-color: rgba(217, 45, 32, 0.18); background: rgba(217, 45, 32, 0.05); &:hover { background: rgba(217, 45, 32, 0.12); } }
+}
+
+.env-card__details {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.7rem;
+}
+
+.detail-row {
+  padding: 0.7rem 0.8rem;
+  border-radius: 1rem;
+  background: rgba(13, 101, 192, 0.05);
+
+  span {
+    display: block;
+    color: #617892;
+    font-size: 0.78rem;
+    margin-bottom: 0.25rem;
+  }
+
+  strong {
+    display: block;
+    color: #103454;
+    font-size: 0.88rem;
+  }
+
+  .mono {
+    font-family: monospace;
+    font-size: 0.82rem;
+    word-break: break-all;
+  }
+}
+
+.env-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.tag-chip {
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(13, 101, 192, 0.06);
+  color: #1565c0;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+// ─── Naming Templates ────
+
+.naming-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.default-template {
+  padding: 0.95rem 1.1rem;
+  border-radius: 1.15rem;
+  background: rgba(0, 188, 212, 0.06);
+  border: 1px solid rgba(0, 188, 212, 0.14);
+  margin-bottom: 0.85rem;
+  position: relative;
+
+  &--busy { opacity: 0.7; pointer-events: none; }
+}
+
+.default-template__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin-bottom: 0.35rem;
+
+  span {
+    display: block;
+    color: #00838f;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+.default-template__empty {
+  margin: 0;
+  color: #617892;
+  font-size: 0.84rem;
+}
+
+.default-template__spinner,
+.template-row__spinner {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.default-template code {
+  color: #103454;
+  font-size: 0.9rem;
+}
+
+.template-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.template-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #fff, #f6fbff);
+  border: 1px solid rgba(146, 191, 235, 0.18);
+  position: relative;
+
+  &--busy { opacity: 0.7; pointer-events: none; }
+}
+
+.template-row__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+
+  strong { color: #103454; font-size: 0.88rem; }
+  code { color: #617892; font-size: 0.84rem; word-break: break-all; }
+}
+
+.template-row__actions {
+  display: inline-flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.template-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(146, 191, 235, 0.3);
+  background: rgba(13, 101, 192, 0.05);
+  color: #1565c0;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-height: 2rem;
+  min-width: 2rem;
+  padding: 0.3rem 0.65rem;
+
+  mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
+  &:hover { background: rgba(13, 101, 192, 0.12); }
+  &:disabled { opacity: 0.45; cursor: default; }
+
+  &--add {
+    border-color: rgba(0, 188, 212, 0.28);
+    background: rgba(0, 188, 212, 0.06);
+    color: #00838f;
+    padding-inline: 0.8rem;
+    &:hover { background: rgba(0, 188, 212, 0.14); }
+  }
+
+  &--inline { min-height: 1.9rem; }
+
+  &--edit {
+    color: #1565c0;
+    border-color: rgba(21, 101, 192, 0.18);
+    background: rgba(21, 101, 192, 0.05);
+    &:hover { background: rgba(21, 101, 192, 0.12); }
+  }
+
+  &--delete {
+    color: #c62828;
+    border-color: rgba(217, 45, 32, 0.22);
+    background: rgba(217, 45, 32, 0.05);
+    &:hover { background: rgba(217, 45, 32, 0.12); }
+  }
 }

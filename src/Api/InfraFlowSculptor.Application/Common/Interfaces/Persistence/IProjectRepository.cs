@@ -16,6 +16,11 @@ public interface IProjectRepository : IRepository<Project>
     Task<Project?> GetByIdWithMembersAsync(ProjectId id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves a project by identifier, including members, environments, and naming templates.
+    /// </summary>
+    Task<Project?> GetByIdWithAllAsync(ProjectId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Returns all projects the given user is a member of.
     /// </summary>
     Task<List<Project>> GetAllForUserAsync(UserId userId, CancellationToken cancellationToken = default);

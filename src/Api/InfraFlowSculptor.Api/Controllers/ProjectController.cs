@@ -1,8 +1,14 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListUsers;
+using InfraFlowSculptor.Application.Projects.Commands.AddProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectMember;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProject;
+using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
+using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectResourceNamingTemplate;
+using InfraFlowSculptor.Application.Projects.Commands.SetProjectDefaultNamingTemplate;
+using InfraFlowSculptor.Application.Projects.Commands.SetProjectResourceNamingTemplate;
+using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectMemberRole;
 using InfraFlowSculptor.Application.Projects.Queries.GetProject;
 using InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
@@ -215,6 +221,162 @@ public static class ProjectController
                 .WithName("RemoveProjectMember")
                 .WithSummary("Remove a member from a project")
                 .WithDescription("Removes a user from a Project. Requires Owner access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Environments ──────────────────────────────────────────────
+
+            group.MapPost("/{id:guid}/environments",
+                    async ([FromRoute] Guid id, AddProjectEnvironmentRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new AddProjectEnvironmentCommand(
+                            new ProjectId(id),
+                            request.Name,
+                            request.Prefix,
+                            request.Suffix,
+                            request.Location,
+                            request.TenantId,
+                            request.SubscriptionId,
+                            request.Order,
+                            request.RequiresApproval,
+                            request.Tags.Select(t => (t.Name, t.Value)).ToList()
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            env =>
+                            {
+                                var response = mapper.Map<EnvironmentDefinitionResponse>(env);
+                                return Results.Created($"/projects/{id}/environments/{response.Id}", response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("AddProjectEnvironment")
+                .WithSummary("Add an environment to a project")
+                .WithDescription("Adds a new project-level environment definition. Requires Owner or Contributor access.")
+                .Produces<EnvironmentDefinitionResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPut("/{id:guid}/environments/{envId:guid}",
+                    async ([FromRoute] Guid id, [FromRoute] Guid envId, UpdateProjectEnvironmentRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new UpdateProjectEnvironmentCommand(
+                            new ProjectId(id),
+                            new ProjectEnvironmentDefinitionId(envId),
+                            request.Name,
+                            request.Prefix,
+                            request.Suffix,
+                            request.Location,
+                            request.TenantId,
+                            request.SubscriptionId,
+                            request.Order,
+                            request.RequiresApproval,
+                            request.Tags.Select(t => (t.Name, t.Value)).ToList()
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            env => Results.Ok(mapper.Map<EnvironmentDefinitionResponse>(env)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("UpdateProjectEnvironment")
+                .WithSummary("Update a project environment")
+                .WithDescription("Updates all fields of an existing project-level environment definition. Requires Owner or Contributor access.")
+                .Produces<EnvironmentDefinitionResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapDelete("/{id:guid}/environments/{envId:guid}",
+                    async ([FromRoute] Guid id, [FromRoute] Guid envId, IMediator mediator) =>
+                    {
+                        var command = new RemoveProjectEnvironmentCommand(
+                            new ProjectId(id),
+                            new ProjectEnvironmentDefinitionId(envId)
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveProjectEnvironment")
+                .WithSummary("Remove a project environment")
+                .WithDescription("Removes a project-level environment definition. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Naming Templates ──────────────────────────────────────────
+
+            group.MapPut("/{id:guid}/naming/default",
+                    async ([FromRoute] Guid id, SetProjectDefaultNamingTemplateRequest request, IMediator mediator) =>
+                    {
+                        var command = new SetProjectDefaultNamingTemplateCommand(
+                            new ProjectId(id),
+                            request.Template
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetProjectDefaultNamingTemplate")
+                .WithSummary("Set the project default naming template")
+                .WithDescription("Sets or clears the default naming template at the project level. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPut("/{id:guid}/naming/resources/{resourceType}",
+                    async ([FromRoute] Guid id, [FromRoute] string resourceType, SetProjectResourceNamingTemplateRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new SetProjectResourceNamingTemplateCommand(
+                            new ProjectId(id),
+                            resourceType,
+                            request.Template
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            tpl => Results.Ok(mapper.Map<ResourceNamingTemplateResponse>(tpl)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetProjectResourceNamingTemplate")
+                .WithSummary("Set a per-resource-type naming template")
+                .WithDescription("Creates or replaces a naming template for a specific Azure resource type at the project level. Requires Owner or Contributor access.")
+                .Produces<ResourceNamingTemplateResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapDelete("/{id:guid}/naming/resources/{resourceType}",
+                    async ([FromRoute] Guid id, [FromRoute] string resourceType, IMediator mediator) =>
+                    {
+                        var command = new RemoveProjectResourceNamingTemplateCommand(
+                            new ProjectId(id),
+                            resourceType
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveProjectResourceNamingTemplate")
+                .WithSummary("Remove a per-resource-type naming template")
+                .WithDescription("Removes a per-resource-type naming template from the project. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);

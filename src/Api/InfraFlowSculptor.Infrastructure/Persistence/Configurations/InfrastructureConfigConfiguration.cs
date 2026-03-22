@@ -46,6 +46,15 @@ public sealed class InfrastructureConfigConfiguration
             .OnDelete(DeleteBehavior.Cascade);
 
         // ========================
+        // Inheritance flags
+        // ========================
+        builder.Property(x => x.UseProjectEnvironments)
+            .HasDefaultValue(true);
+
+        builder.Property(x => x.UseProjectNamingConventions)
+            .HasDefaultValue(true);
+
+        // ========================
         // ResourceGroups (Entity)
         // ========================
         builder.HasMany(x => x.ResourceGroups)

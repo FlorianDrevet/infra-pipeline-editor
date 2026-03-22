@@ -8,4 +8,7 @@ public record ProjectResult(
     ProjectId Id,
     Name Name,
     string? Description,
-    IReadOnlyList<ProjectMemberResult> Members);
+    IReadOnlyList<ProjectMemberResult> Members,
+    IReadOnlyList<ProjectEnvironmentDefinitionResult> EnvironmentDefinitions,
+    string? DefaultNamingTemplate,
+    IReadOnlyList<ProjectResourceNamingTemplateResult> ResourceNamingTemplates);

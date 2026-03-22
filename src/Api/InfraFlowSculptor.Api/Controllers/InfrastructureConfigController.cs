@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInheritance;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupsByConfig;
@@ -117,6 +118,30 @@ public static class InfrastructureConfigController
                 .Produces<InfrastructureConfigResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+            // PUT /{id:guid}/inheritance
+            config.MapPut("/{id:guid}/inheritance",
+                    async ([FromRoute] Guid id, SetInheritanceRequest request, IMediator mediator) =>
+                    {
+                        var command = new SetInheritanceCommand(
+                            new InfrastructureConfigId(id),
+                            request.UseProjectEnvironments,
+                            request.UseProjectNamingConventions
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetInheritance")
+                .WithSummary("Toggle project-level inheritance")
+                .WithDescription("Controls whether this configuration inherits environments and/or naming conventions from the parent project. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
 }

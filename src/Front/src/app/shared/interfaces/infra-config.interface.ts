@@ -44,6 +44,8 @@ export interface InfrastructureConfigResponse {
   name: string;
   defaultNamingTemplate: string | null;
   projectId: string;
+  useProjectEnvironments: boolean;
+  useProjectNamingConventions: boolean;
   environmentDefinitions: EnvironmentDefinitionResponse[];
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
 }

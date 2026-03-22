@@ -1,6 +1,8 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
+using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Projects.Common;
+using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
 using MediatR;
 
@@ -9,6 +11,7 @@ namespace InfraFlowSculptor.Application.Projects.Queries.GetProject;
 /// <summary>Handles the <see cref="GetProjectQuery"/>.</summary>
 public sealed class GetProjectQueryHandler(
     IProjectAccessService accessService,
+    IProjectRepository projectRepository,
     IMapper mapper)
     : IRequestHandler<GetProjectQuery, ErrorOr<ProjectResult>>
 {
@@ -21,6 +24,11 @@ public sealed class GetProjectQueryHandler(
         if (accessResult.IsError)
             return accessResult.Errors;
 
-        return mapper.Map<ProjectResult>(accessResult.Value);
+        // Reload with full includes (members, environments, naming templates)
+        var project = await projectRepository.GetByIdWithAllAsync(query.Id, cancellationToken);
+        if (project is null)
+            return Errors.Project.NotFoundError(query.Id);
+
+        return mapper.Map<ProjectResult>(project);
     }
 }

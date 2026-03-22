@@ -65,7 +65,7 @@ src/
 
 | Aggregate | Root | Key Entities | Notes |
 |-----------|------|-------------|-------|
-| `Project` | `Project` | `ProjectMember` | Groups InfrastructureConfigs; owns membership/RBAC |
+| `Project` | `Project` | `ProjectMember`, `ProjectEnvironmentDefinition`, `ProjectResourceNamingTemplate` | Groups InfrastructureConfigs; owns membership/RBAC, default environments, naming conventions |
 | `InfrastructureConfig` | `InfrastructureConfig` | `EnvironmentDefinition`, `ParameterDefinition`, `ResourceParameterUsage`, `EnvironmentParameterValue` | Has `ProjectId` FK to Project |
 | `ResourceGroup` | `ResourceGroup` | `AzureResource` (base), `InputOutputLink` | Hosts Azure resources |
 | `KeyVault` | `KeyVault` extends `AzureResource` | — | TPT in EF Core |
@@ -82,7 +82,7 @@ All value objects inherit from `Shared.Domain` base classes:
 - `ValueObject` — base with structural equality
 
 Key value objects per aggregate:
-- **Project:** `ProjectId`, `ProjectMemberId`
+- **Project:** `ProjectId`, `ProjectMemberId`, `ProjectEnvironmentDefinitionId`, `ProjectResourceNamingTemplateId`
 - **InfrastructureConfig:** `InfrastructureConfigId`, `Role` (Owner/Contributor/Reader), `EnvironmentDefinitionId`, `ParameterDefinitionId`, `ParameterType`, `Prefix`, `Suffix`, `Order`, `IsSecret`, `TenantId`, `SubscriptionId`, `RequiresApproval`
 - **ResourceGroup:** `ResourceGroupId`, `Name`, `Location`
 - **AzureResource:** `AzureResourceId`, `Name`
@@ -518,6 +518,46 @@ Ajouter dans `angular.json` → `build.options` :
 - Generates Bicep files per environment, uploads to Azure Blob Storage
 - Uses **strategy pattern**: `IResourceTypeBicepGenerator` per Azure resource type
 - New resource types require: a new `IResourceTypeBicepGenerator` implementation + registration in `BicepGenerator.Application/DependencyInjection.cs`
+
+---
+
+## 14.1 Azure Resource Naming Conventions ([2026-03-22])
+
+> **CRITICAL PROJECT DATA — Do NOT remove or modify without explicit user request.**
+
+### Default naming templates (auto-set at project creation)
+
+These templates are auto-applied by `CreateProjectCommandHandler` when a new project is created.
+They were previously on `CreateInfrastructureConfigCommandHandler` but were moved to project level.
+
+| Scope | Template | Example result |
+|-------|----------|----------------|
+| **Default (all resources)** | `{name}-{resourceAbbr}{suffix}` | `myapp-kv01` |
+| **ResourceGroup** override | `{resourceAbbr}-{name}{suffix}` | `rg-myapp01` |
+| **StorageAccount** override | `{name}{resourceAbbr}{suffix}` | `myappstg01` |
+
+### Resource type abbreviation catalog
+
+Defined in `ResourceAbbreviationCatalog` (`src/Api/InfraFlowSculptor.Application/InfrastructureConfig/Common/ResourceAbbreviationCatalog.cs`):
+
+| Resource Type | Abbreviation |
+|---------------|-------------|
+| KeyVault | `kv` |
+| RedisCache | `redis` |
+| StorageAccount | `stg` |
+| ResourceGroup | `rg` |
+
+### Available naming template placeholders
+
+`{name}`, `{prefix}`, `{suffix}`, `{env}`, `{resourceType}`, `{resourceAbbr}`, `{location}`
+
+Validated by `NamingTemplateValidator` — any placeholder not in this list is rejected.
+
+### Where naming lives
+
+- **Project level** (source of truth): `Project.DefaultNamingTemplate` + `Project.ResourceNamingTemplates` — set at project creation, editable via API
+- **InfrastructureConfig level**: inherits from project by default (`UseProjectNamingConventions = true`), can be overridden per config
+- **Auto-set logic**: `CreateProjectCommandHandler` in `src/Api/InfraFlowSculptor.Application/Projects/Commands/CreateProject/`
 
 ---
 
@@ -1032,3 +1072,5 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-22 | copilot | Added visual pipeline connector between environment cards in Environments tab: replaced `env-grid` (CSS grid) with `env-pipeline` (flex column), added `env-pipeline__connector` with a cyan `arrow_forward` icon (rotated 90°) between each card to visually convey deployment order flow. Removed `.order-chip` from card headers and SCSS (order is now implicit in the pipeline flow). |
 | 2026-03-21 | copilot | Fixed environment order collision bug: added order shifting logic in the `InfrastructureConfig` aggregate root. `AddEnvironment` shifts existing envs with order >= new order up by 1 (`ShiftOrdersUp`). `UpdateEnvironment` reorders siblings when order changes (`ReorderEnvironments` — shifts range up or down depending on direction). `RemoveEnvironment` closes the gap by shifting envs with order > removed down by 1 (`ShiftOrdersDown`). This ensures order uniqueness as a domain invariant. |
 | 2026-03-21 | copilot | Revamped navigation header: replaced dull dark `rgba(5,23,44,.78)` background with vibrant gradient `linear-gradient(135deg, #0d2f66, #1565c0, #0288d1)` matching login/home pages. Replaced inline SVG logo with `mat-icon cloud_circle` (added `MatIconModule` import). Updated brand icon to frosted glass style (`rgba(255,255,255,0.15)` bg, `#b3e5fc` icon color). Refreshed border to cyan glow (`rgba(0,188,212,0.3)`). Updated avatar, logout button, and action borders to use `rgba(255,255,255,*)` tones for consistency on the brighter gradient. |
+| 2026-03-22 | copilot | Added **project-level environments & naming conventions with per-config inheritance**: **Domain** — new `ProjectEnvironmentDefinition` entity (OwnsMany on Project), `ProjectResourceNamingTemplate` entity (HasMany), `Project.DefaultNamingTemplate` property, full CRUD methods on Project aggregate (AddEnvironment, UpdateEnvironment, RemoveEnvironment with order shifting, SetDefaultNamingTemplate, SetResourceNamingTemplate, RemoveResourceNamingTemplate). `InfrastructureConfig` added `UseProjectEnvironments` and `UseProjectNamingConventions` booleans (default true) with setter methods. **Application** — CQRS commands: AddProjectEnvironment, UpdateProjectEnvironment, RemoveProjectEnvironment, SetProjectDefaultNamingTemplate, SetProjectResourceNamingTemplate, RemoveProjectResourceNamingTemplate (all with FluentValidation + IProjectAccessService write auth). SetInheritance command for toggling inheritance on InfraConfig. Updated ProjectResult, GetInfrastructureConfigResult, GetProjectQueryHandler (now uses GetByIdWithAllAsync). **Infrastructure** — updated ProjectConfiguration (OwnsMany environments with tags, HasMany naming templates, DefaultNamingTemplate conversion), new ProjectResourceNamingTemplateConfiguration, InfrastructureConfigConfiguration (UseProject* bool columns with default true), ProjectRepository.GetByIdWithAllAsync, ProjectDbContext (added DbSet<ProjectResourceNamingTemplate>). Migration `AddProjectEnvironmentsAndNaming`. **Contracts** — updated ProjectResponse/InfrastructureConfigResponse, new request DTOs (AddProjectEnvironmentRequest, UpdateProjectEnvironmentRequest, SetProjectDefaultNamingTemplateRequest, SetProjectResourceNamingTemplateRequest, SetInheritanceRequest). **API** — new endpoints on ProjectController (POST/PUT/DELETE environments, PUT default naming, PUT/DELETE resource naming), new PUT /infra-config/{id}/inheritance on InfrastructureConfigController. Updated Mapster mappings for ProjectEnvironmentDefinition/ProjectResourceNamingTemplate. **Frontend** — project-detail: 2 new tabs (Environments, Naming) with add/edit/remove dialogs, shared LocationEnum. config-detail: inheritance toggle (mat-slide-toggle) per tab with "Inherited from project" / "Custom override" visual indicators; when inherited, env/naming are read-only. Updated ProjectResponse/InfrastructureConfigResponse interfaces, ProjectService (env/naming CRUD), InfraConfigService.setInheritance(). i18n additions in both FR/EN for all new features. |
+| 2026-03-22 | copilot | Moved default naming template auto-configuration from `CreateInfrastructureConfigCommandHandler` to `CreateProjectCommandHandler`. Now every new project gets: default template `{name}-{resourceAbbr}{suffix}`, ResourceGroup override `{resourceAbbr}-{name}{suffix}`, StorageAccount override `{name}{resourceAbbr}{suffix}`. InfraConfigs no longer auto-set naming on creation (they inherit from project). Added section 14.1 in MEMORY.md documenting naming conventions as critical project data. |

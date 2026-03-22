@@ -26,8 +26,11 @@ import {
   AddNamingTemplateDialogResult,
 } from './add-naming-template-dialog/add-naming-template-dialog.component';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
+import { ProjectService } from '../../shared/services/project.service';
+import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS } from './enums/resource-type.enum';
 import { FormsModule } from '@angular/forms';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 
 
@@ -44,6 +47,7 @@ import { FormsModule } from '@angular/forms';
     MatIconModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
   ],
@@ -54,9 +58,11 @@ export class ConfigDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly resourceGroupService = inject(ResourceGroupService);
+  private readonly projectService = inject(ProjectService);
   private readonly dialog = inject(MatDialog);
 
   protected readonly config = signal<InfrastructureConfigResponse | null>(null);
+  protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly resourceGroups = signal<ResourceGroupResponse[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly loadError = signal('');
@@ -70,6 +76,17 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly rgResourcesLoading = signal<string | null>(null);
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
+
+  // ─── Inheritance ───
+  protected readonly inheritanceLoading = signal(false);
+
+  protected readonly useProjectEnvironments = computed(() => this.config()?.useProjectEnvironments ?? false);
+  protected readonly useProjectNamingConventions = computed(() => this.config()?.useProjectNamingConventions ?? false);
+
+  protected readonly projectSortedEnvironments = computed(() => {
+    const envs = this.project()?.environmentDefinitions ?? [];
+    return [...envs].sort((a, b) => a.order - b.order);
+  });
 
   // canWrite defaults to true — access checks are now at project level
   protected readonly canWrite = signal(true);
@@ -141,6 +158,16 @@ export class ConfigDetailComponent implements OnInit {
       ]);
       this.config.set(config);
       this.resourceGroups.set(resourceGroups);
+
+      // Load the parent project for inheritance data
+      if (config.projectId) {
+        try {
+          const project = await this.projectService.getProject(config.projectId);
+          this.project.set(project);
+        } catch {
+          // Non-blocking — project data used only for inheritance display
+        }
+      }
 
       // Pre-select the first environment (by order) for the naming preview
       const firstEnv = [...(config.environmentDefinitions ?? [])].sort((a, b) => a.order - b.order)[0];
@@ -398,6 +425,38 @@ export class ConfigDetailComponent implements OnInit {
       this.namingErrorKey.set('CONFIG_DETAIL.NAMING_TEMPLATES.RESOURCE_REMOVE_ERROR');
     } finally {
       this.namingActionKey.set(null);
+    }
+  }
+
+  protected async toggleInheritanceEnvironments(useProject: boolean): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.inheritanceLoading.set(true);
+    try {
+      await this.infraConfigService.setInheritance(configId, {
+        useProjectEnvironments: useProject,
+        useProjectNamingConventions: this.useProjectNamingConventions(),
+      });
+      await this.refreshConfig(configId);
+    } finally {
+      this.inheritanceLoading.set(false);
+    }
+  }
+
+  protected async toggleInheritanceNaming(useProject: boolean): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.inheritanceLoading.set(true);
+    try {
+      await this.infraConfigService.setInheritance(configId, {
+        useProjectEnvironments: this.useProjectEnvironments(),
+        useProjectNamingConventions: useProject,
+      });
+      await this.refreshConfig(configId);
+    } finally {
+      this.inheritanceLoading.set(false);
     }
   }
 

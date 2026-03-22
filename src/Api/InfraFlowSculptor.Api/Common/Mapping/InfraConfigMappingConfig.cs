@@ -74,6 +74,8 @@ public class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.Name, src => src.Name.Value)
             .Map(dest => dest.ProjectId, src => src.ProjectId.Value.ToString())
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate)
+            .Map(dest => dest.UseProjectEnvironments, src => src.UseProjectEnvironments)
+            .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
 
@@ -83,6 +85,8 @@ public class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.ProjectId, src => src.ProjectId)
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate == null ? null : src.DefaultNamingTemplate.Value)
+            .Map(dest => dest.UseProjectEnvironments, src => src.UseProjectEnvironments)
+            .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
 

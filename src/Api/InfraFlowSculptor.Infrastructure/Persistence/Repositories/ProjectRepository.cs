@@ -20,6 +20,16 @@ public sealed class ProjectRepository(ProjectDbContext context)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     /// <inheritdoc />
+    public async Task<Project?> GetByIdWithAllAsync(
+        ProjectId id, CancellationToken cancellationToken = default)
+        => await Context.Projects
+            .Include(p => p.Members)
+                .ThenInclude(m => m.User!)
+            .Include(p => p.EnvironmentDefinitions)
+            .Include(p => p.ResourceNamingTemplates)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+    /// <inheritdoc />
     public async Task<List<Project>> GetAllForUserAsync(
         UserId userId, CancellationToken cancellationToken = default)
         => await Context.Projects

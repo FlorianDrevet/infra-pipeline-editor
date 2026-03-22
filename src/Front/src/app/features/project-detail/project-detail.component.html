@@ -79,6 +79,219 @@
         </div>
       </mat-tab>
 
+      <!-- Environments -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">cloud_queue</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.TABS.ENVIRONMENTS' | translate }}</span>
+          <span class="tab-count">{{ project()!.environmentDefinitions.length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="tab-content__toolbar">
+            @if (canWrite()) {
+              <button class="add-env-btn" (click)="openAddEnvironmentDialog()">
+                <mat-icon class="add-env-btn__icon">add_circle_outline</mat-icon>
+                {{ 'PROJECT_DETAIL.ENVIRONMENTS.ADD' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (envErrorKey()) {
+            <p class="action-error">{{ envErrorKey() | translate }}</p>
+          }
+
+          @if (sortedEnvironments().length > 0) {
+            <div class="env-pipeline">
+              @for (env of sortedEnvironments(); track env.id; let last = $last) {
+                <article class="env-card" [class.env-card--busy]="envActionId() === env.id">
+                  @if (envActionId() === env.id) {
+                    <div class="env-card__spinner">
+                      <mat-spinner diameter="24"></mat-spinner>
+                    </div>
+                  }
+                  <div class="env-card__header">
+                    <h3>{{ env.name }}</h3>
+                    <div class="env-card__header-actions">
+                      @if (canWrite()) {
+                        <button
+                          class="env-action-btn env-action-btn--edit"
+                          [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.EDIT' | translate"
+                          [disabled]="envActionId() === env.id"
+                          (click)="openAddEnvironmentDialog(env)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                          class="env-action-btn env-action-btn--delete"
+                          [matTooltip]="'PROJECT_DETAIL.ENVIRONMENTS.REMOVE' | translate"
+                          [disabled]="envActionId() === env.id"
+                          (click)="openRemoveEnvironmentDialog(env)">
+                          <mat-icon>delete_outline</mat-icon>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                  <div class="env-card__details">
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.LOCATION' | translate }}</span>
+                      <strong>{{ env.location }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.PREFIX' | translate }}</span>
+                      <strong>{{ env.prefix || '—' }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SUFFIX' | translate }}</span>
+                      <strong>{{ env.suffix || '—' }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.TENANT_ID' | translate }}</span>
+                      <strong class="mono">{{ env.tenantId }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SUBSCRIPTION_ID' | translate }}</span>
+                      <strong class="mono">{{ env.subscriptionId }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.REQUIRES_APPROVAL' | translate }}</span>
+                      <strong>{{ env.requiresApproval ? ('PROJECT_DETAIL.BOOLEAN.YES' | translate) : ('PROJECT_DETAIL.BOOLEAN.NO' | translate) }}</strong>
+                    </div>
+                  </div>
+                  @if (env.tags.length > 0) {
+                    <div class="env-card__tags">
+                      @for (tag of env.tags; track tag.name) {
+                        <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
+                      }
+                    </div>
+                  }
+                </article>
+                @if (!last) {
+                  <div class="env-pipeline__connector">
+                    <mat-icon>arrow_forward</mat-icon>
+                  </div>
+                }
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">cloud_queue</mat-icon>
+              <p>{{ 'PROJECT_DETAIL.ENVIRONMENTS.EMPTY' | translate }}</p>
+              @if (canWrite()) {
+                <button class="add-env-btn" (click)="openAddEnvironmentDialog()">
+                  <mat-icon class="add-env-btn__icon">add_circle_outline</mat-icon>
+                  {{ 'PROJECT_DETAIL.ENVIRONMENTS.ADD' | translate }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Naming Templates -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">label</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.TABS.NAMING_TEMPLATES' | translate }}</span>
+          <span class="tab-count">{{ project()!.resourceNamingTemplates.length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="tab-content__toolbar naming-toolbar">
+            @if (canWrite()) {
+              <button
+                class="template-action-btn template-action-btn--add"
+                [disabled]="namingActionKey() !== null"
+                (click)="openDefaultNamingTemplateDialog()">
+                <mat-icon>edit</mat-icon>
+                {{ (project()!.defaultNamingTemplate
+                  ? 'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT_DEFAULT'
+                  : 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_DEFAULT') | translate }}
+              </button>
+              <button
+                class="template-action-btn template-action-btn--add"
+                [disabled]="!canAddResourceNamingTemplate() || namingActionKey() !== null"
+                [matTooltip]="(!canAddResourceNamingTemplate() ? 'PROJECT_DETAIL.NAMING_TEMPLATES.ALL_RESOURCE_TYPES_CONFIGURED' : 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE') | translate"
+                (click)="openResourceNamingTemplateDialog()">
+                <mat-icon>add_circle_outline</mat-icon>
+                {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.ADD_RESOURCE' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (namingErrorKey()) {
+            <p class="action-error">{{ namingErrorKey() | translate }}</p>
+          }
+
+          <article class="default-template" [class.default-template--busy]="isNamingActionActive('default')">
+            @if (isNamingActionActive('default')) {
+              <div class="default-template__spinner">
+                <mat-spinner diameter="22"></mat-spinner>
+              </div>
+            }
+
+            <div class="default-template__header">
+              <span>{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.DEFAULT' | translate }}</span>
+              @if (canWrite()) {
+                <button
+                  class="template-action-btn template-action-btn--inline"
+                  [disabled]="namingActionKey() !== null"
+                  (click)="openDefaultNamingTemplateDialog()">
+                  <mat-icon>edit</mat-icon>
+                  {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT' | translate }}
+                </button>
+              }
+            </div>
+
+            @if (project()!.defaultNamingTemplate) {
+              <code>{{ project()!.defaultNamingTemplate }}</code>
+            } @else {
+              <p class="default-template__empty">{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.DEFAULT_EMPTY' | translate }}</p>
+            }
+          </article>
+
+          @if (project()!.resourceNamingTemplates.length > 0) {
+            <div class="template-list">
+              @for (tmpl of project()!.resourceNamingTemplates; track tmpl.id) {
+                <article class="template-row" [class.template-row--busy]="isResourceNamingTemplateBusy(tmpl.resourceType)">
+                  @if (isResourceNamingTemplateBusy(tmpl.resourceType)) {
+                    <div class="template-row__spinner">
+                      <mat-spinner diameter="18"></mat-spinner>
+                    </div>
+                  }
+
+                  <div class="template-row__meta">
+                    <strong>{{ tmpl.resourceType }}</strong>
+                    <code>{{ tmpl.template }}</code>
+                  </div>
+
+                  @if (canWrite()) {
+                    <div class="template-row__actions">
+                      <button
+                        class="template-action-btn template-action-btn--edit"
+                        [matTooltip]="'PROJECT_DETAIL.NAMING_TEMPLATES.EDIT' | translate"
+                        [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
+                        (click)="openResourceNamingTemplateDialog(tmpl)">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button
+                        class="template-action-btn template-action-btn--delete"
+                        [matTooltip]="'PROJECT_DETAIL.NAMING_TEMPLATES.REMOVE' | translate"
+                        [disabled]="isResourceNamingTemplateBusy(tmpl.resourceType) || namingActionKey() !== null"
+                        (click)="openRemoveResourceNamingTemplateDialog(tmpl)">
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">label</mat-icon>
+              <p>{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.EMPTY' | translate }}</p>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
       <!-- Members -->
       <mat-tab>
         <ng-template mat-tab-label>
