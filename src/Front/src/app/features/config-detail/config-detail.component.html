@@ -15,7 +15,13 @@
   } @else if (config()) {
     <section class="detail-header">
       <div class="detail-header__nav">
-        <a class="ghost-button" routerLink="/">{{ 'CONFIG_DETAIL.ACTIONS.BACK' | translate }}</a>
+        <a class="ghost-button" [routerLink]="['/projects', config()!.projectId]">{{ 'CONFIG_DETAIL.ACTIONS.BACK' | translate }}</a>
+        @if (isOwner()) {
+          <button class="delete-btn" (click)="openDeleteConfigDialog()">
+            <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
+            {{ 'CONFIG_DETAIL.DELETE.BUTTON' | translate }}
+          </button>
+        }
       </div>
       <div class="detail-header__info">
         <span class="eyebrow">{{ 'CONFIG_DETAIL.HEADER.OVERLINE' | translate }}</span>

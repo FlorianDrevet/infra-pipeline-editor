@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListUsers;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectEnvironment;
+using InfraFlowSculptor.Application.Projects.Commands.DeleteProject;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectMember;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProject;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironment;
@@ -377,6 +378,26 @@ public static class ProjectController
                 .WithName("RemoveProjectResourceNamingTemplate")
                 .WithSummary("Remove a per-resource-type naming template")
                 .WithDescription("Removes a per-resource-type naming template from the project. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Delete Project ────────────────────────────────────────────
+
+            group.MapDelete("/{id:guid}",
+                    async ([FromRoute] Guid id, IMediator mediator) =>
+                    {
+                        var command = new DeleteProjectCommand(new ProjectId(id));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("DeleteProject")
+                .WithSummary("Delete a project")
+                .WithDescription("Permanently deletes a project and all its data. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);

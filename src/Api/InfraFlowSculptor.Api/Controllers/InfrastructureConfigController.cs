@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.DeleteInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInheritance;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
@@ -140,6 +141,26 @@ public static class InfrastructureConfigController
                 .WithDescription("Controls whether this configuration inherits environments and/or naming conventions from the parent project. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // DELETE /{id:guid}
+            config.MapDelete("/{id:guid}",
+                    async ([FromRoute] Guid id, IMediator mediator) =>
+                    {
+                        var command = new DeleteInfrastructureConfigCommand(
+                            new InfrastructureConfigId(id));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("DeleteInfrastructureConfig")
+                .WithSummary("Delete an infrastructure configuration")
+                .WithDescription("Permanently deletes an infrastructure configuration. Requires Owner access on the parent project.")
+                .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });

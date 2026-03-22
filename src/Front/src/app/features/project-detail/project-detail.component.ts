@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,6 +17,7 @@ import {
 } from '../../shared/interfaces/infra-config.interface';
 import { UserResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../shared/services/project.service';
+import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AddProjectMemberDialogComponent, AddProjectMemberDialogData } from './add-project-member-dialog/add-project-member-dialog.component';
@@ -58,7 +59,9 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
 })
 export class ProjectDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly projectService = inject(ProjectService);
+  private readonly infraConfigService = inject(InfraConfigService);
   private readonly authService = inject(AuthenticationService);
   private readonly dialog = inject(MatDialog);
 
@@ -422,5 +425,62 @@ export class ProjectDetailComponent implements OnInit {
   private async refreshProject(projectId: string): Promise<void> {
     const refreshed = await this.projectService.getProject(projectId);
     this.project.set(refreshed);
+  }
+
+  // ─── Delete Project ───
+
+  protected openDeleteProjectDialog(): void {
+    const project = this.project();
+    if (!project) return;
+
+    const data: ConfirmDialogData = {
+      titleKey: 'PROJECT_DETAIL.DELETE.CONFIRM_TITLE',
+      messageKey: 'PROJECT_DETAIL.DELETE.CONFIRM_MESSAGE',
+      messageParams: { name: project.name },
+      confirmKey: 'PROJECT_DETAIL.DELETE.CONFIRM_YES',
+      cancelKey: 'PROJECT_DETAIL.DELETE.CONFIRM_CANCEL',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+
+      try {
+        await this.projectService.deleteProject(project.id);
+        this.router.navigate(['/']);
+      } catch {
+        this.loadError.set('PROJECT_DETAIL.DELETE.ERROR');
+      }
+    });
+  }
+
+  // ─── Delete Config ───
+
+  protected openDeleteConfigDialog(config: InfrastructureConfigResponse): void {
+    const project = this.project();
+    if (!project) return;
+
+    const data: ConfirmDialogData = {
+      titleKey: 'PROJECT_DETAIL.DELETE_CONFIG.CONFIRM_TITLE',
+      messageKey: 'PROJECT_DETAIL.DELETE_CONFIG.CONFIRM_MESSAGE',
+      messageParams: { name: config.name },
+      confirmKey: 'PROJECT_DETAIL.DELETE_CONFIG.CONFIRM_YES',
+      cancelKey: 'PROJECT_DETAIL.DELETE_CONFIG.CONFIRM_CANCEL',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+
+      this.configErrorKey.set('');
+      try {
+        await this.infraConfigService.delete(config.id);
+        this.configs.update((configs) => configs.filter((c) => c.id !== config.id));
+      } catch {
+        this.configErrorKey.set('PROJECT_DETAIL.DELETE_CONFIG.ERROR');
+      }
+    });
   }
 }

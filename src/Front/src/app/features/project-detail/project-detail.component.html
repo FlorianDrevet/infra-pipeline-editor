@@ -16,6 +16,12 @@
     <section class="detail-header">
       <div class="detail-header__nav">
         <a class="ghost-button" routerLink="/">{{ 'PROJECT_DETAIL.ACTIONS.BACK' | translate }}</a>
+        @if (isOwner()) {
+          <button class="delete-btn" (click)="openDeleteProjectDialog()">
+            <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
+            {{ 'PROJECT_DETAIL.DELETE.BUTTON' | translate }}
+          </button>
+        }
       </div>
       <div class="detail-header__info">
         <span class="eyebrow">{{ 'PROJECT_DETAIL.HEADER.OVERLINE' | translate }}</span>
@@ -55,7 +61,17 @@
                 <a class="config-card" [routerLink]="['/config', config.id]">
                   <div class="config-card__header">
                     <h3>{{ config.name }}</h3>
-                    <mat-icon class="config-card__arrow">chevron_right</mat-icon>
+                    <div class="config-card__actions">
+                      @if (isOwner()) {
+                        <button
+                          class="config-card__delete-btn"
+                          [matTooltip]="'PROJECT_DETAIL.DELETE_CONFIG.BUTTON' | translate"
+                          (click)="$event.preventDefault(); $event.stopPropagation(); openDeleteConfigDialog(config)">
+                          <mat-icon>delete_outline</mat-icon>
+                        </button>
+                      }
+                      <mat-icon class="config-card__arrow">chevron_right</mat-icon>
+                    </div>
                   </div>
                   <div class="config-card__meta">
                     <span>{{ 'PROJECT_DETAIL.CONFIGS.ENVIRONMENTS' | translate: { count: config.environmentDefinitions.length } }}</span>

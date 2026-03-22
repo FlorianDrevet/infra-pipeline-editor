@@ -48,6 +48,10 @@ export class InfraConfigService {
     );
   }
 
+  delete(id: string): Promise<void> {
+    return this.axios.request$<void>(MethodEnum.DELETE, `/infra-config/${id}`);
+  }
+
   addEnvironment(
     id: string,
     request: AddEnvironmentRequest

@@ -36,6 +36,10 @@ export class ProjectService {
     return this.axios.request$<ProjectResponse>(MethodEnum.POST, '/projects', request);
   }
 
+  deleteProject(id: string): Promise<void> {
+    return this.axios.request$<void>(MethodEnum.DELETE, `/projects/${id}`);
+  }
+
   getProjectConfigs(id: string): Promise<InfrastructureConfigResponse[]> {
     return this.axios.request$<InfrastructureConfigResponse[]>(
       MethodEnum.GET,

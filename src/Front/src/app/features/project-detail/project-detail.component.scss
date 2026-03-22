@@ -53,6 +53,9 @@
 
 .detail-header__nav {
   margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .detail-header__info {
@@ -111,6 +114,32 @@
 
   &:hover {
     background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  background: rgba(244, 67, 54, 0.12);
+  color: #ff8a80;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+
+  &:hover {
+    background: rgba(244, 67, 54, 0.24);
+    border-color: rgba(244, 67, 54, 0.6);
+  }
+
+  &__icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -318,6 +347,36 @@ a.config-card {
     margin: 0;
     color: #103454;
     font-size: 1.05rem;
+  }
+}
+
+.config-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.config-card__delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #b0bec5;
+  cursor: pointer;
+  transition: color 0.18s ease, background 0.18s ease;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    color: #f44336;
+    background: rgba(244, 67, 54, 0.08);
   }
 }
 

@@ -31,7 +31,12 @@
 .detail-header__nav,
 .detail-header__info { position: relative; z-index: 1; }
 
-.detail-header__nav { margin-bottom: 1rem; }
+.detail-header__nav {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
 .detail-header__info {
   display: flex; flex-direction: column; gap: 0.6rem;
@@ -883,6 +888,32 @@
   text-decoration: none;
 
   &:hover { background: rgba(255, 255, 255, 0.12); }
+}
+
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  background: rgba(244, 67, 54, 0.12);
+  color: #ff8a80;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+
+  &:hover {
+    background: rgba(244, 67, 54, 0.24);
+    border-color: rgba(244, 67, 54, 0.6);
+  }
+
+  &__icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .state-card--error .ghost-button {

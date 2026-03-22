@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -27,6 +27,7 @@ import {
 } from './add-naming-template-dialog/add-naming-template-dialog.component';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { ProjectService } from '../../shared/services/project.service';
+import { AuthenticationService } from '../../shared/services/authentication.service';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS } from './enums/resource-type.enum';
 import { FormsModule } from '@angular/forms';
@@ -56,9 +57,11 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 })
 export class ConfigDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly projectService = inject(ProjectService);
+  private readonly authService = inject(AuthenticationService);
   private readonly dialog = inject(MatDialog);
 
   protected readonly config = signal<InfrastructureConfigResponse | null>(null);
@@ -90,6 +93,14 @@ export class ConfigDetailComponent implements OnInit {
 
   // canWrite defaults to true — access checks are now at project level
   protected readonly canWrite = signal(true);
+
+  protected readonly isOwner = computed(() => {
+    const oid = this.authService.getMsalAccount?.localAccountId;
+    if (!oid) return false;
+    const members = this.project()?.members ?? [];
+    const me = members.find((m) => m.entraId === oid);
+    return me?.role === 'Owner';
+  });
 
   protected readonly canAddResourceNamingTemplate = computed(() => {
     const configuredTypes = new Set((this.config()?.resourceNamingTemplates ?? []).map((item) => item.resourceType));
@@ -463,5 +474,39 @@ export class ConfigDetailComponent implements OnInit {
   private async refreshConfig(configId: string): Promise<void> {
     const refreshed = await this.infraConfigService.getById(configId);
     this.config.set(refreshed);
+  }
+
+  // ─── Delete Config ───
+
+  protected openDeleteConfigDialog(): void {
+    const currentConfig = this.config();
+    if (!currentConfig) return;
+
+    const data: ConfirmDialogData = {
+      titleKey: 'CONFIG_DETAIL.DELETE.CONFIRM_TITLE',
+      messageKey: 'CONFIG_DETAIL.DELETE.CONFIRM_MESSAGE',
+      messageParams: { name: currentConfig.name },
+      confirmKey: 'CONFIG_DETAIL.DELETE.CONFIRM_YES',
+      cancelKey: 'CONFIG_DETAIL.DELETE.CONFIRM_CANCEL',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+
+      try {
+        await this.infraConfigService.delete(currentConfig.id);
+        // Navigate back to parent project if available, otherwise home
+        const projectId = currentConfig.projectId;
+        if (projectId) {
+          this.router.navigate(['/projects', projectId]);
+        } else {
+          this.router.navigate(['/']);
+        }
+      } catch {
+        this.loadError.set('CONFIG_DETAIL.DELETE.ERROR');
+      }
+    });
   }
 }

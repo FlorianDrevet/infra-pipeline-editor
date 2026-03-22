@@ -136,7 +136,7 @@
       "LOAD_FAILED": "Unable to load this configuration."
     },
     "ACTIONS": {
-      "BACK": "Back to home"
+      "BACK": "Back to project"
     },
     "MEMBERS": {
       "OVERLINE": "Team",
@@ -308,6 +308,14 @@
       "FROM_PROJECT": "From project",
       "NO_PROJECT_ENVIRONMENTS": "No environments defined at the project level.",
       "NO_PROJECT_NAMING": "No naming templates defined at the project level."
+    },
+    "DELETE": {
+      "BUTTON": "Delete configuration",
+      "CONFIRM_TITLE": "Delete configuration",
+      "CONFIRM_MESSAGE": "Are you sure you want to delete the configuration \u201c{{name}}\u201d? This action cannot be undone.",
+      "CONFIRM_YES": "Delete",
+      "CONFIRM_CANCEL": "Cancel",
+      "ERROR": "Unable to delete the configuration."
     }
   },
   "PROJECT_DETAIL": {
@@ -450,6 +458,22 @@
     "BOOLEAN": {
       "YES": "Yes",
       "NO": "No"
+    },
+    "DELETE": {
+      "BUTTON": "Delete project",
+      "CONFIRM_TITLE": "Delete project",
+      "CONFIRM_MESSAGE": "Are you sure you want to delete the project \u201c{{name}}\u201d? All associated configurations will be deleted. This action cannot be undone.",
+      "CONFIRM_YES": "Delete",
+      "CONFIRM_CANCEL": "Cancel",
+      "ERROR": "Unable to delete the project."
+    },
+    "DELETE_CONFIG": {
+      "BUTTON": "Delete",
+      "CONFIRM_TITLE": "Delete configuration",
+      "CONFIRM_MESSAGE": "Are you sure you want to delete the configuration \u201c{{name}}\u201d?",
+      "CONFIRM_YES": "Delete",
+      "CONFIRM_CANCEL": "Cancel",
+      "ERROR": "Unable to delete the configuration."
     }
   }
 }

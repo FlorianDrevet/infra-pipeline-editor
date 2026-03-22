@@ -136,7 +136,7 @@
       "LOAD_FAILED": "Impossible de charger cette configuration."
     },
     "ACTIONS": {
-      "BACK": "Retour a l'accueil"
+      "BACK": "Retour au projet"
     },
     "MEMBERS": {
       "OVERLINE": "Equipe",
@@ -308,6 +308,14 @@
       "FROM_PROJECT": "Du projet",
       "NO_PROJECT_ENVIRONMENTS": "Aucun environnement defini au niveau du projet.",
       "NO_PROJECT_NAMING": "Aucun template de nommage defini au niveau du projet."
+    },
+    "DELETE": {
+      "BUTTON": "Supprimer la configuration",
+      "CONFIRM_TITLE": "Supprimer la configuration",
+      "CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer la configuration \u00ab {{name}} \u00bb ? Cette action est irreversible.",
+      "CONFIRM_YES": "Supprimer",
+      "CONFIRM_CANCEL": "Annuler",
+      "ERROR": "Impossible de supprimer la configuration."
     }
   },
   "PROJECT_DETAIL": {
@@ -405,6 +413,8 @@
         "SAVE": "Enregistrer",
         "ERROR_ADD": "Impossible d'ajouter l'environnement.",
         "ERROR_EDIT": "Impossible de modifier l'environnement.",
+        "ORDER": "Ordre de deploiement",
+        "TIMELINE_ARIA": "Ordre de deploiement des environnements",
         "ORDER_HELP": "Position dans le pipeline",
         "ORDER_LABEL": "Ordre de deploiement"
       }
@@ -452,6 +462,22 @@
     "BOOLEAN": {
       "YES": "Oui",
       "NO": "Non"
+    },
+    "DELETE": {
+      "BUTTON": "Supprimer le projet",
+      "CONFIRM_TITLE": "Supprimer le projet",
+      "CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer le projet \u00ab {{name}} \u00bb ? Toutes les configurations associees seront supprimees. Cette action est irreversible.",
+      "CONFIRM_YES": "Supprimer",
+      "CONFIRM_CANCEL": "Annuler",
+      "ERROR": "Impossible de supprimer le projet."
+    },
+    "DELETE_CONFIG": {
+      "BUTTON": "Supprimer",
+      "CONFIRM_TITLE": "Supprimer la configuration",
+      "CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer la configuration \u00ab {{name}} \u00bb ?",
+      "CONFIRM_YES": "Supprimer",
+      "CONFIRM_CANCEL": "Annuler",
+      "ERROR": "Impossible de supprimer la configuration."
     }
   }
 }
