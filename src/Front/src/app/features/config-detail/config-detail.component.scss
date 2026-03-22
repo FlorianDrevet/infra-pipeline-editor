@@ -1249,7 +1249,7 @@
   }
 }
 
-.bicep-tree__separator {
+.bicep-tree__folder {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -1258,6 +1258,30 @@
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.78rem;
   font-weight: 600;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: rgba(139, 233, 253, 0.06);
+    color: rgba(255, 255, 255, 0.65);
+  }
+}
+
+.bicep-tree__folder-chevron {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: rgba(255, 255, 255, 0.35);
+  transition: transform 0.2s ease;
+
+  &--open {
+    transform: rotate(90deg);
+  }
 }
 
 .bicep-tree__folder-icon {
@@ -1265,6 +1289,15 @@
   width: 1rem;
   height: 1rem;
   color: #f1fa8c;
+}
+
+.bicep-tree__folder-children {
+  animation: bicepFolderSlideIn 0.2s ease-out;
+}
+
+@keyframes bicepFolderSlideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .bicep-tree__link {

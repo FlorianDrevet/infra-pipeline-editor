@@ -139,17 +139,22 @@
                 </button>
                 <!-- Modules -->
                 @if (bicepModuleEntries().length > 0) {
-                  <div class="bicep-tree__separator">
-                    <mat-icon class="bicep-tree__folder-icon">folder_open</mat-icon>
+                  <button class="bicep-tree__folder" (click)="toggleBicepFolder('modules')">
+                    <mat-icon class="bicep-tree__folder-chevron" [class.bicep-tree__folder-chevron--open]="isBicepFolderExpanded('modules')">chevron_right</mat-icon>
+                    <mat-icon class="bicep-tree__folder-icon">{{ isBicepFolderExpanded('modules') ? 'folder_open' : 'folder' }}</mat-icon>
                     <span>modules/</span>
-                  </div>
-                  @for (mod of bicepModuleEntries(); track mod.name) {
-                    <button class="bicep-tree__item bicep-tree__item--module"
-                            [class.bicep-tree__item--active]="bicepViewerFile() === mod.name"
-                            (click)="openBicepFile(mod.name)">
-                      <mat-icon class="bicep-tree__icon">memory</mat-icon>
-                      <span class="bicep-tree__name">{{ mod.name }}</span>
-                    </button>
+                  </button>
+                  @if (isBicepFolderExpanded('modules')) {
+                    <div class="bicep-tree__folder-children">
+                      @for (mod of bicepModuleEntries(); track mod.name) {
+                        <button class="bicep-tree__item bicep-tree__item--module"
+                                [class.bicep-tree__item--active]="bicepViewerFile() === mod.name"
+                                (click)="openBicepFile(mod.name)">
+                          <mat-icon class="bicep-tree__icon">memory</mat-icon>
+                          <span class="bicep-tree__name">{{ mod.name }}</span>
+                        </button>
+                      }
+                    </div>
                   }
                 }
               </div>

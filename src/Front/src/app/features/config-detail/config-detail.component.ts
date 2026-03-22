@@ -99,6 +99,7 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly bicepViewerFile = signal<string | null>(null);
   protected readonly bicepViewerContent = signal<string | null>(null);
   protected readonly bicepViewerLoading = signal(false);
+  protected readonly bicepExpandedFolders = signal<Set<string>>(new Set<string>(['modules']));
 
   protected readonly bicepModuleEntries = computed(() => {
     const result = this.bicepResult();
@@ -563,6 +564,22 @@ export class ConfigDetailComponent implements OnInit {
   protected closeBicepViewer(): void {
     this.bicepViewerFile.set(null);
     this.bicepViewerContent.set(null);
+  }
+
+  protected toggleBicepFolder(folder: string): void {
+    this.bicepExpandedFolders.update(set => {
+      const next = new Set(set);
+      if (next.has(folder)) {
+        next.delete(folder);
+      } else {
+        next.add(folder);
+      }
+      return next;
+    });
+  }
+
+  protected isBicepFolderExpanded(folder: string): boolean {
+    return this.bicepExpandedFolders().has(folder);
   }
 
   protected async downloadBicepFiles(): Promise<void> {
