@@ -1,0 +1,159 @@
+<div class="detail-page">
+  @if (isLoading()) {
+    <div class="state-card state-card--loading" aria-live="polite">
+      <div class="pulse-dot"></div>
+      <div>
+        <strong>{{ 'PROJECT_DETAIL.STATE.LOADING_TITLE' | translate }}</strong>
+        <p>{{ 'PROJECT_DETAIL.STATE.LOADING_DESCRIPTION' | translate }}</p>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="state-card state-card--error" role="alert" aria-live="assertive">
+      <strong>{{ loadError() | translate }}</strong>
+      <a class="ghost-button" routerLink="/">{{ 'PROJECT_DETAIL.ACTIONS.BACK' | translate }}</a>
+    </div>
+  } @else if (project()) {
+    <section class="detail-header">
+      <div class="detail-header__nav">
+        <a class="ghost-button" routerLink="/">{{ 'PROJECT_DETAIL.ACTIONS.BACK' | translate }}</a>
+      </div>
+      <div class="detail-header__info">
+        <span class="eyebrow">{{ 'PROJECT_DETAIL.HEADER.OVERLINE' | translate }}</span>
+        <h1>{{ project()!.name }}</h1>
+        @if (project()!.description) {
+          <p class="detail-header__description">{{ project()!.description }}</p>
+        }
+        <p class="detail-header__id">{{ project()!.id }}</p>
+      </div>
+    </section>
+
+    <mat-tab-group class="project-tabs" animationDuration="200ms">
+      <!-- Configurations -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">settings</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.TABS.CONFIGURATIONS' | translate }}</span>
+          <span class="tab-count">{{ configs().length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="tab-content__toolbar">
+            @if (canWrite()) {
+              <button class="add-btn" (click)="openAddConfigDialog()">
+                <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
+                {{ 'PROJECT_DETAIL.CONFIGS.ADD' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (configErrorKey()) {
+            <p class="action-error">{{ configErrorKey() | translate }}</p>
+          }
+
+          @if (configs().length > 0) {
+            <div class="config-list">
+              @for (config of configs(); track config.id) {
+                <a class="config-card" [routerLink]="['/config', config.id]">
+                  <div class="config-card__header">
+                    <h3>{{ config.name }}</h3>
+                    <mat-icon class="config-card__arrow">chevron_right</mat-icon>
+                  </div>
+                  <div class="config-card__meta">
+                    <span>{{ 'PROJECT_DETAIL.CONFIGS.ENVIRONMENTS' | translate: { count: config.environmentDefinitions.length } }}</span>
+                    <span>{{ 'PROJECT_DETAIL.CONFIGS.NAMING_TEMPLATES' | translate: { count: config.resourceNamingTemplates.length } }}</span>
+                  </div>
+                </a>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">settings</mat-icon>
+              <p>{{ 'PROJECT_DETAIL.CONFIGS.EMPTY' | translate }}</p>
+              @if (canWrite()) {
+                <button class="add-btn" (click)="openAddConfigDialog()">
+                  <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
+                  {{ 'PROJECT_DETAIL.CONFIGS.ADD' | translate }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Members -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">group</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.TABS.MEMBERS' | translate }}</span>
+          <span class="tab-count">{{ project()!.members.length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="tab-content__toolbar">
+            @if (isOwner()) {
+              <button class="add-btn" (click)="openAddMemberDialog()">
+                <mat-icon class="add-btn__icon">person_add</mat-icon>
+                {{ 'PROJECT_DETAIL.MEMBERS.ADD' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (memberErrorKey()) {
+            <p class="action-error">{{ memberErrorKey() | translate }}</p>
+          }
+
+          @if (project()!.members.length > 0) {
+            @for (group of membersByRole(); track group.role) {
+              <div class="role-section">
+                <div class="role-section__header">
+                  <mat-icon class="role-section__icon">{{ group.icon }}</mat-icon>
+                  <h3 class="role-section__title">{{ 'PROJECT_DETAIL.MEMBERS.ROLE_' + group.role.toUpperCase() | translate }}</h3>
+                  <span class="role-section__count">{{ group.members.length }}</span>
+                </div>
+                <div class="members-grid">
+                  @for (member of group.members; track member.id) {
+                    <article class="member-card" [class.member-card--busy]="memberActionId() === member.id">
+                      @if (memberActionId() === member.id) {
+                        <div class="member-card__spinner">
+                          <mat-spinner diameter="20"></mat-spinner>
+                        </div>
+                      }
+                      <div class="member-card__info">
+                        <strong>{{ member.firstName }} {{ member.lastName }}</strong>
+                      </div>
+                      <div class="member-card__actions">
+                        @if (isOwner()) {
+                          <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
+                            <mat-select
+                              [value]="member.role"
+                              [aria-label]="'PROJECT_DETAIL.MEMBERS.CHANGE_ROLE_ARIA' | translate"
+                              [disabled]="memberActionId() === member.id"
+                              (selectionChange)="onRoleChange(member, $event.value)">
+                              @for (role of roles; track role) {
+                                <mat-option [value]="role">{{ 'PROJECT_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <button
+                            class="remove-btn"
+                            [matTooltip]="'PROJECT_DETAIL.MEMBERS.REMOVE' | translate"
+                            [disabled]="memberActionId() === member.id"
+                            (click)="openRemoveMemberDialog(member)">
+                            <mat-icon>close</mat-icon>
+                          </button>
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">group</mat-icon>
+              <p>{{ 'PROJECT_DETAIL.MEMBERS.EMPTY' | translate }}</p>
+            </div>
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

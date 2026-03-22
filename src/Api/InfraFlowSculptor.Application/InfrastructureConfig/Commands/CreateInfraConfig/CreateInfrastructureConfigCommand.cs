@@ -4,4 +4,5 @@ using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 
-public record CreateInfrastructureConfigCommand(string Name) : IRequest<ErrorOr<GetInfrastructureConfigResult>>;
+/// <summary>Command to create a new infrastructure configuration within a project.</summary>
+public record CreateInfrastructureConfigCommand(string Name, Guid ProjectId) : IRequest<ErrorOr<GetInfrastructureConfigResult>>;

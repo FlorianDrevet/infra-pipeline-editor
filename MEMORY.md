@@ -65,10 +65,12 @@ src/
 
 | Aggregate | Root | Key Entities | Notes |
 |-----------|------|-------------|-------|
-| `InfrastructureConfig` | `InfrastructureConfig` | `Member`, `EnvironmentDefinition`, `ParameterDefinition`, `ResourceParameterUsage`, `EnvironmentParameterValue` | Owns resource groups indirectly |
+| `Project` | `Project` | `ProjectMember` | Groups InfrastructureConfigs; owns membership/RBAC |
+| `InfrastructureConfig` | `InfrastructureConfig` | `EnvironmentDefinition`, `ParameterDefinition`, `ResourceParameterUsage`, `EnvironmentParameterValue` | Has `ProjectId` FK to Project |
 | `ResourceGroup` | `ResourceGroup` | `AzureResource` (base), `InputOutputLink` | Hosts Azure resources |
 | `KeyVault` | `KeyVault` extends `AzureResource` | — | TPT in EF Core |
 | `RedisCache` | `RedisCache` extends `AzureResource` | — | TPT in EF Core |
+| `StorageAccount` | `StorageAccount` extends `AzureResource` | — | TPT in EF Core |
 | `User` | `User` | — | Azure AD user info |
 
 ### 3.2 Value Objects
@@ -80,7 +82,8 @@ All value objects inherit from `Shared.Domain` base classes:
 - `ValueObject` — base with structural equality
 
 Key value objects per aggregate:
-- **InfrastructureConfig:** `InfrastructureConfigId`, `MemberId`, `Role` (Owner/Contributor/Reader), `EnvironmentDefinitionId`, `ParameterDefinitionId`, `ParameterType`, `Prefix`, `Suffix`, `Order`, `IsSecret`, `TenantId`, `SubscriptionId`, `RequiresApproval`
+- **Project:** `ProjectId`, `ProjectMemberId`
+- **InfrastructureConfig:** `InfrastructureConfigId`, `Role` (Owner/Contributor/Reader), `EnvironmentDefinitionId`, `ParameterDefinitionId`, `ParameterType`, `Prefix`, `Suffix`, `Order`, `IsSecret`, `TenantId`, `SubscriptionId`, `RequiresApproval`
 - **ResourceGroup:** `ResourceGroupId`, `Name`, `Location`
 - **AzureResource:** `AzureResourceId`, `Name`
 - **KeyVault:** `Sku` (enum: Premium/Standard)
@@ -89,8 +92,8 @@ Key value objects per aggregate:
 
 ### 3.3 Domain Invariants
 
-- `InfrastructureConfig.Members` is `IReadOnlyCollection<Member>` — mutated via `AddMember()`, `ChangeRole()`, `RemoveMember()` methods on the aggregate root.
-- Access checks (ownership, membership) must be performed **before** calling aggregate methods (not enforced in the domain itself).
+- `Project.Members` is `IReadOnlyCollection<ProjectMember>` — mutated via `AddMember()`, `ChangeRole()`, `RemoveMember()` methods on the Project aggregate root.
+- `InfrastructureConfig` has a `ProjectId` FK. Access checks (read/write/owner) are resolved via **project membership** — `IInfraConfigAccessService` loads the config, then delegates to `IProjectAccessService.VerifyReadAccessAsync(config.ProjectId)`.
 - `AzureResource` inheritance uses EF Core **TPT**: derived entities call `HasBaseType<AzureResource>().ToTable("...")` in their configurations.
 
 ### 3.4 Error Definitions
@@ -116,7 +119,7 @@ Existing error files:
 - `Errors.ResourceGroup.cs` (has nested `AddResource` / `RemoveResource` sub-classes)
 - `Errors.KeyVault.cs`
 - `Errors.RedisCache.cs`
-- `Errors.Member.cs`
+- `Errors.Project.cs` (NotFound, Forbidden, MemberAlreadyExists, CannotRemoveOwner, MemberNotFound)
 
 **Important:** When adding a new aggregate, add a new `Errors.AggregateName.cs` file following the same partial class pattern.
 
@@ -1025,6 +1028,7 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-22 | copilot | Fixed environment dialog order timeline navigation bugs: rewrote `timelineItems` computed to use **index-based positioning** instead of comparing raw backend order values. Old logic used `findIndex(item.order >= order)` which broke when backend orders were non-contiguous (e.g. [1,3] after excluding current env). New logic uses `insertIdx = position - 1` to splice current env at the correct array index. Added `computeInitialPosition()` to convert backend order into a 1-based position relative to other environments. **Pattern**: always treat timeline display as position-based (1..N+1), never compare against raw backend order values. |
 | 2026-03-22 | copilot | Fixed environment order save mismatch: `onSubmit` was sending the visual position (1-based) directly as the backend `order` value. When backend orders were non-contiguous (gaps from previous edits) this caused: move 1 → nothing changes, move 2 → only shifts by 1. Added `computeTargetOrder()` that converts visual position back to the correct backend order value by looking up `otherEnvironments[position-1].order`. For "after last" slot: CREATE sends `lastOrder+1` (so `ShiftOrdersUp` has nothing to shift), UPDATE sends `lastOrder` (so `ReorderEnvironments` shifts the last env down correctly). "No move" detection compares `currentOrder` against `initialPosition` to return the original order unchanged. **Pattern**: visual position ≠ backend order value; always convert before sending to API. |
 | 2026-03-22 | copilot | Fixed remaining edit-mode direction bug in `computeTargetOrder()`: moving **right by one slot** was overshooting by 2 positions after save. Root cause: using `others[position-1].order` for both directions. Final rule is direction-aware in edit mode: moving left → target `others[position-1].order`; moving right → jumped-over `others[position-2].order`. This aligns exactly with backend `ReorderEnvironments` range semantics and prevents over-shift. |
+| 2026-03-22 | copilot | Added **Project aggregate** as new hierarchy level: `Project` (aggregate root) owns `ProjectMember` entities with Role (Owner/Contributor/Reader). `InfrastructureConfig` gains a `ProjectId` FK — membership/RBAC checks now go through project, not infra config. Removed `Member` entity, `MemberId` VO from InfrastructureConfig aggregate. Created full CQRS stack (CreateProject, AddProjectMember, RemoveProjectMember, UpdateProjectMemberRole, GetProject, ListMyProjects, ListProjectConfigs). `IInfraConfigAccessService` now delegates to `IProjectAccessService`. New `ProjectController` at `/projects`. `GetInfrastructureConfigQueryHandler` now uses access service. Old member endpoints removed from `InfrastructureConfigController`. EF migration `AddProjectAggregate`: creates `Projects`/`project_members` tables, drops `infrastructureconfig_members`, adds `ProjectId` column + FK on `InfrastructureConfigs`. |
 | 2026-03-22 | copilot | Added visual pipeline connector between environment cards in Environments tab: replaced `env-grid` (CSS grid) with `env-pipeline` (flex column), added `env-pipeline__connector` with a cyan `arrow_forward` icon (rotated 90°) between each card to visually convey deployment order flow. Removed `.order-chip` from card headers and SCSS (order is now implicit in the pipeline flow). |
 | 2026-03-21 | copilot | Fixed environment order collision bug: added order shifting logic in the `InfrastructureConfig` aggregate root. `AddEnvironment` shifts existing envs with order >= new order up by 1 (`ShiftOrdersUp`). `UpdateEnvironment` reorders siblings when order changes (`ReorderEnvironments` — shifts range up or down depending on direction). `RemoveEnvironment` closes the gap by shifting envs with order > removed down by 1 (`ShiftOrdersDown`). This ensures order uniqueness as a domain invariant. |
 | 2026-03-21 | copilot | Revamped navigation header: replaced dull dark `rgba(5,23,44,.78)` background with vibrant gradient `linear-gradient(135deg, #0d2f66, #1565c0, #0288d1)` matching login/home pages. Replaced inline SVG logo with `mat-icon cloud_circle` (added `MatIconModule` import). Updated brand icon to frosted glass style (`rgba(255,255,255,0.15)` bg, `#b3e5fc` icon color). Refreshed border to cyan glow (`rgba(0,188,212,0.3)`). Updated avatar, logout button, and action borders to use `rgba(255,255,255,*)` tones for consistency on the brighter gradient. |

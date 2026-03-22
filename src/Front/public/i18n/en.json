@@ -48,78 +48,73 @@
   "HOME": {
     "HERO": {
       "EYEBROW": "Azure governance workspace",
-      "TITLE": "Configure your infrastructure catalog before generating Bicep and delivery assets.",
-      "DESCRIPTION": "Centralize platform conventions, onboard new environments faster, and keep every infrastructure configuration visible in one premium workspace.",
+      "TITLE": "Manage your projects and infrastructure configurations from a single workspace.",
+      "DESCRIPTION": "Create projects, invite team members, and organize infrastructure configurations with environments, resource groups, and naming conventions.",
       "STATS": {
         "ARIA": "Workspace overview",
-        "CONFIGS_TRACKED": "Configurations tracked",
-        "ENV_DEFINITIONS": "Environment definitions",
+        "PROJECTS_TRACKED": "Projects tracked",
+        "TOTAL_MEMBERS": "Total members",
         "MAIN_CTA_TITLE": "Main CTA",
-        "MAIN_CTA_DESC": "Start by naming a new infrastructure configuration"
+        "MAIN_CTA_DESC": "Start by creating a new project"
       }
     },
     "ACTIONS": {
-      "ADD_CONFIGURATION": "Add a configuration",
+      "ADD_PROJECT": "New project",
       "REFRESHING": "Refreshing...",
       "REFRESH_LIST": "Refresh list",
-      "CREATING": "Creating configuration...",
+      "CREATING": "Creating project...",
       "RETRY_SYNC": "Retry sync",
       "TRY_AGAIN": "Try again"
     },
     "CREATE": {
       "OVERLINE": "Create",
-      "TITLE": "Add a new infrastructure configuration",
-      "DESCRIPTION": "Name a workspace that will later host members, environments, resource groups, and naming rules."
+      "TITLE": "Start a new project",
+      "DESCRIPTION": "A project groups infrastructure configurations and team members under one roof."
     },
     "FORM": {
-      "NAME_LABEL": "Configuration name",
-      "NAME_PLACEHOLDER": "Example: Global platform foundation",
-      "ERROR_REQUIRED": "A configuration name is required.",
-      "ERROR_MIN_LENGTH": "Use at least 3 characters for a meaningful workspace name.",
+      "NAME_LABEL": "Project name",
+      "NAME_PLACEHOLDER": "Example: Platform foundation",
+      "DESCRIPTION_LABEL": "Description (optional)",
+      "DESCRIPTION_PLACEHOLDER": "Brief description of this project",
+      "ERROR_REQUIRED": "A project name is required.",
+      "ERROR_MIN_LENGTH": "Use at least 3 characters for a meaningful name.",
       "ERROR_MAX_LENGTH": "Keep the name under 80 characters."
     },
     "FEEDBACK": {
-      "CREATE_SUCCESS": "Configuration \"{{name}}\" added successfully.",
-      "CREATE_ERROR_FALLBACK": "Unable to create the configuration right now. Please try again.",
-      "LOAD_ERROR_FALLBACK": "Unable to load your infrastructure configurations. Refresh the page or retry."
+      "CREATE_SUCCESS": "Project \"{{name}}\" created successfully.",
+      "CREATE_ERROR_FALLBACK": "Unable to create the project right now. Please try again.",
+      "LOAD_ERROR_FALLBACK": "Unable to load your projects. Refresh the page or retry."
     },
     "STATE": {
-      "LOADING_TITLE": "Loading configurations",
-      "LOADING_DESCRIPTION": "Fetching your current infrastructure workspaces from the API.",
+      "LOADING_TITLE": "Loading projects",
+      "LOADING_DESCRIPTION": "Fetching your projects from the API.",
       "LOAD_FAILED": "Load failed",
-      "EMPTY_TITLE": "No configuration yet",
-      "EMPTY_DESCRIPTION": "Create your first infrastructure workspace to start structuring environments, contributors, and Azure naming rules.",
-      "EMPTY_CTA": "Create the first configuration"
+      "EMPTY_TITLE": "No project yet",
+      "EMPTY_DESCRIPTION": "Create your first project to start organizing infrastructure configurations and team members.",
+      "EMPTY_CTA": "Create the first project"
     },
     "LIST": {
-      "OVERLINE": "Workspace catalog",
-      "TITLE": "Existing configurations",
+      "OVERLINE": "Project catalog",
+      "TITLE": "Your projects",
       "MEMBERS": "{{count}} member(s)",
-      "TOP_ENVIRONMENTS": "Top environments",
-      "NO_ENVIRONMENT": "This configuration has no environment definition yet.",
       "METRICS": {
-        "ENVIRONMENTS": "Environments",
-        "NAMING_TEMPLATES": "Naming templates",
-        "BOOLEAN_TRUE": "Yes",
-        "BOOLEAN_FALSE": "No",
-        "DEFAULT_NAMING": "Default naming rule"
+        "MEMBERS": "Members"
       }
     },
     "SEARCH": {
-      "PLACEHOLDER": "Search configurations by name...",
-      "NO_RESULTS": "No configuration matches your search."
+      "PLACEHOLDER": "Search projects by name...",
+      "NO_RESULTS": "No project matches your search."
     },
     "SORT": {
       "BY_NAME": "Sort by name",
-      "BY_ENVIRONMENTS": "Sort by environments",
       "BY_MEMBERS": "Sort by members"
     },
     "DIALOG": {
-      "TITLE": "Create a configuration",
-      "DESCRIPTION": "Name a workspace that will later host members, environments, resource groups, and naming rules.",
+      "TITLE": "Create a project",
+      "DESCRIPTION": "A project groups infrastructure configurations and team members.",
       "CANCEL": "Cancel",
-      "CREATE": "Create configuration",
-      "CREATE_ERROR_FALLBACK": "Unable to create the configuration right now. Please try again."
+      "CREATE": "Create project",
+      "CREATE_ERROR_FALLBACK": "Unable to create the project right now. Please try again."
     }
   },
   "CONFIG_DETAIL": {
@@ -303,6 +298,64 @@
     "BOOLEAN": {
       "YES": "Yes",
       "NO": "No"
+    }
+  },
+  "PROJECT_DETAIL": {
+    "HEADER": {
+      "OVERLINE": "Project detail"
+    },
+    "TABS": {
+      "CONFIGURATIONS": "Configurations",
+      "MEMBERS": "Members"
+    },
+    "STATE": {
+      "LOADING_TITLE": "Loading project",
+      "LOADING_DESCRIPTION": "Fetching project details from the API."
+    },
+    "ERROR": {
+      "NO_ID": "Missing project identifier.",
+      "LOAD_FAILED": "Unable to load this project."
+    },
+    "ACTIONS": {
+      "BACK": "Back to home"
+    },
+    "CONFIGS": {
+      "ADD": "Add configuration",
+      "EMPTY": "No configurations in this project yet.",
+      "ENVIRONMENTS": "{{count}} environment(s)",
+      "NAMING_TEMPLATES": "{{count}} naming template(s)",
+      "ADD_DIALOG_TITLE": "Add a configuration",
+      "ADD_DIALOG_DESCRIPTION": "Create a new infrastructure configuration in this project.",
+      "ADD_ERROR": "Unable to create the configuration.",
+      "FORM": {
+        "NAME": "Configuration name",
+        "NAME_PLACEHOLDER": "e.g. Platform foundation",
+        "CANCEL": "Cancel",
+        "ADD": "Create"
+      }
+    },
+    "MEMBERS": {
+      "ADD": "Add member",
+      "EMPTY": "No members in this project.",
+      "REMOVE": "Remove",
+      "REMOVE_CONFIRM_TITLE": "Remove member",
+      "REMOVE_CONFIRM_MESSAGE": "Are you sure you want to remove {{name}} from this project?",
+      "REMOVE_CONFIRM_YES": "Remove",
+      "REMOVE_CONFIRM_CANCEL": "Cancel",
+      "ROLE_OWNER": "Owner",
+      "ROLE_CONTRIBUTOR": "Contributor",
+      "ROLE_READER": "Reader",
+      "CHANGE_ROLE_ARIA": "Change member role",
+      "ADD_DIALOG_TITLE": "Add a member",
+      "ADD_DIALOG_USER_LABEL": "Select a user",
+      "ADD_DIALOG_SEARCH_PLACEHOLDER": "Search by name...",
+      "ADD_DIALOG_NO_RESULTS": "No users found",
+      "ADD_DIALOG_ROLE_LABEL": "Role",
+      "ADD_DIALOG_CANCEL": "Cancel",
+      "ADD_DIALOG_ADD": "Add",
+      "ADD_DIALOG_ERROR": "Unable to add member. Please try again.",
+      "REMOVE_ERROR": "Unable to remove member.",
+      "ROLE_CHANGE_ERROR": "Unable to change role."
     }
   }
 }

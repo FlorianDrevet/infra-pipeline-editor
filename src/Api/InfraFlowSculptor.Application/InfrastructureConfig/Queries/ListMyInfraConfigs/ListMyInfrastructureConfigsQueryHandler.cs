@@ -7,8 +7,12 @@ using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
 
-public class ListMyInfrastructureConfigsQueryHandler(
-    IInfrastructureConfigRepository repository,
+/// <summary>
+/// Returns all configurations across all projects the current user is a member of.
+/// </summary>
+public sealed class ListMyInfrastructureConfigsQueryHandler(
+    IProjectRepository projectRepository,
+    IInfrastructureConfigRepository configRepository,
     ICurrentUser currentUser,
     IMapper mapper)
     : IRequestHandler<ListMyInfrastructureConfigsQuery, ErrorOr<List<GetInfrastructureConfigResult>>>
@@ -17,7 +21,15 @@ public class ListMyInfrastructureConfigsQueryHandler(
         ListMyInfrastructureConfigsQuery query, CancellationToken cancellationToken)
     {
         var userId = await currentUser.GetUserIdAsync(cancellationToken);
-        var configs = await repository.GetAllForUserAsync(userId, cancellationToken);
-        return configs.Select(c => mapper.Map<GetInfrastructureConfigResult>(c)).ToList();
+        var projects = await projectRepository.GetAllForUserAsync(userId, cancellationToken);
+
+        var allConfigs = new List<GetInfrastructureConfigResult>();
+        foreach (var project in projects)
+        {
+            var configs = await configRepository.GetByProjectIdAsync(project.Id, cancellationToken);
+            allConfigs.AddRange(configs.Select(c => mapper.Map<GetInfrastructureConfigResult>(c)));
+        }
+
+        return allConfigs;
     }
 }

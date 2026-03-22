@@ -8,8 +8,8 @@
       </p>
 
       <div class="hero-panel__actions">
-        <button type="button" class="primary-cta" (click)="openCreateDialog()">{{ 'HOME.ACTIONS.ADD_CONFIGURATION' | translate }}</button>
-        <button type="button" class="secondary-cta" (click)="refreshConfigs()" [disabled]="isLoading()">
+        <button type="button" class="primary-cta" (click)="openCreateDialog()">{{ 'HOME.ACTIONS.ADD_PROJECT' | translate }}</button>
+        <button type="button" class="secondary-cta" (click)="refreshProjects()" [disabled]="isLoading()">
           @if (isLoading()) {
             {{ 'HOME.ACTIONS.REFRESHING' | translate }}
           } @else {
@@ -21,12 +21,12 @@
 
     <div class="hero-panel__stats" [attr.aria-label]="'HOME.HERO.STATS.ARIA' | translate">
       <article class="stat-card">
-        <strong>{{ configs().length }}</strong>
-        <span>{{ 'HOME.HERO.STATS.CONFIGS_TRACKED' | translate }}</span>
+        <strong>{{ projects().length }}</strong>
+        <span>{{ 'HOME.HERO.STATS.PROJECTS_TRACKED' | translate }}</span>
       </article>
       <article class="stat-card">
-        <strong>{{ totalEnvironmentCount() }}</strong>
-        <span>{{ 'HOME.HERO.STATS.ENV_DEFINITIONS' | translate }}</span>
+        <strong>{{ totalMemberCount() }}</strong>
+        <span>{{ 'HOME.HERO.STATS.TOTAL_MEMBERS' | translate }}</span>
       </article>
       <article class="stat-card stat-card--accent">
         <strong>{{ 'HOME.HERO.STATS.MAIN_CTA_TITLE' | translate }}</strong>
@@ -36,21 +36,21 @@
   </section>
 
   <section class="workspace-grid">
-    <article class="create-panel" id="new-config">
+    <article class="create-panel" id="new-project">
       <div class="section-heading">
         <span>{{ 'HOME.CREATE.OVERLINE' | translate }}</span>
         <h2>{{ 'HOME.CREATE.TITLE' | translate }}</h2>
         <p>{{ 'HOME.CREATE.DESCRIPTION' | translate }}</p>
       </div>
 
-      @if (createdConfigName()) {
+      @if (createdProjectName()) {
         <div class="feedback-banner feedback-banner--success" role="status" aria-live="polite">
-          {{ 'HOME.FEEDBACK.CREATE_SUCCESS' | translate: { name: createdConfigName() } }}
+          {{ 'HOME.FEEDBACK.CREATE_SUCCESS' | translate: { name: createdProjectName() } }}
         </div>
       }
 
       <button type="button" class="submit-button" (click)="openCreateDialog()">
-        {{ 'HOME.ACTIONS.ADD_CONFIGURATION' | translate }}
+        {{ 'HOME.ACTIONS.ADD_PROJECT' | translate }}
       </button>
     </article>
 
@@ -60,7 +60,7 @@
           <span>{{ 'HOME.LIST.OVERLINE' | translate }}</span>
           <h2>{{ 'HOME.LIST.TITLE' | translate }}</h2>
         </div>
-        <button type="button" class="ghost-button" (click)="refreshConfigs()" [disabled]="isLoading()">
+        <button type="button" class="ghost-button" (click)="refreshProjects()" [disabled]="isLoading()">
           {{ 'HOME.ACTIONS.RETRY_SYNC' | translate }}
         </button>
       </div>
@@ -77,9 +77,9 @@
         <div class="state-card state-card--error" role="alert" aria-live="assertive">
           <strong>{{ 'HOME.STATE.LOAD_FAILED' | translate }}</strong>
           <p>{{ loadError() }}</p>
-          <button type="button" class="ghost-button" (click)="refreshConfigs()">{{ 'HOME.ACTIONS.TRY_AGAIN' | translate }}</button>
+          <button type="button" class="ghost-button" (click)="refreshProjects()">{{ 'HOME.ACTIONS.TRY_AGAIN' | translate }}</button>
         </div>
-      } @else if (configs().length === 0) {
+      } @else if (projects().length === 0) {
         <div class="state-card state-card--empty" aria-live="polite">
           <strong>{{ 'HOME.STATE.EMPTY_TITLE' | translate }}</strong>
           <p>
@@ -99,60 +99,35 @@
           <label class="field sort-field">
             <select (change)="onSortChange($event)">
               <option value="name">{{ 'HOME.SORT.BY_NAME' | translate }}</option>
-              <option value="environments">{{ 'HOME.SORT.BY_ENVIRONMENTS' | translate }}</option>
               <option value="members">{{ 'HOME.SORT.BY_MEMBERS' | translate }}</option>
             </select>
           </label>
         </div>
 
-        @if (filteredConfigs().length === 0) {
+        @if (filteredProjects().length === 0) {
           <div class="state-card state-card--empty" aria-live="polite">
             <strong>{{ 'HOME.SEARCH.NO_RESULTS' | translate }}</strong>
           </div>
         } @else {
         <div class="config-list">
-          @for (config of filteredConfigs(); track config.id) {
-            <a class="config-card" [routerLink]="['/config', config.id]">
+          @for (project of filteredProjects(); track project.id) {
+            <a class="config-card" [routerLink]="['/projects', project.id]">
               <div class="config-card__header">
                 <div>
-                  <h3>{{ config.name }}</h3>
-                  <p>{{ config.id }}</p>
+                  <h3>{{ project.name }}</h3>
+                  @if (project.description) {
+                    <p class="config-card__description">{{ project.description }}</p>
+                  }
                 </div>
-                <span class="config-chip">{{ 'HOME.LIST.MEMBERS' | translate: { count: config.members.length } }}</span>
+                <span class="config-chip">{{ 'HOME.LIST.MEMBERS' | translate: { count: project.members.length } }}</span>
               </div>
 
               <div class="config-card__metrics">
                 <div>
-                  <strong>{{ config.environmentDefinitions.length }}</strong>
-                  <span>{{ 'HOME.LIST.METRICS.ENVIRONMENTS' | translate }}</span>
-                </div>
-                <div>
-                  <strong>{{ config.resourceNamingTemplates.length }}</strong>
-                  <span>{{ 'HOME.LIST.METRICS.NAMING_TEMPLATES' | translate }}</span>
-                </div>
-                <div>
-                  <strong>{{ config.defaultNamingTemplate ? ('HOME.LIST.METRICS.BOOLEAN_TRUE' | translate) : ('HOME.LIST.METRICS.BOOLEAN_FALSE' | translate) }}</strong>
-                  <span>{{ 'HOME.LIST.METRICS.DEFAULT_NAMING' | translate }}</span>
+                  <strong>{{ project.members.length }}</strong>
+                  <span>{{ 'HOME.LIST.METRICS.MEMBERS' | translate }}</span>
                 </div>
               </div>
-
-              @if (config.environmentDefinitions.length > 0) {
-                <div class="config-card__envs">
-                  <span>{{ 'HOME.LIST.TOP_ENVIRONMENTS' | translate }}</span>
-                  <ul>
-                    @for (environment of config.environmentDefinitions.slice(0, 3); track environment.id) {
-                      <li>
-                        <strong>{{ environment.name }}</strong>
-                        <span>{{ environment.location }}</span>
-                      </li>
-                    }
-                  </ul>
-                </div>
-              } @else {
-                <div class="config-card__empty-note">
-                  {{ 'HOME.LIST.NO_ENVIRONMENT' | translate }}
-                </div>
-              }
             </a>
           }
         </div>

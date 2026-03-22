@@ -63,6 +63,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 //Controllers
+app.UseProjectController();
 app.UseInfrastructureConfigController();
 app.UseEnvironmentDefinitionController();
 app.UseNamingTemplateController();

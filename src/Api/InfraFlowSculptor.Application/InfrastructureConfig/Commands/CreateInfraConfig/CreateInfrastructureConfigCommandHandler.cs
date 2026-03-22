@@ -4,13 +4,16 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 
-public class CreateInfrastructureConfigCommandHandler(
-    IInfrastructureConfigRepository repository, ICurrentUser currentUser, IMapper mapper)
+public sealed class CreateInfrastructureConfigCommandHandler(
+    IInfrastructureConfigRepository repository,
+    IProjectAccessService projectAccessService,
+    IMapper mapper)
     : IRequestHandler<CreateInfrastructureConfigCommand,
         ErrorOr<GetInfrastructureConfigResult>>
 {
@@ -27,9 +30,13 @@ public class CreateInfrastructureConfigCommandHandler(
     public async Task<ErrorOr<GetInfrastructureConfigResult>> Handle(
         CreateInfrastructureConfigCommand command, CancellationToken cancellationToken)
     {
+        var projectId = ProjectId.Create(command.ProjectId);
+        var accessResult = await projectAccessService.VerifyWriteAccessAsync(projectId, cancellationToken);
+        if (accessResult.IsError)
+            return accessResult.Errors;
+
         var nameVo = new Name(command.Name);
-        var userId = await currentUser.GetUserIdAsync(cancellationToken);
-        var infra = Domain.InfrastructureConfigAggregate.InfrastructureConfig.Create(nameVo, userId);
+        var infra = Domain.InfrastructureConfigAggregate.InfrastructureConfig.Create(nameVo, projectId);
 
         infra.SetDefaultNamingTemplate(new NamingTemplate(DefaultTemplate));
 

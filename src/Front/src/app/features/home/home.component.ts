@@ -2,10 +2,10 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TranslateModule } from '@ngx-translate/core';
-import { InfrastructureConfigResponse } from '../../shared/interfaces/infra-config.interface';
-import { InfraConfigService } from '../../shared/services/infra-config.service';
+import { ProjectResponse } from '../../shared/interfaces/project.interface';
+import { ProjectService } from '../../shared/services/project.service';
 import { LanguageService } from '../../shared/services/language.service';
-import { CreateConfigDialogComponent } from './create-config-dialog/create-config-dialog.component';
+import { CreateProjectDialogComponent } from './create-project-dialog/create-project-dialog.component';
 
 @Component({
   selector: 'app-home',
@@ -15,37 +15,39 @@ import { CreateConfigDialogComponent } from './create-config-dialog/create-confi
   styleUrl: './home.component.scss',
 })
 export class HomeComponent implements OnInit {
-  private readonly infraConfigService = inject(InfraConfigService);
+  private readonly projectService = inject(ProjectService);
   private readonly languageService = inject(LanguageService);
   private readonly dialog = inject(MatDialog);
 
-  protected readonly configs = signal<InfrastructureConfigResponse[]>([]);
+  protected readonly projects = signal<ProjectResponse[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly loadError = signal('');
-  protected readonly createdConfigName = signal('');
+  protected readonly createdProjectName = signal('');
   protected readonly searchQuery = signal('');
-  protected readonly sortBy = signal<'name' | 'environments' | 'members'>('name');
+  protected readonly sortBy = signal<'name' | 'members'>('name');
 
-  protected readonly totalEnvironmentCount = computed(() =>
-    this.configs().reduce(
-      (count, config) => count + config.environmentDefinitions.length,
+  protected readonly totalMemberCount = computed(() =>
+    this.projects().reduce(
+      (count, project) => count + project.members.length,
       0
     )
   );
 
-  protected readonly filteredConfigs = computed(() => {
+  protected readonly filteredProjects = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const sort = this.sortBy();
-    let filtered = this.configs();
+    let filtered = this.projects();
 
     if (query) {
-      filtered = filtered.filter(c => c.name.toLowerCase().includes(query));
+      filtered = filtered.filter(
+        (p) =>
+          p.name.toLowerCase().includes(query) ||
+          (p.description?.toLowerCase().includes(query) ?? false)
+      );
     }
 
     return [...filtered].sort((a, b) => {
       switch (sort) {
-        case 'environments':
-          return b.environmentDefinitions.length - a.environmentDefinitions.length;
         case 'members':
           return b.members.length - a.members.length;
         default:
@@ -55,22 +57,22 @@ export class HomeComponent implements OnInit {
   });
 
   public async ngOnInit(): Promise<void> {
-    await this.loadConfigs();
+    await this.loadProjects();
   }
 
-  protected async refreshConfigs(): Promise<void> {
-    await this.loadConfigs();
+  protected async refreshProjects(): Promise<void> {
+    await this.loadProjects();
   }
 
   protected openCreateDialog(): void {
-    const dialogRef = this.dialog.open(CreateConfigDialogComponent, {
+    const dialogRef = this.dialog.open(CreateProjectDialogComponent, {
       width: '480px',
     });
 
-    dialogRef.afterClosed().subscribe((result?: InfrastructureConfigResponse) => {
+    dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {
       if (result) {
-        this.configs.update(configs => [result, ...configs]);
-        this.createdConfigName.set(result.name);
+        this.projects.update((projects) => [result, ...projects]);
+        this.createdProjectName.set(result.name);
       }
     });
   }
@@ -82,16 +84,16 @@ export class HomeComponent implements OnInit {
 
   protected onSortChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
-    this.sortBy.set(select.value as 'name' | 'environments' | 'members');
+    this.sortBy.set(select.value as 'name' | 'members');
   }
 
-  private async loadConfigs(): Promise<void> {
+  private async loadProjects(): Promise<void> {
     this.isLoading.set(true);
     this.loadError.set('');
 
     try {
-      const configs = await this.infraConfigService.getAll();
-      this.configs.set(configs);
+      const projects = await this.projectService.getMyProjects();
+      this.projects.set(projects);
     } catch (error) {
       this.loadError.set(
         this.extractErrorMessage(

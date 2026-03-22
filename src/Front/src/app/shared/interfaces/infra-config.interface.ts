@@ -43,7 +43,7 @@ export interface InfrastructureConfigResponse {
   id: string;
   name: string;
   defaultNamingTemplate: string | null;
-  members: MemberResponse[];
+  projectId: string;
   environmentDefinitions: EnvironmentDefinitionResponse[];
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
 }
@@ -52,6 +52,7 @@ export interface InfrastructureConfigResponse {
 
 export interface CreateInfrastructureConfigRequest {
   name: string;
+  projectId: string;
 }
 
 export interface TagRequest {

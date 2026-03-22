@@ -6,19 +6,27 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Common;
 
+/// <summary>
+/// Enforces access control for InfrastructureConfig by checking project-level membership.
+/// </summary>
 internal sealed class InfraConfigAccessService(
-    IInfrastructureConfigRepository repository,
-    ICurrentUser currentUser)
+    IInfrastructureConfigRepository configRepository,
+    IProjectAccessService projectAccessService)
     : IInfraConfigAccessService
 {
     public async Task<ErrorOr<Domain.InfrastructureConfigAggregate.InfrastructureConfig>> VerifyReadAccessAsync(
         InfrastructureConfigId infraConfigId,
         CancellationToken cancellationToken = default)
     {
-        var userId = await currentUser.GetUserIdAsync(cancellationToken);
-        var infraConfig = await repository.GetByIdWithMembersAsync(infraConfigId, cancellationToken);
+        var infraConfig = await configRepository.GetByIdAsync(infraConfigId, cancellationToken);
 
-        if (infraConfig is null || !infraConfig.Members.Any(m => m.UserId == userId))
+        if (infraConfig is null)
+            return Errors.InfrastructureConfig.NotFoundError(infraConfigId);
+
+        var projectAccess = await projectAccessService.VerifyReadAccessAsync(
+            infraConfig.ProjectId, cancellationToken);
+
+        if (projectAccess.IsError)
             return Errors.InfrastructureConfig.NotFoundError(infraConfigId);
 
         return infraConfig;
@@ -28,18 +36,16 @@ internal sealed class InfraConfigAccessService(
         InfrastructureConfigId infraConfigId,
         CancellationToken cancellationToken = default)
     {
-        var userId = await currentUser.GetUserIdAsync(cancellationToken);
-        var infraConfig = await repository.GetByIdWithMembersAsync(infraConfigId, cancellationToken);
+        var infraConfig = await configRepository.GetByIdAsync(infraConfigId, cancellationToken);
 
         if (infraConfig is null)
             return Errors.InfrastructureConfig.NotFoundError(infraConfigId);
 
-        var member = infraConfig.Members.FirstOrDefault(m => m.UserId == userId);
-        if (member is null)
-            return Errors.InfrastructureConfig.NotFoundError(infraConfigId);
+        var projectAccess = await projectAccessService.VerifyWriteAccessAsync(
+            infraConfig.ProjectId, cancellationToken);
 
-        if (member.Role.Value == Role.RoleEnum.Reader)
-            return Errors.InfrastructureConfig.ForbiddenError();
+        if (projectAccess.IsError)
+            return projectAccess.Errors;
 
         return infraConfig;
     }

@@ -4,6 +4,7 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.EnvironmentParameterValue;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ParameterDefinition;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Shared.Infrastructure.Persistence.Configurations;
@@ -31,17 +32,23 @@ public sealed class InfrastructureConfigConfiguration
             .IsRequired(false);
 
         // ========================
-        // ResourceGroups (Entity)
+        // ProjectId (required FK)
         // ========================
-        builder.HasMany(x => x.ResourceGroups)
-            .WithOne(x => x.InfraConfig)
-            .HasForeignKey(x => x.InfraConfigId)
+        builder.Property(x => x.ProjectId)
+            .HasConversion(new IdValueConverter<ProjectId>())
+            .IsRequired();
+
+        builder.HasIndex(x => x.ProjectId);
+
+        builder.HasOne<Domain.ProjectAggregate.Project>()
+            .WithMany()
+            .HasForeignKey(x => x.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // ========================
-        // Members (Entity)
+        // ResourceGroups (Entity)
         // ========================
-        builder.HasMany(x => x.Members)
+        builder.HasMany(x => x.ResourceGroups)
             .WithOne(x => x.InfraConfig)
             .HasForeignKey(x => x.InfraConfigId)
             .OnDelete(DeleteBehavior.Cascade);

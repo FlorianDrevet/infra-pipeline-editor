@@ -1,9 +1,8 @@
 ﻿using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
-using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Shared.Domain.Domain.Models;
-using Location = InfraFlowSculptor.Domain.Common.ValueObjects.Location;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
 namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
@@ -11,6 +10,9 @@ namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 {
     public Name Name { get; private set; } = null!;
+
+    /// <summary>Gets the identifier of the parent project.</summary>
+    public ProjectId ProjectId { get; private set; } = null!;
 
     /// <summary>
     /// Default naming template applied to all resource types unless overridden.
@@ -21,10 +23,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 
     private readonly List<ResourceGroup> _resourceGroups = new();
     public IReadOnlyList<ResourceGroup> ResourceGroups => _resourceGroups.AsReadOnly();
-    
-    private readonly List<Member> _members = new();
-    public IReadOnlyCollection<Member> Members => _members.AsReadOnly();
-    
+
     private readonly List<EnvironmentDefinition> _environmentDefinitions = new();
     public IReadOnlyCollection<EnvironmentDefinition> EnvironmentDefinitions => _environmentDefinitions.AsReadOnly();
     
@@ -35,15 +34,18 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     public IReadOnlyCollection<ParameterDefinition> ParameterDefinitions => _parameterDefinitions;
 
     
-    private InfrastructureConfig(InfrastructureConfigId id, Name name, UserId ownerId): base(id)
+    private InfrastructureConfig(InfrastructureConfigId id, Name name, ProjectId projectId): base(id)
     {
         Name = name;
-        _members.Add(Member.CreateOwner(id, ownerId));
+        ProjectId = projectId;
     }
 
-    public static InfrastructureConfig Create(Name name, UserId ownerId)
+    /// <summary>
+    /// Creates a new <see cref="InfrastructureConfig"/> belonging to the specified project.
+    /// </summary>
+    public static InfrastructureConfig Create(Name name, ProjectId projectId)
     {
-        return new InfrastructureConfig(InfrastructureConfigId.CreateUnique(), name, ownerId);
+        return new InfrastructureConfig(InfrastructureConfigId.CreateUnique(), name, projectId);
     }
 
     public InfrastructureConfig()
@@ -67,28 +69,6 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     public void Rename(Name name)
     {
         Name = name;
-    }
-
-    public void AddMember(UserId userId, Role role)
-    {
-        _members.Add(new Member(Id, userId, role));
-    }
-
-    public void ChangeRole(UserId userId, Role newRole)
-    {
-        var member = GetMember(userId);
-        member.ChangeRole(newRole);
-    }
-
-    public void RemoveMember(UserId userId)
-    {
-        var member = GetMember(userId);
-        _members.Remove(member);
-    }
-
-    private Member? GetMember(UserId userId)
-    {
-        return _members.FirstOrDefault(m => m.UserId == userId);
     }
 
     // ─── Environment Definitions ────────────────────────────────────────────

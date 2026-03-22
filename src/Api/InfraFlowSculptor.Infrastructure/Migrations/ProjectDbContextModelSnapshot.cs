@@ -152,31 +152,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("ResourceParameterUsages", (string)null);
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.Member", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("InfraConfigId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("InfraConfigId", "UserId")
-                        .IsUnique();
-
-                    b.ToTable("infrastructureconfig_members", (string)null);
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ParameterDefinition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -243,9 +218,57 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("ProjectId");
+
                     b.ToTable("InfrastructureConfigs", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ProjectId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("project_members", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Project", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup", b =>
@@ -508,25 +531,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.Member", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", "InfraConfig")
-                        .WithMany("Members")
-                        .HasForeignKey("InfraConfigId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("InfraFlowSculptor.Domain.UserAggregate.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("InfraConfig");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ParameterDefinition", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", null)
@@ -549,6 +553,12 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>
                 {
+                    b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.OwnsMany("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.EnvironmentDefinition", "EnvironmentDefinitions", b1 =>
                         {
                             b1.Property<Guid>("Id")
@@ -653,6 +663,25 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("EnvironmentDefinitions");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectMember", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Project", "Project")
+                        .WithMany("Members")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InfraFlowSculptor.Domain.UserAggregate.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", "InfraConfig")
@@ -731,13 +760,16 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>
                 {
-                    b.Navigation("Members");
-
                     b.Navigation("ParameterDefinitions");
 
                     b.Navigation("ResourceGroups");
 
                     b.Navigation("ResourceNamingTemplates");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Project", b =>
+                {
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup", b =>

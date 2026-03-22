@@ -11,16 +11,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   InfrastructureConfigResponse,
-  MemberResponse,
   ResourceNamingTemplateResponse,
-  UserResponse,
   EnvironmentDefinitionResponse,
 } from '../../shared/interfaces/infra-config.interface';
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
-import { AuthenticationService } from '../../shared/services/authentication.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { AddMemberDialogComponent, AddMemberDialogData } from './add-member-dialog/add-member-dialog.component';
 import { AddEnvironmentDialogComponent, AddEnvironmentDialogData } from './add-environment-dialog/add-environment-dialog.component';
 import { AddResourceGroupDialogComponent, AddResourceGroupDialogData } from './add-resource-group-dialog/add-resource-group-dialog.component';
 import { AddResourceDialogComponent, AddResourceDialogData } from './add-resource-dialog/add-resource-dialog.component';
@@ -33,9 +29,7 @@ import { ResourceGroupService } from '../../shared/services/resource-group.servi
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS } from './enums/resource-type.enum';
 import { FormsModule } from '@angular/forms';
 
-const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
-const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
-const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit', Reader: 'visibility' };
+
 
 @Component({
   selector: 'app-config-detail',
@@ -60,16 +54,12 @@ export class ConfigDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly resourceGroupService = inject(ResourceGroupService);
-  private readonly authService = inject(AuthenticationService);
   private readonly dialog = inject(MatDialog);
 
   protected readonly config = signal<InfrastructureConfigResponse | null>(null);
   protected readonly resourceGroups = signal<ResourceGroupResponse[]>([]);
-  protected readonly availableUsers = signal<UserResponse[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly loadError = signal('');
-  protected readonly memberActionId = signal<string | null>(null);
-  protected readonly memberErrorKey = signal('');
   protected readonly envActionId = signal<string | null>(null);
   protected readonly envErrorKey = signal('');
   protected readonly namingActionKey = signal<string | null>(null);
@@ -80,34 +70,9 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly rgResourcesLoading = signal<string | null>(null);
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
-  protected readonly roles = ROLES;
 
-  protected readonly membersByRole = computed(() => {
-    const members = this.config()?.members ?? [];
-    return ROLES
-      .map((role) => ({
-        role,
-        icon: ROLE_ICONS[role],
-        members: members.filter((m) => m.role === role),
-      }))
-      .filter((group) => group.members.length > 0);
-  });
-
-  protected readonly isOwner = computed(() => {
-    const oid = this.authService.getMsalAccount?.localAccountId;
-    if (!oid) return false;
-    const members = this.config()?.members ?? [];
-    const me = members.find((m) => m.entraId === oid);
-    return me?.role === 'Owner';
-  });
-
-  protected readonly canWrite = computed(() => {
-    const oid = this.authService.getMsalAccount?.localAccountId;
-    if (!oid) return false;
-    const members = this.config()?.members ?? [];
-    const me = members.find((m) => m.entraId === oid);
-    return me?.role === 'Owner' || me?.role === 'Contributor';
-  });
+  // canWrite defaults to true — access checks are now at project level
+  protected readonly canWrite = signal(true);
 
   protected readonly canAddResourceNamingTemplate = computed(() => {
     const configuredTypes = new Set((this.config()?.resourceNamingTemplates ?? []).map((item) => item.resourceType));
@@ -170,14 +135,12 @@ export class ConfigDetailComponent implements OnInit {
     this.loadError.set('');
 
     try {
-      const [config, resourceGroups, users] = await Promise.all([
+      const [config, resourceGroups] = await Promise.all([
         this.infraConfigService.getById(id),
         this.infraConfigService.getResourceGroups(id),
-        this.infraConfigService.getUsers(),
       ]);
       this.config.set(config);
       this.resourceGroups.set(resourceGroups);
-      this.availableUsers.set(users);
 
       // Pre-select the first environment (by order) for the naming preview
       const firstEnv = [...(config.environmentDefinitions ?? [])].sort((a, b) => a.order - b.order)[0];
@@ -189,85 +152,6 @@ export class ConfigDetailComponent implements OnInit {
     } finally {
       this.isLoading.set(false);
     }
-  }
-
-  protected async onRoleChange(member: MemberResponse, newRole: string): Promise<void> {
-    if (newRole === member.role) return;
-
-    const configId = this.config()?.id;
-    if (!configId) return;
-
-    this.memberActionId.set(member.id);
-    this.memberErrorKey.set('');
-
-    try {
-      await this.infraConfigService.updateMemberRole(configId, member.userId, {
-        newRole,
-      });
-      const refreshed = await this.infraConfigService.getById(configId);
-      this.config.set(refreshed);
-    } catch {
-      this.memberErrorKey.set('CONFIG_DETAIL.MEMBERS.ROLE_CHANGE_ERROR');
-    } finally {
-      this.memberActionId.set(null);
-    }
-  }
-
-  protected openRemoveDialog(member: MemberResponse): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        titleKey: 'CONFIG_DETAIL.MEMBERS.REMOVE_CONFIRM_TITLE',
-        messageKey: 'CONFIG_DETAIL.MEMBERS.REMOVE_CONFIRM_MESSAGE',
-        messageParams: { name: `${member.firstName} ${member.lastName}` },
-        confirmKey: 'CONFIG_DETAIL.MEMBERS.REMOVE_CONFIRM_YES',
-        cancelKey: 'CONFIG_DETAIL.MEMBERS.REMOVE_CONFIRM_CANCEL',
-      } satisfies ConfirmDialogData,
-      width: '400px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
-      if (!confirmed) return;
-      await this.removeMember(member);
-    });
-  }
-
-  private async removeMember(member: MemberResponse): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId) return;
-
-    this.memberActionId.set(member.id);
-    this.memberErrorKey.set('');
-
-    try {
-      await this.infraConfigService.removeMember(configId, member.userId);
-      const refreshed = await this.infraConfigService.getById(configId);
-      this.config.set(refreshed);
-    } catch {
-      this.memberErrorKey.set('CONFIG_DETAIL.MEMBERS.REMOVE_ERROR');
-    } finally {
-      this.memberActionId.set(null);
-    }
-  }
-
-  protected openAddMemberDialog(): void {
-    const currentConfig = this.config();
-    if (!currentConfig) return;
-
-    const dialogRef = this.dialog.open(AddMemberDialogComponent, {
-      data: {
-        configId: currentConfig.id,
-        existingUserIds: currentConfig.members.map((m) => m.userId),
-        availableUsers: this.availableUsers(),
-      } satisfies AddMemberDialogData,
-      width: '440px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (result: InfrastructureConfigResponse | null) => {
-      if (result) {
-        const refreshed = await this.infraConfigService.getById(currentConfig.id);
-        this.config.set(refreshed);
-      }
-    });
   }
 
   protected openAddResourceGroupDialog(): void {
