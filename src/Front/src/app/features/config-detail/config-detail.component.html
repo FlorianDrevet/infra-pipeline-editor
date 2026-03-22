@@ -60,9 +60,21 @@
               }
             </h2>
           </div>
-          <button class="bicep-panel__close" (click)="closeBicepPanel()" [matTooltip]="'CONFIG_DETAIL.BICEP.CLOSE' | translate">
-            <mat-icon>close</mat-icon>
-          </button>
+          <div class="bicep-panel__actions">
+            @if (bicepResult()) {
+              <button class="bicep-download-btn" (click)="downloadBicepFiles()" [disabled]="bicepDownloading()">
+                @if (bicepDownloading()) {
+                  <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                } @else {
+                  <mat-icon>download</mat-icon>
+                }
+                {{ (bicepDownloading() ? 'CONFIG_DETAIL.BICEP.DOWNLOADING' : 'CONFIG_DETAIL.BICEP.DOWNLOAD') | translate }}
+              </button>
+            }
+            <button class="bicep-panel__close" (click)="closeBicepPanel()" [matTooltip]="'CONFIG_DETAIL.BICEP.CLOSE' | translate">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
         </div>
 
         @if (bicepLoading()) {

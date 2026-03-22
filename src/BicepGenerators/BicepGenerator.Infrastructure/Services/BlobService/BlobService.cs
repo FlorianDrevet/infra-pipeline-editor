@@ -52,4 +52,24 @@ public class BlobService : IBlobService
     {
         throw new NotImplementedException();
     }
+
+    public async Task<string?> DownloadContentAsync(string blobName)
+    {
+        var blobClient = _blobContainerClient.GetBlobClient(blobName);
+        if (!await blobClient.ExistsAsync())
+            return null;
+
+        var response = await blobClient.DownloadContentAsync();
+        return response.Value.Content.ToString();
+    }
+
+    public async Task<IReadOnlyList<string>> ListBlobsAsync(string prefix)
+    {
+        var blobs = new List<string>();
+        await foreach (var blob in _blobContainerClient.GetBlobsAsync(prefix: prefix))
+        {
+            blobs.Add(blob.Name);
+        }
+        return blobs;
+    }
 }

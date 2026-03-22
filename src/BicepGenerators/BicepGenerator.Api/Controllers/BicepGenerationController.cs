@@ -1,3 +1,4 @@
+using BicepGenerator.Application.Commands.DownloadBicep;
 using BicepGenerator.Application.Commands.GenerateBicep;
 using BicepGenerator.Contracts.GenerateBicep.Requests;
 using BicepGenerator.Contracts.GenerateBicep.Responses;
@@ -38,6 +39,24 @@ public static class BicepGenerationController
                 .Produces<GenerateBicepResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+            group.MapGet("/{configId:guid}/download",
+                    async (Guid configId, IMediator mediator) =>
+                    {
+                        var command = new DownloadBicepCommand(configId);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.File(
+                                value.ZipContent,
+                                "application/zip",
+                                value.FileName),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("DownloadBicep")
+                .Produces(StatusCodes.Status200OK, contentType: "application/zip")
+                .ProducesProblem(StatusCodes.Status404NotFound);
         });
     }
 }

@@ -32,7 +32,8 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "allowedCommonJsDependencies": [
-              "protobufjs/minimal"
+              "protobufjs/minimal",
+              "file-saver"
             ],
             "assets": [
               {

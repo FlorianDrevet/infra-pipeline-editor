@@ -35,4 +35,21 @@ export class BicepGeneratorService {
 
     return response.data;
   }
+
+  async downloadZip(configId: string): Promise<Blob> {
+    const token = await this.msalAuth.getAccessTokenForScopes(this.bicepApiScopes);
+    if (!token) {
+      throw new Error('No access token for Bicep API. Please sign in.');
+    }
+
+    const response = await bicepAxios.get(
+      `${environment.bicep_api_url}/generate-bicep/${configId}/download`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob',
+      }
+    );
+
+    return response.data as Blob;
+  }
 }

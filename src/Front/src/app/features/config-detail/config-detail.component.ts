@@ -29,6 +29,7 @@ import { ResourceGroupService } from '../../shared/services/resource-group.servi
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
+import { saveAs } from 'file-saver';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -90,6 +91,7 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly bicepResult = signal<GenerateBicepResponse | null>(null);
   protected readonly bicepErrorKey = signal('');
   protected readonly bicepPanelOpen = signal(false);
+  protected readonly bicepDownloading = signal(false);
 
   protected readonly bicepModuleEntries = computed(() => {
     const result = this.bicepResult();
@@ -523,6 +525,23 @@ export class ConfigDetailComponent implements OnInit {
     this.bicepPanelOpen.set(false);
     this.bicepResult.set(null);
     this.bicepErrorKey.set('');
+  }
+
+  protected async downloadBicepFiles(): Promise<void> {
+    const result = this.bicepResult();
+    if (!result || this.bicepDownloading()) return;
+
+    this.bicepDownloading.set(true);
+    try {
+      const configId = this.config()?.id;
+      if (!configId) return;
+
+      const blob = await this.bicepService.downloadZip(configId);
+      const configName = this.config()?.name ?? 'bicep';
+      saveAs(blob, `${configName}-bicep.zip`);
+    } finally {
+      this.bicepDownloading.set(false);
+    }
   }
 
   protected openDeleteConfigDialog(): void {

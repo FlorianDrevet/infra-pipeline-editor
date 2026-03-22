@@ -350,7 +350,9 @@
       "ENTRY_POINT": "entry point",
       "PARAMETERS": "parameters",
       "GENERATE_ERROR": "Unable to generate Bicep files. Please check your configuration has at least one resource group with resources.",
-      "RETRY": "Try again"
+      "RETRY": "Try again",
+      "DOWNLOAD": "Download all files",
+      "DOWNLOADING": "Downloading..."
     }
   },
   "PROJECT_DETAIL": {

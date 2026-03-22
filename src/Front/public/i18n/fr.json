@@ -350,7 +350,9 @@
       "ENTRY_POINT": "point d'entree",
       "PARAMETERS": "parametres",
       "GENERATE_ERROR": "Impossible de generer les fichiers Bicep. Verifiez que votre configuration contient au moins un groupe de ressources avec des ressources.",
-      "RETRY": "Reessayer"
+      "RETRY": "Reessayer",
+      "DOWNLOAD": "Telecharger tous les fichiers",
+      "DOWNLOADING": "Telechargement..."
     }
   },
   "PROJECT_DETAIL": {
