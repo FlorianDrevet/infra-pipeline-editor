@@ -16,12 +16,22 @@
     <section class="detail-header">
       <div class="detail-header__nav">
         <a class="ghost-button" [routerLink]="['/projects', config()!.projectId]">{{ 'CONFIG_DETAIL.ACTIONS.BACK' | translate }}</a>
-        @if (isOwner()) {
-          <button class="delete-btn" (click)="openDeleteConfigDialog()">
-            <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
-            {{ 'CONFIG_DETAIL.DELETE.BUTTON' | translate }}
+        <div class="detail-header__actions">
+          <button class="bicep-cta" (click)="generateBicep()" [disabled]="bicepLoading()">
+            @if (bicepLoading()) {
+              <mat-spinner diameter="18" class="bicep-cta__spinner"></mat-spinner>
+            } @else {
+              <mat-icon class="bicep-cta__icon">terminal</mat-icon>
+            }
+            {{ (bicepLoading() ? 'CONFIG_DETAIL.BICEP.GENERATING' : 'CONFIG_DETAIL.BICEP.GENERATE') | translate }}
           </button>
-        }
+          @if (isOwner()) {
+            <button class="delete-btn" (click)="openDeleteConfigDialog()">
+              <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
+              {{ 'CONFIG_DETAIL.DELETE.BUTTON' | translate }}
+            </button>
+          }
+        </div>
       </div>
       <div class="detail-header__info">
         <span class="eyebrow">{{ 'CONFIG_DETAIL.HEADER.OVERLINE' | translate }}</span>
@@ -29,6 +39,116 @@
         <p class="detail-header__id">{{ config()!.id }}</p>
       </div>
     </section>
+
+    <!-- Bicep Generation Panel -->
+    @if (bicepPanelOpen()) {
+      <section class="bicep-panel" [class.bicep-panel--success]="bicepResult()" [class.bicep-panel--error]="bicepErrorKey()">
+        <div class="bicep-panel__header">
+          <div class="bicep-panel__title-row">
+            <mat-icon class="bicep-panel__title-icon">
+              @if (bicepLoading()) { hourglass_top }
+              @else if (bicepResult()) { check_circle }
+              @else { error_outline }
+            </mat-icon>
+            <h2 class="bicep-panel__title">
+              @if (bicepLoading()) {
+                {{ 'CONFIG_DETAIL.BICEP.PANEL_GENERATING' | translate }}
+              } @else if (bicepResult()) {
+                {{ 'CONFIG_DETAIL.BICEP.PANEL_SUCCESS' | translate }}
+              } @else {
+                {{ 'CONFIG_DETAIL.BICEP.PANEL_ERROR' | translate }}
+              }
+            </h2>
+          </div>
+          <button class="bicep-panel__close" (click)="closeBicepPanel()" [matTooltip]="'CONFIG_DETAIL.BICEP.CLOSE' | translate">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        @if (bicepLoading()) {
+          <div class="bicep-panel__loading">
+            <div class="bicep-terminal">
+              <div class="bicep-terminal__bar">
+                <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                <span class="bicep-terminal__bar-title">bicep-generator</span>
+              </div>
+              <div class="bicep-terminal__body">
+                <p class="bicep-terminal__line bicep-terminal__line--active">
+                  <span class="bicep-terminal__prompt">$</span>
+                  {{ 'CONFIG_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}
+                  <span class="bicep-terminal__cursor"></span>
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (bicepErrorKey()) {
+          <div class="bicep-panel__error-body">
+            <p>{{ bicepErrorKey() | translate }}</p>
+            <button class="bicep-retry-btn" (click)="generateBicep()">
+              <mat-icon>refresh</mat-icon>
+              {{ 'CONFIG_DETAIL.BICEP.RETRY' | translate }}
+            </button>
+          </div>
+        }
+
+        @if (bicepResult(); as result) {
+          <div class="bicep-terminal">
+            <div class="bicep-terminal__bar">
+              <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+              <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+              <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+              <span class="bicep-terminal__bar-title">bicep-generator &mdash; {{ 'CONFIG_DETAIL.BICEP.ARTIFACTS' | translate }}</span>
+            </div>
+            <div class="bicep-terminal__body">
+              <p class="bicep-terminal__line">
+                <span class="bicep-terminal__prompt">$</span>
+                {{ 'CONFIG_DETAIL.BICEP.TERMINAL_DONE' | translate }}
+              </p>
+              <div class="bicep-tree">
+                <!-- main.bicep -->
+                <div class="bicep-tree__item bicep-tree__item--main">
+                  <mat-icon class="bicep-tree__icon">description</mat-icon>
+                  <span class="bicep-tree__name">main.bicep</span>
+                  <span class="bicep-tree__badge">{{ 'CONFIG_DETAIL.BICEP.ENTRY_POINT' | translate }}</span>
+                  <a class="bicep-tree__link" [href]="result.mainBicepUri" target="_blank" rel="noopener noreferrer">
+                    <mat-icon>open_in_new</mat-icon>
+                  </a>
+                </div>
+                <!-- main.bicepparam -->
+                <div class="bicep-tree__item">
+                  <mat-icon class="bicep-tree__icon">tune</mat-icon>
+                  <span class="bicep-tree__name">main.bicepparam</span>
+                  <span class="bicep-tree__badge bicep-tree__badge--params">{{ 'CONFIG_DETAIL.BICEP.PARAMETERS' | translate }}</span>
+                  <a class="bicep-tree__link" [href]="result.parametersUri" target="_blank" rel="noopener noreferrer">
+                    <mat-icon>open_in_new</mat-icon>
+                  </a>
+                </div>
+                <!-- Modules -->
+                @if (bicepModuleEntries().length > 0) {
+                  <div class="bicep-tree__separator">
+                    <mat-icon class="bicep-tree__folder-icon">folder_open</mat-icon>
+                    <span>modules/</span>
+                  </div>
+                  @for (mod of bicepModuleEntries(); track mod.name) {
+                    <div class="bicep-tree__item bicep-tree__item--module">
+                      <mat-icon class="bicep-tree__icon">memory</mat-icon>
+                      <span class="bicep-tree__name">{{ mod.name }}.bicep</span>
+                      <a class="bicep-tree__link" [href]="mod.uri" target="_blank" rel="noopener noreferrer">
+                        <mat-icon>open_in_new</mat-icon>
+                      </a>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </section>
+    }
 
     <mat-tab-group class="config-tabs" animationDuration="200ms">
       <!-- Resource Groups -->

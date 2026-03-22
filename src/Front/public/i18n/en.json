@@ -336,6 +336,21 @@
       "CONFIRM_YES": "Delete",
       "CONFIRM_CANCEL": "Cancel",
       "ERROR": "Unable to delete the configuration."
+    },
+    "BICEP": {
+      "GENERATE": "Generate Bicep",
+      "GENERATING": "Generating...",
+      "PANEL_GENERATING": "Generating Bicep files...",
+      "PANEL_SUCCESS": "Bicep files generated successfully",
+      "PANEL_ERROR": "Generation failed",
+      "CLOSE": "Close",
+      "TERMINAL_GENERATING": "Generating Azure Bicep infrastructure files...",
+      "TERMINAL_DONE": "Generation complete \u2014 artifacts ready",
+      "ARTIFACTS": "output",
+      "ENTRY_POINT": "entry point",
+      "PARAMETERS": "parameters",
+      "GENERATE_ERROR": "Unable to generate Bicep files. Please check your configuration has at least one resource group with resources.",
+      "RETRY": "Try again"
     }
   },
   "PROJECT_DETAIL": {

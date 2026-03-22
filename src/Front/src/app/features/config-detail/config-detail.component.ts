@@ -27,6 +27,8 @@ import {
 } from './add-naming-template-dialog/add-naming-template-dialog.component';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { ProjectService } from '../../shared/services/project.service';
+import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
+import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -62,6 +64,7 @@ export class ConfigDetailComponent implements OnInit {
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly projectService = inject(ProjectService);
+  private readonly bicepService = inject(BicepGeneratorService);
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
@@ -81,6 +84,18 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly rgResourcesLoading = signal<string | null>(null);
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
+
+  // ─── Bicep Generation ───
+  protected readonly bicepLoading = signal(false);
+  protected readonly bicepResult = signal<GenerateBicepResponse | null>(null);
+  protected readonly bicepErrorKey = signal('');
+  protected readonly bicepPanelOpen = signal(false);
+
+  protected readonly bicepModuleEntries = computed(() => {
+    const result = this.bicepResult();
+    if (!result?.moduleUris) return [];
+    return Object.entries(result.moduleUris).map(([name, uri]) => ({ name, uri }));
+  });
 
   // ─── Inheritance ───
   protected readonly inheritanceLoading = signal(false);
@@ -484,6 +499,31 @@ export class ConfigDetailComponent implements OnInit {
   }
 
   // ─── Delete Config ───
+
+  protected async generateBicep(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.bicepLoading()) return;
+
+    this.bicepLoading.set(true);
+    this.bicepErrorKey.set('');
+    this.bicepResult.set(null);
+    this.bicepPanelOpen.set(true);
+
+    try {
+      const result = await this.bicepService.generate({ infrastructureConfigId: configId });
+      this.bicepResult.set(result);
+    } catch {
+      this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_ERROR');
+    } finally {
+      this.bicepLoading.set(false);
+    }
+  }
+
+  protected closeBicepPanel(): void {
+    this.bicepPanelOpen.set(false);
+    this.bicepResult.set(null);
+    this.bicepErrorKey.set('');
+  }
 
   protected openDeleteConfigDialog(): void {
     const currentConfig = this.config();

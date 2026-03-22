@@ -336,6 +336,21 @@
       "CONFIRM_YES": "Supprimer",
       "CONFIRM_CANCEL": "Annuler",
       "ERROR": "Impossible de supprimer la configuration."
+    },
+    "BICEP": {
+      "GENERATE": "Generer le Bicep",
+      "GENERATING": "Generation...",
+      "PANEL_GENERATING": "Generation des fichiers Bicep en cours...",
+      "PANEL_SUCCESS": "Fichiers Bicep generes avec succes",
+      "PANEL_ERROR": "Echec de la generation",
+      "CLOSE": "Fermer",
+      "TERMINAL_GENERATING": "Generation des fichiers d'infrastructure Azure Bicep...",
+      "TERMINAL_DONE": "Generation terminee \u2014 artefacts prets",
+      "ARTIFACTS": "sortie",
+      "ENTRY_POINT": "point d'entree",
+      "PARAMETERS": "parametres",
+      "GENERATE_ERROR": "Impossible de generer les fichiers Bicep. Verifiez que votre configuration contient au moins un groupe de ressources avec des ressources.",
+      "RETRY": "Reessayer"
     }
   },
   "PROJECT_DETAIL": {
