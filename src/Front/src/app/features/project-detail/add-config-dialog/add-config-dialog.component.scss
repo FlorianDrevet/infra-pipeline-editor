@@ -1,0 +1,33 @@
+:host {
+  display: block;
+}
+
+.dialog-description {
+  margin: 0 0 1rem;
+  color: #60758e;
+  line-height: 1.65;
+  font-size: 0.92rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.dialog-error {
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  background: rgba(217, 45, 32, 0.07);
+  color: #a12d1f;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+mat-dialog-actions {
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+mat-dialog-actions button mat-spinner {
+  display: inline-block;
+}

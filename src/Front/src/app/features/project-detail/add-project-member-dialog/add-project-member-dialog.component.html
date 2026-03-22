@@ -1,0 +1,53 @@
+<h2 mat-dialog-title>{{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="add-member-form" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_USER_LABEL' | translate }}</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        type="text"
+        [placeholder]="'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_SEARCH_PLACEHOLDER' | translate"
+        [matAutocomplete]="userAuto"
+        (input)="onSearchInput($event)" />
+      <mat-autocomplete
+        #userAuto="matAutocomplete"
+        [displayWith]="displayUserFn"
+        (optionSelected)="onUserSelected($event.option.value)">
+        @for (user of filteredUsers(); track user.id) {
+          <mat-option [value]="user">{{ user.firstName }} {{ user.lastName }}</mat-option>
+        }
+        @if (filteredUsers().length === 0) {
+          <mat-option disabled>{{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_NO_RESULTS' | translate }}</mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_ROLE_LABEL' | translate }}</mat-label>
+      <mat-select formControlName="role">
+        @for (role of roles; track role) {
+          <mat-option [value]="role">{{ 'PROJECT_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (errorKey()) {
+      <p class="dialog-error">{{ errorKey() | translate }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+    {{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_CANCEL' | translate }}
+  </button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || !selectedUser() || isSubmitting()">
+    @if (isSubmitting()) {
+      <mat-spinner diameter="18"></mat-spinner>
+    } @else {
+      {{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_ADD' | translate }}
+    }
+  </button>
+</mat-dialog-actions>

@@ -18,9 +18,6 @@ public class InfraConfigMappingConfig : IRegister
         config.NewConfig<Guid, InfrastructureConfigId>()
             .MapWith(src => InfrastructureConfigId.Create(src));
 
-        config.NewConfig<MemberId, Guid>()
-            .MapWith(src => src.Value);
-
         config.NewConfig<UserId, Guid>()
             .MapWith(src => src.Value);
 
@@ -29,24 +26,6 @@ public class InfraConfigMappingConfig : IRegister
 
         config.NewConfig<ResourceNamingTemplateId, Guid>()
             .MapWith(src => src.Value);
-
-        // Member entity -> MemberResult
-        config.NewConfig<Member, MemberResult>()
-            .Map(dest => dest.Id, src => src.Id)
-            .Map(dest => dest.UserId, src => src.UserId)
-            .Map(dest => dest.EntraId, src => src.User != null ? src.User.EntraId.Value : Guid.Empty)
-            .Map(dest => dest.Role, src => src.Role.Value.ToString())
-            .Map(dest => dest.FirstName, src => src.User != null ? src.User.Name.FirstName : string.Empty)
-            .Map(dest => dest.LastName, src => src.User != null ? src.User.Name.LastName : string.Empty);
-
-        // MemberResult -> MemberResponse
-        config.NewConfig<MemberResult, MemberResponse>()
-            .Map(dest => dest.Id, src => src.Id.Value)
-            .Map(dest => dest.UserId, src => src.UserId.Value)
-            .Map(dest => dest.EntraId, src => src.EntraId)
-            .Map(dest => dest.Role, src => src.Role)
-            .Map(dest => dest.FirstName, src => src.FirstName)
-            .Map(dest => dest.LastName, src => src.LastName);
 
         // EnvironmentDefinition entity -> EnvironmentDefinitionResult
         config.NewConfig<EnvironmentDefinition, EnvironmentDefinitionResult>()
@@ -93,8 +72,10 @@ public class InfraConfigMappingConfig : IRegister
         config.NewConfig<GetInfrastructureConfigResult, InfrastructureConfigResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
             .Map(dest => dest.Name, src => src.Name.Value)
+            .Map(dest => dest.ProjectId, src => src.ProjectId.Value.ToString())
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate)
-            .Map(dest => dest.Members, src => src.Members)
+            .Map(dest => dest.UseProjectEnvironments, src => src.UseProjectEnvironments)
+            .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
 
@@ -102,8 +83,10 @@ public class InfraConfigMappingConfig : IRegister
         config.NewConfig<Domain.InfrastructureConfigAggregate.InfrastructureConfig, GetInfrastructureConfigResult>()
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Name, src => src.Name)
+            .Map(dest => dest.ProjectId, src => src.ProjectId)
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate == null ? null : src.DefaultNamingTemplate.Value)
-            .Map(dest => dest.Members, src => src.Members)
+            .Map(dest => dest.UseProjectEnvironments, src => src.UseProjectEnvironments)
+            .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
 

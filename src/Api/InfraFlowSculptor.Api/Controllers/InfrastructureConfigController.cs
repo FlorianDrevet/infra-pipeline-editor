@@ -1,10 +1,8 @@
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddMember;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveMember;
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateMemberRole;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.DeleteInfraConfig;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInheritance;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
-using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListUsers;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupsByConfig;
 using MediatR;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
@@ -46,7 +44,7 @@ public static class InfrastructureConfigController
                     })
                 .WithName("ListMyInfrastructureConfigs")
                 .WithSummary("List my Infrastructure Configurations")
-                .WithDescription("Returns all Infrastructure Configurations the current user is a member of.")
+                .WithDescription("Returns all Infrastructure Configurations the current user has access to via project membership.")
                 .Produces<IReadOnlyList<InfrastructureConfigResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
@@ -67,7 +65,7 @@ public static class InfrastructureConfigController
                     })
                 .WithName("GetInfrastructureConfiguration")
                 .WithSummary("Get an Infrastructure Configuration")
-                .WithDescription("Returns the full details of a single Infrastructure Configuration, including members, environments, and naming templates.")
+                .WithDescription("Returns the full details of a single Infrastructure Configuration.")
                 .Produces<InfrastructureConfigResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
@@ -101,7 +99,9 @@ public static class InfrastructureConfigController
             config.MapPost("",
                     async (CreateInfrastructureConfigRequest request, IMediator mediator, IMapper mapper) =>
                     {
-                        var command = new CreateInfrastructureConfigCommand(request.Name);
+                        var command = new CreateInfrastructureConfigCommand(
+                            request.Name,
+                            Guid.Parse(request.ProjectId));
                         var result = await mediator.Send(command);
 
                         return result.Match(
@@ -115,94 +115,20 @@ public static class InfrastructureConfigController
                     })
                 .WithName("CreateInfrastructureConfig")
                 .WithSummary("Create an Infrastructure Configuration")
-                .WithDescription("Creates a new Infrastructure Configuration. The current user is automatically added as Owner.")
+                .WithDescription("Creates a new Infrastructure Configuration within the specified project. Requires Contributor or Owner access to the project.")
                 .Produces<InfrastructureConfigResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            // ── Users ──────────────────────────────────────────────────────
-
-            config.MapGet("/users",
-                    async (IMediator mediator, IMapper mapper) =>
+            // PUT /{id:guid}/inheritance
+            config.MapPut("/{id:guid}/inheritance",
+                    async ([FromRoute] Guid id, SetInheritanceRequest request, IMediator mediator) =>
                     {
-                        var query = new ListUsersQuery();
-                        var result = await mediator.Send(query);
-
-                        return result.Match(
-                            users =>
-                            {
-                                var responses = users.Select(u => mapper.Map<UserResponse>(u)).ToList();
-                                return TypedResults.Ok(responses);
-                            },
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("ListUsers")
-                .WithSummary("List registered users")
-                .WithDescription("Returns all registered users available for membership assignment.")
-                .Produces<IReadOnlyList<UserResponse>>(StatusCodes.Status200OK)
-                .ProducesProblem(StatusCodes.Status401Unauthorized);
-
-            // ── Members ───────────────────────────────────────────────────────
-
-            config.MapPost("/{id:guid}/members",
-                    async ([FromRoute] Guid id, AddMemberRequest request, IMediator mediator, IMapper mapper) =>
-                    {
-                        var command = new AddMemberCommand(
+                        var command = new SetInheritanceCommand(
                             new InfrastructureConfigId(id),
-                            request.UserId,
-                            request.Role);
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            infraConfig =>
-                            {
-                                var response = mapper.Map<InfrastructureConfigResponse>(infraConfig);
-                                return Results.Ok(response);
-                            },
-                            errors => errors.Result()
+                            request.UseProjectEnvironments,
+                            request.UseProjectNamingConventions
                         );
-                    })
-                .WithName("AddMember")
-                .WithSummary("Add a member")
-                .WithDescription("Adds a user to an Infrastructure Configuration with the specified role. Requires Owner or Contributor access.")
-                .Produces<InfrastructureConfigResponse>(StatusCodes.Status200OK)
-                .ProducesProblem(StatusCodes.Status400BadRequest)
-                .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
-
-            config.MapPut("/{id:guid}/members/{userId:guid}",
-                    async ([FromRoute] Guid id, [FromRoute] Guid userId, UpdateMemberRoleRequest request, IMediator mediator, IMapper mapper) =>
-                    {
-                        var command = new UpdateMemberRoleCommand(
-                            new InfrastructureConfigId(id),
-                            userId,
-                            request.NewRole);
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            infraConfig =>
-                            {
-                                var response = mapper.Map<InfrastructureConfigResponse>(infraConfig);
-                                return Results.Ok(response);
-                            },
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("UpdateMemberRole")
-                .WithSummary("Update a member's role")
-                .WithDescription("Changes the role assigned to a member of an Infrastructure Configuration. Requires Owner access.")
-                .Produces<InfrastructureConfigResponse>(StatusCodes.Status200OK)
-                .ProducesProblem(StatusCodes.Status400BadRequest)
-                .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
-
-            config.MapDelete("/{id:guid}/members/{userId:guid}",
-                    async ([FromRoute] Guid id, [FromRoute] Guid userId, IMediator mediator) =>
-                    {
-                        var command = new RemoveMemberCommand(
-                            new InfrastructureConfigId(id),
-                            userId);
                         var result = await mediator.Send(command);
 
                         return result.Match(
@@ -210,9 +136,30 @@ public static class InfrastructureConfigController
                             errors => errors.Result()
                         );
                     })
-                .WithName("RemoveMember")
-                .WithSummary("Remove a member")
-                .WithDescription("Removes a user from an Infrastructure Configuration. Requires Owner access.")
+                .WithName("SetInheritance")
+                .WithSummary("Toggle project-level inheritance")
+                .WithDescription("Controls whether this configuration inherits environments and/or naming conventions from the parent project. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // DELETE /{id:guid}
+            config.MapDelete("/{id:guid}",
+                    async ([FromRoute] Guid id, IMediator mediator) =>
+                    {
+                        var command = new DeleteInfrastructureConfigCommand(
+                            new InfrastructureConfigId(id));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("DeleteInfrastructureConfig")
+                .WithSummary("Delete an infrastructure configuration")
+                .WithDescription("Permanently deletes an infrastructure configuration. Requires Owner access on the parent project.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);

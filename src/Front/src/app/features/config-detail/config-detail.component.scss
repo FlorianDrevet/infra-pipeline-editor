@@ -31,7 +31,12 @@
 .detail-header__nav,
 .detail-header__info { position: relative; z-index: 1; }
 
-.detail-header__nav { margin-bottom: 1rem; }
+.detail-header__nav {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
 .detail-header__info {
   display: flex; flex-direction: column; gap: 0.6rem;
@@ -885,6 +890,32 @@
   &:hover { background: rgba(255, 255, 255, 0.12); }
 }
 
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  background: rgba(244, 67, 54, 0.12);
+  color: #ff8a80;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+
+  &:hover {
+    background: rgba(244, 67, 54, 0.24);
+    border-color: rgba(244, 67, 54, 0.6);
+  }
+
+  &__icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
 .state-card--error .ghost-button {
   color: #a12d1f;
   border-color: rgba(217, 45, 32, 0.28);
@@ -917,6 +948,79 @@
   .config-tabs ::ng-deep .mat-mdc-tab {
     padding: 0 0.85rem;
   }
+}
+
+// ─── Inheritance ────
+
+.inheritance-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(13, 101, 192, 0.04);
+  border: 1px solid rgba(146, 191, 235, 0.2);
+
+  &--inherited {
+    background: rgba(76, 175, 80, 0.06);
+    border-color: rgba(76, 175, 80, 0.2);
+  }
+}
+
+.inheritance-banner__info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  span {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #103454;
+  }
+}
+
+.inheritance-banner__icon {
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  color: #1565c0;
+
+  .inheritance-banner--inherited & {
+    color: #2e7d32;
+  }
+}
+
+.inherited-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(76, 175, 80, 0.09);
+  color: #2e7d32;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  mat-icon {
+    font-size: 0.85rem;
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+}
+
+.env-card--readonly {
+  opacity: 0.85;
+}
+
+.default-template--readonly {
+  opacity: 0.85;
+}
+
+.template-row--readonly {
+  opacity: 0.85;
 }
 
 @media (max-width: 640px) {

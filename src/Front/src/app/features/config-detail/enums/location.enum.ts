@@ -1,22 +1,2 @@
-/**
- * Azure location enum matching backend Location.LocationEnum
- */
-export enum LocationEnum {
-  EastUS = 'EastUS',
-  WestUS = 'WestUS',
-  CentralUS = 'CentralUS',
-  NorthEurope = 'NorthEurope',
-  WestEurope = 'WestEurope',
-  SoutheastAsia = 'SoutheastAsia',
-  EastAsia = 'EastAsia',
-  AustraliaEast = 'AustraliaEast',
-  JapanEast = 'JapanEast',
-}
-
-/**
- * Dropdown options for LocationEnum
- */
-export const LOCATION_OPTIONS = Object.entries(LocationEnum).map(([key, value]) => ({
-  label: key,
-  value,
-}));
+// Re-export from shared — this enum is used by both config-detail and project-detail features
+export { LocationEnum, LOCATION_OPTIONS } from '../../../shared/enums/location.enum';

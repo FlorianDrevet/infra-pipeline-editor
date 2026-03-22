@@ -65,10 +65,12 @@ src/
 
 | Aggregate | Root | Key Entities | Notes |
 |-----------|------|-------------|-------|
-| `InfrastructureConfig` | `InfrastructureConfig` | `Member`, `EnvironmentDefinition`, `ParameterDefinition`, `ResourceParameterUsage`, `EnvironmentParameterValue` | Owns resource groups indirectly |
+| `Project` | `Project` | `ProjectMember`, `ProjectEnvironmentDefinition`, `ProjectResourceNamingTemplate` | Groups InfrastructureConfigs; owns membership/RBAC, default environments, naming conventions |
+| `InfrastructureConfig` | `InfrastructureConfig` | `EnvironmentDefinition`, `ParameterDefinition`, `ResourceParameterUsage`, `EnvironmentParameterValue` | Has `ProjectId` FK to Project |
 | `ResourceGroup` | `ResourceGroup` | `AzureResource` (base), `InputOutputLink` | Hosts Azure resources |
 | `KeyVault` | `KeyVault` extends `AzureResource` | — | TPT in EF Core |
 | `RedisCache` | `RedisCache` extends `AzureResource` | — | TPT in EF Core |
+| `StorageAccount` | `StorageAccount` extends `AzureResource` | — | TPT in EF Core |
 | `User` | `User` | — | Azure AD user info |
 
 ### 3.2 Value Objects
@@ -80,7 +82,8 @@ All value objects inherit from `Shared.Domain` base classes:
 - `ValueObject` — base with structural equality
 
 Key value objects per aggregate:
-- **InfrastructureConfig:** `InfrastructureConfigId`, `MemberId`, `Role` (Owner/Contributor/Reader), `EnvironmentDefinitionId`, `ParameterDefinitionId`, `ParameterType`, `Prefix`, `Suffix`, `Order`, `IsSecret`, `TenantId`, `SubscriptionId`, `RequiresApproval`
+- **Project:** `ProjectId`, `ProjectMemberId`, `ProjectEnvironmentDefinitionId`, `ProjectResourceNamingTemplateId`
+- **InfrastructureConfig:** `InfrastructureConfigId`, `Role` (Owner/Contributor/Reader), `EnvironmentDefinitionId`, `ParameterDefinitionId`, `ParameterType`, `Prefix`, `Suffix`, `Order`, `IsSecret`, `TenantId`, `SubscriptionId`, `RequiresApproval`
 - **ResourceGroup:** `ResourceGroupId`, `Name`, `Location`
 - **AzureResource:** `AzureResourceId`, `Name`
 - **KeyVault:** `Sku` (enum: Premium/Standard)
@@ -89,8 +92,8 @@ Key value objects per aggregate:
 
 ### 3.3 Domain Invariants
 
-- `InfrastructureConfig.Members` is `IReadOnlyCollection<Member>` — mutated via `AddMember()`, `ChangeRole()`, `RemoveMember()` methods on the aggregate root.
-- Access checks (ownership, membership) must be performed **before** calling aggregate methods (not enforced in the domain itself).
+- `Project.Members` is `IReadOnlyCollection<ProjectMember>` — mutated via `AddMember()`, `ChangeRole()`, `RemoveMember()` methods on the Project aggregate root.
+- `InfrastructureConfig` has a `ProjectId` FK. Access checks (read/write/owner) are resolved via **project membership** — `IInfraConfigAccessService` loads the config, then delegates to `IProjectAccessService.VerifyReadAccessAsync(config.ProjectId)`.
 - `AzureResource` inheritance uses EF Core **TPT**: derived entities call `HasBaseType<AzureResource>().ToTable("...")` in their configurations.
 
 ### 3.4 Error Definitions
@@ -116,7 +119,7 @@ Existing error files:
 - `Errors.ResourceGroup.cs` (has nested `AddResource` / `RemoveResource` sub-classes)
 - `Errors.KeyVault.cs`
 - `Errors.RedisCache.cs`
-- `Errors.Member.cs`
+- `Errors.Project.cs` (NotFound, Forbidden, MemberAlreadyExists, CannotRemoveOwner, MemberNotFound)
 
 **Important:** When adding a new aggregate, add a new `Errors.AggregateName.cs` file following the same partial class pattern.
 
@@ -213,10 +216,12 @@ Registered in `Program.cs` via `app.UseXyzController()`.
 | `/infra-config` | GET | `` | `ListMyInfrastructureConfigsQuery` |
 | `/infra-config` | GET | `/{id:guid}` | `GetInfrastructureConfigQuery` |
 | `/infra-config` | POST | `` | `CreateInfrastructureConfigCommand` |
+| `/infra-config` | DELETE | `/{id:guid}` | `DeleteInfrastructureConfigCommand` |
 | `/infra-config` | POST | `/generate-bicep` | `GenerateBicepCommand` |
 | `/infra-config` | POST | `/{id:guid}/members` | `AddMemberCommand` |
 | `/infra-config` | PUT | `/{id:guid}/members/{userId:guid}` | `UpdateMemberRoleCommand` |
 | `/infra-config` | DELETE | `/{id:guid}/members/{userId:guid}` | `RemoveMemberCommand` |
+| `/projects` | DELETE | `/{id:guid}` | `DeleteProjectCommand` |
 | `/keyvault` | GET/POST/PUT/DELETE | `/{id:guid}` | Key Vault CRUD |
 | `/resource-group` | GET/POST | `/{id:guid}` | Resource Group CRUD |
 | `/redis-cache` | GET/POST/PUT/DELETE | `/{id:guid}` | Redis Cache CRUD |
@@ -515,6 +520,46 @@ Ajouter dans `angular.json` → `build.options` :
 - Generates Bicep files per environment, uploads to Azure Blob Storage
 - Uses **strategy pattern**: `IResourceTypeBicepGenerator` per Azure resource type
 - New resource types require: a new `IResourceTypeBicepGenerator` implementation + registration in `BicepGenerator.Application/DependencyInjection.cs`
+
+---
+
+## 14.1 Azure Resource Naming Conventions ([2026-03-22])
+
+> **CRITICAL PROJECT DATA — Do NOT remove or modify without explicit user request.**
+
+### Default naming templates (auto-set at project creation)
+
+These templates are auto-applied by `CreateProjectCommandHandler` when a new project is created.
+They were previously on `CreateInfrastructureConfigCommandHandler` but were moved to project level.
+
+| Scope | Template | Example result |
+|-------|----------|----------------|
+| **Default (all resources)** | `{name}-{resourceAbbr}{suffix}` | `myapp-kv01` |
+| **ResourceGroup** override | `{resourceAbbr}-{name}{suffix}` | `rg-myapp01` |
+| **StorageAccount** override | `{name}{resourceAbbr}{suffix}` | `myappstg01` |
+
+### Resource type abbreviation catalog
+
+Defined in `ResourceAbbreviationCatalog` (`src/Api/InfraFlowSculptor.Application/InfrastructureConfig/Common/ResourceAbbreviationCatalog.cs`):
+
+| Resource Type | Abbreviation |
+|---------------|-------------|
+| KeyVault | `kv` |
+| RedisCache | `redis` |
+| StorageAccount | `stg` |
+| ResourceGroup | `rg` |
+
+### Available naming template placeholders
+
+`{name}`, `{prefix}`, `{suffix}`, `{env}`, `{resourceType}`, `{resourceAbbr}`, `{location}`
+
+Validated by `NamingTemplateValidator` — any placeholder not in this list is rejected.
+
+### Where naming lives
+
+- **Project level** (source of truth): `Project.DefaultNamingTemplate` + `Project.ResourceNamingTemplates` — set at project creation, editable via API
+- **InfrastructureConfig level**: inherits from project by default (`UseProjectNamingConventions = true`), can be overridden per config
+- **Auto-set logic**: `CreateProjectCommandHandler` in `src/Api/InfraFlowSculptor.Application/Projects/Commands/CreateProject/`
 
 ---
 
@@ -1025,6 +1070,11 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-22 | copilot | Fixed environment dialog order timeline navigation bugs: rewrote `timelineItems` computed to use **index-based positioning** instead of comparing raw backend order values. Old logic used `findIndex(item.order >= order)` which broke when backend orders were non-contiguous (e.g. [1,3] after excluding current env). New logic uses `insertIdx = position - 1` to splice current env at the correct array index. Added `computeInitialPosition()` to convert backend order into a 1-based position relative to other environments. **Pattern**: always treat timeline display as position-based (1..N+1), never compare against raw backend order values. |
 | 2026-03-22 | copilot | Fixed environment order save mismatch: `onSubmit` was sending the visual position (1-based) directly as the backend `order` value. When backend orders were non-contiguous (gaps from previous edits) this caused: move 1 → nothing changes, move 2 → only shifts by 1. Added `computeTargetOrder()` that converts visual position back to the correct backend order value by looking up `otherEnvironments[position-1].order`. For "after last" slot: CREATE sends `lastOrder+1` (so `ShiftOrdersUp` has nothing to shift), UPDATE sends `lastOrder` (so `ReorderEnvironments` shifts the last env down correctly). "No move" detection compares `currentOrder` against `initialPosition` to return the original order unchanged. **Pattern**: visual position ≠ backend order value; always convert before sending to API. |
 | 2026-03-22 | copilot | Fixed remaining edit-mode direction bug in `computeTargetOrder()`: moving **right by one slot** was overshooting by 2 positions after save. Root cause: using `others[position-1].order` for both directions. Final rule is direction-aware in edit mode: moving left → target `others[position-1].order`; moving right → jumped-over `others[position-2].order`. This aligns exactly with backend `ReorderEnvironments` range semantics and prevents over-shift. |
+| 2026-03-22 | copilot | Added **Project aggregate** as new hierarchy level: `Project` (aggregate root) owns `ProjectMember` entities with Role (Owner/Contributor/Reader). `InfrastructureConfig` gains a `ProjectId` FK — membership/RBAC checks now go through project, not infra config. Removed `Member` entity, `MemberId` VO from InfrastructureConfig aggregate. Created full CQRS stack (CreateProject, AddProjectMember, RemoveProjectMember, UpdateProjectMemberRole, GetProject, ListMyProjects, ListProjectConfigs). `IInfraConfigAccessService` now delegates to `IProjectAccessService`. New `ProjectController` at `/projects`. `GetInfrastructureConfigQueryHandler` now uses access service. Old member endpoints removed from `InfrastructureConfigController`. EF migration `AddProjectAggregate`: creates `Projects`/`project_members` tables, drops `infrastructureconfig_members`, adds `ProjectId` column + FK on `InfrastructureConfigs`. |
 | 2026-03-22 | copilot | Added visual pipeline connector between environment cards in Environments tab: replaced `env-grid` (CSS grid) with `env-pipeline` (flex column), added `env-pipeline__connector` with a cyan `arrow_forward` icon (rotated 90°) between each card to visually convey deployment order flow. Removed `.order-chip` from card headers and SCSS (order is now implicit in the pipeline flow). |
 | 2026-03-21 | copilot | Fixed environment order collision bug: added order shifting logic in the `InfrastructureConfig` aggregate root. `AddEnvironment` shifts existing envs with order >= new order up by 1 (`ShiftOrdersUp`). `UpdateEnvironment` reorders siblings when order changes (`ReorderEnvironments` — shifts range up or down depending on direction). `RemoveEnvironment` closes the gap by shifting envs with order > removed down by 1 (`ShiftOrdersDown`). This ensures order uniqueness as a domain invariant. |
 | 2026-03-21 | copilot | Revamped navigation header: replaced dull dark `rgba(5,23,44,.78)` background with vibrant gradient `linear-gradient(135deg, #0d2f66, #1565c0, #0288d1)` matching login/home pages. Replaced inline SVG logo with `mat-icon cloud_circle` (added `MatIconModule` import). Updated brand icon to frosted glass style (`rgba(255,255,255,0.15)` bg, `#b3e5fc` icon color). Refreshed border to cyan glow (`rgba(0,188,212,0.3)`). Updated avatar, logout button, and action borders to use `rgba(255,255,255,*)` tones for consistency on the brighter gradient. |
+| 2026-03-22 | copilot | Added **project-level environments & naming conventions with per-config inheritance**: **Domain** — new `ProjectEnvironmentDefinition` entity (OwnsMany on Project), `ProjectResourceNamingTemplate` entity (HasMany), `Project.DefaultNamingTemplate` property, full CRUD methods on Project aggregate (AddEnvironment, UpdateEnvironment, RemoveEnvironment with order shifting, SetDefaultNamingTemplate, SetResourceNamingTemplate, RemoveResourceNamingTemplate). `InfrastructureConfig` added `UseProjectEnvironments` and `UseProjectNamingConventions` booleans (default true) with setter methods. **Application** — CQRS commands: AddProjectEnvironment, UpdateProjectEnvironment, RemoveProjectEnvironment, SetProjectDefaultNamingTemplate, SetProjectResourceNamingTemplate, RemoveProjectResourceNamingTemplate (all with FluentValidation + IProjectAccessService write auth). SetInheritance command for toggling inheritance on InfraConfig. Updated ProjectResult, GetInfrastructureConfigResult, GetProjectQueryHandler (now uses GetByIdWithAllAsync). **Infrastructure** — updated ProjectConfiguration (OwnsMany environments with tags, HasMany naming templates, DefaultNamingTemplate conversion), new ProjectResourceNamingTemplateConfiguration, InfrastructureConfigConfiguration (UseProject* bool columns with default true), ProjectRepository.GetByIdWithAllAsync, ProjectDbContext (added DbSet<ProjectResourceNamingTemplate>). Migration `AddProjectEnvironmentsAndNaming`. **Contracts** — updated ProjectResponse/InfrastructureConfigResponse, new request DTOs (AddProjectEnvironmentRequest, UpdateProjectEnvironmentRequest, SetProjectDefaultNamingTemplateRequest, SetProjectResourceNamingTemplateRequest, SetInheritanceRequest). **API** — new endpoints on ProjectController (POST/PUT/DELETE environments, PUT default naming, PUT/DELETE resource naming), new PUT /infra-config/{id}/inheritance on InfrastructureConfigController. Updated Mapster mappings for ProjectEnvironmentDefinition/ProjectResourceNamingTemplate. **Frontend** — project-detail: 2 new tabs (Environments, Naming) with add/edit/remove dialogs, shared LocationEnum. config-detail: inheritance toggle (mat-slide-toggle) per tab with "Inherited from project" / "Custom override" visual indicators; when inherited, env/naming are read-only. Updated ProjectResponse/InfrastructureConfigResponse interfaces, ProjectService (env/naming CRUD), InfraConfigService.setInheritance(). i18n additions in both FR/EN for all new features. |
+| 2026-03-22 | copilot | Moved default naming template auto-configuration from `CreateInfrastructureConfigCommandHandler` to `CreateProjectCommandHandler`. Now every new project gets: default template `{name}-{resourceAbbr}{suffix}`, ResourceGroup override `{resourceAbbr}-{name}{suffix}`, StorageAccount override `{name}{resourceAbbr}{suffix}`. InfraConfigs no longer auto-set naming on creation (they inherit from project). Added section 14.1 in MEMORY.md documenting naming conventions as critical project data. |
+| 2026-03-22 | copilot | Added **delete project and delete configuration** with permission checks: **Backend** — `DeleteProjectCommand` + handler (Owner access via `IProjectAccessService.VerifyOwnerAccessAsync`), `DeleteInfrastructureConfigCommand` + handler (Owner access on parent project). New `DELETE /projects/{id}` and `DELETE /infra-config/{id}` endpoints. **Frontend** — `ProjectService.deleteProject()` and `InfraConfigService.delete()` service methods. Project-detail page: delete project button in header (visible only if `isOwner()`), delete config button on each config card (visible only if `isOwner()`), both with confirm dialog and navigation on success. Config-detail page: added `isOwner` computed (from parent project members), delete button in header (visible only if `isOwner()`), navigates to parent project on success. SCSS: `delete-btn` (header) and `config-card__delete-btn` (inline card) styles. i18n: `PROJECT_DETAIL.DELETE.*`, `PROJECT_DETAIL.DELETE_CONFIG.*`, `CONFIG_DETAIL.DELETE.*` keys in both FR/EN. |
+| 2026-03-22 | copilot | Redesigned **home page as dashboard** + separate **/projects page** with search/sort/filter. **New files**: `features/projects/projects.component.{ts,html,scss}` (full project catalog with search, sort by name/members/favorites, filter favorites only, star toggle), `shared/services/favorites.service.ts` (localStorage favorites with signal API), `shared/services/recently-viewed.service.ts` (localStorage recent items, max 8). **Rewritten**: `features/home/home.component.{ts,html,scss}` (dashboard with greeting bar, quick actions, favorites panel, recently viewed panel, project overview grid). **Modified**: `app-routing.ts` (added `/projects` route), `navigation.component.html` (added Projects nav link), `project-detail.component.ts` + `config-detail.component.ts` (added RecentlyViewedService tracking), `en.json` + `fr.json` (replaced HOME section, added PROJECTS + NAV.PROJECTS keys). UX inspired by GitHub/Azure DevOps dashboards. |

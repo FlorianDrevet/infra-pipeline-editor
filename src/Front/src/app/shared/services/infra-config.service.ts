@@ -4,13 +4,10 @@ import { MethodEnum } from '../enums/method.enum';
 import {
   InfrastructureConfigResponse,
   CreateInfrastructureConfigRequest,
-  AddMemberRequest,
-  UpdateMemberRoleRequest,
   AddEnvironmentRequest,
   UpdateEnvironmentRequest,
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
-  UserResponse,
 } from '../interfaces/infra-config.interface';
 import { ResourceGroupResponse } from '../interfaces/resource-group.interface';
 
@@ -51,38 +48,8 @@ export class InfraConfigService {
     );
   }
 
-  addMember(id: string, request: AddMemberRequest): Promise<InfrastructureConfigResponse> {
-    return this.axios.request$<InfrastructureConfigResponse>(
-      MethodEnum.POST,
-      `/infra-config/${id}/members`,
-      request
-    );
-  }
-
-  updateMemberRole(
-    id: string,
-    userId: string,
-    request: UpdateMemberRoleRequest
-  ): Promise<InfrastructureConfigResponse> {
-    return this.axios.request$<InfrastructureConfigResponse>(
-      MethodEnum.PUT,
-      `/infra-config/${id}/members/${userId}`,
-      request
-    );
-  }
-
-  getUsers(): Promise<UserResponse[]> {
-    return this.axios.request$<UserResponse[]>(
-      MethodEnum.GET,
-      '/infra-config/users'
-    );
-  }
-
-  removeMember(id: string, userId: string): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/infra-config/${id}/members/${userId}`
-    );
+  delete(id: string): Promise<void> {
+    return this.axios.request$<void>(MethodEnum.DELETE, `/infra-config/${id}`);
   }
 
   addEnvironment(
@@ -145,6 +112,17 @@ export class InfraConfigService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/infra-config/${id}/naming/resources/${resourceType}`
+    );
+  }
+
+  setInheritance(
+    id: string,
+    request: { useProjectEnvironments: boolean; useProjectNamingConventions: boolean }
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/infra-config/${id}/inheritance`,
+      request
     );
   }
 }

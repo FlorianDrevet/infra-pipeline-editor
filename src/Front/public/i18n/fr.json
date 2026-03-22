@@ -7,6 +7,7 @@
     "BRAND_ARIA": "Ouvrir la page d'accueil InfraFlowSculptor",
     "BRAND_SUBTITLE": "Espace de travail infrastructure Azure",
     "HOME": "Accueil",
+    "PROJECTS": "Projets",
     "LANGUAGE_SELECTOR_ARIA": "Selection de la langue",
     "USER_CARD_ARIA": "Utilisateur connecte",
     "USER_DEFAULT_NAME": "Membre de l'espace",
@@ -46,80 +47,94 @@
     }
   },
   "HOME": {
-    "HERO": {
-      "EYEBROW": "Espace de gouvernance Azure",
-      "TITLE": "Configurez votre catalogue d'infrastructure avant de generer Bicep et les assets de delivery.",
-      "DESCRIPTION": "Centralisez les conventions plateforme, accelerez l'onboarding des environnements et gardez chaque configuration visible dans un espace premium.",
-      "STATS": {
-        "ARIA": "Vue d'ensemble de l'espace",
-        "CONFIGS_TRACKED": "Configurations suivies",
-        "ENV_DEFINITIONS": "Definitions d'environnement",
-        "MAIN_CTA_TITLE": "Action principale",
-        "MAIN_CTA_DESC": "Commencez par nommer une nouvelle configuration d'infrastructure"
-      }
+    "GREETING": {
+      "TITLE": "Bienvenue dans votre espace",
+      "SUBTITLE": "Gerez vos projets d'infrastructure Azure, suivez vos favoris et reprenez la ou vous vous etiez arrete."
+    },
+    "STATS": {
+      "PROJECTS": "Projets",
+      "MEMBERS": "Membres"
     },
     "ACTIONS": {
-      "ADD_CONFIGURATION": "Ajouter une configuration",
-      "REFRESHING": "Actualisation...",
-      "REFRESH_LIST": "Actualiser la liste",
-      "CREATING": "Creation de la configuration...",
-      "RETRY_SYNC": "Relancer la synchro",
-      "TRY_AGAIN": "Reessayer"
+      "NEW_PROJECT": "Nouveau projet",
+      "NEW_PROJECT_DESC": "Creez un projet pour organiser vos configurations d'infrastructure.",
+      "VIEW_ALL_PROJECTS": "Parcourir les projets",
+      "VIEW_ALL_DESC": "Recherchez, filtrez et gerez votre catalogue de projets.",
+      "CREATING": "Creation du projet..."
     },
-    "CREATE": {
-      "OVERLINE": "Creation",
-      "TITLE": "Ajouter une nouvelle configuration d'infrastructure",
-      "DESCRIPTION": "Nommez un espace qui accueillera ensuite les membres, environnements, groupes de ressources et regles de nommage."
+    "FAVORITES": {
+      "TITLE": "Favoris",
+      "EMPTY_TITLE": "Aucun favori",
+      "EMPTY_DESC": "Ajoutez un projet en favori depuis la liste des projets pour l'epingler ici.",
+      "REMOVE": "Retirer des favoris",
+      "TOGGLE": "Basculer favori"
+    },
+    "RECENT": {
+      "TITLE": "Vus recemment",
+      "EMPTY_TITLE": "Rien de recent",
+      "EMPTY_DESC": "Les projets et configurations que vous consultez apparaitront ici.",
+      "TYPE_PROJECT": "Projet",
+      "TYPE_CONFIG": "Configuration"
+    },
+    "OVERVIEW": {
+      "TITLE": "Vos projets",
+      "VIEW_ALL": "Voir tout"
+    },
+    "STATE": {
+      "LOADING": "Chargement...",
+      "LOAD_FAILED": "Impossible de charger vos projets."
     },
     "FORM": {
-      "NAME_LABEL": "Nom de la configuration",
-      "NAME_PLACEHOLDER": "Exemple : Fondation plateforme globale",
-      "ERROR_REQUIRED": "Le nom de la configuration est requis.",
+      "NAME_LABEL": "Nom du projet",
+      "NAME_PLACEHOLDER": "Exemple : Fondation plateforme",
+      "DESCRIPTION_LABEL": "Description (optionnelle)",
+      "DESCRIPTION_PLACEHOLDER": "Breve description du projet",
+      "ERROR_REQUIRED": "Le nom du projet est requis.",
       "ERROR_MIN_LENGTH": "Utilisez au moins 3 caracteres pour un nom pertinent.",
       "ERROR_MAX_LENGTH": "Le nom doit rester sous 80 caracteres."
     },
     "FEEDBACK": {
-      "CREATE_SUCCESS": "Configuration \"{{name}}\" ajoutee avec succes.",
-      "CREATE_ERROR_FALLBACK": "Impossible de creer la configuration pour le moment. Veuillez reessayer.",
-      "LOAD_ERROR_FALLBACK": "Impossible de charger vos configurations d'infrastructure. Actualisez la page ou reessayez."
+      "LOAD_ERROR_FALLBACK": "Impossible de charger vos projets. Actualisez la page ou reessayez."
     },
-    "STATE": {
-      "LOADING_TITLE": "Chargement des configurations",
-      "LOADING_DESCRIPTION": "Recuperation des espaces d'infrastructure depuis l'API.",
-      "LOAD_FAILED": "Echec du chargement",
-      "EMPTY_TITLE": "Aucune configuration",
-      "EMPTY_DESCRIPTION": "Creez votre premier espace d'infrastructure pour structurer les environnements, contributeurs et regles de nommage Azure.",
-      "EMPTY_CTA": "Creer la premiere configuration"
-    },
-    "LIST": {
-      "OVERLINE": "Catalogue des espaces",
-      "TITLE": "Configurations existantes",
-      "MEMBERS": "{{count}} membre(s)",
-      "TOP_ENVIRONMENTS": "Environnements principaux",
-      "NO_ENVIRONMENT": "Cette configuration n'a pas encore de definition d'environnement.",
-      "METRICS": {
-        "ENVIRONMENTS": "Environnements",
-        "NAMING_TEMPLATES": "Templates de nommage",
-        "BOOLEAN_TRUE": "Oui",
-        "BOOLEAN_FALSE": "Non",
-        "DEFAULT_NAMING": "Regle de nommage par defaut"
-      }
+    "DIALOG": {
+      "TITLE": "Creer un projet",
+      "DESCRIPTION": "Un projet regroupe les configurations d'infrastructure et les membres d'equipe.",
+      "CANCEL": "Annuler",
+      "CREATE": "Creer le projet",
+      "CREATE_ERROR_FALLBACK": "Impossible de creer le projet pour le moment. Veuillez reessayer."
+    }
+  },
+  "PROJECTS": {
+    "TITLE": "Projets",
+    "DESCRIPTION": "Parcourez, recherchez et gerez tous vos projets d'infrastructure.",
+    "ACTIONS": {
+      "CREATE": "Nouveau projet",
+      "TRY_AGAIN": "Reessayer",
+      "TOGGLE_FAVORITE": "Basculer favori"
     },
     "SEARCH": {
-      "PLACEHOLDER": "Rechercher une configuration par nom...",
-      "NO_RESULTS": "Aucune configuration ne correspond a votre recherche."
+      "PLACEHOLDER": "Rechercher un projet par nom ou description...",
+      "NO_RESULTS": "Aucun projet ne correspond a votre recherche."
+    },
+    "FILTERS": {
+      "FAVORITES_ONLY": "Favoris"
     },
     "SORT": {
       "BY_NAME": "Trier par nom",
-      "BY_ENVIRONMENTS": "Trier par environnements",
-      "BY_MEMBERS": "Trier par membres"
+      "BY_MEMBERS": "Trier par membres",
+      "BY_FAVORITES": "Favoris d'abord"
     },
-    "DIALOG": {
-      "TITLE": "Creer une configuration",
-      "DESCRIPTION": "Nommez un espace qui accueillera ensuite les membres, environnements, groupes de ressources et regles de nommage.",
-      "CANCEL": "Annuler",
-      "CREATE": "Creer la configuration",
-      "CREATE_ERROR_FALLBACK": "Impossible de creer la configuration pour le moment. Veuillez reessayer."
+    "STATE": {
+      "LOADING_TITLE": "Chargement des projets",
+      "LOADING_DESCRIPTION": "Recuperation de vos projets depuis l'API.",
+      "LOAD_FAILED": "Impossible de charger vos projets.",
+      "EMPTY_TITLE": "Aucun projet",
+      "EMPTY_DESCRIPTION": "Creez votre premier projet pour organiser les configurations d'infrastructure et les membres d'equipe.",
+      "EMPTY_CTA": "Creer le premier projet"
+    },
+    "CARD": {
+      "MEMBERS": "{{count}} membre(s)",
+      "ENVIRONMENTS": "{{count}} env(s)"
     }
   },
   "CONFIG_DETAIL": {
@@ -141,7 +156,7 @@
       "LOAD_FAILED": "Impossible de charger cette configuration."
     },
     "ACTIONS": {
-      "BACK": "Retour a l'accueil"
+      "BACK": "Retour au projet"
     },
     "MEMBERS": {
       "OVERLINE": "Equipe",
@@ -303,6 +318,186 @@
     "BOOLEAN": {
       "YES": "Oui",
       "NO": "Non"
+    },
+    "INHERITANCE": {
+      "USE_PROJECT": "Heriter du projet",
+      "ENVIRONMENTS_INHERITED": "Environnements herites du projet",
+      "ENVIRONMENTS_OVERRIDDEN": "Environnements personnalises",
+      "NAMING_INHERITED": "Conventions de nommage heritees du projet",
+      "NAMING_OVERRIDDEN": "Conventions de nommage personnalisees",
+      "FROM_PROJECT": "Du projet",
+      "NO_PROJECT_ENVIRONMENTS": "Aucun environnement defini au niveau du projet.",
+      "NO_PROJECT_NAMING": "Aucun template de nommage defini au niveau du projet."
+    },
+    "DELETE": {
+      "BUTTON": "Supprimer la configuration",
+      "CONFIRM_TITLE": "Supprimer la configuration",
+      "CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer la configuration \u00ab {{name}} \u00bb ? Cette action est irreversible.",
+      "CONFIRM_YES": "Supprimer",
+      "CONFIRM_CANCEL": "Annuler",
+      "ERROR": "Impossible de supprimer la configuration."
+    }
+  },
+  "PROJECT_DETAIL": {
+    "HEADER": {
+      "OVERLINE": "Detail du projet"
+    },
+    "TABS": {
+      "CONFIGURATIONS": "Configurations",
+      "ENVIRONMENTS": "Environnements",
+      "NAMING_TEMPLATES": "Nommage",
+      "MEMBERS": "Membres"
+    },
+    "STATE": {
+      "LOADING_TITLE": "Chargement du projet",
+      "LOADING_DESCRIPTION": "Recuperation des details du projet depuis l'API."
+    },
+    "ERROR": {
+      "NO_ID": "Identifiant de projet manquant.",
+      "LOAD_FAILED": "Impossible de charger ce projet."
+    },
+    "ACTIONS": {
+      "BACK": "Retour a l'accueil"
+    },
+    "CONFIGS": {
+      "ADD": "Ajouter une configuration",
+      "EMPTY": "Aucune configuration dans ce projet.",
+      "ENVIRONMENTS": "{{count}} environnement(s)",
+      "NAMING_TEMPLATES": "{{count}} template(s) de nommage",
+      "ADD_DIALOG_TITLE": "Ajouter une configuration",
+      "ADD_DIALOG_DESCRIPTION": "Creez une nouvelle configuration d'infrastructure dans ce projet.",
+      "ADD_ERROR": "Impossible de creer la configuration.",
+      "FORM": {
+        "NAME": "Nom de la configuration",
+        "NAME_PLACEHOLDER": "ex : Fondation plateforme",
+        "CANCEL": "Annuler",
+        "ADD": "Creer"
+      }
+    },
+    "MEMBERS": {
+      "ADD": "Ajouter un membre",
+      "EMPTY": "Aucun membre dans ce projet.",
+      "REMOVE": "Retirer",
+      "REMOVE_CONFIRM_TITLE": "Retirer le membre",
+      "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment retirer {{name}} de ce projet ?",
+      "REMOVE_CONFIRM_YES": "Retirer",
+      "REMOVE_CONFIRM_CANCEL": "Annuler",
+      "ROLE_OWNER": "Proprietaire",
+      "ROLE_CONTRIBUTOR": "Contributeur",
+      "ROLE_READER": "Lecteur",
+      "CHANGE_ROLE_ARIA": "Changer le role du membre",
+      "ADD_DIALOG_TITLE": "Ajouter un membre",
+      "ADD_DIALOG_USER_LABEL": "Selectionner un utilisateur",
+      "ADD_DIALOG_SEARCH_PLACEHOLDER": "Rechercher par nom...",
+      "ADD_DIALOG_NO_RESULTS": "Aucun utilisateur trouve",
+      "ADD_DIALOG_ROLE_LABEL": "Role",
+      "ADD_DIALOG_CANCEL": "Annuler",
+      "ADD_DIALOG_ADD": "Ajouter",
+      "ADD_DIALOG_ERROR": "Impossible d'ajouter le membre. Veuillez reessayer.",
+      "REMOVE_ERROR": "Impossible de retirer le membre.",
+      "ROLE_CHANGE_ERROR": "Impossible de modifier le role."
+    },
+    "ENVIRONMENTS": {
+      "ADD": "Ajouter un environnement",
+      "EMPTY": "Aucun environnement defini pour ce projet.",
+      "REMOVE_CONFIRM_TITLE": "Supprimer l'environnement",
+      "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer l'environnement « {{name}} » ?",
+      "REMOVE_CONFIRM_YES": "Supprimer",
+      "REMOVE_CONFIRM_CANCEL": "Annuler",
+      "REMOVE_ERROR": "Impossible de supprimer l'environnement.",
+      "ORDER": "Ordre",
+      "TENANT_ID": "Tenant ID",
+      "SUBSCRIPTION_ID": "Subscription ID",
+      "PREFIX": "Prefixe",
+      "SUFFIX": "Suffixe",
+      "REQUIRES_APPROVAL": "Approbation",
+      "FORM": {
+        "DIALOG_TITLE_ADD": "Ajouter un environnement",
+        "DIALOG_TITLE_EDIT": "Modifier l'environnement",
+        "DIALOG_DESCRIPTION_ADD": "Definissez un environnement au niveau du projet.",
+        "DIALOG_DESCRIPTION_EDIT": "Modifiez l'environnement du projet.",
+        "NAME": "Nom",
+        "NAME_PLACEHOLDER": "ex : dev, staging, prod",
+        "LOCATION": "Region",
+        "TENANT_ID": "Tenant ID",
+        "TENANT_ID_PLACEHOLDER": "ex : xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "SUBSCRIPTION_ID": "Subscription ID",
+        "SUBSCRIPTION_ID_PLACEHOLDER": "ex : xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "PREFIX": "Prefixe de nommage",
+        "PREFIX_PLACEHOLDER": "ex : myapp",
+        "SUFFIX": "Suffixe de nommage",
+        "SUFFIX_PLACEHOLDER": "ex : 01",
+        "REQUIRES_APPROVAL": "Necessite une approbation",
+        "CANCEL": "Annuler",
+        "ADD": "Ajouter",
+        "SAVE": "Enregistrer",
+        "ERROR_ADD": "Impossible d'ajouter l'environnement.",
+        "ERROR_EDIT": "Impossible de modifier l'environnement.",
+        "ORDER": "Ordre de deploiement",
+        "TIMELINE_ARIA": "Ordre de deploiement des environnements",
+        "ORDER_HELP": "Position dans le pipeline",
+        "ORDER_LABEL": "Ordre de deploiement"
+      }
+    },
+    "NAMING_TEMPLATES": {
+      "DEFAULT": "Template par defaut",
+      "DEFAULT_EMPTY": "Aucun template par defaut configure pour le moment.",
+      "EMPTY": "Aucun template de nommage defini.",
+      "ADD_DEFAULT": "Ajouter le template par defaut",
+      "EDIT_DEFAULT": "Modifier le template par defaut",
+      "ADD_RESOURCE": "Ajouter un template de ressource",
+      "EDIT": "Modifier",
+      "REMOVE": "Supprimer",
+      "ALL_RESOURCE_TYPES_CONFIGURED": "Tous les types de ressource ont deja un template de nommage.",
+      "DEFAULT_ADD_DIALOG_TITLE": "Ajouter le template de nommage par defaut",
+      "DEFAULT_EDIT_DIALOG_TITLE": "Modifier le template de nommage par defaut",
+      "RESOURCE_ADD_DIALOG_TITLE": "Ajouter un template de nommage de ressource",
+      "RESOURCE_EDIT_DIALOG_TITLE": "Modifier le template de nommage de ressource",
+      "DEFAULT_SAVE_ERROR": "Impossible d'enregistrer le template de nommage par defaut.",
+      "RESOURCE_SAVE_ERROR": "Impossible d'enregistrer le template de nommage de ressource.",
+      "RESOURCE_REMOVE_ERROR": "Impossible de supprimer le template de nommage de ressource.",
+      "REMOVE_CONFIRM_TITLE": "Supprimer le template de nommage",
+      "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer le template de nommage pour {{resourceType}} ?",
+      "REMOVE_CONFIRM_YES": "Supprimer",
+      "REMOVE_CONFIRM_CANCEL": "Annuler",
+      "PLACEHOLDERS": {
+        "name": "Nom du projet",
+        "prefix": "Prefixe global",
+        "suffix": "Suffixe global",
+        "env": "Environnement (dev, staging, prod…)",
+        "resourceType": "Type de ressource (KeyVault, StorageAccount…)",
+        "resourceAbbr": "Abreviation du type de ressource (kv, stg, redis…)",
+        "location": "Region Azure (westeurope, eastus…)"
+      },
+      "FORM": {
+        "RESOURCE_TYPE": "Type de ressource",
+        "TEMPLATE": "Template",
+        "TEMPLATE_PLACEHOLDER": "Exemple : {env}-{name}",
+        "AVAILABLE_VARIABLES": "Variables disponibles",
+        "CANCEL": "Annuler",
+        "ADD": "Ajouter",
+        "SAVE": "Enregistrer"
+      }
+    },
+    "BOOLEAN": {
+      "YES": "Oui",
+      "NO": "Non"
+    },
+    "DELETE": {
+      "BUTTON": "Supprimer le projet",
+      "CONFIRM_TITLE": "Supprimer le projet",
+      "CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer le projet \u00ab {{name}} \u00bb ? Toutes les configurations associees seront supprimees. Cette action est irreversible.",
+      "CONFIRM_YES": "Supprimer",
+      "CONFIRM_CANCEL": "Annuler",
+      "ERROR": "Impossible de supprimer le projet."
+    },
+    "DELETE_CONFIG": {
+      "BUTTON": "Supprimer",
+      "CONFIRM_TITLE": "Supprimer la configuration",
+      "CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer la configuration \u00ab {{name}} \u00bb ?",
+      "CONFIRM_YES": "Supprimer",
+      "CONFIRM_CANCEL": "Annuler",
+      "ERROR": "Impossible de supprimer la configuration."
     }
   }
 }

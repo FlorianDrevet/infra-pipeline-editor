@@ -1,0 +1,149 @@
+:host {
+  display: block;
+}
+
+.env-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 26rem;
+  padding-top: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.half-width {
+  flex: 1;
+}
+
+// ─── Order + Timeline Section ────
+
+.order-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  &__label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #103454;
+  }
+}
+
+.order-timeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 1rem;
+  background: rgba(13, 101, 192, 0.04);
+  border: 1px solid rgba(146, 191, 235, 0.2);
+  overflow-x: auto;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 3.5rem;
+  flex-shrink: 0;
+  position: relative;
+
+  &__dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: rgba(146, 191, 235, 0.4);
+    border: 2px solid rgba(146, 191, 235, 0.5);
+    transition: all 0.2s;
+  }
+
+  &__label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #617892;
+    white-space: nowrap;
+    max-width: 5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+  }
+
+  &--current {
+    .timeline-step__dot {
+      background: #0288d1;
+      border-color: #0288d1;
+      box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.2);
+    }
+
+    .timeline-step__label {
+      color: #0288d1;
+      font-weight: 700;
+    }
+  }
+}
+
+.timeline-connector {
+  width: 1.5rem;
+  height: 2px;
+  background: rgba(146, 191, 235, 0.3);
+  margin-top: -0.85rem;
+  flex-shrink: 0;
+
+  &--before-current,
+  &--after-current {
+    background: rgba(2, 136, 209, 0.35);
+  }
+}
+
+.order-arrows {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.order-arrow-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid rgba(2, 136, 209, 0.25);
+  background: rgba(2, 136, 209, 0.06);
+  color: #0288d1;
+  cursor: pointer;
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  &:hover:not(:disabled) {
+    background: rgba(2, 136, 209, 0.14);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+.dialog-error {
+  margin: 0.25rem 0 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.5rem;
+  background: rgba(217, 45, 32, 0.07);
+  color: #a12d1f;
+  font-size: 0.82rem;
+}

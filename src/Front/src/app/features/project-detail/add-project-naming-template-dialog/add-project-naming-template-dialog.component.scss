@@ -1,0 +1,41 @@
+:host {
+  display: block;
+}
+
+.template-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 24rem;
+  padding-top: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.placeholder-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+
+  &-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.54);
+  }
+}
+
+.placeholder-chip {
+  cursor: pointer;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.78rem;
+}
+
+.dialog-hint {
+  margin: 0;
+  color: #617892;
+  font-size: 0.82rem;
+  font-style: italic;
+}

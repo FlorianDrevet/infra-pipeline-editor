@@ -7,6 +7,7 @@
     "BRAND_ARIA": "Open InfraFlowSculptor home page",
     "BRAND_SUBTITLE": "Azure infrastructure workspace",
     "HOME": "Home",
+    "PROJECTS": "Projects",
     "LANGUAGE_SELECTOR_ARIA": "Language selector",
     "USER_CARD_ARIA": "Current connected user",
     "USER_DEFAULT_NAME": "Workspace member",
@@ -46,80 +47,94 @@
     }
   },
   "HOME": {
-    "HERO": {
-      "EYEBROW": "Azure governance workspace",
-      "TITLE": "Configure your infrastructure catalog before generating Bicep and delivery assets.",
-      "DESCRIPTION": "Centralize platform conventions, onboard new environments faster, and keep every infrastructure configuration visible in one premium workspace.",
-      "STATS": {
-        "ARIA": "Workspace overview",
-        "CONFIGS_TRACKED": "Configurations tracked",
-        "ENV_DEFINITIONS": "Environment definitions",
-        "MAIN_CTA_TITLE": "Main CTA",
-        "MAIN_CTA_DESC": "Start by naming a new infrastructure configuration"
-      }
+    "GREETING": {
+      "TITLE": "Welcome to your workspace",
+      "SUBTITLE": "Manage your Azure infrastructure projects, track favorites, and pick up where you left off."
+    },
+    "STATS": {
+      "PROJECTS": "Projects",
+      "MEMBERS": "Members"
     },
     "ACTIONS": {
-      "ADD_CONFIGURATION": "Add a configuration",
-      "REFRESHING": "Refreshing...",
-      "REFRESH_LIST": "Refresh list",
-      "CREATING": "Creating configuration...",
-      "RETRY_SYNC": "Retry sync",
-      "TRY_AGAIN": "Try again"
+      "NEW_PROJECT": "New project",
+      "NEW_PROJECT_DESC": "Create a project to start organizing infrastructure configurations.",
+      "VIEW_ALL_PROJECTS": "Browse all projects",
+      "VIEW_ALL_DESC": "Search, filter, and manage your full project catalog.",
+      "CREATING": "Creating project..."
     },
-    "CREATE": {
-      "OVERLINE": "Create",
-      "TITLE": "Add a new infrastructure configuration",
-      "DESCRIPTION": "Name a workspace that will later host members, environments, resource groups, and naming rules."
+    "FAVORITES": {
+      "TITLE": "Favorites",
+      "EMPTY_TITLE": "No favorites yet",
+      "EMPTY_DESC": "Star a project from the project list to pin it here for quick access.",
+      "REMOVE": "Remove from favorites",
+      "TOGGLE": "Toggle favorite"
+    },
+    "RECENT": {
+      "TITLE": "Recently viewed",
+      "EMPTY_TITLE": "Nothing recent",
+      "EMPTY_DESC": "Projects and configurations you visit will appear here.",
+      "TYPE_PROJECT": "Project",
+      "TYPE_CONFIG": "Configuration"
+    },
+    "OVERVIEW": {
+      "TITLE": "Your projects",
+      "VIEW_ALL": "View all"
+    },
+    "STATE": {
+      "LOADING": "Loading...",
+      "LOAD_FAILED": "Unable to load your projects."
     },
     "FORM": {
-      "NAME_LABEL": "Configuration name",
-      "NAME_PLACEHOLDER": "Example: Global platform foundation",
-      "ERROR_REQUIRED": "A configuration name is required.",
-      "ERROR_MIN_LENGTH": "Use at least 3 characters for a meaningful workspace name.",
+      "NAME_LABEL": "Project name",
+      "NAME_PLACEHOLDER": "Example: Platform foundation",
+      "DESCRIPTION_LABEL": "Description (optional)",
+      "DESCRIPTION_PLACEHOLDER": "Brief description of this project",
+      "ERROR_REQUIRED": "A project name is required.",
+      "ERROR_MIN_LENGTH": "Use at least 3 characters for a meaningful name.",
       "ERROR_MAX_LENGTH": "Keep the name under 80 characters."
     },
     "FEEDBACK": {
-      "CREATE_SUCCESS": "Configuration \"{{name}}\" added successfully.",
-      "CREATE_ERROR_FALLBACK": "Unable to create the configuration right now. Please try again.",
-      "LOAD_ERROR_FALLBACK": "Unable to load your infrastructure configurations. Refresh the page or retry."
+      "LOAD_ERROR_FALLBACK": "Unable to load your projects. Refresh the page or retry."
     },
-    "STATE": {
-      "LOADING_TITLE": "Loading configurations",
-      "LOADING_DESCRIPTION": "Fetching your current infrastructure workspaces from the API.",
-      "LOAD_FAILED": "Load failed",
-      "EMPTY_TITLE": "No configuration yet",
-      "EMPTY_DESCRIPTION": "Create your first infrastructure workspace to start structuring environments, contributors, and Azure naming rules.",
-      "EMPTY_CTA": "Create the first configuration"
-    },
-    "LIST": {
-      "OVERLINE": "Workspace catalog",
-      "TITLE": "Existing configurations",
-      "MEMBERS": "{{count}} member(s)",
-      "TOP_ENVIRONMENTS": "Top environments",
-      "NO_ENVIRONMENT": "This configuration has no environment definition yet.",
-      "METRICS": {
-        "ENVIRONMENTS": "Environments",
-        "NAMING_TEMPLATES": "Naming templates",
-        "BOOLEAN_TRUE": "Yes",
-        "BOOLEAN_FALSE": "No",
-        "DEFAULT_NAMING": "Default naming rule"
-      }
+    "DIALOG": {
+      "TITLE": "Create a project",
+      "DESCRIPTION": "A project groups infrastructure configurations and team members.",
+      "CANCEL": "Cancel",
+      "CREATE": "Create project",
+      "CREATE_ERROR_FALLBACK": "Unable to create the project right now. Please try again."
+    }
+  },
+  "PROJECTS": {
+    "TITLE": "Projects",
+    "DESCRIPTION": "Browse, search, and manage all your infrastructure projects.",
+    "ACTIONS": {
+      "CREATE": "New project",
+      "TRY_AGAIN": "Try again",
+      "TOGGLE_FAVORITE": "Toggle favorite"
     },
     "SEARCH": {
-      "PLACEHOLDER": "Search configurations by name...",
-      "NO_RESULTS": "No configuration matches your search."
+      "PLACEHOLDER": "Search projects by name or description...",
+      "NO_RESULTS": "No project matches your search."
+    },
+    "FILTERS": {
+      "FAVORITES_ONLY": "Favorites"
     },
     "SORT": {
       "BY_NAME": "Sort by name",
-      "BY_ENVIRONMENTS": "Sort by environments",
-      "BY_MEMBERS": "Sort by members"
+      "BY_MEMBERS": "Sort by members",
+      "BY_FAVORITES": "Favorites first"
     },
-    "DIALOG": {
-      "TITLE": "Create a configuration",
-      "DESCRIPTION": "Name a workspace that will later host members, environments, resource groups, and naming rules.",
-      "CANCEL": "Cancel",
-      "CREATE": "Create configuration",
-      "CREATE_ERROR_FALLBACK": "Unable to create the configuration right now. Please try again."
+    "STATE": {
+      "LOADING_TITLE": "Loading projects",
+      "LOADING_DESCRIPTION": "Fetching your projects from the API.",
+      "LOAD_FAILED": "Unable to load your projects.",
+      "EMPTY_TITLE": "No project yet",
+      "EMPTY_DESCRIPTION": "Create your first project to start organizing infrastructure configurations and team members.",
+      "EMPTY_CTA": "Create the first project"
+    },
+    "CARD": {
+      "MEMBERS": "{{count}} member(s)",
+      "ENVIRONMENTS": "{{count}} env(s)"
     }
   },
   "CONFIG_DETAIL": {
@@ -141,7 +156,7 @@
       "LOAD_FAILED": "Unable to load this configuration."
     },
     "ACTIONS": {
-      "BACK": "Back to home"
+      "BACK": "Back to project"
     },
     "MEMBERS": {
       "OVERLINE": "Team",
@@ -303,6 +318,182 @@
     "BOOLEAN": {
       "YES": "Yes",
       "NO": "No"
+    },
+    "INHERITANCE": {
+      "USE_PROJECT": "Inherit from project",
+      "ENVIRONMENTS_INHERITED": "Environments inherited from project",
+      "ENVIRONMENTS_OVERRIDDEN": "Using custom environments",
+      "NAMING_INHERITED": "Naming conventions inherited from project",
+      "NAMING_OVERRIDDEN": "Using custom naming conventions",
+      "FROM_PROJECT": "From project",
+      "NO_PROJECT_ENVIRONMENTS": "No environments defined at the project level.",
+      "NO_PROJECT_NAMING": "No naming templates defined at the project level."
+    },
+    "DELETE": {
+      "BUTTON": "Delete configuration",
+      "CONFIRM_TITLE": "Delete configuration",
+      "CONFIRM_MESSAGE": "Are you sure you want to delete the configuration \u201c{{name}}\u201d? This action cannot be undone.",
+      "CONFIRM_YES": "Delete",
+      "CONFIRM_CANCEL": "Cancel",
+      "ERROR": "Unable to delete the configuration."
+    }
+  },
+  "PROJECT_DETAIL": {
+    "HEADER": {
+      "OVERLINE": "Project detail"
+    },
+    "TABS": {
+      "CONFIGURATIONS": "Configurations",
+      "ENVIRONMENTS": "Environments",
+      "NAMING_TEMPLATES": "Naming",
+      "MEMBERS": "Members"
+    },
+    "STATE": {
+      "LOADING_TITLE": "Loading project",
+      "LOADING_DESCRIPTION": "Fetching project details from the API."
+    },
+    "ERROR": {
+      "NO_ID": "Missing project identifier.",
+      "LOAD_FAILED": "Unable to load this project."
+    },
+    "ACTIONS": {
+      "BACK": "Back to home"
+    },
+    "CONFIGS": {
+      "ADD": "Add configuration",
+      "EMPTY": "No configurations in this project yet.",
+      "ENVIRONMENTS": "{{count}} environment(s)",
+      "NAMING_TEMPLATES": "{{count}} naming template(s)",
+      "ADD_DIALOG_TITLE": "Add a configuration",
+      "ADD_DIALOG_DESCRIPTION": "Create a new infrastructure configuration in this project.",
+      "ADD_ERROR": "Unable to create the configuration.",
+      "FORM": {
+        "NAME": "Configuration name",
+        "NAME_PLACEHOLDER": "e.g. Platform foundation",
+        "CANCEL": "Cancel",
+        "ADD": "Create"
+      }
+    },
+    "MEMBERS": {
+      "ADD": "Add member",
+      "EMPTY": "No members in this project.",
+      "REMOVE": "Remove",
+      "REMOVE_CONFIRM_TITLE": "Remove member",
+      "REMOVE_CONFIRM_MESSAGE": "Are you sure you want to remove {{name}} from this project?",
+      "REMOVE_CONFIRM_YES": "Remove",
+      "REMOVE_CONFIRM_CANCEL": "Cancel",
+      "ROLE_OWNER": "Owner",
+      "ROLE_CONTRIBUTOR": "Contributor",
+      "ROLE_READER": "Reader",
+      "CHANGE_ROLE_ARIA": "Change member role",
+      "ADD_DIALOG_TITLE": "Add a member",
+      "ADD_DIALOG_USER_LABEL": "Select a user",
+      "ADD_DIALOG_SEARCH_PLACEHOLDER": "Search by name...",
+      "ADD_DIALOG_NO_RESULTS": "No users found",
+      "ADD_DIALOG_ROLE_LABEL": "Role",
+      "ADD_DIALOG_CANCEL": "Cancel",
+      "ADD_DIALOG_ADD": "Add",
+      "ADD_DIALOG_ERROR": "Unable to add member. Please try again.",
+      "REMOVE_ERROR": "Unable to remove member.",
+      "ROLE_CHANGE_ERROR": "Unable to change role."
+    },
+    "ENVIRONMENTS": {
+      "ADD": "Add environment",
+      "EDIT": "Edit",
+      "REMOVE": "Delete",
+      "EMPTY": "No environment definitions.",
+      "LOCATION": "Location",
+      "PREFIX": "Prefix",
+      "SUFFIX": "Suffix",
+      "TENANT_ID": "Tenant ID",
+      "SUBSCRIPTION_ID": "Subscription ID",
+      "REQUIRES_APPROVAL": "Requires approval",
+      "ADD_DIALOG_TITLE": "Add an environment",
+      "EDIT_DIALOG_TITLE": "Edit environment",
+      "ADD_DIALOG_ERROR": "Unable to add the environment. Please try again.",
+      "EDIT_DIALOG_ERROR": "Unable to update the environment. Please try again.",
+      "REMOVE_CONFIRM_TITLE": "Delete environment",
+      "REMOVE_CONFIRM_MESSAGE": "Are you sure you want to delete the environment \"{{name}}\"?",
+      "REMOVE_CONFIRM_YES": "Delete",
+      "REMOVE_CONFIRM_CANCEL": "Cancel",
+      "REMOVE_ERROR": "Unable to delete the environment.",
+      "FORM": {
+        "NAME": "Environment name",
+        "NAME_PLACEHOLDER": "Example: Production, Staging, Dev",
+        "LOCATION": "Azure location",
+        "TENANT_ID": "Tenant ID",
+        "SUBSCRIPTION_ID": "Subscription ID",
+        "PREFIX": "Prefix",
+        "PREFIX_PLACEHOLDER": "Example: prd, stg",
+        "SUFFIX": "Suffix",
+        "SUFFIX_PLACEHOLDER": "Example: 01, we",
+        "ORDER": "Deployment order",
+        "TIMELINE_ARIA": "Environment deployment order",
+        "REQUIRES_APPROVAL": "Requires approval before deployment",
+        "CANCEL": "Cancel",
+        "ADD": "Add",
+        "SAVE": "Save"
+      }
+    },
+    "NAMING_TEMPLATES": {
+      "DEFAULT": "Default template",
+      "DEFAULT_EMPTY": "No default template has been configured yet.",
+      "EMPTY": "No naming templates defined.",
+      "ADD_DEFAULT": "Add default template",
+      "EDIT_DEFAULT": "Edit default template",
+      "ADD_RESOURCE": "Add resource template",
+      "EDIT": "Edit",
+      "REMOVE": "Remove",
+      "ALL_RESOURCE_TYPES_CONFIGURED": "All resource types already have a naming template.",
+      "DEFAULT_ADD_DIALOG_TITLE": "Add default naming template",
+      "DEFAULT_EDIT_DIALOG_TITLE": "Edit default naming template",
+      "RESOURCE_ADD_DIALOG_TITLE": "Add resource naming template",
+      "RESOURCE_EDIT_DIALOG_TITLE": "Edit resource naming template",
+      "DEFAULT_SAVE_ERROR": "Unable to save the default naming template.",
+      "RESOURCE_SAVE_ERROR": "Unable to save the resource naming template.",
+      "RESOURCE_REMOVE_ERROR": "Unable to remove the resource naming template.",
+      "REMOVE_CONFIRM_TITLE": "Remove naming template",
+      "REMOVE_CONFIRM_MESSAGE": "Are you sure you want to remove the naming template for {{resourceType}}?",
+      "REMOVE_CONFIRM_YES": "Remove",
+      "REMOVE_CONFIRM_CANCEL": "Cancel",
+      "PLACEHOLDERS": {
+        "name": "Project name",
+        "prefix": "Global prefix",
+        "suffix": "Global suffix",
+        "env": "Environment (dev, staging, prod…)",
+        "resourceType": "Resource type (KeyVault, StorageAccount…)",
+        "resourceAbbr": "Resource type abbreviation (kv, stg, redis…)",
+        "location": "Azure region (westeurope, eastus…)"
+      },
+      "FORM": {
+        "RESOURCE_TYPE": "Resource type",
+        "TEMPLATE": "Template",
+        "TEMPLATE_PLACEHOLDER": "Example: {env}-{name}",
+        "AVAILABLE_VARIABLES": "Available variables",
+        "CANCEL": "Cancel",
+        "ADD": "Add",
+        "SAVE": "Save"
+      }
+    },
+    "BOOLEAN": {
+      "YES": "Yes",
+      "NO": "No"
+    },
+    "DELETE": {
+      "BUTTON": "Delete project",
+      "CONFIRM_TITLE": "Delete project",
+      "CONFIRM_MESSAGE": "Are you sure you want to delete the project \u201c{{name}}\u201d? All associated configurations will be deleted. This action cannot be undone.",
+      "CONFIRM_YES": "Delete",
+      "CONFIRM_CANCEL": "Cancel",
+      "ERROR": "Unable to delete the project."
+    },
+    "DELETE_CONFIG": {
+      "BUTTON": "Delete",
+      "CONFIRM_TITLE": "Delete configuration",
+      "CONFIRM_MESSAGE": "Are you sure you want to delete the configuration \u201c{{name}}\u201d?",
+      "CONFIRM_YES": "Delete",
+      "CONFIRM_CANCEL": "Cancel",
+      "ERROR": "Unable to delete the configuration."
     }
   }
 }
