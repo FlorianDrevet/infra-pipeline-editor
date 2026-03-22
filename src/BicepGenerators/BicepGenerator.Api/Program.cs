@@ -3,11 +3,20 @@ using BicepGenerator.Api;
 using BicepGenerator.Api.Controllers;
 using BicepGenerator.Application;
 using BicepGenerator.Infrastructure;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Shared.Api.Configuration;
 using Shared.Api.Errors;
 using Shared.Api.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ConfigureEndpointDefaults(listenOptions =>
+    {
+        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+    });
+});
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -38,7 +47,6 @@ app.AddDevelopmentTools(builder.Configuration);
 app.UseCors("CorsPolicy");
 
 app.UseErrorHandling();
-app.UseHttpsRedirection();
 app.UseRouting();
 app.UseRateLimiter(); //After UseRouting
 app.UseStatusCodePages();
