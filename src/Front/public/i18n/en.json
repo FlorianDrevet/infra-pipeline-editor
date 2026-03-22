@@ -352,7 +352,9 @@
       "GENERATE_ERROR": "Unable to generate Bicep files. Please check your configuration has at least one resource group with resources.",
       "RETRY": "Try again",
       "DOWNLOAD": "Download all files",
-      "DOWNLOADING": "Downloading..."
+      "DOWNLOADING": "Downloading...",
+      "FILE_LOADING": "Loading file content...",
+      "FILE_ERROR": "Unable to load file content."
     }
   },
   "PROJECT_DETAIL": {

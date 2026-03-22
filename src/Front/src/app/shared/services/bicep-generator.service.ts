@@ -52,4 +52,20 @@ export class BicepGeneratorService {
 
     return response.data as Blob;
   }
+
+  async getFileContent(configId: string, filePath: string): Promise<string> {
+    const token = await this.msalAuth.getAccessTokenForScopes(this.bicepApiScopes);
+    if (!token) {
+      throw new Error('No access token for Bicep API. Please sign in.');
+    }
+
+    const response = await bicepAxios.get<{ content: string }>(
+      `${environment.bicep_api_url}/generate-bicep/${configId}/files/${filePath}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    return response.data.content;
+  }
 }

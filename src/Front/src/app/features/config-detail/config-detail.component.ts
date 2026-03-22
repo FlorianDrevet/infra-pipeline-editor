@@ -93,6 +93,11 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly bicepPanelOpen = signal(false);
   protected readonly bicepDownloading = signal(false);
 
+  // ─── Bicep File Viewer ───
+  protected readonly bicepViewerFile = signal<string | null>(null);
+  protected readonly bicepViewerContent = signal<string | null>(null);
+  protected readonly bicepViewerLoading = signal(false);
+
   protected readonly bicepModuleEntries = computed(() => {
     const result = this.bicepResult();
     if (!result?.moduleUris) return [];
@@ -525,6 +530,37 @@ export class ConfigDetailComponent implements OnInit {
     this.bicepPanelOpen.set(false);
     this.bicepResult.set(null);
     this.bicepErrorKey.set('');
+    this.bicepViewerFile.set(null);
+    this.bicepViewerContent.set(null);
+  }
+
+  protected async openBicepFile(filePath: string): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.bicepViewerLoading()) return;
+
+    // Toggle off if already viewing this file
+    if (this.bicepViewerFile() === filePath) {
+      this.bicepViewerFile.set(null);
+      this.bicepViewerContent.set(null);
+      return;
+    }
+
+    this.bicepViewerFile.set(filePath);
+    this.bicepViewerContent.set(null);
+    this.bicepViewerLoading.set(true);
+    try {
+      const content = await this.bicepService.getFileContent(configId, filePath);
+      this.bicepViewerContent.set(content);
+    } catch {
+      this.bicepViewerContent.set(null);
+    } finally {
+      this.bicepViewerLoading.set(false);
+    }
+  }
+
+  protected closeBicepViewer(): void {
+    this.bicepViewerFile.set(null);
+    this.bicepViewerContent.set(null);
   }
 
   protected async downloadBicepFiles(): Promise<void> {

@@ -352,7 +352,9 @@
       "GENERATE_ERROR": "Impossible de generer les fichiers Bicep. Verifiez que votre configuration contient au moins un groupe de ressources avec des ressources.",
       "RETRY": "Reessayer",
       "DOWNLOAD": "Telecharger tous les fichiers",
-      "DOWNLOADING": "Telechargement..."
+      "DOWNLOADING": "Telechargement...",
+      "FILE_LOADING": "Chargement du fichier...",
+      "FILE_ERROR": "Impossible de charger le contenu du fichier."
     }
   },
   "PROJECT_DETAIL": {

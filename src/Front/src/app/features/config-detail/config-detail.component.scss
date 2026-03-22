@@ -1195,9 +1195,21 @@
   padding: 0.5rem 0.75rem;
   border-radius: 0.6rem;
   transition: background 0.15s;
+  width: 100%;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
 
   &:hover {
     background: rgba(255, 255, 255, 0.04);
+  }
+
+  &--active {
+    background: rgba(139, 233, 253, 0.08);
+    border-left: 2px solid #8be9fd;
+
+    .bicep-tree__name { color: #8be9fd; }
   }
 
   &--module {
@@ -1271,6 +1283,116 @@
 
   mat-icon { font-size: 0.95rem; width: 0.95rem; height: 0.95rem; }
   &:hover { background: rgba(139, 233, 253, 0.12); color: #8be9fd; }
+}
+
+// ─── File Content Viewer ────
+
+.bicep-viewer {
+  border-radius: 0.85rem;
+  overflow: hidden;
+  background: #0d1117;
+  border: 1px solid rgba(139, 233, 253, 0.12);
+  margin-top: 0.75rem;
+  animation: bicepViewerSlideIn 0.25s ease-out;
+}
+
+.bicep-viewer__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.85rem;
+  background: rgba(139, 233, 253, 0.05);
+  border-bottom: 1px solid rgba(139, 233, 253, 0.08);
+}
+
+.bicep-viewer__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  &--red { background: #ff5f56; }
+  &--yellow { background: #ffbd2e; }
+  &--green { background: #27c93f; }
+}
+
+.bicep-viewer__bar-title {
+  flex: 1;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #8be9fd;
+  margin-left: 0.4rem;
+}
+
+.bicep-viewer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  mat-icon { font-size: 0.9rem; width: 0.9rem; height: 0.9rem; }
+  &:hover { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.8); }
+}
+
+.bicep-viewer__body {
+  padding: 1rem 1.1rem;
+  max-height: 28rem;
+  overflow-y: auto;
+
+  // Custom scrollbar matching Dracula theme
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(139, 233, 253, 0.2);
+    border-radius: 3px;
+    &:hover { background: rgba(139, 233, 253, 0.35); }
+  }
+}
+
+.bicep-viewer__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.82rem;
+  color: #50fa7b;
+}
+
+.bicep-viewer__loading-text {
+  color: rgba(139, 233, 253, 0.85);
+}
+
+.bicep-viewer__code {
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  color: rgba(248, 248, 242, 0.92);
+  white-space: pre;
+  tab-size: 2;
+
+  code {
+    font: inherit;
+    color: inherit;
+  }
+}
+
+.bicep-viewer__error {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.82rem;
+  color: #ff79c6;
+  margin: 0;
+}
+
+@keyframes bicepViewerSlideIn {
+  from { opacity: 0; max-height: 0; }
+  to { opacity: 1; max-height: 40rem; }
 }
 
 @keyframes bicepSlideIn {

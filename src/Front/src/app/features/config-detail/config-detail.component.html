@@ -122,23 +122,21 @@
               </p>
               <div class="bicep-tree">
                 <!-- main.bicep -->
-                <div class="bicep-tree__item bicep-tree__item--main">
+                <button class="bicep-tree__item bicep-tree__item--main"
+                        [class.bicep-tree__item--active]="bicepViewerFile() === 'main.bicep'"
+                        (click)="openBicepFile('main.bicep')">
                   <mat-icon class="bicep-tree__icon">description</mat-icon>
                   <span class="bicep-tree__name">main.bicep</span>
                   <span class="bicep-tree__badge">{{ 'CONFIG_DETAIL.BICEP.ENTRY_POINT' | translate }}</span>
-                  <a class="bicep-tree__link" [href]="result.mainBicepUri" target="_blank" rel="noopener noreferrer">
-                    <mat-icon>open_in_new</mat-icon>
-                  </a>
-                </div>
+                </button>
                 <!-- main.bicepparam -->
-                <div class="bicep-tree__item">
+                <button class="bicep-tree__item"
+                        [class.bicep-tree__item--active]="bicepViewerFile() === 'main.bicepparam'"
+                        (click)="openBicepFile('main.bicepparam')">
                   <mat-icon class="bicep-tree__icon">tune</mat-icon>
                   <span class="bicep-tree__name">main.bicepparam</span>
                   <span class="bicep-tree__badge bicep-tree__badge--params">{{ 'CONFIG_DETAIL.BICEP.PARAMETERS' | translate }}</span>
-                  <a class="bicep-tree__link" [href]="result.parametersUri" target="_blank" rel="noopener noreferrer">
-                    <mat-icon>open_in_new</mat-icon>
-                  </a>
-                </div>
+                </button>
                 <!-- Modules -->
                 @if (bicepModuleEntries().length > 0) {
                   <div class="bicep-tree__separator">
@@ -146,18 +144,45 @@
                     <span>modules/</span>
                   </div>
                   @for (mod of bicepModuleEntries(); track mod.name) {
-                    <div class="bicep-tree__item bicep-tree__item--module">
+                    <button class="bicep-tree__item bicep-tree__item--module"
+                            [class.bicep-tree__item--active]="bicepViewerFile() === 'modules/' + mod.name + '.bicep'"
+                            (click)="openBicepFile('modules/' + mod.name + '.bicep')">
                       <mat-icon class="bicep-tree__icon">memory</mat-icon>
                       <span class="bicep-tree__name">{{ mod.name }}.bicep</span>
-                      <a class="bicep-tree__link" [href]="mod.uri" target="_blank" rel="noopener noreferrer">
-                        <mat-icon>open_in_new</mat-icon>
-                      </a>
-                    </div>
+                    </button>
                   }
                 }
               </div>
             </div>
           </div>
+
+          <!-- File Content Viewer -->
+          @if (bicepViewerFile()) {
+            <div class="bicep-viewer">
+              <div class="bicep-viewer__bar">
+                <span class="bicep-viewer__dot bicep-viewer__dot--red"></span>
+                <span class="bicep-viewer__dot bicep-viewer__dot--yellow"></span>
+                <span class="bicep-viewer__dot bicep-viewer__dot--green"></span>
+                <span class="bicep-viewer__bar-title">{{ bicepViewerFile() }}</span>
+                <button class="bicep-viewer__close" (click)="closeBicepViewer()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div class="bicep-viewer__body">
+                @if (bicepViewerLoading()) {
+                  <div class="bicep-viewer__loading">
+                    <span class="bicep-terminal__prompt">$</span>
+                    <span class="bicep-viewer__loading-text">{{ 'CONFIG_DETAIL.BICEP.FILE_LOADING' | translate }}</span>
+                    <span class="bicep-terminal__cursor"></span>
+                  </div>
+                } @else if (bicepViewerContent()) {
+                  <pre class="bicep-viewer__code"><code>{{ bicepViewerContent() }}</code></pre>
+                } @else {
+                  <p class="bicep-viewer__error">{{ 'CONFIG_DETAIL.BICEP.FILE_ERROR' | translate }}</p>
+                }
+              </div>
+            </div>
+          }
         }
       </section>
     }
