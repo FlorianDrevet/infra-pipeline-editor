@@ -7,6 +7,7 @@
     "BRAND_ARIA": "Open InfraFlowSculptor home page",
     "BRAND_SUBTITLE": "Azure infrastructure workspace",
     "HOME": "Home",
+    "PROJECTS": "Projects",
     "LANGUAGE_SELECTOR_ARIA": "Language selector",
     "USER_CARD_ARIA": "Current connected user",
     "USER_DEFAULT_NAME": "Workspace member",
@@ -46,30 +47,42 @@
     }
   },
   "HOME": {
-    "HERO": {
-      "EYEBROW": "Azure governance workspace",
-      "TITLE": "Manage your projects and infrastructure configurations from a single workspace.",
-      "DESCRIPTION": "Create projects, invite team members, and organize infrastructure configurations with environments, resource groups, and naming conventions.",
-      "STATS": {
-        "ARIA": "Workspace overview",
-        "PROJECTS_TRACKED": "Projects tracked",
-        "TOTAL_MEMBERS": "Total members",
-        "MAIN_CTA_TITLE": "Main CTA",
-        "MAIN_CTA_DESC": "Start by creating a new project"
-      }
+    "GREETING": {
+      "TITLE": "Welcome to your workspace",
+      "SUBTITLE": "Manage your Azure infrastructure projects, track favorites, and pick up where you left off."
+    },
+    "STATS": {
+      "PROJECTS": "Projects",
+      "MEMBERS": "Members"
     },
     "ACTIONS": {
-      "ADD_PROJECT": "New project",
-      "REFRESHING": "Refreshing...",
-      "REFRESH_LIST": "Refresh list",
-      "CREATING": "Creating project...",
-      "RETRY_SYNC": "Retry sync",
-      "TRY_AGAIN": "Try again"
+      "NEW_PROJECT": "New project",
+      "NEW_PROJECT_DESC": "Create a project to start organizing infrastructure configurations.",
+      "VIEW_ALL_PROJECTS": "Browse all projects",
+      "VIEW_ALL_DESC": "Search, filter, and manage your full project catalog.",
+      "CREATING": "Creating project..."
     },
-    "CREATE": {
-      "OVERLINE": "Create",
-      "TITLE": "Start a new project",
-      "DESCRIPTION": "A project groups infrastructure configurations and team members under one roof."
+    "FAVORITES": {
+      "TITLE": "Favorites",
+      "EMPTY_TITLE": "No favorites yet",
+      "EMPTY_DESC": "Star a project from the project list to pin it here for quick access.",
+      "REMOVE": "Remove from favorites",
+      "TOGGLE": "Toggle favorite"
+    },
+    "RECENT": {
+      "TITLE": "Recently viewed",
+      "EMPTY_TITLE": "Nothing recent",
+      "EMPTY_DESC": "Projects and configurations you visit will appear here.",
+      "TYPE_PROJECT": "Project",
+      "TYPE_CONFIG": "Configuration"
+    },
+    "OVERVIEW": {
+      "TITLE": "Your projects",
+      "VIEW_ALL": "View all"
+    },
+    "STATE": {
+      "LOADING": "Loading...",
+      "LOAD_FAILED": "Unable to load your projects."
     },
     "FORM": {
       "NAME_LABEL": "Project name",
@@ -81,33 +94,7 @@
       "ERROR_MAX_LENGTH": "Keep the name under 80 characters."
     },
     "FEEDBACK": {
-      "CREATE_SUCCESS": "Project \"{{name}}\" created successfully.",
-      "CREATE_ERROR_FALLBACK": "Unable to create the project right now. Please try again.",
       "LOAD_ERROR_FALLBACK": "Unable to load your projects. Refresh the page or retry."
-    },
-    "STATE": {
-      "LOADING_TITLE": "Loading projects",
-      "LOADING_DESCRIPTION": "Fetching your projects from the API.",
-      "LOAD_FAILED": "Load failed",
-      "EMPTY_TITLE": "No project yet",
-      "EMPTY_DESCRIPTION": "Create your first project to start organizing infrastructure configurations and team members.",
-      "EMPTY_CTA": "Create the first project"
-    },
-    "LIST": {
-      "OVERLINE": "Project catalog",
-      "TITLE": "Your projects",
-      "MEMBERS": "{{count}} member(s)",
-      "METRICS": {
-        "MEMBERS": "Members"
-      }
-    },
-    "SEARCH": {
-      "PLACEHOLDER": "Search projects by name...",
-      "NO_RESULTS": "No project matches your search."
-    },
-    "SORT": {
-      "BY_NAME": "Sort by name",
-      "BY_MEMBERS": "Sort by members"
     },
     "DIALOG": {
       "TITLE": "Create a project",
@@ -115,6 +102,39 @@
       "CANCEL": "Cancel",
       "CREATE": "Create project",
       "CREATE_ERROR_FALLBACK": "Unable to create the project right now. Please try again."
+    }
+  },
+  "PROJECTS": {
+    "TITLE": "Projects",
+    "DESCRIPTION": "Browse, search, and manage all your infrastructure projects.",
+    "ACTIONS": {
+      "CREATE": "New project",
+      "TRY_AGAIN": "Try again",
+      "TOGGLE_FAVORITE": "Toggle favorite"
+    },
+    "SEARCH": {
+      "PLACEHOLDER": "Search projects by name or description...",
+      "NO_RESULTS": "No project matches your search."
+    },
+    "FILTERS": {
+      "FAVORITES_ONLY": "Favorites"
+    },
+    "SORT": {
+      "BY_NAME": "Sort by name",
+      "BY_MEMBERS": "Sort by members",
+      "BY_FAVORITES": "Favorites first"
+    },
+    "STATE": {
+      "LOADING_TITLE": "Loading projects",
+      "LOADING_DESCRIPTION": "Fetching your projects from the API.",
+      "LOAD_FAILED": "Unable to load your projects.",
+      "EMPTY_TITLE": "No project yet",
+      "EMPTY_DESCRIPTION": "Create your first project to start organizing infrastructure configurations and team members.",
+      "EMPTY_CTA": "Create the first project"
+    },
+    "CARD": {
+      "MEMBERS": "{{count}} member(s)",
+      "ENVIRONMENTS": "{{count}} env(s)"
     }
   },
   "CONFIG_DETAIL": {

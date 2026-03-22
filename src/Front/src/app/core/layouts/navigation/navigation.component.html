@@ -19,6 +19,14 @@
         {{ 'NAV.HOME' | translate }}
       </a>
 
+      <a
+        class="nav-link"
+        routerLink="/projects"
+        routerLinkActive="nav-link--active"
+        [routerLinkActiveOptions]="{ exact: true }">
+        {{ 'NAV.PROJECTS' | translate }}
+      </a>
+
       <div class="language-switch" role="group" [attr.aria-label]="'NAV.LANGUAGE_SELECTOR_ARIA' | translate">
         @for (language of availableLanguages; track language.code) {
           <button

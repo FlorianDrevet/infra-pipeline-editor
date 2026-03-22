@@ -1,138 +1,172 @@
 <div class="home-page">
-  <section class="hero-panel">
-    <div class="hero-panel__content">
-      <span class="eyebrow">{{ 'HOME.HERO.EYEBROW' | translate }}</span>
-      <h1>{{ 'HOME.HERO.TITLE' | translate }}</h1>
-      <p>
-        {{ 'HOME.HERO.DESCRIPTION' | translate }}
-      </p>
-
-      <div class="hero-panel__actions">
-        <button type="button" class="primary-cta" (click)="openCreateDialog()">{{ 'HOME.ACTIONS.ADD_PROJECT' | translate }}</button>
-        <button type="button" class="secondary-cta" (click)="refreshProjects()" [disabled]="isLoading()">
-          @if (isLoading()) {
-            {{ 'HOME.ACTIONS.REFRESHING' | translate }}
-          } @else {
-            {{ 'HOME.ACTIONS.REFRESH_LIST' | translate }}
-          }
-        </button>
-      </div>
+  <!-- ── Greeting bar ────────────────────────────────────────── -->
+  <section class="greeting-bar">
+    <div class="greeting-bar__text">
+      <h1>{{ 'HOME.GREETING.TITLE' | translate }}</h1>
+      <p>{{ 'HOME.GREETING.SUBTITLE' | translate }}</p>
     </div>
-
-    <div class="hero-panel__stats" [attr.aria-label]="'HOME.HERO.STATS.ARIA' | translate">
-      <article class="stat-card">
+    <div class="greeting-bar__stats">
+      <div class="stat-pill">
         <strong>{{ projects().length }}</strong>
-        <span>{{ 'HOME.HERO.STATS.PROJECTS_TRACKED' | translate }}</span>
-      </article>
-      <article class="stat-card">
+        <span>{{ 'HOME.STATS.PROJECTS' | translate }}</span>
+      </div>
+      <div class="stat-pill">
         <strong>{{ totalMemberCount() }}</strong>
-        <span>{{ 'HOME.HERO.STATS.TOTAL_MEMBERS' | translate }}</span>
-      </article>
-      <article class="stat-card stat-card--accent">
-        <strong>{{ 'HOME.HERO.STATS.MAIN_CTA_TITLE' | translate }}</strong>
-        <span>{{ 'HOME.HERO.STATS.MAIN_CTA_DESC' | translate }}</span>
-      </article>
+        <span>{{ 'HOME.STATS.MEMBERS' | translate }}</span>
+      </div>
     </div>
   </section>
 
-  <section class="workspace-grid">
-    <article class="create-panel" id="new-project">
-      <div class="section-heading">
-        <span>{{ 'HOME.CREATE.OVERLINE' | translate }}</span>
-        <h2>{{ 'HOME.CREATE.TITLE' | translate }}</h2>
-        <p>{{ 'HOME.CREATE.DESCRIPTION' | translate }}</p>
+  <!-- ── Quick actions ───────────────────────────────────────── -->
+  <section class="quick-actions">
+    <button type="button" class="action-card action-card--create" (click)="openCreateDialog()">
+      <mat-icon>add_circle_outline</mat-icon>
+      <div>
+        <strong>{{ 'HOME.ACTIONS.NEW_PROJECT' | translate }}</strong>
+        <span>{{ 'HOME.ACTIONS.NEW_PROJECT_DESC' | translate }}</span>
       </div>
+    </button>
+    <a class="action-card" routerLink="/projects">
+      <mat-icon>folder_open</mat-icon>
+      <div>
+        <strong>{{ 'HOME.ACTIONS.VIEW_ALL_PROJECTS' | translate }}</strong>
+        <span>{{ 'HOME.ACTIONS.VIEW_ALL_DESC' | translate }}</span>
+      </div>
+    </a>
+  </section>
 
-      @if (createdProjectName()) {
-        <div class="feedback-banner feedback-banner--success" role="status" aria-live="polite">
-          {{ 'HOME.FEEDBACK.CREATE_SUCCESS' | translate: { name: createdProjectName() } }}
-        </div>
-      }
-
-      <button type="button" class="submit-button" (click)="openCreateDialog()">
-        {{ 'HOME.ACTIONS.ADD_PROJECT' | translate }}
-      </button>
-    </article>
-
-    <article class="list-panel">
-      <div class="section-heading section-heading--inline">
-        <div>
-          <span>{{ 'HOME.LIST.OVERLINE' | translate }}</span>
-          <h2>{{ 'HOME.LIST.TITLE' | translate }}</h2>
-        </div>
-        <button type="button" class="ghost-button" (click)="refreshProjects()" [disabled]="isLoading()">
-          {{ 'HOME.ACTIONS.RETRY_SYNC' | translate }}
-        </button>
+  <!-- ── Content grid: Favorites + Recent ────────────────────── -->
+  <div class="dashboard-grid">
+    <!-- Favorites -->
+    <section class="dashboard-panel">
+      <div class="panel-header">
+        <mat-icon class="panel-header__icon">star</mat-icon>
+        <h2>{{ 'HOME.FAVORITES.TITLE' | translate }}</h2>
       </div>
 
       @if (isLoading()) {
-        <div class="state-card state-card--loading" aria-live="polite">
+        <div class="state-inline state-inline--loading">
           <div class="pulse-dot"></div>
+          <span>{{ 'HOME.STATE.LOADING' | translate }}</span>
+        </div>
+      } @else if (favoriteProjects().length === 0) {
+        <div class="state-inline state-inline--empty">
+          <mat-icon>star_border</mat-icon>
           <div>
-            <strong>{{ 'HOME.STATE.LOADING_TITLE' | translate }}</strong>
-            <p>{{ 'HOME.STATE.LOADING_DESCRIPTION' | translate }}</p>
+            <strong>{{ 'HOME.FAVORITES.EMPTY_TITLE' | translate }}</strong>
+            <p>{{ 'HOME.FAVORITES.EMPTY_DESC' | translate }}</p>
           </div>
-        </div>
-      } @else if (loadError()) {
-        <div class="state-card state-card--error" role="alert" aria-live="assertive">
-          <strong>{{ 'HOME.STATE.LOAD_FAILED' | translate }}</strong>
-          <p>{{ loadError() }}</p>
-          <button type="button" class="ghost-button" (click)="refreshProjects()">{{ 'HOME.ACTIONS.TRY_AGAIN' | translate }}</button>
-        </div>
-      } @else if (projects().length === 0) {
-        <div class="state-card state-card--empty" aria-live="polite">
-          <strong>{{ 'HOME.STATE.EMPTY_TITLE' | translate }}</strong>
-          <p>
-            {{ 'HOME.STATE.EMPTY_DESCRIPTION' | translate }}
-          </p>
-          <a class="primary-cta primary-cta--small" href="javascript:void(0)" (click)="openCreateDialog()">{{ 'HOME.STATE.EMPTY_CTA' | translate }}</a>
         </div>
       } @else {
-        <div class="search-sort-bar">
-          <label class="field search-field">
-            <input
-              type="text"
-              [value]="searchQuery()"
-              (input)="onSearchInput($event)"
-              [placeholder]="'HOME.SEARCH.PLACEHOLDER' | translate" />
-          </label>
-          <label class="field sort-field">
-            <select (change)="onSortChange($event)">
-              <option value="name">{{ 'HOME.SORT.BY_NAME' | translate }}</option>
-              <option value="members">{{ 'HOME.SORT.BY_MEMBERS' | translate }}</option>
-            </select>
-          </label>
-        </div>
-
-        @if (filteredProjects().length === 0) {
-          <div class="state-card state-card--empty" aria-live="polite">
-            <strong>{{ 'HOME.SEARCH.NO_RESULTS' | translate }}</strong>
-          </div>
-        } @else {
-        <div class="config-list">
-          @for (project of filteredProjects(); track project.id) {
-            <a class="config-card" [routerLink]="['/projects', project.id]">
-              <div class="config-card__header">
-                <div>
-                  <h3>{{ project.name }}</h3>
-                  @if (project.description) {
-                    <p class="config-card__description">{{ project.description }}</p>
-                  }
-                </div>
-                <span class="config-chip">{{ 'HOME.LIST.MEMBERS' | translate: { count: project.members.length } }}</span>
+        <div class="card-list">
+          @for (project of favoriteProjects(); track project.id) {
+            <a class="mini-card" [routerLink]="['/projects', project.id]">
+              <div class="mini-card__info">
+                <h3>{{ project.name }}</h3>
+                @if (project.description) {
+                  <p>{{ project.description }}</p>
+                }
               </div>
-
-              <div class="config-card__metrics">
-                <div>
-                  <strong>{{ project.members.length }}</strong>
-                  <span>{{ 'HOME.LIST.METRICS.MEMBERS' | translate }}</span>
-                </div>
+              <div class="mini-card__right">
+                <span class="mini-chip">
+                  <mat-icon>group</mat-icon>
+                  {{ project.members.length }}
+                </span>
+                <button
+                  type="button"
+                  class="mini-card__fav"
+                  (click)="toggleFavorite($event, project.id)"
+                  [attr.aria-label]="'HOME.FAVORITES.REMOVE' | translate">
+                  <mat-icon>star</mat-icon>
+                </button>
               </div>
             </a>
           }
         </div>
-        }
       }
-    </article>
-  </section>
+    </section>
+
+    <!-- Recently viewed -->
+    <section class="dashboard-panel">
+      <div class="panel-header">
+        <mat-icon class="panel-header__icon">history</mat-icon>
+        <h2>{{ 'HOME.RECENT.TITLE' | translate }}</h2>
+      </div>
+
+      @if (recentItems().length === 0) {
+        <div class="state-inline state-inline--empty">
+          <mat-icon>schedule</mat-icon>
+          <div>
+            <strong>{{ 'HOME.RECENT.EMPTY_TITLE' | translate }}</strong>
+            <p>{{ 'HOME.RECENT.EMPTY_DESC' | translate }}</p>
+          </div>
+        </div>
+      } @else {
+        <div class="card-list">
+          @for (item of recentItems(); track item.id + item.type) {
+            <a class="mini-card" [routerLink]="getRecentItemRoute(item)">
+              <div class="mini-card__icon-wrap">
+                <mat-icon>{{ getRecentItemIcon(item) }}</mat-icon>
+              </div>
+              <div class="mini-card__info">
+                <h3>{{ item.name }}</h3>
+                <span class="mini-card__type">{{ 'HOME.RECENT.TYPE_' + item.type.toUpperCase() | translate }}</span>
+              </div>
+            </a>
+          }
+        </div>
+      }
+    </section>
+  </div>
+
+  <!-- ── Recent projects list (quick glance) ─────────────────── -->
+  @if (!isLoading() && projects().length > 0) {
+    <section class="dashboard-panel dashboard-panel--full">
+      <div class="panel-header">
+        <mat-icon class="panel-header__icon">dashboard</mat-icon>
+        <h2>{{ 'HOME.OVERVIEW.TITLE' | translate }}</h2>
+        <a class="panel-header__link" routerLink="/projects">
+          {{ 'HOME.OVERVIEW.VIEW_ALL' | translate }}
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      <div class="overview-grid">
+        @for (project of projects().slice(0, 6); track project.id) {
+          <a class="overview-card" [routerLink]="['/projects', project.id]">
+            <div class="overview-card__top">
+              <h3>{{ project.name }}</h3>
+              <button
+                type="button"
+                class="overview-card__fav"
+                (click)="toggleFavorite($event, project.id)"
+                [attr.aria-label]="'HOME.FAVORITES.TOGGLE' | translate">
+                <mat-icon>{{ isFavorite(project.id) ? 'star' : 'star_border' }}</mat-icon>
+              </button>
+            </div>
+            @if (project.description) {
+              <p class="overview-card__desc">{{ project.description }}</p>
+            }
+            <div class="overview-card__meta">
+              <span class="mini-chip">
+                <mat-icon>group</mat-icon>
+                {{ project.members.length }}
+              </span>
+              <span class="mini-chip">
+                <mat-icon>settings</mat-icon>
+                {{ project.environmentDefinitions.length }}
+              </span>
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  @if (loadError()) {
+    <div class="state-card state-card--error" role="alert" aria-live="assertive">
+      <mat-icon>error_outline</mat-icon>
+      <strong>{{ 'HOME.STATE.LOAD_FAILED' | translate }}</strong>
+    </div>
+  }
 </div>

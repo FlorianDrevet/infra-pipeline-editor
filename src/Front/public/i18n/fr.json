@@ -7,6 +7,7 @@
     "BRAND_ARIA": "Ouvrir la page d'accueil InfraFlowSculptor",
     "BRAND_SUBTITLE": "Espace de travail infrastructure Azure",
     "HOME": "Accueil",
+    "PROJECTS": "Projets",
     "LANGUAGE_SELECTOR_ARIA": "Selection de la langue",
     "USER_CARD_ARIA": "Utilisateur connecte",
     "USER_DEFAULT_NAME": "Membre de l'espace",
@@ -46,30 +47,42 @@
     }
   },
   "HOME": {
-    "HERO": {
-      "EYEBROW": "Espace de gouvernance Azure",
-      "TITLE": "Gerez vos projets et configurations d'infrastructure depuis un seul espace.",
-      "DESCRIPTION": "Creez des projets, invitez des membres et organisez les configurations d'infrastructure avec environnements, groupes de ressources et conventions de nommage.",
-      "STATS": {
-        "ARIA": "Vue d'ensemble de l'espace",
-        "PROJECTS_TRACKED": "Projets suivis",
-        "TOTAL_MEMBERS": "Membres total",
-        "MAIN_CTA_TITLE": "Action principale",
-        "MAIN_CTA_DESC": "Commencez par creer un nouveau projet"
-      }
+    "GREETING": {
+      "TITLE": "Bienvenue dans votre espace",
+      "SUBTITLE": "Gerez vos projets d'infrastructure Azure, suivez vos favoris et reprenez la ou vous vous etiez arrete."
+    },
+    "STATS": {
+      "PROJECTS": "Projets",
+      "MEMBERS": "Membres"
     },
     "ACTIONS": {
-      "ADD_PROJECT": "Nouveau projet",
-      "REFRESHING": "Actualisation...",
-      "REFRESH_LIST": "Actualiser la liste",
-      "CREATING": "Creation du projet...",
-      "RETRY_SYNC": "Relancer la synchro",
-      "TRY_AGAIN": "Reessayer"
+      "NEW_PROJECT": "Nouveau projet",
+      "NEW_PROJECT_DESC": "Creez un projet pour organiser vos configurations d'infrastructure.",
+      "VIEW_ALL_PROJECTS": "Parcourir les projets",
+      "VIEW_ALL_DESC": "Recherchez, filtrez et gerez votre catalogue de projets.",
+      "CREATING": "Creation du projet..."
     },
-    "CREATE": {
-      "OVERLINE": "Creation",
-      "TITLE": "Demarrer un nouveau projet",
-      "DESCRIPTION": "Un projet regroupe les configurations d'infrastructure et les membres d'equipe."
+    "FAVORITES": {
+      "TITLE": "Favoris",
+      "EMPTY_TITLE": "Aucun favori",
+      "EMPTY_DESC": "Ajoutez un projet en favori depuis la liste des projets pour l'epingler ici.",
+      "REMOVE": "Retirer des favoris",
+      "TOGGLE": "Basculer favori"
+    },
+    "RECENT": {
+      "TITLE": "Vus recemment",
+      "EMPTY_TITLE": "Rien de recent",
+      "EMPTY_DESC": "Les projets et configurations que vous consultez apparaitront ici.",
+      "TYPE_PROJECT": "Projet",
+      "TYPE_CONFIG": "Configuration"
+    },
+    "OVERVIEW": {
+      "TITLE": "Vos projets",
+      "VIEW_ALL": "Voir tout"
+    },
+    "STATE": {
+      "LOADING": "Chargement...",
+      "LOAD_FAILED": "Impossible de charger vos projets."
     },
     "FORM": {
       "NAME_LABEL": "Nom du projet",
@@ -81,33 +94,7 @@
       "ERROR_MAX_LENGTH": "Le nom doit rester sous 80 caracteres."
     },
     "FEEDBACK": {
-      "CREATE_SUCCESS": "Projet \"{{name}}\" cree avec succes.",
-      "CREATE_ERROR_FALLBACK": "Impossible de creer le projet pour le moment. Veuillez reessayer.",
       "LOAD_ERROR_FALLBACK": "Impossible de charger vos projets. Actualisez la page ou reessayez."
-    },
-    "STATE": {
-      "LOADING_TITLE": "Chargement des projets",
-      "LOADING_DESCRIPTION": "Recuperation de vos projets depuis l'API.",
-      "LOAD_FAILED": "Echec du chargement",
-      "EMPTY_TITLE": "Aucun projet",
-      "EMPTY_DESCRIPTION": "Creez votre premier projet pour organiser les configurations d'infrastructure et les membres d'equipe.",
-      "EMPTY_CTA": "Creer le premier projet"
-    },
-    "LIST": {
-      "OVERLINE": "Catalogue des projets",
-      "TITLE": "Vos projets",
-      "MEMBERS": "{{count}} membre(s)",
-      "METRICS": {
-        "MEMBERS": "Membres"
-      }
-    },
-    "SEARCH": {
-      "PLACEHOLDER": "Rechercher un projet par nom...",
-      "NO_RESULTS": "Aucun projet ne correspond a votre recherche."
-    },
-    "SORT": {
-      "BY_NAME": "Trier par nom",
-      "BY_MEMBERS": "Trier par membres"
     },
     "DIALOG": {
       "TITLE": "Creer un projet",
@@ -115,6 +102,39 @@
       "CANCEL": "Annuler",
       "CREATE": "Creer le projet",
       "CREATE_ERROR_FALLBACK": "Impossible de creer le projet pour le moment. Veuillez reessayer."
+    }
+  },
+  "PROJECTS": {
+    "TITLE": "Projets",
+    "DESCRIPTION": "Parcourez, recherchez et gerez tous vos projets d'infrastructure.",
+    "ACTIONS": {
+      "CREATE": "Nouveau projet",
+      "TRY_AGAIN": "Reessayer",
+      "TOGGLE_FAVORITE": "Basculer favori"
+    },
+    "SEARCH": {
+      "PLACEHOLDER": "Rechercher un projet par nom ou description...",
+      "NO_RESULTS": "Aucun projet ne correspond a votre recherche."
+    },
+    "FILTERS": {
+      "FAVORITES_ONLY": "Favoris"
+    },
+    "SORT": {
+      "BY_NAME": "Trier par nom",
+      "BY_MEMBERS": "Trier par membres",
+      "BY_FAVORITES": "Favoris d'abord"
+    },
+    "STATE": {
+      "LOADING_TITLE": "Chargement des projets",
+      "LOADING_DESCRIPTION": "Recuperation de vos projets depuis l'API.",
+      "LOAD_FAILED": "Impossible de charger vos projets.",
+      "EMPTY_TITLE": "Aucun projet",
+      "EMPTY_DESCRIPTION": "Creez votre premier projet pour organiser les configurations d'infrastructure et les membres d'equipe.",
+      "EMPTY_CTA": "Creer le premier projet"
+    },
+    "CARD": {
+      "MEMBERS": "{{count}} membre(s)",
+      "ENVIRONMENTS": "{{count}} env(s)"
     }
   },
   "CONFIG_DETAIL": {

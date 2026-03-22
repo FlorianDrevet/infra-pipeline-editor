@@ -28,6 +28,7 @@ import {
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
+import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS } from './enums/resource-type.enum';
 import { FormsModule } from '@angular/forms';
@@ -62,6 +63,7 @@ export class ConfigDetailComponent implements OnInit {
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly projectService = inject(ProjectService);
   private readonly authService = inject(AuthenticationService);
+  private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
 
   protected readonly config = signal<InfrastructureConfigResponse | null>(null);
@@ -169,6 +171,11 @@ export class ConfigDetailComponent implements OnInit {
       ]);
       this.config.set(config);
       this.resourceGroups.set(resourceGroups);
+      this.recentlyViewedService.trackView({
+        id: config.id,
+        name: config.name,
+        type: 'config',
+      });
 
       // Load the parent project for inheritance data
       if (config.projectId) {

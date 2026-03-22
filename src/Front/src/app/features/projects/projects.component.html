@@ -1,0 +1,113 @@
+<div class="projects-page">
+  <header class="projects-header">
+    <div class="projects-header__text">
+      <h1>{{ 'PROJECTS.TITLE' | translate }}</h1>
+      <p>{{ 'PROJECTS.DESCRIPTION' | translate }}</p>
+    </div>
+    <div class="projects-header__actions">
+      <button type="button" class="btn btn--primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        {{ 'PROJECTS.ACTIONS.CREATE' | translate }}
+      </button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar__search">
+      <mat-icon class="toolbar__search-icon">search</mat-icon>
+      <input
+        type="text"
+        class="toolbar__search-input"
+        [value]="searchQuery()"
+        (input)="onSearchInput($event)"
+        [placeholder]="'PROJECTS.SEARCH.PLACEHOLDER' | translate" />
+    </div>
+
+    <div class="toolbar__filters">
+      <button
+        type="button"
+        class="btn btn--filter"
+        [class.btn--filter-active]="filterFavoritesOnly()"
+        (click)="toggleFavoritesFilter()">
+        <mat-icon>{{ filterFavoritesOnly() ? 'star' : 'star_border' }}</mat-icon>
+        {{ 'PROJECTS.FILTERS.FAVORITES_ONLY' | translate }}
+      </button>
+
+      <label class="toolbar__sort">
+        <select (change)="onSortChange($event)">
+          <option value="name">{{ 'PROJECTS.SORT.BY_NAME' | translate }}</option>
+          <option value="members">{{ 'PROJECTS.SORT.BY_MEMBERS' | translate }}</option>
+          <option value="favorites">{{ 'PROJECTS.SORT.BY_FAVORITES' | translate }}</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-card state-card--loading" aria-live="polite">
+      <div class="pulse-dot"></div>
+      <div>
+        <strong>{{ 'PROJECTS.STATE.LOADING_TITLE' | translate }}</strong>
+        <p>{{ 'PROJECTS.STATE.LOADING_DESCRIPTION' | translate }}</p>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="state-card state-card--error" role="alert" aria-live="assertive">
+      <mat-icon class="state-card__icon">error_outline</mat-icon>
+      <div>
+        <strong>{{ 'PROJECTS.STATE.LOAD_FAILED' | translate }}</strong>
+        <button type="button" class="btn btn--ghost" (click)="refreshProjects()">
+          {{ 'PROJECTS.ACTIONS.TRY_AGAIN' | translate }}
+        </button>
+      </div>
+    </div>
+  } @else if (projects().length === 0) {
+    <div class="state-card state-card--empty" aria-live="polite">
+      <mat-icon class="state-card__icon state-card__icon--large">folder_open</mat-icon>
+      <strong>{{ 'PROJECTS.STATE.EMPTY_TITLE' | translate }}</strong>
+      <p>{{ 'PROJECTS.STATE.EMPTY_DESCRIPTION' | translate }}</p>
+      <button type="button" class="btn btn--primary" (click)="openCreateDialog()">
+        {{ 'PROJECTS.STATE.EMPTY_CTA' | translate }}
+      </button>
+    </div>
+  } @else {
+    @if (filteredProjects().length === 0) {
+      <div class="state-card state-card--empty" aria-live="polite">
+        <mat-icon class="state-card__icon">search_off</mat-icon>
+        <strong>{{ 'PROJECTS.SEARCH.NO_RESULTS' | translate }}</strong>
+      </div>
+    } @else {
+      <div class="project-grid">
+        @for (project of filteredProjects(); track project.id) {
+          <a class="project-card" [routerLink]="['/projects', project.id]">
+            <div class="project-card__top">
+              <div class="project-card__info">
+                <h3>{{ project.name }}</h3>
+                @if (project.description) {
+                  <p class="project-card__desc">{{ project.description }}</p>
+                }
+              </div>
+              <button
+                type="button"
+                class="project-card__fav"
+                (click)="toggleFavorite($event, project.id)"
+                [attr.aria-label]="'PROJECTS.ACTIONS.TOGGLE_FAVORITE' | translate">
+                <mat-icon>{{ isFavorite(project.id) ? 'star' : 'star_border' }}</mat-icon>
+              </button>
+            </div>
+            <div class="project-card__meta">
+              <span class="project-card__chip">
+                <mat-icon>group</mat-icon>
+                {{ 'PROJECTS.CARD.MEMBERS' | translate: { count: project.members.length } }}
+              </span>
+              <span class="project-card__chip">
+                <mat-icon>settings</mat-icon>
+                {{ 'PROJECTS.CARD.ENVIRONMENTS' | translate: { count: project.environmentDefinitions.length } }}
+              </span>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  }
+</div>

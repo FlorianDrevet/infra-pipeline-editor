@@ -19,6 +19,7 @@ import { UserResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
+import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AddProjectMemberDialogComponent, AddProjectMemberDialogData } from './add-project-member-dialog/add-project-member-dialog.component';
 import { AddConfigDialogComponent, AddConfigDialogData } from './add-config-dialog/add-config-dialog.component';
@@ -63,6 +64,7 @@ export class ProjectDetailComponent implements OnInit {
   private readonly projectService = inject(ProjectService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly authService = inject(AuthenticationService);
+  private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
 
   protected readonly project = signal<ProjectResponse | null>(null);
@@ -139,6 +141,12 @@ export class ProjectDetailComponent implements OnInit {
       this.project.set(project);
       this.configs.set(configs);
       this.availableUsers.set(users);
+      this.recentlyViewedService.trackView({
+        id: project.id,
+        name: project.name,
+        type: 'project',
+        description: project.description,
+      });
     } catch {
       this.loadError.set('PROJECT_DETAIL.ERROR.LOAD_FAILED');
     } finally {
