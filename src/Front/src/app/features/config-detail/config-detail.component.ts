@@ -36,6 +36,7 @@ import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS } from './enums/resource-type.enum';
 import { FormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { BicepHighlightPipe } from './pipes/bicep-highlight.pipe';
 
 
 
@@ -55,6 +56,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
+    BicepHighlightPipe,
   ],
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',

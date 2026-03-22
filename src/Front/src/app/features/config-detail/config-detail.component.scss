@@ -1381,6 +1381,19 @@
     font: inherit;
     color: inherit;
   }
+
+  // ─── Bicep Syntax Highlighting (Dracula) ────
+  // & ::ng-deep forces a space so Angular's ShadowCss processor recognises it
+  & ::ng-deep {
+    .bh-keyword   { color: #ff79c6; font-weight: 600; }   // pink — param, var, resource, module, output
+    .bh-type      { color: #8be9fd; font-style: italic; }  // cyan — string, int, bool, object, array
+    .bh-string    { color: #f1fa8c; }                       // yellow — 'values'
+    .bh-comment   { color: #6272a4; font-style: italic; }   // muted blue — // and /* */
+    .bh-decorator { color: #50fa7b; }                       // green — @description, @secure
+    .bh-constant  { color: #bd93f9; }                       // purple — true, false, null
+    .bh-number    { color: #bd93f9; }                       // purple — 42, 3.14
+    .bh-property  { color: #66d9ef; }                       // light cyan — .name, .location
+  }
 }
 
 .bicep-viewer__error {

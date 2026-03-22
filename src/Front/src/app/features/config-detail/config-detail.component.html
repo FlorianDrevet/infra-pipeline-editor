@@ -145,10 +145,10 @@
                   </div>
                   @for (mod of bicepModuleEntries(); track mod.name) {
                     <button class="bicep-tree__item bicep-tree__item--module"
-                            [class.bicep-tree__item--active]="bicepViewerFile() === 'modules/' + mod.name + '.bicep'"
-                            (click)="openBicepFile('modules/' + mod.name + '.bicep')">
+                            [class.bicep-tree__item--active]="bicepViewerFile() === mod.name"
+                            (click)="openBicepFile(mod.name)">
                       <mat-icon class="bicep-tree__icon">memory</mat-icon>
-                      <span class="bicep-tree__name">{{ mod.name }}.bicep</span>
+                      <span class="bicep-tree__name">{{ mod.name }}</span>
                     </button>
                   }
                 }
@@ -176,7 +176,7 @@
                     <span class="bicep-terminal__cursor"></span>
                   </div>
                 } @else if (bicepViewerContent()) {
-                  <pre class="bicep-viewer__code"><code>{{ bicepViewerContent() }}</code></pre>
+                  <pre class="bicep-viewer__code"><code [innerHTML]="bicepViewerContent() | bicepHighlight"></code></pre>
                 } @else {
                   <p class="bicep-viewer__error">{{ 'CONFIG_DETAIL.BICEP.FILE_ERROR' | translate }}</p>
                 }
