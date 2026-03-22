@@ -1001,6 +1001,34 @@
   align-items: center;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+}
+
+.bicep-panel__chevron {
+  font-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  color: rgba(255, 255, 255, 0.4);
+  transition: transform 0.2s ease;
+
+  &--open {
+    transform: rotate(90deg);
+  }
+}
+
+.bicep-panel__body {
+  animation: bicepPanelBodySlideIn 0.2s ease-out;
+}
+
+@keyframes bicepPanelBodySlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .bicep-panel__actions {

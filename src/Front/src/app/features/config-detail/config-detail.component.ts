@@ -93,6 +93,7 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly bicepResult = signal<GenerateBicepResponse | null>(null);
   protected readonly bicepErrorKey = signal('');
   protected readonly bicepPanelOpen = signal(false);
+  protected readonly bicepPanelCollapsed = signal(false);
   protected readonly bicepDownloading = signal(false);
 
   // ─── Bicep File Viewer ───

@@ -43,8 +43,9 @@
     <!-- Bicep Generation Panel -->
     @if (bicepPanelOpen()) {
       <section class="bicep-panel" [class.bicep-panel--success]="bicepResult()" [class.bicep-panel--error]="bicepErrorKey()">
-        <div class="bicep-panel__header">
+        <div class="bicep-panel__header" (click)="bicepPanelCollapsed.set(!bicepPanelCollapsed())">
           <div class="bicep-panel__title-row">
+            <mat-icon class="bicep-panel__chevron" [class.bicep-panel__chevron--open]="!bicepPanelCollapsed()">chevron_right</mat-icon>
             <mat-icon class="bicep-panel__title-icon">
               @if (bicepLoading()) { hourglass_top }
               @else if (bicepResult()) { check_circle }
@@ -60,7 +61,7 @@
               }
             </h2>
           </div>
-          <div class="bicep-panel__actions">
+          <div class="bicep-panel__actions" (click)="$event.stopPropagation()">
             @if (bicepResult()) {
               <button class="bicep-download-btn" (click)="downloadBicepFiles()" [disabled]="bicepDownloading()">
                 @if (bicepDownloading()) {
@@ -76,6 +77,9 @@
             </button>
           </div>
         </div>
+
+        @if (!bicepPanelCollapsed()) {
+          <div class="bicep-panel__body">
 
         @if (bicepLoading()) {
           <div class="bicep-panel__loading">
@@ -188,6 +192,8 @@
               </div>
             </div>
           }
+        }
+          </div>
         }
       </section>
     }
