@@ -898,15 +898,16 @@
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
-  border: 1px solid rgba(244, 67, 54, 0.4);
-  background: rgba(244, 67, 54, 0.12);
-  color: #ff8a80;
+  border: 1.5px solid rgba(244, 67, 54, 0.6);
+  background: rgba(244, 67, 54, 0.25);
+  color: #ffcdd2;
   cursor: pointer;
   transition: background 0.18s ease, border-color 0.18s ease;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 
   &:hover {
-    background: rgba(244, 67, 54, 0.24);
-    border-color: rgba(244, 67, 54, 0.6);
+    background: rgba(244, 67, 54, 0.4);
+    border-color: rgba(244, 67, 54, 0.85);
   }
 
   &__icon {
@@ -946,17 +947,18 @@
   border-radius: 999px;
   font-size: 0.88rem;
   font-weight: 700;
-  border: 1px solid rgba(0, 230, 118, 0.4);
-  background: linear-gradient(135deg, rgba(0, 230, 118, 0.18), rgba(0, 188, 212, 0.18));
-  color: #b9f6ca;
+  border: 1.5px solid rgba(0, 230, 118, 0.6);
+  background: linear-gradient(135deg, rgba(0, 230, 118, 0.32), rgba(0, 188, 212, 0.32));
+  color: #e0ffe8;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
   white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, rgba(0, 230, 118, 0.28), rgba(0, 188, 212, 0.28));
-    border-color: rgba(0, 230, 118, 0.6);
-    box-shadow: 0 0 20px rgba(0, 230, 118, 0.15);
+    background: linear-gradient(135deg, rgba(0, 230, 118, 0.45), rgba(0, 188, 212, 0.45));
+    border-color: rgba(0, 230, 118, 0.85);
+    box-shadow: 0 0 24px rgba(0, 230, 118, 0.25);
   }
 
   &:disabled {
