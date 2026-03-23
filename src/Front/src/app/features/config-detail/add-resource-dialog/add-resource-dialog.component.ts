@@ -14,12 +14,19 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { TranslateModule } from '@ngx-translate/core';
 import { LOCATION_OPTIONS } from '../enums/location.enum';
 import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS } from '../enums/resource-type.enum';
+import { OS_TYPE_OPTIONS } from '../enums/os-type.enum';
+import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../enums/app-service-plan-sku.enum';
+import { RUNTIME_STACK_OPTIONS } from '../enums/runtime-stack.enum';
 import { KeyVaultService } from '../../../shared/services/key-vault.service';
 import { RedisCacheService } from '../../../shared/services/redis-cache.service';
 import { StorageAccountService } from '../../../shared/services/storage-account.service';
+import { AppServicePlanService } from '../../../shared/services/app-service-plan.service';
+import { WebAppService } from '../../../shared/services/web-app.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
 import { StorageAccountEnvironmentConfigEntry } from '../../../shared/interfaces/storage-account.interface';
+import { AppServicePlanEnvironmentConfigEntry } from '../../../shared/interfaces/app-service-plan.interface';
+import { WebAppEnvironmentConfigEntry } from '../../../shared/interfaces/web-app.interface';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
@@ -114,6 +121,8 @@ export class AddResourceDialogComponent {
   private readonly keyVaultService = inject(KeyVaultService);
   private readonly redisCacheService = inject(RedisCacheService);
   private readonly storageAccountService = inject(StorageAccountService);
+  private readonly appServicePlanService = inject(AppServicePlanService);
+  private readonly webAppService = inject(WebAppService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly step = signal<DialogStep>('type');
@@ -137,13 +146,22 @@ export class AddResourceDialogComponent {
   protected readonly storageKindOptions = STORAGE_KIND_OPTIONS;
   protected readonly storageAccessTierOptions = STORAGE_ACCESS_TIER_OPTIONS;
   protected readonly storageTlsOptions = STORAGE_TLS_OPTIONS;
+  protected readonly osTypeOptions = OS_TYPE_OPTIONS;
+  protected readonly aspSkuOptions = APP_SERVICE_PLAN_SKU_OPTIONS;
+  protected readonly runtimeStackOptions = RUNTIME_STACK_OPTIONS;
 
   protected readonly ResourceTypeEnum = ResourceTypeEnum;
 
-  // ── Common form (name + location) ──
+  // ── Common form (name + location + type-specific fields) ──
   protected readonly commonForm = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(80)]],
     location: [this.data.location, [Validators.required]],
+    osType: [''],
+    appServicePlanId: [''],
+    runtimeStack: [''],
+    runtimeVersion: [''],
+    alwaysOn: [true],
+    httpsOnly: [true],
   });
 
   // ── Per-environment FormArray ──
@@ -168,6 +186,7 @@ export class AddResourceDialogComponent {
     this.step.set('common');
     this.errorKey.set('');
     this.buildEnvForms(type);
+    this.updateCommonFormValidators(type);
   }
 
   // ── Navigation ──
@@ -175,6 +194,7 @@ export class AddResourceDialogComponent {
     this.selectedType.set(null);
     this.step.set('type');
     this.errorKey.set('');
+    this.clearExtraValidators();
   }
 
   protected onNextToEnvironments(): void {
@@ -224,6 +244,18 @@ export class AddResourceDialogComponent {
           allowBlobPublicAccess: [false],
           supportsHttpsTrafficOnly: [true],
           minimumTlsVersion: ['Tls12', [Validators.required]],
+        });
+      case ResourceTypeEnum.AppServicePlan:
+        return this.fb.group({
+          sku: ['B1', [Validators.required]],
+          capacity: [1, [Validators.required, Validators.min(1)]],
+        });
+      case ResourceTypeEnum.WebApp:
+        return this.fb.group({
+          alwaysOn: [true],
+          httpsOnly: [true],
+          runtimeStack: [''],
+          runtimeVersion: [''],
         });
     }
   }
@@ -289,6 +321,30 @@ export class AddResourceDialogComponent {
           });
           break;
         }
+        case ResourceTypeEnum.AppServicePlan: {
+          await this.appServicePlanService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            osType: common.osType!,
+            environmentSettings: this.buildAppServicePlanEnvironmentSettings(),
+          });
+          break;
+        }
+        case ResourceTypeEnum.WebApp: {
+          await this.webAppService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            appServicePlanId: common.appServicePlanId!,
+            runtimeStack: common.runtimeStack!,
+            runtimeVersion: common.runtimeVersion!,
+            alwaysOn: common.alwaysOn!,
+            httpsOnly: common.httpsOnly!,
+            environmentSettings: this.buildWebAppEnvironmentSettings(),
+          });
+          break;
+        }
       }
       this.dialogRef.close(true);
     } catch {
@@ -336,5 +392,55 @@ export class AddResourceDialogComponent {
         minimumTlsVersion: raw.minimumTlsVersion || null,
       };
     });
+  }
+
+  private buildAppServicePlanEnvironmentSettings(): AppServicePlanEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        sku: raw.sku || null,
+        capacity: raw.capacity ? Number(raw.capacity) : null,
+      };
+    });
+  }
+
+  private buildWebAppEnvironmentSettings(): WebAppEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        alwaysOn: raw.alwaysOn ?? null,
+        httpsOnly: raw.httpsOnly ?? null,
+        runtimeStack: raw.runtimeStack || null,
+        runtimeVersion: raw.runtimeVersion || null,
+      };
+    });
+  }
+
+  private updateCommonFormValidators(type: ResourceTypeEnum): void {
+    this.clearExtraValidators();
+    if (type === ResourceTypeEnum.AppServicePlan) {
+      this.commonForm.controls.osType.setValidators([Validators.required]);
+    } else if (type === ResourceTypeEnum.WebApp) {
+      this.commonForm.controls.appServicePlanId.setValidators([Validators.required]);
+      this.commonForm.controls.runtimeStack.setValidators([Validators.required]);
+      this.commonForm.controls.runtimeVersion.setValidators([Validators.required]);
+    }
+    this.commonForm.controls.osType.updateValueAndValidity();
+    this.commonForm.controls.appServicePlanId.updateValueAndValidity();
+    this.commonForm.controls.runtimeStack.updateValueAndValidity();
+    this.commonForm.controls.runtimeVersion.updateValueAndValidity();
+  }
+
+  private clearExtraValidators(): void {
+    this.commonForm.controls.osType.clearValidators();
+    this.commonForm.controls.appServicePlanId.clearValidators();
+    this.commonForm.controls.runtimeStack.clearValidators();
+    this.commonForm.controls.runtimeVersion.clearValidators();
+    this.commonForm.controls.osType.updateValueAndValidity();
+    this.commonForm.controls.appServicePlanId.updateValueAndValidity();
+    this.commonForm.controls.runtimeStack.updateValueAndValidity();
+    this.commonForm.controls.runtimeVersion.updateValueAndValidity();
   }
 }

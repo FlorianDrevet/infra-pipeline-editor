@@ -1,5 +1,7 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
+using InfraFlowSculptor.Domain.AppServicePlanAggregate;
+using InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
@@ -10,6 +12,8 @@ using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
+using InfraFlowSculptor.Domain.WebAppAggregate;
+using InfraFlowSculptor.Domain.WebAppAggregate.Entities;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -55,10 +59,20 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var aspSettings = await dbContext.AppServicePlanEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.AppServicePlanId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var waSettings = await dbContext.WebAppEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.WebAppId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -146,7 +160,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         AzureResource resource,
         IReadOnlyList<KeyVaultEnvironmentSettings> kvSettings,
         IReadOnlyList<RedisCacheEnvironmentSettings> rcSettings,
-        IReadOnlyList<StorageAccountEnvironmentSettings> saSettings)
+        IReadOnlyList<StorageAccountEnvironmentSettings> saSettings,
+        IReadOnlyList<AppServicePlanEnvironmentSettings> aspSettings,
+        IReadOnlyList<WebAppEnvironmentSettings> waSettings)
     {
         return resource switch
         {
@@ -178,6 +194,36 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 new Dictionary<string, string>(),
                 saSettings
                     .Where(es => es.StorageAccountId == sa.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            AppServicePlan asp => new AzureResourceReadModel(
+                asp.Id.Value,
+                asp.Name.Value,
+                MapLocation(asp.Location),
+                "Microsoft.Web/serverfarms",
+                new Dictionary<string, string>
+                {
+                    ["osType"] = asp.OsType.Value.ToString()
+                },
+                aspSettings
+                    .Where(es => es.AppServicePlanId == asp.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            WebApp wa => new AzureResourceReadModel(
+                wa.Id.Value,
+                wa.Name.Value,
+                MapLocation(wa.Location),
+                "Microsoft.Web/sites",
+                new Dictionary<string, string>
+                {
+                    ["runtimeStack"] = wa.RuntimeStack.Value.ToString().ToLower(),
+                    ["runtimeVersion"] = wa.RuntimeVersion,
+                    ["alwaysOn"] = wa.AlwaysOn.ToString().ToLower(),
+                    ["httpsOnly"] = wa.HttpsOnly.ToString().ToLower(),
+                    ["appServicePlanId"] = wa.AppServicePlanId.Value.ToString()
+                },
+                waSettings
+                    .Where(es => es.WebAppId == wa.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
             _ => null

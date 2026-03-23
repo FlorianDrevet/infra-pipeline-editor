@@ -72,6 +72,8 @@ app.UseResourceGroupController();
 app.UseRedisCacheController();
 app.UseRoleAssignmentController();
 app.UseStorageAccountController();
+app.UseAppServicePlanController();
+app.UseWebAppController();
 app.UseBicepGenerationController();
 app.MapDefaultEndpoints();
 

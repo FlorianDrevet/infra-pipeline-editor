@@ -12,6 +12,8 @@ public static class ResourceAbbreviationCatalog
         ["RedisCache"] = "redis",
         ["StorageAccount"] = "stg",
         ["ResourceGroup"] = "rg",
+        ["AppServicePlan"] = "asp",
+        ["WebApp"] = "app",
     };
 
     /// <summary>

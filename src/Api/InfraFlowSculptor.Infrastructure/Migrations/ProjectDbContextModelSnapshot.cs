@@ -38,6 +38,31 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("AzureResourceDependencies");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities.AppServicePlanEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AppServicePlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Capacity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sku")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppServicePlanId");
+
+                    b.ToTable("AppServicePlanEnvironmentSettings", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", b =>
                 {
                     b.Property<Guid>("Id")
@@ -549,6 +574,48 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("User", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.Entities.WebAppEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("AlwaysOn")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool?>("HttpsOnly")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RuntimeStack")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RuntimeVersion")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("WebAppId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WebAppId");
+
+                    b.ToTable("WebAppEnvironmentSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppServicePlanAggregate.AppServicePlan", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<string>("OsType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.ToTable("AppServicePlans", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
@@ -570,6 +637,30 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("StorageAccounts", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<bool>("AlwaysOn")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("AppServicePlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("HttpsOnly")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RuntimeStack")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RuntimeVersion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.ToTable("WebApps", (string)null);
+                });
+
             modelBuilder.Entity("AzureResourceDependencies", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
@@ -581,6 +672,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany()
                         .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities.AppServicePlanEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.AppServicePlanAggregate.AppServicePlan", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("AppServicePlanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -953,6 +1053,24 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.Entities.WebAppEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("WebAppId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppServicePlanAggregate.AppServicePlan", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.AppServicePlanAggregate.AppServicePlan", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
@@ -976,6 +1094,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithOne()
                         .HasForeignKey("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1012,6 +1139,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("Resources");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppServicePlanAggregate.AppServicePlan", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", b =>
                 {
                     b.Navigation("EnvironmentSettings");
@@ -1031,6 +1163,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("Queues");
 
                     b.Navigation("Tables");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
                 });
 #pragma warning restore 612, 618
         }

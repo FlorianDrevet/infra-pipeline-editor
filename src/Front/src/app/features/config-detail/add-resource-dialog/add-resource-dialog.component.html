@@ -43,6 +43,46 @@
             }
           </mat-select>
         </mat-form-field>
+
+        @if (selectedType() === ResourceTypeEnum.AppServicePlan) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.OS_TYPE' | translate }}</mat-label>
+            <mat-select formControlName="osType">
+              @for (option of osTypeOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+
+        @if (selectedType() === ResourceTypeEnum.WebApp) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.APP_SERVICE_PLAN_ID' | translate }}</mat-label>
+            <input matInput formControlName="appServicePlanId"
+              [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.APP_SERVICE_PLAN_ID_PLACEHOLDER' | translate" />
+          </mat-form-field>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
+              <mat-select formControlName="runtimeStack">
+                @for (option of runtimeStackOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
+              <input matInput formControlName="runtimeVersion"
+                [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION_PLACEHOLDER' | translate" />
+            </mat-form-field>
+          </div>
+          <mat-slide-toggle formControlName="alwaysOn" color="primary">
+            {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALWAYS_ON' | translate }}
+          </mat-slide-toggle>
+          <mat-slide-toggle formControlName="httpsOnly" color="primary">
+            {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
+          </mat-slide-toggle>
+        }
       </form>
       @if (!hasEnvironments) {
         <p class="dialog-warning">{{ 'CONFIG_DETAIL.RESOURCES.FORM.ENV_NO_ENVIRONMENTS' | translate }}</p>
@@ -163,6 +203,48 @@
                     {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALLOW_BLOB_PUBLIC' | translate }}
                   </mat-slide-toggle>
                   <mat-slide-toggle formControlName="supportsHttpsTrafficOnly" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.AppServicePlan) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                      <mat-select formControlName="sku">
+                        @for (option of aspSkuOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CAPACITY' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="capacity" />
+                    </mat-form-field>
+                  </div>
+                </div>
+              }
+              @case (ResourceTypeEnum.WebApp) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
+                      <mat-select formControlName="runtimeStack">
+                        @for (option of runtimeStackOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
+                      <input matInput formControlName="runtimeVersion" />
+                    </mat-form-field>
+                  </div>
+                  <mat-slide-toggle formControlName="alwaysOn" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALWAYS_ON' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="httpsOnly" color="primary">
                     {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
                   </mat-slide-toggle>
                 </div>

@@ -1,3 +1,5 @@
+using InfraFlowSculptor.Domain.AppServicePlanAggregate;
+using InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities;
 using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
@@ -12,6 +14,8 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.UserAggregate;
+using InfraFlowSculptor.Domain.WebAppAggregate;
+using InfraFlowSculptor.Domain.WebAppAggregate.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -38,6 +42,10 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<KeyVaultEnvironmentSettings> KeyVaultEnvironmentSettings { get; set; } = null!;
     public DbSet<RedisCacheEnvironmentSettings> RedisCacheEnvironmentSettings { get; set; } = null!;
     public DbSet<StorageAccountEnvironmentSettings> StorageAccountEnvironmentSettings { get; set; } = null!;
+    public DbSet<AppServicePlan> AppServicePlans { get; set; } = null!;
+    public DbSet<AppServicePlanEnvironmentSettings> AppServicePlanEnvironmentSettings { get; set; } = null!;
+    public DbSet<WebApp> WebApps { get; set; } = null!;
+    public DbSet<WebAppEnvironmentSettings> WebAppEnvironmentSettings { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -64,6 +64,8 @@ src/
 | `KeyVault` | `KeyVault` extends `AzureResource` | `KeyVaultEnvironmentSettings` | TPT in EF Core; typed per-env settings |
 | `RedisCache` | `RedisCache` extends `AzureResource` | `RedisCacheEnvironmentSettings` | TPT in EF Core; typed per-env settings |
 | `StorageAccount` | `StorageAccount` extends `AzureResource` | `StorageAccountEnvironmentSettings` | TPT in EF Core; typed per-env settings |
+| `AppServicePlan` | `AppServicePlan` extends `AzureResource` | `AppServicePlanEnvironmentSettings` | TPT in EF Core; typed per-env settings (Sku, Capacity). OsType at resource level. |
+| `WebApp` | `WebApp` extends `AzureResource` | `WebAppEnvironmentSettings` | TPT in EF Core; typed per-env settings (AlwaysOn, HttpsOnly, RuntimeStack, RuntimeVersion). FK to AppServicePlan via `AppServicePlanId`. |
 | `User` | `User` | — | Azure AD user info |
 
 ### 3.2 Value Objects
@@ -86,6 +88,10 @@ Key value objects per aggregate:
 - **KeyVault:** (no general-level config VOs — all config is per-environment)
 - **RedisCache:** (no general-level config VOs — all config is per-environment; `RedisCacheSettings` record is unused/dead code)
 - **StorageAccount:** (no general-level config VOs — all config is per-environment; `StorageAccountSettings` record is unused/dead code)
+- **AppServicePlanEnvironmentSettings:** `AppServicePlanEnvironmentSettingsId`, `EnvironmentName`, nullable `Sku?` (AppServicePlanSku), `Capacity?`
+- **AppServicePlan:** `AppServicePlanOsType` (Windows/Linux) — resource-level, not per-environment
+- **WebAppEnvironmentSettings:** `WebAppEnvironmentSettingsId`, `EnvironmentName`, nullable `AlwaysOn?`, `HttpsOnly?`, `RuntimeStack?` (WebAppRuntimeStack), `RuntimeVersion?`
+- **WebApp:** `WebAppRuntimeStack` (DotNet/Node/Python/Java/Php), FK `AppServicePlanId` (AzureResourceId)
 - **User:** `UserId`, `EntraId`, `Name`
 
 ### 3.3 Domain Invariants
@@ -117,6 +123,8 @@ Existing error files:
 - `Errors.ResourceGroup.cs` (has nested `AddResource` / `RemoveResource` sub-classes)
 - `Errors.KeyVault.cs`
 - `Errors.RedisCache.cs`
+- `Errors.AppServicePlan.cs`
+- `Errors.WebApp.cs`
 - `Errors.Project.cs` (NotFound, Forbidden, MemberAlreadyExists, CannotRemoveOwner, MemberNotFound)
 
 **Important:** When adding a new aggregate, add a new `Errors.AggregateName.cs` file following the same partial class pattern.
@@ -223,6 +231,8 @@ Registered in `Program.cs` via `app.UseXyzController()`.
 | `/keyvault` | GET/POST/PUT/DELETE | `/{id:guid}` | Key Vault CRUD |
 | `/resource-group` | GET/POST | `/{id:guid}` | Resource Group CRUD |
 | `/redis-cache` | GET/POST/PUT/DELETE | `/{id:guid}` | Redis Cache CRUD |
+| `/app-service-plan` | GET/POST/PUT/DELETE | `/{id:guid}` | App Service Plan CRUD |
+| `/web-app` | GET/POST/PUT/DELETE | `/{id:guid}` | Web App CRUD |
 | `/generate-bicep` | POST | `` | `GenerateBicepCommand` |
 | `/generate-bicep` | GET | `/{configId:guid}/download` | `DownloadBicepCommand` (returns zip) |
 | `/generate-bicep` | GET | `/{configId:guid}/files/{*filePath}` | `GetBicepFileContentQuery` (returns JSON `{ content }`) |
@@ -1116,3 +1126,4 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-23 | copilot | Fixed IDE error `Partial method 'Regex PlaceholderRegex()' must have an implementation part because it has accessibility modifiers` by replacing `GeneratedRegex` partial methods with static compiled `Regex` fields in `NamingTemplateTranslator` and `NamingTemplateValidator`. This removes IDE/compiler feature-version coupling while preserving behavior. |
 | 2026-03-23 | copilot | Fixed IDE duplicate-type diagnostic (`Duplicate definition 'InfraFlowSculptor.Application.InfrastructureConfig.Common.NamingTemplateValidator'`) by declaring `NamingTemplateValidator` as `partial` to be compatible with analyzer/source-generated companion declarations. |
 | 2026-03-23 | copilot | **Reorganized `InfraFlowSculptor.BicepGeneration` project** from flat root (16 files) into logical subfolders: `Models/` (7 DTOs: EnvironmentDefinition, GeneratedTypeModule, GenerationRequest, GenerationResult, NamingContext, ResourceDefinition, ResourceGroupDefinition), `Generators/` (5 files: IResourceTypeBicepGenerator, KeyVault/RedisCache/StorageAccount generators, ResourceGeneratorFactory), `Helpers/` (2 files: BicepIdentifierHelper, NamingTemplateTranslator). BicepAssembler and BicepGenerationEngine stay at root as entry points. Namespaces updated to match folder paths (`.Models`, `.Generators`, `.Helpers`). Updated usings in Application DependencyInjection.cs and GenerateBicepCommandHandler.cs. Full solution build 0 errors 0 warnings. |
+| 2026-03-23 | copilot | Added **App Service Plan and Web App** aggregates with full CQRS stack. **Domain**: `AppServicePlan` extends `AzureResource` with `OsType` (Windows/Linux) + `AppServicePlanEnvironmentSettings` (Sku, Capacity). `WebApp` extends `AzureResource` with `AppServicePlanId` FK, `RuntimeStack` (DotNet/Node/Python/Java/Php), `RuntimeVersion`, `AlwaysOn`, `HttpsOnly` + `WebAppEnvironmentSettings` (per-env overrides). **Application**: Create/Update/Delete commands + handlers, Get queries, typed result records, `IAppServicePlanRepository`/`IWebAppRepository`. **Infrastructure**: EF Core TPT configs (tables `AppServicePlans`, `WebApps`, `AppServicePlanEnvironmentSettings`, `WebAppEnvironmentSettings`), repositories with `.Include(EnvironmentSettings)`, DI registration, `InfrastructureConfigReadRepository` updated for Bicep generation mapping. **Contracts**: typed request/response DTOs with `EnumValidation` attributes. **API**: Mapster mapping configs + Minimal API controllers at `/app-service-plan` and `/web-app`. **Bicep**: `AppServicePlanTypeBicepGenerator` (`Microsoft.Web/serverfarms`) and `WebAppTypeBicepGenerator` (`Microsoft.Web/sites`), registered in DI. **ResourceAbbreviationCatalog**: `AppServicePlan→asp`, `WebApp→app`. **Migration**: `AddAppServicePlanAndWebApp`. **Frontend**: interfaces, services (`AppServicePlanService`, `WebAppService`), enums (`OsTypeEnum`, `RuntimeStackEnum`, `AppServicePlanSkuEnum`), updated `resource-type.enum.ts` and `add-resource-dialog` with type-specific forms for both resources. i18n keys in FR/EN. |
