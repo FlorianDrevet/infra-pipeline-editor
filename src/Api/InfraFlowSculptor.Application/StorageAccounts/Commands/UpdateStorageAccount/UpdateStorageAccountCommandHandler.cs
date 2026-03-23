@@ -25,15 +25,7 @@ public class UpdateStorageAccountCommandHandler(
 
         var storageAccount = saResult.Value;
 
-        var settings = new StorageAccountSettings(
-            request.Sku,
-            request.Kind,
-            request.AccessTier,
-            request.AllowBlobPublicAccess,
-            request.EnableHttpsTrafficOnly,
-            request.MinimumTlsVersion);
-
-        storageAccount.Update(request.Name, request.Location, settings);
+        storageAccount.Update(request.Name, request.Location);
 
         if (request.EnvironmentSettings is not null)
             storageAccount.SetAllEnvironmentSettings(

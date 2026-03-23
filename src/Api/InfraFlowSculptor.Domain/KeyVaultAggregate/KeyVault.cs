@@ -11,8 +11,6 @@ namespace InfraFlowSculptor.Domain.KeyVaultAggregate;
 
 public class KeyVault: AzureResource
 {
-    public required Sku Sku { get; set; }
-
     private readonly List<KeyVaultEnvironmentSettings> _environmentSettings = new();
 
     /// <summary>Gets the typed per-environment configuration overrides for this Key Vault.</summary>
@@ -36,11 +34,10 @@ public class KeyVault: AzureResource
     {
     }
     
-    public void Update(Name name, Location location, Sku sku)
+    public void Update(Name name, Location location)
     {
         Name = name;
         Location = location;
-        Sku = sku;
     }
 
     /// <summary>
@@ -81,7 +78,6 @@ public class KeyVault: AzureResource
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        Sku sku,
         IReadOnlyList<(string EnvironmentName, Sku? Sku)>? environmentSettings = null)
     {
         var keyVault = new KeyVault
@@ -89,8 +85,7 @@ public class KeyVault: AzureResource
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location,
-            Sku = sku
+            Location = location
         };
 
         if (environmentSettings is not null)

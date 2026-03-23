@@ -263,44 +263,28 @@ export class AddResourceDialogComponent {
     try {
       switch (type) {
         case ResourceTypeEnum.KeyVault: {
-          const firstEnv = this.envFormArray.at(0).getRawValue();
           await this.keyVaultService.create({
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
             location: common.location!,
-            sku: firstEnv.sku,
             environmentSettings: this.buildKeyVaultEnvironmentSettings(),
           });
           break;
         }
         case ResourceTypeEnum.RedisCache: {
-          const firstEnv = this.envFormArray.at(0).getRawValue();
           await this.redisCacheService.create({
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
             location: common.location!,
-            sku: firstEnv.skuName,
-            redisVersion: Number(firstEnv.redisVersion),
-            enableNonSslPort: firstEnv.enableNonSslPort,
-            minimumTlsVersion: firstEnv.minimumTlsVersion,
-            maxMemoryPolicy: firstEnv.maxMemoryPolicy,
-            capacity: Number(firstEnv.capacity),
             environmentSettings: this.buildRedisCacheEnvironmentSettings(),
           });
           break;
         }
         case ResourceTypeEnum.StorageAccount: {
-          const firstEnv = this.envFormArray.at(0).getRawValue();
           await this.storageAccountService.create({
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
             location: common.location!,
-            sku: firstEnv.sku,
-            kind: firstEnv.kind,
-            accessTier: firstEnv.accessTier,
-            allowBlobPublicAccess: firstEnv.allowBlobPublicAccess,
-            enableHttpsTrafficOnly: firstEnv.supportsHttpsTrafficOnly,
-            minimumTlsVersion: firstEnv.minimumTlsVersion,
             environmentSettings: this.buildStorageAccountEnvironmentSettings(),
           });
           break;

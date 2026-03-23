@@ -8,10 +8,8 @@ using InfraFlowSculptor.Domain.KeyVaultAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.Entities;
-using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
-using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using InfraFlowSculptorDbContext = InfraFlowSculptor.Infrastructure.Persistence.ProjectDbContext;
 
@@ -157,10 +155,7 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                 kv.Name.Value,
                 MapLocation(kv.Location),
                 "Microsoft.KeyVault/vaults",
-                new Dictionary<string, string>
-                {
-                    ["sku"] = kv.Sku.Value.ToString().ToLower()
-                },
+                new Dictionary<string, string>(),
                 kvSettings
                     .Where(es => es.KeyVaultId == kv.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
@@ -170,15 +165,7 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                 rc.Name.Value,
                 MapLocation(rc.Location),
                 "Microsoft.Cache/Redis",
-                new Dictionary<string, string>
-                {
-                    ["skuName"] = rc.Sku.Value.ToString(),
-                    ["skuFamily"] = rc.Sku.Value == RedisCacheSku.Sku.Premium ? "P" : "C",
-                    ["capacity"] = rc.Capacity.ToString(),
-                    ["redisVersion"] = rc.RedisVersion.ToString(),
-                    ["enableNonSslPort"] = rc.EnableNonSslPort.ToString().ToLower(),
-                    ["minimumTlsVersion"] = MapTlsVersion(rc.MinimumTlsVersion),
-                },
+                new Dictionary<string, string>(),
                 rcSettings
                     .Where(es => es.RedisCacheId == rc.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
@@ -188,44 +175,12 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                 sa.Name.Value,
                 MapLocation(sa.Location),
                 "Microsoft.Storage/storageAccounts",
-                new Dictionary<string, string>
-                {
-                    ["sku"] = sa.Sku.Value.ToString(),
-                    ["kind"] = sa.Kind.Value.ToString(),
-                    ["accessTier"] = sa.AccessTier.Value.ToString(),
-                    ["allowBlobPublicAccess"] = sa.AllowBlobPublicAccess.ToString().ToLower(),
-                    ["supportsHttpsTrafficOnly"] = sa.EnableHttpsTrafficOnly.ToString().ToLower(),
-                    ["minimumTlsVersion"] = MapStorageTlsVersion(sa.MinimumTlsVersion),
-                },
+                new Dictionary<string, string>(),
                 saSettings
                     .Where(es => es.StorageAccountId == sa.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
             _ => null
-        };
-    }
-
-    private static string MapTlsVersion(TlsVersion tlsVersion)
-    {
-        return tlsVersion.Value switch
-        {
-            TlsVersion.Version.Tls10 => "1.0",
-            TlsVersion.Version.Tls11 => "1.1",
-            TlsVersion.Version.Tls12 => "1.2",
-            _ => throw new ArgumentOutOfRangeException(nameof(tlsVersion),
-                $"Unsupported TLS version: {tlsVersion.Value}")
-        };
-    }
-
-    private static string MapStorageTlsVersion(StorageAccountTlsVersion tlsVersion)
-    {
-        return tlsVersion.Value switch
-        {
-            StorageAccountTlsVersion.Version.Tls10 => "TLS1_0",
-            StorageAccountTlsVersion.Version.Tls11 => "TLS1_1",
-            StorageAccountTlsVersion.Version.Tls12 => "TLS1_2",
-            _ => throw new ArgumentOutOfRangeException(nameof(tlsVersion),
-                $"Unsupported TLS version: {tlsVersion.Value}")
         };
     }
 

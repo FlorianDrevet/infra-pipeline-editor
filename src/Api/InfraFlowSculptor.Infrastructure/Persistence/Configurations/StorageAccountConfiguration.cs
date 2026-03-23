@@ -16,28 +16,6 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
         builder.HasBaseType<AzureResource>()
             .ToTable("StorageAccounts");
 
-        builder.Property(s => s.Sku)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<StorageAccountSku, StorageAccountSku.Sku>());
-
-        builder.Property(s => s.Kind)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<StorageAccountKind, StorageAccountKind.Kind>());
-
-        builder.Property(s => s.AccessTier)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<StorageAccessTier, StorageAccessTier.Tier>());
-
-        builder.Property(s => s.AllowBlobPublicAccess)
-            .IsRequired();
-
-        builder.Property(s => s.EnableHttpsTrafficOnly)
-            .IsRequired();
-
-        builder.Property(s => s.MinimumTlsVersion)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<StorageAccountTlsVersion, StorageAccountTlsVersion.Version>());
-
         builder.HasMany(s => s.BlobContainers)
             .WithOne()
             .HasForeignKey(bc => bc.StorageAccountId)

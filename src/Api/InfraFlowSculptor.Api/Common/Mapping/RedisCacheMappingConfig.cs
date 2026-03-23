@@ -27,12 +27,6 @@ public class RedisCacheMappingConfig : IRegister
                 src.Id.Adapt<AzureResourceId>(),
                 src.Request.Name.Adapt<Name>(),
                 src.Request.Location.Adapt<Location>(),
-                src.Request.Sku.Adapt<RedisCacheSku>(),
-                src.Request.Capacity,
-                src.Request.RedisVersion,
-                src.Request.EnableNonSslPort,
-                src.Request.MinimumTlsVersion.Adapt<TlsVersion>(),
-                src.Request.MaxMemoryPolicy.Adapt<MaxMemoryPolicy>(),
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new RedisCacheEnvironmentConfigData(

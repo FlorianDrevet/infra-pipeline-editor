@@ -43,12 +43,6 @@ export interface StorageAccountResponse {
   resourceGroupId: string;
   name: string;
   location: string;
-  sku: string;
-  kind: string;
-  accessTier: string;
-  allowBlobPublicAccess: boolean;
-  enableHttpsTrafficOnly: boolean;
-  minimumTlsVersion: string;
   blobContainers: BlobContainerResponse[];
   queues: StorageQueueResponse[];
   tables: StorageTableResponse[];
@@ -61,24 +55,12 @@ export interface CreateStorageAccountRequest {
   resourceGroupId: string;
   name: string;
   location: string;
-  sku: string;
-  kind: string;
-  accessTier: string;
-  allowBlobPublicAccess: boolean;
-  enableHttpsTrafficOnly: boolean;
-  minimumTlsVersion: string;
   environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 
 export interface UpdateStorageAccountRequest {
   name: string;
   location: string;
-  sku: string;
-  kind: string;
-  accessTier: string;
-  allowBlobPublicAccess: boolean;
-  enableHttpsTrafficOnly: boolean;
-  minimumTlsVersion: string;
   environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 

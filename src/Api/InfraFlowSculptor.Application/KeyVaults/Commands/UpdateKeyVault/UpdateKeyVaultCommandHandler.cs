@@ -31,7 +31,7 @@ public class UpdateKeyVaultCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        keyVault.Update(request.Name, request.Location, request.Sku);
+        keyVault.Update(request.Name, request.Location);
 
         if (request.EnvironmentSettings is not null)
             keyVault.SetAllEnvironmentSettings(

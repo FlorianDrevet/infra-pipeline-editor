@@ -9,27 +9,6 @@ namespace InfraFlowSculptor.Domain.RedisCacheAggregate;
 
 public class RedisCache : AzureResource
 {
-    public required RedisCacheSku Sku { get; set; }
-
-    /// <summary>
-    /// Capacity of the Redis cache. For Basic/Standard: 0-6 (C0-C6). For Premium: 1-4 (P1-P4).
-    /// </summary>
-    public required int Capacity { get; set; }
-
-    /// <summary>
-    /// Redis server version (e.g., 6).
-    /// </summary>
-    public required int RedisVersion { get; set; }
-
-    /// <summary>
-    /// Whether to allow connections on the non-SSL port (6379).
-    /// </summary>
-    public required bool EnableNonSslPort { get; set; }
-
-    public required TlsVersion MinimumTlsVersion { get; set; }
-
-    public required MaxMemoryPolicy MaxMemoryPolicy { get; set; }
-
     private readonly List<RedisCacheEnvironmentSettings> _environmentSettings = new();
 
     /// <summary>Gets the typed per-environment configuration overrides for this Redis Cache.</summary>
@@ -44,18 +23,10 @@ public class RedisCache : AzureResource
 
     public void Update(
         Name name,
-        Location location,
-        RedisCacheSku sku,
-        RedisCacheSettings settings)
+        Location location)
     {
         Name = name;
         Location = location;
-        Sku = sku;
-        Capacity = settings.Capacity;
-        RedisVersion = settings.RedisVersion;
-        EnableNonSslPort = settings.EnableNonSslPort;
-        MinimumTlsVersion = settings.MinimumTlsVersion;
-        MaxMemoryPolicy = settings.MaxMemoryPolicy;
     }
 
     /// <summary>
@@ -103,8 +74,6 @@ public class RedisCache : AzureResource
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        RedisCacheSku sku,
-        RedisCacheSettings settings,
         IReadOnlyList<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, int? RedisVersion, bool? EnableNonSslPort, TlsVersion? MinimumTlsVersion, MaxMemoryPolicy? MaxMemoryPolicy)>? environmentSettings = null)
     {
         var redisCache = new RedisCache
@@ -112,13 +81,7 @@ public class RedisCache : AzureResource
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location,
-            Sku = sku,
-            Capacity = settings.Capacity,
-            RedisVersion = settings.RedisVersion,
-            EnableNonSslPort = settings.EnableNonSslPort,
-            MinimumTlsVersion = settings.MinimumTlsVersion,
-            MaxMemoryPolicy = settings.MaxMemoryPolicy
+            Location = location
         };
 
         if (environmentSettings is not null)

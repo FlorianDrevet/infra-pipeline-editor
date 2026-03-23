@@ -14,6 +14,5 @@ public record KeyVaultResponse(
     Guid ResourceGroupId,
     string Name,
     string Location,
-    string Sku,
     IReadOnlyList<KeyVaultEnvironmentConfigResponse> EnvironmentSettings
 );

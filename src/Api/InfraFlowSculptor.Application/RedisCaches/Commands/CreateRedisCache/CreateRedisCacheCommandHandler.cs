@@ -28,19 +28,10 @@ public class CreateRedisCacheCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        var settings = new RedisCacheSettings(
-            request.Capacity,
-            request.RedisVersion,
-            request.EnableNonSslPort,
-            request.MinimumTlsVersion,
-            request.MaxMemoryPolicy);
-
         var redisCache = RedisCache.Create(
             request.ResourceGroupId,
             request.Name,
             request.Location,
-            request.Sku,
-            settings,
             request.EnvironmentSettings?
                 .Select(ec => (
                     ec.EnvironmentName,

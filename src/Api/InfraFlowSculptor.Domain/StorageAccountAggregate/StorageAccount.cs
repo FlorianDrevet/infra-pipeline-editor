@@ -9,27 +9,6 @@ namespace InfraFlowSculptor.Domain.StorageAccountAggregate;
 
 public class StorageAccount : AzureResource
 {
-    public required StorageAccountSku Sku { get; set; }
-
-    public required StorageAccountKind Kind { get; set; }
-
-    /// <summary>
-    /// The access tier for the storage account (Hot or Cool). Applies to BlobStorage and StorageV2 kinds.
-    /// </summary>
-    public required StorageAccessTier AccessTier { get; set; }
-
-    /// <summary>
-    /// Whether to allow public read access to blobs and containers.
-    /// </summary>
-    public required bool AllowBlobPublicAccess { get; set; }
-
-    /// <summary>
-    /// Whether to enforce HTTPS-only traffic to the storage account.
-    /// </summary>
-    public required bool EnableHttpsTrafficOnly { get; set; }
-
-    public required StorageAccountTlsVersion MinimumTlsVersion { get; set; }
-
     private readonly List<BlobContainer> _blobContainers = new();
     public IReadOnlyList<BlobContainer> BlobContainers => _blobContainers.AsReadOnly();
 
@@ -74,17 +53,10 @@ public class StorageAccount : AzureResource
 
     public void Update(
         Name name,
-        Location location,
-        StorageAccountSettings settings)
+        Location location)
     {
         Name = name;
         Location = location;
-        Sku = settings.Sku;
-        Kind = settings.Kind;
-        AccessTier = settings.AccessTier;
-        AllowBlobPublicAccess = settings.AllowBlobPublicAccess;
-        EnableHttpsTrafficOnly = settings.EnableHttpsTrafficOnly;
-        MinimumTlsVersion = settings.MinimumTlsVersion;
     }
 
     /// <summary>
@@ -132,7 +104,6 @@ public class StorageAccount : AzureResource
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        StorageAccountSettings settings,
         IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku, StorageAccountKind? Kind, StorageAccessTier? AccessTier, bool? AllowBlobPublicAccess, bool? EnableHttpsTrafficOnly, StorageAccountTlsVersion? MinimumTlsVersion)>? environmentSettings = null)
     {
         var storageAccount = new StorageAccount
@@ -140,13 +111,7 @@ public class StorageAccount : AzureResource
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location,
-            Sku = settings.Sku,
-            Kind = settings.Kind,
-            AccessTier = settings.AccessTier,
-            AllowBlobPublicAccess = settings.AllowBlobPublicAccess,
-            EnableHttpsTrafficOnly = settings.EnableHttpsTrafficOnly,
-            MinimumTlsVersion = settings.MinimumTlsVersion
+            Location = location
         };
 
         if (environmentSettings is not null)

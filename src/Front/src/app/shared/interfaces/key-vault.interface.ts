@@ -17,7 +17,6 @@ export interface KeyVaultResponse {
   resourceGroupId: string;
   name: string;
   location: string;
-  sku: string;
   environmentSettings: KeyVaultEnvironmentConfigResponse[];
 }
 
@@ -27,13 +26,11 @@ export interface CreateKeyVaultRequest {
   resourceGroupId: string;
   name: string;
   location: string;
-  sku: string;
   environmentSettings?: KeyVaultEnvironmentConfigEntry[];
 }
 
 export interface UpdateKeyVaultRequest {
   name: string;
   location: string;
-  sku: string;
   environmentSettings?: KeyVaultEnvironmentConfigEntry[];
 }

@@ -246,45 +246,10 @@ export class ResourceEditComponent implements OnInit {
   }
 
   private buildGeneralForm(resource: ResourceData): void {
-    switch (this.resourceType) {
-      case 'KeyVault': {
-        const kv = resource as KeyVaultResponse;
-        this.generalForm = this.fb.group({
-          name: [kv.name, [Validators.required, Validators.maxLength(80)]],
-          location: [kv.location, [Validators.required]],
-          sku: [kv.sku, [Validators.required]],
-        });
-        break;
-      }
-      case 'RedisCache': {
-        const rc = resource as RedisCacheResponse;
-        this.generalForm = this.fb.group({
-          name: [rc.name, [Validators.required, Validators.maxLength(80)]],
-          location: [rc.location, [Validators.required]],
-          sku: [rc.sku, [Validators.required]],
-          capacity: [rc.capacity, [Validators.required, Validators.min(0)]],
-          redisVersion: [rc.redisVersion, [Validators.required]],
-          enableNonSslPort: [rc.enableNonSslPort],
-          minimumTlsVersion: [rc.minimumTlsVersion, [Validators.required]],
-          maxMemoryPolicy: [rc.maxMemoryPolicy, [Validators.required]],
-        });
-        break;
-      }
-      case 'StorageAccount': {
-        const sa = resource as StorageAccountResponse;
-        this.generalForm = this.fb.group({
-          name: [sa.name, [Validators.required, Validators.maxLength(80)]],
-          location: [sa.location, [Validators.required]],
-          sku: [sa.sku, [Validators.required]],
-          kind: [sa.kind, [Validators.required]],
-          accessTier: [sa.accessTier, [Validators.required]],
-          allowBlobPublicAccess: [sa.allowBlobPublicAccess],
-          enableHttpsTrafficOnly: [sa.enableHttpsTrafficOnly],
-          minimumTlsVersion: [sa.minimumTlsVersion, [Validators.required]],
-        });
-        break;
-      }
-    }
+    this.generalForm = this.fb.group({
+      name: [resource.name, [Validators.required, Validators.maxLength(80)]],
+      location: [resource.location, [Validators.required]],
+    });
   }
 
   private buildEnvForms(resource: ResourceData): void {
@@ -354,7 +319,6 @@ export class ResourceEditComponent implements OnInit {
           await this.keyVaultService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            sku: general.sku,
             environmentSettings: this.buildKeyVaultEnvSettings(),
           });
           break;
@@ -362,12 +326,6 @@ export class ResourceEditComponent implements OnInit {
           await this.redisCacheService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            sku: general.sku,
-            capacity: Number(general.capacity),
-            redisVersion: Number(general.redisVersion),
-            enableNonSslPort: general.enableNonSslPort,
-            minimumTlsVersion: general.minimumTlsVersion,
-            maxMemoryPolicy: general.maxMemoryPolicy,
             environmentSettings: this.buildRedisCacheEnvSettings(),
           });
           break;
@@ -375,12 +333,6 @@ export class ResourceEditComponent implements OnInit {
           await this.storageAccountService.update(this.resourceId, {
             name: general.name,
             location: general.location,
-            sku: general.sku,
-            kind: general.kind,
-            accessTier: general.accessTier,
-            allowBlobPublicAccess: general.allowBlobPublicAccess,
-            enableHttpsTrafficOnly: general.enableHttpsTrafficOnly,
-            minimumTlsVersion: general.minimumTlsVersion,
             environmentSettings: this.buildStorageAccountEnvSettings(),
           });
           break;

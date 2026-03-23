@@ -580,10 +580,10 @@
     },
     "ENVIRONMENTS": {
       "EMPTY": "Aucun environnement configur\u00e9. Ajoutez des environnements dans le projet ou la configuration.",
-      "DESCRIPTION": "Surchargez les param\u00e8tres de la ressource par environnement. Laissez un champ vide pour utiliser la valeur par d\u00e9faut de l'onglet G\u00e9n\u00e9ral.",
-      "OVERRIDE_HINT": "Indiquez uniquement les valeurs diff\u00e9rentes des valeurs par d\u00e9faut",
-      "USE_DEFAULT": "\u2014 Valeur par d\u00e9faut \u2014",
-      "NULL_HINT": "Vide = valeur par d\u00e9faut"
+      "DESCRIPTION": "Configurez les param\u00e8tres de la ressource pour chaque environnement.",
+      "OVERRIDE_HINT": "Renseignez les valeurs sp\u00e9cifiques \u00e0 cet environnement",
+      "USE_DEFAULT": "\u2014 Aucun \u2014",
+      "NULL_HINT": "Vide = non d\u00e9fini"
     },
     "DELETE": {
       "BUTTON": "Supprimer",

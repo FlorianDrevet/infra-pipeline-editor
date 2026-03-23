@@ -28,19 +28,10 @@ public class CreateStorageAccountCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        var settings = new StorageAccountSettings(
-            request.Sku,
-            request.Kind,
-            request.AccessTier,
-            request.AllowBlobPublicAccess,
-            request.EnableHttpsTrafficOnly,
-            request.MinimumTlsVersion);
-
         var storageAccount = StorageAccount.Create(
             request.ResourceGroupId,
             request.Name,
             request.Location,
-            settings,
             request.EnvironmentSettings?
                 .Select(ec => (
                     ec.EnvironmentName,

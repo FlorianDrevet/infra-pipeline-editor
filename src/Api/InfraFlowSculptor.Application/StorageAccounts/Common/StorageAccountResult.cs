@@ -1,7 +1,7 @@
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Application.StorageAccounts.Common;
 
@@ -26,12 +26,6 @@ public record StorageAccountResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    StorageAccountSku Sku,
-    StorageAccountKind Kind,
-    StorageAccessTier AccessTier,
-    bool AllowBlobPublicAccess,
-    bool EnableHttpsTrafficOnly,
-    StorageAccountTlsVersion MinimumTlsVersion,
     IReadOnlyList<BlobContainerResult> BlobContainers,
     IReadOnlyList<StorageQueueResult> Queues,
     IReadOnlyList<StorageTableResult> Tables,

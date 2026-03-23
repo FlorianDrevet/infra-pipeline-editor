@@ -32,7 +32,6 @@ public class CreateKeyVaultCommandHandler(
             request.ResourceGroupId,
             request.Name,
             request.Location,
-            request.Sku,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName,
                     ec.Sku is not null ? new Sku(Enum.Parse<Sku.SkuEnum>(ec.Sku)) : (Sku?)null))

@@ -31,18 +31,9 @@ public class UpdateRedisCacheCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        var settings = new RedisCacheSettings(
-            request.Capacity,
-            request.RedisVersion,
-            request.EnableNonSslPort,
-            request.MinimumTlsVersion,
-            request.MaxMemoryPolicy);
-
         redisCache.Update(
             request.Name,
-            request.Location,
-            request.Sku,
-            settings);
+            request.Location);
 
         if (request.EnvironmentSettings is not null)
             redisCache.SetAllEnvironmentSettings(

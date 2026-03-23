@@ -28,12 +28,6 @@ public class StorageAccountMappingConfig : IRegister
                 src.Id.Adapt<AzureResourceId>(),
                 src.Request.Name.Adapt<Name>(),
                 src.Request.Location.Adapt<Location>(),
-                src.Request.Sku.Adapt<StorageAccountSku>(),
-                src.Request.Kind.Adapt<StorageAccountKind>(),
-                src.Request.AccessTier.Adapt<StorageAccessTier>(),
-                src.Request.AllowBlobPublicAccess,
-                src.Request.EnableHttpsTrafficOnly,
-                src.Request.MinimumTlsVersion.Adapt<StorageAccountTlsVersion>(),
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new StorageAccountEnvironmentConfigData(

@@ -14,27 +14,6 @@ public class RedisCacheConfiguration : IEntityTypeConfiguration<RedisCache>
         builder.HasBaseType<AzureResource>()
             .ToTable("RedisCaches");
 
-        builder.Property(r => r.Sku)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<RedisCacheSku, RedisCacheSku.Sku>());
-
-        builder.Property(r => r.Capacity)
-            .IsRequired();
-
-        builder.Property(r => r.RedisVersion)
-            .IsRequired();
-
-        builder.Property(r => r.EnableNonSslPort)
-            .IsRequired();
-
-        builder.Property(r => r.MinimumTlsVersion)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<TlsVersion, TlsVersion.Version>());
-
-        builder.Property(r => r.MaxMemoryPolicy)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<MaxMemoryPolicy, MaxMemoryPolicy.Policy>());
-
         builder.HasMany(rc => rc.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.RedisCacheId)

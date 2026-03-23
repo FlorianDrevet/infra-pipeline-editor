@@ -576,10 +576,10 @@
     },
     "ENVIRONMENTS": {
       "EMPTY": "No environments configured. Add environments in the project or configuration first.",
-      "DESCRIPTION": "Override resource settings per environment. Leave a field empty to use the default value from the General tab.",
-      "OVERRIDE_HINT": "Only set values that differ from defaults",
-      "USE_DEFAULT": "— Use default —",
-      "NULL_HINT": "Leave empty for default"
+      "DESCRIPTION": "Configure resource settings for each environment.",
+      "OVERRIDE_HINT": "Set the values specific to this environment",
+      "USE_DEFAULT": "— None —",
+      "NULL_HINT": "Empty = not set"
     },
     "DELETE": {
       "BUTTON": "Delete",

@@ -8,11 +8,5 @@ public record RedisCacheResponse(
     Guid ResourceGroupId,
     string Name,
     string Location,
-    string Sku,
-    int Capacity,
-    int RedisVersion,
-    bool EnableNonSslPort,
-    string MinimumTlsVersion,
-    string MaxMemoryPolicy,
     IReadOnlyList<RedisCacheEnvironmentConfigResponse> EnvironmentSettings
 );

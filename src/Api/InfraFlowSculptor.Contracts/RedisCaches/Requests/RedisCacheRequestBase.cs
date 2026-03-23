@@ -16,28 +16,6 @@ public abstract class RedisCacheRequestBase
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
-    /// <summary>Pricing tier for the Redis Cache. Accepted values: <c>Basic</c>, <c>Standard</c>, <c>Premium</c>.</summary>
-    [Required, EnumValidation(typeof(RedisCacheSku.Sku))]
-    public required string Sku { get; init; }
-
-    /// <summary>Redis engine version. Accepted values: <c>4</c>, <c>6</c>.</summary>
-    [Required, RedisVersionValidation]
-    public required int RedisVersion { get; init; }
-
-    /// <summary>When <c>true</c>, the non-SSL port (6379) is enabled in addition to the SSL port (6380).</summary>
-    [Required]
-    public required bool EnableNonSslPort { get; init; }
-
-    /// <summary>Minimum TLS protocol version accepted by the cache. Accepted values: <c>TLS1_0</c>, <c>TLS1_1</c>, <c>TLS1_2</c>.</summary>
-    [Required, EnumValidation(typeof(TlsVersion.Version))]
-    public required string MinimumTlsVersion { get; init; }
-
-    /// <summary>
-    /// Eviction policy applied when the cache reaches its memory limit.
-    /// </summary>
-    [Required, EnumValidation(typeof(MaxMemoryPolicy.Policy))]
-    public required string MaxMemoryPolicy { get; init; }
-
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<RedisCacheEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }

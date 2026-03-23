@@ -16,10 +16,6 @@ public abstract class KeyVaultRequestBase
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
-    /// <summary>Pricing tier for the Key Vault. Accepted values: <c>Standard</c>, <c>Premium</c>.</summary>
-    [Required, EnumValidation(typeof(Sku.SkuEnum))]
-    public required string Sku { get; init; }
-
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<KeyVaultEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }

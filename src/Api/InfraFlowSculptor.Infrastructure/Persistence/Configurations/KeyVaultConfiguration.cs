@@ -24,10 +24,6 @@ public class KeyVaultConfiguration : IEntityTypeConfiguration<KeyVault>
         builder.HasBaseType<AzureResource>()
             .ToTable("KeyVaults");
 
-        builder.Property(order => order.Sku)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<Sku, Sku.SkuEnum>());
-
         builder.HasMany(kv => kv.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.KeyVaultId)

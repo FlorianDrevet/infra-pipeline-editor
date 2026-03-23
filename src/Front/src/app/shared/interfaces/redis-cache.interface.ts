@@ -27,12 +27,6 @@ export interface RedisCacheResponse {
   resourceGroupId: string;
   name: string;
   location: string;
-  sku: string;
-  capacity: number;
-  redisVersion: number;
-  enableNonSslPort: boolean;
-  minimumTlsVersion: string;
-  maxMemoryPolicy: string;
   environmentSettings: RedisCacheEnvironmentConfigResponse[];
 }
 
@@ -42,23 +36,11 @@ export interface CreateRedisCacheRequest {
   resourceGroupId: string;
   name: string;
   location: string;
-  sku: string;
-  redisVersion: number;
-  enableNonSslPort: boolean;
-  minimumTlsVersion: string;
-  maxMemoryPolicy: string;
-  capacity: number;
   environmentSettings?: RedisCacheEnvironmentConfigEntry[];
 }
 
 export interface UpdateRedisCacheRequest {
   name: string;
   location: string;
-  sku: string;
-  redisVersion: number;
-  enableNonSslPort: boolean;
-  minimumTlsVersion: string;
-  maxMemoryPolicy: string;
-  capacity: number;
   environmentSettings?: RedisCacheEnvironmentConfigEntry[];
 }

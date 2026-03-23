@@ -26,7 +26,6 @@ public class KeyVaultMappingConfig : IRegister
                 src.Id.Adapt<AzureResourceId>(),
                 src.Request.Name.Adapt<Name>(),
                 src.Request.Location.Adapt<Location>(),
-                src.Request.Sku.Adapt<Sku>(),
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new KeyVaultEnvironmentConfigData(
