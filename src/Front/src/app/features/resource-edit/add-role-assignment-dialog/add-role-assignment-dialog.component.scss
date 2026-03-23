@@ -1,0 +1,284 @@
+.role-dialog {
+  min-width: 28rem;
+  max-width: 36rem;
+}
+
+.role-dialog__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #103454;
+
+  mat-icon {
+    font-size: 1.3rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    color: #1565c0;
+  }
+}
+
+.role-dialog__content {
+  padding-top: 0.5rem !important;
+}
+
+.role-dialog__subtitle {
+  margin: 0 0 1rem;
+  color: #617892;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.role-dialog__actions {
+  padding: 0.75rem 1.25rem 1rem !important;
+  gap: 0.5rem;
+}
+
+// ─── Target list ───
+
+.target-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.target-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  border: 1.5px solid rgba(146, 191, 235, 0.22);
+  background: linear-gradient(180deg, #fff, #f8fbff);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+  width: 100%;
+
+  &:hover {
+    border-color: rgba(21, 101, 192, 0.35);
+    background: rgba(21, 101, 192, 0.04);
+    box-shadow: 0 4px 16px rgba(21, 101, 192, 0.08);
+  }
+
+  &--selected {
+    border-color: #1565c0;
+    background: rgba(21, 101, 192, 0.06);
+  }
+
+  &__icon {
+    font-size: 1.35rem;
+    width: 1.35rem;
+    height: 1.35rem;
+    color: #1565c0;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #103454;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__meta {
+    font-size: 0.75rem;
+    color: #617892;
+  }
+
+  &__arrow {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: rgba(146, 191, 235, 0.5);
+    flex-shrink: 0;
+  }
+}
+
+// ─── Selected target summary ───
+
+.selected-target-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
+  background: rgba(21, 101, 192, 0.06);
+  border: 1px solid rgba(21, 101, 192, 0.15);
+  margin-bottom: 1.25rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #103454;
+
+  mat-icon {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: #1565c0;
+  }
+
+  &__type {
+    margin-left: auto;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #617892;
+  }
+}
+
+// ─── Config sections ───
+
+.config-section {
+  margin-bottom: 1.25rem;
+
+  &__label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #103454;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+}
+
+.identity-radio-group {
+  display: flex;
+  gap: 1.5rem;
+
+  ::ng-deep .mat-mdc-radio-button {
+    font-size: 0.88rem;
+  }
+}
+
+.role-select-field {
+  width: 100%;
+}
+
+// ─── Role description ───
+
+.role-description-box {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(241, 247, 255, 0.7);
+  border: 1px solid rgba(146, 191, 235, 0.18);
+
+  strong {
+    font-size: 0.78rem;
+    color: #103454;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  p {
+    margin: 0.35rem 0 0;
+    font-size: 0.84rem;
+    color: #37474f;
+    line-height: 1.55;
+  }
+}
+
+.role-doc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1565c0;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  mat-icon {
+    font-size: 0.9rem;
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+}
+
+// ─── States ───
+
+.role-dialog__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+
+  mat-icon {
+    font-size: 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: rgba(13, 101, 192, 0.18);
+  }
+
+  p {
+    margin: 0;
+    color: #617892;
+    font-size: 0.88rem;
+  }
+}
+
+.role-dialog__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 1rem 0;
+  color: #617892;
+  font-size: 0.84rem;
+}
+
+.role-dialog__no-roles {
+  color: #617892;
+  font-size: 0.84rem;
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
+.role-dialog__error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
+  background: rgba(244, 67, 54, 0.07);
+  border: 1px solid rgba(244, 67, 54, 0.18);
+  color: #c62828;
+  font-size: 0.84rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+
+  mat-icon {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    flex-shrink: 0;
+  }
+}
+
+.submit-spinner {
+  display: inline-block;
+  margin-right: 0.35rem;
+
+  ::ng-deep circle {
+    stroke: #fff !important;
+  }
+}

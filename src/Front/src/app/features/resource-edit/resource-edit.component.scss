@@ -552,6 +552,219 @@
   100% { box-shadow: 0 0 0 0 rgba(2, 136, 209, 0); }
 }
 
+// ─── Role Assignments ────
+
+.ra-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.ra-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1.5px solid rgba(21, 101, 192, 0.35);
+  background: linear-gradient(135deg, rgba(21, 101, 192, 0.08), rgba(0, 188, 212, 0.06));
+  color: #1565c0;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(21, 101, 192, 0.14), rgba(0, 188, 212, 0.1));
+    border-color: rgba(21, 101, 192, 0.5);
+    box-shadow: 0 4px 16px rgba(21, 101, 192, 0.12);
+  }
+
+  mat-icon {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+}
+
+.ra-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem 0;
+  justify-content: center;
+  color: #617892;
+  font-size: 0.88rem;
+}
+
+.ra-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.ra-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #fff, #f8fbff);
+  border: 1.5px solid rgba(146, 191, 235, 0.22);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    border-color: rgba(21, 101, 192, 0.25);
+    box-shadow: 0 4px 16px rgba(21, 101, 192, 0.06);
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__target {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  &__target-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #1565c0;
+    flex-shrink: 0;
+  }
+
+  &__target-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  &__target-name {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #103454;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__target-type {
+    font-size: 0.72rem;
+    color: #617892;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+  }
+
+  &__details {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  &__role {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #37474f;
+
+    mat-icon {
+      font-size: 0.95rem;
+      width: 0.95rem;
+      height: 0.95rem;
+      color: #1565c0;
+    }
+  }
+
+  &__identity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: rgba(255, 152, 0, 0.08);
+    border: 1px solid rgba(255, 152, 0, 0.18);
+    color: #e65100;
+
+    mat-icon {
+      font-size: 0.85rem;
+      width: 0.85rem;
+      height: 0.85rem;
+    }
+
+    &--system {
+      background: rgba(0, 188, 212, 0.08);
+      border-color: rgba(0, 188, 212, 0.2);
+      color: #00838f;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  &__doc-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    color: #1565c0;
+    text-decoration: none;
+    transition: background 0.15s;
+
+    &:hover { background: rgba(21, 101, 192, 0.08); }
+
+    mat-icon {
+      font-size: 1.05rem;
+      width: 1.05rem;
+      height: 1.05rem;
+    }
+  }
+
+  &__remove-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #b71c1c;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover { background: rgba(244, 67, 54, 0.08); }
+
+    mat-icon {
+      font-size: 1.05rem;
+      width: 1.05rem;
+      height: 1.05rem;
+    }
+  }
+}
+
 // ─── Responsive ────
 
 @media (max-width: 768px) {

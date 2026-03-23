@@ -593,7 +593,11 @@
       "KIND": "Account kind",
       "ACCESS_TIER": "Access tier",
       "ALLOW_BLOB_PUBLIC": "Allow public blob access",
-      "HTTPS_ONLY": "HTTPS traffic only"
+      "HTTPS_ONLY": "HTTPS traffic only",
+      "OS_TYPE": "OS type",
+      "RUNTIME_STACK": "Runtime stack",
+      "RUNTIME_VERSION": "Runtime version",
+      "ALWAYS_ON": "Always On"
     },
     "ENVIRONMENTS": {
       "EMPTY": "No environments configured. Add environments in the project or configuration first.",
@@ -620,6 +624,43 @@
       "ENV_VARS": "Environment Variables",
       "SECRETS": "Secrets & References",
       "PER_ENV_OVERRIDE": "Per-environment Overrides"
+    },
+    "ROLE_ASSIGNMENTS": {
+      "DESCRIPTION": "Configure which resources this resource can access using its managed identity.",
+      "ADD": "Add role assignment",
+      "EMPTY": "No role assignments configured. Add a role assignment to grant this resource access to other resources.",
+      "LOADING": "Loading role assignments...",
+      "TARGET_RESOURCE": "Target resource",
+      "ROLE": "Role",
+      "IDENTITY_TYPE": "Identity type",
+      "SYSTEM_ASSIGNED": "System Assigned",
+      "USER_ASSIGNED": "User Assigned",
+      "DOCS_LINK": "Documentation",
+      "REMOVE": "Remove",
+      "REMOVE_TITLE": "Remove role assignment",
+      "REMOVE_MESSAGE": "Remove the role \"{{role}}\" on \"{{target}}\"? This action cannot be undone.",
+      "REMOVE_YES": "Remove",
+      "REMOVE_CANCEL": "Cancel",
+      "REMOVE_ERROR": "Unable to remove the role assignment. Please try again.",
+      "LOAD_ERROR": "Unable to load role assignments."
+    },
+    "ADD_ROLE_DIALOG": {
+      "TITLE_SELECT_TARGET": "Select target resource",
+      "TITLE_CONFIGURE": "Configure role assignment",
+      "SUBTITLE_SELECT": "Choose the resource this resource should have access to",
+      "SUBTITLE_CONFIGURE": "Select the identity type and role to assign",
+      "NO_TARGETS": "No other resources found in this resource group.",
+      "LOADING_TARGETS": "Loading resources...",
+      "IDENTITY_TYPE_LABEL": "Managed identity type",
+      "ROLE_LABEL": "Select a role",
+      "ROLE_DESCRIPTION": "Description",
+      "LOADING_ROLES": "Loading available roles...",
+      "NO_ROLES": "No roles available for this resource type.",
+      "ASSIGN": "Assign role",
+      "ASSIGNING": "Assigning...",
+      "CANCEL": "Cancel",
+      "BACK": "Back",
+      "ERROR": "Unable to assign the role. Please try again."
     }
   }
 }

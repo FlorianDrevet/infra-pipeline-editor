@@ -597,7 +597,11 @@
       "KIND": "Type de compte",
       "ACCESS_TIER": "Niveau d'acc\u00e8s",
       "ALLOW_BLOB_PUBLIC": "Autoriser l'acc\u00e8s public aux blobs",
-      "HTTPS_ONLY": "Trafic HTTPS uniquement"
+      "HTTPS_ONLY": "Trafic HTTPS uniquement",
+      "OS_TYPE": "Type d'OS",
+      "RUNTIME_STACK": "Pile d'ex\u00e9cution",
+      "RUNTIME_VERSION": "Version du runtime",
+      "ALWAYS_ON": "Always On"
     },
     "ENVIRONMENTS": {
       "EMPTY": "Aucun environnement configur\u00e9. Ajoutez des environnements dans le projet ou la configuration.",
@@ -624,6 +628,43 @@
       "ENV_VARS": "Variables d'environnement",
       "SECRETS": "Secrets & R\u00e9f\u00e9rences",
       "PER_ENV_OVERRIDE": "Surcharges par environnement"
+    },
+    "ROLE_ASSIGNMENTS": {
+      "DESCRIPTION": "Configurez les ressources auxquelles cette ressource peut acc\u00e9der via son identit\u00e9 manag\u00e9e.",
+      "ADD": "Ajouter une assignation de r\u00f4le",
+      "EMPTY": "Aucune assignation de r\u00f4le configur\u00e9e. Ajoutez une assignation pour donner \u00e0 cette ressource l\u2019acc\u00e8s \u00e0 d\u2019autres ressources.",
+      "LOADING": "Chargement des assignations de r\u00f4les...",
+      "TARGET_RESOURCE": "Ressource cible",
+      "ROLE": "R\u00f4le",
+      "IDENTITY_TYPE": "Type d\u2019identit\u00e9",
+      "SYSTEM_ASSIGNED": "System Assigned",
+      "USER_ASSIGNED": "User Assigned",
+      "DOCS_LINK": "Documentation",
+      "REMOVE": "Supprimer",
+      "REMOVE_TITLE": "Supprimer l\u2019assignation de r\u00f4le",
+      "REMOVE_MESSAGE": "Supprimer le r\u00f4le \u00ab {{role}} \u00bb sur \u00ab {{target}} \u00bb ? Cette action est irr\u00e9versible.",
+      "REMOVE_YES": "Supprimer",
+      "REMOVE_CANCEL": "Annuler",
+      "REMOVE_ERROR": "Impossible de supprimer l\u2019assignation de r\u00f4le. Veuillez r\u00e9essayer.",
+      "LOAD_ERROR": "Impossible de charger les assignations de r\u00f4les."
+    },
+    "ADD_ROLE_DIALOG": {
+      "TITLE_SELECT_TARGET": "S\u00e9lectionner la ressource cible",
+      "TITLE_CONFIGURE": "Configurer l\u2019assignation de r\u00f4le",
+      "SUBTITLE_SELECT": "Choisissez la ressource \u00e0 laquelle cette ressource doit avoir acc\u00e8s",
+      "SUBTITLE_CONFIGURE": "S\u00e9lectionnez le type d\u2019identit\u00e9 et le r\u00f4le \u00e0 assigner",
+      "NO_TARGETS": "Aucune autre ressource trouv\u00e9e dans ce groupe de ressources.",
+      "LOADING_TARGETS": "Chargement des ressources...",
+      "IDENTITY_TYPE_LABEL": "Type d\u2019identit\u00e9 manag\u00e9e",
+      "ROLE_LABEL": "S\u00e9lectionner un r\u00f4le",
+      "ROLE_DESCRIPTION": "Description",
+      "LOADING_ROLES": "Chargement des r\u00f4les disponibles...",
+      "NO_ROLES": "Aucun r\u00f4le disponible pour ce type de ressource.",
+      "ASSIGN": "Assigner le r\u00f4le",
+      "ASSIGNING": "Assignation...",
+      "CANCEL": "Annuler",
+      "BACK": "Retour",
+      "ERROR": "Impossible d\u2019assigner le r\u00f4le. Veuillez r\u00e9essayer."
     }
   }
 }

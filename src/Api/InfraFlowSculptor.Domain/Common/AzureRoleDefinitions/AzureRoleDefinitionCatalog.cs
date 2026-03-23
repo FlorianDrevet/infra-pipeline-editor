@@ -13,6 +13,15 @@ public static class AzureRoleDefinitionCatalog
     private const string RedisCacheDocsUrl =
         "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication";
 
+    private const string StorageAccountDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/storage/common/storage-auth-aad-rbac-portal";
+
+    private const string AppServicePlanDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity";
+
+    private const string WebAppDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity";
+
     private static readonly IReadOnlyList<AzureRoleDefinition> KeyVaultRoles =
     [
         new("00482a5a-887f-4fb3-b363-3b7fe8e74483",
@@ -84,10 +93,92 @@ public static class AzureRoleDefinitionCatalog
             RedisCacheDocsUrl),
     ];
 
+    private static readonly IReadOnlyList<AzureRoleDefinition> StorageAccountRoles =
+    [
+        new("ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+            "Storage Blob Data Contributor",
+            "Read, write, and delete Azure Storage containers and blobs.",
+            StorageAccountDocsUrl),
+
+        new("2a2b9908-6ea1-4ae2-8e65-a410df84e7d1",
+            "Storage Blob Data Reader",
+            "Read and list Azure Storage containers and blobs.",
+            StorageAccountDocsUrl),
+
+        new("b7e6dc6d-f1e8-4753-8033-0f276bb0955b",
+            "Storage Blob Data Owner",
+            "Full access to Azure Storage blob containers and data, including assigning POSIX access control.",
+            StorageAccountDocsUrl),
+
+        new("0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3",
+            "Storage Table Data Contributor",
+            "Read, write, and delete access to Azure Storage tables and entities.",
+            StorageAccountDocsUrl),
+
+        new("76199698-9eea-4c19-bc75-cec21354c6b6",
+            "Storage Table Data Reader",
+            "Read access to Azure Storage tables and entities.",
+            StorageAccountDocsUrl),
+
+        new("0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb",
+            "Storage Queue Data Contributor",
+            "Read, write, and delete Azure Storage queues and queue messages.",
+            StorageAccountDocsUrl),
+
+        new("19e7f393-937e-4f77-808e-94535e297925",
+            "Storage Queue Data Reader",
+            "Read and list Azure Storage queues and queue messages.",
+            StorageAccountDocsUrl),
+
+        new("17d1049b-9a84-46fb-8f53-869881c3d3ab",
+            "Storage Account Contributor",
+            "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data.",
+            StorageAccountDocsUrl),
+    ];
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> AppServicePlanRoles =
+    [
+        new("de139f84-1756-47ae-9be6-808fbbe84772",
+            "Website Contributor",
+            "Lets you manage websites (not web plans), but not access to them.",
+            AppServicePlanDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            AppServicePlanDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            AppServicePlanDocsUrl),
+    ];
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> WebAppRoles =
+    [
+        new("de139f84-1756-47ae-9be6-808fbbe84772",
+            "Website Contributor",
+            "Lets you manage websites (not web plans), but not access to them.",
+            WebAppDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            WebAppDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            WebAppDocsUrl),
+    ];
+
     private static readonly Dictionary<string, IReadOnlyList<AzureRoleDefinition>> Catalog = new()
     {
         { "KeyVault", KeyVaultRoles },
         { "RedisCache", RedisCacheRoles },
+        { "StorageAccount", StorageAccountRoles },
+        { "AppServicePlan", AppServicePlanRoles },
+        { "WebApp", WebAppRoles },
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>

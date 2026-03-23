@@ -20,16 +20,28 @@ import { StorageAccountService } from '../../shared/services/storage-account.ser
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
+import { RoleAssignmentService } from '../../shared/services/role-assignment.service';
+import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { KeyVaultResponse, KeyVaultEnvironmentConfigEntry } from '../../shared/interfaces/key-vault.interface';
 import { RedisCacheResponse, RedisCacheEnvironmentConfigEntry } from '../../shared/interfaces/redis-cache.interface';
 import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry } from '../../shared/interfaces/storage-account.interface';
+import { AppServicePlanResponse, AppServicePlanEnvironmentConfigEntry } from '../../shared/interfaces/app-service-plan.interface';
+import { WebAppResponse, WebAppEnvironmentConfigEntry } from '../../shared/interfaces/web-app.interface';
+import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
+import { WebAppService } from '../../shared/services/web-app.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
+import { RoleAssignmentResponse, AzureRoleDefinitionResponse } from '../../shared/interfaces/role-assignment.interface';
+import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
 import { LOCATION_OPTIONS } from '../../shared/enums/location.enum';
+import { OS_TYPE_OPTIONS } from '../config-detail/enums/os-type.enum';
+import { RUNTIME_STACK_OPTIONS } from '../config-detail/enums/runtime-stack.enum';
+import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service-plan-sku.enum';
+import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse;
 
 /** SKU options per resource type */
 const KEY_VAULT_SKU_OPTIONS = [
@@ -121,9 +133,13 @@ export class ResourceEditComponent implements OnInit {
   private readonly keyVaultService = inject(KeyVaultService);
   private readonly redisCacheService = inject(RedisCacheService);
   private readonly storageAccountService = inject(StorageAccountService);
+  private readonly appServicePlanService = inject(AppServicePlanService);
+  private readonly webAppService = inject(WebAppService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
   private readonly authService = inject(AuthenticationService);
+  private readonly roleAssignmentService = inject(RoleAssignmentService);
+  private readonly resourceGroupService = inject(ResourceGroupService);
 
   // ─── Route params ───
   protected configId = '';
@@ -140,6 +156,13 @@ export class ResourceEditComponent implements OnInit {
   protected readonly saveError = signal('');
   protected readonly saveSuccess = signal(false);
 
+  // ─── Role Assignments ───
+  protected readonly roleAssignments = signal<RoleAssignmentResponse[]>([]);
+  protected readonly roleAssignmentsLoading = signal(false);
+  protected readonly roleAssignmentsError = signal('');
+  protected readonly allResources = signal<AzureResourceResponse[]>([]);
+  protected readonly availableRoleDefs = signal<AzureRoleDefinitionResponse[]>([]);
+
   // ─── Options ───
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
   protected readonly locationOptions = LOCATION_OPTIONS;
@@ -152,6 +175,9 @@ export class ResourceEditComponent implements OnInit {
   protected readonly storageKindOptions = STORAGE_KIND_OPTIONS;
   protected readonly storageAccessTierOptions = STORAGE_ACCESS_TIER_OPTIONS;
   protected readonly storageTlsOptions = STORAGE_TLS_OPTIONS;
+  protected readonly osTypeOptions = OS_TYPE_OPTIONS;
+  protected readonly runtimeStackOptions = RUNTIME_STACK_OPTIONS;
+  protected readonly aspSkuOptions = APP_SERVICE_PLAN_SKU_OPTIONS;
 
   // ─── Forms ───
   protected generalForm!: FormGroup;
@@ -225,6 +251,10 @@ export class ResourceEditComponent implements OnInit {
 
       this.buildGeneralForm(resource);
       this.buildEnvForms(resource);
+
+      // Load role assignments and sibling resources in background (non-blocking)
+      this.loadRoleAssignments();
+      this.loadAllResources();
     } catch {
       this.loadError.set('RESOURCE_EDIT.ERROR.LOAD_FAILED');
     } finally {
@@ -240,16 +270,34 @@ export class ResourceEditComponent implements OnInit {
         return this.redisCacheService.getById(this.resourceId);
       case 'StorageAccount':
         return this.storageAccountService.getById(this.resourceId);
+      case 'AppServicePlan':
+        return this.appServicePlanService.getById(this.resourceId);
+      case 'WebApp':
+        return this.webAppService.getById(this.resourceId);
       default:
         throw new Error(`Unknown resource type: ${this.resourceType}`);
     }
   }
 
   private buildGeneralForm(resource: ResourceData): void {
-    this.generalForm = this.fb.group({
+    const base: Record<string, unknown[]> = {
       name: [resource.name, [Validators.required, Validators.maxLength(80)]],
       location: [resource.location, [Validators.required]],
-    });
+    };
+
+    if (this.resourceType === 'AppServicePlan') {
+      const asp = resource as AppServicePlanResponse;
+      base['osType'] = [asp.osType, [Validators.required]];
+    } else if (this.resourceType === 'WebApp') {
+      const wa = resource as WebAppResponse;
+      base['appServicePlanId'] = [wa.appServicePlanId];
+      base['runtimeStack'] = [wa.runtimeStack, [Validators.required]];
+      base['runtimeVersion'] = [wa.runtimeVersion];
+      base['alwaysOn'] = [wa.alwaysOn];
+      base['httpsOnly'] = [wa.httpsOnly];
+    }
+
+    this.generalForm = this.fb.group(base);
   }
 
   private buildEnvForms(resource: ResourceData): void {
@@ -299,6 +347,24 @@ export class ResourceEditComponent implements OnInit {
           minimumTlsVersion: [settings?.minimumTlsVersion ?? null],
         });
       }
+      case 'AppServicePlan': {
+        const asp = resource as AppServicePlanResponse;
+        const settings = asp.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          sku: [settings?.sku ?? null],
+          capacity: [settings?.capacity ?? null],
+        });
+      }
+      case 'WebApp': {
+        const wa = resource as WebAppResponse;
+        const settings = wa.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          alwaysOn: [settings?.alwaysOn ?? null],
+          httpsOnly: [settings?.httpsOnly ?? null],
+          runtimeStack: [settings?.runtimeStack ?? null],
+          runtimeVersion: [settings?.runtimeVersion ?? null],
+        });
+      }
       default:
         return this.fb.group({});
     }
@@ -334,6 +400,26 @@ export class ResourceEditComponent implements OnInit {
             name: general.name,
             location: general.location,
             environmentSettings: this.buildStorageAccountEnvSettings(),
+          });
+          break;
+        case 'AppServicePlan':
+          await this.appServicePlanService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            osType: general.osType,
+            environmentSettings: this.buildAppServicePlanEnvSettings(),
+          });
+          break;
+        case 'WebApp':
+          await this.webAppService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            appServicePlanId: general.appServicePlanId,
+            runtimeStack: general.runtimeStack,
+            runtimeVersion: general.runtimeVersion,
+            alwaysOn: general.alwaysOn,
+            httpsOnly: general.httpsOnly,
+            environmentSettings: this.buildWebAppEnvSettings(),
           });
           break;
       }
@@ -388,11 +474,130 @@ export class ResourceEditComponent implements OnInit {
         case 'StorageAccount':
           await this.storageAccountService.delete(this.resourceId);
           break;
+        case 'AppServicePlan':
+          await this.appServicePlanService.delete(this.resourceId);
+          break;
+        case 'WebApp':
+          await this.webAppService.delete(this.resourceId);
+          break;
       }
       this.router.navigate(['/config', this.configId]);
     } catch {
       this.saveError.set('RESOURCE_EDIT.ERROR.DELETE_FAILED');
       this.isSaving.set(false);
+    }
+  }
+
+  // ─── Role Assignment methods ───
+
+  private async loadRoleAssignments(): Promise<void> {
+    this.roleAssignmentsLoading.set(true);
+    this.roleAssignmentsError.set('');
+    try {
+      const assignments = await this.roleAssignmentService.getByResourceId(this.resourceId);
+      this.roleAssignments.set(assignments);
+
+      // Load role definitions for all unique target resource ids to resolve role names
+      const targetIds = [...new Set(assignments.map(a => a.targetResourceId))];
+      const allDefs: AzureRoleDefinitionResponse[] = [];
+      for (const targetId of targetIds) {
+        try {
+          const defs = await this.roleAssignmentService.getAvailableRoleDefinitions(targetId);
+          allDefs.push(...defs);
+        } catch {
+          // Non-blocking
+        }
+      }
+      // Deduplicate by id
+      const deduped = allDefs.filter((d, i, arr) => arr.findIndex(x => x.id === d.id) === i);
+      this.availableRoleDefs.set(deduped);
+    } catch {
+      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.LOAD_ERROR');
+    } finally {
+      this.roleAssignmentsLoading.set(false);
+    }
+  }
+
+  private async loadAllResources(): Promise<void> {
+    try {
+      const rgs = await this.infraConfigService.getResourceGroups(this.configId);
+      const resourcePromises = rgs.map(rg => this.resourceGroupService.getResources(rg.id));
+      const results = await Promise.all(resourcePromises);
+      const flat = results.flat().filter(r => r.id !== this.resourceId);
+      this.allResources.set(flat);
+    } catch {
+      this.allResources.set([]);
+    }
+  }
+
+  protected resolveTargetName(targetResourceId: string): string {
+    const res = this.allResources().find(r => r.id === targetResourceId);
+    return res?.name ?? targetResourceId;
+  }
+
+  protected resolveTargetType(targetResourceId: string): string {
+    const res = this.allResources().find(r => r.id === targetResourceId);
+    return res?.resourceType ?? '';
+  }
+
+  protected resolveRoleName(roleDefinitionId: string): string {
+    const def = this.availableRoleDefs().find(d => d.id === roleDefinitionId);
+    return def?.name ?? roleDefinitionId;
+  }
+
+  protected resolveRoleDocUrl(roleDefinitionId: string): string {
+    const def = this.availableRoleDefs().find(d => d.id === roleDefinitionId);
+    return def?.documentationUrl ?? '';
+  }
+
+  protected openAddRoleAssignmentDialog(): void {
+    const dialogRef = this.dialog.open(AddRoleAssignmentDialogComponent, {
+      data: {
+        sourceResourceId: this.resourceId,
+        currentResourceName: this.resource()?.name ?? '',
+        siblingResources: this.allResources(),
+      } satisfies AddRoleAssignmentDialogData,
+      width: '520px',
+      maxHeight: '85vh',
+    });
+
+    dialogRef.afterClosed().subscribe((result?: RoleAssignmentResponse) => {
+      if (result) {
+        this.roleAssignments.update(list => [...list, result]);
+        // Reload role definitions to include new target's defs
+        this.loadRoleAssignments();
+      }
+    });
+  }
+
+  protected openRemoveRoleAssignmentDialog(assignment: RoleAssignmentResponse): void {
+    const roleName = this.resolveRoleName(assignment.roleDefinitionId);
+    const targetName = this.resolveTargetName(assignment.targetResourceId);
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_TITLE',
+        messageKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_MESSAGE',
+        messageParams: { role: roleName, target: targetName },
+        confirmKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_YES',
+        cancelKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      await this.removeRoleAssignment(assignment.id);
+    });
+  }
+
+  private async removeRoleAssignment(roleAssignmentId: string): Promise<void> {
+    this.roleAssignmentsError.set('');
+    try {
+      await this.roleAssignmentService.remove(this.resourceId, roleAssignmentId);
+      this.roleAssignments.update(list => list.filter(ra => ra.id !== roleAssignmentId));
+    } catch {
+      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_ERROR');
     }
   }
 
@@ -431,6 +636,30 @@ export class ResourceEditComponent implements OnInit {
         allowBlobPublicAccess: raw.allowBlobPublicAccess ?? null,
         enableHttpsTrafficOnly: raw.enableHttpsTrafficOnly ?? null,
         minimumTlsVersion: raw.minimumTlsVersion || null,
+      };
+    });
+  }
+
+  private buildAppServicePlanEnvSettings(): AppServicePlanEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        sku: raw.sku || null,
+        capacity: raw.capacity != null ? Number(raw.capacity) : null,
+      };
+    });
+  }
+
+  private buildWebAppEnvSettings(): WebAppEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        alwaysOn: raw.alwaysOn ?? null,
+        httpsOnly: raw.httpsOnly ?? null,
+        runtimeStack: raw.runtimeStack || null,
+        runtimeVersion: raw.runtimeVersion || null,
       };
     });
   }

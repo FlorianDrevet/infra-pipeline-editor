@@ -96,6 +96,53 @@
               </div>
             </div>
 
+            <!-- AppServicePlan-specific fields -->
+            @if (resourceType === 'AppServicePlan') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.OS_TYPE' | translate }}</mat-label>
+                    <mat-select formControlName="osType">
+                      @for (opt of osTypeOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+            }
+
+            <!-- WebApp-specific fields -->
+            @if (resourceType === 'WebApp') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
+                    <mat-select formControlName="runtimeStack">
+                      @for (opt of runtimeStackOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
+                    <input matInput formControlName="runtimeVersion" />
+                  </mat-form-field>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="alwaysOn" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="httpsOnly" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                </div>
+              </div>
+            }
 
           </form>
         </div>
@@ -253,6 +300,48 @@
                         </mat-slide-toggle>
                       </div>
                     }
+                    @case ('AppServicePlan') {
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                        <mat-select formControlName="sku">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of aspSkuOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CAPACITY' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="capacity" />
+                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                      </mat-form-field>
+                    }
+                    @case ('WebApp') {
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
+                        <mat-select formControlName="runtimeStack">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of runtimeStackOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
+                        <input matInput formControlName="runtimeVersion" />
+                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                      </mat-form-field>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="alwaysOn" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="httpsOnly" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                    }
                   }
                 </form>
               </div>
@@ -261,24 +350,100 @@
         </div>
       </mat-tab>
 
-      <!-- Identity & Access Tab (placeholder for future) -->
-      <mat-tab [disabled]="true">
+      <!-- Identity & Access Tab -->
+      <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">security</mat-icon>
           <span>{{ 'RESOURCE_EDIT.TABS.IDENTITY_ACCESS' | translate }}</span>
-          <span class="tab-badge tab-badge--soon">{{ 'RESOURCE_EDIT.TABS.COMING_SOON' | translate }}</span>
+          @if (roleAssignments().length > 0) {
+            <span class="tab-count">{{ roleAssignments().length }}</span>
+          }
         </ng-template>
         <div class="tab-content">
-          <div class="coming-soon-panel">
-            <mat-icon class="coming-soon-panel__icon">lock_outline</mat-icon>
-            <h3>{{ 'RESOURCE_EDIT.COMING_SOON.IDENTITY_TITLE' | translate }}</h3>
-            <p>{{ 'RESOURCE_EDIT.COMING_SOON.IDENTITY_DESC' | translate }}</p>
-            <div class="coming-soon-panel__features">
-              <span class="feature-chip"><mat-icon>fingerprint</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.MANAGED_IDENTITY' | translate }}</span>
-              <span class="feature-chip"><mat-icon>admin_panel_settings</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.RBAC' | translate }}</span>
-              <span class="feature-chip"><mat-icon>policy</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.ACCESS_POLICIES' | translate }}</span>
-            </div>
+          <!-- Description banner -->
+          <div class="env-description">
+            <mat-icon class="env-description__icon">security</mat-icon>
+            <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DESCRIPTION' | translate }}</p>
           </div>
+
+          <!-- Add button -->
+          @if (canWrite()) {
+            <div class="ra-actions">
+              <button class="ra-add-btn" (click)="openAddRoleAssignmentDialog()">
+                <mat-icon>add</mat-icon>
+                {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ADD' | translate }}
+              </button>
+            </div>
+          }
+
+          <!-- Error banner -->
+          @if (roleAssignmentsError()) {
+            <div class="feedback-banner feedback-banner--error" role="alert">
+              <mat-icon>error_outline</mat-icon>
+              {{ roleAssignmentsError() | translate }}
+            </div>
+          }
+
+          <!-- Loading state -->
+          @if (roleAssignmentsLoading()) {
+            <div class="ra-loading">
+              <mat-spinner diameter="28"></mat-spinner>
+              <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.LOADING' | translate }}</span>
+            </div>
+          } @else if (roleAssignments().length === 0) {
+            <!-- Empty state -->
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">admin_panel_settings</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.EMPTY' | translate }}</p>
+            </div>
+          } @else {
+            <!-- Role assignment cards -->
+            <div class="ra-list">
+              @for (ra of roleAssignments(); track ra.id) {
+                <div class="ra-card">
+                  <div class="ra-card__main">
+                    <div class="ra-card__target">
+                      <mat-icon class="ra-card__target-icon">{{ resourceTypeIcons[resolveTargetType(ra.targetResourceId)] || 'widgets' }}</mat-icon>
+                      <div class="ra-card__target-info">
+                        <span class="ra-card__target-name">{{ resolveTargetName(ra.targetResourceId) }}</span>
+                        <span class="ra-card__target-type">{{ resolveTargetType(ra.targetResourceId) }}</span>
+                      </div>
+                    </div>
+                    <div class="ra-card__details">
+                      <span class="ra-card__role">
+                        <mat-icon>shield</mat-icon>
+                        {{ resolveRoleName(ra.roleDefinitionId) }}
+                      </span>
+                      <span class="ra-card__identity-badge" [class.ra-card__identity-badge--system]="ra.managedIdentityType === 'SystemAssigned'">
+                        <mat-icon>{{ ra.managedIdentityType === 'SystemAssigned' ? 'fingerprint' : 'person' }}</mat-icon>
+                        {{ (ra.managedIdentityType === 'SystemAssigned' ? 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED' : 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.USER_ASSIGNED') | translate }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="ra-card__actions">
+                    @if (resolveRoleDocUrl(ra.roleDefinitionId)) {
+                      <a
+                        class="ra-card__doc-link"
+                        [href]="resolveRoleDocUrl(ra.roleDefinitionId)"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DOCS_LINK' | translate">
+                        <mat-icon>open_in_new</mat-icon>
+                      </a>
+                    }
+                    @if (canWrite()) {
+                      <button
+                        class="ra-card__remove-btn"
+                        (click)="openRemoveRoleAssignmentDialog(ra)"
+                        [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
         </div>
       </mat-tab>
 
