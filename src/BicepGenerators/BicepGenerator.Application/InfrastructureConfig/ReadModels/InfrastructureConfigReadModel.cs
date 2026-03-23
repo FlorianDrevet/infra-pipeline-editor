@@ -4,7 +4,8 @@ public record InfrastructureConfigReadModel(
     Guid Id,
     string Name,
     IReadOnlyList<ResourceGroupReadModel> ResourceGroups,
-    IReadOnlyList<EnvironmentDefinitionReadModel> Environments);
+    IReadOnlyList<EnvironmentDefinitionReadModel> Environments,
+    NamingContextReadModel NamingContext);
 
 public record ResourceGroupReadModel(
     Guid Id,
@@ -27,4 +28,14 @@ public record ResourceEnvironmentConfigReadModel(
 public record EnvironmentDefinitionReadModel(
     Guid Id,
     string Name,
-    string Location);
+    string Location,
+    string Prefix,
+    string Suffix);
+
+/// <summary>
+/// Read model for the project-level naming context
+/// containing the default template and per-resource-type overrides.
+/// </summary>
+public record NamingContextReadModel(
+    string? DefaultTemplate,
+    IReadOnlyDictionary<string, string> ResourceTemplates);

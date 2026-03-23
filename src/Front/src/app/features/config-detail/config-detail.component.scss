@@ -1315,6 +1315,16 @@
     background: rgba(139, 233, 253, 0.15);
     color: #8be9fd;
   }
+
+  &--types {
+    background: rgba(189, 147, 249, 0.15);
+    color: #bd93f9;
+  }
+
+  &--functions {
+    background: rgba(255, 184, 108, 0.15);
+    color: #ffb86c;
+  }
 }
 
 .bicep-tree__folder {

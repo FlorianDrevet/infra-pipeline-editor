@@ -6,19 +6,19 @@ public sealed class RedisCacheTypeBicepGenerator
     public string ResourceType
         => "Microsoft.Cache/Redis";
 
-    public GeneratedTypeModule Generate(
-        ResourceDefinition resource,
-        EnvironmentDefinition environment)
+    /// <inheritdoc />
+    public string ResourceTypeName => "RedisCache";
+
+    public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
         return new GeneratedTypeModule
         {
             ModuleName = "redisCache",
             ModuleFileName = "redisCache.bicep",
             ModuleBicepContent = RedisCacheModuleTemplate,
+            ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
-                ["location"] = environment.Location,
-                ["name"] = resource.Name,
                 ["skuName"] = resource.Properties.GetValueOrDefault("skuName", "Basic"),
                 ["skuFamily"] = resource.Properties.GetValueOrDefault("skuFamily", "C"),
                 ["capacity"] = int.TryParse(resource.Properties.GetValueOrDefault("capacity", "1"), out var cap) ? cap : 1,

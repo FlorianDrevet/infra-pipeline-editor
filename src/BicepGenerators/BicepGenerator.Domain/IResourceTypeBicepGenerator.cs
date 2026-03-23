@@ -4,7 +4,10 @@ public interface IResourceTypeBicepGenerator
 {
     string ResourceType { get; }
 
-    GeneratedTypeModule Generate(
-        ResourceDefinition resource,
-        EnvironmentDefinition environment);
+    /// <summary>
+    /// The simple resource type name used for naming template lookups (e.g. "KeyVault").
+    /// </summary>
+    string ResourceTypeName { get; }
+
+    GeneratedTypeModule Generate(ResourceDefinition resource);
 }

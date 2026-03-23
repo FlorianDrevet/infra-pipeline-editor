@@ -361,6 +361,8 @@
       "TERMINAL_DONE": "Generation terminee \u2014 artefacts prets",
       "ARTIFACTS": "sortie",
       "ENTRY_POINT": "point d'entree",
+      "TYPES": "types",
+      "FUNCTIONS": "nommage",
       "PARAMETERS": "parametres",
       "GENERATE_ERROR": "Impossible de generer les fichiers Bicep. Verifiez que votre configuration contient au moins un groupe de ressources avec des ressources.",
       "RETRY": "Reessayer",

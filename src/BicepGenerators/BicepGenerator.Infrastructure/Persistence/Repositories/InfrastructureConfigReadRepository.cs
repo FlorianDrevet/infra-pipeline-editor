@@ -29,6 +29,7 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
         var config = await dbContext.InfrastructureConfigs
             .Include(c => c.ResourceGroups)
                 .ThenInclude(rg => rg.Resources)
+            .Include(c => c.ResourceNamingTemplates)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == configId, cancellationToken);
 
@@ -56,9 +57,6 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        if (config is null)
-            return null;
-
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
@@ -73,37 +71,73 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                 resources);
         }).ToList();
 
-        var environments = new List<EnvironmentDefinitionReadModel>();
+        // ── Load parent project for environments and naming context ─────────
+        var project = await dbContext.Projects
+            .Include(p => p.ResourceNamingTemplates)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == config.ProjectId, cancellationToken);
 
-        if (config.UseProjectEnvironments)
-        {
-            var project = await dbContext.Projects
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == config.ProjectId, cancellationToken);
-
-            if (project is not null)
-            {
-                environments = project.EnvironmentDefinitions.Select(e =>
-                    new EnvironmentDefinitionReadModel(
-                        e.Id.Value,
-                        e.Name.Value,
-                        MapLocation(e.Location))).ToList();
-            }
-        }
-        else
-        {
-            environments = config.EnvironmentDefinitions.Select(e =>
-                new EnvironmentDefinitionReadModel(
-                    e.Id.Value,
-                    e.Name.Value,
-                    MapLocation(e.Location))).ToList();
-        }
+        var environments = BuildEnvironmentList(config, project);
+        var namingContext = BuildNamingContext(config, project);
 
         return new InfrastructureConfigReadModel(
             config.Id.Value,
             config.Name.Value,
             resourceGroups,
-            environments);
+            environments,
+            namingContext);
+    }
+
+    /// <summary>
+    /// Resolves the effective environment list based on inheritance settings.
+    /// </summary>
+    private static List<EnvironmentDefinitionReadModel> BuildEnvironmentList(
+        InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig config,
+        Project? project)
+    {
+        if (config.UseProjectEnvironments && project is not null)
+        {
+            return project.EnvironmentDefinitions.Select(e =>
+                new EnvironmentDefinitionReadModel(
+                    e.Id.Value,
+                    e.Name.Value,
+                    MapLocation(e.Location),
+                    e.Prefix.Value,
+                    e.Suffix.Value)).ToList();
+        }
+
+        return config.EnvironmentDefinitions.Select(e =>
+            new EnvironmentDefinitionReadModel(
+                e.Id.Value,
+                e.Name.Value,
+                MapLocation(e.Location),
+                e.Prefix.Value,
+                e.Suffix.Value)).ToList();
+    }
+
+    /// <summary>
+    /// Resolves the effective naming context based on inheritance settings.
+    /// </summary>
+    private static NamingContextReadModel BuildNamingContext(
+        InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig config,
+        Project? project)
+    {
+        // When using project naming conventions (default), read from project
+        if (config.UseProjectNamingConventions && project is not null)
+        {
+            return new NamingContextReadModel(
+                project.DefaultNamingTemplate?.Value,
+                project.ResourceNamingTemplates.ToDictionary(
+                    t => t.ResourceType,
+                    t => t.Template.Value));
+        }
+
+        // Otherwise, read from the config itself (if overridden)
+        return new NamingContextReadModel(
+            config.DefaultNamingTemplate?.Value,
+            config.ResourceNamingTemplates.ToDictionary(
+                t => t.ResourceType,
+                t => t.Template.Value));
     }
 
     /// <summary>

@@ -2,15 +2,27 @@ using System.Text;
 
 namespace BicepGenerator.Domain;
 
+/// <summary>
+/// Assembles all Bicep output files from generated resource modules and configuration data.
+/// Produces: <c>types.bicep</c>, <c>functions.bicep</c>, <c>main.bicep</c>,
+/// per-environment <c>.bicepparam</c> files, and resource module files.
+/// </summary>
 public static class BicepAssembler
 {
+    /// <summary>
+    /// Assembles the complete Bicep output from generated modules and deployment context.
+    /// </summary>
     public static GenerationResult Assemble(
         IReadOnlyCollection<GeneratedTypeModule> modules,
         IReadOnlyList<ResourceGroupDefinition> resourceGroups,
+        IReadOnlyList<EnvironmentDefinition> environments,
         IReadOnlyList<string> environmentNames,
-        IEnumerable<ResourceDefinition> resources)
+        IEnumerable<ResourceDefinition> resources,
+        NamingContext namingContext)
     {
-        var main = GenerateMainBicep(modules, resourceGroups);
+        var typesBicep = GenerateTypesBicep(environments);
+        var functionsBicep = GenerateFunctionsBicep(namingContext);
+        var main = GenerateMainBicep(modules, resourceGroups, namingContext);
 
         var environmentParameterFiles = GenerateEnvironmentParameterFiles(
             modules, environmentNames, resources);
@@ -24,27 +36,164 @@ public static class BicepAssembler
         return new GenerationResult
         {
             MainBicep = main,
+            TypesBicep = typesBicep,
+            FunctionsBicep = functionsBicep,
             EnvironmentParameterFiles = environmentParameterFiles,
             ModuleFiles = moduleFiles
         };
     }
 
+    // ────────────────────────────────────────────────────────────────────────
+    // types.bicep
+    // ────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Generates <c>types.bicep</c> with exported environment types and variable map.
+    /// </summary>
+    internal static string GenerateTypesBicep(IReadOnlyList<EnvironmentDefinition> environments)
+    {
+        var sb = new StringBuilder();
+
+        // ── EnvironmentName union type ──────────────────────────────────────
+        if (environments.Count > 0)
+        {
+            sb.AppendLine("@export()");
+            sb.Append("type EnvironmentName = ");
+            sb.AppendJoin(" | ", environments.Select(e => $"'{SanitizeBicepKey(e.Name)}'"));
+            sb.AppendLine();
+        }
+        else
+        {
+            sb.AppendLine("@export()");
+            sb.AppendLine("type EnvironmentName = string");
+        }
+
+        sb.AppendLine();
+
+        // ── EnvironmentVariables object type ────────────────────────────────
+        sb.AppendLine("@export()");
+        sb.AppendLine("type EnvironmentVariables = {");
+        sb.AppendLine("  envName: string");
+        sb.AppendLine("  envSuffix: string");
+        sb.AppendLine("  envShortSuffix: string");
+        sb.AppendLine("  envPrefix: string");
+        sb.AppendLine("  envShortPrefix: string");
+        sb.AppendLine("  location: string");
+        sb.AppendLine("}");
+        sb.AppendLine();
+
+        // ── environments variable map ───────────────────────────────────────
+        sb.AppendLine("@export()");
+        sb.AppendLine("var environments = {");
+        foreach (var env in environments)
+        {
+            var key = SanitizeBicepKey(env.Name);
+            var shortSuffix = env.Suffix;
+            var envSuffix = string.IsNullOrEmpty(shortSuffix) ? "" : $"-{shortSuffix}";
+            var shortPrefix = env.Prefix;
+            var envPrefix = string.IsNullOrEmpty(shortPrefix) ? "" : $"{shortPrefix}-";
+
+            sb.AppendLine($"  {key}: {{");
+            sb.AppendLine($"    envName: '{env.Name}'");
+            sb.AppendLine($"    envSuffix: '{envSuffix}'");
+            sb.AppendLine($"    envShortSuffix: '{shortSuffix}'");
+            sb.AppendLine($"    envPrefix: '{envPrefix}'");
+            sb.AppendLine($"    envShortPrefix: '{shortPrefix}'");
+            sb.AppendLine($"    location: '{env.Location}'");
+            sb.AppendLine("  }");
+        }
+
+        sb.AppendLine("}");
+
+        return sb.ToString();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // functions.bicep
+    // ────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Generates <c>functions.bicep</c> with exported naming functions
+    /// derived from the project's naming templates.
+    /// </summary>
+    internal static string GenerateFunctionsBicep(NamingContext namingContext)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine("import { EnvironmentVariables } from 'types.bicep'");
+        sb.AppendLine();
+
+        // ── Default naming function ─────────────────────────────────────────
+        if (!string.IsNullOrEmpty(namingContext.DefaultTemplate))
+        {
+            var interpolation = NamingTemplateTranslator.ToBicepInterpolation(namingContext.DefaultTemplate);
+            var usesResourceType = NamingTemplateTranslator.UsesResourceType(namingContext.DefaultTemplate);
+            var extraParam = usesResourceType ? ", resourceType string" : "";
+
+            sb.AppendLine($"@description('Builds the default resource name from template: {namingContext.DefaultTemplate}')");
+            sb.AppendLine("@export()");
+            sb.AppendLine($"func BuildResourceName(name string, resourceAbbr string{extraParam}, env EnvironmentVariables) string =>");
+            sb.AppendLine($"  {interpolation}");
+            sb.AppendLine();
+        }
+
+        // ── Per-resource-type override functions ────────────────────────────
+        foreach (var (resourceType, template) in namingContext.ResourceTemplates)
+        {
+            var functionName = NamingTemplateTranslator.GetFunctionName(resourceType);
+            var interpolation = NamingTemplateTranslator.ToBicepInterpolation(template);
+            var usesResourceType = NamingTemplateTranslator.UsesResourceType(template);
+            var extraParam = usesResourceType ? ", resourceType string" : "";
+
+            sb.AppendLine($"@description('Builds a {resourceType} name from template: {template}')");
+            sb.AppendLine("@export()");
+            sb.AppendLine($"func {functionName}(name string, resourceAbbr string{extraParam}, env EnvironmentVariables) string =>");
+            sb.AppendLine($"  {interpolation}");
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // main.bicep
+    // ────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Generates <c>main.bicep</c> with environment-aware naming and resource deployment.
+    /// </summary>
     private static string GenerateMainBicep(
         IReadOnlyCollection<GeneratedTypeModule> modules,
-        IReadOnlyList<ResourceGroupDefinition> resourceGroups)
+        IReadOnlyList<ResourceGroupDefinition> resourceGroups,
+        NamingContext namingContext)
     {
         var sb = new StringBuilder();
 
         sb.AppendLine("targetScope = 'subscription'");
         sb.AppendLine();
-        sb.AppendLine("param location string = 'westeurope'");
+
+        // ── Imports ─────────────────────────────────────────────────────────
+        sb.AppendLine("import { EnvironmentName, environments } from 'types.bicep'");
+
+        var functionImports = BuildFunctionImportList(namingContext, modules, resourceGroups);
+        if (functionImports.Count > 0)
+        {
+            sb.Append("import { ");
+            sb.AppendJoin(", ", functionImports);
+            sb.AppendLine(" } from 'functions.bicep'");
+        }
+
         sb.AppendLine();
 
-        // Outer param declarations — one param per property per resource instance,
-        // prefixed with the module name to ensure global uniqueness and avoid BCP028.
+        // ── Parameters ──────────────────────────────────────────────────────
+        sb.AppendLine("@description('The target deployment environment')");
+        sb.AppendLine("param environmentName EnvironmentName");
+        sb.AppendLine();
+
+        // Resource-specific parameter declarations (sku, capacity, etc.)
         foreach (var module in modules)
         {
-            foreach (var (key, value) in module.Parameters.Where(p => p.Key != "location"))
+            foreach (var (key, value) in module.Parameters)
             {
                 var bicepType = InferBicepType(value);
                 sb.AppendLine($"param {module.ModuleName}{Capitalize(key)} {bicepType}");
@@ -53,30 +202,42 @@ public static class BicepAssembler
 
         sb.AppendLine();
 
-        // Resource group declarations
-        foreach (var (rg, rgSymbol) in resourceGroups.Select(rg => (rg, BicepIdentifierHelper.ToBicepIdentifier(rg.Name))))
+        // ── Environment resolution ──────────────────────────────────────────
+        sb.AppendLine("var env = environments[environmentName]");
+        sb.AppendLine();
+
+        // ── Resource group declarations ─────────────────────────────────────
+        foreach (var rg in resourceGroups)
         {
-            sb.AppendLine($"resource {rgSymbol} 'Microsoft.Resources/resourceGroups@2022-09-01' = {{");
-            sb.AppendLine($"  name: '{rg.Name}'");
-            sb.AppendLine("  location: location");
+            var rgSymbol = BicepIdentifierHelper.ToBicepIdentifier(rg.Name);
+            var nameExpr = BuildNamingExpression(
+                rg.Name, rg.ResourceAbbreviation, "ResourceGroup", namingContext);
+
+            sb.AppendLine($"resource {rgSymbol} 'Microsoft.Resources/resourceGroups@2024-07-01' = {{");
+            sb.AppendLine($"  name: {nameExpr}");
+            sb.AppendLine("  location: env.location");
             sb.AppendLine("}");
             sb.AppendLine();
         }
 
-        // One module declaration per resource instance
+        // ── Module declarations ─────────────────────────────────────────────
         foreach (var module in modules)
         {
             var rgSymbol = BicepIdentifierHelper.ToBicepIdentifier(module.ResourceGroupName);
             var moduleSymbol = $"{module.ModuleName}Module";
+            var nameExpr = BuildNamingExpression(
+                module.LogicalResourceName, module.ResourceAbbreviation,
+                module.ResourceTypeName, namingContext);
+
             sb.AppendLine($"module {moduleSymbol} './modules/{module.ModuleFileName}' = {{");
             sb.AppendLine($"  name: '{module.ModuleName}'");
             sb.AppendLine($"  scope: {rgSymbol}");
             sb.AppendLine("  params: {");
-            sb.AppendLine("    location: location");
+            sb.AppendLine("    location: env.location");
+            sb.AppendLine($"    name: {nameExpr}");
 
-            foreach (var paramKey in module.Parameters.Keys.Where(paramKey => paramKey != "location"))
+            foreach (var paramKey in module.Parameters.Keys)
             {
-                // Bind the module's internal param to its uniquely-named outer param
                 sb.AppendLine($"    {paramKey}: {module.ModuleName}{Capitalize(paramKey)}");
             }
 
@@ -88,9 +249,13 @@ public static class BicepAssembler
         return sb.ToString();
     }
 
+    // ────────────────────────────────────────────────────────────────────────
+    // .bicepparam files
+    // ────────────────────────────────────────────────────────────────────────
+
     /// <summary>
     /// Generates one <c>.bicepparam</c> file per environment.
-    /// For each environment, resource properties are merged with environment-specific overrides.
+    /// Each file sets <c>environmentName</c> and the resource-specific parameter overrides.
     /// </summary>
     private static Dictionary<string, string> GenerateEnvironmentParameterFiles(
         IReadOnlyCollection<GeneratedTypeModule> modules,
@@ -103,7 +268,7 @@ public static class BicepAssembler
         foreach (var envName in environmentNames)
         {
             var envModules = ApplyEnvironmentOverrides(modules, envName, resourceList);
-            var paramContent = GenerateMainParameters(envModules);
+            var paramContent = GenerateMainParameters(envModules, envName);
             var fileName = $"main.{envName.ToLowerInvariant()}.bicepparam";
             result[fileName] = paramContent;
         }
@@ -121,12 +286,13 @@ public static class BicepAssembler
     {
         return modules.Select(module =>
         {
-            // Find the resource definition that matches this module by reconstructing the module name
             var matchingResource = resources.FirstOrDefault(r =>
             {
                 var resourceIdentifier = BicepIdentifierHelper.ToBicepIdentifier(r.Name);
                 var expectedModuleName = GetBaseModuleName(r.Type) +
-                    (resourceIdentifier.Length == 0 ? resourceIdentifier : char.ToUpperInvariant(resourceIdentifier[0]) + resourceIdentifier[1..]);
+                    (resourceIdentifier.Length == 0
+                        ? resourceIdentifier
+                        : char.ToUpperInvariant(resourceIdentifier[0]) + resourceIdentifier[1..]);
                 return module.ModuleName == expectedModuleName;
             });
 
@@ -137,7 +303,6 @@ public static class BicepAssembler
                 return module;
             }
 
-            // Merge: start with default parameters, override with environment-specific values
             var mergedParams = new Dictionary<string, object>(module.Parameters);
             foreach (var (key, value) in envOverrides)
             {
@@ -162,21 +327,25 @@ public static class BicepAssembler
         };
     }
 
+    /// <summary>
+    /// Generates a single <c>.bicepparam</c> file setting <c>environmentName</c>
+    /// and all resource-specific parameters.
+    /// </summary>
     private static string GenerateMainParameters(
-        IReadOnlyCollection<GeneratedTypeModule> modules)
+        IReadOnlyCollection<GeneratedTypeModule> modules,
+        string environmentName)
     {
         var sb = new StringBuilder();
 
         sb.AppendLine("using 'main.bicep'");
         sb.AppendLine();
-        sb.AppendLine("param location = 'westeurope'");
+        sb.AppendLine($"param environmentName = '{environmentName}'");
         sb.AppendLine();
 
         foreach (var module in modules)
         {
-            foreach (var (key, value) in module.Parameters.Where(p => p.Key != "location"))
+            foreach (var (key, value) in module.Parameters)
             {
-                // Outer param name = moduleName + capitalised key (matches main.bicep declaration)
                 sb.AppendLine($"param {module.ModuleName}{Capitalize(key)} = {SerializeToBicep(value)}");
             }
 
@@ -184,6 +353,88 @@ public static class BicepAssembler
         }
 
         return sb.ToString();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Helpers
+    // ────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Builds a Bicep naming function call expression for a given resource.
+    /// Selects the per-resource-type override function if one exists, otherwise the default.
+    /// Falls back to a literal string when no naming template is configured.
+    /// </summary>
+    private static string BuildNamingExpression(
+        string logicalName,
+        string resourceAbbreviation,
+        string resourceTypeName,
+        NamingContext namingContext)
+    {
+        if (namingContext.ResourceTemplates.ContainsKey(resourceTypeName))
+        {
+            var funcName = NamingTemplateTranslator.GetFunctionName(resourceTypeName);
+            return $"{funcName}('{logicalName}', '{resourceAbbreviation}', env)";
+        }
+
+        if (!string.IsNullOrEmpty(namingContext.DefaultTemplate))
+        {
+            return $"BuildResourceName('{logicalName}', '{resourceAbbreviation}', env)";
+        }
+
+        return $"'{logicalName}'";
+    }
+
+    /// <summary>
+    /// Collects the set of naming functions actually referenced in <c>main.bicep</c>
+    /// to build the import statement.
+    /// </summary>
+    private static HashSet<string> BuildFunctionImportList(
+        NamingContext namingContext,
+        IReadOnlyCollection<GeneratedTypeModule> modules,
+        IReadOnlyList<ResourceGroupDefinition> resourceGroups)
+    {
+        var imports = new HashSet<string>();
+
+        if (string.IsNullOrEmpty(namingContext.DefaultTemplate) &&
+            namingContext.ResourceTemplates.Count == 0)
+        {
+            return imports;
+        }
+
+        var usedResourceTypes = modules
+            .Select(m => m.ResourceTypeName)
+            .Concat(resourceGroups.Select(_ => "ResourceGroup"))
+            .Distinct();
+
+        var hasDefault = false;
+
+        foreach (var typeName in usedResourceTypes)
+        {
+            if (namingContext.ResourceTemplates.ContainsKey(typeName))
+            {
+                imports.Add(NamingTemplateTranslator.GetFunctionName(typeName));
+            }
+            else if (!string.IsNullOrEmpty(namingContext.DefaultTemplate))
+            {
+                hasDefault = true;
+            }
+        }
+
+        if (hasDefault)
+        {
+            imports.Add("BuildResourceName");
+        }
+
+        return imports;
+    }
+
+    /// <summary>
+    /// Sanitizes a string for use as a Bicep object key.
+    /// </summary>
+    private static string SanitizeBicepKey(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return "unknown";
+        return name.Replace(' ', '_').Replace('-', '_').ToLowerInvariant();
     }
 
     private static string Capitalize(string s) =>
@@ -225,7 +476,7 @@ public static class BicepAssembler
                 sb.AppendLine($"  {p.Name}: {SerializeToBicep(propValue)}");
         }
 
-        sb.Append("}");
+        sb.Append('}');
         return sb.ToString();
     }
 }

@@ -125,6 +125,22 @@
                 {{ 'CONFIG_DETAIL.BICEP.TERMINAL_DONE' | translate }}
               </p>
               <div class="bicep-tree">
+                <!-- types.bicep -->
+                <button class="bicep-tree__item"
+                        [class.bicep-tree__item--active]="bicepViewerFile() === 'types.bicep'"
+                        (click)="openBicepFile('types.bicep')">
+                  <mat-icon class="bicep-tree__icon">data_object</mat-icon>
+                  <span class="bicep-tree__name">types.bicep</span>
+                  <span class="bicep-tree__badge bicep-tree__badge--types">{{ 'CONFIG_DETAIL.BICEP.TYPES' | translate }}</span>
+                </button>
+                <!-- functions.bicep -->
+                <button class="bicep-tree__item"
+                        [class.bicep-tree__item--active]="bicepViewerFile() === 'functions.bicep'"
+                        (click)="openBicepFile('functions.bicep')">
+                  <mat-icon class="bicep-tree__icon">functions</mat-icon>
+                  <span class="bicep-tree__name">functions.bicep</span>
+                  <span class="bicep-tree__badge bicep-tree__badge--functions">{{ 'CONFIG_DETAIL.BICEP.FUNCTIONS' | translate }}</span>
+                </button>
                 <!-- main.bicep -->
                 <button class="bicep-tree__item bicep-tree__item--main"
                         [class.bicep-tree__item--active]="bicepViewerFile() === 'main.bicep'"

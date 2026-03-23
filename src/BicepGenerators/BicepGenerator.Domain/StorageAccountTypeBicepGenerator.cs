@@ -6,19 +6,19 @@ public sealed class StorageAccountTypeBicepGenerator
     public string ResourceType
         => "Microsoft.Storage/storageAccounts";
 
-    public GeneratedTypeModule Generate(
-        ResourceDefinition resource,
-        EnvironmentDefinition environment)
+    /// <inheritdoc />
+    public string ResourceTypeName => "StorageAccount";
+
+    public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
         return new GeneratedTypeModule
         {
             ModuleName = "storageAccount",
             ModuleFileName = "storageAccount.bicep",
             ModuleBicepContent = StorageAccountModuleTemplate,
+            ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
-                ["location"] = environment.Location,
-                ["name"] = resource.Name,
                 ["sku"] = resource.Properties.GetValueOrDefault("sku", "Standard_LRS"),
                 ["kind"] = resource.Properties.GetValueOrDefault("kind", "StorageV2"),
                 ["accessTier"] = resource.Properties.GetValueOrDefault("accessTier", "Hot"),

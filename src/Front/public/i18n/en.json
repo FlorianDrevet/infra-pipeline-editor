@@ -361,6 +361,8 @@
       "TERMINAL_DONE": "Generation complete \u2014 artifacts ready",
       "ARTIFACTS": "output",
       "ENTRY_POINT": "entry point",
+      "TYPES": "types",
+      "FUNCTIONS": "naming",
       "PARAMETERS": "parameters",
       "GENERATE_ERROR": "Unable to generate Bicep files. Please check your configuration has at least one resource group with resources.",
       "RETRY": "Try again",

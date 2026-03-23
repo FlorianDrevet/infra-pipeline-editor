@@ -19,21 +19,25 @@ public sealed class BicepGenerationEngine
             var generator = _generators
                 .Single(g => g.ResourceType == resource.Type);
 
-            var module = generator.Generate(resource, request.Environment);
+            var module = generator.Generate(resource);
 
             var resourceIdentifier = BicepIdentifierHelper.ToBicepIdentifier(resource.Name);
             modules.Add(module with
             {
                 ModuleName = $"{module.ModuleName}{Capitalize(resourceIdentifier)}",
-                ResourceGroupName = resource.ResourceGroupName
+                ResourceGroupName = resource.ResourceGroupName,
+                LogicalResourceName = resource.Name,
+                ResourceAbbreviation = resource.ResourceAbbreviation
             });
         }
 
         return BicepAssembler.Assemble(
             modules,
             request.ResourceGroups,
+            request.Environments,
             request.EnvironmentNames,
-            request.Resources);
+            request.Resources,
+            request.NamingContext);
     }
 
     private static string Capitalize(string s) =>

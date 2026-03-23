@@ -6,19 +6,19 @@ public sealed class KeyVaultTypeBicepGenerator
     public string ResourceType
         => "Microsoft.KeyVault/vaults";
 
-    public GeneratedTypeModule Generate(
-        ResourceDefinition resource,
-        EnvironmentDefinition environment)
+    /// <inheritdoc />
+    public string ResourceTypeName => "KeyVault";
+
+    public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
         return new GeneratedTypeModule
         {
             ModuleName = "keyVault",
             ModuleFileName = "keyVault.bicep",
             ModuleBicepContent = KeyVaultModuleTemplate,
+            ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
-                ["location"] = environment.Location,
-                ["name"] = resource.Name,
                 ["sku"] = resource.Sku.ToLower(),
             }
         };
