@@ -2,7 +2,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Services;
 
 namespace InfraFlowSculptor.Infrastructure.Services;
 
-public class DateTimeProvider : IDateTimeProvider
+public sealed class DateTimeProvider : IDateTimeProvider
 {
     public DateTime UtcNow
     {

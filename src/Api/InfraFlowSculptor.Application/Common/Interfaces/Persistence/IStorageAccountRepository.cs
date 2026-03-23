@@ -3,7 +3,7 @@ using InfraFlowSculptor.Domain.StorageAccountAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using Shared.Application.Interfaces;
+using InfraFlowSculptor.Application.Common.Interfaces;
 
 namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 

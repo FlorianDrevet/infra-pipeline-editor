@@ -1,8 +1,8 @@
-﻿using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
-using Shared.Domain.Domain.Models;
+using InfraFlowSculptor.Domain.Common.Models;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
 namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate;

@@ -3,7 +3,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Shared.Infrastructure.Persistence.Configurations;
+using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 

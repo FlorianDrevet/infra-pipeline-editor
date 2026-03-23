@@ -1,6 +1,6 @@
 using InfraFlowSculptor.Api.Common.Mapping;
 using Microsoft.AspNetCore.Authorization;
-using Shared.Api.Configuration.OpenApiTransformers;
+using InfraFlowSculptor.Api.Configuration.OpenApiTransformers;
 
 namespace InfraFlowSculptor.Api;
 

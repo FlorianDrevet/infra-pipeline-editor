@@ -1,8 +1,7 @@
-using BicepGenerator.Domain.Common.Models;
+using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.EnvironmentParameterValue;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ParameterDefinition;
-using Shared.Domain.Domain.Models;
 
 namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 

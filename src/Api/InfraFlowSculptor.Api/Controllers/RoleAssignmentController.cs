@@ -8,7 +8,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Api.Errors;
+using InfraFlowSculptor.Api.Errors;
 
 namespace InfraFlowSculptor.Api.Controllers;
 

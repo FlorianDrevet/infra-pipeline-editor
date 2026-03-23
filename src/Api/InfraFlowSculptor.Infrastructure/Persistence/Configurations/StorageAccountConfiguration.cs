@@ -4,8 +4,7 @@ using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Shared.Infrastructure.Persistence.Configurations;
-using Shared.Infrastructure.Persistence.Configurations.Converters;
+using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 

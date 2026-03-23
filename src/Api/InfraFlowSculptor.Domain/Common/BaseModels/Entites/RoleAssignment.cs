@@ -1,4 +1,4 @@
-using BicepGenerator.Domain.Common.Models;
+using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.Common.BaseModels.Entites;

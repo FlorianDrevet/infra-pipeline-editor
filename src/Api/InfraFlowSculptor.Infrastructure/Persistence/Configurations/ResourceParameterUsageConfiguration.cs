@@ -7,7 +7,6 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.Resour
 using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Shared.Infrastructure.Persistence.Configurations;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 

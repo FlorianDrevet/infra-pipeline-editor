@@ -7,8 +7,8 @@ using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Shared.Infrastructure.Persistence.Configurations.Converters;
-using Shared.Infrastructure.Persistence.Configurations.Extensions;
+using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
+using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Extensions;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 

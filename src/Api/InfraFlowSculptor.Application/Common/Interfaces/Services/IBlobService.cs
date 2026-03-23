@@ -4,6 +4,9 @@ namespace InfraFlowSculptor.Application.Common.Interfaces.Services;
 
 public interface IBlobService
 {
-    public Task<Uri> UploadFileAsync(IFormFile formFile);
-    public Task<string> DeleteFileAsync(string fileName);
+    Task<Uri> UploadFileAsync(IFormFile formFile);
+    Task<Uri> UploadContentAsync(string fileName, string content, string contentType = "text/plain");
+    Task<string> DeleteFileAsync(string fileName);
+    Task<string?> DownloadContentAsync(string blobName);
+    Task<IReadOnlyList<string>> ListBlobsAsync(string prefix);
 }

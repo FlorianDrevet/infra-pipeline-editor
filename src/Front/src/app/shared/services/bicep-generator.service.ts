@@ -1,71 +1,34 @@
-import { inject, Injectable } from '@angular/core';
-import axios, { AxiosError } from 'axios';
-import { environment } from '../../../environments/environment';
+import { Injectable } from '@angular/core';
+import axios from 'axios';
 import {
   GenerateBicepRequest,
   GenerateBicepResponse,
 } from '../interfaces/bicep-generator.interface';
-import { MsalAuthService } from './msal-auth.service';
-
-const bicepAxios = axios.create();
 
 @Injectable({
   providedIn: 'root',
 })
 export class BicepGeneratorService {
-  private readonly msalAuth = inject(MsalAuthService);
-  private readonly bicepApiScopes = environment.msalConfig?.bicepApiScopes ?? [];
-
   async generate(request: GenerateBicepRequest): Promise<GenerateBicepResponse> {
-    const token = await this.msalAuth.getAccessTokenForScopes(this.bicepApiScopes);
-    if (!token) {
-      throw new Error('No access token for Bicep API. Please sign in.');
-    }
-
-    const response = await bicepAxios.post<GenerateBicepResponse>(
-      `${environment.bicep_api_url}/generate-bicep`,
+    const response = await axios.post<GenerateBicepResponse>(
+      '/generate-bicep',
       request,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
     );
-
     return response.data;
   }
 
   async downloadZip(configId: string): Promise<Blob> {
-    const token = await this.msalAuth.getAccessTokenForScopes(this.bicepApiScopes);
-    if (!token) {
-      throw new Error('No access token for Bicep API. Please sign in.');
-    }
-
-    const response = await bicepAxios.get(
-      `${environment.bicep_api_url}/generate-bicep/${configId}/download`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        responseType: 'blob',
-      }
+    const response = await axios.get(
+      `/generate-bicep/${configId}/download`,
+      { responseType: 'blob' },
     );
-
     return response.data as Blob;
   }
 
   async getFileContent(configId: string, filePath: string): Promise<string> {
-    const token = await this.msalAuth.getAccessTokenForScopes(this.bicepApiScopes);
-    if (!token) {
-      throw new Error('No access token for Bicep API. Please sign in.');
-    }
-
-    const response = await bicepAxios.get<{ content: string }>(
-      `${environment.bicep_api_url}/generate-bicep/${configId}/files/${filePath}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+    const response = await axios.get<{ content: string }>(
+      `/generate-bicep/${configId}/files/${filePath}`,
     );
-
     return response.data.content;
   }
 }

@@ -3,7 +3,7 @@ using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Shared.Infrastructure.Persistence.Configurations.Converters;
+using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 

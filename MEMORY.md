@@ -8,7 +8,7 @@
 
 ## 1. Solution Overview
 
-**Product goal:** Two cooperating APIs for managing Azure infrastructure — one stores the configuration, the other generates Azure Bicep files and Azure DevOps pipelines from it.
+**Product goal:** A single unified API for managing Azure infrastructure configuration and generating Azure Bicep files and Azure DevOps pipelines from it. All code lives in the standard layered projects (Domain, Application, Infrastructure, Contracts, Api) plus a dedicated `InfraFlowSculptor.BicepGeneration` project for the pure Bicep generation engine.
 
 **Technology stack:**
 - .NET 10 (global.json SDK 10.0.100)
@@ -30,30 +30,23 @@
 
 ```
 src/
-├── Api/                                    Main infrastructure-config API
-│   ├── InfraFlowSculptor.Api               Minimal API endpoints, Mapster, DI wiring
-│   ├── InfraFlowSculptor.Application       CQRS commands/queries/handlers/validators
-│   ├── InfraFlowSculptor.Domain            Aggregates, entities, value objects, errors
-│   ├── InfraFlowSculptor.Infrastructure    EF Core, repositories, Azure services
+├── Api/                                    Single unified API
+│   ├── InfraFlowSculptor.Api               Minimal API endpoints, Mapster, DI wiring, error handling, rate limiting, OpenAPI config
+│   ├── InfraFlowSculptor.Application       CQRS commands/queries/handlers/validators, IRepository<T>, service interfaces
+│   ├── InfraFlowSculptor.BicepGeneration   Pure Bicep generation engine (self-contained, no domain dependency)
+│   │   ├── Models/                        DTOs: GenerationRequest, GenerationResult, EnvironmentDefinition, ResourceDefinition, etc.
+│   │   ├── Generators/                    IResourceTypeBicepGenerator + per-resource-type implementations + factory
+│   │   └── Helpers/                       BicepIdentifierHelper, NamingTemplateTranslator
+│   ├── InfraFlowSculptor.Domain            Aggregates, entities, value objects, DDD base classes, errors
+│   ├── InfraFlowSculptor.Infrastructure    EF Core, repositories, base repository, converters, Azure services, blob storage
 │   └── InfraFlowSculptor.Contracts         Request/response DTOs, validation attributes
-├── BicepGenerators/                        Bicep generation API
-│   ├── BicepGenerator.Api                  Minimal API endpoints
-│   ├── BicepGenerator.Application          CQRS for generation
-│   ├── BicepGenerator.Domain               Generation engines (strategy pattern)
-│   ├── BicepGenerator.Infrastructure       Read repositories, blob services
-│   └── BicepGenerator.Contracts            DTOs for generation
 ├── Front/                                  Angular frontend (UI + API consumption)
 │   ├── src/app/core                        Layout components (navigation/footer)
 │   ├── src/app/shared                      Cross-cutting frontend services/guards/facades
 │   ├── src/environments                    API base URL and runtime environment config
 │   └── src/scss                            Global theming variables and style modules
-├── Shared/                                 Cross-cutting code
-│   ├── Shared.Api                          Error handling, rate limiting, OpenAPI, auth
-│   ├── Shared.Application                  IRepository<T> interface
-│   ├── Shared.Domain                       DDD base classes (AggregateRoot, Entity, ValueObject, Id…)
-│   └── Shared.Infrastructure               BaseRepository<T,TContext>, EF Core converters
 └── Aspire/
-    ├── InfraFlowSculptor.AppHost           Service orchestration (PostgreSQL, DbGate, both APIs)
+    ├── InfraFlowSculptor.AppHost           Service orchestration (PostgreSQL, DbGate, single API)
     └── InfraFlowSculptor.ServiceDefaults   Shared Aspire defaults
 ```
 
@@ -75,7 +68,7 @@ src/
 
 ### 3.2 Value Objects
 
-All value objects inherit from `Shared.Domain` base classes:
+All value objects inherit from `InfraFlowSculptor.Domain.Common.Models` base classes:
 - `Id<T>` — base for ID types; supports `new TId(Guid)` and `TId.Create(Guid)`
 - `SingleValueObject<T>` — wraps a single primitive
 - `EnumValueObject<TEnum>` — wraps an enum
@@ -240,7 +233,7 @@ Handlers return `ErrorOr<T>`. In controllers, convert to HTTP:
 ```csharp
 result.Match(
     value => Results.Ok(mapper.Map<Response>(value)),
-    errors => errors.ToErrorResult()  // from Shared.Api.Errors
+    errors => errors.ToErrorResult()  // from InfraFlowSculptor.Api.Errors
 );
 ```
 
@@ -318,7 +311,7 @@ public sealed class SomethingConfiguration : IEntityTypeConfiguration<Something>
     {
         builder.ToTable("Somethings");
         builder.HasKey(x => x.Id);
-        builder.ConfigureAggregateRootId<Something, SomethingId>(); // extension method
+        builder.ConfigureAggregateRootId<Something, SomethingId>(); // extension in InfraFlowSculptor.Infrastructure.Persistence.Configurations.Extensions
         builder.Property(x => x.Name).HasConversion(new SingleValueConverter<Name, string>());
         builder.Property(x => x.Status).HasConversion(new EnumValueConverter<Status, StatusEnum>());
     }
@@ -326,7 +319,7 @@ public sealed class SomethingConfiguration : IEntityTypeConfiguration<Something>
 ```
 
 ### 8.3 EF Core Converters
-- `IdValueConverter<TId, TKey>` — converts ID value objects ↔ underlying type
+- `IdValueConverter<TId>` — converts ID value objects ↔ underlying Guid (`InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters`)
 - `SingleValueConverter<TValueObject, TPrimitive>` — wraps/unwraps single-value objects
 - `EnumValueConverter<TEnumValueObject, TEnum>` — stores enum value objects as strings
 - `ParameterUsageConverter` — custom converter for `ParameterUsage`
@@ -354,6 +347,7 @@ public class XyzRepository(ProjectDbContext context)
 ```
 
 `IRepository<T>` methods: `GetByIdAsync`, `GetAllAsync`, `AddAsync`, `UpdateAsync` (returns T), `DeleteAsync`.
+`IRepository<T>` lives in `InfraFlowSculptor.Application.Common.Interfaces`, `BaseRepository<T,TContext>` is in `InfraFlowSculptor.Infrastructure.Persistence.Repositories`.
 
 **Important namespace note:** In `IInfrastructureConfigRepository`, use fully-qualified type name `Domain.InfrastructureConfigAggregate.InfrastructureConfig` to avoid CS0118 ambiguity.
 
@@ -519,14 +513,14 @@ Ajouter dans `angular.json` → `build.options` :
 
 ---
 
-## 14. BicepGenerator Service
+## 14. BicepGeneration Service
 
-- Separate ASP.NET Core API at `src/BicepGenerators/`
-- Called from main API via Refit client (`IBicepGeneratorClient`)
-- Reads infrastructure config from **shared PostgreSQL DB** (read-only)
-- Generates Bicep files per environment, uploads to Azure Blob Storage
+- Pure Bicep generation engine in dedicated project `InfraFlowSculptor.BicepGeneration` (namespace `InfraFlowSculptor.BicepGeneration`)
+- Self-contained: no dependency on Domain, Application, or Infrastructure
 - Uses **strategy pattern**: `IResourceTypeBicepGenerator` per Azure resource type
-- New resource types require: a new `IResourceTypeBicepGenerator` implementation + registration in `BicepGenerator.Application/DependencyInjection.cs`
+- Registered in `InfraFlowSculptor.Application/DependencyInjection.cs` as singletons
+- CQRS handlers in `InfraFlowSculptor.Application/InfrastructureConfig/Commands/GenerateBicep/`
+- New resource types require: a new `IResourceTypeBicepGenerator` implementation + registration in `Application/DependencyInjection.cs`
 - Output files: `types.bicep`, `functions.bicep`, `main.bicep`, `main.{env}.bicepparam` (per environment), `modules/*.bicep` (per resource type)
 
 ---
@@ -1115,3 +1109,10 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-23 | copilot | Added **environment-aware Bicep naming with `types.bicep` and `functions.bicep`** generation. **Architecture**: Bicep output now generates 5 file categories: `types.bicep` (exported `EnvironmentName` union type, `EnvironmentVariables` type, `environments` variable map with `envName`/`envSuffix`/`envShortSuffix`/`envPrefix`/`envShortPrefix`/`location` per env), `functions.bicep` (exported naming functions derived from project naming templates — one default `BuildResourceName` + per-resource-type overrides like `BuildResourceGroupName`/`BuildStorageAccountName`), `main.bicep` (imports types+functions, uses `param environmentName EnvironmentName`, resolves `var env = environments[environmentName]`, names resource groups and modules via naming functions, location from `env.location`), per-env `.bicepparam` files (`param environmentName = '{env}'` + resource-specific params), and `modules/*.bicep` (unchanged). **Domain changes**: `EnvironmentDefinition` gains `Name`/`Prefix`/`Suffix`; new `NamingContext` record (DefaultTemplate, ResourceTemplates, ResourceAbbreviations); new `NamingTemplateTranslator` (converts `{name}-{resourceAbbr}{suffix}` → Bicep `'${name}-${resourceAbbr}${env.envSuffix}'`); `ResourceDefinition`/`ResourceGroupDefinition` gain `ResourceAbbreviation`; `GeneratedTypeModule` gains `LogicalResourceName`/`ResourceAbbreviation`/`ResourceTypeName`; `GenerationResult` gains `TypesBicep`/`FunctionsBicep`; `IResourceTypeBicepGenerator` interface simplified (no `EnvironmentDefinition` param, adds `ResourceTypeName` property). **BicepAssembler** fully rewritten: `GenerateTypesBicep()`, `GenerateFunctionsBicep()`, updated `GenerateMainBicep()` with imports/env/naming, updated `GenerateMainParameters()` with `environmentName` param. **Read model**: `EnvironmentDefinitionReadModel` gains `Prefix`/`Suffix`; new `NamingContextReadModel`; `InfrastructureConfigReadModel` gains `NamingContext`. **Repository**: `InfrastructureConfigReadRepository` now loads project naming templates (`Include(p => p.ResourceNamingTemplates)`) and config-level templates, resolves inheritance. **Handler**: `GenerateBicepCommandHandler` passes `NamingContext` + `Environments` to engine, uploads `types.bicep` and `functions.bicep`. **Frontend**: file tree shows `types.bicep` (purple badge) and `functions.bicep` (orange badge) before `main.bicep`. i18n: `TYPES`/`FUNCTIONS` keys in both FR/EN. **Convention**: suffix values include leading hyphen for standard resources (`-dev`) and raw value for storage accounts (`dev`); both available as `envSuffix`/`envShortSuffix` in the Bicep EnvironmentVariables type. |
 | 2026-03-23 | copilot | Fixed **environment settings lost after save** on resource-edit page. Root cause: `KeyVaultRepository`, `RedisCacheRepository`, and `StorageAccountRepository` `GetByIdAsync` methods did NOT `.Include(x => x.EnvironmentSettings)`. This caused two bugs: (1) **Read path**: GET endpoint returned empty `environmentSettings` array because EF Core didn't populate the navigation property. (2) **Write path**: `SetAllEnvironmentSettings()` called `_environmentSettings.Clear()` on an empty collection (EF didn't load existing rows), then added new entries — orphaning old DB rows. Fix: added `.Include(x => x.EnvironmentSettings)` to `GetByIdAsync` and `GetByResourceGroupIdAsync` in all 3 repositories. **Pattern**: when an aggregate owns a child collection used in both read and write paths, always `.Include()` it in repository queries — otherwise `Clear()` + re-add will not properly delete old rows. |
 | 2026-03-23 | copilot | Fixed **Bicep generation error ("Impossible de generer les fichiers Bicep")** — caused by MSAL silent token acquisition failure for the Bicep API scope (`api://6960eaa6.../Generate`). **Root cause**: `MsalAuthService.getAccessTokenForScopes()` only tried `acquireTokenSilent`; when the user hadn't previously consented to the Bicep API scope (or the cached token expired), it returned `null`, the service threw, and the generic error message was shown. **Fix**: (1) Added `acquireTokenPopup` fallback in `getAccessTokenForScopes()` when silent acquisition fails. (2) Improved `generateBicep()` error handling in `config-detail.component.ts` to distinguish auth errors (401/403 or missing token) from generation errors with specific i18n keys. (3) Added `GENERATE_AUTH_ERROR` i18n key in FR/EN. **Pattern**: for multi-API MSAL setups, always fall back to interactive token acquisition when silent fails for scopes that may not have been consented to yet. |
+| 2026-03-23 | copilot | **Merged Bicep Generator API into main API** (Option A architecture). Eliminated the separate `BicepGenerator.Api` and `BicepGenerator.Infrastructure` projects. Kept `BicepGenerator.Domain/Application/Contracts` as separate csproj with dual-interface pattern. |
+| 2026-03-23 | copilot | **Fully merged BicepGenerator.* into main API layers** — eliminated ALL separate BicepGenerator projects (Domain, Application, Contracts). **Domain**: Bicep generation classes moved to `InfraFlowSculptor.Domain/InfrastructureConfigAggregate/BicepGeneration/` (BicepGenerationEngine, BicepAssembler, type generators, naming helpers). **Application**: Commands (GenerateBicep, DownloadBicep) and Query (GetBicepFileContent) moved to `InfraFlowSculptor.Application/InfrastructureConfig/Commands|Queries/`. ReadModels moved to `InfrastructureConfig/ReadModels/`. `IInfrastructureConfigReadRepository` moved to main interfaces. Domain services registered directly in `AddApplication()`. **Contracts**: `GenerateBicepRequest`/`GenerateBicepResponse` moved to `InfraFlowSculptor.Contracts/InfrastructureConfig/`. **Infrastructure**: eliminated dual-interface pattern — `BlobService` implements single `IBlobService` (expanded with `UploadContentAsync`/`DownloadContentAsync`/`ListBlobsAsync`), `DateTimeProvider` implements single `IDateTimeProvider`. Simple direct registrations. **Deleted**: entire `src/BicepGenerators/` directory, removed from slnx. Build 0 errors. |
+| 2026-03-23 | copilot | **Eliminated Shared projects + extracted BicepGeneration csproj**. Two architectural changes: (1) **Removed all Shared projects** (`Shared.Domain`, `Shared.Application`, `Shared.Infrastructure`, `Shared.Api`) — all contents moved into main API layers. DDD base classes (`AggregateRoot`, `Entity`, `ValueObject`, `Id`, `SingleValueObject`, `EnumValueObject`) → `InfraFlowSculptor.Domain/Common/Models/` (namespace `InfraFlowSculptor.Domain.Common.Models`). `IRepository<T>` → `InfraFlowSculptor.Application/Common/Interfaces/`. `BaseRepository<T,TContext>`, EF Core converters, extensions → `InfraFlowSculptor.Infrastructure/Persistence/`. Error handling, rate limiting, OpenAPI config, options → `InfraFlowSculptor.Api/`. Fixed inconsistent namespaces (`BicepGenerator.Domain.Common.Models`, `Shared.Domain.Domain.Models`, `Shared.Domain.Models` all unified to `InfraFlowSculptor.Domain.Common.Models`). Removed all Shared project references from csproj files, deleted `src/Shared/` directory, removed from slnx. (2) **Extracted Bicep generation** into `InfraFlowSculptor.BicepGeneration` csproj (namespace `InfraFlowSculptor.BicepGeneration`) — pure generation engine with no Domain/Infrastructure dependency. Contains: BicepGenerationEngine, BicepAssembler, type generators, naming helpers, all DTOs (GenerationRequest, GenerationResult, etc.). Referenced by Application only. Build 0 errors, 62 warnings (pre-existing). |
+| 2026-03-23 | copilot | Fixed package-version mismatch warnings (`NU1608`) by removing obsolete `MediatR.Extensions.Microsoft.DependencyInjection` reference (v11 constraint) while keeping `MediatR` v13. Updated `InfraFlowSculptor.Application.csproj` and `Directory.Packages.props`. Full solution build now succeeds without NU1608 warnings (`dotnet build .\InfraFlowSculptor.slnx`), remaining warnings are nullable/XML pre-existing warnings. |
+| 2026-03-23 | copilot | Fixed IDE error `Partial method 'Regex PlaceholderRegex()' must have an implementation part because it has accessibility modifiers` by replacing `GeneratedRegex` partial methods with static compiled `Regex` fields in `NamingTemplateTranslator` and `NamingTemplateValidator`. This removes IDE/compiler feature-version coupling while preserving behavior. |
+| 2026-03-23 | copilot | Fixed IDE duplicate-type diagnostic (`Duplicate definition 'InfraFlowSculptor.Application.InfrastructureConfig.Common.NamingTemplateValidator'`) by declaring `NamingTemplateValidator` as `partial` to be compatible with analyzer/source-generated companion declarations. |
+| 2026-03-23 | copilot | **Reorganized `InfraFlowSculptor.BicepGeneration` project** from flat root (16 files) into logical subfolders: `Models/` (7 DTOs: EnvironmentDefinition, GeneratedTypeModule, GenerationRequest, GenerationResult, NamingContext, ResourceDefinition, ResourceGroupDefinition), `Generators/` (5 files: IResourceTypeBicepGenerator, KeyVault/RedisCache/StorageAccount generators, ResourceGeneratorFactory), `Helpers/` (2 files: BicepIdentifierHelper, NamingTemplateTranslator). BicepAssembler and BicepGenerationEngine stay at root as entry points. Namespaces updated to match folder paths (`.Models`, `.Generators`, `.Helpers`). Updated usings in Application DependencyInjection.cs and GenerateBicepCommandHandler.cs. Full solution build 0 errors 0 warnings. |

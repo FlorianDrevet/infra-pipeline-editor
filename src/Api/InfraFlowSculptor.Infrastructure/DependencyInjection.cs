@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Infrastructure.Extensions;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 using InfraFlowSculptor.Infrastructure.Services;
+using InfraFlowSculptor.Infrastructure.Services.BlobService;
 using Microsoft.Identity.Web;
 
 namespace InfraFlowSculptor.Infrastructure;
@@ -22,6 +24,7 @@ public static class DependencyInjection
         services
             .AddAuth(builderConfiguration)
             .AddAzureServices(builderConfiguration)
+            .AddBlob(builderConfiguration)
             .AddRepositories();
         
         services.AddMigration<ProjectDbContext>();
@@ -45,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<IStorageAccountRepository, StorageAccountRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAzureResourceRepository, AzureResourceBaseRepository>();
+        services.AddScoped<IInfrastructureConfigReadRepository, InfrastructureConfigReadRepository>();
 
         return services;
     }
@@ -60,6 +64,19 @@ public static class DependencyInjection
                                       string.Empty;
             clientBuilder.AddBlobServiceClient(connectionString);
         });
+        return services;
+    }
+
+    private static IServiceCollection AddBlob(
+        this IServiceCollection services,
+        ConfigurationManager builderConfiguration)
+    {
+        var blobSettings = new BlobSettings();
+        builderConfiguration.Bind(BlobSettings.SectionName, blobSettings);
+        services.AddSingleton(Options.Create(blobSettings));
+
+        services.AddSingleton<IBlobService, BlobService>();
+
         return services;
     }
 

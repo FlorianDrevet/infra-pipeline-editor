@@ -1,6 +1,6 @@
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using Shared.Application.Interfaces;
+using InfraFlowSculptor.Application.Common.Interfaces;
 
 namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 

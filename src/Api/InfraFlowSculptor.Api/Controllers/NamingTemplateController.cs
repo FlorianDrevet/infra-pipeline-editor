@@ -8,7 +8,7 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Api.Errors;
+using InfraFlowSculptor.Api.Errors;
 
 namespace InfraFlowSculptor.Api.Controllers;
 

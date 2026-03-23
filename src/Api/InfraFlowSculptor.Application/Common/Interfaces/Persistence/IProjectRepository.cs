@@ -1,7 +1,7 @@
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
-using Shared.Application.Interfaces;
+using InfraFlowSculptor.Application.Common.Interfaces;
 
 namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 
