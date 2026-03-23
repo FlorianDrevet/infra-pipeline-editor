@@ -587,8 +587,20 @@ export class ConfigDetailComponent implements OnInit {
     try {
       const result = await this.bicepService.generate({ infrastructureConfigId: configId });
       this.bicepResult.set(result);
-    } catch {
-      this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_ERROR');
+    } catch (err: unknown) {
+      const axios = await import('axios');
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        if (status === 401 || status === 403) {
+          this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_AUTH_ERROR');
+        } else {
+          this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_ERROR');
+        }
+      } else if (err instanceof Error && err.message.includes('access token')) {
+        this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_AUTH_ERROR');
+      } else {
+        this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_ERROR');
+      }
     } finally {
       this.bicepLoading.set(false);
     }

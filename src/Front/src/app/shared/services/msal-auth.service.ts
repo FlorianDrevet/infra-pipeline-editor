@@ -155,8 +155,14 @@ export class MsalAuthService {
       const result = await this.msalInstance.acquireTokenSilent(request);
       return result.accessToken || null;
     } catch (err) {
-      console.warn('MsalAuthService: silent token acquisition failed for scopes', scopes, err);
-      return null;
+      console.warn('MsalAuthService: silent token acquisition failed for scopes, trying popup', scopes, err);
+      try {
+        const result = await this.msalInstance.acquireTokenPopup({ scopes, account });
+        return result.accessToken || null;
+      } catch (popupErr) {
+        console.warn('MsalAuthService: popup token acquisition also failed', popupErr);
+        return null;
+      }
     }
   }
 

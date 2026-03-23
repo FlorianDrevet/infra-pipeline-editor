@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { environment } from '../../../environments/environment';
 import {
   GenerateBicepRequest,
