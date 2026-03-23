@@ -263,6 +263,7 @@
       "ADD_DIALOG_TITLE_StorageAccount": "New Storage Account",
       "ADD_DIALOG_TITLE_AppServicePlan": "New App Service Plan",
       "ADD_DIALOG_TITLE_WebApp": "New Web App",
+      "ADD_DIALOG_TITLE_UserAssignedIdentity": "New User-Assigned Identity",
       "ADD_ERROR": "Failed to create the resource.",
       "FORM": {
         "NAME": "Name",

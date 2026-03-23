@@ -12,6 +12,7 @@ using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
+using InfraFlowSculptor.Domain.UserAssignedIdentityAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate.Entities;
 using InfraFlowSculptor.Infrastructure.Persistence;
@@ -226,6 +227,13 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     .Where(es => es.WebAppId == wa.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
+            UserAssignedIdentity uai => new AzureResourceReadModel(
+                uai.Id.Value,
+                uai.Name.Value,
+                MapLocation(uai.Location),
+                "Microsoft.ManagedIdentity/userAssignedIdentities",
+                new Dictionary<string, string>(),
+                new List<ResourceEnvironmentConfigReadModel>()),
             _ => null
         };
     }

@@ -25,9 +25,15 @@ public class AddRoleAssignmentCommandHandler(
         if (sourceResource is null)
             return Errors.RoleAssignment.SourceResourceNotFound(request.SourceResourceId);
 
-        var resourceType = sourceResource.GetType().Name;
-        if (!AzureRoleDefinitionCatalog.IsValidForResourceType(resourceType, request.RoleDefinitionId))
-            return Errors.RoleAssignment.InvalidRoleDefinitionForResourceType(request.RoleDefinitionId, resourceType);
+        var targetResource = await azureResourceRepository.GetByIdAsync(
+            request.TargetResourceId, cancellationToken);
+
+        if (targetResource is null)
+            return Errors.RoleAssignment.TargetResourceNotFound(request.TargetResourceId);
+
+        var targetResourceType = targetResource.GetType().Name;
+        if (!AzureRoleDefinitionCatalog.IsValidForResourceType(targetResourceType, request.RoleDefinitionId))
+            return Errors.RoleAssignment.InvalidRoleDefinitionForResourceType(request.RoleDefinitionId, targetResourceType);
 
         var resourceGroup = await resourceGroupRepository.GetByIdAsync(
             sourceResource.ResourceGroupId, cancellationToken);
@@ -39,12 +45,6 @@ public class AddRoleAssignmentCommandHandler(
 
         if (authResult.IsError)
             return authResult.Errors;
-
-        var targetExists = await azureResourceRepository.ExistsAsync(
-            request.TargetResourceId, cancellationToken);
-
-        if (!targetExists)
-            return Errors.RoleAssignment.TargetResourceNotFound(request.TargetResourceId);
 
         var managedIdentityType = new ManagedIdentityType(
             Enum.Parse<ManagedIdentityType.IdentityTypeEnum>(request.ManagedIdentityType, ignoreCase: true));

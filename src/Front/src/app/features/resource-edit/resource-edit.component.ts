@@ -27,8 +27,10 @@ import { RedisCacheResponse, RedisCacheEnvironmentConfigEntry } from '../../shar
 import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry } from '../../shared/interfaces/storage-account.interface';
 import { AppServicePlanResponse, AppServicePlanEnvironmentConfigEntry } from '../../shared/interfaces/app-service-plan.interface';
 import { WebAppResponse, WebAppEnvironmentConfigEntry } from '../../shared/interfaces/web-app.interface';
+import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
+import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { RoleAssignmentResponse, AzureRoleDefinitionResponse } from '../../shared/interfaces/role-assignment.interface';
@@ -41,7 +43,7 @@ import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service
 import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | UserAssignedIdentityResponse;
 
 /** SKU options per resource type */
 const KEY_VAULT_SKU_OPTIONS = [
@@ -135,6 +137,7 @@ export class ResourceEditComponent implements OnInit {
   private readonly storageAccountService = inject(StorageAccountService);
   private readonly appServicePlanService = inject(AppServicePlanService);
   private readonly webAppService = inject(WebAppService);
+  private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
   private readonly authService = inject(AuthenticationService);
@@ -274,6 +277,8 @@ export class ResourceEditComponent implements OnInit {
         return this.appServicePlanService.getById(this.resourceId);
       case 'WebApp':
         return this.webAppService.getById(this.resourceId);
+      case 'UserAssignedIdentity':
+        return this.userAssignedIdentityService.getById(this.resourceId);
       default:
         throw new Error(`Unknown resource type: ${this.resourceType}`);
     }
@@ -422,6 +427,12 @@ export class ResourceEditComponent implements OnInit {
             environmentSettings: this.buildWebAppEnvSettings(),
           });
           break;
+        case 'UserAssignedIdentity':
+          await this.userAssignedIdentityService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+          });
+          break;
       }
 
       // Reload to reflect saved state
@@ -479,6 +490,9 @@ export class ResourceEditComponent implements OnInit {
           break;
         case 'WebApp':
           await this.webAppService.delete(this.resourceId);
+          break;
+        case 'UserAssignedIdentity':
+          await this.userAssignedIdentityService.delete(this.resourceId);
           break;
       }
       this.router.navigate(['/config', this.configId]);

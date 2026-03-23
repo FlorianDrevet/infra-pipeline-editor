@@ -74,6 +74,7 @@ app.UseRoleAssignmentController();
 app.UseStorageAccountController();
 app.UseAppServicePlanController();
 app.UseWebAppController();
+app.UseUserAssignedIdentityController();
 app.UseBicepGenerationController();
 app.MapDefaultEndpoints();
 

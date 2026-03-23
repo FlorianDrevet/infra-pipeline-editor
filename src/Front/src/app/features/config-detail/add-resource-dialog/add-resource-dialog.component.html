@@ -347,10 +347,21 @@
     </button>
   }
   @if (step() === 'common') {
-    <button mat-flat-button color="primary" (click)="onNextToEnvironments()"
-            [disabled]="!isCommonValid() || !hasEnvironments">
-      {{ 'CONFIG_DETAIL.RESOURCES.FORM.NEXT' | translate }}
-    </button>
+    @if (needsEnvironmentSettings()) {
+      <button mat-flat-button color="primary" (click)="onNextToEnvironments()"
+              [disabled]="!isCommonValid() || !hasEnvironments">
+        {{ 'CONFIG_DETAIL.RESOURCES.FORM.NEXT' | translate }}
+      </button>
+    } @else {
+      <button mat-flat-button color="primary" (click)="onSubmit()"
+              [disabled]="!isCommonValid() || isSubmitting()">
+        @if (isSubmitting()) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          {{ 'CONFIG_DETAIL.RESOURCES.FORM.ADD' | translate }}
+        }
+      </button>
+    }
   }
   @if (step() === 'environments') {
     <button mat-flat-button color="primary" (click)="onSubmit()"

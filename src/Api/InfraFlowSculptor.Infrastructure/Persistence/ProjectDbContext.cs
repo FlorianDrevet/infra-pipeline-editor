@@ -14,6 +14,7 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.UserAggregate;
+using InfraFlowSculptor.Domain.UserAssignedIdentityAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -46,6 +47,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<AppServicePlanEnvironmentSettings> AppServicePlanEnvironmentSettings { get; set; } = null!;
     public DbSet<WebApp> WebApps { get; set; } = null!;
     public DbSet<WebAppEnvironmentSettings> WebAppEnvironmentSettings { get; set; } = null!;
+    public DbSet<UserAssignedIdentity> UserAssignedIdentities { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -22,6 +22,7 @@ import { RedisCacheService } from '../../../shared/services/redis-cache.service'
 import { StorageAccountService } from '../../../shared/services/storage-account.service';
 import { AppServicePlanService } from '../../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../../shared/services/web-app.service';
+import { UserAssignedIdentityService } from '../../../shared/services/user-assigned-identity.service';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
@@ -125,6 +126,7 @@ export class AddResourceDialogComponent {
   private readonly storageAccountService = inject(StorageAccountService);
   private readonly appServicePlanService = inject(AppServicePlanService);
   private readonly webAppService = inject(WebAppService);
+  private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly fb = inject(FormBuilder);
 
@@ -149,6 +151,11 @@ export class AddResourceDialogComponent {
 
   protected readonly environments = this.data.environments;
   protected readonly hasEnvironments = this.data.environments.length > 0;
+
+  protected readonly needsEnvironmentSettings = computed(() => {
+    const type = this.selectedType();
+    return type !== null && type !== ResourceTypeEnum.UserAssignedIdentity;
+  });
 
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
@@ -299,7 +306,12 @@ export class AddResourceDialogComponent {
   }
 
   protected onNextToEnvironments(): void {
-    if (this.commonForm.invalid || !this.hasEnvironments) return;
+    if (this.commonForm.invalid) return;
+    if (!this.needsEnvironmentSettings()) {
+      this.onSubmit();
+      return;
+    }
+    if (!this.hasEnvironments) return;
     this.step.set('environments');
   }
 
@@ -353,6 +365,8 @@ export class AddResourceDialogComponent {
           runtimeStack: [''],
           runtimeVersion: [''],
         });
+      case ResourceTypeEnum.UserAssignedIdentity:
+        return this.fb.group({});
     }
   }
 
@@ -438,6 +452,14 @@ export class AddResourceDialogComponent {
             alwaysOn: common.alwaysOn!,
             httpsOnly: common.httpsOnly!,
             environmentSettings: this.buildWebAppEnvironmentSettings(),
+          });
+          break;
+        }
+        case ResourceTypeEnum.UserAssignedIdentity: {
+          await this.userAssignedIdentityService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
           });
           break;
         }

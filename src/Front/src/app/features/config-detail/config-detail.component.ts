@@ -29,6 +29,7 @@ import { ResourceGroupService } from '../../shared/services/resource-group.servi
 import { KeyVaultService } from '../../shared/services/key-vault.service';
 import { RedisCacheService } from '../../shared/services/redis-cache.service';
 import { StorageAccountService } from '../../shared/services/storage-account.service';
+import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
@@ -72,6 +73,7 @@ export class ConfigDetailComponent implements OnInit {
   private readonly keyVaultService = inject(KeyVaultService);
   private readonly redisCacheService = inject(RedisCacheService);
   private readonly storageAccountService = inject(StorageAccountService);
+  private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly projectService = inject(ProjectService);
   private readonly bicepService = inject(BicepGeneratorService);
   private readonly authService = inject(AuthenticationService);
@@ -559,6 +561,9 @@ export class ConfigDetailComponent implements OnInit {
           break;
         case 'StorageAccount':
           await this.storageAccountService.delete(resource.id);
+          break;
+        case 'UserAssignedIdentity':
+          await this.userAssignedIdentityService.delete(resource.id);
           break;
       }
       // Refresh resource list for this resource group
