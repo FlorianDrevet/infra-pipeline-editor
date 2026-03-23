@@ -651,6 +651,44 @@
   flex-shrink: 0;
 }
 
+.resource-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.resource-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+
+  mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
+
+  &--edit {
+    color: #1565c0;
+    border-color: rgba(21, 101, 192, 0.18);
+    background: rgba(21, 101, 192, 0.05);
+    &:hover { background: rgba(21, 101, 192, 0.12); }
+  }
+
+  &--delete {
+    color: #c62828;
+    border-color: rgba(217, 45, 32, 0.18);
+    background: rgba(217, 45, 32, 0.05);
+    &:hover { background: rgba(217, 45, 32, 0.12); }
+  }
+}
+
 // ─── Naming Templates ────
 
 .naming-toolbar {

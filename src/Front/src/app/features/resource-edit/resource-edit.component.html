@@ -1,0 +1,411 @@
+<div class="resource-page">
+  @if (isLoading()) {
+    <div class="state-card state-card--loading" aria-live="polite">
+      <div class="pulse-dot"></div>
+      <div>
+        <strong>{{ 'RESOURCE_EDIT.STATE.LOADING_TITLE' | translate }}</strong>
+        <p>{{ 'RESOURCE_EDIT.STATE.LOADING_DESCRIPTION' | translate }}</p>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="state-card state-card--error" role="alert" aria-live="assertive">
+      <strong>{{ loadError() | translate }}</strong>
+      <a class="ghost-button ghost-button--dark" [routerLink]="['/config', configId]">
+        {{ 'RESOURCE_EDIT.ACTIONS.BACK' | translate }}
+      </a>
+    </div>
+  } @else if (resource()) {
+    <!-- ─── Header ─── -->
+    <section class="resource-header">
+      <div class="resource-header__nav">
+        <a class="ghost-button" [routerLink]="['/config', configId]">
+          {{ 'RESOURCE_EDIT.ACTIONS.BACK' | translate }}
+        </a>
+        <div class="resource-header__actions">
+          @if (canWrite()) {
+            <button
+              class="save-btn"
+              (click)="onSave()"
+              [disabled]="isSaving() || generalForm.invalid">
+              @if (isSaving()) {
+                <mat-spinner diameter="18" class="save-btn__spinner"></mat-spinner>
+              } @else {
+                <mat-icon class="save-btn__icon">save</mat-icon>
+              }
+              {{ (isSaving() ? 'RESOURCE_EDIT.ACTIONS.SAVING' : 'RESOURCE_EDIT.ACTIONS.SAVE') | translate }}
+            </button>
+          }
+          @if (isOwner()) {
+            <button class="delete-btn" (click)="openDeleteDialog()" [disabled]="isSaving()">
+              <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
+              {{ 'RESOURCE_EDIT.DELETE.BUTTON' | translate }}
+            </button>
+          }
+        </div>
+      </div>
+      <div class="resource-header__info">
+        <span class="eyebrow">
+          <mat-icon class="eyebrow__icon">{{ resourceTypeIcons[resourceType] || 'widgets' }}</mat-icon>
+          {{ resourceType }}
+        </span>
+        <h1>{{ resource()!.name }}</h1>
+        <p class="resource-header__id">{{ resource()!.id }}</p>
+      </div>
+    </section>
+
+    <!-- ─── Success / Error banners ─── -->
+    @if (saveSuccess()) {
+      <div class="feedback-banner feedback-banner--success" role="status">
+        <mat-icon>check_circle</mat-icon>
+        {{ 'RESOURCE_EDIT.FEEDBACK.SAVE_SUCCESS' | translate }}
+      </div>
+    }
+    @if (saveError()) {
+      <div class="feedback-banner feedback-banner--error" role="alert">
+        <mat-icon>error_outline</mat-icon>
+        {{ saveError() | translate }}
+      </div>
+    }
+
+    <!-- ─── Main Content Tabs ─── -->
+    <mat-tab-group class="resource-tabs" animationDuration="200ms">
+      <!-- General Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">settings</mat-icon>
+          <span>{{ 'RESOURCE_EDIT.TABS.GENERAL' | translate }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <form [formGroup]="generalForm" class="general-form">
+            <!-- Common fields -->
+            <div class="form-section">
+              <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.IDENTITY' | translate }}</h3>
+              <div class="form-grid">
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>{{ 'RESOURCE_EDIT.GENERAL.NAME' | translate }}</mat-label>
+                  <input matInput formControlName="name" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>{{ 'RESOURCE_EDIT.GENERAL.LOCATION' | translate }}</mat-label>
+                  <mat-select formControlName="location">
+                    @for (loc of locationOptions; track loc.value) {
+                      <mat-option [value]="loc.value">{{ loc.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Type-specific fields -->
+            <div class="form-section">
+              <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+              <div class="form-grid">
+                @switch (resourceType) {
+                  @case ('KeyVault') {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                      <mat-select formControlName="sku">
+                        @for (opt of keyVaultSkuOptions; track opt.value) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  }
+                  @case ('RedisCache') {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                      <mat-select formControlName="sku">
+                        @for (opt of redisSkuOptions; track opt.value) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CAPACITY' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="capacity" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.REDIS_VERSION' | translate }}</mat-label>
+                      <mat-select formControlName="redisVersion">
+                        @for (opt of redisVersionOptions; track opt.value) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
+                      <mat-select formControlName="minimumTlsVersion">
+                        @for (opt of redisTlsOptions; track opt.value) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.EVICTION_POLICY' | translate }}</mat-label>
+                      <mat-select formControlName="maxMemoryPolicy">
+                        @for (opt of redisEvictionOptions; track opt.value) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <div class="form-field form-field--toggle">
+                      <mat-slide-toggle formControlName="enableNonSslPort" color="primary">
+                        {{ 'RESOURCE_EDIT.FIELDS.ENABLE_NON_SSL' | translate }}
+                      </mat-slide-toggle>
+                    </div>
+                  }
+                  @case ('StorageAccount') {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                      <mat-select formControlName="sku">
+                        @for (opt of storageSkuOptions; track opt.value) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.KIND' | translate }}</mat-label>
+                      <mat-select formControlName="kind">
+                        @for (opt of storageKindOptions; track opt.value) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACCESS_TIER' | translate }}</mat-label>
+                      <mat-select formControlName="accessTier">
+                        @for (opt of storageAccessTierOptions; track opt.value) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
+                      <mat-select formControlName="minimumTlsVersion">
+                        @for (opt of storageTlsOptions; track opt.value) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <div class="form-field form-field--toggle">
+                      <mat-slide-toggle formControlName="allowBlobPublicAccess" color="primary">
+                        {{ 'RESOURCE_EDIT.FIELDS.ALLOW_BLOB_PUBLIC' | translate }}
+                      </mat-slide-toggle>
+                    </div>
+                    <div class="form-field form-field--toggle">
+                      <mat-slide-toggle formControlName="enableHttpsTrafficOnly" color="primary">
+                        {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
+                      </mat-slide-toggle>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- Environment Configuration Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">cloud_queue</mat-icon>
+          <span>{{ 'RESOURCE_EDIT.TABS.ENVIRONMENTS' | translate }}</span>
+          <span class="tab-count">{{ environments().length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          @if (environments().length === 0) {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">cloud_queue</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.ENVIRONMENTS.EMPTY' | translate }}</p>
+            </div>
+          } @else {
+            <div class="env-description">
+              <mat-icon class="env-description__icon">info_outline</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.ENVIRONMENTS.DESCRIPTION' | translate }}</p>
+            </div>
+
+            <!-- Environment selector pills -->
+            <div class="env-selector" role="tablist">
+              @for (env of environments(); track env.id; let i = $index) {
+                <button
+                  class="env-pill"
+                  [class.env-pill--active]="selectedEnvIndex() === i"
+                  role="tab"
+                  [attr.aria-selected]="selectedEnvIndex() === i"
+                  (click)="selectedEnvIndex.set(i)">
+                  {{ env.name }}
+                </button>
+              }
+            </div>
+
+            <!-- Current environment form -->
+            @if (envForms()[selectedEnvIndex()]; as currentEnv) {
+              <div class="env-form-panel" role="tabpanel">
+                <div class="env-form-panel__header">
+                  <h3>
+                    <mat-icon>cloud_circle</mat-icon>
+                    {{ currentEnv.envName }}
+                  </h3>
+                  <span class="env-form-panel__hint">{{ 'RESOURCE_EDIT.ENVIRONMENTS.OVERRIDE_HINT' | translate }}</span>
+                </div>
+                <form [formGroup]="currentEnv.form" class="env-form-grid">
+                  @switch (resourceType) {
+                    @case ('KeyVault') {
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                        <mat-select formControlName="sku">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of keyVaultSkuOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    }
+                    @case ('RedisCache') {
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                        <mat-select formControlName="sku">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of redisSkuOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CAPACITY' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="capacity" />
+                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.REDIS_VERSION' | translate }}</mat-label>
+                        <mat-select formControlName="redisVersion">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of redisVersionOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
+                        <mat-select formControlName="minimumTlsVersion">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of redisTlsOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.EVICTION_POLICY' | translate }}</mat-label>
+                        <mat-select formControlName="maxMemoryPolicy">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of redisEvictionOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="enableNonSslPort" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.ENABLE_NON_SSL' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                    }
+                    @case ('StorageAccount') {
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                        <mat-select formControlName="sku">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of storageSkuOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.KIND' | translate }}</mat-label>
+                        <mat-select formControlName="kind">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of storageKindOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACCESS_TIER' | translate }}</mat-label>
+                        <mat-select formControlName="accessTier">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of storageAccessTierOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
+                        <mat-select formControlName="minimumTlsVersion">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of storageTlsOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="allowBlobPublicAccess" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.ALLOW_BLOB_PUBLIC' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="enableHttpsTrafficOnly" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                    }
+                  }
+                </form>
+              </div>
+            }
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Identity & Access Tab (placeholder for future) -->
+      <mat-tab [disabled]="true">
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">security</mat-icon>
+          <span>{{ 'RESOURCE_EDIT.TABS.IDENTITY_ACCESS' | translate }}</span>
+          <span class="tab-badge tab-badge--soon">{{ 'RESOURCE_EDIT.TABS.COMING_SOON' | translate }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="coming-soon-panel">
+            <mat-icon class="coming-soon-panel__icon">lock_outline</mat-icon>
+            <h3>{{ 'RESOURCE_EDIT.COMING_SOON.IDENTITY_TITLE' | translate }}</h3>
+            <p>{{ 'RESOURCE_EDIT.COMING_SOON.IDENTITY_DESC' | translate }}</p>
+            <div class="coming-soon-panel__features">
+              <span class="feature-chip"><mat-icon>fingerprint</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.MANAGED_IDENTITY' | translate }}</span>
+              <span class="feature-chip"><mat-icon>admin_panel_settings</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.RBAC' | translate }}</span>
+              <span class="feature-chip"><mat-icon>policy</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.ACCESS_POLICIES' | translate }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- App Configuration Tab (placeholder for future) -->
+      <mat-tab [disabled]="true">
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">tune</mat-icon>
+          <span>{{ 'RESOURCE_EDIT.TABS.APP_CONFIG' | translate }}</span>
+          <span class="tab-badge tab-badge--soon">{{ 'RESOURCE_EDIT.TABS.COMING_SOON' | translate }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="coming-soon-panel">
+            <mat-icon class="coming-soon-panel__icon">settings_applications</mat-icon>
+            <h3>{{ 'RESOURCE_EDIT.COMING_SOON.CONFIG_TITLE' | translate }}</h3>
+            <p>{{ 'RESOURCE_EDIT.COMING_SOON.CONFIG_DESC' | translate }}</p>
+            <div class="coming-soon-panel__features">
+              <span class="feature-chip"><mat-icon>data_object</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.ENV_VARS' | translate }}</span>
+              <span class="feature-chip"><mat-icon>vpn_key</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.SECRETS' | translate }}</span>
+              <span class="feature-chip"><mat-icon>swap_horiz</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.PER_ENV_OVERRIDE' | translate }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

@@ -26,6 +26,9 @@ import {
   AddNamingTemplateDialogResult,
 } from './add-naming-template-dialog/add-naming-template-dialog.component';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
+import { KeyVaultService } from '../../shared/services/key-vault.service';
+import { RedisCacheService } from '../../shared/services/redis-cache.service';
+import { StorageAccountService } from '../../shared/services/storage-account.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
@@ -66,6 +69,9 @@ export class ConfigDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly resourceGroupService = inject(ResourceGroupService);
+  private readonly keyVaultService = inject(KeyVaultService);
+  private readonly redisCacheService = inject(RedisCacheService);
+  private readonly storageAccountService = inject(StorageAccountService);
   private readonly projectService = inject(ProjectService);
   private readonly bicepService = inject(BicepGeneratorService);
   private readonly authService = inject(AuthenticationService);
@@ -520,6 +526,51 @@ export class ConfigDetailComponent implements OnInit {
   private async refreshConfig(configId: string): Promise<void> {
     const refreshed = await this.infraConfigService.getById(configId);
     this.config.set(refreshed);
+  }
+
+  // ─── Delete Resource ───
+
+  protected openDeleteResourceDialog(resource: AzureResourceResponse, rgId: string): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_TITLE',
+        messageKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_MESSAGE',
+        messageParams: { name: resource.name, type: resource.resourceType },
+        confirmKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_YES',
+        cancelKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      await this.deleteResource(resource, rgId);
+    });
+  }
+
+  private async deleteResource(resource: AzureResourceResponse, rgId: string): Promise<void> {
+    try {
+      switch (resource.resourceType) {
+        case 'KeyVault':
+          await this.keyVaultService.delete(resource.id);
+          break;
+        case 'RedisCache':
+          await this.redisCacheService.delete(resource.id);
+          break;
+        case 'StorageAccount':
+          await this.storageAccountService.delete(resource.id);
+          break;
+      }
+      // Refresh resource list for this resource group
+      this.rgResources.update((prev) => {
+        const updated = { ...prev };
+        delete updated[rgId];
+        return updated;
+      });
+      await this.loadRgResources(rgId);
+    } catch {
+      this.rgErrorKey.set('CONFIG_DETAIL.RESOURCES.DELETE_ERROR');
+    }
   }
 
   // ─── Delete Config ───

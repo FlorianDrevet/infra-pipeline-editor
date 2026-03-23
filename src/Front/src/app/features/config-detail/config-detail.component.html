@@ -289,6 +289,22 @@
                                   }
                                 </div>
                                 <span class="resource-item__location">{{ res.location }}</span>
+                                <div class="resource-item__actions">
+                                  <a
+                                    class="resource-action-btn resource-action-btn--edit"
+                                    [routerLink]="['/config', config()!.id, 'resource', res.resourceType, res.id]"
+                                    [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                    <mat-icon>edit</mat-icon>
+                                  </a>
+                                  @if (canWrite()) {
+                                    <button
+                                      class="resource-action-btn resource-action-btn--delete"
+                                      [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                      (click)="openDeleteResourceDialog(res, rg.id)">
+                                      <mat-icon>delete_outline</mat-icon>
+                                    </button>
+                                  }
+                                </div>
                               </div>
                             }
                           </div>

@@ -250,6 +250,13 @@
       "LOADING": "Chargement des ressources...",
       "EMPTY": "Aucune ressource dans ce groupe.",
       "ADD": "Ajouter une ressource",
+      "EDIT": "Modifier la ressource",
+      "DELETE": "Supprimer la ressource",
+      "DELETE_CONFIRM_TITLE": "Supprimer la ressource",
+      "DELETE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer le {{type}} \u00ab {{name}} \u00bb ? Cette action est irr\u00e9versible.",
+      "DELETE_CONFIRM_YES": "Supprimer",
+      "DELETE_CONFIRM_CANCEL": "Annuler",
+      "DELETE_ERROR": "Impossible de supprimer la ressource.",
       "ADD_DIALOG_TITLE": "Choisir le type de ressource",
       "ADD_DIALOG_TITLE_KeyVault": "Nouveau Key Vault",
       "ADD_DIALOG_TITLE_RedisCache": "Nouveau Redis Cache",
@@ -523,6 +530,77 @@
       "CONFIRM_YES": "Supprimer",
       "CONFIRM_CANCEL": "Annuler",
       "ERROR": "Impossible de supprimer la configuration."
+    }
+  },
+  "RESOURCE_EDIT": {
+    "STATE": {
+      "LOADING_TITLE": "Chargement de la ressource...",
+      "LOADING_DESCRIPTION": "R\u00e9cup\u00e9ration des d\u00e9tails et de la configuration."
+    },
+    "ERROR": {
+      "MISSING_PARAMS": "Informations manquantes dans l'URL.",
+      "LOAD_FAILED": "Impossible de charger cette ressource. Veuillez r\u00e9essayer.",
+      "SAVE_FAILED": "Impossible de sauvegarder les modifications. Veuillez r\u00e9essayer.",
+      "DELETE_FAILED": "Impossible de supprimer cette ressource. Veuillez r\u00e9essayer."
+    },
+    "ACTIONS": {
+      "BACK": "Retour \u00e0 la configuration",
+      "SAVE": "Enregistrer",
+      "SAVING": "Enregistrement..."
+    },
+    "FEEDBACK": {
+      "SAVE_SUCCESS": "Modifications enregistr\u00e9es avec succ\u00e8s."
+    },
+    "TABS": {
+      "GENERAL": "G\u00e9n\u00e9ral",
+      "ENVIRONMENTS": "Environnements",
+      "IDENTITY_ACCESS": "Identit\u00e9 & Acc\u00e8s",
+      "APP_CONFIG": "Configuration App",
+      "COMING_SOON": "Bient\u00f4t"
+    },
+    "GENERAL": {
+      "IDENTITY": "Identit\u00e9",
+      "NAME": "Nom",
+      "LOCATION": "R\u00e9gion Azure",
+      "CONFIGURATION": "Configuration"
+    },
+    "FIELDS": {
+      "SKU": "SKU",
+      "CAPACITY": "Capacit\u00e9",
+      "REDIS_VERSION": "Version Redis",
+      "TLS_VERSION": "Version TLS minimale",
+      "EVICTION_POLICY": "Politique d'\u00e9viction",
+      "ENABLE_NON_SSL": "Activer le port non-SSL",
+      "KIND": "Type de compte",
+      "ACCESS_TIER": "Niveau d'acc\u00e8s",
+      "ALLOW_BLOB_PUBLIC": "Autoriser l'acc\u00e8s public aux blobs",
+      "HTTPS_ONLY": "Trafic HTTPS uniquement"
+    },
+    "ENVIRONMENTS": {
+      "EMPTY": "Aucun environnement configur\u00e9. Ajoutez des environnements dans le projet ou la configuration.",
+      "DESCRIPTION": "Surchargez les param\u00e8tres de la ressource par environnement. Laissez un champ vide pour utiliser la valeur par d\u00e9faut de l'onglet G\u00e9n\u00e9ral.",
+      "OVERRIDE_HINT": "Indiquez uniquement les valeurs diff\u00e9rentes des valeurs par d\u00e9faut",
+      "USE_DEFAULT": "\u2014 Valeur par d\u00e9faut \u2014",
+      "NULL_HINT": "Vide = valeur par d\u00e9faut"
+    },
+    "DELETE": {
+      "BUTTON": "Supprimer",
+      "CONFIRM_TITLE": "Supprimer la ressource",
+      "CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer le {{type}} \u00ab {{name}} \u00bb ? Cette action est irr\u00e9versible.",
+      "CONFIRM_YES": "Supprimer",
+      "CONFIRM_CANCEL": "Annuler"
+    },
+    "COMING_SOON": {
+      "IDENTITY_TITLE": "Gestion des identit\u00e9s et des acc\u00e8s",
+      "IDENTITY_DESC": "Configurez les identit\u00e9s manag\u00e9es, les r\u00f4les RBAC et les politiques d'acc\u00e8s pour cette ressource. Disponible dans une prochaine version.",
+      "MANAGED_IDENTITY": "Identit\u00e9 manag\u00e9e",
+      "RBAC": "R\u00f4les RBAC",
+      "ACCESS_POLICIES": "Politiques d'acc\u00e8s",
+      "CONFIG_TITLE": "Configuration applicative",
+      "CONFIG_DESC": "G\u00e9rez les variables d'environnement, les cha\u00eenes de connexion et les secrets pour App Services, Container Apps et Azure Functions. Disponible dans une prochaine version.",
+      "ENV_VARS": "Variables d'environnement",
+      "SECRETS": "Secrets & R\u00e9f\u00e9rences",
+      "PER_ENV_OVERRIDE": "Surcharges par environnement"
     }
   }
 }

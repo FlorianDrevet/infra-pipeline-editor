@@ -250,6 +250,13 @@
       "LOADING": "Loading resources...",
       "EMPTY": "No resources in this group.",
       "ADD": "Add a resource",
+      "EDIT": "Edit resource",
+      "DELETE": "Delete resource",
+      "DELETE_CONFIRM_TITLE": "Delete resource",
+      "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete the {{type}} \u201c{{name}}\u201d? This action cannot be undone.",
+      "DELETE_CONFIRM_YES": "Delete",
+      "DELETE_CONFIRM_CANCEL": "Cancel",
+      "DELETE_ERROR": "Failed to delete the resource.",
       "ADD_DIALOG_TITLE": "Choose resource type",
       "ADD_DIALOG_TITLE_KeyVault": "New Key Vault",
       "ADD_DIALOG_TITLE_RedisCache": "New Redis Cache",
@@ -519,6 +526,77 @@
       "CONFIRM_YES": "Delete",
       "CONFIRM_CANCEL": "Cancel",
       "ERROR": "Unable to delete the configuration."
+    }
+  },
+  "RESOURCE_EDIT": {
+    "STATE": {
+      "LOADING_TITLE": "Loading resource...",
+      "LOADING_DESCRIPTION": "Fetching resource details and configuration."
+    },
+    "ERROR": {
+      "MISSING_PARAMS": "Missing resource information in the URL.",
+      "LOAD_FAILED": "Unable to load this resource. Please try again.",
+      "SAVE_FAILED": "Unable to save changes. Please try again.",
+      "DELETE_FAILED": "Unable to delete this resource. Please try again."
+    },
+    "ACTIONS": {
+      "BACK": "Back to configuration",
+      "SAVE": "Save changes",
+      "SAVING": "Saving..."
+    },
+    "FEEDBACK": {
+      "SAVE_SUCCESS": "Changes saved successfully."
+    },
+    "TABS": {
+      "GENERAL": "General",
+      "ENVIRONMENTS": "Environments",
+      "IDENTITY_ACCESS": "Identity & Access",
+      "APP_CONFIG": "App Configuration",
+      "COMING_SOON": "Soon"
+    },
+    "GENERAL": {
+      "IDENTITY": "Identity",
+      "NAME": "Name",
+      "LOCATION": "Azure Region",
+      "CONFIGURATION": "Configuration"
+    },
+    "FIELDS": {
+      "SKU": "SKU",
+      "CAPACITY": "Capacity",
+      "REDIS_VERSION": "Redis version",
+      "TLS_VERSION": "Minimum TLS version",
+      "EVICTION_POLICY": "Eviction policy",
+      "ENABLE_NON_SSL": "Enable non-SSL port",
+      "KIND": "Account kind",
+      "ACCESS_TIER": "Access tier",
+      "ALLOW_BLOB_PUBLIC": "Allow public blob access",
+      "HTTPS_ONLY": "HTTPS traffic only"
+    },
+    "ENVIRONMENTS": {
+      "EMPTY": "No environments configured. Add environments in the project or configuration first.",
+      "DESCRIPTION": "Override resource settings per environment. Leave a field empty to use the default value from the General tab.",
+      "OVERRIDE_HINT": "Only set values that differ from defaults",
+      "USE_DEFAULT": "— Use default —",
+      "NULL_HINT": "Leave empty for default"
+    },
+    "DELETE": {
+      "BUTTON": "Delete",
+      "CONFIRM_TITLE": "Delete resource",
+      "CONFIRM_MESSAGE": "Are you sure you want to delete the {{type}} \u201c{{name}}\u201d? This action cannot be undone.",
+      "CONFIRM_YES": "Delete",
+      "CONFIRM_CANCEL": "Cancel"
+    },
+    "COMING_SOON": {
+      "IDENTITY_TITLE": "Identity & Access Management",
+      "IDENTITY_DESC": "Configure managed identities, RBAC role assignments, and access policies for this resource. Available in a future release.",
+      "MANAGED_IDENTITY": "Managed Identity",
+      "RBAC": "RBAC Roles",
+      "ACCESS_POLICIES": "Access Policies",
+      "CONFIG_TITLE": "Application Configuration",
+      "CONFIG_DESC": "Manage environment variables, connection strings, and secrets for App Services, Container Apps, and Azure Functions. Available in a future release.",
+      "ENV_VARS": "Environment Variables",
+      "SECRETS": "Secrets & References",
+      "PER_ENV_OVERRIDE": "Per-environment Overrides"
     }
   }
 }
