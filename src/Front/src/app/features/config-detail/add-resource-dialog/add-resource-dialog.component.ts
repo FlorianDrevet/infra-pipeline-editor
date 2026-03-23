@@ -22,11 +22,13 @@ import { RedisCacheService } from '../../../shared/services/redis-cache.service'
 import { StorageAccountService } from '../../../shared/services/storage-account.service';
 import { AppServicePlanService } from '../../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../../shared/services/web-app.service';
+import { ResourceGroupService } from '../../../shared/services/resource-group.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
 import { StorageAccountEnvironmentConfigEntry } from '../../../shared/interfaces/storage-account.interface';
 import { AppServicePlanEnvironmentConfigEntry } from '../../../shared/interfaces/app-service-plan.interface';
 import { WebAppEnvironmentConfigEntry } from '../../../shared/interfaces/web-app.interface';
+import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
@@ -93,7 +95,7 @@ const STORAGE_TLS_OPTIONS = [
   { label: 'TLS 1.2', value: 'Tls12' },
 ];
 
-type DialogStep = 'type' | 'common' | 'environments';
+type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'environments';
 
 @Component({
   selector: 'app-add-resource-dialog',
@@ -123,6 +125,7 @@ export class AddResourceDialogComponent {
   private readonly storageAccountService = inject(StorageAccountService);
   private readonly appServicePlanService = inject(AppServicePlanService);
   private readonly webAppService = inject(WebAppService);
+  private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly step = signal<DialogStep>('type');
@@ -130,6 +133,19 @@ export class AddResourceDialogComponent {
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
   protected readonly envFormsValid = signal(true);
+
+  // ── Plan selection state (WebApp flow) ──
+  protected readonly existingPlans = signal<AzureResourceResponse[]>([]);
+  protected readonly plansLoading = signal(false);
+  protected readonly selectedPlanId = signal<string | null>(null);
+  protected readonly selectedPlanName = signal<string | null>(null);
+  protected readonly isCreatingPlan = signal(false);
+
+  protected readonly createPlanForm = this.fb.group({
+    name: ['', [Validators.required, Validators.maxLength(80)]],
+    location: ['', [Validators.required]],
+    osType: ['Linux', [Validators.required]],
+  });
 
   protected readonly environments = this.data.environments;
   protected readonly hasEnvironments = this.data.environments.length > 0;
@@ -164,6 +180,8 @@ export class AddResourceDialogComponent {
     httpsOnly: [true],
   });
 
+  // ── Create Plan form (inline ASP creation) ──
+
   // ── Per-environment FormArray ──
   protected readonly envFormArray = new FormArray<FormGroup>([]);
 
@@ -183,28 +201,106 @@ export class AddResourceDialogComponent {
   // ── Type Selection ──
   protected onSelectType(type: ResourceTypeEnum): void {
     this.selectedType.set(type);
-    this.step.set('common');
     this.errorKey.set('');
     this.buildEnvForms(type);
     this.updateCommonFormValidators(type);
+
+    if (type === ResourceTypeEnum.WebApp) {
+      this.step.set('plan-selection');
+      this.loadExistingPlans();
+    } else {
+      this.step.set('common');
+    }
+  }
+
+  // ── Plan selection (WebApp flow) ──
+  private async loadExistingPlans(): Promise<void> {
+    this.plansLoading.set(true);
+    try {
+      const resources = await this.resourceGroupService.getResources(this.data.resourceGroupId);
+      const plans = resources.filter(r => r.resourceType === 'AppServicePlan');
+      this.existingPlans.set(plans);
+    } catch {
+      this.existingPlans.set([]);
+    } finally {
+      this.plansLoading.set(false);
+    }
+  }
+
+  protected onSelectPlan(plan: AzureResourceResponse): void {
+    this.selectedPlanId.set(plan.id);
+    this.selectedPlanName.set(plan.name);
+    this.commonForm.patchValue({ appServicePlanId: plan.id });
+    this.step.set('common');
+  }
+
+  protected onStartCreatePlan(): void {
+    this.createPlanForm.patchValue({ location: this.data.location });
+    this.step.set('create-plan');
+    this.errorKey.set('');
+  }
+
+  protected onBackToPlanSelection(): void {
+    this.step.set('plan-selection');
+    this.errorKey.set('');
+  }
+
+  protected async onCreatePlanAndContinue(): Promise<void> {
+    if (this.createPlanForm.invalid) return;
+    this.isCreatingPlan.set(true);
+    this.errorKey.set('');
+
+    const planData = this.createPlanForm.getRawValue();
+    try {
+      const created = await this.appServicePlanService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name: planData.name!,
+        location: planData.location!,
+        osType: planData.osType!,
+        environmentSettings: this.environments.map(env => ({
+          environmentName: env.name,
+          sku: 'B1',
+          capacity: 1,
+        })),
+      });
+      this.selectedPlanId.set(created.id);
+      this.selectedPlanName.set(created.name);
+      this.commonForm.patchValue({ appServicePlanId: created.id });
+      this.step.set('common');
+    } catch {
+      this.errorKey.set('CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_ERROR');
+    } finally {
+      this.isCreatingPlan.set(false);
+    }
   }
 
   // ── Navigation ──
   protected onBackToType(): void {
     this.selectedType.set(null);
+    this.selectedPlanId.set(null);
+    this.selectedPlanName.set(null);
     this.step.set('type');
     this.errorKey.set('');
     this.clearExtraValidators();
   }
 
-  protected onNextToEnvironments(): void {
-    if (this.commonForm.invalid || !this.hasEnvironments) return;
-    this.step.set('environments');
-  }
-
   protected onBackToCommon(): void {
     this.step.set('common');
     this.errorKey.set('');
+  }
+
+  protected onBackFromCommon(): void {
+    if (this.selectedType() === ResourceTypeEnum.WebApp) {
+      this.step.set('plan-selection');
+    } else {
+      this.onBackToType();
+    }
+    this.errorKey.set('');
+  }
+
+  protected onNextToEnvironments(): void {
+    if (this.commonForm.invalid || !this.hasEnvironments) return;
+    this.step.set('environments');
   }
 
   protected onCancel(): void {
@@ -423,23 +519,19 @@ export class AddResourceDialogComponent {
     if (type === ResourceTypeEnum.AppServicePlan) {
       this.commonForm.controls.osType.setValidators([Validators.required]);
     } else if (type === ResourceTypeEnum.WebApp) {
-      this.commonForm.controls.appServicePlanId.setValidators([Validators.required]);
       this.commonForm.controls.runtimeStack.setValidators([Validators.required]);
       this.commonForm.controls.runtimeVersion.setValidators([Validators.required]);
     }
     this.commonForm.controls.osType.updateValueAndValidity();
-    this.commonForm.controls.appServicePlanId.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
   }
 
   private clearExtraValidators(): void {
     this.commonForm.controls.osType.clearValidators();
-    this.commonForm.controls.appServicePlanId.clearValidators();
     this.commonForm.controls.runtimeStack.clearValidators();
     this.commonForm.controls.runtimeVersion.clearValidators();
     this.commonForm.controls.osType.updateValueAndValidity();
-    this.commonForm.controls.appServicePlanId.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
   }

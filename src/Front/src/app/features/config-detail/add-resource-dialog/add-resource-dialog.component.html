@@ -1,10 +1,19 @@
 <h2 mat-dialog-title>
   @if (step() !== 'type') {
-    <button class="back-btn" (click)="step() === 'common' ? onBackToType() : onBackToCommon()">
+    <button class="back-btn" (click)="
+      step() === 'common' ? onBackFromCommon() :
+      step() === 'plan-selection' ? onBackToType() :
+      step() === 'create-plan' ? onBackToPlanSelection() :
+      onBackToCommon()
+    ">
       <mat-icon>arrow_back</mat-icon>
     </button>
     @if (step() === 'environments') {
       {{ 'CONFIG_DETAIL.RESOURCES.FORM.ENV_STEP_TITLE' | translate }}
+    } @else if (step() === 'plan-selection') {
+      {{ 'CONFIG_DETAIL.RESOURCES.FORM.PLAN_SELECT_TITLE' | translate }}
+    } @else if (step() === 'create-plan') {
+      {{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_TITLE' | translate }}
     } @else {
       {{ 'CONFIG_DETAIL.RESOURCES.ADD_DIALOG_TITLE_' + selectedType() | translate }}
     }
@@ -25,6 +34,63 @@
           </button>
         }
       </div>
+    }
+    @case ('plan-selection') {
+      <!-- Step 2a (WebApp only): Select or create App Service Plan -->
+      <p class="step-subtitle">{{ 'CONFIG_DETAIL.RESOURCES.FORM.PLAN_SELECT_SUBTITLE' | translate }}</p>
+      @if (plansLoading()) {
+        <div class="plan-loading">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+      } @else {
+        <div class="plan-picker">
+          @for (plan of existingPlans(); track plan.id) {
+            <button class="plan-card" (click)="onSelectPlan(plan)">
+              <mat-icon class="plan-card__icon">dns</mat-icon>
+              <div class="plan-card__info">
+                <span class="plan-card__name">{{ plan.name }}</span>
+                <span class="plan-card__location">{{ plan.location }}</span>
+              </div>
+              <mat-icon class="plan-card__arrow">arrow_forward</mat-icon>
+            </button>
+          }
+          <button class="plan-card plan-card--create" (click)="onStartCreatePlan()">
+            <mat-icon class="plan-card__icon plan-card__icon--create">add_circle_outline</mat-icon>
+            <div class="plan-card__info">
+              <span class="plan-card__name">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_NEW_PLAN' | translate }}</span>
+              <span class="plan-card__location">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_NEW_PLAN_HINT' | translate }}</span>
+            </div>
+            <mat-icon class="plan-card__arrow">arrow_forward</mat-icon>
+          </button>
+        </div>
+      }
+    }
+    @case ('create-plan') {
+      <!-- Step 2b (WebApp only): Inline App Service Plan creation -->
+      <p class="step-subtitle">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_SUBTITLE' | translate }}</p>
+      <form [formGroup]="createPlanForm" class="resource-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.NAME' | translate }}</mat-label>
+          <input matInput formControlName="name"
+            [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.PLAN_NAME_PLACEHOLDER' | translate" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOCATION' | translate }}</mat-label>
+          <mat-select formControlName="location">
+            @for (option of locationOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.OS_TYPE' | translate }}</mat-label>
+          <mat-select formControlName="osType">
+            @for (option of osTypeOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </form>
     }
     @case ('common') {
       <!-- Step 2: Common fields -->
@@ -56,11 +122,16 @@
         }
 
         @if (selectedType() === ResourceTypeEnum.WebApp) {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.APP_SERVICE_PLAN_ID' | translate }}</mat-label>
-            <input matInput formControlName="appServicePlanId"
-              [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.APP_SERVICE_PLAN_ID_PLACEHOLDER' | translate" />
-          </mat-form-field>
+          <div class="plan-indicator">
+            <mat-icon class="plan-indicator__icon">dns</mat-icon>
+            <div class="plan-indicator__info">
+              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN' | translate }}</span>
+              <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
+            </div>
+            <button class="plan-indicator__change" (click)="onBackFromCommon()">
+              {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
+            </button>
+          </div>
           <div class="form-row">
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
@@ -262,9 +333,19 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting() || isCreatingPlan()">
     {{ 'CONFIG_DETAIL.RESOURCES.FORM.CANCEL' | translate }}
   </button>
+  @if (step() === 'create-plan') {
+    <button mat-flat-button color="primary" (click)="onCreatePlanAndContinue()"
+            [disabled]="createPlanForm.invalid || isCreatingPlan()">
+      @if (isCreatingPlan()) {
+        <mat-spinner diameter="18"></mat-spinner>
+      } @else {
+        {{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_AND_CONTINUE' | translate }}
+      }
+    </button>
+  }
   @if (step() === 'common') {
     <button mat-flat-button color="primary" (click)="onNextToEnvironments()"
             [disabled]="!isCommonValid() || !hasEnvironments">
