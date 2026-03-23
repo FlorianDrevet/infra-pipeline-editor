@@ -7,8 +7,10 @@ using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
+/// <summary>Mapster mapping configuration for role assignment request/response types.</summary>
 public class RoleAssignmentMappingConfig : IRegister
 {
+    /// <inheritdoc />
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<(Guid SourceResourceId, AddRoleAssignmentRequest Request), AddRoleAssignmentCommand>()
@@ -16,7 +18,10 @@ public class RoleAssignmentMappingConfig : IRegister
                 new AzureResourceId(src.SourceResourceId),
                 new AzureResourceId(src.Request.TargetResourceId),
                 src.Request.ManagedIdentityType,
-                src.Request.RoleDefinitionId));
+                src.Request.RoleDefinitionId,
+                src.Request.UserAssignedIdentityId.HasValue
+                    ? new AzureResourceId(src.Request.UserAssignedIdentityId.Value)
+                    : null));
 
         config.NewConfig<ManagedIdentityType, string>()
             .MapWith(src => src.Value.ToString());
@@ -30,7 +35,8 @@ public class RoleAssignmentMappingConfig : IRegister
                 src.SourceResourceId.Value,
                 src.TargetResourceId.Value,
                 src.ManagedIdentityType.Value.ToString(),
-                src.RoleDefinitionId));
+                src.RoleDefinitionId,
+                src.UserAssignedIdentityId != null ? src.UserAssignedIdentityId.Value : null));
 
         config.NewConfig<AzureRoleDefinitionResult, AzureRoleDefinitionResponse>()
             .MapWith(src => new AzureRoleDefinitionResponse(

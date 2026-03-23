@@ -570,6 +570,8 @@ export class ResourceEditComponent implements OnInit {
         sourceResourceId: this.resourceId,
         currentResourceName: this.resource()?.name ?? '',
         siblingResources: this.allResources(),
+        resourceGroupId: (this.resource() as { resourceGroupId?: string })?.resourceGroupId ?? '',
+        configLocation: this.resource()?.location ?? 'EastUS2',
       } satisfies AddRoleAssignmentDialogData,
       width: '520px',
       maxHeight: '85vh',

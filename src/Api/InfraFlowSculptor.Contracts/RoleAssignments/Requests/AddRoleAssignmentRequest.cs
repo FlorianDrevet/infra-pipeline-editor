@@ -24,4 +24,7 @@ public class AddRoleAssignmentRequest
     /// </summary>
     [Required]
     public required string RoleDefinitionId { get; init; }
+
+    /// <summary>Required when <see cref="ManagedIdentityType"/> is <c>UserAssigned</c>. ID of the User-Assigned Identity resource to use.</summary>
+    public Guid? UserAssignedIdentityId { get; init; }
 }

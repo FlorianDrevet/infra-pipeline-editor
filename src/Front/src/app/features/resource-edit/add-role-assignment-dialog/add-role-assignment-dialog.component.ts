@@ -7,10 +7,12 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
+import { UserAssignedIdentityService } from '../../../shared/services/user-assigned-identity.service';
 import {
   AzureRoleDefinitionResponse,
   RoleAssignmentResponse,
@@ -21,6 +23,8 @@ export interface AddRoleAssignmentDialogData {
   sourceResourceId: string;
   currentResourceName: string;
   siblingResources: AzureResourceResponse[];
+  resourceGroupId: string;
+  configLocation: string;
 }
 
 @Component({
@@ -32,6 +36,7 @@ export interface AddRoleAssignmentDialogData {
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
+    MatInputModule,
     MatProgressSpinnerModule,
     MatRadioModule,
     MatSelectModule,
@@ -45,6 +50,7 @@ export class AddRoleAssignmentDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<AddRoleAssignmentDialogComponent>);
   private readonly data: AddRoleAssignmentDialogData = inject(MAT_DIALOG_DATA);
   private readonly roleAssignmentService = inject(RoleAssignmentService);
+  private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
 
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
 
@@ -63,12 +69,25 @@ export class AddRoleAssignmentDialogComponent {
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
 
-  protected readonly canSubmit = computed(() =>
-    !!this.selectedTarget() &&
-    !!this.selectedRoleId() &&
-    !!this.selectedIdentityType() &&
-    !this.isSubmitting()
-  );
+  // ─── User-Assigned Identity picker ───
+  private readonly extraIdentities = signal<AzureResourceResponse[]>([]);
+  protected readonly availableIdentities = computed(() => {
+    const fromSiblings = this.data.siblingResources.filter(r => r.resourceType === 'UserAssignedIdentity');
+    return [...fromSiblings, ...this.extraIdentities()];
+  });
+  protected readonly selectedIdentityId = signal<string>('');
+  protected readonly showCreateIdentity = signal(false);
+  protected readonly newIdentityName = signal('');
+  protected readonly isCreatingIdentity = signal(false);
+
+  protected readonly canSubmit = computed(() => {
+    const hasTarget = !!this.selectedTarget();
+    const hasRole = !!this.selectedRoleId();
+    const hasIdentityType = !!this.selectedIdentityType();
+    const notSubmitting = !this.isSubmitting();
+    const identityOk = this.selectedIdentityType() !== 'UserAssigned' || !!this.selectedIdentityId();
+    return hasTarget && hasRole && hasIdentityType && notSubmitting && identityOk;
+  });
 
   protected selectTarget(resource: AzureResourceResponse): void {
     this.selectedTarget.set(resource);
@@ -99,6 +118,54 @@ export class AddRoleAssignmentDialogComponent {
     this.errorKey.set('');
   }
 
+  protected onIdentityTypeChange(value: string): void {
+    this.selectedIdentityType.set(value);
+    if (value === 'SystemAssigned') {
+      this.selectedIdentityId.set('');
+      this.showCreateIdentity.set(false);
+      this.newIdentityName.set('');
+    }
+  }
+
+  protected selectIdentity(id: string): void {
+    this.selectedIdentityId.set(id);
+  }
+
+  protected toggleCreateIdentity(show: boolean): void {
+    this.showCreateIdentity.set(show);
+    if (!show) {
+      this.newIdentityName.set('');
+    }
+  }
+
+  protected async createIdentity(): Promise<void> {
+    const name = this.newIdentityName().trim();
+    if (!name) return;
+
+    this.isCreatingIdentity.set(true);
+    this.errorKey.set('');
+    try {
+      const created = await this.userAssignedIdentityService.create({
+        resourceGroupId: this.data.resourceGroupId,
+        name,
+        location: this.data.configLocation,
+      });
+      this.extraIdentities.update(list => [...list, {
+        id: created.id,
+        resourceType: 'UserAssignedIdentity',
+        name: created.name,
+        location: created.location,
+      }]);
+      this.selectedIdentityId.set(created.id);
+      this.showCreateIdentity.set(false);
+      this.newIdentityName.set('');
+    } catch {
+      this.errorKey.set('RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY_ERROR');
+    } finally {
+      this.isCreatingIdentity.set(false);
+    }
+  }
+
   protected async onSubmit(): Promise<void> {
     const target = this.selectedTarget();
     if (!target || !this.selectedRoleId() || this.isSubmitting()) return;
@@ -111,6 +178,7 @@ export class AddRoleAssignmentDialogComponent {
         targetResourceId: target.id,
         managedIdentityType: this.selectedIdentityType(),
         roleDefinitionId: this.selectedRoleId(),
+        userAssignedIdentityId: this.selectedIdentityType() === 'UserAssigned' ? this.selectedIdentityId() || undefined : undefined,
       });
       this.dialogRef.close(result);
     } catch {

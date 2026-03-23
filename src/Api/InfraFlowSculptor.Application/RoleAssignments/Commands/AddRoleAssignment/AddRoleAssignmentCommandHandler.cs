@@ -9,12 +9,17 @@ using MediatR;
 
 namespace InfraFlowSculptor.Application.RoleAssignments.Commands.AddRoleAssignment;
 
-public class AddRoleAssignmentCommandHandler(
+/// <summary>
+/// Handles the <see cref="AddRoleAssignmentCommand"/> request
+/// and creates a role assignment between two Azure resources.
+/// </summary>
+public sealed class AddRoleAssignmentCommandHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
     : IRequestHandler<AddRoleAssignmentCommand, ErrorOr<RoleAssignmentResult>>
 {
+    /// <inheritdoc />
     public async Task<ErrorOr<RoleAssignmentResult>> Handle(
         AddRoleAssignmentCommand request,
         CancellationToken cancellationToken)
@@ -49,7 +54,24 @@ public class AddRoleAssignmentCommandHandler(
         var managedIdentityType = new ManagedIdentityType(
             Enum.Parse<ManagedIdentityType.IdentityTypeEnum>(request.ManagedIdentityType, ignoreCase: true));
 
-        sourceResource.AddRoleAssignment(request.TargetResourceId, managedIdentityType, request.RoleDefinitionId);
+        if (managedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned
+            && request.UserAssignedIdentityId is null)
+            return Errors.RoleAssignment.UserAssignedIdentityRequired();
+
+        if (request.UserAssignedIdentityId is not null)
+        {
+            var identityResource = await azureResourceRepository.GetByIdAsync(
+                request.UserAssignedIdentityId, cancellationToken);
+
+            if (identityResource is null)
+                return Errors.RoleAssignment.UserAssignedIdentityNotFound(request.UserAssignedIdentityId);
+        }
+
+        sourceResource.AddRoleAssignment(
+            request.TargetResourceId,
+            managedIdentityType,
+            request.RoleDefinitionId,
+            request.UserAssignedIdentityId);
 
         var updated = await azureResourceRepository.UpdateAsync(sourceResource, cancellationToken);
 
@@ -63,6 +85,7 @@ public class AddRoleAssignmentCommandHandler(
             assignment.SourceResourceId,
             assignment.TargetResourceId,
             assignment.ManagedIdentityType,
-            assignment.RoleDefinitionId);
+            assignment.RoleDefinitionId,
+            assignment.UserAssignedIdentityId);
     }
 }

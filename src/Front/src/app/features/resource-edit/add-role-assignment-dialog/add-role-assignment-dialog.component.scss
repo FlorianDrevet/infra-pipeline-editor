@@ -282,3 +282,121 @@
     stroke: #fff !important;
   }
 }
+
+// ─── Identity picker ───
+
+.identity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 14rem;
+  overflow-y: auto;
+  margin-bottom: 0.65rem;
+}
+
+.identity-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
+  border: 1.5px solid rgba(146, 191, 235, 0.22);
+  background: linear-gradient(180deg, #fff, #f8fbff);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+  width: 100%;
+
+  &:hover {
+    border-color: rgba(21, 101, 192, 0.35);
+    background: rgba(21, 101, 192, 0.04);
+  }
+
+  &--selected {
+    border-color: #1565c0;
+    background: rgba(21, 101, 192, 0.06);
+  }
+
+  &__icon {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: #1565c0;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    font-weight: 600;
+    font-size: 0.84rem;
+    color: #103454;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__meta {
+    font-size: 0.72rem;
+    color: #617892;
+  }
+
+  &__check {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    color: #1565c0;
+    flex-shrink: 0;
+  }
+}
+
+.identity-create-btn {
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.identity-create-inline {
+  margin-top: 0.65rem;
+  padding: 0.85rem;
+  border-radius: 0.75rem;
+  background: rgba(241, 247, 255, 0.7);
+  border: 1px solid rgba(146, 191, 235, 0.18);
+
+  &__field {
+    width: 100%;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+}
+
+.identity-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+
+  mat-icon {
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
+    color: rgba(21, 101, 192, 0.18);
+  }
+
+  p {
+    margin: 0;
+    color: #617892;
+    font-size: 0.84rem;
+  }
+}

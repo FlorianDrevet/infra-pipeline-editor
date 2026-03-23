@@ -661,7 +661,15 @@
       "ASSIGNING": "Assigning...",
       "CANCEL": "Cancel",
       "BACK": "Back",
-      "ERROR": "Unable to assign the role. Please try again."
+      "ERROR": "Unable to assign the role. Please try again.",
+      "IDENTITY_PICKER_LABEL": "Select a User-Assigned Identity",
+      "NO_IDENTITIES": "No User-Assigned Identities found in this configuration.",
+      "CREATE_IDENTITY": "Create new identity",
+      "CANCEL_CREATE": "Cancel",
+      "NEW_IDENTITY_NAME": "Identity name",
+      "CREATING_IDENTITY": "Creating...",
+      "CREATE_IDENTITY_ERROR": "Unable to create the identity. Please try again.",
+      "CREATE_IDENTITY_SUBMIT": "Create"
     }
   }
 }

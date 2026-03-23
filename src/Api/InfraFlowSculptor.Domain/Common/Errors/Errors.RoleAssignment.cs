@@ -36,5 +36,15 @@ public static partial class Errors
                     { "ResourceType", resourceType },
                 }
             );
+
+        /// <summary>Error returned when a User-Assigned Identity is required but not specified.</summary>
+        public static Error UserAssignedIdentityRequired() => Error.Validation(
+            code: "RoleAssignment.UserAssignedIdentityRequired",
+            description: "A User-Assigned Identity must be specified when using UserAssigned managed identity type.");
+
+        /// <summary>Error returned when the specified User-Assigned Identity resource does not exist.</summary>
+        public static Error UserAssignedIdentityNotFound(AzureResourceId id) => Error.NotFound(
+            code: "RoleAssignment.UserAssignedIdentityNotFound",
+            description: $"User-Assigned Identity '{id.Value}' was not found.");
     }
 }

@@ -65,7 +65,7 @@
         <mat-radio-group
           class="identity-radio-group"
           [value]="selectedIdentityType()"
-          (change)="selectedIdentityType.set($event.value)">
+          (change)="onIdentityTypeChange($event.value)">
           <mat-radio-button value="SystemAssigned">
             {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED' | translate }}
           </mat-radio-button>
@@ -74,6 +74,77 @@
           </mat-radio-button>
         </mat-radio-group>
       </div>
+
+      <!-- User-Assigned Identity picker -->
+      @if (selectedIdentityType() === 'UserAssigned') {
+        <div class="config-section">
+          <label class="config-section__label">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.IDENTITY_PICKER_LABEL' | translate }}</label>
+
+          @if (availableIdentities().length === 0 && !showCreateIdentity()) {
+            <div class="identity-empty">
+              <mat-icon>fingerprint</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_IDENTITIES' | translate }}</p>
+              <button mat-stroked-button (click)="toggleCreateIdentity(true)">
+                <mat-icon>add</mat-icon>
+                {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY' | translate }}
+              </button>
+            </div>
+          } @else {
+            @if (availableIdentities().length > 0) {
+              <div class="identity-list">
+                @for (identity of availableIdentities(); track identity.id) {
+                  <button
+                    class="identity-card"
+                    [class.identity-card--selected]="selectedIdentityId() === identity.id"
+                    (click)="selectIdentity(identity.id)">
+                    <mat-icon class="identity-card__icon">fingerprint</mat-icon>
+                    <div class="identity-card__info">
+                      <span class="identity-card__name">{{ identity.name }}</span>
+                      <span class="identity-card__meta">{{ identity.location }}</span>
+                    </div>
+                    @if (selectedIdentityId() === identity.id) {
+                      <mat-icon class="identity-card__check">check_circle</mat-icon>
+                    }
+                  </button>
+                }
+              </div>
+            }
+
+            @if (!showCreateIdentity()) {
+              <button mat-stroked-button class="identity-create-btn" (click)="toggleCreateIdentity(true)">
+                <mat-icon>add</mat-icon>
+                {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY' | translate }}
+              </button>
+            }
+          }
+
+          @if (showCreateIdentity()) {
+            <div class="identity-create-inline">
+              <mat-form-field appearance="outline" class="identity-create-inline__field">
+                <mat-label>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NEW_IDENTITY_NAME' | translate }}</mat-label>
+                <input matInput [ngModel]="newIdentityName()" (ngModelChange)="newIdentityName.set($event)" />
+              </mat-form-field>
+              <div class="identity-create-inline__actions">
+                <button
+                  mat-flat-button
+                  color="primary"
+                  [disabled]="!newIdentityName().trim() || isCreatingIdentity()"
+                  (click)="createIdentity()">
+                  @if (isCreatingIdentity()) {
+                    <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
+                    {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATING_IDENTITY' | translate }}
+                  } @else {
+                    {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY_SUBMIT' | translate }}
+                  }
+                </button>
+                <button mat-stroked-button (click)="toggleCreateIdentity(false)" [disabled]="isCreatingIdentity()">
+                  {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CANCEL_CREATE' | translate }}
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
 
       <!-- Role selection -->
       <div class="config-section">

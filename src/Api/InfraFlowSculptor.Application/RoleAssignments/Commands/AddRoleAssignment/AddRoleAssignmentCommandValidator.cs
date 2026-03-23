@@ -3,8 +3,10 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 
 namespace InfraFlowSculptor.Application.RoleAssignments.Commands.AddRoleAssignment;
 
-public class AddRoleAssignmentCommandValidator : AbstractValidator<AddRoleAssignmentCommand>
+/// <summary>Validates the <see cref="AddRoleAssignmentCommand"/> before it is handled.</summary>
+public sealed class AddRoleAssignmentCommandValidator : AbstractValidator<AddRoleAssignmentCommand>
 {
+    /// <summary>Initializes a new instance of the <see cref="AddRoleAssignmentCommandValidator"/> class.</summary>
     public AddRoleAssignmentCommandValidator()
     {
         RuleFor(x => x.RoleDefinitionId)
@@ -19,5 +21,10 @@ public class AddRoleAssignmentCommandValidator : AbstractValidator<AddRoleAssign
         RuleFor(x => x.TargetResourceId)
             .Must((command, targetResourceId) => targetResourceId != command.SourceResourceId)
             .WithMessage("Source and target resources must be different.");
+
+        RuleFor(x => x.UserAssignedIdentityId)
+            .NotNull()
+            .WithMessage("UserAssignedIdentityId is required when ManagedIdentityType is UserAssigned.")
+            .When(x => string.Equals(x.ManagedIdentityType, nameof(ManagedIdentityType.IdentityTypeEnum.UserAssigned), StringComparison.OrdinalIgnoreCase));
     }
 }

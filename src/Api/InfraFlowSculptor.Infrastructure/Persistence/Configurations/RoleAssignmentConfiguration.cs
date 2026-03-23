@@ -34,6 +34,12 @@ public sealed class RoleAssignmentConfiguration : IEntityTypeConfiguration<RoleA
         builder.Property(r => r.RoleDefinitionId)
             .IsRequired();
 
+        builder.Property(r => r.UserAssignedIdentityId)
+            .HasConversion(
+                v => v == null ? (Guid?)null : v.Value,
+                v => v.HasValue ? new AzureResourceId(v.Value) : null)
+            .IsRequired(false);
+
         builder.HasOne<AzureResource>()
             .WithMany()
             .HasForeignKey(r => r.TargetResourceId)

@@ -665,7 +665,15 @@
       "ASSIGNING": "Assignation...",
       "CANCEL": "Annuler",
       "BACK": "Retour",
-      "ERROR": "Impossible d\u2019assigner le r\u00f4le. Veuillez r\u00e9essayer."
+      "ERROR": "Impossible d\u2019assigner le r\u00f4le. Veuillez r\u00e9essayer.",
+      "IDENTITY_PICKER_LABEL": "S\u00e9lectionner une identit\u00e9 manag\u00e9e",
+      "NO_IDENTITIES": "Aucune identit\u00e9 User-Assigned trouv\u00e9e dans cette configuration.",
+      "CREATE_IDENTITY": "Cr\u00e9er une nouvelle identit\u00e9",
+      "CANCEL_CREATE": "Annuler",
+      "NEW_IDENTITY_NAME": "Nom de l\u2019identit\u00e9",
+      "CREATING_IDENTITY": "Cr\u00e9ation en cours...",
+      "CREATE_IDENTITY_ERROR": "Impossible de cr\u00e9er l\u2019identit\u00e9. Veuillez r\u00e9essayer.",
+      "CREATE_IDENTITY_SUBMIT": "Cr\u00e9er"
     }
   }
 }
