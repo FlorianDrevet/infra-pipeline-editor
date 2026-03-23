@@ -264,6 +264,7 @@
       "ADD_DIALOG_TITLE_AppServicePlan": "Nouveau App Service Plan",
       "ADD_DIALOG_TITLE_WebApp": "Nouvelle Web App",
       "ADD_DIALOG_TITLE_UserAssignedIdentity": "Nouvelle Identité managée (User-Assigned)",
+      "ADD_DIALOG_TITLE_FunctionApp": "Nouvelle Function App",
       "ADD_ERROR": "Erreur lors de la creation de la ressource.",
       "FORM": {
         "NAME": "Nom",
@@ -297,6 +298,9 @@
         "RUNTIME_VERSION": "Version du runtime",
         "RUNTIME_VERSION_PLACEHOLDER": "ex : 8.0, 20-lts",
         "ALWAYS_ON": "Always On",
+        "FUNCTIONS_WORKER_RUNTIME": "Runtime du worker Functions",
+        "FUNCTIONS_WORKER_RUNTIME_PLACEHOLDER": "ex : dotnet-isolated, node, python",
+        "MAX_INSTANCE_COUNT": "Nombre max d'instances",
         "CANCEL": "Annuler",
         "ADD": "Ajouter",
         "ENV_STEP_TITLE": "Configuration par environnement",
@@ -602,7 +606,9 @@
       "OS_TYPE": "Type d'OS",
       "RUNTIME_STACK": "Pile d'ex\u00e9cution",
       "RUNTIME_VERSION": "Version du runtime",
-      "ALWAYS_ON": "Always On"
+      "ALWAYS_ON": "Always On",
+      "FUNCTIONS_WORKER_RUNTIME": "Runtime du worker Functions",
+      "MAX_INSTANCE_COUNT": "Nombre max d'instances"
     },
     "ENVIRONMENTS": {
       "EMPTY": "Aucun environnement configur\u00e9. Ajoutez des environnements dans le projet ou la configuration.",

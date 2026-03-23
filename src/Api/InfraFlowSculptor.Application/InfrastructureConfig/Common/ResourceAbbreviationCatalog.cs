@@ -14,6 +14,7 @@ public static class ResourceAbbreviationCatalog
         ["ResourceGroup"] = "rg",
         ["AppServicePlan"] = "asp",
         ["WebApp"] = "app",
+        ["FunctionApp"] = "func",
         ["UserAssignedIdentity"] = "id",
     };
 

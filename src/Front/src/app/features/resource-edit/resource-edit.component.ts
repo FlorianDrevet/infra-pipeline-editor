@@ -27,9 +27,11 @@ import { RedisCacheResponse, RedisCacheEnvironmentConfigEntry } from '../../shar
 import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry } from '../../shared/interfaces/storage-account.interface';
 import { AppServicePlanResponse, AppServicePlanEnvironmentConfigEntry } from '../../shared/interfaces/app-service-plan.interface';
 import { WebAppResponse, WebAppEnvironmentConfigEntry } from '../../shared/interfaces/web-app.interface';
+import { FunctionAppResponse, FunctionAppEnvironmentConfigEntry } from '../../shared/interfaces/function-app.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
+import { FunctionAppService } from '../../shared/services/function-app.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -39,11 +41,12 @@ import { RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
 import { LOCATION_OPTIONS } from '../../shared/enums/location.enum';
 import { OS_TYPE_OPTIONS } from '../config-detail/enums/os-type.enum';
 import { RUNTIME_STACK_OPTIONS } from '../config-detail/enums/runtime-stack.enum';
+import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../config-detail/enums/function-app-runtime-stack.enum';
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service-plan-sku.enum';
 import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | UserAssignedIdentityResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse;
 
 /** SKU options per resource type */
 const KEY_VAULT_SKU_OPTIONS = [
@@ -137,6 +140,7 @@ export class ResourceEditComponent implements OnInit {
   private readonly storageAccountService = inject(StorageAccountService);
   private readonly appServicePlanService = inject(AppServicePlanService);
   private readonly webAppService = inject(WebAppService);
+  private readonly functionAppService = inject(FunctionAppService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -180,6 +184,7 @@ export class ResourceEditComponent implements OnInit {
   protected readonly storageTlsOptions = STORAGE_TLS_OPTIONS;
   protected readonly osTypeOptions = OS_TYPE_OPTIONS;
   protected readonly runtimeStackOptions = RUNTIME_STACK_OPTIONS;
+  protected readonly functionAppRuntimeStackOptions = FUNCTION_APP_RUNTIME_STACK_OPTIONS;
   protected readonly aspSkuOptions = APP_SERVICE_PLAN_SKU_OPTIONS;
 
   // ─── Forms ───
@@ -277,6 +282,8 @@ export class ResourceEditComponent implements OnInit {
         return this.appServicePlanService.getById(this.resourceId);
       case 'WebApp':
         return this.webAppService.getById(this.resourceId);
+      case 'FunctionApp':
+        return this.functionAppService.getById(this.resourceId);
       case 'UserAssignedIdentity':
         return this.userAssignedIdentityService.getById(this.resourceId);
       default:
@@ -300,6 +307,12 @@ export class ResourceEditComponent implements OnInit {
       base['runtimeVersion'] = [wa.runtimeVersion];
       base['alwaysOn'] = [wa.alwaysOn];
       base['httpsOnly'] = [wa.httpsOnly];
+    } else if (this.resourceType === 'FunctionApp') {
+      const fa = resource as FunctionAppResponse;
+      base['appServicePlanId'] = [fa.appServicePlanId];
+      base['runtimeStack'] = [fa.runtimeStack, [Validators.required]];
+      base['runtimeVersion'] = [fa.runtimeVersion];
+      base['httpsOnly'] = [fa.httpsOnly];
     }
 
     this.generalForm = this.fb.group(base);
@@ -370,6 +383,17 @@ export class ResourceEditComponent implements OnInit {
           runtimeVersion: [settings?.runtimeVersion ?? null],
         });
       }
+      case 'FunctionApp': {
+        const fa = resource as FunctionAppResponse;
+        const settings = fa.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          httpsOnly: [settings?.httpsOnly ?? null],
+          runtimeStack: [settings?.runtimeStack ?? null],
+          runtimeVersion: [settings?.runtimeVersion ?? null],
+          maxInstanceCount: [settings?.maxInstanceCount ?? null],
+          functionsWorkerRuntime: [settings?.functionsWorkerRuntime ?? null],
+        });
+      }
       default:
         return this.fb.group({});
     }
@@ -425,6 +449,17 @@ export class ResourceEditComponent implements OnInit {
             alwaysOn: general.alwaysOn,
             httpsOnly: general.httpsOnly,
             environmentSettings: this.buildWebAppEnvSettings(),
+          });
+          break;
+        case 'FunctionApp':
+          await this.functionAppService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            appServicePlanId: general.appServicePlanId,
+            runtimeStack: general.runtimeStack,
+            runtimeVersion: general.runtimeVersion,
+            httpsOnly: general.httpsOnly,
+            environmentSettings: this.buildFunctionAppEnvSettings(),
           });
           break;
         case 'UserAssignedIdentity':
@@ -490,6 +525,9 @@ export class ResourceEditComponent implements OnInit {
           break;
         case 'WebApp':
           await this.webAppService.delete(this.resourceId);
+          break;
+        case 'FunctionApp':
+          await this.functionAppService.delete(this.resourceId);
           break;
         case 'UserAssignedIdentity':
           await this.userAssignedIdentityService.delete(this.resourceId);
@@ -676,6 +714,20 @@ export class ResourceEditComponent implements OnInit {
         httpsOnly: raw.httpsOnly ?? null,
         runtimeStack: raw.runtimeStack || null,
         runtimeVersion: raw.runtimeVersion || null,
+      };
+    });
+  }
+
+  private buildFunctionAppEnvSettings(): FunctionAppEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        httpsOnly: raw.httpsOnly ?? null,
+        runtimeStack: raw.runtimeStack || null,
+        runtimeVersion: raw.runtimeVersion || null,
+        maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
+        functionsWorkerRuntime: raw.functionsWorkerRuntime || null,
       };
     });
   }

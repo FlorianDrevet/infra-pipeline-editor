@@ -17,18 +17,21 @@ import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS } from '..
 import { OS_TYPE_OPTIONS } from '../enums/os-type.enum';
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../enums/app-service-plan-sku.enum';
 import { RUNTIME_STACK_OPTIONS } from '../enums/runtime-stack.enum';
+import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../enums/function-app-runtime-stack.enum';
 import { KeyVaultService } from '../../../shared/services/key-vault.service';
 import { RedisCacheService } from '../../../shared/services/redis-cache.service';
 import { StorageAccountService } from '../../../shared/services/storage-account.service';
 import { AppServicePlanService } from '../../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../../shared/services/web-app.service';
 import { UserAssignedIdentityService } from '../../../shared/services/user-assigned-identity.service';
+import { FunctionAppService } from '../../../shared/services/function-app.service';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
 import { StorageAccountEnvironmentConfigEntry } from '../../../shared/interfaces/storage-account.interface';
 import { AppServicePlanEnvironmentConfigEntry } from '../../../shared/interfaces/app-service-plan.interface';
 import { WebAppEnvironmentConfigEntry } from '../../../shared/interfaces/web-app.interface';
+import { FunctionAppEnvironmentConfigEntry } from '../../../shared/interfaces/function-app.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 
 export interface AddResourceDialogData {
@@ -127,6 +130,7 @@ export class AddResourceDialogComponent {
   private readonly appServicePlanService = inject(AppServicePlanService);
   private readonly webAppService = inject(WebAppService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
+  private readonly functionAppService = inject(FunctionAppService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly fb = inject(FormBuilder);
 
@@ -172,6 +176,7 @@ export class AddResourceDialogComponent {
   protected readonly osTypeOptions = OS_TYPE_OPTIONS;
   protected readonly aspSkuOptions = APP_SERVICE_PLAN_SKU_OPTIONS;
   protected readonly runtimeStackOptions = RUNTIME_STACK_OPTIONS;
+  protected readonly functionAppRuntimeStackOptions = FUNCTION_APP_RUNTIME_STACK_OPTIONS;
 
   protected readonly ResourceTypeEnum = ResourceTypeEnum;
 
@@ -212,7 +217,7 @@ export class AddResourceDialogComponent {
     this.buildEnvForms(type);
     this.updateCommonFormValidators(type);
 
-    if (type === ResourceTypeEnum.WebApp) {
+    if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp) {
       this.step.set('plan-selection');
       this.loadExistingPlans();
     } else {
@@ -297,7 +302,7 @@ export class AddResourceDialogComponent {
   }
 
   protected onBackFromCommon(): void {
-    if (this.selectedType() === ResourceTypeEnum.WebApp) {
+    if (this.selectedType() === ResourceTypeEnum.WebApp || this.selectedType() === ResourceTypeEnum.FunctionApp) {
       this.step.set('plan-selection');
     } else {
       this.onBackToType();
@@ -364,6 +369,14 @@ export class AddResourceDialogComponent {
           httpsOnly: [true],
           runtimeStack: [''],
           runtimeVersion: [''],
+        });
+      case ResourceTypeEnum.FunctionApp:
+        return this.fb.group({
+          httpsOnly: [true],
+          runtimeStack: [''],
+          runtimeVersion: [''],
+          maxInstanceCount: [null as number | null],
+          functionsWorkerRuntime: [''],
         });
       case ResourceTypeEnum.UserAssignedIdentity:
         return this.fb.group({});
@@ -455,6 +468,19 @@ export class AddResourceDialogComponent {
           });
           break;
         }
+        case ResourceTypeEnum.FunctionApp: {
+          await this.functionAppService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            appServicePlanId: common.appServicePlanId!,
+            runtimeStack: common.runtimeStack!,
+            runtimeVersion: common.runtimeVersion!,
+            httpsOnly: common.httpsOnly!,
+            environmentSettings: this.buildFunctionAppEnvironmentSettings(),
+          });
+          break;
+        }
         case ResourceTypeEnum.UserAssignedIdentity: {
           await this.userAssignedIdentityService.create({
             resourceGroupId: this.data.resourceGroupId,
@@ -536,11 +562,25 @@ export class AddResourceDialogComponent {
     });
   }
 
+  private buildFunctionAppEnvironmentSettings(): FunctionAppEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        httpsOnly: raw.httpsOnly ?? null,
+        runtimeStack: raw.runtimeStack || null,
+        runtimeVersion: raw.runtimeVersion || null,
+        maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
+        functionsWorkerRuntime: raw.functionsWorkerRuntime || null,
+      };
+    });
+  }
+
   private updateCommonFormValidators(type: ResourceTypeEnum): void {
     this.clearExtraValidators();
     if (type === ResourceTypeEnum.AppServicePlan) {
       this.commonForm.controls.osType.setValidators([Validators.required]);
-    } else if (type === ResourceTypeEnum.WebApp) {
+    } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp) {
       this.commonForm.controls.runtimeStack.setValidators([Validators.required]);
       this.commonForm.controls.runtimeVersion.setValidators([Validators.required]);
     }

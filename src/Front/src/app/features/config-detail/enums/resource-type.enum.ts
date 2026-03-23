@@ -7,6 +7,7 @@ export enum ResourceTypeEnum {
   StorageAccount = 'StorageAccount',
   AppServicePlan = 'AppServicePlan',
   WebApp = 'WebApp',
+  FunctionApp = 'FunctionApp',
   UserAssignedIdentity = 'UserAssignedIdentity',
 }
 
@@ -27,6 +28,7 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   StorageAccount: 'storage',
   AppServicePlan: 'dns',
   WebApp: 'language',
+  FunctionApp: 'bolt',
   UserAssignedIdentity: 'fingerprint',
 };
 
@@ -39,6 +41,7 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Record<string, string> = {
   StorageAccount: 'stg',
   AppServicePlan: 'asp',
   WebApp: 'app',
+  FunctionApp: 'func',
   UserAssignedIdentity: 'id',
   ResourceGroup: 'rg',
 };

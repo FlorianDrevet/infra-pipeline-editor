@@ -15,6 +15,8 @@ using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.UserAssignedIdentityAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate.Entities;
+using InfraFlowSculptor.Domain.FunctionAppAggregate;
+using InfraFlowSculptor.Domain.FunctionAppAggregate.Entities;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -70,10 +72,15 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var faSettings = await dbContext.FunctionAppEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.FunctionAppId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -163,7 +170,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<RedisCacheEnvironmentSettings> rcSettings,
         IReadOnlyList<StorageAccountEnvironmentSettings> saSettings,
         IReadOnlyList<AppServicePlanEnvironmentSettings> aspSettings,
-        IReadOnlyList<WebAppEnvironmentSettings> waSettings)
+        IReadOnlyList<WebAppEnvironmentSettings> waSettings,
+        IReadOnlyList<FunctionAppEnvironmentSettings> faSettings)
     {
         return resource switch
         {
@@ -225,6 +233,22 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 },
                 waSettings
                     .Where(es => es.WebAppId == wa.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            FunctionApp fa => new AzureResourceReadModel(
+                fa.Id.Value,
+                fa.Name.Value,
+                MapLocation(fa.Location),
+                "Microsoft.Web/sites/functionapp",
+                new Dictionary<string, string>
+                {
+                    ["runtimeStack"] = fa.RuntimeStack.Value.ToString().ToLower(),
+                    ["runtimeVersion"] = fa.RuntimeVersion,
+                    ["httpsOnly"] = fa.HttpsOnly.ToString().ToLower(),
+                    ["appServicePlanId"] = fa.AppServicePlanId.Value.ToString()
+                },
+                faSettings
+                    .Where(es => es.FunctionAppId == fa.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
             UserAssignedIdentity uai => new AzureResourceReadModel(

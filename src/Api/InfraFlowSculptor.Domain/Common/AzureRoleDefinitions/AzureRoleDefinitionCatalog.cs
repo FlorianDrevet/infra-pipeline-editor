@@ -187,6 +187,27 @@ public static class AzureRoleDefinitionCatalog
             WebAppDocsUrl),
     ];
 
+    private const string FunctionAppDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-functions/functions-identity-based-connections-tutorial";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> FunctionAppRoles =
+    [
+        new("de139f84-1756-47ae-9be6-808fbbe84772",
+            "Website Contributor",
+            "Lets you manage websites (not web plans), but not access to them.",
+            FunctionAppDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            FunctionAppDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            FunctionAppDocsUrl),
+    ];
+
     private static readonly Dictionary<string, IReadOnlyList<AzureRoleDefinition>> Catalog = new()
     {
         { "KeyVault", KeyVaultRoles },
@@ -194,6 +215,7 @@ public static class AzureRoleDefinitionCatalog
         { "StorageAccount", StorageAccountRoles },
         { "AppServicePlan", AppServicePlanRoles },
         { "WebApp", WebAppRoles },
+        { "FunctionApp", FunctionAppRoles },
         { "UserAssignedIdentity", UserAssignedIdentityRoles },
     };
 

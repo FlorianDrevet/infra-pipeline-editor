@@ -50,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IAzureResourceRepository, AzureResourceBaseRepository>();
         services.AddScoped<IAppServicePlanRepository, AppServicePlanRepository>();
         services.AddScoped<IWebAppRepository, WebAppRepository>();
+        services.AddScoped<IFunctionAppRepository, FunctionAppRepository>();
         services.AddScoped<IUserAssignedIdentityRepository, UserAssignedIdentityRepository>();
         services.AddScoped<IInfrastructureConfigReadRepository, InfrastructureConfigReadRepository>();
 

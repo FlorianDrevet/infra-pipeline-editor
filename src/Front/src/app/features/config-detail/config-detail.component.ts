@@ -30,6 +30,9 @@ import { KeyVaultService } from '../../shared/services/key-vault.service';
 import { RedisCacheService } from '../../shared/services/redis-cache.service';
 import { StorageAccountService } from '../../shared/services/storage-account.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
+import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
+import { WebAppService } from '../../shared/services/web-app.service';
+import { FunctionAppService } from '../../shared/services/function-app.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
@@ -74,6 +77,9 @@ export class ConfigDetailComponent implements OnInit {
   private readonly redisCacheService = inject(RedisCacheService);
   private readonly storageAccountService = inject(StorageAccountService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
+  private readonly appServicePlanService = inject(AppServicePlanService);
+  private readonly webAppService = inject(WebAppService);
+  private readonly functionAppService = inject(FunctionAppService);
   private readonly projectService = inject(ProjectService);
   private readonly bicepService = inject(BicepGeneratorService);
   private readonly authService = inject(AuthenticationService);
@@ -561,6 +567,15 @@ export class ConfigDetailComponent implements OnInit {
           break;
         case 'StorageAccount':
           await this.storageAccountService.delete(resource.id);
+          break;
+        case 'AppServicePlan':
+          await this.appServicePlanService.delete(resource.id);
+          break;
+        case 'WebApp':
+          await this.webAppService.delete(resource.id);
+          break;
+        case 'FunctionApp':
+          await this.functionAppService.delete(resource.id);
           break;
         case 'UserAssignedIdentity':
           await this.userAssignedIdentityService.delete(resource.id);

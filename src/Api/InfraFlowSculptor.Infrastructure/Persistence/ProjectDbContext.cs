@@ -17,6 +17,8 @@ using InfraFlowSculptor.Domain.UserAggregate;
 using InfraFlowSculptor.Domain.UserAssignedIdentityAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate.Entities;
+using InfraFlowSculptor.Domain.FunctionAppAggregate;
+using InfraFlowSculptor.Domain.FunctionAppAggregate.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -47,6 +49,8 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<AppServicePlanEnvironmentSettings> AppServicePlanEnvironmentSettings { get; set; } = null!;
     public DbSet<WebApp> WebApps { get; set; } = null!;
     public DbSet<WebAppEnvironmentSettings> WebAppEnvironmentSettings { get; set; } = null!;
+    public DbSet<FunctionApp> FunctionApps { get; set; } = null!;
+    public DbSet<FunctionAppEnvironmentSettings> FunctionAppEnvironmentSettings { get; set; } = null!;
     public DbSet<UserAssignedIdentity> UserAssignedIdentities { get; set; } = null!;
 
 

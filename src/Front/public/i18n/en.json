@@ -264,6 +264,7 @@
       "ADD_DIALOG_TITLE_AppServicePlan": "New App Service Plan",
       "ADD_DIALOG_TITLE_WebApp": "New Web App",
       "ADD_DIALOG_TITLE_UserAssignedIdentity": "New User-Assigned Identity",
+      "ADD_DIALOG_TITLE_FunctionApp": "New Function App",
       "ADD_ERROR": "Failed to create the resource.",
       "FORM": {
         "NAME": "Name",
@@ -297,6 +298,9 @@
         "RUNTIME_VERSION": "Runtime version",
         "RUNTIME_VERSION_PLACEHOLDER": "e.g. 8.0, 20-lts",
         "ALWAYS_ON": "Always On",
+        "FUNCTIONS_WORKER_RUNTIME": "Functions worker runtime",
+        "FUNCTIONS_WORKER_RUNTIME_PLACEHOLDER": "e.g. dotnet-isolated, node, python",
+        "MAX_INSTANCE_COUNT": "Max instance count",
         "CANCEL": "Cancel",
         "ADD": "Add",
         "ENV_STEP_TITLE": "Per-environment configuration",
@@ -598,7 +602,9 @@
       "OS_TYPE": "OS type",
       "RUNTIME_STACK": "Runtime stack",
       "RUNTIME_VERSION": "Runtime version",
-      "ALWAYS_ON": "Always On"
+      "ALWAYS_ON": "Always On",
+      "FUNCTIONS_WORKER_RUNTIME": "Functions worker runtime",
+      "MAX_INSTANCE_COUNT": "Max instance count"
     },
     "ENVIRONMENTS": {
       "EMPTY": "No environments configured. Add environments in the project or configuration first.",
