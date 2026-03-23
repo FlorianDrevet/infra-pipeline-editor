@@ -64,5 +64,14 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
         builder.Navigation(s => s.Tables)
             .HasField("_tables")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(sa => sa.EnvironmentSettings)
+            .WithOne()
+            .HasForeignKey(es => es.StorageAccountId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(sa => sa.EnvironmentSettings)
+            .HasField("_environmentSettings")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

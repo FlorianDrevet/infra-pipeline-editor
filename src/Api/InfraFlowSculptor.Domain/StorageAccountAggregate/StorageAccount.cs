@@ -39,6 +39,11 @@ public class StorageAccount : AzureResource
     private readonly List<StorageTable> _tables = new();
     public IReadOnlyList<StorageTable> Tables => _tables.AsReadOnly();
 
+    private readonly List<StorageAccountEnvironmentSettings> _environmentSettings = new();
+
+    /// <summary>Gets the typed per-environment configuration overrides for this Storage Account.</summary>
+    public IReadOnlyCollection<StorageAccountEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();
+
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages =>
         Array.Empty<ParameterUsage>();
 
@@ -82,12 +87,53 @@ public class StorageAccount : AzureResource
         MinimumTlsVersion = settings.MinimumTlsVersion;
     }
 
+    /// <summary>
+    /// Sets the per-environment settings for the given environment.
+    /// Replaces existing settings if one already exists for this environment.
+    /// </summary>
+    public void SetEnvironmentSettings(
+        string environmentName,
+        StorageAccountSku? sku,
+        StorageAccountKind? kind,
+        StorageAccessTier? accessTier,
+        bool? allowBlobPublicAccess,
+        bool? enableHttpsTrafficOnly,
+        StorageAccountTlsVersion? minimumTlsVersion)
+    {
+        var existing = _environmentSettings.FirstOrDefault(
+            es => es.EnvironmentName == environmentName);
+
+        if (existing is not null)
+        {
+            existing.Update(sku, kind, accessTier, allowBlobPublicAccess, enableHttpsTrafficOnly, minimumTlsVersion);
+        }
+        else
+        {
+            _environmentSettings.Add(
+                StorageAccountEnvironmentSettings.Create(Id, environmentName, sku, kind, accessTier, allowBlobPublicAccess, enableHttpsTrafficOnly, minimumTlsVersion));
+        }
+    }
+
+    /// <summary>
+    /// Sets all per-environment settings at once, replacing any existing entries.
+    /// </summary>
+    public void SetAllEnvironmentSettings(
+        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku, StorageAccountKind? Kind, StorageAccessTier? AccessTier, bool? AllowBlobPublicAccess, bool? EnableHttpsTrafficOnly, StorageAccountTlsVersion? MinimumTlsVersion)> settings)
+    {
+        _environmentSettings.Clear();
+        foreach (var s in settings)
+        {
+            _environmentSettings.Add(
+                StorageAccountEnvironmentSettings.Create(Id, s.EnvironmentName, s.Sku, s.Kind, s.AccessTier, s.AllowBlobPublicAccess, s.EnableHttpsTrafficOnly, s.MinimumTlsVersion));
+        }
+    }
+
     public static StorageAccount Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
         StorageAccountSettings settings,
-        IReadOnlyList<(string EnvironmentName, IReadOnlyDictionary<string, string> Properties)>? environmentConfigs = null)
+        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku, StorageAccountKind? Kind, StorageAccessTier? AccessTier, bool? AllowBlobPublicAccess, bool? EnableHttpsTrafficOnly, StorageAccountTlsVersion? MinimumTlsVersion)>? environmentSettings = null)
     {
         var storageAccount = new StorageAccount
         {
@@ -103,8 +149,8 @@ public class StorageAccount : AzureResource
             MinimumTlsVersion = settings.MinimumTlsVersion
         };
 
-        if (environmentConfigs is not null)
-            storageAccount.SetAllEnvironmentConfigs(environmentConfigs);
+        if (environmentSettings is not null)
+            storageAccount.SetAllEnvironmentSettings(environmentSettings);
 
         return storageAccount;
     }

@@ -1,14 +1,16 @@
 using BicepGenerator.Application.Common.Interfaces.Persistence;
 using BicepGenerator.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.Domain.Common.BaseModels;
-using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
+using InfraFlowSculptor.Domain.KeyVaultAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
+using InfraFlowSculptor.Domain.RedisCacheAggregate.Entities;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
+using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using InfraFlowSculptorDbContext = InfraFlowSculptor.Infrastructure.Persistence.ProjectDbContext;
@@ -27,9 +29,32 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
         var config = await dbContext.InfrastructureConfigs
             .Include(c => c.ResourceGroups)
                 .ThenInclude(rg => rg.Resources)
-                    .ThenInclude(r => r.EnvironmentConfigs)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == configId, cancellationToken);
+
+        if (config is null)
+            return null;
+
+        // Eager-load typed environment settings for each resource type
+        var allResourceIds = config.ResourceGroups
+            .SelectMany(rg => rg.Resources)
+            .Select(r => r.Id)
+            .ToList();
+
+        var kvSettings = await dbContext.KeyVaultEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.KeyVaultId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var rcSettings = await dbContext.RedisCacheEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.RedisCacheId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var saSettings = await dbContext.StorageAccountEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.StorageAccountId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
 
         if (config is null)
             return null;
@@ -37,7 +62,7 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(MapResource)
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -82,14 +107,15 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
     }
 
     /// <summary>
-    /// Maps an <see cref="AzureResource"/> to its read model.
-    /// Returns <c>null</c> for resource types that are not yet supported by the generator,
-    /// so that callers can filter them out rather than producing invalid Bicep output.
+    /// Maps an <see cref="AzureResource"/> to its read model using typed environment settings.
+    /// Returns <c>null</c> for resource types that are not yet supported by the generator.
     /// </summary>
-    private static AzureResourceReadModel? MapResource(AzureResource resource)
+    private static AzureResourceReadModel? MapResource(
+        AzureResource resource,
+        IReadOnlyList<KeyVaultEnvironmentSettings> kvSettings,
+        IReadOnlyList<RedisCacheEnvironmentSettings> rcSettings,
+        IReadOnlyList<StorageAccountEnvironmentSettings> saSettings)
     {
-        var envConfigs = MapEnvironmentConfigs(resource.EnvironmentConfigs);
-
         return resource switch
         {
             KeyVault kv => new AzureResourceReadModel(
@@ -101,7 +127,10 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                 {
                     ["sku"] = kv.Sku.Value.ToString().ToLower()
                 },
-                envConfigs),
+                kvSettings
+                    .Where(es => es.KeyVaultId == kv.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
             RedisCache rc => new AzureResourceReadModel(
                 rc.Id.Value,
                 rc.Name.Value,
@@ -116,7 +145,10 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                     ["enableNonSslPort"] = rc.EnableNonSslPort.ToString().ToLower(),
                     ["minimumTlsVersion"] = MapTlsVersion(rc.MinimumTlsVersion),
                 },
-                envConfigs),
+                rcSettings
+                    .Where(es => es.RedisCacheId == rc.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
             StorageAccount sa => new AzureResourceReadModel(
                 sa.Id.Value,
                 sa.Name.Value,
@@ -131,17 +163,12 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                     ["supportsHttpsTrafficOnly"] = sa.EnableHttpsTrafficOnly.ToString().ToLower(),
                     ["minimumTlsVersion"] = MapStorageTlsVersion(sa.MinimumTlsVersion),
                 },
-                envConfigs),
+                saSettings
+                    .Where(es => es.StorageAccountId == sa.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
             _ => null
         };
-    }
-
-    private static IReadOnlyList<ResourceEnvironmentConfigReadModel> MapEnvironmentConfigs(
-        IReadOnlyCollection<ResourceEnvironmentConfig> configs)
-    {
-        return configs.Select(ec => new ResourceEnvironmentConfigReadModel(
-            ec.EnvironmentName,
-            ec.Properties)).ToList();
     }
 
     private static string MapTlsVersion(TlsVersion tlsVersion)

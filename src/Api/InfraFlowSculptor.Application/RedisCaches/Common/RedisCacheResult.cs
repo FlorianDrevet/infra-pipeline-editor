@@ -1,4 +1,3 @@
-using InfraFlowSculptor.Application.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
@@ -17,5 +16,5 @@ public record RedisCacheResult(
     bool EnableNonSslPort,
     TlsVersion MinimumTlsVersion,
     MaxMemoryPolicy MaxMemoryPolicy,
-    IReadOnlyList<EnvironmentConfigData> EnvironmentConfigs
+    IReadOnlyList<RedisCacheEnvironmentConfigData> EnvironmentSettings
 );

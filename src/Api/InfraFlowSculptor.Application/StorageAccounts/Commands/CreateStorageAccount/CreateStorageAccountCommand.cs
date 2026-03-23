@@ -1,5 +1,4 @@
 using ErrorOr;
-using InfraFlowSculptor.Application.Common;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
@@ -18,5 +17,5 @@ public record CreateStorageAccountCommand(
     bool AllowBlobPublicAccess,
     bool EnableHttpsTrafficOnly,
     StorageAccountTlsVersion MinimumTlsVersion,
-    IReadOnlyList<EnvironmentConfigData>? EnvironmentConfigs = null
+    IReadOnlyList<StorageAccountEnvironmentConfigData>? EnvironmentSettings = null
 ) : IRequest<ErrorOr<StorageAccountResult>>;

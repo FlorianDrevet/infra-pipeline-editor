@@ -1,4 +1,3 @@
-using InfraFlowSculptor.Application.Common;
 using InfraFlowSculptor.Application.RedisCaches.Commands.CreateRedisCache;
 using InfraFlowSculptor.Application.RedisCaches.Commands.UpdateRedisCache;
 using InfraFlowSculptor.Application.RedisCaches.Common;
@@ -15,7 +14,13 @@ public class RedisCacheMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<CreateRedisCacheRequest, CreateRedisCacheCommand>();
+        config.NewConfig<CreateRedisCacheRequest, CreateRedisCacheCommand>()
+            .Map(dest => dest.EnvironmentSettings,
+                src => src.EnvironmentSettings == null
+                    ? null
+                    : src.EnvironmentSettings.Select(ec => new RedisCacheEnvironmentConfigData(
+                        ec.EnvironmentName, ec.Sku, ec.Capacity, ec.RedisVersion,
+                        ec.EnableNonSslPort, ec.MinimumTlsVersion, ec.MaxMemoryPolicy)).ToList());
 
         config.NewConfig<(Guid Id, UpdateRedisCacheRequest Request), UpdateRedisCacheCommand>()
             .MapWith(src => new UpdateRedisCacheCommand(
@@ -28,15 +33,27 @@ public class RedisCacheMappingConfig : IRegister
                 src.Request.EnableNonSslPort,
                 src.Request.MinimumTlsVersion.Adapt<TlsVersion>(),
                 src.Request.MaxMemoryPolicy.Adapt<MaxMemoryPolicy>(),
-                src.Request.EnvironmentConfigs == null
+                src.Request.EnvironmentSettings == null
                     ? null
-                    : src.Request.EnvironmentConfigs.Select(ec => new EnvironmentConfigData(
-                        ec.EnvironmentName, ec.Properties)).ToList()));
+                    : src.Request.EnvironmentSettings.Select(ec => new RedisCacheEnvironmentConfigData(
+                        ec.EnvironmentName, ec.Sku, ec.Capacity, ec.RedisVersion,
+                        ec.EnableNonSslPort, ec.MinimumTlsVersion, ec.MaxMemoryPolicy)).ToList()));
 
         config.NewConfig<RedisCache, RedisCacheResult>()
-            .Map(dest => dest.EnvironmentConfigs,
-                src => src.EnvironmentConfigs.Select(ec => new EnvironmentConfigData(
-                    ec.EnvironmentName, ec.Properties)).ToList());
+            .Map(dest => dest.EnvironmentSettings,
+                src => src.EnvironmentSettings.Select(es => new RedisCacheEnvironmentConfigData(
+                    es.EnvironmentName,
+                    es.Sku != null ? es.Sku.Value.ToString() : null,
+                    es.Capacity,
+                    es.RedisVersion,
+                    es.EnableNonSslPort,
+                    es.MinimumTlsVersion != null ? es.MinimumTlsVersion.Value.ToString() : null,
+                    es.MaxMemoryPolicy != null ? es.MaxMemoryPolicy.Value.ToString() : null)).ToList());
+
+        config.NewConfig<RedisCacheEnvironmentConfigData, RedisCacheEnvironmentConfigResponse>()
+            .MapWith(src => new RedisCacheEnvironmentConfigResponse(
+                src.EnvironmentName, src.Sku, src.Capacity, src.RedisVersion,
+                src.EnableNonSslPort, src.MinimumTlsVersion, src.MaxMemoryPolicy));
 
         config.NewConfig<RedisCacheSku, string>()
             .MapWith(src => src.Value.ToString());

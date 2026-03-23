@@ -1,4 +1,24 @@
-import { ResourceEnvironmentConfigEntry, ResourceEnvironmentConfigResponse } from './resource-environment-config.interface';
+// ─── Environment Settings ────────────────────────────────────────────────────
+
+export interface StorageAccountEnvironmentConfigEntry {
+  environmentName: string;
+  sku?: string | null;
+  kind?: string | null;
+  accessTier?: string | null;
+  allowBlobPublicAccess?: boolean | null;
+  enableHttpsTrafficOnly?: boolean | null;
+  minimumTlsVersion?: string | null;
+}
+
+export interface StorageAccountEnvironmentConfigResponse {
+  environmentName: string;
+  sku: string | null;
+  kind: string | null;
+  accessTier: string | null;
+  allowBlobPublicAccess: boolean | null;
+  enableHttpsTrafficOnly: boolean | null;
+  minimumTlsVersion: string | null;
+}
 
 // ─── Responses ───────────────────────────────────────────────────────────────
 
@@ -32,7 +52,7 @@ export interface StorageAccountResponse {
   blobContainers: BlobContainerResponse[];
   queues: StorageQueueResponse[];
   tables: StorageTableResponse[];
-  environmentConfigs: ResourceEnvironmentConfigResponse[];
+  environmentSettings: StorageAccountEnvironmentConfigResponse[];
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -47,7 +67,7 @@ export interface CreateStorageAccountRequest {
   allowBlobPublicAccess: boolean;
   enableHttpsTrafficOnly: boolean;
   minimumTlsVersion: string;
-  environmentConfigs?: ResourceEnvironmentConfigEntry[];
+  environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 
 export interface UpdateStorageAccountRequest {
@@ -59,7 +79,7 @@ export interface UpdateStorageAccountRequest {
   allowBlobPublicAccess: boolean;
   enableHttpsTrafficOnly: boolean;
   minimumTlsVersion: string;
-  environmentConfigs?: ResourceEnvironmentConfigEntry[];
+  environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 
 export interface AddBlobContainerRequest {

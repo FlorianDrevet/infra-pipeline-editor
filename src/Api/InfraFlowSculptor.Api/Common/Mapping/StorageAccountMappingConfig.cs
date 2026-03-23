@@ -1,4 +1,3 @@
-using InfraFlowSculptor.Application.Common;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.UpdateStorageAccount;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
@@ -16,7 +15,13 @@ public class StorageAccountMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<CreateStorageAccountRequest, CreateStorageAccountCommand>();
+        config.NewConfig<CreateStorageAccountRequest, CreateStorageAccountCommand>()
+            .Map(dest => dest.EnvironmentSettings,
+                src => src.EnvironmentSettings == null
+                    ? null
+                    : src.EnvironmentSettings.Select(ec => new StorageAccountEnvironmentConfigData(
+                        ec.EnvironmentName, ec.Sku, ec.Kind, ec.AccessTier,
+                        ec.AllowBlobPublicAccess, ec.EnableHttpsTrafficOnly, ec.MinimumTlsVersion)).ToList());
 
         config.NewConfig<(Guid Id, UpdateStorageAccountRequest Request), UpdateStorageAccountCommand>()
             .MapWith(src => new UpdateStorageAccountCommand(
@@ -29,15 +34,27 @@ public class StorageAccountMappingConfig : IRegister
                 src.Request.AllowBlobPublicAccess,
                 src.Request.EnableHttpsTrafficOnly,
                 src.Request.MinimumTlsVersion.Adapt<StorageAccountTlsVersion>(),
-                src.Request.EnvironmentConfigs == null
+                src.Request.EnvironmentSettings == null
                     ? null
-                    : src.Request.EnvironmentConfigs.Select(ec => new EnvironmentConfigData(
-                        ec.EnvironmentName, ec.Properties)).ToList()));
+                    : src.Request.EnvironmentSettings.Select(ec => new StorageAccountEnvironmentConfigData(
+                        ec.EnvironmentName, ec.Sku, ec.Kind, ec.AccessTier,
+                        ec.AllowBlobPublicAccess, ec.EnableHttpsTrafficOnly, ec.MinimumTlsVersion)).ToList()));
 
         config.NewConfig<StorageAccount, StorageAccountResult>()
-            .Map(dest => dest.EnvironmentConfigs,
-                src => src.EnvironmentConfigs.Select(ec => new EnvironmentConfigData(
-                    ec.EnvironmentName, ec.Properties)).ToList());
+            .Map(dest => dest.EnvironmentSettings,
+                src => src.EnvironmentSettings.Select(es => new StorageAccountEnvironmentConfigData(
+                    es.EnvironmentName,
+                    es.Sku != null ? es.Sku.Value.ToString() : null,
+                    es.Kind != null ? es.Kind.Value.ToString() : null,
+                    es.AccessTier != null ? es.AccessTier.Value.ToString() : null,
+                    es.AllowBlobPublicAccess,
+                    es.EnableHttpsTrafficOnly,
+                    es.MinimumTlsVersion != null ? es.MinimumTlsVersion.Value.ToString() : null)).ToList());
+
+        config.NewConfig<StorageAccountEnvironmentConfigData, StorageAccountEnvironmentConfigResponse>()
+            .MapWith(src => new StorageAccountEnvironmentConfigResponse(
+                src.EnvironmentName, src.Sku, src.Kind, src.AccessTier,
+                src.AllowBlobPublicAccess, src.EnableHttpsTrafficOnly, src.MinimumTlsVersion));
 
         config.NewConfig<StorageAccountSku, string>()
             .MapWith(src => src.Value.ToString());

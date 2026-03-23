@@ -27,5 +27,14 @@ public class KeyVaultConfiguration : IEntityTypeConfiguration<KeyVault>
         builder.Property(order => order.Sku)
             .IsRequired()
             .HasConversion(new EnumValueConverter<Sku, Sku.SkuEnum>());
+
+        builder.HasMany(kv => kv.EnvironmentSettings)
+            .WithOne()
+            .HasForeignKey(es => es.KeyVaultId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(kv => kv.EnvironmentSettings)
+            .HasField("_environmentSettings")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

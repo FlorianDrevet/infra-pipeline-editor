@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using InfraFlowSculptor.Contracts.Common;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
@@ -41,6 +40,46 @@ public abstract class StorageAccountRequestBase
     [Required, EnumValidation(typeof(StorageAccountTlsVersion.Version))]
     public required string MinimumTlsVersion { get; init; }
 
-    /// <summary>Per-environment configuration overrides. Each entry specifies the properties for a specific deployment environment.</summary>
-    public List<ResourceEnvironmentConfigEntry>? EnvironmentConfigs { get; init; }
+    /// <summary>Per-environment typed configuration overrides.</summary>
+    public List<StorageAccountEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }
+
+/// <summary>Typed per-environment configuration entry for a Storage Account.</summary>
+public class StorageAccountEnvironmentConfigEntry
+{
+    /// <summary>Name of the target environment.</summary>
+    [Required]
+    public required string EnvironmentName { get; init; }
+
+    /// <summary>Optional performance/replication tier override.</summary>
+    [EnumValidation(typeof(StorageAccountSku.Sku))]
+    public string? Sku { get; init; }
+
+    /// <summary>Optional account kind override.</summary>
+    [EnumValidation(typeof(StorageAccountKind.Kind))]
+    public string? Kind { get; init; }
+
+    /// <summary>Optional access tier override.</summary>
+    [EnumValidation(typeof(StorageAccessTier.Tier))]
+    public string? AccessTier { get; init; }
+
+    /// <summary>Optional public blob access override.</summary>
+    public bool? AllowBlobPublicAccess { get; init; }
+
+    /// <summary>Optional HTTPS-only traffic override.</summary>
+    public bool? EnableHttpsTrafficOnly { get; init; }
+
+    /// <summary>Optional minimum TLS version override.</summary>
+    [EnumValidation(typeof(StorageAccountTlsVersion.Version))]
+    public string? MinimumTlsVersion { get; init; }
+}
+
+/// <summary>Response DTO for a typed per-environment Storage Account configuration.</summary>
+public record StorageAccountEnvironmentConfigResponse(
+    string EnvironmentName,
+    string? Sku,
+    string? Kind,
+    string? AccessTier,
+    bool? AllowBlobPublicAccess,
+    bool? EnableHttpsTrafficOnly,
+    string? MinimumTlsVersion);

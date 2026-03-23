@@ -41,8 +41,15 @@ public class CreateRedisCacheCommandHandler(
             request.Location,
             request.Sku,
             settings,
-            request.EnvironmentConfigs?
-                .Select(ec => (ec.EnvironmentName, ec.Properties))
+            request.EnvironmentSettings?
+                .Select(ec => (
+                    ec.EnvironmentName,
+                    ec.Sku is not null ? new RedisCacheSku(Enum.Parse<RedisCacheSku.Sku>(ec.Sku)) : (RedisCacheSku?)null,
+                    ec.Capacity,
+                    ec.RedisVersion,
+                    ec.EnableNonSslPort,
+                    ec.MinimumTlsVersion is not null ? new TlsVersion(Enum.Parse<TlsVersion.Version>(ec.MinimumTlsVersion)) : (TlsVersion?)null,
+                    ec.MaxMemoryPolicy is not null ? new MaxMemoryPolicy(Enum.Parse<MaxMemoryPolicy.Policy>(ec.MaxMemoryPolicy)) : (MaxMemoryPolicy?)null))
                 .ToList());
 
         var savedRedisCache = await redisCacheRepository.AddAsync(redisCache);

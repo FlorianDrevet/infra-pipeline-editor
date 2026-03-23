@@ -35,10 +35,17 @@ public class UpdateStorageAccountCommandHandler(
 
         storageAccount.Update(request.Name, request.Location, settings);
 
-        if (request.EnvironmentConfigs is not null)
-            storageAccount.SetAllEnvironmentConfigs(
-                request.EnvironmentConfigs
-                    .Select(ec => (ec.EnvironmentName, ec.Properties))
+        if (request.EnvironmentSettings is not null)
+            storageAccount.SetAllEnvironmentSettings(
+                request.EnvironmentSettings
+                    .Select(ec => (
+                        ec.EnvironmentName,
+                        ec.Sku is not null ? new StorageAccountSku(Enum.Parse<StorageAccountSku.Sku>(ec.Sku)) : (StorageAccountSku?)null,
+                        ec.Kind is not null ? new StorageAccountKind(Enum.Parse<StorageAccountKind.Kind>(ec.Kind)) : (StorageAccountKind?)null,
+                        ec.AccessTier is not null ? new StorageAccessTier(Enum.Parse<StorageAccessTier.Tier>(ec.AccessTier)) : (StorageAccessTier?)null,
+                        ec.AllowBlobPublicAccess,
+                        ec.EnableHttpsTrafficOnly,
+                        ec.MinimumTlsVersion is not null ? new StorageAccountTlsVersion(Enum.Parse<StorageAccountTlsVersion.Version>(ec.MinimumTlsVersion)) : (StorageAccountTlsVersion?)null))
                     .ToList());
 
         var updated = await storageAccountRepository.UpdateAsync(storageAccount);

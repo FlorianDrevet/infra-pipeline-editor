@@ -17,7 +17,9 @@ import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS } from '..
 import { KeyVaultService } from '../../../shared/services/key-vault.service';
 import { RedisCacheService } from '../../../shared/services/redis-cache.service';
 import { StorageAccountService } from '../../../shared/services/storage-account.service';
-import { ResourceEnvironmentConfigEntry } from '../../../shared/interfaces/resource-environment-config.interface';
+import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
+import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
+import { StorageAccountEnvironmentConfigEntry } from '../../../shared/interfaces/storage-account.interface';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
@@ -257,7 +259,6 @@ export class AddResourceDialogComponent {
     this.errorKey.set('');
 
     const common = this.commonForm.getRawValue();
-    const environmentConfigs = this.buildEnvironmentConfigs();
 
     try {
       switch (type) {
@@ -268,7 +269,7 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             sku: firstEnv.sku,
-            environmentConfigs,
+            environmentSettings: this.buildKeyVaultEnvironmentSettings(),
           });
           break;
         }
@@ -284,7 +285,7 @@ export class AddResourceDialogComponent {
             minimumTlsVersion: firstEnv.minimumTlsVersion,
             maxMemoryPolicy: firstEnv.maxMemoryPolicy,
             capacity: Number(firstEnv.capacity),
-            environmentConfigs,
+            environmentSettings: this.buildRedisCacheEnvironmentSettings(),
           });
           break;
         }
@@ -300,7 +301,7 @@ export class AddResourceDialogComponent {
             allowBlobPublicAccess: firstEnv.allowBlobPublicAccess,
             enableHttpsTrafficOnly: firstEnv.supportsHttpsTrafficOnly,
             minimumTlsVersion: firstEnv.minimumTlsVersion,
-            environmentConfigs,
+            environmentSettings: this.buildStorageAccountEnvironmentSettings(),
           });
           break;
         }
@@ -313,16 +314,42 @@ export class AddResourceDialogComponent {
     }
   }
 
-  private buildEnvironmentConfigs(): ResourceEnvironmentConfigEntry[] {
+  private buildKeyVaultEnvironmentSettings(): KeyVaultEnvironmentConfigEntry[] {
     return this.environments.map((env, i) => {
       const raw = this.envFormArray.at(i).getRawValue();
-      const properties: Record<string, string> = {};
-      for (const [key, value] of Object.entries(raw)) {
-        properties[key] = String(value);
-      }
       return {
         environmentName: env.name,
-        properties,
+        sku: raw.sku || null,
+      };
+    });
+  }
+
+  private buildRedisCacheEnvironmentSettings(): RedisCacheEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        sku: raw.skuName || null,
+        capacity: raw.capacity ? Number(raw.capacity) : null,
+        redisVersion: raw.redisVersion ? Number(raw.redisVersion) : null,
+        enableNonSslPort: raw.enableNonSslPort ?? null,
+        minimumTlsVersion: raw.minimumTlsVersion || null,
+        maxMemoryPolicy: raw.maxMemoryPolicy || null,
+      };
+    });
+  }
+
+  private buildStorageAccountEnvironmentSettings(): StorageAccountEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        sku: raw.sku || null,
+        kind: raw.kind || null,
+        accessTier: raw.accessTier || null,
+        allowBlobPublicAccess: raw.allowBlobPublicAccess ?? null,
+        enableHttpsTrafficOnly: raw.supportsHttpsTrafficOnly ?? null,
+        minimumTlsVersion: raw.minimumTlsVersion || null,
       };
     });
   }

@@ -3,6 +3,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
+using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 using ErrorOr;
@@ -32,8 +33,9 @@ public class CreateKeyVaultCommandHandler(
             request.Name,
             request.Location,
             request.Sku,
-            request.EnvironmentConfigs?
-                .Select(ec => (ec.EnvironmentName, ec.Properties))
+            request.EnvironmentSettings?
+                .Select(ec => (ec.EnvironmentName,
+                    ec.Sku is not null ? new Sku(Enum.Parse<Sku.SkuEnum>(ec.Sku)) : (Sku?)null))
                 .ToList());
 
         var savedKeyVault = await keyVaultRepository.AddAsync(keyVault);

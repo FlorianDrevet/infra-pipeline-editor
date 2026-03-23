@@ -3,6 +3,7 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 
@@ -32,10 +33,11 @@ public class UpdateKeyVaultCommandHandler(
 
         keyVault.Update(request.Name, request.Location, request.Sku);
 
-        if (request.EnvironmentConfigs is not null)
-            keyVault.SetAllEnvironmentConfigs(
-                request.EnvironmentConfigs
-                    .Select(ec => (ec.EnvironmentName, ec.Properties))
+        if (request.EnvironmentSettings is not null)
+            keyVault.SetAllEnvironmentSettings(
+                request.EnvironmentSettings
+                    .Select(ec => (ec.EnvironmentName,
+                        ec.Sku is not null ? new Sku(Enum.Parse<Sku.SkuEnum>(ec.Sku)) : (Sku?)null))
                     .ToList());
 
         var updatedKeyVault = await keyVaultRepository.UpdateAsync(keyVault);

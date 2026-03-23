@@ -34,5 +34,14 @@ public class RedisCacheConfiguration : IEntityTypeConfiguration<RedisCache>
         builder.Property(r => r.MaxMemoryPolicy)
             .IsRequired()
             .HasConversion(new EnumValueConverter<MaxMemoryPolicy, MaxMemoryPolicy.Policy>());
+
+        builder.HasMany(rc => rc.EnvironmentSettings)
+            .WithOne()
+            .HasForeignKey(es => es.RedisCacheId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(rc => rc.EnvironmentSettings)
+            .HasField("_environmentSettings")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

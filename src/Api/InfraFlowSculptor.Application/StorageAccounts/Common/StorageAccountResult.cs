@@ -1,4 +1,3 @@
-using InfraFlowSculptor.Application.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
@@ -36,5 +35,5 @@ public record StorageAccountResult(
     IReadOnlyList<BlobContainerResult> BlobContainers,
     IReadOnlyList<StorageQueueResult> Queues,
     IReadOnlyList<StorageTableResult> Tables,
-    IReadOnlyList<EnvironmentConfigData> EnvironmentConfigs
+    IReadOnlyList<StorageAccountEnvironmentConfigData> EnvironmentSettings
 );

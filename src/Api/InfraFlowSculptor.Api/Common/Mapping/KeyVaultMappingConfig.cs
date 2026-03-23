@@ -1,4 +1,3 @@
-using InfraFlowSculptor.Application.Common;
 using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Commands.UpdateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Common;
@@ -15,7 +14,12 @@ public class KeyVaultMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<CreateKeyVaultRequest, CreateKeyVaultCommand>();
+        config.NewConfig<CreateKeyVaultRequest, CreateKeyVaultCommand>()
+            .Map(dest => dest.EnvironmentSettings,
+                src => src.EnvironmentSettings == null
+                    ? null
+                    : src.EnvironmentSettings.Select(ec => new KeyVaultEnvironmentConfigData(
+                        ec.EnvironmentName, ec.Sku)).ToList());
 
         config.NewConfig<(Guid Id, UpdateKeyVaultRequest Request), UpdateKeyVaultCommand>()
             .MapWith(src => new UpdateKeyVaultCommand(
@@ -23,15 +27,20 @@ public class KeyVaultMappingConfig : IRegister
                 src.Request.Name.Adapt<Name>(),
                 src.Request.Location.Adapt<Location>(),
                 src.Request.Sku.Adapt<Sku>(),
-                src.Request.EnvironmentConfigs == null
+                src.Request.EnvironmentSettings == null
                     ? null
-                    : src.Request.EnvironmentConfigs.Select(ec => new EnvironmentConfigData(
-                        ec.EnvironmentName, ec.Properties)).ToList()));
+                    : src.Request.EnvironmentSettings.Select(ec => new KeyVaultEnvironmentConfigData(
+                        ec.EnvironmentName, ec.Sku)).ToList()));
 
         config.NewConfig<KeyVault, KeyVaultResult>()
-            .Map(dest => dest.EnvironmentConfigs,
-                src => src.EnvironmentConfigs.Select(ec => new EnvironmentConfigData(
-                    ec.EnvironmentName, ec.Properties)).ToList());
+            .Map(dest => dest.EnvironmentSettings,
+                src => src.EnvironmentSettings.Select(es => new KeyVaultEnvironmentConfigData(
+                    es.EnvironmentName,
+                    es.Sku != null ? es.Sku.Value.ToString() : null)).ToList());
+
+        config.NewConfig<KeyVaultEnvironmentConfigData, KeyVaultEnvironmentConfigResponse>()
+            .MapWith(src => new KeyVaultEnvironmentConfigResponse(
+                src.EnvironmentName, src.Sku));
 
         config.NewConfig<Sku, string>()
             .MapWith(src => src.Value.ToString());

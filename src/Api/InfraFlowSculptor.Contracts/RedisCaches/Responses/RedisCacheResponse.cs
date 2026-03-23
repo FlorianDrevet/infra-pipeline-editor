@@ -1,4 +1,4 @@
-using InfraFlowSculptor.Contracts.Common;
+using InfraFlowSculptor.Contracts.RedisCaches.Requests;
 
 namespace InfraFlowSculptor.Contracts.RedisCaches.Responses;
 
@@ -14,5 +14,5 @@ public record RedisCacheResponse(
     bool EnableNonSslPort,
     string MinimumTlsVersion,
     string MaxMemoryPolicy,
-    IReadOnlyList<ResourceEnvironmentConfigResponse> EnvironmentConfigs
+    IReadOnlyList<RedisCacheEnvironmentConfigResponse> EnvironmentSettings
 );

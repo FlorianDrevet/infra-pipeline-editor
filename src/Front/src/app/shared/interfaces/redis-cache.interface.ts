@@ -1,4 +1,24 @@
-import { ResourceEnvironmentConfigEntry, ResourceEnvironmentConfigResponse } from './resource-environment-config.interface';
+// ─── Environment Settings ────────────────────────────────────────────────────
+
+export interface RedisCacheEnvironmentConfigEntry {
+  environmentName: string;
+  sku?: string | null;
+  capacity?: number | null;
+  redisVersion?: number | null;
+  enableNonSslPort?: boolean | null;
+  minimumTlsVersion?: string | null;
+  maxMemoryPolicy?: string | null;
+}
+
+export interface RedisCacheEnvironmentConfigResponse {
+  environmentName: string;
+  sku: string | null;
+  capacity: number | null;
+  redisVersion: number | null;
+  enableNonSslPort: boolean | null;
+  minimumTlsVersion: string | null;
+  maxMemoryPolicy: string | null;
+}
 
 // ─── Responses ───────────────────────────────────────────────────────────────
 
@@ -13,7 +33,7 @@ export interface RedisCacheResponse {
   enableNonSslPort: boolean;
   minimumTlsVersion: string;
   maxMemoryPolicy: string;
-  environmentConfigs: ResourceEnvironmentConfigResponse[];
+  environmentSettings: RedisCacheEnvironmentConfigResponse[];
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -28,7 +48,7 @@ export interface CreateRedisCacheRequest {
   minimumTlsVersion: string;
   maxMemoryPolicy: string;
   capacity: number;
-  environmentConfigs?: ResourceEnvironmentConfigEntry[];
+  environmentSettings?: RedisCacheEnvironmentConfigEntry[];
 }
 
 export interface UpdateRedisCacheRequest {
@@ -40,5 +60,5 @@ export interface UpdateRedisCacheRequest {
   minimumTlsVersion: string;
   maxMemoryPolicy: string;
   capacity: number;
-  environmentConfigs?: ResourceEnvironmentConfigEntry[];
+  environmentSettings?: RedisCacheEnvironmentConfigEntry[];
 }
