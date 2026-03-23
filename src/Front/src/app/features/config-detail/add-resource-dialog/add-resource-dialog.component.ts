@@ -25,6 +25,7 @@ import { AppServicePlanService } from '../../../shared/services/app-service-plan
 import { WebAppService } from '../../../shared/services/web-app.service';
 import { UserAssignedIdentityService } from '../../../shared/services/user-assigned-identity.service';
 import { FunctionAppService } from '../../../shared/services/function-app.service';
+import { AppConfigurationService } from '../../../shared/services/app-configuration.service';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
@@ -32,6 +33,7 @@ import { StorageAccountEnvironmentConfigEntry } from '../../../shared/interfaces
 import { AppServicePlanEnvironmentConfigEntry } from '../../../shared/interfaces/app-service-plan.interface';
 import { WebAppEnvironmentConfigEntry } from '../../../shared/interfaces/web-app.interface';
 import { FunctionAppEnvironmentConfigEntry } from '../../../shared/interfaces/function-app.interface';
+import { AppConfigurationEnvironmentConfigEntry } from '../../../shared/interfaces/app-configuration.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 
 export interface AddResourceDialogData {
@@ -99,6 +101,16 @@ const STORAGE_TLS_OPTIONS = [
   { label: 'TLS 1.2', value: 'Tls12' },
 ];
 
+const APP_CONFIGURATION_SKU_OPTIONS = [
+  { label: 'Free', value: 'Free' },
+  { label: 'Standard', value: 'Standard' },
+];
+
+const APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS = [
+  { label: 'Enabled', value: 'Enabled' },
+  { label: 'Disabled', value: 'Disabled' },
+];
+
 type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'environments';
 
 @Component({
@@ -131,6 +143,7 @@ export class AddResourceDialogComponent {
   private readonly webAppService = inject(WebAppService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly functionAppService = inject(FunctionAppService);
+  private readonly appConfigurationService = inject(AppConfigurationService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly fb = inject(FormBuilder);
 
@@ -177,6 +190,8 @@ export class AddResourceDialogComponent {
   protected readonly aspSkuOptions = APP_SERVICE_PLAN_SKU_OPTIONS;
   protected readonly runtimeStackOptions = RUNTIME_STACK_OPTIONS;
   protected readonly functionAppRuntimeStackOptions = FUNCTION_APP_RUNTIME_STACK_OPTIONS;
+  protected readonly appConfigurationSkuOptions = APP_CONFIGURATION_SKU_OPTIONS;
+  protected readonly appConfigurationPublicNetworkOptions = APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS;
 
   protected readonly ResourceTypeEnum = ResourceTypeEnum;
 
@@ -380,6 +395,14 @@ export class AddResourceDialogComponent {
         });
       case ResourceTypeEnum.UserAssignedIdentity:
         return this.fb.group({});
+      case ResourceTypeEnum.AppConfiguration:
+        return this.fb.group({
+          sku: ['Standard', [Validators.required]],
+          softDeleteRetentionInDays: [7],
+          purgeProtectionEnabled: [false],
+          disableLocalAuth: [false],
+          publicNetworkAccess: ['Enabled', [Validators.required]],
+        });
     }
   }
 
@@ -489,6 +512,15 @@ export class AddResourceDialogComponent {
           });
           break;
         }
+        case ResourceTypeEnum.AppConfiguration: {
+          await this.appConfigurationService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            environmentSettings: this.buildAppConfigurationEnvironmentSettings(),
+          });
+          break;
+        }
       }
       this.dialogRef.close(true);
     } catch {
@@ -572,6 +604,20 @@ export class AddResourceDialogComponent {
         runtimeVersion: raw.runtimeVersion || null,
         maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
         functionsWorkerRuntime: raw.functionsWorkerRuntime || null,
+      };
+    });
+  }
+
+  private buildAppConfigurationEnvironmentSettings(): AppConfigurationEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        sku: raw.sku || null,
+        softDeleteRetentionInDays: raw.softDeleteRetentionInDays != null ? Number(raw.softDeleteRetentionInDays) : null,
+        purgeProtectionEnabled: raw.purgeProtectionEnabled ?? null,
+        disableLocalAuth: raw.disableLocalAuth ?? null,
+        publicNetworkAccess: raw.publicNetworkAccess || null,
       };
     });
   }

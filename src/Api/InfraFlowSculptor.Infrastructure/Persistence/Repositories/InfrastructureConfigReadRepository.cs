@@ -1,5 +1,7 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
+using InfraFlowSculptor.Domain.AppConfigurationAggregate;
+using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities;
 using InfraFlowSculptor.Domain.Common.BaseModels;
@@ -77,10 +79,15 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var acSettings = await dbContext.AppConfigurationEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.AppConfigurationId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -171,7 +178,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<StorageAccountEnvironmentSettings> saSettings,
         IReadOnlyList<AppServicePlanEnvironmentSettings> aspSettings,
         IReadOnlyList<WebAppEnvironmentSettings> waSettings,
-        IReadOnlyList<FunctionAppEnvironmentSettings> faSettings)
+        IReadOnlyList<FunctionAppEnvironmentSettings> faSettings,
+        IReadOnlyList<AppConfigurationEnvironmentSettings> acSettings)
     {
         return resource switch
         {
@@ -258,6 +266,16 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 "Microsoft.ManagedIdentity/userAssignedIdentities",
                 new Dictionary<string, string>(),
                 new List<ResourceEnvironmentConfigReadModel>()),
+            AppConfiguration ac => new AzureResourceReadModel(
+                ac.Id.Value,
+                ac.Name.Value,
+                MapLocation(ac.Location),
+                "Microsoft.AppConfiguration/configurationStores",
+                new Dictionary<string, string>(),
+                acSettings
+                    .Where(es => es.AppConfigurationId == ac.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
             _ => null
         };
     }

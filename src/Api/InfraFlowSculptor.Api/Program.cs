@@ -76,6 +76,7 @@ app.UseAppServicePlanController();
 app.UseWebAppController();
 app.UseFunctionAppController();
 app.UseUserAssignedIdentityController();
+app.UseAppConfigurationController();
 app.UseBicepGenerationController();
 app.MapDefaultEndpoints();
 

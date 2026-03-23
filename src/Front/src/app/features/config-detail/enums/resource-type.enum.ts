@@ -9,6 +9,7 @@ export enum ResourceTypeEnum {
   WebApp = 'WebApp',
   FunctionApp = 'FunctionApp',
   UserAssignedIdentity = 'UserAssignedIdentity',
+  AppConfiguration = 'AppConfiguration',
 }
 
 /**
@@ -30,6 +31,7 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   WebApp: 'language',
   FunctionApp: 'bolt',
   UserAssignedIdentity: 'fingerprint',
+  AppConfiguration: 'tune',
 };
 
 /**
@@ -43,5 +45,6 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Record<string, string> = {
   WebApp: 'app',
   FunctionApp: 'func',
   UserAssignedIdentity: 'id',
+  AppConfiguration: 'appcs',
   ResourceGroup: 'rg',
 };

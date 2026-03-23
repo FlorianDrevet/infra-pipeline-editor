@@ -28,10 +28,12 @@ import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry } from '..
 import { AppServicePlanResponse, AppServicePlanEnvironmentConfigEntry } from '../../shared/interfaces/app-service-plan.interface';
 import { WebAppResponse, WebAppEnvironmentConfigEntry } from '../../shared/interfaces/web-app.interface';
 import { FunctionAppResponse, FunctionAppEnvironmentConfigEntry } from '../../shared/interfaces/function-app.interface';
+import { AppConfigurationResponse, AppConfigurationEnvironmentConfigEntry } from '../../shared/interfaces/app-configuration.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
 import { FunctionAppService } from '../../shared/services/function-app.service';
+import { AppConfigurationService } from '../../shared/services/app-configuration.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -46,7 +48,7 @@ import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service
 import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse;
 
 /** SKU options per resource type */
 const KEY_VAULT_SKU_OPTIONS = [
@@ -108,6 +110,16 @@ const STORAGE_TLS_OPTIONS = [
   { label: 'TLS 1.2', value: 'Tls12' },
 ];
 
+const APP_CONFIGURATION_SKU_OPTIONS = [
+  { label: 'Free', value: 'Free' },
+  { label: 'Standard', value: 'Standard' },
+];
+
+const APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS = [
+  { label: 'Enabled', value: 'Enabled' },
+  { label: 'Disabled', value: 'Disabled' },
+];
+
 @Component({
   selector: 'app-resource-edit',
   standalone: true,
@@ -141,6 +153,7 @@ export class ResourceEditComponent implements OnInit {
   private readonly appServicePlanService = inject(AppServicePlanService);
   private readonly webAppService = inject(WebAppService);
   private readonly functionAppService = inject(FunctionAppService);
+  private readonly appConfigurationService = inject(AppConfigurationService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -186,6 +199,8 @@ export class ResourceEditComponent implements OnInit {
   protected readonly runtimeStackOptions = RUNTIME_STACK_OPTIONS;
   protected readonly functionAppRuntimeStackOptions = FUNCTION_APP_RUNTIME_STACK_OPTIONS;
   protected readonly aspSkuOptions = APP_SERVICE_PLAN_SKU_OPTIONS;
+  protected readonly appConfigurationSkuOptions = APP_CONFIGURATION_SKU_OPTIONS;
+  protected readonly appConfigurationPublicNetworkOptions = APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS;
 
   // ─── Forms ───
   protected generalForm!: FormGroup;
@@ -286,6 +301,8 @@ export class ResourceEditComponent implements OnInit {
         return this.functionAppService.getById(this.resourceId);
       case 'UserAssignedIdentity':
         return this.userAssignedIdentityService.getById(this.resourceId);
+      case 'AppConfiguration':
+        return this.appConfigurationService.getById(this.resourceId);
       default:
         throw new Error(`Unknown resource type: ${this.resourceType}`);
     }
@@ -396,6 +413,17 @@ export class ResourceEditComponent implements OnInit {
       }
       default:
         return this.fb.group({});
+      case 'AppConfiguration': {
+        const ac = resource as AppConfigurationResponse;
+        const settings = ac.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          sku: [settings?.sku ?? null],
+          softDeleteRetentionInDays: [settings?.softDeleteRetentionInDays ?? null],
+          purgeProtectionEnabled: [settings?.purgeProtectionEnabled ?? null],
+          disableLocalAuth: [settings?.disableLocalAuth ?? null],
+          publicNetworkAccess: [settings?.publicNetworkAccess ?? null],
+        });
+      }
     }
   }
 
@@ -468,6 +496,13 @@ export class ResourceEditComponent implements OnInit {
             location: general.location,
           });
           break;
+        case 'AppConfiguration':
+          await this.appConfigurationService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            environmentSettings: this.buildAppConfigurationEnvSettings(),
+          });
+          break;
       }
 
       // Reload to reflect saved state
@@ -531,6 +566,9 @@ export class ResourceEditComponent implements OnInit {
           break;
         case 'UserAssignedIdentity':
           await this.userAssignedIdentityService.delete(this.resourceId);
+          break;
+        case 'AppConfiguration':
+          await this.appConfigurationService.delete(this.resourceId);
           break;
       }
       this.router.navigate(['/config', this.configId]);
@@ -728,6 +766,20 @@ export class ResourceEditComponent implements OnInit {
         runtimeVersion: raw.runtimeVersion || null,
         maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
         functionsWorkerRuntime: raw.functionsWorkerRuntime || null,
+      };
+    });
+  }
+
+  private buildAppConfigurationEnvSettings(): AppConfigurationEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        sku: raw.sku || null,
+        softDeleteRetentionInDays: raw.softDeleteRetentionInDays != null ? Number(raw.softDeleteRetentionInDays) : null,
+        purgeProtectionEnabled: raw.purgeProtectionEnabled ?? null,
+        disableLocalAuth: raw.disableLocalAuth ?? null,
+        publicNetworkAccess: raw.publicNetworkAccess || null,
       };
     });
   }

@@ -16,6 +16,7 @@ public static class ResourceAbbreviationCatalog
         ["WebApp"] = "app",
         ["FunctionApp"] = "func",
         ["UserAssignedIdentity"] = "id",
+        ["AppConfiguration"] = "appcs",
     };
 
     /// <summary>

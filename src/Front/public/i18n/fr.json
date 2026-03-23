@@ -265,6 +265,7 @@
       "ADD_DIALOG_TITLE_WebApp": "Nouvelle Web App",
       "ADD_DIALOG_TITLE_UserAssignedIdentity": "Nouvelle Identité managée (User-Assigned)",
       "ADD_DIALOG_TITLE_FunctionApp": "Nouvelle Function App",
+      "ADD_DIALOG_TITLE_AppConfiguration": "Nouvelle App Configuration",
       "ADD_ERROR": "Erreur lors de la creation de la ressource.",
       "FORM": {
         "NAME": "Nom",
@@ -301,6 +302,10 @@
         "FUNCTIONS_WORKER_RUNTIME": "Runtime du worker Functions",
         "FUNCTIONS_WORKER_RUNTIME_PLACEHOLDER": "ex : dotnet-isolated, node, python",
         "MAX_INSTANCE_COUNT": "Nombre max d'instances",
+        "SOFT_DELETE_RETENTION": "R\u00e9tention de la suppression r\u00e9versible (jours)",
+        "PURGE_PROTECTION": "Activer la protection contre la purge",
+        "DISABLE_LOCAL_AUTH": "D\u00e9sactiver l'authentification locale",
+        "PUBLIC_NETWORK_ACCESS": "Acc\u00e8s r\u00e9seau public",
         "CANCEL": "Annuler",
         "ADD": "Ajouter",
         "ENV_STEP_TITLE": "Configuration par environnement",
@@ -608,7 +613,11 @@
       "RUNTIME_VERSION": "Version du runtime",
       "ALWAYS_ON": "Always On",
       "FUNCTIONS_WORKER_RUNTIME": "Runtime du worker Functions",
-      "MAX_INSTANCE_COUNT": "Nombre max d'instances"
+      "MAX_INSTANCE_COUNT": "Nombre max d'instances",
+      "SOFT_DELETE_RETENTION": "R\u00e9tention de la suppression r\u00e9versible (jours)",
+      "PURGE_PROTECTION": "Activer la protection contre la purge",
+      "DISABLE_LOCAL_AUTH": "D\u00e9sactiver l'authentification locale",
+      "PUBLIC_NETWORK_ACCESS": "Acc\u00e8s r\u00e9seau public"
     },
     "ENVIRONMENTS": {
       "EMPTY": "Aucun environnement configur\u00e9. Ajoutez des environnements dans le projet ou la configuration.",

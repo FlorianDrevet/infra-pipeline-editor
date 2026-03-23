@@ -208,6 +208,27 @@ public static class AzureRoleDefinitionCatalog
             FunctionAppDocsUrl),
     ];
 
+    private const string AppConfigurationDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> AppConfigurationRoles =
+    [
+        new("516239f1-63e1-4d78-a4de-a74fb236a071",
+            "App Configuration Data Reader",
+            "Allows read access to App Configuration data.",
+            AppConfigurationDocsUrl),
+
+        new("5ae67dd6-50cb-40e7-96ff-dc2bfa4b606b",
+            "App Configuration Data Owner",
+            "Allows full access to App Configuration data.",
+            AppConfigurationDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            AppConfigurationDocsUrl),
+    ];
+
     private static readonly Dictionary<string, IReadOnlyList<AzureRoleDefinition>> Catalog = new()
     {
         { "KeyVault", KeyVaultRoles },
@@ -217,6 +238,7 @@ public static class AzureRoleDefinitionCatalog
         { "WebApp", WebAppRoles },
         { "FunctionApp", FunctionAppRoles },
         { "UserAssignedIdentity", UserAssignedIdentityRoles },
+        { "AppConfiguration", AppConfigurationRoles },
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>

@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddSingleton<IResourceTypeBicepGenerator, WebAppTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, FunctionAppTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, UserAssignedIdentityTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, AppConfigurationTypeBicepGenerator>();
         services.AddSingleton<BicepGenerationEngine>();
 
         return services;

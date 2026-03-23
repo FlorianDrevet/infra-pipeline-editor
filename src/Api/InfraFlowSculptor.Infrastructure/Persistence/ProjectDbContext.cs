@@ -1,3 +1,5 @@
+using InfraFlowSculptor.Domain.AppConfigurationAggregate;
+using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities;
 using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
@@ -52,6 +54,8 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<FunctionApp> FunctionApps { get; set; } = null!;
     public DbSet<FunctionAppEnvironmentSettings> FunctionAppEnvironmentSettings { get; set; } = null!;
     public DbSet<UserAssignedIdentity> UserAssignedIdentities { get; set; } = null!;
+    public DbSet<AppConfiguration> AppConfigurations { get; set; } = null!;
+    public DbSet<AppConfigurationEnvironmentSettings> AppConfigurationEnvironmentSettings { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

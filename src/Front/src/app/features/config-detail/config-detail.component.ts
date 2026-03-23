@@ -33,6 +33,7 @@ import { UserAssignedIdentityService } from '../../shared/services/user-assigned
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
 import { FunctionAppService } from '../../shared/services/function-app.service';
+import { AppConfigurationService } from '../../shared/services/app-configuration.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
@@ -80,6 +81,7 @@ export class ConfigDetailComponent implements OnInit {
   private readonly appServicePlanService = inject(AppServicePlanService);
   private readonly webAppService = inject(WebAppService);
   private readonly functionAppService = inject(FunctionAppService);
+  private readonly appConfigurationService = inject(AppConfigurationService);
   private readonly projectService = inject(ProjectService);
   private readonly bicepService = inject(BicepGeneratorService);
   private readonly authService = inject(AuthenticationService);
@@ -579,6 +581,9 @@ export class ConfigDetailComponent implements OnInit {
           break;
         case 'UserAssignedIdentity':
           await this.userAssignedIdentityService.delete(resource.id);
+          break;
+        case 'AppConfiguration':
+          await this.appConfigurationService.delete(resource.id);
           break;
       }
       // Refresh resource list for this resource group

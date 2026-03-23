@@ -265,6 +265,7 @@
       "ADD_DIALOG_TITLE_WebApp": "New Web App",
       "ADD_DIALOG_TITLE_UserAssignedIdentity": "New User-Assigned Identity",
       "ADD_DIALOG_TITLE_FunctionApp": "New Function App",
+      "ADD_DIALOG_TITLE_AppConfiguration": "New App Configuration",
       "ADD_ERROR": "Failed to create the resource.",
       "FORM": {
         "NAME": "Name",
@@ -301,6 +302,10 @@
         "FUNCTIONS_WORKER_RUNTIME": "Functions worker runtime",
         "FUNCTIONS_WORKER_RUNTIME_PLACEHOLDER": "e.g. dotnet-isolated, node, python",
         "MAX_INSTANCE_COUNT": "Max instance count",
+        "SOFT_DELETE_RETENTION": "Soft delete retention (days)",
+        "PURGE_PROTECTION": "Enable purge protection",
+        "DISABLE_LOCAL_AUTH": "Disable local authentication",
+        "PUBLIC_NETWORK_ACCESS": "Public network access",
         "CANCEL": "Cancel",
         "ADD": "Add",
         "ENV_STEP_TITLE": "Per-environment configuration",
@@ -604,7 +609,11 @@
       "RUNTIME_VERSION": "Runtime version",
       "ALWAYS_ON": "Always On",
       "FUNCTIONS_WORKER_RUNTIME": "Functions worker runtime",
-      "MAX_INSTANCE_COUNT": "Max instance count"
+      "MAX_INSTANCE_COUNT": "Max instance count",
+      "SOFT_DELETE_RETENTION": "Soft delete retention (days)",
+      "PURGE_PROTECTION": "Enable purge protection",
+      "DISABLE_LOCAL_AUTH": "Disable local authentication",
+      "PUBLIC_NETWORK_ACCESS": "Public network access"
     },
     "ENVIRONMENTS": {
       "EMPTY": "No environments configured. Add environments in the project or configuration first.",
