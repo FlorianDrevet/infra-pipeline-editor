@@ -5,6 +5,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
+using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
@@ -47,11 +48,31 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                 resources);
         }).ToList();
 
-        var environments = config.EnvironmentDefinitions.Select(e =>
-            new EnvironmentDefinitionReadModel(
-                e.Id.Value,
-                e.Name.Value,
-                MapLocation(e.Location))).ToList();
+        var environments = new List<EnvironmentDefinitionReadModel>();
+
+        if (config.UseProjectEnvironments)
+        {
+            var project = await dbContext.Projects
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == config.ProjectId, cancellationToken);
+
+            if (project is not null)
+            {
+                environments = project.EnvironmentDefinitions.Select(e =>
+                    new EnvironmentDefinitionReadModel(
+                        e.Id.Value,
+                        e.Name.Value,
+                        MapLocation(e.Location))).ToList();
+            }
+        }
+        else
+        {
+            environments = config.EnvironmentDefinitions.Select(e =>
+                new EnvironmentDefinitionReadModel(
+                    e.Id.Value,
+                    e.Name.Value,
+                    MapLocation(e.Location))).ToList();
+        }
 
         return new InfrastructureConfigReadModel(
             config.Id.Value,
