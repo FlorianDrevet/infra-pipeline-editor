@@ -37,9 +37,14 @@ public class KeyVault: AzureResource
         Sku = sku;
     }
 
-    public static KeyVault Create(ResourceGroupId resourceGroupId, Name name, Location location, Sku sku)
+    public static KeyVault Create(
+        ResourceGroupId resourceGroupId,
+        Name name,
+        Location location,
+        Sku sku,
+        IReadOnlyList<(string EnvironmentName, IReadOnlyDictionary<string, string> Properties)>? environmentConfigs = null)
     {
-        return new KeyVault
+        var keyVault = new KeyVault
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
@@ -47,5 +52,10 @@ public class KeyVault: AzureResource
             Location = location,
             Sku = sku
         };
+
+        if (environmentConfigs is not null)
+            keyVault.SetAllEnvironmentConfigs(environmentConfigs);
+
+        return keyVault;
     }
 }

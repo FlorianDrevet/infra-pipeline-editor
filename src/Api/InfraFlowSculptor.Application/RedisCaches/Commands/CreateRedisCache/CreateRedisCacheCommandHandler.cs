@@ -40,7 +40,10 @@ public class CreateRedisCacheCommandHandler(
             request.Name,
             request.Location,
             request.Sku,
-            settings);
+            settings,
+            request.EnvironmentConfigs?
+                .Select(ec => (ec.EnvironmentName, ec.Properties))
+                .ToList());
 
         var savedRedisCache = await redisCacheRepository.AddAsync(redisCache);
 

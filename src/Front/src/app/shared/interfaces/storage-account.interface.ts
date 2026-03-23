@@ -1,3 +1,5 @@
+import { ResourceEnvironmentConfigEntry, ResourceEnvironmentConfigResponse } from './resource-environment-config.interface';
+
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface BlobContainerResponse {
@@ -30,6 +32,7 @@ export interface StorageAccountResponse {
   blobContainers: BlobContainerResponse[];
   queues: StorageQueueResponse[];
   tables: StorageTableResponse[];
+  environmentConfigs: ResourceEnvironmentConfigResponse[];
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -44,6 +47,7 @@ export interface CreateStorageAccountRequest {
   allowBlobPublicAccess: boolean;
   enableHttpsTrafficOnly: boolean;
   minimumTlsVersion: string;
+  environmentConfigs?: ResourceEnvironmentConfigEntry[];
 }
 
 export interface UpdateStorageAccountRequest {
@@ -55,6 +59,7 @@ export interface UpdateStorageAccountRequest {
   allowBlobPublicAccess: boolean;
   enableHttpsTrafficOnly: boolean;
   minimumTlsVersion: string;
+  environmentConfigs?: ResourceEnvironmentConfigEntry[];
 }
 
 export interface AddBlobContainerRequest {

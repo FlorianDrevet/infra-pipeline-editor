@@ -86,9 +86,10 @@ public class StorageAccount : AzureResource
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        StorageAccountSettings settings)
+        StorageAccountSettings settings,
+        IReadOnlyList<(string EnvironmentName, IReadOnlyDictionary<string, string> Properties)>? environmentConfigs = null)
     {
-        return new StorageAccount
+        var storageAccount = new StorageAccount
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
@@ -101,5 +102,10 @@ public class StorageAccount : AzureResource
             EnableHttpsTrafficOnly = settings.EnableHttpsTrafficOnly,
             MinimumTlsVersion = settings.MinimumTlsVersion
         };
+
+        if (environmentConfigs is not null)
+            storageAccount.SetAllEnvironmentConfigs(environmentConfigs);
+
+        return storageAccount;
     }
 }

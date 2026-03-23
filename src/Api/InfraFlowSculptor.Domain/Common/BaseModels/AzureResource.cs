@@ -41,6 +41,11 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     private readonly List<RoleAssignment> _roleAssignments = new();
     public IReadOnlyCollection<RoleAssignment> RoleAssignments => _roleAssignments.AsReadOnly();
 
+    private readonly List<ResourceEnvironmentConfig> _environmentConfigs = new();
+
+    /// <summary>Gets the per-environment configuration overrides for this resource.</summary>
+    public IReadOnlyCollection<ResourceEnvironmentConfig> EnvironmentConfigs => _environmentConfigs.AsReadOnly();
+
     public void AddDependency(AzureResource resource)
     {
         if (resource.Id == Id)
@@ -86,6 +91,40 @@ public class AzureResource : AggregateRoot<AzureResourceId>
 
         _parameterUsages.Add(
             new ResourceParameterUsage(Id, parameter.Id, usage));
+    }
+
+    /// <summary>
+    /// Sets the per-environment configuration for the given environment.
+    /// Replaces existing configuration if one already exists for this environment.
+    /// </summary>
+    public void SetEnvironmentConfig(string environmentName, IReadOnlyDictionary<string, string> properties)
+    {
+        var existing = _environmentConfigs.FirstOrDefault(
+            ec => ec.EnvironmentName == environmentName);
+
+        if (existing is not null)
+        {
+            existing.UpdateProperties(properties);
+        }
+        else
+        {
+            _environmentConfigs.Add(
+                ResourceEnvironmentConfig.Create(Id, environmentName, properties));
+        }
+    }
+
+    /// <summary>
+    /// Sets all per-environment configurations at once, replacing any existing entries.
+    /// </summary>
+    public void SetAllEnvironmentConfigs(
+        IReadOnlyList<(string EnvironmentName, IReadOnlyDictionary<string, string> Properties)> configs)
+    {
+        _environmentConfigs.Clear();
+        foreach (var (envName, properties) in configs)
+        {
+            _environmentConfigs.Add(
+                ResourceEnvironmentConfig.Create(Id, envName, properties));
+        }
     }
 
     protected AzureResource()

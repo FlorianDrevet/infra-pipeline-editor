@@ -27,7 +27,14 @@ public class CreateKeyVaultCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        var keyVault = KeyVault.Create(request.ResourceGroupId, request.Name, request.Location, request.Sku);
+        var keyVault = KeyVault.Create(
+            request.ResourceGroupId,
+            request.Name,
+            request.Location,
+            request.Sku,
+            request.EnvironmentConfigs?
+                .Select(ec => (ec.EnvironmentName, ec.Properties))
+                .ToList());
 
         var savedKeyVault = await keyVaultRepository.AddAsync(keyVault);
 

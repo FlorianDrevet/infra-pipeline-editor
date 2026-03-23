@@ -44,6 +44,12 @@ public class UpdateRedisCacheCommandHandler(
             request.Sku,
             settings);
 
+        if (request.EnvironmentConfigs is not null)
+            redisCache.SetAllEnvironmentConfigs(
+                request.EnvironmentConfigs
+                    .Select(ec => (ec.EnvironmentName, ec.Properties))
+                    .ToList());
+
         var updatedRedisCache = await redisCacheRepository.UpdateAsync(redisCache);
 
         return mapper.Map<RedisCacheResult>(updatedRedisCache);

@@ -8,4 +8,10 @@ public class ResourceDefinition
     public string ResourceGroupName { get; set; } = string.Empty;
     public IReadOnlyDictionary<string, string> Properties { get; set; } =
         new Dictionary<string, string>();
+
+    /// <summary>
+    /// Per-environment property overrides. Key = environment name, Value = property overrides for that environment.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> EnvironmentConfigs { get; set; } =
+        new Dictionary<string, IReadOnlyDictionary<string, string>>();
 }

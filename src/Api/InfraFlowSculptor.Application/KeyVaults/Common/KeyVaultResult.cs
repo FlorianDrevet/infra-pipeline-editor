@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
@@ -10,5 +11,6 @@ public record KeyVaultResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    Sku Sku
+    Sku Sku,
+    IReadOnlyList<EnvironmentConfigData> EnvironmentConfigs
 );

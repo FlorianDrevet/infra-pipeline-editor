@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common;
 using ErrorOr;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
@@ -16,5 +17,6 @@ public record UpdateStorageAccountCommand(
     StorageAccessTier AccessTier,
     bool AllowBlobPublicAccess,
     bool EnableHttpsTrafficOnly,
-    StorageAccountTlsVersion MinimumTlsVersion
+    StorageAccountTlsVersion MinimumTlsVersion,
+    IReadOnlyList<EnvironmentConfigData>? EnvironmentConfigs = null
 ) : IRequest<ErrorOr<StorageAccountResult>>;

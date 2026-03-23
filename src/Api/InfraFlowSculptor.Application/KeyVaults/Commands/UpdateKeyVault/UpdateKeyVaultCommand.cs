@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common;
 using ErrorOr;
 using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
@@ -11,5 +12,6 @@ public record UpdateKeyVaultCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
-    Sku Sku
+    Sku Sku,
+    IReadOnlyList<EnvironmentConfigData>? EnvironmentConfigs = null
 ) : IRequest<ErrorOr<KeyVaultResult>>;

@@ -1,7 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { merge } from 'rxjs';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,16 +10,19 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTabsModule } from '@angular/material/tabs';
 import { TranslateModule } from '@ngx-translate/core';
 import { LOCATION_OPTIONS } from '../enums/location.enum';
 import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS } from '../enums/resource-type.enum';
 import { KeyVaultService } from '../../../shared/services/key-vault.service';
 import { RedisCacheService } from '../../../shared/services/redis-cache.service';
 import { StorageAccountService } from '../../../shared/services/storage-account.service';
+import { ResourceEnvironmentConfigEntry } from '../../../shared/interfaces/resource-environment-config.interface';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
   location: string;
+  environments: { name: string }[];
 }
 
 const KEY_VAULT_SKU_OPTIONS = [
@@ -82,6 +84,8 @@ const STORAGE_TLS_OPTIONS = [
   { label: 'TLS 1.2', value: 'Tls12' },
 ];
 
+type DialogStep = 'type' | 'common' | 'environments';
+
 @Component({
   selector: 'app-add-resource-dialog',
   standalone: true,
@@ -95,6 +99,7 @@ const STORAGE_TLS_OPTIONS = [
     MatProgressSpinnerModule,
     MatSelectModule,
     MatSlideToggleModule,
+    MatTabsModule,
     ReactiveFormsModule,
     TranslateModule,
   ],
@@ -109,9 +114,14 @@ export class AddResourceDialogComponent {
   private readonly storageAccountService = inject(StorageAccountService);
   private readonly fb = inject(FormBuilder);
 
+  protected readonly step = signal<DialogStep>('type');
+  protected readonly selectedType = signal<ResourceTypeEnum | null>(null);
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
-  protected readonly selectedType = signal<ResourceTypeEnum | null>(null);
+  protected readonly envFormsValid = signal(true);
+
+  protected readonly environments = this.data.environments;
+  protected readonly hasEnvironments = this.data.environments.length > 0;
 
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
@@ -128,60 +138,50 @@ export class AddResourceDialogComponent {
 
   protected readonly ResourceTypeEnum = ResourceTypeEnum;
 
-  // Key Vault form
-  protected readonly kvForm = this.fb.group({
+  // ── Common form (name + location) ──
+  protected readonly commonForm = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(80)]],
     location: [this.data.location, [Validators.required]],
-    sku: ['Standard', [Validators.required]],
   });
 
-  // Redis Cache form
-  protected readonly redisForm = this.fb.group({
-    name: ['', [Validators.required, Validators.maxLength(80)]],
-    location: [this.data.location, [Validators.required]],
-    sku: ['Standard', [Validators.required]],
-    redisVersion: [6, [Validators.required]],
-    enableNonSslPort: [false],
-    minimumTlsVersion: ['Tls12', [Validators.required]],
-    maxMemoryPolicy: ['NoEviction', [Validators.required]],
-    capacity: [1, [Validators.required, Validators.min(0)]],
+  // ── Per-environment FormArray ──
+  protected readonly envFormArray = new FormArray<FormGroup>([]);
+
+  private readonly commonFormStatus = toSignal(this.commonForm.statusChanges, { initialValue: 'INVALID' as const });
+
+  protected readonly isCommonValid = computed(() => {
+    this.commonFormStatus();
+    return this.commonForm.valid;
   });
 
-  // Storage Account form
-  protected readonly storageForm = this.fb.group({
-    name: ['', [Validators.required, Validators.maxLength(80)]],
-    location: [this.data.location, [Validators.required]],
-    sku: ['Standard_LRS', [Validators.required]],
-    kind: ['StorageV2', [Validators.required]],
-    accessTier: ['Hot', [Validators.required]],
-    allowBlobPublicAccess: [false],
-    enableHttpsTrafficOnly: [true],
-    minimumTlsVersion: ['Tls12', [Validators.required]],
-  });
+  private readonly _envStatusSub = this.envFormArray.statusChanges
+    .pipe(takeUntilDestroyed())
+    .subscribe(() => this.envFormsValid.set(this.envFormArray.valid));
 
-  private readonly formStatus = toSignal(
-    merge(this.kvForm.statusChanges, this.redisForm.statusChanges, this.storageForm.statusChanges)
-  );
+  private readonly prefilled = new Set<number>();
 
-  protected readonly isFormValid = computed(() => {
-    this.formStatus(); // track form status changes
-    const type = this.selectedType();
-    if (!type) return false;
-    switch (type) {
-      case ResourceTypeEnum.KeyVault: return this.kvForm.valid;
-      case ResourceTypeEnum.RedisCache: return this.redisForm.valid;
-      case ResourceTypeEnum.StorageAccount: return this.storageForm.valid;
-      default: return false;
-    }
-  });
-
+  // ── Type Selection ──
   protected onSelectType(type: ResourceTypeEnum): void {
     this.selectedType.set(type);
+    this.step.set('common');
+    this.errorKey.set('');
+    this.buildEnvForms(type);
+  }
+
+  // ── Navigation ──
+  protected onBackToType(): void {
+    this.selectedType.set(null);
+    this.step.set('type');
     this.errorKey.set('');
   }
 
-  protected onBack(): void {
-    this.selectedType.set(null);
+  protected onNextToEnvironments(): void {
+    if (this.commonForm.invalid || !this.hasEnvironments) return;
+    this.step.set('environments');
+  }
+
+  protected onBackToCommon(): void {
+    this.step.set('common');
     this.errorKey.set('');
   }
 
@@ -189,52 +189,118 @@ export class AddResourceDialogComponent {
     this.dialogRef.close();
   }
 
+  // ── Environment Forms ──
+  private buildEnvForms(type: ResourceTypeEnum): void {
+    this.envFormArray.clear();
+    this.prefilled.clear();
+    for (const _ of this.environments) {
+      this.envFormArray.push(this.createEnvFormGroup(type));
+    }
+    this.envFormsValid.set(this.envFormArray.valid);
+  }
+
+  private createEnvFormGroup(type: ResourceTypeEnum): FormGroup {
+    switch (type) {
+      case ResourceTypeEnum.KeyVault:
+        return this.fb.group({
+          sku: ['Standard', [Validators.required]],
+        });
+      case ResourceTypeEnum.RedisCache:
+        return this.fb.group({
+          skuName: ['Standard', [Validators.required]],
+          capacity: [1, [Validators.required, Validators.min(0)]],
+          redisVersion: [6, [Validators.required]],
+          enableNonSslPort: [false],
+          minimumTlsVersion: ['Tls12', [Validators.required]],
+          maxMemoryPolicy: ['NoEviction', [Validators.required]],
+        });
+      case ResourceTypeEnum.StorageAccount:
+        return this.fb.group({
+          sku: ['Standard_LRS', [Validators.required]],
+          kind: ['StorageV2', [Validators.required]],
+          accessTier: ['Hot', [Validators.required]],
+          allowBlobPublicAccess: [false],
+          supportsHttpsTrafficOnly: [true],
+          minimumTlsVersion: ['Tls12', [Validators.required]],
+        });
+    }
+  }
+
+  protected getEnvFormGroup(index: number): FormGroup {
+    return this.envFormArray.at(index);
+  }
+
+  protected onTabChange(index: number): void {
+    if (index > 0 && !this.prefilled.has(index) && this.envFormArray.length > 1) {
+      const firstGroup = this.envFormArray.at(0);
+      const targetGroup = this.envFormArray.at(index);
+      targetGroup.patchValue(firstGroup.getRawValue());
+      this.prefilled.add(index);
+    }
+  }
+
+  protected copyFromFirst(): void {
+    if (this.envFormArray.length < 2) return;
+    const firstValue = this.envFormArray.at(0).getRawValue();
+    for (let i = 1; i < this.envFormArray.length; i++) {
+      this.envFormArray.at(i).patchValue(firstValue);
+      this.prefilled.add(i);
+    }
+  }
+
+  // ── Submit ──
   protected async onSubmit(): Promise<void> {
     const type = this.selectedType();
-    if (!type) return;
+    if (!type || this.commonForm.invalid || !this.envFormsValid()) return;
 
     this.isSubmitting.set(true);
     this.errorKey.set('');
 
+    const common = this.commonForm.getRawValue();
+    const environmentConfigs = this.buildEnvironmentConfigs();
+
     try {
       switch (type) {
         case ResourceTypeEnum.KeyVault: {
-          const v = this.kvForm.getRawValue();
+          const firstEnv = this.envFormArray.at(0).getRawValue();
           await this.keyVaultService.create({
             resourceGroupId: this.data.resourceGroupId,
-            name: v.name!,
-            location: v.location!,
-            sku: v.sku!,
+            name: common.name!,
+            location: common.location!,
+            sku: firstEnv.sku,
+            environmentConfigs,
           });
           break;
         }
         case ResourceTypeEnum.RedisCache: {
-          const v = this.redisForm.getRawValue();
+          const firstEnv = this.envFormArray.at(0).getRawValue();
           await this.redisCacheService.create({
             resourceGroupId: this.data.resourceGroupId,
-            name: v.name!,
-            location: v.location!,
-            sku: v.sku!,
-            redisVersion: v.redisVersion!,
-            enableNonSslPort: v.enableNonSslPort!,
-            minimumTlsVersion: v.minimumTlsVersion!,
-            maxMemoryPolicy: v.maxMemoryPolicy!,
-            capacity: v.capacity!,
+            name: common.name!,
+            location: common.location!,
+            sku: firstEnv.skuName,
+            redisVersion: Number(firstEnv.redisVersion),
+            enableNonSslPort: firstEnv.enableNonSslPort,
+            minimumTlsVersion: firstEnv.minimumTlsVersion,
+            maxMemoryPolicy: firstEnv.maxMemoryPolicy,
+            capacity: Number(firstEnv.capacity),
+            environmentConfigs,
           });
           break;
         }
         case ResourceTypeEnum.StorageAccount: {
-          const v = this.storageForm.getRawValue();
+          const firstEnv = this.envFormArray.at(0).getRawValue();
           await this.storageAccountService.create({
             resourceGroupId: this.data.resourceGroupId,
-            name: v.name!,
-            location: v.location!,
-            sku: v.sku!,
-            kind: v.kind!,
-            accessTier: v.accessTier!,
-            allowBlobPublicAccess: v.allowBlobPublicAccess!,
-            enableHttpsTrafficOnly: v.enableHttpsTrafficOnly!,
-            minimumTlsVersion: v.minimumTlsVersion!,
+            name: common.name!,
+            location: common.location!,
+            sku: firstEnv.sku,
+            kind: firstEnv.kind,
+            accessTier: firstEnv.accessTier,
+            allowBlobPublicAccess: firstEnv.allowBlobPublicAccess,
+            enableHttpsTrafficOnly: firstEnv.supportsHttpsTrafficOnly,
+            minimumTlsVersion: firstEnv.minimumTlsVersion,
+            environmentConfigs,
           });
           break;
         }
@@ -245,5 +311,19 @@ export class AddResourceDialogComponent {
     } finally {
       this.isSubmitting.set(false);
     }
+  }
+
+  private buildEnvironmentConfigs(): ResourceEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      const properties: Record<string, string> = {};
+      for (const [key, value] of Object.entries(raw)) {
+        properties[key] = String(value);
+      }
+      return {
+        environmentName: env.name,
+        properties,
+      };
+    });
   }
 }

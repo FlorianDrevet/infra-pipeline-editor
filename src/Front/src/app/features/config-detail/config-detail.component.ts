@@ -108,6 +108,12 @@ export class ConfigDetailComponent implements OnInit {
     return Object.entries(result.moduleUris).map(([name, uri]) => ({ name, uri }));
   });
 
+  protected readonly bicepParamEntries = computed(() => {
+    const result = this.bicepResult();
+    if (!result?.parameterFileUris) return [];
+    return Object.entries(result.parameterFileUris).map(([name, uri]) => ({ name, uri }));
+  });
+
   // ─── Inheritance ───
   protected readonly inheritanceLoading = signal(false);
 
@@ -272,9 +278,16 @@ export class ConfigDetailComponent implements OnInit {
 
   protected openAddResourceDialog(rgId: string): void {
     const rg = this.resourceGroups().find((r) => r.id === rgId);
+    const envs = this.useProjectEnvironments()
+      ? this.projectSortedEnvironments()
+      : this.sortedEnvironments();
     const dialogRef = this.dialog.open(AddResourceDialogComponent, {
-      data: { resourceGroupId: rgId, location: rg?.location ?? '' } satisfies AddResourceDialogData,
-      width: '560px',
+      data: {
+        resourceGroupId: rgId,
+        location: rg?.location ?? '',
+        environments: envs.map(e => ({ name: e.name })),
+      } satisfies AddResourceDialogData,
+      width: '680px',
     });
 
     dialogRef.afterClosed().subscribe(async (created: boolean) => {

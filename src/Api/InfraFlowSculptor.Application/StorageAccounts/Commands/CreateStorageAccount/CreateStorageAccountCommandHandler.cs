@@ -40,7 +40,10 @@ public class CreateStorageAccountCommandHandler(
             request.ResourceGroupId,
             request.Name,
             request.Location,
-            settings);
+            settings,
+            request.EnvironmentConfigs?
+                .Select(ec => (ec.EnvironmentName, ec.Properties))
+                .ToList());
 
         var saved = await storageAccountRepository.AddAsync(storageAccount);
 

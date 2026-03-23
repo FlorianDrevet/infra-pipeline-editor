@@ -4,6 +4,6 @@ export interface GenerateBicepRequest {
 
 export interface GenerateBicepResponse {
   mainBicepUri: string;
-  parametersUri: string;
+  parameterFileUris: Record<string, string>;
   moduleUris: Record<string, string>;
 }

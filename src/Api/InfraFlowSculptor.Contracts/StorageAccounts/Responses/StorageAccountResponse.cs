@@ -1,3 +1,5 @@
+using InfraFlowSculptor.Contracts.Common;
+
 namespace InfraFlowSculptor.Contracts.StorageAccounts.Responses;
 
 /// <summary>Represents a Blob Container inside a Storage Account.</summary>
@@ -53,5 +55,6 @@ public record StorageAccountResponse(
     string MinimumTlsVersion,
     IReadOnlyList<BlobContainerResponse> BlobContainers,
     IReadOnlyList<StorageQueueResponse> Queues,
-    IReadOnlyList<StorageTableResponse> Tables
+    IReadOnlyList<StorageTableResponse> Tables,
+    IReadOnlyList<ResourceEnvironmentConfigResponse> EnvironmentConfigs
 );

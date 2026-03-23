@@ -6,10 +6,15 @@ public static class BicepAssembler
 {
     public static GenerationResult Assemble(
         IReadOnlyCollection<GeneratedTypeModule> modules,
-        IReadOnlyList<ResourceGroupDefinition> resourceGroups)
+        IReadOnlyList<ResourceGroupDefinition> resourceGroups,
+        IReadOnlyList<string> environmentNames,
+        IEnumerable<ResourceDefinition> resources)
     {
         var main = GenerateMainBicep(modules, resourceGroups);
-        var parameters = GenerateMainParameters(modules);
+
+        var environmentParameterFiles = GenerateEnvironmentParameterFiles(
+            modules, environmentNames, resources);
+
         var moduleFiles = modules
             .DistinctBy(m => m.ModuleFileName)
             .ToDictionary(
@@ -19,7 +24,7 @@ public static class BicepAssembler
         return new GenerationResult
         {
             MainBicep = main,
-            MainBicepParameters = parameters,
+            EnvironmentParameterFiles = environmentParameterFiles,
             ModuleFiles = moduleFiles
         };
     }
@@ -81,6 +86,80 @@ public static class BicepAssembler
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Generates one <c>.bicepparam</c> file per environment.
+    /// For each environment, resource properties are merged with environment-specific overrides.
+    /// </summary>
+    private static Dictionary<string, string> GenerateEnvironmentParameterFiles(
+        IReadOnlyCollection<GeneratedTypeModule> modules,
+        IReadOnlyList<string> environmentNames,
+        IEnumerable<ResourceDefinition> resources)
+    {
+        var resourceList = resources.ToList();
+        var result = new Dictionary<string, string>();
+
+        foreach (var envName in environmentNames)
+        {
+            var envModules = ApplyEnvironmentOverrides(modules, envName, resourceList);
+            var paramContent = GenerateMainParameters(envModules);
+            var fileName = $"main.{envName.ToLowerInvariant()}.bicepparam";
+            result[fileName] = paramContent;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Clones modules and replaces matching parameter values with environment-specific overrides.
+    /// </summary>
+    private static IReadOnlyCollection<GeneratedTypeModule> ApplyEnvironmentOverrides(
+        IReadOnlyCollection<GeneratedTypeModule> modules,
+        string environmentName,
+        IReadOnlyList<ResourceDefinition> resources)
+    {
+        return modules.Select(module =>
+        {
+            // Find the resource definition that matches this module by reconstructing the module name
+            var matchingResource = resources.FirstOrDefault(r =>
+            {
+                var resourceIdentifier = BicepIdentifierHelper.ToBicepIdentifier(r.Name);
+                var expectedModuleName = GetBaseModuleName(r.Type) +
+                    (resourceIdentifier.Length == 0 ? resourceIdentifier : char.ToUpperInvariant(resourceIdentifier[0]) + resourceIdentifier[1..]);
+                return module.ModuleName == expectedModuleName;
+            });
+
+            if (matchingResource is null ||
+                !matchingResource.EnvironmentConfigs.TryGetValue(environmentName, out var envOverrides) ||
+                envOverrides.Count == 0)
+            {
+                return module;
+            }
+
+            // Merge: start with default parameters, override with environment-specific values
+            var mergedParams = new Dictionary<string, object>(module.Parameters);
+            foreach (var (key, value) in envOverrides)
+            {
+                if (mergedParams.ContainsKey(key))
+                {
+                    mergedParams[key] = value;
+                }
+            }
+
+            return module with { Parameters = mergedParams };
+        }).ToList();
+    }
+
+    private static string GetBaseModuleName(string resourceType)
+    {
+        return resourceType switch
+        {
+            "Microsoft.KeyVault/vaults" => "keyVault",
+            "Microsoft.Cache/Redis" => "redisCache",
+            "Microsoft.Storage/storageAccounts" => "storageAccount",
+            _ => "unknown"
+        };
     }
 
     private static string GenerateMainParameters(

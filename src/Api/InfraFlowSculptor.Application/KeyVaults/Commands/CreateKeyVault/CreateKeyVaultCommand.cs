@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common;
 using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.ValueObjects;
@@ -11,5 +12,6 @@ public record CreateKeyVaultCommand(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    Sku Sku
+    Sku Sku,
+    IReadOnlyList<EnvironmentConfigData>? EnvironmentConfigs = null
 ) : IRequest<ErrorOr<KeyVaultResult>>;

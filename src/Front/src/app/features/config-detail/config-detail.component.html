@@ -133,14 +133,16 @@
                   <span class="bicep-tree__name">main.bicep</span>
                   <span class="bicep-tree__badge">{{ 'CONFIG_DETAIL.BICEP.ENTRY_POINT' | translate }}</span>
                 </button>
-                <!-- main.bicepparam -->
-                <button class="bicep-tree__item"
-                        [class.bicep-tree__item--active]="bicepViewerFile() === 'main.bicepparam'"
-                        (click)="openBicepFile('main.bicepparam')">
-                  <mat-icon class="bicep-tree__icon">tune</mat-icon>
-                  <span class="bicep-tree__name">main.bicepparam</span>
-                  <span class="bicep-tree__badge bicep-tree__badge--params">{{ 'CONFIG_DETAIL.BICEP.PARAMETERS' | translate }}</span>
-                </button>
+                <!-- Parameter files -->
+                @for (param of bicepParamEntries(); track param.name) {
+                  <button class="bicep-tree__item"
+                          [class.bicep-tree__item--active]="bicepViewerFile() === param.name"
+                          (click)="openBicepFile(param.name)">
+                    <mat-icon class="bicep-tree__icon">tune</mat-icon>
+                    <span class="bicep-tree__name">{{ param.name }}</span>
+                    <span class="bicep-tree__badge bicep-tree__badge--params">{{ 'CONFIG_DETAIL.BICEP.PARAMETERS' | translate }}</span>
+                  </button>
+                }
                 <!-- Modules -->
                 @if (bicepModuleEntries().length > 0) {
                   <button class="bicep-tree__folder" (click)="toggleBicepFolder('modules')">

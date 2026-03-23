@@ -17,6 +17,11 @@ public record AzureResourceReadModel(
     string Name,
     string Location,
     string ResourceType,
+    IReadOnlyDictionary<string, string> Properties,
+    IReadOnlyList<ResourceEnvironmentConfigReadModel> EnvironmentConfigs);
+
+public record ResourceEnvironmentConfigReadModel(
+    string EnvironmentName,
     IReadOnlyDictionary<string, string> Properties);
 
 public record EnvironmentDefinitionReadModel(

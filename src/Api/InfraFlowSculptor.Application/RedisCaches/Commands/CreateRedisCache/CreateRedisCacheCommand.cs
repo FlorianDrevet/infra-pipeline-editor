@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common;
 using InfraFlowSculptor.Application.RedisCaches.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
@@ -16,5 +17,6 @@ public record CreateRedisCacheCommand(
     int RedisVersion,
     bool EnableNonSslPort,
     TlsVersion MinimumTlsVersion,
-    MaxMemoryPolicy MaxMemoryPolicy
+    MaxMemoryPolicy MaxMemoryPolicy,
+    IReadOnlyList<EnvironmentConfigData>? EnvironmentConfigs = null
 ) : IRequest<ErrorOr<RedisCacheResult>>;

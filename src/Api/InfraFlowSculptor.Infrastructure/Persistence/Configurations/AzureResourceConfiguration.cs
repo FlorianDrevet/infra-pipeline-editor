@@ -69,5 +69,14 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
         builder.Navigation(r => r.RoleAssignments)
             .HasField("_roleAssignments")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(r => r.EnvironmentConfigs)
+            .WithOne()
+            .HasForeignKey(r => r.ResourceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(r => r.EnvironmentConfigs)
+            .HasField("_environmentConfigs")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

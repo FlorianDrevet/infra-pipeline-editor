@@ -33,13 +33,19 @@ public class GenerateBicepCommandHandler(
                 Type = r.ResourceType,
                 ResourceGroupName = rg.Name,
                 Sku = r.Properties.GetValueOrDefault("sku", string.Empty),
-                Properties = r.Properties
+                Properties = r.Properties,
+                EnvironmentConfigs = r.EnvironmentConfigs
+                    .ToDictionary(
+                        ec => ec.EnvironmentName,
+                        ec => (IReadOnlyDictionary<string, string>)ec.Properties)
             }))
             .ToList();
 
         var resourceGroups = config.ResourceGroups
             .Select(rg => new ResourceGroupDefinition { Name = rg.Name, Location = rg.Location })
             .ToList();
+
+        var environmentNames = config.Environments.Select(e => e.Name).ToList();
 
         var defaultLocation = config.Environments.FirstOrDefault()?.Location
             ?? config.ResourceGroups.FirstOrDefault()?.Location
@@ -49,7 +55,8 @@ public class GenerateBicepCommandHandler(
         {
             Resources = resources,
             ResourceGroups = resourceGroups,
-            Environment = new EnvironmentDefinition { Location = defaultLocation }
+            Environment = new EnvironmentDefinition { Location = defaultLocation },
+            EnvironmentNames = environmentNames
         };
 
         var result = bicepGenerationEngine.Generate(generationRequest);
@@ -61,10 +68,15 @@ public class GenerateBicepCommandHandler(
             result.MainBicep,
             "text/plain");
 
-        var parametersUri = await blobService.UploadContentAsync(
-            $"{prefix}/main.bicepparam",
-            result.MainBicepParameters,
-            "text/plain");
+        var parameterUris = new Dictionary<string, Uri>();
+        foreach (var (fileName, content) in result.EnvironmentParameterFiles)
+        {
+            var paramUri = await blobService.UploadContentAsync(
+                $"{prefix}/{fileName}",
+                content,
+                "text/plain");
+            parameterUris[fileName] = paramUri;
+        }
 
         var moduleUris = new Dictionary<string, Uri>();
         foreach (var (path, content) in result.ModuleFiles)
@@ -76,6 +88,6 @@ public class GenerateBicepCommandHandler(
             moduleUris[path] = moduleUri;
         }
 
-        return new GenerateBicepResult(mainBicepUri, parametersUri, moduleUris);
+        return new GenerateBicepResult(mainBicepUri, parameterUris, moduleUris);
     }
 }

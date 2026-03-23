@@ -1,6 +1,7 @@
 using BicepGenerator.Application.Common.Interfaces.Persistence;
 using BicepGenerator.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
@@ -25,6 +26,7 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
         var config = await dbContext.InfrastructureConfigs
             .Include(c => c.ResourceGroups)
                 .ThenInclude(rg => rg.Resources)
+                    .ThenInclude(r => r.EnvironmentConfigs)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == configId, cancellationToken);
 
@@ -65,6 +67,8 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
     /// </summary>
     private static AzureResourceReadModel? MapResource(AzureResource resource)
     {
+        var envConfigs = MapEnvironmentConfigs(resource.EnvironmentConfigs);
+
         return resource switch
         {
             KeyVault kv => new AzureResourceReadModel(
@@ -75,7 +79,8 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                 new Dictionary<string, string>
                 {
                     ["sku"] = kv.Sku.Value.ToString().ToLower()
-                }),
+                },
+                envConfigs),
             RedisCache rc => new AzureResourceReadModel(
                 rc.Id.Value,
                 rc.Name.Value,
@@ -89,7 +94,8 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                     ["redisVersion"] = rc.RedisVersion.ToString(),
                     ["enableNonSslPort"] = rc.EnableNonSslPort.ToString().ToLower(),
                     ["minimumTlsVersion"] = MapTlsVersion(rc.MinimumTlsVersion),
-                }),
+                },
+                envConfigs),
             StorageAccount sa => new AzureResourceReadModel(
                 sa.Id.Value,
                 sa.Name.Value,
@@ -103,9 +109,18 @@ public class InfrastructureConfigReadRepository(InfraFlowSculptorDbContext dbCon
                     ["allowBlobPublicAccess"] = sa.AllowBlobPublicAccess.ToString().ToLower(),
                     ["supportsHttpsTrafficOnly"] = sa.EnableHttpsTrafficOnly.ToString().ToLower(),
                     ["minimumTlsVersion"] = MapStorageTlsVersion(sa.MinimumTlsVersion),
-                }),
+                },
+                envConfigs),
             _ => null
         };
+    }
+
+    private static IReadOnlyList<ResourceEnvironmentConfigReadModel> MapEnvironmentConfigs(
+        IReadOnlyCollection<ResourceEnvironmentConfig> configs)
+    {
+        return configs.Select(ec => new ResourceEnvironmentConfigReadModel(
+            ec.EnvironmentName,
+            ec.Properties)).ToList();
     }
 
     private static string MapTlsVersion(TlsVersion tlsVersion)

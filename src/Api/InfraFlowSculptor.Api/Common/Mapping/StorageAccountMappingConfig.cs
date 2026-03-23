@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.UpdateStorageAccount;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
@@ -5,6 +6,7 @@ using InfraFlowSculptor.Contracts.StorageAccounts.Requests;
 using InfraFlowSculptor.Contracts.StorageAccounts.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.StorageAccountAggregate;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using Mapster;
 
@@ -26,7 +28,16 @@ public class StorageAccountMappingConfig : IRegister
                 src.Request.AccessTier.Adapt<StorageAccessTier>(),
                 src.Request.AllowBlobPublicAccess,
                 src.Request.EnableHttpsTrafficOnly,
-                src.Request.MinimumTlsVersion.Adapt<StorageAccountTlsVersion>()));
+                src.Request.MinimumTlsVersion.Adapt<StorageAccountTlsVersion>(),
+                src.Request.EnvironmentConfigs == null
+                    ? null
+                    : src.Request.EnvironmentConfigs.Select(ec => new EnvironmentConfigData(
+                        ec.EnvironmentName, ec.Properties)).ToList()));
+
+        config.NewConfig<StorageAccount, StorageAccountResult>()
+            .Map(dest => dest.EnvironmentConfigs,
+                src => src.EnvironmentConfigs.Select(ec => new EnvironmentConfigData(
+                    ec.EnvironmentName, ec.Properties)).ToList());
 
         config.NewConfig<StorageAccountSku, string>()
             .MapWith(src => src.Value.ToString());

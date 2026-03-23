@@ -57,9 +57,10 @@ public class RedisCache : AzureResource
         Name name,
         Location location,
         RedisCacheSku sku,
-        RedisCacheSettings settings)
+        RedisCacheSettings settings,
+        IReadOnlyList<(string EnvironmentName, IReadOnlyDictionary<string, string> Properties)>? environmentConfigs = null)
     {
-        return new RedisCache
+        var redisCache = new RedisCache
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
@@ -72,5 +73,10 @@ public class RedisCache : AzureResource
             MinimumTlsVersion = settings.MinimumTlsVersion,
             MaxMemoryPolicy = settings.MaxMemoryPolicy
         };
+
+        if (environmentConfigs is not null)
+            redisCache.SetAllEnvironmentConfigs(environmentConfigs);
+
+        return redisCache;
     }
 }

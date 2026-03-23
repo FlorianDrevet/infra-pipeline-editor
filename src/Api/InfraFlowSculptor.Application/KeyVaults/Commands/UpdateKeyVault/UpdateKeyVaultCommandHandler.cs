@@ -32,6 +32,12 @@ public class UpdateKeyVaultCommandHandler(
 
         keyVault.Update(request.Name, request.Location, request.Sku);
 
+        if (request.EnvironmentConfigs is not null)
+            keyVault.SetAllEnvironmentConfigs(
+                request.EnvironmentConfigs
+                    .Select(ec => (ec.EnvironmentName, ec.Properties))
+                    .ToList());
+
         var updatedKeyVault = await keyVaultRepository.UpdateAsync(keyVault);
 
         return mapper.Map<KeyVaultResult>(updatedKeyVault);

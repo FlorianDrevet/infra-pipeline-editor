@@ -1,3 +1,5 @@
+using InfraFlowSculptor.Application.Common;
+using InfraFlowSculptor.Contracts.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using Mapster;
@@ -25,5 +27,16 @@ public class CommonMappingConfig : IRegister
         
         config.ForType<string, Location>()
             .MapWith(src => new Location(Enum.Parse<Location.LocationEnum>(src)));
+
+        // ResourceEnvironmentConfig mappings
+        config.NewConfig<ResourceEnvironmentConfigEntry, EnvironmentConfigData>()
+            .MapWith(src => new EnvironmentConfigData(
+                src.EnvironmentName,
+                src.Properties));
+
+        config.NewConfig<EnvironmentConfigData, ResourceEnvironmentConfigResponse>()
+            .MapWith(src => new ResourceEnvironmentConfigResponse(
+                src.EnvironmentName,
+                src.Properties));
     }
 }

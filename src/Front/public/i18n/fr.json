@@ -270,7 +270,13 @@
         "ALLOW_BLOB_PUBLIC": "Autoriser l'acces public aux blobs",
         "HTTPS_ONLY": "Trafic HTTPS uniquement",
         "CANCEL": "Annuler",
-        "ADD": "Ajouter"
+        "ADD": "Ajouter",
+        "ENV_STEP_TITLE": "Configuration par environnement",
+        "ENV_NO_ENVIRONMENTS": "Aucun environnement d\u00e9fini. Ajoutez des environnements dans l'onglet Environnements d'abord.",
+        "COMMON_FIELDS": "Informations g\u00e9n\u00e9rales",
+        "NEXT": "Suivant",
+        "BACK_TO_COMMON": "Retour",
+        "COPY_FROM_FIRST": "Copier depuis le premier environnement"
       }
     },
     "NAMING_TEMPLATES": {

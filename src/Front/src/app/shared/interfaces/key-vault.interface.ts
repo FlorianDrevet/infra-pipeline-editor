@@ -1,3 +1,5 @@
+import { ResourceEnvironmentConfigEntry, ResourceEnvironmentConfigResponse } from './resource-environment-config.interface';
+
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface KeyVaultResponse {
@@ -6,6 +8,7 @@ export interface KeyVaultResponse {
   name: string;
   location: string;
   sku: string;
+  environmentConfigs: ResourceEnvironmentConfigResponse[];
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -15,10 +18,12 @@ export interface CreateKeyVaultRequest {
   name: string;
   location: string;
   sku: string;
+  environmentConfigs?: ResourceEnvironmentConfigEntry[];
 }
 
 export interface UpdateKeyVaultRequest {
   name: string;
   location: string;
   sku: string;
+  environmentConfigs?: ResourceEnvironmentConfigEntry[];
 }

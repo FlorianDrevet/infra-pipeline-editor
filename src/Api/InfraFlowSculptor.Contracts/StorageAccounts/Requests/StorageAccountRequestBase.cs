@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using InfraFlowSculptor.Contracts.Common;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
@@ -39,4 +40,7 @@ public abstract class StorageAccountRequestBase
     /// <summary>Minimum accepted TLS version for requests to this storage account. Accepted values: <c>TLS1_0</c>, <c>TLS1_1</c>, <c>TLS1_2</c>.</summary>
     [Required, EnumValidation(typeof(StorageAccountTlsVersion.Version))]
     public required string MinimumTlsVersion { get; init; }
+
+    /// <summary>Per-environment configuration overrides. Each entry specifies the properties for a specific deployment environment.</summary>
+    public List<ResourceEnvironmentConfigEntry>? EnvironmentConfigs { get; init; }
 }

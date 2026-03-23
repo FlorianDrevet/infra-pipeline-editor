@@ -1,8 +1,11 @@
+using InfraFlowSculptor.Application.Common;
 using InfraFlowSculptor.Application.RedisCaches.Commands.CreateRedisCache;
 using InfraFlowSculptor.Application.RedisCaches.Commands.UpdateRedisCache;
+using InfraFlowSculptor.Application.RedisCaches.Common;
 using InfraFlowSculptor.Contracts.RedisCaches.Requests;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
 using Mapster;
 
@@ -24,7 +27,16 @@ public class RedisCacheMappingConfig : IRegister
                 src.Request.RedisVersion,
                 src.Request.EnableNonSslPort,
                 src.Request.MinimumTlsVersion.Adapt<TlsVersion>(),
-                src.Request.MaxMemoryPolicy.Adapt<MaxMemoryPolicy>()));
+                src.Request.MaxMemoryPolicy.Adapt<MaxMemoryPolicy>(),
+                src.Request.EnvironmentConfigs == null
+                    ? null
+                    : src.Request.EnvironmentConfigs.Select(ec => new EnvironmentConfigData(
+                        ec.EnvironmentName, ec.Properties)).ToList()));
+
+        config.NewConfig<RedisCache, RedisCacheResult>()
+            .Map(dest => dest.EnvironmentConfigs,
+                src => src.EnvironmentConfigs.Select(ec => new EnvironmentConfigData(
+                    ec.EnvironmentName, ec.Properties)).ToList());
 
         config.NewConfig<RedisCacheSku, string>()
             .MapWith(src => src.Value.ToString());

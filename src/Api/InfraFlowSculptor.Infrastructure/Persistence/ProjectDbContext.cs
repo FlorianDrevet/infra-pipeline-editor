@@ -33,6 +33,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<InputOutputLink> InputOutputLinks { get; set; } = null!;
     public DbSet<ResourceNamingTemplate> ResourceNamingTemplates { get; set; } = null!;
     public DbSet<RoleAssignment> RoleAssignments { get; set; } = null!;
+    public DbSet<ResourceEnvironmentConfig> ResourceEnvironmentConfigs { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

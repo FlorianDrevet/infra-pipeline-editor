@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using InfraFlowSculptor.Contracts.Common;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.ValueObjects;
@@ -38,4 +39,7 @@ public abstract class RedisCacheRequestBase
     /// </summary>
     [Required, EnumValidation(typeof(MaxMemoryPolicy.Policy))]
     public required string MaxMemoryPolicy { get; init; }
+
+    /// <summary>Per-environment configuration overrides. Each entry specifies the properties for a specific deployment environment.</summary>
+    public List<ResourceEnvironmentConfigEntry>? EnvironmentConfigs { get; init; }
 }

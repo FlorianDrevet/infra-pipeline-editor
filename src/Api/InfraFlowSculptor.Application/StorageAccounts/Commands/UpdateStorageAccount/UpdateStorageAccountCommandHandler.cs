@@ -35,6 +35,12 @@ public class UpdateStorageAccountCommandHandler(
 
         storageAccount.Update(request.Name, request.Location, settings);
 
+        if (request.EnvironmentConfigs is not null)
+            storageAccount.SetAllEnvironmentConfigs(
+                request.EnvironmentConfigs
+                    .Select(ec => (ec.EnvironmentName, ec.Properties))
+                    .ToList());
+
         var updated = await storageAccountRepository.UpdateAsync(storageAccount);
 
         return mapper.Map<StorageAccountResult>(updated);
