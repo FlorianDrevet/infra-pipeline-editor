@@ -9,6 +9,7 @@ public record UpdateEnvironmentCommand(
     InfrastructureConfigId InfraConfigId,
     EnvironmentDefinitionId EnvironmentId,
     string Name,
+    string ShortName,
     string Prefix,
     string Suffix,
     string Location,

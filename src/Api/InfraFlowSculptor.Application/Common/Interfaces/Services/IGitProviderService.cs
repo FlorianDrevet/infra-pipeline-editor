@@ -4,7 +4,7 @@ using InfraFlowSculptor.Application.Projects.Common;
 namespace InfraFlowSculptor.Application.Common.Interfaces.Services;
 
 /// <summary>
-/// Abstracts Git hosting provider operations (push files, test connection).
+/// Abstracts Git hosting provider operations (push files, test connection, list branches).
 /// </summary>
 public interface IGitProviderService
 {
@@ -19,4 +19,10 @@ public interface IGitProviderService
     /// </summary>
     Task<ErrorOr<PushBicepToGitResult>> PushFilesAsync(
         GitPushRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists all branches in the Git repository.
+    /// </summary>
+    Task<ErrorOr<IReadOnlyList<GitBranchResult>>> ListBranchesAsync(
+        string token, string owner, string repositoryName, CancellationToken cancellationToken = default);
 }

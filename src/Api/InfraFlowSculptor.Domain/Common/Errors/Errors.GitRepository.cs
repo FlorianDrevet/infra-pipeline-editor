@@ -12,6 +12,7 @@ public static partial class Errors
         private const string PushFailedCode = "GitRepository.PushFailed";
         private const string SecretRetrievalFailedCode = "GitRepository.SecretRetrievalFailed";
         private const string ConnectionTestFailedCode = "GitRepository.ConnectionTestFailed";
+        private const string ListBranchesFailedCode = "GitRepository.ListBranchesFailed";
 
         /// <summary>Returns an error when no Git config exists on the project.</summary>
         public static Error NotConfigured() =>
@@ -32,5 +33,9 @@ public static partial class Errors
         /// <summary>Returns a failure error when the Git connection test fails.</summary>
         public static Error ConnectionTestFailed(string reason) =>
             Error.Failure(code: ConnectionTestFailedCode, description: $"Git repository connection test failed: {reason}");
+
+        /// <summary>Returns a failure error when listing Git branches fails.</summary>
+        public static Error ListBranchesFailed(string reason) =>
+            Error.Failure(code: ListBranchesFailedCode, description: $"Failed to list branches from Git repository: {reason}");
     }
 }

@@ -501,6 +501,8 @@
       "COMMIT_MESSAGE_PLACEHOLDER": "Bicep generation output",
       "PUSH": "Push",
       "PUSHING": "Pushing to Git...",
+      "LOADING_BRANCHES": "Loading branches...",
+      "NO_BRANCHES": "No matching branches",
       "SUCCESS_TITLE": "Files pushed successfully!",
       "BRANCH_URL": "View branch",
       "COMMIT_SHA": "Commit",

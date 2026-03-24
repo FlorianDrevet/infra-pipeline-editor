@@ -15,6 +15,7 @@ using InfraFlowSculptor.Application.Projects.Commands.TestGitConnection;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectMemberRole;
 using InfraFlowSculptor.Application.Projects.Queries.GetProject;
+using InfraFlowSculptor.Application.Projects.Queries.ListGitBranches;
 using InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectConfigs;
 using InfraFlowSculptor.Application.Projects.Queries.ValidateRecentItems;
@@ -238,6 +239,7 @@ public static class ProjectController
                         var command = new AddProjectEnvironmentCommand(
                             new ProjectId(id),
                             request.Name,
+                            request.ShortName,
                             request.Prefix,
                             request.Suffix,
                             request.Location,
@@ -273,6 +275,7 @@ public static class ProjectController
                             new ProjectId(id),
                             new ProjectEnvironmentDefinitionId(envId),
                             request.Name,
+                            request.ShortName,
                             request.Prefix,
                             request.Suffix,
                             request.Location,
@@ -488,6 +491,28 @@ public static class ProjectController
                 .WithSummary("Test Git repository connection")
                 .WithDescription("Tests the connection to the configured Git repository using the stored token. Requires Owner or Contributor access.")
                 .Produces<TestGitConnectionResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{projectId:guid}/git-config/branches",
+                    async ([FromRoute] Guid projectId, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListGitBranchesQuery(new ProjectId(projectId));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            branches =>
+                            {
+                                var responses = branches.Select(b => mapper.Map<GitBranchResponse>(b)).ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListGitBranches")
+                .WithSummary("List Git repository branches")
+                .WithDescription("Lists all branches in the configured Git repository. Requires read access to the project.")
+                .Produces<IReadOnlyList<GitBranchResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });

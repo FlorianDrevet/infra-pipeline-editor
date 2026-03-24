@@ -90,6 +90,7 @@ public sealed class GenerateBicepCommandHandler(
             .Select(e => new EnvironmentDefinition
             {
                 Name = e.Name,
+                ShortName = e.ShortName,
                 Location = e.Location,
                 Prefix = e.Prefix,
                 Suffix = e.Suffix,

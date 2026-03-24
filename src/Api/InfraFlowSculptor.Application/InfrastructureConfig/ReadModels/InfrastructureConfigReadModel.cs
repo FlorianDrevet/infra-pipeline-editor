@@ -28,6 +28,7 @@ public record ResourceEnvironmentConfigReadModel(
 public record EnvironmentDefinitionReadModel(
     Guid Id,
     string Name,
+    string ShortName,
     string Location,
     string Prefix,
     string Suffix);

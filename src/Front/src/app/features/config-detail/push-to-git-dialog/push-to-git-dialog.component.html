@@ -7,7 +7,25 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.BRANCH_NAME' | translate }}</mat-label>
           <input matInput formControlName="branchName"
-                 [placeholder]="'CONFIG_DETAIL.PUSH_TO_GIT.BRANCH_NAME_PLACEHOLDER' | translate" />
+                 [placeholder]="'CONFIG_DETAIL.PUSH_TO_GIT.BRANCH_NAME_PLACEHOLDER' | translate"
+                 [matAutocomplete]="branchAuto" />
+          <mat-autocomplete #branchAuto="matAutocomplete">
+            @if (branchesLoading()) {
+              <mat-option disabled>
+                <div class="branch-loading">
+                  <mat-spinner diameter="18"></mat-spinner>
+                  <span>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate }}</span>
+                </div>
+              </mat-option>
+            } @else {
+              @for (branch of filteredBranches(); track branch) {
+                <mat-option [value]="branch">{{ branch }}</mat-option>
+              }
+              @if (filteredBranches().length === 0) {
+                <mat-option disabled>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate }}</mat-option>
+              }
+            }
+          </mat-autocomplete>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">

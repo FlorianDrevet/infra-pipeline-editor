@@ -13,6 +13,7 @@ public sealed class EnvironmentDefinition : Entity<EnvironmentDefinitionId>
     public InfrastructureConfig InfraConfig { get; set; } = null!;
 
     public required Name Name { get; set; } // dev, staging, prod
+    public required ShortName ShortName { get; set; } // dev, qa, prod (no separators)
     public required Prefix Prefix { get; set; } // "dev-", "stg-", "prd-"
     public required Suffix Suffix { get; set; } // "-dev", "-staging", "-prod"
     public required Location Location { get; set; } // Location par défaut
@@ -42,6 +43,7 @@ public sealed class EnvironmentDefinition : Entity<EnvironmentDefinitionId>
     {
         InfraConfigId = infraConfigId;
         Name = data.Name;
+        ShortName = data.ShortName;
         Prefix = data.Prefix;
         Suffix = data.Suffix;
         Location = data.Location;

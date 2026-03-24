@@ -108,6 +108,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
             ReorderEnvironments(envId, oldOrder, newOrder);
 
         env.Name = data.Name;
+        env.ShortName = data.ShortName;
         env.Prefix = data.Prefix;
         env.Suffix = data.Suffix;
         env.Location = data.Location;

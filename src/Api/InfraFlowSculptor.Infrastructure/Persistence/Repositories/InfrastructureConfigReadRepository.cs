@@ -177,6 +177,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 new EnvironmentDefinitionReadModel(
                     e.Id.Value,
                     e.Name.Value,
+                    e.ShortName.Value,
                     MapLocation(e.Location),
                     e.Prefix.Value,
                     e.Suffix.Value)).ToList();
@@ -186,6 +187,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             new EnvironmentDefinitionReadModel(
                 e.Id.Value,
                 e.Name.Value,
+                e.ShortName.Value,
                 MapLocation(e.Location),
                 e.Prefix.Value,
                 e.Suffix.Value)).ToList();

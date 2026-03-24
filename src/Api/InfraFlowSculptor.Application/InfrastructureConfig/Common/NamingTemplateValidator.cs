@@ -12,7 +12,7 @@ public static partial class NamingTemplateValidator
     /// </summary>
     public static readonly IReadOnlySet<string> AllowedPlaceholders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
-        "name", "prefix", "suffix", "env", "resourceType", "resourceAbbr", "location"
+        "name", "prefix", "suffix", "env", "envShort", "resourceType", "resourceAbbr", "location"
     };
 
     private static readonly Regex PlaceholderRegex = new(@"\{([^}]+)\}", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));

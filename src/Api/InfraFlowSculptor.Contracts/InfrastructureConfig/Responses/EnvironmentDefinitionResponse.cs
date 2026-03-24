@@ -14,6 +14,7 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 public record EnvironmentDefinitionResponse(
     string Id,
     string Name,
+    string ShortName,
     string Prefix,
     string Suffix,
     string Location,

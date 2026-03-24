@@ -999,10 +999,11 @@ export class ConfigDetailComponent implements OnInit {
 
   protected openPushToGitDialog(): void {
     const configId = this.config()?.id;
+    const projectId = this.config()?.projectId;
     const gitConfig = this.project()?.gitRepositoryConfiguration;
-    if (!configId || !gitConfig) return;
+    if (!configId || !projectId || !gitConfig) return;
 
-    const data: PushToGitDialogData = { configId, gitConfig };
+    const data: PushToGitDialogData = { configId, projectId, gitConfig };
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 

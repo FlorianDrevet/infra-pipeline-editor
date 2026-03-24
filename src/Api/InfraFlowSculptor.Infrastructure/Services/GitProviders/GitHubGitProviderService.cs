@@ -41,7 +41,22 @@ public sealed class GitHubGitProviderService : IGitProviderService
                 request.Owner, request.RepositoryName, $"heads/{request.BaseBranch}");
             var baseSha = baseBranchRef.Object.Sha;
 
-            // 2. Create blobs for each file
+            // 2. Determine parent SHA: use the target branch tip when it already exists
+            string parentSha = baseSha;
+            bool targetBranchExists = false;
+            try
+            {
+                var existingRef = await client.Git.Reference.Get(
+                    request.Owner, request.RepositoryName, $"heads/{request.TargetBranchName}");
+                parentSha = existingRef.Object.Sha;
+                targetBranchExists = true;
+            }
+            catch (NotFoundException)
+            {
+                // Target branch does not exist yet — use the base branch SHA
+            }
+
+            // 3. Create blobs for each file
             var treeItems = new List<NewTreeItem>();
             foreach (var (relativePath, content) in request.Files)
             {
@@ -58,33 +73,28 @@ public sealed class GitHubGitProviderService : IGitProviderService
                 });
             }
 
-            // 3. Create tree
-            var newTree = new NewTree { BaseTree = baseSha };
+            // 4. Create tree based on the parent commit (target branch tip or base branch)
+            var newTree = new NewTree { BaseTree = parentSha };
             foreach (var item in treeItems)
                 newTree.Tree.Add(item);
 
             var tree = await client.Git.Tree.Create(request.Owner, request.RepositoryName, newTree);
 
-            // 4. Create commit
-            var newCommit = new NewCommit(request.CommitMessage, tree.Sha, baseSha);
+            // 5. Create commit whose parent is the correct branch tip
+            var newCommit = new NewCommit(request.CommitMessage, tree.Sha, parentSha);
             var commit = await client.Git.Commit.Create(request.Owner, request.RepositoryName, newCommit);
 
-            // 5. Create or update branch
+            // 6. Create or update branch reference
             string branchRef = $"refs/heads/{request.TargetBranchName}";
-            try
+            if (targetBranchExists)
             {
-                // Try to get existing branch
-                var existingRef = await client.Git.Reference.Get(
-                    request.Owner, request.RepositoryName, $"heads/{request.TargetBranchName}");
-                // Branch exists — update it
                 await client.Git.Reference.Update(
                     request.Owner, request.RepositoryName,
                     $"heads/{request.TargetBranchName}",
                     new ReferenceUpdate(commit.Sha));
             }
-            catch (NotFoundException)
+            else
             {
-                // Branch does not exist — create it
                 await client.Git.Reference.Create(
                     request.Owner, request.RepositoryName,
                     new NewReference(branchRef, commit.Sha));
@@ -96,6 +106,27 @@ public sealed class GitHubGitProviderService : IGitProviderService
         catch (Exception ex)
         {
             return Errors.GitRepository.PushFailed(ex.Message);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<ErrorOr<IReadOnlyList<GitBranchResult>>> ListBranchesAsync(
+        string token, string owner, string repositoryName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = CreateClient(token);
+            var branches = await client.Repository.Branch.GetAll(owner, repositoryName);
+
+            var results = branches
+                .Select(b => new GitBranchResult(b.Name, b.Protected))
+                .ToList();
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.ListBranchesFailed(ex.Message);
         }
     }
 

@@ -7,6 +7,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Common;
 public record EnvironmentDefinitionResult(
     EnvironmentDefinitionId Id,
     Name Name,
+    string ShortName,
     string Prefix,
     string Suffix,
     string Location,

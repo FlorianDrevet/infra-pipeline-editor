@@ -11,6 +11,7 @@ namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 /// </summary>
 public record EnvironmentDefinitionData(
     Name Name,
+    ShortName ShortName,
     Prefix Prefix,
     Suffix Suffix,
     Location Location,

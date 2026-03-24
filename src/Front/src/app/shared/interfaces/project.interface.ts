@@ -79,3 +79,8 @@ export interface TestGitConnectionResponse {
   defaultBranch?: string | null;
   errorMessage?: string | null;
 }
+
+export interface GitBranchResponse {
+  name: string;
+  isProtected: boolean;
+}

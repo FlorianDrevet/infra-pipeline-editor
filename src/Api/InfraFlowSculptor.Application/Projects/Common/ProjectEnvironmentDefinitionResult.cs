@@ -9,6 +9,7 @@ namespace InfraFlowSculptor.Application.Projects.Common;
 public record ProjectEnvironmentDefinitionResult(
     ProjectEnvironmentDefinitionId Id,
     Name Name,
+    string ShortName,
     string Prefix,
     string Suffix,
     string Location,

@@ -36,6 +36,7 @@ public sealed class AddProjectEnvironmentCommandHandler(
 
         var data = new EnvironmentDefinitionData(
             new Name(command.Name),
+            new ShortName(command.ShortName),
             new Prefix(command.Prefix),
             new Suffix(command.Suffix),
             new Location(Enum.Parse<Location.LocationEnum>(command.Location, ignoreCase: true)),

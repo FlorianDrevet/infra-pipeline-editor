@@ -27,6 +27,7 @@ public static class EnvironmentDefinitionController
                         var command = new AddEnvironmentCommand(
                             new InfrastructureConfigId(id),
                             request.Name,
+                            request.ShortName,
                             request.Prefix,
                             request.Suffix,
                             request.Location,
@@ -62,6 +63,7 @@ public static class EnvironmentDefinitionController
                             new InfrastructureConfigId(id),
                             new EnvironmentDefinitionId(envId),
                             request.Name,
+                            request.ShortName,
                             request.Prefix,
                             request.Suffix,
                             request.Location,

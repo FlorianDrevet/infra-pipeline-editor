@@ -9,6 +9,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.AddProjectEnvironment;
 public record AddProjectEnvironmentCommand(
     ProjectId ProjectId,
     string Name,
+    string ShortName,
     string Prefix,
     string Suffix,
     string Location,

@@ -52,6 +52,7 @@ public sealed class ProjectMappingConfig : IRegister
         config.NewConfig<ProjectEnvironmentDefinition, ProjectEnvironmentDefinitionResult>()
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Name, src => src.Name)
+            .Map(dest => dest.ShortName, src => src.ShortName.Value)
             .Map(dest => dest.Prefix, src => src.Prefix.Value)
             .Map(dest => dest.Suffix, src => src.Suffix.Value)
             .Map(dest => dest.Location, src => src.Location.Value.ToString())
@@ -137,6 +138,9 @@ public sealed class ProjectMappingConfig : IRegister
 
         // TestGitConnectionResult -> TestGitConnectionResponse
         config.NewConfig<TestGitConnectionResult, TestGitConnectionResponse>();
+
+        // GitBranchResult -> GitBranchResponse
+        config.NewConfig<GitBranchResult, GitBranchResponse>();
 
         // PushBicepToGitResult -> PushBicepToGitResponse
         config.NewConfig<PushBicepToGitResult, InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.PushBicepToGitResponse>();

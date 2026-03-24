@@ -102,6 +102,9 @@ public sealed class InfrastructureConfigConfiguration
             env.Property(x => x.Name)
                 .HasConversion(new SingleValueConverter<Name, string>());
 
+            env.Property(x => x.ShortName)
+                .HasConversion(new SingleValueConverter<ShortName, string>());
+
             env.Property(x => x.Prefix)
                 .HasConversion(new SingleValueConverter<Prefix, string>());
 

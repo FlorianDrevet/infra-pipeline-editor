@@ -31,6 +31,7 @@ public class InfraConfigMappingConfig : IRegister
         config.NewConfig<EnvironmentDefinition, EnvironmentDefinitionResult>()
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Name, src => src.Name)
+            .Map(dest => dest.ShortName, src => src.ShortName.Value)
             .Map(dest => dest.Prefix, src => src.Prefix.Value)
             .Map(dest => dest.Suffix, src => src.Suffix.Value)
             .Map(dest => dest.Location, src => src.Location.Value.ToString())

@@ -24,6 +24,9 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
     /// <summary>Gets the environment display name (e.g. "Development", "Staging", "Production").</summary>
     public required Name Name { get; set; }
 
+    /// <summary>Gets the short environment identifier without separators (e.g. "dev", "qa", "prod").</summary>
+    public required ShortName ShortName { get; set; }
+
     /// <summary>Gets the short prefix prepended to generated resource names.</summary>
     public required Prefix Prefix { get; set; }
 
@@ -66,6 +69,7 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
     {
         ProjectId = projectId;
         Name = data.Name;
+        ShortName = data.ShortName;
         Prefix = data.Prefix;
         Suffix = data.Suffix;
         Location = data.Location;

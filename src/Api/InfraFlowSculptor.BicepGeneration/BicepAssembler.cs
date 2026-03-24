@@ -83,10 +83,9 @@ public static class BicepAssembler
         sb.AppendLine("@export()");
         sb.AppendLine("type EnvironmentVariables = {");
         sb.AppendLine("  envName: string");
+        sb.AppendLine("  envShort: string");
         sb.AppendLine("  envSuffix: string");
-        sb.AppendLine("  envShortSuffix: string");
         sb.AppendLine("  envPrefix: string");
-        sb.AppendLine("  envShortPrefix: string");
         sb.AppendLine("  location: string");
         sb.AppendLine("}");
         sb.AppendLine();
@@ -104,10 +103,9 @@ public static class BicepAssembler
 
             sb.AppendLine($"  {key}: {{");
             sb.AppendLine($"    envName: '{env.Name}'");
+            sb.AppendLine($"    envShort: '{env.ShortName}'");
             sb.AppendLine($"    envSuffix: '{envSuffix}'");
-            sb.AppendLine($"    envShortSuffix: '{shortSuffix}'");
             sb.AppendLine($"    envPrefix: '{envPrefix}'");
-            sb.AppendLine($"    envShortPrefix: '{shortPrefix}'");
             sb.AppendLine($"    location: '{env.Location}'");
             sb.AppendLine("  }");
         }

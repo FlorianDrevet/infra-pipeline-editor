@@ -8,6 +8,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddEnviron
 public record AddEnvironmentCommand(
     InfrastructureConfigId InfraConfigId,
     string Name,
+    string ShortName,
     string Prefix,
     string Suffix,
     string Location,

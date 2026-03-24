@@ -9,6 +9,9 @@ public class EnvironmentDefinition
     /// <summary>Gets or sets the environment name (e.g. "dev", "qa", "prod").</summary>
     public string Name { get; set; } = string.Empty;
 
+    /// <summary>Gets or sets the short environment identifier without separators (e.g. "dev", "qa").</summary>
+    public string ShortName { get; set; } = string.Empty;
+
     /// <summary>Gets or sets the Azure location for this environment (e.g. "westeurope").</summary>
     public string Location { get; set; } = string.Empty;
 

@@ -10,6 +10,7 @@ import {
   ValidateRecentItemsRequest,
   SetGitConfigRequest,
   TestGitConnectionResponse,
+  GitBranchResponse,
 } from '../interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
@@ -178,6 +179,13 @@ export class ProjectService {
     return this.axios.request$<TestGitConnectionResponse>(
       MethodEnum.POST,
       `/projects/${projectId}/git-config/test`
+    );
+  }
+
+  listBranches(projectId: string): Promise<GitBranchResponse[]> {
+    return this.axios.request$<GitBranchResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/git-config/branches`
     );
   }
 }

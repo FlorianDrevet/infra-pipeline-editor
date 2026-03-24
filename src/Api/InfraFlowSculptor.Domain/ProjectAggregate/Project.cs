@@ -128,6 +128,7 @@ public sealed class Project : AggregateRoot<ProjectId>
             ReorderEnvironments(envId, oldOrder, newOrder);
 
         env.Name = data.Name;
+        env.ShortName = data.ShortName;
         env.Prefix = data.Prefix;
         env.Suffix = data.Suffix;
         env.Location = data.Location;

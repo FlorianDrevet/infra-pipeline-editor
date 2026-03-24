@@ -497,6 +497,8 @@
       "COMMIT_MESSAGE_PLACEHOLDER": "Resultat de la generation Bicep",
       "PUSH": "Pousser",
       "PUSHING": "Envoi vers Git...",
+      "LOADING_BRANCHES": "Chargement des branches...",
+      "NO_BRANCHES": "Aucune branche correspondante",
       "SUCCESS_TITLE": "Fichiers pousses avec succes !",
       "BRANCH_URL": "Voir la branche",
       "COMMIT_SHA": "Commit",

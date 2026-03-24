@@ -12,6 +12,10 @@ public class UpdateProjectEnvironmentRequest
     [Required]
     public required string Name { get; init; }
 
+    /// <summary>Short environment identifier without separators (e.g. "dev", "qa", "prod").</summary>
+    [Required]
+    public required string ShortName { get; init; }
+
     /// <summary>Short prefix prepended to generated resource names.</summary>
     public string Prefix { get; init; } = string.Empty;
 

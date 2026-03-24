@@ -59,13 +59,35 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
             if (string.IsNullOrEmpty(baseSha))
                 return Errors.GitRepository.PushFailed($"Base branch '{request.BaseBranch}' not found.");
 
-            // 2. Check if target branch exists
+            // 2. Check if target branch exists and determine the parent SHA
             string? targetSha = null;
             if (request.TargetBranchName != request.BaseBranch)
             {
                 var targetRefsUrl = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}/refs?filter=heads/{request.TargetBranchName}&api-version={ApiVersion}";
                 var targetRefsResponse = await client.GetFromJsonAsync<AdoRefList>(targetRefsUrl, cancellationToken);
                 targetSha = targetRefsResponse?.Value?.FirstOrDefault()?.ObjectId;
+            }
+            else
+            {
+                targetSha = baseSha;
+            }
+
+            // When target branch exists, determine which files already exist on it
+            // so we can use "edit" changeType instead of "add" for existing files.
+            var existingFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (targetSha is not null)
+            {
+                foreach (var (relativePath, _) in request.Files)
+                {
+                    var filePath = string.IsNullOrEmpty(request.BasePath)
+                        ? relativePath
+                        : $"{request.BasePath}/{relativePath}";
+
+                    var itemUrl = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}/items?path=/{filePath}&versionDescriptor.version={request.TargetBranchName}&api-version={ApiVersion}";
+                    var itemResponse = await client.GetAsync(itemUrl, cancellationToken);
+                    if (itemResponse.IsSuccessStatusCode)
+                        existingFilePaths.Add(filePath);
+                }
             }
 
             // 3. Build the push payload
@@ -76,10 +98,11 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
                     ? relativePath
                     : $"{request.BasePath}/{relativePath}";
 
-                // Use "add" for new files — ADO will auto-handle "edit" if the file exists
+                var changeType = existingFilePaths.Contains(filePath) ? "edit" : "add";
+
                 changes.Add(new
                 {
-                    changeType = "add",
+                    changeType,
                     item = new { path = $"/{filePath}" },
                     newContent = new { content, contentType = "rawtext" },
                 });
@@ -139,6 +162,35 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
         }
     }
 
+    /// <inheritdoc />
+    public async Task<ErrorOr<IReadOnlyList<GitBranchResult>>> ListBranchesAsync(
+        string token, string owner, string repositoryName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var client = CreateClient(token);
+            var (org, project) = ParseOwner(owner);
+
+            var url = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{repositoryName}/refs?filter=heads/&api-version={ApiVersion}";
+            var response = await client.GetFromJsonAsync<AdoRefList>(url, cancellationToken);
+
+            var results = (response?.Value ?? [])
+                .Where(r => r.ObjectId is not null)
+                .Select(r =>
+                {
+                    var name = r.Name?.Replace("refs/heads/", "", StringComparison.Ordinal) ?? "";
+                    return new GitBranchResult(name, false);
+                })
+                .ToList();
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.ListBranchesFailed(ex.Message);
+        }
+    }
+
     private static HttpClient CreateClient(string token)
     {
         var client = new HttpClient();
@@ -172,6 +224,9 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
 
     private sealed class AdoRef
     {
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+
         [JsonPropertyName("objectId")]
         public string? ObjectId { get; set; }
     }
