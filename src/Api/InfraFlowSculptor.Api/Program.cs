@@ -81,6 +81,7 @@ app.UseContainerAppEnvironmentController();
 app.UseContainerAppController();
 app.UseLogAnalyticsWorkspaceController();
 app.UseApplicationInsightsController();
+app.UseCosmosDbController();
 app.UseBicepGenerationController();
 app.MapDefaultEndpoints();
 

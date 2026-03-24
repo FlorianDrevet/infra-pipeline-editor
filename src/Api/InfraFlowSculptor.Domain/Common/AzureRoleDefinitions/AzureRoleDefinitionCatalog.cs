@@ -297,6 +297,37 @@ public static class AzureRoleDefinitionCatalog
             LogAnalyticsWorkspaceDocsUrl),
     ];
 
+    private const string CosmosDbDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/role-based-access-control";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> CosmosDbRoles =
+    [
+        new("fbdf93bf-df7d-467e-a4d2-9458aa1360c8",
+            "Cosmos DB Account Reader Role",
+            "Can read Azure Cosmos DB account data.",
+            CosmosDbDocsUrl),
+
+        new("5bd9cd88-fe45-4216-938b-f97437e15450",
+            "DocumentDB Account Contributor",
+            "Can manage Azure Cosmos DB accounts.",
+            CosmosDbDocsUrl),
+
+        new("230815da-be43-4aae-9cb4-875f7bd000aa",
+            "Cosmos DB Operator",
+            "Lets you manage Azure Cosmos DB accounts, but not access data in them.",
+            CosmosDbDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            CosmosDbDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            CosmosDbDocsUrl),
+    ];
+
     private const string ApplicationInsightsDocsUrl =
         "https://learn.microsoft.com/en-us/azure/azure-monitor/app/resources-roles-access-control";
 
@@ -337,6 +368,7 @@ public static class AzureRoleDefinitionCatalog
         { "ContainerApp", ContainerAppRoles },
         { "LogAnalyticsWorkspace", LogAnalyticsWorkspaceRoles },
         { "ApplicationInsights", ApplicationInsightsRoles },
+        { "CosmosDb", CosmosDbRoles },
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>

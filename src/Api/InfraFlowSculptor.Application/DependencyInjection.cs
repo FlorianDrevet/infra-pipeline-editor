@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddSingleton<IResourceTypeBicepGenerator, ContainerAppTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, LogAnalyticsWorkspaceTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, ApplicationInsightsTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, CosmosDbTypeBicepGenerator>();
         services.AddSingleton<BicepGenerationEngine>();
 
         return services;

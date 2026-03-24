@@ -560,6 +560,53 @@
                   </mat-slide-toggle>
                 </div>
               }
+              @case (ResourceTypeEnum.CosmosDb) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.DATABASE_API_TYPE' | translate }}</mat-label>
+                    <mat-select formControlName="databaseApiType">
+                      @for (option of cosmosApiTypeOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CONSISTENCY_LEVEL' | translate }}</mat-label>
+                    <mat-select formControlName="consistencyLevel">
+                      @for (option of cosmosConsistencyLevelOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MAX_STALENESS_PREFIX' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="maxStalenessPrefix" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MAX_INTERVAL_SECONDS' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="maxIntervalInSeconds" />
+                    </mat-form-field>
+                  </div>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.BACKUP_POLICY' | translate }}</mat-label>
+                    <mat-select formControlName="backupPolicyType">
+                      @for (option of cosmosBackupPolicyOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="enableAutomaticFailover" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.AUTOMATIC_FAILOVER' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="enableMultipleWriteLocations" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.MULTI_REGION_WRITES' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="enableFreeTier" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.FREE_TIER' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
             }
           </mat-tab>
         }

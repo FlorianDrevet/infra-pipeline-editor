@@ -21,6 +21,7 @@ public static class ResourceAbbreviationCatalog
         ["ContainerApp"] = "ca",
         ["LogAnalyticsWorkspace"] = "law",
         ["ApplicationInsights"] = "appi",
+        ["CosmosDb"] = "cosmos",
     };
 
     /// <summary>

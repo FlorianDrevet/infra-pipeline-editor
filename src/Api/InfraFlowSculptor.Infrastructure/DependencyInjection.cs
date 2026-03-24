@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IContainerAppRepository, ContainerAppRepository>();
         services.AddScoped<ILogAnalyticsWorkspaceRepository, LogAnalyticsWorkspaceRepository>();
         services.AddScoped<IApplicationInsightsRepository, ApplicationInsightsRepository>();
+        services.AddScoped<ICosmosDbRepository, CosmosDbRepository>();
         services.AddScoped<IInfrastructureConfigReadRepository, InfrastructureConfigReadRepository>();
 
         return services;

@@ -72,6 +72,8 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<LogAnalyticsWorkspaceEnvironmentSettings> LogAnalyticsWorkspaceEnvironmentSettings { get; set; } = null!;
     public DbSet<ApplicationInsights> ApplicationInsightsResources { get; set; } = null!;
     public DbSet<ApplicationInsightsEnvironmentSettings> ApplicationInsightsEnvironmentSettings { get; set; } = null!;
+    public DbSet<Domain.CosmosDbAggregate.CosmosDb> CosmosDbAccounts { get; set; } = null!;
+    public DbSet<Domain.CosmosDbAggregate.Entities.CosmosDbEnvironmentSettings> CosmosDbEnvironmentSettings { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

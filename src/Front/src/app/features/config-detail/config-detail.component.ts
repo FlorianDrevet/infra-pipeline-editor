@@ -38,6 +38,7 @@ import { ContainerAppEnvironmentService } from '../../shared/services/container-
 import { ContainerAppService } from '../../shared/services/container-app.service';
 import { LogAnalyticsWorkspaceService } from '../../shared/services/log-analytics-workspace.service';
 import { ApplicationInsightsService } from '../../shared/services/application-insights.service';
+import { CosmosDbService } from '../../shared/services/cosmos-db.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
@@ -90,6 +91,7 @@ export class ConfigDetailComponent implements OnInit {
   private readonly containerAppService = inject(ContainerAppService);
   private readonly logAnalyticsWorkspaceService = inject(LogAnalyticsWorkspaceService);
   private readonly applicationInsightsService = inject(ApplicationInsightsService);
+  private readonly cosmosDbService = inject(CosmosDbService);
   private readonly projectService = inject(ProjectService);
   private readonly bicepService = inject(BicepGeneratorService);
   private readonly authService = inject(AuthenticationService);
@@ -604,6 +606,9 @@ export class ConfigDetailComponent implements OnInit {
           break;
         case 'ApplicationInsights':
           await this.applicationInsightsService.delete(resource.id);
+          break;
+        case 'CosmosDb':
+          await this.cosmosDbService.delete(resource.id);
           break;
       }
       // Refresh resource list for this resource group

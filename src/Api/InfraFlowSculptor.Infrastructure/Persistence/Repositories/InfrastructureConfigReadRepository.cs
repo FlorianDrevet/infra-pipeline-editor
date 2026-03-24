@@ -27,6 +27,8 @@ using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate;
 using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities;
 using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
 using InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities;
+using InfraFlowSculptor.Domain.CosmosDbAggregate;
+using InfraFlowSculptor.Domain.CosmosDbAggregate.Entities;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -112,10 +114,15 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var cosmosSettings = await dbContext.CosmosDbEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.CosmosDbId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -211,7 +218,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<ContainerAppEnvironmentEnvironmentSettings> caeSettings,
         IReadOnlyList<ContainerAppEnvironmentSettings> caSettings,
         IReadOnlyList<LogAnalyticsWorkspaceEnvironmentSettings> lawSettings,
-        IReadOnlyList<ApplicationInsightsEnvironmentSettings> aiSettings)
+        IReadOnlyList<ApplicationInsightsEnvironmentSettings> aiSettings,
+        IReadOnlyList<CosmosDbEnvironmentSettings> cosmosSettings)
     {
         return resource switch
         {
@@ -352,6 +360,16 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 },
                 aiSettings
                     .Where(es => es.ApplicationInsightsId == ai.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            CosmosDb cosmos => new AzureResourceReadModel(
+                cosmos.Id.Value,
+                cosmos.Name.Value,
+                MapLocation(cosmos.Location),
+                "Microsoft.DocumentDB/databaseAccounts",
+                new Dictionary<string, string>(),
+                cosmosSettings
+                    .Where(es => es.CosmosDbId == cosmos.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
             _ => null

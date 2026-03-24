@@ -14,6 +14,7 @@ export enum ResourceTypeEnum {
   ContainerApp = 'ContainerApp',
   LogAnalyticsWorkspace = 'LogAnalyticsWorkspace',
   ApplicationInsights = 'ApplicationInsights',
+  CosmosDb = 'CosmosDb',
 }
 
 /**
@@ -40,6 +41,7 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   ContainerApp: 'view_in_ar',
   LogAnalyticsWorkspace: 'analytics',
   ApplicationInsights: 'monitoring',
+  CosmosDb: 'public',
 };
 
 /**
@@ -59,4 +61,5 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Record<string, string> = {
   ContainerApp: 'ca',
   LogAnalyticsWorkspace: 'law',
   ApplicationInsights: 'appi',
+  CosmosDb: 'cosmos',
 };

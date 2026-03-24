@@ -33,6 +33,7 @@ import { ContainerAppEnvironmentResponse, ContainerAppEnvironmentEnvironmentConf
 import { ContainerAppResponse, ContainerAppEnvironmentConfigEntry } from '../../shared/interfaces/container-app.interface';
 import { LogAnalyticsWorkspaceResponse, LogAnalyticsWorkspaceEnvironmentConfigEntry } from '../../shared/interfaces/log-analytics-workspace.interface';
 import { ApplicationInsightsResponse, ApplicationInsightsEnvironmentConfigEntry } from '../../shared/interfaces/application-insights.interface';
+import { CosmosDbResponse, CosmosDbEnvironmentConfigEntry } from '../../shared/interfaces/cosmos-db.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
@@ -42,6 +43,7 @@ import { ContainerAppEnvironmentService } from '../../shared/services/container-
 import { ContainerAppService } from '../../shared/services/container-app.service';
 import { LogAnalyticsWorkspaceService } from '../../shared/services/log-analytics-workspace.service';
 import { ApplicationInsightsService } from '../../shared/services/application-insights.service';
+import { CosmosDbService } from '../../shared/services/cosmos-db.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -56,7 +58,7 @@ import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service
 import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse;
 
 /** SKU options per resource type */
 const KEY_VAULT_SKU_OPTIONS = [
@@ -196,6 +198,27 @@ const AI_INGESTION_MODE_OPTIONS = [
   { label: 'App Insights + Diagnostic Settings', value: 'ApplicationInsightsWithDiagnosticSettings' },
 ];
 
+const COSMOS_API_TYPE_OPTIONS = [
+  { label: 'SQL (NoSQL)', value: 'SQL' },
+  { label: 'MongoDB', value: 'MongoDB' },
+  { label: 'Cassandra', value: 'Cassandra' },
+  { label: 'Table', value: 'Table' },
+  { label: 'Gremlin', value: 'Gremlin' },
+];
+
+const COSMOS_CONSISTENCY_LEVEL_OPTIONS = [
+  { label: 'Eventual', value: 'Eventual' },
+  { label: 'Consistent Prefix', value: 'ConsistentPrefix' },
+  { label: 'Session', value: 'Session' },
+  { label: 'Bounded Staleness', value: 'BoundedStaleness' },
+  { label: 'Strong', value: 'Strong' },
+];
+
+const COSMOS_BACKUP_POLICY_OPTIONS = [
+  { label: 'Periodic', value: 'Periodic' },
+  { label: 'Continuous', value: 'Continuous' },
+];
+
 @Component({
   selector: 'app-resource-edit',
   standalone: true,
@@ -234,6 +257,7 @@ export class ResourceEditComponent implements OnInit {
   private readonly containerAppService = inject(ContainerAppService);
   private readonly logAnalyticsWorkspaceService = inject(LogAnalyticsWorkspaceService);
   private readonly applicationInsightsService = inject(ApplicationInsightsService);
+  private readonly cosmosDbService = inject(CosmosDbService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -289,6 +313,9 @@ export class ResourceEditComponent implements OnInit {
   protected readonly lawSkuOptions = LAW_SKU_OPTIONS;
   protected readonly aiRetentionOptions = AI_RETENTION_OPTIONS;
   protected readonly aiIngestionModeOptions = AI_INGESTION_MODE_OPTIONS;
+  protected readonly cosmosApiTypeOptions = COSMOS_API_TYPE_OPTIONS;
+  protected readonly cosmosConsistencyLevelOptions = COSMOS_CONSISTENCY_LEVEL_OPTIONS;
+  protected readonly cosmosBackupPolicyOptions = COSMOS_BACKUP_POLICY_OPTIONS;
 
   // ─── Forms ───
   protected generalForm!: FormGroup;
@@ -399,6 +426,8 @@ export class ResourceEditComponent implements OnInit {
         return this.logAnalyticsWorkspaceService.getById(this.resourceId);
       case 'ApplicationInsights':
         return this.applicationInsightsService.getById(this.resourceId);
+      case 'CosmosDb':
+        return this.cosmosDbService.getById(this.resourceId);
       default:
         throw new Error(`Unknown resource type: ${this.resourceType}`);
     }
@@ -572,6 +601,20 @@ export class ResourceEditComponent implements OnInit {
           ingestionMode: [settings?.ingestionMode ?? null],
         });
       }
+      case 'CosmosDb': {
+        const cosmosDb = resource as CosmosDbResponse;
+        const settings = cosmosDb.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          databaseApiType: [settings?.databaseApiType ?? null],
+          consistencyLevel: [settings?.consistencyLevel ?? null],
+          maxStalenessPrefix: [settings?.maxStalenessPrefix ?? null],
+          maxIntervalInSeconds: [settings?.maxIntervalInSeconds ?? null],
+          enableAutomaticFailover: [settings?.enableAutomaticFailover ?? null],
+          enableMultipleWriteLocations: [settings?.enableMultipleWriteLocations ?? null],
+          backupPolicyType: [settings?.backupPolicyType ?? null],
+          enableFreeTier: [settings?.enableFreeTier ?? null],
+        });
+      }
     }
   }
 
@@ -681,6 +724,13 @@ export class ResourceEditComponent implements OnInit {
             environmentSettings: this.buildApplicationInsightsEnvSettings(),
           });
           break;
+        case 'CosmosDb':
+          await this.cosmosDbService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            environmentSettings: this.buildCosmosDbEnvSettings(),
+          });
+          break;
       }
 
       // Reload to reflect saved state
@@ -759,6 +809,9 @@ export class ResourceEditComponent implements OnInit {
           break;
         case 'ApplicationInsights':
           await this.applicationInsightsService.delete(this.resourceId);
+          break;
+        case 'CosmosDb':
+          await this.cosmosDbService.delete(this.resourceId);
           break;
       }
       this.router.navigate(['/config', this.configId]);
@@ -1028,6 +1081,23 @@ export class ResourceEditComponent implements OnInit {
         disableIpMasking: raw.disableIpMasking ?? null,
         disableLocalAuth: raw.disableLocalAuth ?? null,
         ingestionMode: raw.ingestionMode || null,
+      };
+    });
+  }
+
+  private buildCosmosDbEnvSettings(): CosmosDbEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        databaseApiType: raw.databaseApiType || null,
+        consistencyLevel: raw.consistencyLevel || null,
+        maxStalenessPrefix: raw.maxStalenessPrefix != null ? Number(raw.maxStalenessPrefix) : null,
+        maxIntervalInSeconds: raw.maxIntervalInSeconds != null ? Number(raw.maxIntervalInSeconds) : null,
+        enableAutomaticFailover: raw.enableAutomaticFailover ?? null,
+        enableMultipleWriteLocations: raw.enableMultipleWriteLocations ?? null,
+        backupPolicyType: raw.backupPolicyType || null,
+        enableFreeTier: raw.enableFreeTier ?? null,
       };
     });
   }

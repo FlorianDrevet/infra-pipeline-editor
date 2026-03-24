@@ -30,6 +30,7 @@ import { ContainerAppEnvironmentService } from '../../../shared/services/contain
 import { ContainerAppService } from '../../../shared/services/container-app.service';
 import { LogAnalyticsWorkspaceService } from '../../../shared/services/log-analytics-workspace.service';
 import { ApplicationInsightsService } from '../../../shared/services/application-insights.service';
+import { CosmosDbService } from '../../../shared/services/cosmos-db.service';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
@@ -42,6 +43,7 @@ import { ContainerAppEnvironmentEnvironmentConfigEntry } from '../../../shared/i
 import { ContainerAppEnvironmentConfigEntry } from '../../../shared/interfaces/container-app.interface';
 import { LogAnalyticsWorkspaceEnvironmentConfigEntry } from '../../../shared/interfaces/log-analytics-workspace.interface';
 import { ApplicationInsightsEnvironmentConfigEntry } from '../../../shared/interfaces/application-insights.interface';
+import { CosmosDbEnvironmentConfigEntry } from '../../../shared/interfaces/cosmos-db.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 
 export interface AddResourceDialogData {
@@ -117,6 +119,27 @@ const APP_CONFIGURATION_SKU_OPTIONS = [
 const APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS = [
   { label: 'Enabled', value: 'Enabled' },
   { label: 'Disabled', value: 'Disabled' },
+];
+
+const COSMOS_API_TYPE_OPTIONS = [
+  { label: 'SQL (NoSQL)', value: 'SQL' },
+  { label: 'MongoDB', value: 'MongoDB' },
+  { label: 'Cassandra', value: 'Cassandra' },
+  { label: 'Table', value: 'Table' },
+  { label: 'Gremlin', value: 'Gremlin' },
+];
+
+const COSMOS_CONSISTENCY_LEVEL_OPTIONS = [
+  { label: 'Eventual', value: 'Eventual' },
+  { label: 'Consistent Prefix', value: 'ConsistentPrefix' },
+  { label: 'Session', value: 'Session' },
+  { label: 'Bounded Staleness', value: 'BoundedStaleness' },
+  { label: 'Strong', value: 'Strong' },
+];
+
+const COSMOS_BACKUP_POLICY_OPTIONS = [
+  { label: 'Periodic', value: 'Periodic' },
+  { label: 'Continuous', value: 'Continuous' },
 ];
 
 const CAE_SKU_OPTIONS = [
@@ -224,6 +247,7 @@ export class AddResourceDialogComponent {
   private readonly containerAppService = inject(ContainerAppService);
   private readonly logAnalyticsWorkspaceService = inject(LogAnalyticsWorkspaceService);
   private readonly applicationInsightsService = inject(ApplicationInsightsService);
+  private readonly cosmosDbService = inject(CosmosDbService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly fb = inject(FormBuilder);
 
@@ -280,6 +304,9 @@ export class AddResourceDialogComponent {
   protected readonly lawSkuOptions = LAW_SKU_OPTIONS;
   protected readonly aiRetentionOptions = AI_RETENTION_OPTIONS;
   protected readonly aiIngestionModeOptions = AI_INGESTION_MODE_OPTIONS;
+  protected readonly cosmosApiTypeOptions = COSMOS_API_TYPE_OPTIONS;
+  protected readonly cosmosConsistencyLevelOptions = COSMOS_CONSISTENCY_LEVEL_OPTIONS;
+  protected readonly cosmosBackupPolicyOptions = COSMOS_BACKUP_POLICY_OPTIONS;
 
   protected readonly ResourceTypeEnum = ResourceTypeEnum;
 
@@ -564,6 +591,17 @@ export class AddResourceDialogComponent {
           disableLocalAuth: [false],
           ingestionMode: ['LogAnalytics'],
         });
+      case ResourceTypeEnum.CosmosDb:
+        return this.fb.group({
+          databaseApiType: ['SQL'],
+          consistencyLevel: ['Session'],
+          maxStalenessPrefix: [null as number | null],
+          maxIntervalInSeconds: [null as number | null],
+          enableAutomaticFailover: [false],
+          enableMultipleWriteLocations: [false],
+          backupPolicyType: ['Continuous'],
+          enableFreeTier: [false],
+        });
     }
   }
 
@@ -717,6 +755,15 @@ export class AddResourceDialogComponent {
             location: common.location!,
             logAnalyticsWorkspaceId: common.logAnalyticsWorkspaceId!,
             environmentSettings: this.buildApplicationInsightsEnvironmentSettings(),
+          });
+          break;
+        }
+        case ResourceTypeEnum.CosmosDb: {
+          await this.cosmosDbService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            environmentSettings: this.buildCosmosDbEnvironmentSettings(),
           });
           break;
         }
@@ -875,6 +922,23 @@ export class AddResourceDialogComponent {
         disableIpMasking: raw.disableIpMasking ?? null,
         disableLocalAuth: raw.disableLocalAuth ?? null,
         ingestionMode: raw.ingestionMode || null,
+      };
+    });
+  }
+
+  private buildCosmosDbEnvironmentSettings(): CosmosDbEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        databaseApiType: raw.databaseApiType || null,
+        consistencyLevel: raw.consistencyLevel || null,
+        maxStalenessPrefix: raw.maxStalenessPrefix != null ? Number(raw.maxStalenessPrefix) : null,
+        maxIntervalInSeconds: raw.maxIntervalInSeconds != null ? Number(raw.maxIntervalInSeconds) : null,
+        enableAutomaticFailover: raw.enableAutomaticFailover ?? null,
+        enableMultipleWriteLocations: raw.enableMultipleWriteLocations ?? null,
+        backupPolicyType: raw.backupPolicyType || null,
+        enableFreeTier: raw.enableFreeTier ?? null,
       };
     });
   }
