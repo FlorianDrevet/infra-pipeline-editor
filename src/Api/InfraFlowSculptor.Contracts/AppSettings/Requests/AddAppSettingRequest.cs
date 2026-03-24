@@ -1,0 +1,23 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace InfraFlowSculptor.Contracts.AppSettings.Requests;
+
+/// <summary>Request to add an app setting to a compute resource.</summary>
+public class AddAppSettingRequest
+{
+    /// <summary>The environment variable name (e.g., KEYVAULT_URI).</summary>
+    [Required]
+    [MaxLength(256)]
+    public required string Name { get; init; }
+
+    /// <summary>The static value (null when using a resource output reference).</summary>
+    [MaxLength(4000)]
+    public string? StaticValue { get; init; }
+
+    /// <summary>Identifier of the source resource for output reference (null for static values).</summary>
+    public Guid? SourceResourceId { get; init; }
+
+    /// <summary>The output name on the source resource (null for static values).</summary>
+    [MaxLength(128)]
+    public string? SourceOutputName { get; init; }
+}

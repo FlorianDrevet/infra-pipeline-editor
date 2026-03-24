@@ -1,0 +1,33 @@
+using InfraFlowSculptor.Application.AppSettings.Common;
+using InfraFlowSculptor.Application.AppSettings.Queries.GetAvailableOutputs;
+using InfraFlowSculptor.Contracts.AppSettings.Responses;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using Mapster;
+
+namespace InfraFlowSculptor.Api.Common.Mapping;
+
+/// <summary>Mapster mapping configuration for app settings request/response types.</summary>
+public class AppSettingMappingConfig : IRegister
+{
+    /// <inheritdoc />
+    public void Register(TypeAdapterConfig config)
+    {
+        config.NewConfig<AppSettingId, Guid>()
+            .MapWith(src => src.Value);
+
+        config.NewConfig<AppSettingResult, AppSettingResponse>()
+            .MapWith(src => new AppSettingResponse(
+                src.Id.Value.ToString(),
+                src.ResourceId.Value.ToString(),
+                src.Name,
+                src.StaticValue,
+                src.SourceResourceId != null ? src.SourceResourceId.Value.ToString() : null,
+                src.SourceOutputName,
+                src.IsOutputReference));
+
+        config.NewConfig<AvailableOutputsResult, AvailableOutputsResponse>()
+            .MapWith(src => new AvailableOutputsResponse(
+                src.ResourceTypeName,
+                src.Outputs.Select(o => new OutputDefinitionResponse(o.Name, o.Description)).ToList()));
+    }
+}

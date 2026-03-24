@@ -56,6 +56,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<InputOutputLink> InputOutputLinks { get; set; } = null!;
     public DbSet<ResourceNamingTemplate> ResourceNamingTemplates { get; set; } = null!;
     public DbSet<RoleAssignment> RoleAssignments { get; set; } = null!;
+    public DbSet<AppSetting> AppSettings { get; set; } = null!;
     public DbSet<KeyVaultEnvironmentSettings> KeyVaultEnvironmentSettings { get; set; } = null!;
     public DbSet<RedisCacheEnvironmentSettings> RedisCacheEnvironmentSettings { get; set; } = null!;
     public DbSet<StorageAccountEnvironmentSettings> StorageAccountEnvironmentSettings { get; set; } = null!;

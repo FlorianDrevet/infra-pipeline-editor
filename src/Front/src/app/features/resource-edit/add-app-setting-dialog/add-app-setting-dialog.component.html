@@ -1,0 +1,234 @@
+<div class="as-dialog">
+  <!-- ─── Mode selector (always visible at top) ─── -->
+  <div class="as-dialog__mode-bar">
+    <button
+      class="mode-btn"
+      [class.mode-btn--active]="mode() === 'output'"
+      (click)="onModeChange('output')">
+      <mat-icon>swap_horiz</mat-icon>
+      {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.MODE_OUTPUT' | translate }}
+    </button>
+    <button
+      class="mode-btn"
+      [class.mode-btn--active]="mode() === 'static'"
+      (click)="onModeChange('static')">
+      <mat-icon>edit_note</mat-icon>
+      {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.MODE_STATIC' | translate }}
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- STATIC VALUE MODE                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  @if (mode() === 'static') {
+    <h2 mat-dialog-title class="as-dialog__title">
+      <mat-icon>edit_note</mat-icon>
+      {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.TITLE_STATIC' | translate }}
+    </h2>
+
+    <mat-dialog-content class="as-dialog__content">
+      <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SUBTITLE_STATIC' | translate }}</p>
+
+      <div class="config-section">
+        <mat-form-field appearance="outline" class="config-section__field">
+          <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_LABEL' | translate }}</mat-label>
+          <input matInput [ngModel]="settingName()" (ngModelChange)="settingName.set($event)" placeholder="MY_VARIABLE_NAME" />
+        </mat-form-field>
+      </div>
+
+      <div class="config-section">
+        <mat-form-field appearance="outline" class="config-section__field">
+          <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.VALUE_LABEL' | translate }}</mat-label>
+          <input matInput [ngModel]="staticValue()" (ngModelChange)="staticValue.set($event)" placeholder="my-value" />
+        </mat-form-field>
+      </div>
+
+      @if (errorKey()) {
+        <div class="as-dialog__error" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          {{ errorKey() | translate }}
+        </div>
+      }
+    </mat-dialog-content>
+
+    <mat-dialog-actions class="as-dialog__actions" align="end">
+      <button mat-stroked-button (click)="onCancel()">
+        {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CANCEL' | translate }}
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="!canSubmit()"
+        (click)="onSubmit()">
+        @if (isSubmitting()) {
+          <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
+          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADDING' | translate }}
+        } @else {
+          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADD' | translate }}
+        }
+      </button>
+    </mat-dialog-actions>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- OUTPUT REFERENCE MODE                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  @if (mode() === 'output') {
+    <!-- ─── Step 1: Select source resource ─── -->
+    @if (step() === 1) {
+      <h2 mat-dialog-title class="as-dialog__title">
+        <mat-icon>ads_click</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.TITLE_SELECT_SOURCE' | translate }}
+      </h2>
+
+      <mat-dialog-content class="as-dialog__content">
+        <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SUBTITLE_SELECT_SOURCE' | translate }}</p>
+
+        @if (sourceResources().length === 0) {
+          <div class="as-dialog__empty">
+            <mat-icon>search_off</mat-icon>
+            <p>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NO_SOURCES' | translate }}</p>
+          </div>
+        } @else {
+          <div class="target-list">
+            @for (res of sourceResources(); track res.id) {
+              <button
+                class="target-card"
+                [class.target-card--selected]="selectedSource()?.id === res.id"
+                (click)="selectSource(res)">
+                <mat-icon class="target-card__icon">{{ resourceTypeIcons[res.resourceType] || 'widgets' }}</mat-icon>
+                <div class="target-card__info">
+                  <span class="target-card__name">{{ res.name }}</span>
+                  <span class="target-card__meta">{{ res.resourceType }} · {{ res.location }}</span>
+                </div>
+                <mat-icon class="target-card__arrow">chevron_right</mat-icon>
+              </button>
+            }
+          </div>
+        }
+      </mat-dialog-content>
+
+      <mat-dialog-actions class="as-dialog__actions" align="end">
+        <button mat-stroked-button (click)="onCancel()">
+          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CANCEL' | translate }}
+        </button>
+      </mat-dialog-actions>
+    }
+
+    <!-- ─── Step 2: Select output ─── -->
+    @if (step() === 2) {
+      <h2 mat-dialog-title class="as-dialog__title">
+        <mat-icon>output</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.TITLE_SELECT_OUTPUT' | translate }}
+      </h2>
+
+      <mat-dialog-content class="as-dialog__content">
+        <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SUBTITLE_SELECT_OUTPUT' | translate }}</p>
+
+        <!-- Selected source summary -->
+        @if (selectedSource(); as source) {
+          <div class="selected-source-summary">
+            <mat-icon>{{ resourceTypeIcons[source.resourceType] || 'widgets' }}</mat-icon>
+            <span>{{ source.name }}</span>
+            <span class="selected-source-summary__type">{{ source.resourceType }}</span>
+          </div>
+        }
+
+        @if (outputsLoading()) {
+          <div class="as-dialog__loading">
+            <mat-spinner diameter="24"></mat-spinner>
+            <span>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.LOADING_OUTPUTS' | translate }}</span>
+          </div>
+        } @else if (availableOutputs().length === 0) {
+          <div class="as-dialog__empty">
+            <mat-icon>info_outline</mat-icon>
+            <p>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NO_OUTPUTS' | translate }}</p>
+          </div>
+        } @else {
+          <div class="output-list">
+            @for (output of availableOutputs(); track output.name) {
+              <button
+                class="output-card"
+                [class.output-card--selected]="selectedOutput()?.name === output.name"
+                (click)="selectOutput(output)">
+                <div class="output-card__info">
+                  <span class="output-card__name">{{ output.name }}</span>
+                  <span class="output-card__desc">{{ output.description }}</span>
+                </div>
+                <mat-icon class="output-card__arrow">chevron_right</mat-icon>
+              </button>
+            }
+          </div>
+        }
+      </mat-dialog-content>
+
+      <mat-dialog-actions class="as-dialog__actions" align="end">
+        <button mat-stroked-button (click)="goBack()">
+          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
+        </button>
+      </mat-dialog-actions>
+    }
+
+    <!-- ─── Step 3: Name the variable ─── -->
+    @if (step() === 3) {
+      <h2 mat-dialog-title class="as-dialog__title">
+        <mat-icon>data_object</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.TITLE_NAME' | translate }}
+      </h2>
+
+      <mat-dialog-content class="as-dialog__content">
+        <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SUBTITLE_NAME' | translate }}</p>
+
+        <!-- Summary of what was selected -->
+        <div class="selection-summary">
+          @if (selectedSource(); as source) {
+            <div class="selection-summary__item">
+              <mat-icon>{{ resourceTypeIcons[source.resourceType] || 'widgets' }}</mat-icon>
+              <span>{{ source.name }}</span>
+            </div>
+          }
+          @if (selectedOutput(); as output) {
+            <div class="selection-summary__item selection-summary__item--output">
+              <mat-icon>output</mat-icon>
+              <span>{{ output.name }}</span>
+              <span class="selection-summary__desc">{{ output.description }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="config-section">
+          <mat-form-field appearance="outline" class="config-section__field">
+            <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_LABEL' | translate }}</mat-label>
+            <input matInput [ngModel]="settingName()" (ngModelChange)="settingName.set($event)" [placeholder]="suggestedName()" />
+            <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_HINT' | translate }}</mat-hint>
+          </mat-form-field>
+        </div>
+
+        @if (errorKey()) {
+          <div class="as-dialog__error" role="alert">
+            <mat-icon>error_outline</mat-icon>
+            {{ errorKey() | translate }}
+          </div>
+        }
+      </mat-dialog-content>
+
+      <mat-dialog-actions class="as-dialog__actions" align="end">
+        <button mat-stroked-button (click)="goBack()">
+          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          [disabled]="!canSubmit()"
+          (click)="onSubmit()">
+          @if (isSubmitting()) {
+            <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
+            {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADDING' | translate }}
+          } @else {
+            {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADD' | translate }}
+          }
+        </button>
+      </mat-dialog-actions>
+    }
+  }
+</div>

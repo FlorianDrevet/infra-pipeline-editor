@@ -25,6 +25,23 @@ public sealed class BicepGenerationEngine
             .Select(ra => ra.SourceResourceName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+        // Determine which source resources need output declarations for app settings
+        var outputsBySourceResource = request.AppSettings
+            .Where(s => s.IsOutputReference && s.SourceResourceName is not null
+                && s.SourceOutputName is not null && s.SourceOutputBicepExpression is not null)
+            .GroupBy(s => s.SourceResourceName!, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(s => (OutputName: s.SourceOutputName!, BicepExpression: s.SourceOutputBicepExpression!))
+                    .DistinctBy(x => x.OutputName, StringComparer.OrdinalIgnoreCase)
+                    .ToList(),
+                StringComparer.OrdinalIgnoreCase);
+
+        // Determine which target resources have app settings
+        var targetResourcesWithAppSettings = request.AppSettings
+            .Select(s => s.TargetResourceName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
         foreach (var resource in request.Resources)
         {
             var generator = _generators
@@ -44,6 +61,18 @@ public sealed class BicepGenerationEngine
                 moduleBicepContent = InjectSystemAssignedIdentity(moduleBicepContent);
             }
 
+            // Inject output declarations for resources referenced by app settings
+            if (outputsBySourceResource.TryGetValue(resource.Name, out var outputs))
+            {
+                moduleBicepContent = InjectOutputDeclarations(moduleBicepContent, outputs);
+            }
+
+            // Inject appSettings/env param for compute resources that have app settings
+            if (targetResourcesWithAppSettings.Contains(resource.Name))
+            {
+                moduleBicepContent = InjectAppSettingsParam(moduleBicepContent, resource.Type);
+            }
+
             modules.Add(module with
             {
                 ModuleName = moduleName,
@@ -61,7 +90,8 @@ public sealed class BicepGenerationEngine
             request.EnvironmentNames,
             request.Resources,
             request.NamingContext,
-            request.RoleAssignments);
+            request.RoleAssignments,
+            request.AppSettings);
     }
 
     /// <summary>
@@ -130,4 +160,159 @@ public sealed class BicepGenerationEngine
 
     private static string Capitalize(string s) =>
         s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+
+    /// <summary>
+    /// Injects <c>output</c> declarations into a module template for outputs
+    /// that are referenced by app settings on other resources.
+    /// </summary>
+    private static string InjectOutputDeclarations(
+        string moduleBicep,
+        List<(string OutputName, string BicepExpression)> outputs)
+    {
+        var sb = new System.Text.StringBuilder(moduleBicep.TrimEnd());
+
+        foreach (var (outputName, bicepExpression) in outputs)
+        {
+            // Skip if output already declared
+            if (moduleBicep.Contains($"output {outputName} "))
+                continue;
+
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.Append($"output {outputName} string = {bicepExpression}");
+        }
+
+        sb.AppendLine();
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Injects an <c>appSettings</c> (or <c>envVars</c> for Container Apps) parameter
+    /// into a compute resource module template and wires it into the resource declaration.
+    /// </summary>
+    private static string InjectAppSettingsParam(string moduleBicep, string resourceType)
+    {
+        if (resourceType == "Microsoft.App/containerApps")
+            return InjectContainerAppEnvVars(moduleBicep);
+
+        return InjectWebFunctionAppSettings(moduleBicep);
+    }
+
+    /// <summary>
+    /// Injects <c>param appSettings array = []</c> and wires it into
+    /// <c>siteConfig.appSettings</c> for WebApp and FunctionApp modules.
+    /// </summary>
+    private static string InjectWebFunctionAppSettings(string moduleBicep)
+    {
+        if (moduleBicep.Contains("param appSettings "))
+            return moduleBicep;
+
+        // Find the last param line to insert after it
+        var paramDecl = "\n@description('Application settings (environment variables)')\nparam appSettings array = []\n";
+
+        // Insert param before the first 'var' or 'resource' line
+        var insertIdx = FindFirstLineIndex(moduleBicep, "var ");
+        if (insertIdx < 0)
+            insertIdx = FindFirstLineIndex(moduleBicep, "resource ");
+        if (insertIdx < 0)
+            return moduleBicep;
+
+        moduleBicep = moduleBicep.Insert(insertIdx, paramDecl + "\n");
+
+        // Wire into siteConfig: if appSettings already exists in siteConfig, concat; otherwise add
+        if (moduleBicep.Contains("appSettings: ["))
+        {
+            // FunctionApp case: has existing appSettings array — wrap with concat
+            var appSettingsStart = moduleBicep.IndexOf("appSettings: [", StringComparison.Ordinal);
+            if (appSettingsStart >= 0)
+            {
+                // Find the matching ] for this appSettings array
+                var bracketStart = moduleBicep.IndexOf('[', appSettingsStart);
+                var depth = 0;
+                var bracketEnd = -1;
+                for (var i = bracketStart; i < moduleBicep.Length; i++)
+                {
+                    if (moduleBicep[i] == '[') depth++;
+                    else if (moduleBicep[i] == ']')
+                    {
+                        depth--;
+                        if (depth == 0) { bracketEnd = i; break; }
+                    }
+                }
+
+                if (bracketEnd >= 0)
+                {
+                    // Replace "appSettings: [...]" with "appSettings: concat([...], appSettings)"
+                    var existingArray = moduleBicep.Substring(bracketStart, bracketEnd - bracketStart + 1);
+                    var original = moduleBicep.Substring(appSettingsStart, bracketEnd - appSettingsStart + 1);
+                    var replacement = $"appSettings: concat({existingArray}, appSettings)";
+                    moduleBicep = moduleBicep.Replace(original, replacement);
+                }
+            }
+        }
+        else if (moduleBicep.Contains("siteConfig:"))
+        {
+            // WebApp case: no existing appSettings in siteConfig — add it
+            var siteConfigIdx = moduleBicep.IndexOf("siteConfig:", StringComparison.Ordinal);
+            var braceIdx = moduleBicep.IndexOf('{', siteConfigIdx);
+            if (braceIdx >= 0)
+            {
+                moduleBicep = moduleBicep.Insert(braceIdx + 1, "\n      appSettings: appSettings");
+            }
+        }
+
+        return moduleBicep;
+    }
+
+    /// <summary>
+    /// Injects <c>param envVars array = []</c> and wires it into
+    /// <c>template.containers[].env</c> for Container App modules.
+    /// </summary>
+    private static string InjectContainerAppEnvVars(string moduleBicep)
+    {
+        if (moduleBicep.Contains("param envVars "))
+            return moduleBicep;
+
+        var paramDecl = "\n@description('Environment variables for the container')\nparam envVars array = []\n";
+
+        var insertIdx = FindFirstLineIndex(moduleBicep, "resource ");
+        if (insertIdx < 0)
+            return moduleBicep;
+
+        moduleBicep = moduleBicep.Insert(insertIdx, paramDecl + "\n");
+
+        // Add env property to the container spec if not already present
+        if (!moduleBicep.Contains("env:"))
+        {
+            // Find "resources:" in the container spec — insert env after the "memory:" line
+            var memoryIdx = moduleBicep.IndexOf("memory:", StringComparison.Ordinal);
+            if (memoryIdx >= 0)
+            {
+                var endOfLine = moduleBicep.IndexOf('\n', memoryIdx);
+                if (endOfLine >= 0)
+                {
+                    moduleBicep = moduleBicep.Insert(endOfLine + 1, "                  env: envVars\n");
+                }
+            }
+        }
+
+        return moduleBicep;
+    }
+
+    /// <summary>
+    /// Finds the byte index of the first line in the template that starts with the given prefix
+    /// (after trimming whitespace). Returns -1 if not found.
+    /// </summary>
+    private static int FindFirstLineIndex(string content, string linePrefix)
+    {
+        var lines = content.Split('\n');
+        var idx = 0;
+        foreach (var line in lines)
+        {
+            if (line.TrimStart().StartsWith(linePrefix, StringComparison.Ordinal))
+                return idx;
+            idx += line.Length + 1; // +1 for the '\n'
+        }
+        return -1;
+    }
 }

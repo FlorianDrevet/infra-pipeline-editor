@@ -6,7 +6,8 @@ public record InfrastructureConfigReadModel(
     IReadOnlyList<ResourceGroupReadModel> ResourceGroups,
     IReadOnlyList<EnvironmentDefinitionReadModel> Environments,
     NamingContextReadModel NamingContext,
-    IReadOnlyList<RoleAssignmentReadModel> RoleAssignments);
+    IReadOnlyList<RoleAssignmentReadModel> RoleAssignments,
+    IReadOnlyList<AppSettingReadModel> AppSettings);
 
 public record ResourceGroupReadModel(
     Guid Id,
@@ -59,3 +60,18 @@ public record RoleAssignmentReadModel(
     Guid? UserAssignedIdentityResourceId,
     string? UserAssignedIdentityName,
     string? UserAssignedIdentityResourceGroupName);
+
+/// <summary>
+/// Read model for an app setting (environment variable) configured on a compute resource.
+/// </summary>
+public record AppSettingReadModel(
+    Guid ResourceId,
+    string ResourceName,
+    string ResourceType,
+    string Name,
+    string? StaticValue,
+    Guid? SourceResourceId,
+    string? SourceResourceName,
+    string? SourceResourceType,
+    string? SourceOutputName,
+    bool IsOutputReference);

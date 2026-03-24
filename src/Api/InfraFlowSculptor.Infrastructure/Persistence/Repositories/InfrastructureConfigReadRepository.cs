@@ -5,6 +5,7 @@ using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities;
 using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
@@ -140,6 +141,12 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        // ── Load app settings for all resources in this config ──────────────
+        var appSettings = await dbContext.AppSettings
+            .Where(s => allResourceIds.Contains(s.ResourceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         // Build a flat lookup of all resources by ID across all resource groups
         var allResources = config.ResourceGroups
             .SelectMany(rg => rg.Resources.Select(r => (Resource: r, ResourceGroup: rg)))
@@ -204,13 +211,44 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var environments = BuildEnvironmentList(config, project);
         var namingContext = BuildNamingContext(config, project);
 
+        var appSettingReadModels = appSettings
+            .Select(s =>
+            {
+                if (!allResources.TryGetValue(s.ResourceId, out var owner))
+                    return null;
+
+                string? sourceResourceName = null;
+                string? sourceResourceType = null;
+                if (s.SourceResourceId is not null &&
+                    allResources.TryGetValue(s.SourceResourceId, out var sourceRes))
+                {
+                    sourceResourceName = sourceRes.Resource.Name.Value;
+                    sourceResourceType = GetResourceTypeString(sourceRes.Resource);
+                }
+
+                return new AppSettingReadModel(
+                    ResourceId: s.ResourceId.Value,
+                    ResourceName: owner.Resource.Name.Value,
+                    ResourceType: GetResourceTypeString(owner.Resource),
+                    Name: s.Name,
+                    StaticValue: s.StaticValue,
+                    SourceResourceId: s.SourceResourceId?.Value,
+                    SourceResourceName: sourceResourceName,
+                    SourceResourceType: sourceResourceType,
+                    SourceOutputName: s.SourceOutputName,
+                    IsOutputReference: s.IsOutputReference);
+            })
+            .OfType<AppSettingReadModel>()
+            .ToList();
+
         return new InfrastructureConfigReadModel(
             config.Id.Value,
             config.Name.Value,
             resourceGroups,
             environments,
             namingContext,
-            roleAssignmentReadModels);
+            roleAssignmentReadModels,
+            appSettingReadModels);
     }
 
     /// <summary>

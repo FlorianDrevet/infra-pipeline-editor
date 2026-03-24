@@ -5,6 +5,7 @@ using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
+using InfraFlowSculptor.Domain.Common.ResourceOutputs;
 using ErrorOr;
 using MediatR;
 
@@ -134,6 +135,34 @@ public sealed class GenerateBicepCommandHandler(
             })
             .ToList();
 
+        var appSettingDefinitions = config.AppSettings
+            .Select(s =>
+            {
+                var sourceTypeName = s.SourceResourceType is not null
+                    ? GetResourceTypeName(s.SourceResourceType)
+                    : null;
+
+                string? bicepExpression = null;
+                if (sourceTypeName is not null && s.SourceOutputName is not null)
+                {
+                    var outputDef = ResourceOutputCatalog.FindOutput(sourceTypeName, s.SourceOutputName);
+                    bicepExpression = outputDef?.BicepExpression;
+                }
+
+                return new AppSettingDefinition
+                {
+                    Name = s.Name,
+                    StaticValue = s.StaticValue,
+                    SourceResourceName = s.SourceResourceName,
+                    SourceOutputName = s.SourceOutputName,
+                    SourceResourceTypeName = sourceTypeName,
+                    TargetResourceName = s.ResourceName,
+                    IsOutputReference = s.IsOutputReference,
+                    SourceOutputBicepExpression = bicepExpression,
+                };
+            })
+            .ToList();
+
         var generationRequest = new GenerationRequest
         {
             Resources = resources,
@@ -142,6 +171,7 @@ public sealed class GenerateBicepCommandHandler(
             EnvironmentNames = environmentNames,
             NamingContext = namingContext,
             RoleAssignments = roleAssignments,
+            AppSettings = appSettingDefinitions,
         };
 
         var result = bicepGenerationEngine.Generate(generationRequest);

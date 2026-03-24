@@ -24,6 +24,15 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
+    public async Task<AzureResource?> GetByIdWithAppSettingsAsync(
+        AzureResourceId id,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.Set<AzureResource>()
+            .Include(r => r.AppSettings)
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+    }
+
     public async Task<bool> ExistsAsync(
         AzureResourceId id,
         CancellationToken cancellationToken = default)

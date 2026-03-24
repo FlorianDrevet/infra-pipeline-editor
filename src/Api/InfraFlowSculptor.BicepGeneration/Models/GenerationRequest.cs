@@ -30,4 +30,10 @@ public class GenerationRequest
     /// Used to generate <c>constants.bicep</c>, role assignment modules, and RBAC declarations in <c>main.bicep</c>.
     /// </summary>
     public IReadOnlyList<RoleAssignmentDefinition> RoleAssignments { get; set; } = [];
+
+    /// <summary>
+    /// All app settings (environment variables) configured on compute resources.
+    /// Used to inject output declarations into source modules and appSettings/env params into target modules.
+    /// </summary>
+    public IReadOnlyList<AppSettingDefinition> AppSettings { get; set; } = [];
 }

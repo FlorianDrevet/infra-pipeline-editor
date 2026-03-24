@@ -56,6 +56,9 @@ import { RUNTIME_STACK_OPTIONS } from '../config-detail/enums/runtime-stack.enum
 import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../config-detail/enums/function-app-runtime-stack.enum';
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service-plan-sku.enum';
 import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
+import { AddAppSettingDialogComponent, AddAppSettingDialogData } from './add-app-setting-dialog/add-app-setting-dialog.component';
+import { AppSettingService } from '../../shared/services/app-setting.service';
+import { AppSettingResponse } from '../../shared/interfaces/app-setting.interface';
 
 /** Union type for any loaded resource */
 type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse;
@@ -264,6 +267,7 @@ export class ResourceEditComponent implements OnInit {
   private readonly authService = inject(AuthenticationService);
   private readonly roleAssignmentService = inject(RoleAssignmentService);
   private readonly resourceGroupService = inject(ResourceGroupService);
+  private readonly appSettingService = inject(AppSettingService);
 
   // ─── Route params ───
   protected configId = '';
@@ -314,6 +318,14 @@ export class ResourceEditComponent implements OnInit {
   protected readonly roleAssignmentsError = signal('');
   protected readonly allResources = signal<AzureResourceResponse[]>([]);
   protected readonly availableRoleDefs = signal<AzureRoleDefinitionResponse[]>([]);
+
+  // ─── App Settings ───
+  protected readonly appSettings = signal<AppSettingResponse[]>([]);
+  protected readonly appSettingsLoading = signal(false);
+  protected readonly appSettingsError = signal('');
+  protected readonly supportsAppSettings = computed(() =>
+    ['WebApp', 'FunctionApp', 'ContainerApp'].includes(this.resourceType)
+  );
 
   // ─── Options ───
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
@@ -435,6 +447,9 @@ export class ResourceEditComponent implements OnInit {
       // Load role assignments and sibling resources in background (non-blocking)
       this.loadRoleAssignments();
       this.loadAllResources();
+      if (this.supportsAppSettings()) {
+        this.loadAppSettings();
+      }
     } catch {
       this.loadError.set('RESOURCE_EDIT.ERROR.LOAD_FAILED');
     } finally {
@@ -975,6 +990,77 @@ export class ResourceEditComponent implements OnInit {
       this.roleAssignments.update(list => list.filter(ra => ra.id !== roleAssignmentId));
     } catch {
       this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_ERROR');
+    }
+  }
+
+  // ─── App Settings ───
+
+  private async loadAppSettings(): Promise<void> {
+    this.appSettingsLoading.set(true);
+    this.appSettingsError.set('');
+    try {
+      const settings = await this.appSettingService.getByResourceId(this.resourceId);
+      this.appSettings.set(settings);
+    } catch {
+      this.appSettingsError.set('RESOURCE_EDIT.APP_SETTINGS.LOAD_ERROR');
+    } finally {
+      this.appSettingsLoading.set(false);
+    }
+  }
+
+  protected resolveSourceName(sourceResourceId: string): string {
+    const res = this.allResources().find(r => r.id === sourceResourceId);
+    return res?.name ?? sourceResourceId;
+  }
+
+  protected resolveSourceType(sourceResourceId: string): string {
+    const res = this.allResources().find(r => r.id === sourceResourceId);
+    return res?.resourceType ?? '';
+  }
+
+  protected openAddAppSettingDialog(): void {
+    const dialogRef = this.dialog.open(AddAppSettingDialogComponent, {
+      data: {
+        resourceId: this.resourceId,
+        currentResourceName: this.resource()?.name ?? '',
+        siblingResources: this.allResources(),
+      } satisfies AddAppSettingDialogData,
+      width: '520px',
+      maxHeight: '85vh',
+    });
+
+    dialogRef.afterClosed().subscribe((result?: AppSettingResponse) => {
+      if (result) {
+        this.appSettings.update(list => [...list, result]);
+      }
+    });
+  }
+
+  protected openRemoveAppSettingDialog(setting: AppSettingResponse): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.APP_SETTINGS.REMOVE_TITLE',
+        messageKey: 'RESOURCE_EDIT.APP_SETTINGS.REMOVE_MESSAGE',
+        messageParams: { name: setting.name },
+        confirmKey: 'RESOURCE_EDIT.APP_SETTINGS.REMOVE_YES',
+        cancelKey: 'RESOURCE_EDIT.APP_SETTINGS.REMOVE_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      await this.removeAppSetting(setting.id);
+    });
+  }
+
+  private async removeAppSetting(appSettingId: string): Promise<void> {
+    this.appSettingsError.set('');
+    try {
+      await this.appSettingService.remove(this.resourceId, appSettingId);
+      this.appSettings.update(list => list.filter(s => s.id !== appSettingId));
+    } catch {
+      this.appSettingsError.set('RESOURCE_EDIT.APP_SETTINGS.REMOVE_ERROR');
     }
   }
 

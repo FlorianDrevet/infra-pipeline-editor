@@ -40,6 +40,10 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     private readonly List<RoleAssignment> _roleAssignments = new();
     public IReadOnlyCollection<RoleAssignment> RoleAssignments => _roleAssignments.AsReadOnly();
 
+    private readonly List<AppSetting> _appSettings = new();
+    /// <summary>Gets the application settings (environment variables) configured on this resource.</summary>
+    public IReadOnlyCollection<AppSetting> AppSettings => _appSettings.AsReadOnly();
+
     public void AddDependency(AzureResource resource)
     {
         if (resource.Id == Id)
@@ -79,6 +83,56 @@ public class AzureResource : AggregateRoot<AzureResourceId>
         var assignment = _roleAssignments.FirstOrDefault(r => r.Id == roleAssignmentId);
         if (assignment is not null)
             _roleAssignments.Remove(assignment);
+    }
+
+    /// <summary>Adds a static-value app setting to this resource.</summary>
+    /// <param name="name">The environment variable name.</param>
+    /// <param name="value">The static value.</param>
+    public AppSetting AddStaticAppSetting(string name, string value)
+    {
+        var setting = AppSetting.CreateStatic(Id, name, value);
+        _appSettings.Add(setting);
+        return setting;
+    }
+
+    /// <summary>Adds an app setting that references another resource's output.</summary>
+    /// <param name="name">The environment variable name.</param>
+    /// <param name="sourceResourceId">The source resource whose output to reference.</param>
+    /// <param name="sourceOutputName">The output name on the source resource.</param>
+    public AppSetting AddOutputReferenceAppSetting(
+        string name,
+        AzureResourceId sourceResourceId,
+        string sourceOutputName)
+    {
+        var setting = AppSetting.CreateOutputReference(Id, name, sourceResourceId, sourceOutputName);
+        _appSettings.Add(setting);
+        return setting;
+    }
+
+    /// <summary>Removes an app setting by its identifier.</summary>
+    public void RemoveAppSetting(AppSettingId appSettingId)
+    {
+        var setting = _appSettings.FirstOrDefault(s => s.Id == appSettingId);
+        if (setting is not null)
+            _appSettings.Remove(setting);
+    }
+
+    /// <summary>Updates an existing app setting to a static value.</summary>
+    public void UpdateAppSettingToStatic(AppSettingId appSettingId, string name, string value)
+    {
+        var setting = _appSettings.FirstOrDefault(s => s.Id == appSettingId);
+        setting?.UpdateToStatic(name, value);
+    }
+
+    /// <summary>Updates an existing app setting to reference a resource output.</summary>
+    public void UpdateAppSettingToOutputReference(
+        AppSettingId appSettingId,
+        string name,
+        AzureResourceId sourceResourceId,
+        string sourceOutputName)
+    {
+        var setting = _appSettings.FirstOrDefault(s => s.Id == appSettingId);
+        setting?.UpdateToOutputReference(name, sourceResourceId, sourceOutputName);
     }
 
     protected void AddParameterUsage(

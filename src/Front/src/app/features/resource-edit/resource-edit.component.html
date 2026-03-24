@@ -976,8 +976,108 @@
             </mat-tab-group>
           </div>
         </mat-tab>
+      } @else if (supportsAppSettings()) {
+        <!-- App Settings Tab (WebApp / FunctionApp / ContainerApp) -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">data_object</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.APP_SETTINGS' | translate }}</span>
+            @if (appSettings().length > 0) {
+              <span class="tab-count">{{ appSettings().length }}</span>
+            }
+          </ng-template>
+          <div class="tab-content">
+            <!-- Description banner -->
+            <div class="env-description">
+              <mat-icon class="env-description__icon">data_object</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.APP_SETTINGS.DESCRIPTION' | translate }}</p>
+            </div>
+
+            <!-- Add button -->
+            @if (canWrite()) {
+              <div class="ra-actions">
+                <button class="ra-add-btn" (click)="openAddAppSettingDialog()">
+                  <mat-icon>add</mat-icon>
+                  {{ 'RESOURCE_EDIT.APP_SETTINGS.ADD' | translate }}
+                </button>
+              </div>
+            }
+
+            <!-- Error banner -->
+            @if (appSettingsError()) {
+              <div class="feedback-banner feedback-banner--error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                {{ appSettingsError() | translate }}
+              </div>
+            }
+
+            <!-- Loading state -->
+            @if (appSettingsLoading()) {
+              <div class="ra-loading">
+                <mat-spinner diameter="28"></mat-spinner>
+                <span>{{ 'RESOURCE_EDIT.APP_SETTINGS.LOADING' | translate }}</span>
+              </div>
+            } @else if (appSettings().length === 0) {
+              <!-- Empty state -->
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">settings_applications</mat-icon>
+                <p>{{ 'RESOURCE_EDIT.APP_SETTINGS.EMPTY' | translate }}</p>
+              </div>
+            } @else {
+              <!-- App setting cards -->
+              <div class="ra-list">
+                @for (setting of appSettings(); track setting.id) {
+                  <div class="ra-card">
+                    <div class="ra-card__main">
+                      <div class="ra-card__target">
+                        <mat-icon class="ra-card__target-icon">{{ setting.isOutputReference ? 'swap_horiz' : 'edit_note' }}</mat-icon>
+                        <div class="ra-card__target-info">
+                          <span class="ra-card__target-name as-card__name">{{ setting.name }}</span>
+                          @if (setting.isOutputReference && setting.sourceResourceId) {
+                            <span class="ra-card__target-type">{{ resolveSourceName(setting.sourceResourceId) }} · {{ setting.sourceOutputName }}</span>
+                          } @else {
+                            <span class="ra-card__target-type">{{ 'RESOURCE_EDIT.APP_SETTINGS.STATIC_VALUE' | translate }}</span>
+                          }
+                        </div>
+                      </div>
+                      <div class="ra-card__details">
+                        @if (setting.isOutputReference) {
+                          <span class="as-badge as-badge--ref">
+                            <mat-icon>output</mat-icon>
+                            {{ 'RESOURCE_EDIT.APP_SETTINGS.OUTPUT_REF' | translate }}
+                          </span>
+                          @if (setting.sourceResourceId) {
+                            <span class="as-badge as-badge--source">
+                              <mat-icon>{{ resourceTypeIcons[resolveSourceType(setting.sourceResourceId)] || 'widgets' }}</mat-icon>
+                              {{ resolveSourceType(setting.sourceResourceId) }}
+                            </span>
+                          }
+                        } @else {
+                          <span class="as-badge as-badge--static">
+                            <mat-icon>edit_note</mat-icon>
+                            {{ setting.staticValue }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                    <div class="ra-card__actions">
+                      @if (canWrite()) {
+                        <button
+                          class="ra-card__remove-btn"
+                          (click)="openRemoveAppSettingDialog(setting)"
+                          [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
       } @else {
-        <!-- App Configuration Tab (placeholder for non-StorageAccount) -->
+        <!-- App Configuration Tab (placeholder for non-compute resources) -->
         <mat-tab [disabled]="true">
           <ng-template mat-tab-label>
             <mat-icon class="tab-icon">tune</mat-icon>

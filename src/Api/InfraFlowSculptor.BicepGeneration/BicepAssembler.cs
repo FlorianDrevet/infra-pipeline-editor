@@ -22,13 +22,14 @@ public static class BicepAssembler
         IReadOnlyList<string> environmentNames,
         IEnumerable<ResourceDefinition> resources,
         NamingContext namingContext,
-        IReadOnlyList<RoleAssignmentDefinition> roleAssignments)
+        IReadOnlyList<RoleAssignmentDefinition> roleAssignments,
+        IReadOnlyList<AppSettingDefinition> appSettings)
     {
         var hasRoleAssignments = roleAssignments.Count > 0;
         var typesBicep = GenerateTypesBicep(environments, hasRoleAssignments);
         var functionsBicep = GenerateFunctionsBicep(namingContext);
         var constantsBicep = hasRoleAssignments ? GenerateConstantsBicep(roleAssignments) : string.Empty;
-        var main = GenerateMainBicep(modules, resourceGroups, namingContext, roleAssignments);
+        var main = GenerateMainBicep(modules, resourceGroups, namingContext, roleAssignments, appSettings);
 
         var environmentParameterFiles = GenerateEnvironmentParameterFiles(
             modules, environmentNames, resources);
@@ -280,7 +281,8 @@ public static class BicepAssembler
         IReadOnlyCollection<GeneratedTypeModule> modules,
         IReadOnlyList<ResourceGroupDefinition> resourceGroups,
         NamingContext namingContext,
-        IReadOnlyList<RoleAssignmentDefinition> roleAssignments)
+        IReadOnlyList<RoleAssignmentDefinition> roleAssignments,
+        IReadOnlyList<AppSettingDefinition> appSettings)
     {
         var sb = new StringBuilder();
 
@@ -341,6 +343,11 @@ public static class BicepAssembler
         }
 
         // ── Module declarations ─────────────────────────────────────────────
+        // Group app settings by target resource name for quick lookup
+        var appSettingsByTarget = appSettings
+            .GroupBy(s => s.TargetResourceName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
+
         foreach (var module in modules)
         {
             var rgSymbol = BicepIdentifierHelper.ToBicepIdentifier(module.ResourceGroupName);
@@ -359,6 +366,39 @@ public static class BicepAssembler
             foreach (var paramKey in module.Parameters.Keys)
             {
                 sb.AppendLine($"    {paramKey}: {module.ModuleName}{Capitalize(paramKey)}");
+            }
+
+            // Inject appSettings / envVars param for target resources that have app settings
+            if (appSettingsByTarget.TryGetValue(module.LogicalResourceName, out var resourceAppSettings))
+            {
+                var isContainerApp = module.ResourceTypeName == "ContainerApp";
+                var paramName = isContainerApp ? "envVars" : "appSettings";
+
+                sb.AppendLine($"    {paramName}: [");
+                foreach (var setting in resourceAppSettings)
+                {
+                    sb.AppendLine("      {");
+                    sb.AppendLine($"        name: '{setting.Name}'");
+
+                    if (setting.IsOutputReference && setting.SourceResourceName is not null)
+                    {
+                        // Find the module symbol for the source resource
+                        var sourceModule = modules.FirstOrDefault(m =>
+                            m.LogicalResourceName.Equals(setting.SourceResourceName, StringComparison.OrdinalIgnoreCase));
+
+                        if (sourceModule is not null)
+                        {
+                            sb.AppendLine($"        value: {sourceModule.ModuleName}Module.outputs.{setting.SourceOutputName}");
+                        }
+                    }
+                    else if (setting.StaticValue is not null)
+                    {
+                        sb.AppendLine($"        value: '{EscapeBicepString(setting.StaticValue)}'");
+                    }
+
+                    sb.AppendLine("      }");
+                }
+                sb.AppendLine("    ]");
             }
 
             sb.AppendLine("  }");

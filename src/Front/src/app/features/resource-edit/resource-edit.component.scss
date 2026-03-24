@@ -765,6 +765,55 @@
   }
 }
 
+// ─── App Settings ────
+
+.as-card__name {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.as-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  mat-icon {
+    font-size: 0.85rem;
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  &--ref {
+    background: rgba(21, 101, 192, 0.08);
+    border: 1px solid rgba(21, 101, 192, 0.18);
+    color: #1565c0;
+  }
+
+  &--source {
+    background: rgba(0, 188, 212, 0.08);
+    border: 1px solid rgba(0, 188, 212, 0.2);
+    color: #00838f;
+  }
+
+  &--static {
+    background: rgba(96, 125, 139, 0.08);
+    border: 1px solid rgba(96, 125, 139, 0.18);
+    color: #37474f;
+    text-transform: none;
+    font-weight: 600;
+    font-size: 0.78rem;
+    max-width: 20rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 // ─── Storage Services ────
 
 .storage-sub-tabs {
