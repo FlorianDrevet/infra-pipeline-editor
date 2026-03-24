@@ -167,9 +167,15 @@ export class ConfigDetailComponent implements OnInit {
     return this.resourceTypeOptions.some((option) => !configuredTypes.has(option.value));
   });
 
+  protected readonly effectiveEnvironments = computed(() => {
+    if (this.useProjectEnvironments()) {
+      return this.project()?.environmentDefinitions ?? [];
+    }
+    return this.config()?.environmentDefinitions ?? [];
+  });
+
   protected readonly sortedEnvironments = computed(() => {
-    const envs = this.config()?.environmentDefinitions ?? [];
-    return [...envs].sort((a, b) => a.order - b.order);
+    return [...this.effectiveEnvironments()].sort((a, b) => a.order - b.order);
   });
 
   protected readonly previewEnvId = signal<string | null>(null);
@@ -177,7 +183,7 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly previewEnv = computed(() => {
     const id = this.previewEnvId();
     if (!id) return null;
-    return this.config()?.environmentDefinitions.find((e) => e.id === id) ?? null;
+    return this.effectiveEnvironments().find((e) => e.id === id) ?? null;
   });
 
   /**
@@ -191,9 +197,13 @@ export class ConfigDetailComponent implements OnInit {
     const cfg = this.config();
     if (!cfg) return null;
 
-    // Pick the resource-specific template override, or fall back to the default
-    const resourceOverride = cfg.resourceNamingTemplates.find((t) => t.resourceType === resourceType);
-    const template = resourceOverride?.template ?? cfg.defaultNamingTemplate;
+    // Pick the effective naming templates (project when inherited, config otherwise)
+    const proj = this.project();
+    const useProjectNaming = cfg.useProjectNamingConventions && proj;
+    const namingTemplates = useProjectNaming ? proj.resourceNamingTemplates : cfg.resourceNamingTemplates;
+    const defaultTemplate = useProjectNaming ? proj.defaultNamingTemplate : cfg.defaultNamingTemplate;
+    const resourceOverride = namingTemplates.find((t) => t.resourceType === resourceType);
+    const template = resourceOverride?.template ?? defaultTemplate;
     if (!template) return null;
 
     const replacements: Record<string, string> = {
@@ -245,8 +255,11 @@ export class ConfigDetailComponent implements OnInit {
         }
       }
 
-      // Pre-select the first environment (by order) for the naming preview
-      const firstEnv = [...(config.environmentDefinitions ?? [])].sort((a, b) => a.order - b.order)[0];
+      // Pre-select the first effective environment (by order) for the naming preview
+      const effectiveEnvs = config.useProjectEnvironments
+        ? (this.project()?.environmentDefinitions ?? [])
+        : (config.environmentDefinitions ?? []);
+      const firstEnv = [...effectiveEnvs].sort((a, b) => a.order - b.order)[0];
       if (firstEnv) {
         this.previewEnvId.set(firstEnv.id);
       }
