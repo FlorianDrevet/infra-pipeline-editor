@@ -24,7 +24,7 @@ public sealed class CreateProjectCommandHandler(
     private static readonly Dictionary<string, string> DefaultResourceTemplates = new()
     {
         ["ResourceGroup"] = "{resourceAbbr}-{name}{suffix}",
-        ["StorageAccount"] = "{name}{resourceAbbr}{suffix}",
+        ["StorageAccount"] = "{name}{resourceAbbr}{envShort}",
     };
 
     /// <inheritdoc />

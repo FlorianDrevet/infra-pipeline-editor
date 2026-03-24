@@ -653,7 +653,7 @@ They were previously on `CreateInfrastructureConfigCommandHandler` but were move
 |-------|----------|----------------|
 | **Default (all resources)** | `{name}-{resourceAbbr}{suffix}` | `myapp-kv01` |
 | **ResourceGroup** override | `{resourceAbbr}-{name}{suffix}` | `rg-myapp01` |
-| **StorageAccount** override | `{name}{resourceAbbr}{suffix}` | `myappstg01` |
+| **StorageAccount** override | `{name}{resourceAbbr}{envShort}` | `myappstgdev` |
 
 ### Resource type abbreviation catalog
 
@@ -1152,6 +1152,7 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-03-24 | copilot | Changed the default `StorageAccount` project naming template in `CreateProjectCommandHandler` from `{name}{resourceAbbr}{suffix}` to `{name}{resourceAbbr}{envShort}` so new storage accounts use the environment short name by default. |
 | 2026-03-15 | copilot | Initial MEMORY.md created from full project exploration |
 | 2026-03-15 | copilot | Fixed `InvalidOperationException` in `InfrastructureConfigRepository.GetByIdWithMembersAsync`: `c.Id.Value == id.Value` → `c.Id == id` (EF Core cannot translate `.Value` property access on value objects in LINQ queries) |
 | 2026-03-15 | copilot | Added authorization checks to all resource CRUD endpoints (ResourceGroup, KeyVault, RedisCache): created `InfraConfigAccessHelper` (`VerifyReadAccessAsync`/`VerifyWriteAccessAsync`), added `Errors.InfrastructureConfig.ForbiddenError()`, overrode `ResourceGroupRepository.GetByIdAsync` with safe LINQ pattern |
