@@ -1,11 +1,13 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
+using InfraFlowSculptor.Contracts.Projects.Requests;
 using InfraFlowSculptor.Contracts.Projects.Responses;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
+using InfraFlowSculptor.Application.Projects.Commands.SetProjectGitConfig;
 using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
@@ -90,7 +92,8 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.DefaultNamingTemplate,
                 src => src.DefaultNamingTemplate == null ? null : src.DefaultNamingTemplate.Value)
-            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
+            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.GitRepositoryConfiguration, src => src.GitRepositoryConfiguration);
 
         // ProjectResult -> ProjectResponse
         config.NewConfig<ProjectResult, ProjectResponse>()
@@ -100,6 +103,46 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.Members, src => src.Members)
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate)
-            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
+            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.GitRepositoryConfiguration, src => src.GitRepositoryConfiguration);
+
+        // ── Git Repository Configuration ────────────────────────────────
+
+        // GitRepositoryConfigurationId conversions
+        config.NewConfig<GitRepositoryConfigurationId, Guid>()
+            .MapWith(src => src.Value);
+
+        // GitRepositoryConfiguration entity -> GitRepositoryConfigurationResult
+        config.NewConfig<GitRepositoryConfiguration, GitRepositoryConfigurationResult>()
+            .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest.ProviderType, src => src.ProviderType.Value.ToString())
+            .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
+            .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
+            .Map(dest => dest.BasePath, src => src.BasePath)
+            .Map(dest => dest.KeyVaultUrl, src => src.KeyVaultUrl)
+            .Map(dest => dest.SecretName, src => src.SecretName)
+            .Map(dest => dest.Owner, src => src.Owner)
+            .Map(dest => dest.RepositoryName, src => src.RepositoryName);
+
+        // GitRepositoryConfigurationResult -> GitConfigResponse
+        config.NewConfig<GitRepositoryConfigurationResult, GitConfigResponse>()
+            .Map(dest => dest.Id, src => src.Id.Value.ToString())
+            .Map(dest => dest.ProviderType, src => src.ProviderType)
+            .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
+            .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
+            .Map(dest => dest.BasePath, src => src.BasePath)
+            .Map(dest => dest.KeyVaultUrl, src => src.KeyVaultUrl)
+            .Map(dest => dest.SecretName, src => src.SecretName)
+            .Map(dest => dest.Owner, src => src.Owner)
+            .Map(dest => dest.RepositoryName, src => src.RepositoryName);
+
+        // SetGitConfigRequest -> SetProjectGitConfigCommand (ProjectId set at endpoint)
+        config.NewConfig<SetGitConfigRequest, SetProjectGitConfigCommand>();
+
+        // TestGitConnectionResult -> TestGitConnectionResponse
+        config.NewConfig<TestGitConnectionResult, TestGitConnectionResponse>();
+
+        // PushBicepToGitResult -> PushBicepToGitResponse
+        config.NewConfig<PushBicepToGitResult, InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.PushBicepToGitResponse>();
     }
 }

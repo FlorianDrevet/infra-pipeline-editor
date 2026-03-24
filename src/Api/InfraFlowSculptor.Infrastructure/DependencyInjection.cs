@@ -1,3 +1,4 @@
+using Azure.Identity;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Azure;
@@ -11,6 +12,8 @@ using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 using InfraFlowSculptor.Infrastructure.Services;
 using InfraFlowSculptor.Infrastructure.Services.BlobService;
+using InfraFlowSculptor.Infrastructure.Services.GitProviders;
+using InfraFlowSculptor.Infrastructure.Services.KeyVault;
 using Microsoft.Identity.Web;
 
 namespace InfraFlowSculptor.Infrastructure;
@@ -25,7 +28,8 @@ public static class DependencyInjection
             .AddAuth(builderConfiguration)
             .AddAzureServices(builderConfiguration)
             .AddBlob(builderConfiguration)
-            .AddRepositories();
+            .AddRepositories()
+            .AddGitProviders();
         
         services.AddMigration<ProjectDbContext>();
 
@@ -99,6 +103,19 @@ public static class DependencyInjection
         services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builderConfiguration.GetSection("AzureAd"));
         
+        return services;
+    }
+
+    private static IServiceCollection AddGitProviders(
+        this IServiceCollection services)
+    {
+        services.AddSingleton<DefaultAzureCredential>(_ => new DefaultAzureCredential());
+        services.AddSingleton<IKeyVaultSecretClient, KeyVaultSecretClient>();
+        services.AddSingleton<GitHubGitProviderService>();
+        services.AddSingleton<AzureDevOpsGitProviderService>();
+        services.AddSingleton<IGitProviderFactory, GitProviderFactory>();
+        services.AddHttpClient();
+
         return services;
     }
 }

@@ -32,7 +32,9 @@ import {
   AddProjectNamingTemplateDialogData,
   AddProjectNamingTemplateDialogResult,
 } from './add-project-naming-template-dialog/add-project-naming-template-dialog.component';
+import { GitConfigDialogComponent, GitConfigDialogData } from './git-config-dialog/git-config-dialog.component';
 import { RESOURCE_TYPE_OPTIONS } from '../config-detail/enums/resource-type.enum';
+import { TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
 import { FormsModule } from '@angular/forms';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
@@ -81,6 +83,11 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly namingErrorKey = signal('');
   protected readonly roles = ROLES;
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
+
+  // ─── Git Config ───
+  protected readonly gitTestLoading = signal(false);
+  protected readonly gitTestResult = signal<TestGitConnectionResponse | null>(null);
+  protected readonly gitActionError = signal('');
 
   protected readonly sortedEnvironments = computed(() => {
     const envs = this.project()?.environmentDefinitions ?? [];
@@ -489,6 +496,79 @@ export class ProjectDetailComponent implements OnInit {
         this.configs.update((configs) => configs.filter((c) => c.id !== config.id));
       } catch {
         this.configErrorKey.set('PROJECT_DETAIL.DELETE_CONFIG.ERROR');
+      }
+    });
+  }
+
+  // ─── Git Configuration ───
+
+  protected openGitConfigDialog(): void {
+    const project = this.project();
+    if (!project) return;
+
+    const data: GitConfigDialogData = {
+      projectId: project.id,
+      existing: project.gitRepositoryConfiguration,
+    };
+
+    const dialogRef = this.dialog.open(GitConfigDialogComponent, {
+      width: '520px',
+      data,
+    });
+
+    dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {
+      if (result) {
+        this.project.set(result);
+        this.gitTestResult.set(null);
+        this.gitActionError.set('');
+      }
+    });
+  }
+
+  protected async testGitConnection(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId) return;
+
+    this.gitTestLoading.set(true);
+    this.gitTestResult.set(null);
+    this.gitActionError.set('');
+
+    try {
+      const result = await this.projectService.testGitConnection(projectId);
+      this.gitTestResult.set(result);
+    } catch {
+      this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.TEST_FAILED');
+    } finally {
+      this.gitTestLoading.set(false);
+    }
+  }
+
+  protected openRemoveGitConfigDialog(): void {
+    const project = this.project();
+    if (!project) return;
+
+    const data: ConfirmDialogData = {
+      titleKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_TITLE',
+      messageKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_MESSAGE',
+      confirmKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_YES',
+      cancelKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_CANCEL',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+
+      this.gitActionError.set('');
+      try {
+        await this.projectService.removeGitConfig(project.id);
+        this.project.update((p) => {
+          if (!p) return p;
+          return { ...p, gitRepositoryConfiguration: null };
+        });
+        this.gitTestResult.set(null);
+      } catch {
+        this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.REMOVE_ERROR');
       }
     });
   }

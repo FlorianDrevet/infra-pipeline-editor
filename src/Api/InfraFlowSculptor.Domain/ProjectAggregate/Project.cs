@@ -1,3 +1,4 @@
+using ErrorOr;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
@@ -49,6 +50,11 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// <summary>Gets the project-level per-resource-type naming template overrides.</summary>
     public IReadOnlyCollection<ProjectResourceNamingTemplate> ResourceNamingTemplates
         => _resourceNamingTemplates.AsReadOnly();
+
+    // ─── Git Repository Configuration ───────────────────────────────────────
+
+    /// <summary>Gets the optional Git repository configuration for pushing generated Bicep files.</summary>
+    public GitRepositoryConfiguration? GitRepositoryConfiguration { get; private set; }
 
     // ─── Constructor ────────────────────────────────────────────────────────
 
@@ -205,5 +211,37 @@ public sealed class Project : AggregateRoot<ProjectId>
             return false;
         _resourceNamingTemplates.Remove(existing);
         return true;
+    }
+
+    // ─── Git Repository Configuration Management ────────────────────────────
+
+    /// <summary>Sets or updates the Git repository configuration for this project.</summary>
+    public GitRepositoryConfiguration SetGitRepositoryConfiguration(
+        GitProviderType providerType,
+        string repositoryUrl,
+        string defaultBranch,
+        string? basePath,
+        string keyVaultUrl,
+        string secretName)
+    {
+        if (GitRepositoryConfiguration is not null)
+        {
+            GitRepositoryConfiguration.Update(providerType, repositoryUrl, defaultBranch, basePath, keyVaultUrl, secretName);
+            return GitRepositoryConfiguration;
+        }
+
+        GitRepositoryConfiguration = Entities.GitRepositoryConfiguration.Create(
+            providerType, repositoryUrl, defaultBranch, basePath, keyVaultUrl, secretName, Id);
+        return GitRepositoryConfiguration;
+    }
+
+    /// <summary>Removes the Git repository configuration from this project.</summary>
+    public ErrorOr<Deleted> RemoveGitRepositoryConfiguration()
+    {
+        if (GitRepositoryConfiguration is null)
+            return Domain.Common.Errors.Errors.GitRepository.NotConfigured();
+
+        GitRepositoryConfiguration = null;
+        return Result.Deleted;
     }
 }

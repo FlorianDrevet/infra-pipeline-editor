@@ -826,3 +826,160 @@ a.config-card {
     &:hover { background: rgba(217, 45, 32, 0.12); }
   }
 }
+
+// ─── Git Config ────
+
+.git-config-card {
+  padding: 1.2rem;
+  border-radius: 1.2rem;
+  background: linear-gradient(180deg, #ffffff, #f6fbff);
+  border: 1px solid rgba(146, 191, 235, 0.24);
+  box-shadow: 0 10px 26px rgba(16, 52, 86, 0.06);
+}
+
+.git-config-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.git-config-card__provider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  h3 {
+    margin: 0;
+    color: #103454;
+    font-size: 1.05rem;
+  }
+}
+
+.git-config-card__provider-icon {
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #1565c0;
+}
+
+.git-config-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.git-config-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.delete-config-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 67, 54, 0.25);
+  background: rgba(244, 67, 54, 0.06);
+  color: #c62828;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  &:hover {
+    background: rgba(244, 67, 54, 0.12);
+    border-color: rgba(244, 67, 54, 0.4);
+  }
+}
+
+.detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #1565c0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.detail-link__icon {
+  font-size: 0.85rem;
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.git-test-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 0.8rem;
+}
+
+.git-test-result--success {
+  background: rgba(46, 125, 50, 0.06);
+  border: 1px solid rgba(46, 125, 50, 0.15);
+}
+
+.git-test-result--error {
+  background: rgba(217, 45, 32, 0.06);
+  border: 1px solid rgba(217, 45, 32, 0.15);
+}
+
+.git-test-result__icon {
+  font-size: 1.3rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  margin-top: 0.1rem;
+
+  .git-test-result--success & {
+    color: #2e7d32;
+  }
+
+  .git-test-result--error & {
+    color: #d32f2f;
+  }
+}
+
+.git-test-result__content {
+  flex: 1;
+
+  strong {
+    display: block;
+    font-size: 0.88rem;
+    color: #103454;
+    margin-bottom: 0.25rem;
+  }
+
+  p {
+    margin: 0;
+    color: #a12d1f;
+    font-size: 0.84rem;
+  }
+}
+
+.git-test-result__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  span {
+    color: #617892;
+    font-size: 0.82rem;
+  }
+}

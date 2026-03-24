@@ -491,6 +491,24 @@
       "DOWNLOADING": "Downloading...",
       "FILE_LOADING": "Loading file content...",
       "FILE_ERROR": "Unable to load file content."
+    },
+    "PUSH_TO_GIT": {
+      "BUTTON": "Push to Git",
+      "DIALOG_TITLE": "Push Bicep to Git",
+      "BRANCH_NAME": "Branch name",
+      "BRANCH_NAME_PLACEHOLDER": "bicep/auto-generated",
+      "COMMIT_MESSAGE": "Commit message (optional)",
+      "COMMIT_MESSAGE_PLACEHOLDER": "Bicep generation output",
+      "PUSH": "Push",
+      "PUSHING": "Pushing to Git...",
+      "SUCCESS_TITLE": "Files pushed successfully!",
+      "BRANCH_URL": "View branch",
+      "COMMIT_SHA": "Commit",
+      "FILE_COUNT": "{{count}} file(s) pushed",
+      "ERROR": "Unable to push files to Git.",
+      "RETRY": "Retry",
+      "CLOSE": "Close",
+      "NO_GIT_CONFIG": "Configure a Git repository on the project first."
     }
   },
   "PROJECT_DETAIL": {
@@ -501,7 +519,8 @@
       "CONFIGURATIONS": "Configurations",
       "ENVIRONMENTS": "Environments",
       "NAMING_TEMPLATES": "Naming",
-      "MEMBERS": "Members"
+      "MEMBERS": "Members",
+      "GIT": "Git"
     },
     "STATE": {
       "LOADING_TITLE": "Loading project",
@@ -651,6 +670,50 @@
       "CONFIRM_YES": "Delete",
       "CONFIRM_CANCEL": "Cancel",
       "ERROR": "Unable to delete the configuration."
+    },
+    "GIT_CONFIG": {
+      "TITLE": "Git Repository",
+      "EMPTY": "No Git repository configured for this project.",
+      "CONFIGURE": "Configure Git Repository",
+      "PROVIDER": "Provider",
+      "REPOSITORY_URL": "Repository URL",
+      "DEFAULT_BRANCH": "Default branch",
+      "BASE_PATH": "Base path",
+      "KEY_VAULT_URL": "Key Vault URL",
+      "SECRET_NAME": "Secret name",
+      "OWNER": "Owner",
+      "REPOSITORY_NAME": "Repository name",
+      "EDIT": "Edit",
+      "REMOVE": "Remove",
+      "TEST_CONNECTION": "Test connection",
+      "TESTING": "Testing connection...",
+      "TEST_SUCCESS": "Connection successful",
+      "TEST_FAILED": "Connection failed",
+      "TEST_REPO_NAME": "Repository",
+      "TEST_BRANCH": "Branch",
+      "REMOVE_CONFIRM_TITLE": "Remove Git configuration",
+      "REMOVE_CONFIRM_MESSAGE": "Are you sure you want to remove the Git repository configuration?",
+      "REMOVE_CONFIRM_YES": "Remove",
+      "REMOVE_CONFIRM_CANCEL": "Cancel",
+      "REMOVE_ERROR": "Unable to remove Git configuration.",
+      "DIALOG_TITLE": "Configure Git Repository",
+      "DIALOG_EDIT_TITLE": "Edit Git Repository",
+      "DIALOG_ERROR": "Unable to save Git configuration.",
+      "FORM": {
+        "PROVIDER_TYPE": "Provider",
+        "REPOSITORY_URL": "Repository URL",
+        "REPOSITORY_URL_PLACEHOLDER": "https://github.com/org/repo",
+        "DEFAULT_BRANCH": "Default branch",
+        "DEFAULT_BRANCH_PLACEHOLDER": "main",
+        "BASE_PATH": "Base path (optional)",
+        "BASE_PATH_PLACEHOLDER": "infra/bicep",
+        "KEY_VAULT_URL": "Key Vault URL",
+        "KEY_VAULT_URL_PLACEHOLDER": "https://myvault.vault.azure.net",
+        "SECRET_NAME": "Secret name (PAT)",
+        "SECRET_NAME_PLACEHOLDER": "git-pat-token",
+        "CANCEL": "Cancel",
+        "SAVE": "Save"
+      }
     }
   },
   "RESOURCE_EDIT": {

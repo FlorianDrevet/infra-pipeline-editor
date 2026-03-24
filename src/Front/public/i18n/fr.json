@@ -487,6 +487,24 @@
       "DOWNLOADING": "Telechargement...",
       "FILE_LOADING": "Chargement du fichier...",
       "FILE_ERROR": "Impossible de charger le contenu du fichier."
+    },
+    "PUSH_TO_GIT": {
+      "BUTTON": "Pousser vers Git",
+      "DIALOG_TITLE": "Pousser le Bicep vers Git",
+      "BRANCH_NAME": "Nom de la branche",
+      "BRANCH_NAME_PLACEHOLDER": "bicep/auto-generated",
+      "COMMIT_MESSAGE": "Message de commit (optionnel)",
+      "COMMIT_MESSAGE_PLACEHOLDER": "Resultat de la generation Bicep",
+      "PUSH": "Pousser",
+      "PUSHING": "Envoi vers Git...",
+      "SUCCESS_TITLE": "Fichiers pousses avec succes !",
+      "BRANCH_URL": "Voir la branche",
+      "COMMIT_SHA": "Commit",
+      "FILE_COUNT": "{{count}} fichier(s) pousse(s)",
+      "ERROR": "Impossible de pousser les fichiers vers Git.",
+      "RETRY": "Reessayer",
+      "CLOSE": "Fermer",
+      "NO_GIT_CONFIG": "Configurez d'abord un depot Git sur le projet."
     }
   },
   "PROJECT_DETAIL": {
@@ -497,7 +515,8 @@
       "CONFIGURATIONS": "Configurations",
       "ENVIRONMENTS": "Environnements",
       "NAMING_TEMPLATES": "Nommage",
-      "MEMBERS": "Membres"
+      "MEMBERS": "Membres",
+      "GIT": "Git"
     },
     "STATE": {
       "LOADING_TITLE": "Chargement du projet",
@@ -658,6 +677,50 @@
       "CONFIRM_YES": "Supprimer",
       "CONFIRM_CANCEL": "Annuler",
       "ERROR": "Impossible de supprimer la configuration."
+    },
+    "GIT_CONFIG": {
+      "TITLE": "Depot Git",
+      "EMPTY": "Aucun depot Git configure pour ce projet.",
+      "CONFIGURE": "Configurer le depot Git",
+      "PROVIDER": "Fournisseur",
+      "REPOSITORY_URL": "URL du depot",
+      "DEFAULT_BRANCH": "Branche par defaut",
+      "BASE_PATH": "Chemin de base",
+      "KEY_VAULT_URL": "URL du Key Vault",
+      "SECRET_NAME": "Nom du secret",
+      "OWNER": "Proprietaire",
+      "REPOSITORY_NAME": "Nom du depot",
+      "EDIT": "Modifier",
+      "REMOVE": "Supprimer",
+      "TEST_CONNECTION": "Tester la connexion",
+      "TESTING": "Test de la connexion...",
+      "TEST_SUCCESS": "Connexion reussie",
+      "TEST_FAILED": "Echec de la connexion",
+      "TEST_REPO_NAME": "Depot",
+      "TEST_BRANCH": "Branche",
+      "REMOVE_CONFIRM_TITLE": "Supprimer la configuration Git",
+      "REMOVE_CONFIRM_MESSAGE": "Etes-vous sur de vouloir supprimer la configuration du depot Git ?",
+      "REMOVE_CONFIRM_YES": "Supprimer",
+      "REMOVE_CONFIRM_CANCEL": "Annuler",
+      "REMOVE_ERROR": "Impossible de supprimer la configuration Git.",
+      "DIALOG_TITLE": "Configurer le depot Git",
+      "DIALOG_EDIT_TITLE": "Modifier le depot Git",
+      "DIALOG_ERROR": "Impossible de sauvegarder la configuration Git.",
+      "FORM": {
+        "PROVIDER_TYPE": "Fournisseur",
+        "REPOSITORY_URL": "URL du depot",
+        "REPOSITORY_URL_PLACEHOLDER": "https://github.com/org/repo",
+        "DEFAULT_BRANCH": "Branche par defaut",
+        "DEFAULT_BRANCH_PLACEHOLDER": "main",
+        "BASE_PATH": "Chemin de base (optionnel)",
+        "BASE_PATH_PLACEHOLDER": "infra/bicep",
+        "KEY_VAULT_URL": "URL du Key Vault",
+        "KEY_VAULT_URL_PLACEHOLDER": "https://myvault.vault.azure.net",
+        "SECRET_NAME": "Nom du secret (PAT)",
+        "SECRET_NAME_PLACEHOLDER": "git-pat-token",
+        "CANCEL": "Annuler",
+        "SAVE": "Enregistrer"
+      }
     }
   },
   "RESOURCE_EDIT": {

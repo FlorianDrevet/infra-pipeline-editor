@@ -59,6 +59,14 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .WithOne(x => x.Project)
             .HasForeignKey(x => x.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ========================
+        // GitRepositoryConfiguration (Entity, 0..1)
+        // ========================
+        builder.HasOne(x => x.GitRepositoryConfiguration)
+            .WithOne()
+            .HasForeignKey<GitRepositoryConfiguration>(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     private static void ConfigureEnvironments(EntityTypeBuilder<Project> builder)

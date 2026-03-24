@@ -10,4 +10,5 @@ public record ProjectResponse(
     IReadOnlyList<ProjectMemberResponse> Members,
     IReadOnlyList<EnvironmentDefinitionResponse> EnvironmentDefinitions,
     string? DefaultNamingTemplate,
-    IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates);
+    IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates,
+    GitConfigResponse? GitRepositoryConfiguration);

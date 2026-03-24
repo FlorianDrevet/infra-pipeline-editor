@@ -56,6 +56,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { BicepHighlightPipe } from './pipes/bicep-highlight.pipe';
 import { StorageAccountResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
+import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
 
 interface ResourceDisplayItem {
   resource: AzureResourceResponse;
@@ -994,6 +995,15 @@ export class ConfigDetailComponent implements OnInit {
     this.bicepErrorKey.set('');
     this.bicepViewerFile.set(null);
     this.bicepViewerContent.set(null);
+  }
+
+  protected openPushToGitDialog(): void {
+    const configId = this.config()?.id;
+    const gitConfig = this.project()?.gitRepositoryConfiguration;
+    if (!configId || !gitConfig) return;
+
+    const data: PushToGitDialogData = { configId, gitConfig };
+    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 
   protected async openBicepFile(filePath: string): Promise<void> {

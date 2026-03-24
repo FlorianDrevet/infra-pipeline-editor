@@ -5,10 +5,13 @@ using InfraFlowSculptor.Application.Projects.Commands.DeleteProject;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectMember;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProject;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironment;
+using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectGitConfig;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectResourceNamingTemplate;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectDefaultNamingTemplate;
+using InfraFlowSculptor.Application.Projects.Commands.SetProjectGitConfig;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectResourceNamingTemplate;
+using InfraFlowSculptor.Application.Projects.Commands.TestGitConnection;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectMemberRole;
 using InfraFlowSculptor.Application.Projects.Queries.GetProject;
@@ -427,6 +430,66 @@ public static class ProjectController
                 .WithDescription("Filters a list of recently viewed items, returning only those the current user still has access to with fresh data.")
                 .Produces<IReadOnlyList<RecentItemResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+            // ── Git Repository Configuration ─────────────────────────────
+
+            group.MapPut("/{projectId:guid}/git-config",
+                    async ([FromRoute] Guid projectId, [FromBody] SetGitConfigRequest request,
+                        IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = mapper.Map<SetProjectGitConfigCommand>(request) with
+                        {
+                            ProjectId = new ProjectId(projectId)
+                        };
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetProjectGitConfig")
+                .WithSummary("Set or update Git repository configuration")
+                .WithDescription("Configures the Git repository where generated Bicep files can be pushed. Requires Owner access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapDelete("/{projectId:guid}/git-config",
+                    async ([FromRoute] Guid projectId, IMediator mediator) =>
+                    {
+                        var command = new RemoveProjectGitConfigCommand(new ProjectId(projectId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveProjectGitConfig")
+                .WithSummary("Remove Git repository configuration")
+                .WithDescription("Removes the Git repository configuration from the project. Requires Owner access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPost("/{projectId:guid}/git-config/test",
+                    async ([FromRoute] Guid projectId, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new TestGitConnectionCommand(new ProjectId(projectId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.Ok(mapper.Map<TestGitConnectionResponse>(value)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("TestGitConnection")
+                .WithSummary("Test Git repository connection")
+                .WithDescription("Tests the connection to the configured Git repository using the stored token. Requires Owner or Contributor access.")
+                .Produces<TestGitConnectionResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
 }

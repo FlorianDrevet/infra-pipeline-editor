@@ -1238,6 +1238,18 @@
   }
 }
 
+.bicep-cta--git {
+  border-color: rgba(156, 39, 176, 0.5);
+  background: linear-gradient(135deg, rgba(156, 39, 176, 0.28), rgba(63, 81, 181, 0.28));
+  color: #f3e5f5;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.42), rgba(63, 81, 181, 0.42));
+    border-color: rgba(156, 39, 176, 0.8);
+    box-shadow: 0 0 24px rgba(156, 39, 176, 0.2);
+  }
+}
+
 .bicep-panel {
   border-radius: 1.4rem;
   background: rgba(10, 18, 32, 0.92);

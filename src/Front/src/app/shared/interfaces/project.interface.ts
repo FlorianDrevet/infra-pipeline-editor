@@ -22,6 +22,7 @@ export interface ProjectResponse {
   environmentDefinitions: EnvironmentDefinitionResponse[];
   defaultNamingTemplate: string | null;
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
+  gitRepositoryConfiguration?: GitConfigResponse | null;
 }
 
 export interface RecentItemResponse {
@@ -49,4 +50,34 @@ export interface AddProjectMemberRequest {
 
 export interface UpdateProjectMemberRoleRequest {
   newRole: string;
+}
+
+// ─── Git Configuration ──────────────────────────────────────────────────────
+
+export interface GitConfigResponse {
+  id: string;
+  providerType: string;
+  repositoryUrl: string;
+  defaultBranch: string;
+  basePath?: string | null;
+  keyVaultUrl: string;
+  secretName: string;
+  owner: string;
+  repositoryName: string;
+}
+
+export interface SetGitConfigRequest {
+  providerType: string;
+  repositoryUrl: string;
+  defaultBranch: string;
+  basePath?: string | null;
+  keyVaultUrl: string;
+  secretName: string;
+}
+
+export interface TestGitConnectionResponse {
+  success: boolean;
+  repositoryFullName?: string | null;
+  defaultBranch?: string | null;
+  errorMessage?: string | null;
 }

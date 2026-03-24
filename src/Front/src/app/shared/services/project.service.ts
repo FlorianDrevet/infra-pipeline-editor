@@ -8,6 +8,8 @@ import {
   UpdateProjectMemberRoleRequest,
   RecentItemResponse,
   ValidateRecentItemsRequest,
+  SetGitConfigRequest,
+  TestGitConnectionResponse,
 } from '../interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
@@ -152,6 +154,30 @@ export class ProjectService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/projects/${projectId}/naming/resources/${resourceType}`
+    );
+  }
+
+  // ─── Git Configuration ───
+
+  setGitConfig(projectId: string, request: SetGitConfigRequest): Promise<ProjectResponse> {
+    return this.axios.request$<ProjectResponse>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/git-config`,
+      request
+    );
+  }
+
+  removeGitConfig(projectId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/git-config`
+    );
+  }
+
+  testGitConnection(projectId: string): Promise<TestGitConnectionResponse> {
+    return this.axios.request$<TestGitConnectionResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/git-config/test`
     );
   }
 }

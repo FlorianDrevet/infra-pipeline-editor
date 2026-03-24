@@ -82,6 +82,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<SqlServerEnvironmentSettings> SqlServerEnvironmentSettings { get; set; } = null!;
     public DbSet<SqlDatabase> SqlDatabases { get; set; } = null!;
     public DbSet<SqlDatabaseEnvironmentSettings> SqlDatabaseEnvironmentSettings { get; set; } = null!;
+    public DbSet<GitRepositoryConfiguration> GitRepositoryConfigurations { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

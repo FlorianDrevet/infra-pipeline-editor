@@ -3,6 +3,8 @@ import axios from 'axios';
 import {
   GenerateBicepRequest,
   GenerateBicepResponse,
+  PushBicepToGitRequest,
+  PushBicepToGitResponse,
 } from '../interfaces/bicep-generator.interface';
 
 @Injectable({
@@ -30,5 +32,13 @@ export class BicepGeneratorService {
       `/generate-bicep/${configId}/files/${filePath}`,
     );
     return response.data.content;
+  }
+
+  async pushToGit(configId: string, request: PushBicepToGitRequest): Promise<PushBicepToGitResponse> {
+    const response = await axios.post<PushBicepToGitResponse>(
+      `/generate-bicep/${configId}/push-to-git`,
+      request,
+    );
+    return response.data;
   }
 }
