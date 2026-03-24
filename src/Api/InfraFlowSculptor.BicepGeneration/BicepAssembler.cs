@@ -325,6 +325,18 @@ public static class BicepAssembler
             "Microsoft.KeyVault/vaults" => "keyVault",
             "Microsoft.Cache/Redis" => "redisCache",
             "Microsoft.Storage/storageAccounts" => "storageAccount",
+            "Microsoft.Web/serverfarms" => "appServicePlan",
+            "Microsoft.Web/sites" => "webApp",
+            "Microsoft.Web/sites/functionapp" => "functionApp",
+            "Microsoft.ManagedIdentity/userAssignedIdentities" => "userAssignedIdentity",
+            "Microsoft.AppConfiguration/configurationStores" => "appConfiguration",
+            "Microsoft.App/managedEnvironments" => "containerAppEnvironment",
+            "Microsoft.App/containerApps" => "containerApp",
+            "Microsoft.OperationalInsights/workspaces" => "logAnalyticsWorkspace",
+            "Microsoft.Insights/components" => "applicationInsights",
+            "Microsoft.DocumentDB/databaseAccounts" => "cosmosDb",
+            "Microsoft.Sql/servers" => "sqlServer",
+            "Microsoft.Sql/servers/databases" => "sqlDatabase",
             _ => "unknown"
         };
     }

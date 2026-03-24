@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.BicepGeneration.Models;
 using ErrorOr;
@@ -14,24 +15,36 @@ public sealed class GenerateBicepCommandHandler(
     : IRequestHandler<GenerateBicepCommand, ErrorOr<GenerateBicepResult>>
 {
     /// <summary>
-    /// Maps Azure resource type strings to their simple type names used in naming template lookups.
+    /// The subdirectory name where Bicep parameter files are stored.
     /// </summary>
-    private static readonly Dictionary<string, string> ResourceTypeNames = new()
+    private const string ParametersDirectory = "parameters";
+
+    /// <summary>
+    /// The file extension for Bicep parameter files.
+    /// </summary>
+    private const string BicepParameterExtension = ".bicepparam";
+
+    /// <summary>
+    /// Maps Azure resource type strings to their simple type names used in naming template lookups
+    /// and abbreviation resolution via <see cref="ResourceAbbreviationCatalog"/>.
+    /// </summary>
+    private static readonly Dictionary<string, string> ResourceTypeNames = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Microsoft.KeyVault/vaults"] = "KeyVault",
         ["Microsoft.Cache/Redis"] = "RedisCache",
         ["Microsoft.Storage/storageAccounts"] = "StorageAccount",
-    };
-
-    /// <summary>
-    /// Maps simple resource type names to their standard abbreviations.
-    /// </summary>
-    private static readonly Dictionary<string, string> ResourceAbbreviations = new()
-    {
-        ["KeyVault"] = "kv",
-        ["RedisCache"] = "redis",
-        ["StorageAccount"] = "stg",
-        ["ResourceGroup"] = "rg",
+        ["Microsoft.Web/serverfarms"] = "AppServicePlan",
+        ["Microsoft.Web/sites"] = "WebApp",
+        ["Microsoft.Web/sites/functionapp"] = "FunctionApp",
+        ["Microsoft.ManagedIdentity/userAssignedIdentities"] = "UserAssignedIdentity",
+        ["Microsoft.AppConfiguration/configurationStores"] = "AppConfiguration",
+        ["Microsoft.App/managedEnvironments"] = "ContainerAppEnvironment",
+        ["Microsoft.App/containerApps"] = "ContainerApp",
+        ["Microsoft.OperationalInsights/workspaces"] = "LogAnalyticsWorkspace",
+        ["Microsoft.Insights/components"] = "ApplicationInsights",
+        ["Microsoft.DocumentDB/databaseAccounts"] = "CosmosDb",
+        ["Microsoft.Sql/servers"] = "SqlServer",
+        ["Microsoft.Sql/servers/databases"] = "SqlDatabase",
     };
 
     public async Task<ErrorOr<GenerateBicepResult>> Handle(
@@ -87,7 +100,7 @@ public sealed class GenerateBicepCommandHandler(
         {
             DefaultTemplate = config.NamingContext.DefaultTemplate,
             ResourceTemplates = config.NamingContext.ResourceTemplates,
-            ResourceAbbreviations = ResourceAbbreviations,
+            ResourceAbbreviations = ResourceAbbreviationCatalog.GetAll(),
         };
 
         var generationRequest = new GenerationRequest
@@ -124,8 +137,9 @@ public sealed class GenerateBicepCommandHandler(
         var parameterUris = new Dictionary<string, Uri>();
         foreach (var (fileName, content) in result.EnvironmentParameterFiles)
         {
+            var destinationPath = ResolveArtifactPath(prefix, fileName);
             var paramUri = await blobService.UploadContentAsync(
-                $"{prefix}/{fileName}",
+                destinationPath,
                 content,
                 "text/plain");
             parameterUris[fileName] = paramUri;
@@ -145,11 +159,24 @@ public sealed class GenerateBicepCommandHandler(
     }
 
     /// <summary>
+    /// Resolves the destination storage path for a Bicep artifact based on its file type.
+    /// Parameter files (.bicepparam) are placed in a <c>parameters/</c> subdirectory;
+    /// other artifacts remain in the base prefix directory.
+    /// </summary>
+    /// <param name="prefix">The base storage prefix (e.g., "bicep/{configId}/{timestamp}").</param>
+    /// <param name="fileName">The name of the file to upload.</param>
+    /// <returns>The full destination path for the artifact in blob storage.</returns>
+    private static string ResolveArtifactPath(string prefix, string fileName) =>
+        fileName.EndsWith(BicepParameterExtension, StringComparison.OrdinalIgnoreCase)
+            ? $"{prefix}/{ParametersDirectory}/{fileName}"
+            : $"{prefix}/{fileName}";
+
+    /// <summary>
     /// Resolves the resource abbreviation from the Azure resource type string.
     /// </summary>
     private static string GetResourceAbbreviation(string azureResourceType)
     {
-        var typeName = ResourceTypeNames.GetValueOrDefault(azureResourceType, "unknown");
-        return ResourceAbbreviations.GetValueOrDefault(typeName, typeName.ToLowerInvariant());
+        var typeName = ResourceTypeNames.GetValueOrDefault(azureResourceType, azureResourceType);
+        return ResourceAbbreviationCatalog.GetAbbreviation(typeName);
     }
 }
