@@ -76,3 +76,7 @@ export interface AddQueueRequest {
 export interface AddTableRequest {
   name: string;
 }
+
+export interface UpdateBlobContainerPublicAccessRequest {
+  publicAccess: string;
+}

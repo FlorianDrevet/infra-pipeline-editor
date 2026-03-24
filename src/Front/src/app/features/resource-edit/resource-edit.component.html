@@ -780,7 +780,19 @@
                         <div class="storage-item">
                           <mat-icon class="storage-item__icon">folder</mat-icon>
                           <span class="storage-item__name">{{ blob.name }}</span>
-                          <span class="storage-item__badge">{{ blob.publicAccess }}</span>
+                          @if (canWrite()) {
+                            <mat-form-field appearance="outline" class="storage-item__access-select">
+                              <mat-select [value]="blob.publicAccess"
+                                (selectionChange)="updateBlobPublicAccess(blob.id, $event.value)"
+                                [disabled]="storageActionLoading()">
+                                @for (opt of publicAccessOptions; track opt.value) {
+                                  <mat-option [value]="opt.value">{{ opt.label | translate }}</mat-option>
+                                }
+                              </mat-select>
+                            </mat-form-field>
+                          } @else {
+                            <span class="storage-item__badge">{{ publicAccessI18nKey(blob.publicAccess) | translate }}</span>
+                          }
                           @if (canWrite()) {
                             <button class="storage-item__remove"
                               (click)="openRemoveStorageItemDialog('BlobContainer', blob.id, blob.name)"
@@ -800,6 +812,9 @@
                           <mat-form-field appearance="outline" class="storage-add-form__field">
                             <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate }}</mat-label>
                             <input matInput formControlName="name" autocomplete="off" />
+                            @if (blobAddForm.get('name')?.hasError('duplicateName')) {
+                              <mat-error>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.DUPLICATE_NAME_ERROR' | translate }}</mat-error>
+                            }
                           </mat-form-field>
                           <mat-form-field appearance="outline" class="storage-add-form__field">
                             <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_LABEL' | translate }}</mat-label>
@@ -869,6 +884,9 @@
                           <mat-form-field appearance="outline" class="storage-add-form__field">
                             <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate }}</mat-label>
                             <input matInput formControlName="name" autocomplete="off" />
+                            @if (queueAddForm.get('name')?.hasError('duplicateName')) {
+                              <mat-error>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.DUPLICATE_NAME_ERROR' | translate }}</mat-error>
+                            }
                           </mat-form-field>
                           <div class="storage-add-form__actions">
                             <button mat-stroked-button type="button" (click)="showQueueAddForm.set(false)">
@@ -930,6 +948,9 @@
                           <mat-form-field appearance="outline" class="storage-add-form__field">
                             <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate }}</mat-label>
                             <input matInput formControlName="name" autocomplete="off" />
+                            @if (tableAddForm.get('name')?.hasError('duplicateName')) {
+                              <mat-error>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.DUPLICATE_NAME_ERROR' | translate }}</mat-error>
+                            }
                           </mat-form-field>
                           <div class="storage-add-form__actions">
                             <button mat-stroked-button type="button" (click)="showTableAddForm.set(false)">

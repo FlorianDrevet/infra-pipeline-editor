@@ -1,5 +1,7 @@
+using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
@@ -30,25 +32,60 @@ public class StorageAccount : AzureResource
     {
     }
 
-    public BlobContainer AddBlobContainer(string name, BlobContainerPublicAccess publicAccess)
+    /// <summary>
+    /// Adds a new blob container to this storage account.
+    /// Returns a conflict error if a container with the same name (case-insensitive) already exists.
+    /// </summary>
+    public ErrorOr<BlobContainer> AddBlobContainer(string name, BlobContainerPublicAccess publicAccess)
     {
+        if (_blobContainers.Any(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase)))
+            return Errors.StorageAccount.DuplicateBlobContainerName(name);
+
         var container = BlobContainer.Create(Id, name, publicAccess);
         _blobContainers.Add(container);
         return container;
     }
 
-    public StorageQueue AddQueue(string name)
+    /// <summary>
+    /// Adds a new queue to this storage account.
+    /// Returns a conflict error if a queue with the same name (case-insensitive) already exists.
+    /// </summary>
+    public ErrorOr<StorageQueue> AddQueue(string name)
     {
+        if (_queues.Any(q => string.Equals(q.Name, name, StringComparison.OrdinalIgnoreCase)))
+            return Errors.StorageAccount.DuplicateQueueName(name);
+
         var queue = StorageQueue.Create(Id, name);
         _queues.Add(queue);
         return queue;
     }
 
-    public StorageTable AddTable(string name)
+    /// <summary>
+    /// Adds a new table to this storage account.
+    /// Returns a conflict error if a table with the same name (case-insensitive) already exists.
+    /// </summary>
+    public ErrorOr<StorageTable> AddTable(string name)
     {
+        if (_tables.Any(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase)))
+            return Errors.StorageAccount.DuplicateTableName(name);
+
         var table = StorageTable.Create(Id, name);
         _tables.Add(table);
         return table;
+    }
+
+    /// <summary>
+    /// Updates the public access level of an existing blob container.
+    /// Returns a not-found error if no container with the given identifier exists.
+    /// </summary>
+    public ErrorOr<Updated> UpdateBlobContainerPublicAccess(BlobContainerId containerId, BlobContainerPublicAccess publicAccess)
+    {
+        var container = _blobContainers.FirstOrDefault(c => c.Id == containerId);
+        if (container is null)
+            return Errors.StorageAccount.BlobContainerNotFoundError(containerId);
+
+        container.UpdatePublicAccess(publicAccess);
+        return Result.Updated;
     }
 
     public void Update(

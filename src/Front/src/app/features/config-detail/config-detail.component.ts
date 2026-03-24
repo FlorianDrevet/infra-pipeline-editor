@@ -152,7 +152,7 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly bicepViewerFile = signal<string | null>(null);
   protected readonly bicepViewerContent = signal<string | null>(null);
   protected readonly bicepViewerLoading = signal(false);
-  protected readonly bicepExpandedFolders = signal<Set<string>>(new Set<string>(['modules']));
+  protected readonly bicepExpandedFolders = signal<Set<string>>(new Set<string>(['modules', 'parameters']));
 
   protected readonly bicepModuleEntries = computed(() => {
     const result = this.bicepResult();
@@ -446,7 +446,7 @@ export class ConfigDetailComponent implements OnInit {
   }
 
   protected async loadStorageAccountDetails(storageId: string): Promise<void> {
-    if (this.storageAccountDetails()[storageId] || this.storageDetailsLoading() === storageId) return;
+    if (this.storageDetailsLoading() === storageId) return;
     this.storageDetailsLoading.set(storageId);
     try {
       const details = await this.storageAccountService.getById(storageId);
@@ -460,9 +460,19 @@ export class ConfigDetailComponent implements OnInit {
 
   protected toggleStorageParentExpand(parentId: string): void {
     this.toggleParentExpand(parentId);
-    if (!this.storageAccountDetails()[parentId]) {
+    if (this.isParentExpanded(parentId)) {
       this.loadStorageAccountDetails(parentId);
     }
+  }
+
+  private readonly publicAccessI18nMap: Record<string, string> = {
+    None: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_NONE',
+    Blob: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_BLOB',
+    Container: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_CONTAINER',
+  };
+
+  protected publicAccessI18nKey(value: string): string {
+    return this.publicAccessI18nMap[value] ?? value;
   }
 
   protected navigateToStorageTab(storageAccountId: string, tab: 'blob_containers' | 'queues' | 'tables'): void {
@@ -474,8 +484,14 @@ export class ConfigDetailComponent implements OnInit {
   }
 
   protected openAddStorageSubResourceDialog(storageAccountId: string): void {
+    const details = this.storageAccountDetails()[storageAccountId];
     const dialogRef = this.dialog.open(AddStorageServiceDialogComponent, {
-      data: { storageAccountId } satisfies AddStorageServiceDialogData,
+      data: {
+        storageAccountId,
+        existingBlobNames: (details?.blobContainers ?? []).map(b => b.name),
+        existingQueueNames: (details?.queues ?? []).map(q => q.name),
+        existingTableNames: (details?.tables ?? []).map(t => t.name),
+      } satisfies AddStorageServiceDialogData,
       width: '520px',
       maxHeight: '85vh',
     });
@@ -495,6 +511,7 @@ export class ConfigDetailComponent implements OnInit {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         titleKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_TITLE',
+        titleParams: { type: typeLabel },
         messageKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_MESSAGE',
         messageParams: { name, type: typeLabel },
         confirmKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES',

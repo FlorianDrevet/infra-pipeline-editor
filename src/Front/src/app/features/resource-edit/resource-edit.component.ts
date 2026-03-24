@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -981,21 +981,73 @@ export class ResourceEditComponent implements OnInit {
   // ─── Storage Services ───
 
   protected blobAddForm = this.fb.group({
-    name: ['', [Validators.required, Validators.maxLength(63)]],
+    name: ['', [Validators.required, Validators.maxLength(63), this.uniqueBlobNameValidator()]],
     publicAccess: ['None'],
   });
   protected queueAddForm = this.fb.group({
-    name: ['', [Validators.required, Validators.maxLength(63)]],
+    name: ['', [Validators.required, Validators.maxLength(63), this.uniqueQueueNameValidator()]],
   });
   protected tableAddForm = this.fb.group({
-    name: ['', [Validators.required, Validators.maxLength(63)]],
+    name: ['', [Validators.required, Validators.maxLength(63), this.uniqueTableNameValidator()]],
   });
+
+  private uniqueBlobNameValidator() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const name = control.value?.trim().toLowerCase();
+      if (!name) return null;
+      const exists = this.storageBlobContainers().some(b => b.name.toLowerCase() === name);
+      return exists ? { duplicateName: true } : null;
+    };
+  }
+
+  private uniqueQueueNameValidator() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const name = control.value?.trim().toLowerCase();
+      if (!name) return null;
+      const exists = this.storageQueues().some(q => q.name.toLowerCase() === name);
+      return exists ? { duplicateName: true } : null;
+    };
+  }
+
+  private uniqueTableNameValidator() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const name = control.value?.trim().toLowerCase();
+      if (!name) return null;
+      const exists = this.storageTables().some(t => t.name.toLowerCase() === name);
+      return exists ? { duplicateName: true } : null;
+    };
+  }
 
   protected readonly publicAccessOptions = [
     { label: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_NONE', value: 'None' },
     { label: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_BLOB', value: 'Blob' },
     { label: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_CONTAINER', value: 'Container' },
   ];
+
+  private readonly publicAccessI18nMap: Record<string, string> = {
+    None: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_NONE',
+    Blob: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_BLOB',
+    Container: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_CONTAINER',
+  };
+
+  protected publicAccessI18nKey(value: string): string {
+    return this.publicAccessI18nMap[value] ?? value;
+  }
+
+  protected async updateBlobPublicAccess(blobId: string, newAccess: string): Promise<void> {
+    this.storageActionLoading.set(true);
+    this.storageActionError.set('');
+    try {
+      const updated = await this.storageAccountService.updateBlobContainerPublicAccess(
+        this.resourceId, blobId, { publicAccess: newAccess }
+      );
+      this.resource.set(updated);
+    } catch {
+      this.storageActionError.set('RESOURCE_EDIT.STORAGE_SERVICES.ACTION_ERROR');
+    } finally {
+      this.storageActionLoading.set(false);
+    }
+  }
 
   protected async addBlobContainer(): Promise<void> {
     if (this.blobAddForm.invalid || this.storageActionLoading()) return;
@@ -1056,6 +1108,7 @@ export class ResourceEditComponent implements OnInit {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         titleKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_TITLE',
+        titleParams: { type: typeLabel },
         messageKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_MESSAGE',
         messageParams: { name, type: typeLabel },
         confirmKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES',

@@ -829,12 +829,13 @@
       "TABLE_EMPTY": "Aucune table configur\u00e9e.",
       "NAME_LABEL": "Nom",
       "PUBLIC_ACCESS_LABEL": "Acc\u00e8s public",
-      "PUBLIC_ACCESS_NONE": "Aucun",
-      "PUBLIC_ACCESS_BLOB": "Blob",
-      "PUBLIC_ACCESS_CONTAINER": "Conteneur",
+      "PUBLIC_ACCESS_NONE": "Aucun acc\u00e8s public",
+      "PUBLIC_ACCESS_BLOB": "Acc\u00e8s public\u00a0: Blob",
+      "PUBLIC_ACCESS_CONTAINER": "Acc\u00e8s public\u00a0: Conteneur",
       "ADD_SUCCESS": "{{type}} \u00ab {{name}} \u00bb ajout\u00e9(e) avec succ\u00e8s.",
       "REMOVE_SUCCESS": "{{type}} supprim\u00e9(e) avec succ\u00e8s.",
-      "ACTION_ERROR": "Une erreur est survenue. Veuillez r\u00e9essayer."
+      "ACTION_ERROR": "Une erreur est survenue. Veuillez r\u00e9essayer.",
+      "DUPLICATE_NAME_ERROR": "Ce nom existe d\u00e9j\u00e0."
     }
   }
 }

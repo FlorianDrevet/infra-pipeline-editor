@@ -142,7 +142,7 @@ public sealed class GenerateBicepCommandHandler(
                 destinationPath,
                 content,
                 "text/plain");
-            parameterUris[fileName] = paramUri;
+            parameterUris[$"{ParametersDirectory}/{fileName}"] = paramUri;
         }
 
         var moduleUris = new Dictionary<string, Uri>();

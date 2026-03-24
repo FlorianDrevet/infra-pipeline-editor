@@ -49,6 +49,9 @@
           <mat-form-field appearance="outline" class="storage-dialog__field">
             <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate }}</mat-label>
             <input matInput formControlName="name" autocomplete="off" />
+            @if (form.get('name')?.hasError('duplicateName')) {
+              <mat-error>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.DUPLICATE_NAME_ERROR' | translate }}</mat-error>
+            }
           </mat-form-field>
 
           @if (selectedType() === 'BlobContainer') {

@@ -5,6 +5,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 export interface ConfirmDialogData {
   titleKey: string;
+  titleParams?: Record<string, string>;
   messageKey: string;
   messageParams?: Record<string, string>;
   confirmKey: string;

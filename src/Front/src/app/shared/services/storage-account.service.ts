@@ -8,6 +8,7 @@ import {
   AddBlobContainerRequest,
   AddQueueRequest,
   AddTableRequest,
+  UpdateBlobContainerPublicAccessRequest,
 } from '../interfaces/storage-account.interface';
 
 @Injectable({
@@ -66,6 +67,18 @@ export class StorageAccountService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/storage-accounts/${id}/blob-containers/${containerId}`
+    );
+  }
+
+  updateBlobContainerPublicAccess(
+    id: string,
+    containerId: string,
+    request: UpdateBlobContainerPublicAccessRequest
+  ): Promise<StorageAccountResponse> {
+    return this.axios.request$<StorageAccountResponse>(
+      MethodEnum.PUT,
+      `/storage-accounts/${id}/blob-containers/${containerId}`,
+      request
     );
   }
 

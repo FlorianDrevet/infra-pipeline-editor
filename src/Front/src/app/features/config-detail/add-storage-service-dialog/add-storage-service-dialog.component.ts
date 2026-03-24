@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,6 +13,9 @@ import { StorageAccountResponse } from '../../../shared/interfaces/storage-accou
 
 export interface AddStorageServiceDialogData {
   storageAccountId: string;
+  existingBlobNames: string[];
+  existingQueueNames: string[];
+  existingTableNames: string[];
 }
 
 export interface AddStorageServiceDialogResult {
@@ -66,6 +69,13 @@ export class AddStorageServiceDialogComponent {
     this.selectedType.set(type);
     this.step.set('config');
     this.form.reset({ name: '', publicAccess: 'None' });
+    this.form.get('name')!.clearValidators();
+    this.form.get('name')!.setValidators([
+      Validators.required,
+      Validators.maxLength(63),
+      this.uniqueNameValidator(type),
+    ]);
+    this.form.get('name')!.updateValueAndValidity();
     this.errorKey.set('');
   }
 
@@ -110,6 +120,21 @@ export class AddStorageServiceDialogComponent {
     } finally {
       this.isSubmitting.set(false);
     }
+  }
+
+  private uniqueNameValidator(type: StorageServiceType) {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const name = control.value?.trim().toLowerCase();
+      if (!name) return null;
+      let existingNames: string[];
+      switch (type) {
+        case 'BlobContainer': existingNames = this.data.existingBlobNames; break;
+        case 'Queue': existingNames = this.data.existingQueueNames; break;
+        case 'Table': existingNames = this.data.existingTableNames; break;
+      }
+      const exists = existingNames.some(n => n.toLowerCase() === name);
+      return exists ? { duplicateName: true } : null;
+    };
   }
 
   protected onCancel(): void {

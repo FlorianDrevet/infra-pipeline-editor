@@ -822,12 +822,13 @@
       "TABLE_EMPTY": "No tables configured.",
       "NAME_LABEL": "Name",
       "PUBLIC_ACCESS_LABEL": "Public Access",
-      "PUBLIC_ACCESS_NONE": "None",
-      "PUBLIC_ACCESS_BLOB": "Blob",
-      "PUBLIC_ACCESS_CONTAINER": "Container",
+      "PUBLIC_ACCESS_NONE": "No public access",
+      "PUBLIC_ACCESS_BLOB": "Public access: Blob",
+      "PUBLIC_ACCESS_CONTAINER": "Public access: Container",
       "ADD_SUCCESS": "{{type}} \u201c{{name}}\u201d added successfully.",
       "REMOVE_SUCCESS": "{{type}} removed successfully.",
-      "ACTION_ERROR": "An error occurred. Please try again."
+      "ACTION_ERROR": "An error occurred. Please try again.",
+      "DUPLICATE_NAME_ERROR": "This name already exists."
     }
   }
 }

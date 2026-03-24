@@ -149,15 +149,26 @@
                   <span class="bicep-tree__name">main.bicep</span>
                   <span class="bicep-tree__badge">{{ 'CONFIG_DETAIL.BICEP.ENTRY_POINT' | translate }}</span>
                 </button>
-                <!-- Parameter files -->
-                @for (param of bicepParamEntries(); track param.name) {
-                  <button class="bicep-tree__item"
-                          [class.bicep-tree__item--active]="bicepViewerFile() === param.name"
-                          (click)="openBicepFile(param.name)">
-                    <mat-icon class="bicep-tree__icon">tune</mat-icon>
-                    <span class="bicep-tree__name">{{ param.name }}</span>
-                    <span class="bicep-tree__badge bicep-tree__badge--params">{{ 'CONFIG_DETAIL.BICEP.PARAMETERS' | translate }}</span>
+                <!-- parameters/ folder -->
+                @if (bicepParamEntries().length > 0) {
+                  <button class="bicep-tree__folder" (click)="toggleBicepFolder('parameters')">
+                    <mat-icon class="bicep-tree__folder-chevron" [class.bicep-tree__folder-chevron--open]="isBicepFolderExpanded('parameters')">chevron_right</mat-icon>
+                    <mat-icon class="bicep-tree__folder-icon">{{ isBicepFolderExpanded('parameters') ? 'folder_open' : 'folder' }}</mat-icon>
+                    <span>parameters/</span>
                   </button>
+                  @if (isBicepFolderExpanded('parameters')) {
+                    <div class="bicep-tree__folder-children">
+                      @for (param of bicepParamEntries(); track param.name) {
+                        <button class="bicep-tree__item bicep-tree__item--submodule"
+                                [class.bicep-tree__item--active]="bicepViewerFile() === param.name"
+                                (click)="openBicepFile(param.name)">
+                          <mat-icon class="bicep-tree__icon">tune</mat-icon>
+                          <span class="bicep-tree__name">{{ param.name.split('/').at(-1) }}</span>
+                          <span class="bicep-tree__badge bicep-tree__badge--params">{{ 'CONFIG_DETAIL.BICEP.PARAMETERS' | translate }}</span>
+                        </button>
+                      }
+                    </div>
+                  }
                 }
                 <!-- Modules -->
                 @if (bicepModuleFolders().length > 0) {
@@ -183,7 +194,7 @@
                                         (click)="openBicepFile(file.name)">
                                   <mat-icon class="bicep-tree__icon">data_object</mat-icon>
                                   <span class="bicep-tree__name">{{ file.displayName }}</span>
-                                  <span class="bicep-tree__badge bicep-tree__badge--types">T</span>
+                                  <span class="bicep-tree__badge bicep-tree__badge--types">{{ 'CONFIG_DETAIL.BICEP.TYPES' | translate }}</span>
                                 </button>
                               } @else {
                                 <button class="bicep-tree__item bicep-tree__item--submodule"
@@ -383,7 +394,7 @@
                                               <button class="storage-sub-item" (click)="navigateToStorageTab(item.resource.id, 'blob_containers')">
                                                 <mat-icon class="storage-sub-item__icon">folder</mat-icon>
                                                 <span class="storage-sub-item__name">{{ blob.name }}</span>
-                                                <span class="storage-sub-item__badge">{{ blob.publicAccess }}</span>
+                                                <span class="storage-sub-item__badge">{{ publicAccessI18nKey(blob.publicAccess) | translate }}</span>
                                               </button>
                                             }
                                           </div>
