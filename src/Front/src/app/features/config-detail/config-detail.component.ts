@@ -364,6 +364,13 @@ export class ConfigDetailComponent implements OnInit {
           return next;
         });
       }
+      // Auto-load StorageAccount details for expanded parents
+      const storageIds = resources
+        .filter((r) => r.resourceType === 'StorageAccount')
+        .map((r) => r.id);
+      for (const id of storageIds) {
+        this.loadStorageAccountDetails(id);
+      }
     } catch {
       this.rgResources.update((prev) => ({ ...prev, [rgId]: [] }));
     } finally {
