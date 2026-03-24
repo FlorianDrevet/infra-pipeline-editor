@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
@@ -14,4 +15,8 @@ public interface IFunctionAppRepository : IRepository<FunctionApp>
     /// </summary>
     Task<List<FunctionApp>> GetByResourceGroupIdAsync(
         ResourceGroupId resourceGroupId, CancellationToken cancellationToken = default);
+
+    /// <summary>Retrieves all Function Apps linked to the specified App Service Plan.</summary>
+    Task<List<FunctionApp>> GetByAppServicePlanIdAsync(
+        AzureResourceId appServicePlanId, CancellationToken cancellationToken = default);
 }
