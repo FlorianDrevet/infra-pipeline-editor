@@ -252,6 +252,14 @@
       "NO_CHILDREN": "Aucune ressource li\u00e9e.",
       "ADD": "Ajouter une ressource",
       "ADD_CHILD": "Ajouter une ressource",
+      "STORAGE_BLOB_SECTION": "Conteneurs Blob",
+      "STORAGE_QUEUE_SECTION": "Files d\u2019attente",
+      "STORAGE_TABLE_SECTION": "Tables",
+      "ADD_STORAGE_SERVICE": "Ajouter un service de stockage",
+      "ADD_STORAGE_SERVICE_TITLE": "Ajouter un service de stockage",
+      "ADD_STORAGE_STEP_TYPE": "Choisir le type",
+      "ADD_STORAGE_STEP_CONFIG": "Configurer",
+      "STORAGE_SUB_EMPTY": "Aucun service de stockage.",
       "EDIT": "Modifier la ressource",
       "DELETE": "Supprimer la ressource",
       "DELETE_CONFIRM_TITLE": "Supprimer la ressource",
@@ -676,7 +684,8 @@
       "ENVIRONMENTS": "Environnements",
       "IDENTITY_ACCESS": "Identit\u00e9 & Acc\u00e8s",
       "APP_CONFIG": "Configuration App",
-      "COMING_SOON": "Bient\u00f4t"
+      "COMING_SOON": "Bient\u00f4t",
+      "STORAGE_SERVICES": "Services de stockage"
     },
     "GENERAL": {
       "IDENTITY": "Identit\u00e9",
@@ -803,6 +812,28 @@
       "CREATING_IDENTITY": "Cr\u00e9ation en cours...",
       "CREATE_IDENTITY_ERROR": "Impossible de cr\u00e9er l\u2019identit\u00e9. Veuillez r\u00e9essayer.",
       "CREATE_IDENTITY_SUBMIT": "Cr\u00e9er"
+    },
+    "STORAGE_SERVICES": {
+      "BLOB_CONTAINERS": "Conteneurs Blob",
+      "QUEUES": "Files d\u2019attente",
+      "TABLES": "Tables",
+      "ADD_BLOB": "Ajouter un conteneur Blob",
+      "ADD_QUEUE": "Ajouter une file d\u2019attente",
+      "ADD_TABLE": "Ajouter une table",
+      "REMOVE_CONFIRM_TITLE": "Supprimer {{type}}",
+      "REMOVE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer \u00ab {{name}} \u00bb ?",
+      "REMOVE_CONFIRM_YES": "Supprimer",
+      "REMOVE_CONFIRM_CANCEL": "Annuler",
+      "BLOB_EMPTY": "Aucun conteneur Blob configur\u00e9.",
+      "QUEUE_EMPTY": "Aucune file d\u2019attente configur\u00e9e.",
+      "TABLE_EMPTY": "Aucune table configur\u00e9e.",
+      "NAME_LABEL": "Nom",
+      "PUBLIC_ACCESS_LABEL": "Acc\u00e8s public",
+      "PUBLIC_ACCESS_NONE": "Aucun",
+      "PUBLIC_ACCESS_BLOB": "Blob",
+      "PUBLIC_ACCESS_CONTAINER": "Conteneur",
+      "ADD_SUCCESS": "{{type}} \u00ab {{name}} \u00bb ajout\u00e9(e) avec succ\u00e8s.",
+      "REMOVE_SUCCESS": "{{type}} supprim\u00e9(e) avec succ\u00e8s.",
+      "ACTION_ERROR": "Une erreur est survenue. Veuillez r\u00e9essayer."
     }
   }
-}

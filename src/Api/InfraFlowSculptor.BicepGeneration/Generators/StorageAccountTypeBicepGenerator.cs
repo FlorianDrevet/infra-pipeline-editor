@@ -17,7 +17,9 @@ public sealed class StorageAccountTypeBicepGenerator
         {
             ModuleName = "storageAccount",
             ModuleFileName = "storageAccount.bicep",
+            ModuleFolderName = "StorageAccount",
             ModuleBicepContent = StorageAccountModuleTemplate,
+            ModuleTypesBicepContent = StorageAccountTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
@@ -31,15 +33,50 @@ public sealed class StorageAccountTypeBicepGenerator
         };
     }
 
+    private const string StorageAccountTypesTemplate = """
+        @export()
+        @description('SKU name for the Storage Account')
+        type SkuName = 'Standard_LRS' | 'Standard_GRS' | 'Standard_RAGRS' | 'Standard_ZRS' | 'Premium_LRS' | 'Premium_ZRS'
+
+        @export()
+        @description('Kind of Storage Account')
+        type StorageKind = 'StorageV2' | 'BlobStorage' | 'BlockBlobStorage' | 'FileStorage' | 'Storage'
+
+        @export()
+        @description('Access tier for the Storage Account')
+        type AccessTier = 'Hot' | 'Cool' | 'Premium'
+
+        @export()
+        @description('Minimum TLS version for Storage Account connections')
+        type TlsVersion = 'TLS1_0' | 'TLS1_1' | 'TLS1_2'
+        """;
+
     private const string StorageAccountModuleTemplate = """
+        import { SkuName, StorageKind, AccessTier, TlsVersion } from './types.bicep'
+
+        @description('Azure region for the Storage Account')
         param location string
+
+        @description('Name of the Storage Account')
         param name string
-        param sku string
-        param kind string
-        param accessTier string
+
+        @description('SKU of the Storage Account')
+        param sku SkuName = 'Standard_LRS'
+
+        @description('Kind of Storage Account')
+        param kind StorageKind = 'StorageV2'
+
+        @description('Access tier for blob storage')
+        param accessTier AccessTier = 'Hot'
+
+        @description('Whether public access to blobs is allowed')
         param allowBlobPublicAccess bool
+
+        @description('Whether HTTPS traffic only is enforced')
         param supportsHttpsTrafficOnly bool
-        param minimumTlsVersion string
+
+        @description('Minimum TLS version for client connections')
+        param minimumTlsVersion TlsVersion = 'TLS1_2'
 
         var storagePropertiesBase = {
           allowBlobPublicAccess: allowBlobPublicAccess

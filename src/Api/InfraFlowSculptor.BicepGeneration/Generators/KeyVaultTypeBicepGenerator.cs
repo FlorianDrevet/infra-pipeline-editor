@@ -17,7 +17,9 @@ public sealed class KeyVaultTypeBicepGenerator
         {
             ModuleName = "keyVault",
             ModuleFileName = "keyVault.bicep",
+            ModuleFolderName = "KeyVault",
             ModuleBicepContent = KeyVaultModuleTemplate,
+            ModuleTypesBicepContent = KeyVaultTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
@@ -26,10 +28,23 @@ public sealed class KeyVaultTypeBicepGenerator
         };
     }
 
+    private const string KeyVaultTypesTemplate = """
+        @export()
+        @description('SKU name for the Key Vault')
+        type SkuName = 'premium' | 'standard'
+        """;
+
     private const string KeyVaultModuleTemplate = """
+        import { SkuName } from './types.bicep'
+
+        @description('Azure region for the Key Vault')
         param location string
+
+        @description('Name of the Key Vault')
         param name string
-        param sku string
+
+        @description('SKU of the Key Vault')
+        param sku SkuName = 'standard'
 
         resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
           name: name

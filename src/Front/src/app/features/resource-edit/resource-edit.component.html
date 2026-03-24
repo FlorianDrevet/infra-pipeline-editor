@@ -68,7 +68,7 @@
     }
 
     <!-- ─── Main Content Tabs ─── -->
-    <mat-tab-group class="resource-tabs" animationDuration="200ms">
+    <mat-tab-group class="resource-tabs" animationDuration="200ms" [selectedIndex]="mainTabIndex()" (selectedIndexChange)="mainTabIndex.set($event)">
       <!-- General Tab -->
       <mat-tab>
         <ng-template mat-tab-label>
@@ -743,26 +743,240 @@
         </div>
       </mat-tab>
 
-      <!-- App Configuration Tab (placeholder for future) -->
-      <mat-tab [disabled]="true">
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">tune</mat-icon>
-          <span>{{ 'RESOURCE_EDIT.TABS.APP_CONFIG' | translate }}</span>
-          <span class="tab-badge tab-badge--soon">{{ 'RESOURCE_EDIT.TABS.COMING_SOON' | translate }}</span>
-        </ng-template>
-        <div class="tab-content">
-          <div class="coming-soon-panel">
-            <mat-icon class="coming-soon-panel__icon">settings_applications</mat-icon>
-            <h3>{{ 'RESOURCE_EDIT.COMING_SOON.CONFIG_TITLE' | translate }}</h3>
-            <p>{{ 'RESOURCE_EDIT.COMING_SOON.CONFIG_DESC' | translate }}</p>
-            <div class="coming-soon-panel__features">
-              <span class="feature-chip"><mat-icon>data_object</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.ENV_VARS' | translate }}</span>
-              <span class="feature-chip"><mat-icon>vpn_key</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.SECRETS' | translate }}</span>
-              <span class="feature-chip"><mat-icon>swap_horiz</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.PER_ENV_OVERRIDE' | translate }}</span>
+      <!-- Storage Services Tab (StorageAccount only) / App Configuration Tab (others) -->
+      @if (isStorageAccount()) {
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">storage</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.STORAGE_SERVICES' | translate }}</span>
+            <span class="tab-count">{{ storageBlobContainers().length + storageQueues().length + storageTables().length }}</span>
+          </ng-template>
+          <div class="tab-content">
+            @if (storageActionError()) {
+              <div class="feedback-banner feedback-banner--error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                {{ storageActionError() | translate }}
+              </div>
+            }
+            <mat-tab-group class="storage-sub-tabs" animationDuration="150ms"
+              [selectedIndex]="storageSubTabIndex()"
+              (selectedIndexChange)="storageSubTabIndex.set($event)">
+              <!-- Blob Containers sub-tab -->
+              <mat-tab>
+                <ng-template mat-tab-label>
+                  <mat-icon class="tab-icon">folder</mat-icon>
+                  <span>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CONTAINERS' | translate }}</span>
+                  <span class="tab-count">{{ storageBlobContainers().length }}</span>
+                </ng-template>
+                <div class="storage-services-panel">
+                  @if (storageBlobContainers().length === 0 && !showBlobAddForm()) {
+                    <div class="storage-empty">
+                      <mat-icon class="storage-empty__icon">folder_off</mat-icon>
+                      <p>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_EMPTY' | translate }}</p>
+                    </div>
+                  } @else {
+                    <div class="storage-items">
+                      @for (blob of storageBlobContainers(); track blob.id) {
+                        <div class="storage-item">
+                          <mat-icon class="storage-item__icon">folder</mat-icon>
+                          <span class="storage-item__name">{{ blob.name }}</span>
+                          <span class="storage-item__badge">{{ blob.publicAccess }}</span>
+                          @if (canWrite()) {
+                            <button class="storage-item__remove"
+                              (click)="openRemoveStorageItemDialog('BlobContainer', blob.id, blob.name)"
+                              [disabled]="storageActionLoading()"
+                              [matTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                  @if (canWrite()) {
+                    @if (showBlobAddForm()) {
+                      <div class="storage-add-form">
+                        <form [formGroup]="blobAddForm" (ngSubmit)="addBlobContainer()" class="storage-add-form__inner">
+                          <mat-form-field appearance="outline" class="storage-add-form__field">
+                            <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate }}</mat-label>
+                            <input matInput formControlName="name" autocomplete="off" />
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="storage-add-form__field">
+                            <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_LABEL' | translate }}</mat-label>
+                            <mat-select formControlName="publicAccess">
+                              @for (opt of publicAccessOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label | translate }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <div class="storage-add-form__actions">
+                            <button mat-stroked-button type="button" (click)="showBlobAddForm.set(false)">
+                              {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
+                            </button>
+                            <button mat-raised-button color="primary" type="submit"
+                              [disabled]="blobAddForm.invalid || storageActionLoading()">
+                              @if (storageActionLoading()) { <mat-spinner diameter="16"></mat-spinner> }
+                              {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_BLOB' | translate }}
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    } @else {
+                      <button class="ra-add-btn" (click)="showBlobAddForm.set(true)">
+                        <mat-icon>add</mat-icon>
+                        {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_BLOB' | translate }}
+                      </button>
+                    }
+                  }
+                </div>
+              </mat-tab>
+
+              <!-- Queues sub-tab -->
+              <mat-tab>
+                <ng-template mat-tab-label>
+                  <mat-icon class="tab-icon">queue</mat-icon>
+                  <span>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.QUEUES' | translate }}</span>
+                  <span class="tab-count">{{ storageQueues().length }}</span>
+                </ng-template>
+                <div class="storage-services-panel">
+                  @if (storageQueues().length === 0 && !showQueueAddForm()) {
+                    <div class="storage-empty">
+                      <mat-icon class="storage-empty__icon">queue</mat-icon>
+                      <p>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.QUEUE_EMPTY' | translate }}</p>
+                    </div>
+                  } @else {
+                    <div class="storage-items">
+                      @for (q of storageQueues(); track q.id) {
+                        <div class="storage-item">
+                          <mat-icon class="storage-item__icon">queue</mat-icon>
+                          <span class="storage-item__name">{{ q.name }}</span>
+                          @if (canWrite()) {
+                            <button class="storage-item__remove"
+                              (click)="openRemoveStorageItemDialog('Queue', q.id, q.name)"
+                              [disabled]="storageActionLoading()"
+                              [matTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                  @if (canWrite()) {
+                    @if (showQueueAddForm()) {
+                      <div class="storage-add-form">
+                        <form [formGroup]="queueAddForm" (ngSubmit)="addQueue()" class="storage-add-form__inner">
+                          <mat-form-field appearance="outline" class="storage-add-form__field">
+                            <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate }}</mat-label>
+                            <input matInput formControlName="name" autocomplete="off" />
+                          </mat-form-field>
+                          <div class="storage-add-form__actions">
+                            <button mat-stroked-button type="button" (click)="showQueueAddForm.set(false)">
+                              {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
+                            </button>
+                            <button mat-raised-button color="primary" type="submit"
+                              [disabled]="queueAddForm.invalid || storageActionLoading()">
+                              @if (storageActionLoading()) { <mat-spinner diameter="16"></mat-spinner> }
+                              {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_QUEUE' | translate }}
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    } @else {
+                      <button class="ra-add-btn" (click)="showQueueAddForm.set(true)">
+                        <mat-icon>add</mat-icon>
+                        {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_QUEUE' | translate }}
+                      </button>
+                    }
+                  }
+                </div>
+              </mat-tab>
+
+              <!-- Tables sub-tab -->
+              <mat-tab>
+                <ng-template mat-tab-label>
+                  <mat-icon class="tab-icon">table_chart</mat-icon>
+                  <span>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLES' | translate }}</span>
+                  <span class="tab-count">{{ storageTables().length }}</span>
+                </ng-template>
+                <div class="storage-services-panel">
+                  @if (storageTables().length === 0 && !showTableAddForm()) {
+                    <div class="storage-empty">
+                      <mat-icon class="storage-empty__icon">table_chart</mat-icon>
+                      <p>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_EMPTY' | translate }}</p>
+                    </div>
+                  } @else {
+                    <div class="storage-items">
+                      @for (t of storageTables(); track t.id) {
+                        <div class="storage-item">
+                          <mat-icon class="storage-item__icon">table_chart</mat-icon>
+                          <span class="storage-item__name">{{ t.name }}</span>
+                          @if (canWrite()) {
+                            <button class="storage-item__remove"
+                              (click)="openRemoveStorageItemDialog('Table', t.id, t.name)"
+                              [disabled]="storageActionLoading()"
+                              [matTooltip]="'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES' | translate">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                  @if (canWrite()) {
+                    @if (showTableAddForm()) {
+                      <div class="storage-add-form">
+                        <form [formGroup]="tableAddForm" (ngSubmit)="addTable()" class="storage-add-form__inner">
+                          <mat-form-field appearance="outline" class="storage-add-form__field">
+                            <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate }}</mat-label>
+                            <input matInput formControlName="name" autocomplete="off" />
+                          </mat-form-field>
+                          <div class="storage-add-form__actions">
+                            <button mat-stroked-button type="button" (click)="showTableAddForm.set(false)">
+                              {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
+                            </button>
+                            <button mat-raised-button color="primary" type="submit"
+                              [disabled]="tableAddForm.invalid || storageActionLoading()">
+                              @if (storageActionLoading()) { <mat-spinner diameter="16"></mat-spinner> }
+                              {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_TABLE' | translate }}
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    } @else {
+                      <button class="ra-add-btn" (click)="showTableAddForm.set(true)">
+                        <mat-icon>add</mat-icon>
+                        {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_TABLE' | translate }}
+                      </button>
+                    }
+                  }
+                </div>
+              </mat-tab>
+            </mat-tab-group>
+          </div>
+        </mat-tab>
+      } @else {
+        <!-- App Configuration Tab (placeholder for non-StorageAccount) -->
+        <mat-tab [disabled]="true">
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">tune</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.APP_CONFIG' | translate }}</span>
+            <span class="tab-badge tab-badge--soon">{{ 'RESOURCE_EDIT.TABS.COMING_SOON' | translate }}</span>
+          </ng-template>
+          <div class="tab-content">
+            <div class="coming-soon-panel">
+              <mat-icon class="coming-soon-panel__icon">settings_applications</mat-icon>
+              <h3>{{ 'RESOURCE_EDIT.COMING_SOON.CONFIG_TITLE' | translate }}</h3>
+              <p>{{ 'RESOURCE_EDIT.COMING_SOON.CONFIG_DESC' | translate }}</p>
+              <div class="coming-soon-panel__features">
+                <span class="feature-chip"><mat-icon>data_object</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.ENV_VARS' | translate }}</span>
+                <span class="feature-chip"><mat-icon>vpn_key</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.SECRETS' | translate }}</span>
+                <span class="feature-chip"><mat-icon>swap_horiz</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.PER_ENV_OVERRIDE' | translate }}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </mat-tab>
+        </mat-tab>
+      }
     </mat-tab-group>
   }
 </div>

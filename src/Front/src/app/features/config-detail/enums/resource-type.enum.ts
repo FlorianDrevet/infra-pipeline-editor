@@ -130,6 +130,7 @@ export const PARENT_CHILD_RESOURCE_TYPES: Record<string, string[]> = {
   [ResourceTypeEnum.ContainerAppEnvironment]: [ResourceTypeEnum.ContainerApp],
   [ResourceTypeEnum.LogAnalyticsWorkspace]: [ResourceTypeEnum.ApplicationInsights],
   [ResourceTypeEnum.SqlServer]: [ResourceTypeEnum.SqlDatabase],
+  [ResourceTypeEnum.StorageAccount]: [],
 };
 
 /**

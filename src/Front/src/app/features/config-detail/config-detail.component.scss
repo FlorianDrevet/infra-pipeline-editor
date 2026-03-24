@@ -1095,6 +1095,101 @@
 
 // ─── Responsive ────
 
+// ─── Storage Account Sub-resources ────
+
+.storage-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.5rem;
+  }
+
+  &__icon {
+    font-size: 0.95rem;
+    width: 0.95rem;
+    height: 0.95rem;
+    color: #1565c0;
+  }
+
+  &__title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #617892;
+  }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: rgba(21, 101, 192, 0.08);
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #1565c0;
+  }
+}
+
+.storage-sub-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.75rem 0.45rem 1.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 0.65rem;
+  width: 100%;
+  text-align: left;
+  transition: background 0.12s;
+
+  &:hover {
+    background: rgba(21, 101, 192, 0.05);
+  }
+
+  &__icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+    color: #617892;
+    flex-shrink: 0;
+  }
+
+  &__name {
+    flex: 1;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #103454;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: rgba(0, 188, 212, 0.08);
+    border: 1px solid rgba(0, 188, 212, 0.18);
+    color: #00838f;
+  }
+}
+
 // ─── Bicep Generation ────
 
 .detail-header__actions {

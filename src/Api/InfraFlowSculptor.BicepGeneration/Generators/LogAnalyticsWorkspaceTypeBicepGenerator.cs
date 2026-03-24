@@ -22,17 +22,36 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
         {
             ModuleName = "logAnalyticsWorkspace",
             ModuleFileName = "logAnalyticsWorkspace.bicep",
+            ModuleFolderName = "LogAnalyticsWorkspace",
             ModuleBicepContent = LogAnalyticsWorkspaceModuleTemplate,
+            ModuleTypesBicepContent = LogAnalyticsWorkspaceTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>()
         };
     }
 
+    private const string LogAnalyticsWorkspaceTypesTemplate = """
+        @export()
+        @description('SKU name for the Log Analytics workspace')
+        type SkuName = 'Free' | 'Standalone' | 'PerNode' | 'PerGB2018' | 'Premium' | 'Standard' | 'CapacityReservation' | 'LACluster'
+        """;
+
     private const string LogAnalyticsWorkspaceModuleTemplate = """
+        import { SkuName } from './types.bicep'
+
+        @description('Azure region for the Log Analytics workspace')
         param location string
+
+        @description('Name of the Log Analytics workspace')
         param name string
-        param sku string = 'PerGB2018'
+
+        @description('SKU of the Log Analytics workspace')
+        param sku SkuName = 'PerGB2018'
+
+        @description('Number of days to retain data')
         param retentionInDays int = 30
+
+        @description('Daily ingestion quota in GB (-1 for unlimited)')
         param dailyQuotaGb int = -1
 
         resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {

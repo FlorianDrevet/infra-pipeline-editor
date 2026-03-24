@@ -54,6 +54,8 @@ import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS
 import { FormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { BicepHighlightPipe } from './pipes/bicep-highlight.pipe';
+import { StorageAccountResponse } from '../../shared/interfaces/storage-account.interface';
+import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 
 interface ResourceDisplayItem {
   resource: AzureResourceResponse;
@@ -127,6 +129,10 @@ export class ConfigDetailComponent implements OnInit {
 
   // ─── Parent-child resource grouping ───
   protected readonly expandedParentResources = signal<Set<string>>(new Set<string>());
+
+  // ─── Storage Account sub-resources ───
+  protected readonly storageAccountDetails = signal<Record<string, StorageAccountResponse | undefined>>({});
+  protected readonly storageDetailsLoading = signal<string | null>(null);
 
   // ─── Bicep Generation ───
   protected readonly bicepLoading = signal(false);
@@ -405,6 +411,94 @@ export class ConfigDetailComponent implements OnInit {
 
   protected isParentExpanded(parentId: string): boolean {
     return this.expandedParentResources().has(parentId);
+  }
+
+  // ─── Storage Account sub-resource methods ───
+
+  protected getStorageSubResourceCount(storageId: string): number {
+    const details = this.storageAccountDetails()[storageId];
+    if (!details) return 0;
+    return (details.blobContainers?.length ?? 0) + (details.queues?.length ?? 0) + (details.tables?.length ?? 0);
+  }
+
+  protected async loadStorageAccountDetails(storageId: string): Promise<void> {
+    if (this.storageAccountDetails()[storageId] || this.storageDetailsLoading() === storageId) return;
+    this.storageDetailsLoading.set(storageId);
+    try {
+      const details = await this.storageAccountService.getById(storageId);
+      this.storageAccountDetails.update(prev => ({ ...prev, [storageId]: details }));
+    } catch {
+      // Non-blocking
+    } finally {
+      this.storageDetailsLoading.set(null);
+    }
+  }
+
+  protected toggleStorageParentExpand(parentId: string): void {
+    this.toggleParentExpand(parentId);
+    if (!this.storageAccountDetails()[parentId]) {
+      this.loadStorageAccountDetails(parentId);
+    }
+  }
+
+  protected navigateToStorageTab(storageAccountId: string, tab: 'blob_containers' | 'queues' | 'tables'): void {
+    const cfg = this.config();
+    if (!cfg) return;
+    this.router.navigate(['/config', cfg.id, 'resource', 'StorageAccount', storageAccountId], {
+      queryParams: { tab },
+    });
+  }
+
+  protected openAddStorageSubResourceDialog(storageAccountId: string): void {
+    const dialogRef = this.dialog.open(AddStorageServiceDialogComponent, {
+      data: { storageAccountId } satisfies AddStorageServiceDialogData,
+      width: '520px',
+      maxHeight: '85vh',
+    });
+
+    dialogRef.afterClosed().subscribe((result?: AddStorageServiceDialogResult) => {
+      if (result) {
+        this.storageAccountDetails.update(prev => ({
+          ...prev,
+          [storageAccountId]: result.storageAccountResponse,
+        }));
+      }
+    });
+  }
+
+  protected removeStorageSubResource(storageAccountId: string, type: 'BlobContainer' | 'Queue' | 'Table', subResourceId: string, name: string): void {
+    const typeLabel = type === 'BlobContainer' ? 'Blob Container' : type;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_TITLE',
+        messageKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_MESSAGE',
+        messageParams: { name, type: typeLabel },
+        confirmKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES',
+        cancelKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      try {
+        switch (type) {
+          case 'BlobContainer':
+            await this.storageAccountService.removeBlobContainer(storageAccountId, subResourceId);
+            break;
+          case 'Queue':
+            await this.storageAccountService.removeQueue(storageAccountId, subResourceId);
+            break;
+          case 'Table':
+            await this.storageAccountService.removeTable(storageAccountId, subResourceId);
+            break;
+        }
+        const updated = await this.storageAccountService.getById(storageAccountId);
+        this.storageAccountDetails.update(prev => ({ ...prev, [storageAccountId]: updated }));
+      } catch {
+        // Error handling already in snackbar
+      }
+    });
   }
 
   protected openAddResourceDialog(rgId: string): void {

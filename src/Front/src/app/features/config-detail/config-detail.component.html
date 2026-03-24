@@ -299,7 +299,128 @@
                         @if ((rgResources()[rg.id] || []).length > 0) {
                           <div class="resource-list">
                             @for (item of groupResourcesForRg(rg.id); track item.resource.id) {
-                              @if (item.isParent) {
+                              @if (item.isParent && item.resource.resourceType === 'StorageAccount') {
+                                <!-- StorageAccount parent with storage sub-resources -->
+                                <div class="resource-parent-group" [class.resource-parent-group--expanded]="isParentExpanded(item.resource.id)">
+                                  <button class="resource-parent-header" (click)="toggleStorageParentExpand(item.resource.id)">
+                                    <mat-icon class="resource-parent-header__chevron">expand_more</mat-icon>
+                                    <mat-icon class="resource-item__icon">{{ resourceTypeIcons[item.resource.resourceType] || 'widgets' }}</mat-icon>
+                                    <div class="resource-item__info">
+                                      <div class="resource-name-row">
+                                        <strong>{{ item.resource.name }}</strong>
+                                        @if (resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
+                                          <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                            <mat-icon class="naming-preview__icon">label</mat-icon>
+                                            {{ preview }}
+                                          </span>
+                                        }
+                                      </div>
+                                      <span class="resource-item__type">{{ item.resource.resourceType }}</span>
+                                    </div>
+                                    <span class="resource-parent-header__count">
+                                      @if (storageDetailsLoading() === item.resource.id) {
+                                        …
+                                      } @else {
+                                        {{ getStorageSubResourceCount(item.resource.id) }}
+                                      }
+                                    </span>
+                                    <span class="resource-item__location">{{ item.resource.location }}</span>
+                                    <div class="resource-item__actions" (click)="$event.stopPropagation()">
+                                      <a
+                                        class="resource-action-btn resource-action-btn--edit"
+                                        [routerLink]="['/config', config()!.id, 'resource', item.resource.resourceType, item.resource.id]"
+                                        [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                        <mat-icon>edit</mat-icon>
+                                      </a>
+                                      @if (canWrite()) {
+                                        <button
+                                          class="resource-action-btn resource-action-btn--delete"
+                                          [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                          (click)="openDeleteResourceDialog(item.resource, rg.id)">
+                                          <mat-icon>delete_outline</mat-icon>
+                                        </button>
+                                      }
+                                    </div>
+                                  </button>
+                                  @if (isParentExpanded(item.resource.id)) {
+                                    <div class="resource-children">
+                                      @if (storageDetailsLoading() === item.resource.id) {
+                                        <div class="rg-resources-loading">
+                                          <mat-spinner diameter="18"></mat-spinner>
+                                          <span>{{ 'CONFIG_DETAIL.RESOURCES.LOADING' | translate }}</span>
+                                        </div>
+                                      } @else if (storageAccountDetails()[item.resource.id]) {
+                                        <!-- Blob Containers section -->
+                                        @if (storageAccountDetails()[item.resource.id]!.blobContainers.length > 0) {
+                                          <div class="storage-section">
+                                            <div class="storage-section__header">
+                                              <mat-icon class="storage-section__icon">folder</mat-icon>
+                                              <span class="storage-section__title">{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_BLOB_SECTION' | translate }}</span>
+                                              <span class="storage-section__count">{{ storageAccountDetails()[item.resource.id]!.blobContainers.length }}</span>
+                                            </div>
+                                            @for (blob of storageAccountDetails()[item.resource.id]!.blobContainers; track blob.id) {
+                                              <button class="storage-sub-item" (click)="navigateToStorageTab(item.resource.id, 'blob_containers')">
+                                                <mat-icon class="storage-sub-item__icon">folder</mat-icon>
+                                                <span class="storage-sub-item__name">{{ blob.name }}</span>
+                                                <span class="storage-sub-item__badge">{{ blob.publicAccess }}</span>
+                                              </button>
+                                            }
+                                          </div>
+                                        }
+                                        <!-- Queues section -->
+                                        @if (storageAccountDetails()[item.resource.id]!.queues.length > 0) {
+                                          <div class="storage-section">
+                                            <div class="storage-section__header">
+                                              <mat-icon class="storage-section__icon">queue</mat-icon>
+                                              <span class="storage-section__title">{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_QUEUE_SECTION' | translate }}</span>
+                                              <span class="storage-section__count">{{ storageAccountDetails()[item.resource.id]!.queues.length }}</span>
+                                            </div>
+                                            @for (q of storageAccountDetails()[item.resource.id]!.queues; track q.id) {
+                                              <button class="storage-sub-item" (click)="navigateToStorageTab(item.resource.id, 'queues')">
+                                                <mat-icon class="storage-sub-item__icon">queue</mat-icon>
+                                                <span class="storage-sub-item__name">{{ q.name }}</span>
+                                              </button>
+                                            }
+                                          </div>
+                                        }
+                                        <!-- Tables section -->
+                                        @if (storageAccountDetails()[item.resource.id]!.tables.length > 0) {
+                                          <div class="storage-section">
+                                            <div class="storage-section__header">
+                                              <mat-icon class="storage-section__icon">table_chart</mat-icon>
+                                              <span class="storage-section__title">{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_TABLE_SECTION' | translate }}</span>
+                                              <span class="storage-section__count">{{ storageAccountDetails()[item.resource.id]!.tables.length }}</span>
+                                            </div>
+                                            @for (t of storageAccountDetails()[item.resource.id]!.tables; track t.id) {
+                                              <button class="storage-sub-item" (click)="navigateToStorageTab(item.resource.id, 'tables')">
+                                                <mat-icon class="storage-sub-item__icon">table_chart</mat-icon>
+                                                <span class="storage-sub-item__name">{{ t.name }}</span>
+                                              </button>
+                                            }
+                                          </div>
+                                        }
+                                        @if (storageAccountDetails()[item.resource.id]!.blobContainers.length === 0 && storageAccountDetails()[item.resource.id]!.queues.length === 0 && storageAccountDetails()[item.resource.id]!.tables.length === 0) {
+                                          <div class="resource-children-empty">
+                                            <mat-icon>storage</mat-icon>
+                                            <span>{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_SUB_EMPTY' | translate }}</span>
+                                          </div>
+                                        }
+                                      } @else {
+                                        <div class="resource-children-empty">
+                                          <mat-icon>storage</mat-icon>
+                                          <span>{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_SUB_EMPTY' | translate }}</span>
+                                        </div>
+                                      }
+                                      @if (canWrite()) {
+                                        <button class="add-child-resource-btn" (click)="openAddStorageSubResourceDialog(item.resource.id)">
+                                          <mat-icon class="add-child-resource-btn__icon">add_circle_outline</mat-icon>
+                                          {{ 'CONFIG_DETAIL.RESOURCES.ADD_STORAGE_SERVICE' | translate }}
+                                        </button>
+                                      }
+                                    </div>
+                                  }
+                                </div>
+                              } @else if (item.isParent) {
                                 <!-- Parent resource with collapsible children -->
                                 <div class="resource-parent-group" [class.resource-parent-group--expanded]="isParentExpanded(item.resource.id)">
                                   <button class="resource-parent-header" (click)="toggleParentExpand(item.resource.id)">

@@ -63,7 +63,7 @@ src/
 | `ResourceGroup` | `ResourceGroup` | `AzureResource` (base), `InputOutputLink`, `ResourceEnvironmentConfig` | Hosts Azure resources |
 | `KeyVault` | `KeyVault` extends `AzureResource` | `KeyVaultEnvironmentSettings` | TPT in EF Core; typed per-env settings |
 | `RedisCache` | `RedisCache` extends `AzureResource` | `RedisCacheEnvironmentSettings` | TPT in EF Core; typed per-env settings |
-| `StorageAccount` | `StorageAccount` extends `AzureResource` | `StorageAccountEnvironmentSettings` | TPT in EF Core; typed per-env settings |
+| `StorageAccount` | `StorageAccount` extends `AzureResource` | `StorageAccountEnvironmentSettings`, `BlobContainer`, `StorageQueue`, `StorageTable` | TPT in EF Core; typed per-env settings. Sub-resources: BlobContainer (Name, PublicAccess), StorageQueue (Name), StorageTable (Name) — managed via dedicated CQRS commands. Frontend: Storage Services tab with 3 sub-tabs in resource-edit, parent-style grouping in config-detail. |
 | `AppServicePlan` | `AppServicePlan` extends `AzureResource` | `AppServicePlanEnvironmentSettings` | TPT in EF Core; typed per-env settings (Sku, Capacity). OsType at resource level. |
 | `WebApp` | `WebApp` extends `AzureResource` | `WebAppEnvironmentSettings` | TPT in EF Core; typed per-env settings (AlwaysOn, HttpsOnly, RuntimeStack, RuntimeVersion). FK to AppServicePlan via `AppServicePlanId`. |
 | `FunctionApp` | `FunctionApp` extends `AzureResource` | `FunctionAppEnvironmentSettings` | TPT in EF Core; typed per-env settings (HttpsOnly, RuntimeStack, RuntimeVersion, MaxInstanceCount, FunctionsWorkerRuntime). FK to AppServicePlan via `AppServicePlanId`. |
@@ -553,7 +553,66 @@ Ajouter dans `angular.json` → `build.options` :
 - Registered in `InfraFlowSculptor.Application/DependencyInjection.cs` as singletons
 - CQRS handlers in `InfraFlowSculptor.Application/InfrastructureConfig/Commands/GenerateBicep/`
 - New resource types require: a new `IResourceTypeBicepGenerator` implementation + registration in `Application/DependencyInjection.cs`
-- Output files: `types.bicep`, `functions.bicep`, `main.bicep`, `main.{env}.bicepparam` (per environment), `modules/*.bicep` (per resource type)
+- Output files: `types.bicep`, `functions.bicep`, `main.bicep`, `main.{env}.bicepparam` (per environment), `modules/{FolderName}/*.bicep` (per resource type)
+
+### 14.0.1 Module folder structure ([2026-03-24])
+
+Each module is organized in its own folder under `modules/`:
+```
+modules/
+├── KeyVault/
+│   ├── keyVault.bicep       # Module template
+│   └── types.bicep           # Exported parameter types
+├── RedisCache/
+│   ├── redisCache.bicep
+│   └── types.bicep
+├── StorageAccount/
+│   ├── storageAccount.bicep
+│   └── types.bicep
+└── ...
+```
+
+- `GeneratedTypeModule.ModuleFolderName` holds the folder name (e.g. "KeyVault")
+- `GeneratedTypeModule.ModuleTypesBicepContent` holds the `types.bicep` content (empty for resources with no constrained params, like UserAssignedIdentity)
+- `BicepAssembler` outputs both the module `.bicep` and its `types.bicep` into `modules/{FolderName}/`
+- `main.bicep` references modules as `./modules/{FolderName}/{moduleFile}`
+
+### 14.0.2 Per-module types.bicep pattern ([2026-03-24])
+
+Each `types.bicep` uses `@export()` + `@description()` and defines **union types** to constrain parameter values:
+```bicep
+@export()
+@description('SKU name for the Key Vault')
+type SkuName = 'premium' | 'standard'
+```
+
+The module imports and uses these types:
+```bicep
+import { SkuName } from './types.bicep'
+
+@description('SKU of the Key Vault')
+param sku SkuName = 'standard'
+```
+
+All module params now have `@description()` decorators. Types are defined only where parameter values can be meaningfully constrained (string enums). Resources like UserAssignedIdentity have no types.bicep (only `location`/`name` params).
+
+| Module folder | Exported types |
+|---------------|---------------|
+| KeyVault | `SkuName` |
+| RedisCache | `SkuName`, `SkuFamily`, `TlsVersion` |
+| StorageAccount | `SkuName`, `StorageKind`, `AccessTier`, `TlsVersion` |
+| AppServicePlan | `SkuName`, `OsType` |
+| WebApp | `RuntimeStack` |
+| FunctionApp | `RuntimeStack`, `WorkerRuntime` |
+| UserAssignedIdentity | _(none)_ |
+| AppConfiguration | `SkuName`, `PublicNetworkAccess` |
+| ContainerAppEnvironment | `SkuName`, `WorkloadProfileType` |
+| ContainerApp | `TransportMethod` |
+| LogAnalyticsWorkspace | `SkuName` |
+| ApplicationInsights | `IngestionMode` |
+| CosmosDb | `DatabaseKind`, `ConsistencyLevel`, `BackupPolicyType` |
+| SqlServer | `SqlServerVersion`, `TlsVersion` |
+| SqlDatabase | `SkuName` |
 
 ---
 
@@ -1174,3 +1233,4 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 | 2026-03-25 | copilot | Fixed **ApplicationInsights not nesting under LogAnalyticsWorkspace** in resource group resource list. Root cause: `ListResourceGroupResourcesQueryHandler.ResolveParentResourceId()` relied on EF Core TPT polymorphic materialization to pattern-match derived types and extract FK properties (e.g. `ApplicationInsights.LogAnalyticsWorkspaceId`), but TPT materialization through `ResourceGroup.Include(r => r.Resources)` did not reliably populate derived-type FK properties. **Fix**: replaced in-memory pattern matching with a new `IResourceGroupRepository.GetChildToParentMappingAsync()` method that queries each child-type DbSet directly (`WebApp`, `FunctionApp`, `ContainerApp`, `SqlDatabase`, `ApplicationInsights`) for their parent FK values, returning a `Dictionary<Guid, Guid>`. The handler now uses this mapping instead of casting polymorphic entities. **Files modified**: `IResourceGroupRepository.cs` (new method), `ResourceGroupRepository.cs` (implementation with 5 direct DbSet queries + `AsNoTracking`), `ListResourceGroupResourcesQueryHandler.cs` (removed `ResolveParentResourceId` static method, replaced with `parentMapping.TryGetValue`). Build 0 errors. **Pattern**: when resolving FK properties on TPT-derived entities loaded through a base-type `.Include()`, prefer direct queries on the concrete DbSet over pattern matching on the polymorphic collection — TPT materialization may not populate all derived-type navigation properties reliably. |
 | 2026-03-25 | copilot | Fixed **SqlDatabase creation missing SqlServer selection** in add-resource dialog frontend. SqlDatabase now follows the same parent-child plan-selection UX as WebApp→AppServicePlan, ContainerApp→ContainerAppEnvironment, ApplicationInsights→LogAnalyticsWorkspace. **New files**: `sql-server.interface.ts`, `sql-database.interface.ts` (TypeScript interfaces mirroring backend contracts). **Modified services**: `SqlServerService` (added `getById`, `create`, `update`), `SqlDatabaseService` (added `getById`, `create`, `update`). **add-resource-dialog.component.ts**: added `parentResourceSuffix() === 'SQL'` + `parentResourceIcon() === 'dns'`, `createSqlServerForm` (name, location, version, administratorLogin), `sqlServerVersionOptions`/`sqlDatabaseSkuOptions`/`sqlMinTlsOptions` constants, SqlDatabase in `onSelectType()`/`loadExistingPlans()`/`onSelectPlan()`/`prefillParentFormField()`/`onCreatePlanAndContinue()`/`onBackFromCommon()`/`onSubmit()`/`updateCommonFormValidators()`/`clearExtraValidators()`, `buildSqlServerEnvironmentSettings()`/`buildSqlDatabaseEnvironmentSettings()` methods. **add-resource-dialog.component.html**: SQL Server creation form (version dropdown, administratorLogin), SqlDatabase plan-indicator, SqlServer/SqlDatabase common form fields + environment tab cases. **i18n**: ~20 SQL-specific keys in FR/EN (PLAN_SELECT_*_SQL, CREATE_PLAN_*_SQL, SQL_SERVER_VERSION, ADMINISTRATOR_LOGIN, COLLATION, MIN_TLS_VERSION, MAX_SIZE_GB, ZONE_REDUNDANT). Build + typecheck pass. |
 | 2026-03-24 | copilot | **Organized Bicep parameters into dedicated folder** — all generated `.bicepparam` files now stored in `parameters/` subdirectory. **Modification**: `GenerateBicepCommandHandler.cs` — added constants `ParametersDirectory = "parameters"` and `BicepParameterExtension = ".bicepparam"`, created helper method `ResolveArtifactPath(prefix, fileName)` that detects `.bicepparam` files and routes them to `{prefix}/parameters/{fileName}`, non-parameter files remain at `{prefix}/{fileName}`. **Artifact structure**: `bicep/{configId}/{timestamp}/types.bicep`, `bicep/{configId}/{timestamp}/functions.bicep`, `bicep/{configId}/{timestamp}/main.bicep`, `bicep/{configId}/{timestamp}/parameters/main.dev.bicepparam`, `bicep/{configId}/{timestamp}/parameters/main.staging.bicepparam`, etc. **Convention**: improves Bicep artifact organization by grouping all environment-specific parameter files in a dedicated folder. |
+| 2026-03-24 | copilot | **Bicep module folder structure + per-module types.bicep** — reorganized Bicep module output from flat `modules/*.bicep` to `modules/{ResourceFolder}/{module}.bicep` + `modules/{ResourceFolder}/types.bicep`. Each module folder contains the module Bicep file and a `types.bicep` with `@export()` union types constraining parameter values (e.g. `SkuName = 'premium' | 'standard'` for KeyVault). All module params now have `@description()` decorators. Modules import types from `./types.bicep`. Added `ModuleFolderName` and `ModuleTypesBicepContent` properties to `GeneratedTypeModule`. Updated `BicepAssembler` to output both files per folder and reference modules as `./modules/{Folder}/{file}` in `main.bicep`. 14 generators updated (KeyVault, RedisCache, StorageAccount, AppServicePlan, WebApp, FunctionApp, UserAssignedIdentity, AppConfiguration, ContainerAppEnvironment, ContainerApp, LogAnalyticsWorkspace, ApplicationInsights, CosmosDb, SqlServer, SqlDatabase). UserAssignedIdentity has no types.bicep (only location/name params). |

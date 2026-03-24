@@ -29,11 +29,18 @@ public static class BicepAssembler
         var environmentParameterFiles = GenerateEnvironmentParameterFiles(
             modules, environmentNames, resources);
 
-        var moduleFiles = modules
-            .DistinctBy(m => m.ModuleFileName)
-            .ToDictionary(
-                m => $"modules/{m.ModuleFileName}",
-                m => m.ModuleBicepContent);
+        var moduleFiles = new Dictionary<string, string>();
+
+        foreach (var module in modules.DistinctBy(m => m.ModuleFileName))
+        {
+            var folder = module.ModuleFolderName;
+            moduleFiles[$"modules/{folder}/{module.ModuleFileName}"] = module.ModuleBicepContent;
+
+            if (!string.IsNullOrEmpty(module.ModuleTypesBicepContent))
+            {
+                moduleFiles[$"modules/{folder}/types.bicep"] = module.ModuleTypesBicepContent;
+            }
+        }
 
         return new GenerationResult
         {
@@ -231,7 +238,7 @@ public static class BicepAssembler
                 module.LogicalResourceName, module.ResourceAbbreviation,
                 module.ResourceTypeName, namingContext);
 
-            sb.AppendLine($"module {moduleSymbol} './modules/{module.ModuleFileName}' = {{");
+            sb.AppendLine($"module {moduleSymbol} './modules/{module.ModuleFolderName}/{module.ModuleFileName}' = {{");
             sb.AppendLine($"  name: '{module.ModuleName}'");
             sb.AppendLine($"  scope: {rgSymbol}");
             sb.AppendLine("  params: {");

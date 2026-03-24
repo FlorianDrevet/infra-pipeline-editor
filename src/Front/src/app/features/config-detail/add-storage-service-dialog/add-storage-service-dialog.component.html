@@ -1,0 +1,87 @@
+<div class="storage-dialog">
+  @switch (step()) {
+    @case ('type') {
+      <h2 mat-dialog-title class="storage-dialog__title">
+        {{ 'CONFIG_DETAIL.RESOURCES.ADD_STORAGE_SERVICE_TITLE' | translate }}
+      </h2>
+      <mat-dialog-content>
+        <p class="storage-dialog__subtitle">{{ 'CONFIG_DETAIL.RESOURCES.ADD_STORAGE_STEP_TYPE' | translate }}</p>
+        <div class="type-chooser">
+          <button class="type-card" (click)="selectType('BlobContainer')">
+            <mat-icon class="type-card__icon">folder</mat-icon>
+            <span class="type-card__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CONTAINERS' | translate }}</span>
+          </button>
+          <button class="type-card" (click)="selectType('Queue')">
+            <mat-icon class="type-card__icon">queue</mat-icon>
+            <span class="type-card__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.QUEUES' | translate }}</span>
+          </button>
+          <button class="type-card" (click)="selectType('Table')">
+            <mat-icon class="type-card__icon">table_chart</mat-icon>
+            <span class="type-card__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLES' | translate }}</span>
+          </button>
+        </div>
+      </mat-dialog-content>
+      <mat-dialog-actions align="end">
+        <button mat-stroked-button (click)="onCancel()">
+          {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
+        </button>
+      </mat-dialog-actions>
+    }
+    @case ('config') {
+      <h2 mat-dialog-title class="storage-dialog__title">
+        @switch (selectedType()) {
+          @case ('BlobContainer') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_BLOB' | translate }} }
+          @case ('Queue') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_QUEUE' | translate }} }
+          @case ('Table') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_TABLE' | translate }} }
+        }
+      </h2>
+      <mat-dialog-content>
+        <p class="storage-dialog__subtitle">{{ 'CONFIG_DETAIL.RESOURCES.ADD_STORAGE_STEP_CONFIG' | translate }}</p>
+
+        @if (errorKey()) {
+          <div class="storage-dialog__error" role="alert">
+            <mat-icon>error_outline</mat-icon>
+            {{ errorKey() | translate }}
+          </div>
+        }
+
+        <form [formGroup]="form" class="storage-dialog__form" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="outline" class="storage-dialog__field">
+            <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate }}</mat-label>
+            <input matInput formControlName="name" autocomplete="off" />
+          </mat-form-field>
+
+          @if (selectedType() === 'BlobContainer') {
+            <mat-form-field appearance="outline" class="storage-dialog__field">
+              <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_LABEL' | translate }}</mat-label>
+              <mat-select formControlName="publicAccess">
+                @for (opt of publicAccessOptions; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label | translate }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
+        </form>
+      </mat-dialog-content>
+      <mat-dialog-actions align="end">
+        <button mat-stroked-button (click)="goBack()" [disabled]="isSubmitting()">
+          {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="onSubmit()"
+          [disabled]="form.invalid || isSubmitting()">
+          @if (isSubmitting()) {
+            <mat-spinner diameter="18"></mat-spinner>
+          }
+          @switch (selectedType()) {
+            @case ('BlobContainer') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_BLOB' | translate }} }
+            @case ('Queue') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_QUEUE' | translate }} }
+            @case ('Table') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_TABLE' | translate }} }
+          }
+        </button>
+      </mat-dialog-actions>
+    }
+  }
+</div>

@@ -17,7 +17,9 @@ public sealed class RedisCacheTypeBicepGenerator
         {
             ModuleName = "redisCache",
             ModuleFileName = "redisCache.bicep",
+            ModuleFolderName = "RedisCache",
             ModuleBicepContent = RedisCacheModuleTemplate,
+            ModuleTypesBicepContent = RedisCacheTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
@@ -31,15 +33,46 @@ public sealed class RedisCacheTypeBicepGenerator
         };
     }
 
+    private const string RedisCacheTypesTemplate = """
+        @export()
+        @description('SKU name for the Redis Cache')
+        type SkuName = 'Basic' | 'Standard' | 'Premium'
+
+        @export()
+        @description('SKU family for the Redis Cache (C for Basic/Standard, P for Premium)')
+        type SkuFamily = 'C' | 'P'
+
+        @export()
+        @description('Minimum TLS version for Redis Cache connections')
+        type TlsVersion = '1.0' | '1.1' | '1.2'
+        """;
+
     private const string RedisCacheModuleTemplate = """
+        import { SkuName, SkuFamily, TlsVersion } from './types.bicep'
+
+        @description('Azure region for the Redis Cache')
         param location string
+
+        @description('Name of the Redis Cache')
         param name string
-        param skuName string
-        param skuFamily string
+
+        @description('SKU name of the Redis Cache')
+        param skuName SkuName = 'Basic'
+
+        @description('SKU family of the Redis Cache')
+        param skuFamily SkuFamily = 'C'
+
+        @description('Cache capacity (number of shards for Basic/Standard, shard count for Premium)')
         param capacity int
+
+        @description('Redis server version')
         param redisVersion string
+
+        @description('Whether the non-SSL port (6379) is enabled')
         param enableNonSslPort bool
-        param minimumTlsVersion string
+
+        @description('Minimum TLS version for client connections')
+        param minimumTlsVersion TlsVersion = '1.2'
 
         resource redis 'Microsoft.Cache/Redis@2023-08-01' = {
           name: name

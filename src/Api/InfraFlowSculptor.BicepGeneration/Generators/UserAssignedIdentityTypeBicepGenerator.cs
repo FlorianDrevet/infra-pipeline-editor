@@ -20,6 +20,7 @@ public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepG
         {
             ModuleName = "userAssignedIdentity",
             ModuleFileName = "userAssignedIdentity.bicep",
+            ModuleFolderName = "UserAssignedIdentity",
             ModuleBicepContent = UserAssignedIdentityModuleTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>()
@@ -27,7 +28,10 @@ public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepG
     }
 
     private const string UserAssignedIdentityModuleTemplate = """
+        @description('Azure region for the User Assigned Identity')
         param location string
+
+        @description('Name of the User Assigned Identity')
         param name string
 
         resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {

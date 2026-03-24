@@ -765,6 +765,156 @@
   }
 }
 
+// ─── Storage Services ────
+
+.storage-sub-tabs {
+  ::ng-deep .mat-mdc-tab-header {
+    background: rgba(241, 247, 255, 0.4);
+    border-bottom: 1px solid rgba(146, 191, 235, 0.12);
+    padding: 0 0.25rem;
+  }
+
+  ::ng-deep .mat-mdc-tab {
+    min-width: 0;
+    padding: 0 1rem;
+    height: 2.8rem;
+  }
+}
+
+.storage-services-panel {
+  padding: 1.25rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.storage-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.storage-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(180deg, #fff, #f8fbff);
+  border: 1.5px solid rgba(146, 191, 235, 0.2);
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    border-color: rgba(21, 101, 192, 0.25);
+    box-shadow: 0 2px 12px rgba(21, 101, 192, 0.06);
+  }
+
+  &__icon {
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    color: #1565c0;
+    flex-shrink: 0;
+  }
+
+  &__name {
+    flex: 1;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #103454;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: rgba(0, 188, 212, 0.08);
+    border: 1px solid rgba(0, 188, 212, 0.2);
+    color: #00838f;
+  }
+
+  &__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #b71c1c;
+    cursor: pointer;
+    transition: background 0.15s;
+    flex-shrink: 0;
+
+    &:hover { background: rgba(244, 67, 54, 0.08); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    mat-icon {
+      font-size: 1rem;
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}
+
+.storage-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+
+  &__icon {
+    font-size: 2.2rem;
+    width: 2.2rem;
+    height: 2.2rem;
+    color: rgba(13, 101, 192, 0.18);
+  }
+
+  p {
+    margin: 0;
+    color: #60758e;
+    font-size: 0.88rem;
+  }
+}
+
+.storage-add-form {
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  background: rgba(241, 247, 255, 0.65);
+  border: 1px solid rgba(146, 191, 235, 0.18);
+  animation: slideIn 0.2s ease-out;
+
+  &__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  &__field {
+    flex: 1;
+    min-width: 14rem;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+  }
+}
+
 // ─── Responsive ────
 
 @media (max-width: 768px) {

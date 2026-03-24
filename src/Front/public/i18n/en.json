@@ -254,6 +254,14 @@
       "NO_CHILDREN": "No linked resources.",
       "ADD": "Add a resource",
       "ADD_CHILD": "Add a resource",
+      "STORAGE_BLOB_SECTION": "Blob Containers",
+      "STORAGE_QUEUE_SECTION": "Queues",
+      "STORAGE_TABLE_SECTION": "Tables",
+      "ADD_STORAGE_SERVICE": "Add storage service",
+      "ADD_STORAGE_SERVICE_TITLE": "Add storage service",
+      "ADD_STORAGE_STEP_TYPE": "Choose type",
+      "ADD_STORAGE_STEP_CONFIG": "Configure",
+      "STORAGE_SUB_EMPTY": "No storage services yet.",
       "EDIT": "Edit resource",
       "DELETE": "Delete resource",
       "DELETE_CONFIRM_TITLE": "Delete resource",
@@ -669,7 +677,8 @@
       "ENVIRONMENTS": "Environments",
       "IDENTITY_ACCESS": "Identity & Access",
       "APP_CONFIG": "App Configuration",
-      "COMING_SOON": "Soon"
+      "COMING_SOON": "Soon",
+      "STORAGE_SERVICES": "Storage Services"
     },
     "GENERAL": {
       "IDENTITY": "Identity",
@@ -796,6 +805,29 @@
       "CREATING_IDENTITY": "Creating...",
       "CREATE_IDENTITY_ERROR": "Unable to create the identity. Please try again.",
       "CREATE_IDENTITY_SUBMIT": "Create"
+    },
+    "STORAGE_SERVICES": {
+      "BLOB_CONTAINERS": "Blob Containers",
+      "QUEUES": "Queues",
+      "TABLES": "Tables",
+      "ADD_BLOB": "Add Blob Container",
+      "ADD_QUEUE": "Add Queue",
+      "ADD_TABLE": "Add Table",
+      "REMOVE_CONFIRM_TITLE": "Remove {{type}}",
+      "REMOVE_CONFIRM_MESSAGE": "Are you sure you want to remove \u201c{{name}}\u201d?",
+      "REMOVE_CONFIRM_YES": "Remove",
+      "REMOVE_CONFIRM_CANCEL": "Cancel",
+      "BLOB_EMPTY": "No blob containers configured.",
+      "QUEUE_EMPTY": "No queues configured.",
+      "TABLE_EMPTY": "No tables configured.",
+      "NAME_LABEL": "Name",
+      "PUBLIC_ACCESS_LABEL": "Public Access",
+      "PUBLIC_ACCESS_NONE": "None",
+      "PUBLIC_ACCESS_BLOB": "Blob",
+      "PUBLIC_ACCESS_CONTAINER": "Container",
+      "ADD_SUCCESS": "{{type}} \u201c{{name}}\u201d added successfully.",
+      "REMOVE_SUCCESS": "{{type}} removed successfully.",
+      "ACTION_ERROR": "An error occurred. Please try again."
     }
   }
 }

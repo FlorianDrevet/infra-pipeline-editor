@@ -23,7 +23,9 @@ public sealed class SqlDatabaseTypeBicepGenerator
         {
             ModuleName = "sqlDatabase",
             ModuleFileName = "sqlDatabase.bicep",
+            ModuleFolderName = "SqlDatabase",
             ModuleBicepContent = SqlDatabaseModuleTemplate,
+            ModuleTypesBicepContent = SqlDatabaseTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
@@ -35,13 +37,34 @@ public sealed class SqlDatabaseTypeBicepGenerator
         };
     }
 
+    private const string SqlDatabaseTypesTemplate = """
+        @export()
+        @description('SKU name for the SQL Database')
+        type SkuName = 'Basic' | 'Standard' | 'Premium' | 'GeneralPurpose' | 'BusinessCritical' | 'Hyperscale'
+        """;
+
     private const string SqlDatabaseModuleTemplate = """
+        import { SkuName } from './types.bicep'
+
+        @description('Azure region for the SQL Database')
         param location string
+
+        @description('Name of the SQL Database')
         param name string
+
+        @description('Name of the parent SQL Server')
         param sqlServerName string
-        param sku string
+
+        @description('SKU of the SQL Database')
+        param sku SkuName = 'Basic'
+
+        @description('Maximum size of the database in bytes')
         param maxSizeBytes int
+
+        @description('Collation of the database')
         param collation string
+
+        @description('Whether the database is zone redundant')
         param zoneRedundant bool
 
         resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' existing = {

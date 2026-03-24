@@ -22,7 +22,9 @@ public sealed class WebAppTypeBicepGenerator
         {
             ModuleName = "webApp",
             ModuleFileName = "webApp.bicep",
+            ModuleFolderName = "WebApp",
             ModuleBicepContent = WebAppModuleTemplate,
+            ModuleTypesBicepContent = WebAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
@@ -34,13 +36,34 @@ public sealed class WebAppTypeBicepGenerator
         };
     }
 
+    private const string WebAppTypesTemplate = """
+        @export()
+        @description('Runtime stack for the Web App')
+        type RuntimeStack = 'DOTNETCORE' | 'NODE' | 'PYTHON' | 'JAVA' | 'PHP'
+        """;
+
     private const string WebAppModuleTemplate = """
+        import { RuntimeStack } from './types.bicep'
+
+        @description('Azure region for the Web App')
         param location string
+
+        @description('Name of the Web App')
         param name string
+
+        @description('Resource ID of the App Service Plan')
         param appServicePlanId string
-        param runtimeStack string
+
+        @description('Runtime stack of the Web App')
+        param runtimeStack RuntimeStack = 'DOTNETCORE'
+
+        @description('Runtime version (e.g. 8.0, 18)')
         param runtimeVersion string
+
+        @description('Whether the app is always on')
         param alwaysOn bool
+
+        @description('Whether HTTPS only is enforced')
         param httpsOnly bool
 
         var linuxFxVersion = '${toUpper(runtimeStack)}|${runtimeVersion}'

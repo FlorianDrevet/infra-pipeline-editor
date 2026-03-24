@@ -24,7 +24,7 @@ import { RoleAssignmentService } from '../../shared/services/role-assignment.ser
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { KeyVaultResponse, KeyVaultEnvironmentConfigEntry } from '../../shared/interfaces/key-vault.interface';
 import { RedisCacheResponse, RedisCacheEnvironmentConfigEntry } from '../../shared/interfaces/redis-cache.interface';
-import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry } from '../../shared/interfaces/storage-account.interface';
+import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry, BlobContainerResponse, StorageQueueResponse, StorageTableResponse } from '../../shared/interfaces/storage-account.interface';
 import { AppServicePlanResponse, AppServicePlanEnvironmentConfigEntry } from '../../shared/interfaces/app-service-plan.interface';
 import { WebAppResponse, WebAppEnvironmentConfigEntry } from '../../shared/interfaces/web-app.interface';
 import { FunctionAppResponse, FunctionAppEnvironmentConfigEntry } from '../../shared/interfaces/function-app.interface';
@@ -280,6 +280,34 @@ export class ResourceEditComponent implements OnInit {
   protected readonly saveError = signal('');
   protected readonly saveSuccess = signal(false);
 
+  // ─── Storage Services ───
+  protected readonly storageSubTabIndex = signal(0);
+  protected readonly storageActionLoading = signal(false);
+  protected readonly storageActionError = signal('');
+  protected readonly showBlobAddForm = signal(false);
+  protected readonly showQueueAddForm = signal(false);
+  protected readonly showTableAddForm = signal(false);
+
+  protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
+
+  protected readonly storageBlobContainers = computed<BlobContainerResponse[]>(() => {
+    const res = this.resource();
+    if (!res || this.resourceType !== 'StorageAccount') return [];
+    return (res as StorageAccountResponse).blobContainers ?? [];
+  });
+
+  protected readonly storageQueues = computed<StorageQueueResponse[]>(() => {
+    const res = this.resource();
+    if (!res || this.resourceType !== 'StorageAccount') return [];
+    return (res as StorageAccountResponse).queues ?? [];
+  });
+
+  protected readonly storageTables = computed<StorageTableResponse[]>(() => {
+    const res = this.resource();
+    if (!res || this.resourceType !== 'StorageAccount') return [];
+    return (res as StorageAccountResponse).tables ?? [];
+  });
+
   // ─── Role Assignments ───
   protected readonly roleAssignments = signal<RoleAssignmentResponse[]>([]);
   protected readonly roleAssignmentsLoading = signal(false);
@@ -351,6 +379,9 @@ export class ResourceEditComponent implements OnInit {
     return me?.role === 'Owner';
   });
 
+  // ─── Main tab index (for programmatic selection) ───
+  protected readonly mainTabIndex = signal(0);
+
   async ngOnInit(): Promise<void> {
     this.configId = this.route.snapshot.paramMap.get('configId') ?? '';
     this.resourceType = this.route.snapshot.paramMap.get('resourceType') ?? '';
@@ -359,6 +390,17 @@ export class ResourceEditComponent implements OnInit {
     if (!this.configId || !this.resourceType || !this.resourceId) {
       this.loadError.set('RESOURCE_EDIT.ERROR.MISSING_PARAMS');
       return;
+    }
+
+    // Handle storage sub-tab query param
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab && this.resourceType === 'StorageAccount') {
+      this.mainTabIndex.set(3); // Storage Services tab
+      switch (tab) {
+        case 'blob_containers': this.storageSubTabIndex.set(0); break;
+        case 'queues': this.storageSubTabIndex.set(1); break;
+        case 'tables': this.storageSubTabIndex.set(2); break;
+      }
     }
 
     await this.loadData();
@@ -933,6 +975,122 @@ export class ResourceEditComponent implements OnInit {
       this.roleAssignments.update(list => list.filter(ra => ra.id !== roleAssignmentId));
     } catch {
       this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_ERROR');
+    }
+  }
+
+  // ─── Storage Services ───
+
+  protected blobAddForm = this.fb.group({
+    name: ['', [Validators.required, Validators.maxLength(63)]],
+    publicAccess: ['None'],
+  });
+  protected queueAddForm = this.fb.group({
+    name: ['', [Validators.required, Validators.maxLength(63)]],
+  });
+  protected tableAddForm = this.fb.group({
+    name: ['', [Validators.required, Validators.maxLength(63)]],
+  });
+
+  protected readonly publicAccessOptions = [
+    { label: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_NONE', value: 'None' },
+    { label: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_BLOB', value: 'Blob' },
+    { label: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_CONTAINER', value: 'Container' },
+  ];
+
+  protected async addBlobContainer(): Promise<void> {
+    if (this.blobAddForm.invalid || this.storageActionLoading()) return;
+    this.storageActionLoading.set(true);
+    this.storageActionError.set('');
+    try {
+      const { name, publicAccess } = this.blobAddForm.getRawValue();
+      const updated = await this.storageAccountService.addBlobContainer(this.resourceId, {
+        name: name!,
+        publicAccess: publicAccess ?? 'None',
+      });
+      this.resource.set(updated);
+      this.blobAddForm.reset({ name: '', publicAccess: 'None' });
+      this.showBlobAddForm.set(false);
+    } catch {
+      this.storageActionError.set('RESOURCE_EDIT.STORAGE_SERVICES.ACTION_ERROR');
+    } finally {
+      this.storageActionLoading.set(false);
+    }
+  }
+
+  protected async addQueue(): Promise<void> {
+    if (this.queueAddForm.invalid || this.storageActionLoading()) return;
+    this.storageActionLoading.set(true);
+    this.storageActionError.set('');
+    try {
+      const { name } = this.queueAddForm.getRawValue();
+      const updated = await this.storageAccountService.addQueue(this.resourceId, { name: name! });
+      this.resource.set(updated);
+      this.queueAddForm.reset({ name: '' });
+      this.showQueueAddForm.set(false);
+    } catch {
+      this.storageActionError.set('RESOURCE_EDIT.STORAGE_SERVICES.ACTION_ERROR');
+    } finally {
+      this.storageActionLoading.set(false);
+    }
+  }
+
+  protected async addTable(): Promise<void> {
+    if (this.tableAddForm.invalid || this.storageActionLoading()) return;
+    this.storageActionLoading.set(true);
+    this.storageActionError.set('');
+    try {
+      const { name } = this.tableAddForm.getRawValue();
+      const updated = await this.storageAccountService.addTable(this.resourceId, { name: name! });
+      this.resource.set(updated);
+      this.tableAddForm.reset({ name: '' });
+      this.showTableAddForm.set(false);
+    } catch {
+      this.storageActionError.set('RESOURCE_EDIT.STORAGE_SERVICES.ACTION_ERROR');
+    } finally {
+      this.storageActionLoading.set(false);
+    }
+  }
+
+  protected openRemoveStorageItemDialog(type: 'BlobContainer' | 'Queue' | 'Table', id: string, name: string): void {
+    const typeLabel = type === 'BlobContainer' ? 'Blob Container' : type;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_TITLE',
+        messageKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_MESSAGE',
+        messageParams: { name, type: typeLabel },
+        confirmKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES',
+        cancelKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      await this.removeStorageItem(type, id);
+    });
+  }
+
+  private async removeStorageItem(type: 'BlobContainer' | 'Queue' | 'Table', id: string): Promise<void> {
+    this.storageActionLoading.set(true);
+    this.storageActionError.set('');
+    try {
+      switch (type) {
+        case 'BlobContainer':
+          await this.storageAccountService.removeBlobContainer(this.resourceId, id);
+          break;
+        case 'Queue':
+          await this.storageAccountService.removeQueue(this.resourceId, id);
+          break;
+        case 'Table':
+          await this.storageAccountService.removeTable(this.resourceId, id);
+          break;
+      }
+      const updated = await this.storageAccountService.getById(this.resourceId);
+      this.resource.set(updated);
+    } catch {
+      this.storageActionError.set('RESOURCE_EDIT.STORAGE_SERVICES.ACTION_ERROR');
+    } finally {
+      this.storageActionLoading.set(false);
     }
   }
 

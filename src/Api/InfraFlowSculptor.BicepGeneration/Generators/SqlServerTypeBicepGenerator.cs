@@ -20,7 +20,9 @@ public sealed class SqlServerTypeBicepGenerator
         {
             ModuleName = "sqlServer",
             ModuleFileName = "sqlServer.bicep",
+            ModuleFolderName = "SqlServer",
             ModuleBicepContent = SqlServerModuleTemplate,
+            ModuleTypesBicepContent = SqlServerTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
@@ -31,14 +33,37 @@ public sealed class SqlServerTypeBicepGenerator
         };
     }
 
+    private const string SqlServerTypesTemplate = """
+        @export()
+        @description('SQL Server version')
+        type SqlServerVersion = '12.0'
+
+        @export()
+        @description('Minimum TLS version for SQL Server connections')
+        type TlsVersion = '1.0' | '1.1' | '1.2'
+        """;
+
     private const string SqlServerModuleTemplate = """
+        import { SqlServerVersion, TlsVersion } from './types.bicep'
+
+        @description('Azure region for the SQL Server')
         param location string
+
+        @description('Name of the SQL Server')
         param name string
-        param version string
+
+        @description('SQL Server version')
+        param version SqlServerVersion = '12.0'
+
+        @description('Administrator login name')
         param administratorLogin string
+
         @secure()
+        @description('Administrator login password')
         param administratorLoginPassword string
-        param minimalTlsVersion string
+
+        @description('Minimum TLS version for client connections')
+        param minimalTlsVersion TlsVersion = '1.2'
 
         resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {
           name: name
