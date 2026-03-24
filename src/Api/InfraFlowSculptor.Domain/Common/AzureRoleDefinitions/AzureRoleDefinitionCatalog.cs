@@ -229,6 +229,48 @@ public static class AzureRoleDefinitionCatalog
             AppConfigurationDocsUrl),
     ];
 
+    private const string ContainerAppEnvironmentDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/container-apps/managed-identity";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> ContainerAppEnvironmentRoles =
+    [
+        new("12710879-3cda-4e3e-8c7c-bf6d0cae531e",
+            "ContainerApp Environment Contributor",
+            "Manage Container App Environments.",
+            ContainerAppEnvironmentDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            ContainerAppEnvironmentDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            ContainerAppEnvironmentDocsUrl),
+    ];
+
+    private const string ContainerAppDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/container-apps/managed-identity";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> ContainerAppRoles =
+    [
+        new("854e5e7e-28f7-4e24-bc87-eb5c2280195d",
+            "ContainerApp Contributor",
+            "Manage Container Apps.",
+            ContainerAppDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            ContainerAppDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            ContainerAppDocsUrl),
+    ];
+
     private static readonly Dictionary<string, IReadOnlyList<AzureRoleDefinition>> Catalog = new()
     {
         { "KeyVault", KeyVaultRoles },
@@ -239,6 +281,8 @@ public static class AzureRoleDefinitionCatalog
         { "FunctionApp", FunctionAppRoles },
         { "UserAssignedIdentity", UserAssignedIdentityRoles },
         { "AppConfiguration", AppConfigurationRoles },
+        { "ContainerAppEnvironment", ContainerAppEnvironmentRoles },
+        { "ContainerApp", ContainerAppRoles },
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>

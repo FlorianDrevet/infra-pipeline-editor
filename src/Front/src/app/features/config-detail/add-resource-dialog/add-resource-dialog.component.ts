@@ -26,6 +26,8 @@ import { WebAppService } from '../../../shared/services/web-app.service';
 import { UserAssignedIdentityService } from '../../../shared/services/user-assigned-identity.service';
 import { FunctionAppService } from '../../../shared/services/function-app.service';
 import { AppConfigurationService } from '../../../shared/services/app-configuration.service';
+import { ContainerAppEnvironmentService } from '../../../shared/services/container-app-environment.service';
+import { ContainerAppService } from '../../../shared/services/container-app.service';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
@@ -34,6 +36,8 @@ import { AppServicePlanEnvironmentConfigEntry } from '../../../shared/interfaces
 import { WebAppEnvironmentConfigEntry } from '../../../shared/interfaces/web-app.interface';
 import { FunctionAppEnvironmentConfigEntry } from '../../../shared/interfaces/function-app.interface';
 import { AppConfigurationEnvironmentConfigEntry } from '../../../shared/interfaces/app-configuration.interface';
+import { ContainerAppEnvironmentEnvironmentConfigEntry } from '../../../shared/interfaces/container-app-environment.interface';
+import { ContainerAppEnvironmentConfigEntry } from '../../../shared/interfaces/container-app.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 
 export interface AddResourceDialogData {
@@ -111,6 +115,46 @@ const APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS = [
   { label: 'Disabled', value: 'Disabled' },
 ];
 
+const CAE_SKU_OPTIONS = [
+  { label: 'Consumption', value: 'Consumption' },
+  { label: 'Premium', value: 'Premium' },
+];
+
+const CAE_WORKLOAD_PROFILE_OPTIONS = [
+  { label: 'Consumption', value: 'Consumption' },
+  { label: 'D4', value: 'D4' },
+  { label: 'D8', value: 'D8' },
+  { label: 'D16', value: 'D16' },
+  { label: 'D32', value: 'D32' },
+  { label: 'E4', value: 'E4' },
+  { label: 'E8', value: 'E8' },
+  { label: 'E16', value: 'E16' },
+  { label: 'E32', value: 'E32' },
+];
+
+const CA_CPU_OPTIONS = [
+  { label: '0.25', value: '0.25' },
+  { label: '0.5', value: '0.5' },
+  { label: '1.0', value: '1.0' },
+  { label: '2.0', value: '2.0' },
+  { label: '4.0', value: '4.0' },
+];
+
+const CA_MEMORY_OPTIONS = [
+  { label: '0.5 Gi', value: '0.5Gi' },
+  { label: '1.0 Gi', value: '1.0Gi' },
+  { label: '2.0 Gi', value: '2.0Gi' },
+  { label: '4.0 Gi', value: '4.0Gi' },
+  { label: '8.0 Gi', value: '8.0Gi' },
+];
+
+const CA_TRANSPORT_OPTIONS = [
+  { label: 'Auto', value: 'auto' },
+  { label: 'HTTP', value: 'http' },
+  { label: 'HTTP/2', value: 'http2' },
+  { label: 'TCP', value: 'tcp' },
+];
+
 type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'environments';
 
 @Component({
@@ -144,6 +188,8 @@ export class AddResourceDialogComponent {
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly functionAppService = inject(FunctionAppService);
   private readonly appConfigurationService = inject(AppConfigurationService);
+  private readonly containerAppEnvironmentService = inject(ContainerAppEnvironmentService);
+  private readonly containerAppService = inject(ContainerAppService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly fb = inject(FormBuilder);
 
@@ -192,6 +238,11 @@ export class AddResourceDialogComponent {
   protected readonly functionAppRuntimeStackOptions = FUNCTION_APP_RUNTIME_STACK_OPTIONS;
   protected readonly appConfigurationSkuOptions = APP_CONFIGURATION_SKU_OPTIONS;
   protected readonly appConfigurationPublicNetworkOptions = APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS;
+  protected readonly caeSkuOptions = CAE_SKU_OPTIONS;
+  protected readonly caeWorkloadProfileOptions = CAE_WORKLOAD_PROFILE_OPTIONS;
+  protected readonly caCpuOptions = CA_CPU_OPTIONS;
+  protected readonly caMemoryOptions = CA_MEMORY_OPTIONS;
+  protected readonly caTransportOptions = CA_TRANSPORT_OPTIONS;
 
   protected readonly ResourceTypeEnum = ResourceTypeEnum;
 
@@ -201,6 +252,7 @@ export class AddResourceDialogComponent {
     location: [this.data.location, [Validators.required]],
     osType: [''],
     appServicePlanId: [''],
+    containerAppEnvironmentId: [''],
     runtimeStack: [''],
     runtimeVersion: [''],
     alwaysOn: [true],
@@ -232,7 +284,7 @@ export class AddResourceDialogComponent {
     this.buildEnvForms(type);
     this.updateCommonFormValidators(type);
 
-    if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp) {
+    if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp) {
       this.step.set('plan-selection');
       this.loadExistingPlans();
     } else {
@@ -245,7 +297,8 @@ export class AddResourceDialogComponent {
     this.plansLoading.set(true);
     try {
       const resources = await this.resourceGroupService.getResources(this.data.resourceGroupId);
-      const plans = resources.filter(r => r.resourceType === 'AppServicePlan');
+      const filterType = this.selectedType() === ResourceTypeEnum.ContainerApp ? 'ContainerAppEnvironment' : 'AppServicePlan';
+      const plans = resources.filter(r => r.resourceType === filterType);
       this.existingPlans.set(plans);
     } catch {
       this.existingPlans.set([]);
@@ -257,7 +310,11 @@ export class AddResourceDialogComponent {
   protected onSelectPlan(plan: AzureResourceResponse): void {
     this.selectedPlanId.set(plan.id);
     this.selectedPlanName.set(plan.name);
-    this.commonForm.patchValue({ appServicePlanId: plan.id });
+    if (this.selectedType() === ResourceTypeEnum.ContainerApp) {
+      this.commonForm.patchValue({ containerAppEnvironmentId: plan.id });
+    } else {
+      this.commonForm.patchValue({ appServicePlanId: plan.id });
+    }
     this.step.set('common');
   }
 
@@ -279,20 +336,35 @@ export class AddResourceDialogComponent {
 
     const planData = this.createPlanForm.getRawValue();
     try {
-      const created = await this.appServicePlanService.create({
-        resourceGroupId: this.data.resourceGroupId,
-        name: planData.name!,
-        location: planData.location!,
-        osType: planData.osType!,
-        environmentSettings: this.environments.map(env => ({
-          environmentName: env.name,
-          sku: 'B1',
-          capacity: 1,
-        })),
-      });
-      this.selectedPlanId.set(created.id);
-      this.selectedPlanName.set(created.name);
-      this.commonForm.patchValue({ appServicePlanId: created.id });
+      if (this.selectedType() === ResourceTypeEnum.ContainerApp) {
+        const created = await this.containerAppEnvironmentService.create({
+          resourceGroupId: this.data.resourceGroupId,
+          name: planData.name!,
+          location: planData.location!,
+          environmentSettings: this.environments.map(env => ({
+            environmentName: env.name,
+            sku: 'Consumption',
+          })),
+        });
+        this.selectedPlanId.set(created.id);
+        this.selectedPlanName.set(created.name);
+        this.commonForm.patchValue({ containerAppEnvironmentId: created.id });
+      } else {
+        const created = await this.appServicePlanService.create({
+          resourceGroupId: this.data.resourceGroupId,
+          name: planData.name!,
+          location: planData.location!,
+          osType: planData.osType!,
+          environmentSettings: this.environments.map(env => ({
+            environmentName: env.name,
+            sku: 'B1',
+            capacity: 1,
+          })),
+        });
+        this.selectedPlanId.set(created.id);
+        this.selectedPlanName.set(created.name);
+        this.commonForm.patchValue({ appServicePlanId: created.id });
+      }
       this.step.set('common');
     } catch {
       this.errorKey.set('CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_ERROR');
@@ -317,7 +389,7 @@ export class AddResourceDialogComponent {
   }
 
   protected onBackFromCommon(): void {
-    if (this.selectedType() === ResourceTypeEnum.WebApp || this.selectedType() === ResourceTypeEnum.FunctionApp) {
+    if (this.selectedType() === ResourceTypeEnum.WebApp || this.selectedType() === ResourceTypeEnum.FunctionApp || this.selectedType() === ResourceTypeEnum.ContainerApp) {
       this.step.set('plan-selection');
     } else {
       this.onBackToType();
@@ -402,6 +474,26 @@ export class AddResourceDialogComponent {
           purgeProtectionEnabled: [false],
           disableLocalAuth: [false],
           publicNetworkAccess: ['Enabled', [Validators.required]],
+        });
+      case ResourceTypeEnum.ContainerAppEnvironment:
+        return this.fb.group({
+          sku: ['Consumption', [Validators.required]],
+          workloadProfileType: ['Consumption'],
+          internalLoadBalancerEnabled: [false],
+          zoneRedundancyEnabled: [false],
+          logAnalyticsWorkspaceId: [''],
+        });
+      case ResourceTypeEnum.ContainerApp:
+        return this.fb.group({
+          containerImage: [''],
+          cpuCores: ['0.25'],
+          memoryGi: ['0.5Gi'],
+          minReplicas: [0],
+          maxReplicas: [10],
+          ingressEnabled: [true],
+          ingressTargetPort: [80],
+          ingressExternal: [true],
+          transportMethod: ['auto'],
         });
     }
   }
@@ -521,6 +613,25 @@ export class AddResourceDialogComponent {
           });
           break;
         }
+        case ResourceTypeEnum.ContainerAppEnvironment: {
+          await this.containerAppEnvironmentService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            environmentSettings: this.buildContainerAppEnvironmentEnvironmentSettings(),
+          });
+          break;
+        }
+        case ResourceTypeEnum.ContainerApp: {
+          await this.containerAppService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            containerAppEnvironmentId: common.containerAppEnvironmentId!,
+            environmentSettings: this.buildContainerAppEnvironmentSettings(),
+          });
+          break;
+        }
       }
       this.dialogRef.close(true);
     } catch {
@@ -622,6 +733,38 @@ export class AddResourceDialogComponent {
     });
   }
 
+  private buildContainerAppEnvironmentEnvironmentSettings(): ContainerAppEnvironmentEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        sku: raw.sku || null,
+        workloadProfileType: raw.workloadProfileType || null,
+        internalLoadBalancerEnabled: raw.internalLoadBalancerEnabled ?? null,
+        zoneRedundancyEnabled: raw.zoneRedundancyEnabled ?? null,
+        logAnalyticsWorkspaceId: raw.logAnalyticsWorkspaceId || null,
+      };
+    });
+  }
+
+  private buildContainerAppEnvironmentSettings(): ContainerAppEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        containerImage: raw.containerImage || null,
+        cpuCores: raw.cpuCores || null,
+        memoryGi: raw.memoryGi || null,
+        minReplicas: raw.minReplicas != null ? Number(raw.minReplicas) : null,
+        maxReplicas: raw.maxReplicas != null ? Number(raw.maxReplicas) : null,
+        ingressEnabled: raw.ingressEnabled ?? null,
+        ingressTargetPort: raw.ingressTargetPort != null ? Number(raw.ingressTargetPort) : null,
+        ingressExternal: raw.ingressExternal ?? null,
+        transportMethod: raw.transportMethod || null,
+      };
+    });
+  }
+
   private updateCommonFormValidators(type: ResourceTypeEnum): void {
     this.clearExtraValidators();
     if (type === ResourceTypeEnum.AppServicePlan) {
@@ -629,18 +772,23 @@ export class AddResourceDialogComponent {
     } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp) {
       this.commonForm.controls.runtimeStack.setValidators([Validators.required]);
       this.commonForm.controls.runtimeVersion.setValidators([Validators.required]);
+    } else if (type === ResourceTypeEnum.ContainerApp) {
+      this.commonForm.controls.containerAppEnvironmentId.setValidators([Validators.required]);
     }
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
+    this.commonForm.controls.containerAppEnvironmentId.updateValueAndValidity();
   }
 
   private clearExtraValidators(): void {
     this.commonForm.controls.osType.clearValidators();
     this.commonForm.controls.runtimeStack.clearValidators();
     this.commonForm.controls.runtimeVersion.clearValidators();
+    this.commonForm.controls.containerAppEnvironmentId.clearValidators();
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
+    this.commonForm.controls.containerAppEnvironmentId.updateValueAndValidity();
   }
 }

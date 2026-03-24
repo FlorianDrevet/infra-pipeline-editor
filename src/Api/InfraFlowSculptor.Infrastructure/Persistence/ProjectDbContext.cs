@@ -21,6 +21,10 @@ using InfraFlowSculptor.Domain.WebAppAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate.Entities;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate;
+using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerAppAggregate;
+using InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -56,6 +60,10 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<UserAssignedIdentity> UserAssignedIdentities { get; set; } = null!;
     public DbSet<AppConfiguration> AppConfigurations { get; set; } = null!;
     public DbSet<AppConfigurationEnvironmentSettings> AppConfigurationEnvironmentSettings { get; set; } = null!;
+    public DbSet<ContainerAppEnvironment> ContainerAppEnvironments { get; set; } = null!;
+    public DbSet<ContainerAppEnvironmentEnvironmentSettings> ContainerAppEnvironmentEnvironmentSettings { get; set; } = null!;
+    public DbSet<ContainerApp> ContainerApps { get; set; } = null!;
+    public DbSet<ContainerAppEnvironmentSettings> ContainerAppEnvironmentSettings { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

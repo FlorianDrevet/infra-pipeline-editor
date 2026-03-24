@@ -411,6 +411,91 @@
                   </mat-slide-toggle>
                 </div>
               }
+              @case (ResourceTypeEnum.ContainerAppEnvironment) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                    <mat-select formControlName="sku">
+                      @for (option of caeSkuOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.WORKLOAD_PROFILE' | translate }}</mat-label>
+                    <mat-select formControlName="workloadProfileType">
+                      @for (option of caeWorkloadProfileOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOG_ANALYTICS_WORKSPACE_ID' | translate }}</mat-label>
+                    <input matInput formControlName="logAnalyticsWorkspaceId" />
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="internalLoadBalancerEnabled" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.INTERNAL_LOAD_BALANCER' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="zoneRedundancyEnabled" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANCY' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.ContainerApp) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CONTAINER_IMAGE' | translate }}</mat-label>
+                    <input matInput formControlName="containerImage"
+                      [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.CONTAINER_IMAGE_PLACEHOLDER' | translate" />
+                  </mat-form-field>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CPU_CORES' | translate }}</mat-label>
+                      <mat-select formControlName="cpuCores">
+                        @for (option of caCpuOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MEMORY' | translate }}</mat-label>
+                      <mat-select formControlName="memoryGi">
+                        @for (option of caMemoryOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MIN_REPLICAS' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="minReplicas" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MAX_REPLICAS' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="maxReplicas" />
+                    </mat-form-field>
+                  </div>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.TRANSPORT_METHOD' | translate }}</mat-label>
+                    <mat-select formControlName="transportMethod">
+                      @for (option of caTransportOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_TARGET_PORT' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="ingressTargetPort" />
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="ingressEnabled" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_ENABLED' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="ingressExternal" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_EXTERNAL' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
             }
           </mat-tab>
         }

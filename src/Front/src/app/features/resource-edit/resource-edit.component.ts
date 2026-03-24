@@ -29,11 +29,15 @@ import { AppServicePlanResponse, AppServicePlanEnvironmentConfigEntry } from '..
 import { WebAppResponse, WebAppEnvironmentConfigEntry } from '../../shared/interfaces/web-app.interface';
 import { FunctionAppResponse, FunctionAppEnvironmentConfigEntry } from '../../shared/interfaces/function-app.interface';
 import { AppConfigurationResponse, AppConfigurationEnvironmentConfigEntry } from '../../shared/interfaces/app-configuration.interface';
+import { ContainerAppEnvironmentResponse, ContainerAppEnvironmentEnvironmentConfigEntry } from '../../shared/interfaces/container-app-environment.interface';
+import { ContainerAppResponse, ContainerAppEnvironmentConfigEntry } from '../../shared/interfaces/container-app.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
 import { FunctionAppService } from '../../shared/services/function-app.service';
 import { AppConfigurationService } from '../../shared/services/app-configuration.service';
+import { ContainerAppEnvironmentService } from '../../shared/services/container-app-environment.service';
+import { ContainerAppService } from '../../shared/services/container-app.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -48,7 +52,7 @@ import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service
 import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse;
 
 /** SKU options per resource type */
 const KEY_VAULT_SKU_OPTIONS = [
@@ -120,6 +124,46 @@ const APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS = [
   { label: 'Disabled', value: 'Disabled' },
 ];
 
+const CAE_SKU_OPTIONS = [
+  { label: 'Consumption', value: 'Consumption' },
+  { label: 'Premium', value: 'Premium' },
+];
+
+const CAE_WORKLOAD_PROFILE_OPTIONS = [
+  { label: 'Consumption', value: 'Consumption' },
+  { label: 'D4', value: 'D4' },
+  { label: 'D8', value: 'D8' },
+  { label: 'D16', value: 'D16' },
+  { label: 'D32', value: 'D32' },
+  { label: 'E4', value: 'E4' },
+  { label: 'E8', value: 'E8' },
+  { label: 'E16', value: 'E16' },
+  { label: 'E32', value: 'E32' },
+];
+
+const CA_CPU_OPTIONS = [
+  { label: '0.25', value: '0.25' },
+  { label: '0.5', value: '0.5' },
+  { label: '1.0', value: '1.0' },
+  { label: '2.0', value: '2.0' },
+  { label: '4.0', value: '4.0' },
+];
+
+const CA_MEMORY_OPTIONS = [
+  { label: '0.5 Gi', value: '0.5Gi' },
+  { label: '1.0 Gi', value: '1.0Gi' },
+  { label: '2.0 Gi', value: '2.0Gi' },
+  { label: '4.0 Gi', value: '4.0Gi' },
+  { label: '8.0 Gi', value: '8.0Gi' },
+];
+
+const CA_TRANSPORT_OPTIONS = [
+  { label: 'Auto', value: 'auto' },
+  { label: 'HTTP', value: 'http' },
+  { label: 'HTTP/2', value: 'http2' },
+  { label: 'TCP', value: 'tcp' },
+];
+
 @Component({
   selector: 'app-resource-edit',
   standalone: true,
@@ -154,6 +198,8 @@ export class ResourceEditComponent implements OnInit {
   private readonly webAppService = inject(WebAppService);
   private readonly functionAppService = inject(FunctionAppService);
   private readonly appConfigurationService = inject(AppConfigurationService);
+  private readonly containerAppEnvironmentService = inject(ContainerAppEnvironmentService);
+  private readonly containerAppService = inject(ContainerAppService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -201,6 +247,11 @@ export class ResourceEditComponent implements OnInit {
   protected readonly aspSkuOptions = APP_SERVICE_PLAN_SKU_OPTIONS;
   protected readonly appConfigurationSkuOptions = APP_CONFIGURATION_SKU_OPTIONS;
   protected readonly appConfigurationPublicNetworkOptions = APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS;
+  protected readonly caeSkuOptions = CAE_SKU_OPTIONS;
+  protected readonly caeWorkloadProfileOptions = CAE_WORKLOAD_PROFILE_OPTIONS;
+  protected readonly caCpuOptions = CA_CPU_OPTIONS;
+  protected readonly caMemoryOptions = CA_MEMORY_OPTIONS;
+  protected readonly caTransportOptions = CA_TRANSPORT_OPTIONS;
 
   // ─── Forms ───
   protected generalForm!: FormGroup;
@@ -303,6 +354,10 @@ export class ResourceEditComponent implements OnInit {
         return this.userAssignedIdentityService.getById(this.resourceId);
       case 'AppConfiguration':
         return this.appConfigurationService.getById(this.resourceId);
+      case 'ContainerAppEnvironment':
+        return this.containerAppEnvironmentService.getById(this.resourceId);
+      case 'ContainerApp':
+        return this.containerAppService.getById(this.resourceId);
       default:
         throw new Error(`Unknown resource type: ${this.resourceType}`);
     }
@@ -330,6 +385,9 @@ export class ResourceEditComponent implements OnInit {
       base['runtimeStack'] = [fa.runtimeStack, [Validators.required]];
       base['runtimeVersion'] = [fa.runtimeVersion];
       base['httpsOnly'] = [fa.httpsOnly];
+    } else if (this.resourceType === 'ContainerApp') {
+      const ca = resource as ContainerAppResponse;
+      base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
     }
 
     this.generalForm = this.fb.group(base);
@@ -424,6 +482,32 @@ export class ResourceEditComponent implements OnInit {
           publicNetworkAccess: [settings?.publicNetworkAccess ?? null],
         });
       }
+      case 'ContainerAppEnvironment': {
+        const cae = resource as ContainerAppEnvironmentResponse;
+        const settings = cae.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          sku: [settings?.sku ?? null],
+          workloadProfileType: [settings?.workloadProfileType ?? null],
+          internalLoadBalancerEnabled: [settings?.internalLoadBalancerEnabled ?? null],
+          zoneRedundancyEnabled: [settings?.zoneRedundancyEnabled ?? null],
+          logAnalyticsWorkspaceId: [settings?.logAnalyticsWorkspaceId ?? null],
+        });
+      }
+      case 'ContainerApp': {
+        const ca = resource as ContainerAppResponse;
+        const settings = ca.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          containerImage: [settings?.containerImage ?? null],
+          cpuCores: [settings?.cpuCores ?? null],
+          memoryGi: [settings?.memoryGi ?? null],
+          minReplicas: [settings?.minReplicas ?? null],
+          maxReplicas: [settings?.maxReplicas ?? null],
+          ingressEnabled: [settings?.ingressEnabled ?? null],
+          ingressTargetPort: [settings?.ingressTargetPort ?? null],
+          ingressExternal: [settings?.ingressExternal ?? null],
+          transportMethod: [settings?.transportMethod ?? null],
+        });
+      }
     }
   }
 
@@ -503,6 +587,21 @@ export class ResourceEditComponent implements OnInit {
             environmentSettings: this.buildAppConfigurationEnvSettings(),
           });
           break;
+        case 'ContainerAppEnvironment':
+          await this.containerAppEnvironmentService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            environmentSettings: this.buildContainerAppEnvironmentEnvSettings(),
+          });
+          break;
+        case 'ContainerApp':
+          await this.containerAppService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            containerAppEnvironmentId: general.containerAppEnvironmentId,
+            environmentSettings: this.buildContainerAppEnvSettings(),
+          });
+          break;
       }
 
       // Reload to reflect saved state
@@ -569,6 +668,12 @@ export class ResourceEditComponent implements OnInit {
           break;
         case 'AppConfiguration':
           await this.appConfigurationService.delete(this.resourceId);
+          break;
+        case 'ContainerAppEnvironment':
+          await this.containerAppEnvironmentService.delete(this.resourceId);
+          break;
+        case 'ContainerApp':
+          await this.containerAppService.delete(this.resourceId);
           break;
       }
       this.router.navigate(['/config', this.configId]);
@@ -780,6 +885,38 @@ export class ResourceEditComponent implements OnInit {
         purgeProtectionEnabled: raw.purgeProtectionEnabled ?? null,
         disableLocalAuth: raw.disableLocalAuth ?? null,
         publicNetworkAccess: raw.publicNetworkAccess || null,
+      };
+    });
+  }
+
+  private buildContainerAppEnvironmentEnvSettings(): ContainerAppEnvironmentEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        sku: raw.sku || null,
+        workloadProfileType: raw.workloadProfileType || null,
+        internalLoadBalancerEnabled: raw.internalLoadBalancerEnabled ?? null,
+        zoneRedundancyEnabled: raw.zoneRedundancyEnabled ?? null,
+        logAnalyticsWorkspaceId: raw.logAnalyticsWorkspaceId || null,
+      };
+    });
+  }
+
+  private buildContainerAppEnvSettings(): ContainerAppEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        containerImage: raw.containerImage || null,
+        cpuCores: raw.cpuCores || null,
+        memoryGi: raw.memoryGi || null,
+        minReplicas: raw.minReplicas != null ? Number(raw.minReplicas) : null,
+        maxReplicas: raw.maxReplicas != null ? Number(raw.maxReplicas) : null,
+        ingressEnabled: raw.ingressEnabled ?? null,
+        ingressTargetPort: raw.ingressTargetPort != null ? Number(raw.ingressTargetPort) : null,
+        ingressExternal: raw.ingressExternal ?? null,
+        transportMethod: raw.transportMethod || null,
       };
     });
   }

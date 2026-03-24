@@ -17,6 +17,8 @@ public static class ResourceAbbreviationCatalog
         ["FunctionApp"] = "func",
         ["UserAssignedIdentity"] = "id",
         ["AppConfiguration"] = "appcs",
+        ["ContainerAppEnvironment"] = "cae",
+        ["ContainerApp"] = "ca",
     };
 
     /// <summary>

@@ -10,6 +10,8 @@ export enum ResourceTypeEnum {
   FunctionApp = 'FunctionApp',
   UserAssignedIdentity = 'UserAssignedIdentity',
   AppConfiguration = 'AppConfiguration',
+  ContainerAppEnvironment = 'ContainerAppEnvironment',
+  ContainerApp = 'ContainerApp',
 }
 
 /**
@@ -32,6 +34,8 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   FunctionApp: 'bolt',
   UserAssignedIdentity: 'fingerprint',
   AppConfiguration: 'tune',
+  ContainerAppEnvironment: 'cloud_queue',
+  ContainerApp: 'view_in_ar',
 };
 
 /**
@@ -47,4 +51,6 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Record<string, string> = {
   UserAssignedIdentity: 'id',
   AppConfiguration: 'appcs',
   ResourceGroup: 'rg',
+  ContainerAppEnvironment: 'cae',
+  ContainerApp: 'ca',
 };

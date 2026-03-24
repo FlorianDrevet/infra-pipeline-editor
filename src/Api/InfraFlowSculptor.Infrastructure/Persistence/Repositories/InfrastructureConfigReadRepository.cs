@@ -19,6 +19,10 @@ using InfraFlowSculptor.Domain.WebAppAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate.Entities;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate;
+using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerAppAggregate;
+using InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -84,10 +88,20 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var caeSettings = await dbContext.ContainerAppEnvironmentEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.ContainerAppEnvironmentId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var caSettings = await dbContext.ContainerAppEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.ContainerAppId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -179,7 +193,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<AppServicePlanEnvironmentSettings> aspSettings,
         IReadOnlyList<WebAppEnvironmentSettings> waSettings,
         IReadOnlyList<FunctionAppEnvironmentSettings> faSettings,
-        IReadOnlyList<AppConfigurationEnvironmentSettings> acSettings)
+        IReadOnlyList<AppConfigurationEnvironmentSettings> acSettings,
+        IReadOnlyList<ContainerAppEnvironmentEnvironmentSettings> caeSettings,
+        IReadOnlyList<ContainerAppEnvironmentSettings> caSettings)
     {
         return resource switch
         {
@@ -274,6 +290,29 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 new Dictionary<string, string>(),
                 acSettings
                     .Where(es => es.AppConfigurationId == ac.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            ContainerAppEnvironment cae => new AzureResourceReadModel(
+                cae.Id.Value,
+                cae.Name.Value,
+                MapLocation(cae.Location),
+                "Microsoft.App/managedEnvironments",
+                new Dictionary<string, string>(),
+                caeSettings
+                    .Where(es => es.ContainerAppEnvironmentId == cae.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            ContainerApp ca => new AzureResourceReadModel(
+                ca.Id.Value,
+                ca.Name.Value,
+                MapLocation(ca.Location),
+                "Microsoft.App/containerApps",
+                new Dictionary<string, string>
+                {
+                    ["containerAppEnvironmentId"] = ca.ContainerAppEnvironmentId.Value.ToString()
+                },
+                caSettings
+                    .Where(es => es.ContainerAppId == ca.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
             _ => null
