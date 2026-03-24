@@ -714,6 +714,10 @@
         "BASE_PATH_PLACEHOLDER": "infra/bicep",
         "PERSONAL_ACCESS_TOKEN": "Jeton d'accès personnel (PAT)",
         "PERSONAL_ACCESS_TOKEN_PLACEHOLDER": "Collez votre PAT ici",
+        "PAT_HELP_GITHUB": "Pour generer un PAT GitHub : Settings > Developer settings > Personal access tokens > Fine-grained tokens. Scopes requis : Contents (Read & Write).",
+        "PAT_HELP_GITHUB_LINK": "Creer un token GitHub",
+        "PAT_HELP_AZUREDEVOPS": "Pour generer un PAT Azure DevOps : User settings (icone engrenage) > Personal access tokens. Scopes requis : Code (Read & Write).",
+        "PAT_HELP_AZUREDEVOPS_LINK": "Voir la documentation",
         "CANCEL": "Annuler",
         "SAVE": "Enregistrer"
       }

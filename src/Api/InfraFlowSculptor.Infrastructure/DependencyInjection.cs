@@ -1,4 +1,6 @@
 using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using AzureKeyVaultEmulator.Aspire.Client;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Azure;
@@ -14,6 +16,7 @@ using InfraFlowSculptor.Infrastructure.Services;
 using InfraFlowSculptor.Infrastructure.Services.BlobService;
 using InfraFlowSculptor.Infrastructure.Services.GitProviders;
 using InfraFlowSculptor.Infrastructure.Services.KeyVault;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
 
 namespace InfraFlowSculptor.Infrastructure;
@@ -22,14 +25,15 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        ConfigurationManager builderConfiguration)
+        ConfigurationManager builderConfiguration,
+        IHostEnvironment hostEnvironment)
     {
         services
             .AddAuth(builderConfiguration)
             .AddAzureServices(builderConfiguration)
             .AddBlob(builderConfiguration)
             .AddRepositories()
-            .AddGitProviders();
+            .AddGitProviders(builderConfiguration, hostEnvironment);
         
         services.AddMigration<ProjectDbContext>();
 
@@ -107,18 +111,29 @@ public static class DependencyInjection
     }
 
     private static IServiceCollection AddGitProviders(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        ConfigurationManager builderConfiguration,
+        IHostEnvironment hostEnvironment)
     {
-        var credential = new DefaultAzureCredential();
-
-        services.AddSingleton(sp =>
+        if (hostEnvironment.IsDevelopment())
         {
-            var configuration = sp.GetRequiredService<IConfiguration>();
-            var vaultUri = configuration.GetConnectionString("keyvault")
+            var vaultUri = builderConfiguration.GetConnectionString("keyvault")
                            ?? throw new InvalidOperationException(
                                "Connection string 'keyvault' is required. Configure it via Aspire or appsettings.");
-            return new Azure.Security.KeyVault.Secrets.SecretClient(new Uri(vaultUri), credential);
-        });
+            services.AddAzureKeyVaultEmulator(vaultUri);
+        }
+        else
+        {
+            var credential = new DefaultAzureCredential();
+
+            services.AddSingleton(sp =>
+            {
+                var vaultUri = builderConfiguration.GetConnectionString("keyvault")
+                               ?? throw new InvalidOperationException(
+                                   "Connection string 'keyvault' is required. Configure it via Aspire or appsettings.");
+                return new SecretClient(new Uri(vaultUri), credential);
+            });
+        }
 
         services.AddSingleton<IKeyVaultSecretClient, KeyVaultSecretClient>();
         services.AddSingleton<GitHubGitProviderService>();

@@ -32,7 +32,7 @@ builder.AddNpgsqlDbContext<ProjectDbContext>(connectionName: "infraDb");
 builder.Services
     .AddPresentation()
     .AddApplication()
-    .AddInfrastructure(builder.Configuration)
+    .AddInfrastructure(builder.Configuration, builder.Environment)
     .AddRateLimiting();
 
 if (builder.Environment.IsDevelopment())

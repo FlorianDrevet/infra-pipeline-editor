@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -45,6 +46,8 @@ export class GitConfigDialogComponent {
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
 
+  protected readonly showPat = signal(false);
+
   protected readonly form = this.fb.group({
     providerType: [this.data.existing?.providerType ?? '', Validators.required],
     repositoryUrl: [this.data.existing?.repositoryUrl ?? '', [Validators.required]],
@@ -52,6 +55,11 @@ export class GitConfigDialogComponent {
     basePath: [this.data.existing?.basePath ?? ''],
     personalAccessToken: ['', Validators.required],
   });
+
+  protected readonly selectedProvider = toSignal(
+    this.form.controls.providerType.valueChanges,
+    { initialValue: this.data.existing?.providerType ?? '' }
+  );
 
   protected async onSubmit(): Promise<void> {
     if (this.form.invalid) return;

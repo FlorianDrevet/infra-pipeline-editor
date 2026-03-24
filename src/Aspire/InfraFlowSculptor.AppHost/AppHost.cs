@@ -1,3 +1,4 @@
+using AzureKeyVaultEmulator.Aspire.Hosting;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -16,7 +17,7 @@ var postgres = builder.AddPostgres("postgres")
 
 var database = postgres.AddDatabase("infraDb");
 
-var keyvault = builder.AddAzureKeyVault("keyvault");
+var keyvault = builder.AddAzureKeyVaultEmulator("keyvault");
 
 var infraApi = builder.AddProject<InfraFlowSculptor_Api>("infraflowsculptor-api")
     .WithExternalHttpEndpoints()
