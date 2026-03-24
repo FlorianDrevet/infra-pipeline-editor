@@ -46,11 +46,16 @@ import { saveAs } from 'file-saver';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
-import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS } from './enums/resource-type.enum';
+import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS, PARENT_CHILD_RESOURCE_TYPES, CHILD_RESOURCE_TYPES } from './enums/resource-type.enum';
 import { FormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { BicepHighlightPipe } from './pipes/bicep-highlight.pipe';
 
+interface ResourceDisplayItem {
+  resource: AzureResourceResponse;
+  children?: AzureResourceResponse[];
+  isParent: boolean;
+}
 
 
 @Component({
@@ -113,6 +118,9 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly rgResourcesLoading = signal<string | null>(null);
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
+
+  // ─── Parent-child resource grouping ───
+  protected readonly expandedParentResources = signal<Set<string>>(new Set<string>());
 
   // ─── Bicep Generation ───
   protected readonly bicepLoading = signal(false);
@@ -295,11 +303,89 @@ export class ConfigDetailComponent implements OnInit {
     try {
       const resources = await this.resourceGroupService.getResources(rgId);
       this.rgResources.update((prev) => ({ ...prev, [rgId]: resources }));
+      // Auto-expand all parent resources by default
+      const parentIds = resources
+        .filter((r) => PARENT_CHILD_RESOURCE_TYPES[r.resourceType])
+        .map((r) => r.id);
+      if (parentIds.length > 0) {
+        this.expandedParentResources.update((prev) => {
+          const next = new Set(prev);
+          parentIds.forEach((id) => next.add(id));
+          return next;
+        });
+      }
     } catch {
       this.rgResources.update((prev) => ({ ...prev, [rgId]: [] }));
     } finally {
       this.rgResourcesLoading.set(null);
     }
+  }
+
+  /**
+   * Groups resources into a display-friendly structure: parent resources
+   * with their children nested, and standalone resources listed separately.
+   */
+  protected groupResourcesForRg(rgId: string): ResourceDisplayItem[] {
+    const resources = this.rgResources()[rgId] ?? [];
+    if (resources.length === 0) return [];
+
+    const parentMap = new Map<string, AzureResourceResponse>();
+    const childrenByParent = new Map<string, AzureResourceResponse[]>();
+    const standalone: AzureResourceResponse[] = [];
+
+    // Index parents
+    for (const res of resources) {
+      if (PARENT_CHILD_RESOURCE_TYPES[res.resourceType]) {
+        parentMap.set(res.id, res);
+        if (!childrenByParent.has(res.id)) {
+          childrenByParent.set(res.id, []);
+        }
+      }
+    }
+
+    // Assign children to their parents; fallback to standalone
+    for (const res of resources) {
+      if (parentMap.has(res.id)) continue; // skip parents themselves
+      if (CHILD_RESOURCE_TYPES.has(res.resourceType) && res.parentResourceId && parentMap.has(res.parentResourceId)) {
+        childrenByParent.get(res.parentResourceId)!.push(res);
+      } else {
+        standalone.push(res);
+      }
+    }
+
+    const result: ResourceDisplayItem[] = [];
+
+    // Emit parents with their children
+    for (const [parentId, parent] of parentMap) {
+      result.push({
+        resource: parent,
+        children: childrenByParent.get(parentId) ?? [],
+        isParent: true,
+      });
+    }
+
+    // Emit standalone resources
+    for (const res of standalone) {
+      result.push({ resource: res, isParent: false });
+    }
+
+    return result;
+  }
+
+  protected toggleParentExpand(parentId: string): void {
+    this.expandedParentResources.update((prev) => {
+      const next = new Set(prev);
+      if (next.has(parentId)) {
+        next.delete(parentId);
+      } else {
+        next.add(parentId);
+      }
+      return next;
+    });
+  }
+
+  protected isParentExpanded(parentId: string): boolean {
+    return this.expandedParentResources().has(parentId);
   }
 
   protected openAddResourceDialog(rgId: string): void {
