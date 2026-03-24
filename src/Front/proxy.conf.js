@@ -19,15 +19,9 @@ const apiUrl =
   process.env['services__infraflowsculptor-api__http__0'] ||
   'http://localhost:5257';
 
-const bicepApiUrl =
-  process.env['services__bicep-generator-api__https__0'] ||
-  process.env['services__bicep-generator-api__http__0'] ||
-  'http://localhost:5258';
-
 const otlpUrl = process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] || null;
 
 console.log(`[Aspire Proxy] Main API → ${apiUrl}`);
-console.log(`[Aspire Proxy] Bicep API → ${bicepApiUrl}`);
 if (otlpUrl) {
   console.log(`[Aspire Proxy] OTLP     → ${otlpUrl}`);
 } else {
@@ -41,14 +35,6 @@ const proxies = [
     secure: false,
     changeOrigin: true,
     pathRewrite: { '^/api-proxy': '' },
-    logLevel: 'info',
-  },
-  {
-    context: ['/bicep-api-proxy'],
-    target: bicepApiUrl,
-    secure: false,
-    changeOrigin: true,
-    pathRewrite: { '^/bicep-api-proxy': '' },
     logLevel: 'info',
   },
 ];

@@ -14,6 +14,7 @@ using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectMemberRole;
 using InfraFlowSculptor.Application.Projects.Queries.GetProject;
 using InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectConfigs;
+using InfraFlowSculptor.Application.Projects.Queries.ValidateRecentItems;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Contracts.Projects.Requests;
@@ -23,7 +24,7 @@ using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Api.Errors;
+using InfraFlowSculptor.Api.Errors;
 
 namespace InfraFlowSculptor.Api.Controllers;
 
@@ -401,6 +402,31 @@ public static class ProjectController
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Recent items validation ──────────────────────────────────
+
+            group.MapPost("/validate-recent",
+                    async ([FromBody] ValidateRecentItemsRequest request, IMediator mediator) =>
+                    {
+                        var items = request.Items
+                            .Where(i => Guid.TryParse(i.Id, out _))
+                            .Select(i => new RecentItemReference(Guid.Parse(i.Id), i.Type))
+                            .ToList();
+
+                        var query = new ValidateRecentItemsQuery(items);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            validated => TypedResults.Ok(
+                                validated.Select(r => new RecentItemResponse(r.Id, r.Name, r.Type, r.Description)).ToList()),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ValidateRecentItems")
+                .WithSummary("Validate recently viewed items")
+                .WithDescription("Filters a list of recently viewed items, returning only those the current user still has access to with fresh data.")
+                .Produces<IReadOnlyList<RecentItemResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
         });
     }
 }

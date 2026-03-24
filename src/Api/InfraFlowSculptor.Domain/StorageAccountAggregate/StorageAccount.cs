@@ -1,5 +1,7 @@
+using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
@@ -9,27 +11,6 @@ namespace InfraFlowSculptor.Domain.StorageAccountAggregate;
 
 public class StorageAccount : AzureResource
 {
-    public required StorageAccountSku Sku { get; set; }
-
-    public required StorageAccountKind Kind { get; set; }
-
-    /// <summary>
-    /// The access tier for the storage account (Hot or Cool). Applies to BlobStorage and StorageV2 kinds.
-    /// </summary>
-    public required StorageAccessTier AccessTier { get; set; }
-
-    /// <summary>
-    /// Whether to allow public read access to blobs and containers.
-    /// </summary>
-    public required bool AllowBlobPublicAccess { get; set; }
-
-    /// <summary>
-    /// Whether to enforce HTTPS-only traffic to the storage account.
-    /// </summary>
-    public required bool EnableHttpsTrafficOnly { get; set; }
-
-    public required StorageAccountTlsVersion MinimumTlsVersion { get; set; }
-
     private readonly List<BlobContainer> _blobContainers = new();
     public IReadOnlyList<BlobContainer> BlobContainers => _blobContainers.AsReadOnly();
 
@@ -39,6 +20,11 @@ public class StorageAccount : AzureResource
     private readonly List<StorageTable> _tables = new();
     public IReadOnlyList<StorageTable> Tables => _tables.AsReadOnly();
 
+    private readonly List<StorageAccountEnvironmentSettings> _environmentSettings = new();
+
+    /// <summary>Gets the typed per-environment configuration overrides for this Storage Account.</summary>
+    public IReadOnlyCollection<StorageAccountEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();
+
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages =>
         Array.Empty<ParameterUsage>();
 
@@ -46,60 +32,128 @@ public class StorageAccount : AzureResource
     {
     }
 
-    public BlobContainer AddBlobContainer(string name, BlobContainerPublicAccess publicAccess)
+    /// <summary>
+    /// Adds a new blob container to this storage account.
+    /// Returns a conflict error if a container with the same name (case-insensitive) already exists.
+    /// </summary>
+    public ErrorOr<BlobContainer> AddBlobContainer(string name, BlobContainerPublicAccess publicAccess)
     {
+        if (_blobContainers.Any(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase)))
+            return Errors.StorageAccount.DuplicateBlobContainerName(name);
+
         var container = BlobContainer.Create(Id, name, publicAccess);
         _blobContainers.Add(container);
         return container;
     }
 
-    public StorageQueue AddQueue(string name)
+    /// <summary>
+    /// Adds a new queue to this storage account.
+    /// Returns a conflict error if a queue with the same name (case-insensitive) already exists.
+    /// </summary>
+    public ErrorOr<StorageQueue> AddQueue(string name)
     {
+        if (_queues.Any(q => string.Equals(q.Name, name, StringComparison.OrdinalIgnoreCase)))
+            return Errors.StorageAccount.DuplicateQueueName(name);
+
         var queue = StorageQueue.Create(Id, name);
         _queues.Add(queue);
         return queue;
     }
 
-    public StorageTable AddTable(string name)
+    /// <summary>
+    /// Adds a new table to this storage account.
+    /// Returns a conflict error if a table with the same name (case-insensitive) already exists.
+    /// </summary>
+    public ErrorOr<StorageTable> AddTable(string name)
     {
+        if (_tables.Any(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase)))
+            return Errors.StorageAccount.DuplicateTableName(name);
+
         var table = StorageTable.Create(Id, name);
         _tables.Add(table);
         return table;
     }
 
+    /// <summary>
+    /// Updates the public access level of an existing blob container.
+    /// Returns a not-found error if no container with the given identifier exists.
+    /// </summary>
+    public ErrorOr<Updated> UpdateBlobContainerPublicAccess(BlobContainerId containerId, BlobContainerPublicAccess publicAccess)
+    {
+        var container = _blobContainers.FirstOrDefault(c => c.Id == containerId);
+        if (container is null)
+            return Errors.StorageAccount.BlobContainerNotFoundError(containerId);
+
+        container.UpdatePublicAccess(publicAccess);
+        return Result.Updated;
+    }
+
     public void Update(
         Name name,
-        Location location,
-        StorageAccountSettings settings)
+        Location location)
     {
         Name = name;
         Location = location;
-        Sku = settings.Sku;
-        Kind = settings.Kind;
-        AccessTier = settings.AccessTier;
-        AllowBlobPublicAccess = settings.AllowBlobPublicAccess;
-        EnableHttpsTrafficOnly = settings.EnableHttpsTrafficOnly;
-        MinimumTlsVersion = settings.MinimumTlsVersion;
+    }
+
+    /// <summary>
+    /// Sets the per-environment settings for the given environment.
+    /// Replaces existing settings if one already exists for this environment.
+    /// </summary>
+    public void SetEnvironmentSettings(
+        string environmentName,
+        StorageAccountSku? sku,
+        StorageAccountKind? kind,
+        StorageAccessTier? accessTier,
+        bool? allowBlobPublicAccess,
+        bool? enableHttpsTrafficOnly,
+        StorageAccountTlsVersion? minimumTlsVersion)
+    {
+        var existing = _environmentSettings.FirstOrDefault(
+            es => es.EnvironmentName == environmentName);
+
+        if (existing is not null)
+        {
+            existing.Update(sku, kind, accessTier, allowBlobPublicAccess, enableHttpsTrafficOnly, minimumTlsVersion);
+        }
+        else
+        {
+            _environmentSettings.Add(
+                StorageAccountEnvironmentSettings.Create(Id, environmentName, sku, kind, accessTier, allowBlobPublicAccess, enableHttpsTrafficOnly, minimumTlsVersion));
+        }
+    }
+
+    /// <summary>
+    /// Sets all per-environment settings at once, replacing any existing entries.
+    /// </summary>
+    public void SetAllEnvironmentSettings(
+        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku, StorageAccountKind? Kind, StorageAccessTier? AccessTier, bool? AllowBlobPublicAccess, bool? EnableHttpsTrafficOnly, StorageAccountTlsVersion? MinimumTlsVersion)> settings)
+    {
+        _environmentSettings.Clear();
+        foreach (var s in settings)
+        {
+            _environmentSettings.Add(
+                StorageAccountEnvironmentSettings.Create(Id, s.EnvironmentName, s.Sku, s.Kind, s.AccessTier, s.AllowBlobPublicAccess, s.EnableHttpsTrafficOnly, s.MinimumTlsVersion));
+        }
     }
 
     public static StorageAccount Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        StorageAccountSettings settings)
+        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku, StorageAccountKind? Kind, StorageAccessTier? AccessTier, bool? AllowBlobPublicAccess, bool? EnableHttpsTrafficOnly, StorageAccountTlsVersion? MinimumTlsVersion)>? environmentSettings = null)
     {
-        return new StorageAccount
+        var storageAccount = new StorageAccount
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location,
-            Sku = settings.Sku,
-            Kind = settings.Kind,
-            AccessTier = settings.AccessTier,
-            AllowBlobPublicAccess = settings.AllowBlobPublicAccess,
-            EnableHttpsTrafficOnly = settings.EnableHttpsTrafficOnly,
-            MinimumTlsVersion = settings.MinimumTlsVersion
+            Location = location
         };
+
+        if (environmentSettings is not null)
+            storageAccount.SetAllEnvironmentSettings(environmentSettings);
+
+        return storageAccount;
     }
 }

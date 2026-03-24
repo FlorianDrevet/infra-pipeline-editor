@@ -16,12 +16,22 @@
     <section class="detail-header">
       <div class="detail-header__nav">
         <a class="ghost-button" [routerLink]="['/projects', config()!.projectId]">{{ 'CONFIG_DETAIL.ACTIONS.BACK' | translate }}</a>
-        @if (isOwner()) {
-          <button class="delete-btn" (click)="openDeleteConfigDialog()">
-            <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
-            {{ 'CONFIG_DETAIL.DELETE.BUTTON' | translate }}
+        <div class="detail-header__actions">
+          <button class="bicep-cta" (click)="generateBicep()" [disabled]="bicepLoading()">
+            @if (bicepLoading()) {
+              <mat-spinner diameter="18" class="bicep-cta__spinner"></mat-spinner>
+            } @else {
+              <mat-icon class="bicep-cta__icon">terminal</mat-icon>
+            }
+            {{ (bicepLoading() ? 'CONFIG_DETAIL.BICEP.GENERATING' : 'CONFIG_DETAIL.BICEP.GENERATE') | translate }}
           </button>
-        }
+          @if (isOwner()) {
+            <button class="delete-btn" (click)="openDeleteConfigDialog()">
+              <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
+              {{ 'CONFIG_DETAIL.DELETE.BUTTON' | translate }}
+            </button>
+          }
+        </div>
       </div>
       <div class="detail-header__info">
         <span class="eyebrow">{{ 'CONFIG_DETAIL.HEADER.OVERLINE' | translate }}</span>
@@ -29,6 +39,214 @@
         <p class="detail-header__id">{{ config()!.id }}</p>
       </div>
     </section>
+
+    <!-- Bicep Generation Panel -->
+    @if (bicepPanelOpen()) {
+      <section class="bicep-panel" [class.bicep-panel--success]="bicepResult()" [class.bicep-panel--error]="bicepErrorKey()">
+        <div class="bicep-panel__header" (click)="bicepPanelCollapsed.set(!bicepPanelCollapsed())">
+          <div class="bicep-panel__title-row">
+            <mat-icon class="bicep-panel__chevron" [class.bicep-panel__chevron--open]="!bicepPanelCollapsed()">chevron_right</mat-icon>
+            <mat-icon class="bicep-panel__title-icon">
+              @if (bicepLoading()) { hourglass_top }
+              @else if (bicepResult()) { check_circle }
+              @else { error_outline }
+            </mat-icon>
+            <h2 class="bicep-panel__title">
+              @if (bicepLoading()) {
+                {{ 'CONFIG_DETAIL.BICEP.PANEL_GENERATING' | translate }}
+              } @else if (bicepResult()) {
+                {{ 'CONFIG_DETAIL.BICEP.PANEL_SUCCESS' | translate }}
+              } @else {
+                {{ 'CONFIG_DETAIL.BICEP.PANEL_ERROR' | translate }}
+              }
+            </h2>
+          </div>
+          <div class="bicep-panel__actions" (click)="$event.stopPropagation()">
+            @if (bicepResult()) {
+              <button class="bicep-download-btn" (click)="downloadBicepFiles()" [disabled]="bicepDownloading()">
+                @if (bicepDownloading()) {
+                  <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                } @else {
+                  <mat-icon>download</mat-icon>
+                }
+                {{ (bicepDownloading() ? 'CONFIG_DETAIL.BICEP.DOWNLOADING' : 'CONFIG_DETAIL.BICEP.DOWNLOAD') | translate }}
+              </button>
+            }
+            <button class="bicep-panel__close" (click)="closeBicepPanel()" [matTooltip]="'CONFIG_DETAIL.BICEP.CLOSE' | translate">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        @if (!bicepPanelCollapsed()) {
+          <div class="bicep-panel__body">
+
+        @if (bicepLoading()) {
+          <div class="bicep-panel__loading">
+            <div class="bicep-terminal">
+              <div class="bicep-terminal__bar">
+                <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                <span class="bicep-terminal__bar-title">bicep-generator</span>
+              </div>
+              <div class="bicep-terminal__body">
+                <p class="bicep-terminal__line bicep-terminal__line--active">
+                  <span class="bicep-terminal__prompt">$</span>
+                  {{ 'CONFIG_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}
+                  <span class="bicep-terminal__cursor"></span>
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (bicepErrorKey()) {
+          <div class="bicep-panel__error-body">
+            <p>{{ bicepErrorKey() | translate }}</p>
+            <button class="bicep-retry-btn" (click)="generateBicep()">
+              <mat-icon>refresh</mat-icon>
+              {{ 'CONFIG_DETAIL.BICEP.RETRY' | translate }}
+            </button>
+          </div>
+        }
+
+        @if (bicepResult(); as result) {
+          <div class="bicep-terminal">
+            <div class="bicep-terminal__bar">
+              <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+              <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+              <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+              <span class="bicep-terminal__bar-title">bicep-generator &mdash; {{ 'CONFIG_DETAIL.BICEP.ARTIFACTS' | translate }}</span>
+            </div>
+            <div class="bicep-terminal__body">
+              <p class="bicep-terminal__line">
+                <span class="bicep-terminal__prompt">$</span>
+                {{ 'CONFIG_DETAIL.BICEP.TERMINAL_DONE' | translate }}
+              </p>
+              <div class="bicep-tree">
+                <!-- types.bicep -->
+                <button class="bicep-tree__item"
+                        [class.bicep-tree__item--active]="bicepViewerFile() === 'types.bicep'"
+                        (click)="openBicepFile('types.bicep')">
+                  <mat-icon class="bicep-tree__icon">data_object</mat-icon>
+                  <span class="bicep-tree__name">types.bicep</span>
+                  <span class="bicep-tree__badge bicep-tree__badge--types">{{ 'CONFIG_DETAIL.BICEP.TYPES' | translate }}</span>
+                </button>
+                <!-- functions.bicep -->
+                <button class="bicep-tree__item"
+                        [class.bicep-tree__item--active]="bicepViewerFile() === 'functions.bicep'"
+                        (click)="openBicepFile('functions.bicep')">
+                  <mat-icon class="bicep-tree__icon">functions</mat-icon>
+                  <span class="bicep-tree__name">functions.bicep</span>
+                  <span class="bicep-tree__badge bicep-tree__badge--functions">{{ 'CONFIG_DETAIL.BICEP.FUNCTIONS' | translate }}</span>
+                </button>
+                <!-- main.bicep -->
+                <button class="bicep-tree__item bicep-tree__item--main"
+                        [class.bicep-tree__item--active]="bicepViewerFile() === 'main.bicep'"
+                        (click)="openBicepFile('main.bicep')">
+                  <mat-icon class="bicep-tree__icon">description</mat-icon>
+                  <span class="bicep-tree__name">main.bicep</span>
+                  <span class="bicep-tree__badge">{{ 'CONFIG_DETAIL.BICEP.ENTRY_POINT' | translate }}</span>
+                </button>
+                <!-- parameters/ folder -->
+                @if (bicepParamEntries().length > 0) {
+                  <button class="bicep-tree__folder" (click)="toggleBicepFolder('parameters')">
+                    <mat-icon class="bicep-tree__folder-chevron" [class.bicep-tree__folder-chevron--open]="isBicepFolderExpanded('parameters')">chevron_right</mat-icon>
+                    <mat-icon class="bicep-tree__folder-icon">{{ isBicepFolderExpanded('parameters') ? 'folder_open' : 'folder' }}</mat-icon>
+                    <span>parameters/</span>
+                  </button>
+                  @if (isBicepFolderExpanded('parameters')) {
+                    <div class="bicep-tree__folder-children">
+                      @for (param of bicepParamEntries(); track param.name) {
+                        <button class="bicep-tree__item bicep-tree__item--submodule"
+                                [class.bicep-tree__item--active]="bicepViewerFile() === param.name"
+                                (click)="openBicepFile(param.name)">
+                          <mat-icon class="bicep-tree__icon">tune</mat-icon>
+                          <span class="bicep-tree__name">{{ param.name.split('/').at(-1) }}</span>
+                          <span class="bicep-tree__badge bicep-tree__badge--params">{{ 'CONFIG_DETAIL.BICEP.PARAMETERS' | translate }}</span>
+                        </button>
+                      }
+                    </div>
+                  }
+                }
+                <!-- Modules -->
+                @if (bicepModuleFolders().length > 0) {
+                  <button class="bicep-tree__folder" (click)="toggleBicepFolder('modules')">
+                    <mat-icon class="bicep-tree__folder-chevron" [class.bicep-tree__folder-chevron--open]="isBicepFolderExpanded('modules')">chevron_right</mat-icon>
+                    <mat-icon class="bicep-tree__folder-icon">{{ isBicepFolderExpanded('modules') ? 'folder_open' : 'folder' }}</mat-icon>
+                    <span>modules/</span>
+                  </button>
+                  @if (isBicepFolderExpanded('modules')) {
+                    <div class="bicep-tree__folder-children">
+                      @for (subfolder of bicepModuleFolders(); track subfolder.folderKey) {
+                        <button class="bicep-tree__subfolder" (click)="toggleBicepFolder(subfolder.folderKey)">
+                          <mat-icon class="bicep-tree__folder-chevron" [class.bicep-tree__folder-chevron--open]="isBicepFolderExpanded(subfolder.folderKey)">chevron_right</mat-icon>
+                          <mat-icon class="bicep-tree__folder-icon">{{ isBicepFolderExpanded(subfolder.folderKey) ? 'folder_open' : 'folder' }}</mat-icon>
+                          <span>{{ subfolder.folderName }}/</span>
+                        </button>
+                        @if (isBicepFolderExpanded(subfolder.folderKey)) {
+                          <div class="bicep-tree__folder-children">
+                            @for (file of subfolder.files; track file.name) {
+                              @if (file.displayName === 'types.bicep') {
+                                <button class="bicep-tree__item bicep-tree__item--submodule"
+                                        [class.bicep-tree__item--active]="bicepViewerFile() === file.name"
+                                        (click)="openBicepFile(file.name)">
+                                  <mat-icon class="bicep-tree__icon">data_object</mat-icon>
+                                  <span class="bicep-tree__name">{{ file.displayName }}</span>
+                                  <span class="bicep-tree__badge bicep-tree__badge--types">{{ 'CONFIG_DETAIL.BICEP.TYPES' | translate }}</span>
+                                </button>
+                              } @else {
+                                <button class="bicep-tree__item bicep-tree__item--submodule"
+                                        [class.bicep-tree__item--active]="bicepViewerFile() === file.name"
+                                        (click)="openBicepFile(file.name)">
+                                  <mat-icon class="bicep-tree__icon">memory</mat-icon>
+                                  <span class="bicep-tree__name">{{ file.displayName }}</span>
+                                </button>
+                              }
+                            }
+                          </div>
+                        }
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- File Content Viewer -->
+          @if (bicepViewerFile()) {
+            <div class="bicep-viewer">
+              <div class="bicep-viewer__bar">
+                <span class="bicep-viewer__dot bicep-viewer__dot--red"></span>
+                <span class="bicep-viewer__dot bicep-viewer__dot--yellow"></span>
+                <span class="bicep-viewer__dot bicep-viewer__dot--green"></span>
+                <span class="bicep-viewer__bar-title">{{ bicepViewerFile() }}</span>
+                <button class="bicep-viewer__close" (click)="closeBicepViewer()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div class="bicep-viewer__body">
+                @if (bicepViewerLoading()) {
+                  <div class="bicep-viewer__loading">
+                    <span class="bicep-terminal__prompt">$</span>
+                    <span class="bicep-viewer__loading-text">{{ 'CONFIG_DETAIL.BICEP.FILE_LOADING' | translate }}</span>
+                    <span class="bicep-terminal__cursor"></span>
+                  </div>
+                } @else if (bicepViewerContent()) {
+                  <pre class="bicep-viewer__code"><code [innerHTML]="bicepViewerContent() | bicepHighlight"></code></pre>
+                } @else {
+                  <p class="bicep-viewer__error">{{ 'CONFIG_DETAIL.BICEP.FILE_ERROR' | translate }}</p>
+                }
+              </div>
+            </div>
+          }
+        }
+          </div>
+        }
+      </section>
+    }
 
     <mat-tab-group class="config-tabs" animationDuration="200ms">
       <!-- Resource Groups -->
@@ -68,25 +286,40 @@
             <div class="rg-list">
               @for (rg of resourceGroups(); track rg.id) {
                 <article class="rg-accordion" [class.rg-accordion--expanded]="expandedRgId() === rg.id">
-                  <button class="rg-accordion__header" (click)="toggleRgExpand(rg.id)">
+                  <div
+                    class="rg-accordion__header"
+                    role="button"
+                    tabindex="0"
+                    [attr.aria-expanded]="expandedRgId() === rg.id"
+                    (click)="toggleRgExpand(rg.id)"
+                    (keydown.enter)="toggleRgExpand(rg.id)"
+                    (keydown.space)="toggleRgExpand(rg.id); $event.preventDefault()">
                     <mat-icon class="rg-accordion__chevron">expand_more</mat-icon>
                     <div class="rg-accordion__info">
-                      <strong>{{ rg.name }}</strong>
+                      <div class="rg-name-row">
+                        <strong>{{ rg.name }}</strong>
+                        @if (resolveNamingPreview(rg.name, 'ResourceGroup'); as preview) {
+                          <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                            <mat-icon class="naming-preview__icon">label</mat-icon>
+                            {{ preview }}
+                          </span>
+                        }
+                      </div>
                       <span class="rg-accordion__location">
                         <mat-icon>location_on</mat-icon>
                         {{ rg.location }}
                       </span>
-                      @if (resolveNamingPreview(rg.name, 'ResourceGroup'); as preview) {
-                        <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                          <mat-icon class="naming-preview__icon">label</mat-icon>
-                          {{ preview }}
-                        </span>
-                      }
                     </div>
+                    @if (canWrite()) {
+                      <button class="add-resource-btn add-resource-btn--inline" (click)="openAddResourceDialog(rg.id); $event.stopPropagation()">
+                        <mat-icon class="add-resource-btn__icon">add_circle_outline</mat-icon>
+                        {{ 'CONFIG_DETAIL.RESOURCES.ADD' | translate }}
+                      </button>
+                    }
                     <span class="rg-accordion__count">
                       {{ rgResources()[rg.id]?.length ?? '…' }}
                     </span>
-                  </button>
+                  </div>
                   @if (expandedRgId() === rg.id) {
                     <div class="rg-accordion__body">
                       @if (rgResourcesLoading() === rg.id) {
@@ -95,31 +328,254 @@
                           <span>{{ 'CONFIG_DETAIL.RESOURCES.LOADING' | translate }}</span>
                         </div>
                       } @else {
-                        <div class="rg-resources-toolbar">
-                          @if (canWrite()) {
-                            <button class="add-resource-btn" (click)="openAddResourceDialog(rg.id); $event.stopPropagation()">
-                              <mat-icon class="add-resource-btn__icon">add_circle_outline</mat-icon>
-                              {{ 'CONFIG_DETAIL.RESOURCES.ADD' | translate }}
-                            </button>
-                          }
-                        </div>
                         @if ((rgResources()[rg.id] || []).length > 0) {
                           <div class="resource-list">
-                            @for (res of rgResources()[rg.id]!; track res.id) {
-                              <div class="resource-item">
-                                <mat-icon class="resource-item__icon">{{ resourceTypeIcons[res.resourceType] || 'widgets' }}</mat-icon>
-                                <div class="resource-item__info">
-                                  <strong>{{ res.name }}</strong>
-                                  <span class="resource-item__type">{{ res.resourceType }}</span>
-                                  @if (resolveNamingPreview(res.name, res.resourceType); as preview) {
-                                    <span class="naming-preview naming-preview--inline" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                                      <mat-icon class="naming-preview__icon">label</mat-icon>
-                                      {{ preview }}
+                            @for (item of groupResourcesForRg(rg.id); track item.resource.id) {
+                              @if (item.isParent && item.resource.resourceType === 'StorageAccount') {
+                                <!-- StorageAccount parent with storage sub-resources -->
+                                <div class="resource-parent-group" [class.resource-parent-group--expanded]="isParentExpanded(item.resource.id)">
+                                  <button class="resource-parent-header" (click)="toggleStorageParentExpand(item.resource.id)">
+                                    <mat-icon class="resource-parent-header__chevron">expand_more</mat-icon>
+                                    <mat-icon class="resource-item__icon">{{ resourceTypeIcons[item.resource.resourceType] || 'widgets' }}</mat-icon>
+                                    <div class="resource-item__info">
+                                      <div class="resource-name-row">
+                                        <strong>{{ item.resource.name }}</strong>
+                                        @if (resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
+                                          <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                            <mat-icon class="naming-preview__icon">label</mat-icon>
+                                            {{ preview }}
+                                          </span>
+                                        }
+                                      </div>
+                                      <span class="resource-item__type">{{ item.resource.resourceType }}</span>
+                                    </div>
+                                    <span class="resource-parent-header__count">
+                                      @if (storageDetailsLoading() === item.resource.id) {
+                                        …
+                                      } @else {
+                                        {{ getStorageSubResourceCount(item.resource.id) }}
+                                      }
                                     </span>
+                                    <span class="resource-item__location">{{ item.resource.location }}</span>
+                                    <div class="resource-item__actions" (click)="$event.stopPropagation()">
+                                      <a
+                                        class="resource-action-btn resource-action-btn--edit"
+                                        [routerLink]="['/config', config()!.id, 'resource', item.resource.resourceType, item.resource.id]"
+                                        [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                        <mat-icon>edit</mat-icon>
+                                      </a>
+                                      @if (canWrite()) {
+                                        <button
+                                          class="resource-action-btn resource-action-btn--delete"
+                                          [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                          (click)="openDeleteResourceDialog(item.resource, rg.id)">
+                                          <mat-icon>delete_outline</mat-icon>
+                                        </button>
+                                      }
+                                    </div>
+                                  </button>
+                                  @if (isParentExpanded(item.resource.id)) {
+                                    <div class="resource-children">
+                                      @if (storageDetailsLoading() === item.resource.id) {
+                                        <div class="rg-resources-loading">
+                                          <mat-spinner diameter="18"></mat-spinner>
+                                          <span>{{ 'CONFIG_DETAIL.RESOURCES.LOADING' | translate }}</span>
+                                        </div>
+                                      } @else if (storageAccountDetails()[item.resource.id]) {
+                                        <!-- Blob Containers section -->
+                                        @if (storageAccountDetails()[item.resource.id]!.blobContainers.length > 0) {
+                                          <div class="storage-section">
+                                            <div class="storage-section__header">
+                                              <mat-icon class="storage-section__icon">folder</mat-icon>
+                                              <span class="storage-section__title">{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_BLOB_SECTION' | translate }}</span>
+                                              <span class="storage-section__count">{{ storageAccountDetails()[item.resource.id]!.blobContainers.length }}</span>
+                                            </div>
+                                            @for (blob of storageAccountDetails()[item.resource.id]!.blobContainers; track blob.id) {
+                                              <button class="storage-sub-item" (click)="navigateToStorageTab(item.resource.id, 'blob_containers')">
+                                                <mat-icon class="storage-sub-item__icon">folder</mat-icon>
+                                                <span class="storage-sub-item__name">{{ blob.name }}</span>
+                                                <span class="storage-sub-item__badge">{{ publicAccessI18nKey(blob.publicAccess) | translate }}</span>
+                                              </button>
+                                            }
+                                          </div>
+                                        }
+                                        <!-- Queues section -->
+                                        @if (storageAccountDetails()[item.resource.id]!.queues.length > 0) {
+                                          <div class="storage-section">
+                                            <div class="storage-section__header">
+                                              <mat-icon class="storage-section__icon">queue</mat-icon>
+                                              <span class="storage-section__title">{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_QUEUE_SECTION' | translate }}</span>
+                                              <span class="storage-section__count">{{ storageAccountDetails()[item.resource.id]!.queues.length }}</span>
+                                            </div>
+                                            @for (q of storageAccountDetails()[item.resource.id]!.queues; track q.id) {
+                                              <button class="storage-sub-item" (click)="navigateToStorageTab(item.resource.id, 'queues')">
+                                                <mat-icon class="storage-sub-item__icon">queue</mat-icon>
+                                                <span class="storage-sub-item__name">{{ q.name }}</span>
+                                              </button>
+                                            }
+                                          </div>
+                                        }
+                                        <!-- Tables section -->
+                                        @if (storageAccountDetails()[item.resource.id]!.tables.length > 0) {
+                                          <div class="storage-section">
+                                            <div class="storage-section__header">
+                                              <mat-icon class="storage-section__icon">table_chart</mat-icon>
+                                              <span class="storage-section__title">{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_TABLE_SECTION' | translate }}</span>
+                                              <span class="storage-section__count">{{ storageAccountDetails()[item.resource.id]!.tables.length }}</span>
+                                            </div>
+                                            @for (t of storageAccountDetails()[item.resource.id]!.tables; track t.id) {
+                                              <button class="storage-sub-item" (click)="navigateToStorageTab(item.resource.id, 'tables')">
+                                                <mat-icon class="storage-sub-item__icon">table_chart</mat-icon>
+                                                <span class="storage-sub-item__name">{{ t.name }}</span>
+                                              </button>
+                                            }
+                                          </div>
+                                        }
+                                        @if (storageAccountDetails()[item.resource.id]!.blobContainers.length === 0 && storageAccountDetails()[item.resource.id]!.queues.length === 0 && storageAccountDetails()[item.resource.id]!.tables.length === 0) {
+                                          <div class="resource-children-empty">
+                                            <mat-icon>storage</mat-icon>
+                                            <span>{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_SUB_EMPTY' | translate }}</span>
+                                          </div>
+                                        }
+                                      } @else {
+                                        <div class="resource-children-empty">
+                                          <mat-icon>storage</mat-icon>
+                                          <span>{{ 'CONFIG_DETAIL.RESOURCES.STORAGE_SUB_EMPTY' | translate }}</span>
+                                        </div>
+                                      }
+                                      @if (canWrite()) {
+                                        <button class="add-child-resource-btn" (click)="openAddStorageSubResourceDialog(item.resource.id)">
+                                          <mat-icon class="add-child-resource-btn__icon">add_circle_outline</mat-icon>
+                                          {{ 'CONFIG_DETAIL.RESOURCES.ADD_STORAGE_SERVICE' | translate }}
+                                        </button>
+                                      }
+                                    </div>
                                   }
                                 </div>
-                                <span class="resource-item__location">{{ res.location }}</span>
-                              </div>
+                              } @else if (item.isParent) {
+                                <!-- Parent resource with collapsible children -->
+                                <div class="resource-parent-group" [class.resource-parent-group--expanded]="isParentExpanded(item.resource.id)">
+                                  <button class="resource-parent-header" (click)="toggleParentExpand(item.resource.id)">
+                                    <mat-icon class="resource-parent-header__chevron">expand_more</mat-icon>
+                                    <mat-icon class="resource-item__icon">{{ resourceTypeIcons[item.resource.resourceType] || 'widgets' }}</mat-icon>
+                                    <div class="resource-item__info">
+                                      <div class="resource-name-row">
+                                        <strong>{{ item.resource.name }}</strong>
+                                        @if (resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
+                                          <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                            <mat-icon class="naming-preview__icon">label</mat-icon>
+                                            {{ preview }}
+                                          </span>
+                                        }
+                                      </div>
+                                      <span class="resource-item__type">{{ item.resource.resourceType }}</span>
+                                    </div>
+                                    <span class="resource-parent-header__count">{{ item.children?.length ?? 0 }}</span>
+                                    <span class="resource-item__location">{{ item.resource.location }}</span>
+                                    <div class="resource-item__actions" (click)="$event.stopPropagation()">
+                                      <a
+                                        class="resource-action-btn resource-action-btn--edit"
+                                        [routerLink]="['/config', config()!.id, 'resource', item.resource.resourceType, item.resource.id]"
+                                        [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                        <mat-icon>edit</mat-icon>
+                                      </a>
+                                      @if (canWrite()) {
+                                        <button
+                                          class="resource-action-btn resource-action-btn--delete"
+                                          [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                          (click)="openDeleteResourceDialog(item.resource, rg.id)">
+                                          <mat-icon>delete_outline</mat-icon>
+                                        </button>
+                                      }
+                                    </div>
+                                  </button>
+                                  @if (isParentExpanded(item.resource.id)) {
+                                    <div class="resource-children">
+                                      @if (item.children && item.children.length > 0) {
+                                        @for (child of item.children; track child.id) {
+                                          <div class="resource-item resource-item--child">
+                                            <mat-icon class="resource-item__icon">{{ resourceTypeIcons[child.resourceType] || 'widgets' }}</mat-icon>
+                                            <div class="resource-item__info">
+                                              <div class="resource-name-row">
+                                                <strong>{{ child.name }}</strong>
+                                                @if (resolveNamingPreview(child.name, child.resourceType); as preview) {
+                                                  <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                                    <mat-icon class="naming-preview__icon">label</mat-icon>
+                                                    {{ preview }}
+                                                  </span>
+                                                }
+                                              </div>
+                                              <span class="resource-item__type">{{ child.resourceType }}</span>
+                                            </div>
+                                            <span class="resource-item__location">{{ child.location }}</span>
+                                            <div class="resource-item__actions">
+                                              <a
+                                                class="resource-action-btn resource-action-btn--edit"
+                                                [routerLink]="['/config', config()!.id, 'resource', child.resourceType, child.id]"
+                                                [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                                <mat-icon>edit</mat-icon>
+                                              </a>
+                                              @if (canWrite()) {
+                                                <button
+                                                  class="resource-action-btn resource-action-btn--delete"
+                                                  [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                                  (click)="openDeleteResourceDialog(child, rg.id)">
+                                                  <mat-icon>delete_outline</mat-icon>
+                                                </button>
+                                              }
+                                            </div>
+                                          </div>
+                                        }
+                                      } @else {
+                                        <div class="resource-children-empty">
+                                          <mat-icon>widgets</mat-icon>
+                                          <span>{{ 'CONFIG_DETAIL.RESOURCES.NO_CHILDREN' | translate }}</span>
+                                        </div>
+                                      }
+                                      @if (canWrite()) {
+                                        <button class="add-child-resource-btn" (click)="openAddChildResourceDialog(item.resource, rg.id)">
+                                          <mat-icon class="add-child-resource-btn__icon">add_circle_outline</mat-icon>
+                                          {{ 'CONFIG_DETAIL.RESOURCES.ADD_CHILD' | translate }}
+                                        </button>
+                                      }
+                                    </div>
+                                  }
+                                </div>
+                              } @else {
+                                <!-- Standalone resource (not a parent, or orphan child) -->
+                                <div class="resource-item">
+                                  <mat-icon class="resource-item__icon">{{ resourceTypeIcons[item.resource.resourceType] || 'widgets' }}</mat-icon>
+                                  <div class="resource-item__info">
+                                    <div class="resource-name-row">
+                                      <strong>{{ item.resource.name }}</strong>
+                                      @if (resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
+                                        <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                          <mat-icon class="naming-preview__icon">label</mat-icon>
+                                          {{ preview }}
+                                        </span>
+                                      }
+                                    </div>
+                                    <span class="resource-item__type">{{ item.resource.resourceType }}</span>
+                                  </div>
+                                  <span class="resource-item__location">{{ item.resource.location }}</span>
+                                  <div class="resource-item__actions">
+                                    <a
+                                      class="resource-action-btn resource-action-btn--edit"
+                                      [routerLink]="['/config', config()!.id, 'resource', item.resource.resourceType, item.resource.id]"
+                                      [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                      <mat-icon>edit</mat-icon>
+                                    </a>
+                                    @if (canWrite()) {
+                                      <button
+                                        class="resource-action-btn resource-action-btn--delete"
+                                        [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                        (click)="openDeleteResourceDialog(item.resource, rg.id)">
+                                        <mat-icon>delete_outline</mat-icon>
+                                      </button>
+                                    }
+                                  </div>
+                                </div>
+                              }
                             }
                           </div>
                         } @else {

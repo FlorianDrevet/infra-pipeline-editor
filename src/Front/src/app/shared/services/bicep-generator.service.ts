@@ -1,23 +1,34 @@
-import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment';
-import { MethodEnum } from '../enums/method.enum';
+import { Injectable } from '@angular/core';
+import axios from 'axios';
 import {
   GenerateBicepRequest,
   GenerateBicepResponse,
 } from '../interfaces/bicep-generator.interface';
-import { AxiosService } from './axios.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BicepGeneratorService {
-  private readonly axios = inject(AxiosService);
-
-  generate(request: GenerateBicepRequest): Promise<GenerateBicepResponse> {
-    return this.axios.request$<GenerateBicepResponse>(
-      MethodEnum.POST,
-      `${environment.bicep_api_url}/generate-bicep`,
-      request
+  async generate(request: GenerateBicepRequest): Promise<GenerateBicepResponse> {
+    const response = await axios.post<GenerateBicepResponse>(
+      '/generate-bicep',
+      request,
     );
+    return response.data;
+  }
+
+  async downloadZip(configId: string): Promise<Blob> {
+    const response = await axios.get(
+      `/generate-bicep/${configId}/download`,
+      { responseType: 'blob' },
+    );
+    return response.data as Blob;
+  }
+
+  async getFileContent(configId: string, filePath: string): Promise<string> {
+    const response = await axios.get<{ content: string }>(
+      `/generate-bicep/${configId}/files/${filePath}`,
+    );
+    return response.data.content;
   }
 }

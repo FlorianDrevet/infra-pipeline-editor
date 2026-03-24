@@ -37,6 +37,13 @@ export const routes: Routes = [
             (m) => m.ConfigDetailComponent
           ),
       },
+      {
+        path: 'config/:configId/resource/:resourceType/:resourceId',
+        loadComponent: () =>
+          import('./features/resource-edit/resource-edit.component').then(
+            (m) => m.ResourceEditComponent
+          ),
+      },
     ],
   },
   {

@@ -5,7 +5,7 @@ using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
-using Shared.Domain.Domain.Models;
+using InfraFlowSculptor.Domain.Common.Models;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 
@@ -19,6 +19,7 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
     {
         return await Context.Set<StorageAccount>()
             .Include(s => s.DependsOn)
+            .Include(s => s.EnvironmentSettings)
             .Include(s => s.BlobContainers)
             .Include(s => s.Queues)
             .Include(s => s.Tables)
@@ -29,6 +30,7 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
     {
         return await Context.Set<StorageAccount>()
             .Include(s => s.DependsOn)
+            .Include(s => s.EnvironmentSettings)
             .Include(s => s.BlobContainers)
             .Include(s => s.Queues)
             .Include(s => s.Tables)
@@ -39,6 +41,7 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
     {
         return await Context.Set<StorageAccount>()
             .Include(s => s.DependsOn)
+            .Include(s => s.EnvironmentSettings)
             .Include(s => s.BlobContainers)
             .Include(s => s.Queues)
             .Include(s => s.Tables)

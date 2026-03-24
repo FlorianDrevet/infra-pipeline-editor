@@ -12,24 +12,12 @@
     <Project Path="src/Aspire/InfraFlowSculptor.AppHost/InfraFlowSculptor.AppHost.csproj" />
     <Project Path="src/Aspire/InfraFlowSculptor.ServiceDefaults/InfraFlowSculptor.ServiceDefaults.csproj" />
   </Folder>
-  <Folder Name="/src/BicepGenerators/">
-    <Project Path="src/BicepGenerators/BicepGenerator.Api/BicepGenerator.Api.csproj" />
-    <Project Path="src/BicepGenerators/BicepGenerator.Application/BicepGenerator.Application.csproj" />
-    <Project Path="src/BicepGenerators/BicepGenerator.Contracts/BicepGenerator.Contracts.csproj" />
-    <Project Path="src/BicepGenerators/BicepGenerator.Domain/BicepGenerator.Domain.csproj" />
-    <Project Path="src/BicepGenerators/BicepGenerator.Infrastructure/BicepGenerator.Infrastructure.csproj" />
-  </Folder>
   <Folder Name="/src/InfrastructureConfigApi/">
     <Project Path="src/Api/InfraFlowSculptor.Api/InfraFlowSculptor.Api.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Application/InfraFlowSculptor.Application.csproj" />
+    <Project Path="src/Api/InfraFlowSculptor.BicepGeneration/InfraFlowSculptor.BicepGeneration.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Contracts/InfraFlowSculptor.Contracts.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Domain/InfraFlowSculptor.Domain.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Infrastructure/InfraFlowSculptor.Infrastructure.csproj" />
-  </Folder>
-  <Folder Name="/src/Shared/">
-    <Project Path="src/Shared/Shared.Api/Shared.Api.csproj" />
-    <Project Path="src/Shared/Shared.Application/Shared.Application.csproj" />
-    <Project Path="src/Shared/Shared.Domain/Shared.Domain.csproj" />
-    <Project Path="src/Shared/Shared.Infrastructure/Shared.Infrastructure.csproj" />
   </Folder>
 </Solution>

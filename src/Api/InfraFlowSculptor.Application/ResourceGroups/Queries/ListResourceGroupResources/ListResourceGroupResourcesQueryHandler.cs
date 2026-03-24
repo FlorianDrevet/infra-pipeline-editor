@@ -3,6 +3,8 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.ResourceGroups.Common;
+using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MediatR;
 
@@ -25,8 +27,18 @@ public class ListResourceGroupResourcesQueryHandler(
         if (authResult.IsError)
             return Errors.ResourceGroup.NotFound(query.Id);
 
+        // Query parent FK mappings directly from child TPT tables
+        // to guarantee correct resolution regardless of TPT materialization order.
+        var parentMapping = await resourceGroupRepository.GetChildToParentMappingAsync(query.Id, cancellationToken);
+
         return resourceGroup.Resources
-            .Select(r => new AzureResourceResult(r.Id, r.GetType().Name, r.Name, r.Location))
+            .Select(r =>
+            {
+                var parentId = parentMapping.TryGetValue(r.Id.Value, out var pid)
+                    ? new AzureResourceId(pid)
+                    : null;
+                return new AzureResourceResult(r.Id, r.GetType().Name, r.Name, r.Location, parentId);
+            })
             .ToList();
     }
 }

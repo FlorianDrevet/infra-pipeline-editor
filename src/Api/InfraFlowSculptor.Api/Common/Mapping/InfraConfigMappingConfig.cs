@@ -77,7 +77,9 @@ public class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.UseProjectEnvironments, src => src.UseProjectEnvironments)
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
-            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
+            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.ResourceGroupCount, src => src.ResourceGroupCount)
+            .Map(dest => dest.ResourceCount, src => src.ResourceCount);
 
         // InfrastructureConfig domain -> GetInfrastructureConfigResult
         config.NewConfig<Domain.InfrastructureConfigAggregate.InfrastructureConfig, GetInfrastructureConfigResult>()

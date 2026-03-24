@@ -3,6 +3,8 @@ using FluentValidation;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.Projects.Common;
+using InfraFlowSculptor.BicepGeneration;
+using InfraFlowSculptor.BicepGeneration.Generators;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using InfraFlowSculptor.Application.Common.Behaviors;
@@ -26,6 +28,24 @@ public static class DependencyInjection
         // Access control services
         services.AddScoped<IInfraConfigAccessService, InfraConfigAccessService>();
         services.AddScoped<IProjectAccessService, ProjectAccessService>();
+
+        // Bicep generation domain services
+        services.AddSingleton<IResourceTypeBicepGenerator, StorageAccountTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, KeyVaultTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, RedisCacheTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, AppServicePlanTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, WebAppTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, FunctionAppTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, UserAssignedIdentityTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, AppConfigurationTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, ContainerAppEnvironmentTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, ContainerAppTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, LogAnalyticsWorkspaceTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, ApplicationInsightsTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, CosmosDbTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, SqlServerTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, SqlDatabaseTypeBicepGenerator>();
+        services.AddSingleton<BicepGenerationEngine>();
 
         return services;
     }

@@ -6,9 +6,8 @@ using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Shared.Infrastructure.Persistence.Configurations;
-using Shared.Infrastructure.Persistence.Configurations.Converters;
-using Shared.Infrastructure.Persistence.Configurations.Extensions;
+using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
+using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Extensions;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;

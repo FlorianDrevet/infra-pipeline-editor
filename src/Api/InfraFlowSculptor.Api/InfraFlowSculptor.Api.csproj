@@ -13,6 +13,7 @@
     <ItemGroup>
         <PackageReference Include="Aspire.Npgsql" />
         <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+        <PackageReference Include="ErrorOr" />
         <PackageReference Include="Mapster" />
         <PackageReference Include="Mapster.DependencyInjection" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
@@ -25,7 +26,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Aspire\InfraFlowSculptor.ServiceDefaults\InfraFlowSculptor.ServiceDefaults.csproj" />
-        <ProjectReference Include="..\..\Shared\Shared.Api\Shared.Api.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Contracts\InfraFlowSculptor.Contracts.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Application\InfraFlowSculptor.Application.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Infrastructure\InfraFlowSculptor.Infrastructure.csproj" />

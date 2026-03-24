@@ -1,6 +1,4 @@
-﻿using BicepGenerator.Domain.Common.Models;
-using Shared.Domain.Domain.Models;
-using Shared.Domain.Models;
+using InfraFlowSculptor.Domain.Common.Models;
 
 namespace InfraFlowSculptor.Domain.Common.ValueObjects;
 
@@ -8,14 +6,36 @@ public class Location(Location.LocationEnum value) : EnumValueObject<Location.Lo
 {
     public enum LocationEnum
     {
-        EastUS,
-        WestUS,
-        CentralUS,
-        NorthEurope,
+        FranceCentral,
+        FranceSouth,
+        UKSouth,
         WestEurope,
-        SoutheastAsia,
+        GermanyWestCentral,
+        SwitzerlandNorth,
+        ItalyNorth,
+        NorthEurope,
+        SpainCentral,
+        NorwayEast,
+        PolandCentral,
+        SwedenCentral,
+        QatarCentral,
+        UAENorth,
+        CanadaEast,
+        CanadaCentral,
+        EastUS,
+        EastUS2,
+        CentralIndia,
+        CentralUS,
+        SouthCentralUS,
+        WestUS2,
+        SouthAfricaNorth,
+        WestUS3,
+        WestUS,
+        KoreaCentral,
+        BrazilSouth,
         EastAsia,
-        AustraliaEast,
         JapanEast,
+        SoutheastAsia,
+        AustraliaEast,
     }
 }

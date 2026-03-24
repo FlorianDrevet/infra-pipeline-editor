@@ -13,6 +13,15 @@ public static class AzureRoleDefinitionCatalog
     private const string RedisCacheDocsUrl =
         "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication";
 
+    private const string StorageAccountDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/storage/common/storage-auth-aad-rbac-portal";
+
+    private const string AppServicePlanDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity";
+
+    private const string WebAppDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity";
+
     private static readonly IReadOnlyList<AzureRoleDefinition> KeyVaultRoles =
     [
         new("00482a5a-887f-4fb3-b363-3b7fe8e74483",
@@ -84,10 +93,336 @@ public static class AzureRoleDefinitionCatalog
             RedisCacheDocsUrl),
     ];
 
+    private static readonly IReadOnlyList<AzureRoleDefinition> StorageAccountRoles =
+    [
+        new("ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+            "Storage Blob Data Contributor",
+            "Read, write, and delete Azure Storage containers and blobs.",
+            StorageAccountDocsUrl),
+
+        new("2a2b9908-6ea1-4ae2-8e65-a410df84e7d1",
+            "Storage Blob Data Reader",
+            "Read and list Azure Storage containers and blobs.",
+            StorageAccountDocsUrl),
+
+        new("b7e6dc6d-f1e8-4753-8033-0f276bb0955b",
+            "Storage Blob Data Owner",
+            "Full access to Azure Storage blob containers and data, including assigning POSIX access control.",
+            StorageAccountDocsUrl),
+
+        new("0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3",
+            "Storage Table Data Contributor",
+            "Read, write, and delete access to Azure Storage tables and entities.",
+            StorageAccountDocsUrl),
+
+        new("76199698-9eea-4c19-bc75-cec21354c6b6",
+            "Storage Table Data Reader",
+            "Read access to Azure Storage tables and entities.",
+            StorageAccountDocsUrl),
+
+        new("0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb",
+            "Storage Queue Data Contributor",
+            "Read, write, and delete Azure Storage queues and queue messages.",
+            StorageAccountDocsUrl),
+
+        new("19e7f393-937e-4f77-808e-94535e297925",
+            "Storage Queue Data Reader",
+            "Read and list Azure Storage queues and queue messages.",
+            StorageAccountDocsUrl),
+
+        new("17d1049b-9a84-46fb-8f53-869881c3d3ab",
+            "Storage Account Contributor",
+            "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data.",
+            StorageAccountDocsUrl),
+    ];
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> AppServicePlanRoles =
+    [
+        new("de139f84-1756-47ae-9be6-808fbbe84772",
+            "Website Contributor",
+            "Lets you manage websites (not web plans), but not access to them.",
+            AppServicePlanDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            AppServicePlanDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            AppServicePlanDocsUrl),
+    ];
+
+    private const string UserAssignedIdentityDocsUrl =
+        "https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> UserAssignedIdentityRoles =
+    [
+        new("f1a07417-d97a-45cb-824c-7a7467783830",
+            "Managed Identity Operator",
+            "Read and assign user-assigned managed identity.",
+            UserAssignedIdentityDocsUrl),
+        new("e40ec5ca-96e0-45a2-b4ff-59039f2c2b59",
+            "Managed Identity Contributor",
+            "Create, read, update, and delete user-assigned managed identity.",
+            UserAssignedIdentityDocsUrl),
+    ];
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> WebAppRoles =
+    [
+        new("de139f84-1756-47ae-9be6-808fbbe84772",
+            "Website Contributor",
+            "Lets you manage websites (not web plans), but not access to them.",
+            WebAppDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            WebAppDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            WebAppDocsUrl),
+    ];
+
+    private const string FunctionAppDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-functions/functions-identity-based-connections-tutorial";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> FunctionAppRoles =
+    [
+        new("de139f84-1756-47ae-9be6-808fbbe84772",
+            "Website Contributor",
+            "Lets you manage websites (not web plans), but not access to them.",
+            FunctionAppDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            FunctionAppDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            FunctionAppDocsUrl),
+    ];
+
+    private const string AppConfigurationDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> AppConfigurationRoles =
+    [
+        new("516239f1-63e1-4d78-a4de-a74fb236a071",
+            "App Configuration Data Reader",
+            "Allows read access to App Configuration data.",
+            AppConfigurationDocsUrl),
+
+        new("5ae67dd6-50cb-40e7-96ff-dc2bfa4b606b",
+            "App Configuration Data Owner",
+            "Allows full access to App Configuration data.",
+            AppConfigurationDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            AppConfigurationDocsUrl),
+    ];
+
+    private const string ContainerAppEnvironmentDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/container-apps/managed-identity";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> ContainerAppEnvironmentRoles =
+    [
+        new("12710879-3cda-4e3e-8c7c-bf6d0cae531e",
+            "ContainerApp Environment Contributor",
+            "Manage Container App Environments.",
+            ContainerAppEnvironmentDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            ContainerAppEnvironmentDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            ContainerAppEnvironmentDocsUrl),
+    ];
+
+    private const string ContainerAppDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/container-apps/managed-identity";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> ContainerAppRoles =
+    [
+        new("854e5e7e-28f7-4e24-bc87-eb5c2280195d",
+            "ContainerApp Contributor",
+            "Manage Container Apps.",
+            ContainerAppDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            ContainerAppDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            ContainerAppDocsUrl),
+    ];
+
+    private const string LogAnalyticsWorkspaceDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/manage-access";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> LogAnalyticsWorkspaceRoles =
+    [
+        new("92aaf0da-9dab-42b6-94a3-d43ce8d16293",
+            "Log Analytics Contributor",
+            "Can read all monitoring data and edit monitoring settings. Includes managing Log Analytics workspaces.",
+            LogAnalyticsWorkspaceDocsUrl),
+
+        new("73c42c96-874c-492b-b04d-ab87d138a893",
+            "Log Analytics Reader",
+            "Can view and search all monitoring data as well as view monitoring settings.",
+            LogAnalyticsWorkspaceDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            LogAnalyticsWorkspaceDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            LogAnalyticsWorkspaceDocsUrl),
+    ];
+
+    private const string CosmosDbDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/role-based-access-control";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> CosmosDbRoles =
+    [
+        new("fbdf93bf-df7d-467e-a4d2-9458aa1360c8",
+            "Cosmos DB Account Reader Role",
+            "Can read Azure Cosmos DB account data.",
+            CosmosDbDocsUrl),
+
+        new("5bd9cd88-fe45-4216-938b-f97437e15450",
+            "DocumentDB Account Contributor",
+            "Can manage Azure Cosmos DB accounts.",
+            CosmosDbDocsUrl),
+
+        new("230815da-be43-4aae-9cb4-875f7bd000aa",
+            "Cosmos DB Operator",
+            "Lets you manage Azure Cosmos DB accounts, but not access data in them.",
+            CosmosDbDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            CosmosDbDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            CosmosDbDocsUrl),
+    ];
+
+    private const string ApplicationInsightsDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-monitor/app/resources-roles-access-control";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> ApplicationInsightsRoles =
+    [
+        new("ae349356-3a1b-4a5e-921d-050484c6347e",
+            "Application Insights Component Contributor",
+            "Can manage Application Insights components.",
+            ApplicationInsightsDocsUrl),
+
+        new("749f88d5-cbae-40b8-bcfc-e573ddc772fa",
+            "Monitoring Contributor",
+            "Can read all monitoring data and update monitoring settings.",
+            ApplicationInsightsDocsUrl),
+
+        new("43d0d8ad-25c7-4714-9337-8ba259a9fe05",
+            "Monitoring Reader",
+            "Can read all monitoring data.",
+            ApplicationInsightsDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            ApplicationInsightsDocsUrl),
+    ];
+
+    private const string SqlServerDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> SqlServerRoles =
+    [
+        new("6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437",
+            "SQL Server Contributor",
+            "Lets you manage SQL servers and databases, but not access to them, and not their security-related policies.",
+            SqlServerDocsUrl),
+
+        new("056cd41c-7e88-42e1-933e-a3ba3f36885e",
+            "SQL Security Manager",
+            "Lets you manage the security-related policies of SQL servers and databases, but not access to them.",
+            SqlServerDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            SqlServerDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            SqlServerDocsUrl),
+    ];
+
+    private const string SqlDatabaseDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> SqlDatabaseRoles =
+    [
+        new("9b7fa17d-e63e-47b0-bb0a-15c516ac86ec",
+            "SQL DB Contributor",
+            "Lets you manage SQL databases, but not access to them. Also, you can't manage their security-related policies or their parent SQL servers.",
+            SqlDatabaseDocsUrl),
+
+        new("6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437",
+            "SQL Server Contributor",
+            "Lets you manage SQL servers and databases, but not access to them, and not their security-related policies.",
+            SqlDatabaseDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            SqlDatabaseDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            SqlDatabaseDocsUrl),
+    ];
+
     private static readonly Dictionary<string, IReadOnlyList<AzureRoleDefinition>> Catalog = new()
     {
         { "KeyVault", KeyVaultRoles },
         { "RedisCache", RedisCacheRoles },
+        { "StorageAccount", StorageAccountRoles },
+        { "AppServicePlan", AppServicePlanRoles },
+        { "WebApp", WebAppRoles },
+        { "FunctionApp", FunctionAppRoles },
+        { "UserAssignedIdentity", UserAssignedIdentityRoles },
+        { "AppConfiguration", AppConfigurationRoles },
+        { "ContainerAppEnvironment", ContainerAppEnvironmentRoles },
+        { "ContainerApp", ContainerAppRoles },
+        { "LogAnalyticsWorkspace", LogAnalyticsWorkspaceRoles },
+        { "ApplicationInsights", ApplicationInsightsRoles },
+        { "CosmosDb", CosmosDbRoles },
+        { "SqlServer", SqlServerRoles },
+        { "SqlDatabase", SqlDatabaseRoles },
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>

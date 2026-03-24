@@ -6,6 +6,7 @@ using InfraFlowSculptor.Application.StorageAccounts.Commands.DeleteStorageAccoun
 using InfraFlowSculptor.Application.StorageAccounts.Commands.RemoveBlobContainer;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.RemoveQueue;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.RemoveTable;
+using InfraFlowSculptor.Application.StorageAccounts.Commands.UpdateBlobContainerPublicAccess;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.UpdateStorageAccount;
 using InfraFlowSculptor.Application.StorageAccounts.Queries;
 using InfraFlowSculptor.Contracts.StorageAccounts.Requests;
@@ -16,7 +17,7 @@ using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Api.Errors;
+using InfraFlowSculptor.Api.Errors;
 
 namespace InfraFlowSculptor.Api.Controllers;
 
@@ -163,6 +164,35 @@ public static class StorageAccountController
                 .WithSummary("Remove a Blob Container")
                 .WithDescription("Removes a Blob Container from the specified Storage Account. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            storageAccounts.MapPut("/{id:guid}/blob-containers/{containerId:guid}",
+                    async ([FromRoute] Guid id, [FromRoute] Guid containerId, UpdateBlobContainerPublicAccessRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var publicAccess = new BlobContainerPublicAccess(
+                            Enum.Parse<BlobContainerPublicAccess.AccessLevel>(request.PublicAccess));
+
+                        var command = new UpdateBlobContainerPublicAccessCommand(
+                            new AzureResourceId(id),
+                            new BlobContainerId(containerId),
+                            publicAccess);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            sa =>
+                            {
+                                var response = mapper.Map<StorageAccountResponse>(sa);
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("UpdateBlobContainerPublicAccess")
+                .WithSummary("Update Blob Container Public Access")
+                .WithDescription("Updates the public access level of an existing Blob Container. Returns the updated Storage Account. Requires Owner or Contributor access.")
+                .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 

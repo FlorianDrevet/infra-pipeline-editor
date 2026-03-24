@@ -9,7 +9,6 @@ export interface MsalConfigInterface {
 export interface EnvironmentInterface {
   production: boolean;
   api_url: string;
-  bicep_api_url: string;
   /** Enable OpenTelemetry traces export to Aspire Dashboard via /otlp proxy. */
   otlpEnabled?: boolean;
   msalConfig: MsalConfigInterface;

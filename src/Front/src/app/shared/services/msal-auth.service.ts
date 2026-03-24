@@ -144,6 +144,28 @@ export class MsalAuthService {
     }
   }
 
+  public async getAccessTokenForScopes(scopes: string[]): Promise<string | null> {
+    await this.initialize();
+    const account = this.resolveActiveAccount();
+    if (!account) {
+      return null;
+    }
+    try {
+      const request: SilentRequest = { scopes, account };
+      const result = await this.msalInstance.acquireTokenSilent(request);
+      return result.accessToken || null;
+    } catch (err) {
+      console.warn('MsalAuthService: silent token acquisition failed for scopes, trying popup', scopes, err);
+      try {
+        const result = await this.msalInstance.acquireTokenPopup({ scopes, account });
+        return result.accessToken || null;
+      } catch (popupErr) {
+        console.warn('MsalAuthService: popup token acquisition also failed', popupErr);
+        return null;
+      }
+    }
+  }
+
   public async logout(): Promise<void> {
     await this.initialize();
     const account = this.resolveActiveAccount();

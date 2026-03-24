@@ -4,8 +4,7 @@ using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Shared.Infrastructure.Persistence.Configurations;
-using Shared.Infrastructure.Persistence.Configurations.Converters;
+using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Configurations;
 
@@ -15,28 +14,6 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
     {
         builder.HasBaseType<AzureResource>()
             .ToTable("StorageAccounts");
-
-        builder.Property(s => s.Sku)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<StorageAccountSku, StorageAccountSku.Sku>());
-
-        builder.Property(s => s.Kind)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<StorageAccountKind, StorageAccountKind.Kind>());
-
-        builder.Property(s => s.AccessTier)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<StorageAccessTier, StorageAccessTier.Tier>());
-
-        builder.Property(s => s.AllowBlobPublicAccess)
-            .IsRequired();
-
-        builder.Property(s => s.EnableHttpsTrafficOnly)
-            .IsRequired();
-
-        builder.Property(s => s.MinimumTlsVersion)
-            .IsRequired()
-            .HasConversion(new EnumValueConverter<StorageAccountTlsVersion, StorageAccountTlsVersion.Version>());
 
         builder.HasMany(s => s.BlobContainers)
             .WithOne()
@@ -63,6 +40,15 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
 
         builder.Navigation(s => s.Tables)
             .HasField("_tables")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(sa => sa.EnvironmentSettings)
+            .WithOne()
+            .HasForeignKey(es => es.StorageAccountId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(sa => sa.EnvironmentSettings)
+            .HasField("_environmentSettings")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

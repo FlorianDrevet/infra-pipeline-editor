@@ -48,6 +48,8 @@ export interface InfrastructureConfigResponse {
   useProjectNamingConventions: boolean;
   environmentDefinitions: EnvironmentDefinitionResponse[];
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
+  resourceGroupCount: number;
+  resourceCount: number;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────

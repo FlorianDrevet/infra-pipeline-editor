@@ -38,6 +38,106 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("AzureResourceDependencies");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities.AppConfigurationEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AppConfigurationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("DisableLocalAuth")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("PublicNetworkAccess")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool?>("PurgeProtectionEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Sku")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("SoftDeleteRetentionInDays")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppConfigurationId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("AppConfigurationEnvironmentSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities.AppServicePlanEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AppServicePlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Capacity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sku")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppServicePlanId");
+
+                    b.ToTable("AppServicePlanEnvironmentSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities.ApplicationInsightsEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ApplicationInsightsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("DisableIpMasking")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("DisableLocalAuth")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("IngestionMode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("RetentionInDays")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("SamplingPercentage")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationInsightsId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("ApplicationInsightsEnvironmentSettings", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", b =>
                 {
                     b.Property<Guid>("Id")
@@ -94,6 +194,31 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("ResourceLinks", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.ResourceEnvironmentConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Properties")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("ResourceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ResourceId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("ResourceEnvironmentConfigs", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.RoleAssignment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -111,6 +236,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("TargetResourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UserAssignedIdentityId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -150,6 +278,179 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ResourceParameterUsages", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppAggregate.Entities.ContainerAppEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ContainerAppId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContainerImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("CpuCores")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool?>("IngressEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("IngressExternal")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("IngressTargetPort")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MaxReplicas")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MemoryGi")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<int?>("MinReplicas")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TransportMethod")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContainerAppId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("ContainerAppEnvironmentSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.Entities.ContainerAppEnvironmentEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ContainerAppEnvironmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool?>("InternalLoadBalancerEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LogAnalyticsWorkspaceId")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Sku")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("WorkloadProfileType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool?>("ZoneRedundancyEnabled")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContainerAppEnvironmentId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("ContainerAppEnvironmentEnvironmentSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.CosmosDbAggregate.Entities.CosmosDbEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BackupPolicyType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ConsistencyLevel")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("CosmosDbId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DatabaseApiType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool?>("EnableAutomaticFailover")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("EnableFreeTier")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("EnableMultipleWriteLocations")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("MaxIntervalInSeconds")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MaxStalenessPrefix")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CosmosDbId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("CosmosDbEnvironmentSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.Entities.FunctionAppEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("FunctionAppId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FunctionsWorkerRuntime")
+                        .HasColumnType("text");
+
+                    b.Property<bool?>("HttpsOnly")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("MaxInstanceCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RuntimeStack")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RuntimeVersion")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FunctionAppId");
+
+                    b.ToTable("FunctionAppEnvironmentSettings", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ParameterDefinition", b =>
@@ -238,6 +539,61 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("InfrastructureConfigs", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.KeyVaultAggregate.Entities.KeyVaultEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("KeyVaultId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Sku")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KeyVaultId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("KeyVaultEnvironmentSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities.LogAnalyticsWorkspaceEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("DailyQuotaGb")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("LogAnalyticsWorkspaceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("RetentionInDays")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Sku")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LogAnalyticsWorkspaceId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("LogAnalyticsWorkspaceEnvironmentSettings", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectMember", b =>
                 {
                     b.Property<Guid>("Id")
@@ -309,6 +665,45 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("Projects", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.RedisCacheAggregate.Entities.RedisCacheEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Capacity")
+                        .HasColumnType("integer");
+
+                    b.Property<bool?>("EnableNonSslPort")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("MaxMemoryPolicy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("MinimumTlsVersion")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("RedisCacheId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("RedisVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Sku")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RedisCacheId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("RedisCacheEnvironmentSettings", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup", b =>
                 {
                     b.Property<Guid>("Id")
@@ -332,6 +727,57 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("ResourceGroup", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities.SqlDatabaseEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("MaxSizeGb")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Sku")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SqlDatabaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("ZoneRedundant")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SqlDatabaseId");
+
+                    b.ToTable("SqlDatabaseEnvironmentSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.SqlServerAggregate.Entities.SqlServerEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MinimalTlsVersion")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid>("SqlServerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SqlServerId");
+
+                    b.ToTable("SqlServerEnvironmentSettings", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.Entities.BlobContainer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -353,6 +799,45 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasIndex("StorageAccountId");
 
                     b.ToTable("BlobContainers", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.Entities.StorageAccountEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccessTier")
+                        .HasColumnType("text");
+
+                    b.Property<bool?>("AllowBlobPublicAccess")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("EnableHttpsTrafficOnly")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Kind")
+                        .HasColumnType("text");
+
+                    b.Property<string>("MinimumTlsVersion")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sku")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("StorageAccountId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StorageAccountId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("StorageAccountEnvironmentSettings", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.Entities.StorageQueue", b =>
@@ -422,72 +907,198 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("User", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.Entities.WebAppEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("AlwaysOn")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool?>("HttpsOnly")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RuntimeStack")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RuntimeVersion")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("WebAppId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WebAppId");
+
+                    b.ToTable("WebAppEnvironmentSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppConfigurationAggregate.AppConfiguration", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.ToTable("AppConfigurations", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppServicePlanAggregate.AppServicePlan", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<string>("OsType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.ToTable("AppServicePlans", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.ApplicationInsights", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<Guid>("LogAnalyticsWorkspaceId")
+                        .HasColumnType("uuid");
+
+                    b.ToTable("ApplicationInsights", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppAggregate.ContainerApp", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<Guid>("ContainerAppEnvironmentId")
+                        .HasColumnType("uuid");
+
+                    b.ToTable("ContainerApps", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.ContainerAppEnvironment", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.ToTable("ContainerAppEnvironments", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.CosmosDbAggregate.CosmosDb", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.ToTable("CosmosDbAccounts", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<Guid>("AppServicePlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("HttpsOnly")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RuntimeStack")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RuntimeVersion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.ToTable("FunctionApps", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
 
-                    b.Property<string>("Sku")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.ToTable("KeyVaults", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.ToTable("LogAnalyticsWorkspaces", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.RedisCacheAggregate.RedisCache", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
 
-                    b.Property<int>("Capacity")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("EnableNonSslPort")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("MaxMemoryPolicy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("MinimumTlsVersion")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("RedisVersion")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Sku")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.ToTable("RedisCaches", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.SqlDatabaseAggregate.SqlDatabase", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<string>("Collation")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<Guid>("SqlServerId")
+                        .HasColumnType("uuid");
+
+                    b.ToTable("SqlDatabases", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.SqlServerAggregate.SqlServer", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<string>("AdministratorLogin")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.ToTable("SqlServers", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
 
-                    b.Property<string>("AccessTier")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("AllowBlobPublicAccess")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("EnableHttpsTrafficOnly")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Kind")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("MinimumTlsVersion")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Sku")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.ToTable("StorageAccounts", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.UserAssignedIdentityAggregate.UserAssignedIdentity", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.ToTable("UserAssignedIdentities", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<bool>("AlwaysOn")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("AppServicePlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("HttpsOnly")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RuntimeStack")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RuntimeVersion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.ToTable("WebApps", (string)null);
                 });
 
             modelBuilder.Entity("AzureResourceDependencies", b =>
@@ -501,6 +1112,33 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany()
                         .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities.AppConfigurationEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.AppConfigurationAggregate.AppConfiguration", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("AppConfigurationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities.AppServicePlanEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.AppServicePlanAggregate.AppServicePlan", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("AppServicePlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities.ApplicationInsightsEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.ApplicationInsights", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("ApplicationInsightsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -565,6 +1203,42 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany()
                         .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppAggregate.Entities.ContainerAppEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ContainerAppAggregate.ContainerApp", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("ContainerAppId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.Entities.ContainerAppEnvironmentEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.ContainerAppEnvironment", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("ContainerAppEnvironmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.CosmosDbAggregate.Entities.CosmosDbEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.CosmosDbAggregate.CosmosDb", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("CosmosDbId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.Entities.FunctionAppEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("FunctionAppId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -701,6 +1375,24 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("EnvironmentDefinitions");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.KeyVaultAggregate.Entities.KeyVaultEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("KeyVaultId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities.LogAnalyticsWorkspaceEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("LogAnalyticsWorkspaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectMember", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Project", "Project")
@@ -808,6 +1500,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("EnvironmentDefinitions");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.RedisCacheAggregate.Entities.RedisCacheEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.RedisCacheAggregate.RedisCache", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("RedisCacheId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ResourceGroupAggregate.ResourceGroup", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", "InfraConfig")
@@ -819,10 +1520,37 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("InfraConfig");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities.SqlDatabaseEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.SqlDatabaseAggregate.SqlDatabase", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("SqlDatabaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.SqlServerAggregate.Entities.SqlServerEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.SqlServerAggregate.SqlServer", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("SqlServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.Entities.BlobContainer", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", null)
                         .WithMany("BlobContainers")
+                        .HasForeignKey("StorageAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.Entities.StorageAccountEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", null)
+                        .WithMany("EnvironmentSettings")
                         .HasForeignKey("StorageAccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -846,11 +1574,92 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.Entities.WebAppEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("WebAppId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppConfigurationAggregate.AppConfiguration", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.AppConfigurationAggregate.AppConfiguration", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppServicePlanAggregate.AppServicePlan", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.AppServicePlanAggregate.AppServicePlan", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.ApplicationInsights", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.ApplicationInsights", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppAggregate.ContainerApp", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.ContainerAppAggregate.ContainerApp", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.ContainerAppEnvironment", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.ContainerAppEnvironment", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.CosmosDbAggregate.CosmosDb", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.CosmosDbAggregate.CosmosDb", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithOne()
                         .HasForeignKey("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -864,11 +1673,47 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.SqlDatabaseAggregate.SqlDatabase", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.SqlDatabaseAggregate.SqlDatabase", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.SqlServerAggregate.SqlServer", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.SqlServerAggregate.SqlServer", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithOne()
                         .HasForeignKey("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.UserAssignedIdentityAggregate.UserAssignedIdentity", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.UserAssignedIdentityAggregate.UserAssignedIdentity", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -905,13 +1750,80 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("Resources");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppConfigurationAggregate.AppConfiguration", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.AppServicePlanAggregate.AppServicePlan", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.ApplicationInsights", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppAggregate.ContainerApp", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.ContainerAppEnvironment", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.CosmosDbAggregate.CosmosDb", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.RedisCacheAggregate.RedisCache", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.SqlDatabaseAggregate.SqlDatabase", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.SqlServerAggregate.SqlServer", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.StorageAccountAggregate.StorageAccount", b =>
                 {
                     b.Navigation("BlobContainers");
 
+                    b.Navigation("EnvironmentSettings");
+
                     b.Navigation("Queues");
 
                     b.Navigation("Tables");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.WebAppAggregate.WebApp", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
                 });
 #pragma warning restore 612, 618
         }

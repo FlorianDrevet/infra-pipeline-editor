@@ -4,10 +4,10 @@ using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.ServiceDefaults;
-using Shared.Api.Configuration;
-using Shared.Api.Errors;
-using Shared.Api.Options;
-using Shared.Api.RateLimiting;
+using InfraFlowSculptor.Api.Configuration;
+using InfraFlowSculptor.Api.Errors;
+using InfraFlowSculptor.Api.Options;
+using InfraFlowSculptor.Api.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +72,19 @@ app.UseResourceGroupController();
 app.UseRedisCacheController();
 app.UseRoleAssignmentController();
 app.UseStorageAccountController();
+app.UseAppServicePlanController();
+app.UseWebAppController();
+app.UseFunctionAppController();
+app.UseUserAssignedIdentityController();
+app.UseAppConfigurationController();
+app.UseContainerAppEnvironmentController();
+app.UseContainerAppController();
+app.UseLogAnalyticsWorkspaceController();
+app.UseApplicationInsightsController();
+app.UseCosmosDbController();
+app.UseSqlServerController();
+app.UseSqlDatabaseController();
+app.UseBicepGenerationController();
 app.MapDefaultEndpoints();
 
 await app.RunAsync();

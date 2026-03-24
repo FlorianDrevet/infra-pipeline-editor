@@ -12,6 +12,18 @@ public static class ResourceAbbreviationCatalog
         ["RedisCache"] = "redis",
         ["StorageAccount"] = "stg",
         ["ResourceGroup"] = "rg",
+        ["AppServicePlan"] = "asp",
+        ["WebApp"] = "app",
+        ["FunctionApp"] = "func",
+        ["UserAssignedIdentity"] = "id",
+        ["AppConfiguration"] = "appcs",
+        ["ContainerAppEnvironment"] = "cae",
+        ["ContainerApp"] = "ca",
+        ["LogAnalyticsWorkspace"] = "law",
+        ["ApplicationInsights"] = "appi",
+        ["CosmosDb"] = "cosmos",
+        ["SqlServer"] = "sql",
+        ["SqlDatabase"] = "sqldb",
     };
 
     /// <summary>

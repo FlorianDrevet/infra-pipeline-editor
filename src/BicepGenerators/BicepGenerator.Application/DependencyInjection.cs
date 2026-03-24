@@ -1,30 +1,27 @@
-using System.Reflection;
 using BicepGenerator.Domain;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using BicepGenerator.Application.Common.Behaviors;
 
 namespace BicepGenerator.Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    public static IServiceCollection AddBicepApplication(this IServiceCollection services)
     {
-        // CQRS with MediatR
+        // MediatR handlers for Bicep generation (accumulates with main API's registration)
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssemblies(typeof(DependencyInjection).Assembly, Assembly.GetExecutingAssembly()));
-
-        // Behaviors
-        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 
         // Validators
-        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
         // Domain services — Bicep generators
         services.AddSingleton<IResourceTypeBicepGenerator, StorageAccountTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, KeyVaultTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, RedisCacheTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, AppServicePlanTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, WebAppTypeBicepGenerator>();
         services.AddSingleton<BicepGenerationEngine>();
 
         return services;

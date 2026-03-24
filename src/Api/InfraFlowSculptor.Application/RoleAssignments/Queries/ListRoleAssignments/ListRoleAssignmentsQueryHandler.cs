@@ -40,7 +40,8 @@ public class ListRoleAssignmentsQueryHandler(
                 r.SourceResourceId,
                 r.TargetResourceId,
                 r.ManagedIdentityType,
-                r.RoleDefinitionId))
+                r.RoleDefinitionId,
+                r.UserAssignedIdentityId))
             .ToList();
 
         return results;

@@ -2,7 +2,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.UserAggregate;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
-using Shared.Infrastructure.Persistence.Repositories;
+using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 

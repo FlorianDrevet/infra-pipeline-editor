@@ -6,6 +6,7 @@ export interface RoleAssignmentResponse {
   targetResourceId: string;
   managedIdentityType: string;
   roleDefinitionId: string;
+  userAssignedIdentityId?: string;
 }
 
 export interface AzureRoleDefinitionResponse {
@@ -21,4 +22,5 @@ export interface AddRoleAssignmentRequest {
   targetResourceId: string;
   managedIdentityType: string;
   roleDefinitionId: string;
+  userAssignedIdentityId?: string;
 }

@@ -1,0 +1,122 @@
+using InfraFlowSculptor.Application.UserAssignedIdentities.Commands.CreateUserAssignedIdentity;
+using InfraFlowSculptor.Application.UserAssignedIdentities.Commands.DeleteUserAssignedIdentity;
+using InfraFlowSculptor.Application.UserAssignedIdentities.Commands.UpdateUserAssignedIdentity;
+using InfraFlowSculptor.Application.UserAssignedIdentities.Queries.GetUserAssignedIdentity;
+using InfraFlowSculptor.Contracts.UserAssignedIdentities.Requests;
+using InfraFlowSculptor.Contracts.UserAssignedIdentities.Responses;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using MediatR;
+using MapsterMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using InfraFlowSculptor.Api.Errors;
+
+namespace InfraFlowSculptor.Api.Controllers;
+
+/// <summary>
+/// Minimal API endpoints for user-assigned managed identity CRUD operations.
+/// </summary>
+public static class UserAssignedIdentityController
+{
+    /// <summary>
+    /// Maps the user-assigned identity endpoint group to the application pipeline.
+    /// </summary>
+    public static IApplicationBuilder UseUserAssignedIdentityController(this IApplicationBuilder builder)
+    {
+        return builder.UseEndpoints(endpoints =>
+        {
+            var group = endpoints.MapGroup("/user-assigned-identity")
+                .WithTags("User Assigned Identities");
+
+            group.MapGet("/{id:guid}",
+                    async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new GetUserAssignedIdentityQuery(new AzureResourceId(id));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            identity =>
+                            {
+                                var response = mapper.Map<UserAssignedIdentityResponse>(identity);
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GetUserAssignedIdentity")
+                .WithSummary("Get a User Assigned Identity")
+                .WithDescription("Returns the full details of a single user-assigned managed identity resource.")
+                .Produces<UserAssignedIdentityResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPost("",
+                    async (CreateUserAssignedIdentityRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = mapper.Map<CreateUserAssignedIdentityCommand>(request);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            identity =>
+                            {
+                                var response = mapper.Map<UserAssignedIdentityResponse>(identity);
+                                return TypedResults.CreatedAtRoute(
+                                    routeName: "GetUserAssignedIdentity",
+                                    routeValues: new { id = response.Id },
+                                    value: response
+                                );
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("CreateUserAssignedIdentity")
+                .WithSummary("Create a User Assigned Identity")
+                .WithDescription("Creates a new user-assigned managed identity inside the specified Resource Group. Requires Owner or Contributor access.")
+                .Produces<UserAssignedIdentityResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPut("/{id:guid}",
+                    async ([FromRoute] Guid id, UpdateUserAssignedIdentityRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = mapper.Map<UpdateUserAssignedIdentityCommand>((id, request));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            identity =>
+                            {
+                                var response = mapper.Map<UserAssignedIdentityResponse>(identity);
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("UpdateUserAssignedIdentity")
+                .WithSummary("Update a User Assigned Identity")
+                .WithDescription("Replaces all mutable properties of an existing user-assigned managed identity. Requires Owner or Contributor access.")
+                .Produces<UserAssignedIdentityResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapDelete("/{id:guid}",
+                    async ([FromRoute] Guid id, IMediator mediator) =>
+                    {
+                        var command = new DeleteUserAssignedIdentityCommand(new AzureResourceId(id));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("DeleteUserAssignedIdentity")
+                .WithSummary("Delete a User Assigned Identity")
+                .WithDescription("Permanently deletes a user-assigned managed identity resource. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+        });
+    }
+}

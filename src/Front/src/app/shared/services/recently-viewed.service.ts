@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { ProjectService } from './project.service';
 
 const STORAGE_KEY = 'ifs_recently_viewed';
 const MAX_ITEMS = 8;
@@ -15,6 +16,7 @@ export interface RecentlyViewedItem {
   providedIn: 'root',
 })
 export class RecentlyViewedService {
+  private readonly projectService = inject(ProjectService);
   private readonly items = signal<RecentlyViewedItem[]>(this.loadFromStorage());
 
   readonly recentItems = this.items.asReadonly();
@@ -27,6 +29,39 @@ export class RecentlyViewedService {
     ].slice(0, MAX_ITEMS);
     this.items.set(updated);
     this.saveToStorage();
+  }
+
+  /**
+   * Validates recently viewed items against the backend.
+   * Removes items the user no longer has access to and refreshes names.
+   */
+  async validateAndRefresh(): Promise<void> {
+    const current = this.items();
+    if (current.length === 0) return;
+
+    try {
+      const validatedItems = await this.projectService.validateRecentItems({
+        items: current.map((i) => ({ id: i.id, type: i.type })),
+      });
+
+      const validatedMap = new Map(validatedItems.map((v) => [`${v.type}:${v.id}`, v]));
+
+      const refreshed: RecentlyViewedItem[] = current
+        .filter((item) => validatedMap.has(`${item.type}:${item.id}`))
+        .map((item) => {
+          const fresh = validatedMap.get(`${item.type}:${item.id}`)!;
+          return {
+            ...item,
+            name: fresh.name,
+            description: fresh.description,
+          };
+        });
+
+      this.items.set(refreshed);
+      this.saveToStorage();
+    } catch {
+      // If backend is unreachable, keep existing items as-is
+    }
   }
 
   private loadFromStorage(): RecentlyViewedItem[] {

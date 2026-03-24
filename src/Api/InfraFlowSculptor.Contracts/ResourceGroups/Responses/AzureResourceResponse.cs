@@ -5,8 +5,10 @@ namespace InfraFlowSculptor.Contracts.ResourceGroups.Responses;
 /// <param name="ResourceType">Type of the Azure resource (e.g. "KeyVault", "StorageAccount", "RedisCache").</param>
 /// <param name="Name">Display name of the resource.</param>
 /// <param name="Location">Azure region where the resource is deployed.</param>
+/// <param name="ParentResourceId">Optional identifier of the parent resource (e.g. AppServicePlan for a WebApp).</param>
 public record AzureResourceResponse(
     Guid Id,
     string ResourceType,
     string Name,
-    string Location);
+    string Location,
+    Guid? ParentResourceId = null);

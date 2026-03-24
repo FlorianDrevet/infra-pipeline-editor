@@ -2,11 +2,16 @@
   display: block;
 }
 
+mat-dialog-content {
+  overflow: hidden;
+}
+
 .env-form {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  min-width: 26rem;
+  width: 100%;
+  min-width: 0;
   padding-top: 0.5rem;
 }
 
@@ -16,11 +21,13 @@
 
 .form-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
 }
 
 .half-width {
-  flex: 1;
+  flex: 1 1 11rem;
+  min-width: 0;
 }
 
 // ─── Order + Timeline Section ────
@@ -47,6 +54,12 @@
   background: rgba(13, 101, 192, 0.04);
   border: 1px solid rgba(146, 191, 235, 0.2);
   overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .timeline-step {
@@ -146,4 +159,14 @@
   background: rgba(217, 45, 32, 0.07);
   color: #a12d1f;
   font-size: 0.82rem;
+}
+
+@media (max-width: 640px) {
+  .form-row {
+    flex-direction: column;
+  }
+
+  .half-width {
+    width: 100%;
+  }
 }

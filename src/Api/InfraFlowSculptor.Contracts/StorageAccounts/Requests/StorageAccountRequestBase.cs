@@ -16,27 +16,46 @@ public abstract class StorageAccountRequestBase
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
-    /// <summary>Performance and replication tier. Accepted values: <c>Standard_LRS</c>, <c>Standard_GRS</c>, <c>Standard_RAGRS</c>, <c>Standard_ZRS</c>, <c>Premium_LRS</c>.</summary>
-    [Required, EnumValidation(typeof(StorageAccountSku.Sku))]
-    public required string Sku { get; init; }
-
-    /// <summary>Account kind. Accepted values: <c>Storage</c>, <c>StorageV2</c>, <c>BlobStorage</c>, <c>BlockBlobStorage</c>, <c>FileStorage</c>.</summary>
-    [Required, EnumValidation(typeof(StorageAccountKind.Kind))]
-    public required string Kind { get; init; }
-
-    /// <summary>Default access tier for blob data. Accepted values: <c>Hot</c>, <c>Cool</c>. Only applies to Blob/BlobStorage accounts.</summary>
-    [Required, EnumValidation(typeof(StorageAccessTier.Tier))]
-    public required string AccessTier { get; init; }
-
-    /// <summary>When <c>false</c>, anonymous public read access to blobs and containers is disabled.</summary>
-    [Required]
-    public required bool AllowBlobPublicAccess { get; init; }
-
-    /// <summary>When <c>true</c>, all HTTP traffic is redirected to HTTPS.</summary>
-    [Required]
-    public required bool EnableHttpsTrafficOnly { get; init; }
-
-    /// <summary>Minimum accepted TLS version for requests to this storage account. Accepted values: <c>TLS1_0</c>, <c>TLS1_1</c>, <c>TLS1_2</c>.</summary>
-    [Required, EnumValidation(typeof(StorageAccountTlsVersion.Version))]
-    public required string MinimumTlsVersion { get; init; }
+    /// <summary>Per-environment typed configuration overrides.</summary>
+    public List<StorageAccountEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }
+
+/// <summary>Typed per-environment configuration entry for a Storage Account.</summary>
+public class StorageAccountEnvironmentConfigEntry
+{
+    /// <summary>Name of the target environment.</summary>
+    [Required]
+    public required string EnvironmentName { get; init; }
+
+    /// <summary>Optional performance/replication tier override.</summary>
+    [EnumValidation(typeof(StorageAccountSku.Sku))]
+    public string? Sku { get; init; }
+
+    /// <summary>Optional account kind override.</summary>
+    [EnumValidation(typeof(StorageAccountKind.Kind))]
+    public string? Kind { get; init; }
+
+    /// <summary>Optional access tier override.</summary>
+    [EnumValidation(typeof(StorageAccessTier.Tier))]
+    public string? AccessTier { get; init; }
+
+    /// <summary>Optional public blob access override.</summary>
+    public bool? AllowBlobPublicAccess { get; init; }
+
+    /// <summary>Optional HTTPS-only traffic override.</summary>
+    public bool? EnableHttpsTrafficOnly { get; init; }
+
+    /// <summary>Optional minimum TLS version override.</summary>
+    [EnumValidation(typeof(StorageAccountTlsVersion.Version))]
+    public string? MinimumTlsVersion { get; init; }
+}
+
+/// <summary>Response DTO for a typed per-environment Storage Account configuration.</summary>
+public record StorageAccountEnvironmentConfigResponse(
+    string EnvironmentName,
+    string? Sku,
+    string? Kind,
+    string? AccessTier,
+    bool? AllowBlobPublicAccess,
+    bool? EnableHttpsTrafficOnly,
+    string? MinimumTlsVersion);

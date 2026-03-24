@@ -1,11 +1,11 @@
-﻿using ErrorOr;
+using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using Shared.Domain.Domain.Models;
+using InfraFlowSculptor.Domain.Common.Models;
 
 namespace InfraFlowSculptor.Domain.ResourceGroupAggregate;
 

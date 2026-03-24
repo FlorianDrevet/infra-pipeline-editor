@@ -26,14 +26,48 @@ import {
   AddNamingTemplateDialogResult,
 } from './add-naming-template-dialog/add-naming-template-dialog.component';
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
+import { KeyVaultService } from '../../shared/services/key-vault.service';
+import { RedisCacheService } from '../../shared/services/redis-cache.service';
+import { StorageAccountService } from '../../shared/services/storage-account.service';
+import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
+import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
+import { WebAppService } from '../../shared/services/web-app.service';
+import { FunctionAppService } from '../../shared/services/function-app.service';
+import { AppConfigurationService } from '../../shared/services/app-configuration.service';
+import { ContainerAppEnvironmentService } from '../../shared/services/container-app-environment.service';
+import { ContainerAppService } from '../../shared/services/container-app.service';
+import { LogAnalyticsWorkspaceService } from '../../shared/services/log-analytics-workspace.service';
+import { ApplicationInsightsService } from '../../shared/services/application-insights.service';
+import { CosmosDbService } from '../../shared/services/cosmos-db.service';
+import { SqlServerService } from '../../shared/services/sql-server.service';
+import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { ProjectService } from '../../shared/services/project.service';
+import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
+import { CascadeDeleteDialogComponent, CascadeDeleteDialogData } from '../../shared/components/cascade-delete-dialog/cascade-delete-dialog.component';
+import { DependentResourceResponse } from '../../shared/interfaces/dependent-resource.interface';
+import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
+import { saveAs } from 'file-saver';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
-import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS } from './enums/resource-type.enum';
+import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS, PARENT_CHILD_RESOURCE_TYPES, CHILD_RESOURCE_TYPES } from './enums/resource-type.enum';
 import { FormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { BicepHighlightPipe } from './pipes/bicep-highlight.pipe';
+import { StorageAccountResponse } from '../../shared/interfaces/storage-account.interface';
+import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 
+interface ResourceDisplayItem {
+  resource: AzureResourceResponse;
+  children?: AzureResourceResponse[];
+  isParent: boolean;
+}
+
+interface BicepModuleFolder {
+  folderName: string;
+  folderKey: string;
+  files: Array<{ name: string; displayName: string; uri: string }>;
+}
 
 
 @Component({
@@ -52,6 +86,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
+    BicepHighlightPipe,
   ],
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',
@@ -61,7 +96,23 @@ export class ConfigDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly resourceGroupService = inject(ResourceGroupService);
+  private readonly keyVaultService = inject(KeyVaultService);
+  private readonly redisCacheService = inject(RedisCacheService);
+  private readonly storageAccountService = inject(StorageAccountService);
+  private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
+  private readonly appServicePlanService = inject(AppServicePlanService);
+  private readonly webAppService = inject(WebAppService);
+  private readonly functionAppService = inject(FunctionAppService);
+  private readonly appConfigurationService = inject(AppConfigurationService);
+  private readonly containerAppEnvironmentService = inject(ContainerAppEnvironmentService);
+  private readonly containerAppService = inject(ContainerAppService);
+  private readonly logAnalyticsWorkspaceService = inject(LogAnalyticsWorkspaceService);
+  private readonly applicationInsightsService = inject(ApplicationInsightsService);
+  private readonly cosmosDbService = inject(CosmosDbService);
+  private readonly sqlServerService = inject(SqlServerService);
+  private readonly sqlDatabaseService = inject(SqlDatabaseService);
   private readonly projectService = inject(ProjectService);
+  private readonly bicepService = inject(BicepGeneratorService);
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
@@ -81,6 +132,57 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly rgResourcesLoading = signal<string | null>(null);
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
+
+  // ─── Parent-child resource grouping ───
+  protected readonly expandedParentResources = signal<Set<string>>(new Set<string>());
+
+  // ─── Storage Account sub-resources ───
+  protected readonly storageAccountDetails = signal<Record<string, StorageAccountResponse | undefined>>({});
+  protected readonly storageDetailsLoading = signal<string | null>(null);
+
+  // ─── Bicep Generation ───
+  protected readonly bicepLoading = signal(false);
+  protected readonly bicepResult = signal<GenerateBicepResponse | null>(null);
+  protected readonly bicepErrorKey = signal('');
+  protected readonly bicepPanelOpen = signal(false);
+  protected readonly bicepPanelCollapsed = signal(false);
+  protected readonly bicepDownloading = signal(false);
+
+  // ─── Bicep File Viewer ───
+  protected readonly bicepViewerFile = signal<string | null>(null);
+  protected readonly bicepViewerContent = signal<string | null>(null);
+  protected readonly bicepViewerLoading = signal(false);
+  protected readonly bicepExpandedFolders = signal<Set<string>>(new Set<string>(['modules', 'parameters']));
+
+  protected readonly bicepModuleEntries = computed(() => {
+    const result = this.bicepResult();
+    if (!result?.moduleUris) return [];
+    return Object.entries(result.moduleUris).map(([name, uri]) => ({ name, uri }));
+  });
+
+  protected readonly bicepModuleFolders = computed<BicepModuleFolder[]>(() => {
+    const result = this.bicepResult();
+    if (!result?.moduleUris) return [];
+    const folderMap = new Map<string, BicepModuleFolder>();
+    for (const [filePath, uri] of Object.entries(result.moduleUris)) {
+      const parts = filePath.split('/');
+      if (parts.length < 3) continue;
+      const folderName = parts[1];
+      const displayName = parts[2];
+      const folderKey = `modules/${folderName}`;
+      if (!folderMap.has(folderKey)) {
+        folderMap.set(folderKey, { folderName, folderKey, files: [] });
+      }
+      folderMap.get(folderKey)!.files.push({ name: filePath, displayName, uri });
+    }
+    return Array.from(folderMap.values());
+  });
+
+  protected readonly bicepParamEntries = computed(() => {
+    const result = this.bicepResult();
+    if (!result?.parameterFileUris) return [];
+    return Object.entries(result.parameterFileUris).map(([name, uri]) => ({ name, uri }));
+  });
 
   // ─── Inheritance ───
   protected readonly inheritanceLoading = signal(false);
@@ -109,9 +211,15 @@ export class ConfigDetailComponent implements OnInit {
     return this.resourceTypeOptions.some((option) => !configuredTypes.has(option.value));
   });
 
+  protected readonly effectiveEnvironments = computed(() => {
+    if (this.useProjectEnvironments()) {
+      return this.project()?.environmentDefinitions ?? [];
+    }
+    return this.config()?.environmentDefinitions ?? [];
+  });
+
   protected readonly sortedEnvironments = computed(() => {
-    const envs = this.config()?.environmentDefinitions ?? [];
-    return [...envs].sort((a, b) => a.order - b.order);
+    return [...this.effectiveEnvironments()].sort((a, b) => a.order - b.order);
   });
 
   protected readonly previewEnvId = signal<string | null>(null);
@@ -119,7 +227,7 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly previewEnv = computed(() => {
     const id = this.previewEnvId();
     if (!id) return null;
-    return this.config()?.environmentDefinitions.find((e) => e.id === id) ?? null;
+    return this.effectiveEnvironments().find((e) => e.id === id) ?? null;
   });
 
   /**
@@ -133,9 +241,13 @@ export class ConfigDetailComponent implements OnInit {
     const cfg = this.config();
     if (!cfg) return null;
 
-    // Pick the resource-specific template override, or fall back to the default
-    const resourceOverride = cfg.resourceNamingTemplates.find((t) => t.resourceType === resourceType);
-    const template = resourceOverride?.template ?? cfg.defaultNamingTemplate;
+    // Pick the effective naming templates (project when inherited, config otherwise)
+    const proj = this.project();
+    const useProjectNaming = cfg.useProjectNamingConventions && proj;
+    const namingTemplates = useProjectNaming ? proj.resourceNamingTemplates : cfg.resourceNamingTemplates;
+    const defaultTemplate = useProjectNaming ? proj.defaultNamingTemplate : cfg.defaultNamingTemplate;
+    const resourceOverride = namingTemplates.find((t) => t.resourceType === resourceType);
+    const template = resourceOverride?.template ?? defaultTemplate;
     if (!template) return null;
 
     const replacements: Record<string, string> = {
@@ -187,8 +299,11 @@ export class ConfigDetailComponent implements OnInit {
         }
       }
 
-      // Pre-select the first environment (by order) for the naming preview
-      const firstEnv = [...(config.environmentDefinitions ?? [])].sort((a, b) => a.order - b.order)[0];
+      // Pre-select the first effective environment (by order) for the naming preview
+      const effectiveEnvs = config.useProjectEnvironments
+        ? (this.project()?.environmentDefinitions ?? [])
+        : (config.environmentDefinitions ?? []);
+      const firstEnv = [...effectiveEnvs].sort((a, b) => a.order - b.order)[0];
       if (firstEnv) {
         this.previewEnvId.set(firstEnv.id);
       }
@@ -237,6 +352,17 @@ export class ConfigDetailComponent implements OnInit {
     try {
       const resources = await this.resourceGroupService.getResources(rgId);
       this.rgResources.update((prev) => ({ ...prev, [rgId]: resources }));
+      // Auto-expand all parent resources by default
+      const parentIds = resources
+        .filter((r) => PARENT_CHILD_RESOURCE_TYPES[r.resourceType])
+        .map((r) => r.id);
+      if (parentIds.length > 0) {
+        this.expandedParentResources.update((prev) => {
+          const next = new Set(prev);
+          parentIds.forEach((id) => next.add(id));
+          return next;
+        });
+      }
     } catch {
       this.rgResources.update((prev) => ({ ...prev, [rgId]: [] }));
     } finally {
@@ -244,11 +370,223 @@ export class ConfigDetailComponent implements OnInit {
     }
   }
 
+  /**
+   * Groups resources into a display-friendly structure: parent resources
+   * with their children nested, and standalone resources listed separately.
+   */
+  protected groupResourcesForRg(rgId: string): ResourceDisplayItem[] {
+    const resources = this.rgResources()[rgId] ?? [];
+    if (resources.length === 0) return [];
+
+    const parentMap = new Map<string, AzureResourceResponse>();
+    const childrenByParent = new Map<string, AzureResourceResponse[]>();
+    const standalone: AzureResourceResponse[] = [];
+
+    // Index parents
+    for (const res of resources) {
+      if (PARENT_CHILD_RESOURCE_TYPES[res.resourceType]) {
+        parentMap.set(res.id, res);
+        if (!childrenByParent.has(res.id)) {
+          childrenByParent.set(res.id, []);
+        }
+      }
+    }
+
+    // Assign children to their parents; fallback to standalone
+    for (const res of resources) {
+      if (parentMap.has(res.id)) continue; // skip parents themselves
+      if (CHILD_RESOURCE_TYPES.has(res.resourceType) && res.parentResourceId && parentMap.has(res.parentResourceId)) {
+        childrenByParent.get(res.parentResourceId)!.push(res);
+      } else {
+        standalone.push(res);
+      }
+    }
+
+    const result: ResourceDisplayItem[] = [];
+
+    // Emit parents with their children
+    for (const [parentId, parent] of parentMap) {
+      result.push({
+        resource: parent,
+        children: childrenByParent.get(parentId) ?? [],
+        isParent: true,
+      });
+    }
+
+    // Emit standalone resources
+    for (const res of standalone) {
+      result.push({ resource: res, isParent: false });
+    }
+
+    return result;
+  }
+
+  protected toggleParentExpand(parentId: string): void {
+    this.expandedParentResources.update((prev) => {
+      const next = new Set(prev);
+      if (next.has(parentId)) {
+        next.delete(parentId);
+      } else {
+        next.add(parentId);
+      }
+      return next;
+    });
+  }
+
+  protected isParentExpanded(parentId: string): boolean {
+    return this.expandedParentResources().has(parentId);
+  }
+
+  // ─── Storage Account sub-resource methods ───
+
+  protected getStorageSubResourceCount(storageId: string): number {
+    const details = this.storageAccountDetails()[storageId];
+    if (!details) return 0;
+    return (details.blobContainers?.length ?? 0) + (details.queues?.length ?? 0) + (details.tables?.length ?? 0);
+  }
+
+  protected async loadStorageAccountDetails(storageId: string): Promise<void> {
+    if (this.storageDetailsLoading() === storageId) return;
+    this.storageDetailsLoading.set(storageId);
+    try {
+      const details = await this.storageAccountService.getById(storageId);
+      this.storageAccountDetails.update(prev => ({ ...prev, [storageId]: details }));
+    } catch {
+      // Non-blocking
+    } finally {
+      this.storageDetailsLoading.set(null);
+    }
+  }
+
+  protected toggleStorageParentExpand(parentId: string): void {
+    this.toggleParentExpand(parentId);
+    if (this.isParentExpanded(parentId)) {
+      this.loadStorageAccountDetails(parentId);
+    }
+  }
+
+  private readonly publicAccessI18nMap: Record<string, string> = {
+    None: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_NONE',
+    Blob: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_BLOB',
+    Container: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_CONTAINER',
+  };
+
+  protected publicAccessI18nKey(value: string): string {
+    return this.publicAccessI18nMap[value] ?? value;
+  }
+
+  protected navigateToStorageTab(storageAccountId: string, tab: 'blob_containers' | 'queues' | 'tables'): void {
+    const cfg = this.config();
+    if (!cfg) return;
+    this.router.navigate(['/config', cfg.id, 'resource', 'StorageAccount', storageAccountId], {
+      queryParams: { tab },
+    });
+  }
+
+  protected openAddStorageSubResourceDialog(storageAccountId: string): void {
+    const details = this.storageAccountDetails()[storageAccountId];
+    const dialogRef = this.dialog.open(AddStorageServiceDialogComponent, {
+      data: {
+        storageAccountId,
+        existingBlobNames: (details?.blobContainers ?? []).map(b => b.name),
+        existingQueueNames: (details?.queues ?? []).map(q => q.name),
+        existingTableNames: (details?.tables ?? []).map(t => t.name),
+      } satisfies AddStorageServiceDialogData,
+      width: '520px',
+      maxHeight: '85vh',
+    });
+
+    dialogRef.afterClosed().subscribe((result?: AddStorageServiceDialogResult) => {
+      if (result) {
+        this.storageAccountDetails.update(prev => ({
+          ...prev,
+          [storageAccountId]: result.storageAccountResponse,
+        }));
+      }
+    });
+  }
+
+  protected removeStorageSubResource(storageAccountId: string, type: 'BlobContainer' | 'Queue' | 'Table', subResourceId: string, name: string): void {
+    const typeLabel = type === 'BlobContainer' ? 'Blob Container' : type;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_TITLE',
+        titleParams: { type: typeLabel },
+        messageKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_MESSAGE',
+        messageParams: { name, type: typeLabel },
+        confirmKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_YES',
+        cancelKey: 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      try {
+        switch (type) {
+          case 'BlobContainer':
+            await this.storageAccountService.removeBlobContainer(storageAccountId, subResourceId);
+            break;
+          case 'Queue':
+            await this.storageAccountService.removeQueue(storageAccountId, subResourceId);
+            break;
+          case 'Table':
+            await this.storageAccountService.removeTable(storageAccountId, subResourceId);
+            break;
+        }
+        const updated = await this.storageAccountService.getById(storageAccountId);
+        this.storageAccountDetails.update(prev => ({ ...prev, [storageAccountId]: updated }));
+      } catch {
+        // Error handling already in snackbar
+      }
+    });
+  }
+
   protected openAddResourceDialog(rgId: string): void {
     const rg = this.resourceGroups().find((r) => r.id === rgId);
+    const envs = this.useProjectEnvironments()
+      ? this.projectSortedEnvironments()
+      : this.sortedEnvironments();
     const dialogRef = this.dialog.open(AddResourceDialogComponent, {
-      data: { resourceGroupId: rgId, location: rg?.location ?? '' } satisfies AddResourceDialogData,
-      width: '560px',
+      data: {
+        resourceGroupId: rgId,
+        location: rg?.location ?? '',
+        environments: envs.map(e => ({ name: e.name })),
+      } satisfies AddResourceDialogData,
+      width: '720px',
+      maxHeight: '90vh',
+    });
+
+    dialogRef.afterClosed().subscribe(async (created: boolean) => {
+      if (created) {
+        this.rgResources.update((prev) => {
+          const updated = { ...prev };
+          delete updated[rgId];
+          return updated;
+        });
+        await this.loadRgResources(rgId);
+      }
+    });
+  }
+
+  protected openAddChildResourceDialog(parentResource: AzureResourceResponse, rgId: string): void {
+    const rg = this.resourceGroups().find((r) => r.id === rgId);
+    const envs = this.useProjectEnvironments()
+      ? this.projectSortedEnvironments()
+      : this.sortedEnvironments();
+    const dialogRef = this.dialog.open(AddResourceDialogComponent, {
+      data: {
+        resourceGroupId: rgId,
+        location: rg?.location ?? '',
+        environments: envs.map(e => ({ name: e.name })),
+        parentResource: {
+          id: parentResource.id,
+          name: parentResource.name,
+          resourceType: parentResource.resourceType,
+        },
+      } satisfies AddResourceDialogData,
+      width: '720px',
+      maxHeight: '90vh',
     });
 
     dialogRef.afterClosed().subscribe(async (created: boolean) => {
@@ -274,6 +612,7 @@ export class ConfigDetailComponent implements OnInit {
         allEnvironments: currentConfig.environmentDefinitions,
       } satisfies AddEnvironmentDialogData,
       width: '520px',
+      maxWidth: '95vw',
     });
 
     dialogRef.afterClosed().subscribe(async (result: InfrastructureConfigResponse | null) => {
@@ -483,7 +822,241 @@ export class ConfigDetailComponent implements OnInit {
     this.config.set(refreshed);
   }
 
+  // ─── Delete Resource ───
+
+  private readonly CASCADE_PARENT_TYPES = new Set(['LogAnalyticsWorkspace', 'AppServicePlan', 'SqlServer']);
+
+  protected openDeleteResourceDialog(resource: AzureResourceResponse, rgId: string): void {
+    if (this.CASCADE_PARENT_TYPES.has(resource.resourceType)) {
+      this.openCascadeDeleteDialog(resource, rgId);
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_TITLE',
+        messageKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_MESSAGE',
+        messageParams: { name: resource.name, type: resource.resourceType },
+        confirmKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_YES',
+        cancelKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      await this.deleteResource(resource, rgId);
+    });
+  }
+
+  private async openCascadeDeleteDialog(resource: AzureResourceResponse, rgId: string): Promise<void> {
+    let dependents: DependentResourceResponse[] = [];
+    try {
+      switch (resource.resourceType) {
+        case 'LogAnalyticsWorkspace':
+          dependents = await this.logAnalyticsWorkspaceService.getDependents(resource.id);
+          break;
+        case 'AppServicePlan':
+          dependents = await this.appServicePlanService.getDependents(resource.id);
+          break;
+        case 'SqlServer':
+          dependents = await this.sqlServerService.getDependents(resource.id);
+          break;
+      }
+    } catch {
+      this.rgErrorKey.set('CONFIG_DETAIL.RESOURCES.DELETE_ERROR');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(CascadeDeleteDialogComponent, {
+      data: {
+        titleKey: 'CONFIG_DETAIL.RESOURCES.CASCADE_DELETE_TITLE',
+        messageKey: dependents.length > 0
+          ? 'CONFIG_DETAIL.RESOURCES.CASCADE_DELETE_MESSAGE_WITH_DEPS'
+          : 'CONFIG_DETAIL.RESOURCES.CASCADE_DELETE_MESSAGE_NO_DEPS',
+        messageParams: { name: resource.name, type: resource.resourceType, count: dependents.length },
+        dependentsHeaderKey: 'CONFIG_DETAIL.RESOURCES.CASCADE_DELETE_DEPENDENTS_HEADER',
+        confirmKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_YES',
+        cancelKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_CANCEL',
+        dependents,
+        resourceTypeIcons: this.resourceTypeIcons,
+      } satisfies CascadeDeleteDialogData,
+      width: '480px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      await this.deleteResource(resource, rgId);
+    });
+  }
+
+  private async deleteResource(resource: AzureResourceResponse, rgId: string): Promise<void> {
+    try {
+      switch (resource.resourceType) {
+        case 'KeyVault':
+          await this.keyVaultService.delete(resource.id);
+          break;
+        case 'RedisCache':
+          await this.redisCacheService.delete(resource.id);
+          break;
+        case 'StorageAccount':
+          await this.storageAccountService.delete(resource.id);
+          break;
+        case 'AppServicePlan':
+          await this.appServicePlanService.delete(resource.id);
+          break;
+        case 'WebApp':
+          await this.webAppService.delete(resource.id);
+          break;
+        case 'FunctionApp':
+          await this.functionAppService.delete(resource.id);
+          break;
+        case 'UserAssignedIdentity':
+          await this.userAssignedIdentityService.delete(resource.id);
+          break;
+        case 'AppConfiguration':
+          await this.appConfigurationService.delete(resource.id);
+          break;
+        case 'ContainerAppEnvironment':
+          await this.containerAppEnvironmentService.delete(resource.id);
+          break;
+        case 'ContainerApp':
+          await this.containerAppService.delete(resource.id);
+          break;
+        case 'LogAnalyticsWorkspace':
+          await this.logAnalyticsWorkspaceService.delete(resource.id);
+          break;
+        case 'ApplicationInsights':
+          await this.applicationInsightsService.delete(resource.id);
+          break;
+        case 'CosmosDb':
+          await this.cosmosDbService.delete(resource.id);
+          break;
+        case 'SqlServer':
+          await this.sqlServerService.delete(resource.id);
+          break;
+        case 'SqlDatabase':
+          await this.sqlDatabaseService.delete(resource.id);
+          break;
+      }
+      // Refresh resource list for this resource group
+      this.rgResources.update((prev) => {
+        const updated = { ...prev };
+        delete updated[rgId];
+        return updated;
+      });
+      await this.loadRgResources(rgId);
+    } catch {
+      this.rgErrorKey.set('CONFIG_DETAIL.RESOURCES.DELETE_ERROR');
+    }
+  }
+
   // ─── Delete Config ───
+
+  protected async generateBicep(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.bicepLoading()) return;
+
+    this.bicepLoading.set(true);
+    this.bicepErrorKey.set('');
+    this.bicepResult.set(null);
+    this.bicepPanelOpen.set(true);
+
+    try {
+      const result = await this.bicepService.generate({ infrastructureConfigId: configId });
+      this.bicepResult.set(result);
+      const subfolderKeys = Object.keys(result.moduleUris ?? {})
+        .map(k => { const p = k.split('/'); return p.length >= 3 ? `modules/${p[1]}` : null; })
+        .filter((k): k is string => k !== null);
+      this.bicepExpandedFolders.set(new Set(['modules', ...subfolderKeys]));
+    } catch (err: unknown) {
+      const axios = await import('axios');
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        if (status === 401 || status === 403) {
+          this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_AUTH_ERROR');
+        } else {
+          this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_ERROR');
+        }
+      } else if (err instanceof Error && err.message.includes('access token')) {
+        this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_AUTH_ERROR');
+      } else {
+        this.bicepErrorKey.set('CONFIG_DETAIL.BICEP.GENERATE_ERROR');
+      }
+    } finally {
+      this.bicepLoading.set(false);
+    }
+  }
+
+  protected closeBicepPanel(): void {
+    this.bicepPanelOpen.set(false);
+    this.bicepResult.set(null);
+    this.bicepErrorKey.set('');
+    this.bicepViewerFile.set(null);
+    this.bicepViewerContent.set(null);
+  }
+
+  protected async openBicepFile(filePath: string): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.bicepViewerLoading()) return;
+
+    // Toggle off if already viewing this file
+    if (this.bicepViewerFile() === filePath) {
+      this.bicepViewerFile.set(null);
+      this.bicepViewerContent.set(null);
+      return;
+    }
+
+    this.bicepViewerFile.set(filePath);
+    this.bicepViewerContent.set(null);
+    this.bicepViewerLoading.set(true);
+    try {
+      const content = await this.bicepService.getFileContent(configId, filePath);
+      this.bicepViewerContent.set(content);
+    } catch {
+      this.bicepViewerContent.set(null);
+    } finally {
+      this.bicepViewerLoading.set(false);
+    }
+  }
+
+  protected closeBicepViewer(): void {
+    this.bicepViewerFile.set(null);
+    this.bicepViewerContent.set(null);
+  }
+
+  protected toggleBicepFolder(folder: string): void {
+    this.bicepExpandedFolders.update(set => {
+      const next = new Set(set);
+      if (next.has(folder)) {
+        next.delete(folder);
+      } else {
+        next.add(folder);
+      }
+      return next;
+    });
+  }
+
+  protected isBicepFolderExpanded(folder: string): boolean {
+    return this.bicepExpandedFolders().has(folder);
+  }
+
+  protected async downloadBicepFiles(): Promise<void> {
+    const result = this.bicepResult();
+    if (!result || this.bicepDownloading()) return;
+
+    this.bicepDownloading.set(true);
+    try {
+      const configId = this.config()?.id;
+      if (!configId) return;
+
+      const blob = await this.bicepService.downloadZip(configId);
+      const configName = this.config()?.name ?? 'bicep';
+      saveAs(blob, `${configName}-bicep.zip`);
+    } finally {
+      this.bicepDownloading.set(false);
+    }
+  }
 
   protected openDeleteConfigDialog(): void {
     const currentConfig = this.config();

@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
-using Shared.Domain.Domain.Models;
+using InfraFlowSculptor.Domain.Common.Models;
 
 namespace InfraFlowSculptor.Domain.UserAggregate;
 

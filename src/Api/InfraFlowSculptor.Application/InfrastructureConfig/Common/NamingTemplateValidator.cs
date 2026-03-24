@@ -15,13 +15,11 @@ public static partial class NamingTemplateValidator
         "name", "prefix", "suffix", "env", "resourceType", "resourceAbbr", "location"
     };
 
-    [GeneratedRegex(@"\{([^}]+)\}", RegexOptions.Compiled)]
-    private static partial Regex PlaceholderRegex();
+    private static readonly Regex PlaceholderRegex = new(@"\{([^}]+)\}", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
 
     // After removing all valid placeholders the remaining static text must only contain
     // letters, digits, hyphens, and underscores (broadest Azure naming allow-list).
-    [GeneratedRegex(@"[^a-zA-Z0-9\-_]", RegexOptions.Compiled)]
-    private static partial Regex InvalidStaticCharRegex();
+    private static readonly Regex InvalidStaticCharRegex = new(@"[^a-zA-Z0-9\-_]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
 
     /// <summary>
     /// Returns the names of any unknown placeholders found in <paramref name="template"/>.
@@ -30,7 +28,7 @@ public static partial class NamingTemplateValidator
     public static IReadOnlyList<string> GetUnknownPlaceholders(string template)
     {
         var unknown = new List<string>();
-        foreach (Match match in PlaceholderRegex().Matches(template))
+        foreach (Match match in PlaceholderRegex.Matches(template))
         {
             var name = match.Groups[1].Value;
             if (!AllowedPlaceholders.Contains(name))
@@ -45,7 +43,7 @@ public static partial class NamingTemplateValidator
     /// </summary>
     public static bool HasValidStaticChars(string template)
     {
-        var staticText = PlaceholderRegex().Replace(template, string.Empty);
-        return !InvalidStaticCharRegex().IsMatch(staticText);
+        var staticText = PlaceholderRegex.Replace(template, string.Empty);
+        return !InvalidStaticCharRegex.IsMatch(staticText);
     }
 }

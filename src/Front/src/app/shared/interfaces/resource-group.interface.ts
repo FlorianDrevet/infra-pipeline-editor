@@ -12,6 +12,7 @@ export interface AzureResourceResponse {
   resourceType: string;
   name: string;
   location: string;
+  parentResourceId?: string;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────

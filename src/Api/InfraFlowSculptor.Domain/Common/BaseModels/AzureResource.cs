@@ -1,4 +1,4 @@
-﻿using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
+using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -6,7 +6,6 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using Shared.Domain.Domain.Models;
 
 namespace InfraFlowSculptor.Domain.Common.BaseModels;
 
@@ -52,10 +51,16 @@ public class AzureResource : AggregateRoot<AzureResourceId>
         _dependsOn.Add(resource);
     }
 
+    /// <summary>Adds a role assignment from this resource to the specified target resource.</summary>
+    /// <param name="targetResourceId">Identifier of the target resource.</param>
+    /// <param name="managedIdentityType">Type of managed identity used.</param>
+    /// <param name="roleDefinitionId">Azure role definition ID to grant.</param>
+    /// <param name="userAssignedIdentityId">Optional User-Assigned Identity resource ID (required when <paramref name="managedIdentityType"/> is UserAssigned).</param>
     public void AddRoleAssignment(
         AzureResourceId targetResourceId,
         ManagedIdentityType managedIdentityType,
-        string roleDefinitionId)
+        string roleDefinitionId,
+        AzureResourceId? userAssignedIdentityId = null)
     {
         if (targetResourceId == Id)
             throw new InvalidOperationException("A resource cannot assign a role to itself.");
@@ -66,7 +71,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
                 r.ManagedIdentityType.Value == managedIdentityType.Value))
             return;
 
-        _roleAssignments.Add(RoleAssignment.Create(Id, targetResourceId, managedIdentityType, roleDefinitionId));
+        _roleAssignments.Add(RoleAssignment.Create(Id, targetResourceId, managedIdentityType, roleDefinitionId, userAssignedIdentityId));
     }
 
     public void RemoveRoleAssignment(RoleAssignmentId roleAssignmentId)

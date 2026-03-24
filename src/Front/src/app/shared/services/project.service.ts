@@ -6,6 +6,8 @@ import {
   CreateProjectRequest,
   AddProjectMemberRequest,
   UpdateProjectMemberRoleRequest,
+  RecentItemResponse,
+  ValidateRecentItemsRequest,
 } from '../interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
@@ -26,6 +28,14 @@ export class ProjectService {
 
   getMyProjects(): Promise<ProjectResponse[]> {
     return this.axios.request$<ProjectResponse[]>(MethodEnum.GET, '/projects');
+  }
+
+  validateRecentItems(request: ValidateRecentItemsRequest): Promise<RecentItemResponse[]> {
+    return this.axios.request$<RecentItemResponse[]>(
+      MethodEnum.POST,
+      '/projects/validate-recent',
+      request
+    );
   }
 
   getProject(id: string): Promise<ProjectResponse> {

@@ -1,169 +1,732 @@
 <h2 mat-dialog-title>
-  @if (selectedType()) {
-    <button class="back-btn" (click)="onBack()">
+  @if (step() !== 'type') {
+    <button class="back-btn" (click)="
+      step() === 'common' ? onBackFromCommon() :
+      step() === 'plan-selection' ? onBackToType() :
+      step() === 'create-plan' ? onBackToPlanSelection() :
+      onBackToCommon()
+    ">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    {{ 'CONFIG_DETAIL.RESOURCES.ADD_DIALOG_TITLE_' + selectedType() | translate }}
+    @if (step() === 'environments') {
+      {{ 'CONFIG_DETAIL.RESOURCES.FORM.ENV_STEP_TITLE' | translate }}
+    } @else if (step() === 'plan-selection') {
+      {{ 'CONFIG_DETAIL.RESOURCES.FORM.PLAN_SELECT_TITLE_' + parentResourceSuffix() | translate }}
+    } @else if (step() === 'create-plan') {
+      {{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_TITLE_' + parentResourceSuffix() | translate }}
+    } @else {
+      {{ 'CONFIG_DETAIL.RESOURCES.ADD_DIALOG_TITLE_' + selectedType() | translate }}
+    }
   } @else {
     {{ 'CONFIG_DETAIL.RESOURCES.ADD_DIALOG_TITLE' | translate }}
   }
 </h2>
 
 <mat-dialog-content>
-  @if (!selectedType()) {
-    <!-- Step 1: Type picker -->
-    <div class="type-picker">
-      @for (opt of resourceTypeOptions; track opt.value) {
-        <button class="type-card" (click)="onSelectType($any(opt.value))">
-          <mat-icon class="type-card__icon">{{ resourceTypeIcons[opt.value] }}</mat-icon>
-          <span class="type-card__label">{{ opt.label }}</span>
-        </button>
+  @switch (step()) {
+    @case ('type') {
+      <!-- Step 1: Type picker grouped by category -->
+      <div class="type-picker-categories">
+        @for (category of resourceTypeCategories; track category.labelKey) {
+          <section class="type-category">
+            <div class="type-category__header">
+              <mat-icon class="type-category__icon">{{ category.icon }}</mat-icon>
+              <span class="type-category__label">{{ category.labelKey | translate }}</span>
+            </div>
+            <div class="type-picker">
+              @for (type of category.types; track type) {
+                <button class="type-card" (click)="onSelectType(type)">
+                  <mat-icon class="type-card__icon">{{ resourceTypeIcons[type] }}</mat-icon>
+                  <span class="type-card__label">{{ type }}</span>
+                </button>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    }
+    @case ('plan-selection') {
+      <!-- Step 2a: Select or create parent resource -->
+      <p class="step-subtitle">{{ 'CONFIG_DETAIL.RESOURCES.FORM.PLAN_SELECT_SUBTITLE_' + parentResourceSuffix() | translate }}</p>
+      @if (plansLoading()) {
+        <div class="plan-loading">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+      } @else {
+        <div class="plan-picker">
+          @for (plan of existingPlans(); track plan.id) {
+            <button class="plan-card" (click)="onSelectPlan(plan)">
+              <mat-icon class="plan-card__icon">{{ parentResourceIcon() }}</mat-icon>
+              <div class="plan-card__info">
+                <span class="plan-card__name">{{ plan.name }}</span>
+                <span class="plan-card__location">{{ plan.location }}</span>
+              </div>
+              <mat-icon class="plan-card__arrow">arrow_forward</mat-icon>
+            </button>
+          }
+          <button class="plan-card plan-card--create" (click)="onStartCreatePlan()">
+            <mat-icon class="plan-card__icon plan-card__icon--create">add_circle_outline</mat-icon>
+            <div class="plan-card__info">
+              <span class="plan-card__name">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_NEW_PLAN_' + parentResourceSuffix() | translate }}</span>
+              <span class="plan-card__location">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_NEW_PLAN_HINT_' + parentResourceSuffix() | translate }}</span>
+            </div>
+            <mat-icon class="plan-card__arrow">arrow_forward</mat-icon>
+          </button>
+        </div>
       }
-    </div>
-  } @else if (selectedType() === ResourceTypeEnum.KeyVault) {
-    <!-- Key Vault form -->
-    <form [formGroup]="kvForm" class="resource-form" (ngSubmit)="onSubmit()">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.NAME' | translate }}</mat-label>
-        <input matInput formControlName="name"
-          [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.NAME_PLACEHOLDER' | translate" />
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOCATION' | translate }}</mat-label>
-        <mat-select formControlName="location">
-          @for (option of locationOptions; track option.value) {
-            <mat-option [value]="option.value">{{ option.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
-        <mat-select formControlName="sku">
-          @for (option of keyVaultSkuOptions; track option.value) {
-            <mat-option [value]="option.value">{{ option.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </form>
-  } @else if (selectedType() === ResourceTypeEnum.RedisCache) {
-    <!-- Redis Cache form -->
-    <form [formGroup]="redisForm" class="resource-form" (ngSubmit)="onSubmit()">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.NAME' | translate }}</mat-label>
-        <input matInput formControlName="name"
-          [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.NAME_PLACEHOLDER' | translate" />
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOCATION' | translate }}</mat-label>
-        <mat-select formControlName="location">
-          @for (option of locationOptions; track option.value) {
-            <mat-option [value]="option.value">{{ option.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
-          <mat-select formControlName="sku">
-            @for (option of redisSkuOptions; track option.value) {
+    }
+    @case ('create-plan') {
+      <!-- Step 2b: Inline parent resource creation -->
+      <p class="step-subtitle">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_SUBTITLE_' + parentResourceSuffix() | translate }}</p>
+      <form [formGroup]="createPlanForm" class="resource-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.NAME' | translate }}</mat-label>
+          <input matInput formControlName="name"
+            [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.PLAN_NAME_PLACEHOLDER_' + parentResourceSuffix() | translate" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOCATION' | translate }}</mat-label>
+          <mat-select formControlName="location">
+            @for (option of locationOptions; track option.value) {
               <mat-option [value]="option.value">{{ option.label }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CAPACITY' | translate }}</mat-label>
-          <input matInput type="number" formControlName="capacity" />
+        @if (parentResourceSuffix() === 'ASP') {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.OS_TYPE' | translate }}</mat-label>
+            <mat-select formControlName="osType">
+              @for (option of osTypeOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+      </form>
+      @if (parentResourceSuffix() === 'SQL') {
+        <form [formGroup]="createSqlServerForm" class="resource-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.NAME' | translate }}</mat-label>
+            <input matInput formControlName="name"
+              [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.PLAN_NAME_PLACEHOLDER_SQL' | translate" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOCATION' | translate }}</mat-label>
+            <mat-select formControlName="location">
+              @for (option of locationOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SQL_SERVER_VERSION' | translate }}</mat-label>
+            <mat-select formControlName="version">
+              @for (option of sqlServerVersionOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.ADMINISTRATOR_LOGIN' | translate }}</mat-label>
+            <input matInput formControlName="administratorLogin"
+              [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.ADMINISTRATOR_LOGIN_PLACEHOLDER' | translate" />
+          </mat-form-field>
+        </form>
+      }
+    }
+    @case ('common') {
+      <!-- Step 2: Common fields -->
+      <p class="step-subtitle">{{ 'CONFIG_DETAIL.RESOURCES.FORM.COMMON_FIELDS' | translate }}</p>
+      <form [formGroup]="commonForm" class="resource-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.NAME' | translate }}</mat-label>
+          <input matInput formControlName="name"
+            [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.NAME_PLACEHOLDER' | translate" />
         </mat-form-field>
-      </div>
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.REDIS_VERSION' | translate }}</mat-label>
-          <mat-select formControlName="redisVersion">
-            @for (option of redisVersionOptions; track option.value) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOCATION' | translate }}</mat-label>
+          <mat-select formControlName="location">
+            @for (option of locationOptions; track option.value) {
               <mat-option [value]="option.value">{{ option.label }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.TLS_VERSION' | translate }}</mat-label>
-          <mat-select formControlName="minimumTlsVersion">
-            @for (option of redisTlsOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+
+        @if (selectedType() === ResourceTypeEnum.AppServicePlan) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.OS_TYPE' | translate }}</mat-label>
+            <mat-select formControlName="osType">
+              @for (option of osTypeOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+
+        @if (selectedType() === ResourceTypeEnum.WebApp) {
+          <div class="plan-indicator">
+            <mat-icon class="plan-indicator__icon">dns</mat-icon>
+            <div class="plan-indicator__info">
+              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_ASP' | translate }}</span>
+              <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
+            </div>
+            @if (!hasParentResource) {
+              <button class="plan-indicator__change" (click)="onBackFromCommon()">
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
+              </button>
             }
-          </mat-select>
-        </mat-form-field>
-      </div>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.EVICTION_POLICY' | translate }}</mat-label>
-        <mat-select formControlName="maxMemoryPolicy">
-          @for (option of redisEvictionOptions; track option.value) {
-            <mat-option [value]="option.value">{{ option.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-slide-toggle formControlName="enableNonSslPort" color="primary">
-        {{ 'CONFIG_DETAIL.RESOURCES.FORM.ENABLE_NON_SSL' | translate }}
-      </mat-slide-toggle>
-    </form>
-  } @else if (selectedType() === ResourceTypeEnum.StorageAccount) {
-    <!-- Storage Account form -->
-    <form [formGroup]="storageForm" class="resource-form" (ngSubmit)="onSubmit()">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.NAME' | translate }}</mat-label>
-        <input matInput formControlName="name"
-          [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.NAME_PLACEHOLDER' | translate" />
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOCATION' | translate }}</mat-label>
-        <mat-select formControlName="location">
-          @for (option of locationOptions; track option.value) {
-            <mat-option [value]="option.value">{{ option.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
-          <mat-select formControlName="sku">
-            @for (option of storageSkuOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          </div>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
+              <mat-select formControlName="runtimeStack">
+                @for (option of runtimeStackOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
+              <input matInput formControlName="runtimeVersion"
+                [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION_PLACEHOLDER' | translate" />
+            </mat-form-field>
+          </div>
+          <mat-slide-toggle formControlName="alwaysOn" color="primary">
+            {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALWAYS_ON' | translate }}
+          </mat-slide-toggle>
+          <mat-slide-toggle formControlName="httpsOnly" color="primary">
+            {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
+          </mat-slide-toggle>
+        }
+
+        @if (selectedType() === ResourceTypeEnum.FunctionApp) {
+          <div class="plan-indicator">
+            <mat-icon class="plan-indicator__icon">dns</mat-icon>
+            <div class="plan-indicator__info">
+              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_ASP' | translate }}</span>
+              <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
+            </div>
+            @if (!hasParentResource) {
+              <button class="plan-indicator__change" (click)="onBackFromCommon()">
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
+              </button>
             }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.KIND' | translate }}</mat-label>
-          <mat-select formControlName="kind">
-            @for (option of storageKindOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          </div>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
+              <mat-select formControlName="runtimeStack">
+                @for (option of functionAppRuntimeStackOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
+              <input matInput formControlName="runtimeVersion"
+                [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION_PLACEHOLDER' | translate" />
+            </mat-form-field>
+          </div>
+          <mat-slide-toggle formControlName="httpsOnly" color="primary">
+            {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
+          </mat-slide-toggle>
+        }
+
+        @if (selectedType() === ResourceTypeEnum.ApplicationInsights) {
+          <div class="plan-indicator">
+            <mat-icon class="plan-indicator__icon">analytics</mat-icon>
+            <div class="plan-indicator__info">
+              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_LAW' | translate }}</span>
+              <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
+            </div>
+            @if (!hasParentResource) {
+              <button class="plan-indicator__change" (click)="onBackFromCommon()">
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
+              </button>
             }
-          </mat-select>
-        </mat-form-field>
-      </div>
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.ACCESS_TIER' | translate }}</mat-label>
-          <mat-select formControlName="accessTier">
-            @for (option of storageAccessTierOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          </div>
+        }
+
+        @if (selectedType() === ResourceTypeEnum.SqlServer) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SQL_SERVER_VERSION' | translate }}</mat-label>
+            <mat-select formControlName="version">
+              @for (option of sqlServerVersionOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.ADMINISTRATOR_LOGIN' | translate }}</mat-label>
+            <input matInput formControlName="administratorLogin"
+              [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.ADMINISTRATOR_LOGIN_PLACEHOLDER' | translate" />
+          </mat-form-field>
+        }
+
+        @if (selectedType() === ResourceTypeEnum.SqlDatabase) {
+          <div class="plan-indicator">
+            <mat-icon class="plan-indicator__icon">dns</mat-icon>
+            <div class="plan-indicator__info">
+              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_SQL' | translate }}</span>
+              <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
+            </div>
+            @if (!hasParentResource) {
+              <button class="plan-indicator__change" (click)="onBackFromCommon()">
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
+              </button>
             }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.TLS_VERSION' | translate }}</mat-label>
-          <mat-select formControlName="minimumTlsVersion">
-            @for (option of storageTlsOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          </div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.COLLATION' | translate }}</mat-label>
+            <input matInput formControlName="collation"
+              [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.COLLATION_PLACEHOLDER' | translate" />
+          </mat-form-field>
+        }
+      </form>
+      @if (!hasEnvironments) {
+        <p class="dialog-warning">{{ 'CONFIG_DETAIL.RESOURCES.FORM.ENV_NO_ENVIRONMENTS' | translate }}</p>
+      }
+    }
+    @case ('environments') {
+      <!-- Step 3: Per-environment configuration -->
+      @if (environments.length > 1) {
+        <div class="env-header">
+          <button mat-stroked-button type="button" class="copy-btn" (click)="copyFromFirst()">
+            <mat-icon>content_copy</mat-icon>
+            {{ 'CONFIG_DETAIL.RESOURCES.FORM.COPY_FROM_FIRST' | translate }}
+          </button>
+        </div>
+      }
+      <mat-tab-group (selectedIndexChange)="onTabChange($event)" class="env-tabs">
+        @for (env of environments; track env.name; let i = $index) {
+          <mat-tab [label]="env.name">
+            @switch (selectedType()) {
+              @case (ResourceTypeEnum.KeyVault) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                    <mat-select formControlName="sku">
+                      @for (option of keyVaultSkuOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              }
+              @case (ResourceTypeEnum.RedisCache) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                      <mat-select formControlName="skuName">
+                        @for (option of redisSkuOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CAPACITY' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="capacity" />
+                    </mat-form-field>
+                  </div>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.REDIS_VERSION' | translate }}</mat-label>
+                      <mat-select formControlName="redisVersion">
+                        @for (option of redisVersionOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.TLS_VERSION' | translate }}</mat-label>
+                      <mat-select formControlName="minimumTlsVersion">
+                        @for (option of redisTlsOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.EVICTION_POLICY' | translate }}</mat-label>
+                    <mat-select formControlName="maxMemoryPolicy">
+                      @for (option of redisEvictionOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="enableNonSslPort" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ENABLE_NON_SSL' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.StorageAccount) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                      <mat-select formControlName="sku">
+                        @for (option of storageSkuOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.KIND' | translate }}</mat-label>
+                      <mat-select formControlName="kind">
+                        @for (option of storageKindOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.ACCESS_TIER' | translate }}</mat-label>
+                      <mat-select formControlName="accessTier">
+                        @for (option of storageAccessTierOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.TLS_VERSION' | translate }}</mat-label>
+                      <mat-select formControlName="minimumTlsVersion">
+                        @for (option of storageTlsOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                  <mat-slide-toggle formControlName="allowBlobPublicAccess" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALLOW_BLOB_PUBLIC' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="supportsHttpsTrafficOnly" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.AppServicePlan) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                      <mat-select formControlName="sku">
+                        @for (option of aspSkuOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CAPACITY' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="capacity" />
+                    </mat-form-field>
+                  </div>
+                </div>
+              }
+              @case (ResourceTypeEnum.WebApp) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
+                      <mat-select formControlName="runtimeStack">
+                        @for (option of runtimeStackOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
+                      <input matInput formControlName="runtimeVersion" />
+                    </mat-form-field>
+                  </div>
+                  <mat-slide-toggle formControlName="alwaysOn" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALWAYS_ON' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="httpsOnly" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.FunctionApp) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
+                      <mat-select formControlName="runtimeStack">
+                        @for (option of functionAppRuntimeStackOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
+                      <input matInput formControlName="runtimeVersion" />
+                    </mat-form-field>
+                  </div>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.FUNCTIONS_WORKER_RUNTIME' | translate }}</mat-label>
+                    <input matInput formControlName="functionsWorkerRuntime"
+                      [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.FUNCTIONS_WORKER_RUNTIME_PLACEHOLDER' | translate" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MAX_INSTANCE_COUNT' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="maxInstanceCount" />
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="httpsOnly" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.AppConfiguration) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                    <mat-select formControlName="sku">
+                      @for (option of appConfigurationSkuOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SOFT_DELETE_RETENTION' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="softDeleteRetentionInDays" min="1" max="7" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.PUBLIC_NETWORK_ACCESS' | translate }}</mat-label>
+                    <mat-select formControlName="publicNetworkAccess">
+                      @for (option of appConfigurationPublicNetworkOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="purgeProtectionEnabled" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.PURGE_PROTECTION' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_LOCAL_AUTH' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.ContainerAppEnvironment) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                    <mat-select formControlName="sku">
+                      @for (option of caeSkuOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.WORKLOAD_PROFILE' | translate }}</mat-label>
+                    <mat-select formControlName="workloadProfileType">
+                      @for (option of caeWorkloadProfileOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOG_ANALYTICS_WORKSPACE_ID' | translate }}</mat-label>
+                    <input matInput formControlName="logAnalyticsWorkspaceId" />
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="internalLoadBalancerEnabled" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.INTERNAL_LOAD_BALANCER' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="zoneRedundancyEnabled" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANCY' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.ContainerApp) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CONTAINER_IMAGE' | translate }}</mat-label>
+                    <input matInput formControlName="containerImage"
+                      [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.CONTAINER_IMAGE_PLACEHOLDER' | translate" />
+                  </mat-form-field>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CPU_CORES' | translate }}</mat-label>
+                      <mat-select formControlName="cpuCores">
+                        @for (option of caCpuOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MEMORY' | translate }}</mat-label>
+                      <mat-select formControlName="memoryGi">
+                        @for (option of caMemoryOptions; track option.value) {
+                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MIN_REPLICAS' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="minReplicas" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MAX_REPLICAS' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="maxReplicas" />
+                    </mat-form-field>
+                  </div>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.TRANSPORT_METHOD' | translate }}</mat-label>
+                    <mat-select formControlName="transportMethod">
+                      @for (option of caTransportOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_TARGET_PORT' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="ingressTargetPort" />
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="ingressEnabled" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_ENABLED' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="ingressExternal" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_EXTERNAL' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.LogAnalyticsWorkspace) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                    <mat-select formControlName="sku">
+                      @for (option of lawSkuOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RETENTION_IN_DAYS' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="retentionInDays" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.DAILY_QUOTA_GB' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="dailyQuotaGb" />
+                    <mat-hint>{{ 'CONFIG_DETAIL.RESOURCES.FORM.DAILY_QUOTA_GB_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
+                </div>
+              }
+              @case (ResourceTypeEnum.ApplicationInsights) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SAMPLING_PERCENTAGE' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="samplingPercentage" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RETENTION_IN_DAYS' | translate }}</mat-label>
+                    <mat-select formControlName="retentionInDays">
+                      @for (option of aiRetentionOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.INGESTION_MODE' | translate }}</mat-label>
+                    <mat-select formControlName="ingestionMode">
+                      @for (option of aiIngestionModeOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="disableIpMasking" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_IP_MASKING' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_LOCAL_AUTH' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.CosmosDb) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.DATABASE_API_TYPE' | translate }}</mat-label>
+                    <mat-select formControlName="databaseApiType">
+                      @for (option of cosmosApiTypeOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CONSISTENCY_LEVEL' | translate }}</mat-label>
+                    <mat-select formControlName="consistencyLevel">
+                      @for (option of cosmosConsistencyLevelOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MAX_STALENESS_PREFIX' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="maxStalenessPrefix" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="half-width">
+                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MAX_INTERVAL_SECONDS' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="maxIntervalInSeconds" />
+                    </mat-form-field>
+                  </div>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.BACKUP_POLICY' | translate }}</mat-label>
+                    <mat-select formControlName="backupPolicyType">
+                      @for (option of cosmosBackupPolicyOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="enableAutomaticFailover" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.AUTOMATIC_FAILOVER' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="enableMultipleWriteLocations" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.MULTI_REGION_WRITES' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="enableFreeTier" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.FREE_TIER' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.SqlServer) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MIN_TLS_VERSION' | translate }}</mat-label>
+                    <mat-select formControlName="minimalTlsVersion">
+                      @for (option of sqlMinTlsOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              }
+              @case (ResourceTypeEnum.SqlDatabase) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                    <mat-select formControlName="sku">
+                      @for (option of sqlDatabaseSkuOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MAX_SIZE_GB' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="maxSizeGb" />
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="zoneRedundant" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANT' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
             }
-          </mat-select>
-        </mat-form-field>
-      </div>
-      <mat-slide-toggle formControlName="allowBlobPublicAccess" color="primary">
-        {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALLOW_BLOB_PUBLIC' | translate }}
-      </mat-slide-toggle>
-      <mat-slide-toggle formControlName="enableHttpsTrafficOnly" color="primary">
-        {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
-      </mat-slide-toggle>
-    </form>
+          </mat-tab>
+        }
+      </mat-tab-group>
+    }
   }
 
   @if (errorKey()) {
@@ -172,11 +735,39 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting() || isCreatingPlan()">
     {{ 'CONFIG_DETAIL.RESOURCES.FORM.CANCEL' | translate }}
   </button>
-  @if (selectedType()) {
-    <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="!isFormValid() || isSubmitting()">
+  @if (step() === 'create-plan') {
+    <button mat-flat-button color="primary" (click)="onCreatePlanAndContinue()"
+            [disabled]="(parentResourceSuffix() === 'SQL' ? createSqlServerForm.invalid : createPlanForm.invalid) || isCreatingPlan()">
+      @if (isCreatingPlan()) {
+        <mat-spinner diameter="18"></mat-spinner>
+      } @else {
+        {{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_AND_CONTINUE' | translate }}
+      }
+    </button>
+  }
+  @if (step() === 'common') {
+    @if (needsEnvironmentSettings()) {
+      <button mat-flat-button color="primary" (click)="onNextToEnvironments()"
+              [disabled]="!isCommonValid() || !hasEnvironments">
+        {{ 'CONFIG_DETAIL.RESOURCES.FORM.NEXT' | translate }}
+      </button>
+    } @else {
+      <button mat-flat-button color="primary" (click)="onSubmit()"
+              [disabled]="!isCommonValid() || isSubmitting()">
+        @if (isSubmitting()) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          {{ 'CONFIG_DETAIL.RESOURCES.FORM.ADD' | translate }}
+        }
+      </button>
+    }
+  }
+  @if (step() === 'environments') {
+    <button mat-flat-button color="primary" (click)="onSubmit()"
+            [disabled]="!envFormsValid() || isSubmitting()">
       @if (isSubmitting()) {
         <mat-spinner diameter="18"></mat-spinner>
       } @else {

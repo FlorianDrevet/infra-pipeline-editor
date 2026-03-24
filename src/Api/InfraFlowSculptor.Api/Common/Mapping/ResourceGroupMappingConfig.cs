@@ -22,6 +22,7 @@ public class ResourceGroupMappingConfig : IRegister
         config.NewConfig<AzureResourceResult, AzureResourceResponse>()
             .Map(dest => dest.Id, src => src.Id.Value)
             .Map(dest => dest.Name, src => src.Name.Value)
-            .Map(dest => dest.Location, src => src.Location.Value.ToString());
+            .Map(dest => dest.Location, src => src.Location.Value.ToString())
+            .Map(dest => dest.ParentResourceId, src => src.ParentResourceId != null ? src.ParentResourceId.Value : (Guid?)null);
     }
 }

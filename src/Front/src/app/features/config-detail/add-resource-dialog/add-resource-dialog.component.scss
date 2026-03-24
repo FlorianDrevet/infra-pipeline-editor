@@ -1,5 +1,6 @@
 :host {
   display: block;
+  overflow: hidden;
 }
 
 .back-btn {
@@ -20,11 +21,49 @@
   &:hover { background: rgba(0, 0, 0, 0.06); }
 }
 
+.type-picker-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0.65rem 0.5rem 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+.type-category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.type-category__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.15rem;
+}
+
+.type-category__icon {
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  color: #546e7a;
+}
+
+.type-category__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #546e7a;
+}
+
 .type-picker {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.85rem;
-  min-width: 24rem;
   padding: 0.75rem 0;
 }
 
@@ -64,7 +103,6 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  min-width: 28rem;
   padding-top: 0.5rem;
 }
 
@@ -93,4 +131,191 @@ mat-slide-toggle {
   color: #a12d1f;
   font-size: 0.84rem;
   line-height: 1.45;
+}
+
+.dialog-warning {
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  background: rgba(255, 152, 0, 0.08);
+  color: #b36b00;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.step-subtitle {
+  margin: 0 0 0.5rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #546e7a;
+}
+
+.env-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.copy-btn {
+  font-size: 0.78rem;
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.3rem;
+  }
+}
+
+.env-tabs {
+  width: 100%;
+}
+
+.env-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-top: 0.75rem;
+}
+
+// ── Plan Picker (WebApp flow) ──
+.plan-loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.plan-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.plan-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(146, 191, 235, 0.24);
+  background: linear-gradient(180deg, #fff, #f8fbff);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  text-align: left;
+  width: 100%;
+
+  &:hover {
+    border-color: rgba(21, 101, 192, 0.35);
+    background: rgba(21, 101, 192, 0.04);
+    box-shadow: 0 2px 12px rgba(21, 101, 192, 0.1);
+  }
+
+  &--create {
+    border-style: dashed;
+    border-color: rgba(21, 101, 192, 0.3);
+    background: rgba(21, 101, 192, 0.02);
+
+    &:hover {
+      background: rgba(21, 101, 192, 0.06);
+      border-color: rgba(21, 101, 192, 0.5);
+    }
+  }
+}
+
+.plan-card__icon {
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #1565c0;
+  flex-shrink: 0;
+
+  &--create {
+    color: #0288d1;
+  }
+}
+
+.plan-card__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.plan-card__name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #103454;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plan-card__location {
+  font-size: 0.76rem;
+  color: #78909c;
+}
+
+.plan-card__arrow {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #90a4ae;
+  flex-shrink: 0;
+}
+
+// ── Plan Indicator (selected plan in common step) ──
+.plan-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  background: rgba(21, 101, 192, 0.06);
+  border: 1px solid rgba(21, 101, 192, 0.15);
+  margin-bottom: 0.5rem;
+}
+
+.plan-indicator__icon {
+  font-size: 1.3rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  color: #1565c0;
+  flex-shrink: 0;
+}
+
+.plan-indicator__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.plan-indicator__label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #78909c;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.plan-indicator__name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #103454;
+}
+
+.plan-indicator__change {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #1565c0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.35rem;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(21, 101, 192, 0.08);
+  }
 }

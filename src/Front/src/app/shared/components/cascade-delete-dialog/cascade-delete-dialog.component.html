@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>{{ data.titleKey | translate }}</h2>
+<mat-dialog-content>
+  <p class="message">{{ data.messageKey | translate: data.messageParams }}</p>
+
+  @if (data.dependents.length > 0) {
+    <p class="dependents-header">{{ data.dependentsHeaderKey | translate: { count: data.dependents.length } }}</p>
+    <ul class="dependents-list">
+      @for (dep of data.dependents; track dep.id) {
+        <li class="dependent-item">
+          <mat-icon class="dep-icon">{{ data.resourceTypeIcons[dep.resourceType] || 'extension' }}</mat-icon>
+          <span class="dep-name">{{ dep.name }}</span>
+          <span class="dep-type">{{ dep.resourceType }}</span>
+        </li>
+      }
+    </ul>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="onCancel()">{{ data.cancelKey | translate }}</button>
+  <button mat-flat-button color="warn" (click)="onConfirm()">{{ data.confirmKey | translate }}</button>
+</mat-dialog-actions>

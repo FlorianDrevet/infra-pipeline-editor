@@ -1,0 +1,16 @@
+using InfraFlowSculptor.Application.AppServicePlans.Common;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
+using MediatR;
+using ErrorOr;
+
+namespace InfraFlowSculptor.Application.AppServicePlans.Commands.CreateAppServicePlan;
+
+/// <summary>Command to create a new App Service Plan inside a Resource Group.</summary>
+public record CreateAppServicePlanCommand(
+    ResourceGroupId ResourceGroupId,
+    Name Name,
+    Location Location,
+    string OsType,
+    IReadOnlyList<AppServicePlanEnvironmentConfigData>? EnvironmentSettings = null
+) : IRequest<ErrorOr<AppServicePlanResult>>;

@@ -1,4 +1,4 @@
-using BicepGenerator.Domain.Common.Models;
+using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 
@@ -18,6 +18,15 @@ public class BlobContainer : Entity<BlobContainerId>
 
     private BlobContainer()
     {
+    }
+
+    /// <summary>
+    /// Updates the public access level for this blob container.
+    /// </summary>
+    /// <param name="publicAccess">The new public access level to apply.</param>
+    public void UpdatePublicAccess(BlobContainerPublicAccess publicAccess)
+    {
+        PublicAccess = publicAccess;
     }
 
     public static BlobContainer Create(
