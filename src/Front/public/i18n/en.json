@@ -249,6 +249,7 @@
     "RESOURCES": {
       "LOADING": "Loading resources...",
       "EMPTY": "No resources in this group.",
+      "NO_CHILDREN": "No linked resources.",
       "ADD": "Add a resource",
       "EDIT": "Edit resource",
       "DELETE": "Delete resource",
@@ -275,6 +276,8 @@
       "ADD_DIALOG_TITLE_LogAnalyticsWorkspace": "New Log Analytics Workspace",
       "ADD_DIALOG_TITLE_ApplicationInsights": "New Application Insights",
       "ADD_DIALOG_TITLE_CosmosDb": "New Cosmos DB",
+      "ADD_DIALOG_TITLE_SqlServer": "New SQL Server",
+      "ADD_DIALOG_TITLE_SqlDatabase": "New SQL Database",
       "ADD_ERROR": "Failed to create the resource.",
       "FORM": {
         "NAME": "Name",

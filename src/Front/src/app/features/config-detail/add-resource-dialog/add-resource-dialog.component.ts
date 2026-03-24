@@ -603,6 +603,16 @@ export class AddResourceDialogComponent {
           backupPolicyType: ['Continuous'],
           enableFreeTier: [false],
         });
+      case ResourceTypeEnum.SqlServer:
+        return this.fb.group({
+          minimalTlsVersion: ['1.2'],
+        });
+      case ResourceTypeEnum.SqlDatabase:
+        return this.fb.group({
+          sku: ['Basic', [Validators.required]],
+          maxSizeGb: [null as number | null],
+          zoneRedundant: [false],
+        });
     }
   }
 

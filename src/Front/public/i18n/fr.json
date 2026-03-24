@@ -249,6 +249,7 @@
     "RESOURCES": {
       "LOADING": "Chargement des ressources...",
       "EMPTY": "Aucune ressource dans ce groupe.",
+      "NO_CHILDREN": "Aucune ressource li\u00e9e.",
       "ADD": "Ajouter une ressource",
       "EDIT": "Modifier la ressource",
       "DELETE": "Supprimer la ressource",
@@ -275,6 +276,8 @@
       "ADD_DIALOG_TITLE_LogAnalyticsWorkspace": "Nouvel espace Log Analytics",
       "ADD_DIALOG_TITLE_ApplicationInsights": "Nouveau Application Insights",
       "ADD_DIALOG_TITLE_CosmosDb": "Nouveau Cosmos DB",
+      "ADD_DIALOG_TITLE_SqlServer": "Nouveau SQL Server",
+      "ADD_DIALOG_TITLE_SqlDatabase": "Nouvelle SQL Database",
       "ADD_ERROR": "Erreur lors de la creation de la ressource.",
       "FORM": {
         "NAME": "Nom",

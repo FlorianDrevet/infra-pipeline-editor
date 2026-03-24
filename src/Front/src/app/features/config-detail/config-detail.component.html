@@ -291,37 +291,119 @@
                         </div>
                         @if ((rgResources()[rg.id] || []).length > 0) {
                           <div class="resource-list">
-                            @for (res of rgResources()[rg.id]!; track res.id) {
-                              <div class="resource-item">
-                                <mat-icon class="resource-item__icon">{{ resourceTypeIcons[res.resourceType] || 'widgets' }}</mat-icon>
-                                <div class="resource-item__info">
-                                  <strong>{{ res.name }}</strong>
-                                  <span class="resource-item__type">{{ res.resourceType }}</span>
-                                  @if (resolveNamingPreview(res.name, res.resourceType); as preview) {
-                                    <span class="naming-preview naming-preview--inline" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                                      <mat-icon class="naming-preview__icon">label</mat-icon>
-                                      {{ preview }}
-                                    </span>
+                            @for (item of groupResourcesForRg(rg.id); track item.resource.id) {
+                              @if (item.isParent) {
+                                <!-- Parent resource with collapsible children -->
+                                <div class="resource-parent-group" [class.resource-parent-group--expanded]="isParentExpanded(item.resource.id)">
+                                  <button class="resource-parent-header" (click)="toggleParentExpand(item.resource.id)">
+                                    <mat-icon class="resource-parent-header__chevron">expand_more</mat-icon>
+                                    <mat-icon class="resource-item__icon">{{ resourceTypeIcons[item.resource.resourceType] || 'widgets' }}</mat-icon>
+                                    <div class="resource-item__info">
+                                      <strong>{{ item.resource.name }}</strong>
+                                      <span class="resource-item__type">{{ item.resource.resourceType }}</span>
+                                      @if (resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
+                                        <span class="naming-preview naming-preview--inline" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                          <mat-icon class="naming-preview__icon">label</mat-icon>
+                                          {{ preview }}
+                                        </span>
+                                      }
+                                    </div>
+                                    <span class="resource-parent-header__count">{{ item.children?.length ?? 0 }}</span>
+                                    <span class="resource-item__location">{{ item.resource.location }}</span>
+                                    <div class="resource-item__actions" (click)="$event.stopPropagation()">
+                                      <a
+                                        class="resource-action-btn resource-action-btn--edit"
+                                        [routerLink]="['/config', config()!.id, 'resource', item.resource.resourceType, item.resource.id]"
+                                        [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                        <mat-icon>edit</mat-icon>
+                                      </a>
+                                      @if (canWrite()) {
+                                        <button
+                                          class="resource-action-btn resource-action-btn--delete"
+                                          [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                          (click)="openDeleteResourceDialog(item.resource, rg.id)">
+                                          <mat-icon>delete_outline</mat-icon>
+                                        </button>
+                                      }
+                                    </div>
+                                  </button>
+                                  @if (isParentExpanded(item.resource.id)) {
+                                    <div class="resource-children">
+                                      @if (item.children && item.children.length > 0) {
+                                        @for (child of item.children; track child.id) {
+                                          <div class="resource-item resource-item--child">
+                                            <mat-icon class="resource-item__icon">{{ resourceTypeIcons[child.resourceType] || 'widgets' }}</mat-icon>
+                                            <div class="resource-item__info">
+                                              <strong>{{ child.name }}</strong>
+                                              <span class="resource-item__type">{{ child.resourceType }}</span>
+                                              @if (resolveNamingPreview(child.name, child.resourceType); as preview) {
+                                                <span class="naming-preview naming-preview--inline" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                                  <mat-icon class="naming-preview__icon">label</mat-icon>
+                                                  {{ preview }}
+                                                </span>
+                                              }
+                                            </div>
+                                            <span class="resource-item__location">{{ child.location }}</span>
+                                            <div class="resource-item__actions">
+                                              <a
+                                                class="resource-action-btn resource-action-btn--edit"
+                                                [routerLink]="['/config', config()!.id, 'resource', child.resourceType, child.id]"
+                                                [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                                <mat-icon>edit</mat-icon>
+                                              </a>
+                                              @if (canWrite()) {
+                                                <button
+                                                  class="resource-action-btn resource-action-btn--delete"
+                                                  [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                                  (click)="openDeleteResourceDialog(child, rg.id)">
+                                                  <mat-icon>delete_outline</mat-icon>
+                                                </button>
+                                              }
+                                            </div>
+                                          </div>
+                                        }
+                                      } @else {
+                                        <div class="resource-children-empty">
+                                          <mat-icon>widgets</mat-icon>
+                                          <span>{{ 'CONFIG_DETAIL.RESOURCES.NO_CHILDREN' | translate }}</span>
+                                        </div>
+                                      }
+                                    </div>
                                   }
                                 </div>
-                                <span class="resource-item__location">{{ res.location }}</span>
-                                <div class="resource-item__actions">
-                                  <a
-                                    class="resource-action-btn resource-action-btn--edit"
-                                    [routerLink]="['/config', config()!.id, 'resource', res.resourceType, res.id]"
-                                    [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
-                                    <mat-icon>edit</mat-icon>
-                                  </a>
-                                  @if (canWrite()) {
-                                    <button
-                                      class="resource-action-btn resource-action-btn--delete"
-                                      [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
-                                      (click)="openDeleteResourceDialog(res, rg.id)">
-                                      <mat-icon>delete_outline</mat-icon>
-                                    </button>
-                                  }
+                              } @else {
+                                <!-- Standalone resource (not a parent, or orphan child) -->
+                                <div class="resource-item">
+                                  <mat-icon class="resource-item__icon">{{ resourceTypeIcons[item.resource.resourceType] || 'widgets' }}</mat-icon>
+                                  <div class="resource-item__info">
+                                    <strong>{{ item.resource.name }}</strong>
+                                    <span class="resource-item__type">{{ item.resource.resourceType }}</span>
+                                    @if (resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
+                                      <span class="naming-preview naming-preview--inline" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                        <mat-icon class="naming-preview__icon">label</mat-icon>
+                                        {{ preview }}
+                                      </span>
+                                    }
+                                  </div>
+                                  <span class="resource-item__location">{{ item.resource.location }}</span>
+                                  <div class="resource-item__actions">
+                                    <a
+                                      class="resource-action-btn resource-action-btn--edit"
+                                      [routerLink]="['/config', config()!.id, 'resource', item.resource.resourceType, item.resource.id]"
+                                      [matTooltip]="'CONFIG_DETAIL.RESOURCES.EDIT' | translate">
+                                      <mat-icon>edit</mat-icon>
+                                    </a>
+                                    @if (canWrite()) {
+                                      <button
+                                        class="resource-action-btn resource-action-btn--delete"
+                                        [matTooltip]="'CONFIG_DETAIL.RESOURCES.DELETE' | translate"
+                                        (click)="openDeleteResourceDialog(item.resource, rg.id)">
+                                        <mat-icon>delete_outline</mat-icon>
+                                      </button>
+                                    }
+                                  </div>
                                 </div>
-                              </div>
+                              }
                             }
                           </div>
                         } @else {

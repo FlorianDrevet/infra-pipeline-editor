@@ -15,6 +15,8 @@ export enum ResourceTypeEnum {
   LogAnalyticsWorkspace = 'LogAnalyticsWorkspace',
   ApplicationInsights = 'ApplicationInsights',
   CosmosDb = 'CosmosDb',
+  SqlServer = 'SqlServer',
+  SqlDatabase = 'SqlDatabase',
 }
 
 /**
@@ -42,6 +44,8 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   LogAnalyticsWorkspace: 'analytics',
   ApplicationInsights: 'monitoring',
   CosmosDb: 'public',
+  SqlServer: 'database',
+  SqlDatabase: 'table_chart',
 };
 
 export interface ResourceTypeCategory {
@@ -72,6 +76,8 @@ export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
       ResourceTypeEnum.StorageAccount,
       ResourceTypeEnum.CosmosDb,
       ResourceTypeEnum.RedisCache,
+      ResourceTypeEnum.SqlServer,
+      ResourceTypeEnum.SqlDatabase,
     ],
   },
   {
@@ -111,4 +117,23 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Record<string, string> = {
   LogAnalyticsWorkspace: 'law',
   ApplicationInsights: 'appi',
   CosmosDb: 'cosmos',
+  SqlServer: 'sql',
+  SqlDatabase: 'sqldb',
 };
+
+/**
+ * Defines parent resource types and the child types that belong to them.
+ * Used to visually group child resources under their parent in the resource list.
+ */
+export const PARENT_CHILD_RESOURCE_TYPES: Record<string, string[]> = {
+  [ResourceTypeEnum.AppServicePlan]: [ResourceTypeEnum.WebApp, ResourceTypeEnum.FunctionApp],
+  [ResourceTypeEnum.ContainerAppEnvironment]: [ResourceTypeEnum.ContainerApp],
+  [ResourceTypeEnum.SqlServer]: [ResourceTypeEnum.SqlDatabase],
+};
+
+/**
+ * Set of all resource types that act as children and should not appear at the top level.
+ */
+export const CHILD_RESOURCE_TYPES = new Set<string>(
+  Object.values(PARENT_CHILD_RESOURCE_TYPES).flat(),
+);
