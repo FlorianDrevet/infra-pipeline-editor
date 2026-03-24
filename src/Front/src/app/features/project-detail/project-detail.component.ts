@@ -264,6 +264,7 @@ export class ProjectDetailComponent implements OnInit {
         allEnvironments: project.environmentDefinitions,
       } satisfies AddProjectEnvironmentDialogData,
       width: '520px',
+      maxWidth: '95vw',
     });
 
     dialogRef.afterClosed().subscribe(async (saved?: boolean) => {

@@ -103,6 +103,36 @@
           </mat-form-field>
         }
       </form>
+      @if (parentResourceSuffix() === 'SQL') {
+        <form [formGroup]="createSqlServerForm" class="resource-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.NAME' | translate }}</mat-label>
+            <input matInput formControlName="name"
+              [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.PLAN_NAME_PLACEHOLDER_SQL' | translate" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOCATION' | translate }}</mat-label>
+            <mat-select formControlName="location">
+              @for (option of locationOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SQL_SERVER_VERSION' | translate }}</mat-label>
+            <mat-select formControlName="version">
+              @for (option of sqlServerVersionOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.ADMINISTRATOR_LOGIN' | translate }}</mat-label>
+            <input matInput formControlName="administratorLogin"
+              [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.ADMINISTRATOR_LOGIN_PLACEHOLDER' | translate" />
+          </mat-form-field>
+        </form>
+      }
     }
     @case ('common') {
       <!-- Step 2: Common fields -->
@@ -215,6 +245,42 @@
               </button>
             }
           </div>
+        }
+
+        @if (selectedType() === ResourceTypeEnum.SqlServer) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SQL_SERVER_VERSION' | translate }}</mat-label>
+            <mat-select formControlName="version">
+              @for (option of sqlServerVersionOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.ADMINISTRATOR_LOGIN' | translate }}</mat-label>
+            <input matInput formControlName="administratorLogin"
+              [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.ADMINISTRATOR_LOGIN_PLACEHOLDER' | translate" />
+          </mat-form-field>
+        }
+
+        @if (selectedType() === ResourceTypeEnum.SqlDatabase) {
+          <div class="plan-indicator">
+            <mat-icon class="plan-indicator__icon">dns</mat-icon>
+            <div class="plan-indicator__info">
+              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_SQL' | translate }}</span>
+              <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
+            </div>
+            @if (!hasParentResource) {
+              <button class="plan-indicator__change" (click)="onBackFromCommon()">
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
+              </button>
+            }
+          </div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.COLLATION' | translate }}</mat-label>
+            <input matInput formControlName="collation"
+              [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.COLLATION_PLACEHOLDER' | translate" />
+          </mat-form-field>
         }
       </form>
       @if (!hasEnvironments) {
@@ -625,6 +691,37 @@
                   </mat-slide-toggle>
                 </div>
               }
+              @case (ResourceTypeEnum.SqlServer) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MIN_TLS_VERSION' | translate }}</mat-label>
+                    <mat-select formControlName="minimalTlsVersion">
+                      @for (option of sqlMinTlsOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              }
+              @case (ResourceTypeEnum.SqlDatabase) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                    <mat-select formControlName="sku">
+                      @for (option of sqlDatabaseSkuOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MAX_SIZE_GB' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="maxSizeGb" />
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="zoneRedundant" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANT' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
             }
           </mat-tab>
         }
@@ -643,7 +740,7 @@
   </button>
   @if (step() === 'create-plan') {
     <button mat-flat-button color="primary" (click)="onCreatePlanAndContinue()"
-            [disabled]="createPlanForm.invalid || isCreatingPlan()">
+            [disabled]="(parentResourceSuffix() === 'SQL' ? createSqlServerForm.invalid : createPlanForm.invalid) || isCreatingPlan()">
       @if (isCreatingPlan()) {
         <mat-spinner diameter="18"></mat-spinner>
       } @else {

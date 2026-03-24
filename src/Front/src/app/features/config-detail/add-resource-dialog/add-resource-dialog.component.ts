@@ -31,6 +31,8 @@ import { ContainerAppService } from '../../../shared/services/container-app.serv
 import { LogAnalyticsWorkspaceService } from '../../../shared/services/log-analytics-workspace.service';
 import { ApplicationInsightsService } from '../../../shared/services/application-insights.service';
 import { CosmosDbService } from '../../../shared/services/cosmos-db.service';
+import { SqlServerService } from '../../../shared/services/sql-server.service';
+import { SqlDatabaseService } from '../../../shared/services/sql-database.service';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
@@ -44,6 +46,8 @@ import { ContainerAppEnvironmentConfigEntry } from '../../../shared/interfaces/c
 import { LogAnalyticsWorkspaceEnvironmentConfigEntry } from '../../../shared/interfaces/log-analytics-workspace.interface';
 import { ApplicationInsightsEnvironmentConfigEntry } from '../../../shared/interfaces/application-insights.interface';
 import { CosmosDbEnvironmentConfigEntry } from '../../../shared/interfaces/cosmos-db.interface';
+import { SqlServerEnvironmentConfigEntry } from '../../../shared/interfaces/sql-server.interface';
+import { SqlDatabaseEnvironmentConfigEntry } from '../../../shared/interfaces/sql-database.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 
 export interface AddResourceDialogData {
@@ -249,6 +253,8 @@ export class AddResourceDialogComponent {
   private readonly logAnalyticsWorkspaceService = inject(LogAnalyticsWorkspaceService);
   private readonly applicationInsightsService = inject(ApplicationInsightsService);
   private readonly cosmosDbService = inject(CosmosDbService);
+  private readonly sqlServerService = inject(SqlServerService);
+  private readonly sqlDatabaseService = inject(SqlDatabaseService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly fb = inject(FormBuilder);
 
@@ -330,6 +336,7 @@ export class AddResourceDialogComponent {
     const type = this.selectedType();
     if (type === ResourceTypeEnum.ContainerApp) return 'CAE';
     if (type === ResourceTypeEnum.ApplicationInsights) return 'LAW';
+    if (type === ResourceTypeEnum.SqlDatabase) return 'SQL';
     return 'ASP';
   });
 
@@ -337,6 +344,7 @@ export class AddResourceDialogComponent {
     const suffix = this.parentResourceSuffix();
     if (suffix === 'CAE') return 'cloud_queue';
     if (suffix === 'LAW') return 'analytics';
+    if (suffix === 'SQL') return 'dns';
     return 'dns';
   });
 
@@ -348,10 +356,14 @@ export class AddResourceDialogComponent {
     appServicePlanId: [''],
     containerAppEnvironmentId: [''],
     logAnalyticsWorkspaceId: [''],
+    sqlServerId: [''],
     runtimeStack: [''],
     runtimeVersion: [''],
     alwaysOn: [true],
     httpsOnly: [true],
+    version: ['V12'],
+    administratorLogin: [''],
+    collation: ['SQL_Latin1_General_CP1_CI_AS'],
   });
 
   // ── Create Plan form (inline ASP creation) ──
@@ -393,6 +405,8 @@ export class AddResourceDialogComponent {
       this.commonForm.patchValue({ containerAppEnvironmentId: this.parentResource.id });
     } else if (type === ResourceTypeEnum.ApplicationInsights) {
       this.commonForm.patchValue({ logAnalyticsWorkspaceId: this.parentResource.id });
+    } else if (type === ResourceTypeEnum.SqlDatabase) {
+      this.commonForm.patchValue({ sqlServerId: this.parentResource.id });
     } else {
       this.commonForm.patchValue({ appServicePlanId: this.parentResource.id });
     }
@@ -408,7 +422,7 @@ export class AddResourceDialogComponent {
     if (this.parentResource) {
       this.prefillParentFormField(type);
       this.step.set('common');
-    } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights) {
+    } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights || type === ResourceTypeEnum.SqlDatabase) {
       this.step.set('plan-selection');
       this.loadExistingPlans();
     } else {
@@ -423,6 +437,7 @@ export class AddResourceDialogComponent {
       const resources = await this.resourceGroupService.getResources(this.data.resourceGroupId);
       const filterType = this.selectedType() === ResourceTypeEnum.ContainerApp ? 'ContainerAppEnvironment'
         : this.selectedType() === ResourceTypeEnum.ApplicationInsights ? 'LogAnalyticsWorkspace'
+        : this.selectedType() === ResourceTypeEnum.SqlDatabase ? 'SqlServer'
         : 'AppServicePlan';
       const plans = resources.filter(r => r.resourceType === filterType);
       this.existingPlans.set(plans);
@@ -440,11 +455,39 @@ export class AddResourceDialogComponent {
       this.commonForm.patchValue({ containerAppEnvironmentId: plan.id });
     } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
       this.commonForm.patchValue({ logAnalyticsWorkspaceId: plan.id });
+    } else if (this.selectedType() === ResourceTypeEnum.SqlDatabase) {
+      this.commonForm.patchValue({ sqlServerId: plan.id });
     } else {
       this.commonForm.patchValue({ appServicePlanId: plan.id });
     }
     this.step.set('common');
   }
+
+  protected readonly createSqlServerForm = this.fb.group({
+    name: ['', [Validators.required, Validators.maxLength(80)]],
+    location: ['', [Validators.required]],
+    version: ['V12', [Validators.required]],
+    administratorLogin: ['', [Validators.required]],
+  });
+
+  protected readonly sqlServerVersionOptions = [
+    { label: '12.0', value: 'V12' },
+  ];
+
+  protected readonly sqlDatabaseSkuOptions = [
+    { label: 'Basic', value: 'Basic' },
+    { label: 'Standard', value: 'Standard' },
+    { label: 'Premium', value: 'Premium' },
+    { label: 'General Purpose', value: 'GeneralPurpose' },
+    { label: 'Business Critical', value: 'BusinessCritical' },
+    { label: 'Hyperscale', value: 'Hyperscale' },
+  ];
+
+  protected readonly sqlMinTlsOptions = [
+    { label: 'TLS 1.0', value: '1.0' },
+    { label: 'TLS 1.1', value: '1.1' },
+    { label: 'TLS 1.2', value: '1.2' },
+  ];
 
   protected onStartCreatePlan(): void {
     this.createPlanForm.patchValue({ location: this.data.location });
@@ -455,6 +498,9 @@ export class AddResourceDialogComponent {
       osCtrl.clearValidators();
     }
     osCtrl.updateValueAndValidity();
+    if (this.parentResourceSuffix() === 'SQL') {
+      this.createSqlServerForm.patchValue({ location: this.data.location });
+    }
     this.step.set('create-plan');
     this.errorKey.set('');
   }
@@ -497,6 +543,22 @@ export class AddResourceDialogComponent {
         this.selectedPlanId.set(created.id);
         this.selectedPlanName.set(created.name);
         this.commonForm.patchValue({ logAnalyticsWorkspaceId: created.id });
+      } else if (this.selectedType() === ResourceTypeEnum.SqlDatabase) {
+        const sqlData = this.createSqlServerForm.getRawValue();
+        const created = await this.sqlServerService.create({
+          resourceGroupId: this.data.resourceGroupId,
+          name: sqlData.name!,
+          location: sqlData.location!,
+          version: sqlData.version!,
+          administratorLogin: sqlData.administratorLogin!,
+          environmentSettings: this.environments.map(env => ({
+            environmentName: env.name,
+            minimalTlsVersion: '1.2',
+          })),
+        });
+        this.selectedPlanId.set(created.id);
+        this.selectedPlanName.set(created.name);
+        this.commonForm.patchValue({ sqlServerId: created.id });
       } else {
         const created = await this.appServicePlanService.create({
           resourceGroupId: this.data.resourceGroupId,
@@ -543,7 +605,7 @@ export class AddResourceDialogComponent {
   protected onBackFromCommon(): void {
     if (this.parentResource) {
       this.onBackToType();
-    } else if (this.selectedType() === ResourceTypeEnum.WebApp || this.selectedType() === ResourceTypeEnum.FunctionApp || this.selectedType() === ResourceTypeEnum.ContainerApp || this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
+    } else if (this.selectedType() === ResourceTypeEnum.WebApp || this.selectedType() === ResourceTypeEnum.FunctionApp || this.selectedType() === ResourceTypeEnum.ContainerApp || this.selectedType() === ResourceTypeEnum.ApplicationInsights || this.selectedType() === ResourceTypeEnum.SqlDatabase) {
       this.step.set('plan-selection');
     } else {
       this.onBackToType();
@@ -849,6 +911,28 @@ export class AddResourceDialogComponent {
           });
           break;
         }
+        case ResourceTypeEnum.SqlServer: {
+          await this.sqlServerService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            version: common.version!,
+            administratorLogin: common.administratorLogin!,
+            environmentSettings: this.buildSqlServerEnvironmentSettings(),
+          });
+          break;
+        }
+        case ResourceTypeEnum.SqlDatabase: {
+          await this.sqlDatabaseService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            sqlServerId: common.sqlServerId!,
+            collation: common.collation!,
+            environmentSettings: this.buildSqlDatabaseEnvironmentSettings(),
+          });
+          break;
+        }
       }
       this.dialogRef.close(true);
     } catch {
@@ -1025,6 +1109,28 @@ export class AddResourceDialogComponent {
     });
   }
 
+  private buildSqlServerEnvironmentSettings(): SqlServerEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        minimalTlsVersion: raw.minimalTlsVersion || null,
+      };
+    });
+  }
+
+  private buildSqlDatabaseEnvironmentSettings(): SqlDatabaseEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        sku: raw.sku || null,
+        maxSizeGb: raw.maxSizeGb != null ? Number(raw.maxSizeGb) : null,
+        zoneRedundant: raw.zoneRedundant ?? null,
+      };
+    });
+  }
+
   private updateCommonFormValidators(type: ResourceTypeEnum): void {
     this.clearExtraValidators();
     if (type === ResourceTypeEnum.AppServicePlan) {
@@ -1036,12 +1142,22 @@ export class AddResourceDialogComponent {
       this.commonForm.controls.containerAppEnvironmentId.setValidators([Validators.required]);
     } else if (type === ResourceTypeEnum.ApplicationInsights) {
       this.commonForm.controls.logAnalyticsWorkspaceId.setValidators([Validators.required]);
+    } else if (type === ResourceTypeEnum.SqlServer) {
+      this.commonForm.controls.version.setValidators([Validators.required]);
+      this.commonForm.controls.administratorLogin.setValidators([Validators.required]);
+    } else if (type === ResourceTypeEnum.SqlDatabase) {
+      this.commonForm.controls.sqlServerId.setValidators([Validators.required]);
+      this.commonForm.controls.collation.setValidators([Validators.required]);
     }
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
     this.commonForm.controls.containerAppEnvironmentId.updateValueAndValidity();
     this.commonForm.controls.logAnalyticsWorkspaceId.updateValueAndValidity();
+    this.commonForm.controls.sqlServerId.updateValueAndValidity();
+    this.commonForm.controls.version.updateValueAndValidity();
+    this.commonForm.controls.administratorLogin.updateValueAndValidity();
+    this.commonForm.controls.collation.updateValueAndValidity();
   }
 
   private clearExtraValidators(): void {
@@ -1050,10 +1166,18 @@ export class AddResourceDialogComponent {
     this.commonForm.controls.runtimeVersion.clearValidators();
     this.commonForm.controls.containerAppEnvironmentId.clearValidators();
     this.commonForm.controls.logAnalyticsWorkspaceId.clearValidators();
+    this.commonForm.controls.sqlServerId.clearValidators();
+    this.commonForm.controls.version.clearValidators();
+    this.commonForm.controls.administratorLogin.clearValidators();
+    this.commonForm.controls.collation.clearValidators();
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
     this.commonForm.controls.containerAppEnvironmentId.updateValueAndValidity();
     this.commonForm.controls.logAnalyticsWorkspaceId.updateValueAndValidity();
+    this.commonForm.controls.sqlServerId.updateValueAndValidity();
+    this.commonForm.controls.version.updateValueAndValidity();
+    this.commonForm.controls.administratorLogin.updateValueAndValidity();
+    this.commonForm.controls.collation.updateValueAndValidity();
   }
 }

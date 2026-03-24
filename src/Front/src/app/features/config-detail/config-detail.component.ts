@@ -477,6 +477,7 @@ export class ConfigDetailComponent implements OnInit {
         allEnvironments: currentConfig.environmentDefinitions,
       } satisfies AddEnvironmentDialogData,
       width: '520px',
+      maxWidth: '95vw',
     });
 
     dialogRef.afterClosed().subscribe(async (result: InfrastructureConfigResponse | null) => {
