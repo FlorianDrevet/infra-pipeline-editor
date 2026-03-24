@@ -11,14 +11,14 @@ import {
   SetGitConfigRequest,
   TestGitConnectionResponse,
   GitBranchResponse,
+  AddProjectEnvironmentRequest,
+  UpdateProjectEnvironmentRequest,
 } from '../interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
   UserResponse,
   EnvironmentDefinitionResponse,
   ResourceNamingTemplateResponse,
-  AddEnvironmentRequest,
-  UpdateEnvironmentRequest,
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
 } from '../interfaces/infra-config.interface';
@@ -95,7 +95,7 @@ export class ProjectService {
 
   addEnvironment(
     projectId: string,
-    request: AddEnvironmentRequest
+    request: AddProjectEnvironmentRequest
   ): Promise<EnvironmentDefinitionResponse> {
     return this.axios.request$<EnvironmentDefinitionResponse>(
       MethodEnum.POST,
@@ -107,7 +107,7 @@ export class ProjectService {
   updateEnvironment(
     projectId: string,
     envId: string,
-    request: UpdateEnvironmentRequest
+    request: UpdateProjectEnvironmentRequest
   ): Promise<EnvironmentDefinitionResponse> {
     return this.axios.request$<EnvironmentDefinitionResponse>(
       MethodEnum.PUT,

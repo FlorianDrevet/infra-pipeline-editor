@@ -172,6 +172,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("KeyVaultResourceId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -179,6 +182,10 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<Guid>("ResourceId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("SecretName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("SourceOutputName")
                         .HasMaxLength(128)
@@ -192,6 +199,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("character varying(4000)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("KeyVaultResourceId");
 
                     b.HasIndex("SourceResourceId");
 
@@ -555,11 +564,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
-
-                    b.Property<bool>("UseProjectEnvironments")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
 
                     b.Property<bool>("UseProjectNamingConventions")
                         .ValueGeneratedOnAdd()
@@ -1237,6 +1241,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.AppSetting", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithMany()
+                        .HasForeignKey("KeyVaultResourceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany("AppSettings")
                         .HasForeignKey("ResourceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1364,113 +1373,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.OwnsMany("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.EnvironmentDefinition", "EnvironmentDefinitions", b1 =>
-                        {
-                            b1.Property<Guid>("Id")
-                                .HasColumnType("uuid");
-
-                            b1.Property<Guid>("InfraConfigId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Location")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.Property<string>("Name")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.Property<int>("Order")
-                                .HasColumnType("integer");
-
-                            b1.Property<string>("Prefix")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.Property<bool>("RequiresApproval")
-                                .HasColumnType("boolean");
-
-                            b1.Property<string>("ShortName")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.Property<Guid>("SubscriptionId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Suffix")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.Property<Guid>("TenantId")
-                                .HasColumnType("uuid");
-
-                            b1.HasKey("Id");
-
-                            b1.HasIndex("InfraConfigId");
-
-                            b1.ToTable("Environments", (string)null);
-
-                            b1.WithOwner("InfraConfig")
-                                .HasForeignKey("InfraConfigId");
-
-                            b1.OwnsMany("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.EnvironmentParameterValue", "ParameterValues", b2 =>
-                                {
-                                    b2.Property<Guid>("Id")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<Guid>("EnvironmentDefinitionId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<Guid>("EnvironmentId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<Guid>("ParameterId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<string>("Value")
-                                        .HasColumnType("text");
-
-                                    b2.HasKey("Id");
-
-                                    b2.HasIndex("EnvironmentDefinitionId");
-
-                                    b2.ToTable("EnvironmentParameterValues", (string)null);
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("EnvironmentDefinitionId");
-                                });
-
-                            b1.OwnsMany("InfraFlowSculptor.Domain.UserAggregate.ValueObjects.Tag", "Tags", b2 =>
-                                {
-                                    b2.Property<Guid>("EnvironmentId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<string>("Name")
-                                        .HasMaxLength(100)
-                                        .HasColumnType("character varying(100)");
-
-                                    b2.Property<string>("Value")
-                                        .IsRequired()
-                                        .HasMaxLength(500)
-                                        .HasColumnType("character varying(500)");
-
-                                    b2.HasKey("EnvironmentId", "Name");
-
-                                    b2.ToTable("EnvironmentTags", (string)null);
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("EnvironmentId");
-                                });
-
-                            b1.Navigation("InfraConfig");
-
-                            b1.Navigation("ParameterValues");
-
-                            b1.Navigation("Tags");
-                        });
-
-                    b.Navigation("EnvironmentDefinitions");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.KeyVaultAggregate.Entities.KeyVaultEnvironmentSettings", b =>

@@ -1,6 +1,7 @@
 import {
   EnvironmentDefinitionResponse,
   ResourceNamingTemplateResponse,
+  TagRequest,
 } from './infra-config.interface';
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -50,6 +51,34 @@ export interface AddProjectMemberRequest {
 
 export interface UpdateProjectMemberRoleRequest {
   newRole: string;
+}
+
+// ─── Environment Requests ───────────────────────────────────────────────────
+
+export interface AddProjectEnvironmentRequest {
+  name: string;
+  shortName?: string;
+  prefix?: string;
+  suffix?: string;
+  location: string;
+  tenantId: string;
+  subscriptionId: string;
+  order?: number;
+  requiresApproval?: boolean;
+  tags?: TagRequest[];
+}
+
+export interface UpdateProjectEnvironmentRequest {
+  name: string;
+  shortName?: string;
+  prefix?: string;
+  suffix?: string;
+  location: string;
+  tenantId: string;
+  subscriptionId: string;
+  order?: number;
+  requiresApproval?: boolean;
+  tags?: TagRequest[];
 }
 
 // ─── Git Configuration ──────────────────────────────────────────────────────
