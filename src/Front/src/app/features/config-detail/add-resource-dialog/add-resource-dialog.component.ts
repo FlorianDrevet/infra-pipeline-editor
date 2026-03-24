@@ -13,7 +13,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TranslateModule } from '@ngx-translate/core';
 import { LOCATION_OPTIONS } from '../enums/location.enum';
-import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS } from '../enums/resource-type.enum';
+import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_CATEGORIES } from '../enums/resource-type.enum';
 import { OS_TYPE_OPTIONS } from '../enums/os-type.enum';
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../enums/app-service-plan-sku.enum';
 import { RUNTIME_STACK_OPTIONS } from '../enums/runtime-stack.enum';
@@ -280,6 +280,7 @@ export class AddResourceDialogComponent {
 
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
+  protected readonly resourceTypeCategories = RESOURCE_TYPE_CATEGORIES;
   protected readonly locationOptions = LOCATION_OPTIONS;
   protected readonly keyVaultSkuOptions = KEY_VAULT_SKU_OPTIONS;
   protected readonly redisSkuOptions = REDIS_SKU_OPTIONS;

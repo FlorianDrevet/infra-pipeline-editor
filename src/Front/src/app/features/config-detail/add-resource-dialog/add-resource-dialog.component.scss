@@ -20,6 +20,44 @@
   &:hover { background: rgba(0, 0, 0, 0.06); }
 }
 
+.type-picker-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 28rem;
+  padding: 0.5rem 0;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.type-category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.type-category__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.15rem;
+}
+
+.type-category__icon {
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  color: #546e7a;
+}
+
+.type-category__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #546e7a;
+}
+
 .type-picker {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

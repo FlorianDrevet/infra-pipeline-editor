@@ -24,6 +24,17 @@ export interface ProjectResponse {
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
 }
 
+export interface RecentItemResponse {
+  id: string;
+  name: string;
+  type: 'project' | 'config';
+  description?: string;
+}
+
+export interface ValidateRecentItemsRequest {
+  items: { id: string; type: string }[];
+}
+
 // ─── Requests ────────────────────────────────────────────────────────────────
 
 export interface CreateProjectRequest {

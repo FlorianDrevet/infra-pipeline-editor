@@ -37,7 +37,10 @@ export class HomeComponent implements OnInit {
   );
 
   public async ngOnInit(): Promise<void> {
-    await this.loadProjects();
+    await Promise.all([
+      this.loadProjects(),
+      this.recentlyViewedService.validateAndRefresh(),
+    ]);
   }
 
   protected isFavorite(projectId: string): boolean {

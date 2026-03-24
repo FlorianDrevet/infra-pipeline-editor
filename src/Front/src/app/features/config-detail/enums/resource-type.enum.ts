@@ -44,6 +44,55 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   CosmosDb: 'public',
 };
 
+export interface ResourceTypeCategory {
+  labelKey: string;
+  icon: string;
+  types: ResourceTypeEnum[];
+}
+
+/**
+ * Resource types grouped by functional category for the type-picker UI.
+ */
+export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
+  {
+    labelKey: 'CONFIG_DETAIL.RESOURCES.CATEGORY_COMPUTE',
+    icon: 'computer',
+    types: [
+      ResourceTypeEnum.AppServicePlan,
+      ResourceTypeEnum.WebApp,
+      ResourceTypeEnum.FunctionApp,
+      ResourceTypeEnum.ContainerAppEnvironment,
+      ResourceTypeEnum.ContainerApp,
+    ],
+  },
+  {
+    labelKey: 'CONFIG_DETAIL.RESOURCES.CATEGORY_STORAGE_DB',
+    icon: 'database',
+    types: [
+      ResourceTypeEnum.StorageAccount,
+      ResourceTypeEnum.CosmosDb,
+      ResourceTypeEnum.RedisCache,
+    ],
+  },
+  {
+    labelKey: 'CONFIG_DETAIL.RESOURCES.CATEGORY_SECURITY',
+    icon: 'shield',
+    types: [
+      ResourceTypeEnum.KeyVault,
+      ResourceTypeEnum.UserAssignedIdentity,
+    ],
+  },
+  {
+    labelKey: 'CONFIG_DETAIL.RESOURCES.CATEGORY_MONITORING',
+    icon: 'monitoring',
+    types: [
+      ResourceTypeEnum.LogAnalyticsWorkspace,
+      ResourceTypeEnum.ApplicationInsights,
+      ResourceTypeEnum.AppConfiguration,
+    ],
+  },
+];
+
 /**
  * Standard abbreviations per resource type, matching backend ResourceAbbreviationCatalog.
  */

@@ -25,13 +25,23 @@
 <mat-dialog-content>
   @switch (step()) {
     @case ('type') {
-      <!-- Step 1: Type picker -->
-      <div class="type-picker">
-        @for (opt of resourceTypeOptions; track opt.value) {
-          <button class="type-card" (click)="onSelectType($any(opt.value))">
-            <mat-icon class="type-card__icon">{{ resourceTypeIcons[opt.value] }}</mat-icon>
-            <span class="type-card__label">{{ opt.label }}</span>
-          </button>
+      <!-- Step 1: Type picker grouped by category -->
+      <div class="type-picker-categories">
+        @for (category of resourceTypeCategories; track category.labelKey) {
+          <section class="type-category">
+            <div class="type-category__header">
+              <mat-icon class="type-category__icon">{{ category.icon }}</mat-icon>
+              <span class="type-category__label">{{ category.labelKey | translate }}</span>
+            </div>
+            <div class="type-picker">
+              @for (type of category.types; track type) {
+                <button class="type-card" (click)="onSelectType(type)">
+                  <mat-icon class="type-card__icon">{{ resourceTypeIcons[type] }}</mat-icon>
+                  <span class="type-card__label">{{ type }}</span>
+                </button>
+              }
+            </div>
+          </section>
         }
       </div>
     }
