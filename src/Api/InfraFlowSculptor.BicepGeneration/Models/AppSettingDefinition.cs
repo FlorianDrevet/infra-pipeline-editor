@@ -2,7 +2,7 @@ namespace InfraFlowSculptor.BicepGeneration.Models;
 
 /// <summary>
 /// Represents an app setting (environment variable) to be injected into a compute resource module.
-/// Can be a static value or a reference to another resource's output.
+/// Can be a static value, a reference to another resource's output, or a Key Vault secret reference.
 /// </summary>
 public sealed class AppSettingDefinition
 {
@@ -32,4 +32,13 @@ public sealed class AppSettingDefinition
     /// Resolved from the <c>ResourceOutputCatalog</c> by the handler.
     /// </summary>
     public string? SourceOutputBicepExpression { get; init; }
+
+    /// <summary>Whether this setting is a Key Vault secret reference.</summary>
+    public bool IsKeyVaultReference { get; init; }
+
+    /// <summary>Logical name of the Key Vault resource (used to build the module reference).</summary>
+    public string? KeyVaultResourceName { get; init; }
+
+    /// <summary>The name of the secret in the Key Vault.</summary>
+    public string? SecretName { get; init; }
 }

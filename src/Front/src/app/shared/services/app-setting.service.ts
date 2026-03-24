@@ -5,6 +5,7 @@ import {
   AppSettingResponse,
   AvailableOutputsResponse,
   AddAppSettingRequest,
+  CheckKeyVaultAccessResponse,
 } from '../interfaces/app-setting.interface';
 
 @Injectable({
@@ -24,6 +25,13 @@ export class AppSettingService {
     return this.axios.request$<AvailableOutputsResponse>(
       MethodEnum.GET,
       `/azure-resources/${resourceId}/available-outputs`
+    );
+  }
+
+  checkKeyVaultAccess(resourceId: string, keyVaultId: string): Promise<CheckKeyVaultAccessResponse> {
+    return this.axios.request$<CheckKeyVaultAccessResponse>(
+      MethodEnum.GET,
+      `/azure-resources/${resourceId}/check-keyvault-access/${keyVaultId}`
     );
   }
 

@@ -30,14 +30,6 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<InfrastructureConfig?> GetByIdWithEnvironmentsAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default)
-    {
-        return await Context.InfrastructureConfigs
-            .Include(c => c.EnvironmentDefinitions)
-            .Include(c => c.ResourceNamingTemplates)
-            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
-    }
-
     public async Task<InfrastructureConfig?> GetByIdWithNamingTemplatesAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default)
     {
         return await Context.InfrastructureConfigs

@@ -8,4 +8,8 @@ public record AppSettingResponse(
     string? StaticValue,
     string? SourceResourceId,
     string? SourceOutputName,
-    bool IsOutputReference);
+    bool IsOutputReference,
+    string? KeyVaultResourceId,
+    string? SecretName,
+    bool IsKeyVaultReference,
+    bool? HasKeyVaultAccess);

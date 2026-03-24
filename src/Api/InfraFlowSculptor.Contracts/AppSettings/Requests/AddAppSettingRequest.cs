@@ -20,4 +20,11 @@ public class AddAppSettingRequest
     /// <summary>The output name on the source resource (null for static values).</summary>
     [MaxLength(128)]
     public string? SourceOutputName { get; init; }
+
+    /// <summary>Identifier of the Key Vault resource for a KV reference (null for non-KV settings).</summary>
+    public Guid? KeyVaultResourceId { get; init; }
+
+    /// <summary>The secret name in the Key Vault (null for non-KV settings).</summary>
+    [MaxLength(256)]
+    public string? SecretName { get; init; }
 }

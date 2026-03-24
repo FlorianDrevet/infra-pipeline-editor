@@ -11,10 +11,14 @@ namespace InfraFlowSculptor.Application.AppSettings.Commands.AddAppSetting;
 /// <param name="StaticValue">The static value (null when using a resource output reference).</param>
 /// <param name="SourceResourceId">Identifier of the source resource for output reference (null for static values).</param>
 /// <param name="SourceOutputName">The output name on the source resource (null for static values).</param>
+/// <param name="KeyVaultResourceId">Identifier of the Key Vault resource for a KV reference (null for non-KV settings).</param>
+/// <param name="SecretName">The secret name in the Key Vault (null for non-KV settings).</param>
 public record AddAppSettingCommand(
     AzureResourceId ResourceId,
     string Name,
     string? StaticValue,
     AzureResourceId? SourceResourceId,
-    string? SourceOutputName
+    string? SourceOutputName,
+    AzureResourceId? KeyVaultResourceId,
+    string? SecretName
 ) : IRequest<ErrorOr<AppSettingResult>>;

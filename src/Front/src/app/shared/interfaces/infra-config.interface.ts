@@ -45,9 +45,7 @@ export interface InfrastructureConfigResponse {
   name: string;
   defaultNamingTemplate: string | null;
   projectId: string;
-  useProjectEnvironments: boolean;
   useProjectNamingConventions: boolean;
-  environmentDefinitions: EnvironmentDefinitionResponse[];
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
   resourceGroupCount: number;
   resourceCount: number;
@@ -63,32 +61,6 @@ export interface CreateInfrastructureConfigRequest {
 export interface TagRequest {
   name: string;
   value: string;
-}
-
-export interface AddEnvironmentRequest {
-  name: string;
-  shortName?: string;
-  prefix?: string;
-  suffix?: string;
-  location: string;
-  tenantId: string;
-  subscriptionId: string;
-  order?: number;
-  requiresApproval?: boolean;
-  tags?: TagRequest[];
-}
-
-export interface UpdateEnvironmentRequest {
-  name: string;
-  shortName?: string;
-  prefix?: string;
-  suffix?: string;
-  location: string;
-  tenantId: string;
-  subscriptionId: string;
-  order?: number;
-  requiresApproval?: boolean;
-  tags?: TagRequest[];
 }
 
 export interface AddMemberRequest {

@@ -8,6 +8,10 @@ export interface AppSettingResponse {
   sourceResourceId?: string | null;
   sourceOutputName?: string | null;
   isOutputReference: boolean;
+  keyVaultResourceId?: string | null;
+  secretName?: string | null;
+  isKeyVaultReference: boolean;
+  hasKeyVaultAccess?: boolean | null;
 }
 
 export interface AvailableOutputsResponse {
@@ -20,6 +24,12 @@ export interface OutputDefinitionResponse {
   description: string;
 }
 
+export interface CheckKeyVaultAccessResponse {
+  hasAccess: boolean;
+  missingRoleDefinitionId?: string | null;
+  missingRoleName?: string | null;
+}
+
 // ─── Requests ────────────────────────────────────────────────────────────────
 
 export interface AddAppSettingRequest {
@@ -27,4 +37,6 @@ export interface AddAppSettingRequest {
   staticValue?: string | null;
   sourceResourceId?: string | null;
   sourceOutputName?: string | null;
+  keyVaultResourceId?: string | null;
+  secretName?: string | null;
 }

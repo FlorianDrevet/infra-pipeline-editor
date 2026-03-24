@@ -32,5 +32,11 @@ public static partial class Errors
                 code: "AppSetting.NotSupportedForResourceType",
                 description: $"App settings (environment variables) are not supported on resource type '{resourceType}'. " +
                              "They can only be configured on WebApp, FunctionApp, and ContainerApp resources.");
+
+        /// <summary>Returns an error when the Key Vault resource for a KV reference is not found.</summary>
+        public static Error KeyVaultNotFound(AzureResourceId id) =>
+            Error.NotFound(
+                code: "AppSetting.KeyVaultNotFound",
+                description: $"The Key Vault resource with id '{id.Value}' was not found.");
     }
 }

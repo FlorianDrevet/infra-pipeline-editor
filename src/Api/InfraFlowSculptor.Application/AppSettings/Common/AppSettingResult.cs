@@ -10,4 +10,8 @@ public sealed record AppSettingResult(
     string? StaticValue,
     AzureResourceId? SourceResourceId,
     string? SourceOutputName,
-    bool IsOutputReference);
+    bool IsOutputReference,
+    AzureResourceId? KeyVaultResourceId,
+    string? SecretName,
+    bool IsKeyVaultReference,
+    bool? HasKeyVaultAccess);

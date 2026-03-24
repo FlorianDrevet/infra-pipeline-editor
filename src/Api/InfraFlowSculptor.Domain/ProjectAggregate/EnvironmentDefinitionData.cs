@@ -1,12 +1,11 @@
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
-namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
+namespace InfraFlowSculptor.Domain.ProjectAggregate;
 
 /// <summary>
-/// Groups all fields needed to create or update an <see cref="Entities.EnvironmentDefinition"/>,
+/// Groups all fields needed to create or update a <see cref="Entities.ProjectEnvironmentDefinition"/>,
 /// reducing method parameter count complexity.
 /// </summary>
 public record EnvironmentDefinitionData(

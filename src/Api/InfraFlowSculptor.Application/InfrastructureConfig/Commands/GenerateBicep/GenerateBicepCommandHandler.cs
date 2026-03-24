@@ -159,6 +159,9 @@ public sealed class GenerateBicepCommandHandler(
                     TargetResourceName = s.ResourceName,
                     IsOutputReference = s.IsOutputReference,
                     SourceOutputBicepExpression = bicepExpression,
+                    IsKeyVaultReference = s.IsKeyVaultReference,
+                    KeyVaultResourceName = s.KeyVaultResourceName,
+                    SecretName = s.SecretName,
                 };
             })
             .ToList();

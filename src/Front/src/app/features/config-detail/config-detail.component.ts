@@ -12,12 +12,10 @@ import { TranslateModule } from '@ngx-translate/core';
 import {
   InfrastructureConfigResponse,
   ResourceNamingTemplateResponse,
-  EnvironmentDefinitionResponse,
 } from '../../shared/interfaces/infra-config.interface';
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { AddEnvironmentDialogComponent, AddEnvironmentDialogData } from './add-environment-dialog/add-environment-dialog.component';
 import { AddResourceGroupDialogComponent, AddResourceGroupDialogData } from './add-resource-group-dialog/add-resource-group-dialog.component';
 import { AddResourceDialogComponent, AddResourceDialogData } from './add-resource-dialog/add-resource-dialog.component';
 import {
@@ -123,8 +121,6 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly resourceGroups = signal<ResourceGroupResponse[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly loadError = signal('');
-  protected readonly envActionId = signal<string | null>(null);
-  protected readonly envErrorKey = signal('');
   protected readonly namingActionKey = signal<string | null>(null);
   protected readonly namingErrorKey = signal('');
   protected readonly rgErrorKey = signal('');
@@ -188,7 +184,6 @@ export class ConfigDetailComponent implements OnInit {
   // ─── Inheritance ───
   protected readonly inheritanceLoading = signal(false);
 
-  protected readonly useProjectEnvironments = computed(() => this.config()?.useProjectEnvironments ?? false);
   protected readonly useProjectNamingConventions = computed(() => this.config()?.useProjectNamingConventions ?? false);
 
   protected readonly projectSortedEnvironments = computed(() => {
@@ -213,10 +208,7 @@ export class ConfigDetailComponent implements OnInit {
   });
 
   protected readonly effectiveEnvironments = computed(() => {
-    if (this.useProjectEnvironments()) {
-      return this.project()?.environmentDefinitions ?? [];
-    }
-    return this.config()?.environmentDefinitions ?? [];
+    return this.project()?.environmentDefinitions ?? [];
   });
 
   protected readonly sortedEnvironments = computed(() => {
@@ -301,9 +293,7 @@ export class ConfigDetailComponent implements OnInit {
       }
 
       // Pre-select the first effective environment (by order) for the naming preview
-      const effectiveEnvs = config.useProjectEnvironments
-        ? (this.project()?.environmentDefinitions ?? [])
-        : (config.environmentDefinitions ?? []);
+      const effectiveEnvs = this.project()?.environmentDefinitions ?? [];
       const firstEnv = [...effectiveEnvs].sort((a, b) => a.order - b.order)[0];
       if (firstEnv) {
         this.previewEnvId.set(firstEnv.id);
@@ -552,9 +542,7 @@ export class ConfigDetailComponent implements OnInit {
 
   protected openAddResourceDialog(rgId: string): void {
     const rg = this.resourceGroups().find((r) => r.id === rgId);
-    const envs = this.useProjectEnvironments()
-      ? this.projectSortedEnvironments()
-      : this.sortedEnvironments();
+    const envs = this.projectSortedEnvironments();
     const dialogRef = this.dialog.open(AddResourceDialogComponent, {
       data: {
         resourceGroupId: rgId,
@@ -579,9 +567,7 @@ export class ConfigDetailComponent implements OnInit {
 
   protected openAddChildResourceDialog(parentResource: AzureResourceResponse, rgId: string): void {
     const rg = this.resourceGroups().find((r) => r.id === rgId);
-    const envs = this.useProjectEnvironments()
-      ? this.projectSortedEnvironments()
-      : this.sortedEnvironments();
+    const envs = this.projectSortedEnvironments();
     const dialogRef = this.dialog.open(AddResourceDialogComponent, {
       data: {
         resourceGroupId: rgId,
@@ -607,64 +593,6 @@ export class ConfigDetailComponent implements OnInit {
         await this.loadRgResources(rgId);
       }
     });
-  }
-
-  protected openAddEnvironmentDialog(existing?: EnvironmentDefinitionResponse): void {
-    const currentConfig = this.config();
-    if (!currentConfig) return;
-
-    const dialogRef = this.dialog.open(AddEnvironmentDialogComponent, {
-      data: {
-        configId: currentConfig.id,
-        existing,
-        allEnvironments: currentConfig.environmentDefinitions,
-      } satisfies AddEnvironmentDialogData,
-      width: '520px',
-      maxWidth: '95vw',
-    });
-
-    dialogRef.afterClosed().subscribe(async (result: InfrastructureConfigResponse | null) => {
-      if (result) {
-        const refreshed = await this.infraConfigService.getById(currentConfig.id);
-        this.config.set(refreshed);
-      }
-    });
-  }
-
-  protected openRemoveEnvironmentDialog(env: EnvironmentDefinitionResponse): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        titleKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_TITLE',
-        messageKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_MESSAGE',
-        messageParams: { name: env.name },
-        confirmKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_YES',
-        cancelKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_CANCEL',
-      } satisfies ConfirmDialogData,
-      width: '400px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
-      if (!confirmed) return;
-      await this.removeEnvironment(env);
-    });
-  }
-
-  private async removeEnvironment(env: EnvironmentDefinitionResponse): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId) return;
-
-    this.envActionId.set(env.id);
-    this.envErrorKey.set('');
-
-    try {
-      await this.infraConfigService.removeEnvironment(configId, env.id);
-      const refreshed = await this.infraConfigService.getById(configId);
-      this.config.set(refreshed);
-    } catch {
-      this.envErrorKey.set('CONFIG_DETAIL.ENVIRONMENTS.REMOVE_ERROR');
-    } finally {
-      this.envActionId.set(null);
-    }
   }
 
   protected isNamingActionActive(actionKey: string): boolean {
@@ -793,22 +721,6 @@ export class ConfigDetailComponent implements OnInit {
     }
   }
 
-  protected async toggleInheritanceEnvironments(useProject: boolean): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId) return;
-
-    this.inheritanceLoading.set(true);
-    try {
-      await this.infraConfigService.setInheritance(configId, {
-        useProjectEnvironments: useProject,
-        useProjectNamingConventions: this.useProjectNamingConventions(),
-      });
-      await this.refreshConfig(configId);
-    } finally {
-      this.inheritanceLoading.set(false);
-    }
-  }
-
   protected async toggleInheritanceNaming(useProject: boolean): Promise<void> {
     const configId = this.config()?.id;
     if (!configId) return;
@@ -816,7 +728,6 @@ export class ConfigDetailComponent implements OnInit {
     this.inheritanceLoading.set(true);
     try {
       await this.infraConfigService.setInheritance(configId, {
-        useProjectEnvironments: this.useProjectEnvironments(),
         useProjectNamingConventions: useProject,
       });
       await this.refreshConfig(configId);

@@ -1030,10 +1030,12 @@
                   <div class="ra-card">
                     <div class="ra-card__main">
                       <div class="ra-card__target">
-                        <mat-icon class="ra-card__target-icon">{{ setting.isOutputReference ? 'swap_horiz' : 'edit_note' }}</mat-icon>
+                        <mat-icon class="ra-card__target-icon">{{ setting.isKeyVaultReference ? 'vpn_key' : setting.isOutputReference ? 'swap_horiz' : 'edit_note' }}</mat-icon>
                         <div class="ra-card__target-info">
                           <span class="ra-card__target-name as-card__name">{{ setting.name }}</span>
-                          @if (setting.isOutputReference && setting.sourceResourceId) {
+                          @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
+                            <span class="ra-card__target-type">{{ resolveSourceName(setting.keyVaultResourceId) }} · {{ setting.secretName }}</span>
+                          } @else if (setting.isOutputReference && setting.sourceResourceId) {
                             <span class="ra-card__target-type">{{ resolveSourceName(setting.sourceResourceId) }} · {{ setting.sourceOutputName }}</span>
                           } @else {
                             <span class="ra-card__target-type">{{ 'RESOURCE_EDIT.APP_SETTINGS.STATIC_VALUE' | translate }}</span>
@@ -1041,7 +1043,18 @@
                         </div>
                       </div>
                       <div class="ra-card__details">
-                        @if (setting.isOutputReference) {
+                        @if (setting.isKeyVaultReference) {
+                          <span class="as-badge as-badge--kv">
+                            <mat-icon>vpn_key</mat-icon>
+                            {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_REF' | translate }}
+                          </span>
+                          @if (setting.keyVaultResourceId) {
+                            <span class="as-badge as-badge--source">
+                              <mat-icon>vpn_key</mat-icon>
+                              {{ resolveSourceName(setting.keyVaultResourceId) }}
+                            </span>
+                          }
+                        } @else if (setting.isOutputReference) {
                           <span class="as-badge as-badge--ref">
                             <mat-icon>output</mat-icon>
                             {{ 'RESOURCE_EDIT.APP_SETTINGS.OUTPUT_REF' | translate }}

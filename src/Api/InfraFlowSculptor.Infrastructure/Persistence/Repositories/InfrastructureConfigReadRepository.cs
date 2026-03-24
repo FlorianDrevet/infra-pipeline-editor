@@ -226,6 +226,13 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     sourceResourceType = GetResourceTypeString(sourceRes.Resource);
                 }
 
+                string? keyVaultResourceName = null;
+                if (s.KeyVaultResourceId is not null &&
+                    allResources.TryGetValue(s.KeyVaultResourceId, out var kvRes))
+                {
+                    keyVaultResourceName = kvRes.Resource.Name.Value;
+                }
+
                 return new AppSettingReadModel(
                     ResourceId: s.ResourceId.Value,
                     ResourceName: owner.Resource.Name.Value,
@@ -236,7 +243,11 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     SourceResourceName: sourceResourceName,
                     SourceResourceType: sourceResourceType,
                     SourceOutputName: s.SourceOutputName,
-                    IsOutputReference: s.IsOutputReference);
+                    IsOutputReference: s.IsOutputReference,
+                    KeyVaultResourceId: s.KeyVaultResourceId?.Value,
+                    KeyVaultResourceName: keyVaultResourceName,
+                    SecretName: s.SecretName,
+                    IsKeyVaultReference: s.IsKeyVaultReference);
             })
             .OfType<AppSettingReadModel>()
             .ToList();
@@ -252,25 +263,18 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
     }
 
     /// <summary>
-    /// Resolves the effective environment list based on inheritance settings.
+    /// Resolves the environment list from the parent project.
     /// </summary>
     private static List<EnvironmentDefinitionReadModel> BuildEnvironmentList(
         InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig config,
         Project? project)
     {
-        if (config.UseProjectEnvironments && project is not null)
+        if (project is null)
         {
-            return project.EnvironmentDefinitions.Select(e =>
-                new EnvironmentDefinitionReadModel(
-                    e.Id.Value,
-                    e.Name.Value,
-                    e.ShortName.Value,
-                    MapLocation(e.Location),
-                    e.Prefix.Value,
-                    e.Suffix.Value)).ToList();
+            return [];
         }
 
-        return config.EnvironmentDefinitions.Select(e =>
+        return project.EnvironmentDefinitions.Select(e =>
             new EnvironmentDefinitionReadModel(
                 e.Id.Value,
                 e.Name.Value,

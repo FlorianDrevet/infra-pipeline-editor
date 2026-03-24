@@ -24,7 +24,6 @@ public sealed class SetInheritanceCommandHandler(
         if (infraConfig is null)
             return Errors.InfrastructureConfig.NotFoundError(command.InfraConfigId);
 
-        infraConfig.SetUseProjectEnvironments(command.UseProjectEnvironments);
         infraConfig.SetUseProjectNamingConventions(command.UseProjectNamingConventions);
 
         await repository.UpdateAsync(infraConfig);

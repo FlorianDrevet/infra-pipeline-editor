@@ -1,8 +1,8 @@
 using InfraFlowSculptor.Domain.Common.Models;
 
-namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+namespace InfraFlowSculptor.Domain.Common.ValueObjects;
 
-public sealed class Prefix: SingleValueObject<string>
+public sealed class Prefix : SingleValueObject<string>
 {
     private Prefix() { }
 

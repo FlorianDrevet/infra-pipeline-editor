@@ -4,8 +4,6 @@ import { MethodEnum } from '../enums/method.enum';
 import {
   InfrastructureConfigResponse,
   CreateInfrastructureConfigRequest,
-  AddEnvironmentRequest,
-  UpdateEnvironmentRequest,
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
 } from '../interfaces/infra-config.interface';
@@ -52,36 +50,6 @@ export class InfraConfigService {
     return this.axios.request$<void>(MethodEnum.DELETE, `/infra-config/${id}`);
   }
 
-  addEnvironment(
-    id: string,
-    request: AddEnvironmentRequest
-  ): Promise<InfrastructureConfigResponse> {
-    return this.axios.request$<InfrastructureConfigResponse>(
-      MethodEnum.POST,
-      `/infra-config/${id}/environments`,
-      request
-    );
-  }
-
-  updateEnvironment(
-    id: string,
-    envId: string,
-    request: UpdateEnvironmentRequest
-  ): Promise<InfrastructureConfigResponse> {
-    return this.axios.request$<InfrastructureConfigResponse>(
-      MethodEnum.PUT,
-      `/infra-config/${id}/environments/${envId}`,
-      request
-    );
-  }
-
-  removeEnvironment(id: string, envId: string): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/infra-config/${id}/environments/${envId}`
-    );
-  }
-
   setDefaultNamingTemplate(
     id: string,
     request: SetDefaultNamingTemplateRequest
@@ -117,7 +85,7 @@ export class InfraConfigService {
 
   setInheritance(
     id: string,
-    request: { useProjectEnvironments: boolean; useProjectNamingConventions: boolean }
+    request: { useProjectNamingConventions: boolean }
   ): Promise<void> {
     return this.axios.request$<void>(
       MethodEnum.PUT,

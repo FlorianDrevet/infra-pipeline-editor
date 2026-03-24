@@ -353,3 +353,79 @@
   display: inline-block;
   margin-right: 0.5rem;
 }
+
+// ─── Key vault access warning / success ───
+
+.kv-access-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.75rem;
+  background: rgba(237, 108, 2, 0.06);
+  border: 1px solid rgba(237, 108, 2, 0.2);
+  margin-bottom: 1rem;
+
+  mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #e65100;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__title {
+    font-weight: 700;
+    font-size: 0.84rem;
+    color: #bf360c;
+  }
+
+  &__desc {
+    font-size: 0.78rem;
+    color: #6d4c41;
+    line-height: 1.5;
+  }
+
+  &--compact {
+    padding: 0.55rem 0.75rem;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #bf360c;
+    font-weight: 600;
+
+    mat-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+  }
+}
+
+.kv-access-ok {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(46, 125, 50, 0.06);
+  border: 1px solid rgba(46, 125, 50, 0.18);
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #2e7d32;
+
+  mat-icon {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: #2e7d32;
+    flex-shrink: 0;
+  }
+}

@@ -42,9 +42,24 @@ public sealed class AppSettingConfiguration : IEntityTypeConfiguration<AppSettin
             .IsRequired(false)
             .HasMaxLength(128);
 
+        builder.Property(s => s.KeyVaultResourceId)
+            .HasConversion(
+                v => v == null ? (Guid?)null : v.Value,
+                v => v.HasValue ? new AzureResourceId(v.Value) : null)
+            .IsRequired(false);
+
+        builder.Property(s => s.SecretName)
+            .IsRequired(false)
+            .HasMaxLength(256);
+
         builder.HasOne<AzureResource>()
             .WithMany()
             .HasForeignKey(s => s.SourceResourceId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<AzureResource>()
+            .WithMany()
+            .HasForeignKey(s => s.KeyVaultResourceId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(s => new { s.ResourceId, s.Name })

@@ -9,9 +9,7 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// Supports placeholders: {name}, {prefix}, {suffix}, {env}, {resourceType}, {location}.
 /// Null when no default template is defined.
 /// </param>
-/// <param name="UseProjectEnvironments">Whether this config inherits environments from the parent project.</param>
 /// <param name="UseProjectNamingConventions">Whether this config inherits naming conventions from the parent project.</param>
-/// <param name="EnvironmentDefinitions">List of target environments (e.g. Dev, Staging, Production).</param>
 /// <param name="ResourceNamingTemplates">Per-resource-type naming template overrides.</param>
 /// <param name="ResourceGroupCount">Number of resource groups in this configuration.</param>
 /// <param name="ResourceCount">Total number of Azure resources across all resource groups.</param>
@@ -20,9 +18,7 @@ public record InfrastructureConfigResponse(
     string Name,
     string ProjectId,
     string? DefaultNamingTemplate,
-    bool UseProjectEnvironments,
     bool UseProjectNamingConventions,
-    IReadOnlyList<EnvironmentDefinitionResponse> EnvironmentDefinitions,
     IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates,
     int ResourceGroupCount,
     int ResourceCount);

@@ -74,4 +74,8 @@ public record AppSettingReadModel(
     string? SourceResourceName,
     string? SourceResourceType,
     string? SourceOutputName,
-    bool IsOutputReference);
+    bool IsOutputReference,
+    Guid? KeyVaultResourceId,
+    string? KeyVaultResourceName,
+    string? SecretName,
+    bool IsKeyVaultReference);

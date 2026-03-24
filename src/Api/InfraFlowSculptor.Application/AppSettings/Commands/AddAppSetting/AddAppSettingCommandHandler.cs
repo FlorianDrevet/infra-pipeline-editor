@@ -5,8 +5,10 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ResourceOutputs;
+using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
+using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate;
 using MediatR;
 
@@ -52,6 +54,28 @@ public sealed class AddAppSettingCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
+        // Key Vault reference: validate the KV resource exists and check access
+        if (request.KeyVaultResourceId is not null && request.SecretName is not null)
+        {
+            var keyVaultResource = await azureResourceRepository.GetByIdAsync(
+                request.KeyVaultResourceId, cancellationToken);
+
+            if (keyVaultResource is null || keyVaultResource is not KeyVault)
+                return Errors.AppSetting.KeyVaultNotFound(request.KeyVaultResourceId);
+
+            var setting = resource.AddKeyVaultReferenceAppSetting(
+                request.Name,
+                request.KeyVaultResourceId,
+                request.SecretName);
+
+            await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+
+            var hasAccess = await CheckKeyVaultAccessAsync(
+                request.ResourceId, request.KeyVaultResourceId, cancellationToken);
+
+            return ToResult(setting, hasAccess);
+        }
+
         // Output reference: validate the source resource and output
         if (request.SourceResourceId is not null && request.SourceOutputName is not null)
         {
@@ -74,10 +98,7 @@ public sealed class AddAppSettingCommandHandler(
 
             await azureResourceRepository.UpdateAsync(resource, cancellationToken);
 
-            return new AppSettingResult(
-                setting.Id, setting.ResourceId, setting.Name,
-                setting.StaticValue, setting.SourceResourceId,
-                setting.SourceOutputName, setting.IsOutputReference);
+            return ToResult(setting, null);
         }
 
         // Static value
@@ -87,9 +108,32 @@ public sealed class AddAppSettingCommandHandler(
 
         await azureResourceRepository.UpdateAsync(resource, cancellationToken);
 
-        return new AppSettingResult(
-            staticSetting.Id, staticSetting.ResourceId, staticSetting.Name,
-            staticSetting.StaticValue, staticSetting.SourceResourceId,
-            staticSetting.SourceOutputName, staticSetting.IsOutputReference);
+        return ToResult(staticSetting, null);
     }
+
+    private async Task<bool> CheckKeyVaultAccessAsync(
+        AzureResourceId computeResourceId,
+        AzureResourceId keyVaultResourceId,
+        CancellationToken cancellationToken)
+    {
+        var resourceWithRoles = await azureResourceRepository.GetByIdWithRoleAssignmentsAsync(
+            computeResourceId, cancellationToken);
+
+        if (resourceWithRoles is null)
+            return false;
+
+        return resourceWithRoles.RoleAssignments.Any(ra =>
+            ra.TargetResourceId == keyVaultResourceId &&
+            ra.RoleDefinitionId == AzureRoleDefinitionCatalog.KeyVaultSecretsUser);
+    }
+
+    private static AppSettingResult ToResult(
+        Domain.Common.BaseModels.Entites.AppSetting setting,
+        bool? hasKeyVaultAccess)
+        => new(
+            setting.Id, setting.ResourceId, setting.Name,
+            setting.StaticValue, setting.SourceResourceId,
+            setting.SourceOutputName, setting.IsOutputReference,
+            setting.KeyVaultResourceId, setting.SecretName,
+            setting.IsKeyVaultReference, hasKeyVaultAccess);
 }

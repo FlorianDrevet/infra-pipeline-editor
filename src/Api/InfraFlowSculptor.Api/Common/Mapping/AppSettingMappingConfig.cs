@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.AppSettings.Common;
+using InfraFlowSculptor.Application.AppSettings.Queries.CheckKeyVaultAccess;
 using InfraFlowSculptor.Application.AppSettings.Queries.GetAvailableOutputs;
 using InfraFlowSculptor.Contracts.AppSettings.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
@@ -23,7 +24,17 @@ public class AppSettingMappingConfig : IRegister
                 src.StaticValue,
                 src.SourceResourceId != null ? src.SourceResourceId.Value.ToString() : null,
                 src.SourceOutputName,
-                src.IsOutputReference));
+                src.IsOutputReference,
+                src.KeyVaultResourceId != null ? src.KeyVaultResourceId.Value.ToString() : null,
+                src.SecretName,
+                src.IsKeyVaultReference,
+                src.HasKeyVaultAccess));
+
+        config.NewConfig<CheckKeyVaultAccessResult, CheckKeyVaultAccessResponse>()
+            .MapWith(src => new CheckKeyVaultAccessResponse(
+                src.HasAccess,
+                src.MissingRoleDefinitionId,
+                src.MissingRoleName));
 
         config.NewConfig<AvailableOutputsResult, AvailableOutputsResponse>()
             .MapWith(src => new AvailableOutputsResponse(

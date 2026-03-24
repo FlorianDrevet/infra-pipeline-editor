@@ -65,7 +65,6 @@ app.UseAuthorization();
 //Controllers
 app.UseProjectController();
 app.UseInfrastructureConfigController();
-app.UseEnvironmentDefinitionController();
 app.UseNamingTemplateController();
 app.UseKeyVaultControllerController();
 app.UseResourceGroupController();

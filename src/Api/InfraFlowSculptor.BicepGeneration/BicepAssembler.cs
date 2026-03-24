@@ -382,7 +382,27 @@ public static class BicepAssembler
                     sb.AppendLine("      {");
                     sb.AppendLine($"        name: '{setting.Name}'");
 
-                    if (setting.IsOutputReference && setting.SourceResourceName is not null)
+                    if (setting.IsKeyVaultReference && setting.KeyVaultResourceName is not null && setting.SecretName is not null)
+                    {
+                        // Key Vault secret reference
+                        var kvModule = modules.FirstOrDefault(m =>
+                            m.LogicalResourceName.Equals(setting.KeyVaultResourceName, StringComparison.OrdinalIgnoreCase));
+
+                        if (kvModule is not null)
+                        {
+                            if (isContainerApp)
+                            {
+                                // ContainerApp uses keyVaultUrl in the secrets array pattern
+                                sb.AppendLine($"        value: '${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{EscapeBicepString(setting.SecretName)}'");
+                            }
+                            else
+                            {
+                                // WebApp/FunctionApp use @Microsoft.KeyVault(SecretUri=...) syntax
+                                sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{EscapeBicepString(setting.SecretName)})'");
+                            }
+                        }
+                    }
+                    else if (setting.IsOutputReference && setting.SourceResourceName is not null)
                     {
                         // Find the module symbol for the source resource
                         var sourceModule = modules.FirstOrDefault(m =>

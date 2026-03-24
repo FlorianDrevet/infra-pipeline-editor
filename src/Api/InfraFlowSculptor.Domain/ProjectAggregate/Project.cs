@@ -1,5 +1,5 @@
 using ErrorOr;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;

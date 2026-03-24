@@ -812,6 +812,12 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  &--kv {
+    background: rgba(156, 39, 176, 0.08);
+    border: 1px solid rgba(156, 39, 176, 0.18);
+    color: #7b1fa2;
+  }
 }
 
 // ─── Storage Services ────

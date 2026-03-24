@@ -32,6 +32,18 @@ public sealed class AppSetting : Entity<AppSettingId>
     /// </summary>
     public string? SourceOutputName { get; private set; }
 
+    /// <summary>
+    /// Identifier of the Key Vault resource where the secret is stored.
+    /// Null when this is not a Key Vault reference.
+    /// </summary>
+    public AzureResourceId? KeyVaultResourceId { get; private set; }
+
+    /// <summary>
+    /// The name of the secret in the Key Vault.
+    /// Null when this is not a Key Vault reference.
+    /// </summary>
+    public string? SecretName { get; private set; }
+
     private AppSetting() { }
 
     /// <summary>Creates a new <see cref="AppSetting"/> with a static value.</summary>
@@ -65,6 +77,24 @@ public sealed class AppSetting : Entity<AppSettingId>
             SourceOutputName = sourceOutputName,
         };
 
+    /// <summary>Creates a new <see cref="AppSetting"/> referencing a Key Vault secret.</summary>
+    internal static AppSetting CreateKeyVaultReference(
+        AzureResourceId resourceId,
+        string name,
+        AzureResourceId keyVaultResourceId,
+        string secretName)
+        => new()
+        {
+            Id = AppSettingId.CreateUnique(),
+            ResourceId = resourceId,
+            Name = name,
+            StaticValue = null,
+            SourceResourceId = null,
+            SourceOutputName = null,
+            KeyVaultResourceId = keyVaultResourceId,
+            SecretName = secretName,
+        };
+
     /// <summary>Updates this app setting to a static value.</summary>
     internal void UpdateToStatic(string name, string value)
     {
@@ -72,6 +102,8 @@ public sealed class AppSetting : Entity<AppSettingId>
         StaticValue = value;
         SourceResourceId = null;
         SourceOutputName = null;
+        KeyVaultResourceId = null;
+        SecretName = null;
     }
 
     /// <summary>Updates this app setting to reference a resource output.</summary>
@@ -81,8 +113,24 @@ public sealed class AppSetting : Entity<AppSettingId>
         StaticValue = null;
         SourceResourceId = sourceResourceId;
         SourceOutputName = sourceOutputName;
+        KeyVaultResourceId = null;
+        SecretName = null;
+    }
+
+    /// <summary>Updates this app setting to reference a Key Vault secret.</summary>
+    internal void UpdateToKeyVaultReference(string name, AzureResourceId keyVaultResourceId, string secretName)
+    {
+        Name = name;
+        StaticValue = null;
+        SourceResourceId = null;
+        SourceOutputName = null;
+        KeyVaultResourceId = keyVaultResourceId;
+        SecretName = secretName;
     }
 
     /// <summary>Gets whether this setting is a resource output reference.</summary>
     public bool IsOutputReference => SourceResourceId is not null;
+
+    /// <summary>Gets whether this setting is a Key Vault secret reference.</summary>
+    public bool IsKeyVaultReference => KeyVaultResourceId is not null;
 }

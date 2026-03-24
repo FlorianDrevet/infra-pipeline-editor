@@ -47,8 +47,8 @@ export class AddAppSettingDialogComponent {
 
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
 
-  // ─── Mode: static value or resource output ───
-  protected readonly mode = signal<'static' | 'output'>('output');
+  // ─── Mode: static value, resource output, or key vault reference ───
+  protected readonly mode = signal<'static' | 'output' | 'keyvault'>('output');
 
   // ─── Step management ───
   protected readonly step = signal<1 | 2 | 3>(1);
@@ -62,6 +62,18 @@ export class AddAppSettingDialogComponent {
   protected readonly outputsLoading = signal(false);
   protected readonly selectedOutput = signal<OutputDefinitionResponse | null>(null);
 
+  // ─── Key Vault mode — Step 1: Select KV ───
+  protected readonly keyVaultResources = computed(() =>
+    this.data.siblingResources.filter(r => r.resourceType === 'KeyVault')
+  );
+  protected readonly selectedKeyVault = signal<AzureResourceResponse | null>(null);
+
+  // ─── Key Vault mode — Step 2: Secret name + access check ───
+  protected readonly secretName = signal('');
+  protected readonly kvAccessChecking = signal(false);
+  protected readonly kvHasAccess = signal<boolean | null>(null);
+  protected readonly kvMissingRoleName = signal<string | null>(null);
+
   // ─── Step 3 / Static — Name configuration ───
   protected readonly settingName = signal('');
   protected readonly staticValue = signal('');
@@ -71,6 +83,14 @@ export class AddAppSettingDialogComponent {
   protected readonly errorKey = signal('');
 
   protected readonly suggestedName = computed(() => {
+    if (this.mode() === 'keyvault') {
+      const kv = this.selectedKeyVault();
+      const secret = this.secretName();
+      if (!kv || !secret) return '';
+      const prefix = kv.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+      const suffix = secret.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+      return `${prefix}__${suffix}`;
+    }
     const source = this.selectedSource();
     const output = this.selectedOutput();
     if (!source || !output) return '';
@@ -83,17 +103,22 @@ export class AddAppSettingDialogComponent {
     const name = this.settingName().trim();
     if (!name || this.isSubmitting()) return false;
     if (this.mode() === 'static') return true;
+    if (this.mode() === 'keyvault') return !!this.selectedKeyVault() && !!this.secretName().trim();
     return !!this.selectedSource() && !!this.selectedOutput();
   });
 
-  protected onModeChange(value: 'static' | 'output'): void {
+  protected onModeChange(value: 'static' | 'output' | 'keyvault'): void {
     this.mode.set(value);
     this.step.set(1);
     this.selectedSource.set(null);
     this.selectedOutput.set(null);
+    this.selectedKeyVault.set(null);
+    this.secretName.set('');
     this.settingName.set('');
     this.staticValue.set('');
     this.errorKey.set('');
+    this.kvHasAccess.set(null);
+    this.kvMissingRoleName.set(null);
   }
 
   protected selectSource(resource: AzureResourceResponse): void {
@@ -126,6 +151,38 @@ export class AddAppSettingDialogComponent {
     this.step.set(3);
   }
 
+  // ─── Key Vault mode ───
+
+  protected selectKeyVault(resource: AzureResourceResponse): void {
+    this.selectedKeyVault.set(resource);
+    this.step.set(2);
+    this.checkKeyVaultAccess();
+  }
+
+  protected async checkKeyVaultAccess(): Promise<void> {
+    const kv = this.selectedKeyVault();
+    if (!kv) return;
+
+    this.kvAccessChecking.set(true);
+    this.kvHasAccess.set(null);
+    this.kvMissingRoleName.set(null);
+
+    try {
+      const result = await this.appSettingService.checkKeyVaultAccess(this.data.resourceId, kv.id);
+      this.kvHasAccess.set(result.hasAccess);
+      this.kvMissingRoleName.set(result.missingRoleName ?? null);
+    } catch {
+      this.kvHasAccess.set(null);
+    } finally {
+      this.kvAccessChecking.set(false);
+    }
+  }
+
+  protected goToKvStep3(): void {
+    this.settingName.set(this.suggestedName());
+    this.step.set(3);
+  }
+
   protected goBack(): void {
     if (this.step() === 3) {
       this.step.set(2);
@@ -143,13 +200,22 @@ export class AddAppSettingDialogComponent {
     this.errorKey.set('');
 
     try {
-      const request = this.mode() === 'static'
-        ? { name, staticValue: this.staticValue() }
-        : {
-            name,
-            sourceResourceId: this.selectedSource()!.id,
-            sourceOutputName: this.selectedOutput()!.name,
-          };
+      let request;
+      if (this.mode() === 'keyvault') {
+        request = {
+          name,
+          keyVaultResourceId: this.selectedKeyVault()!.id,
+          secretName: this.secretName().trim(),
+        };
+      } else if (this.mode() === 'output') {
+        request = {
+          name,
+          sourceResourceId: this.selectedSource()!.id,
+          sourceOutputName: this.selectedOutput()!.name,
+        };
+      } else {
+        request = { name, staticValue: this.staticValue() };
+      }
 
       const result = await this.appSettingService.add(this.data.resourceId, request);
       this.dialogRef.close(result);

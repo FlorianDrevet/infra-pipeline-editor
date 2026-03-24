@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.AppSettings.Commands.AddAppSetting;
 using InfraFlowSculptor.Application.AppSettings.Commands.RemoveAppSetting;
+using InfraFlowSculptor.Application.AppSettings.Queries.CheckKeyVaultAccess;
 using InfraFlowSculptor.Application.AppSettings.Queries.GetAvailableOutputs;
 using InfraFlowSculptor.Application.AppSettings.Queries.ListAppSettings;
 using InfraFlowSculptor.Contracts.AppSettings.Requests;
@@ -49,7 +50,11 @@ public static class AppSettingController
                             request.SourceResourceId.HasValue
                                 ? new AzureResourceId(request.SourceResourceId.Value)
                                 : null,
-                            request.SourceOutputName);
+                            request.SourceOutputName,
+                            request.KeyVaultResourceId.HasValue
+                                ? new AzureResourceId(request.KeyVaultResourceId.Value)
+                                : null,
+                            request.SecretName);
 
                         var result = await mediator.Send(command);
 
@@ -93,6 +98,25 @@ public static class AppSettingController
                             errors => errors.Result());
                     })
                 .WithName("GetAvailableOutputs");
+
+            // Endpoint to check whether a compute resource has Key Vault access
+            var kvAccessGroup = endpoints.MapGroup("/azure-resources/{resourceId:guid}/check-keyvault-access")
+                .WithTags("AppSettings");
+
+            kvAccessGroup.MapGet("/{keyVaultId:guid}",
+                    async ([FromRoute] Guid resourceId, [FromRoute] Guid keyVaultId,
+                        IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new CheckKeyVaultAccessQuery(
+                            new AzureResourceId(resourceId),
+                            new AzureResourceId(keyVaultId));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            access => Results.Ok(mapper.Map<CheckKeyVaultAccessResponse>(access)),
+                            errors => errors.Result());
+                    })
+                .WithName("CheckKeyVaultAccess");
         });
     }
 }

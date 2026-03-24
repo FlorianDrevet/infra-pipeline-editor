@@ -7,6 +7,9 @@ namespace InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 /// </summary>
 public static class AzureRoleDefinitionCatalog
 {
+    /// <summary>Well-known role definition ID for "Key Vault Secrets User".</summary>
+    public const string KeyVaultSecretsUser = "4633458b-17de-408a-b874-0445c86b69e6";
+
     private const string KeyVaultDocsUrl =
         "https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide";
 

@@ -126,7 +126,6 @@ public static class InfrastructureConfigController
                     {
                         var command = new SetInheritanceCommand(
                             new InfrastructureConfigId(id),
-                            request.UseProjectEnvironments,
                             request.UseProjectNamingConventions
                         );
                         var result = await mediator.Send(command);
@@ -138,7 +137,7 @@ public static class InfrastructureConfigController
                     })
                 .WithName("SetInheritance")
                 .WithSummary("Toggle project-level inheritance")
-                .WithDescription("Controls whether this configuration inherits environments and/or naming conventions from the parent project. Requires Owner or Contributor access.")
+                .WithDescription("Controls whether this configuration inherits naming conventions from the parent project. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)

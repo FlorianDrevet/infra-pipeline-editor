@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 

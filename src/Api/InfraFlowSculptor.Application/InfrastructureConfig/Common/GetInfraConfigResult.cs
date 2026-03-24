@@ -9,9 +9,7 @@ public record GetInfrastructureConfigResult(
     Name Name,
     ProjectId ProjectId,
     string? DefaultNamingTemplate,
-    bool UseProjectEnvironments,
     bool UseProjectNamingConventions,
-    IReadOnlyList<EnvironmentDefinitionResult> EnvironmentDefinitions,
     IReadOnlyList<ResourceNamingTemplateResult> ResourceNamingTemplates,
     int ResourceGroupCount = 0,
     int ResourceCount = 0);

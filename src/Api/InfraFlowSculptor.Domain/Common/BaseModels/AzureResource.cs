@@ -109,6 +109,20 @@ public class AzureResource : AggregateRoot<AzureResourceId>
         return setting;
     }
 
+    /// <summary>Adds an app setting that references a Key Vault secret.</summary>
+    /// <param name="name">The environment variable name.</param>
+    /// <param name="keyVaultResourceId">The Key Vault resource identifier.</param>
+    /// <param name="secretName">The secret name in the Key Vault.</param>
+    public AppSetting AddKeyVaultReferenceAppSetting(
+        string name,
+        AzureResourceId keyVaultResourceId,
+        string secretName)
+    {
+        var setting = AppSetting.CreateKeyVaultReference(Id, name, keyVaultResourceId, secretName);
+        _appSettings.Add(setting);
+        return setting;
+    }
+
     /// <summary>Removes an app setting by its identifier.</summary>
     public void RemoveAppSetting(AppSettingId appSettingId)
     {

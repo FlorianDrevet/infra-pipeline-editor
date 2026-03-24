@@ -1,8 +1,8 @@
 using InfraFlowSculptor.Domain.Common.Models;
 
-namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+namespace InfraFlowSculptor.Domain.Common.ValueObjects;
 
-public sealed class RequiresApproval: SingleValueObject<bool>
+public sealed class RequiresApproval : SingleValueObject<bool>
 {
     private RequiresApproval() { }
 

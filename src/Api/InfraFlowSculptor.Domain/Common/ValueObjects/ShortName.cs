@@ -1,6 +1,6 @@
 using InfraFlowSculptor.Domain.Common.Models;
 
-namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+namespace InfraFlowSculptor.Domain.Common.ValueObjects;
 
 /// <summary>
 /// Short identifier for an environment without separators (e.g. "dev", "qa", "prod").

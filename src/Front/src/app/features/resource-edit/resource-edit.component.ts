@@ -363,13 +363,9 @@ export class ResourceEditComponent implements OnInit {
 
   // ─── Environments ───
   protected readonly environments = computed<EnvironmentDefinitionResponse[]>(() => {
-    const cfg = this.config();
     const proj = this.project();
-    if (!cfg) return [];
-    if (cfg.useProjectEnvironments && proj) {
-      return [...(proj.environmentDefinitions ?? [])].sort((a, b) => a.order - b.order);
-    }
-    return [...(cfg.environmentDefinitions ?? [])].sort((a, b) => a.order - b.order);
+    if (!proj) return [];
+    return [...(proj.environmentDefinitions ?? [])].sort((a, b) => a.order - b.order);
   });
 
   protected readonly selectedEnvIndex = signal(0);

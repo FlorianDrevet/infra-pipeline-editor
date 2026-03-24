@@ -21,36 +21,13 @@ public class InfraConfigMappingConfig : IRegister
         config.NewConfig<UserId, Guid>()
             .MapWith(src => src.Value);
 
-        config.NewConfig<EnvironmentDefinitionId, Guid>()
-            .MapWith(src => src.Value);
-
         config.NewConfig<ResourceNamingTemplateId, Guid>()
             .MapWith(src => src.Value);
-
-        // EnvironmentDefinition entity -> EnvironmentDefinitionResult
-        config.NewConfig<EnvironmentDefinition, EnvironmentDefinitionResult>()
-            .Map(dest => dest.Id, src => src.Id)
-            .Map(dest => dest.Name, src => src.Name)
-            .Map(dest => dest.ShortName, src => src.ShortName.Value)
-            .Map(dest => dest.Prefix, src => src.Prefix.Value)
-            .Map(dest => dest.Suffix, src => src.Suffix.Value)
-            .Map(dest => dest.Location, src => src.Location.Value.ToString())
-            .Map(dest => dest.TenantId, src => src.TenantId.Value)
-            .Map(dest => dest.SubscriptionId, src => src.SubscriptionId.Value)
-            .Map(dest => dest.Order, src => src.Order.Value)
-            .Map(dest => dest.RequiresApproval, src => src.RequiresApproval.Value)
-            .Map(dest => dest.Tags, src => src.Tags);
 
         // Tag -> TagResult
         config.NewConfig<Tag, TagResult>()
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.Value, src => src.Value);
-
-        // EnvironmentDefinitionResult -> EnvironmentDefinitionResponse
-        config.NewConfig<EnvironmentDefinitionResult, EnvironmentDefinitionResponse>()
-            .Map(dest => dest.Id, src => src.Id.Value.ToString())
-            .Map(dest => dest.Name, src => src.Name.Value)
-            .Map(dest => dest.Tags, src => src.Tags);
 
         // TagResult -> TagResponse
         config.NewConfig<TagResult, TagResponse>()
@@ -75,9 +52,7 @@ public class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.Name, src => src.Name.Value)
             .Map(dest => dest.ProjectId, src => src.ProjectId.Value.ToString())
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate)
-            .Map(dest => dest.UseProjectEnvironments, src => src.UseProjectEnvironments)
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
-            .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
             .Map(dest => dest.ResourceGroupCount, src => src.ResourceGroupCount)
             .Map(dest => dest.ResourceCount, src => src.ResourceCount);
@@ -88,9 +63,7 @@ public class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.ProjectId, src => src.ProjectId)
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate == null ? null : src.DefaultNamingTemplate.Value)
-            .Map(dest => dest.UseProjectEnvironments, src => src.UseProjectEnvironments)
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
-            .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
 
         // User entity -> UserResult
