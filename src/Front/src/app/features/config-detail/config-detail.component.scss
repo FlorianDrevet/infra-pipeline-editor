@@ -1594,6 +1594,33 @@
   animation: bicepFolderSlideIn 0.2s ease-out;
 }
 
+.bicep-tree__subfolder {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem 0.2rem 1.75rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.76rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: rgba(241, 250, 140, 0.04);
+    color: rgba(255, 255, 255, 0.55);
+  }
+}
+
+.bicep-tree__item--submodule {
+  padding-left: 3.5rem;
+}
+
 @keyframes bicepFolderSlideIn {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }

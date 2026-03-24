@@ -63,6 +63,12 @@ interface ResourceDisplayItem {
   isParent: boolean;
 }
 
+interface BicepModuleFolder {
+  folderName: string;
+  folderKey: string;
+  files: Array<{ name: string; displayName: string; uri: string }>;
+}
+
 
 @Component({
   selector: 'app-config-detail',
@@ -152,6 +158,24 @@ export class ConfigDetailComponent implements OnInit {
     const result = this.bicepResult();
     if (!result?.moduleUris) return [];
     return Object.entries(result.moduleUris).map(([name, uri]) => ({ name, uri }));
+  });
+
+  protected readonly bicepModuleFolders = computed<BicepModuleFolder[]>(() => {
+    const result = this.bicepResult();
+    if (!result?.moduleUris) return [];
+    const folderMap = new Map<string, BicepModuleFolder>();
+    for (const [filePath, uri] of Object.entries(result.moduleUris)) {
+      const parts = filePath.split('/');
+      if (parts.length < 3) continue;
+      const folderName = parts[1];
+      const displayName = parts[2];
+      const folderKey = `modules/${folderName}`;
+      if (!folderMap.has(folderKey)) {
+        folderMap.set(folderKey, { folderName, folderKey, files: [] });
+      }
+      folderMap.get(folderKey)!.files.push({ name: filePath, displayName, uri });
+    }
+    return Array.from(folderMap.values());
   });
 
   protected readonly bicepParamEntries = computed(() => {
@@ -924,6 +948,10 @@ export class ConfigDetailComponent implements OnInit {
     try {
       const result = await this.bicepService.generate({ infrastructureConfigId: configId });
       this.bicepResult.set(result);
+      const subfolderKeys = Object.keys(result.moduleUris ?? {})
+        .map(k => { const p = k.split('/'); return p.length >= 3 ? `modules/${p[1]}` : null; })
+        .filter((k): k is string => k !== null);
+      this.bicepExpandedFolders.set(new Set(['modules', ...subfolderKeys]));
     } catch (err: unknown) {
       const axios = await import('axios');
       if (axios.isAxiosError(err)) {

@@ -160,7 +160,7 @@
                   </button>
                 }
                 <!-- Modules -->
-                @if (bicepModuleEntries().length > 0) {
+                @if (bicepModuleFolders().length > 0) {
                   <button class="bicep-tree__folder" (click)="toggleBicepFolder('modules')">
                     <mat-icon class="bicep-tree__folder-chevron" [class.bicep-tree__folder-chevron--open]="isBicepFolderExpanded('modules')">chevron_right</mat-icon>
                     <mat-icon class="bicep-tree__folder-icon">{{ isBicepFolderExpanded('modules') ? 'folder_open' : 'folder' }}</mat-icon>
@@ -168,13 +168,34 @@
                   </button>
                   @if (isBicepFolderExpanded('modules')) {
                     <div class="bicep-tree__folder-children">
-                      @for (mod of bicepModuleEntries(); track mod.name) {
-                        <button class="bicep-tree__item bicep-tree__item--module"
-                                [class.bicep-tree__item--active]="bicepViewerFile() === mod.name"
-                                (click)="openBicepFile(mod.name)">
-                          <mat-icon class="bicep-tree__icon">memory</mat-icon>
-                          <span class="bicep-tree__name">{{ mod.name }}</span>
+                      @for (subfolder of bicepModuleFolders(); track subfolder.folderKey) {
+                        <button class="bicep-tree__subfolder" (click)="toggleBicepFolder(subfolder.folderKey)">
+                          <mat-icon class="bicep-tree__folder-chevron" [class.bicep-tree__folder-chevron--open]="isBicepFolderExpanded(subfolder.folderKey)">chevron_right</mat-icon>
+                          <mat-icon class="bicep-tree__folder-icon">{{ isBicepFolderExpanded(subfolder.folderKey) ? 'folder_open' : 'folder' }}</mat-icon>
+                          <span>{{ subfolder.folderName }}/</span>
                         </button>
+                        @if (isBicepFolderExpanded(subfolder.folderKey)) {
+                          <div class="bicep-tree__folder-children">
+                            @for (file of subfolder.files; track file.name) {
+                              @if (file.displayName === 'types.bicep') {
+                                <button class="bicep-tree__item bicep-tree__item--submodule"
+                                        [class.bicep-tree__item--active]="bicepViewerFile() === file.name"
+                                        (click)="openBicepFile(file.name)">
+                                  <mat-icon class="bicep-tree__icon">data_object</mat-icon>
+                                  <span class="bicep-tree__name">{{ file.displayName }}</span>
+                                  <span class="bicep-tree__badge bicep-tree__badge--types">T</span>
+                                </button>
+                              } @else {
+                                <button class="bicep-tree__item bicep-tree__item--submodule"
+                                        [class.bicep-tree__item--active]="bicepViewerFile() === file.name"
+                                        (click)="openBicepFile(file.name)">
+                                  <mat-icon class="bicep-tree__icon">memory</mat-icon>
+                                  <span class="bicep-tree__name">{{ file.displayName }}</span>
+                                </button>
+                              }
+                            }
+                          </div>
+                        }
                       }
                     </div>
                   }
