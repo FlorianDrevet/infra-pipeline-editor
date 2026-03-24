@@ -311,6 +311,20 @@ export class AddResourceDialogComponent {
 
   protected readonly ResourceTypeEnum = ResourceTypeEnum;
 
+  protected readonly parentResourceSuffix = computed(() => {
+    const type = this.selectedType();
+    if (type === ResourceTypeEnum.ContainerApp) return 'CAE';
+    if (type === ResourceTypeEnum.ApplicationInsights) return 'LAW';
+    return 'ASP';
+  });
+
+  protected readonly parentResourceIcon = computed(() => {
+    const suffix = this.parentResourceSuffix();
+    if (suffix === 'CAE') return 'cloud_queue';
+    if (suffix === 'LAW') return 'analytics';
+    return 'dns';
+  });
+
   // ── Common form (name + location + type-specific fields) ──
   protected readonly commonForm = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(80)]],
@@ -390,6 +404,13 @@ export class AddResourceDialogComponent {
 
   protected onStartCreatePlan(): void {
     this.createPlanForm.patchValue({ location: this.data.location });
+    const osCtrl = this.createPlanForm.get('osType')!;
+    if (this.parentResourceSuffix() === 'ASP') {
+      osCtrl.setValidators([Validators.required]);
+    } else {
+      osCtrl.clearValidators();
+    }
+    osCtrl.updateValueAndValidity();
     this.step.set('create-plan');
     this.errorKey.set('');
   }
@@ -450,7 +471,7 @@ export class AddResourceDialogComponent {
       }
       this.step.set('common');
     } catch {
-      this.errorKey.set('CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_ERROR');
+      this.errorKey.set('CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_ERROR_' + this.parentResourceSuffix());
     } finally {
       this.isCreatingPlan.set(false);
     }

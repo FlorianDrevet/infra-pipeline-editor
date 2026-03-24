@@ -128,6 +128,7 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Record<string, string> = {
 export const PARENT_CHILD_RESOURCE_TYPES: Record<string, string[]> = {
   [ResourceTypeEnum.AppServicePlan]: [ResourceTypeEnum.WebApp, ResourceTypeEnum.FunctionApp],
   [ResourceTypeEnum.ContainerAppEnvironment]: [ResourceTypeEnum.ContainerApp],
+  [ResourceTypeEnum.LogAnalyticsWorkspace]: [ResourceTypeEnum.ApplicationInsights],
   [ResourceTypeEnum.SqlServer]: [ResourceTypeEnum.SqlDatabase],
 };
 

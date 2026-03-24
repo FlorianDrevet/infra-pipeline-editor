@@ -7,6 +7,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
+using ApplicationInsightsEntity = InfraFlowSculptor.Domain.ApplicationInsightsAggregate.ApplicationInsights;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate;
@@ -43,6 +44,7 @@ public class ListResourceGroupResourcesQueryHandler(
         FunctionApp fa => fa.AppServicePlanId,
         ContainerApp ca => ca.ContainerAppEnvironmentId,
         SqlDatabase sqlDb => sqlDb.SqlServerId,
+        ApplicationInsightsEntity ai => ai.LogAnalyticsWorkspaceId,
         _ => null,
     };
 }

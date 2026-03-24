@@ -11,9 +11,9 @@
     @if (step() === 'environments') {
       {{ 'CONFIG_DETAIL.RESOURCES.FORM.ENV_STEP_TITLE' | translate }}
     } @else if (step() === 'plan-selection') {
-      {{ 'CONFIG_DETAIL.RESOURCES.FORM.PLAN_SELECT_TITLE' | translate }}
+      {{ 'CONFIG_DETAIL.RESOURCES.FORM.PLAN_SELECT_TITLE_' + parentResourceSuffix() | translate }}
     } @else if (step() === 'create-plan') {
-      {{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_TITLE' | translate }}
+      {{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_TITLE_' + parentResourceSuffix() | translate }}
     } @else {
       {{ 'CONFIG_DETAIL.RESOURCES.ADD_DIALOG_TITLE_' + selectedType() | translate }}
     }
@@ -46,8 +46,8 @@
       </div>
     }
     @case ('plan-selection') {
-      <!-- Step 2a (WebApp only): Select or create App Service Plan -->
-      <p class="step-subtitle">{{ 'CONFIG_DETAIL.RESOURCES.FORM.PLAN_SELECT_SUBTITLE' | translate }}</p>
+      <!-- Step 2a: Select or create parent resource -->
+      <p class="step-subtitle">{{ 'CONFIG_DETAIL.RESOURCES.FORM.PLAN_SELECT_SUBTITLE_' + parentResourceSuffix() | translate }}</p>
       @if (plansLoading()) {
         <div class="plan-loading">
           <mat-spinner diameter="32"></mat-spinner>
@@ -56,7 +56,7 @@
         <div class="plan-picker">
           @for (plan of existingPlans(); track plan.id) {
             <button class="plan-card" (click)="onSelectPlan(plan)">
-              <mat-icon class="plan-card__icon">dns</mat-icon>
+              <mat-icon class="plan-card__icon">{{ parentResourceIcon() }}</mat-icon>
               <div class="plan-card__info">
                 <span class="plan-card__name">{{ plan.name }}</span>
                 <span class="plan-card__location">{{ plan.location }}</span>
@@ -67,8 +67,8 @@
           <button class="plan-card plan-card--create" (click)="onStartCreatePlan()">
             <mat-icon class="plan-card__icon plan-card__icon--create">add_circle_outline</mat-icon>
             <div class="plan-card__info">
-              <span class="plan-card__name">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_NEW_PLAN' | translate }}</span>
-              <span class="plan-card__location">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_NEW_PLAN_HINT' | translate }}</span>
+              <span class="plan-card__name">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_NEW_PLAN_' + parentResourceSuffix() | translate }}</span>
+              <span class="plan-card__location">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_NEW_PLAN_HINT_' + parentResourceSuffix() | translate }}</span>
             </div>
             <mat-icon class="plan-card__arrow">arrow_forward</mat-icon>
           </button>
@@ -76,13 +76,13 @@
       }
     }
     @case ('create-plan') {
-      <!-- Step 2b (WebApp only): Inline App Service Plan creation -->
-      <p class="step-subtitle">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_SUBTITLE' | translate }}</p>
+      <!-- Step 2b: Inline parent resource creation -->
+      <p class="step-subtitle">{{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_SUBTITLE_' + parentResourceSuffix() | translate }}</p>
       <form [formGroup]="createPlanForm" class="resource-form">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.NAME' | translate }}</mat-label>
           <input matInput formControlName="name"
-            [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.PLAN_NAME_PLACEHOLDER' | translate" />
+            [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.PLAN_NAME_PLACEHOLDER_' + parentResourceSuffix() | translate" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOCATION' | translate }}</mat-label>
@@ -92,14 +92,16 @@
             }
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.OS_TYPE' | translate }}</mat-label>
-          <mat-select formControlName="osType">
-            @for (option of osTypeOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        @if (parentResourceSuffix() === 'ASP') {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.OS_TYPE' | translate }}</mat-label>
+            <mat-select formControlName="osType">
+              @for (option of osTypeOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
       </form>
     }
     @case ('common') {
@@ -135,7 +137,7 @@
           <div class="plan-indicator">
             <mat-icon class="plan-indicator__icon">dns</mat-icon>
             <div class="plan-indicator__info">
-              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN' | translate }}</span>
+              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_ASP' | translate }}</span>
               <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
             </div>
             <button class="plan-indicator__change" (click)="onBackFromCommon()">
@@ -169,7 +171,7 @@
           <div class="plan-indicator">
             <mat-icon class="plan-indicator__icon">dns</mat-icon>
             <div class="plan-indicator__info">
-              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN' | translate }}</span>
+              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_ASP' | translate }}</span>
               <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
             </div>
             <button class="plan-indicator__change" (click)="onBackFromCommon()">
@@ -200,7 +202,7 @@
           <div class="plan-indicator">
             <mat-icon class="plan-indicator__icon">analytics</mat-icon>
             <div class="plan-indicator__info">
-              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN' | translate }}</span>
+              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_LAW' | translate }}</span>
               <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
             </div>
             <button class="plan-indicator__change" (click)="onBackFromCommon()">
