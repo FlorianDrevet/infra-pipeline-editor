@@ -1,5 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
+using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using MapsterMapper;
 using MediatR;
@@ -8,6 +9,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraCon
 
 public class GetInfrastructureConfigQueryHandler(
     IInfraConfigAccessService accessService,
+    IResourceGroupRepository resourceGroupRepository,
     IMapper mapper)
     : IRequestHandler<GetInfrastructureConfigQuery, ErrorOr<GetInfrastructureConfigResult>>
 {
@@ -18,6 +20,14 @@ public class GetInfrastructureConfigQueryHandler(
         if (accessResult.IsError)
             return accessResult.Errors;
 
-        return mapper.Map<GetInfrastructureConfigResult>(accessResult.Value);
+        var result = mapper.Map<GetInfrastructureConfigResult>(accessResult.Value);
+
+        var counts = await resourceGroupRepository.GetResourceCountsByInfraConfigIdsAsync(
+            [result.Id], cancellationToken);
+
+        if (counts.TryGetValue(result.Id.Value, out var c))
+            result = result with { ResourceGroupCount = c.ResourceGroupCount, ResourceCount = c.ResourceCount };
+
+        return result;
     }
 }

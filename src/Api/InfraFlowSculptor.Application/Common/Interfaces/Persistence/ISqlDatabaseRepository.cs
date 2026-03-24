@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 
@@ -14,4 +15,10 @@ public interface ISqlDatabaseRepository : IRepository<SqlDatabase>
     /// </summary>
     Task<List<SqlDatabase>> GetByResourceGroupIdAsync(
         ResourceGroupId resourceGroupId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves all SQL Databases linked to the specified SQL Server.
+    /// </summary>
+    Task<List<SqlDatabase>> GetBySqlServerIdAsync(
+        AzureResourceId sqlServerId, CancellationToken cancellationToken = default);
 }

@@ -13,6 +13,8 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// <param name="UseProjectNamingConventions">Whether this config inherits naming conventions from the parent project.</param>
 /// <param name="EnvironmentDefinitions">List of target environments (e.g. Dev, Staging, Production).</param>
 /// <param name="ResourceNamingTemplates">Per-resource-type naming template overrides.</param>
+/// <param name="ResourceGroupCount">Number of resource groups in this configuration.</param>
+/// <param name="ResourceCount">Total number of Azure resources across all resource groups.</param>
 public record InfrastructureConfigResponse(
     string Id,
     string Name,
@@ -21,4 +23,6 @@ public record InfrastructureConfigResponse(
     bool UseProjectEnvironments,
     bool UseProjectNamingConventions,
     IReadOnlyList<EnvironmentDefinitionResponse> EnvironmentDefinitions,
-    IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates);
+    IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates,
+    int ResourceGroupCount,
+    int ResourceCount);

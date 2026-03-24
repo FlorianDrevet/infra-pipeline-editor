@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
@@ -30,6 +31,17 @@ public class SqlDatabaseRepository(ProjectDbContext context)
             .Include(x => x.DependsOn)
             .Include(x => x.EnvironmentSettings)
             .Where(x => x.ResourceGroupId == resourceGroupId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<SqlDatabase>> GetBySqlServerIdAsync(
+        AzureResourceId sqlServerId,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<SqlDatabase>()
+            .Where(x => x.SqlServerId == sqlServerId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
     }

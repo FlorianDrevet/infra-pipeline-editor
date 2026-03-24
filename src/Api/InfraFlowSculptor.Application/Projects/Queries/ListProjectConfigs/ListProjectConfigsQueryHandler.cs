@@ -11,6 +11,7 @@ namespace InfraFlowSculptor.Application.Projects.Queries.ListProjectConfigs;
 public sealed class ListProjectConfigsQueryHandler(
     IProjectAccessService accessService,
     IInfrastructureConfigRepository configRepository,
+    IResourceGroupRepository resourceGroupRepository,
     IMapper mapper)
     : IRequestHandler<ListProjectConfigsQuery, ErrorOr<List<GetInfrastructureConfigResult>>>
 {
@@ -24,6 +25,16 @@ public sealed class ListProjectConfigsQueryHandler(
             return accessResult.Errors;
 
         var configs = await configRepository.GetByProjectIdAsync(query.ProjectId, cancellationToken);
-        return configs.Select(c => mapper.Map<GetInfrastructureConfigResult>(c)).ToList();
+        var results = configs.Select(c => mapper.Map<GetInfrastructureConfigResult>(c)).ToList();
+
+        var configIds = configs.Select(c => c.Id).ToList();
+        var counts = await resourceGroupRepository.GetResourceCountsByInfraConfigIdsAsync(configIds, cancellationToken);
+
+        return results.Select(r =>
+        {
+            if (counts.TryGetValue(r.Id.Value, out var c))
+                return r with { ResourceGroupCount = c.ResourceGroupCount, ResourceCount = c.ResourceCount };
+            return r;
+        }).ToList();
     }
 }

@@ -6,9 +6,14 @@ using MediatR;
 
 namespace InfraFlowSculptor.Application.AppServicePlans.Commands.DeleteAppServicePlan;
 
-/// <summary>Handles the <see cref="DeleteAppServicePlanCommand"/> request.</summary>
-public class DeleteAppServicePlanCommandHandler(
+/// <summary>
+/// Handles the <see cref="DeleteAppServicePlanCommand"/> request.
+/// Cascade-deletes all dependent Web Apps and Function Apps.
+/// </summary>
+public sealed class DeleteAppServicePlanCommandHandler(
     IAppServicePlanRepository appServicePlanRepository,
+    IWebAppRepository webAppRepository,
+    IFunctionAppRepository functionAppRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
     : IRequestHandler<DeleteAppServicePlanCommand, ErrorOr<Deleted>>
@@ -29,6 +34,24 @@ public class DeleteAppServicePlanCommandHandler(
         var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return authResult.Errors;
+
+        // Cascade delete dependent Web Apps
+        var dependentWebApps = await webAppRepository
+            .GetByAppServicePlanIdAsync(request.Id, cancellationToken);
+
+        foreach (var webApp in dependentWebApps)
+        {
+            await webAppRepository.DeleteAsync(webApp.Id);
+        }
+
+        // Cascade delete dependent Function Apps
+        var dependentFunctionApps = await functionAppRepository
+            .GetByAppServicePlanIdAsync(request.Id, cancellationToken);
+
+        foreach (var functionApp in dependentFunctionApps)
+        {
+            await functionAppRepository.DeleteAsync(functionApp.Id);
+        }
 
         await appServicePlanRepository.DeleteAsync(request.Id);
 

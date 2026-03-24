@@ -6,9 +6,13 @@ using MediatR;
 
 namespace InfraFlowSculptor.Application.SqlServers.Commands.DeleteSqlServer;
 
-/// <summary>Handles the <see cref="DeleteSqlServerCommand"/> request.</summary>
-public class DeleteSqlServerCommandHandler(
+/// <summary>
+/// Handles the <see cref="DeleteSqlServerCommand"/> request.
+/// Cascade-deletes all dependent SQL Databases.
+/// </summary>
+public sealed class DeleteSqlServerCommandHandler(
     ISqlServerRepository sqlServerRepository,
+    ISqlDatabaseRepository sqlDatabaseRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
     : IRequestHandler<DeleteSqlServerCommand, ErrorOr<Deleted>>
@@ -29,6 +33,15 @@ public class DeleteSqlServerCommandHandler(
         var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return authResult.Errors;
+
+        // Cascade delete dependent SQL Databases
+        var dependentDatabases = await sqlDatabaseRepository
+            .GetBySqlServerIdAsync(request.Id, cancellationToken);
+
+        foreach (var database in dependentDatabases)
+        {
+            await sqlDatabaseRepository.DeleteAsync(database.Id);
+        }
 
         await sqlServerRepository.DeleteAsync(request.Id);
 

@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,9 @@ public class ResourceGroupConfiguration : IEntityTypeConfiguration<ResourceGroup
         
         builder.Property(config => config.Name)
             .HasConversion(new SingleValueConverter<Name, string>());
+        
+        builder.Property(rg => rg.InfraConfigId)
+            .HasConversion(new IdValueConverter<InfrastructureConfigId>());
         
         builder.Property(order => order.Location)
             .IsRequired()

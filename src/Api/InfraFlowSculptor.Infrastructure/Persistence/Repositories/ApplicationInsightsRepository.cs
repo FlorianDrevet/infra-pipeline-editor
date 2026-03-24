@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,17 @@ public sealed class ApplicationInsightsRepository(ProjectDbContext context)
             .Include(x => x.DependsOn)
             .Include(x => x.EnvironmentSettings)
             .Where(x => x.ResourceGroupId == resourceGroupId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<ApplicationInsights>> GetByLogAnalyticsWorkspaceIdAsync(
+        AzureResourceId logAnalyticsWorkspaceId,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<ApplicationInsights>()
+            .Where(x => x.LogAnalyticsWorkspaceId == logAnalyticsWorkspaceId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
     }

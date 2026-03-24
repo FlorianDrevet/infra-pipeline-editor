@@ -10,4 +10,19 @@ public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggre
     Task<List<Domain.ResourceGroupAggregate.ResourceGroup>> GetByInfraConfigIdAsync(
         InfrastructureConfigId infraConfigId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns resource group count and total resource count per infrastructure config ID.
+    /// </summary>
+    Task<Dictionary<Guid, (int ResourceGroupCount, int ResourceCount)>> GetResourceCountsByInfraConfigIdsAsync(
+        IReadOnlyList<InfrastructureConfigId> infraConfigIds,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns a mapping of child resource IDs to their parent resource IDs
+    /// by querying child-type TPT tables directly (WebApp, FunctionApp, ContainerApp, SqlDatabase, ApplicationInsights).
+    /// </summary>
+    Task<Dictionary<Guid, Guid>> GetChildToParentMappingAsync(
+        ResourceGroupId resourceGroupId,
+        CancellationToken cancellationToken = default);
 }

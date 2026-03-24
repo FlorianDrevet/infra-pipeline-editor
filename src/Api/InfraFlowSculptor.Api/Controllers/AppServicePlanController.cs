@@ -2,9 +2,11 @@ using InfraFlowSculptor.Application.AppServicePlans.Commands.CreateAppServicePla
 using InfraFlowSculptor.Application.AppServicePlans.Commands.DeleteAppServicePlan;
 using InfraFlowSculptor.Application.AppServicePlans.Commands.UpdateAppServicePlan;
 using InfraFlowSculptor.Application.AppServicePlans.Queries;
+using InfraFlowSculptor.Application.Common.Queries.GetDependentResources;
 using MediatR;
 using InfraFlowSculptor.Contracts.AppServicePlans.Requests;
 using InfraFlowSculptor.Contracts.AppServicePlans.Responses;
+using InfraFlowSculptor.Contracts.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
@@ -112,6 +114,24 @@ public static class AppServicePlanController
                 .WithDescription("Permanently deletes an Azure App Service Plan resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{id:guid}/dependents",
+                    async ([FromRoute] Guid id, IMediator mediator) =>
+                    {
+                        var query = new GetDependentResourcesQuery(new AzureResourceId(id));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            dependents => Results.Ok(dependents.Select(d =>
+                                new DependentResourceResponse(d.Id, d.Name, d.ResourceType)).ToList()),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GetAppServicePlanDependents")
+                .WithSummary("Get dependent resources")
+                .WithDescription("Returns all resources that depend on this App Service Plan and would be deleted alongside it.")
+                .Produces<List<DependentResourceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

@@ -489,9 +489,9 @@
 .rg-name-row {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.65rem;
 
-  strong { color: #103454; font-size: 0.9rem; }
+  strong { color: #103454; font-size: 1rem; }
 }
 
 .rg-accordion__location {
@@ -552,8 +552,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+  border-radius: 0.35rem;
   background: rgba(76, 175, 80, 0.09);
   color: #2e7d32;
   font-size: 0.76rem;
@@ -647,11 +647,11 @@
 .resource-name-row {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.6rem;
   overflow: hidden;
   min-width: 0;
 
-  strong { display: block; color: #103454; font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex-shrink: 1; }
+  strong { display: block; color: #103454; font-size: 0.94rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex-shrink: 1; }
 }
 
 .resource-item__type {

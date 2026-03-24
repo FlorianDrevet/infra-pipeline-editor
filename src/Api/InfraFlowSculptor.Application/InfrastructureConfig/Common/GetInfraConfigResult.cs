@@ -12,4 +12,6 @@ public record GetInfrastructureConfigResult(
     bool UseProjectEnvironments,
     bool UseProjectNamingConventions,
     IReadOnlyList<EnvironmentDefinitionResult> EnvironmentDefinitions,
-    IReadOnlyList<ResourceNamingTemplateResult> ResourceNamingTemplates);
+    IReadOnlyList<ResourceNamingTemplateResult> ResourceNamingTemplates,
+    int ResourceGroupCount = 0,
+    int ResourceCount = 0);

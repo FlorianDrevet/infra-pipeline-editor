@@ -2,6 +2,8 @@ using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAna
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.DeleteLogAnalyticsWorkspace;
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.UpdateLogAnalyticsWorkspace;
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Queries.GetLogAnalyticsWorkspace;
+using InfraFlowSculptor.Application.Common.Queries.GetDependentResources;
+using InfraFlowSculptor.Contracts.Common;
 using InfraFlowSculptor.Contracts.LogAnalyticsWorkspaces.Requests;
 using InfraFlowSculptor.Contracts.LogAnalyticsWorkspaces.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
@@ -112,6 +114,24 @@ public static class LogAnalyticsWorkspaceController
                 .WithDescription("Permanently deletes an Azure Log Analytics Workspace resource.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{id:guid}/dependents",
+                    async ([FromRoute] Guid id, IMediator mediator) =>
+                    {
+                        var query = new GetDependentResourcesQuery(new AzureResourceId(id));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            dependents => Results.Ok(dependents.Select(d =>
+                                new DependentResourceResponse(d.Id, d.Name, d.ResourceType)).ToList()),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GetLogAnalyticsWorkspaceDependents")
+                .WithSummary("Get dependent resources")
+                .WithDescription("Returns all resources that depend on this Log Analytics Workspace and would be deleted alongside it.")
+                .Produces<List<DependentResourceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

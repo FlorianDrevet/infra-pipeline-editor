@@ -6,6 +6,7 @@ import {
   CreateLogAnalyticsWorkspaceRequest,
   UpdateLogAnalyticsWorkspaceRequest,
 } from '../interfaces/log-analytics-workspace.interface';
+import { DependentResourceResponse } from '../interfaces/dependent-resource.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -38,5 +39,12 @@ export class LogAnalyticsWorkspaceService {
 
   delete(id: string): Promise<void> {
     return this.axios.request$<void>(MethodEnum.DELETE, `/log-analytics-workspace/${id}`);
+  }
+
+  getDependents(id: string): Promise<DependentResourceResponse[]> {
+    return this.axios.request$<DependentResourceResponse[]>(
+      MethodEnum.GET,
+      `/log-analytics-workspace/${id}/dependents`
+    );
   }
 }

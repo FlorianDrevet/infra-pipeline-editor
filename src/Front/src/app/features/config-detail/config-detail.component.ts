@@ -39,8 +39,12 @@ import { ContainerAppService } from '../../shared/services/container-app.service
 import { LogAnalyticsWorkspaceService } from '../../shared/services/log-analytics-workspace.service';
 import { ApplicationInsightsService } from '../../shared/services/application-insights.service';
 import { CosmosDbService } from '../../shared/services/cosmos-db.service';
+import { SqlServerService } from '../../shared/services/sql-server.service';
+import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
+import { CascadeDeleteDialogComponent, CascadeDeleteDialogData } from '../../shared/components/cascade-delete-dialog/cascade-delete-dialog.component';
+import { DependentResourceResponse } from '../../shared/interfaces/dependent-resource.interface';
 import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
 import { saveAs } from 'file-saver';
 import { AuthenticationService } from '../../shared/services/authentication.service';
@@ -97,6 +101,8 @@ export class ConfigDetailComponent implements OnInit {
   private readonly logAnalyticsWorkspaceService = inject(LogAnalyticsWorkspaceService);
   private readonly applicationInsightsService = inject(ApplicationInsightsService);
   private readonly cosmosDbService = inject(CosmosDbService);
+  private readonly sqlServerService = inject(SqlServerService);
+  private readonly sqlDatabaseService = inject(SqlDatabaseService);
   private readonly projectService = inject(ProjectService);
   private readonly bicepService = inject(BicepGeneratorService);
   private readonly authService = inject(AuthenticationService);
@@ -682,7 +688,14 @@ export class ConfigDetailComponent implements OnInit {
 
   // ─── Delete Resource ───
 
+  private readonly CASCADE_PARENT_TYPES = new Set(['LogAnalyticsWorkspace', 'AppServicePlan', 'SqlServer']);
+
   protected openDeleteResourceDialog(resource: AzureResourceResponse, rgId: string): void {
+    if (this.CASCADE_PARENT_TYPES.has(resource.resourceType)) {
+      this.openCascadeDeleteDialog(resource, rgId);
+      return;
+    }
+
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         titleKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_TITLE',
@@ -692,6 +705,47 @@ export class ConfigDetailComponent implements OnInit {
         cancelKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_CANCEL',
       } satisfies ConfirmDialogData,
       width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      await this.deleteResource(resource, rgId);
+    });
+  }
+
+  private async openCascadeDeleteDialog(resource: AzureResourceResponse, rgId: string): Promise<void> {
+    let dependents: DependentResourceResponse[] = [];
+    try {
+      switch (resource.resourceType) {
+        case 'LogAnalyticsWorkspace':
+          dependents = await this.logAnalyticsWorkspaceService.getDependents(resource.id);
+          break;
+        case 'AppServicePlan':
+          dependents = await this.appServicePlanService.getDependents(resource.id);
+          break;
+        case 'SqlServer':
+          dependents = await this.sqlServerService.getDependents(resource.id);
+          break;
+      }
+    } catch {
+      this.rgErrorKey.set('CONFIG_DETAIL.RESOURCES.DELETE_ERROR');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(CascadeDeleteDialogComponent, {
+      data: {
+        titleKey: 'CONFIG_DETAIL.RESOURCES.CASCADE_DELETE_TITLE',
+        messageKey: dependents.length > 0
+          ? 'CONFIG_DETAIL.RESOURCES.CASCADE_DELETE_MESSAGE_WITH_DEPS'
+          : 'CONFIG_DETAIL.RESOURCES.CASCADE_DELETE_MESSAGE_NO_DEPS',
+        messageParams: { name: resource.name, type: resource.resourceType, count: dependents.length },
+        dependentsHeaderKey: 'CONFIG_DETAIL.RESOURCES.CASCADE_DELETE_DEPENDENTS_HEADER',
+        confirmKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_YES',
+        cancelKey: 'CONFIG_DETAIL.RESOURCES.DELETE_CONFIRM_CANCEL',
+        dependents,
+        resourceTypeIcons: this.resourceTypeIcons,
+      } satisfies CascadeDeleteDialogData,
+      width: '480px',
     });
 
     dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
@@ -741,6 +795,12 @@ export class ConfigDetailComponent implements OnInit {
           break;
         case 'CosmosDb':
           await this.cosmosDbService.delete(resource.id);
+          break;
+        case 'SqlServer':
+          await this.sqlServerService.delete(resource.id);
+          break;
+        case 'SqlDatabase':
+          await this.sqlDatabaseService.delete(resource.id);
           break;
       }
       // Refresh resource list for this resource group

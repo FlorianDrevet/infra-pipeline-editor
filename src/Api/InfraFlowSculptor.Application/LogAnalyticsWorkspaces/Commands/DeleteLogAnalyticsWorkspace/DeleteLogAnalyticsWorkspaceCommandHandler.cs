@@ -8,9 +8,11 @@ namespace InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.DeleteLo
 
 /// <summary>
 /// Handles the <see cref="DeleteLogAnalyticsWorkspaceCommand"/> request.
+/// Cascade-deletes all dependent Application Insights resources.
 /// </summary>
 public sealed class DeleteLogAnalyticsWorkspaceCommandHandler(
     ILogAnalyticsWorkspaceRepository logAnalyticsWorkspaceRepository,
+    IApplicationInsightsRepository applicationInsightsRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
     : IRequestHandler<DeleteLogAnalyticsWorkspaceCommand, ErrorOr<Deleted>>
@@ -31,6 +33,15 @@ public sealed class DeleteLogAnalyticsWorkspaceCommandHandler(
         var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return authResult.Errors;
+
+        // Cascade delete dependent Application Insights resources
+        var dependentAppInsights = await applicationInsightsRepository
+            .GetByLogAnalyticsWorkspaceIdAsync(request.Id, cancellationToken);
+
+        foreach (var appInsights in dependentAppInsights)
+        {
+            await applicationInsightsRepository.DeleteAsync(appInsights.Id);
+        }
 
         await logAnalyticsWorkspaceRepository.DeleteAsync(request.Id);
 

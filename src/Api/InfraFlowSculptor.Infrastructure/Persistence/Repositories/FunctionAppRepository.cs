@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
@@ -30,6 +31,17 @@ public sealed class FunctionAppRepository(ProjectDbContext context)
             .Include(x => x.DependsOn)
             .Include(x => x.EnvironmentSettings)
             .Where(x => x.ResourceGroupId == resourceGroupId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<FunctionApp>> GetByAppServicePlanIdAsync(
+        AzureResourceId appServicePlanId,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<FunctionApp>()
+            .Where(x => x.AppServicePlanId == appServicePlanId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
     }
