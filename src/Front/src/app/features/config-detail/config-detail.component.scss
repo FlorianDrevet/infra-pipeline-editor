@@ -465,6 +465,10 @@
   font: inherit;
 
   &:hover { background: rgba(21, 101, 192, 0.03); }
+  &:focus-visible {
+    outline: 2px solid rgba(21, 101, 192, 0.45);
+    outline-offset: -2px;
+  }
 }
 
 .rg-accordion__chevron {
@@ -499,6 +503,7 @@
   align-items: center;
   justify-content: center;
   min-width: 1.35rem; height: 1.35rem;
+  margin-left: 0.45rem;
   padding: 0 0.35rem;
   border-radius: 999px;
   background: rgba(13, 101, 192, 0.08);
@@ -549,7 +554,6 @@
   font-weight: 600;
   font-family: 'Roboto Mono', monospace;
   white-space: nowrap;
-  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 
@@ -563,12 +567,6 @@
   &--inline {
     margin-top: 0.15rem;
   }
-}
-
-.rg-resources-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.65rem 0;
 }
 
 .add-resource-btn {
@@ -585,6 +583,10 @@
   cursor: pointer;
   white-space: nowrap;
   &:hover { background: rgba(0, 188, 212, 0.12); border-color: rgba(0, 188, 212, 0.32); }
+}
+
+.add-resource-btn--inline {
+  margin-left: auto;
 }
 
 .add-resource-btn__icon { font-size: 1rem; width: 1rem; height: 1rem; }
@@ -1740,6 +1742,11 @@
   .member-card {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .add-resource-btn--inline {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.76rem;
   }
 
   .config-tabs ::ng-deep .mdc-tab__text-label span:not(.tab-count) {

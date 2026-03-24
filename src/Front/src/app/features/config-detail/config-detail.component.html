@@ -254,7 +254,14 @@
             <div class="rg-list">
               @for (rg of resourceGroups(); track rg.id) {
                 <article class="rg-accordion" [class.rg-accordion--expanded]="expandedRgId() === rg.id">
-                  <button class="rg-accordion__header" (click)="toggleRgExpand(rg.id)">
+                  <div
+                    class="rg-accordion__header"
+                    role="button"
+                    tabindex="0"
+                    [attr.aria-expanded]="expandedRgId() === rg.id"
+                    (click)="toggleRgExpand(rg.id)"
+                    (keydown.enter)="toggleRgExpand(rg.id)"
+                    (keydown.space)="toggleRgExpand(rg.id); $event.preventDefault()">
                     <mat-icon class="rg-accordion__chevron">expand_more</mat-icon>
                     <div class="rg-accordion__info">
                       <strong>{{ rg.name }}</strong>
@@ -269,10 +276,16 @@
                         </span>
                       }
                     </div>
+                    @if (canWrite()) {
+                      <button class="add-resource-btn add-resource-btn--inline" (click)="openAddResourceDialog(rg.id); $event.stopPropagation()">
+                        <mat-icon class="add-resource-btn__icon">add_circle_outline</mat-icon>
+                        {{ 'CONFIG_DETAIL.RESOURCES.ADD' | translate }}
+                      </button>
+                    }
                     <span class="rg-accordion__count">
                       {{ rgResources()[rg.id]?.length ?? '…' }}
                     </span>
-                  </button>
+                  </div>
                   @if (expandedRgId() === rg.id) {
                     <div class="rg-accordion__body">
                       @if (rgResourcesLoading() === rg.id) {
@@ -281,14 +294,6 @@
                           <span>{{ 'CONFIG_DETAIL.RESOURCES.LOADING' | translate }}</span>
                         </div>
                       } @else {
-                        <div class="rg-resources-toolbar">
-                          @if (canWrite()) {
-                            <button class="add-resource-btn" (click)="openAddResourceDialog(rg.id); $event.stopPropagation()">
-                              <mat-icon class="add-resource-btn__icon">add_circle_outline</mat-icon>
-                              {{ 'CONFIG_DETAIL.RESOURCES.ADD' | translate }}
-                            </button>
-                          }
-                        </div>
                         @if ((rgResources()[rg.id] || []).length > 0) {
                           <div class="resource-list">
                             @for (item of groupResourcesForRg(rg.id); track item.resource.id) {

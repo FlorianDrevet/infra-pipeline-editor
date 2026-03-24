@@ -412,7 +412,8 @@ export class ConfigDetailComponent implements OnInit {
         location: rg?.location ?? '',
         environments: envs.map(e => ({ name: e.name })),
       } satisfies AddResourceDialogData,
-      width: '680px',
+      width: '720px',
+      maxHeight: '90vh',
     });
 
     dialogRef.afterClosed().subscribe(async (created: boolean) => {

@@ -44,7 +44,7 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   LogAnalyticsWorkspace: 'analytics',
   ApplicationInsights: 'monitoring',
   CosmosDb: 'public',
-  SqlServer: 'database',
+  SqlServer: 'dns',
   SqlDatabase: 'table_chart',
 };
 
@@ -71,7 +71,7 @@ export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
   },
   {
     labelKey: 'CONFIG_DETAIL.RESOURCES.CATEGORY_STORAGE_DB',
-    icon: 'database',
+    icon: 'storage',
     types: [
       ResourceTypeEnum.StorageAccount,
       ResourceTypeEnum.CosmosDb,
