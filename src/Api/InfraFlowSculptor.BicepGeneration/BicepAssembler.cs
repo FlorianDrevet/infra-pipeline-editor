@@ -368,8 +368,10 @@ public static class BicepAssembler
                 sb.AppendLine($"    {paramKey}: {module.ModuleName}{Capitalize(paramKey)}");
             }
 
-            // Inject appSettings / envVars param for target resources that have app settings
-            if (appSettingsByTarget.TryGetValue(module.LogicalResourceName, out var resourceAppSettings))
+            // Inject appSettings / envVars param for compute modules only
+            var isComputeModule = module.ResourceTypeName is "WebApp" or "FunctionApp" or "ContainerApp";
+            if (isComputeModule
+                && appSettingsByTarget.TryGetValue(module.LogicalResourceName, out var resourceAppSettings))
             {
                 var isContainerApp = module.ResourceTypeName == "ContainerApp";
                 var paramName = isContainerApp ? "envVars" : "appSettings";

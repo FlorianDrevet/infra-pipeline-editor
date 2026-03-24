@@ -7,6 +7,14 @@ namespace InfraFlowSculptor.BicepGeneration;
 
 public sealed class BicepGenerationEngine
 {
+    /// <summary>ARM resource types that support app settings / environment variables.</summary>
+    private static readonly HashSet<string> ComputeResourceTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Microsoft.Web/sites",
+        "Microsoft.Web/sites/functionapp",
+        "Microsoft.App/containerApps",
+    };
+
     private readonly IEnumerable<IResourceTypeBicepGenerator> _generators;
 
     public BicepGenerationEngine(
@@ -68,7 +76,8 @@ public sealed class BicepGenerationEngine
             }
 
             // Inject appSettings/env param for compute resources that have app settings
-            if (targetResourcesWithAppSettings.Contains(resource.Name))
+            if (targetResourcesWithAppSettings.Contains(resource.Name)
+                && ComputeResourceTypes.Contains(resource.Type))
             {
                 moduleBicepContent = InjectAppSettingsParam(moduleBicepContent, resource.Type);
             }
