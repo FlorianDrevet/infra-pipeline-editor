@@ -679,8 +679,6 @@
       "REPOSITORY_URL": "Repository URL",
       "DEFAULT_BRANCH": "Default branch",
       "BASE_PATH": "Base path",
-      "KEY_VAULT_URL": "Key Vault URL",
-      "SECRET_NAME": "Secret name",
       "OWNER": "Owner",
       "REPOSITORY_NAME": "Repository name",
       "EDIT": "Edit",
@@ -707,10 +705,8 @@
         "DEFAULT_BRANCH_PLACEHOLDER": "main",
         "BASE_PATH": "Base path (optional)",
         "BASE_PATH_PLACEHOLDER": "infra/bicep",
-        "KEY_VAULT_URL": "Key Vault URL",
-        "KEY_VAULT_URL_PLACEHOLDER": "https://myvault.vault.azure.net",
-        "SECRET_NAME": "Secret name (PAT)",
-        "SECRET_NAME_PLACEHOLDER": "git-pat-token",
+        "PERSONAL_ACCESS_TOKEN": "Personal Access Token (PAT)",
+        "PERSONAL_ACCESS_TOKEN_PLACEHOLDER": "Paste your PAT here",
         "CANCEL": "Cancel",
         "SAVE": "Save"
       }

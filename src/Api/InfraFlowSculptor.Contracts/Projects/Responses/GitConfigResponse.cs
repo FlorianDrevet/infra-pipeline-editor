@@ -7,7 +7,5 @@ public record GitConfigResponse(
     string RepositoryUrl,
     string DefaultBranch,
     string? BasePath,
-    string KeyVaultUrl,
-    string SecretName,
     string Owner,
     string RepositoryName);

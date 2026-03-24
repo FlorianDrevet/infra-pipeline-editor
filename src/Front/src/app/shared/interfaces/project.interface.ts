@@ -54,14 +54,13 @@ export interface UpdateProjectMemberRoleRequest {
 
 // ─── Git Configuration ──────────────────────────────────────────────────────
 
+
 export interface GitConfigResponse {
   id: string;
   providerType: string;
   repositoryUrl: string;
   defaultBranch: string;
   basePath?: string | null;
-  keyVaultUrl: string;
-  secretName: string;
   owner: string;
   repositoryName: string;
 }
@@ -71,8 +70,7 @@ export interface SetGitConfigRequest {
   repositoryUrl: string;
   defaultBranch: string;
   basePath?: string | null;
-  keyVaultUrl: string;
-  secretName: string;
+  personalAccessToken: string;
 }
 
 export interface TestGitConnectionResponse {

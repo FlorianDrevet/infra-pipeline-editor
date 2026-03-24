@@ -44,9 +44,9 @@ public sealed class PushBicepToGitCommandHandler(
 
         var gitConfig = project.GitRepositoryConfiguration;
 
-        // 4. Retrieve the PAT from Key Vault
+        // 4. Retrieve the PAT from the centralized Key Vault
         var secretResult = await keyVaultClient.GetSecretAsync(
-            gitConfig.KeyVaultUrl, gitConfig.SecretName, cancellationToken);
+            $"git-pat-{project.Id.Value}", cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 

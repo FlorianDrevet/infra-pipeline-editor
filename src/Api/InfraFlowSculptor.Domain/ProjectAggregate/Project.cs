@@ -220,18 +220,16 @@ public sealed class Project : AggregateRoot<ProjectId>
         GitProviderType providerType,
         string repositoryUrl,
         string defaultBranch,
-        string? basePath,
-        string keyVaultUrl,
-        string secretName)
+        string? basePath)
     {
         if (GitRepositoryConfiguration is not null)
         {
-            GitRepositoryConfiguration.Update(providerType, repositoryUrl, defaultBranch, basePath, keyVaultUrl, secretName);
+            GitRepositoryConfiguration.Update(providerType, repositoryUrl, defaultBranch, basePath);
             return GitRepositoryConfiguration;
         }
 
         GitRepositoryConfiguration = Entities.GitRepositoryConfiguration.Create(
-            providerType, repositoryUrl, defaultBranch, basePath, keyVaultUrl, secretName, Id);
+            providerType, repositoryUrl, defaultBranch, basePath, Id);
         return GitRepositoryConfiguration;
     }
 

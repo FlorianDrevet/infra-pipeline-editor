@@ -50,8 +50,7 @@ export class GitConfigDialogComponent {
     repositoryUrl: [this.data.existing?.repositoryUrl ?? '', [Validators.required]],
     defaultBranch: [this.data.existing?.defaultBranch ?? 'main', Validators.required],
     basePath: [this.data.existing?.basePath ?? ''],
-    keyVaultUrl: [this.data.existing?.keyVaultUrl ?? '', [Validators.required]],
-    secretName: [this.data.existing?.secretName ?? '', Validators.required],
+    personalAccessToken: ['', Validators.required],
   });
 
   protected async onSubmit(): Promise<void> {
@@ -67,8 +66,7 @@ export class GitConfigDialogComponent {
         repositoryUrl: value.repositoryUrl!,
         defaultBranch: value.defaultBranch!,
         basePath: value.basePath || null,
-        keyVaultUrl: value.keyVaultUrl!,
-        secretName: value.secretName!,
+        personalAccessToken: value.personalAccessToken!,
       });
       this.dialogRef.close(updated);
     } catch {

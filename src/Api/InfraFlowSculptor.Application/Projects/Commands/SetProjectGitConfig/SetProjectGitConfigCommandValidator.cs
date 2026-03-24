@@ -25,13 +25,7 @@ public sealed class SetProjectGitConfigCommandValidator
             .NotEmpty().WithMessage("DefaultBranch is required.")
             .MaximumLength(200).WithMessage("DefaultBranch must not exceed 200 characters.");
 
-        RuleFor(x => x.KeyVaultUrl)
-            .NotEmpty().WithMessage("KeyVaultUrl is required.")
-            .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
-            .WithMessage("KeyVaultUrl must be a valid absolute URL.");
-
-        RuleFor(x => x.SecretName)
-            .NotEmpty().WithMessage("SecretName is required.")
-            .MaximumLength(200).WithMessage("SecretName must not exceed 200 characters.");
+        RuleFor(x => x.PersonalAccessToken)
+            .NotEmpty().WithMessage("PersonalAccessToken is required.");
     }
 }

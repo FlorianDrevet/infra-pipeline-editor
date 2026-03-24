@@ -21,12 +21,7 @@ public sealed class SetGitConfigRequest
     /// <summary>Optional sub-path inside the repository where Bicep files should be pushed.</summary>
     public string? BasePath { get; init; }
 
-    /// <summary>The Azure Key Vault URL that stores the authentication token.</summary>
+    /// <summary>The personal access token used to authenticate with the Git provider.</summary>
     [Required]
-    [Url]
-    public required string KeyVaultUrl { get; init; }
-
-    /// <summary>The secret name inside the Key Vault that holds the PAT / token.</summary>
-    [Required]
-    public required string SecretName { get; init; }
+    public required string PersonalAccessToken { get; init; }
 }

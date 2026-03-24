@@ -686,8 +686,6 @@
       "REPOSITORY_URL": "URL du depot",
       "DEFAULT_BRANCH": "Branche par defaut",
       "BASE_PATH": "Chemin de base",
-      "KEY_VAULT_URL": "URL du Key Vault",
-      "SECRET_NAME": "Nom du secret",
       "OWNER": "Proprietaire",
       "REPOSITORY_NAME": "Nom du depot",
       "EDIT": "Modifier",
@@ -714,10 +712,8 @@
         "DEFAULT_BRANCH_PLACEHOLDER": "main",
         "BASE_PATH": "Chemin de base (optionnel)",
         "BASE_PATH_PLACEHOLDER": "infra/bicep",
-        "KEY_VAULT_URL": "URL du Key Vault",
-        "KEY_VAULT_URL_PLACEHOLDER": "https://myvault.vault.azure.net",
-        "SECRET_NAME": "Nom du secret (PAT)",
-        "SECRET_NAME_PLACEHOLDER": "git-pat-token",
+        "PERSONAL_ACCESS_TOKEN": "Jeton d'accès personnel (PAT)",
+        "PERSONAL_ACCESS_TOKEN_PLACEHOLDER": "Collez votre PAT ici",
         "CANCEL": "Annuler",
         "SAVE": "Enregistrer"
       }

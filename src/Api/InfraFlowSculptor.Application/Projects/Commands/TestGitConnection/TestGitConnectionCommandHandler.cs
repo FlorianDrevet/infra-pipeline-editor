@@ -33,9 +33,9 @@ public sealed class TestGitConnectionCommandHandler(
 
         var gitConfig = project.GitRepositoryConfiguration;
 
-        // Retrieve the PAT from Key Vault
+        // Retrieve the PAT from the centralized Key Vault
         var secretResult = await keyVaultSecretClient.GetSecretAsync(
-            gitConfig.KeyVaultUrl, gitConfig.SecretName, cancellationToken);
+            $"git-pat-{project.Id.Value}", cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 

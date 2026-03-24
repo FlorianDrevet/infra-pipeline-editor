@@ -1,6 +1,7 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using MediatR;
@@ -10,9 +11,13 @@ namespace InfraFlowSculptor.Application.Projects.Commands.SetProjectGitConfig;
 /// <summary>Handles the <see cref="SetProjectGitConfigCommand"/>.</summary>
 public sealed class SetProjectGitConfigCommandHandler(
     IProjectRepository projectRepository,
-    IProjectAccessService accessService)
+    IProjectAccessService accessService,
+    IKeyVaultSecretClient keyVaultClient)
     : IRequestHandler<SetProjectGitConfigCommand, ErrorOr<Success>>
 {
+    /// <summary>The Key Vault secret name prefix for Git PATs.</summary>
+    private const string SecretNamePrefix = "git-pat-";
+
     /// <inheritdoc />
     public async Task<ErrorOr<Success>> Handle(
         SetProjectGitConfigCommand command, CancellationToken cancellationToken)
@@ -30,13 +35,17 @@ public sealed class SetProjectGitConfigCommandHandler(
 
         var providerType = new GitProviderType(providerTypeEnum);
 
+        // Store the PAT in the centralized Key Vault
+        var secretName = $"{SecretNamePrefix}{project.Id.Value}";
+        var storeResult = await keyVaultClient.SetSecretAsync(secretName, command.PersonalAccessToken, cancellationToken);
+        if (storeResult.IsError)
+            return storeResult.Errors;
+
         project.SetGitRepositoryConfiguration(
             providerType,
             command.RepositoryUrl,
             command.DefaultBranch,
-            command.BasePath,
-            command.KeyVaultUrl,
-            command.SecretName);
+            command.BasePath);
 
         await projectRepository.UpdateAsync(project);
 

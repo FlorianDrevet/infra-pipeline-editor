@@ -16,12 +16,15 @@ var postgres = builder.AddPostgres("postgres")
 
 var database = postgres.AddDatabase("infraDb");
 
+var keyvault = builder.AddAzureKeyVault("keyvault");
+
 var infraApi = builder.AddProject<InfraFlowSculptor_Api>("infraflowsculptor-api")
     .WithExternalHttpEndpoints()
     .WithReference(database)
     .WaitFor(database)
     .WithReference(blobs)
-    .WaitFor(blobs);
+    .WaitFor(blobs)
+    .WithReference(keyvault);
 
 builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
     .WithNpm()

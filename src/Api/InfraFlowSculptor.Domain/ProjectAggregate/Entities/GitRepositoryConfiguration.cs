@@ -22,12 +22,6 @@ public sealed partial class GitRepositoryConfiguration : Entity<GitRepositoryCon
     /// <summary>Gets the optional sub-path inside the repository where Bicep files should be pushed.</summary>
     public string? BasePath { get; private set; }
 
-    /// <summary>Gets the Azure Key Vault URL that stores the authentication token.</summary>
-    public string KeyVaultUrl { get; private set; } = null!;
-
-    /// <summary>Gets the secret name inside the Key Vault that holds the PAT / token.</summary>
-    public string SecretName { get; private set; } = null!;
-
     /// <summary>Gets the repository owner (org or user, extracted from the URL).</summary>
     public string Owner { get; private set; } = null!;
 
@@ -46,8 +40,6 @@ public sealed partial class GitRepositoryConfiguration : Entity<GitRepositoryCon
         string repositoryUrl,
         string defaultBranch,
         string? basePath,
-        string keyVaultUrl,
-        string secretName,
         ProjectId projectId)
     {
         var (owner, repoName) = ExtractOwnerAndRepo(providerType, repositoryUrl);
@@ -59,8 +51,6 @@ public sealed partial class GitRepositoryConfiguration : Entity<GitRepositoryCon
             RepositoryUrl = repositoryUrl.TrimEnd('/'),
             DefaultBranch = defaultBranch,
             BasePath = NormalizeBasePath(basePath),
-            KeyVaultUrl = keyVaultUrl.TrimEnd('/'),
-            SecretName = secretName,
             Owner = owner,
             RepositoryName = repoName,
             ProjectId = projectId,
@@ -72,9 +62,7 @@ public sealed partial class GitRepositoryConfiguration : Entity<GitRepositoryCon
         GitProviderType providerType,
         string repositoryUrl,
         string defaultBranch,
-        string? basePath,
-        string keyVaultUrl,
-        string secretName)
+        string? basePath)
     {
         var (owner, repoName) = ExtractOwnerAndRepo(providerType, repositoryUrl);
 
@@ -82,8 +70,6 @@ public sealed partial class GitRepositoryConfiguration : Entity<GitRepositoryCon
         RepositoryUrl = repositoryUrl.TrimEnd('/');
         DefaultBranch = defaultBranch;
         BasePath = NormalizeBasePath(basePath);
-        KeyVaultUrl = keyVaultUrl.TrimEnd('/');
-        SecretName = secretName;
         Owner = owner;
         RepositoryName = repoName;
     }

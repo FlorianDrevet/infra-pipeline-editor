@@ -109,7 +109,17 @@ public static class DependencyInjection
     private static IServiceCollection AddGitProviders(
         this IServiceCollection services)
     {
-        services.AddSingleton<DefaultAzureCredential>(_ => new DefaultAzureCredential());
+        var credential = new DefaultAzureCredential();
+
+        services.AddSingleton(sp =>
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            var vaultUri = configuration.GetConnectionString("keyvault")
+                           ?? throw new InvalidOperationException(
+                               "Connection string 'keyvault' is required. Configure it via Aspire or appsettings.");
+            return new Azure.Security.KeyVault.Secrets.SecretClient(new Uri(vaultUri), credential);
+        });
+
         services.AddSingleton<IKeyVaultSecretClient, KeyVaultSecretClient>();
         services.AddSingleton<GitHubGitProviderService>();
         services.AddSingleton<AzureDevOpsGitProviderService>();

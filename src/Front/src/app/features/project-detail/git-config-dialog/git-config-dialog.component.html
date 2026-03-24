@@ -32,15 +32,14 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.KEY_VAULT_URL' | translate }}</mat-label>
-      <input matInput formControlName="keyVaultUrl"
-             [placeholder]="'PROJECT_DETAIL.GIT_CONFIG.FORM.KEY_VAULT_URL_PLACEHOLDER' | translate" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.SECRET_NAME' | translate }}</mat-label>
-      <input matInput formControlName="secretName"
-             [placeholder]="'PROJECT_DETAIL.GIT_CONFIG.FORM.SECRET_NAME_PLACEHOLDER' | translate" />
+      <mat-label>{{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.PERSONAL_ACCESS_TOKEN' | translate }}</mat-label>
+      <input matInput formControlName="personalAccessToken"
+             [type]="showPat ? 'text' : 'password'"
+             [placeholder]="'PROJECT_DETAIL.GIT_CONFIG.FORM.PERSONAL_ACCESS_TOKEN_PLACEHOLDER' | translate"
+             [autocomplete]="'off'" />
+      <button mat-icon-button matSuffix type="button" (click)="showPat = !showPat">
+        <mat-icon>{{ showPat ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
     </mat-form-field>
 
     @if (errorKey()) {
