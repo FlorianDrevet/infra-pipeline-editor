@@ -428,6 +428,38 @@ export class ConfigDetailComponent implements OnInit {
     });
   }
 
+  protected openAddChildResourceDialog(parentResource: AzureResourceResponse, rgId: string): void {
+    const rg = this.resourceGroups().find((r) => r.id === rgId);
+    const envs = this.useProjectEnvironments()
+      ? this.projectSortedEnvironments()
+      : this.sortedEnvironments();
+    const dialogRef = this.dialog.open(AddResourceDialogComponent, {
+      data: {
+        resourceGroupId: rgId,
+        location: rg?.location ?? '',
+        environments: envs.map(e => ({ name: e.name })),
+        parentResource: {
+          id: parentResource.id,
+          name: parentResource.name,
+          resourceType: parentResource.resourceType,
+        },
+      } satisfies AddResourceDialogData,
+      width: '720px',
+      maxHeight: '90vh',
+    });
+
+    dialogRef.afterClosed().subscribe(async (created: boolean) => {
+      if (created) {
+        this.rgResources.update((prev) => {
+          const updated = { ...prev };
+          delete updated[rgId];
+          return updated;
+        });
+        await this.loadRgResources(rgId);
+      }
+    });
+  }
+
   protected openAddEnvironmentDialog(existing?: EnvironmentDefinitionResponse): void {
     const currentConfig = this.config();
     if (!currentConfig) return;

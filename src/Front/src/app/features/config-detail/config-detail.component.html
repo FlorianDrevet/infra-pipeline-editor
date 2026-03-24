@@ -373,6 +373,12 @@
                                           <span>{{ 'CONFIG_DETAIL.RESOURCES.NO_CHILDREN' | translate }}</span>
                                         </div>
                                       }
+                                      @if (canWrite()) {
+                                        <button class="add-child-resource-btn" (click)="openAddChildResourceDialog(item.resource, rg.id)">
+                                          <mat-icon class="add-child-resource-btn__icon">add_circle_outline</mat-icon>
+                                          {{ 'CONFIG_DETAIL.RESOURCES.ADD_CHILD' | translate }}
+                                        </button>
+                                      }
                                     </div>
                                   }
                                 </div>

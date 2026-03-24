@@ -251,6 +251,7 @@
       "EMPTY": "Aucune ressource dans ce groupe.",
       "NO_CHILDREN": "Aucune ressource li\u00e9e.",
       "ADD": "Ajouter une ressource",
+      "ADD_CHILD": "Ajouter une ressource",
       "EDIT": "Modifier la ressource",
       "DELETE": "Supprimer la ressource",
       "DELETE_CONFIRM_TITLE": "Supprimer la ressource",

@@ -776,6 +776,33 @@
   mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; color: rgba(13, 101, 192, 0.2); }
 }
 
+.add-child-resource-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  margin-top: 0.35rem;
+  border: 1px dashed rgba(13, 101, 192, 0.3);
+  border-radius: 0.6rem;
+  background: transparent;
+  color: #0d65c0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: rgba(13, 101, 192, 0.06);
+    border-color: rgba(13, 101, 192, 0.5);
+  }
+
+  &__icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
 // ─── Naming Templates ────
 
 .naming-toolbar {

@@ -140,9 +140,11 @@
               <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_ASP' | translate }}</span>
               <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
             </div>
-            <button class="plan-indicator__change" (click)="onBackFromCommon()">
-              {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
-            </button>
+            @if (!hasParentResource) {
+              <button class="plan-indicator__change" (click)="onBackFromCommon()">
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
+              </button>
+            }
           </div>
           <div class="form-row">
             <mat-form-field appearance="outline" class="half-width">
@@ -174,9 +176,11 @@
               <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_ASP' | translate }}</span>
               <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
             </div>
-            <button class="plan-indicator__change" (click)="onBackFromCommon()">
-              {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
-            </button>
+            @if (!hasParentResource) {
+              <button class="plan-indicator__change" (click)="onBackFromCommon()">
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
+              </button>
+            }
           </div>
           <div class="form-row">
             <mat-form-field appearance="outline" class="half-width">
@@ -205,9 +209,11 @@
               <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_LAW' | translate }}</span>
               <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
             </div>
-            <button class="plan-indicator__change" (click)="onBackFromCommon()">
-              {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
-            </button>
+            @if (!hasParentResource) {
+              <button class="plan-indicator__change" (click)="onBackFromCommon()">
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
+              </button>
+            }
           </div>
         }
       </form>

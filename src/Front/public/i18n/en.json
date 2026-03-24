@@ -251,6 +251,7 @@
       "EMPTY": "No resources in this group.",
       "NO_CHILDREN": "No linked resources.",
       "ADD": "Add a resource",
+      "ADD_CHILD": "Add a resource",
       "EDIT": "Edit resource",
       "DELETE": "Delete resource",
       "DELETE_CONFIRM_TITLE": "Delete resource",

@@ -13,7 +13,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TranslateModule } from '@ngx-translate/core';
 import { LOCATION_OPTIONS } from '../enums/location.enum';
-import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_CATEGORIES } from '../enums/resource-type.enum';
+import { RESOURCE_TYPE_OPTIONS, ResourceTypeEnum, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_CATEGORIES, PARENT_CHILD_RESOURCE_TYPES, ResourceTypeCategory } from '../enums/resource-type.enum';
 import { OS_TYPE_OPTIONS } from '../enums/os-type.enum';
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../enums/app-service-plan-sku.enum';
 import { RUNTIME_STACK_OPTIONS } from '../enums/runtime-stack.enum';
@@ -50,6 +50,7 @@ export interface AddResourceDialogData {
   resourceGroupId: string;
   location: string;
   environments: { name: string }[];
+  parentResource?: { id: string; name: string; resourceType: string };
 }
 
 const KEY_VAULT_SKU_OPTIONS = [
@@ -257,6 +258,13 @@ export class AddResourceDialogComponent {
   protected readonly errorKey = signal('');
   protected readonly envFormsValid = signal(true);
 
+  // ── Parent resource pre-selection ──
+  private readonly parentResource = this.data.parentResource;
+  private readonly allowedChildTypes: ResourceTypeEnum[] | null = this.parentResource
+    ? (PARENT_CHILD_RESOURCE_TYPES[this.parentResource.resourceType] as ResourceTypeEnum[] | undefined) ?? null
+    : null;
+  protected readonly hasParentResource = !!this.parentResource;
+
   // ── Plan selection state (WebApp flow) ──
   protected readonly existingPlans = signal<AzureResourceResponse[]>([]);
   protected readonly plansLoading = signal(false);
@@ -280,7 +288,14 @@ export class AddResourceDialogComponent {
 
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
-  protected readonly resourceTypeCategories = RESOURCE_TYPE_CATEGORIES;
+  protected readonly resourceTypeCategories = this.allowedChildTypes
+    ? RESOURCE_TYPE_CATEGORIES
+        .map(cat => ({
+          ...cat,
+          types: cat.types.filter(t => this.allowedChildTypes!.includes(t)),
+        }))
+        .filter(cat => cat.types.length > 0)
+    : RESOURCE_TYPE_CATEGORIES;
   protected readonly locationOptions = LOCATION_OPTIONS;
   protected readonly keyVaultSkuOptions = KEY_VAULT_SKU_OPTIONS;
   protected readonly redisSkuOptions = REDIS_SKU_OPTIONS;
@@ -357,6 +372,32 @@ export class AddResourceDialogComponent {
 
   private readonly prefilled = new Set<number>();
 
+  constructor() {
+    if (this.parentResource && this.allowedChildTypes) {
+      this.selectedPlanId.set(this.parentResource.id);
+      this.selectedPlanName.set(this.parentResource.name);
+      if (this.allowedChildTypes.length === 1) {
+        const childType = this.allowedChildTypes[0];
+        this.selectedType.set(childType);
+        this.buildEnvForms(childType);
+        this.updateCommonFormValidators(childType);
+        this.prefillParentFormField(childType);
+        this.step.set('common');
+      }
+    }
+  }
+
+  private prefillParentFormField(type: ResourceTypeEnum): void {
+    if (!this.parentResource) return;
+    if (type === ResourceTypeEnum.ContainerApp) {
+      this.commonForm.patchValue({ containerAppEnvironmentId: this.parentResource.id });
+    } else if (type === ResourceTypeEnum.ApplicationInsights) {
+      this.commonForm.patchValue({ logAnalyticsWorkspaceId: this.parentResource.id });
+    } else {
+      this.commonForm.patchValue({ appServicePlanId: this.parentResource.id });
+    }
+  }
+
   // ── Type Selection ──
   protected onSelectType(type: ResourceTypeEnum): void {
     this.selectedType.set(type);
@@ -364,7 +405,10 @@ export class AddResourceDialogComponent {
     this.buildEnvForms(type);
     this.updateCommonFormValidators(type);
 
-    if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights) {
+    if (this.parentResource) {
+      this.prefillParentFormField(type);
+      this.step.set('common');
+    } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights) {
       this.step.set('plan-selection');
       this.loadExistingPlans();
     } else {
@@ -479,9 +523,13 @@ export class AddResourceDialogComponent {
 
   // ── Navigation ──
   protected onBackToType(): void {
+    if (this.parentResource && this.allowedChildTypes?.length === 1) {
+      this.dialogRef.close(false);
+      return;
+    }
     this.selectedType.set(null);
-    this.selectedPlanId.set(null);
-    this.selectedPlanName.set(null);
+    this.selectedPlanId.set(this.parentResource?.id ?? null);
+    this.selectedPlanName.set(this.parentResource?.name ?? null);
     this.step.set('type');
     this.errorKey.set('');
     this.clearExtraValidators();
@@ -493,7 +541,9 @@ export class AddResourceDialogComponent {
   }
 
   protected onBackFromCommon(): void {
-    if (this.selectedType() === ResourceTypeEnum.WebApp || this.selectedType() === ResourceTypeEnum.FunctionApp || this.selectedType() === ResourceTypeEnum.ContainerApp || this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
+    if (this.parentResource) {
+      this.onBackToType();
+    } else if (this.selectedType() === ResourceTypeEnum.WebApp || this.selectedType() === ResourceTypeEnum.FunctionApp || this.selectedType() === ResourceTypeEnum.ContainerApp || this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
       this.step.set('plan-selection');
     } else {
       this.onBackToType();
