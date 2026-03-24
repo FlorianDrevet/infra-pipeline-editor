@@ -5,7 +5,8 @@ public record InfrastructureConfigReadModel(
     string Name,
     IReadOnlyList<ResourceGroupReadModel> ResourceGroups,
     IReadOnlyList<EnvironmentDefinitionReadModel> Environments,
-    NamingContextReadModel NamingContext);
+    NamingContextReadModel NamingContext,
+    IReadOnlyList<RoleAssignmentReadModel> RoleAssignments);
 
 public record ResourceGroupReadModel(
     Guid Id,
@@ -40,3 +41,21 @@ public record EnvironmentDefinitionReadModel(
 public record NamingContextReadModel(
     string? DefaultTemplate,
     IReadOnlyDictionary<string, string> ResourceTemplates);
+
+/// <summary>
+/// Read model for a role assignment between two Azure resources.
+/// </summary>
+public record RoleAssignmentReadModel(
+    Guid SourceResourceId,
+    string SourceResourceName,
+    string SourceResourceType,
+    string SourceResourceGroupName,
+    Guid TargetResourceId,
+    string TargetResourceName,
+    string TargetResourceType,
+    string TargetResourceGroupName,
+    string ManagedIdentityType,
+    string RoleDefinitionId,
+    Guid? UserAssignedIdentityResourceId,
+    string? UserAssignedIdentityName,
+    string? UserAssignedIdentityResourceGroupName);

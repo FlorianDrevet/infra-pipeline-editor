@@ -27,7 +27,8 @@ var infraApi = builder.AddProject<InfraFlowSculptor_Api>("infraflowsculptor-api"
     .WaitFor(database)
     .WithReference(blobs)
     .WaitFor(blobs)
-    .WithReference(keyvault);
+    .WithReference(keyvault)
+    .WaitFor(keyvault);
 
 builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
     .WithNpm()

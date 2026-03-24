@@ -1,4 +1,5 @@
 using System.Text;
+using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
 
@@ -20,11 +21,14 @@ public static class BicepAssembler
         IReadOnlyList<EnvironmentDefinition> environments,
         IReadOnlyList<string> environmentNames,
         IEnumerable<ResourceDefinition> resources,
-        NamingContext namingContext)
+        NamingContext namingContext,
+        IReadOnlyList<RoleAssignmentDefinition> roleAssignments)
     {
-        var typesBicep = GenerateTypesBicep(environments);
+        var hasRoleAssignments = roleAssignments.Count > 0;
+        var typesBicep = GenerateTypesBicep(environments, hasRoleAssignments);
         var functionsBicep = GenerateFunctionsBicep(namingContext);
-        var main = GenerateMainBicep(modules, resourceGroups, namingContext);
+        var constantsBicep = hasRoleAssignments ? GenerateConstantsBicep(roleAssignments) : string.Empty;
+        var main = GenerateMainBicep(modules, resourceGroups, namingContext, roleAssignments);
 
         var environmentParameterFiles = GenerateEnvironmentParameterFiles(
             modules, environmentNames, resources);
@@ -42,24 +46,65 @@ public static class BicepAssembler
             }
         }
 
+        // Generate role assignment modules only for target resource types that have assignments
+        var targetResourceTypes = roleAssignments
+            .Select(ra => ra.TargetResourceTypeName)
+            .Distinct()
+            .ToList();
+
+        foreach (var typeName in targetResourceTypes)
+        {
+            var meta = RoleAssignmentModuleTemplates.GetMetadata(typeName);
+            if (meta is null) continue;
+
+            var folder = GetModuleFolderName(typeName);
+            var fileName = RoleAssignmentModuleTemplates.GetModuleFileName(typeName);
+            moduleFiles[$"modules/{folder}/{fileName}"] = RoleAssignmentModuleTemplates.GenerateModule(typeName);
+        }
+
         return new GenerationResult
         {
             MainBicep = main,
             TypesBicep = typesBicep,
             FunctionsBicep = functionsBicep,
+            ConstantsBicep = constantsBicep,
             EnvironmentParameterFiles = environmentParameterFiles,
             ModuleFiles = moduleFiles
         };
     }
+
+    /// <summary>
+    /// Returns the module folder name for a given resource type name (matches existing generator conventions).
+    /// </summary>
+    private static string GetModuleFolderName(string resourceTypeName) =>
+        resourceTypeName switch
+        {
+            "KeyVault" => "KeyVault",
+            "RedisCache" => "RedisCache",
+            "StorageAccount" => "StorageAccount",
+            "AppServicePlan" => "AppServicePlan",
+            "WebApp" => "WebApp",
+            "FunctionApp" => "FunctionApp",
+            "UserAssignedIdentity" => "UserAssignedIdentity",
+            "AppConfiguration" => "AppConfiguration",
+            "ContainerAppEnvironment" => "ContainerAppEnvironment",
+            "ContainerApp" => "ContainerApp",
+            "LogAnalyticsWorkspace" => "LogAnalyticsWorkspace",
+            "ApplicationInsights" => "ApplicationInsights",
+            "CosmosDb" => "CosmosDb",
+            "SqlServer" => "SqlServer",
+            "SqlDatabase" => "SqlDatabase",
+            _ => resourceTypeName
+        };
 
     // ────────────────────────────────────────────────────────────────────────
     // types.bicep
     // ────────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Generates <c>types.bicep</c> with exported environment types and variable map.
+    /// Generates <c>types.bicep</c> with exported environment types, variable map, and optional RBAC types.
     /// </summary>
-    internal static string GenerateTypesBicep(IReadOnlyList<EnvironmentDefinition> environments)
+    internal static string GenerateTypesBicep(IReadOnlyList<EnvironmentDefinition> environments, bool includeRbacType)
     {
         var sb = new StringBuilder();
 
@@ -112,6 +157,21 @@ public static class BicepAssembler
 
         sb.AppendLine("}");
 
+        // ── RbacRoleType (only when role assignments exist) ─────────────────
+        if (includeRbacType)
+        {
+            sb.AppendLine();
+            sb.AppendLine("@description('Rbac Role Type')");
+            sb.AppendLine("@export()");
+            sb.AppendLine("type RbacRoleType = {");
+            sb.AppendLine("  @description('Identifier of the role')");
+            sb.AppendLine("  id: string");
+            sb.AppendLine();
+            sb.AppendLine("  @description('Name of the role')");
+            sb.AppendLine("  description: string");
+            sb.AppendLine("}");
+        }
+
         return sb.ToString();
     }
 
@@ -163,6 +223,53 @@ public static class BicepAssembler
     }
 
     // ────────────────────────────────────────────────────────────────────────
+    // constants.bicep
+    // ────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Generates <c>constants.bicep</c> with exported RBAC role definitions
+    /// grouped by Azure service. Only includes roles that are actually used in role assignments.
+    /// </summary>
+    internal static string GenerateConstantsBicep(IReadOnlyList<RoleAssignmentDefinition> roleAssignments)
+    {
+        var sb = new StringBuilder();
+
+        // Group used roles by service category, then by role name (deduplicated)
+        var rolesByService = roleAssignments
+            .GroupBy(ra => ra.ServiceCategory)
+            .OrderBy(g => g.Key)
+            .ToDictionary(
+                g => g.Key,
+                g => g.DistinctBy(ra => ra.RoleDefinitionId)
+                    .OrderBy(ra => ra.RoleDefinitionName)
+                    .ToList());
+
+        sb.AppendLine("// Role definitions id");
+        sb.AppendLine("@export()");
+        sb.AppendLine("@description('RBAC roles grouped by Azure service')");
+        sb.AppendLine("var RbacRoles = {");
+
+        foreach (var (service, roles) in rolesByService)
+        {
+            sb.AppendLine($"  {service}: {{");
+
+            foreach (var role in roles)
+            {
+                sb.AppendLine($"    '{role.RoleDefinitionName}': {{");
+                sb.AppendLine($"      id: '{role.RoleDefinitionId}'");
+                sb.AppendLine($"      description: '{EscapeBicepString(role.RoleDefinitionDescription)}'");
+                sb.AppendLine("    }");
+            }
+
+            sb.AppendLine("  }");
+        }
+
+        sb.AppendLine("}");
+
+        return sb.ToString();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
     // main.bicep
     // ────────────────────────────────────────────────────────────────────────
 
@@ -172,7 +279,8 @@ public static class BicepAssembler
     private static string GenerateMainBicep(
         IReadOnlyCollection<GeneratedTypeModule> modules,
         IReadOnlyList<ResourceGroupDefinition> resourceGroups,
-        NamingContext namingContext)
+        NamingContext namingContext,
+        IReadOnlyList<RoleAssignmentDefinition> roleAssignments)
     {
         var sb = new StringBuilder();
 
@@ -188,6 +296,11 @@ public static class BicepAssembler
             sb.Append("import { ");
             sb.AppendJoin(", ", functionImports);
             sb.AppendLine(" } from 'functions.bicep'");
+        }
+
+        if (roleAssignments.Count > 0)
+        {
+            sb.AppendLine("import { RbacRoles } from 'constants.bicep'");
         }
 
         sb.AppendLine();
@@ -253,7 +366,121 @@ public static class BicepAssembler
             sb.AppendLine();
         }
 
+        // ── Role assignment module declarations ─────────────────────────────
+        if (roleAssignments.Count > 0)
+        {
+            var grouped = GroupRoleAssignments(roleAssignments);
+
+            foreach (var group in grouped)
+            {
+                var sourceIdentifier = BicepIdentifierHelper.ToBicepIdentifier(group.SourceResourceName);
+                var targetIdentifier = BicepIdentifierHelper.ToBicepIdentifier(group.TargetResourceName);
+                var moduleSymbol = $"{GetBaseModuleName(group.SourceResourceType)}{Capitalize(sourceIdentifier)}" +
+                    $"{GetBaseModuleName(group.TargetResourceType)}{Capitalize(targetIdentifier)}Roles";
+
+                var targetFolder = GetModuleFolderName(group.TargetResourceTypeName);
+                var moduleFileName = RoleAssignmentModuleTemplates.GetModuleFileName(group.TargetResourceTypeName);
+                var targetRgSymbol = BicepIdentifierHelper.ToBicepIdentifier(group.TargetResourceGroupName);
+
+                var targetNameExpr = BuildNamingExpression(
+                    group.TargetResourceName, group.TargetResourceAbbreviation,
+                    group.TargetResourceTypeName, namingContext);
+
+                var principalIdExpr = ResolvePrincipalIdExpression(group, modules);
+
+                sb.AppendLine($"module {moduleSymbol} './modules/{targetFolder}/{moduleFileName}' = {{");
+                sb.AppendLine($"  name: '{moduleSymbol}'");
+                sb.AppendLine($"  scope: {targetRgSymbol}");
+                sb.AppendLine("  params: {");
+                sb.AppendLine($"    name: {targetNameExpr}");
+                sb.AppendLine($"    principalId: {principalIdExpr}");
+                sb.AppendLine("    roles: [");
+
+                foreach (var role in group.Roles)
+                {
+                    sb.AppendLine($"      RbacRoles.{group.ServiceCategory}['{role.RoleDefinitionName}']");
+                }
+
+                sb.AppendLine("    ]");
+                sb.AppendLine("  }");
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
+        }
+
         return sb.ToString();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Role assignment helpers
+    // ────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Groups role assignments by (source, target, identity type) and collects
+    /// the assigned roles into a single entry for each group.
+    /// </summary>
+    private static List<GroupedRoleAssignment> GroupRoleAssignments(
+        IReadOnlyList<RoleAssignmentDefinition> roleAssignments)
+    {
+        return roleAssignments
+            .GroupBy(ra => (ra.SourceResourceName, ra.TargetResourceName, ra.ManagedIdentityType,
+                ra.UserAssignedIdentityName))
+            .Select(g =>
+            {
+                var first = g.First();
+                return new GroupedRoleAssignment
+                {
+                    SourceResourceName = first.SourceResourceName,
+                    SourceResourceType = first.SourceResourceType,
+                    TargetResourceName = first.TargetResourceName,
+                    TargetResourceType = first.TargetResourceType,
+                    TargetResourceTypeName = first.TargetResourceTypeName,
+                    TargetResourceGroupName = first.TargetResourceGroupName,
+                    TargetResourceAbbreviation = first.TargetResourceAbbreviation,
+                    ServiceCategory = first.ServiceCategory,
+                    ManagedIdentityType = first.ManagedIdentityType,
+                    UserAssignedIdentityName = first.UserAssignedIdentityName,
+                    Roles = g.Select(ra => new RoleRef(ra.RoleDefinitionName)).ToList()
+                };
+            })
+            .ToList();
+    }
+
+    /// <summary>
+    /// Resolves the Bicep expression for the <c>principalId</c> parameter
+    /// of a role assignment module based on the managed identity type.
+    /// </summary>
+    private static string ResolvePrincipalIdExpression(
+        GroupedRoleAssignment group,
+        IReadOnlyCollection<GeneratedTypeModule> modules)
+    {
+        if (group.ManagedIdentityType == "UserAssigned" && group.UserAssignedIdentityName is not null)
+        {
+            var uaiIdentifier = BicepIdentifierHelper.ToBicepIdentifier(group.UserAssignedIdentityName);
+            return $"userAssignedIdentity{Capitalize(uaiIdentifier)}Module.outputs.principalId";
+        }
+
+        // SystemAssigned: reference the source resource module's principalId output
+        var sourceIdentifier = BicepIdentifierHelper.ToBicepIdentifier(group.SourceResourceName);
+        var sourceBaseName = GetBaseModuleName(group.SourceResourceType);
+        return $"{sourceBaseName}{Capitalize(sourceIdentifier)}Module.outputs.principalId";
+    }
+
+    private sealed record RoleRef(string RoleDefinitionName);
+
+    private sealed class GroupedRoleAssignment
+    {
+        public string SourceResourceName { get; init; } = string.Empty;
+        public string SourceResourceType { get; init; } = string.Empty;
+        public string TargetResourceName { get; init; } = string.Empty;
+        public string TargetResourceType { get; init; } = string.Empty;
+        public string TargetResourceTypeName { get; init; } = string.Empty;
+        public string TargetResourceGroupName { get; init; } = string.Empty;
+        public string TargetResourceAbbreviation { get; init; } = string.Empty;
+        public string ServiceCategory { get; init; } = string.Empty;
+        public string ManagedIdentityType { get; init; } = string.Empty;
+        public string? UserAssignedIdentityName { get; init; }
+        public List<RoleRef> Roles { get; init; } = [];
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -498,4 +725,10 @@ public static class BicepAssembler
         sb.Append('}');
         return sb.ToString();
     }
+
+    /// <summary>
+    /// Escapes single quotes in a string for use within a Bicep string literal.
+    /// </summary>
+    private static string EscapeBicepString(string value) =>
+        value.Replace("'", "\\'");
 }

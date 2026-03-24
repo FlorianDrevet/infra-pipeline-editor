@@ -152,6 +152,10 @@
                       <strong>{{ env.location }}</strong>
                     </div>
                     <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SHORT_NAME' | translate }}</span>
+                      <strong>{{ env.shortName || '—' }}</strong>
+                    </div>
+                    <div class="detail-row">
                       <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.PREFIX' | translate }}</span>
                       <strong>{{ env.prefix || '—' }}</strong>
                     </div>

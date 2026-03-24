@@ -31,6 +31,7 @@ public static class BicepGenerationController
                             {
                                 var response = new GenerateBicepResponse(
                                     value.MainBicepUri,
+                                    value.ConstantsBicepUri,
                                     value.ParameterFileUris,
                                     value.ModuleUris);
                                 return Results.Created(value.MainBicepUri.ToString(), response);

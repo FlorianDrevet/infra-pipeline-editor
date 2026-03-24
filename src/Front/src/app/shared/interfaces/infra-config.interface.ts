@@ -23,6 +23,7 @@ export interface UserResponse {
 export interface EnvironmentDefinitionResponse {
   id: string;
   name: string;
+  shortName: string;
   prefix: string;
   suffix: string;
   location: string;
@@ -66,6 +67,7 @@ export interface TagRequest {
 
 export interface AddEnvironmentRequest {
   name: string;
+  shortName?: string;
   prefix?: string;
   suffix?: string;
   location: string;
@@ -78,6 +80,7 @@ export interface AddEnvironmentRequest {
 
 export interface UpdateEnvironmentRequest {
   name: string;
+  shortName?: string;
   prefix?: string;
   suffix?: string;
   location: string;

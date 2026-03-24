@@ -24,4 +24,10 @@ public class GenerationRequest
     /// <c>functions.bicep</c> and resolve resource names in <c>main.bicep</c>.
     /// </summary>
     public NamingContext NamingContext { get; set; } = new();
+
+    /// <summary>
+    /// All role assignments configured between resources.
+    /// Used to generate <c>constants.bicep</c>, role assignment modules, and RBAC declarations in <c>main.bicep</c>.
+    /// </summary>
+    public IReadOnlyList<RoleAssignmentDefinition> RoleAssignments { get; set; } = [];
 }

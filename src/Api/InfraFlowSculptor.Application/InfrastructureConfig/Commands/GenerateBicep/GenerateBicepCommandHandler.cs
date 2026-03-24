@@ -2,7 +2,9 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.BicepGeneration;
+using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using ErrorOr;
 using MediatR;
 
@@ -104,6 +106,34 @@ public sealed class GenerateBicepCommandHandler(
             ResourceAbbreviations = ResourceAbbreviationCatalog.GetAll(),
         };
 
+        var roleAssignments = config.RoleAssignments
+            .Select(ra =>
+            {
+                var targetTypeName = GetResourceTypeName(ra.TargetResourceType);
+                var roleDef = AzureRoleDefinitionCatalog.GetForResourceType(targetTypeName)
+                    .FirstOrDefault(r => r.Id.Equals(ra.RoleDefinitionId, StringComparison.OrdinalIgnoreCase));
+
+                return new RoleAssignmentDefinition
+                {
+                    SourceResourceName = ra.SourceResourceName,
+                    SourceResourceType = ra.SourceResourceType,
+                    SourceResourceGroupName = ra.SourceResourceGroupName,
+                    TargetResourceName = ra.TargetResourceName,
+                    TargetResourceType = ra.TargetResourceType,
+                    TargetResourceGroupName = ra.TargetResourceGroupName,
+                    ManagedIdentityType = ra.ManagedIdentityType,
+                    RoleDefinitionId = ra.RoleDefinitionId,
+                    RoleDefinitionName = roleDef?.Name ?? ra.RoleDefinitionId,
+                    RoleDefinitionDescription = roleDef?.Description ?? string.Empty,
+                    ServiceCategory = RoleAssignmentModuleTemplates.GetServiceCategory(targetTypeName),
+                    TargetResourceTypeName = targetTypeName,
+                    TargetResourceAbbreviation = GetResourceAbbreviation(ra.TargetResourceType),
+                    UserAssignedIdentityName = ra.UserAssignedIdentityName,
+                    UserAssignedIdentityResourceGroupName = ra.UserAssignedIdentityResourceGroupName,
+                };
+            })
+            .ToList();
+
         var generationRequest = new GenerationRequest
         {
             Resources = resources,
@@ -111,6 +141,7 @@ public sealed class GenerateBicepCommandHandler(
             Environments = environments,
             EnvironmentNames = environmentNames,
             NamingContext = namingContext,
+            RoleAssignments = roleAssignments,
         };
 
         var result = bicepGenerationEngine.Generate(generationRequest);
@@ -128,6 +159,16 @@ public sealed class GenerateBicepCommandHandler(
             $"{prefix}/functions.bicep",
             result.FunctionsBicep,
             "text/plain");
+
+        // Upload constants.bicep (only when role assignments exist)
+        Uri? constantsBicepUri = null;
+        if (!string.IsNullOrEmpty(result.ConstantsBicep))
+        {
+            constantsBicepUri = await blobService.UploadContentAsync(
+                $"{prefix}/constants.bicep",
+                result.ConstantsBicep,
+                "text/plain");
+        }
 
         // Upload main.bicep
         var mainBicepUri = await blobService.UploadContentAsync(
@@ -156,7 +197,7 @@ public sealed class GenerateBicepCommandHandler(
             moduleUris[path] = moduleUri;
         }
 
-        return new GenerateBicepResult(mainBicepUri, parameterUris, moduleUris);
+        return new GenerateBicepResult(mainBicepUri, constantsBicepUri, parameterUris, moduleUris);
     }
 
     /// <summary>
@@ -180,4 +221,10 @@ public sealed class GenerateBicepCommandHandler(
         var typeName = ResourceTypeNames.GetValueOrDefault(azureResourceType, azureResourceType);
         return ResourceAbbreviationCatalog.GetAbbreviation(typeName);
     }
+
+    /// <summary>
+    /// Resolves the simple resource type name from the Azure resource type string (e.g. "Microsoft.KeyVault/vaults" → "KeyVault").
+    /// </summary>
+    private static string GetResourceTypeName(string azureResourceType) =>
+        ResourceTypeNames.GetValueOrDefault(azureResourceType, azureResourceType);
 }

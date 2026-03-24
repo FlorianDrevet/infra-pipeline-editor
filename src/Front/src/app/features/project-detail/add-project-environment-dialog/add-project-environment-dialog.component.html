@@ -33,6 +33,14 @@
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="half-width">
+        <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.SHORT_NAME' | translate }}</mat-label>
+        <input matInput formControlName="shortName"
+          [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SHORT_NAME_PLACEHOLDER' | translate" />
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="half-width">
         <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.PREFIX' | translate }}</mat-label>
         <input matInput formControlName="prefix"
           [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.PREFIX_PLACEHOLDER' | translate" />

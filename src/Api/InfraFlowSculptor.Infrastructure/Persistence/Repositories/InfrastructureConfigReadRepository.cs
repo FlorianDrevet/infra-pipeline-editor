@@ -5,6 +5,7 @@ using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities;
 using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
@@ -133,6 +134,53 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        // ── Load role assignments for all resources in this config ───────────
+        var roleAssignments = await dbContext.RoleAssignments
+            .Where(ra => allResourceIds.Contains(ra.SourceResourceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        // Build a flat lookup of all resources by ID across all resource groups
+        var allResources = config.ResourceGroups
+            .SelectMany(rg => rg.Resources.Select(r => (Resource: r, ResourceGroup: rg)))
+            .ToDictionary(x => x.Resource.Id);
+
+        var roleAssignmentReadModels = roleAssignments
+            .Select(ra =>
+            {
+                if (!allResources.TryGetValue(ra.SourceResourceId, out var source))
+                    return null;
+
+                // Target resource might be in a different resource group, look it up too
+                var hasTarget = allResources.TryGetValue(ra.TargetResourceId, out var target);
+
+                string? uaiName = null;
+                string? uaiRgName = null;
+                if (ra.UserAssignedIdentityId is not null &&
+                    allResources.TryGetValue(ra.UserAssignedIdentityId, out var uai))
+                {
+                    uaiName = uai.Resource.Name.Value;
+                    uaiRgName = uai.ResourceGroup.Name.Value;
+                }
+
+                return new RoleAssignmentReadModel(
+                    SourceResourceId: ra.SourceResourceId.Value,
+                    SourceResourceName: source.Resource.Name.Value,
+                    SourceResourceType: GetResourceTypeString(source.Resource),
+                    SourceResourceGroupName: source.ResourceGroup.Name.Value,
+                    TargetResourceId: ra.TargetResourceId.Value,
+                    TargetResourceName: hasTarget ? target.Resource.Name.Value : string.Empty,
+                    TargetResourceType: hasTarget ? GetResourceTypeString(target.Resource) : string.Empty,
+                    TargetResourceGroupName: hasTarget ? target.ResourceGroup.Name.Value : string.Empty,
+                    ManagedIdentityType: ra.ManagedIdentityType.Value.ToString(),
+                    RoleDefinitionId: ra.RoleDefinitionId,
+                    UserAssignedIdentityResourceId: ra.UserAssignedIdentityId?.Value,
+                    UserAssignedIdentityName: uaiName,
+                    UserAssignedIdentityResourceGroupName: uaiRgName);
+            })
+            .OfType<RoleAssignmentReadModel>()
+            .ToList();
+
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
@@ -161,7 +209,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             config.Name.Value,
             resourceGroups,
             environments,
-            namingContext);
+            namingContext,
+            roleAssignmentReadModels);
     }
 
     /// <summary>
@@ -460,4 +509,28 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             _ => "westeurope"
         };
     }
+
+    /// <summary>
+    /// Maps an <see cref="AzureResource"/> to its Azure resource type string.
+    /// </summary>
+    private static string GetResourceTypeString(AzureResource resource) =>
+        resource switch
+        {
+            KeyVault => "Microsoft.KeyVault/vaults",
+            RedisCache => "Microsoft.Cache/Redis",
+            StorageAccount => "Microsoft.Storage/storageAccounts",
+            AppServicePlan => "Microsoft.Web/serverfarms",
+            WebApp => "Microsoft.Web/sites",
+            FunctionApp => "Microsoft.Web/sites/functionapp",
+            UserAssignedIdentity => "Microsoft.ManagedIdentity/userAssignedIdentities",
+            AppConfiguration => "Microsoft.AppConfiguration/configurationStores",
+            ContainerAppEnvironment => "Microsoft.App/managedEnvironments",
+            ContainerApp => "Microsoft.App/containerApps",
+            LogAnalyticsWorkspace => "Microsoft.OperationalInsights/workspaces",
+            Domain.ApplicationInsightsAggregate.ApplicationInsights => "Microsoft.Insights/components",
+            CosmosDb => "Microsoft.DocumentDB/databaseAccounts",
+            SqlServer => "Microsoft.Sql/servers",
+            SqlDatabase => "Microsoft.Sql/servers/databases",
+            _ => resource.GetType().Name
+        };
 }

@@ -19,4 +19,7 @@ public sealed class GenerationResult
 
     public IReadOnlyDictionary<string, string> ModuleFiles { get; init; } =
         new Dictionary<string, string>();
+
+    /// <summary>Content of <c>constants.bicep</c> — exported RBAC role definitions grouped by service.</summary>
+    public string ConstantsBicep { get; init; } = string.Empty;
 }
