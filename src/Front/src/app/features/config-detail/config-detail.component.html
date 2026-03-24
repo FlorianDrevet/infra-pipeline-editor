@@ -264,17 +264,19 @@
                     (keydown.space)="toggleRgExpand(rg.id); $event.preventDefault()">
                     <mat-icon class="rg-accordion__chevron">expand_more</mat-icon>
                     <div class="rg-accordion__info">
-                      <strong>{{ rg.name }}</strong>
+                      <div class="rg-name-row">
+                        <strong>{{ rg.name }}</strong>
+                        @if (resolveNamingPreview(rg.name, 'ResourceGroup'); as preview) {
+                          <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                            <mat-icon class="naming-preview__icon">label</mat-icon>
+                            {{ preview }}
+                          </span>
+                        }
+                      </div>
                       <span class="rg-accordion__location">
                         <mat-icon>location_on</mat-icon>
                         {{ rg.location }}
                       </span>
-                      @if (resolveNamingPreview(rg.name, 'ResourceGroup'); as preview) {
-                        <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                          <mat-icon class="naming-preview__icon">label</mat-icon>
-                          {{ preview }}
-                        </span>
-                      }
                     </div>
                     @if (canWrite()) {
                       <button class="add-resource-btn add-resource-btn--inline" (click)="openAddResourceDialog(rg.id); $event.stopPropagation()">
@@ -304,14 +306,16 @@
                                     <mat-icon class="resource-parent-header__chevron">expand_more</mat-icon>
                                     <mat-icon class="resource-item__icon">{{ resourceTypeIcons[item.resource.resourceType] || 'widgets' }}</mat-icon>
                                     <div class="resource-item__info">
-                                      <strong>{{ item.resource.name }}</strong>
+                                      <div class="resource-name-row">
+                                        <strong>{{ item.resource.name }}</strong>
+                                        @if (resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
+                                          <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                            <mat-icon class="naming-preview__icon">label</mat-icon>
+                                            {{ preview }}
+                                          </span>
+                                        }
+                                      </div>
                                       <span class="resource-item__type">{{ item.resource.resourceType }}</span>
-                                      @if (resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
-                                        <span class="naming-preview naming-preview--inline" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                                          <mat-icon class="naming-preview__icon">label</mat-icon>
-                                          {{ preview }}
-                                        </span>
-                                      }
                                     </div>
                                     <span class="resource-parent-header__count">{{ item.children?.length ?? 0 }}</span>
                                     <span class="resource-item__location">{{ item.resource.location }}</span>
@@ -339,14 +343,16 @@
                                           <div class="resource-item resource-item--child">
                                             <mat-icon class="resource-item__icon">{{ resourceTypeIcons[child.resourceType] || 'widgets' }}</mat-icon>
                                             <div class="resource-item__info">
-                                              <strong>{{ child.name }}</strong>
+                                              <div class="resource-name-row">
+                                                <strong>{{ child.name }}</strong>
+                                                @if (resolveNamingPreview(child.name, child.resourceType); as preview) {
+                                                  <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                                    <mat-icon class="naming-preview__icon">label</mat-icon>
+                                                    {{ preview }}
+                                                  </span>
+                                                }
+                                              </div>
                                               <span class="resource-item__type">{{ child.resourceType }}</span>
-                                              @if (resolveNamingPreview(child.name, child.resourceType); as preview) {
-                                                <span class="naming-preview naming-preview--inline" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                                                  <mat-icon class="naming-preview__icon">label</mat-icon>
-                                                  {{ preview }}
-                                                </span>
-                                              }
                                             </div>
                                             <span class="resource-item__location">{{ child.location }}</span>
                                             <div class="resource-item__actions">
@@ -387,14 +393,16 @@
                                 <div class="resource-item">
                                   <mat-icon class="resource-item__icon">{{ resourceTypeIcons[item.resource.resourceType] || 'widgets' }}</mat-icon>
                                   <div class="resource-item__info">
-                                    <strong>{{ item.resource.name }}</strong>
+                                    <div class="resource-name-row">
+                                      <strong>{{ item.resource.name }}</strong>
+                                      @if (resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
+                                        <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
+                                          <mat-icon class="naming-preview__icon">label</mat-icon>
+                                          {{ preview }}
+                                        </span>
+                                      }
+                                    </div>
                                     <span class="resource-item__type">{{ item.resource.resourceType }}</span>
-                                    @if (resolveNamingPreview(item.resource.name, item.resource.resourceType); as preview) {
-                                      <span class="naming-preview naming-preview--inline" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
-                                        <mat-icon class="naming-preview__icon">label</mat-icon>
-                                        {{ preview }}
-                                      </span>
-                                    }
                                   </div>
                                   <span class="resource-item__location">{{ item.resource.location }}</span>
                                   <div class="resource-item__actions">

@@ -484,6 +484,12 @@
   flex-direction: column;
   gap: 0.2rem;
   min-width: 0;
+}
+
+.rg-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
 
   strong { color: #103454; font-size: 0.9rem; }
 }
@@ -554,6 +560,8 @@
   font-weight: 600;
   font-family: 'Roboto Mono', monospace;
   white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 18rem;
   overflow: hidden;
   text-overflow: ellipsis;
 
@@ -562,10 +570,6 @@
     width: 0.85rem;
     height: 0.85rem;
     flex-shrink: 0;
-  }
-
-  &--inline {
-    margin-top: 0.15rem;
   }
 }
 
@@ -638,8 +642,16 @@
 .resource-item__info {
   flex: 1;
   min-width: 0;
+}
 
-  strong { display: block; color: #103454; font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.resource-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow: hidden;
+  min-width: 0;
+
+  strong { display: block; color: #103454; font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex-shrink: 1; }
 }
 
 .resource-item__type {
