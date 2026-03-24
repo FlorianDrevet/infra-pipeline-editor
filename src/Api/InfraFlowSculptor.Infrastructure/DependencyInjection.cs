@@ -58,6 +58,8 @@ public static class DependencyInjection
         services.AddScoped<ILogAnalyticsWorkspaceRepository, LogAnalyticsWorkspaceRepository>();
         services.AddScoped<IApplicationInsightsRepository, ApplicationInsightsRepository>();
         services.AddScoped<ICosmosDbRepository, CosmosDbRepository>();
+        services.AddScoped<ISqlServerRepository, SqlServerRepository>();
+        services.AddScoped<ISqlDatabaseRepository, SqlDatabaseRepository>();
         services.AddScoped<IInfrastructureConfigReadRepository, InfrastructureConfigReadRepository>();
 
         return services;

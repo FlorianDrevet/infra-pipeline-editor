@@ -354,6 +354,58 @@ public static class AzureRoleDefinitionCatalog
             ApplicationInsightsDocsUrl),
     ];
 
+    private const string SqlServerDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> SqlServerRoles =
+    [
+        new("6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437",
+            "SQL Server Contributor",
+            "Lets you manage SQL servers and databases, but not access to them, and not their security-related policies.",
+            SqlServerDocsUrl),
+
+        new("056cd41c-7e88-42e1-933e-a3ba3f36885e",
+            "SQL Security Manager",
+            "Lets you manage the security-related policies of SQL servers and databases, but not access to them.",
+            SqlServerDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            SqlServerDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            SqlServerDocsUrl),
+    ];
+
+    private const string SqlDatabaseDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> SqlDatabaseRoles =
+    [
+        new("9b7fa17d-e63e-47b0-bb0a-15c516ac86ec",
+            "SQL DB Contributor",
+            "Lets you manage SQL databases, but not access to them. Also, you can't manage their security-related policies or their parent SQL servers.",
+            SqlDatabaseDocsUrl),
+
+        new("6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437",
+            "SQL Server Contributor",
+            "Lets you manage SQL servers and databases, but not access to them, and not their security-related policies.",
+            SqlDatabaseDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            SqlDatabaseDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            SqlDatabaseDocsUrl),
+    ];
+
     private static readonly Dictionary<string, IReadOnlyList<AzureRoleDefinition>> Catalog = new()
     {
         { "KeyVault", KeyVaultRoles },
@@ -369,6 +421,8 @@ public static class AzureRoleDefinitionCatalog
         { "LogAnalyticsWorkspace", LogAnalyticsWorkspaceRoles },
         { "ApplicationInsights", ApplicationInsightsRoles },
         { "CosmosDb", CosmosDbRoles },
+        { "SqlServer", SqlServerRoles },
+        { "SqlDatabase", SqlDatabaseRoles },
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>

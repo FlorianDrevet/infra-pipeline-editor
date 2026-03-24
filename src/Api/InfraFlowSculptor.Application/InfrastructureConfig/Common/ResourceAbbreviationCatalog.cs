@@ -22,6 +22,8 @@ public static class ResourceAbbreviationCatalog
         ["LogAnalyticsWorkspace"] = "law",
         ["ApplicationInsights"] = "appi",
         ["CosmosDb"] = "cosmos",
+        ["SqlServer"] = "sql",
+        ["SqlDatabase"] = "sqldb",
     };
 
     /// <summary>

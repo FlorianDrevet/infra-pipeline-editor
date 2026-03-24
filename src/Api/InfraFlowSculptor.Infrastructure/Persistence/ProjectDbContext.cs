@@ -29,6 +29,10 @@ using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate;
 using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities;
 using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
 using InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities;
+using InfraFlowSculptor.Domain.SqlServerAggregate;
+using InfraFlowSculptor.Domain.SqlServerAggregate.Entities;
+using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
+using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -74,6 +78,10 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<ApplicationInsightsEnvironmentSettings> ApplicationInsightsEnvironmentSettings { get; set; } = null!;
     public DbSet<Domain.CosmosDbAggregate.CosmosDb> CosmosDbAccounts { get; set; } = null!;
     public DbSet<Domain.CosmosDbAggregate.Entities.CosmosDbEnvironmentSettings> CosmosDbEnvironmentSettings { get; set; } = null!;
+    public DbSet<SqlServer> SqlServers { get; set; } = null!;
+    public DbSet<SqlServerEnvironmentSettings> SqlServerEnvironmentSettings { get; set; } = null!;
+    public DbSet<SqlDatabase> SqlDatabases { get; set; } = null!;
+    public DbSet<SqlDatabaseEnvironmentSettings> SqlDatabaseEnvironmentSettings { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

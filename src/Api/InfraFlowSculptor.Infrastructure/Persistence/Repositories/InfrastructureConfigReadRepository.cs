@@ -29,6 +29,10 @@ using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
 using InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities;
 using InfraFlowSculptor.Domain.CosmosDbAggregate;
 using InfraFlowSculptor.Domain.CosmosDbAggregate.Entities;
+using InfraFlowSculptor.Domain.SqlServerAggregate;
+using InfraFlowSculptor.Domain.SqlServerAggregate.Entities;
+using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
+using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -119,10 +123,20 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var sqlServerSettings = await dbContext.SqlServerEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.SqlServerId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var sqlDbSettings = await dbContext.SqlDatabaseEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.SqlDatabaseId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -219,7 +233,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<ContainerAppEnvironmentSettings> caSettings,
         IReadOnlyList<LogAnalyticsWorkspaceEnvironmentSettings> lawSettings,
         IReadOnlyList<ApplicationInsightsEnvironmentSettings> aiSettings,
-        IReadOnlyList<CosmosDbEnvironmentSettings> cosmosSettings)
+        IReadOnlyList<CosmosDbEnvironmentSettings> cosmosSettings,
+        IReadOnlyList<SqlServerEnvironmentSettings> sqlServerSettings,
+        IReadOnlyList<SqlDatabaseEnvironmentSettings> sqlDbSettings)
     {
         return resource switch
         {
@@ -370,6 +386,34 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 new Dictionary<string, string>(),
                 cosmosSettings
                     .Where(es => es.CosmosDbId == cosmos.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            SqlServer sqlServer => new AzureResourceReadModel(
+                sqlServer.Id.Value,
+                sqlServer.Name.Value,
+                MapLocation(sqlServer.Location),
+                "Microsoft.Sql/servers",
+                new Dictionary<string, string>
+                {
+                    ["version"] = sqlServer.Version.Value.ToString(),
+                    ["administratorLogin"] = sqlServer.AdministratorLogin
+                },
+                sqlServerSettings
+                    .Where(es => es.SqlServerId == sqlServer.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            SqlDatabase sqlDb => new AzureResourceReadModel(
+                sqlDb.Id.Value,
+                sqlDb.Name.Value,
+                MapLocation(sqlDb.Location),
+                "Microsoft.Sql/servers/databases",
+                new Dictionary<string, string>
+                {
+                    ["sqlServerId"] = sqlDb.SqlServerId.Value.ToString(),
+                    ["collation"] = sqlDb.Collation
+                },
+                sqlDbSettings
+                    .Where(es => es.SqlDatabaseId == sqlDb.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
             _ => null
