@@ -79,6 +79,8 @@ app.UseUserAssignedIdentityController();
 app.UseAppConfigurationController();
 app.UseContainerAppEnvironmentController();
 app.UseContainerAppController();
+app.UseLogAnalyticsWorkspaceController();
+app.UseApplicationInsightsController();
 app.UseBicepGenerationController();
 app.MapDefaultEndpoints();
 

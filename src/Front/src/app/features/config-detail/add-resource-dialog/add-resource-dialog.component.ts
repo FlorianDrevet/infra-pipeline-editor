@@ -28,6 +28,8 @@ import { FunctionAppService } from '../../../shared/services/function-app.servic
 import { AppConfigurationService } from '../../../shared/services/app-configuration.service';
 import { ContainerAppEnvironmentService } from '../../../shared/services/container-app-environment.service';
 import { ContainerAppService } from '../../../shared/services/container-app.service';
+import { LogAnalyticsWorkspaceService } from '../../../shared/services/log-analytics-workspace.service';
+import { ApplicationInsightsService } from '../../../shared/services/application-insights.service';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
@@ -38,6 +40,8 @@ import { FunctionAppEnvironmentConfigEntry } from '../../../shared/interfaces/fu
 import { AppConfigurationEnvironmentConfigEntry } from '../../../shared/interfaces/app-configuration.interface';
 import { ContainerAppEnvironmentEnvironmentConfigEntry } from '../../../shared/interfaces/container-app-environment.interface';
 import { ContainerAppEnvironmentConfigEntry } from '../../../shared/interfaces/container-app.interface';
+import { LogAnalyticsWorkspaceEnvironmentConfigEntry } from '../../../shared/interfaces/log-analytics-workspace.interface';
+import { ApplicationInsightsEnvironmentConfigEntry } from '../../../shared/interfaces/application-insights.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 
 export interface AddResourceDialogData {
@@ -155,6 +159,34 @@ const CA_TRANSPORT_OPTIONS = [
   { label: 'TCP', value: 'tcp' },
 ];
 
+const LAW_SKU_OPTIONS = [
+  { label: 'Free', value: 'Free' },
+  { label: 'PerGB2018', value: 'PerGB2018' },
+  { label: 'PerNode', value: 'PerNode' },
+  { label: 'Premium', value: 'Premium' },
+  { label: 'Standard', value: 'Standard' },
+  { label: 'Standalone', value: 'Standalone' },
+  { label: 'Capacity Reservation', value: 'CapacityReservation' },
+];
+
+const AI_RETENTION_OPTIONS = [
+  { label: '30 days', value: 30 },
+  { label: '60 days', value: 60 },
+  { label: '90 days', value: 90 },
+  { label: '120 days', value: 120 },
+  { label: '180 days', value: 180 },
+  { label: '270 days', value: 270 },
+  { label: '365 days', value: 365 },
+  { label: '550 days', value: 550 },
+  { label: '730 days', value: 730 },
+];
+
+const AI_INGESTION_MODE_OPTIONS = [
+  { label: 'Application Insights', value: 'ApplicationInsights' },
+  { label: 'Log Analytics', value: 'LogAnalytics' },
+  { label: 'App Insights + Diagnostic Settings', value: 'ApplicationInsightsWithDiagnosticSettings' },
+];
+
 type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'environments';
 
 @Component({
@@ -190,6 +222,8 @@ export class AddResourceDialogComponent {
   private readonly appConfigurationService = inject(AppConfigurationService);
   private readonly containerAppEnvironmentService = inject(ContainerAppEnvironmentService);
   private readonly containerAppService = inject(ContainerAppService);
+  private readonly logAnalyticsWorkspaceService = inject(LogAnalyticsWorkspaceService);
+  private readonly applicationInsightsService = inject(ApplicationInsightsService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly fb = inject(FormBuilder);
 
@@ -243,6 +277,9 @@ export class AddResourceDialogComponent {
   protected readonly caCpuOptions = CA_CPU_OPTIONS;
   protected readonly caMemoryOptions = CA_MEMORY_OPTIONS;
   protected readonly caTransportOptions = CA_TRANSPORT_OPTIONS;
+  protected readonly lawSkuOptions = LAW_SKU_OPTIONS;
+  protected readonly aiRetentionOptions = AI_RETENTION_OPTIONS;
+  protected readonly aiIngestionModeOptions = AI_INGESTION_MODE_OPTIONS;
 
   protected readonly ResourceTypeEnum = ResourceTypeEnum;
 
@@ -253,6 +290,7 @@ export class AddResourceDialogComponent {
     osType: [''],
     appServicePlanId: [''],
     containerAppEnvironmentId: [''],
+    logAnalyticsWorkspaceId: [''],
     runtimeStack: [''],
     runtimeVersion: [''],
     alwaysOn: [true],
@@ -284,7 +322,7 @@ export class AddResourceDialogComponent {
     this.buildEnvForms(type);
     this.updateCommonFormValidators(type);
 
-    if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp) {
+    if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights) {
       this.step.set('plan-selection');
       this.loadExistingPlans();
     } else {
@@ -297,7 +335,9 @@ export class AddResourceDialogComponent {
     this.plansLoading.set(true);
     try {
       const resources = await this.resourceGroupService.getResources(this.data.resourceGroupId);
-      const filterType = this.selectedType() === ResourceTypeEnum.ContainerApp ? 'ContainerAppEnvironment' : 'AppServicePlan';
+      const filterType = this.selectedType() === ResourceTypeEnum.ContainerApp ? 'ContainerAppEnvironment'
+        : this.selectedType() === ResourceTypeEnum.ApplicationInsights ? 'LogAnalyticsWorkspace'
+        : 'AppServicePlan';
       const plans = resources.filter(r => r.resourceType === filterType);
       this.existingPlans.set(plans);
     } catch {
@@ -312,6 +352,8 @@ export class AddResourceDialogComponent {
     this.selectedPlanName.set(plan.name);
     if (this.selectedType() === ResourceTypeEnum.ContainerApp) {
       this.commonForm.patchValue({ containerAppEnvironmentId: plan.id });
+    } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
+      this.commonForm.patchValue({ logAnalyticsWorkspaceId: plan.id });
     } else {
       this.commonForm.patchValue({ appServicePlanId: plan.id });
     }
@@ -349,6 +391,19 @@ export class AddResourceDialogComponent {
         this.selectedPlanId.set(created.id);
         this.selectedPlanName.set(created.name);
         this.commonForm.patchValue({ containerAppEnvironmentId: created.id });
+      } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
+        const created = await this.logAnalyticsWorkspaceService.create({
+          resourceGroupId: this.data.resourceGroupId,
+          name: planData.name!,
+          location: planData.location!,
+          environmentSettings: this.environments.map(env => ({
+            environmentName: env.name,
+            sku: 'PerGB2018',
+          })),
+        });
+        this.selectedPlanId.set(created.id);
+        this.selectedPlanName.set(created.name);
+        this.commonForm.patchValue({ logAnalyticsWorkspaceId: created.id });
       } else {
         const created = await this.appServicePlanService.create({
           resourceGroupId: this.data.resourceGroupId,
@@ -389,7 +444,7 @@ export class AddResourceDialogComponent {
   }
 
   protected onBackFromCommon(): void {
-    if (this.selectedType() === ResourceTypeEnum.WebApp || this.selectedType() === ResourceTypeEnum.FunctionApp || this.selectedType() === ResourceTypeEnum.ContainerApp) {
+    if (this.selectedType() === ResourceTypeEnum.WebApp || this.selectedType() === ResourceTypeEnum.FunctionApp || this.selectedType() === ResourceTypeEnum.ContainerApp || this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
       this.step.set('plan-selection');
     } else {
       this.onBackToType();
@@ -494,6 +549,20 @@ export class AddResourceDialogComponent {
           ingressTargetPort: [80],
           ingressExternal: [true],
           transportMethod: ['auto'],
+        });
+      case ResourceTypeEnum.LogAnalyticsWorkspace:
+        return this.fb.group({
+          sku: ['PerGB2018'],
+          retentionInDays: [30],
+          dailyQuotaGb: [null as number | null],
+        });
+      case ResourceTypeEnum.ApplicationInsights:
+        return this.fb.group({
+          samplingPercentage: [100],
+          retentionInDays: [90],
+          disableIpMasking: [false],
+          disableLocalAuth: [false],
+          ingestionMode: ['LogAnalytics'],
         });
     }
   }
@@ -632,6 +701,25 @@ export class AddResourceDialogComponent {
           });
           break;
         }
+        case ResourceTypeEnum.LogAnalyticsWorkspace: {
+          await this.logAnalyticsWorkspaceService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            environmentSettings: this.buildLogAnalyticsWorkspaceEnvironmentSettings(),
+          });
+          break;
+        }
+        case ResourceTypeEnum.ApplicationInsights: {
+          await this.applicationInsightsService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            logAnalyticsWorkspaceId: common.logAnalyticsWorkspaceId!,
+            environmentSettings: this.buildApplicationInsightsEnvironmentSettings(),
+          });
+          break;
+        }
       }
       this.dialogRef.close(true);
     } catch {
@@ -765,6 +853,32 @@ export class AddResourceDialogComponent {
     });
   }
 
+  private buildLogAnalyticsWorkspaceEnvironmentSettings(): LogAnalyticsWorkspaceEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        sku: raw.sku || null,
+        retentionInDays: raw.retentionInDays != null ? Number(raw.retentionInDays) : null,
+        dailyQuotaGb: raw.dailyQuotaGb != null ? Number(raw.dailyQuotaGb) : null,
+      };
+    });
+  }
+
+  private buildApplicationInsightsEnvironmentSettings(): ApplicationInsightsEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        samplingPercentage: raw.samplingPercentage != null ? Number(raw.samplingPercentage) : null,
+        retentionInDays: raw.retentionInDays != null ? Number(raw.retentionInDays) : null,
+        disableIpMasking: raw.disableIpMasking ?? null,
+        disableLocalAuth: raw.disableLocalAuth ?? null,
+        ingestionMode: raw.ingestionMode || null,
+      };
+    });
+  }
+
   private updateCommonFormValidators(type: ResourceTypeEnum): void {
     this.clearExtraValidators();
     if (type === ResourceTypeEnum.AppServicePlan) {
@@ -774,11 +888,14 @@ export class AddResourceDialogComponent {
       this.commonForm.controls.runtimeVersion.setValidators([Validators.required]);
     } else if (type === ResourceTypeEnum.ContainerApp) {
       this.commonForm.controls.containerAppEnvironmentId.setValidators([Validators.required]);
+    } else if (type === ResourceTypeEnum.ApplicationInsights) {
+      this.commonForm.controls.logAnalyticsWorkspaceId.setValidators([Validators.required]);
     }
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
     this.commonForm.controls.containerAppEnvironmentId.updateValueAndValidity();
+    this.commonForm.controls.logAnalyticsWorkspaceId.updateValueAndValidity();
   }
 
   private clearExtraValidators(): void {
@@ -786,9 +903,11 @@ export class AddResourceDialogComponent {
     this.commonForm.controls.runtimeStack.clearValidators();
     this.commonForm.controls.runtimeVersion.clearValidators();
     this.commonForm.controls.containerAppEnvironmentId.clearValidators();
+    this.commonForm.controls.logAnalyticsWorkspaceId.clearValidators();
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
     this.commonForm.controls.containerAppEnvironmentId.updateValueAndValidity();
+    this.commonForm.controls.logAnalyticsWorkspaceId.updateValueAndValidity();
   }
 }

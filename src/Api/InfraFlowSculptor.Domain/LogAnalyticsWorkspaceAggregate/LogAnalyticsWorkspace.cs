@@ -1,0 +1,106 @@
+using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
+using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
+
+namespace InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate;
+
+/// <summary>
+/// Represents an Azure Log Analytics Workspace resource aggregate root.
+/// </summary>
+public class LogAnalyticsWorkspace : AzureResource
+{
+    private readonly List<LogAnalyticsWorkspaceEnvironmentSettings> _environmentSettings = new();
+
+    /// <summary>Gets the typed per-environment configuration overrides for this Log Analytics Workspace.</summary>
+    public IReadOnlyCollection<LogAnalyticsWorkspaceEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();
+
+    /// <inheritdoc />
+    protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages =>
+        Array.Empty<ParameterUsage>();
+
+    private LogAnalyticsWorkspace()
+    {
+    }
+
+    /// <summary>
+    /// Updates the mutable properties of this Log Analytics Workspace resource.
+    /// </summary>
+    /// <param name="name">The new display name.</param>
+    /// <param name="location">The new Azure region.</param>
+    public void Update(Name name, Location location)
+    {
+        Name = name;
+        Location = location;
+    }
+
+    /// <summary>
+    /// Sets the per-environment settings for the given environment.
+    /// Replaces existing settings if one already exists for this environment.
+    /// </summary>
+    public void SetEnvironmentSettings(
+        string environmentName,
+        string? sku,
+        int? retentionInDays,
+        decimal? dailyQuotaGb)
+    {
+        var existing = _environmentSettings.FirstOrDefault(
+            es => es.EnvironmentName == environmentName);
+
+        if (existing is not null)
+        {
+            existing.Update(sku, retentionInDays, dailyQuotaGb);
+        }
+        else
+        {
+            _environmentSettings.Add(
+                LogAnalyticsWorkspaceEnvironmentSettings.Create(
+                    Id, environmentName, sku, retentionInDays, dailyQuotaGb));
+        }
+    }
+
+    /// <summary>
+    /// Sets all per-environment settings at once, replacing any existing entries.
+    /// </summary>
+    public void SetAllEnvironmentSettings(
+        IReadOnlyList<(string EnvironmentName, string? Sku, int? RetentionInDays, decimal? DailyQuotaGb)> settings)
+    {
+        _environmentSettings.Clear();
+        foreach (var (envName, sku, retentionInDays, dailyQuotaGb) in settings)
+        {
+            _environmentSettings.Add(
+                LogAnalyticsWorkspaceEnvironmentSettings.Create(
+                    Id, envName, sku, retentionInDays, dailyQuotaGb));
+        }
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="LogAnalyticsWorkspace"/> instance with a generated identifier.
+    /// </summary>
+    /// <param name="resourceGroupId">The parent resource group identifier.</param>
+    /// <param name="name">The display name.</param>
+    /// <param name="location">The Azure region.</param>
+    /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
+    /// <returns>A new <see cref="LogAnalyticsWorkspace"/> aggregate root.</returns>
+    public static LogAnalyticsWorkspace Create(
+        ResourceGroupId resourceGroupId,
+        Name name,
+        Location location,
+        IReadOnlyList<(string EnvironmentName, string? Sku, int? RetentionInDays, decimal? DailyQuotaGb)>? environmentSettings = null)
+    {
+        var logAnalyticsWorkspace = new LogAnalyticsWorkspace
+        {
+            Id = AzureResourceId.CreateUnique(),
+            ResourceGroupId = resourceGroupId,
+            Name = name,
+            Location = location
+        };
+
+        if (environmentSettings is not null)
+            logAnalyticsWorkspace.SetAllEnvironmentSettings(environmentSettings);
+
+        return logAnalyticsWorkspace;
+    }
+}

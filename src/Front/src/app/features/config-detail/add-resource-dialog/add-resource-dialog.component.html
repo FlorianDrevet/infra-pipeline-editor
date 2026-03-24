@@ -185,6 +185,19 @@
             {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
           </mat-slide-toggle>
         }
+
+        @if (selectedType() === ResourceTypeEnum.ApplicationInsights) {
+          <div class="plan-indicator">
+            <mat-icon class="plan-indicator__icon">analytics</mat-icon>
+            <div class="plan-indicator__info">
+              <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN' | translate }}</span>
+              <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
+            </div>
+            <button class="plan-indicator__change" (click)="onBackFromCommon()">
+              {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
+            </button>
+          </div>
+        }
       </form>
       @if (!hasEnvironments) {
         <p class="dialog-warning">{{ 'CONFIG_DETAIL.RESOURCES.FORM.ENV_NO_ENVIRONMENTS' | translate }}</p>
@@ -493,6 +506,57 @@
                   </mat-slide-toggle>
                   <mat-slide-toggle formControlName="ingressExternal" color="primary">
                     {{ 'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_EXTERNAL' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @case (ResourceTypeEnum.LogAnalyticsWorkspace) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                    <mat-select formControlName="sku">
+                      @for (option of lawSkuOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RETENTION_IN_DAYS' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="retentionInDays" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.DAILY_QUOTA_GB' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="dailyQuotaGb" />
+                    <mat-hint>{{ 'CONFIG_DETAIL.RESOURCES.FORM.DAILY_QUOTA_GB_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
+                </div>
+              }
+              @case (ResourceTypeEnum.ApplicationInsights) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SAMPLING_PERCENTAGE' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="samplingPercentage" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RETENTION_IN_DAYS' | translate }}</mat-label>
+                    <mat-select formControlName="retentionInDays">
+                      @for (option of aiRetentionOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.INGESTION_MODE' | translate }}</mat-label>
+                    <mat-select formControlName="ingestionMode">
+                      @for (option of aiIngestionModeOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="disableIpMasking" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_IP_MASKING' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_LOCAL_AUTH' | translate }}
                   </mat-slide-toggle>
                 </div>
               }

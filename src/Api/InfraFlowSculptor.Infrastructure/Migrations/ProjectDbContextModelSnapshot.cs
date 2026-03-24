@@ -101,6 +101,43 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("AppServicePlanEnvironmentSettings", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities.ApplicationInsightsEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ApplicationInsightsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("DisableIpMasking")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("DisableLocalAuth")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("IngestionMode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("RetentionInDays")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("SamplingPercentage")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationInsightsId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("ApplicationInsightsEnvironmentSettings", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", b =>
                 {
                     b.Property<Guid>("Id")
@@ -478,6 +515,37 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("KeyVaultEnvironmentSettings", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities.LogAnalyticsWorkspaceEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("DailyQuotaGb")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("LogAnalyticsWorkspaceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("RetentionInDays")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Sku")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LogAnalyticsWorkspaceId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("LogAnalyticsWorkspaceEnvironmentSettings", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectMember", b =>
                 {
                     b.Property<Guid>("Id")
@@ -789,6 +857,16 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("AppServicePlans", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.ApplicationInsights", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.Property<Guid>("LogAnalyticsWorkspaceId")
+                        .HasColumnType("uuid");
+
+                    b.ToTable("ApplicationInsights", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppAggregate.ContainerApp", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
@@ -832,6 +910,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
 
                     b.ToTable("KeyVaults", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.ToTable("LogAnalyticsWorkspaces", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.RedisCacheAggregate.RedisCache", b =>
@@ -908,6 +993,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.AppServicePlanAggregate.AppServicePlan", null)
                         .WithMany("EnvironmentSettings")
                         .HasForeignKey("AppServicePlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities.ApplicationInsightsEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.ApplicationInsights", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("ApplicationInsightsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1144,6 +1238,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities.LogAnalyticsWorkspaceEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("LogAnalyticsWorkspaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectMember", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Project", "Project")
@@ -1334,6 +1437,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.ApplicationInsights", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.ApplicationInsights", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppAggregate.ContainerApp", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
@@ -1366,6 +1478,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithOne()
                         .HasForeignKey("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1448,6 +1569,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("EnvironmentSettings");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ApplicationInsightsAggregate.ApplicationInsights", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppAggregate.ContainerApp", b =>
                 {
                     b.Navigation("EnvironmentSettings");
@@ -1464,6 +1590,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.KeyVaultAggregate.KeyVault", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", b =>
                 {
                     b.Navigation("EnvironmentSettings");
                 });

@@ -23,6 +23,10 @@ using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate;
 using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.Entities;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
+using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate;
+using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities;
+using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
+using InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -98,10 +102,20 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var lawSettings = await dbContext.LogAnalyticsWorkspaceEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.LogAnalyticsWorkspaceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var aiSettings = await dbContext.ApplicationInsightsEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.ApplicationInsightsId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -195,7 +209,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<FunctionAppEnvironmentSettings> faSettings,
         IReadOnlyList<AppConfigurationEnvironmentSettings> acSettings,
         IReadOnlyList<ContainerAppEnvironmentEnvironmentSettings> caeSettings,
-        IReadOnlyList<ContainerAppEnvironmentSettings> caSettings)
+        IReadOnlyList<ContainerAppEnvironmentSettings> caSettings,
+        IReadOnlyList<LogAnalyticsWorkspaceEnvironmentSettings> lawSettings,
+        IReadOnlyList<ApplicationInsightsEnvironmentSettings> aiSettings)
     {
         return resource switch
         {
@@ -313,6 +329,29 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 },
                 caSettings
                     .Where(es => es.ContainerAppId == ca.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            LogAnalyticsWorkspace law => new AzureResourceReadModel(
+                law.Id.Value,
+                law.Name.Value,
+                MapLocation(law.Location),
+                "Microsoft.OperationalInsights/workspaces",
+                new Dictionary<string, string>(),
+                lawSettings
+                    .Where(es => es.LogAnalyticsWorkspaceId == law.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
+            Domain.ApplicationInsightsAggregate.ApplicationInsights ai => new AzureResourceReadModel(
+                ai.Id.Value,
+                ai.Name.Value,
+                MapLocation(ai.Location),
+                "Microsoft.Insights/components",
+                new Dictionary<string, string>
+                {
+                    ["logAnalyticsWorkspaceId"] = ai.LogAnalyticsWorkspaceId.Value.ToString()
+                },
+                aiSettings
+                    .Where(es => es.ApplicationInsightsId == ai.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
             _ => null

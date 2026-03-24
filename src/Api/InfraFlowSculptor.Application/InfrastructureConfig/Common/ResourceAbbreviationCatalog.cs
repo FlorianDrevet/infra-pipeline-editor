@@ -19,6 +19,8 @@ public static class ResourceAbbreviationCatalog
         ["AppConfiguration"] = "appcs",
         ["ContainerAppEnvironment"] = "cae",
         ["ContainerApp"] = "ca",
+        ["LogAnalyticsWorkspace"] = "law",
+        ["ApplicationInsights"] = "appi",
     };
 
     /// <summary>

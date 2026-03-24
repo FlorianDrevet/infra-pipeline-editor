@@ -528,6 +528,62 @@
                         </mat-slide-toggle>
                       </div>
                     }
+                    @case ('LogAnalyticsWorkspace') {
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                        <mat-select formControlName="sku">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of lawSkuOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RETENTION_IN_DAYS' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="retentionInDays" />
+                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DAILY_QUOTA_GB' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="dailyQuotaGb" />
+                        <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.DAILY_QUOTA_GB_HINT' | translate }}</mat-hint>
+                      </mat-form-field>
+                    }
+                    @case ('ApplicationInsights') {
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SAMPLING_PERCENTAGE' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="samplingPercentage" />
+                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RETENTION_IN_DAYS' | translate }}</mat-label>
+                        <mat-select formControlName="retentionInDays">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of aiRetentionOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.INGESTION_MODE' | translate }}</mat-label>
+                        <mat-select formControlName="ingestionMode">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of aiIngestionModeOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="disableIpMasking" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.DISABLE_IP_MASKING' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                    }
                   }
                 </form>
               </div>

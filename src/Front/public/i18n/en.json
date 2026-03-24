@@ -268,6 +268,8 @@
       "ADD_DIALOG_TITLE_AppConfiguration": "New App Configuration",
       "ADD_DIALOG_TITLE_ContainerAppEnvironment": "New Container App Environment",
       "ADD_DIALOG_TITLE_ContainerApp": "New Container App",
+      "ADD_DIALOG_TITLE_LogAnalyticsWorkspace": "New Log Analytics Workspace",
+      "ADD_DIALOG_TITLE_ApplicationInsights": "New Application Insights",
       "ADD_ERROR": "Failed to create the resource.",
       "FORM": {
         "NAME": "Name",
@@ -322,6 +324,12 @@
         "INGRESS_TARGET_PORT": "Ingress target port",
         "INGRESS_EXTERNAL": "External ingress",
         "TRANSPORT_METHOD": "Transport method",
+        "RETENTION_IN_DAYS": "Retention (days)",
+        "DAILY_QUOTA_GB": "Daily quota (GB)",
+        "DAILY_QUOTA_GB_HINT": "-1 for unlimited",
+        "SAMPLING_PERCENTAGE": "Sampling percentage",
+        "DISABLE_IP_MASKING": "Disable IP masking",
+        "INGESTION_MODE": "Ingestion mode",
         "CANCEL": "Cancel",
         "ADD": "Add",
         "ENV_STEP_TITLE": "Per-environment configuration",
@@ -642,7 +650,13 @@
       "INGRESS_ENABLED": "Enable ingress",
       "INGRESS_TARGET_PORT": "Ingress target port",
       "INGRESS_EXTERNAL": "External ingress",
-      "TRANSPORT_METHOD": "Transport method"
+      "TRANSPORT_METHOD": "Transport method",
+      "RETENTION_IN_DAYS": "Retention (days)",
+      "DAILY_QUOTA_GB": "Daily quota (GB)",
+      "DAILY_QUOTA_GB_HINT": "-1 for unlimited",
+      "SAMPLING_PERCENTAGE": "Sampling percentage",
+      "DISABLE_IP_MASKING": "Disable IP masking",
+      "INGESTION_MODE": "Ingestion mode"
     },
     "ENVIRONMENTS": {
       "EMPTY": "No environments configured. Add environments in the project or configuration first.",

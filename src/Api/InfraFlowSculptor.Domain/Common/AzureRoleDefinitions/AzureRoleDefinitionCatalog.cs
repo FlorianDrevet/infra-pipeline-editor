@@ -271,6 +271,58 @@ public static class AzureRoleDefinitionCatalog
             ContainerAppDocsUrl),
     ];
 
+    private const string LogAnalyticsWorkspaceDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/manage-access";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> LogAnalyticsWorkspaceRoles =
+    [
+        new("92aaf0da-9dab-42b6-94a3-d43ce8d16293",
+            "Log Analytics Contributor",
+            "Can read all monitoring data and edit monitoring settings. Includes managing Log Analytics workspaces.",
+            LogAnalyticsWorkspaceDocsUrl),
+
+        new("73c42c96-874c-492b-b04d-ab87d138a893",
+            "Log Analytics Reader",
+            "Can view and search all monitoring data as well as view monitoring settings.",
+            LogAnalyticsWorkspaceDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            LogAnalyticsWorkspaceDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            LogAnalyticsWorkspaceDocsUrl),
+    ];
+
+    private const string ApplicationInsightsDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/azure-monitor/app/resources-roles-access-control";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> ApplicationInsightsRoles =
+    [
+        new("ae349356-3a1b-4a5e-921d-050484c6347e",
+            "Application Insights Component Contributor",
+            "Can manage Application Insights components.",
+            ApplicationInsightsDocsUrl),
+
+        new("749f88d5-cbae-40b8-bcfc-e573ddc772fa",
+            "Monitoring Contributor",
+            "Can read all monitoring data and update monitoring settings.",
+            ApplicationInsightsDocsUrl),
+
+        new("43d0d8ad-25c7-4714-9337-8ba259a9fe05",
+            "Monitoring Reader",
+            "Can read all monitoring data.",
+            ApplicationInsightsDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            ApplicationInsightsDocsUrl),
+    ];
+
     private static readonly Dictionary<string, IReadOnlyList<AzureRoleDefinition>> Catalog = new()
     {
         { "KeyVault", KeyVaultRoles },
@@ -283,6 +335,8 @@ public static class AzureRoleDefinitionCatalog
         { "AppConfiguration", AppConfigurationRoles },
         { "ContainerAppEnvironment", ContainerAppEnvironmentRoles },
         { "ContainerApp", ContainerAppRoles },
+        { "LogAnalyticsWorkspace", LogAnalyticsWorkspaceRoles },
+        { "ApplicationInsights", ApplicationInsightsRoles },
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>

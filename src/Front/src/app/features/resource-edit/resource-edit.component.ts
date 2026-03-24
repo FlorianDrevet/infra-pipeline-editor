@@ -31,6 +31,8 @@ import { FunctionAppResponse, FunctionAppEnvironmentConfigEntry } from '../../sh
 import { AppConfigurationResponse, AppConfigurationEnvironmentConfigEntry } from '../../shared/interfaces/app-configuration.interface';
 import { ContainerAppEnvironmentResponse, ContainerAppEnvironmentEnvironmentConfigEntry } from '../../shared/interfaces/container-app-environment.interface';
 import { ContainerAppResponse, ContainerAppEnvironmentConfigEntry } from '../../shared/interfaces/container-app.interface';
+import { LogAnalyticsWorkspaceResponse, LogAnalyticsWorkspaceEnvironmentConfigEntry } from '../../shared/interfaces/log-analytics-workspace.interface';
+import { ApplicationInsightsResponse, ApplicationInsightsEnvironmentConfigEntry } from '../../shared/interfaces/application-insights.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
@@ -38,6 +40,8 @@ import { FunctionAppService } from '../../shared/services/function-app.service';
 import { AppConfigurationService } from '../../shared/services/app-configuration.service';
 import { ContainerAppEnvironmentService } from '../../shared/services/container-app-environment.service';
 import { ContainerAppService } from '../../shared/services/container-app.service';
+import { LogAnalyticsWorkspaceService } from '../../shared/services/log-analytics-workspace.service';
+import { ApplicationInsightsService } from '../../shared/services/application-insights.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -52,7 +56,7 @@ import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service
 import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse;
 
 /** SKU options per resource type */
 const KEY_VAULT_SKU_OPTIONS = [
@@ -164,6 +168,34 @@ const CA_TRANSPORT_OPTIONS = [
   { label: 'TCP', value: 'tcp' },
 ];
 
+const LAW_SKU_OPTIONS = [
+  { label: 'Free', value: 'Free' },
+  { label: 'PerGB2018', value: 'PerGB2018' },
+  { label: 'PerNode', value: 'PerNode' },
+  { label: 'Premium', value: 'Premium' },
+  { label: 'Standard', value: 'Standard' },
+  { label: 'Standalone', value: 'Standalone' },
+  { label: 'Capacity Reservation', value: 'CapacityReservation' },
+];
+
+const AI_RETENTION_OPTIONS = [
+  { label: '30 days', value: 30 },
+  { label: '60 days', value: 60 },
+  { label: '90 days', value: 90 },
+  { label: '120 days', value: 120 },
+  { label: '180 days', value: 180 },
+  { label: '270 days', value: 270 },
+  { label: '365 days', value: 365 },
+  { label: '550 days', value: 550 },
+  { label: '730 days', value: 730 },
+];
+
+const AI_INGESTION_MODE_OPTIONS = [
+  { label: 'Application Insights', value: 'ApplicationInsights' },
+  { label: 'Log Analytics', value: 'LogAnalytics' },
+  { label: 'App Insights + Diagnostic Settings', value: 'ApplicationInsightsWithDiagnosticSettings' },
+];
+
 @Component({
   selector: 'app-resource-edit',
   standalone: true,
@@ -200,6 +232,8 @@ export class ResourceEditComponent implements OnInit {
   private readonly appConfigurationService = inject(AppConfigurationService);
   private readonly containerAppEnvironmentService = inject(ContainerAppEnvironmentService);
   private readonly containerAppService = inject(ContainerAppService);
+  private readonly logAnalyticsWorkspaceService = inject(LogAnalyticsWorkspaceService);
+  private readonly applicationInsightsService = inject(ApplicationInsightsService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -252,6 +286,9 @@ export class ResourceEditComponent implements OnInit {
   protected readonly caCpuOptions = CA_CPU_OPTIONS;
   protected readonly caMemoryOptions = CA_MEMORY_OPTIONS;
   protected readonly caTransportOptions = CA_TRANSPORT_OPTIONS;
+  protected readonly lawSkuOptions = LAW_SKU_OPTIONS;
+  protected readonly aiRetentionOptions = AI_RETENTION_OPTIONS;
+  protected readonly aiIngestionModeOptions = AI_INGESTION_MODE_OPTIONS;
 
   // ─── Forms ───
   protected generalForm!: FormGroup;
@@ -358,6 +395,10 @@ export class ResourceEditComponent implements OnInit {
         return this.containerAppEnvironmentService.getById(this.resourceId);
       case 'ContainerApp':
         return this.containerAppService.getById(this.resourceId);
+      case 'LogAnalyticsWorkspace':
+        return this.logAnalyticsWorkspaceService.getById(this.resourceId);
+      case 'ApplicationInsights':
+        return this.applicationInsightsService.getById(this.resourceId);
       default:
         throw new Error(`Unknown resource type: ${this.resourceType}`);
     }
@@ -388,6 +429,9 @@ export class ResourceEditComponent implements OnInit {
     } else if (this.resourceType === 'ContainerApp') {
       const ca = resource as ContainerAppResponse;
       base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
+    } else if (this.resourceType === 'ApplicationInsights') {
+      const ai = resource as ApplicationInsightsResponse;
+      base['logAnalyticsWorkspaceId'] = [ai.logAnalyticsWorkspaceId];
     }
 
     this.generalForm = this.fb.group(base);
@@ -508,6 +552,26 @@ export class ResourceEditComponent implements OnInit {
           transportMethod: [settings?.transportMethod ?? null],
         });
       }
+      case 'LogAnalyticsWorkspace': {
+        const law = resource as LogAnalyticsWorkspaceResponse;
+        const settings = law.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          sku: [settings?.sku ?? null],
+          retentionInDays: [settings?.retentionInDays ?? null],
+          dailyQuotaGb: [settings?.dailyQuotaGb ?? null],
+        });
+      }
+      case 'ApplicationInsights': {
+        const ai = resource as ApplicationInsightsResponse;
+        const settings = ai.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          samplingPercentage: [settings?.samplingPercentage ?? null],
+          retentionInDays: [settings?.retentionInDays ?? null],
+          disableIpMasking: [settings?.disableIpMasking ?? null],
+          disableLocalAuth: [settings?.disableLocalAuth ?? null],
+          ingestionMode: [settings?.ingestionMode ?? null],
+        });
+      }
     }
   }
 
@@ -602,6 +666,21 @@ export class ResourceEditComponent implements OnInit {
             environmentSettings: this.buildContainerAppEnvSettings(),
           });
           break;
+        case 'LogAnalyticsWorkspace':
+          await this.logAnalyticsWorkspaceService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            environmentSettings: this.buildLogAnalyticsWorkspaceEnvSettings(),
+          });
+          break;
+        case 'ApplicationInsights':
+          await this.applicationInsightsService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            logAnalyticsWorkspaceId: general.logAnalyticsWorkspaceId,
+            environmentSettings: this.buildApplicationInsightsEnvSettings(),
+          });
+          break;
       }
 
       // Reload to reflect saved state
@@ -674,6 +753,12 @@ export class ResourceEditComponent implements OnInit {
           break;
         case 'ContainerApp':
           await this.containerAppService.delete(this.resourceId);
+          break;
+        case 'LogAnalyticsWorkspace':
+          await this.logAnalyticsWorkspaceService.delete(this.resourceId);
+          break;
+        case 'ApplicationInsights':
+          await this.applicationInsightsService.delete(this.resourceId);
           break;
       }
       this.router.navigate(['/config', this.configId]);
@@ -917,6 +1002,32 @@ export class ResourceEditComponent implements OnInit {
         ingressTargetPort: raw.ingressTargetPort != null ? Number(raw.ingressTargetPort) : null,
         ingressExternal: raw.ingressExternal ?? null,
         transportMethod: raw.transportMethod || null,
+      };
+    });
+  }
+
+  private buildLogAnalyticsWorkspaceEnvSettings(): LogAnalyticsWorkspaceEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        sku: raw.sku || null,
+        retentionInDays: raw.retentionInDays != null ? Number(raw.retentionInDays) : null,
+        dailyQuotaGb: raw.dailyQuotaGb != null ? Number(raw.dailyQuotaGb) : null,
+      };
+    });
+  }
+
+  private buildApplicationInsightsEnvSettings(): ApplicationInsightsEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        samplingPercentage: raw.samplingPercentage != null ? Number(raw.samplingPercentage) : null,
+        retentionInDays: raw.retentionInDays != null ? Number(raw.retentionInDays) : null,
+        disableIpMasking: raw.disableIpMasking ?? null,
+        disableLocalAuth: raw.disableLocalAuth ?? null,
+        ingestionMode: raw.ingestionMode || null,
       };
     });
   }

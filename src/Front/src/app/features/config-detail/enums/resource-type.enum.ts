@@ -12,6 +12,8 @@ export enum ResourceTypeEnum {
   AppConfiguration = 'AppConfiguration',
   ContainerAppEnvironment = 'ContainerAppEnvironment',
   ContainerApp = 'ContainerApp',
+  LogAnalyticsWorkspace = 'LogAnalyticsWorkspace',
+  ApplicationInsights = 'ApplicationInsights',
 }
 
 /**
@@ -36,6 +38,8 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   AppConfiguration: 'tune',
   ContainerAppEnvironment: 'cloud_queue',
   ContainerApp: 'view_in_ar',
+  LogAnalyticsWorkspace: 'analytics',
+  ApplicationInsights: 'monitoring',
 };
 
 /**
@@ -53,4 +57,6 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Record<string, string> = {
   ResourceGroup: 'rg',
   ContainerAppEnvironment: 'cae',
   ContainerApp: 'ca',
+  LogAnalyticsWorkspace: 'law',
+  ApplicationInsights: 'appi',
 };

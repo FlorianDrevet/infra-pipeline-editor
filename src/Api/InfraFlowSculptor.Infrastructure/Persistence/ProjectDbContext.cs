@@ -25,6 +25,10 @@ using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate;
 using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.Entities;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using InfraFlowSculptor.Domain.ContainerAppAggregate.Entities;
+using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate;
+using InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.Entities;
+using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
+using InfraFlowSculptor.Domain.ApplicationInsightsAggregate.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -64,6 +68,10 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<ContainerAppEnvironmentEnvironmentSettings> ContainerAppEnvironmentEnvironmentSettings { get; set; } = null!;
     public DbSet<ContainerApp> ContainerApps { get; set; } = null!;
     public DbSet<ContainerAppEnvironmentSettings> ContainerAppEnvironmentSettings { get; set; } = null!;
+    public DbSet<LogAnalyticsWorkspace> LogAnalyticsWorkspaces { get; set; } = null!;
+    public DbSet<LogAnalyticsWorkspaceEnvironmentSettings> LogAnalyticsWorkspaceEnvironmentSettings { get; set; } = null!;
+    public DbSet<ApplicationInsights> ApplicationInsightsResources { get; set; } = null!;
+    public DbSet<ApplicationInsightsEnvironmentSettings> ApplicationInsightsEnvironmentSettings { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

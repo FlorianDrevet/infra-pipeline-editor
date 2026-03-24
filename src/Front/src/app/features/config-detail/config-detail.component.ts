@@ -36,6 +36,8 @@ import { FunctionAppService } from '../../shared/services/function-app.service';
 import { AppConfigurationService } from '../../shared/services/app-configuration.service';
 import { ContainerAppEnvironmentService } from '../../shared/services/container-app-environment.service';
 import { ContainerAppService } from '../../shared/services/container-app.service';
+import { LogAnalyticsWorkspaceService } from '../../shared/services/log-analytics-workspace.service';
+import { ApplicationInsightsService } from '../../shared/services/application-insights.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
@@ -86,6 +88,8 @@ export class ConfigDetailComponent implements OnInit {
   private readonly appConfigurationService = inject(AppConfigurationService);
   private readonly containerAppEnvironmentService = inject(ContainerAppEnvironmentService);
   private readonly containerAppService = inject(ContainerAppService);
+  private readonly logAnalyticsWorkspaceService = inject(LogAnalyticsWorkspaceService);
+  private readonly applicationInsightsService = inject(ApplicationInsightsService);
   private readonly projectService = inject(ProjectService);
   private readonly bicepService = inject(BicepGeneratorService);
   private readonly authService = inject(AuthenticationService);
@@ -594,6 +598,12 @@ export class ConfigDetailComponent implements OnInit {
           break;
         case 'ContainerApp':
           await this.containerAppService.delete(resource.id);
+          break;
+        case 'LogAnalyticsWorkspace':
+          await this.logAnalyticsWorkspaceService.delete(resource.id);
+          break;
+        case 'ApplicationInsights':
+          await this.applicationInsightsService.delete(resource.id);
           break;
       }
       // Refresh resource list for this resource group

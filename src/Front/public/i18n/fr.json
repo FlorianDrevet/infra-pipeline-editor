@@ -268,6 +268,8 @@
       "ADD_DIALOG_TITLE_AppConfiguration": "Nouvelle App Configuration",
       "ADD_DIALOG_TITLE_ContainerAppEnvironment": "Nouvel environnement Container App",
       "ADD_DIALOG_TITLE_ContainerApp": "Nouvelle Container App",
+      "ADD_DIALOG_TITLE_LogAnalyticsWorkspace": "Nouvel espace Log Analytics",
+      "ADD_DIALOG_TITLE_ApplicationInsights": "Nouveau Application Insights",
       "ADD_ERROR": "Erreur lors de la creation de la ressource.",
       "FORM": {
         "NAME": "Nom",
@@ -322,6 +324,12 @@
         "INGRESS_TARGET_PORT": "Port cible de l'ingress",
         "INGRESS_EXTERNAL": "Ingress externe",
         "TRANSPORT_METHOD": "M\u00e9thode de transport",
+        "RETENTION_IN_DAYS": "R\u00e9tention (jours)",
+        "DAILY_QUOTA_GB": "Quota quotidien (Go)",
+        "DAILY_QUOTA_GB_HINT": "-1 pour illimit\u00e9",
+        "SAMPLING_PERCENTAGE": "Pourcentage d'\u00e9chantillonnage",
+        "DISABLE_IP_MASKING": "D\u00e9sactiver le masquage IP",
+        "INGESTION_MODE": "Mode d'ingestion",
         "CANCEL": "Annuler",
         "ADD": "Ajouter",
         "ENV_STEP_TITLE": "Configuration par environnement",
@@ -646,7 +654,13 @@
       "INGRESS_ENABLED": "Activer l'ingress",
       "INGRESS_TARGET_PORT": "Port cible de l'ingress",
       "INGRESS_EXTERNAL": "Ingress externe",
-      "TRANSPORT_METHOD": "M\u00e9thode de transport"
+      "TRANSPORT_METHOD": "M\u00e9thode de transport",
+      "RETENTION_IN_DAYS": "R\u00e9tention (jours)",
+      "DAILY_QUOTA_GB": "Quota quotidien (Go)",
+      "DAILY_QUOTA_GB_HINT": "-1 pour illimit\u00e9",
+      "SAMPLING_PERCENTAGE": "Pourcentage d'\u00e9chantillonnage",
+      "DISABLE_IP_MASKING": "D\u00e9sactiver le masquage IP",
+      "INGESTION_MODE": "Mode d'ingestion"
     },
     "ENVIRONMENTS": {
       "EMPTY": "Aucun environnement configur\u00e9. Ajoutez des environnements dans le projet ou la configuration.",
