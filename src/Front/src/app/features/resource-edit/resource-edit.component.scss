@@ -643,6 +643,53 @@
     flex-wrap: wrap;
   }
 
+  &__role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: rgba(21, 101, 192, 0.06);
+    border: 1px solid rgba(21, 101, 192, 0.14);
+    color: #1565c0;
+
+    mat-icon {
+      font-size: 0.88rem;
+      width: 0.88rem;
+      height: 0.88rem;
+      color: #1565c0;
+    }
+  }
+
+  &__arrow-icon {
+    font-size: 0.92rem;
+    width: 0.92rem;
+    height: 0.92rem;
+    color: #9fbce3;
+  }
+
+  &__target-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: rgba(0, 150, 136, 0.06);
+    border: 1px solid rgba(0, 150, 136, 0.14);
+    color: #00796b;
+
+    mat-icon {
+      font-size: 0.88rem;
+      width: 0.88rem;
+      height: 0.88rem;
+      color: #00796b;
+    }
+  }
+
   &__role {
     display: inline-flex;
     align-items: center;

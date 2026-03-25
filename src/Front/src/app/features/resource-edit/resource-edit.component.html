@@ -670,7 +670,8 @@
       </mat-tab>
       }
 
-      <!-- Identity & Access Tab -->
+      <!-- Identity & Access Tab (hidden for UserAssignedIdentity) -->
+      @if (!isUserAssignedIdentity()) {
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">security</mat-icon>
@@ -814,6 +815,7 @@
           }
         </div>
       </mat-tab>
+      }
 
       <!-- Storage Services Tab (StorageAccount only) / App Configuration Tab (others) -->
       @if (isStorageAccount()) {

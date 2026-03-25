@@ -250,6 +250,7 @@ export class ConfigDetailComponent implements OnInit {
       prefix: env.prefix ?? '',
       suffix: env.suffix ?? '',
       env: env.name,
+      envShort: env.shortName ?? '',
       resourceType,
       resourceAbbr: RESOURCE_TYPE_ABBREVIATIONS[resourceType] ?? resourceType.toLowerCase(),
       location: env.location,
