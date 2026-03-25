@@ -2,8 +2,10 @@ using InfraFlowSculptor.Application.UserAssignedIdentities.Commands.CreateUserAs
 using InfraFlowSculptor.Application.UserAssignedIdentities.Commands.DeleteUserAssignedIdentity;
 using InfraFlowSculptor.Application.UserAssignedIdentities.Commands.UpdateUserAssignedIdentity;
 using InfraFlowSculptor.Application.UserAssignedIdentities.Queries.GetUserAssignedIdentity;
+using InfraFlowSculptor.Application.RoleAssignments.Queries.ListRoleAssignmentsByIdentity;
 using InfraFlowSculptor.Contracts.UserAssignedIdentities.Requests;
 using InfraFlowSculptor.Contracts.UserAssignedIdentities.Responses;
+using InfraFlowSculptor.Contracts.RoleAssignments.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using MediatR;
 using MapsterMapper;
@@ -115,6 +117,30 @@ public static class UserAssignedIdentityController
                 .WithSummary("Delete a User Assigned Identity")
                 .WithDescription("Permanently deletes a user-assigned managed identity resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{id:guid}/granted-role-assignments",
+                    async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListRoleAssignmentsByIdentityQuery(new AzureResourceId(id));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            assignments =>
+                            {
+                                var response = assignments
+                                    .Select(a => mapper.Map<IdentityRoleAssignmentResponse>(a))
+                                    .ToList();
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListGrantedRoleAssignments")
+                .WithSummary("List role assignments granted through this identity")
+                .WithDescription("Returns all RBAC role assignments across all resources that use this User-Assigned Identity. Requires read access.")
+                .Produces<List<IdentityRoleAssignmentResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });

@@ -747,7 +747,9 @@
     "ACTIONS": {
       "BACK": "Retour \u00e0 la configuration",
       "SAVE": "Enregistrer",
-      "SAVING": "Enregistrement..."
+      "SAVING": "Enregistrement...",
+      "UNSAVED_CHANGES": "Vous avez des modifications non enregistr\u00e9es",
+      "DISCARD": "Annuler"
     },
     "FEEDBACK": {
       "SAVE_SUCCESS": "Modifications enregistr\u00e9es avec succ\u00e8s."
@@ -759,7 +761,9 @@
       "APP_CONFIG": "Configuration App",
       "APP_SETTINGS": "Variables d'env.",
       "COMING_SOON": "Bient\u00f4t",
-      "STORAGE_SERVICES": "Services de stockage"
+      "STORAGE_SERVICES": "Services de stockage",
+      "GRANTED_RIGHTS": "Droits accord\u00e9s",
+      "USED_BY": "Utilis\u00e9e par"
     },
     "GENERAL": {
       "IDENTITY": "Identit\u00e9",
@@ -861,7 +865,28 @@
       "REMOVE_YES": "Supprimer",
       "REMOVE_CANCEL": "Annuler",
       "REMOVE_ERROR": "Impossible de supprimer l\u2019assignation de r\u00f4le. Veuillez r\u00e9essayer.",
-      "LOAD_ERROR": "Impossible de charger les assignations de r\u00f4les."
+      "LOAD_ERROR": "Impossible de charger les assignations de r\u00f4les.",
+      "SWITCH_IDENTITY": "Changer d\u2019identit\u00e9",
+      "SWITCH_TO_SYSTEM": "Passer en System Assigned",
+      "ASSIGN_USER_IDENTITY": "Assigner une identit\u00e9 User Assigned",
+      "UPDATE_IDENTITY_ERROR": "Impossible de mettre \u00e0 jour l\u2019identit\u00e9 manag\u00e9e. Veuillez r\u00e9essayer."
+    },
+    "GRANTED_RIGHTS": {
+      "DESCRIPTION": "Liste des r\u00f4les attribu\u00e9s via cette identit\u00e9 manag\u00e9e User Assigned. Chaque entr\u00e9e montre quelle ressource source acc\u00e8de \u00e0 quelle ressource cible, et avec quel r\u00f4le.",
+      "LOADING": "Chargement des droits accord\u00e9s\u2026",
+      "EMPTY": "Aucune ressource n\u2019utilise cette identit\u00e9 pour le moment.",
+      "LOAD_ERROR": "Impossible de charger les droits accord\u00e9s. Veuillez r\u00e9essayer."
+    },
+    "USED_BY": {
+      "DESCRIPTION": "Ressources qui utilisent cette identit\u00e9 manag\u00e9e pour acc\u00e9der \u00e0 d\u2019autres ressources. Vous pouvez d\u00e9lier une assignation de r\u00f4le depuis cet \u00e9cran.",
+      "LOADING": "Chargement des ressources utilisant cette identit\u00e9\u2026",
+      "EMPTY": "Aucune ressource n\u2019utilise cette identit\u00e9 pour le moment.",
+      "UNLINK": "D\u00e9lier",
+      "UNLINK_TITLE": "D\u00e9lier l\u2019assignation de r\u00f4le",
+      "UNLINK_MESSAGE": "Supprimer le r\u00f4le \u00ab {{role}} \u00bb utilis\u00e9 par \u00ab {{source}} \u00bb sur \u00ab {{target}} \u00bb ? Cette action est irr\u00e9versible.",
+      "UNLINK_YES": "D\u00e9lier",
+      "UNLINK_CANCEL": "Annuler",
+      "UNLINK_ERROR": "Impossible de d\u00e9lier l\u2019assignation. Veuillez r\u00e9essayer."
     },
     "APP_SETTINGS": {
       "DESCRIPTION": "Configurez les variables d'environnement pour cette ressource de calcul. R\u00e9f\u00e9rencez les sorties d'autres ressources ou d\u00e9finissez des valeurs statiques.",

@@ -278,6 +278,7 @@ export class ConfigDetailComponent implements OnInit {
       ]);
       this.config.set(config);
       this.resourceGroups.set(resourceGroups);
+      await this.openDefaultResourceGroup(resourceGroups);
       this.recentlyViewedService.trackView({
         id: config.id,
         name: config.name,
@@ -368,6 +369,17 @@ export class ConfigDetailComponent implements OnInit {
     } finally {
       this.rgResourcesLoading.set(null);
     }
+  }
+
+  private async openDefaultResourceGroup(resourceGroups: ResourceGroupResponse[]): Promise<void> {
+    if (resourceGroups.length === 0) {
+      this.expandedRgId.set(null);
+      return;
+    }
+
+    const defaultResourceGroup = resourceGroups[0];
+    this.expandedRgId.set(defaultResourceGroup.id);
+    await this.loadRgResources(defaultResourceGroup.id);
   }
 
   /**

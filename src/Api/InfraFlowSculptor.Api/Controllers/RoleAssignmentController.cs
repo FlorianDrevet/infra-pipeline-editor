@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.RoleAssignments.Commands.AddRoleAssignment;
 using InfraFlowSculptor.Application.RoleAssignments.Commands.RemoveRoleAssignment;
+using InfraFlowSculptor.Application.RoleAssignments.Commands.UpdateRoleAssignmentIdentity;
 using InfraFlowSculptor.Application.RoleAssignments.Queries.ListAvailableRoleDefinitions;
 using InfraFlowSculptor.Application.RoleAssignments.Queries.ListRoleAssignments;
 using InfraFlowSculptor.Contracts.RoleAssignments.Requests;
@@ -132,6 +133,34 @@ public static class RoleAssignmentController
                         "Deletes the specified role assignment from the source resource. " +
                         "The caller must have write access (Owner or Contributor) on the infrastructure configuration " +
                         "that owns the resource. Returns 204 No Content on success.";
+                    return Task.CompletedTask;
+                });
+
+            group.MapPut("/{roleAssignmentId:guid}/identity",
+                    async ([FromRoute] Guid resourceId, [FromRoute] Guid roleAssignmentId,
+                        [FromBody] UpdateRoleAssignmentIdentityRequest request,
+                        IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = mapper.Map<UpdateRoleAssignmentIdentityCommand>(
+                            (resourceId, roleAssignmentId, request));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            assignment =>
+                            {
+                                var response = mapper.Map<RoleAssignmentResponse>(assignment);
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("UpdateRoleAssignmentIdentity")
+                .AddOpenApiOperationTransformer((operation, context, ct) =>
+                {
+                    operation.Summary = "Update the managed identity on a role assignment";
+                    operation.Description =
+                        "Changes the managed identity type (SystemAssigned or UserAssigned) and optional User-Assigned Identity " +
+                        "on an existing role assignment. The caller must have write access (Owner or Contributor) on the infrastructure configuration.";
                     return Task.CompletedTask;
                 });
         });

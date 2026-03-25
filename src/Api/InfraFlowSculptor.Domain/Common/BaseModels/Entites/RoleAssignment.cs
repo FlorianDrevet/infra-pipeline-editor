@@ -55,4 +55,13 @@ public sealed class RoleAssignment : Entity<RoleAssignmentId>
         string roleDefinitionId,
         AzureResourceId? userAssignedIdentityId = null)
         => new(sourceResourceId, targetResourceId, managedIdentityType, roleDefinitionId, userAssignedIdentityId);
+
+    /// <summary>Updates the managed identity type and optional User-Assigned Identity for this role assignment.</summary>
+    /// <param name="managedIdentityType">New managed identity type.</param>
+    /// <param name="userAssignedIdentityId">New User-Assigned Identity resource ID, or <c>null</c> for system-assigned.</param>
+    internal void UpdateIdentity(ManagedIdentityType managedIdentityType, AzureResourceId? userAssignedIdentityId)
+    {
+        ManagedIdentityType = managedIdentityType;
+        UserAssignedIdentityId = userAssignedIdentityId;
+    }
 }

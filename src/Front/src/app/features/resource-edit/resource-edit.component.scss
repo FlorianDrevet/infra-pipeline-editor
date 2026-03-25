@@ -115,35 +115,6 @@
   }
 }
 
-.save-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
-  border-radius: 999px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  border: 1.5px solid rgba(0, 230, 118, 0.6);
-  background: linear-gradient(135deg, rgba(0, 230, 118, 0.32), rgba(0, 188, 212, 0.32));
-  color: #e0ffe8;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-  white-space: nowrap;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-
-  &:hover:not(:disabled) {
-    background: linear-gradient(135deg, rgba(0, 230, 118, 0.45), rgba(0, 188, 212, 0.45));
-    border-color: rgba(0, 230, 118, 0.85);
-    box-shadow: 0 0 24px rgba(0, 230, 118, 0.25);
-  }
-
-  &:disabled { opacity: 0.7; cursor: not-allowed; }
-
-  &__icon { font-size: 1.15rem; width: 1.15rem; height: 1.15rem; }
-
-  &__spinner ::ng-deep circle { stroke: #b9f6ca !important; }
-}
-
 .delete-btn {
   display: inline-flex;
   align-items: center;
@@ -763,6 +734,66 @@
       height: 1.05rem;
     }
   }
+
+  &__identity-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(103, 58, 183, 0.08);
+    border: 1px solid rgba(103, 58, 183, 0.18);
+    color: #4527a0;
+
+    mat-icon {
+      font-size: 0.85rem;
+      width: 0.85rem;
+      height: 0.85rem;
+    }
+  }
+
+  &__action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    mat-icon {
+      font-size: 1.05rem;
+      width: 1.05rem;
+      height: 1.05rem;
+    }
+
+    &--switch {
+      color: #1565c0;
+
+      &:hover { background: rgba(21, 101, 192, 0.08); }
+    }
+
+    &--assign {
+      color: #2e7d32;
+
+      &:hover { background: rgba(46, 125, 50, 0.08); }
+    }
+  }
+}
+
+.ra-identity-menu {
+  &__current {
+    margin-left: auto;
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+    color: #1565c0;
+  }
 }
 
 // ─── App Settings ────
@@ -989,6 +1020,113 @@
   }
 }
 
+// ─── Floating Save Bar ────
+
+.save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 1.2rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(241, 247, 255, 0.96));
+  border: 1.5px solid rgba(21, 101, 192, 0.22);
+  box-shadow: 0 8px 32px rgba(16, 52, 86, 0.1), 0 0 0 1px rgba(21, 101, 192, 0.05);
+  backdrop-filter: blur(8px);
+  animation: saveBarSlideUp 0.3s ease-out;
+  position: sticky;
+  bottom: 1rem;
+  z-index: 10;
+
+  &__info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #1565c0;
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+
+  &__icon {
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__discard {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1.5px solid rgba(96, 125, 139, 0.25);
+    background: transparent;
+    color: #546e7a;
+    cursor: pointer;
+    transition: all 0.18s ease;
+
+    &:hover {
+      border-color: rgba(96, 125, 139, 0.4);
+      background: rgba(96, 125, 139, 0.06);
+      color: #37474f;
+    }
+  }
+
+  &__save {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.15rem;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    border: none;
+    background: linear-gradient(135deg, #1565c0, #0288d1);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 12px rgba(21, 101, 192, 0.25);
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0d47a1, #0277bd);
+      box-shadow: 0 4px 20px rgba(21, 101, 192, 0.35);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__save-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  &__spinner ::ng-deep circle {
+    stroke: #fff !important;
+  }
+}
+
+@keyframes saveBarSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 // ─── Responsive ────
 
 @media (max-width: 768px) {
@@ -1015,5 +1153,12 @@
   .env-pill {
     font-size: 0.78rem;
     padding: 0.4rem 0.85rem;
+  }
+
+  .save-bar {
+    flex-direction: column;
+    gap: 0.65rem;
+    text-align: center;
+    bottom: 0.5rem;
   }
 }

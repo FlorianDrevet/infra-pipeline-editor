@@ -1,6 +1,7 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,6 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 import { TranslateModule } from '@ngx-translate/core';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { KeyVaultService } from '../../shared/services/key-vault.service';
@@ -49,7 +51,7 @@ import { ServiceBusNamespaceService } from '../../shared/services/service-bus-na
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
-import { RoleAssignmentResponse, AzureRoleDefinitionResponse } from '../../shared/interfaces/role-assignment.interface';
+import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse } from '../../shared/interfaces/role-assignment.interface';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
 import { LOCATION_OPTIONS } from '../../shared/enums/location.enum';
@@ -242,11 +244,12 @@ const COSMOS_BACKUP_POLICY_OPTIONS = [
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
+    MatMenuModule,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
 })
-export class ResourceEditComponent implements OnInit {
+export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
@@ -285,6 +288,8 @@ export class ResourceEditComponent implements OnInit {
   protected readonly isSaving = signal(false);
   protected readonly loadError = signal('');
   protected readonly saveError = signal('');
+  protected readonly formsDirty = signal(false);
+  private formSubscriptions: Subscription[] = [];
   protected readonly saveSuccess = signal(false);
 
   // ─── Storage Services ───
@@ -296,6 +301,7 @@ export class ResourceEditComponent implements OnInit {
   protected readonly showTableAddForm = signal(false);
 
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
+  protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
 
   protected readonly storageBlobContainers = computed<BlobContainerResponse[]>(() => {
     const res = this.resource();
@@ -321,6 +327,35 @@ export class ResourceEditComponent implements OnInit {
   protected readonly roleAssignmentsError = signal('');
   protected readonly allResources = signal<AzureResourceResponse[]>([]);
   protected readonly availableRoleDefs = signal<AzureRoleDefinitionResponse[]>([]);
+
+  protected readonly availableUserAssignedIdentities = computed(() =>
+    this.allResources().filter(r => r.resourceType === 'UserAssignedIdentity')
+  );
+
+  // ─── Identity Granted Role Assignments (UAI only) ───
+  protected readonly identityRoleAssignments = signal<IdentityRoleAssignmentResponse[]>([]);
+  protected readonly identityRoleAssignmentsLoading = signal(false);
+  protected readonly identityRoleAssignmentsError = signal('');
+
+  /** Resources that use this UAI, grouped by source resource */
+  protected readonly usedByResources = computed(() => {
+    const assignments = this.identityRoleAssignments();
+    const grouped = new Map<string, { sourceResourceId: string; sourceResourceName: string; sourceResourceType: string; assignments: IdentityRoleAssignmentResponse[] }>();
+    for (const ra of assignments) {
+      const existing = grouped.get(ra.sourceResourceId);
+      if (existing) {
+        existing.assignments.push(ra);
+      } else {
+        grouped.set(ra.sourceResourceId, {
+          sourceResourceId: ra.sourceResourceId,
+          sourceResourceName: ra.sourceResourceName,
+          sourceResourceType: ra.sourceResourceType,
+          assignments: [ra],
+        });
+      }
+    }
+    return [...grouped.values()];
+  });
 
   // ─── App Settings ───
   protected readonly appSettings = signal<AppSettingResponse[]>([]);
@@ -393,6 +428,15 @@ export class ResourceEditComponent implements OnInit {
   // ─── Main tab index (for programmatic selection) ───
   protected readonly mainTabIndex = signal(0);
 
+  // ─── Save bar visibility (only on General/Environments tabs when dirty) ───
+  protected readonly showSaveBar = computed(() => {
+    const tabIndex = this.mainTabIndex();
+    const isOnSaveableTab = this.isUserAssignedIdentity()
+      ? tabIndex === 0
+      : tabIndex === 0 || tabIndex === 1;
+    return this.formsDirty() && isOnSaveableTab && this.canWrite();
+  });
+
   async ngOnInit(): Promise<void> {
     this.configId = this.route.snapshot.paramMap.get('configId') ?? '';
     this.resourceType = this.route.snapshot.paramMap.get('resourceType') ?? '';
@@ -442,12 +486,16 @@ export class ResourceEditComponent implements OnInit {
 
       this.buildGeneralForm(resource);
       this.buildEnvForms(resource);
+      this.watchFormChanges();
 
       // Load role assignments and sibling resources in background (non-blocking)
       this.loadRoleAssignments();
       this.loadAllResources();
       if (this.supportsAppSettings()) {
         this.loadAppSettings();
+      }
+      if (this.isUserAssignedIdentity()) {
+        this.loadIdentityRoleAssignments();
       }
     } catch {
       this.loadError.set('RESOURCE_EDIT.ERROR.LOAD_FAILED');
@@ -814,6 +862,7 @@ export class ResourceEditComponent implements OnInit {
       this.resource.set(updated);
       this.buildGeneralForm(updated);
       this.buildEnvForms(updated);
+      this.watchFormChanges();
       this.saveSuccess.set(true);
       setTimeout(() => this.saveSuccess.set(false), 4000);
     } catch {
@@ -821,6 +870,33 @@ export class ResourceEditComponent implements OnInit {
     } finally {
       this.isSaving.set(false);
     }
+  }
+
+  private watchFormChanges(): void {
+    this.formSubscriptions.forEach(s => s.unsubscribe());
+    this.formSubscriptions = [];
+    this.formsDirty.set(false);
+
+    this.formSubscriptions.push(
+      this.generalForm.valueChanges.subscribe(() => this.formsDirty.set(true))
+    );
+    for (const ef of this.envForms()) {
+      this.formSubscriptions.push(
+        ef.form.valueChanges.subscribe(() => this.formsDirty.set(true))
+      );
+    }
+  }
+
+  protected discardChanges(): void {
+    const res = this.resource();
+    if (!res) return;
+    this.buildGeneralForm(res);
+    this.buildEnvForms(res);
+    this.watchFormChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.formSubscriptions.forEach(s => s.unsubscribe());
   }
 
   protected openDeleteDialog(): void {
@@ -962,6 +1038,43 @@ export class ResourceEditComponent implements OnInit {
     return def?.documentationUrl ?? '';
   }
 
+  protected resolveIdentityName(identityId: string): string {
+    const res = this.allResources().find(r => r.id === identityId);
+    return res?.name ?? identityId;
+  }
+
+  protected async switchToSystemAssigned(assignment: RoleAssignmentResponse): Promise<void> {
+    this.roleAssignmentsError.set('');
+    try {
+      const updated = await this.roleAssignmentService.updateIdentity(
+        this.resourceId,
+        assignment.id,
+        { managedIdentityType: 'SystemAssigned' }
+      );
+      this.roleAssignments.update(list =>
+        list.map(ra => ra.id === updated.id ? updated : ra)
+      );
+    } catch {
+      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UPDATE_IDENTITY_ERROR');
+    }
+  }
+
+  protected async switchToUserAssignedIdentity(assignment: RoleAssignmentResponse, identityId: string): Promise<void> {
+    this.roleAssignmentsError.set('');
+    try {
+      const updated = await this.roleAssignmentService.updateIdentity(
+        this.resourceId,
+        assignment.id,
+        { managedIdentityType: 'UserAssigned', userAssignedIdentityId: identityId }
+      );
+      this.roleAssignments.update(list =>
+        list.map(ra => ra.id === updated.id ? updated : ra)
+      );
+    } catch {
+      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UPDATE_IDENTITY_ERROR');
+    }
+  }
+
   protected openAddRoleAssignmentDialog(): void {
     const dialogRef = this.dialog.open(AddRoleAssignmentDialogComponent, {
       data: {
@@ -1012,6 +1125,49 @@ export class ResourceEditComponent implements OnInit {
       this.roleAssignments.update(list => list.filter(ra => ra.id !== roleAssignmentId));
     } catch {
       this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_ERROR');
+    }
+  }
+
+  // ─── Identity Granted Role Assignments (UAI) ───
+
+  private async loadIdentityRoleAssignments(): Promise<void> {
+    this.identityRoleAssignmentsLoading.set(true);
+    this.identityRoleAssignmentsError.set('');
+    try {
+      const assignments = await this.userAssignedIdentityService.getGrantedRoleAssignments(this.resourceId);
+      this.identityRoleAssignments.set(assignments);
+    } catch {
+      this.identityRoleAssignmentsError.set('RESOURCE_EDIT.GRANTED_RIGHTS.LOAD_ERROR');
+    } finally {
+      this.identityRoleAssignmentsLoading.set(false);
+    }
+  }
+
+  protected openUnlinkRoleAssignmentDialog(assignment: IdentityRoleAssignmentResponse): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.USED_BY.UNLINK_TITLE',
+        messageKey: 'RESOURCE_EDIT.USED_BY.UNLINK_MESSAGE',
+        messageParams: { role: assignment.roleName, source: assignment.sourceResourceName, target: assignment.targetResourceName },
+        confirmKey: 'RESOURCE_EDIT.USED_BY.UNLINK_YES',
+        cancelKey: 'RESOURCE_EDIT.USED_BY.UNLINK_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      await this.unlinkIdentityRoleAssignment(assignment);
+    });
+  }
+
+  private async unlinkIdentityRoleAssignment(assignment: IdentityRoleAssignmentResponse): Promise<void> {
+    this.identityRoleAssignmentsError.set('');
+    try {
+      await this.roleAssignmentService.remove(assignment.sourceResourceId, assignment.id);
+      this.identityRoleAssignments.update(list => list.filter(ra => ra.id !== assignment.id));
+    } catch {
+      this.identityRoleAssignmentsError.set('RESOURCE_EDIT.USED_BY.UNLINK_ERROR');
     }
   }
 

@@ -85,6 +85,21 @@ public class AzureResource : AggregateRoot<AzureResourceId>
             _roleAssignments.Remove(assignment);
     }
 
+    /// <summary>Updates the managed identity on an existing role assignment.</summary>
+    /// <param name="roleAssignmentId">Identifier of the role assignment to update.</param>
+    /// <param name="managedIdentityType">New managed identity type.</param>
+    /// <param name="userAssignedIdentityId">New User-Assigned Identity resource ID, or <c>null</c> for system-assigned.</param>
+    /// <returns>The updated <see cref="RoleAssignment"/>, or <c>null</c> if not found.</returns>
+    public RoleAssignment? UpdateRoleAssignmentIdentity(
+        RoleAssignmentId roleAssignmentId,
+        ManagedIdentityType managedIdentityType,
+        AzureResourceId? userAssignedIdentityId)
+    {
+        var assignment = _roleAssignments.FirstOrDefault(r => r.Id == roleAssignmentId);
+        assignment?.UpdateIdentity(managedIdentityType, userAssignedIdentityId);
+        return assignment;
+    }
+
     /// <summary>Adds a static-value app setting to this resource.</summary>
     /// <param name="name">The environment variable name.</param>
     /// <param name="value">The static value.</param>

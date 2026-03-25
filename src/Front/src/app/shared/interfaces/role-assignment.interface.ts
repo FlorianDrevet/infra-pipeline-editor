@@ -24,3 +24,20 @@ export interface AddRoleAssignmentRequest {
   roleDefinitionId: string;
   userAssignedIdentityId?: string;
 }
+
+export interface UpdateRoleAssignmentIdentityRequest {
+  managedIdentityType: string;
+  userAssignedIdentityId?: string;
+}
+
+export interface IdentityRoleAssignmentResponse {
+  id: string;
+  sourceResourceId: string;
+  sourceResourceName: string;
+  sourceResourceType: string;
+  targetResourceId: string;
+  targetResourceName: string;
+  targetResourceType: string;
+  roleDefinitionId: string;
+  roleName: string;
+}

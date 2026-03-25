@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,5 +46,16 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
     {
         await context.SaveChangesAsync(cancellationToken);
         return resource;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<RoleAssignment>> GetRoleAssignmentsByIdentityIdAsync(
+        AzureResourceId identityId,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.RoleAssignments
+            .AsNoTracking()
+            .Where(r => r.UserAssignedIdentityId == identityId)
+            .ToListAsync(cancellationToken);
     }
 }

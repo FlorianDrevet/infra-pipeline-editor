@@ -8,7 +8,7 @@ namespace InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 /// Stores the configuration needed to push generated Bicep files to a remote Git repository.
 /// Owned by a single <see cref="Project"/> (0..1 relationship).
 /// </summary>
-public sealed partial class GitRepositoryConfiguration : Entity<GitRepositoryConfigurationId>
+public sealed class GitRepositoryConfiguration : Entity<GitRepositoryConfigurationId>
 {
     /// <summary>Gets the Git hosting provider type.</summary>
     public GitProviderType ProviderType { get; private set; } = null!;
@@ -84,14 +84,14 @@ public sealed partial class GitRepositoryConfiguration : Entity<GitRepositoryCon
         if (providerType.Value == GitProviderTypeEnum.GitHub)
         {
             // Expected: https://github.com/{owner}/{repo}
-            var match = GitHubUrlRegex().Match(url);
+            var match = GitHubUrlRegexInstance.Match(url);
             if (match.Success)
                 return (match.Groups["owner"].Value, match.Groups["repo"].Value);
         }
         else
         {
             // Expected: https://dev.azure.com/{org}/{project}/_git/{repo}
-            var match = AzureDevOpsUrlRegex().Match(url);
+            var match = AzureDevOpsUrlRegexInstance.Match(url);
             if (match.Success)
                 return ($"{match.Groups["org"].Value}/{match.Groups["project"].Value}", match.Groups["repo"].Value);
         }
@@ -111,9 +111,9 @@ public sealed partial class GitRepositoryConfiguration : Entity<GitRepositoryCon
         return basePath.Trim('/');
     }
 
-    [GeneratedRegex(@"github\.com/(?<owner>[^/]+)/(?<repo>[^/]+)", RegexOptions.IgnoreCase)]
-    private static partial Regex GitHubUrlRegex();
+    private static readonly Regex GitHubUrlRegexInstance =
+        new(@"github\.com/(?<owner>[^/]+)/(?<repo>[^/]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    [GeneratedRegex(@"dev\.azure\.com/(?<org>[^/]+)/(?<project>[^/]+)/_git/(?<repo>[^/]+)", RegexOptions.IgnoreCase)]
-    private static partial Regex AzureDevOpsUrlRegex();
+    private static readonly Regex AzureDevOpsUrlRegexInstance =
+        new(@"dev\.azure\.com/(?<org>[^/]+)/(?<project>[^/]+)/_git/(?<repo>[^/]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 }

@@ -5,6 +5,7 @@ import {
   RoleAssignmentResponse,
   AzureRoleDefinitionResponse,
   AddRoleAssignmentRequest,
+  UpdateRoleAssignmentIdentityRequest,
 } from '../interfaces/role-assignment.interface';
 
 @Injectable({
@@ -44,6 +45,18 @@ export class RoleAssignmentService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/azure-resources/${resourceId}/role-assignments/${roleAssignmentId}`
+    );
+  }
+
+  updateIdentity(
+    resourceId: string,
+    roleAssignmentId: string,
+    request: UpdateRoleAssignmentIdentityRequest
+  ): Promise<RoleAssignmentResponse> {
+    return this.axios.request$<RoleAssignmentResponse>(
+      MethodEnum.PUT,
+      `/azure-resources/${resourceId}/role-assignments/${roleAssignmentId}/identity`,
+      request
     );
   }
 }

@@ -22,19 +22,6 @@
           {{ 'RESOURCE_EDIT.ACTIONS.BACK' | translate }}
         </a>
         <div class="resource-header__actions">
-          @if (canWrite()) {
-            <button
-              class="save-btn"
-              (click)="onSave()"
-              [disabled]="isSaving() || generalForm.invalid">
-              @if (isSaving()) {
-                <mat-spinner diameter="18" class="save-btn__spinner"></mat-spinner>
-              } @else {
-                <mat-icon class="save-btn__icon">save</mat-icon>
-              }
-              {{ (isSaving() ? 'RESOURCE_EDIT.ACTIONS.SAVING' : 'RESOURCE_EDIT.ACTIONS.SAVE') | translate }}
-            </button>
-          }
           @if (isOwner()) {
             <button class="delete-btn" (click)="openDeleteDialog()" [disabled]="isSaving()">
               <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
@@ -174,7 +161,8 @@
         </div>
       </mat-tab>
 
-      <!-- Environment Configuration Tab -->
+      <!-- Environment Configuration Tab (hidden for UserAssignedIdentity) -->
+      @if (!isUserAssignedIdentity()) {
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">cloud_queue</mat-icon>
@@ -680,6 +668,7 @@
           }
         </div>
       </mat-tab>
+      }
 
       <!-- Identity & Access Tab -->
       <mat-tab>
@@ -749,6 +738,12 @@
                         <mat-icon>{{ ra.managedIdentityType === 'SystemAssigned' ? 'fingerprint' : 'person' }}</mat-icon>
                         {{ (ra.managedIdentityType === 'SystemAssigned' ? 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED' : 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.USER_ASSIGNED') | translate }}
                       </span>
+                      @if (ra.managedIdentityType === 'UserAssigned' && ra.userAssignedIdentityId) {
+                        <span class="ra-card__identity-name">
+                          <mat-icon>badge</mat-icon>
+                          {{ resolveIdentityName(ra.userAssignedIdentityId) }}
+                        </span>
+                      }
                     </div>
                   </div>
                   <div class="ra-card__actions">
@@ -763,6 +758,48 @@
                       </a>
                     }
                     @if (canWrite()) {
+                      @if (ra.managedIdentityType === 'UserAssigned') {
+                        <button
+                          class="ra-card__action-btn ra-card__action-btn--switch"
+                          [matMenuTriggerFor]="identityMenu"
+                          [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_IDENTITY' | translate">
+                          <mat-icon>swap_horiz</mat-icon>
+                        </button>
+                        <mat-menu #identityMenu="matMenu" class="ra-identity-menu">
+                          <button mat-menu-item (click)="switchToSystemAssigned(ra)">
+                            <mat-icon>fingerprint</mat-icon>
+                            <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_TO_SYSTEM' | translate }}</span>
+                          </button>
+                          @for (identity of availableUserAssignedIdentities(); track identity.id) {
+                            <button mat-menu-item
+                              [disabled]="identity.id === ra.userAssignedIdentityId"
+                              (click)="switchToUserAssignedIdentity(ra, identity.id)">
+                              <mat-icon>person</mat-icon>
+                              <span>{{ identity.name }}</span>
+                              @if (identity.id === ra.userAssignedIdentityId) {
+                                <mat-icon class="ra-identity-menu__current">check</mat-icon>
+                              }
+                            </button>
+                          }
+                        </mat-menu>
+                      } @else {
+                        @if (availableUserAssignedIdentities().length > 0) {
+                          <button
+                            class="ra-card__action-btn ra-card__action-btn--assign"
+                            [matMenuTriggerFor]="assignIdentityMenu"
+                            [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_USER_IDENTITY' | translate">
+                            <mat-icon>person_add</mat-icon>
+                          </button>
+                          <mat-menu #assignIdentityMenu="matMenu" class="ra-identity-menu">
+                            @for (identity of availableUserAssignedIdentities(); track identity.id) {
+                              <button mat-menu-item (click)="switchToUserAssignedIdentity(ra, identity.id)">
+                                <mat-icon>person</mat-icon>
+                                <span>{{ identity.name }}</span>
+                              </button>
+                            }
+                          </mat-menu>
+                        }
+                      }
                       <button
                         class="ra-card__remove-btn"
                         (click)="openRemoveRoleAssignmentDialog(ra)"
@@ -1124,6 +1161,142 @@
             }
           </div>
         </mat-tab>
+      } @else if (isUserAssignedIdentity()) {
+        <!-- Granted Rights Tab (UserAssignedIdentity only) -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">verified_user</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.GRANTED_RIGHTS' | translate }}</span>
+            @if (identityRoleAssignments().length > 0) {
+              <span class="tab-count">{{ identityRoleAssignments().length }}</span>
+            }
+          </ng-template>
+          <div class="tab-content">
+            <div class="env-description">
+              <mat-icon class="env-description__icon">verified_user</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.DESCRIPTION' | translate }}</p>
+            </div>
+
+            @if (identityRoleAssignmentsError()) {
+              <div class="feedback-banner feedback-banner--error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                {{ identityRoleAssignmentsError() | translate }}
+              </div>
+            }
+
+            @if (identityRoleAssignmentsLoading()) {
+              <div class="ra-loading">
+                <mat-spinner diameter="28"></mat-spinner>
+                <span>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.LOADING' | translate }}</span>
+              </div>
+            } @else if (identityRoleAssignments().length === 0) {
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">verified_user</mat-icon>
+                <p>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.EMPTY' | translate }}</p>
+              </div>
+            } @else {
+              <div class="ra-list">
+                @for (ra of identityRoleAssignments(); track ra.id) {
+                  <div class="ra-card">
+                    <div class="ra-card__main">
+                      <div class="ra-card__target">
+                        <mat-icon class="ra-card__target-icon">{{ resourceTypeIcons[ra.sourceResourceType] || 'widgets' }}</mat-icon>
+                        <div class="ra-card__target-info">
+                          <span class="ra-card__target-name">{{ ra.sourceResourceName }}</span>
+                          <span class="ra-card__target-type">{{ ra.sourceResourceType }}</span>
+                        </div>
+                      </div>
+                      <div class="ra-card__details">
+                        <span class="ra-card__role-badge">
+                          <mat-icon>shield</mat-icon>
+                          {{ ra.roleName }}
+                        </span>
+                        <mat-icon class="ra-card__arrow-icon">arrow_forward</mat-icon>
+                        <span class="ra-card__target-badge">
+                          <mat-icon>{{ resourceTypeIcons[ra.targetResourceType] || 'widgets' }}</mat-icon>
+                          {{ ra.targetResourceName }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
+
+        <!-- Used By Tab (UserAssignedIdentity only) -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">device_hub</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.USED_BY' | translate }}</span>
+            @if (usedByResources().length > 0) {
+              <span class="tab-count">{{ usedByResources().length }}</span>
+            }
+          </ng-template>
+          <div class="tab-content">
+            <div class="env-description">
+              <mat-icon class="env-description__icon">device_hub</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.USED_BY.DESCRIPTION' | translate }}</p>
+            </div>
+
+            @if (identityRoleAssignmentsError()) {
+              <div class="feedback-banner feedback-banner--error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                {{ identityRoleAssignmentsError() | translate }}
+              </div>
+            }
+
+            @if (identityRoleAssignmentsLoading()) {
+              <div class="ra-loading">
+                <mat-spinner diameter="28"></mat-spinner>
+                <span>{{ 'RESOURCE_EDIT.USED_BY.LOADING' | translate }}</span>
+              </div>
+            } @else if (usedByResources().length === 0) {
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">device_hub</mat-icon>
+                <p>{{ 'RESOURCE_EDIT.USED_BY.EMPTY' | translate }}</p>
+              </div>
+            } @else {
+              <div class="ra-list">
+                @for (group of usedByResources(); track group.sourceResourceId) {
+                  <div class="ra-card">
+                    <div class="ra-card__main">
+                      <div class="ra-card__target">
+                        <mat-icon class="ra-card__target-icon">{{ resourceTypeIcons[group.sourceResourceType] || 'widgets' }}</mat-icon>
+                        <div class="ra-card__target-info">
+                          <span class="ra-card__target-name">{{ group.sourceResourceName }}</span>
+                          <span class="ra-card__target-type">{{ group.sourceResourceType }}</span>
+                        </div>
+                      </div>
+                      <div class="ra-card__details">
+                        @for (ra of group.assignments; track ra.id) {
+                          <span class="ra-card__role-badge">
+                            <mat-icon>shield</mat-icon>
+                            {{ ra.roleName }}
+                          </span>
+                          <mat-icon class="ra-card__arrow-icon">arrow_forward</mat-icon>
+                          <span class="ra-card__target-badge">
+                            <mat-icon>{{ resourceTypeIcons[ra.targetResourceType] || 'widgets' }}</mat-icon>
+                            {{ ra.targetResourceName }}
+                          </span>
+                          @if (canWrite()) {
+                            <button
+                              class="ra-card__remove-btn"
+                              (click)="openUnlinkRoleAssignmentDialog(ra)"
+                              [matTooltip]="'RESOURCE_EDIT.USED_BY.UNLINK' | translate">
+                              <mat-icon>link_off</mat-icon>
+                            </button>
+                          }
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
       } @else {
         <!-- App Configuration Tab (placeholder for non-compute resources) -->
         <mat-tab [disabled]="true">
@@ -1147,5 +1320,31 @@
         </mat-tab>
       }
     </mat-tab-group>
+
+    <!-- ─── Floating Save Bar ─── -->
+    @if (showSaveBar()) {
+      <div class="save-bar">
+        <div class="save-bar__info">
+          <mat-icon class="save-bar__icon">edit_note</mat-icon>
+          <span>{{ 'RESOURCE_EDIT.ACTIONS.UNSAVED_CHANGES' | translate }}</span>
+        </div>
+        <div class="save-bar__actions">
+          <button class="save-bar__discard" (click)="discardChanges()">
+            {{ 'RESOURCE_EDIT.ACTIONS.DISCARD' | translate }}
+          </button>
+          <button
+            class="save-bar__save"
+            (click)="onSave()"
+            [disabled]="isSaving() || generalForm.invalid">
+            @if (isSaving()) {
+              <mat-spinner diameter="16" class="save-bar__spinner"></mat-spinner>
+            } @else {
+              <mat-icon class="save-bar__save-icon">save</mat-icon>
+            }
+            {{ (isSaving() ? 'RESOURCE_EDIT.ACTIONS.SAVING' : 'RESOURCE_EDIT.ACTIONS.SAVE') | translate }}
+          </button>
+        </div>
+      </div>
+    }
   }
 </div>
