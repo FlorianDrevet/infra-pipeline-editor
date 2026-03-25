@@ -1197,29 +1197,18 @@
                 <p>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.EMPTY' | translate }}</p>
               </div>
             } @else {
-              <div class="ra-list">
+              <div class="uai-rights-list">
                 @for (ra of identityRoleAssignments(); track ra.id) {
-                  <div class="ra-card">
-                    <div class="ra-card__main">
-                      <div class="ra-card__target">
-                        <mat-icon class="ra-card__target-icon">{{ resourceTypeIcons[ra.sourceResourceType] || 'widgets' }}</mat-icon>
-                        <div class="ra-card__target-info">
-                          <span class="ra-card__target-name">{{ ra.sourceResourceName }}</span>
-                          <span class="ra-card__target-type">{{ ra.sourceResourceType }}</span>
-                        </div>
-                      </div>
-                      <div class="ra-card__details">
-                        <span class="ra-card__role-badge">
-                          <mat-icon>shield</mat-icon>
-                          {{ ra.roleName }}
-                        </span>
-                        <mat-icon class="ra-card__arrow-icon">arrow_forward</mat-icon>
-                        <span class="ra-card__target-badge">
-                          <mat-icon>{{ resourceTypeIcons[ra.targetResourceType] || 'widgets' }}</mat-icon>
-                          {{ ra.targetResourceName }}
-                        </span>
-                      </div>
-                    </div>
+                  <div class="uai-right-row">
+                    <span class="uai-right-row__role">
+                      <mat-icon class="uai-right-row__role-icon">shield</mat-icon>
+                      {{ ra.roleName }}
+                    </span>
+                    <mat-icon class="uai-right-row__arrow">east</mat-icon>
+                    <span class="uai-right-row__target">
+                      <mat-icon class="uai-right-row__target-icon">{{ resourceTypeIcons[ra.targetResourceType] || 'widgets' }}</mat-icon>
+                      {{ ra.targetResourceName }}
+                    </span>
                   </div>
                 }
               </div>
@@ -1260,39 +1249,25 @@
                 <p>{{ 'RESOURCE_EDIT.USED_BY.EMPTY' | translate }}</p>
               </div>
             } @else {
-              <div class="ra-list">
+              <div class="uai-used-list">
                 @for (group of usedByResources(); track group.sourceResourceId) {
-                  <div class="ra-card">
-                    <div class="ra-card__main">
-                      <div class="ra-card__target">
-                        <mat-icon class="ra-card__target-icon">{{ resourceTypeIcons[group.sourceResourceType] || 'widgets' }}</mat-icon>
-                        <div class="ra-card__target-info">
-                          <span class="ra-card__target-name">{{ group.sourceResourceName }}</span>
-                          <span class="ra-card__target-type">{{ group.sourceResourceType }}</span>
-                        </div>
-                      </div>
-                      <div class="ra-card__details">
-                        @for (ra of group.assignments; track ra.id) {
-                          <span class="ra-card__role-badge">
-                            <mat-icon>shield</mat-icon>
-                            {{ ra.roleName }}
-                          </span>
-                          <mat-icon class="ra-card__arrow-icon">arrow_forward</mat-icon>
-                          <span class="ra-card__target-badge">
-                            <mat-icon>{{ resourceTypeIcons[ra.targetResourceType] || 'widgets' }}</mat-icon>
-                            {{ ra.targetResourceName }}
-                          </span>
-                          @if (canWrite()) {
-                            <button
-                              class="ra-card__remove-btn"
-                              (click)="openUnlinkRoleAssignmentDialog(ra)"
-                              [matTooltip]="'RESOURCE_EDIT.USED_BY.UNLINK' | translate">
-                              <mat-icon>link_off</mat-icon>
-                            </button>
-                          }
-                        }
+                  <div class="uai-used-row">
+                    <div class="uai-used-row__resource">
+                      <mat-icon class="uai-used-row__icon">{{ resourceTypeIcons[group.sourceResourceType] || 'widgets' }}</mat-icon>
+                      <div class="uai-used-row__info">
+                        <span class="uai-used-row__name">{{ group.sourceResourceName }}</span>
+                        <span class="uai-used-row__type">{{ group.sourceResourceType }}</span>
                       </div>
                     </div>
+                    @if (canWrite()) {
+                      <button
+                        class="uai-used-row__unlink"
+                        (click)="openUnlinkResourceFromIdentityDialog(group)"
+                        [matTooltip]="'RESOURCE_EDIT.USED_BY.UNLINK' | translate">
+                        <mat-icon>link_off</mat-icon>
+                        <span>{{ 'RESOURCE_EDIT.USED_BY.UNLINK' | translate }}</span>
+                      </button>
+                    }
                   </div>
                 }
               </div>

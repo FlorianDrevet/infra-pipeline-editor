@@ -843,6 +843,160 @@
   }
 }
 
+// ─── UAI Granted Rights ────
+
+.uai-rights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.uai-right-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(180deg, #fff, #f8fbff);
+  border: 1px solid rgba(146, 191, 235, 0.18);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: rgba(21, 101, 192, 0.2);
+    box-shadow: 0 2px 10px rgba(21, 101, 192, 0.05);
+  }
+
+  &__role {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1565c0;
+  }
+
+  &__role-icon {
+    font-size: 0.92rem;
+    width: 0.92rem;
+    height: 0.92rem;
+    color: #1565c0;
+  }
+
+  &__arrow {
+    font-size: 0.85rem;
+    width: 0.85rem;
+    height: 0.85rem;
+    color: #b0bec5;
+    flex-shrink: 0;
+  }
+
+  &__target {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #37474f;
+  }
+
+  &__target-icon {
+    font-size: 0.92rem;
+    width: 0.92rem;
+    height: 0.92rem;
+    color: #617892;
+  }
+}
+
+// ─── UAI Used By ────
+
+.uai-used-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.uai-used-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(180deg, #fff, #f8fbff);
+  border: 1px solid rgba(146, 191, 235, 0.18);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: rgba(21, 101, 192, 0.2);
+    box-shadow: 0 2px 10px rgba(21, 101, 192, 0.05);
+  }
+
+  &__resource {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+  }
+
+  &__icon {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: #1565c0;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    min-width: 0;
+  }
+
+  &__name {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #103454;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__type {
+    font-size: 0.7rem;
+    color: #617892;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+  }
+
+  &__unlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(211, 47, 47, 0.2);
+    background: rgba(211, 47, 47, 0.04);
+    color: #c62828;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+
+    &:hover {
+      background: rgba(211, 47, 47, 0.1);
+      border-color: rgba(211, 47, 47, 0.35);
+    }
+
+    mat-icon {
+      font-size: 0.88rem;
+      width: 0.88rem;
+      height: 0.88rem;
+    }
+  }
+}
+
 // ─── App Settings ────
 
 .as-card__name {

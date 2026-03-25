@@ -878,12 +878,14 @@
       "LOAD_ERROR": "Impossible de charger les droits accord\u00e9s. Veuillez r\u00e9essayer."
     },
     "USED_BY": {
-      "DESCRIPTION": "Ressources qui utilisent cette identit\u00e9 manag\u00e9e pour acc\u00e9der \u00e0 d\u2019autres ressources. Vous pouvez d\u00e9lier une assignation de r\u00f4le depuis cet \u00e9cran.",
+      "DESCRIPTION": "Ressources qui utilisent cette identit\u00e9 manag\u00e9e. Vous pouvez d\u00e9lier une ressource pour supprimer toutes ses assignations de r\u00f4le via cette identit\u00e9.",
       "LOADING": "Chargement des ressources utilisant cette identit\u00e9\u2026",
       "EMPTY": "Aucune ressource n\u2019utilise cette identit\u00e9 pour le moment.",
       "UNLINK": "D\u00e9lier",
       "UNLINK_TITLE": "D\u00e9lier l\u2019assignation de r\u00f4le",
       "UNLINK_MESSAGE": "Supprimer le r\u00f4le \u00ab {{role}} \u00bb utilis\u00e9 par \u00ab {{source}} \u00bb sur \u00ab {{target}} \u00bb ? Cette action est irr\u00e9versible.",
+      "UNLINK_RESOURCE_TITLE": "D\u00e9lier la ressource de l\u2019identit\u00e9",
+      "UNLINK_RESOURCE_MESSAGE": "Supprimer toutes les assignations de r\u00f4le de \u00ab {{resource}} \u00bb utilisant cette identit\u00e9 ? Cette action est irr\u00e9versible.",
       "UNLINK_YES": "D\u00e9lier",
       "UNLINK_CANCEL": "Annuler",
       "UNLINK_ERROR": "Impossible de d\u00e9lier l\u2019assignation. Veuillez r\u00e9essayer."

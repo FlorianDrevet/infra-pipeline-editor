@@ -1161,6 +1161,37 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     });
   }
 
+  protected openUnlinkResourceFromIdentityDialog(group: { sourceResourceId: string; sourceResourceName: string; sourceResourceType: string; assignments: IdentityRoleAssignmentResponse[] }): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.USED_BY.UNLINK_RESOURCE_TITLE',
+        messageKey: 'RESOURCE_EDIT.USED_BY.UNLINK_RESOURCE_MESSAGE',
+        messageParams: { resource: group.sourceResourceName },
+        confirmKey: 'RESOURCE_EDIT.USED_BY.UNLINK_YES',
+        cancelKey: 'RESOURCE_EDIT.USED_BY.UNLINK_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      await this.unlinkAllAssignmentsForResource(group);
+    });
+  }
+
+  private async unlinkAllAssignmentsForResource(group: { sourceResourceId: string; assignments: IdentityRoleAssignmentResponse[] }): Promise<void> {
+    this.identityRoleAssignmentsError.set('');
+    try {
+      for (const ra of group.assignments) {
+        await this.roleAssignmentService.remove(ra.sourceResourceId, ra.id);
+      }
+      const removedIds = new Set(group.assignments.map(ra => ra.id));
+      this.identityRoleAssignments.update(list => list.filter(ra => !removedIds.has(ra.id)));
+    } catch {
+      this.identityRoleAssignmentsError.set('RESOURCE_EDIT.USED_BY.UNLINK_ERROR');
+    }
+  }
+
   private async unlinkIdentityRoleAssignment(assignment: IdentityRoleAssignmentResponse): Promise<void> {
     this.identityRoleAssignmentsError.set('');
     try {

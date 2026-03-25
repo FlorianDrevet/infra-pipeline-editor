@@ -871,12 +871,14 @@
       "LOAD_ERROR": "Unable to load granted rights. Please try again."
     },
     "USED_BY": {
-      "DESCRIPTION": "Resources that use this managed identity to access other resources. You can unlink a role assignment from this screen.",
+      "DESCRIPTION": "Resources that use this managed identity. You can unlink a resource to remove all its role assignments through this identity.",
       "LOADING": "Loading resources using this identity...",
       "EMPTY": "No resource is using this identity yet.",
       "UNLINK": "Unlink",
       "UNLINK_TITLE": "Unlink role assignment",
       "UNLINK_MESSAGE": "Remove the role \"{{role}}\" used by \"{{source}}\" on \"{{target}}\"? This action cannot be undone.",
+      "UNLINK_RESOURCE_TITLE": "Unlink resource from identity",
+      "UNLINK_RESOURCE_MESSAGE": "Remove all role assignments from \"{{resource}}\" using this identity? This action cannot be undone.",
       "UNLINK_YES": "Unlink",
       "UNLINK_CANCEL": "Cancel",
       "UNLINK_ERROR": "Unable to unlink the role assignment. Please try again."
