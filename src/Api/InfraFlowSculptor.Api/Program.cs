@@ -83,6 +83,7 @@ app.UseApplicationInsightsController();
 app.UseCosmosDbController();
 app.UseSqlServerController();
 app.UseSqlDatabaseController();
+app.UseServiceBusNamespaceController();
 app.UseAppSettingController();
 app.UseBicepGenerationController();
 app.MapDefaultEndpoints();

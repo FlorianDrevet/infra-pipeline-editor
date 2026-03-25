@@ -45,6 +45,7 @@ public static class DependencyInjection
         services.AddSingleton<IResourceTypeBicepGenerator, CosmosDbTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, SqlServerTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, SqlDatabaseTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, ServiceBusNamespaceTypeBicepGenerator>();
         services.AddSingleton<BicepGenerationEngine>();
 
         return services;

@@ -68,6 +68,7 @@ public static class DependencyInjection
         services.AddScoped<ICosmosDbRepository, CosmosDbRepository>();
         services.AddScoped<ISqlServerRepository, SqlServerRepository>();
         services.AddScoped<ISqlDatabaseRepository, SqlDatabaseRepository>();
+        services.AddScoped<IServiceBusNamespaceRepository, ServiceBusNamespaceRepository>();
         services.AddScoped<IInfrastructureConfigReadRepository, InfrastructureConfigReadRepository>();
 
         return services;

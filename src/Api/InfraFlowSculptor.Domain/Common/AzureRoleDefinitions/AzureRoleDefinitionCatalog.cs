@@ -383,6 +383,37 @@ public static class AzureRoleDefinitionCatalog
             SqlServerDocsUrl),
     ];
 
+    private const string ServiceBusNamespaceDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-managed-service-identity";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> ServiceBusNamespaceRoles =
+    [
+        new("090c5cfd-751d-490a-894a-3ce6f1109419",
+            "Azure Service Bus Data Owner",
+            "Allows for full access to Azure Service Bus resources.",
+            ServiceBusNamespaceDocsUrl),
+
+        new("69a216fc-b8fb-44d8-bc22-1f3c2cd27a39",
+            "Azure Service Bus Data Sender",
+            "Allows for send access to Azure Service Bus resources.",
+            ServiceBusNamespaceDocsUrl),
+
+        new("4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0",
+            "Azure Service Bus Data Receiver",
+            "Allows for receive access to Azure Service Bus resources.",
+            ServiceBusNamespaceDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            ServiceBusNamespaceDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            ServiceBusNamespaceDocsUrl),
+    ];
+
     private const string SqlDatabaseDocsUrl =
         "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview";
 
@@ -426,6 +457,7 @@ public static class AzureRoleDefinitionCatalog
         { "CosmosDb", CosmosDbRoles },
         { "SqlServer", SqlServerRoles },
         { "SqlDatabase", SqlDatabaseRoles },
+        { "ServiceBusNamespace", ServiceBusNamespaceRoles },
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>

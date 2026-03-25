@@ -37,6 +37,7 @@ public static class RoleAssignmentModuleTemplates
         ["CosmosDb"] = new("Microsoft.DocumentDB/databaseAccounts", "2024-05-15", "cosmosDbAccount", "cosmos", "Cosmos DB"),
         ["SqlServer"] = new("Microsoft.Sql/servers", "2023-08-01-preview", "sqlServer", "sqlserver", "SQL Server"),
         ["SqlDatabase"] = new("Microsoft.Sql/servers/databases", "2023-08-01-preview", "sqlDatabase", "sqldatabase", "SQL Database"),
+        ["ServiceBusNamespace"] = new("Microsoft.ServiceBus/namespaces", "2022-10-01-preview", "serviceBusNamespace", "servicebus", "Service Bus Namespace"),
     };
 
     /// <summary>

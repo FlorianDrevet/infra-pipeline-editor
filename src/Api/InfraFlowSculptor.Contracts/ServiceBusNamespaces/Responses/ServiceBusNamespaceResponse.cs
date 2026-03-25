@@ -1,0 +1,27 @@
+using InfraFlowSculptor.Contracts.ServiceBusNamespaces.Requests;
+
+namespace InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses;
+
+/// <summary>Represents an Azure Service Bus Namespace resource.</summary>
+/// <param name="Id">Unique identifier of the Service Bus Namespace.</param>
+/// <param name="ResourceGroupId">Identifier of the parent Resource Group.</param>
+/// <param name="Name">Display name of the Service Bus Namespace.</param>
+/// <param name="Location">Azure region where the Service Bus Namespace is deployed.</param>
+/// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
+/// <param name="Queues">Queues defined in this Service Bus Namespace.</param>
+/// <param name="TopicSubscriptions">Topic subscriptions defined in this Service Bus Namespace.</param>
+public record ServiceBusNamespaceResponse(
+    Guid Id,
+    Guid ResourceGroupId,
+    string Name,
+    string Location,
+    IReadOnlyList<ServiceBusNamespaceEnvironmentConfigResponse> EnvironmentSettings,
+    IReadOnlyList<ServiceBusQueueResponse> Queues,
+    IReadOnlyList<ServiceBusTopicSubscriptionResponse> TopicSubscriptions
+);
+
+/// <summary>Response DTO for a Service Bus Queue.</summary>
+public record ServiceBusQueueResponse(Guid Id, string Name);
+
+/// <summary>Response DTO for a Service Bus Topic Subscription.</summary>
+public record ServiceBusTopicSubscriptionResponse(Guid Id, string TopicName, string SubscriptionName);

@@ -35,6 +35,8 @@ using InfraFlowSculptor.Domain.SqlServerAggregate;
 using InfraFlowSculptor.Domain.SqlServerAggregate.Entities;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
+using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
+using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -135,6 +137,11 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var sbSettings = await dbContext.ServiceBusNamespaceEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.ServiceBusNamespaceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         // ── Load role assignments for all resources in this config ───────────
         var roleAssignments = await dbContext.RoleAssignments
             .Where(ra => allResourceIds.Contains(ra.SourceResourceId))
@@ -191,7 +198,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -328,7 +335,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<ApplicationInsightsEnvironmentSettings> aiSettings,
         IReadOnlyList<CosmosDbEnvironmentSettings> cosmosSettings,
         IReadOnlyList<SqlServerEnvironmentSettings> sqlServerSettings,
-        IReadOnlyList<SqlDatabaseEnvironmentSettings> sqlDbSettings)
+        IReadOnlyList<SqlDatabaseEnvironmentSettings> sqlDbSettings,
+        IReadOnlyList<ServiceBusNamespaceEnvironmentSettings> sbSettings)
     {
         return resource switch
         {
@@ -509,6 +517,16 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     .Where(es => es.SqlDatabaseId == sqlDb.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
+            ServiceBusNamespace sb => new AzureResourceReadModel(
+                sb.Id.Value,
+                sb.Name.Value,
+                MapLocation(sb.Location),
+                "Microsoft.ServiceBus/namespaces",
+                new Dictionary<string, string>(),
+                sbSettings
+                    .Where(es => es.ServiceBusNamespaceId == sb.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
             _ => null
         };
     }
@@ -573,6 +591,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             CosmosDb => "Microsoft.DocumentDB/databaseAccounts",
             SqlServer => "Microsoft.Sql/servers",
             SqlDatabase => "Microsoft.Sql/servers/databases",
+            ServiceBusNamespace => "Microsoft.ServiceBus/namespaces",
             _ => resource.GetType().Name
         };
 }

@@ -33,6 +33,8 @@ using InfraFlowSculptor.Domain.SqlServerAggregate;
 using InfraFlowSculptor.Domain.SqlServerAggregate.Entities;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
+using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
+using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -83,6 +85,10 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<SqlServerEnvironmentSettings> SqlServerEnvironmentSettings { get; set; } = null!;
     public DbSet<SqlDatabase> SqlDatabases { get; set; } = null!;
     public DbSet<SqlDatabaseEnvironmentSettings> SqlDatabaseEnvironmentSettings { get; set; } = null!;
+    public DbSet<ServiceBusNamespace> ServiceBusNamespaces { get; set; } = null!;
+    public DbSet<ServiceBusNamespaceEnvironmentSettings> ServiceBusNamespaceEnvironmentSettings { get; set; } = null!;
+    public DbSet<ServiceBusQueue> ServiceBusQueues { get; set; } = null!;
+    public DbSet<ServiceBusTopicSubscription> ServiceBusTopicSubscriptions { get; set; } = null!;
     public DbSet<GitRepositoryConfiguration> GitRepositoryConfigurations { get; set; } = null!;
 
 

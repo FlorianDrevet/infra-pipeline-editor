@@ -294,6 +294,7 @@
       "ADD_DIALOG_TITLE_CosmosDb": "Nouveau Cosmos DB",
       "ADD_DIALOG_TITLE_SqlServer": "Nouveau SQL Server",
       "ADD_DIALOG_TITLE_SqlDatabase": "Nouvelle SQL Database",
+      "ADD_DIALOG_TITLE_ServiceBusNamespace": "Nouveau Service Bus Namespace",
       "ADD_ERROR": "Erreur lors de la creation de la ressource.",
       "FORM": {
         "NAME": "Nom",
@@ -813,7 +814,9 @@
       "BACKUP_POLICY": "Politique de sauvegarde",
       "AUTOMATIC_FAILOVER": "Activer le basculement automatique",
       "MULTI_REGION_WRITES": "Activer l'\u00e9criture multi-r\u00e9gions",
-      "FREE_TIER": "Activer le niveau gratuit"
+      "FREE_TIER": "Activer le niveau gratuit",
+      "MIN_TLS_VERSION": "Version TLS minimale",
+      "ZONE_REDUNDANT": "Redondance de zone"
     },
     "ENVIRONMENTS": {
       "EMPTY": "Aucun environnement configur\u00e9. Ajoutez des environnements dans le projet ou la configuration.",

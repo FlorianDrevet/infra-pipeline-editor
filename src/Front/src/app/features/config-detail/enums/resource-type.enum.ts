@@ -17,6 +17,7 @@ export enum ResourceTypeEnum {
   CosmosDb = 'CosmosDb',
   SqlServer = 'SqlServer',
   SqlDatabase = 'SqlDatabase',
+  ServiceBusNamespace = 'ServiceBusNamespace',
 }
 
 /**
@@ -46,6 +47,7 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   CosmosDb: 'public',
   SqlServer: 'dns',
   SqlDatabase: 'table_chart',
+  ServiceBusNamespace: 'swap_horiz',
 };
 
 export interface ResourceTypeCategory {
@@ -78,6 +80,7 @@ export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
       ResourceTypeEnum.RedisCache,
       ResourceTypeEnum.SqlServer,
       ResourceTypeEnum.SqlDatabase,
+      ResourceTypeEnum.ServiceBusNamespace,
     ],
   },
   {
@@ -119,6 +122,7 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Record<string, string> = {
   CosmosDb: 'cosmos',
   SqlServer: 'sql',
   SqlDatabase: 'sqldb',
+  ServiceBusNamespace: 'sb',
 };
 
 /**

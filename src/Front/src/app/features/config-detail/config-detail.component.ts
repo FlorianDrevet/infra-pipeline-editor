@@ -39,6 +39,7 @@ import { ApplicationInsightsService } from '../../shared/services/application-in
 import { CosmosDbService } from '../../shared/services/cosmos-db.service';
 import { SqlServerService } from '../../shared/services/sql-server.service';
 import { SqlDatabaseService } from '../../shared/services/sql-database.service';
+import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { CascadeDeleteDialogComponent, CascadeDeleteDialogData } from '../../shared/components/cascade-delete-dialog/cascade-delete-dialog.component';
@@ -110,6 +111,7 @@ export class ConfigDetailComponent implements OnInit {
   private readonly cosmosDbService = inject(CosmosDbService);
   private readonly sqlServerService = inject(SqlServerService);
   private readonly sqlDatabaseService = inject(SqlDatabaseService);
+  private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
   private readonly projectService = inject(ProjectService);
   private readonly bicepService = inject(BicepGeneratorService);
   private readonly authService = inject(AuthenticationService);
@@ -856,6 +858,9 @@ export class ConfigDetailComponent implements OnInit {
           break;
         case 'SqlDatabase':
           await this.sqlDatabaseService.delete(resource.id);
+          break;
+        case 'ServiceBusNamespace':
+          await this.serviceBusNamespaceService.delete(resource.id);
           break;
       }
       // Refresh resource list for this resource group

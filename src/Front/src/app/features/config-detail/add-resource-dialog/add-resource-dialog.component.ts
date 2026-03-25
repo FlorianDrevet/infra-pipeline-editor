@@ -33,6 +33,7 @@ import { ApplicationInsightsService } from '../../../shared/services/application
 import { CosmosDbService } from '../../../shared/services/cosmos-db.service';
 import { SqlServerService } from '../../../shared/services/sql-server.service';
 import { SqlDatabaseService } from '../../../shared/services/sql-database.service';
+import { ServiceBusNamespaceService } from '../../../shared/services/service-bus-namespace.service';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
@@ -48,6 +49,7 @@ import { ApplicationInsightsEnvironmentConfigEntry } from '../../../shared/inter
 import { CosmosDbEnvironmentConfigEntry } from '../../../shared/interfaces/cosmos-db.interface';
 import { SqlServerEnvironmentConfigEntry } from '../../../shared/interfaces/sql-server.interface';
 import { SqlDatabaseEnvironmentConfigEntry } from '../../../shared/interfaces/sql-database.interface';
+import { ServiceBusNamespaceEnvironmentConfigEntry } from '../../../shared/interfaces/service-bus-namespace.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 
 export interface AddResourceDialogData {
@@ -255,6 +257,7 @@ export class AddResourceDialogComponent {
   private readonly cosmosDbService = inject(CosmosDbService);
   private readonly sqlServerService = inject(SqlServerService);
   private readonly sqlDatabaseService = inject(SqlDatabaseService);
+  private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly fb = inject(FormBuilder);
 
@@ -484,6 +487,18 @@ export class AddResourceDialogComponent {
   ];
 
   protected readonly sqlMinTlsOptions = [
+    { label: 'TLS 1.0', value: '1.0' },
+    { label: 'TLS 1.1', value: '1.1' },
+    { label: 'TLS 1.2', value: '1.2' },
+  ];
+
+  protected readonly serviceBusSkuOptions = [
+    { label: 'Basic', value: 'Basic' },
+    { label: 'Standard', value: 'Standard' },
+    { label: 'Premium', value: 'Premium' },
+  ];
+
+  protected readonly serviceBusTlsOptions = [
     { label: 'TLS 1.0', value: '1.0' },
     { label: 'TLS 1.1', value: '1.1' },
     { label: 'TLS 1.2', value: '1.2' },
@@ -746,6 +761,14 @@ export class AddResourceDialogComponent {
           maxSizeGb: [null as number | null],
           zoneRedundant: [false],
         });
+      case ResourceTypeEnum.ServiceBusNamespace:
+        return this.fb.group({
+          sku: ['Standard', [Validators.required]],
+          capacity: [null as number | null],
+          zoneRedundant: [false],
+          disableLocalAuth: [false],
+          minimumTlsVersion: ['1.2'],
+        });
     }
   }
 
@@ -930,6 +953,15 @@ export class AddResourceDialogComponent {
             sqlServerId: common.sqlServerId!,
             collation: common.collation!,
             environmentSettings: this.buildSqlDatabaseEnvironmentSettings(),
+          });
+          break;
+        }
+        case ResourceTypeEnum.ServiceBusNamespace: {
+          await this.serviceBusNamespaceService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            environmentSettings: this.buildServiceBusNamespaceEnvironmentSettings(),
           });
           break;
         }
@@ -1127,6 +1159,20 @@ export class AddResourceDialogComponent {
         sku: raw.sku || null,
         maxSizeGb: raw.maxSizeGb != null ? Number(raw.maxSizeGb) : null,
         zoneRedundant: raw.zoneRedundant ?? null,
+      };
+    });
+  }
+
+  private buildServiceBusNamespaceEnvironmentSettings(): ServiceBusNamespaceEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        sku: raw.sku || null,
+        capacity: raw.capacity != null ? Number(raw.capacity) : null,
+        zoneRedundant: raw.zoneRedundant ?? null,
+        disableLocalAuth: raw.disableLocalAuth ?? null,
+        minimumTlsVersion: raw.minimumTlsVersion || null,
       };
     });
   }

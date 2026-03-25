@@ -24,6 +24,7 @@ public static class ResourceAbbreviationCatalog
         ["CosmosDb"] = "cosmos",
         ["SqlServer"] = "sql",
         ["SqlDatabase"] = "sqldb",
+        ["ServiceBusNamespace"] = "sb",
     };
 
     /// <summary>

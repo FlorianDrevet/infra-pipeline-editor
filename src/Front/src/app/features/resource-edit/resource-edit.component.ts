@@ -34,6 +34,7 @@ import { ContainerAppResponse, ContainerAppEnvironmentConfigEntry } from '../../
 import { LogAnalyticsWorkspaceResponse, LogAnalyticsWorkspaceEnvironmentConfigEntry } from '../../shared/interfaces/log-analytics-workspace.interface';
 import { ApplicationInsightsResponse, ApplicationInsightsEnvironmentConfigEntry } from '../../shared/interfaces/application-insights.interface';
 import { CosmosDbResponse, CosmosDbEnvironmentConfigEntry } from '../../shared/interfaces/cosmos-db.interface';
+import { ServiceBusNamespaceResponse, ServiceBusNamespaceEnvironmentConfigEntry } from '../../shared/interfaces/service-bus-namespace.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
@@ -44,6 +45,7 @@ import { ContainerAppService } from '../../shared/services/container-app.service
 import { LogAnalyticsWorkspaceService } from '../../shared/services/log-analytics-workspace.service';
 import { ApplicationInsightsService } from '../../shared/services/application-insights.service';
 import { CosmosDbService } from '../../shared/services/cosmos-db.service';
+import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -61,7 +63,7 @@ import { AppSettingService } from '../../shared/services/app-setting.service';
 import { AppSettingResponse } from '../../shared/interfaces/app-setting.interface';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse;
 
 /** SKU options per resource type */
 const KEY_VAULT_SKU_OPTIONS = [
@@ -261,6 +263,7 @@ export class ResourceEditComponent implements OnInit {
   private readonly logAnalyticsWorkspaceService = inject(LogAnalyticsWorkspaceService);
   private readonly applicationInsightsService = inject(ApplicationInsightsService);
   private readonly cosmosDbService = inject(CosmosDbService);
+  private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -481,6 +484,8 @@ export class ResourceEditComponent implements OnInit {
         return this.applicationInsightsService.getById(this.resourceId);
       case 'CosmosDb':
         return this.cosmosDbService.getById(this.resourceId);
+      case 'ServiceBusNamespace':
+        return this.serviceBusNamespaceService.getById(this.resourceId);
       default:
         throw new Error(`Unknown resource type: ${this.resourceType}`);
     }
@@ -668,6 +673,17 @@ export class ResourceEditComponent implements OnInit {
           enableFreeTier: [settings?.enableFreeTier ?? null],
         });
       }
+      case 'ServiceBusNamespace': {
+        const sb = resource as ServiceBusNamespaceResponse;
+        const settings = sb.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          sku: [settings?.sku ?? null],
+          capacity: [settings?.capacity ?? null],
+          zoneRedundant: [settings?.zoneRedundant ?? null],
+          disableLocalAuth: [settings?.disableLocalAuth ?? null],
+          minimumTlsVersion: [settings?.minimumTlsVersion ?? null],
+        });
+      }
     }
   }
 
@@ -784,6 +800,13 @@ export class ResourceEditComponent implements OnInit {
             environmentSettings: this.buildCosmosDbEnvSettings(),
           });
           break;
+        case 'ServiceBusNamespace':
+          await this.serviceBusNamespaceService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            environmentSettings: this.buildServiceBusNamespaceEnvSettings(),
+          });
+          break;
       }
 
       // Reload to reflect saved state
@@ -865,6 +888,9 @@ export class ResourceEditComponent implements OnInit {
           break;
         case 'CosmosDb':
           await this.cosmosDbService.delete(this.resourceId);
+          break;
+        case 'ServiceBusNamespace':
+          await this.serviceBusNamespaceService.delete(this.resourceId);
           break;
       }
       this.router.navigate(['/config', this.configId]);
@@ -1391,6 +1417,20 @@ export class ResourceEditComponent implements OnInit {
         enableMultipleWriteLocations: raw.enableMultipleWriteLocations ?? null,
         backupPolicyType: raw.backupPolicyType || null,
         enableFreeTier: raw.enableFreeTier ?? null,
+      };
+    });
+  }
+
+  private buildServiceBusNamespaceEnvSettings(): ServiceBusNamespaceEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        sku: raw.sku || null,
+        capacity: raw.capacity != null ? Number(raw.capacity) : null,
+        zoneRedundant: raw.zoneRedundant ?? null,
+        disableLocalAuth: raw.disableLocalAuth ?? null,
+        minimumTlsVersion: raw.minimumTlsVersion || null,
       };
     });
   }

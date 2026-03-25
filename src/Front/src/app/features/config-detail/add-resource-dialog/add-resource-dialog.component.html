@@ -722,6 +722,36 @@
                   </mat-slide-toggle>
                 </div>
               }
+              @case (ResourceTypeEnum.ServiceBusNamespace) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                    <mat-select formControlName="sku">
+                      @for (option of serviceBusSkuOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CAPACITY' | translate }}</mat-label>
+                    <input matInput type="number" formControlName="capacity" min="1" max="16" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MIN_TLS_VERSION' | translate }}</mat-label>
+                    <mat-select formControlName="minimumTlsVersion">
+                      @for (option of serviceBusTlsOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="zoneRedundant" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANT' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_LOCAL_AUTH' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
             }
           </mat-tab>
         }

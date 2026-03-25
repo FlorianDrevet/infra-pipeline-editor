@@ -811,6 +811,91 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("ResourceGroup", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities.ServiceBusNamespaceEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Capacity")
+                        .HasColumnType("integer");
+
+                    b.Property<bool?>("DisableLocalAuth")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("MinimumTlsVersion")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid>("ServiceBusNamespaceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Sku")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool?>("ZoneRedundant")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceBusNamespaceId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("ServiceBusNamespaceEnvironmentSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities.ServiceBusQueue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<Guid>("ServiceBusNamespaceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceBusNamespaceId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("ServiceBusQueues", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities.ServiceBusTopicSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ServiceBusNamespaceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SubscriptionName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("TopicName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceBusNamespaceId", "TopicName", "SubscriptionName")
+                        .IsUnique();
+
+                    b.ToTable("ServiceBusTopicSubscriptions", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities.SqlDatabaseEnvironmentSettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1114,6 +1199,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
 
                     b.ToTable("RedisCaches", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.ServiceBusNamespace", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.ToTable("ServiceBusNamespaces", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.SqlDatabaseAggregate.SqlDatabase", b =>
@@ -1533,6 +1625,33 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("InfraConfig");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities.ServiceBusNamespaceEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.ServiceBusNamespace", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("ServiceBusNamespaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities.ServiceBusQueue", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.ServiceBusNamespace", null)
+                        .WithMany("Queues")
+                        .HasForeignKey("ServiceBusNamespaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities.ServiceBusTopicSubscription", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.ServiceBusNamespace", null)
+                        .WithMany("TopicSubscriptions")
+                        .HasForeignKey("ServiceBusNamespaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities.SqlDatabaseEnvironmentSettings", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.SqlDatabaseAggregate.SqlDatabase", null)
@@ -1686,6 +1805,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.ServiceBusNamespace", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.ServiceBusNamespace", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.SqlDatabaseAggregate.SqlDatabase", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
@@ -1815,6 +1943,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
             modelBuilder.Entity("InfraFlowSculptor.Domain.RedisCacheAggregate.RedisCache", b =>
                 {
                     b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.ServiceBusNamespace", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+
+                    b.Navigation("Queues");
+
+                    b.Navigation("TopicSubscriptions");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.SqlDatabaseAggregate.SqlDatabase", b =>

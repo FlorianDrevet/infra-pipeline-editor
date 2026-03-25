@@ -296,6 +296,7 @@
       "ADD_DIALOG_TITLE_CosmosDb": "New Cosmos DB",
       "ADD_DIALOG_TITLE_SqlServer": "New SQL Server",
       "ADD_DIALOG_TITLE_SqlDatabase": "New SQL Database",
+      "ADD_DIALOG_TITLE_ServiceBusNamespace": "New Service Bus Namespace",
       "ADD_ERROR": "Failed to create the resource.",
       "FORM": {
         "NAME": "Name",
@@ -806,7 +807,9 @@
       "BACKUP_POLICY": "Backup policy",
       "AUTOMATIC_FAILOVER": "Enable automatic failover",
       "MULTI_REGION_WRITES": "Enable multi-region writes",
-      "FREE_TIER": "Enable free tier"
+      "FREE_TIER": "Enable free tier",
+      "MIN_TLS_VERSION": "Minimum TLS version",
+      "ZONE_REDUNDANT": "Zone redundant"
     },
     "ENVIRONMENTS": {
       "EMPTY": "No environments configured. Add environments in the project or configuration first.",
