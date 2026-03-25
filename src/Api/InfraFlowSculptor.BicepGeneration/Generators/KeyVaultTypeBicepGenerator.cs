@@ -13,12 +13,21 @@ public sealed class KeyVaultTypeBicepGenerator
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
+        var enableRbac = resource.Properties.GetValueOrDefault("enableRbacAuthorization", "true");
+        var enabledForDeployment = resource.Properties.GetValueOrDefault("enabledForDeployment", "false");
+        var enabledForDiskEncryption = resource.Properties.GetValueOrDefault("enabledForDiskEncryption", "false");
+        var enabledForTemplateDeployment = resource.Properties.GetValueOrDefault("enabledForTemplateDeployment", "false");
+        var enablePurgeProtection = resource.Properties.GetValueOrDefault("enablePurgeProtection", "true");
+        var enableSoftDelete = resource.Properties.GetValueOrDefault("enableSoftDelete", "true");
+
         return new GeneratedTypeModule
         {
             ModuleName = "keyVault",
             ModuleFileName = "keyVault.bicep",
             ModuleFolderName = "KeyVault",
-            ModuleBicepContent = KeyVaultModuleTemplate,
+            ModuleBicepContent = BuildModuleTemplate(
+                enableRbac, enabledForDeployment, enabledForDiskEncryption,
+                enabledForTemplateDeployment, enablePurgeProtection, enableSoftDelete),
             ModuleTypesBicepContent = KeyVaultTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
@@ -28,37 +37,49 @@ public sealed class KeyVaultTypeBicepGenerator
         };
     }
 
+    private static string BuildModuleTemplate(
+        string enableRbac,
+        string enabledForDeployment,
+        string enabledForDiskEncryption,
+        string enabledForTemplateDeployment,
+        string enablePurgeProtection,
+        string enableSoftDelete)
+    {
+        return $$"""
+            import { SkuName } from './types.bicep'
+
+            @description('Azure region for the Key Vault')
+            param location string
+
+            @description('Name of the Key Vault')
+            param name string
+
+            @description('SKU of the Key Vault')
+            param sku SkuName = 'standard'
+
+            resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
+              name: name
+              location: location
+              properties: {
+                sku: {
+                  family: 'A'
+                  name: sku
+                }
+                tenantId: subscription().tenantId
+                enableRbacAuthorization: {{enableRbac}}
+                enabledForDeployment: {{enabledForDeployment}}
+                enabledForDiskEncryption: {{enabledForDiskEncryption}}
+                enabledForTemplateDeployment: {{enabledForTemplateDeployment}}
+                enablePurgeProtection: {{enablePurgeProtection}}
+                enableSoftDelete: {{enableSoftDelete}}
+              }
+            }
+            """;
+    }
+
     private const string KeyVaultTypesTemplate = """
         @export()
         @description('SKU name for the Key Vault')
         type SkuName = 'premium' | 'standard'
-        """;
-
-    private const string KeyVaultModuleTemplate = """
-        import { SkuName } from './types.bicep'
-
-        @description('Azure region for the Key Vault')
-        param location string
-
-        @description('Name of the Key Vault')
-        param name string
-
-        @description('SKU of the Key Vault')
-        param sku SkuName = 'standard'
-
-        resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
-          name: name
-          location: location
-          properties: {
-            sku: {
-              family: 'A'
-              name: sku
-            }
-            tenantId: subscription().tenantId
-            enabledForDeployment: true
-            enabledForTemplateDeployment: true
-            enableSoftDelete: true
-          }
-        }
         """;
 }

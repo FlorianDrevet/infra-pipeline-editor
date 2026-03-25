@@ -26,6 +26,12 @@ public class KeyVaultMappingConfig : IRegister
                 src.Id.Adapt<AzureResourceId>(),
                 src.Request.Name.Adapt<Name>(),
                 src.Request.Location.Adapt<Location>(),
+                src.Request.EnableRbacAuthorization,
+                src.Request.EnabledForDeployment,
+                src.Request.EnabledForDiskEncryption,
+                src.Request.EnabledForTemplateDeployment,
+                src.Request.EnablePurgeProtection,
+                src.Request.EnableSoftDelete,
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new KeyVaultEnvironmentConfigData(

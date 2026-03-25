@@ -33,7 +33,12 @@ public class UpdateRedisCacheCommandHandler(
 
         redisCache.Update(
             request.Name,
-            request.Location);
+            request.Location,
+            request.RedisVersion,
+            request.EnableNonSslPort,
+            request.MinimumTlsVersion is not null ? new TlsVersion(Enum.Parse<TlsVersion.Version>(request.MinimumTlsVersion)) : null,
+            request.DisableAccessKeyAuthentication,
+            request.EnableAadAuth);
 
         if (request.EnvironmentSettings is not null)
             redisCache.SetAllEnvironmentSettings(
@@ -42,9 +47,6 @@ public class UpdateRedisCacheCommandHandler(
                         ec.EnvironmentName,
                         ec.Sku is not null ? new RedisCacheSku(Enum.Parse<RedisCacheSku.Sku>(ec.Sku)) : (RedisCacheSku?)null,
                         ec.Capacity,
-                        ec.RedisVersion,
-                        ec.EnableNonSslPort,
-                        ec.MinimumTlsVersion is not null ? new TlsVersion(Enum.Parse<TlsVersion.Version>(ec.MinimumTlsVersion)) : (TlsVersion?)null,
                         ec.MaxMemoryPolicy is not null ? new MaxMemoryPolicy(Enum.Parse<MaxMemoryPolicy.Policy>(ec.MaxMemoryPolicy)) : (MaxMemoryPolicy?)null))
                     .ToList());
 

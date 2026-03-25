@@ -22,15 +22,6 @@ public sealed class RedisCacheEnvironmentSettings : Entity<RedisCacheEnvironment
     /// <summary>Gets or sets the cache capacity override.</summary>
     public int? Capacity { get; private set; }
 
-    /// <summary>Gets or sets the Redis engine version override.</summary>
-    public int? RedisVersion { get; private set; }
-
-    /// <summary>Gets or sets whether the non-SSL port is enabled for this environment.</summary>
-    public bool? EnableNonSslPort { get; private set; }
-
-    /// <summary>Gets or sets the minimum TLS version override.</summary>
-    public TlsVersion? MinimumTlsVersion { get; private set; }
-
     /// <summary>Gets or sets the max memory eviction policy override.</summary>
     public MaxMemoryPolicy? MaxMemoryPolicy { get; private set; }
 
@@ -41,9 +32,6 @@ public sealed class RedisCacheEnvironmentSettings : Entity<RedisCacheEnvironment
         string environmentName,
         RedisCacheSku? sku,
         int? capacity,
-        int? redisVersion,
-        bool? enableNonSslPort,
-        TlsVersion? minimumTlsVersion,
         MaxMemoryPolicy? maxMemoryPolicy)
         : base(RedisCacheEnvironmentSettingsId.CreateUnique())
     {
@@ -51,9 +39,6 @@ public sealed class RedisCacheEnvironmentSettings : Entity<RedisCacheEnvironment
         EnvironmentName = environmentName;
         Sku = sku;
         Capacity = capacity;
-        RedisVersion = redisVersion;
-        EnableNonSslPort = enableNonSslPort;
-        MinimumTlsVersion = minimumTlsVersion;
         MaxMemoryPolicy = maxMemoryPolicy;
     }
 
@@ -65,26 +50,17 @@ public sealed class RedisCacheEnvironmentSettings : Entity<RedisCacheEnvironment
         string environmentName,
         RedisCacheSku? sku,
         int? capacity,
-        int? redisVersion,
-        bool? enableNonSslPort,
-        TlsVersion? minimumTlsVersion,
         MaxMemoryPolicy? maxMemoryPolicy)
-        => new(redisCacheId, environmentName, sku, capacity, redisVersion, enableNonSslPort, minimumTlsVersion, maxMemoryPolicy);
+        => new(redisCacheId, environmentName, sku, capacity, maxMemoryPolicy);
 
     /// <summary>Updates the configuration overrides for this environment.</summary>
     public void Update(
         RedisCacheSku? sku,
         int? capacity,
-        int? redisVersion,
-        bool? enableNonSslPort,
-        TlsVersion? minimumTlsVersion,
         MaxMemoryPolicy? maxMemoryPolicy)
     {
         Sku = sku;
         Capacity = capacity;
-        RedisVersion = redisVersion;
-        EnableNonSslPort = enableNonSslPort;
-        MinimumTlsVersion = minimumTlsVersion;
         MaxMemoryPolicy = maxMemoryPolicy;
     }
 
@@ -97,18 +73,6 @@ public sealed class RedisCacheEnvironmentSettings : Entity<RedisCacheEnvironment
         if (Sku is not null) dict["skuName"] = Sku.Value.ToString();
         if (Sku is not null) dict["skuFamily"] = Sku.Value == RedisCacheSku.Sku.Premium ? "P" : "C";
         if (Capacity is not null) dict["capacity"] = Capacity.Value.ToString();
-        if (RedisVersion is not null) dict["redisVersion"] = RedisVersion.Value.ToString();
-        if (EnableNonSslPort is not null) dict["enableNonSslPort"] = EnableNonSslPort.Value.ToString().ToLower();
-        if (MinimumTlsVersion is not null)
-        {
-            dict["minimumTlsVersion"] = MinimumTlsVersion.Value switch
-            {
-                ValueObjects.TlsVersion.Version.Tls10 => "1.0",
-                ValueObjects.TlsVersion.Version.Tls11 => "1.1",
-                ValueObjects.TlsVersion.Version.Tls12 => "1.2",
-                _ => "1.2"
-            };
-        }
         return dict;
     }
 }

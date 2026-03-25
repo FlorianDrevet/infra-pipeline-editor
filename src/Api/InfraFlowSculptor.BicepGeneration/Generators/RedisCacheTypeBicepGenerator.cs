@@ -29,6 +29,8 @@ public sealed class RedisCacheTypeBicepGenerator
                 ["redisVersion"] = resource.Properties.GetValueOrDefault("redisVersion", "6"),
                 ["enableNonSslPort"] = resource.Properties.GetValueOrDefault("enableNonSslPort", "false") == "true",
                 ["minimumTlsVersion"] = resource.Properties.GetValueOrDefault("minimumTlsVersion", "1.2"),
+                ["disableAccessKeyAuthentication"] = resource.Properties.GetValueOrDefault("disableAccessKeyAuthentication", "false") == "true",
+                ["aadEnabled"] = resource.Properties.GetValueOrDefault("aadEnabled", "false") == "true",
             }
         };
     }
@@ -74,6 +76,12 @@ public sealed class RedisCacheTypeBicepGenerator
         @description('Minimum TLS version for client connections')
         param minimumTlsVersion TlsVersion = '1.2'
 
+        @description('Whether access key authentication is disabled')
+        param disableAccessKeyAuthentication bool = false
+
+        @description('Whether Microsoft Entra ID (AAD) authentication is enabled')
+        param aadEnabled bool = false
+
         resource redis 'Microsoft.Cache/Redis@2023-08-01' = {
           name: name
           location: location
@@ -86,6 +94,10 @@ public sealed class RedisCacheTypeBicepGenerator
             redisVersion: redisVersion
             enableNonSslPort: enableNonSslPort
             minimumTlsVersion: minimumTlsVersion
+            disableAccessKeyAuthentication: disableAccessKeyAuthentication
+            redisConfiguration: {
+              'aad-enabled': aadEnabled ? 'true' : 'false'
+            }
           }
         }
         """;

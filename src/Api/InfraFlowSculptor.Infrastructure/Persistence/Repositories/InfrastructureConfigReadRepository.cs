@@ -345,7 +345,15 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 kv.Name.Value,
                 MapLocation(kv.Location),
                 "Microsoft.KeyVault/vaults",
-                new Dictionary<string, string>(),
+                new Dictionary<string, string>
+                {
+                    ["enableRbacAuthorization"] = kv.EnableRbacAuthorization.ToString().ToLower(),
+                    ["enabledForDeployment"] = kv.EnabledForDeployment.ToString().ToLower(),
+                    ["enabledForDiskEncryption"] = kv.EnabledForDiskEncryption.ToString().ToLower(),
+                    ["enabledForTemplateDeployment"] = kv.EnabledForTemplateDeployment.ToString().ToLower(),
+                    ["enablePurgeProtection"] = kv.EnablePurgeProtection.ToString().ToLower(),
+                    ["enableSoftDelete"] = kv.EnableSoftDelete.ToString().ToLower()
+                },
                 kvSettings
                     .Where(es => es.KeyVaultId == kv.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
@@ -365,7 +373,20 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 sa.Name.Value,
                 MapLocation(sa.Location),
                 "Microsoft.Storage/storageAccounts",
-                new Dictionary<string, string>(),
+                new Dictionary<string, string>
+                {
+                    ["kind"] = sa.Kind.Value.ToString(),
+                    ["accessTier"] = sa.AccessTier.Value.ToString(),
+                    ["allowBlobPublicAccess"] = sa.AllowBlobPublicAccess.ToString().ToLower(),
+                    ["supportsHttpsTrafficOnly"] = sa.EnableHttpsTrafficOnly.ToString().ToLower(),
+                    ["minimumTlsVersion"] = sa.MinimumTlsVersion.Value.ToString() switch
+                    {
+                        "Tls10" => "TLS1_0",
+                        "Tls11" => "TLS1_1",
+                        "Tls12" => "TLS1_2",
+                        var v => v
+                    }
+                },
                 saSettings
                     .Where(es => es.StorageAccountId == sa.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))

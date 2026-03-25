@@ -36,16 +36,6 @@ public sealed class RedisCacheEnvironmentSettingsConfiguration
         builder.Property(x => x.Capacity)
             .IsRequired(false);
 
-        builder.Property(x => x.RedisVersion)
-            .IsRequired(false);
-
-        builder.Property(x => x.EnableNonSslPort)
-            .IsRequired(false);
-
-        builder.Property(x => x.MinimumTlsVersion)
-            .IsRequired(false)
-            .HasConversion(new EnumValueConverter<TlsVersion, TlsVersion.Version>());
-
         builder.Property(x => x.MaxMemoryPolicy)
             .IsRequired(false)
             .HasConversion(new EnumValueConverter<MaxMemoryPolicy, MaxMemoryPolicy.Policy>());

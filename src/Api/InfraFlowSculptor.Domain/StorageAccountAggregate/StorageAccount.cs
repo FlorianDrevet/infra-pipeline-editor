@@ -25,6 +25,21 @@ public class StorageAccount : AzureResource
     /// <summary>Gets the typed per-environment configuration overrides for this Storage Account.</summary>
     public IReadOnlyCollection<StorageAccountEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();
 
+    /// <summary>Gets the storage account kind (e.g. StorageV2, BlobStorage).</summary>
+    public StorageAccountKind Kind { get; private set; } = null!;
+
+    /// <summary>Gets the default access tier (Hot, Cool, Premium).</summary>
+    public StorageAccessTier AccessTier { get; private set; } = null!;
+
+    /// <summary>Gets whether public blob access is allowed.</summary>
+    public bool AllowBlobPublicAccess { get; private set; }
+
+    /// <summary>Gets whether HTTPS-only traffic is enforced.</summary>
+    public bool EnableHttpsTrafficOnly { get; private set; }
+
+    /// <summary>Gets the minimum TLS version for client connections.</summary>
+    public StorageAccountTlsVersion MinimumTlsVersion { get; private set; } = null!;
+
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages =>
         Array.Empty<ParameterUsage>();
 
@@ -88,12 +103,23 @@ public class StorageAccount : AzureResource
         return Result.Updated;
     }
 
+    /// <summary>Updates the resource-level properties of this Storage Account.</summary>
     public void Update(
         Name name,
-        Location location)
+        Location location,
+        StorageAccountKind kind,
+        StorageAccessTier accessTier,
+        bool allowBlobPublicAccess,
+        bool enableHttpsTrafficOnly,
+        StorageAccountTlsVersion minimumTlsVersion)
     {
         Name = name;
         Location = location;
+        Kind = kind;
+        AccessTier = accessTier;
+        AllowBlobPublicAccess = allowBlobPublicAccess;
+        EnableHttpsTrafficOnly = enableHttpsTrafficOnly;
+        MinimumTlsVersion = minimumTlsVersion;
     }
 
     /// <summary>
@@ -102,24 +128,19 @@ public class StorageAccount : AzureResource
     /// </summary>
     public void SetEnvironmentSettings(
         string environmentName,
-        StorageAccountSku? sku,
-        StorageAccountKind? kind,
-        StorageAccessTier? accessTier,
-        bool? allowBlobPublicAccess,
-        bool? enableHttpsTrafficOnly,
-        StorageAccountTlsVersion? minimumTlsVersion)
+        StorageAccountSku? sku)
     {
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
         if (existing is not null)
         {
-            existing.Update(sku, kind, accessTier, allowBlobPublicAccess, enableHttpsTrafficOnly, minimumTlsVersion);
+            existing.Update(sku);
         }
         else
         {
             _environmentSettings.Add(
-                StorageAccountEnvironmentSettings.Create(Id, environmentName, sku, kind, accessTier, allowBlobPublicAccess, enableHttpsTrafficOnly, minimumTlsVersion));
+                StorageAccountEnvironmentSettings.Create(Id, environmentName, sku));
         }
     }
 
@@ -127,28 +148,39 @@ public class StorageAccount : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku, StorageAccountKind? Kind, StorageAccessTier? AccessTier, bool? AllowBlobPublicAccess, bool? EnableHttpsTrafficOnly, StorageAccountTlsVersion? MinimumTlsVersion)> settings)
+        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku)> settings)
     {
         _environmentSettings.Clear();
         foreach (var s in settings)
         {
             _environmentSettings.Add(
-                StorageAccountEnvironmentSettings.Create(Id, s.EnvironmentName, s.Sku, s.Kind, s.AccessTier, s.AllowBlobPublicAccess, s.EnableHttpsTrafficOnly, s.MinimumTlsVersion));
+                StorageAccountEnvironmentSettings.Create(Id, s.EnvironmentName, s.Sku));
         }
     }
 
+    /// <summary>Creates a new Storage Account with resource-level configuration.</summary>
     public static StorageAccount Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku, StorageAccountKind? Kind, StorageAccessTier? AccessTier, bool? AllowBlobPublicAccess, bool? EnableHttpsTrafficOnly, StorageAccountTlsVersion? MinimumTlsVersion)>? environmentSettings = null)
+        StorageAccountKind kind,
+        StorageAccessTier accessTier,
+        bool allowBlobPublicAccess,
+        bool enableHttpsTrafficOnly,
+        StorageAccountTlsVersion minimumTlsVersion,
+        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku)>? environmentSettings = null)
     {
         var storageAccount = new StorageAccount
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location
+            Location = location,
+            Kind = kind,
+            AccessTier = accessTier,
+            AllowBlobPublicAccess = allowBlobPublicAccess,
+            EnableHttpsTrafficOnly = enableHttpsTrafficOnly,
+            MinimumTlsVersion = minimumTlsVersion
         };
 
         if (environmentSettings is not null)

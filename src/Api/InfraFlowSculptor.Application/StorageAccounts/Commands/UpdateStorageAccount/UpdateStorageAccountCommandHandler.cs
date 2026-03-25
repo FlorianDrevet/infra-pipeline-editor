@@ -25,19 +25,21 @@ public class UpdateStorageAccountCommandHandler(
 
         var storageAccount = saResult.Value;
 
-        storageAccount.Update(request.Name, request.Location);
+        storageAccount.Update(
+            request.Name,
+            request.Location,
+            new StorageAccountKind(Enum.Parse<StorageAccountKind.Kind>(request.Kind)),
+            new StorageAccessTier(Enum.Parse<StorageAccessTier.Tier>(request.AccessTier)),
+            request.AllowBlobPublicAccess,
+            request.EnableHttpsTrafficOnly,
+            new StorageAccountTlsVersion(Enum.Parse<StorageAccountTlsVersion.Version>(request.MinimumTlsVersion)));
 
         if (request.EnvironmentSettings is not null)
             storageAccount.SetAllEnvironmentSettings(
                 request.EnvironmentSettings
                     .Select(ec => (
                         ec.EnvironmentName,
-                        ec.Sku is not null ? new StorageAccountSku(Enum.Parse<StorageAccountSku.Sku>(ec.Sku)) : (StorageAccountSku?)null,
-                        ec.Kind is not null ? new StorageAccountKind(Enum.Parse<StorageAccountKind.Kind>(ec.Kind)) : (StorageAccountKind?)null,
-                        ec.AccessTier is not null ? new StorageAccessTier(Enum.Parse<StorageAccessTier.Tier>(ec.AccessTier)) : (StorageAccessTier?)null,
-                        ec.AllowBlobPublicAccess,
-                        ec.EnableHttpsTrafficOnly,
-                        ec.MinimumTlsVersion is not null ? new StorageAccountTlsVersion(Enum.Parse<StorageAccountTlsVersion.Version>(ec.MinimumTlsVersion)) : (StorageAccountTlsVersion?)null))
+                        ec.Sku is not null ? new StorageAccountSku(Enum.Parse<StorageAccountSku.Sku>(ec.Sku)) : (StorageAccountSku?)null))
                     .ToList());
 
         var updated = await storageAccountRepository.UpdateAsync(storageAccount);

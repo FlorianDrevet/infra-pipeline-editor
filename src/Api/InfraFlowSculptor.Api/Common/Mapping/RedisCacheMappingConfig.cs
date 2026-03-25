@@ -15,39 +15,49 @@ public class RedisCacheMappingConfig : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<CreateRedisCacheRequest, CreateRedisCacheCommand>()
+            .Map(dest => dest.RedisVersion, src => src.RedisVersion)
+            .Map(dest => dest.EnableNonSslPort, src => src.EnableNonSslPort)
+            .Map(dest => dest.MinimumTlsVersion, src => src.MinimumTlsVersion)
+            .Map(dest => dest.DisableAccessKeyAuthentication, src => src.DisableAccessKeyAuthentication)
+            .Map(dest => dest.EnableAadAuth, src => src.EnableAadAuth)
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings == null
                     ? null
                     : src.EnvironmentSettings.Select(ec => new RedisCacheEnvironmentConfigData(
-                        ec.EnvironmentName, ec.Sku, ec.Capacity, ec.RedisVersion,
-                        ec.EnableNonSslPort, ec.MinimumTlsVersion, ec.MaxMemoryPolicy)).ToList());
+                        ec.EnvironmentName, ec.Sku, ec.Capacity, ec.MaxMemoryPolicy)).ToList());
 
         config.NewConfig<(Guid Id, UpdateRedisCacheRequest Request), UpdateRedisCacheCommand>()
             .MapWith(src => new UpdateRedisCacheCommand(
                 src.Id.Adapt<AzureResourceId>(),
                 src.Request.Name.Adapt<Name>(),
                 src.Request.Location.Adapt<Location>(),
+                src.Request.RedisVersion,
+                src.Request.EnableNonSslPort,
+                src.Request.MinimumTlsVersion,
+                src.Request.DisableAccessKeyAuthentication,
+                src.Request.EnableAadAuth,
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new RedisCacheEnvironmentConfigData(
-                        ec.EnvironmentName, ec.Sku, ec.Capacity, ec.RedisVersion,
-                        ec.EnableNonSslPort, ec.MinimumTlsVersion, ec.MaxMemoryPolicy)).ToList()));
+                        ec.EnvironmentName, ec.Sku, ec.Capacity, ec.MaxMemoryPolicy)).ToList()));
 
         config.NewConfig<RedisCache, RedisCacheResult>()
+            .Map(dest => dest.RedisVersion, src => src.RedisVersion)
+            .Map(dest => dest.EnableNonSslPort, src => src.EnableNonSslPort)
+            .Map(dest => dest.MinimumTlsVersion,
+                src => (object?)src.MinimumTlsVersion != null ? src.MinimumTlsVersion.Value.ToString() : null)
+            .Map(dest => dest.DisableAccessKeyAuthentication, src => src.DisableAccessKeyAuthentication)
+            .Map(dest => dest.EnableAadAuth, src => src.EnableAadAuth)
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new RedisCacheEnvironmentConfigData(
                     es.EnvironmentName,
                     (object?)es.Sku != null ? es.Sku.Value.ToString() : null,
                     es.Capacity,
-                    es.RedisVersion,
-                    es.EnableNonSslPort,
-                    (object?)es.MinimumTlsVersion != null ? es.MinimumTlsVersion.Value.ToString() : null,
                     (object?)es.MaxMemoryPolicy != null ? es.MaxMemoryPolicy.Value.ToString() : null)).ToList());
 
         config.NewConfig<RedisCacheEnvironmentConfigData, RedisCacheEnvironmentConfigResponse>()
             .MapWith(src => new RedisCacheEnvironmentConfigResponse(
-                src.EnvironmentName, src.Sku, src.Capacity, src.RedisVersion,
-                src.EnableNonSslPort, src.MinimumTlsVersion, src.MaxMemoryPolicy));
+                src.EnvironmentName, src.Sku, src.Capacity, src.MaxMemoryPolicy));
 
         config.NewConfig<RedisCacheSku, string>()
             .MapWith(src => src.Value.ToString());

@@ -6,9 +6,4 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Common;
 /// </summary>
 public record StorageAccountEnvironmentConfigData(
     string EnvironmentName,
-    string? Sku,
-    string? Kind,
-    string? AccessTier,
-    bool? AllowBlobPublicAccess,
-    bool? EnableHttpsTrafficOnly,
-    string? MinimumTlsVersion);
+    string? Sku);

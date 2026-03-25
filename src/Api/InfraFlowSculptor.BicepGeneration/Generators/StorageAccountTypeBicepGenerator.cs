@@ -40,7 +40,7 @@ public sealed class StorageAccountTypeBicepGenerator
 
         @export()
         @description('Kind of Storage Account')
-        type StorageKind = 'StorageV2' | 'BlobStorage' | 'BlockBlobStorage' | 'FileStorage' | 'Storage'
+        type StorageKind = 'BlobStorage' | 'BlockBlobStorage' | 'FileStorage' | 'Storage' | 'StorageV2'
 
         @export()
         @description('Access tier for the Storage Account')
@@ -78,19 +78,6 @@ public sealed class StorageAccountTypeBicepGenerator
         @description('Minimum TLS version for client connections')
         param minimumTlsVersion TlsVersion = 'TLS1_2'
 
-        var storagePropertiesBase = {
-          allowBlobPublicAccess: allowBlobPublicAccess
-          supportsHttpsTrafficOnly: supportsHttpsTrafficOnly
-          minimumTlsVersion: minimumTlsVersion
-        }
-
-        var storageAccessTierProperties = contains([
-          'BlobStorage'
-          'StorageV2'
-        ], kind) ? {
-          accessTier: accessTier
-        } : {}
-
         resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
           name: name
           location: location
@@ -98,7 +85,15 @@ public sealed class StorageAccountTypeBicepGenerator
           sku: {
             name: sku
           }
-          properties: union(storagePropertiesBase, storageAccessTierProperties)
+          identity: {
+            type: 'SystemAssigned'
+          }
+          properties: {
+            allowBlobPublicAccess: allowBlobPublicAccess
+            supportsHttpsTrafficOnly: supportsHttpsTrafficOnly
+            minimumTlsVersion: minimumTlsVersion
+            accessTier: accessTier
+          }
         }
         """;
 }

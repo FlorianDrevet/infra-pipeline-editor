@@ -10,5 +10,10 @@ public record CreateStorageAccountCommand(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
+    string Kind,
+    string AccessTier,
+    bool AllowBlobPublicAccess,
+    bool EnableHttpsTrafficOnly,
+    string MinimumTlsVersion,
     IReadOnlyList<StorageAccountEnvironmentConfigData>? EnvironmentSettings = null
 ) : IRequest<ErrorOr<StorageAccountResult>>;

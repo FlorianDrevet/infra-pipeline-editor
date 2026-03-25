@@ -8,5 +8,10 @@ public record RedisCacheResponse(
     Guid ResourceGroupId,
     string Name,
     string Location,
+    int? RedisVersion,
+    bool EnableNonSslPort,
+    string? MinimumTlsVersion,
+    bool DisableAccessKeyAuthentication,
+    bool EnableAadAuth,
     IReadOnlyList<RedisCacheEnvironmentConfigResponse> EnvironmentSettings
 );

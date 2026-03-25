@@ -83,6 +83,45 @@
               </div>
             </div>
 
+            <!-- KeyVault-specific fields -->
+            @if (resourceType === 'KeyVault') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enableRbacAuthorization" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_RBAC_AUTHORIZATION' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enabledForDeployment" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLED_FOR_DEPLOYMENT' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enabledForDiskEncryption" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLED_FOR_DISK_ENCRYPTION' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enabledForTemplateDeployment" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLED_FOR_TEMPLATE_DEPLOYMENT' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enablePurgeProtection" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_PURGE_PROTECTION' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enableSoftDelete" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_SOFT_DELETE' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                </div>
+              </div>
+            }
+
             <!-- AppServicePlan-specific fields -->
             @if (resourceType === 'AppServicePlan') {
               <div class="form-section">
@@ -150,6 +189,95 @@
                   </mat-form-field>
                   <div class="form-field form-field--toggle">
                     <mat-slide-toggle formControlName="httpsOnly" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- RedisCache-specific fields -->
+            @if (resourceType === 'RedisCache') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.REDIS_VERSION' | translate }}</mat-label>
+                    <mat-select formControlName="redisVersion">
+                      @for (opt of redisVersionOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
+                    <mat-select formControlName="minimumTlsVersion">
+                      @for (opt of redisTlsOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enableNonSslPort" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_NON_SSL' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="disableAccessKeyAuthentication" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.DISABLE_ACCESS_KEY_AUTH' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enableAadAuth" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_AAD_AUTH' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  @if (redisAadWarning()) {
+                    <div class="feedback-banner feedback-banner--error" role="alert">
+                      <mat-icon>warning</mat-icon>
+                      {{ 'RESOURCE_EDIT.FIELDS.REDIS_AAD_WARNING' | translate }}
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- StorageAccount-specific fields -->
+            @if (resourceType === 'StorageAccount') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.KIND' | translate }}</mat-label>
+                    <mat-select formControlName="kind">
+                      @for (opt of storageKindOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACCESS_TIER' | translate }}</mat-label>
+                    <mat-select formControlName="accessTier">
+                      @for (opt of storageAccessTierOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
+                    <mat-select formControlName="minimumTlsVersion">
+                      @for (opt of storageTlsOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="allowBlobPublicAccess" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ALLOW_BLOB_PUBLIC' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enableHttpsTrafficOnly" color="primary">
                       {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
                     </mat-slide-toggle>
                   </div>
@@ -234,24 +362,6 @@
                         <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
                       </mat-form-field>
                       <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.REDIS_VERSION' | translate }}</mat-label>
-                        <mat-select formControlName="redisVersion">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of redisVersionOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
-                        <mat-select formControlName="minimumTlsVersion">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of redisTlsOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
                         <mat-label>{{ 'RESOURCE_EDIT.FIELDS.EVICTION_POLICY' | translate }}</mat-label>
                         <mat-select formControlName="maxMemoryPolicy">
                           <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
@@ -260,11 +370,6 @@
                           }
                         </mat-select>
                       </mat-form-field>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="enableNonSslPort" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.ENABLE_NON_SSL' | translate }}
-                        </mat-slide-toggle>
-                      </div>
                     }
                     @case ('StorageAccount') {
                       <mat-form-field appearance="outline" class="form-field">
@@ -276,43 +381,6 @@
                           }
                         </mat-select>
                       </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.KIND' | translate }}</mat-label>
-                        <mat-select formControlName="kind">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of storageKindOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACCESS_TIER' | translate }}</mat-label>
-                        <mat-select formControlName="accessTier">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of storageAccessTierOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
-                        <mat-select formControlName="minimumTlsVersion">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of storageTlsOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="allowBlobPublicAccess" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.ALLOW_BLOB_PUBLIC' | translate }}
-                        </mat-slide-toggle>
-                      </div>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="enableHttpsTrafficOnly" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
-                        </mat-slide-toggle>
-                      </div>
                     }
                     @case ('AppServicePlan') {
                       <mat-form-field appearance="outline" class="form-field">

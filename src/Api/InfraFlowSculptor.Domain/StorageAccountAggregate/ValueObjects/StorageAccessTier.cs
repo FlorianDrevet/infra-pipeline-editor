@@ -7,6 +7,7 @@ public class StorageAccessTier(StorageAccessTier.Tier value) : EnumValueObject<S
     public enum Tier
     {
         Hot,
-        Cool
+        Cool,
+        Premium
     }
 }

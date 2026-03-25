@@ -6,8 +6,10 @@ public class StorageAccountKind(StorageAccountKind.Kind value) : EnumValueObject
 {
     public enum Kind
     {
-        StorageV2,
         BlobStorage,
-        BlockBlobStorage
+        BlockBlobStorage,
+        FileStorage,
+        Storage,
+        StorageV2
     }
 }

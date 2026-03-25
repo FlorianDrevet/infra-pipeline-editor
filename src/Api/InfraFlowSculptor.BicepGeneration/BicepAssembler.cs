@@ -39,7 +39,13 @@ public static class BicepAssembler
         foreach (var module in modules.DistinctBy(m => m.ModuleFileName))
         {
             var folder = module.ModuleFolderName;
-            moduleFiles[$"modules/{folder}/{module.ModuleFileName}"] = module.ModuleBicepContent;
+            var bicepContentWithHeader = AddModuleHeader(
+                module.ResourceTypeName,
+                module.ModuleFileName.Replace(".bicep", ""),
+                module.ModuleName,
+                module.ModuleBicepContent);
+            
+            moduleFiles[$"modules/{folder}/{module.ModuleFileName}"] = bicepContentWithHeader;
 
             if (!string.IsNullOrEmpty(module.ModuleTypesBicepContent))
             {
@@ -97,6 +103,96 @@ public static class BicepAssembler
             "SqlDatabase" => "SqlDatabase",
             _ => resourceTypeName
         };
+
+    /// <summary>
+    /// Returns a human-readable display name for the resource type.
+    /// </summary>
+    private static string GetResourceTypeDisplayName(string resourceTypeName) =>
+        resourceTypeName switch
+        {
+            "KeyVault" => "Key Vault",
+            "RedisCache" => "Redis Cache",
+            "StorageAccount" => "Storage Account",
+            "AppServicePlan" => "App Service Plan",
+            "WebApp" => "Web App",
+            "FunctionApp" => "Function App",
+            "UserAssignedIdentity" => "User Assigned Identity",
+            "AppConfiguration" => "App Configuration",
+            "ContainerAppEnvironment" => "Container App Environment",
+            "ContainerApp" => "Container App",
+            "LogAnalyticsWorkspace" => "Log Analytics Workspace",
+            "ApplicationInsights" => "Application Insights",
+            "CosmosDb" => "Cosmos DB",
+            "SqlServer" => "SQL Server",
+            "SqlDatabase" => "SQL Database",
+            "ServiceBusNamespace" => "Service Bus Namespace",
+            _ => resourceTypeName
+        };
+
+    /// <summary>
+    /// Returns the Microsoft Learn documentation URL for the resource type.
+    /// </summary>
+    private static string GetResourceTypeDocumentationUrl(string resourceTypeName) =>
+        resourceTypeName switch
+        {
+            "KeyVault" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/vaults",
+            "RedisCache" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.cache/redis",
+            "StorageAccount" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts",
+            "AppServicePlan" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/serverfarms",
+            "WebApp" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites",
+            "FunctionApp" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites",
+            "UserAssignedIdentity" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.managedidentity/userassignedidentities",
+            "AppConfiguration" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.appconfiguration/configurationstores",
+            "ContainerAppEnvironment" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments",
+            "ContainerApp" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps",
+            "LogAnalyticsWorkspace" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.operationalinsights/workspaces",
+            "ApplicationInsights" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components",
+            "CosmosDb" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/databaseaccounts",
+            "SqlServer" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.sql/servers",
+            "SqlDatabase" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.sql/servers/databases",
+            "ServiceBusNamespace" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.servicebus/namespaces",
+            _ => string.Empty
+        };
+
+    /// <summary>
+    /// Generates a formatted module header comment with description and documentation link.
+    /// </summary>
+    private static string GenerateModuleHeader(
+        string resourceTypeName,
+        string moduleFileName,
+        string moduleName)
+    {
+        var displayName = GetResourceTypeDisplayName(resourceTypeName);
+        var docUrl = GetResourceTypeDocumentationUrl(resourceTypeName);
+
+        var sb = new StringBuilder();
+        sb.AppendLine("// =======================================================================");
+        sb.AppendLine($"// {displayName} Module");
+        sb.AppendLine("// -----------------------------------------------------------------------");
+        sb.AppendLine($"// Module: {moduleName}.module.bicep");
+        sb.AppendLine($"// Description: Deploys an Azure {displayName} resource");
+        if (!string.IsNullOrEmpty(docUrl))
+        {
+            sb.AppendLine($"// See: {docUrl}");
+        }
+        sb.AppendLine("// =======================================================================");
+        sb.AppendLine();
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Adds a formatted header to the module Bicep content.
+    /// </summary>
+    private static string AddModuleHeader(
+        string resourceTypeName,
+        string moduleFileName,
+        string moduleName,
+        string bicepContent)
+    {
+        var header = GenerateModuleHeader(resourceTypeName, moduleFileName, moduleName);
+        return header + bicepContent;
+    }
 
     // ────────────────────────────────────────────────────────────────────────
     // types.bicep

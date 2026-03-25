@@ -10,5 +10,10 @@ public record UpdateStorageAccountCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
+    string Kind,
+    string AccessTier,
+    bool AllowBlobPublicAccess,
+    bool EnableHttpsTrafficOnly,
+    string MinimumTlsVersion,
     IReadOnlyList<StorageAccountEnvironmentConfigData>? EnvironmentSettings = null
 ) : IRequest<ErrorOr<StorageAccountResult>>;

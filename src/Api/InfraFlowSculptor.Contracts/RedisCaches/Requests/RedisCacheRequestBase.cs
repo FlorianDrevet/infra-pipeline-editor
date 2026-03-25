@@ -16,6 +16,23 @@ public abstract class RedisCacheRequestBase
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
+    /// <summary>Redis engine version (e.g. 4 or 6).</summary>
+    [RedisVersionValidation]
+    public int? RedisVersion { get; init; }
+
+    /// <summary>Whether the non-SSL port (6379) is enabled.</summary>
+    public bool EnableNonSslPort { get; init; }
+
+    /// <summary>Minimum TLS version for client connections.</summary>
+    [EnumValidation(typeof(TlsVersion.Version))]
+    public string? MinimumTlsVersion { get; init; }
+
+    /// <summary>Whether access key (shared key) authentication is disabled.</summary>
+    public bool DisableAccessKeyAuthentication { get; init; }
+
+    /// <summary>Whether Microsoft Entra ID (AAD) authentication is enabled.</summary>
+    public bool EnableAadAuth { get; init; }
+
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<RedisCacheEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }
@@ -34,17 +51,6 @@ public class RedisCacheEnvironmentConfigEntry
     /// <summary>Optional capacity override.</summary>
     public int? Capacity { get; init; }
 
-    /// <summary>Optional Redis version override.</summary>
-    [RedisVersionValidation]
-    public int? RedisVersion { get; init; }
-
-    /// <summary>Optional non-SSL port override.</summary>
-    public bool? EnableNonSslPort { get; init; }
-
-    /// <summary>Optional minimum TLS version override.</summary>
-    [EnumValidation(typeof(TlsVersion.Version))]
-    public string? MinimumTlsVersion { get; init; }
-
     /// <summary>Optional max memory policy override.</summary>
     [EnumValidation(typeof(MaxMemoryPolicy.Policy))]
     public string? MaxMemoryPolicy { get; init; }
@@ -55,7 +61,4 @@ public record RedisCacheEnvironmentConfigResponse(
     string EnvironmentName,
     string? Sku,
     int? Capacity,
-    int? RedisVersion,
-    bool? EnableNonSslPort,
-    string? MinimumTlsVersion,
     string? MaxMemoryPolicy);

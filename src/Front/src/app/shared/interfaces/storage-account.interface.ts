@@ -3,21 +3,11 @@
 export interface StorageAccountEnvironmentConfigEntry {
   environmentName: string;
   sku?: string | null;
-  kind?: string | null;
-  accessTier?: string | null;
-  allowBlobPublicAccess?: boolean | null;
-  enableHttpsTrafficOnly?: boolean | null;
-  minimumTlsVersion?: string | null;
 }
 
 export interface StorageAccountEnvironmentConfigResponse {
   environmentName: string;
   sku: string | null;
-  kind: string | null;
-  accessTier: string | null;
-  allowBlobPublicAccess: boolean | null;
-  enableHttpsTrafficOnly: boolean | null;
-  minimumTlsVersion: string | null;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -43,6 +33,11 @@ export interface StorageAccountResponse {
   resourceGroupId: string;
   name: string;
   location: string;
+  kind: string;
+  accessTier: string;
+  allowBlobPublicAccess: boolean;
+  enableHttpsTrafficOnly: boolean;
+  minimumTlsVersion: string;
   blobContainers: BlobContainerResponse[];
   queues: StorageQueueResponse[];
   tables: StorageTableResponse[];
@@ -55,12 +50,22 @@ export interface CreateStorageAccountRequest {
   resourceGroupId: string;
   name: string;
   location: string;
+  kind: string;
+  accessTier: string;
+  allowBlobPublicAccess: boolean;
+  enableHttpsTrafficOnly: boolean;
+  minimumTlsVersion: string;
   environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 
 export interface UpdateStorageAccountRequest {
   name: string;
   location: string;
+  kind: string;
+  accessTier: string;
+  allowBlobPublicAccess: boolean;
+  enableHttpsTrafficOnly: boolean;
+  minimumTlsVersion: string;
   environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 

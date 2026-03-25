@@ -308,6 +308,9 @@
         "TLS_VERSION": "Minimum TLS version",
         "EVICTION_POLICY": "Eviction policy",
         "ENABLE_NON_SSL": "Enable non-SSL port",
+        "DISABLE_ACCESS_KEY_AUTH": "Disable access key authentication",
+        "ENABLE_AAD_AUTH": "Enable Entra ID (AAD) authentication",
+        "REDIS_AAD_WARNING": "When access key authentication is disabled, Entra ID (AAD) authentication must be enabled.",
         "KIND": "Account kind",
         "ACCESS_TIER": "Access tier",
         "ALLOW_BLOB_PUBLIC": "Allow public blob access",
@@ -771,6 +774,9 @@
       "TLS_VERSION": "Minimum TLS version",
       "EVICTION_POLICY": "Eviction policy",
       "ENABLE_NON_SSL": "Enable non-SSL port",
+      "DISABLE_ACCESS_KEY_AUTH": "Disable access key authentication",
+      "ENABLE_AAD_AUTH": "Enable Entra ID (AAD) authentication",
+      "REDIS_AAD_WARNING": "When access key authentication is disabled, Entra ID (AAD) authentication must be enabled.",
       "KIND": "Account kind",
       "ACCESS_TIER": "Access tier",
       "ALLOW_BLOB_PUBLIC": "Allow public blob access",
@@ -813,7 +819,13 @@
       "MULTI_REGION_WRITES": "Enable multi-region writes",
       "FREE_TIER": "Enable free tier",
       "MIN_TLS_VERSION": "Minimum TLS version",
-      "ZONE_REDUNDANT": "Zone redundant"
+      "ZONE_REDUNDANT": "Zone redundant",
+      "ENABLE_RBAC_AUTHORIZATION": "Enable RBAC authorization",
+      "ENABLED_FOR_DEPLOYMENT": "Enable for VM deployment",
+      "ENABLED_FOR_DISK_ENCRYPTION": "Enable for disk encryption",
+      "ENABLED_FOR_TEMPLATE_DEPLOYMENT": "Enable for ARM template deployment",
+      "ENABLE_PURGE_PROTECTION": "Enable purge protection",
+      "ENABLE_SOFT_DELETE": "Enable soft delete"
     },
     "ENVIRONMENTS": {
       "EMPTY": "No environments configured. Add environments in the project or configuration first.",
@@ -871,17 +883,15 @@
       "LOAD_ERROR": "Unable to load granted rights. Please try again."
     },
     "USED_BY": {
-      "DESCRIPTION": "Resources that use this managed identity. You can unlink a resource to remove all its role assignments through this identity.",
+      "DESCRIPTION": "Resources that use this managed identity. You can unlink a resource to switch its role assignments to System Assigned identity.",
       "LOADING": "Loading resources using this identity...",
       "EMPTY": "No resource is using this identity yet.",
       "UNLINK": "Unlink",
-      "UNLINK_TITLE": "Unlink role assignment",
-      "UNLINK_MESSAGE": "Remove the role \"{{role}}\" used by \"{{source}}\" on \"{{target}}\"? This action cannot be undone.",
       "UNLINK_RESOURCE_TITLE": "Unlink resource from identity",
-      "UNLINK_RESOURCE_MESSAGE": "Remove all role assignments from \"{{resource}}\" using this identity? This action cannot be undone.",
+      "UNLINK_RESOURCE_MESSAGE": "Switch all role assignments of \"{{resource}}\" from this identity to System Assigned? The granted rights of this identity are not affected.",
       "UNLINK_YES": "Unlink",
       "UNLINK_CANCEL": "Cancel",
-      "UNLINK_ERROR": "Unable to unlink the role assignment. Please try again."
+      "UNLINK_ERROR": "Unable to unlink the resource. Please try again."
     },
     "APP_SETTINGS": {
       "DESCRIPTION": "Configure environment variables for this compute resource. Reference outputs from other resources or set static values.",

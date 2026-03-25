@@ -306,6 +306,9 @@
         "TLS_VERSION": "Version TLS minimum",
         "EVICTION_POLICY": "Politique d'eviction",
         "ENABLE_NON_SSL": "Activer le port non-SSL",
+        "DISABLE_ACCESS_KEY_AUTH": "Désactiver l'authentification par clé d'accès",
+        "ENABLE_AAD_AUTH": "Activer l'authentification Entra ID (AAD)",
+        "REDIS_AAD_WARNING": "Lorsque l'authentification par clé d'accès est désactivée, l'authentification Entra ID (AAD) doit être activée.",
         "KIND": "Type de compte",
         "ACCESS_TIER": "Niveau d'acces",
         "ALLOW_BLOB_PUBLIC": "Autoriser l'acces public aux blobs",
@@ -778,6 +781,9 @@
       "TLS_VERSION": "Version TLS minimale",
       "EVICTION_POLICY": "Politique d'\u00e9viction",
       "ENABLE_NON_SSL": "Activer le port non-SSL",
+      "DISABLE_ACCESS_KEY_AUTH": "Désactiver l'authentification par clé d'accès",
+      "ENABLE_AAD_AUTH": "Activer l'authentification Entra ID (AAD)",
+      "REDIS_AAD_WARNING": "Lorsque l'authentification par clé d'accès est désactivée, l'authentification Entra ID (AAD) doit être activée.",
       "KIND": "Type de compte",
       "ACCESS_TIER": "Niveau d'acc\u00e8s",
       "ALLOW_BLOB_PUBLIC": "Autoriser l'acc\u00e8s public aux blobs",
@@ -820,7 +826,13 @@
       "MULTI_REGION_WRITES": "Activer l'\u00e9criture multi-r\u00e9gions",
       "FREE_TIER": "Activer le niveau gratuit",
       "MIN_TLS_VERSION": "Version TLS minimale",
-      "ZONE_REDUNDANT": "Redondance de zone"
+      "ZONE_REDUNDANT": "Redondance de zone",
+      "ENABLE_RBAC_AUTHORIZATION": "Activer l'autorisation RBAC",
+      "ENABLED_FOR_DEPLOYMENT": "Activer pour le d\u00e9ploiement VM",
+      "ENABLED_FOR_DISK_ENCRYPTION": "Activer pour le chiffrement de disque",
+      "ENABLED_FOR_TEMPLATE_DEPLOYMENT": "Activer pour le d\u00e9ploiement de mod\u00e8les ARM",
+      "ENABLE_PURGE_PROTECTION": "Activer la protection contre la purge",
+      "ENABLE_SOFT_DELETE": "Activer la suppression r\u00e9versible"
     },
     "ENVIRONMENTS": {
       "EMPTY": "Aucun environnement configur\u00e9. Ajoutez des environnements dans le projet ou la configuration.",
@@ -878,17 +890,15 @@
       "LOAD_ERROR": "Impossible de charger les droits accord\u00e9s. Veuillez r\u00e9essayer."
     },
     "USED_BY": {
-      "DESCRIPTION": "Ressources qui utilisent cette identit\u00e9 manag\u00e9e. Vous pouvez d\u00e9lier une ressource pour supprimer toutes ses assignations de r\u00f4le via cette identit\u00e9.",
+      "DESCRIPTION": "Ressources qui utilisent cette identit\u00e9 manag\u00e9e. Vous pouvez d\u00e9lier une ressource pour basculer ses assignations de r\u00f4le vers l\u2019identit\u00e9 System Assigned.",
       "LOADING": "Chargement des ressources utilisant cette identit\u00e9\u2026",
       "EMPTY": "Aucune ressource n\u2019utilise cette identit\u00e9 pour le moment.",
       "UNLINK": "D\u00e9lier",
-      "UNLINK_TITLE": "D\u00e9lier l\u2019assignation de r\u00f4le",
-      "UNLINK_MESSAGE": "Supprimer le r\u00f4le \u00ab {{role}} \u00bb utilis\u00e9 par \u00ab {{source}} \u00bb sur \u00ab {{target}} \u00bb ? Cette action est irr\u00e9versible.",
       "UNLINK_RESOURCE_TITLE": "D\u00e9lier la ressource de l\u2019identit\u00e9",
-      "UNLINK_RESOURCE_MESSAGE": "Supprimer toutes les assignations de r\u00f4le de \u00ab {{resource}} \u00bb utilisant cette identit\u00e9 ? Cette action est irr\u00e9versible.",
+      "UNLINK_RESOURCE_MESSAGE": "Basculer toutes les assignations de r\u00f4le de \u00ab {{resource}} \u00bb depuis cette identit\u00e9 vers System Assigned ? Les droits accord\u00e9s \u00e0 cette identit\u00e9 ne sont pas affect\u00e9s.",
       "UNLINK_YES": "D\u00e9lier",
       "UNLINK_CANCEL": "Annuler",
-      "UNLINK_ERROR": "Impossible de d\u00e9lier l\u2019assignation. Veuillez r\u00e9essayer."
+      "UNLINK_ERROR": "Impossible de d\u00e9lier la ressource. Veuillez r\u00e9essayer."
     },
     "APP_SETTINGS": {
       "DESCRIPTION": "Configurez les variables d'environnement pour cette ressource de calcul. R\u00e9f\u00e9rencez les sorties d'autres ressources ou d\u00e9finissez des valeurs statiques.",

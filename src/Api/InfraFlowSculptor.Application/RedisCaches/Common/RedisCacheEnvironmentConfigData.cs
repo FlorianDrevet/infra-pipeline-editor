@@ -8,7 +8,4 @@ public record RedisCacheEnvironmentConfigData(
     string EnvironmentName,
     string? Sku,
     int? Capacity,
-    int? RedisVersion,
-    bool? EnableNonSslPort,
-    string? MinimumTlsVersion,
     string? MaxMemoryPolicy);

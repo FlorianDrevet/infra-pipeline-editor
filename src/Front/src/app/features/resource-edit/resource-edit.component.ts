@@ -303,6 +303,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
   protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
 
+  protected readonly redisAadWarning = computed(() => {
+    if (this.resourceType !== 'RedisCache') return false;
+    const form = this.generalForm;
+    if (!form) return false;
+    const disableKey = form.get('disableAccessKeyAuthentication')?.value;
+    const aadEnabled = form.get('enableAadAuth')?.value;
+    return disableKey === true && aadEnabled !== true;
+  });
+
   protected readonly storageBlobContainers = computed<BlobContainerResponse[]>(() => {
     const res = this.resource();
     if (!res || this.resourceType !== 'StorageAccount') return [];
@@ -545,7 +554,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       location: [resource.location, [Validators.required]],
     };
 
-    if (this.resourceType === 'AppServicePlan') {
+    if (this.resourceType === 'KeyVault') {
+      const kv = resource as KeyVaultResponse;
+      base['enableRbacAuthorization'] = [kv.enableRbacAuthorization];
+      base['enabledForDeployment'] = [kv.enabledForDeployment];
+      base['enabledForDiskEncryption'] = [kv.enabledForDiskEncryption];
+      base['enabledForTemplateDeployment'] = [kv.enabledForTemplateDeployment];
+      base['enablePurgeProtection'] = [kv.enablePurgeProtection];
+      base['enableSoftDelete'] = [kv.enableSoftDelete];
+    } else if (this.resourceType === 'AppServicePlan') {
       const asp = resource as AppServicePlanResponse;
       base['osType'] = [asp.osType, [Validators.required]];
     } else if (this.resourceType === 'WebApp') {
@@ -561,12 +578,26 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['runtimeStack'] = [fa.runtimeStack, [Validators.required]];
       base['runtimeVersion'] = [fa.runtimeVersion];
       base['httpsOnly'] = [fa.httpsOnly];
+    } else if (this.resourceType === 'StorageAccount') {
+      const sa = resource as StorageAccountResponse;
+      base['kind'] = [sa.kind, [Validators.required]];
+      base['accessTier'] = [sa.accessTier, [Validators.required]];
+      base['allowBlobPublicAccess'] = [sa.allowBlobPublicAccess];
+      base['enableHttpsTrafficOnly'] = [sa.enableHttpsTrafficOnly];
+      base['minimumTlsVersion'] = [sa.minimumTlsVersion, [Validators.required]];
     } else if (this.resourceType === 'ContainerApp') {
       const ca = resource as ContainerAppResponse;
       base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
     } else if (this.resourceType === 'ApplicationInsights') {
       const ai = resource as ApplicationInsightsResponse;
       base['logAnalyticsWorkspaceId'] = [ai.logAnalyticsWorkspaceId];
+    } else if (this.resourceType === 'RedisCache') {
+      const rc = resource as RedisCacheResponse;
+      base['redisVersion'] = [rc.redisVersion, [Validators.required]];
+      base['enableNonSslPort'] = [rc.enableNonSslPort];
+      base['minimumTlsVersion'] = [rc.minimumTlsVersion, [Validators.required]];
+      base['disableAccessKeyAuthentication'] = [rc.disableAccessKeyAuthentication];
+      base['enableAadAuth'] = [rc.enableAadAuth];
     }
 
     this.generalForm = this.fb.group(base);
@@ -601,9 +632,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return this.fb.group({
           sku: [settings?.sku ?? null],
           capacity: [settings?.capacity ?? null],
-          redisVersion: [settings?.redisVersion ?? null],
-          enableNonSslPort: [settings?.enableNonSslPort ?? null],
-          minimumTlsVersion: [settings?.minimumTlsVersion ?? null],
           maxMemoryPolicy: [settings?.maxMemoryPolicy ?? null],
         });
       }
@@ -612,11 +640,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         const settings = sa.environmentSettings?.find(s => s.environmentName === envName);
         return this.fb.group({
           sku: [settings?.sku ?? null],
-          kind: [settings?.kind ?? null],
-          accessTier: [settings?.accessTier ?? null],
-          allowBlobPublicAccess: [settings?.allowBlobPublicAccess ?? null],
-          enableHttpsTrafficOnly: [settings?.enableHttpsTrafficOnly ?? null],
-          minimumTlsVersion: [settings?.minimumTlsVersion ?? null],
         });
       }
       case 'AppServicePlan': {
@@ -750,6 +773,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           await this.keyVaultService.update(this.resourceId, {
             name: general.name,
             location: general.location,
+            enableRbacAuthorization: general.enableRbacAuthorization,
+            enabledForDeployment: general.enabledForDeployment,
+            enabledForDiskEncryption: general.enabledForDiskEncryption,
+            enabledForTemplateDeployment: general.enabledForTemplateDeployment,
+            enablePurgeProtection: general.enablePurgeProtection,
+            enableSoftDelete: general.enableSoftDelete,
             environmentSettings: this.buildKeyVaultEnvSettings(),
           });
           break;
@@ -757,6 +786,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           await this.redisCacheService.update(this.resourceId, {
             name: general.name,
             location: general.location,
+            redisVersion: general.redisVersion != null ? Number(general.redisVersion) : null,
+            enableNonSslPort: general.enableNonSslPort ?? false,
+            minimumTlsVersion: general.minimumTlsVersion || null,
+            disableAccessKeyAuthentication: general.disableAccessKeyAuthentication ?? false,
+            enableAadAuth: general.enableAadAuth ?? false,
             environmentSettings: this.buildRedisCacheEnvSettings(),
           });
           break;
@@ -764,6 +798,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           await this.storageAccountService.update(this.resourceId, {
             name: general.name,
             location: general.location,
+            kind: general.kind,
+            accessTier: general.accessTier,
+            allowBlobPublicAccess: general.allowBlobPublicAccess ?? false,
+            enableHttpsTrafficOnly: general.enableHttpsTrafficOnly ?? true,
+            minimumTlsVersion: general.minimumTlsVersion,
             environmentSettings: this.buildStorageAccountEnvSettings(),
           });
           break;
@@ -1143,24 +1182,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected openUnlinkRoleAssignmentDialog(assignment: IdentityRoleAssignmentResponse): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        titleKey: 'RESOURCE_EDIT.USED_BY.UNLINK_TITLE',
-        messageKey: 'RESOURCE_EDIT.USED_BY.UNLINK_MESSAGE',
-        messageParams: { role: assignment.roleName, source: assignment.sourceResourceName, target: assignment.targetResourceName },
-        confirmKey: 'RESOURCE_EDIT.USED_BY.UNLINK_YES',
-        cancelKey: 'RESOURCE_EDIT.USED_BY.UNLINK_CANCEL',
-      } satisfies ConfirmDialogData,
-      width: '420px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-      await this.unlinkIdentityRoleAssignment(assignment);
-    });
-  }
-
   protected openUnlinkResourceFromIdentityDialog(group: { sourceResourceId: string; sourceResourceName: string; sourceResourceType: string; assignments: IdentityRoleAssignmentResponse[] }): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
@@ -1183,20 +1204,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.identityRoleAssignmentsError.set('');
     try {
       for (const ra of group.assignments) {
-        await this.roleAssignmentService.remove(ra.sourceResourceId, ra.id);
+        await this.roleAssignmentService.updateIdentity(ra.sourceResourceId, ra.id, {
+          managedIdentityType: 'SystemAssigned',
+        });
       }
-      const removedIds = new Set(group.assignments.map(ra => ra.id));
-      this.identityRoleAssignments.update(list => list.filter(ra => !removedIds.has(ra.id)));
-    } catch {
-      this.identityRoleAssignmentsError.set('RESOURCE_EDIT.USED_BY.UNLINK_ERROR');
-    }
-  }
-
-  private async unlinkIdentityRoleAssignment(assignment: IdentityRoleAssignmentResponse): Promise<void> {
-    this.identityRoleAssignmentsError.set('');
-    try {
-      await this.roleAssignmentService.remove(assignment.sourceResourceId, assignment.id);
-      this.identityRoleAssignments.update(list => list.filter(ra => ra.id !== assignment.id));
+      const unlinkedIds = new Set(group.assignments.map(ra => ra.id));
+      this.identityRoleAssignments.update(list => list.filter(ra => !unlinkedIds.has(ra.id)));
     } catch {
       this.identityRoleAssignmentsError.set('RESOURCE_EDIT.USED_BY.UNLINK_ERROR');
     }
@@ -1458,9 +1471,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         environmentName: ef.envName,
         sku: raw.sku || null,
         capacity: raw.capacity != null ? Number(raw.capacity) : null,
-        redisVersion: raw.redisVersion != null ? Number(raw.redisVersion) : null,
-        enableNonSslPort: raw.enableNonSslPort ?? null,
-        minimumTlsVersion: raw.minimumTlsVersion || null,
         maxMemoryPolicy: raw.maxMemoryPolicy || null,
       };
     });
@@ -1472,11 +1482,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       return {
         environmentName: ef.envName,
         sku: raw.sku || null,
-        kind: raw.kind || null,
-        accessTier: raw.accessTier || null,
-        allowBlobPublicAccess: raw.allowBlobPublicAccess ?? null,
-        enableHttpsTrafficOnly: raw.enableHttpsTrafficOnly ?? null,
-        minimumTlsVersion: raw.minimumTlsVersion || null,
       };
     });
   }

@@ -14,6 +14,25 @@ public class RedisCacheConfiguration : IEntityTypeConfiguration<RedisCache>
         builder.HasBaseType<AzureResource>()
             .ToTable("RedisCaches");
 
+        builder.Property(rc => rc.RedisVersion)
+            .IsRequired(false);
+
+        builder.Property(rc => rc.EnableNonSslPort)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(rc => rc.MinimumTlsVersion)
+            .IsRequired(false)
+            .HasConversion(new EnumValueConverter<TlsVersion, TlsVersion.Version>());
+
+        builder.Property(rc => rc.DisableAccessKeyAuthentication)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(rc => rc.EnableAadAuth)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.HasMany(rc => rc.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.RedisCacheId)

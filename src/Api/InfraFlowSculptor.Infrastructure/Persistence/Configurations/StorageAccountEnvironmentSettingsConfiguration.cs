@@ -33,24 +33,6 @@ public sealed class StorageAccountEnvironmentSettingsConfiguration
             .IsRequired(false)
             .HasConversion(new EnumValueConverter<StorageAccountSku, StorageAccountSku.Sku>());
 
-        builder.Property(x => x.Kind)
-            .IsRequired(false)
-            .HasConversion(new EnumValueConverter<StorageAccountKind, StorageAccountKind.Kind>());
-
-        builder.Property(x => x.AccessTier)
-            .IsRequired(false)
-            .HasConversion(new EnumValueConverter<StorageAccessTier, StorageAccessTier.Tier>());
-
-        builder.Property(x => x.AllowBlobPublicAccess)
-            .IsRequired(false);
-
-        builder.Property(x => x.EnableHttpsTrafficOnly)
-            .IsRequired(false);
-
-        builder.Property(x => x.MinimumTlsVersion)
-            .IsRequired(false)
-            .HasConversion(new EnumValueConverter<StorageAccountTlsVersion, StorageAccountTlsVersion.Version>());
-
         builder.HasIndex(x => new { x.StorageAccountId, x.EnvironmentName })
             .IsUnique();
     }

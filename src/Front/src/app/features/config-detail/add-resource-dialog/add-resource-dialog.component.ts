@@ -367,6 +367,23 @@ export class AddResourceDialogComponent {
     version: ['V12'],
     administratorLogin: [''],
     collation: ['SQL_Latin1_General_CP1_CI_AS'],
+    kind: ['StorageV2'],
+    accessTier: ['Hot'],
+    allowBlobPublicAccess: [false],
+    enableHttpsTrafficOnly: [true],
+    minimumTlsVersion: ['Tls12'],
+    redisVersion: [6 as number | null],
+    enableNonSslPort: [false],
+    disableAccessKeyAuthentication: [false],
+    enableAadAuth: [false],
+  });
+
+  protected readonly redisAadWarning = computed(() => {
+    const type = this.selectedType();
+    if (type !== ResourceTypeEnum.RedisCache) return false;
+    const disableKey = this.commonForm.get('disableAccessKeyAuthentication')?.value;
+    const aadEnabled = this.commonForm.get('enableAadAuth')?.value;
+    return disableKey === true && aadEnabled !== true;
   });
 
   // ── Create Plan form (inline ASP creation) ──
@@ -662,19 +679,11 @@ export class AddResourceDialogComponent {
         return this.fb.group({
           skuName: ['Standard', [Validators.required]],
           capacity: [1, [Validators.required, Validators.min(0)]],
-          redisVersion: [6, [Validators.required]],
-          enableNonSslPort: [false],
-          minimumTlsVersion: ['Tls12', [Validators.required]],
           maxMemoryPolicy: ['NoEviction', [Validators.required]],
         });
       case ResourceTypeEnum.StorageAccount:
         return this.fb.group({
           sku: ['Standard_LRS', [Validators.required]],
-          kind: ['StorageV2', [Validators.required]],
-          accessTier: ['Hot', [Validators.required]],
-          allowBlobPublicAccess: [false],
-          supportsHttpsTrafficOnly: [true],
-          minimumTlsVersion: ['Tls12', [Validators.required]],
         });
       case ResourceTypeEnum.AppServicePlan:
         return this.fb.group({
@@ -820,6 +829,11 @@ export class AddResourceDialogComponent {
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
             location: common.location!,
+            redisVersion: common.redisVersion ? Number(common.redisVersion) : null,
+            enableNonSslPort: common.enableNonSslPort ?? false,
+            minimumTlsVersion: common.minimumTlsVersion || null,
+            disableAccessKeyAuthentication: common.disableAccessKeyAuthentication ?? false,
+            enableAadAuth: common.enableAadAuth ?? false,
             environmentSettings: this.buildRedisCacheEnvironmentSettings(),
           });
           break;
@@ -829,6 +843,11 @@ export class AddResourceDialogComponent {
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
             location: common.location!,
+            kind: common.kind!,
+            accessTier: common.accessTier!,
+            allowBlobPublicAccess: common.allowBlobPublicAccess ?? false,
+            enableHttpsTrafficOnly: common.enableHttpsTrafficOnly ?? true,
+            minimumTlsVersion: common.minimumTlsVersion!,
             environmentSettings: this.buildStorageAccountEnvironmentSettings(),
           });
           break;
@@ -991,9 +1010,6 @@ export class AddResourceDialogComponent {
         environmentName: env.name,
         sku: raw.skuName || null,
         capacity: raw.capacity ? Number(raw.capacity) : null,
-        redisVersion: raw.redisVersion ? Number(raw.redisVersion) : null,
-        enableNonSslPort: raw.enableNonSslPort ?? null,
-        minimumTlsVersion: raw.minimumTlsVersion || null,
         maxMemoryPolicy: raw.maxMemoryPolicy || null,
       };
     });
@@ -1005,11 +1021,6 @@ export class AddResourceDialogComponent {
       return {
         environmentName: env.name,
         sku: raw.sku || null,
-        kind: raw.kind || null,
-        accessTier: raw.accessTier || null,
-        allowBlobPublicAccess: raw.allowBlobPublicAccess ?? null,
-        enableHttpsTrafficOnly: raw.supportsHttpsTrafficOnly ?? null,
-        minimumTlsVersion: raw.minimumTlsVersion || null,
       };
     });
   }
@@ -1188,12 +1199,19 @@ export class AddResourceDialogComponent {
       this.commonForm.controls.containerAppEnvironmentId.setValidators([Validators.required]);
     } else if (type === ResourceTypeEnum.ApplicationInsights) {
       this.commonForm.controls.logAnalyticsWorkspaceId.setValidators([Validators.required]);
+    } else if (type === ResourceTypeEnum.RedisCache) {
+      this.commonForm.controls.redisVersion.setValidators([Validators.required]);
+      this.commonForm.controls.minimumTlsVersion.setValidators([Validators.required]);
     } else if (type === ResourceTypeEnum.SqlServer) {
       this.commonForm.controls.version.setValidators([Validators.required]);
       this.commonForm.controls.administratorLogin.setValidators([Validators.required]);
     } else if (type === ResourceTypeEnum.SqlDatabase) {
       this.commonForm.controls.sqlServerId.setValidators([Validators.required]);
       this.commonForm.controls.collation.setValidators([Validators.required]);
+    } else if (type === ResourceTypeEnum.StorageAccount) {
+      this.commonForm.controls.kind.setValidators([Validators.required]);
+      this.commonForm.controls.accessTier.setValidators([Validators.required]);
+      this.commonForm.controls.minimumTlsVersion.setValidators([Validators.required]);
     }
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
@@ -1204,6 +1222,9 @@ export class AddResourceDialogComponent {
     this.commonForm.controls.version.updateValueAndValidity();
     this.commonForm.controls.administratorLogin.updateValueAndValidity();
     this.commonForm.controls.collation.updateValueAndValidity();
+    this.commonForm.controls.kind.updateValueAndValidity();
+    this.commonForm.controls.accessTier.updateValueAndValidity();
+    this.commonForm.controls.minimumTlsVersion.updateValueAndValidity();
   }
 
   private clearExtraValidators(): void {
@@ -1216,6 +1237,9 @@ export class AddResourceDialogComponent {
     this.commonForm.controls.version.clearValidators();
     this.commonForm.controls.administratorLogin.clearValidators();
     this.commonForm.controls.collation.clearValidators();
+    this.commonForm.controls.kind.clearValidators();
+    this.commonForm.controls.accessTier.clearValidators();
+    this.commonForm.controls.minimumTlsVersion.clearValidators();
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
@@ -1225,5 +1249,8 @@ export class AddResourceDialogComponent {
     this.commonForm.controls.version.updateValueAndValidity();
     this.commonForm.controls.administratorLogin.updateValueAndValidity();
     this.commonForm.controls.collation.updateValueAndValidity();
+    this.commonForm.controls.kind.updateValueAndValidity();
+    this.commonForm.controls.accessTier.updateValueAndValidity();
+    this.commonForm.controls.minimumTlsVersion.updateValueAndValidity();
   }
 }

@@ -10,5 +10,11 @@ public record UpdateKeyVaultCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
+    bool EnableRbacAuthorization = true,
+    bool EnabledForDeployment = false,
+    bool EnabledForDiskEncryption = false,
+    bool EnabledForTemplateDeployment = false,
+    bool EnablePurgeProtection = true,
+    bool EnableSoftDelete = true,
     IReadOnlyList<KeyVaultEnvironmentConfigData>? EnvironmentSettings = null
 ) : IRequest<ErrorOr<KeyVaultResult>>;

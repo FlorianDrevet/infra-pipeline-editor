@@ -20,35 +20,35 @@ public class StorageAccountMappingConfig : IRegister
                 src => src.EnvironmentSettings == null
                     ? null
                     : src.EnvironmentSettings.Select(ec => new StorageAccountEnvironmentConfigData(
-                        ec.EnvironmentName, ec.Sku, ec.Kind, ec.AccessTier,
-                        ec.AllowBlobPublicAccess, ec.EnableHttpsTrafficOnly, ec.MinimumTlsVersion)).ToList());
+                        ec.EnvironmentName, ec.Sku)).ToList());
 
         config.NewConfig<(Guid Id, UpdateStorageAccountRequest Request), UpdateStorageAccountCommand>()
             .MapWith(src => new UpdateStorageAccountCommand(
                 src.Id.Adapt<AzureResourceId>(),
                 src.Request.Name.Adapt<Name>(),
                 src.Request.Location.Adapt<Location>(),
+                src.Request.Kind,
+                src.Request.AccessTier,
+                src.Request.AllowBlobPublicAccess,
+                src.Request.EnableHttpsTrafficOnly,
+                src.Request.MinimumTlsVersion,
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new StorageAccountEnvironmentConfigData(
-                        ec.EnvironmentName, ec.Sku, ec.Kind, ec.AccessTier,
-                        ec.AllowBlobPublicAccess, ec.EnableHttpsTrafficOnly, ec.MinimumTlsVersion)).ToList()));
+                        ec.EnvironmentName, ec.Sku)).ToList()));
 
         config.NewConfig<StorageAccount, StorageAccountResult>()
+            .Map(dest => dest.Kind, src => src.Kind.Value.ToString())
+            .Map(dest => dest.AccessTier, src => src.AccessTier.Value.ToString())
+            .Map(dest => dest.MinimumTlsVersion, src => src.MinimumTlsVersion.Value.ToString())
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new StorageAccountEnvironmentConfigData(
                     es.EnvironmentName,
-                    (object?)es.Sku != null ? es.Sku.Value.ToString() : null,
-                    (object?)es.Kind != null ? es.Kind.Value.ToString() : null,
-                    (object?)es.AccessTier != null ? es.AccessTier.Value.ToString() : null,
-                    es.AllowBlobPublicAccess,
-                    es.EnableHttpsTrafficOnly,
-                    (object?)es.MinimumTlsVersion != null ? es.MinimumTlsVersion.Value.ToString() : null)).ToList());
+                    (object?)es.Sku != null ? es.Sku.Value.ToString() : null)).ToList());
 
         config.NewConfig<StorageAccountEnvironmentConfigData, StorageAccountEnvironmentConfigResponse>()
             .MapWith(src => new StorageAccountEnvironmentConfigResponse(
-                src.EnvironmentName, src.Sku, src.Kind, src.AccessTier,
-                src.AllowBlobPublicAccess, src.EnableHttpsTrafficOnly, src.MinimumTlsVersion));
+                src.EnvironmentName, src.Sku));
 
         config.NewConfig<StorageAccountSku, string>()
             .MapWith(src => src.Value.ToString());

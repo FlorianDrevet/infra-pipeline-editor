@@ -32,14 +32,16 @@ public class CreateRedisCacheCommandHandler(
             request.ResourceGroupId,
             request.Name,
             request.Location,
+            request.RedisVersion,
+            request.EnableNonSslPort,
+            request.MinimumTlsVersion is not null ? new TlsVersion(Enum.Parse<TlsVersion.Version>(request.MinimumTlsVersion)) : null,
+            request.DisableAccessKeyAuthentication,
+            request.EnableAadAuth,
             request.EnvironmentSettings?
                 .Select(ec => (
                     ec.EnvironmentName,
                     ec.Sku is not null ? new RedisCacheSku(Enum.Parse<RedisCacheSku.Sku>(ec.Sku)) : (RedisCacheSku?)null,
                     ec.Capacity,
-                    ec.RedisVersion,
-                    ec.EnableNonSslPort,
-                    ec.MinimumTlsVersion is not null ? new TlsVersion(Enum.Parse<TlsVersion.Version>(ec.MinimumTlsVersion)) : (TlsVersion?)null,
                     ec.MaxMemoryPolicy is not null ? new MaxMemoryPolicy(Enum.Parse<MaxMemoryPolicy.Policy>(ec.MaxMemoryPolicy)) : (MaxMemoryPolicy?)null))
                 .ToList());
 

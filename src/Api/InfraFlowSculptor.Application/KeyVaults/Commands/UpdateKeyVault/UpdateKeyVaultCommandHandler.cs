@@ -31,7 +31,15 @@ public class UpdateKeyVaultCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        keyVault.Update(request.Name, request.Location);
+        keyVault.Update(
+            request.Name,
+            request.Location,
+            request.EnableRbacAuthorization,
+            request.EnabledForDeployment,
+            request.EnabledForDiskEncryption,
+            request.EnabledForTemplateDeployment,
+            request.EnablePurgeProtection,
+            request.EnableSoftDelete);
 
         if (request.EnvironmentSettings is not null)
             keyVault.SetAllEnvironmentSettings(
