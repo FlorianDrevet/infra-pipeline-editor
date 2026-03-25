@@ -22,10 +22,10 @@ public class AppSettingMappingConfig : IRegister
                 src.ResourceId.Value.ToString(),
                 src.Name,
                 src.StaticValue,
-                src.SourceResourceId != null ? src.SourceResourceId.Value.ToString() : null,
+                (object?)src.SourceResourceId != null ? src.SourceResourceId.Value.ToString() : null,
                 src.SourceOutputName,
                 src.IsOutputReference,
-                src.KeyVaultResourceId != null ? src.KeyVaultResourceId.Value.ToString() : null,
+                (object?)src.KeyVaultResourceId != null ? src.KeyVaultResourceId.Value.ToString() : null,
                 src.SecretName,
                 src.IsKeyVaultReference,
                 src.HasKeyVaultAccess));

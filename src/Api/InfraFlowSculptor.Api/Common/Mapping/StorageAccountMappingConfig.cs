@@ -38,12 +38,12 @@ public class StorageAccountMappingConfig : IRegister
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new StorageAccountEnvironmentConfigData(
                     es.EnvironmentName,
-                    es.Sku != null ? es.Sku.Value.ToString() : null,
-                    es.Kind != null ? es.Kind.Value.ToString() : null,
-                    es.AccessTier != null ? es.AccessTier.Value.ToString() : null,
+                    (object?)es.Sku != null ? es.Sku.Value.ToString() : null,
+                    (object?)es.Kind != null ? es.Kind.Value.ToString() : null,
+                    (object?)es.AccessTier != null ? es.AccessTier.Value.ToString() : null,
                     es.AllowBlobPublicAccess,
                     es.EnableHttpsTrafficOnly,
-                    es.MinimumTlsVersion != null ? es.MinimumTlsVersion.Value.ToString() : null)).ToList());
+                    (object?)es.MinimumTlsVersion != null ? es.MinimumTlsVersion.Value.ToString() : null)).ToList());
 
         config.NewConfig<StorageAccountEnvironmentConfigData, StorageAccountEnvironmentConfigResponse>()
             .MapWith(src => new StorageAccountEnvironmentConfigResponse(

@@ -30,7 +30,7 @@ public class SqlDatabaseEnvironmentSettingsConfiguration
 
         builder.Property(x => x.Sku)
             .HasConversion(
-                v => v != null ? v.Value.ToString() : null,
+                v => (object?)v != null ? v.Value.ToString() : null,
                 v => v != null
                     ? new SqlDatabaseSku(Enum.Parse<SqlDatabaseSku.SqlDatabaseSkuEnum>(v))
                     : null);

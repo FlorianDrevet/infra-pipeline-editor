@@ -32,7 +32,7 @@ public sealed class FunctionAppEnvironmentSettingsConfiguration
 
         builder.Property(x => x.RuntimeStack)
             .HasConversion(
-                v => v != null ? v.Value.ToString() : null,
+                v => (object?)v != null ? v.Value.ToString() : null,
                 v => v != null
                     ? new FunctionAppRuntimeStack(Enum.Parse<FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(v))
                     : null);

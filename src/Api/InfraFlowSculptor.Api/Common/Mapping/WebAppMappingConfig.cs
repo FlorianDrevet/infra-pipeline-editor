@@ -43,7 +43,7 @@ public sealed class WebAppMappingConfig : IRegister
                     es.EnvironmentName,
                     es.AlwaysOn,
                     es.HttpsOnly,
-                    es.RuntimeStack != null ? es.RuntimeStack.Value.ToString() : null,
+                    (object?)es.RuntimeStack != null ? es.RuntimeStack.Value.ToString() : null,
                     es.RuntimeVersion)).ToList())
             .Map(dest => dest.RuntimeStack, src => src.RuntimeStack.Value.ToString())
             .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value);

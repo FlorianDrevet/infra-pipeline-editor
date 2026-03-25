@@ -37,12 +37,12 @@ public class RedisCacheMappingConfig : IRegister
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new RedisCacheEnvironmentConfigData(
                     es.EnvironmentName,
-                    es.Sku != null ? es.Sku.Value.ToString() : null,
+                    (object?)es.Sku != null ? es.Sku.Value.ToString() : null,
                     es.Capacity,
                     es.RedisVersion,
                     es.EnableNonSslPort,
-                    es.MinimumTlsVersion != null ? es.MinimumTlsVersion.Value.ToString() : null,
-                    es.MaxMemoryPolicy != null ? es.MaxMemoryPolicy.Value.ToString() : null)).ToList());
+                    (object?)es.MinimumTlsVersion != null ? es.MinimumTlsVersion.Value.ToString() : null,
+                    (object?)es.MaxMemoryPolicy != null ? es.MaxMemoryPolicy.Value.ToString() : null)).ToList());
 
         config.NewConfig<RedisCacheEnvironmentConfigData, RedisCacheEnvironmentConfigResponse>()
             .MapWith(src => new RedisCacheEnvironmentConfigResponse(

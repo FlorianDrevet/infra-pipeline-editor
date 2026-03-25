@@ -191,9 +191,9 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
         }
     }
 
-    private static HttpClient CreateClient(string token)
+    private HttpClient CreateClient(string token)
     {
-        var client = new HttpClient();
+        var client = httpClientFactory.CreateClient();
         var encoded = Convert.ToBase64String(Encoding.ASCII.GetBytes($":{token}"));
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", encoded);
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

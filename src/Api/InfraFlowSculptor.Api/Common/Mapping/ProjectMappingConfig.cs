@@ -92,7 +92,7 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.Members, src => src.Members)
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.DefaultNamingTemplate,
-                src => src.DefaultNamingTemplate == null ? null : src.DefaultNamingTemplate.Value)
+                src => (object?)src.DefaultNamingTemplate != null ? src.DefaultNamingTemplate.Value : null)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
             .Map(dest => dest.GitRepositoryConfiguration, src => src.GitRepositoryConfiguration);
 

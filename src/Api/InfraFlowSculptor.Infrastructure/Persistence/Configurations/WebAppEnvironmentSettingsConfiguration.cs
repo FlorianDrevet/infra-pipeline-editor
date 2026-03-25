@@ -34,7 +34,7 @@ public class WebAppEnvironmentSettingsConfiguration
 
         builder.Property(x => x.RuntimeStack)
             .HasConversion(
-                v => v != null ? v.Value.ToString() : null,
+                v => (object?)v != null ? v.Value.ToString() : null,
                 v => v != null
                     ? new WebAppRuntimeStack(Enum.Parse<WebAppRuntimeStack.WebAppRuntimeStackEnum>(v))
                     : null);
