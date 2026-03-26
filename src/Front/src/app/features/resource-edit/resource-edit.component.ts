@@ -300,6 +300,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly showQueueAddForm = signal(false);
   protected readonly showTableAddForm = signal(false);
   protected readonly storageCorsRulesDraft = signal<CorsRuleEntry[]>([]);
+  protected readonly storageTableCorsRulesDraft = signal<CorsRuleEntry[]>([]);
 
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
   protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
@@ -332,6 +333,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   });
 
   protected readonly storageCorsRules = computed<CorsRuleEntry[]>(() => this.storageCorsRulesDraft());
+  protected readonly storageTableCorsRules = computed<CorsRuleEntry[]>(() => this.storageTableCorsRulesDraft());
 
   // ─── Role Assignments ───
   protected readonly roleAssignments = signal<RoleAssignmentResponse[]>([]);
@@ -595,6 +597,13 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         exposedHeaders: [...rule.exposedHeaders],
         maxAgeInSeconds: rule.maxAgeInSeconds,
       })));
+      this.storageTableCorsRulesDraft.set((sa.tableCorsRules ?? []).map(rule => ({
+        allowedOrigins: [...rule.allowedOrigins],
+        allowedMethods: [...rule.allowedMethods],
+        allowedHeaders: [...rule.allowedHeaders],
+        exposedHeaders: [...rule.exposedHeaders],
+        maxAgeInSeconds: rule.maxAgeInSeconds,
+      })));
     } else if (this.resourceType === 'ContainerApp') {
       const ca = resource as ContainerAppResponse;
       base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
@@ -814,6 +823,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             enableHttpsTrafficOnly: general.enableHttpsTrafficOnly ?? true,
             minimumTlsVersion: general.minimumTlsVersion,
             corsRules: this.buildStorageAccountCorsRules(),
+            tableCorsRules: this.buildStorageAccountTableCorsRules(),
             environmentSettings: this.buildStorageAccountEnvSettings(),
           });
           break;
@@ -1362,14 +1372,18 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.formsDirty.set(true);
   }
 
-  protected updateCorsRuleListField(index: number, field: 'allowedOrigins' | 'allowedMethods' | 'allowedHeaders' | 'exposedHeaders', rawValue: string): void {
-    const parsed = rawValue
-      .split(',')
-      .map(value => value.trim())
-      .filter(value => value.length > 0);
+  protected addCorsRuleValue(index: number, field: 'allowedOrigins' | 'allowedMethods' | 'allowedHeaders' | 'exposedHeaders', value: string): void {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    this.storageCorsRulesDraft.update(rules => rules.map((rule, i) =>
+      i === index ? { ...rule, [field]: [...rule[field], trimmed] } : rule
+    ));
+    this.formsDirty.set(true);
+  }
 
-    this.storageCorsRulesDraft.update(rules => rules.map((rule, ruleIndex) =>
-      ruleIndex === index ? { ...rule, [field]: parsed } : rule
+  protected removeCorsRuleValue(index: number, field: 'allowedOrigins' | 'allowedMethods' | 'allowedHeaders' | 'exposedHeaders', valueIndex: number): void {
+    this.storageCorsRulesDraft.update(rules => rules.map((rule, i) =>
+      i === index ? { ...rule, [field]: rule[field].filter((_, vi) => vi !== valueIndex) } : rule
     ));
     this.formsDirty.set(true);
   }
@@ -1384,8 +1398,49 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.formsDirty.set(true);
   }
 
-  protected formatCorsRuleList(values: string[]): string {
-    return values.join(', ');
+  protected addTableCorsRule(): void {
+    this.storageTableCorsRulesDraft.update(rules => [
+      ...rules,
+      {
+        allowedOrigins: [],
+        allowedMethods: [],
+        allowedHeaders: [],
+        exposedHeaders: [],
+        maxAgeInSeconds: 0,
+      },
+    ]);
+    this.formsDirty.set(true);
+  }
+
+  protected removeTableCorsRule(index: number): void {
+    this.storageTableCorsRulesDraft.update(rules => rules.filter((_, ruleIndex) => ruleIndex !== index));
+    this.formsDirty.set(true);
+  }
+
+  protected addTableCorsRuleValue(index: number, field: 'allowedOrigins' | 'allowedMethods' | 'allowedHeaders' | 'exposedHeaders', value: string): void {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    this.storageTableCorsRulesDraft.update(rules => rules.map((rule, i) =>
+      i === index ? { ...rule, [field]: [...rule[field], trimmed] } : rule
+    ));
+    this.formsDirty.set(true);
+  }
+
+  protected removeTableCorsRuleValue(index: number, field: 'allowedOrigins' | 'allowedMethods' | 'allowedHeaders' | 'exposedHeaders', valueIndex: number): void {
+    this.storageTableCorsRulesDraft.update(rules => rules.map((rule, i) =>
+      i === index ? { ...rule, [field]: rule[field].filter((_, vi) => vi !== valueIndex) } : rule
+    ));
+    this.formsDirty.set(true);
+  }
+
+  protected updateTableCorsRuleMaxAge(index: number, rawValue: string): void {
+    const maxAgeInSeconds = Number(rawValue);
+    this.storageTableCorsRulesDraft.update(rules => rules.map((rule, ruleIndex) =>
+      ruleIndex === index
+        ? { ...rule, maxAgeInSeconds: Number.isFinite(maxAgeInSeconds) && maxAgeInSeconds >= 0 ? maxAgeInSeconds : 0 }
+        : rule
+    ));
+    this.formsDirty.set(true);
   }
 
   private readonly publicAccessI18nMap: Record<string, string> = {
@@ -1544,6 +1599,16 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   private buildStorageAccountCorsRules(): CorsRuleEntry[] {
     return this.storageCorsRulesDraft().map(rule => ({
+      allowedOrigins: [...rule.allowedOrigins],
+      allowedMethods: [...rule.allowedMethods],
+      allowedHeaders: [...rule.allowedHeaders],
+      exposedHeaders: [...rule.exposedHeaders],
+      maxAgeInSeconds: rule.maxAgeInSeconds,
+    }));
+  }
+
+  private buildStorageAccountTableCorsRules(): CorsRuleEntry[] {
+    return this.storageTableCorsRulesDraft().map(rule => ({
       allowedOrigins: [...rule.allowedOrigins],
       allowedMethods: [...rule.allowedMethods],
       allowedHeaders: [...rule.allowedHeaders],

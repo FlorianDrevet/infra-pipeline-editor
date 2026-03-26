@@ -55,6 +55,7 @@ export interface StorageAccountResponse {
   enableHttpsTrafficOnly: boolean;
   minimumTlsVersion: string;
   corsRules: CorsRuleResponse[];
+  tableCorsRules: CorsRuleResponse[];
   blobContainers: BlobContainerResponse[];
   queues: StorageQueueResponse[];
   tables: StorageTableResponse[];
@@ -73,6 +74,7 @@ export interface CreateStorageAccountRequest {
   enableHttpsTrafficOnly: boolean;
   minimumTlsVersion: string;
   corsRules?: CorsRuleEntry[];
+  tableCorsRules?: CorsRuleEntry[];
   environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 
@@ -85,6 +87,7 @@ export interface UpdateStorageAccountRequest {
   enableHttpsTrafficOnly: boolean;
   minimumTlsVersion: string;
   corsRules?: CorsRuleEntry[];
+  tableCorsRules?: CorsRuleEntry[];
   environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 

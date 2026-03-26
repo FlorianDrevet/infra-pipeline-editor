@@ -283,16 +283,17 @@
                   </div>
                 </div>
 
+                <!-- ─── Blob CORS ─── -->
                 <div class="cors-editor">
                   <div class="cors-editor__header">
                     <div>
-                      <h4 class="cors-editor__title">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS.TITLE' | translate }}</h4>
-                      <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS.DESCRIPTION' | translate }}</p>
+                      <h4 class="cors-editor__title">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.TITLE' | translate }}</h4>
+                      <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.DESCRIPTION' | translate }}</p>
                     </div>
                     @if (canWrite()) {
                       <button class="ghost-button cors-editor__add" type="button" (click)="addCorsRule()">
                         <mat-icon>add</mat-icon>
-                        {{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS.ADD_RULE' | translate }}
+                        {{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_RULE' | translate }}
                       </button>
                     }
                   </div>
@@ -300,46 +301,127 @@
                   @if (storageCorsRules().length === 0) {
                     <div class="cors-editor__empty">
                       <mat-icon>shield</mat-icon>
-                      <p>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS.EMPTY' | translate }}</p>
+                      <p>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.EMPTY' | translate }}</p>
                     </div>
                   } @else {
                     <div class="cors-rule-list">
                       @for (rule of storageCorsRules(); track $index; let i = $index) {
                         <div class="cors-rule-card">
                           <div class="cors-rule-card__topbar">
-                            <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS.RULE' | translate }} {{ i + 1 }}</span>
+                            <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.RULE' | translate }} {{ i + 1 }}</span>
                             @if (canWrite()) {
                               <button class="cors-rule-card__remove" type="button" (click)="removeCorsRule(i)">
                                 <mat-icon>close</mat-icon>
                               </button>
                             }
                           </div>
-                          <div class="cors-rule-card__grid">
-                            <mat-form-field appearance="outline" class="form-field">
-                              <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS.ALLOWED_ORIGINS' | translate }}</mat-label>
-                              <input matInput [value]="formatCorsRuleList(rule.allowedOrigins)" [readonly]="!canWrite()"
-                                (input)="updateCorsRuleListField(i, 'allowedOrigins', $any($event.target).value)" />
-                            </mat-form-field>
-                            <mat-form-field appearance="outline" class="form-field">
-                              <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS.ALLOWED_METHODS' | translate }}</mat-label>
-                              <input matInput [value]="formatCorsRuleList(rule.allowedMethods)" [readonly]="!canWrite()"
-                                (input)="updateCorsRuleListField(i, 'allowedMethods', $any($event.target).value)" />
-                            </mat-form-field>
-                            <mat-form-field appearance="outline" class="form-field">
-                              <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS.ALLOWED_HEADERS' | translate }}</mat-label>
-                              <input matInput [value]="formatCorsRuleList(rule.allowedHeaders)" [readonly]="!canWrite()"
-                                (input)="updateCorsRuleListField(i, 'allowedHeaders', $any($event.target).value)" />
-                            </mat-form-field>
-                            <mat-form-field appearance="outline" class="form-field">
-                              <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS.EXPOSED_HEADERS' | translate }}</mat-label>
-                              <input matInput [value]="formatCorsRuleList(rule.exposedHeaders)" [readonly]="!canWrite()"
-                                (input)="updateCorsRuleListField(i, 'exposedHeaders', $any($event.target).value)" />
-                            </mat-form-field>
-                            <mat-form-field appearance="outline" class="form-field">
-                              <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS.MAX_AGE_SECONDS' | translate }}</mat-label>
-                              <input matInput type="number" min="0" [value]="rule.maxAgeInSeconds" [readonly]="!canWrite()"
-                                (input)="updateCorsRuleMaxAge(i, $any($event.target).value)" />
-                            </mat-form-field>
+                          <div class="cors-rule-card__fields">
+                            @for (field of ['allowedOrigins', 'allowedMethods', 'allowedHeaders', 'exposedHeaders']; track field) {
+                              <div class="cors-field">
+                                <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.' + (field === 'allowedOrigins' ? 'ALLOWED_ORIGINS' : field === 'allowedMethods' ? 'ALLOWED_METHODS' : field === 'allowedHeaders' ? 'ALLOWED_HEADERS' : 'EXPOSED_HEADERS') | translate }}</span>
+                                <div class="cors-field__chips">
+                                  @for (val of $any(rule)[field]; track $index; let vi = $index) {
+                                    <span class="cors-field__chip">
+                                      {{ val }}
+                                      @if (canWrite()) {
+                                        <button class="cors-field__chip-remove" type="button" (click)="removeCorsRuleValue(i, $any(field), vi)">&times;</button>
+                                      }
+                                    </span>
+                                  }
+                                </div>
+                                @if (canWrite()) {
+                                  <div class="cors-field__input-row">
+                                    <input class="cors-field__input"
+                                      [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (keydown.enter)="addCorsRuleValue(i, $any(field), $any($event.target).value); $any($event.target).value = ''; $event.preventDefault()" />
+                                    <button class="cors-field__add-btn" type="button"
+                                      (click)="addCorsRuleValue(i, $any(field), $any($event.target).previousElementSibling.value); $any($event.target).previousElementSibling.value = ''">
+                                      <mat-icon>add</mat-icon>
+                                    </button>
+                                  </div>
+                                }
+                              </div>
+                            }
+                            <div class="cors-field">
+                              <mat-form-field appearance="outline" class="form-field">
+                                <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.MAX_AGE_SECONDS' | translate }}</mat-label>
+                                <input matInput type="number" min="0" [value]="rule.maxAgeInSeconds" [readonly]="!canWrite()"
+                                  (input)="updateCorsRuleMaxAge(i, $any($event.target).value)" />
+                              </mat-form-field>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- ─── Table CORS ─── -->
+                <div class="cors-editor">
+                  <div class="cors-editor__header">
+                    <div>
+                      <h4 class="cors-editor__title">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.TITLE' | translate }}</h4>
+                      <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.DESCRIPTION' | translate }}</p>
+                    </div>
+                    @if (canWrite()) {
+                      <button class="ghost-button cors-editor__add" type="button" (click)="addTableCorsRule()">
+                        <mat-icon>add</mat-icon>
+                        {{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_RULE' | translate }}
+                      </button>
+                    }
+                  </div>
+
+                  @if (storageTableCorsRules().length === 0) {
+                    <div class="cors-editor__empty">
+                      <mat-icon>shield</mat-icon>
+                      <p>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.EMPTY' | translate }}</p>
+                    </div>
+                  } @else {
+                    <div class="cors-rule-list">
+                      @for (rule of storageTableCorsRules(); track $index; let i = $index) {
+                        <div class="cors-rule-card">
+                          <div class="cors-rule-card__topbar">
+                            <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.RULE' | translate }} {{ i + 1 }}</span>
+                            @if (canWrite()) {
+                              <button class="cors-rule-card__remove" type="button" (click)="removeTableCorsRule(i)">
+                                <mat-icon>close</mat-icon>
+                              </button>
+                            }
+                          </div>
+                          <div class="cors-rule-card__fields">
+                            @for (field of ['allowedOrigins', 'allowedMethods', 'allowedHeaders', 'exposedHeaders']; track field) {
+                              <div class="cors-field">
+                                <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.' + (field === 'allowedOrigins' ? 'ALLOWED_ORIGINS' : field === 'allowedMethods' ? 'ALLOWED_METHODS' : field === 'allowedHeaders' ? 'ALLOWED_HEADERS' : 'EXPOSED_HEADERS') | translate }}</span>
+                                <div class="cors-field__chips">
+                                  @for (val of $any(rule)[field]; track $index; let vi = $index) {
+                                    <span class="cors-field__chip">
+                                      {{ val }}
+                                      @if (canWrite()) {
+                                        <button class="cors-field__chip-remove" type="button" (click)="removeTableCorsRuleValue(i, $any(field), vi)">&times;</button>
+                                      }
+                                    </span>
+                                  }
+                                </div>
+                                @if (canWrite()) {
+                                  <div class="cors-field__input-row">
+                                    <input class="cors-field__input"
+                                      [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (keydown.enter)="addTableCorsRuleValue(i, $any(field), $any($event.target).value); $any($event.target).value = ''; $event.preventDefault()" />
+                                    <button class="cors-field__add-btn" type="button"
+                                      (click)="addTableCorsRuleValue(i, $any(field), $any($event.target).previousElementSibling.value); $any($event.target).previousElementSibling.value = ''">
+                                      <mat-icon>add</mat-icon>
+                                    </button>
+                                  </div>
+                                }
+                              </div>
+                            }
+                            <div class="cors-field">
+                              <mat-form-field appearance="outline" class="form-field">
+                                <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.MAX_AGE_SECONDS' | translate }}</mat-label>
+                                <input matInput type="number" min="0" [value]="rule.maxAgeInSeconds" [readonly]="!canWrite()"
+                                  (input)="updateTableCorsRuleMaxAge(i, $any($event.target).value)" />
+                              </mat-form-field>
+                            </div>
                           </div>
                         </div>
                       }
