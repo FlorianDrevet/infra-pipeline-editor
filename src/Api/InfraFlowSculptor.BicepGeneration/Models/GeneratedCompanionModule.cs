@@ -6,6 +6,12 @@ namespace InfraFlowSculptor.BicepGeneration.Models;
 /// </summary>
 public sealed record GeneratedCompanionModule
 {
+    /// <summary>Suffix used to build the Bicep module symbol (e.g. <c>Blobs</c>).</summary>
+    public string ModuleSymbolSuffix { get; init; } = string.Empty;
+
+    /// <summary>Suffix used to build the deployment name (e.g. <c>Blobs</c>).</summary>
+    public string DeploymentNameSuffix { get; init; } = string.Empty;
+
     /// <summary>File name of the companion module (e.g. "storage.blobs.module.bicep").</summary>
     public string FileName { get; init; } = string.Empty;
 
@@ -20,6 +26,9 @@ public sealed record GeneratedCompanionModule
 
     /// <summary>Blob container names to provision (static configuration, not per-env).</summary>
     public IReadOnlyList<string> BlobContainerNames { get; init; } = [];
+
+    /// <summary>Storage table names to provision (static configuration, not per-env).</summary>
+    public IReadOnlyList<string> StorageTableNames { get; init; } = [];
 
     /// <summary>CORS rules to apply to the blob service.</summary>
     public IReadOnlyList<BlobCorsRuleData> CorsRules { get; init; } = [];

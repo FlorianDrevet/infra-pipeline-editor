@@ -52,9 +52,8 @@ public static class BicepAssembler
                 moduleFiles[$"modules/{folder}/types.bicep"] = module.ModuleTypesBicepContent;
             }
 
-            if (module.CompanionModule is not null)
+            foreach (var companion in module.CompanionModules)
             {
-                var companion = module.CompanionModule;
                 var companionPath = $"modules/{companion.FolderName}/{companion.FileName}";
                 moduleFiles[companionPath] = AddModuleHeader(
                     module.ResourceTypeName,
@@ -251,6 +250,42 @@ public static class BicepAssembler
         }
 
         yield return "    ]";
+    }
+
+    private static void AppendStorageAccountCompanionModule(
+        StringBuilder sb,
+        GeneratedTypeModule module,
+        GeneratedCompanionModule companion,
+        string resourceGroupSymbol,
+        string storageAccountNameExpression)
+    {
+        var companionSymbol = $"{module.ModuleName}{companion.ModuleSymbolSuffix}Module";
+        var deploymentName = $"{module.ModuleName}{companion.DeploymentNameSuffix}";
+
+        sb.AppendLine($"module {companionSymbol} './modules/{companion.FolderName}/{companion.FileName}' = {{");
+        sb.AppendLine($"  name: '{deploymentName}'");
+        sb.AppendLine($"  scope: {resourceGroupSymbol}");
+        sb.AppendLine("  params: {");
+        sb.AppendLine($"    storageAccountName: {storageAccountNameExpression}");
+
+        if (companion.BlobContainerNames.Count > 0 || companion.CorsRules.Count > 0)
+        {
+            sb.AppendLine($"    blobContainerNames: {RenderBicepStringArray(companion.BlobContainerNames)}");
+            sb.AppendLine("    corsRules: ");
+            foreach (var line in RenderCorsRules(companion.CorsRules))
+            {
+                sb.AppendLine(line);
+            }
+        }
+
+        if (companion.StorageTableNames.Count > 0)
+        {
+            sb.AppendLine($"    tableNames: {RenderBicepStringArray(companion.StorageTableNames)}");
+        }
+
+        sb.AppendLine("  }");
+        sb.AppendLine("}");
+        sb.AppendLine();
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -630,25 +665,9 @@ public static class BicepAssembler
             sb.AppendLine("}");
             sb.AppendLine();
 
-            if (module.CompanionModule is not null)
+            foreach (var companion in module.CompanionModules)
             {
-                var companion = module.CompanionModule;
-                var companionSymbol = $"{module.ModuleName}BlobsModule";
-
-                sb.AppendLine($"module {companionSymbol} './modules/{companion.FolderName}/{companion.FileName}' = {{");
-                sb.AppendLine($"  name: '{module.ModuleName}Blobs'");
-                sb.AppendLine($"  scope: {rgSymbol}");
-                sb.AppendLine("  params: {");
-                sb.AppendLine($"    storageAccountName: {nameExpr}");
-                sb.AppendLine($"    blobContainerNames: {RenderBicepStringArray(companion.BlobContainerNames)}");
-                sb.AppendLine("    corsRules: ");
-                foreach (var line in RenderCorsRules(companion.CorsRules))
-                {
-                    sb.AppendLine(line);
-                }
-                sb.AppendLine("  }");
-                sb.AppendLine("}");
-                sb.AppendLine();
+                AppendStorageAccountCompanionModule(sb, module, companion, rgSymbol, nameExpr);
             }
         }
 

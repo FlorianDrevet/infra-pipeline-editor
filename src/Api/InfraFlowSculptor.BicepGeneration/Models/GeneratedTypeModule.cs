@@ -41,10 +41,10 @@ public sealed record GeneratedTypeModule
         new Dictionary<string, object>();
 
     /// <summary>
-    /// Optional companion module to deploy alongside this resource
-    /// (e.g. blob service + containers for a Storage Account).
+    /// Optional companion modules to deploy alongside this resource
+    /// (e.g. blob and table services for a Storage Account).
     /// </summary>
-    public GeneratedCompanionModule? CompanionModule { get; init; }
+    public IReadOnlyList<GeneratedCompanionModule> CompanionModules { get; init; } = [];
 
     private static string NormalizePrimaryModuleFileName(string moduleFileName)
     {

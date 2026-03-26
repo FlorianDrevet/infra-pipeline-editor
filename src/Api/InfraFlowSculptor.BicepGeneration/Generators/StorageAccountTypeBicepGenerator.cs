@@ -15,20 +15,38 @@ public sealed class StorageAccountTypeBicepGenerator
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
         var blobContainerNames = ParseBlobContainerNames(resource.Properties);
+      var storageTableNames = ParseStorageTableNames(resource.Properties);
         var corsRules = ParseCorsRules(resource.Properties);
 
-        GeneratedCompanionModule? companion = null;
+      var companions = new List<GeneratedCompanionModule>();
+
         if (blobContainerNames.Count > 0 || corsRules.Count > 0)
         {
-            companion = new GeneratedCompanionModule
+        companions.Add(new GeneratedCompanionModule
             {
+          ModuleSymbolSuffix = "Blobs",
+          DeploymentNameSuffix = "Blobs",
                 FileName = "storage.blobs.module.bicep",
                 FolderName = "StorageAccount",
                 BicepContent = BlobsModuleTemplate,
                 TypesBicepContent = BlobsTypesTemplate,
                 BlobContainerNames = blobContainerNames,
                 CorsRules = corsRules
-            };
+        });
+      }
+
+      if (storageTableNames.Count > 0)
+      {
+        companions.Add(new GeneratedCompanionModule
+        {
+          ModuleSymbolSuffix = "Tables",
+          DeploymentNameSuffix = "Tables",
+          FileName = "storage.table.module.bicep",
+          FolderName = "StorageAccount",
+          BicepContent = TablesModuleTemplate,
+          TypesBicepContent = BlobsTypesTemplate,
+          StorageTableNames = storageTableNames
+        });
         }
 
         return new GeneratedTypeModule
@@ -39,7 +57,7 @@ public sealed class StorageAccountTypeBicepGenerator
             ModuleBicepContent = StorageAccountModuleTemplate,
             ModuleTypesBicepContent = StorageAccountTypesTemplate,
             ResourceTypeName = ResourceTypeName,
-            CompanionModule = companion,
+            CompanionModules = companions,
             Parameters = new Dictionary<string, object>
             {
                 ["sku"] = resource.Properties.GetValueOrDefault("sku", "Standard_LRS"),
@@ -58,6 +76,14 @@ public sealed class StorageAccountTypeBicepGenerator
             return [];
 
         return JsonSerializer.Deserialize<List<string>>(json) ?? [];
+    }
+
+    private static List<string> ParseStorageTableNames(IReadOnlyDictionary<string, string> properties)
+    {
+      if (!properties.TryGetValue("storageTableNames", out var json) || string.IsNullOrEmpty(json))
+        return [];
+
+      return JsonSerializer.Deserialize<List<string>>(json) ?? [];
     }
 
     private static List<BlobCorsRuleData> ParseCorsRules(IReadOnlyDictionary<string, string> properties)
@@ -196,6 +222,40 @@ public sealed class StorageAccountTypeBicepGenerator
           for blobContainerName in blobContainerNames: {
             name: blobContainerName
             parent: blobService
+          }
+        ]
+        """;
+
+    private const string TablesModuleTemplate = """
+        import { CorsRuleDescription } from './types.bicep'
+
+        @description('Storage account name')
+        param storageAccountName string
+
+        @description('Table names')
+        param tableNames string[]
+
+        @description('CORS rules')
+        param corsRules CorsRuleDescription[] = []
+
+        resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
+          name: storageAccountName
+        }
+
+        resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2025-06-01' = {
+          name: 'default'
+          parent: storageAccount
+          properties: {
+            cors: {
+              corsRules: corsRules
+            }
+          }
+        }
+
+        resource table 'Microsoft.Storage/storageAccounts/tableServices/tables@2025-06-01' = [
+          for tableName in tableNames: {
+            name: tableName
+            parent: tableService
           }
         ]
         """;
