@@ -13,3 +13,18 @@ type AccessTier = 'Hot' | 'Cool' | 'Premium'
 @export()
 @description('Minimum TLS version for Storage Account connections')
 type TlsVersion = 'TLS1_0' | 'TLS1_1' | 'TLS1_2'
+
+@export()
+@description('Describes a single CORS rule for the blob service')
+type CorsRuleDescription = {
+  @description('Allowed origins')
+  allowedOrigins: string[]
+  @description('Allowed methods')
+  allowedMethods: string[]
+  @description('Allowed headers')
+  allowedHeaders: string[]
+  @description('Exposed headers')
+  exposedHeaders: string[]
+  @description('Max age in seconds')
+  maxAgeInSeconds: int
+}

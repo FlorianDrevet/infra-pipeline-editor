@@ -15,8 +15,8 @@ var environments = {
   development: {
     envName: 'Development'
     envShort: 'dev'
-    envSuffix: '--dev'
-    envPrefix: 'dev--'
+    envSuffix: '-dev'
+    envPrefix: 'dev-'
     location: 'francecentral'
   }
 }

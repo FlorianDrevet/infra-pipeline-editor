@@ -65,6 +65,17 @@ module storageAccountIfsModule '../Common/modules/StorageAccount/storageAccount.
   }
 }
 
+module storageAccountIfsBlobsModule '../Common/modules/StorageAccount/storage.blobs.module.bicep' = {
+  name: 'storageAccountIfsBlobs'
+  scope: ifs
+  params: {
+    storageAccountName: BuildStorageAccountName('ifs', 'stg', env)
+    blobContainerNames: [ 'test' ]
+    corsRules: 
+[]
+  }
+}
+
 module userAssignedIdentityIfsBackendModule '../Common/modules/UserAssignedIdentity/userAssignedIdentity.bicep' = {
   name: 'userAssignedIdentityIfsBackend'
   scope: ifs

@@ -32,7 +32,7 @@ param supportsHttpsTrafficOnly bool
 @description('Minimum TLS version for client connections')
 param minimumTlsVersion TlsVersion = 'TLS1_2'
 
-resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+resource storage 'Microsoft.Storage/storageAccounts@2025-06-01' = {
   name: name
   location: location
   kind: kind
