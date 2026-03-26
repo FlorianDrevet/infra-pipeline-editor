@@ -34,7 +34,7 @@ public sealed class StorageAccountTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "storageAccount",
-            ModuleFileName = "storageAccount.bicep",
+            ModuleFileName = "storageAccount",
             ModuleFolderName = "StorageAccount",
             ModuleBicepContent = StorageAccountModuleTemplate,
             ModuleTypesBicepContent = StorageAccountTypesTemplate,

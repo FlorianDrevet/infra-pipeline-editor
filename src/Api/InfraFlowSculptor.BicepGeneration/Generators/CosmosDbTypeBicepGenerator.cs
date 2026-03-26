@@ -21,7 +21,7 @@ public sealed class CosmosDbTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "cosmosDb",
-            ModuleFileName = "cosmosDb.bicep",
+            ModuleFileName = "cosmosDb",
             ModuleFolderName = "CosmosDb",
             ModuleBicepContent = CosmosDbModuleTemplate,
             ModuleTypesBicepContent = CosmosDbTypesTemplate,

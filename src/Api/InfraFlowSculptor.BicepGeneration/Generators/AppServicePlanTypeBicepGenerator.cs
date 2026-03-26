@@ -16,7 +16,7 @@ public sealed class AppServicePlanTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "appServicePlan",
-            ModuleFileName = "appServicePlan.bicep",
+            ModuleFileName = "appServicePlan",
             ModuleFolderName = "AppServicePlan",
             ModuleBicepContent = AppServicePlanModuleTemplate,
             ModuleTypesBicepContent = AppServicePlanTypesTemplate,

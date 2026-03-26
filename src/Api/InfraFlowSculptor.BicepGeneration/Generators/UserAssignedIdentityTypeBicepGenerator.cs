@@ -19,7 +19,7 @@ public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepG
         return new GeneratedTypeModule
         {
             ModuleName = "userAssignedIdentity",
-            ModuleFileName = "userAssignedIdentity.bicep",
+            ModuleFileName = "userAssignedIdentity",
             ModuleFolderName = "UserAssignedIdentity",
             ModuleBicepContent = UserAssignedIdentityModuleTemplate,
             ResourceTypeName = ResourceTypeName,

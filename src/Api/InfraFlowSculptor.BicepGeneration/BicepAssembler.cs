@@ -42,8 +42,7 @@ public static class BicepAssembler
             var folder = module.ModuleFolderName;
             var bicepContentWithHeader = AddModuleHeader(
                 module.ResourceTypeName,
-                module.ModuleFileName.Replace(".bicep", ""),
-                module.ModuleName,
+                module.ModuleFileName,
                 module.ModuleBicepContent);
             
             moduleFiles[$"modules/{folder}/{module.ModuleFileName}"] = bicepContentWithHeader;
@@ -59,8 +58,7 @@ public static class BicepAssembler
                 var companionPath = $"modules/{companion.FolderName}/{companion.FileName}";
                 moduleFiles[companionPath] = AddModuleHeader(
                     module.ResourceTypeName,
-                    companion.FileName.Replace(".bicep", string.Empty),
-                    companion.FileName.Replace(".bicep", string.Empty),
+                    companion.FileName,
                     companion.BicepContent);
 
                 if (!string.IsNullOrWhiteSpace(companion.TypesBicepContent))
@@ -179,8 +177,7 @@ public static class BicepAssembler
     /// </summary>
     private static string GenerateModuleHeader(
         string resourceTypeName,
-        string moduleFileName,
-        string moduleName)
+        string moduleFileName)
     {
         var displayName = GetResourceTypeDisplayName(resourceTypeName);
         var docUrl = GetResourceTypeDocumentationUrl(resourceTypeName);
@@ -189,7 +186,7 @@ public static class BicepAssembler
         sb.AppendLine("// =======================================================================");
         sb.AppendLine($"// {displayName} Module");
         sb.AppendLine("// -----------------------------------------------------------------------");
-        sb.AppendLine($"// Module: {moduleName}.module.bicep");
+        sb.AppendLine($"// Module: {moduleFileName}");
         sb.AppendLine($"// Description: Deploys an Azure {displayName} resource");
         if (!string.IsNullOrEmpty(docUrl))
         {
@@ -207,10 +204,9 @@ public static class BicepAssembler
     private static string AddModuleHeader(
         string resourceTypeName,
         string moduleFileName,
-        string moduleName,
         string bicepContent)
     {
-        var header = GenerateModuleHeader(resourceTypeName, moduleFileName, moduleName);
+        var header = GenerateModuleHeader(resourceTypeName, moduleFileName);
         return header + bicepContent;
     }
 
@@ -878,10 +874,11 @@ public static class BicepAssembler
         string environmentName)
     {
         var sb = new StringBuilder();
+        var normalizedEnvironmentName = SanitizeBicepKey(environmentName);
 
         sb.AppendLine("using 'main.bicep'");
         sb.AppendLine();
-        sb.AppendLine($"param environmentName = '{environmentName}'");
+        sb.AppendLine($"param environmentName = '{normalizedEnvironmentName}'");
         sb.AppendLine();
 
         foreach (var module in modules)

@@ -21,7 +21,7 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "logAnalyticsWorkspace",
-            ModuleFileName = "logAnalyticsWorkspace.bicep",
+            ModuleFileName = "logAnalyticsWorkspace",
             ModuleFolderName = "LogAnalyticsWorkspace",
             ModuleBicepContent = LogAnalyticsWorkspaceModuleTemplate,
             ModuleTypesBicepContent = LogAnalyticsWorkspaceTypesTemplate,

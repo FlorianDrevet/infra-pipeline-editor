@@ -21,7 +21,7 @@ public sealed class AppConfigurationTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "appConfiguration",
-            ModuleFileName = "appConfiguration.bicep",
+            ModuleFileName = "appConfiguration",
             ModuleFolderName = "AppConfiguration",
             ModuleBicepContent = AppConfigurationModuleTemplate,
             ModuleTypesBicepContent = AppConfigurationTypesTemplate,

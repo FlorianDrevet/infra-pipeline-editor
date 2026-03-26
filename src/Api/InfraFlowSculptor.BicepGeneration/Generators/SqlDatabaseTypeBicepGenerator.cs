@@ -22,7 +22,7 @@ public sealed class SqlDatabaseTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "sqlDatabase",
-            ModuleFileName = "sqlDatabase.bicep",
+            ModuleFileName = "sqlDatabase",
             ModuleFolderName = "SqlDatabase",
             ModuleBicepContent = SqlDatabaseModuleTemplate,
             ModuleTypesBicepContent = SqlDatabaseTypesTemplate,

@@ -16,7 +16,7 @@ public sealed class RedisCacheTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "redisCache",
-            ModuleFileName = "redisCache.bicep",
+            ModuleFileName = "redisCache",
             ModuleFolderName = "RedisCache",
             ModuleBicepContent = RedisCacheModuleTemplate,
             ModuleTypesBicepContent = RedisCacheTypesTemplate,

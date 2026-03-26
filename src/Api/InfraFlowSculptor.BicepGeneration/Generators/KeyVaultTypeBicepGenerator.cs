@@ -23,7 +23,7 @@ public sealed class KeyVaultTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "keyVault",
-            ModuleFileName = "keyVault.bicep",
+            ModuleFileName = "keyVault",
             ModuleFolderName = "KeyVault",
             ModuleBicepContent = BuildModuleTemplate(
                 enableRbac, enabledForDeployment, enabledForDiskEncryption,

@@ -21,7 +21,7 @@ public sealed class ServiceBusNamespaceTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "serviceBusNamespace",
-            ModuleFileName = "serviceBusNamespace.bicep",
+            ModuleFileName = "serviceBusNamespace",
             ModuleFolderName = "ServiceBusNamespace",
             ModuleBicepContent = ServiceBusModuleTemplate,
             ModuleTypesBicepContent = ServiceBusTypesTemplate,

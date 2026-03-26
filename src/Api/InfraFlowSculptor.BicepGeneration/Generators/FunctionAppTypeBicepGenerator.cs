@@ -24,7 +24,7 @@ public sealed class FunctionAppTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "functionApp",
-            ModuleFileName = "functionApp.bicep",
+            ModuleFileName = "functionApp",
             ModuleFolderName = "FunctionApp",
             ModuleBicepContent = FunctionAppModuleTemplate,
             ModuleTypesBicepContent = FunctionAppTypesTemplate,

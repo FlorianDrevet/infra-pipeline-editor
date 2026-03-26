@@ -574,20 +574,20 @@ Each module is organized in its own folder under `modules/`:
 ```
 modules/
 ├── KeyVault/
-│   ├── keyVault.bicep       # Module template
+│   ├── keyVault.module.bicep       # Module template
 │   └── types.bicep           # Exported parameter types
 ├── RedisCache/
-│   ├── redisCache.bicep
+│   ├── redisCache.module.bicep
 │   └── types.bicep
 ├── StorageAccount/
-│   ├── storageAccount.bicep
+│   ├── storageAccount.module.bicep
 │   └── types.bicep
 └── ...
 ```
 
 - `GeneratedTypeModule.ModuleFolderName` holds the folder name (e.g. "KeyVault")
 - `GeneratedTypeModule.ModuleTypesBicepContent` holds the `types.bicep` content (empty for resources with no constrained params, like UserAssignedIdentity)
-- `BicepAssembler` outputs both the module `.bicep` and its `types.bicep` into `modules/{FolderName}/`
+- `BicepAssembler` outputs both the primary module `{moduleType}.module.bicep` and its `types.bicep` into `modules/{FolderName}/`
 - `main.bicep` references modules as `./modules/{FolderName}/{moduleFile}`
 
 ### 14.0.2 Per-module types.bicep pattern ([2026-03-24])
@@ -697,7 +697,7 @@ The Bicep generator now produces `types.bicep` and `functions.bicep` alongside `
 - `NamingTemplateTranslator` converts template placeholders to Bicep string interpolation (e.g. `{suffix}` → `${env.envSuffix}`)
 - `main.bicep` imports types+functions, uses `param environmentName EnvironmentName`, resolves `var env = environments[environmentName]`
 - Resource group and module names are computed via naming functions: `BuildResourceName('myVault', 'kv', env)` 
-- `.bicepparam` files set `param environmentName = '{envName}'` + only resource-specific params (sku, etc.)
+- `.bicepparam` files set `param environmentName` to the sanitized environment key used by `EnvironmentName` and `environments` (for example `development`, not display-case `Development`) + only resource-specific params (sku, etc.)
 - **Convention**: `envSuffix = '-dev'` (with leading hyphen if non-empty), `envShortSuffix = 'dev'` (raw). Prefix similarly: `envPrefix = 'dev-'`, `envShortPrefix = 'dev'`.
 
 ---
@@ -1160,6 +1160,8 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-03-26 | copilot | Fixed generated per-environment `.bicepparam` files to write `param environmentName` using the same sanitized key as `types.bicep` (`EnvironmentName` union and `environments` map). This prevents type-check failures when a project environment display name is title-cased like `Development` but the exported Bicep key is `development`. Validation: `dotnet build .\src\Api\InfraFlowSculptor.BicepGeneration\InfraFlowSculptor.BicepGeneration.csproj -nologo` succeeds. |
+| 2026-03-26 | copilot | Renamed primary generated Bicep module files from `{moduleType}.bicep` to `{moduleType}.module.bicep`. Centralized the naming rule in the `GeneratedTypeModule.ModuleFileName` init accessor so bare names and legacy `*.bicep` values are normalized automatically, updated all resource generators to use simple module names, and fixed `BicepAssembler` headers to print the actual generated filename so companion modules keep the correct `*.module.bicep` name. |
 | 2026-03-27 | copilot | Added StorageAccount blob-service CORS end-to-end support. **Bicep**: `StorageAccountTypeBicepGenerator` now emits a companion module `storage.blobs.module.bicep` next to the storage module, with exported `CorsRuleDescription` type, blob service CORS configuration, and container creation from `blobContainerNames`. `GeneratedTypeModule`/`BicepAssembler` now support companion modules and merge companion `types.bicep` content into generated output. **Backend**: added `CorsRule` entity + `CorsRuleId`, persisted in new `StorageAccountCorsRules` table via migration `AddStorageAccountCorsRules`; StorageAccount create/update/get contracts and handlers now carry `corsRules`; `InfrastructureConfigReadRepository` serializes both `blobContainerNames` and `corsRules` into StorageAccount read-model properties for Bicep generation. **Frontend**: `storage-account.interface.ts` includes CORS request/response models, and `resource-edit` General tab now edits blob service CORS inline instead of adding a separate tab. Validation: API builds successfully via temporary output path, frontend `npm run typecheck` and `npm run build` succeed. |
 | 2026-03-27 | copilot | **Fix cross-config virtual parent not showing after add**: After adding an AppInsights linked to a cross-config LAW, the LAW virtual parent didn't appear in the resource list. Root cause: `openAddResourceDialog()` and `openAddChildResourceDialog()` in `config-detail.component.ts` called `loadRgResources()` after dialog close but NOT `loadCrossConfigReferences()`, so the newly-created cross-config reference (from `onSelectCrossConfigPlan()`) wasn't in the `crossConfigReferences` signal when `groupResourcesForRg()` ran. Fix: added `await this.loadCrossConfigReferences()` before `await this.loadRgResources(rgId)` in both dialog `afterClosed()` callbacks. |
 | 2026-03-27 | copilot | **Fix cross-config refs display + incoming refs**: Fixed critical bugs preventing cross-config references from rendering in frontend. **Bug 1**: TS interface `CrossConfigReferenceResponse` had `id` field but C# serializes `ReferenceId` as JSON `referenceId` → all `ref.id` were `undefined`, breaking `@for` tracking, `getUnparentedCrossConfigRefs()`, and `removeCrossConfigReference()`. Fixed by renaming `id` → `referenceId` in interface and all TS/HTML usages. **Bug 2**: TS interface had phantom `alias: string` and `purpose: string | null` fields not present in C# contract → removed. `AddCrossConfigReferenceRequest` simplified to `{ targetResourceId }` only. **New feature — Incoming cross-config references**: Added `GET /infra-config/{id}/incoming-cross-config-references` endpoint to show resources from OTHER configs that depend on THIS config's resources. **Application**: `ListIncomingCrossConfigReferencesQuery`, `IncomingCrossConfigReferenceResult`, `ListIncomingCrossConfigReferencesQueryHandler` (iterates sibling configs' cross-config refs, finds child resources whose parent FK matches target, resolves metadata). **Contracts**: `IncomingCrossConfigReferenceResponse`. **API**: New GET endpoint on `InfrastructureConfigController`. **Mapster**: `IncomingCrossConfigReferenceResult → IncomingCrossConfigReferenceResponse`. **Frontend**: `IncomingCrossConfigReferenceResponse` TS interface, `getIncomingCrossConfigReferences()` service method, `incomingCrossConfigReferences` signal loaded alongside outgoing refs, `ResourceDisplayItem.incomingChildren` field, `groupResourcesForRg()` builds `incomingByTarget` map and attaches incoming children to local parents. HTML renders incoming children with purple cross-config styling + source config badge. i18n: `FROM_CONFIG` key in EN/FR. |

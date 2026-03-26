@@ -1324,10 +1324,10 @@ Regex: ^https?://dev\.azure\.com/(?<org>[^/]+)/(?<project>[^/]+)/_git/(?<repo>[^
 │   │   └── main.prod.bicepparam
 │   └── modules/
 │       ├── KeyVault/
-│       │   ├── keyVault.bicep
+│       │   ├── keyVault.module.bicep
 │       │   └── types.bicep
 │       ├── StorageAccount/
-│       │   ├── storageAccount.bicep
+│       │   ├── storageAccount.module.bicep
 │       │   └── types.bicep
 │       └── ...
 ```

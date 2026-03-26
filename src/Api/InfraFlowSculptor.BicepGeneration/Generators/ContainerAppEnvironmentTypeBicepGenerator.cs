@@ -21,7 +21,7 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "containerAppEnvironment",
-            ModuleFileName = "containerAppEnvironment.bicep",
+            ModuleFileName = "containerAppEnvironment",
             ModuleFolderName = "ContainerAppEnvironment",
             ModuleBicepContent = ContainerAppEnvironmentModuleTemplate,
             ModuleTypesBicepContent = ContainerAppEnvironmentTypesTemplate,

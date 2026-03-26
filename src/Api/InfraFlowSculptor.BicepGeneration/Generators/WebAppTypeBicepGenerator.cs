@@ -21,7 +21,7 @@ public sealed class WebAppTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "webApp",
-            ModuleFileName = "webApp.bicep",
+            ModuleFileName = "webApp",
             ModuleFolderName = "WebApp",
             ModuleBicepContent = WebAppModuleTemplate,
             ModuleTypesBicepContent = WebAppTypesTemplate,

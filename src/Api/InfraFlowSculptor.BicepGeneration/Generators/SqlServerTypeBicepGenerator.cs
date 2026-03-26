@@ -19,7 +19,7 @@ public sealed class SqlServerTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "sqlServer",
-            ModuleFileName = "sqlServer.bicep",
+            ModuleFileName = "sqlServer",
             ModuleFolderName = "SqlServer",
             ModuleBicepContent = SqlServerModuleTemplate,
             ModuleTypesBicepContent = SqlServerTypesTemplate,

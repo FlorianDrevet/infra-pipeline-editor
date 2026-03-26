@@ -21,7 +21,7 @@ public sealed class ApplicationInsightsTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "applicationInsights",
-            ModuleFileName = "applicationInsights.bicep",
+            ModuleFileName = "applicationInsights",
             ModuleFolderName = "ApplicationInsights",
             ModuleBicepContent = ApplicationInsightsModuleTemplate,
             ModuleTypesBicepContent = ApplicationInsightsTypesTemplate,

@@ -9,7 +9,7 @@ var testModules = new List<GeneratedTypeModule>
     new()
     {
         ModuleName = "cosmosDb",
-        ModuleFileName = "cosmosDb.bicep",
+        ModuleFileName = "cosmosDb",
         ModuleFolderName = "CosmosDb",
         ResourceTypeName = "CosmosDb",
         ModuleBicepContent = "import { DatabaseKind } from './types.bicep'\n\nparam location string\n",
