@@ -18,6 +18,7 @@ using InfraFlowSculptor.Application.Projects.Commands.TestGitConnection;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectMemberRole;
 using InfraFlowSculptor.Application.Projects.Queries.GetProject;
+using InfraFlowSculptor.Application.Projects.Queries.GetProjectBicepFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.ListGitBranches;
 using InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectConfigs;
@@ -590,6 +591,24 @@ public static class ProjectController
                 .WithSummary("Generate Bicep files for the entire project (mono-repo)")
                 .WithDescription("Generates Bicep files for all configurations in the project, organized as a mono-repo with a shared Common folder and per-config deployment folders.")
                 .Produces<GenerateProjectBicepResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{projectId:guid}/generate-bicep/files/{*filePath}",
+                    async ([FromRoute] Guid projectId, [FromRoute] string filePath, IMediator mediator) =>
+                    {
+                        var query = new GetProjectBicepFileContentQuery(projectId, filePath);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            value => Results.Ok(new { content = value.Content }),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GetProjectBicepFileContent")
+                .WithSummary("Get generated Bicep file content for a project")
+                .WithDescription("Reads the latest generated mono-repo Bicep file content for the given project and relative file path.")
+                .Produces(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 

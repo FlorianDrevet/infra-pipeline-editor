@@ -1,0 +1,82 @@
+<div class="bicep-terminal">
+  <div class="bicep-terminal__bar">
+    <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+    <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+    <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+    <span class="bicep-terminal__bar-title">{{ barTitle() }}</span>
+  </div>
+  <div class="bicep-terminal__body">
+    <p class="bicep-terminal__line">
+      <span class="bicep-terminal__prompt">$</span>
+      {{ terminalDoneText() }}
+    </p>
+    <div class="bicep-tree">
+      @for (node of nodes(); track $index) {
+        @if (isNodeVisible(node)) {
+
+          @if (node.kind === 'folder') {
+            <button
+              class="bicep-tree__folder"
+              [style.paddingLeft]="getFolderPaddingLeft(node.depth)"
+              (click)="toggleFolder(node.key)">
+              <mat-icon
+                class="bicep-tree__folder-chevron"
+                [class.bicep-tree__folder-chevron--open]="isFolderExpanded(node.key)">
+                chevron_right
+              </mat-icon>
+              <mat-icon class="bicep-tree__folder-icon">
+                {{ isFolderExpanded(node.key) ? 'folder_open' : node.folderIcon }}
+              </mat-icon>
+              <span>{{ node.name }}</span>
+              @if (node.badge) {
+                <span [class]="badgeClass(node.badgeVariant)">{{ node.badge | translate }}</span>
+              }
+            </button>
+          }
+
+          @if (node.kind === 'file') {
+            <button
+              class="bicep-tree__item"
+              [class.bicep-tree__item--active]="viewerFile() === node.path"
+              [style.paddingLeft]="getFilePaddingLeft(node.depth)"
+              (click)="openFile(node.path, node.uri)">
+              <mat-icon class="bicep-tree__icon">{{ getFileIcon(node.type) }}</mat-icon>
+              <span class="bicep-tree__name">{{ node.displayName }}</span>
+              @if (getFileBadge(node.type); as badge) {
+                <span [class]="badgeClass(badge.variant)">{{ badge.key | translate }}</span>
+              }
+            </button>
+          }
+
+        }
+      }
+    </div>
+  </div>
+</div>
+
+@if (viewerFile()) {
+  <div class="bicep-viewer">
+    <div class="bicep-viewer__bar">
+      <span class="bicep-viewer__dot bicep-viewer__dot--red"></span>
+      <span class="bicep-viewer__dot bicep-viewer__dot--yellow"></span>
+      <span class="bicep-viewer__dot bicep-viewer__dot--green"></span>
+      <span class="bicep-viewer__bar-title">{{ viewerFile() }}</span>
+      <button class="bicep-viewer__close" (click)="closeViewer()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="bicep-viewer__body">
+      @if (viewerLoading()) {
+        <div class="bicep-viewer__loading">
+          <span class="bicep-terminal__prompt">$</span>
+          <span class="bicep-viewer__loading-text">{{ fileLoadingText() }}</span>
+          <span class="bicep-terminal__cursor"></span>
+        </div>
+      } @else if (viewerContent()) {
+        <pre class="bicep-viewer__code"><code [innerHTML]="viewerContent() | bicepHighlight"></code></pre>
+      } @else {
+        <p class="bicep-viewer__error">{{ fileErrorText() }}</p>
+      }
+    </div>
+  </div>
+}

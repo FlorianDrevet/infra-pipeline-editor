@@ -1,0 +1,326 @@
+// ─── Terminal Window Chrome ────────────────────────────────────────────────────
+
+.bicep-terminal {
+  border-radius: 0.85rem;
+  overflow: hidden;
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bicep-terminal__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.bicep-terminal__dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  &--red    { background: #ff5f56; }
+  &--yellow { background: #ffbd2e; }
+  &--green  { background: #27c93f; }
+}
+
+.bicep-terminal__bar-title {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+.bicep-terminal__body {
+  padding: 1rem 1.1rem;
+}
+
+.bicep-terminal__line {
+  margin: 0 0 0.35rem;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: rgba(139, 233, 253, 0.85);
+}
+
+.bicep-terminal__prompt {
+  color: #ff79c6;
+  margin-right: 0.5rem;
+  font-weight: 700;
+}
+
+.bicep-terminal__cursor {
+  display: inline-block;
+  width: 0.55rem;
+  height: 1em;
+  background: #50fa7b;
+  vertical-align: text-bottom;
+  margin-left: 0.15rem;
+  animation: cursorBlink 1s step-end infinite;
+}
+
+// ─── File Tree ─────────────────────────────────────────────────────────────────
+
+.bicep-tree {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.bicep-tree__item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.6rem;
+  transition: background 0.15s;
+  width: 100%;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  background: transparent;
+  color: inherit;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  &--active {
+    background: rgba(139, 233, 253, 0.08);
+    border-left: 2px solid #8be9fd;
+
+    .bicep-tree__name { color: #8be9fd; }
+  }
+}
+
+.bicep-tree__icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #8be9fd;
+  flex-shrink: 0;
+}
+
+.bicep-tree__name {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 500;
+}
+
+.bicep-tree__badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: rgba(0, 230, 118, 0.15);
+  color: #69f0ae;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+
+  &--params {
+    background: rgba(139, 233, 253, 0.15);
+    color: #8be9fd;
+  }
+
+  &--types {
+    background: rgba(189, 147, 249, 0.15);
+    color: #bd93f9;
+  }
+
+  &--functions {
+    background: rgba(255, 184, 108, 0.15);
+    color: #ffb86c;
+  }
+
+  &--constants {
+    background: rgba(255, 85, 85, 0.15);
+    color: #ff5555;
+  }
+}
+
+.bicep-tree__folder {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem 0.2rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: rgba(139, 233, 253, 0.06);
+    color: rgba(255, 255, 255, 0.65);
+  }
+}
+
+.bicep-tree__folder-chevron {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: rgba(255, 255, 255, 0.35);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+
+  &--open {
+    transform: rotate(90deg);
+  }
+}
+
+// The folder icon — explicit colour so it is always visible regardless of parent opacity
+.bicep-tree__folder-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: #f1fa8c;
+  flex-shrink: 0;
+}
+
+@keyframes bicepFolderSlideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ─── File Content Viewer ───────────────────────────────────────────────────────
+
+.bicep-viewer {
+  border-radius: 0.85rem;
+  overflow: hidden;
+  background: #0d1117;
+  border: 1px solid rgba(139, 233, 253, 0.12);
+  margin-top: 0.75rem;
+  animation: bicepViewerSlideIn 0.25s ease-out;
+}
+
+.bicep-viewer__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.85rem;
+  background: rgba(139, 233, 253, 0.05);
+  border-bottom: 1px solid rgba(139, 233, 253, 0.08);
+}
+
+.bicep-viewer__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  &--red    { background: #ff5f56; }
+  &--yellow { background: #ffbd2e; }
+  &--green  { background: #27c93f; }
+}
+
+.bicep-viewer__bar-title {
+  flex: 1;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #8be9fd;
+  margin-left: 0.4rem;
+}
+
+.bicep-viewer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  mat-icon { font-size: 0.9rem; width: 0.9rem; height: 0.9rem; }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.bicep-viewer__body {
+  padding: 1rem 1.1rem;
+  max-height: 28rem;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(139, 233, 253, 0.2);
+    border-radius: 3px;
+    &:hover { background: rgba(139, 233, 253, 0.35); }
+  }
+}
+
+.bicep-viewer__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.82rem;
+  color: #50fa7b;
+}
+
+.bicep-viewer__loading-text {
+  color: rgba(139, 233, 253, 0.85);
+}
+
+.bicep-viewer__code {
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  color: rgba(248, 248, 242, 0.92);
+  white-space: pre;
+  tab-size: 2;
+
+  code {
+    font: inherit;
+    color: inherit;
+  }
+
+  // ::ng-deep needed because innerHTML bypasses Angular's encapsulation
+  & ::ng-deep {
+    .bh-keyword   { color: #ff79c6; font-weight: 600; }
+    .bh-type      { color: #8be9fd; font-style: italic; }
+    .bh-string    { color: #f1fa8c; }
+    .bh-comment   { color: #6272a4; font-style: italic; }
+    .bh-decorator { color: #50fa7b; }
+    .bh-constant  { color: #bd93f9; }
+    .bh-number    { color: #bd93f9; }
+    .bh-property  { color: #66d9ef; }
+  }
+}
+
+.bicep-viewer__error {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.82rem;
+  color: #ff79c6;
+  margin: 0;
+}
+
+// ─── Animations ────────────────────────────────────────────────────────────────
+
+@keyframes bicepViewerSlideIn {
+  from { opacity: 0; max-height: 0; }
+  to   { opacity: 1; max-height: 40rem; }
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}

@@ -222,6 +222,13 @@ export class ProjectService {
     );
   }
 
+  getProjectBicepFileContent(projectId: string, filePath: string): Promise<string> {
+    return this.axios.request$<{ content: string }>(
+      MethodEnum.GET,
+      `/projects/${projectId}/generate-bicep/files/${filePath}`
+    ).then(response => response.content);
+  }
+
   pushProjectBicepToGit(
     projectId: string,
     request: PushBicepToGitRequest

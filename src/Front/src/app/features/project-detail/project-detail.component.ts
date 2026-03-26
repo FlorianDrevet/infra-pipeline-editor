@@ -43,7 +43,7 @@ import { RESOURCE_TYPE_OPTIONS } from '../config-detail/enums/resource-type.enum
 import { TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { FormsModule } from '@angular/forms';
-import { BicepHighlightPipe } from '../config-detail/pipes/bicep-highlight.pipe';
+import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepFileType, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
@@ -56,7 +56,7 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     TranslateModule,
     RouterLink,
     FormsModule,
-    BicepHighlightPipe,
+    BicepFilePanelComponent,
     MatButtonModule,
     MatButtonToggleModule,
     MatDialogModule,
@@ -114,47 +114,76 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectBicepResult = signal<GenerateProjectBicepResponse | null>(null);
   protected readonly projectBicepErrorKey = signal('');
   protected readonly projectBicepPanelOpen = signal(false);
-  protected readonly projectBicepExpandedFolders = signal<Set<string>>(new Set());
-
   protected readonly projectBicepPanelCollapsed = signal(false);
-  protected readonly projectBicepViewerFile = signal<string | null>(null);
-  protected readonly projectBicepViewerContent = signal<string | null>(null);
-  protected readonly projectBicepViewerLoading = signal(false);
 
-  protected readonly commonFileEntries = computed(() => {
+  protected readonly projectBicepNodes = computed<BicepTreeNode[]>(() => {
     const result = this.projectBicepResult();
     if (!result) return [];
-    return Object.entries(result.commonFileUris)
-      .filter(([key]) => !key.startsWith('modules/'))
-      .map(([key, value]) => ({ key, value }));
-  });
+    const nodes: BicepTreeNode[] = [];
 
-  protected readonly commonModuleFolders = computed(() => {
-    const result = this.projectBicepResult();
-    if (!result) return [];
-    const folderMap = new Map<string, { folderName: string; folderKey: string; files: Array<{ name: string; displayName: string; value: string }> }>();
-    for (const [filePath, uri] of Object.entries(result.commonFileUris)) {
-      const parts = filePath.split('/');
-      if (parts.length < 3 || parts[0] !== 'modules') continue;
-      const folderName = parts[1];
-      const displayName = parts[2];
-      const folderKey = `Common/modules/${folderName}`;
-      if (!folderMap.has(folderKey)) {
-        folderMap.set(folderKey, { folderName, folderKey, files: [] });
+    // ── Common/ folder ──
+    // Backend stores keys with "Common/" prefix (e.g. "Common/types.bicep", "Common/modules/WebApp/...").
+    // Strip it so filters like key.startsWith('modules/') and path templates work correctly.
+    const commonEntries = Object.entries(result.commonFileUris)
+      .map(([key, uri]) => [key.startsWith('Common/') ? key.slice('Common/'.length) : key, uri] as [string, string]);
+    if (commonEntries.length > 0) {
+      nodes.push({ kind: 'folder', key: 'Common', name: 'Common/', badge: 'PROJECT_DETAIL.BICEP.SHARED', badgeVariant: 'types', folderIcon: 'folder_shared', depth: 0 } satisfies BicepFolderNode);
+
+      for (const [key, uri] of commonEntries) {
+        if (key.startsWith('modules/')) continue;
+        const type: BicepFileType =
+          key === 'types.bicep' ? 'types'
+          : key === 'functions.bicep' ? 'functions'
+          : key === 'constants.bicep' ? 'constants'
+          : 'generic';
+        nodes.push({ kind: 'file', path: `Common/${key}`, displayName: key, type, uri: `Common/${key}`, depth: 1, parentFolderKey: 'Common' } satisfies BicepFileNode);
       }
-      folderMap.get(folderKey)!.files.push({ name: `Common/${filePath}`, displayName, value: uri });
+
+      const moduleEntries = commonEntries.filter(([key]) => key.startsWith('modules/'));
+      if (moduleEntries.length > 0) {
+        nodes.push({ kind: 'folder', key: 'Common/modules', name: 'modules/', folderIcon: 'folder', depth: 1, parentFolderKey: 'Common' } satisfies BicepFolderNode);
+        const folderMap = new Map<string, { name: string; files: Array<{ path: string; displayName: string; uri: string }> }>();
+        for (const [filePath, uri] of moduleEntries) {
+          const parts = filePath.split('/');
+          if (parts.length < 3) continue;
+          const fn = parts[1];
+          const folderKey = `Common/modules/${fn}`;
+          if (!folderMap.has(folderKey)) folderMap.set(folderKey, { name: fn, files: [] });
+          folderMap.get(folderKey)!.files.push({ path: `Common/${filePath}`, displayName: parts[2], uri });
+        }
+        for (const [folderKey, folder] of folderMap) {
+          nodes.push({ kind: 'folder', key: folderKey, name: `${folder.name}/`, folderIcon: 'folder', depth: 2, parentFolderKey: 'Common/modules' } satisfies BicepFolderNode);
+          for (const file of folder.files) {
+            const type: BicepFileType =
+              file.displayName === 'types.bicep' ? 'types'
+              : file.displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
+              : 'module-type';
+            nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type, uri: file.path, depth: 3, parentFolderKey: folderKey } satisfies BicepFileNode);
+          }
+        }
+      }
     }
-    return Array.from(folderMap.values());
+
+    // ── Per-config folders ──
+    for (const [configName, files] of Object.entries(result.configFileUris)) {
+      nodes.push({ kind: 'folder', key: configName, name: `${configName}/`, folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
+      for (const [fileName, uri] of Object.entries(files)) {
+        const type: BicepFileType =
+          fileName === 'main.bicep' ? 'entry-point'
+          : fileName.endsWith('.bicepparam') ? 'params'
+          : fileName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
+          : 'generic';
+        nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: fileName.split('/').at(-1)!, type, uri: `${configName}/${fileName}`, depth: 1, parentFolderKey: configName } satisfies BicepFileNode);
+      }
+    }
+
+    return nodes;
   });
 
-  protected readonly configFolders = computed(() => {
-    const result = this.projectBicepResult();
-    if (!result) return [];
-    return Object.entries(result.configFileUris).map(([configName, files]) => ({
-      configName,
-      files: Object.entries(files).map(([key, value]) => ({ key, value })),
-    }));
-  });
+  protected readonly loadProjectBicepFile = (filePath: string): Promise<string> => {
+    const projectId = this.project()?.id ?? '';
+    return this.projectService.getProjectBicepFileContent(projectId, filePath);
+  };
 
   // ─── Git Config ───
   protected readonly gitTestLoading = signal(false);
@@ -608,13 +637,6 @@ export class ProjectDetailComponent implements OnInit {
     try {
       const result = await this.projectService.generateProjectBicep(projectId);
       this.projectBicepResult.set(result);
-
-      // Auto-expand Common and each config folder
-      const folders = new Set<string>(['Common']);
-      for (const configName of Object.keys(result.configFileUris ?? {})) {
-        folders.add(configName);
-      }
-      this.projectBicepExpandedFolders.set(folders);
     } catch {
       this.projectBicepErrorKey.set('PROJECT_DETAIL.BICEP.GENERATE_ERROR');
     } finally {
@@ -626,51 +648,9 @@ export class ProjectDetailComponent implements OnInit {
     this.projectBicepPanelOpen.set(false);
     this.projectBicepResult.set(null);
     this.projectBicepErrorKey.set('');
-    this.projectBicepViewerFile.set(null);
-    this.projectBicepViewerContent.set(null);
   }
 
-  protected toggleProjectBicepFolder(folder: string): void {
-    this.projectBicepExpandedFolders.update((set) => {
-      const next = new Set(set);
-      if (next.has(folder)) {
-        next.delete(folder);
-      } else {
-        next.add(folder);
-      }
-      return next;
-    });
-  }
 
-  protected isProjectBicepFolderExpanded(folder: string): boolean {
-    return this.projectBicepExpandedFolders().has(folder);
-  }
-
-  protected async selectProjectBicepFile(fileKey: string, fileUri: string): Promise<void> {
-    if (this.projectBicepViewerLoading()) return;
-    if (this.projectBicepViewerFile() === fileKey) {
-      this.projectBicepViewerFile.set(null);
-      this.projectBicepViewerContent.set(null);
-      return;
-    }
-    this.projectBicepViewerFile.set(fileKey);
-    this.projectBicepViewerContent.set(null);
-    this.projectBicepViewerLoading.set(true);
-    try {
-      const response = await fetch(fileUri);
-      const text = await response.text();
-      this.projectBicepViewerContent.set(text);
-    } catch {
-      this.projectBicepViewerContent.set(null);
-    } finally {
-      this.projectBicepViewerLoading.set(false);
-    }
-  }
-
-  protected closeProjectBicepViewer(): void {
-    this.projectBicepViewerFile.set(null);
-    this.projectBicepViewerContent.set(null);
-  }
 
   protected openProjectPushToGitDialog(): void {
     const project = this.project();

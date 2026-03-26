@@ -53,7 +53,7 @@ import { ProjectResponse, TestGitConnectionResponse } from '../../shared/interfa
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS, PARENT_CHILD_RESOURCE_TYPES, CHILD_RESOURCE_TYPES } from './enums/resource-type.enum';
 import { FormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { BicepHighlightPipe } from './pipes/bicep-highlight.pipe';
+import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import { StorageAccountResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
@@ -76,12 +76,6 @@ interface ResourceDisplayItem {
   crossConfigRef?: CrossConfigReferenceResponse;
 }
 
-interface BicepModuleFolder {
-  folderName: string;
-  folderKey: string;
-  files: Array<{ name: string; displayName: string; uri: string }>;
-}
-
 
 @Component({
   selector: 'app-config-detail',
@@ -99,7 +93,7 @@ interface BicepModuleFolder {
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
-    BicepHighlightPipe,
+    BicepFilePanelComponent,
   ],
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',
@@ -161,41 +155,64 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly bicepPanelCollapsed = signal(false);
   protected readonly bicepDownloading = signal(false);
 
-  // ─── Bicep File Viewer ───
-  protected readonly bicepViewerFile = signal<string | null>(null);
-  protected readonly bicepViewerContent = signal<string | null>(null);
-  protected readonly bicepViewerLoading = signal(false);
-  protected readonly bicepExpandedFolders = signal<Set<string>>(new Set<string>(['modules', 'parameters']));
+  // ─── Bicep File Panel ───
 
-  protected readonly bicepModuleEntries = computed(() => {
+  protected readonly configBicepNodes = computed<BicepTreeNode[]>(() => {
     const result = this.bicepResult();
-    if (!result?.moduleUris) return [];
-    return Object.entries(result.moduleUris).map(([name, uri]) => ({ name, uri }));
-  });
+    if (!result) return [];
+    const nodes: BicepTreeNode[] = [];
 
-  protected readonly bicepModuleFolders = computed<BicepModuleFolder[]>(() => {
-    const result = this.bicepResult();
-    if (!result?.moduleUris) return [];
-    const folderMap = new Map<string, BicepModuleFolder>();
-    for (const [filePath, uri] of Object.entries(result.moduleUris)) {
-      const parts = filePath.split('/');
-      if (parts.length < 3) continue;
-      const folderName = parts[1];
-      const displayName = parts[2];
-      const folderKey = `modules/${folderName}`;
-      if (!folderMap.has(folderKey)) {
-        folderMap.set(folderKey, { folderName, folderKey, files: [] });
-      }
-      folderMap.get(folderKey)!.files.push({ name: filePath, displayName, uri });
+    // Root-level files — uri is the file path, passed to getFileContent() by loadConfigBicepFile
+    nodes.push({ kind: 'file', path: 'types.bicep', displayName: 'types.bicep', type: 'types', uri: 'types.bicep', depth: 0, parentFolderKey: '' });
+    nodes.push({ kind: 'file', path: 'functions.bicep', displayName: 'functions.bicep', type: 'functions', uri: 'functions.bicep', depth: 0, parentFolderKey: '' });
+    if (result.constantsBicepUri) {
+      nodes.push({ kind: 'file', path: 'constants.bicep', displayName: 'constants.bicep', type: 'constants', uri: 'constants.bicep', depth: 0, parentFolderKey: '' });
     }
-    return Array.from(folderMap.values());
+    nodes.push({ kind: 'file', path: 'main.bicep', displayName: 'main.bicep', type: 'entry-point', uri: 'main.bicep', depth: 0, parentFolderKey: '' });
+
+    // parameters/ folder
+    const params = Object.entries(result.parameterFileUris ?? {});
+    if (params.length > 0) {
+      nodes.push({ kind: 'folder', key: 'parameters', name: 'parameters/', folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
+      for (const [name, uri] of params) {
+        nodes.push({ kind: 'file', path: name, displayName: name.split('/').at(-1)!, type: 'params', uri, depth: 1, parentFolderKey: 'parameters' });
+      }
+    }
+
+    // modules/ folder (with per-resource sub-folders)
+    if (result.moduleUris && Object.keys(result.moduleUris).length > 0) {
+      const folderMap = new Map<string, { name: string; files: Array<{ path: string; displayName: string; uri: string }> }>();
+      for (const [filePath, uri] of Object.entries(result.moduleUris)) {
+        const parts = filePath.split('/');
+        if (parts.length < 3) continue;
+        const folderName = parts[1];
+        const displayName = parts[2];
+        const folderKey = `modules/${folderName}`;
+        if (!folderMap.has(folderKey)) folderMap.set(folderKey, { name: folderName, files: [] });
+        folderMap.get(folderKey)!.files.push({ path: filePath, displayName, uri });
+      }
+      if (folderMap.size > 0) {
+        nodes.push({ kind: 'folder', key: 'modules', name: 'modules/', folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
+        for (const [folderKey, folder] of folderMap) {
+          nodes.push({ kind: 'folder', key: folderKey, name: `${folder.name}/`, folderIcon: 'folder', depth: 1, parentFolderKey: 'modules' } satisfies BicepFolderNode);
+          for (const file of folder.files) {
+            const type =
+              file.displayName === 'types.bicep' ? 'types'
+              : file.displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
+              : 'module-type';
+            nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type, uri: file.uri, depth: 2, parentFolderKey: folderKey } satisfies BicepFileNode);
+          }
+        }
+      }
+    }
+
+    return nodes;
   });
 
-  protected readonly bicepParamEntries = computed(() => {
-    const result = this.bicepResult();
-    if (!result?.parameterFileUris) return [];
-    return Object.entries(result.parameterFileUris).map(([name, uri]) => ({ name, uri }));
-  });
+  protected readonly loadConfigBicepFile = (filePath: string): Promise<string> => {
+    const configId = this.config()?.id ?? '';
+    return this.bicepService.getFileContent(configId, filePath);
+  };
 
   // ─── Inheritance ───
   protected readonly inheritanceLoading = signal(false);
@@ -318,8 +335,6 @@ export class ConfigDetailComponent implements OnInit {
     this.crossConfigErrorKey.set('');
     this.bicepResult.set(null);
     this.bicepPanelOpen.set(false);
-    this.bicepViewerFile.set(null);
-    this.bicepViewerContent.set(null);
     this.storageAccountDetails.set({});
     this.previewEnvId.set(null);
     this.loadError.set('');
@@ -1031,10 +1046,6 @@ export class ConfigDetailComponent implements OnInit {
     try {
       const result = await this.bicepService.generate({ infrastructureConfigId: configId });
       this.bicepResult.set(result);
-      const subfolderKeys = Object.keys(result.moduleUris ?? {})
-        .map(k => { const p = k.split('/'); return p.length >= 3 ? `modules/${p[1]}` : null; })
-        .filter((k): k is string => k !== null);
-      this.bicepExpandedFolders.set(new Set(['modules', ...subfolderKeys]));
     } catch (err: unknown) {
       const axios = await import('axios');
       if (axios.isAxiosError(err)) {
@@ -1058,8 +1069,6 @@ export class ConfigDetailComponent implements OnInit {
     this.bicepPanelOpen.set(false);
     this.bicepResult.set(null);
     this.bicepErrorKey.set('');
-    this.bicepViewerFile.set(null);
-    this.bicepViewerContent.set(null);
   }
 
   protected openPushToGitDialog(): void {
@@ -1072,50 +1081,7 @@ export class ConfigDetailComponent implements OnInit {
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 
-  protected async openBicepFile(filePath: string): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId || this.bicepViewerLoading()) return;
 
-    // Toggle off if already viewing this file
-    if (this.bicepViewerFile() === filePath) {
-      this.bicepViewerFile.set(null);
-      this.bicepViewerContent.set(null);
-      return;
-    }
-
-    this.bicepViewerFile.set(filePath);
-    this.bicepViewerContent.set(null);
-    this.bicepViewerLoading.set(true);
-    try {
-      const content = await this.bicepService.getFileContent(configId, filePath);
-      this.bicepViewerContent.set(content);
-    } catch {
-      this.bicepViewerContent.set(null);
-    } finally {
-      this.bicepViewerLoading.set(false);
-    }
-  }
-
-  protected closeBicepViewer(): void {
-    this.bicepViewerFile.set(null);
-    this.bicepViewerContent.set(null);
-  }
-
-  protected toggleBicepFolder(folder: string): void {
-    this.bicepExpandedFolders.update(set => {
-      const next = new Set(set);
-      if (next.has(folder)) {
-        next.delete(folder);
-      } else {
-        next.add(folder);
-      }
-      return next;
-    });
-  }
-
-  protected isBicepFolderExpanded(folder: string): boolean {
-    return this.bicepExpandedFolders().has(folder);
-  }
 
   protected async downloadBicepFiles(): Promise<void> {
     const result = this.bicepResult();
