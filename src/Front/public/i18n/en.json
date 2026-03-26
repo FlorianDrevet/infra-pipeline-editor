@@ -1058,6 +1058,18 @@
       "BLOB_CONTAINERS": "Blob Containers",
       "QUEUES": "Queues",
       "TABLES": "Tables",
+        "CORS": {
+          "TITLE": "Blob service CORS",
+          "DESCRIPTION": "Define origins, methods, headers, and cache duration applied to the blob service.",
+          "ADD_RULE": "Add rule",
+          "EMPTY": "No CORS rule configured for this storage account.",
+          "RULE": "Rule",
+          "ALLOWED_ORIGINS": "Allowed origins",
+          "ALLOWED_METHODS": "Allowed methods",
+          "ALLOWED_HEADERS": "Allowed headers",
+          "EXPOSED_HEADERS": "Exposed headers",
+          "MAX_AGE_SECONDS": "Max age in seconds"
+        },
       "ADD_BLOB": "Add Blob Container",
       "ADD_QUEUE": "Add Queue",
       "ADD_TABLE": "Add Table",

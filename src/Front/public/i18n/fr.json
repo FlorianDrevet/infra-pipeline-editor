@@ -1065,6 +1065,18 @@
       "BLOB_CONTAINERS": "Conteneurs Blob",
       "QUEUES": "Files d\u2019attente",
       "TABLES": "Tables",
+        "CORS": {
+          "TITLE": "CORS du service Blob",
+          "DESCRIPTION": "Definissez les origines, methodes, en-tetes et la duree de cache appliques au service Blob.",
+          "ADD_RULE": "Ajouter une regle",
+          "EMPTY": "Aucune regle CORS n'est configuree pour ce compte de stockage.",
+          "RULE": "Regle",
+          "ALLOWED_ORIGINS": "Origines autorisees",
+          "ALLOWED_METHODS": "Methodes autorisees",
+          "ALLOWED_HEADERS": "En-tetes autorises",
+          "EXPOSED_HEADERS": "En-tetes exposes",
+          "MAX_AGE_SECONDS": "Age max en secondes"
+        },
       "ADD_BLOB": "Ajouter un conteneur Blob",
       "ADD_QUEUE": "Ajouter une file d\u2019attente",
       "ADD_TABLE": "Ajouter une table",
