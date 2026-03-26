@@ -38,4 +38,7 @@ public sealed record GeneratedCompanionModule
 
     /// <summary>CORS rules to apply to the table service.</summary>
     public IReadOnlyList<BlobCorsRuleData> TableCorsRules { get; init; } = [];
+
+    /// <summary>Blob lifecycle management rules for automatic deletion by TTL.</summary>
+    public IReadOnlyList<ContainerLifecycleRuleData> LifecycleRules { get; init; } = [];
 }

@@ -302,6 +302,69 @@ public static class BicepAssembler
         }
     }
 
+    private static string GetStorageAccountLifecycleParameterName(
+        GeneratedTypeModule module,
+        GeneratedCompanionModule companion) =>
+        $"{module.ModuleName}{companion.ModuleSymbolSuffix}LifecycleRules";
+
+    private static IEnumerable<(string Name, string Description, IReadOnlyList<ContainerLifecycleRuleData> Value)> GetStorageAccountLifecycleParameters(
+        GeneratedTypeModule module)
+    {
+        foreach (var companion in module.CompanionModules)
+        {
+            if (companion.LifecycleRules.Count > 0)
+            {
+                yield return (
+                    GetStorageAccountLifecycleParameterName(module, companion),
+                    $"Blob lifecycle management rules for storage account '{module.LogicalResourceName}'",
+                    companion.LifecycleRules);
+            }
+        }
+    }
+
+    private static IEnumerable<string> RenderLifecycleRules(IReadOnlyList<ContainerLifecycleRuleData> rules, int indentLevel = 0)
+    {
+        if (rules.Count == 0)
+        {
+            yield return "[]";
+            yield break;
+        }
+
+        var indent = new string(' ', indentLevel);
+        var itemIndent = new string(' ', indentLevel + 2);
+        var propertyIndent = new string(' ', indentLevel + 4);
+
+        yield return "[";
+        foreach (var rule in rules)
+        {
+            yield return $"{itemIndent}{{";
+            yield return $"{propertyIndent}ruleName: '{EscapeBicepString(rule.RuleName)}'";
+            yield return $"{propertyIndent}containerNames: {RenderBicepStringArray(rule.ContainerNames)}";
+            yield return $"{propertyIndent}timeToLiveInDays: {rule.TimeToLiveInDays}";
+            yield return $"{itemIndent}}}";
+        }
+
+        yield return $"{indent}]";
+    }
+
+    private static void AppendLifecycleParameterAssignment(
+        StringBuilder sb,
+        string parameterName,
+        IReadOnlyList<ContainerLifecycleRuleData> rules)
+    {
+        if (rules.Count == 0)
+        {
+            sb.AppendLine($"param {parameterName} = []");
+            return;
+        }
+
+        sb.AppendLine($"param {parameterName} = ");
+        foreach (var line in RenderLifecycleRules(rules))
+        {
+            sb.AppendLine(line);
+        }
+    }
+
     private static void AppendStorageAccountCompanionModule(
         StringBuilder sb,
         GeneratedTypeModule module,
@@ -341,6 +404,11 @@ public static class BicepAssembler
         if (companion.QueueNames.Count > 0)
         {
             sb.AppendLine($"    queueNames: {RenderBicepStringArray(companion.QueueNames)}");
+        }
+
+        if (companion.LifecycleRules.Count > 0)
+        {
+            sb.AppendLine($"    containerLifecycleRules: {GetStorageAccountLifecycleParameterName(module, companion)}");
         }
 
         sb.AppendLine("  }");
@@ -571,6 +639,12 @@ public static class BicepAssembler
             }
 
             foreach (var (name, description, _) in GetStorageAccountCorsParameters(module))
+            {
+                sb.AppendLine($"@description('{EscapeBicepString(description)}')");
+                sb.AppendLine($"param {name} array = []");
+            }
+
+            foreach (var (name, description, _) in GetStorageAccountLifecycleParameters(module))
             {
                 sb.AppendLine($"@description('{EscapeBicepString(description)}')");
                 sb.AppendLine($"param {name} array = []");
@@ -976,6 +1050,11 @@ public static class BicepAssembler
             foreach (var (name, _, value) in GetStorageAccountCorsParameters(module))
             {
                 AppendCorsParameterAssignment(sb, name, value);
+            }
+
+            foreach (var (name, _, value) in GetStorageAccountLifecycleParameters(module))
+            {
+                AppendLifecycleParameterAssignment(sb, name, value);
             }
 
             sb.AppendLine();

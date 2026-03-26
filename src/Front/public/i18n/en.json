@@ -1120,7 +1120,21 @@
       "ADD_SUCCESS": "{{type}} \u201c{{name}}\u201d added successfully.",
       "REMOVE_SUCCESS": "{{type}} removed successfully.",
       "ACTION_ERROR": "An error occurred. Please try again.",
-      "DUPLICATE_NAME_ERROR": "This name already exists."
+      "DUPLICATE_NAME_ERROR": "This name already exists.",
+      "LIFECYCLE_RULES": {
+        "TITLE": "Blob lifecycle management",
+        "DESCRIPTION": "Automatically delete blobs after a retention period. Each rule targets one or more containers.",
+        "ADD_RULE": "Add rule",
+        "EMPTY": "No lifecycle rule configured.",
+        "RULE": "Rule",
+        "RULE_NAME": "Rule name",
+        "RULE_NAME_HINT": "A unique identifier for this lifecycle rule (e.g. cleanup-logs).",
+        "CONTAINER_NAMES": "Target containers",
+        "CONTAINER_NAMES_HINT": "Select or type the blob container names this rule applies to.",
+        "ADD_CONTAINER_PLACEHOLDER": "Add a container name…",
+        "TTL_DAYS": "Retention (days)",
+        "TTL_HINT": "Blobs will be deleted after this many days since last modification (1–36 500)."
+      }
     }
   }
 }

@@ -25,6 +25,11 @@ public class StorageAccount : AzureResource
     public IReadOnlyList<CorsRule> CorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Blob)).ToList();
     public IReadOnlyList<CorsRule> TableCorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Table)).ToList();
 
+    private readonly List<BlobLifecycleRule> _lifecycleRules = new();
+
+    /// <summary>Gets the blob lifecycle management rules for this Storage Account.</summary>
+    public IReadOnlyList<BlobLifecycleRule> LifecycleRules => _lifecycleRules.AsReadOnly();
+
     private readonly List<StorageAccountEnvironmentSettings> _environmentSettings = new();
 
     /// <summary>Gets the typed per-environment configuration overrides for this Storage Account.</summary>
@@ -181,6 +186,23 @@ public class StorageAccount : AzureResource
             int MaxAgeInSeconds)> corsRules)
         => SetServiceCorsRules(new CorsServiceType(CorsServiceType.Service.Table), corsRules);
 
+    /// <summary>
+    /// Replaces all blob lifecycle management rules with the provided set.
+    /// </summary>
+    public void SetLifecycleRules(
+        IReadOnlyList<(string RuleName, IReadOnlyList<string> ContainerNames, int TimeToLiveInDays)> lifecycleRules)
+    {
+        _lifecycleRules.Clear();
+        foreach (var rule in lifecycleRules)
+        {
+            _lifecycleRules.Add(BlobLifecycleRule.Create(
+                Id,
+                rule.RuleName,
+                rule.ContainerNames,
+                rule.TimeToLiveInDays));
+        }
+    }
+
     private void SetServiceCorsRules(
         CorsServiceType serviceType,
         IReadOnlyList<(
@@ -227,7 +249,8 @@ public class StorageAccount : AzureResource
             IReadOnlyList<string> AllowedMethods,
             IReadOnlyList<string> AllowedHeaders,
             IReadOnlyList<string> ExposedHeaders,
-            int MaxAgeInSeconds)>? tableCorsRules = null)
+            int MaxAgeInSeconds)>? tableCorsRules = null,
+        IReadOnlyList<(string RuleName, IReadOnlyList<string> ContainerNames, int TimeToLiveInDays)>? lifecycleRules = null)
     {
         var storageAccount = new StorageAccount
         {
@@ -250,6 +273,9 @@ public class StorageAccount : AzureResource
 
         if (tableCorsRules is not null)
             storageAccount.SetTableCorsRules(tableCorsRules);
+
+        if (lifecycleRules is not null)
+            storageAccount.SetLifecycleRules(lifecycleRules);
 
         return storageAccount;
     }

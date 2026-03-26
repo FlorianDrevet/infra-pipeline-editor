@@ -51,6 +51,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<StorageAccount> StorageAccounts { get; set; } = null!;
     public DbSet<BlobContainer> BlobContainers { get; set; } = null!;
     public DbSet<CorsRule> StorageAccountCorsRules { get; set; } = null!;
+    public DbSet<BlobLifecycleRule> BlobLifecycleRules { get; set; } = null!;
     public DbSet<StorageQueue> StorageQueues { get; set; } = null!;
     public DbSet<StorageTable> StorageTables { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;

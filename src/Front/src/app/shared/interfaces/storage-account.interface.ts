@@ -26,6 +26,18 @@ export interface CorsRuleResponse {
   maxAgeInSeconds: number;
 }
 
+export interface BlobLifecycleRuleEntry {
+  ruleName: string;
+  containerNames: string[];
+  timeToLiveInDays: number;
+}
+
+export interface BlobLifecycleRuleResponse {
+  ruleName: string;
+  containerNames: string[];
+  timeToLiveInDays: number;
+}
+
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface BlobContainerResponse {
@@ -56,6 +68,7 @@ export interface StorageAccountResponse {
   minimumTlsVersion: string;
   corsRules: CorsRuleResponse[];
   tableCorsRules: CorsRuleResponse[];
+  lifecycleRules: BlobLifecycleRuleResponse[];
   blobContainers: BlobContainerResponse[];
   queues: StorageQueueResponse[];
   tables: StorageTableResponse[];
@@ -75,6 +88,7 @@ export interface CreateStorageAccountRequest {
   minimumTlsVersion: string;
   corsRules?: CorsRuleEntry[];
   tableCorsRules?: CorsRuleEntry[];
+  lifecycleRules?: BlobLifecycleRuleEntry[];
   environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 
@@ -88,6 +102,7 @@ export interface UpdateStorageAccountRequest {
   minimumTlsVersion: string;
   corsRules?: CorsRuleEntry[];
   tableCorsRules?: CorsRuleEntry[];
+  lifecycleRules?: BlobLifecycleRuleEntry[];
   environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 

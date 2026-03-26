@@ -17,5 +17,6 @@ public record CreateStorageAccountCommand(
     string MinimumTlsVersion,
     IReadOnlyList<StorageAccountEnvironmentConfigData>? EnvironmentSettings = null,
     IReadOnlyList<CorsRuleResult>? CorsRules = null,
-    IReadOnlyList<CorsRuleResult>? TableCorsRules = null
+    IReadOnlyList<CorsRuleResult>? TableCorsRules = null,
+    IReadOnlyList<BlobLifecycleRuleResult>? LifecycleRules = null
 ) : IRequest<ErrorOr<StorageAccountResult>>;

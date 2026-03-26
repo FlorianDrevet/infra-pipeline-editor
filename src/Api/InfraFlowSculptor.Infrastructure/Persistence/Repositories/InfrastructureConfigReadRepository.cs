@@ -130,6 +130,11 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var lifecycleRules = await dbContext.BlobLifecycleRules
+            .Where(lr => allResourceIds.Contains(lr.StorageAccountId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         var aspSettings = await dbContext.AppServicePlanEnvironmentSettings
             .Where(es => allResourceIds.Contains(es.AppServicePlanId))
             .AsNoTracking()
@@ -246,7 +251,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, lifecycleRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -438,6 +443,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<StorageQueue> storageQueues,
         IReadOnlyList<StorageTable> storageTables,
         IReadOnlyList<CorsRule> storageCorsRules,
+        IReadOnlyList<BlobLifecycleRule> lifecycleRules,
         IReadOnlyList<AppServicePlanEnvironmentSettings> aspSettings,
         IReadOnlyList<WebAppEnvironmentSettings> waSettings,
         IReadOnlyList<FunctionAppEnvironmentSettings> faSettings,
@@ -524,6 +530,15 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                             allowedHeaders = rule.AllowedHeaders,
                             exposedHeaders = rule.ExposedHeaders,
                             maxAgeInSeconds = rule.MaxAgeInSeconds
+                        })
+                        .ToList()),
+                    ["lifecycleRules"] = JsonSerializer.Serialize(lifecycleRules
+                        .Where(lr => lr.StorageAccountId == sa.Id)
+                        .Select(lr => new
+                        {
+                            ruleName = lr.RuleName,
+                            containerNames = lr.ContainerNames,
+                            timeToLiveInDays = lr.TimeToLiveInDays
                         })
                         .ToList()),
                     ["minimumTlsVersion"] = sa.MinimumTlsVersion.Value.ToString() switch

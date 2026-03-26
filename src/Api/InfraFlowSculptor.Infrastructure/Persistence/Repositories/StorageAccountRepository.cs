@@ -22,6 +22,7 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
             .Include(s => s.EnvironmentSettings)
             .Include(s => s.BlobContainers)
             .Include(s => s.AllCorsRules)
+            .Include(s => s.LifecycleRules)
             .Include(s => s.Queues)
             .Include(s => s.Tables)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
@@ -34,6 +35,7 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
             .Include(s => s.EnvironmentSettings)
             .Include(s => s.BlobContainers)
             .Include(s => s.AllCorsRules)
+            .Include(s => s.LifecycleRules)
             .Include(s => s.Queues)
             .Include(s => s.Tables)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
@@ -46,6 +48,7 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
             .Include(s => s.EnvironmentSettings)
             .Include(s => s.BlobContainers)
             .Include(s => s.AllCorsRules)
+            .Include(s => s.LifecycleRules)
             .Include(s => s.Queues)
             .Include(s => s.Tables)
             .Where(s => s.ResourceGroupId == resourceGroupId)

@@ -26,7 +26,7 @@ import { RoleAssignmentService } from '../../shared/services/role-assignment.ser
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { KeyVaultResponse, KeyVaultEnvironmentConfigEntry } from '../../shared/interfaces/key-vault.interface';
 import { RedisCacheResponse, RedisCacheEnvironmentConfigEntry } from '../../shared/interfaces/redis-cache.interface';
-import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry, BlobContainerResponse, StorageQueueResponse, StorageTableResponse, CorsRuleEntry, CorsRuleResponse } from '../../shared/interfaces/storage-account.interface';
+import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry, BlobContainerResponse, StorageQueueResponse, StorageTableResponse, CorsRuleEntry, CorsRuleResponse, BlobLifecycleRuleEntry } from '../../shared/interfaces/storage-account.interface';
 import { AppServicePlanResponse, AppServicePlanEnvironmentConfigEntry } from '../../shared/interfaces/app-service-plan.interface';
 import { WebAppResponse, WebAppEnvironmentConfigEntry } from '../../shared/interfaces/web-app.interface';
 import { FunctionAppResponse, FunctionAppEnvironmentConfigEntry } from '../../shared/interfaces/function-app.interface';
@@ -311,6 +311,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly showTableAddForm = signal(false);
   protected readonly storageCorsRulesDraft = signal<CorsRuleEntry[]>([]);
   protected readonly storageTableCorsRulesDraft = signal<CorsRuleEntry[]>([]);
+  protected readonly lifecycleRulesDraft = signal<BlobLifecycleRuleEntry[]>([]);
   protected readonly corsFieldErrors = signal<Record<string, string>>({});
 
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
@@ -345,6 +346,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected readonly storageCorsRules = computed<CorsRuleEntry[]>(() => this.storageCorsRulesDraft());
   protected readonly storageTableCorsRules = computed<CorsRuleEntry[]>(() => this.storageTableCorsRulesDraft());
+  protected readonly lifecycleRules = computed<BlobLifecycleRuleEntry[]>(() => this.lifecycleRulesDraft());
   protected readonly corsMethodOptions = STORAGE_CORS_METHOD_OPTIONS;
   protected readonly corsAllowedHeaderSuggestions = STORAGE_CORS_ALLOWED_HEADER_SUGGESTIONS;
   protected readonly corsExposedHeaderSuggestions = STORAGE_CORS_EXPOSED_HEADER_SUGGESTIONS;
@@ -619,6 +621,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         exposedHeaders: [...rule.exposedHeaders],
         maxAgeInSeconds: rule.maxAgeInSeconds,
       })));
+      this.lifecycleRulesDraft.set((sa.lifecycleRules ?? []).map(rule => ({
+        ruleName: rule.ruleName,
+        containerNames: [...rule.containerNames],
+        timeToLiveInDays: rule.timeToLiveInDays,
+      })));
     } else if (this.resourceType === 'ContainerApp') {
       const ca = resource as ContainerAppResponse;
       base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
@@ -845,6 +852,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             minimumTlsVersion: general.minimumTlsVersion,
             corsRules: this.buildStorageAccountCorsRules(),
             tableCorsRules: this.buildStorageAccountTableCorsRules(),
+            lifecycleRules: this.buildLifecycleRules(),
             environmentSettings: this.buildStorageAccountEnvSettings(),
           });
           break;
@@ -1434,6 +1442,53 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.setCorsRuleMaxAgePresetFor('table', index, value);
   }
 
+  // ─── Lifecycle Rules ───
+
+  protected addLifecycleRule(): void {
+    this.lifecycleRulesDraft.update(rules => [
+      ...rules,
+      { ruleName: '', containerNames: [], timeToLiveInDays: 30 },
+    ]);
+  }
+
+  protected removeLifecycleRule(index: number): void {
+    this.lifecycleRulesDraft.update(rules => rules.filter((_, i) => i !== index));
+  }
+
+  protected updateLifecycleRuleName(index: number, name: string): void {
+    this.lifecycleRulesDraft.update(rules =>
+      rules.map((r, i) => (i === index ? { ...r, ruleName: name } : r)),
+    );
+  }
+
+  protected updateLifecycleRuleTtl(index: number, rawValue: string): void {
+    const parsed = parseInt(rawValue, 10);
+    if (isNaN(parsed)) return;
+    this.lifecycleRulesDraft.update(rules =>
+      rules.map((r, i) => (i === index ? { ...r, timeToLiveInDays: parsed } : r)),
+    );
+  }
+
+  protected addLifecycleRuleContainer(index: number, containerName: string): void {
+    const trimmed = containerName.trim();
+    if (!trimmed) return;
+    this.lifecycleRulesDraft.update(rules =>
+      rules.map((r, i) => {
+        if (i !== index || r.containerNames.includes(trimmed)) return r;
+        return { ...r, containerNames: [...r.containerNames, trimmed] };
+      }),
+    );
+  }
+
+  protected removeLifecycleRuleContainer(ruleIndex: number, containerIndex: number): void {
+    this.lifecycleRulesDraft.update(rules =>
+      rules.map((r, i) => {
+        if (i !== ruleIndex) return r;
+        return { ...r, containerNames: r.containerNames.filter((_, ci) => ci !== containerIndex) };
+      }),
+    );
+  }
+
   protected corsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey): string {
     return this.corsFieldErrors()[this.buildCorsErrorKey(service, index, field)] ?? '';
   }
@@ -1617,6 +1672,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       allowedHeaders: [...rule.allowedHeaders],
       exposedHeaders: [...rule.exposedHeaders],
       maxAgeInSeconds: rule.maxAgeInSeconds,
+    }));
+  }
+
+  private buildLifecycleRules(): BlobLifecycleRuleEntry[] {
+    return this.lifecycleRulesDraft().map(rule => ({
+      ruleName: rule.ruleName,
+      containerNames: [...rule.containerNames],
+      timeToLiveInDays: rule.timeToLiveInDays,
     }));
   }
 

@@ -38,7 +38,14 @@ public class StorageAccountMappingConfig : IRegister
                         rule.AllowedMethods,
                         rule.AllowedHeaders,
                         rule.ExposedHeaders,
-                        rule.MaxAgeInSeconds)).ToList());
+                        rule.MaxAgeInSeconds)).ToList())
+            .Map(dest => dest.LifecycleRules,
+                src => src.LifecycleRules == null
+                    ? null
+                    : src.LifecycleRules.Select(rule => new BlobLifecycleRuleResult(
+                        rule.RuleName,
+                        rule.ContainerNames,
+                        rule.TimeToLiveInDays)).ToList());
 
         config.NewConfig<(Guid Id, UpdateStorageAccountRequest Request), UpdateStorageAccountCommand>()
             .MapWith(src => new UpdateStorageAccountCommand(
@@ -69,7 +76,13 @@ public class StorageAccountMappingConfig : IRegister
                         rule.AllowedMethods,
                         rule.AllowedHeaders,
                         rule.ExposedHeaders,
-                        rule.MaxAgeInSeconds)).ToList()));
+                        rule.MaxAgeInSeconds)).ToList(),
+                src.Request.LifecycleRules == null
+                    ? null
+                    : src.Request.LifecycleRules.Select(rule => new BlobLifecycleRuleResult(
+                        rule.RuleName,
+                        rule.ContainerNames,
+                        rule.TimeToLiveInDays)).ToList()));
 
         config.NewConfig<StorageAccount, StorageAccountResult>()
             .Map(dest => dest.Kind, src => src.Kind.Value.ToString())
@@ -92,7 +105,12 @@ public class StorageAccountMappingConfig : IRegister
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new StorageAccountEnvironmentConfigData(
                     es.EnvironmentName,
-                    (object?)es.Sku != null ? es.Sku.Value.ToString() : null)).ToList());
+                    (object?)es.Sku != null ? es.Sku.Value.ToString() : null)).ToList())
+            .Map(dest => dest.LifecycleRules,
+                src => src.LifecycleRules.Select(rule => new BlobLifecycleRuleResult(
+                    rule.RuleName,
+                    rule.ContainerNames,
+                    rule.TimeToLiveInDays)).ToList());
 
         config.NewConfig<StorageAccountEnvironmentConfigData, StorageAccountEnvironmentConfigResponse>()
             .MapWith(src => new StorageAccountEnvironmentConfigResponse(
@@ -139,5 +157,7 @@ public class StorageAccountMappingConfig : IRegister
 
         config.NewConfig<StorageTableResult, StorageTableResponse>()
             .Map(dest => dest.Id, src => src.Id.Value);
+
+        config.NewConfig<BlobLifecycleRuleResult, BlobLifecycleRuleResponse>();
     }
 }

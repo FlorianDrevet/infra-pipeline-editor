@@ -19,10 +19,11 @@ public sealed class StorageAccountTypeBicepGenerator
         var storageTableNames = ParseStorageTableNames(resource.Properties);
         var corsRules = ParseCorsRules(resource.Properties);
         var tableCorsRules = ParseTableCorsRules(resource.Properties);
+        var lifecycleRules = ParseLifecycleRules(resource.Properties);
 
         var companions = new List<GeneratedCompanionModule>();
 
-        if (blobContainerNames.Count > 0 || corsRules.Count > 0)
+        if (blobContainerNames.Count > 0 || corsRules.Count > 0 || lifecycleRules.Count > 0)
         {
             companions.Add(new GeneratedCompanionModule
             {
@@ -33,7 +34,8 @@ public sealed class StorageAccountTypeBicepGenerator
                 BicepContent = BlobsModuleTemplate,
                 TypesBicepContent = BlobsTypesTemplate,
                 BlobContainerNames = blobContainerNames,
-                CorsRules = corsRules
+                CorsRules = corsRules,
+                LifecycleRules = lifecycleRules
             });
         }
 
@@ -155,6 +157,26 @@ public sealed class StorageAccountTypeBicepGenerator
         List<string>? exposedHeaders,
         int maxAgeInSeconds);
 
+    private static List<ContainerLifecycleRuleData> ParseLifecycleRules(IReadOnlyDictionary<string, string> properties)
+    {
+        if (!properties.TryGetValue("lifecycleRules", out var json) || string.IsNullOrEmpty(json))
+            return [];
+
+        var raw = JsonSerializer.Deserialize<List<LifecycleRuleJson>>(json);
+        if (raw is null) return [];
+
+        return raw.Select(r => new ContainerLifecycleRuleData(
+            r.ruleName ?? string.Empty,
+            r.containerNames ?? [],
+            r.timeToLiveInDays))
+            .ToList();
+    }
+
+    private sealed record LifecycleRuleJson(
+        string? ruleName,
+        List<string>? containerNames,
+        int timeToLiveInDays);
+
 
     private const string StorageAccountTypesTemplate = """
         @export()
@@ -235,10 +257,21 @@ public sealed class StorageAccountTypeBicepGenerator
           @description('Max age in seconds')
           maxAgeInSeconds: int
         }
+
+        @export()
+        @description('Describes a lifecycle rule for automatic blob deletion by TTL')
+        type ContainerLifecycleRule = {
+          @description('Name of the lifecycle rule')
+          ruleName: string
+          @description('Blob container names this rule applies to')
+          containerNames: string[]
+          @description('Number of days after which blobs are deleted')
+          timeToLiveInDays: int
+        }
         """;
 
     private const string BlobsModuleTemplate = """
-        import { CorsRuleDescription } from './types.bicep'
+        import { CorsRuleDescription, ContainerLifecycleRule } from './types.bicep'
 
         @description('Storage account name')
         param storageAccountName string
@@ -248,6 +281,9 @@ public sealed class StorageAccountTypeBicepGenerator
 
         @description('CORS rules')
         param corsRules CorsRuleDescription[] = []
+
+        @description('Blob lifecycle management rules')
+        param containerLifecycleRules ContainerLifecycleRule[] = []
 
         resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
           name: storageAccountName
@@ -269,6 +305,37 @@ public sealed class StorageAccountTypeBicepGenerator
             parent: blobService
           }
         ]
+
+        var lifecyclePolicyRules = [
+          for rule in containerLifecycleRules: {
+            enabled: true
+            name: rule.ruleName
+            type: 'Lifecycle'
+            definition: {
+              actions: {
+                baseBlob: {
+                  delete: {
+                    daysAfterModificationGreaterThan: rule.timeToLiveInDays
+                  }
+                }
+              }
+              filters: {
+                blobTypes: ['blockBlob']
+                prefixMatch: [for cn in rule.containerNames: '${cn}/']
+              }
+            }
+          }
+        ]
+
+        resource managementPolicies 'Microsoft.Storage/storageAccounts/managementPolicies@2025-06-01' = if (!empty(containerLifecycleRules)) {
+          name: 'default'
+          parent: storageAccount
+          properties: {
+            policy: {
+              rules: lifecyclePolicyRules
+            }
+          }
+        }
         """;
 
     private const string TablesModuleTemplate = """

@@ -60,6 +60,12 @@ public class CreateStorageAccountCommandHandler(
                     rule.AllowedHeaders,
                     rule.ExposedHeaders,
                     rule.MaxAgeInSeconds))
+                .ToList(),
+            request.LifecycleRules?
+                .Select(rule => (
+                    rule.RuleName,
+                    rule.ContainerNames,
+                    rule.TimeToLiveInDays))
                 .ToList());
 
         var saved = await storageAccountRepository.AddAsync(storageAccount);

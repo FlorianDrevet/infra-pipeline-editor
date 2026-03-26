@@ -67,6 +67,15 @@ public class UpdateStorageAccountCommandHandler(
                         rule.MaxAgeInSeconds))
                     .ToList());
 
+        if (request.LifecycleRules is not null)
+            storageAccount.SetLifecycleRules(
+                request.LifecycleRules
+                    .Select(rule => (
+                        rule.RuleName,
+                        rule.ContainerNames,
+                        rule.TimeToLiveInDays))
+                    .ToList());
+
         var updated = await storageAccountRepository.UpdateAsync(storageAccount);
 
         return mapper.Map<StorageAccountResult>(updated);

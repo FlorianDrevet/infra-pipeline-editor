@@ -80,5 +80,14 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
         builder.Navigation(sa => sa.EnvironmentSettings)
             .HasField("_environmentSettings")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(s => s.LifecycleRules)
+            .WithOne()
+            .HasForeignKey(lr => lr.StorageAccountId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(s => s.LifecycleRules)
+            .HasField("_lifecycleRules")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

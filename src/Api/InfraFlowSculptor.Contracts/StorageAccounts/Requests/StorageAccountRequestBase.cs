@@ -229,12 +229,18 @@ public abstract class StorageAccountRequestBase : IValidatableObject
     /// <summary>Table service CORS rules applied after storage account deployment.</summary>
     public List<CorsRuleEntry>? TableCorsRules { get; init; }
 
+    /// <summary>Blob lifecycle management rules that auto-delete blobs after a TTL.</summary>
+    public List<BlobLifecycleRuleEntry>? LifecycleRules { get; init; }
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         foreach (var result in ValidateRuleCollection(CorsRules, nameof(CorsRules)))
             yield return result;
 
         foreach (var result in ValidateRuleCollection(TableCorsRules, nameof(TableCorsRules)))
+            yield return result;
+
+        foreach (var result in ValidateLifecycleRules(LifecycleRules, nameof(LifecycleRules)))
             yield return result;
     }
 
@@ -263,6 +269,36 @@ public abstract class StorageAccountRequestBase : IValidatableObject
             }
         }
     }
+
+    private static IEnumerable<ValidationResult> ValidateLifecycleRules(List<BlobLifecycleRuleEntry>? rules, string memberName)
+    {
+        if (rules is null)
+            yield break;
+
+        var ruleNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        for (var index = 0; index < rules.Count; index++)
+        {
+            var entry = rules[index];
+            var context = new ValidationContext(entry);
+            var nestedResults = new List<ValidationResult>();
+            Validator.TryValidateObject(entry, context, nestedResults, true);
+            foreach (var result in nestedResults)
+            {
+                var memberNames = result.MemberNames.Any()
+                    ? result.MemberNames.Select(member => $"{memberName}[{index}].{member}")
+                    : [$"{memberName}[{index}]"];
+                yield return new ValidationResult(result.ErrorMessage, memberNames);
+            }
+
+            if (!string.IsNullOrWhiteSpace(entry.RuleName) && !ruleNames.Add(entry.RuleName))
+            {
+                yield return new ValidationResult(
+                    $"Duplicate lifecycle rule name '{entry.RuleName}'.",
+                    [$"{memberName}[{index}].{nameof(BlobLifecycleRuleEntry.RuleName)}"]);
+            }
+        }
+    }
 }
 
 /// <summary>Typed per-environment configuration entry for a Storage Account. Only SKU varies per environment.</summary>
@@ -281,3 +317,43 @@ public class StorageAccountEnvironmentConfigEntry
 public record StorageAccountEnvironmentConfigResponse(
     string EnvironmentName,
     string? Sku);
+
+/// <summary>Describes a single blob lifecycle management rule.</summary>
+public class BlobLifecycleRuleEntry : IValidatableObject
+{
+    /// <summary>Display name of the lifecycle rule.</summary>
+    [Required]
+    [StringLength(256, MinimumLength = 1)]
+    public required string RuleName { get; init; }
+
+    /// <summary>Names of the blob containers this rule targets.</summary>
+    [Required]
+    public required List<string> ContainerNames { get; init; }
+
+    /// <summary>Number of days after blob creation before automatic deletion.</summary>
+    [Required]
+    [Range(1, 36500)]
+    public int TimeToLiveInDays { get; init; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (ContainerNames is null || ContainerNames.Count == 0)
+        {
+            yield return new ValidationResult(
+                "At least one container name is required.",
+                [nameof(ContainerNames)]);
+            yield break;
+        }
+
+        for (var index = 0; index < ContainerNames.Count; index++)
+        {
+            var name = ContainerNames[index]?.Trim();
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                yield return new ValidationResult(
+                    "Container names cannot contain empty values.",
+                    [$"{nameof(ContainerNames)}[{index}]"]);
+            }
+        }
+    }
+}

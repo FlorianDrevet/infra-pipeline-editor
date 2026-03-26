@@ -29,6 +29,12 @@ public record StorageTableResult(
     string Name
 );
 
+public record BlobLifecycleRuleResult(
+    string RuleName,
+    IReadOnlyList<string> ContainerNames,
+    int TimeToLiveInDays
+);
+
 public record StorageAccountResult(
     AzureResourceId Id,
     ResourceGroupId ResourceGroupId,
@@ -44,5 +50,6 @@ public record StorageAccountResult(
     IReadOnlyList<BlobContainerResult> BlobContainers,
     IReadOnlyList<StorageQueueResult> Queues,
     IReadOnlyList<StorageTableResult> Tables,
-    IReadOnlyList<StorageAccountEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyList<StorageAccountEnvironmentConfigData> EnvironmentSettings,
+    IReadOnlyList<BlobLifecycleRuleResult> LifecycleRules
 );

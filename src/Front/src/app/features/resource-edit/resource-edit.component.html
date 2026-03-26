@@ -665,6 +665,104 @@
               </div>
             }
 
+            <!-- ─── Blob Lifecycle Rules ─── -->
+            @if (isStorageAccount()) {
+              <div class="cors-editor" style="margin-top: 1.5rem;">
+                <div class="cors-editor__header">
+                  <div>
+                    <h4 class="cors-editor__title">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.TITLE' | translate }}</h4>
+                    <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.DESCRIPTION' | translate }}</p>
+                  </div>
+                  @if (canWrite()) {
+                    <button class="ghost-button cors-editor__add" type="button" (click)="addLifecycleRule()">
+                      <mat-icon>add</mat-icon>
+                      {{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.ADD_RULE' | translate }}
+                    </button>
+                  }
+                </div>
+
+                @if (lifecycleRules().length === 0) {
+                  <div class="cors-editor__empty">
+                    <mat-icon>auto_delete</mat-icon>
+                    <p>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.EMPTY' | translate }}</p>
+                  </div>
+                } @else {
+                  <div class="cors-rule-list">
+                    @for (rule of lifecycleRules(); track $index; let i = $index) {
+                      <div class="cors-rule-card">
+                        <div class="cors-rule-card__topbar">
+                          <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.RULE' | translate }} {{ i + 1 }}</span>
+                          @if (canWrite()) {
+                            <button class="cors-rule-card__remove" type="button" (click)="removeLifecycleRule(i)">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </div>
+                        <div class="cors-rule-card__fields">
+                          <!-- RULE NAME -->
+                          <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.RULE_NAME' | translate }}</mat-label>
+                            <input matInput [value]="rule.ruleName" [readonly]="!canWrite()"
+                              maxlength="256"
+                              (input)="updateLifecycleRuleName(i, $any($event.target).value)" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.RULE_NAME_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+
+                          <!-- CONTAINER NAMES -->
+                          <div class="cors-field">
+                            <div class="cors-field__head">
+                              <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.CONTAINER_NAMES' | translate }}</span>
+                              <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.CONTAINER_NAMES_HINT' | translate }}</span>
+                            </div>
+                            @if (storageBlobContainers().length > 0) {
+                              <div class="cors-field__suggestions">
+                                @for (container of storageBlobContainers(); track container.id) {
+                                  <button class="cors-field__suggestion" type="button" [disabled]="!canWrite()"
+                                    (click)="addLifecycleRuleContainer(i, container.name)">
+                                    {{ container.name }}
+                                  </button>
+                                }
+                              </div>
+                            }
+                            <div class="cors-field__chips">
+                              @for (cn of rule.containerNames; track $index; let ci = $index) {
+                                <span class="cors-field__chip">
+                                  {{ cn }}
+                                  @if (canWrite()) {
+                                    <button class="cors-field__chip-remove" type="button" (click)="removeLifecycleRuleContainer(i, ci)">&times;</button>
+                                  }
+                                </span>
+                              }
+                            </div>
+                            @if (canWrite()) {
+                              <div class="cors-field__input-row">
+                                <input #lifecycleContainerInput class="cors-field__input"
+                                  [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.ADD_CONTAINER_PLACEHOLDER' | translate"
+                                  (keydown.enter)="addLifecycleRuleContainer(i, lifecycleContainerInput.value); lifecycleContainerInput.value = ''; $event.preventDefault()" />
+                                <button class="cors-field__add-btn" type="button"
+                                  (click)="addLifecycleRuleContainer(i, lifecycleContainerInput.value); lifecycleContainerInput.value = ''">
+                                  <mat-icon>add</mat-icon>
+                                </button>
+                              </div>
+                            }
+                          </div>
+
+                          <!-- TIME TO LIVE -->
+                          <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.TTL_DAYS' | translate }}</mat-label>
+                            <input matInput type="number" [value]="rule.timeToLiveInDays" [readonly]="!canWrite()"
+                              min="1" max="36500"
+                              (input)="updateLifecycleRuleTtl(i, $any($event.target).value)" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.TTL_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
           </form>
         </div>
       </mat-tab>

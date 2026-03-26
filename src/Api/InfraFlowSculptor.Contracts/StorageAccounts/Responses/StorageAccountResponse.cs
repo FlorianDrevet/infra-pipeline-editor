@@ -29,6 +29,13 @@ public record StorageTableResponse(
     string Name
 );
 
+/// <summary>Represents a blob lifecycle management rule.</summary>
+public record BlobLifecycleRuleResponse(
+    string RuleName,
+    IReadOnlyList<string> ContainerNames,
+    int TimeToLiveInDays
+);
+
 /// <summary>Represents an Azure Storage Account resource with its sub-resources.</summary>
 public record StorageAccountResponse(
     Guid Id,
@@ -45,5 +52,6 @@ public record StorageAccountResponse(
     IReadOnlyList<BlobContainerResponse> BlobContainers,
     IReadOnlyList<StorageQueueResponse> Queues,
     IReadOnlyList<StorageTableResponse> Tables,
-    IReadOnlyList<StorageAccountEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<StorageAccountEnvironmentConfigResponse> EnvironmentSettings,
+    IReadOnlyList<BlobLifecycleRuleResponse> LifecycleRules
 );
