@@ -3,6 +3,8 @@ using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using Octokit;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace InfraFlowSculptor.Infrastructure.Services.GitProviders;
 
@@ -12,6 +14,8 @@ namespace InfraFlowSculptor.Infrastructure.Services.GitProviders;
 /// </summary>
 public sealed class GitHubGitProviderService : IGitProviderService
 {
+    private const string GitHubApiVersion = "2022-11-28";
+
     /// <inheritdoc />
     public async Task<ErrorOr<TestGitConnectionResult>> TestConnectionAsync(
         string token, string owner, string repositoryName, CancellationToken cancellationToken = default)
@@ -59,10 +63,9 @@ public sealed class GitHubGitProviderService : IGitProviderService
             // 3. Determine the target directory prefix for cleanup
             var targetPrefix = string.IsNullOrEmpty(request.BasePath) ? "" : $"{request.BasePath}/";
 
-            // 4. List existing files in the target directory on the parent commit
-            //    so we can delete files that are no longer generated.
+            // 4. Build the target tree payload and track generated files.
             var newFilePaths = new HashSet<string>(StringComparer.Ordinal);
-            var treeItems = new List<NewTreeItem>();
+            var treeItems = new List<object>();
 
             foreach (var (relativePath, content) in request.Files)
             {
@@ -72,11 +75,11 @@ public sealed class GitHubGitProviderService : IGitProviderService
 
                 newFilePaths.Add(blobPath);
 
-                treeItems.Add(new NewTreeItem
+                treeItems.Add(new
                 {
                     Path = blobPath,
                     Mode = "100644",
-                    Type = TreeType.Blob,
+                    Type = "blob",
                     Content = content,
                 });
             }
@@ -100,27 +103,29 @@ public sealed class GitHubGitProviderService : IGitProviderService
                     if (item.Path.StartsWith(targetPrefix, StringComparison.Ordinal)
                         && !newFilePaths.Contains(item.Path))
                     {
-                        // Mark file for deletion by setting sha to null
-                        treeItems.Add(new NewTreeItem
+                        // GitHub expects explicit "sha": null for deletions.
+                        treeItems.Add(new
                         {
                             Path = item.Path,
                             Mode = "100644",
-                            Type = TreeType.Blob,
-                            Sha = null,
+                            Type = "blob",
+                            Sha = (string?)null,
                         });
                     }
                 }
             }
 
-            // 6. Create tree based on the parent commit tree
-            var newTree = new NewTree { BaseTree = parentTreeSha };
-            foreach (var item in treeItems)
-                newTree.Tree.Add(item);
-
-            var tree = await client.Git.Tree.Create(request.Owner, request.RepositoryName, newTree);
+            // 6. Create tree with a direct HTTP call so null sha values are preserved.
+            var treeSha = await CreateTreeAsync(
+                request.Token,
+                request.Owner,
+                request.RepositoryName,
+                parentTreeSha,
+                treeItems,
+                cancellationToken);
 
             // 7. Create commit whose parent is the correct branch tip
-            var newCommit = new NewCommit(request.CommitMessage, tree.Sha, parentSha);
+            var newCommit = new NewCommit(request.CommitMessage, treeSha, parentSha);
             var commit = await client.Git.Commit.Create(request.Owner, request.RepositoryName, newCommit);
 
             // 8. Create or update branch reference
@@ -148,6 +153,42 @@ public sealed class GitHubGitProviderService : IGitProviderService
         }
     }
 
+    private static async Task<string> CreateTreeAsync(
+        string token,
+        string owner,
+        string repositoryName,
+        string baseTreeSha,
+        IReadOnlyList<object> treeItems,
+        CancellationToken cancellationToken)
+    {
+        using var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("InfraFlowSculptor", "1.0"));
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+        httpClient.DefaultRequestHeaders.Add("X-GitHub-Api-Version", GitHubApiVersion);
+
+        var response = await httpClient.PostAsJsonAsync(
+            $"https://api.github.com/repos/{owner}/{repositoryName}/git/trees",
+            new
+            {
+                base_tree = baseTreeSha,
+                tree = treeItems,
+            },
+            cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new InvalidOperationException($"GitHub API returned {response.StatusCode}: {body}");
+        }
+
+        var treeResponse = await response.Content.ReadFromJsonAsync<GitHubCreateTreeResponse>(cancellationToken);
+        if (string.IsNullOrWhiteSpace(treeResponse?.Sha))
+            throw new InvalidOperationException("GitHub API did not return the created tree SHA.");
+
+        return treeResponse.Sha;
+    }
+
     /// <inheritdoc />
     public async Task<ErrorOr<IReadOnlyList<GitBranchResult>>> ListBranchesAsync(
         string token, string owner, string repositoryName, CancellationToken cancellationToken = default)
@@ -171,8 +212,10 @@ public sealed class GitHubGitProviderService : IGitProviderService
 
     private static GitHubClient CreateClient(string token)
     {
-        var client = new GitHubClient(new ProductHeaderValue("InfraFlowSculptor"));
+        var client = new GitHubClient(new Octokit.ProductHeaderValue("InfraFlowSculptor"));
         client.Credentials = new Credentials(token);
         return client;
     }
+
+    private sealed record GitHubCreateTreeResponse(string Sha);
 }
