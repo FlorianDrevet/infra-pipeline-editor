@@ -829,15 +829,6 @@
           <span class="tab-count">{{ crossConfigReferences().length }}</span>
         </ng-template>
         <div class="tab-content">
-          <div class="tab-content__toolbar">
-            @if (canWrite()) {
-              <button class="add-rg-btn" (click)="openAddCrossConfigReferenceDialog()">
-                <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
-                {{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD' | translate }}
-              </button>
-            }
-          </div>
-
           @if (crossConfigErrorKey()) {
             <p class="rg-error">{{ crossConfigErrorKey() | translate }}</p>
           }
@@ -848,35 +839,22 @@
               <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.LOADING' | translate }}</p>
             </div>
           } @else if (crossConfigReferences().length > 0) {
-            <div class="rg-list">
+            <div class="resource-list">
               @for (ref of crossConfigReferences(); track ref.referenceId) {
-                <article class="cross-ref-row">
-                  <mat-icon class="cross-ref-row__icon">{{ resourceTypeIcons[ref.targetResourceType] || 'cloud' }}</mat-icon>
-                  <div class="cross-ref-row__info">
-                    <div class="cross-ref-row__primary">
+                <div class="resource-item resource-item--cross-config">
+                  <mat-icon class="resource-item__icon resource-item__icon--cross-config">{{ resourceTypeIcons[ref.targetResourceType] || 'widgets' }}</mat-icon>
+                  <div class="resource-item__info">
+                    <div class="resource-name-row">
                       <strong>{{ ref.targetResourceName }}</strong>
-                      <span class="cross-ref-row__type">{{ ref.targetResourceType }}</span>
-                    </div>
-                    <div class="cross-ref-row__meta">
-                      <span class="cross-ref-row__source">
-                        <mat-icon>folder_open</mat-icon>
+                      <a class="cross-config-badge" [routerLink]="['/config', ref.targetConfigId]"
+                         [matTooltip]="'CONFIG_DETAIL.RESOURCES.NAVIGATE_TO_CONFIG' | translate">
+                        <mat-icon class="cross-config-badge__icon">open_in_new</mat-icon>
                         {{ ref.targetConfigName }}
-                      </span>
-                      <span class="cross-ref-row__rg">
-                        <mat-icon>dns</mat-icon>
-                        {{ ref.targetResourceGroupName }}
-                      </span>
+                      </a>
                     </div>
+                    <span class="resource-item__type">{{ ref.targetResourceType }} · {{ ref.targetResourceGroupName }}</span>
                   </div>
-                  @if (canWrite()) {
-                    <button
-                      class="template-action-btn template-action-btn--delete"
-                      [matTooltip]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE' | translate"
-                      (click)="removeCrossConfigReference(ref)">
-                      <mat-icon>delete_outline</mat-icon>
-                    </button>
-                  }
-                </article>
+                </div>
               }
             </div>
           } @else if (crossConfigLoaded()) {

@@ -1644,68 +1644,7 @@
 }
 
 // ─── Cross-Config References ───
-
-.cross-ref-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
-  margin-bottom: 0.5rem;
-  transition: background 0.15s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.06);
-  }
-}
-
-.cross-ref-row__icon {
-  margin-top: 0.15rem;
-  opacity: 0.7;
-}
-
-.cross-ref-row__info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.cross-ref-row__primary {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.cross-ref-row__type {
-  font-size: 0.75rem;
-  opacity: 0.5;
-  padding: 0.1rem 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-
-.cross-ref-row__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  font-size: 0.8rem;
-  opacity: 0.6;
-
-  > span {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-
-    mat-icon {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-    }
-  }
-}
+// Cross-ref tab now reuses .resource-item / .resource-item--cross-config styles.
 
 // ─── Cross-config resources in resource list ────
 
@@ -1783,17 +1722,6 @@
     width: 0.75rem;
     height: 0.75rem;
   }
-}
-
-.cross-config-alias {
-  color: #7e57c2;
-  font-style: italic;
-}
-
-.cross-ref-row__purpose {
-  font-size: 0.8rem;
-  opacity: 0.5;
-  font-style: italic;
 }
 
 .empty-state__hint {

@@ -59,13 +59,8 @@ import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStora
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
 import { GitConfigDialogComponent, GitConfigDialogData } from '../project-detail/git-config-dialog/git-config-dialog.component';
 import {
-  AddCrossConfigReferenceDialogComponent,
-  AddCrossConfigReferenceDialogData,
-} from './add-cross-config-reference-dialog/add-cross-config-reference-dialog.component';
-import {
   CrossConfigReferenceResponse,
   IncomingCrossConfigReferenceResponse,
-  AddCrossConfigReferenceRequest,
 } from '../../shared/interfaces/cross-config-reference.interface';
 
 interface ResourceDisplayItem {
@@ -1162,64 +1157,7 @@ export class ConfigDetailComponent implements OnInit {
     }
   }
 
-  protected openAddCrossConfigReferenceDialog(): void {
-    const configId = this.config()?.id;
-    const projectId = this.config()?.projectId;
-    if (!configId || !projectId) return;
 
-    const dialogRef = this.dialog.open(AddCrossConfigReferenceDialogComponent, {
-      data: {
-        configId,
-        projectId,
-        existingReferenceResourceIds: this.crossConfigReferences().map((r) => r.targetResourceId),
-      } satisfies AddCrossConfigReferenceDialogData,
-      width: '720px',
-      maxHeight: '90vh',
-    });
-
-    dialogRef.afterClosed().subscribe(async (result?: AddCrossConfigReferenceRequest) => {
-      if (!result) return;
-      this.crossConfigLoading.set(true);
-      this.crossConfigErrorKey.set('');
-      try {
-        const created = await this.infraConfigService.addCrossConfigReference(configId, result);
-        this.crossConfigReferences.update((refs) => [...refs, created]);
-      } catch {
-        this.crossConfigErrorKey.set('CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_ERROR');
-      } finally {
-        this.crossConfigLoading.set(false);
-      }
-    });
-  }
-
-  protected removeCrossConfigReference(ref: CrossConfigReferenceResponse): void {
-    const configId = this.config()?.id;
-    if (!configId) return;
-
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        titleKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_TITLE',
-        messageKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_MESSAGE',
-        messageParams: { name: ref.targetResourceName },
-        confirmKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_YES',
-        cancelKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_CANCEL',
-      } satisfies ConfirmDialogData,
-      width: '420px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-      this.crossConfigLoading.set(true);
-      try {
-        await this.infraConfigService.removeCrossConfigReference(configId, ref.referenceId);
-        this.crossConfigReferences.update((refs) => refs.filter((r) => r.referenceId !== ref.referenceId));
-      } catch {
-        this.crossConfigErrorKey.set('CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_ERROR');
-      } finally {
-        this.crossConfigLoading.set(false);
-      }
-    });
-  }
 
   // ─── Git Configuration (multi-repo) ───
 
