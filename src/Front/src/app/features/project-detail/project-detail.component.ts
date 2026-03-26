@@ -124,7 +124,27 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly commonFileEntries = computed(() => {
     const result = this.projectBicepResult();
     if (!result) return [];
-    return Object.entries(result.commonFileUris).map(([key, value]) => ({ key, value }));
+    return Object.entries(result.commonFileUris)
+      .filter(([key]) => !key.startsWith('modules/'))
+      .map(([key, value]) => ({ key, value }));
+  });
+
+  protected readonly commonModuleFolders = computed(() => {
+    const result = this.projectBicepResult();
+    if (!result) return [];
+    const folderMap = new Map<string, { folderName: string; folderKey: string; files: Array<{ name: string; displayName: string; value: string }> }>();
+    for (const [filePath, uri] of Object.entries(result.commonFileUris)) {
+      const parts = filePath.split('/');
+      if (parts.length < 3 || parts[0] !== 'modules') continue;
+      const folderName = parts[1];
+      const displayName = parts[2];
+      const folderKey = `Common/modules/${folderName}`;
+      if (!folderMap.has(folderKey)) {
+        folderMap.set(folderKey, { folderName, folderKey, files: [] });
+      }
+      folderMap.get(folderKey)!.files.push({ name: `Common/${filePath}`, displayName, value: uri });
+    }
+    return Array.from(folderMap.values());
   });
 
   protected readonly configFolders = computed(() => {

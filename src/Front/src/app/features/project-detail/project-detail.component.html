@@ -192,6 +192,55 @@
                                     </button>
                                   }
                                 }
+                                <!-- modules/ subfolder inside Common/ -->
+                                @if (commonModuleFolders().length > 0) {
+                                  <button class="bicep-tree__subfolder" (click)="toggleProjectBicepFolder('Common/modules')">
+                                    <mat-icon class="bicep-tree__folder-chevron" [class.bicep-tree__folder-chevron--open]="isProjectBicepFolderExpanded('Common/modules')">chevron_right</mat-icon>
+                                    <mat-icon class="bicep-tree__folder-icon">{{ isProjectBicepFolderExpanded('Common/modules') ? 'folder_open' : 'folder' }}</mat-icon>
+                                    <span>modules/</span>
+                                  </button>
+                                  @if (isProjectBicepFolderExpanded('Common/modules')) {
+                                    <div class="bicep-tree__folder-children">
+                                      @for (subfolder of commonModuleFolders(); track subfolder.folderKey) {
+                                        <button class="bicep-tree__subfolder bicep-tree__subfolder--deep" (click)="toggleProjectBicepFolder(subfolder.folderKey)">
+                                          <mat-icon class="bicep-tree__folder-chevron" [class.bicep-tree__folder-chevron--open]="isProjectBicepFolderExpanded(subfolder.folderKey)">chevron_right</mat-icon>
+                                          <mat-icon class="bicep-tree__folder-icon">{{ isProjectBicepFolderExpanded(subfolder.folderKey) ? 'folder_open' : 'folder' }}</mat-icon>
+                                          <span>{{ subfolder.folderName }}/</span>
+                                        </button>
+                                        @if (isProjectBicepFolderExpanded(subfolder.folderKey)) {
+                                          <div class="bicep-tree__folder-children">
+                                            @for (file of subfolder.files; track file.name) {
+                                              @if (file.displayName === 'types.bicep') {
+                                                <button class="bicep-tree__item bicep-tree__item--submodule bicep-tree__item--deep"
+                                                        [class.bicep-tree__item--active]="projectBicepViewerFile() === file.name"
+                                                        (click)="selectProjectBicepFile(file.name, file.value)">
+                                                  <mat-icon class="bicep-tree__icon">data_object</mat-icon>
+                                                  <span class="bicep-tree__name">{{ file.displayName }}</span>
+                                                  <span class="bicep-tree__badge bicep-tree__badge--types">{{ 'CONFIG_DETAIL.BICEP.TYPES' | translate }}</span>
+                                                </button>
+                                              } @else if (file.displayName.endsWith('.roleassignments.module.bicep')) {
+                                                <button class="bicep-tree__item bicep-tree__item--submodule bicep-tree__item--deep"
+                                                        [class.bicep-tree__item--active]="projectBicepViewerFile() === file.name"
+                                                        (click)="selectProjectBicepFile(file.name, file.value)">
+                                                  <mat-icon class="bicep-tree__icon">shield</mat-icon>
+                                                  <span class="bicep-tree__name">{{ file.displayName }}</span>
+                                                  <span class="bicep-tree__badge bicep-tree__badge--constants">{{ 'CONFIG_DETAIL.BICEP.CONSTANTS' | translate }}</span>
+                                                </button>
+                                              } @else {
+                                                <button class="bicep-tree__item bicep-tree__item--submodule bicep-tree__item--deep"
+                                                        [class.bicep-tree__item--active]="projectBicepViewerFile() === file.name"
+                                                        (click)="selectProjectBicepFile(file.name, file.value)">
+                                                  <mat-icon class="bicep-tree__icon">memory</mat-icon>
+                                                  <span class="bicep-tree__name">{{ file.displayName }}</span>
+                                                </button>
+                                              }
+                                            }
+                                          </div>
+                                        }
+                                      }
+                                    </div>
+                                  }
+                                }
                               </div>
                             }
                           }

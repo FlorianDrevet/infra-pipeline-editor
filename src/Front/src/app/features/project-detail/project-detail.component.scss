@@ -1316,6 +1316,14 @@ a.config-card {
   padding-left: 2.2rem;
 }
 
+.bicep-tree__subfolder--deep {
+  padding-left: 2.8rem;
+}
+
+.bicep-tree__item--deep {
+  padding-left: 3.6rem;
+}
+
 @keyframes bicepFolderSlideIn {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
