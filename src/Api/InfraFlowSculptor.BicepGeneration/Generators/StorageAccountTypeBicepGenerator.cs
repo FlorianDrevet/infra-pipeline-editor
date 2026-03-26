@@ -15,38 +15,52 @@ public sealed class StorageAccountTypeBicepGenerator
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
         var blobContainerNames = ParseBlobContainerNames(resource.Properties);
-      var storageTableNames = ParseStorageTableNames(resource.Properties);
+        var queueNames = ParseQueueNames(resource.Properties);
+        var storageTableNames = ParseStorageTableNames(resource.Properties);
         var corsRules = ParseCorsRules(resource.Properties);
 
-      var companions = new List<GeneratedCompanionModule>();
+        var companions = new List<GeneratedCompanionModule>();
 
         if (blobContainerNames.Count > 0 || corsRules.Count > 0)
         {
-        companions.Add(new GeneratedCompanionModule
+            companions.Add(new GeneratedCompanionModule
             {
-          ModuleSymbolSuffix = "Blobs",
-          DeploymentNameSuffix = "Blobs",
+                ModuleSymbolSuffix = "Blobs",
+                DeploymentNameSuffix = "Blobs",
                 FileName = "storage.blobs.module.bicep",
                 FolderName = "StorageAccount",
                 BicepContent = BlobsModuleTemplate,
                 TypesBicepContent = BlobsTypesTemplate,
                 BlobContainerNames = blobContainerNames,
                 CorsRules = corsRules
-        });
-      }
+            });
+        }
 
-      if (storageTableNames.Count > 0)
-      {
-        companions.Add(new GeneratedCompanionModule
+        if (queueNames.Count > 0)
         {
-          ModuleSymbolSuffix = "Tables",
-          DeploymentNameSuffix = "Tables",
-          FileName = "storage.table.module.bicep",
-          FolderName = "StorageAccount",
-          BicepContent = TablesModuleTemplate,
-          TypesBicepContent = BlobsTypesTemplate,
-          StorageTableNames = storageTableNames
-        });
+            companions.Add(new GeneratedCompanionModule
+            {
+                ModuleSymbolSuffix = "Queues",
+                DeploymentNameSuffix = "Queues",
+                FileName = "storage.queues.module.bicep",
+                FolderName = "StorageAccount",
+                BicepContent = QueuesModuleTemplate,
+                QueueNames = queueNames
+            });
+        }
+
+        if (storageTableNames.Count > 0)
+        {
+            companions.Add(new GeneratedCompanionModule
+            {
+                ModuleSymbolSuffix = "Tables",
+                DeploymentNameSuffix = "Tables",
+                FileName = "storage.table.module.bicep",
+                FolderName = "StorageAccount",
+                BicepContent = TablesModuleTemplate,
+                TypesBicepContent = BlobsTypesTemplate,
+                StorageTableNames = storageTableNames
+            });
         }
 
         return new GeneratedTypeModule
@@ -80,10 +94,22 @@ public sealed class StorageAccountTypeBicepGenerator
 
     private static List<string> ParseStorageTableNames(IReadOnlyDictionary<string, string> properties)
     {
-      if (!properties.TryGetValue("storageTableNames", out var json) || string.IsNullOrEmpty(json))
-        return [];
+        if (!properties.TryGetValue("storageTableNames", out var json) || string.IsNullOrEmpty(json))
+        {
+            return [];
+        }
 
-      return JsonSerializer.Deserialize<List<string>>(json) ?? [];
+        return JsonSerializer.Deserialize<List<string>>(json) ?? [];
+    }
+
+    private static List<string> ParseQueueNames(IReadOnlyDictionary<string, string> properties)
+    {
+        if (!properties.TryGetValue("queueNames", out var json) || string.IsNullOrEmpty(json))
+        {
+            return [];
+        }
+
+        return JsonSerializer.Deserialize<List<string>>(json) ?? [];
     }
 
     private static List<BlobCorsRuleData> ParseCorsRules(IReadOnlyDictionary<string, string> properties)
@@ -256,6 +282,30 @@ public sealed class StorageAccountTypeBicepGenerator
           for tableName in tableNames: {
             name: tableName
             parent: tableService
+          }
+        ]
+        """;
+
+    private const string QueuesModuleTemplate = """
+        @description('Storage account name')
+        param storageAccountName string
+
+        @description('Queue names')
+        param queueNames string[]
+
+        resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
+          name: storageAccountName
+        }
+
+        resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2025-06-01' = {
+          name: 'default'
+          parent: storageAccount
+        }
+
+        resource queue 'Microsoft.Storage/storageAccounts/queueServices/queues@2025-06-01' = [
+          for queueName in queueNames: {
+            name: queueName
+            parent: queueService
           }
         ]
         """;

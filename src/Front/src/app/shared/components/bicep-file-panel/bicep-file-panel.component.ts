@@ -188,6 +188,8 @@ export class BicepFilePanelComponent {
         return { key: 'CONFIG_DETAIL.BICEP.ENTRY_POINT', variant: '' };
       case 'params':
         return { key: 'CONFIG_DETAIL.BICEP.PARAMETERS', variant: 'params' };
+      case 'module-type':
+        return { key: 'CONFIG_DETAIL.BICEP.MODULE', variant: 'module' };
       default:
         return null;
     }

@@ -628,6 +628,12 @@ All module params now have `@description()` decorators. Types are defined only w
 | SqlDatabase | `SkuName` |
 | ServiceBusNamespace | `SkuName`, `TlsVersion` |
 
+### 14.0.4 StorageAccount companion modules ([2026-03-26])
+
+- `GeneratedTypeModule` supports multiple storage companion modules through `CompanionModules`.
+- `StorageAccountTypeBicepGenerator` emits dedicated child-resource modules under `modules/StorageAccount/` for blobs, queues, and tables.
+- `InfrastructureConfigReadRepository` serializes storage sub-resource names into `blobContainerNames`, `queueNames`, and `storageTableNames` so companion module generation stays data-driven from the read model.
+
 ### 14.0.3 Role Assignment Bicep generation ([2026-03-25])
 
 Role assignments (RBAC) generate 3 additional artifacts:
@@ -1160,6 +1166,8 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-03-26 | copilot | Added Storage Account queue Bicep generation. `StorageAccountTypeBicepGenerator` now emits `storage.queues.module.bicep` alongside the existing storage modules, using serialized `queueNames` from `InfrastructureConfigReadRepository`. `GeneratedCompanionModule` and `BicepAssembler` now pass queue names through the companion-module pipeline so generated `main.bicep` declares a dedicated queues module using the same pattern as blobs. Validation: `dotnet build .\src\Api\InfraFlowSculptor.BicepGeneration\InfraFlowSculptor.BicepGeneration.csproj -nologo` and `dotnet build .\src\Api\InfraFlowSculptor.Infrastructure\InfraFlowSculptor.Infrastructure.csproj -nologo` succeed. |
+| 2026-03-26 | copilot | Added a dedicated frontend badge for standard generated Bicep module files in the shared Bicep file tree. `bicep-file-panel` now renders a `MODULE` tag for `module-type` nodes, with a cyan badge variant aligned with the existing terminal viewer styling. Added `CONFIG_DETAIL.BICEP.MODULE` translations in both `fr.json` and `en.json`. Validation: `npm run typecheck` and `npm run build` in `src/Front` succeed. |
 | 2026-03-26 | copilot | Added Storage Account table Bicep generation. **Model**: `GeneratedTypeModule.CompanionModule` (singular, nullable) replaced by `CompanionModules` (collection); `GeneratedCompanionModule` gains `ModuleSymbolSuffix`, `DeploymentNameSuffix`, `StorageTableNames`. **Generator**: `StorageAccountTypeBicepGenerator` parses new `storageTableNames` property and produces a second companion `storage.table.module.bicep` with `CorsRuleDescription` import, `tableService` default resource, and loop over `tableNames`. **Assembler**: both companion write sites (`moduleFiles` population + `main.bicep` declarations) now iterate over `CompanionModules`; new private helper `AppendStorageAccountCompanionModule` renders blob vs table params by presence. **Projection**: `InfrastructureConfigReadRepository` loads `StorageTables` alongside `BlobContainers` and serializes them as `storageTableNames` JSON in StorageAccount read-model properties. Build validated (`dotnet build .\InfraFlowSculptor.slnx -nologo` — 0 errors). |
 | 2026-03-26 | copilot | Fixed generated per-environment `.bicepparam` files to write `param environmentName` using the same sanitized key as `types.bicep` (`EnvironmentName` union and `environments` map). This prevents type-check failures when a project environment display name is title-cased like `Development` but the exported Bicep key is `development`. Validation: `dotnet build .\src\Api\InfraFlowSculptor.BicepGeneration\InfraFlowSculptor.BicepGeneration.csproj -nologo` succeeds. |
 | 2026-03-26 | copilot | Renamed primary generated Bicep module files from `{moduleType}.bicep` to `{moduleType}.module.bicep`. Centralized the naming rule in the `GeneratedTypeModule.ModuleFileName` init accessor so bare names and legacy `*.bicep` values are normalized automatically, updated all resource generators to use simple module names, and fixed `BicepAssembler` headers to print the actual generated filename so companion modules keep the correct `*.module.bicep` name. |

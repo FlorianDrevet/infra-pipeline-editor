@@ -503,6 +503,7 @@
       "TYPES": "types",
       "FUNCTIONS": "naming",
       "CONSTANTS": "rbac",
+      "MODULE": "module",
       "PARAMETERS": "parameters",
       "GENERATE_ERROR": "Unable to generate Bicep files. Please check your configuration has at least one resource group with resources.",
       "GENERATE_AUTH_ERROR": "Authentication failed for the Bicep generation API. Please sign out and sign in again, then retry.",

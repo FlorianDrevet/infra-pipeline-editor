@@ -27,6 +27,9 @@ public sealed record GeneratedCompanionModule
     /// <summary>Blob container names to provision (static configuration, not per-env).</summary>
     public IReadOnlyList<string> BlobContainerNames { get; init; } = [];
 
+    /// <summary>Storage queue names to provision (static configuration, not per-env).</summary>
+    public IReadOnlyList<string> QueueNames { get; init; } = [];
+
     /// <summary>Storage table names to provision (static configuration, not per-env).</summary>
     public IReadOnlyList<string> StorageTableNames { get; init; } = [];
 

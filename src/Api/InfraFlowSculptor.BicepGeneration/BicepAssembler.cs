@@ -283,6 +283,11 @@ public static class BicepAssembler
             sb.AppendLine($"    tableNames: {RenderBicepStringArray(companion.StorageTableNames)}");
         }
 
+        if (companion.QueueNames.Count > 0)
+        {
+            sb.AppendLine($"    queueNames: {RenderBicepStringArray(companion.QueueNames)}");
+        }
+
         sb.AppendLine("  }");
         sb.AppendLine("}");
         sb.AppendLine();

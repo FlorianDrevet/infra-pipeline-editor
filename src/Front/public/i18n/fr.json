@@ -499,6 +499,7 @@
       "TYPES": "types",
       "FUNCTIONS": "nommage",
       "CONSTANTS": "rbac",
+      "MODULE": "module",
       "PARAMETERS": "parametres",
       "GENERATE_ERROR": "Impossible de generer les fichiers Bicep. Verifiez que votre configuration contient au moins un groupe de ressources avec des ressources.",
       "GENERATE_AUTH_ERROR": "Echec de l'authentification aupres de l'API de generation Bicep. Veuillez vous deconnecter puis vous reconnecter, et reessayez.",

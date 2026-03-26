@@ -114,6 +114,11 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var storageQueues = await dbContext.StorageQueues
+            .Where(queue => allResourceIds.Contains(queue.StorageAccountId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         var storageTables = await dbContext.StorageTables
             .Where(table => allResourceIds.Contains(table.StorageAccountId))
             .AsNoTracking()
@@ -240,7 +245,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageTables, storageCorsRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -429,6 +434,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<RedisCacheEnvironmentSettings> rcSettings,
         IReadOnlyList<StorageAccountEnvironmentSettings> saSettings,
         IReadOnlyList<BlobContainer> blobContainers,
+        IReadOnlyList<StorageQueue> storageQueues,
         IReadOnlyList<StorageTable> storageTables,
         IReadOnlyList<CorsRule> storageCorsRules,
         IReadOnlyList<AppServicePlanEnvironmentSettings> aspSettings,
@@ -488,6 +494,10 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["blobContainerNames"] = JsonSerializer.Serialize(blobContainers
                         .Where(bc => bc.StorageAccountId == sa.Id)
                         .Select(bc => bc.Name)
+                        .ToList()),
+                    ["queueNames"] = JsonSerializer.Serialize(storageQueues
+                        .Where(queue => queue.StorageAccountId == sa.Id)
+                        .Select(queue => queue.Name)
                         .ToList()),
                     ["storageTableNames"] = JsonSerializer.Serialize(storageTables
                         .Where(table => table.StorageAccountId == sa.Id)
