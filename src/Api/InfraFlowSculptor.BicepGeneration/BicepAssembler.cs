@@ -229,7 +229,7 @@ public static class BicepAssembler
         return $"[ {string.Join(", ", values.Select(v => $"'{EscapeBicepString(v)}'"))} ]";
     }
 
-    private static IEnumerable<string> RenderCorsRules(IReadOnlyList<BlobCorsRuleData> corsRules)
+    private static IEnumerable<string> RenderCorsRules(IReadOnlyList<BlobCorsRuleData> corsRules, int indentLevel = 0)
     {
         if (corsRules.Count == 0)
         {
@@ -237,19 +237,69 @@ public static class BicepAssembler
             yield break;
         }
 
+        var indent = new string(' ', indentLevel);
+        var itemIndent = new string(' ', indentLevel + 2);
+        var propertyIndent = new string(' ', indentLevel + 4);
+
         yield return "[";
         foreach (var rule in corsRules)
         {
-            yield return "      {";
-            yield return $"        allowedOrigins: {RenderBicepStringArray(rule.AllowedOrigins)}";
-            yield return $"        allowedMethods: {RenderBicepStringArray(rule.AllowedMethods)}";
-            yield return $"        allowedHeaders: {RenderBicepStringArray(rule.AllowedHeaders)}";
-            yield return $"        exposedHeaders: {RenderBicepStringArray(rule.ExposedHeaders)}";
-            yield return $"        maxAgeInSeconds: {rule.MaxAgeInSeconds}";
-            yield return "      }";
+            yield return $"{itemIndent}{{";
+            yield return $"{propertyIndent}allowedOrigins: {RenderBicepStringArray(rule.AllowedOrigins)}";
+            yield return $"{propertyIndent}allowedMethods: {RenderBicepStringArray(rule.AllowedMethods)}";
+            yield return $"{propertyIndent}allowedHeaders: {RenderBicepStringArray(rule.AllowedHeaders)}";
+            yield return $"{propertyIndent}exposedHeaders: {RenderBicepStringArray(rule.ExposedHeaders)}";
+            yield return $"{propertyIndent}maxAgeInSeconds: {rule.MaxAgeInSeconds}";
+            yield return $"{itemIndent}}}";
         }
 
-        yield return "    ]";
+        yield return $"{indent}]";
+    }
+
+    private static string GetStorageAccountCorsParameterName(
+        GeneratedTypeModule module,
+        GeneratedCompanionModule companion) =>
+        $"{module.ModuleName}{companion.ModuleSymbolSuffix}CorsRules";
+
+    private static IEnumerable<(string Name, string Description, IReadOnlyList<BlobCorsRuleData> Value)> GetStorageAccountCorsParameters(
+        GeneratedTypeModule module)
+    {
+        foreach (var companion in module.CompanionModules)
+        {
+            if (companion.BlobContainerNames.Count > 0 || companion.CorsRules.Count > 0)
+            {
+                yield return (
+                    GetStorageAccountCorsParameterName(module, companion),
+                    $"Blob service CORS rules for storage account '{module.LogicalResourceName}'",
+                    companion.CorsRules);
+            }
+
+            if (companion.StorageTableNames.Count > 0 || companion.TableCorsRules.Count > 0)
+            {
+                yield return (
+                    GetStorageAccountCorsParameterName(module, companion),
+                    $"Table service CORS rules for storage account '{module.LogicalResourceName}'",
+                    companion.TableCorsRules);
+            }
+        }
+    }
+
+    private static void AppendCorsParameterAssignment(
+        StringBuilder sb,
+        string parameterName,
+        IReadOnlyList<BlobCorsRuleData> corsRules)
+    {
+        if (corsRules.Count == 0)
+        {
+            sb.AppendLine($"param {parameterName} = []");
+            return;
+        }
+
+        sb.AppendLine($"param {parameterName} = ");
+        foreach (var line in RenderCorsRules(corsRules))
+        {
+            sb.AppendLine(line);
+        }
     }
 
     private static void AppendStorageAccountCompanionModule(
@@ -271,21 +321,13 @@ public static class BicepAssembler
         if (companion.BlobContainerNames.Count > 0 || companion.CorsRules.Count > 0)
         {
             sb.AppendLine($"    blobContainerNames: {RenderBicepStringArray(companion.BlobContainerNames)}");
-            sb.AppendLine("    corsRules: ");
-            foreach (var line in RenderCorsRules(companion.CorsRules))
-            {
-                sb.AppendLine(line);
-            }
+            sb.AppendLine($"    corsRules: {GetStorageAccountCorsParameterName(module, companion)}");
         }
 
         if (companion.StorageTableNames.Count > 0 || companion.TableCorsRules.Count > 0)
         {
             sb.AppendLine($"    tableNames: {RenderBicepStringArray(companion.StorageTableNames)}");
-            sb.AppendLine("    corsRules: ");
-            foreach (var line in RenderCorsRules(companion.TableCorsRules))
-            {
-                sb.AppendLine(line);
-            }
+            sb.AppendLine($"    corsRules: {GetStorageAccountCorsParameterName(module, companion)}");
         }
 
         if (companion.QueueNames.Count > 0)
@@ -518,6 +560,12 @@ public static class BicepAssembler
             {
                 var bicepType = InferBicepType(value);
                 sb.AppendLine($"param {module.ModuleName}{Capitalize(key)} {bicepType}");
+            }
+
+            foreach (var (name, description, _) in GetStorageAccountCorsParameters(module))
+            {
+                sb.AppendLine($"@description('{EscapeBicepString(description)}')");
+                sb.AppendLine($"param {name} array = []");
             }
         }
 
@@ -915,6 +963,11 @@ public static class BicepAssembler
             foreach (var (key, value) in module.Parameters)
             {
                 sb.AppendLine($"param {module.ModuleName}{Capitalize(key)} = {SerializeToBicep(value)}");
+            }
+
+            foreach (var (name, _, value) in GetStorageAccountCorsParameters(module))
+            {
+                AppendCorsParameterAssignment(sb, name, value);
             }
 
             sb.AppendLine();

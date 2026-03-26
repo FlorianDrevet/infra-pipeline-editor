@@ -569,6 +569,7 @@ Ajouter dans `angular.json` → `build.options` :
 - CQRS handlers in `InfraFlowSculptor.Application/InfrastructureConfig/Commands/GenerateBicep/`
 - New resource types require: a new `IResourceTypeBicepGenerator` implementation + registration in `Application/DependencyInjection.cs`
 - Output files: `types.bicep`, `functions.bicep`, `main.bicep`, `main.{env}.bicepparam` (per environment), `modules/{FolderName}/*.bicep` (per resource type)
+- StorageAccount companion-module CORS payloads must be lifted into `main.bicep` parameters and emitted from per-environment `.bicepparam` files instead of being inlined directly in companion module calls. Current convention uses one generated `array` parameter per companion, named `{moduleName}{CompanionSuffix}CorsRules`.
 
 ### 14.0.1 Module folder structure ([2026-03-24])
 
@@ -1167,6 +1168,7 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 ## 17. Changelog
 
 | Date | Author | Change |
+| 2026-03-27 | copilot | Moved generated StorageAccount companion CORS payloads out of inline `main.bicep` module calls and into generated `main.{env}.bicepparam` files. `BicepAssembler` now declares one `array` parameter per storage companion (`{moduleName}{CompanionSuffix}CorsRules`), passes that parameter to blob/table companion modules, and writes the corresponding CORS object arrays into each environment parameter file. Validation: `dotnet build .\src\Api\InfraFlowSculptor.BicepGeneration\InfraFlowSculptor.BicepGeneration.csproj -p:OutDir=.\\artifacts\\tmp-build\\bicepgen\\` succeeds. |
 | 2026-03-26 | copilot | Redesigned the StorageAccount CORS editor in `resource-edit` with chip-style multi-value inputs and added a dedicated Table CORS section alongside Blob CORS. Updated the StorageAccount frontend contracts, i18n keys, and editor styling; validation passed with `npm run typecheck` and `npm run build` in `src/Front`. |
 |------|--------|--------|
 | 2026-03-26 | copilot | Added Storage Account queue Bicep generation. `StorageAccountTypeBicepGenerator` now emits `storage.queues.module.bicep` alongside the existing storage modules, using serialized `queueNames` from `InfrastructureConfigReadRepository`. `GeneratedCompanionModule` and `BicepAssembler` now pass queue names through the companion-module pipeline so generated `main.bicep` declares a dedicated queues module using the same pattern as blobs. Validation: `dotnet build .\src\Api\InfraFlowSculptor.BicepGeneration\InfraFlowSculptor.BicepGeneration.csproj -nologo` and `dotnet build .\src\Api\InfraFlowSculptor.Infrastructure\InfraFlowSculptor.Infrastructure.csproj -nologo` succeed. |
