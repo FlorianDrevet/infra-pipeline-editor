@@ -365,6 +365,9 @@ public sealed class SomethingConfiguration : IEntityTypeConfiguration<Something>
 }
 ```
 
+### 8.2bis EF Core convention — Ignore computed navigations over shared backing field
+When an aggregate exposes one persisted collection plus filtered/computed projections over the same backing field (e.g. `AllCorsRules` persisted vs `CorsRules`/`TableCorsRules` filtered), map only the persisted navigation in EF Core and add `builder.Ignore(...)` for every computed projection. Without this, EF auto-discovers the computed properties as additional navigations and throws `InvalidOperationException: The member 'X' cannot use field '_y' because it is already used by 'Z'`.
+
 ### 8.3 EF Core Converters
 - `IdValueConverter<TId>` — converts ID value objects ↔ underlying Guid (`InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters`)
 - `SingleValueConverter<TValueObject, TPrimitive>` — wraps/unwraps single-value objects
@@ -1168,6 +1171,7 @@ Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills d
 ## 17. Changelog
 
 | Date | Author | Change |
+| 2026-03-27 | copilot | Fixed EF Core `PendingModelChangesWarning` crash at startup. Added `builder.Ignore(s => s.CorsRules)` and `builder.Ignore(s => s.TableCorsRules)` to `StorageAccountConfiguration` to prevent EF from discovering computed props over shared `_corsRules` backing field. Generated migration `AddCorsRuleServiceType` to add the missing `ServiceType` column to `StorageAccountCorsRules` and update the model snapshot (`AllCorsRules` nav name, remove stale `CorsRules` nav). |
 | 2026-03-27 | copilot | Moved generated StorageAccount companion CORS payloads out of inline `main.bicep` module calls and into generated `main.{env}.bicepparam` files. `BicepAssembler` now declares one `array` parameter per storage companion (`{moduleName}{CompanionSuffix}CorsRules`), passes that parameter to blob/table companion modules, and writes the corresponding CORS object arrays into each environment parameter file. Validation: `dotnet build .\src\Api\InfraFlowSculptor.BicepGeneration\InfraFlowSculptor.BicepGeneration.csproj -p:OutDir=.\\artifacts\\tmp-build\\bicepgen\\` succeeds. |
 | 2026-03-26 | copilot | Redesigned the StorageAccount CORS editor in `resource-edit` with chip-style multi-value inputs and added a dedicated Table CORS section alongside Blob CORS. Updated the StorageAccount frontend contracts, i18n keys, and editor styling; validation passed with `npm run typecheck` and `npm run build` in `src/Front`. |
 |------|--------|--------|
