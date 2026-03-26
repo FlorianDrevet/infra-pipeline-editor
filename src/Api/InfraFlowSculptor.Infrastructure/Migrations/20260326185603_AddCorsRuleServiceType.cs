@@ -15,7 +15,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                 table: "StorageAccountCorsRules",
                 type: "text",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: "Blob");
+
+            // Backfill existing rows that got the empty-string default before this fix
+            migrationBuilder.Sql(
+                """UPDATE "StorageAccountCorsRules" SET "ServiceType" = 'Blob' WHERE "ServiceType" = '';""");
         }
 
         /// <inheritdoc />
