@@ -64,6 +64,24 @@
               <mat-icon class="plan-card__arrow">arrow_forward</mat-icon>
             </button>
           }
+
+          @if (crossConfigPlans().length > 0) {
+            <div class="cross-config-separator">
+              <mat-icon class="cross-config-separator__icon">link</mat-icon>
+              <span>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CROSS_CONFIG_PLANS' | translate }}</span>
+            </div>
+            @for (plan of crossConfigPlans(); track plan.resourceId) {
+              <button class="plan-card plan-card--cross-config" (click)="onSelectCrossConfigPlan(plan)">
+                <mat-icon class="plan-card__icon">{{ parentResourceIcon() }}</mat-icon>
+                <div class="plan-card__info">
+                  <span class="plan-card__name">{{ plan.resourceName }}</span>
+                  <span class="plan-card__location">{{ plan.configName }} · {{ plan.resourceGroupName }}</span>
+                </div>
+                <mat-icon class="plan-card__arrow">arrow_forward</mat-icon>
+              </button>
+            }
+          }
+
           <button class="plan-card plan-card--create" (click)="onStartCreatePlan()">
             <mat-icon class="plan-card__icon plan-card__icon--create">add_circle_outline</mat-icon>
             <div class="plan-card__info">

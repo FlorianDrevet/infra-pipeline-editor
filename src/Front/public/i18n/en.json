@@ -343,6 +343,7 @@
         "CREATE_NEW_PLAN_HINT_CAE": "Configure a new environment from scratch",
         "CREATE_NEW_PLAN_HINT_LAW": "Configure a new workspace from scratch",
         "CREATE_NEW_PLAN_HINT_SQL": "Configure a new SQL Server from scratch",
+        "CROSS_CONFIG_PLANS": "Other project configurations",
         "CREATE_PLAN_TITLE_ASP": "New App Service Plan",
         "CREATE_PLAN_TITLE_CAE": "New Container App Environment",
         "CREATE_PLAN_TITLE_LAW": "New Log Analytics Workspace",

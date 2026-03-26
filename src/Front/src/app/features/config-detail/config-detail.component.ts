@@ -572,9 +572,12 @@ export class ConfigDetailComponent implements OnInit {
   protected openAddResourceDialog(rgId: string): void {
     const rg = this.resourceGroups().find((r) => r.id === rgId);
     const envs = this.projectSortedEnvironments();
+    const currentConfig = this.config();
     const dialogRef = this.dialog.open(AddResourceDialogComponent, {
       data: {
         resourceGroupId: rgId,
+        configId: currentConfig!.id,
+        projectId: currentConfig!.projectId,
         location: rg?.location ?? '',
         environments: envs.map(e => ({ name: e.name })),
       } satisfies AddResourceDialogData,
@@ -597,9 +600,12 @@ export class ConfigDetailComponent implements OnInit {
   protected openAddChildResourceDialog(parentResource: AzureResourceResponse, rgId: string): void {
     const rg = this.resourceGroups().find((r) => r.id === rgId);
     const envs = this.projectSortedEnvironments();
+    const currentConfig = this.config();
     const dialogRef = this.dialog.open(AddResourceDialogComponent, {
       data: {
         resourceGroupId: rgId,
+        configId: currentConfig!.id,
+        projectId: currentConfig!.projectId,
         location: rg?.location ?? '',
         environments: envs.map(e => ({ name: e.name })),
         parentResource: {

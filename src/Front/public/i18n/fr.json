@@ -1,4 +1,4 @@
-{
+﻿{
   "LANGUAGE": {
     "FRENCH_SHORT": "FR",
     "ENGLISH_SHORT": "EN"
@@ -339,6 +339,7 @@
         "CREATE_NEW_PLAN_HINT_CAE": "Configurer un nouvel environnement depuis z\u00e9ro",
         "CREATE_NEW_PLAN_HINT_LAW": "Configurer un nouveau workspace depuis z\u00e9ro",
         "CREATE_NEW_PLAN_HINT_SQL": "Configurer un nouveau SQL Server depuis z\u00e9ro",
+        "CROSS_CONFIG_PLANS": "Autres configurations du projet",
         "CREATE_PLAN_TITLE_ASP": "Nouvel App Service Plan",
         "CREATE_PLAN_TITLE_CAE": "Nouveau Container App Environment",
         "CREATE_PLAN_TITLE_LAW": "Nouveau Log Analytics Workspace",

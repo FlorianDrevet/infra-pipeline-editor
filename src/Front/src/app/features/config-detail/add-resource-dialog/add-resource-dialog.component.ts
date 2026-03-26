@@ -51,9 +51,14 @@ import { SqlServerEnvironmentConfigEntry } from '../../../shared/interfaces/sql-
 import { SqlDatabaseEnvironmentConfigEntry } from '../../../shared/interfaces/sql-database.interface';
 import { ServiceBusNamespaceEnvironmentConfigEntry } from '../../../shared/interfaces/service-bus-namespace.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
+import { InfraConfigService } from '../../../shared/services/infra-config.service';
+import { ProjectService } from '../../../shared/services/project.service';
+import { ProjectResourceResponse } from '../../../shared/interfaces/cross-config-reference.interface';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
+  configId: string;
+  projectId: string;
   location: string;
   environments: { name: string }[];
   parentResource?: { id: string; name: string; resourceType: string };
@@ -259,6 +264,8 @@ export class AddResourceDialogComponent {
   private readonly sqlDatabaseService = inject(SqlDatabaseService);
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
   private readonly resourceGroupService = inject(ResourceGroupService);
+  private readonly infraConfigService = inject(InfraConfigService);
+  private readonly projectService = inject(ProjectService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly step = signal<DialogStep>('type');
@@ -276,6 +283,7 @@ export class AddResourceDialogComponent {
 
   // ── Plan selection state (WebApp flow) ──
   protected readonly existingPlans = signal<AzureResourceResponse[]>([]);
+  protected readonly crossConfigPlans = signal<ProjectResourceResponse[]>([]);
   protected readonly plansLoading = signal(false);
   protected readonly selectedPlanId = signal<string | null>(null);
   protected readonly selectedPlanName = signal<string | null>(null);
@@ -454,15 +462,28 @@ export class AddResourceDialogComponent {
   private async loadExistingPlans(): Promise<void> {
     this.plansLoading.set(true);
     try {
-      const resources = await this.resourceGroupService.getResources(this.data.resourceGroupId);
       const filterType = this.selectedType() === ResourceTypeEnum.ContainerApp ? 'ContainerAppEnvironment'
         : this.selectedType() === ResourceTypeEnum.ApplicationInsights ? 'LogAnalyticsWorkspace'
         : this.selectedType() === ResourceTypeEnum.SqlDatabase ? 'SqlServer'
         : 'AppServicePlan';
-      const plans = resources.filter(r => r.resourceType === filterType);
+
+      // Load from all resource groups in this config
+      const resourceGroups = await this.infraConfigService.getResourceGroups(this.data.configId);
+      const allResourcePromises = resourceGroups.map(rg => this.resourceGroupService.getResources(rg.id));
+      const allResourceArrays = await Promise.all(allResourcePromises);
+      const allResources = allResourceArrays.flat();
+      const plans = allResources.filter(r => r.resourceType === filterType);
       this.existingPlans.set(plans);
+
+      // Load cross-config resources from other configs in the same project
+      const projectResources = await this.projectService.getProjectResources(this.data.projectId);
+      const crossConfigResources = projectResources.filter(
+        r => r.resourceType === filterType && r.configId !== this.data.configId
+      );
+      this.crossConfigPlans.set(crossConfigResources);
     } catch {
       this.existingPlans.set([]);
+      this.crossConfigPlans.set([]);
     } finally {
       this.plansLoading.set(false);
     }
@@ -479,6 +500,37 @@ export class AddResourceDialogComponent {
       this.commonForm.patchValue({ sqlServerId: plan.id });
     } else {
       this.commonForm.patchValue({ appServicePlanId: plan.id });
+    }
+    this.step.set('common');
+  }
+
+  protected async onSelectCrossConfigPlan(plan: ProjectResourceResponse): Promise<void> {
+    // Auto-create cross-config reference if not already existing
+    try {
+      const refs = await this.infraConfigService.getCrossConfigReferences(this.data.configId);
+      const alreadyReferenced = refs.some(r => r.targetResourceId === plan.resourceId);
+      if (!alreadyReferenced) {
+        const alias = plan.resourceName.replace(/[^a-zA-Z0-9]/g, '');
+        await this.infraConfigService.addCrossConfigReference(this.data.configId, {
+          targetResourceId: plan.resourceId,
+          alias,
+        });
+      }
+    } catch {
+      // Non-blocking — reference may already exist
+    }
+
+    // Treat it like a normal plan selection
+    this.selectedPlanId.set(plan.resourceId);
+    this.selectedPlanName.set(plan.resourceName);
+    if (this.selectedType() === ResourceTypeEnum.ContainerApp) {
+      this.commonForm.patchValue({ containerAppEnvironmentId: plan.resourceId });
+    } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
+      this.commonForm.patchValue({ logAnalyticsWorkspaceId: plan.resourceId });
+    } else if (this.selectedType() === ResourceTypeEnum.SqlDatabase) {
+      this.commonForm.patchValue({ sqlServerId: plan.resourceId });
+    } else {
+      this.commonForm.patchValue({ appServicePlanId: plan.resourceId });
     }
     this.step.set('common');
   }

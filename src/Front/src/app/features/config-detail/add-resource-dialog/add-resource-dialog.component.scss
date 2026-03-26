@@ -263,6 +263,28 @@ mat-slide-toggle {
   flex-shrink: 0;
 }
 
+// ── Cross-config separator ──
+.cross-config-separator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0 4px;
+  font-size: 0.8rem;
+  color: rgba(84, 110, 122, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &__icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.plan-card--cross-config {
+  border-left: 3px solid #7c4dff;
+}
+
 // ── Plan Indicator (selected plan in common step) ──
 .plan-indicator {
   display: flex;
