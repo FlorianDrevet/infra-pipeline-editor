@@ -571,6 +571,20 @@
       "MEMBERS": "Membres",
       "GIT": "Git"
     },
+    "REPO_MODE": {
+      "MULTI": "Multi-repo",
+      "MONO": "Mono-repo",
+      "ERROR": "Impossible de changer le mode de depot."
+    },
+    "BICEP": {
+      "GENERATE": "Generer Bicep",
+      "PUSH_TO_GIT": "Pousser sur Git",
+      "PANEL_TITLE": "Generation Bicep du projet",
+      "GENERATING": "Generation des fichiers Bicep pour toutes les configurations...",
+      "GENERATE_ERROR": "Impossible de generer les fichiers Bicep pour le projet.",
+      "RETRY": "Reessayer",
+      "SHARED": "Partage"
+    },
     "STATE": {
       "LOADING_TITLE": "Chargement du projet",
       "LOADING_DESCRIPTION": "Recuperation des details du projet depuis l'API."

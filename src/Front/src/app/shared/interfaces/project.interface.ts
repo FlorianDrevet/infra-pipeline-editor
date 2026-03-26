@@ -19,6 +19,7 @@ export interface ProjectResponse {
   id: string;
   name: string;
   description?: string;
+  repositoryMode: string;
   members: ProjectMemberResponse[];
   environmentDefinitions: EnvironmentDefinitionResponse[];
   defaultNamingTemplate: string | null;
@@ -112,4 +113,15 @@ export interface TestGitConnectionResponse {
 export interface GitBranchResponse {
   name: string;
   isProtected: boolean;
+}
+
+// ─── Repository Mode ────────────────────────────────────────────────────────
+
+export interface SetRepositoryModeRequest {
+  repositoryMode: string;
+}
+
+export interface GenerateProjectBicepResponse {
+  commonFileUris: Record<string, string>;
+  configFileUris: Record<string, Record<string, string>>;
 }

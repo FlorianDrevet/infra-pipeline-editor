@@ -4,6 +4,8 @@ using InfraFlowSculptor.Application.Projects.Commands.AddProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.DeleteProject;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectMember;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProject;
+using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectBicepToGit;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectGitConfig;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
@@ -11,6 +13,7 @@ using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectResourceNamin
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectDefaultNamingTemplate;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectGitConfig;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectResourceNamingTemplate;
+using InfraFlowSculptor.Application.Projects.Commands.SetRepositoryMode;
 using InfraFlowSculptor.Application.Projects.Commands.TestGitConnection;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectMemberRole;
@@ -537,6 +540,82 @@ public static class ProjectController
                 .WithSummary("List all resources across configurations")
                 .WithDescription("Returns all Azure resources across all infrastructure configurations in the project. Used for cross-config resource reference selection.")
                 .Produces<IReadOnlyList<ProjectResourceResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Repository Mode ─────────────────────────────────────────
+
+            group.MapPut("/{projectId:guid}/repository-mode",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] SetRepositoryModeRequest request,
+                        IMediator mediator) =>
+                    {
+                        var command = new SetRepositoryModeCommand(
+                            new ProjectId(projectId),
+                            request.RepositoryMode);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetRepositoryMode")
+                .WithSummary("Set the repository mode (MonoRepo/MultiRepo)")
+                .WithDescription("Configures how generated Bicep files are organized: MultiRepo (per-config push) or MonoRepo (project-level push with shared Common folder). Requires Owner access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Project-level Bicep Generation (mono-repo) ──────────────
+
+            group.MapPost("/{projectId:guid}/generate-bicep",
+                    async ([FromRoute] Guid projectId, IMediator mediator) =>
+                    {
+                        var command = new GenerateProjectBicepCommand(new ProjectId(projectId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value =>
+                            {
+                                var response = new GenerateProjectBicepResponse(
+                                    value.CommonFileUris,
+                                    value.ConfigFileUris);
+                                return Results.Created($"/projects/{projectId}/generate-bicep", response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GenerateProjectBicep")
+                .WithSummary("Generate Bicep files for the entire project (mono-repo)")
+                .WithDescription("Generates Bicep files for all configurations in the project, organized as a mono-repo with a shared Common folder and per-config deployment folders.")
+                .Produces<GenerateProjectBicepResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Project-level Push to Git (mono-repo) ───────────────────
+
+            group.MapPost("/{projectId:guid}/push-to-git",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] PushBicepToGitRequest request,
+                        IMediator mediator,
+                        IMapper mapper) =>
+                    {
+                        var command = new PushProjectBicepToGitCommand(
+                            new ProjectId(projectId),
+                            request.BranchName,
+                            request.CommitMessage);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.Ok(mapper.Map<PushBicepToGitResponse>(value)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("PushProjectBicepToGit")
+                .WithSummary("Push project-level Bicep files to Git (mono-repo)")
+                .WithDescription("Pushes the latest project-level generated Bicep files to the configured Git repository. Used in MonoRepo mode.")
+                .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });

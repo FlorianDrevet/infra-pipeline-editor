@@ -829,6 +829,333 @@ a.config-card {
 
 // ─── Git Config ────
 
+// ─── Repository Mode Toggle ────
+
+.repo-mode-toggle {
+  border-radius: 999px !important;
+  border: 1px solid rgba(146, 191, 235, 0.3) !important;
+  overflow: hidden;
+
+  ::ng-deep .mat-button-toggle {
+    border: none !important;
+  }
+
+  ::ng-deep .mat-button-toggle-label-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  ::ng-deep .mat-button-toggle-checked {
+    background: rgba(21, 101, 192, 0.1);
+    color: #1565c0;
+  }
+
+  ::ng-deep .mat-button-toggle:not(.mat-button-toggle-checked) {
+    color: #617892;
+  }
+}
+
+.repo-mode-toggle__icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.repo-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(21, 101, 192, 0.06);
+  color: #1565c0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.repo-mode-badge__icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+// ─── Bicep Buttons ────
+
+.bicep-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(46, 125, 50, 0.25);
+  background: rgba(46, 125, 50, 0.08);
+  color: #2e7d32;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: rgba(46, 125, 50, 0.14);
+    border-color: rgba(46, 125, 50, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.bicep-btn__icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.push-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(21, 101, 192, 0.25);
+  background: rgba(21, 101, 192, 0.08);
+  color: #1565c0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: rgba(21, 101, 192, 0.14);
+    border-color: rgba(21, 101, 192, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.push-btn__icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+// ─── Bicep Panel (mono-repo) ────
+
+.bicep-panel {
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+  background: #0d1117;
+  border: 1px solid rgba(80, 250, 123, 0.2);
+  overflow: hidden;
+}
+
+.bicep-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bicep-panel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #50fa7b;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.bicep-panel__title-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.bicep-panel__close {
+  display: flex;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 50%;
+
+  &:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  mat-icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+}
+
+.bicep-panel__body {
+  padding: 1rem;
+}
+
+.bicep-panel__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #8be9fd;
+  font-size: 0.85rem;
+}
+
+.bicep-panel__error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ff79c6;
+  font-size: 0.85rem;
+
+  mat-icon {
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+}
+
+.bicep-panel__retry {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 121, 198, 0.4);
+  background: rgba(255, 121, 198, 0.1);
+  color: #ff79c6;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 121, 198, 0.2);
+  }
+}
+
+// ─── Bicep File Tree ────
+
+.bicep-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.bicep-tree__folder {
+  display: flex;
+  flex-direction: column;
+}
+
+.bicep-tree__folder-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #f8f8f2;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-align: left;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.bicep-tree__chevron {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: rgba(255, 255, 255, 0.45);
+  transition: transform 0.15s ease;
+
+  &--open {
+    transform: rotate(90deg);
+  }
+}
+
+.bicep-tree__folder-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: #8be9fd;
+}
+
+.bicep-tree__folder-name {
+  color: #8be9fd;
+  font-weight: 600;
+}
+
+.bicep-tree__folder-badge {
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  &--common {
+    background: rgba(189, 147, 249, 0.18);
+    color: #bd93f9;
+  }
+}
+
+.bicep-tree__children {
+  padding-left: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.bicep-tree__file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.4rem;
+  color: #f8f8f2;
+  font-size: 0.82rem;
+  text-decoration: none;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.bicep-tree__file-icon {
+  font-size: 0.9rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  color: #50fa7b;
+}
+
+.bicep-tree__open-icon {
+  font-size: 0.75rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin-left: auto;
+}
+
+// ─── Git Config ────
+
 .git-config-card {
   padding: 1.2rem;
   border-radius: 1.2rem;

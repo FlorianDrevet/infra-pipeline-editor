@@ -43,6 +43,51 @@
         </ng-template>
         <div class="tab-content">
           <div class="tab-content__toolbar">
+            <!-- Repository Mode Toggle -->
+            @if (canWrite()) {
+              <mat-button-toggle-group
+                class="repo-mode-toggle"
+                [value]="project()!.repositoryMode"
+                [disabled]="repoModeSaving()"
+                (change)="onRepositoryModeChange($event.value)">
+                <mat-button-toggle value="MultiRepo">
+                  <mat-icon class="repo-mode-toggle__icon">call_split</mat-icon>
+                  {{ 'PROJECT_DETAIL.REPO_MODE.MULTI' | translate }}
+                </mat-button-toggle>
+                <mat-button-toggle value="MonoRepo">
+                  <mat-icon class="repo-mode-toggle__icon">folder_shared</mat-icon>
+                  {{ 'PROJECT_DETAIL.REPO_MODE.MONO' | translate }}
+                </mat-button-toggle>
+              </mat-button-toggle-group>
+            } @else {
+              <span class="repo-mode-badge">
+                <mat-icon class="repo-mode-badge__icon">
+                  @if (isMonoRepo()) { folder_shared } @else { call_split }
+                </mat-icon>
+                {{ (isMonoRepo() ? 'PROJECT_DETAIL.REPO_MODE.MONO' : 'PROJECT_DETAIL.REPO_MODE.MULTI') | translate }}
+              </span>
+            }
+
+            <div class="toolbar-spacer"></div>
+
+            <!-- Project-level Bicep actions (mono-repo only) -->
+            @if (isMonoRepo() && canWrite()) {
+              <button class="bicep-btn" (click)="generateProjectBicep()" [disabled]="projectBicepLoading()">
+                @if (projectBicepLoading()) {
+                  <mat-spinner diameter="16"></mat-spinner>
+                } @else {
+                  <mat-icon class="bicep-btn__icon">terminal</mat-icon>
+                }
+                {{ 'PROJECT_DETAIL.BICEP.GENERATE' | translate }}
+              </button>
+              @if (project()!.gitRepositoryConfiguration) {
+                <button class="push-btn" (click)="openProjectPushToGitDialog()" [disabled]="!projectBicepResult()">
+                  <mat-icon class="push-btn__icon">rocket_launch</mat-icon>
+                  {{ 'PROJECT_DETAIL.BICEP.PUSH_TO_GIT' | translate }}
+                </button>
+              }
+            }
+
             @if (canWrite()) {
               <button class="add-btn" (click)="openAddConfigDialog()">
                 <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
@@ -51,8 +96,94 @@
             }
           </div>
 
+          @if (repoModeError()) {
+            <p class="action-error">{{ repoModeError() | translate }}</p>
+          }
+
           @if (configErrorKey()) {
             <p class="action-error">{{ configErrorKey() | translate }}</p>
+          }
+
+          <!-- Project Bicep Panel (mono-repo) -->
+          @if (projectBicepPanelOpen()) {
+            <div class="bicep-panel" @slideIn>
+              <div class="bicep-panel__header">
+                <span class="bicep-panel__title">
+                  <mat-icon class="bicep-panel__title-icon">terminal</mat-icon>
+                  {{ 'PROJECT_DETAIL.BICEP.PANEL_TITLE' | translate }}
+                </span>
+                <button class="bicep-panel__close" (click)="closeProjectBicepPanel()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div class="bicep-panel__body">
+                @if (projectBicepLoading()) {
+                  <div class="bicep-panel__loading">
+                    <mat-spinner diameter="24"></mat-spinner>
+                    <span>{{ 'PROJECT_DETAIL.BICEP.GENERATING' | translate }}</span>
+                  </div>
+                } @else if (projectBicepErrorKey()) {
+                  <div class="bicep-panel__error">
+                    <mat-icon>error_outline</mat-icon>
+                    <span>{{ projectBicepErrorKey() | translate }}</span>
+                    <button class="bicep-panel__retry" (click)="generateProjectBicep()">
+                      {{ 'PROJECT_DETAIL.BICEP.RETRY' | translate }}
+                    </button>
+                  </div>
+                } @else if (projectBicepResult()) {
+                  <div class="bicep-tree">
+                    <!-- Common folder -->
+                    @if (commonFileEntries().length > 0) {
+                      <div class="bicep-tree__folder">
+                        <button class="bicep-tree__folder-btn" (click)="toggleProjectBicepFolder('Common')">
+                          <mat-icon class="bicep-tree__chevron" [class.bicep-tree__chevron--open]="isProjectBicepFolderExpanded('Common')">
+                            chevron_right
+                          </mat-icon>
+                          <mat-icon class="bicep-tree__folder-icon">folder_shared</mat-icon>
+                          <span class="bicep-tree__folder-name">Common/</span>
+                          <span class="bicep-tree__folder-badge bicep-tree__folder-badge--common">{{ 'PROJECT_DETAIL.BICEP.SHARED' | translate }}</span>
+                        </button>
+                        @if (isProjectBicepFolderExpanded('Common')) {
+                          <div class="bicep-tree__children">
+                            @for (entry of commonFileEntries(); track entry.key) {
+                              <a class="bicep-tree__file" [href]="entry.value" target="_blank" rel="noopener">
+                                <mat-icon class="bicep-tree__file-icon">description</mat-icon>
+                                <span>{{ entry.key }}</span>
+                                <mat-icon class="bicep-tree__open-icon">open_in_new</mat-icon>
+                              </a>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    <!-- Per-config folders -->
+                    @for (folder of configFolders(); track folder.configName) {
+                      <div class="bicep-tree__folder">
+                        <button class="bicep-tree__folder-btn" (click)="toggleProjectBicepFolder(folder.configName)">
+                          <mat-icon class="bicep-tree__chevron" [class.bicep-tree__chevron--open]="isProjectBicepFolderExpanded(folder.configName)">
+                            chevron_right
+                          </mat-icon>
+                          <mat-icon class="bicep-tree__folder-icon">folder</mat-icon>
+                          <span class="bicep-tree__folder-name">{{ folder.configName }}/</span>
+                        </button>
+                        @if (isProjectBicepFolderExpanded(folder.configName)) {
+                          <div class="bicep-tree__children">
+                            @for (fileEntry of folder.files; track fileEntry.key) {
+                              <a class="bicep-tree__file" [href]="fileEntry.value" target="_blank" rel="noopener">
+                                <mat-icon class="bicep-tree__file-icon">description</mat-icon>
+                                <span>{{ fileEntry.key }}</span>
+                                <mat-icon class="bicep-tree__open-icon">open_in_new</mat-icon>
+                              </a>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
           }
 
           @if (configs().length > 0) {

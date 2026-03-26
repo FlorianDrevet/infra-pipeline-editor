@@ -13,6 +13,7 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.RedisCacheAggregate;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate;
@@ -46,6 +47,30 @@ namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContext)
     : IInfrastructureConfigReadRepository
 {
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<InfrastructureConfigReadModel>> GetAllByProjectIdWithResourcesAsync(
+        Guid projectId,
+        CancellationToken cancellationToken = default)
+    {
+        var projectIdVo = new ProjectId(projectId);
+
+        var configIds = await dbContext.InfrastructureConfigs
+            .AsNoTracking()
+            .Where(c => c.ProjectId == projectIdVo)
+            .Select(c => c.Id.Value)
+            .ToListAsync(cancellationToken);
+
+        var results = new List<InfrastructureConfigReadModel>();
+        foreach (var configId in configIds)
+        {
+            var readModel = await GetByIdWithResourcesAsync(configId, cancellationToken);
+            if (readModel is not null)
+                results.Add(readModel);
+        }
+
+        return results;
+    }
+
     public async Task<InfrastructureConfigReadModel?> GetByIdWithResourcesAsync(
         Guid id,
         CancellationToken cancellationToken = default)

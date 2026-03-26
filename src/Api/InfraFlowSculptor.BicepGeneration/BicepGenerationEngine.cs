@@ -105,6 +105,32 @@ public sealed class BicepGenerationEngine
     }
 
     /// <summary>
+    /// Generates Bicep files for an entire project in mono-repo mode.
+    /// Each configuration is generated independently, then assembled into a shared Common folder
+    /// and per-configuration folders.
+    /// </summary>
+    public MonoRepoGenerationResult GenerateMonoRepo(MonoRepoGenerationRequest request)
+    {
+        var perConfigResults = new Dictionary<string, GenerationResult>();
+        var hasAnyRoleAssignments = false;
+
+        foreach (var (configName, configRequest) in request.ConfigRequests)
+        {
+            var result = Generate(configRequest);
+            perConfigResults[configName] = result;
+
+            if (configRequest.RoleAssignments.Count > 0)
+                hasAnyRoleAssignments = true;
+        }
+
+        return MonoRepoBicepAssembler.Assemble(
+            perConfigResults,
+            request.NamingContext,
+            request.Environments,
+            hasAnyRoleAssignments);
+    }
+
+    /// <summary>
     /// Injects <c>identity: { type: 'SystemAssigned' }</c> into the resource declaration
     /// and appends a <c>principalId</c> output to the module template.
     /// </summary>

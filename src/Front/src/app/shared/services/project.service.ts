@@ -13,7 +13,13 @@ import {
   GitBranchResponse,
   AddProjectEnvironmentRequest,
   UpdateProjectEnvironmentRequest,
+  SetRepositoryModeRequest,
+  GenerateProjectBicepResponse,
 } from '../interfaces/project.interface';
+import {
+  PushBicepToGitRequest,
+  PushBicepToGitResponse,
+} from '../interfaces/bicep-generator.interface';
 import {
   InfrastructureConfigResponse,
   UserResponse,
@@ -196,6 +202,34 @@ export class ProjectService {
     return this.axios.request$<ProjectResourceResponse[]>(
       MethodEnum.GET,
       `/projects/${projectId}/resources`
+    );
+  }
+
+  // ─── Repository Mode ───
+
+  setRepositoryMode(projectId: string, request: SetRepositoryModeRequest): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/repository-mode`,
+      request
+    );
+  }
+
+  generateProjectBicep(projectId: string): Promise<GenerateProjectBicepResponse> {
+    return this.axios.request$<GenerateProjectBicepResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/generate-bicep`
+    );
+  }
+
+  pushProjectBicepToGit(
+    projectId: string,
+    request: PushBicepToGitRequest
+  ): Promise<PushBicepToGitResponse> {
+    return this.axios.request$<PushBicepToGitResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/push-to-git`,
+      request
     );
   }
 }

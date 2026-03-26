@@ -17,6 +17,7 @@ export interface PushToGitDialogData {
   configId: string;
   projectId: string;
   gitConfig: GitConfigResponse;
+  isProjectLevel?: boolean;
 }
 
 type DialogState = 'form' | 'pushing' | 'success' | 'error';
@@ -44,6 +45,8 @@ export class PushToGitDialogComponent implements OnInit {
   private readonly bicepService = inject(BicepGeneratorService);
   private readonly projectService = inject(ProjectService);
   private readonly fb = inject(FormBuilder);
+
+  protected readonly isProjectLevel = this.data.isProjectLevel ?? false;
 
   protected readonly state = signal<DialogState>('form');
   protected readonly result = signal<PushBicepToGitResponse | null>(null);
@@ -95,10 +98,13 @@ export class PushToGitDialogComponent implements OnInit {
 
     try {
       const value = this.form.getRawValue();
-      const response = await this.bicepService.pushToGit(this.data.configId, {
+      const request = {
         branchName: value.branchName!,
         commitMessage: value.commitMessage || null,
-      });
+      };
+      const response = this.isProjectLevel
+        ? await this.projectService.pushProjectBicepToGit(this.data.projectId, request)
+        : await this.bicepService.pushToGit(this.data.configId, request);
       this.result.set(response);
       this.state.set('success');
     } catch {

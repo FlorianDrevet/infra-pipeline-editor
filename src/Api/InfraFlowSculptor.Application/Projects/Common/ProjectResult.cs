@@ -12,4 +12,5 @@ public record ProjectResult(
     IReadOnlyList<ProjectEnvironmentDefinitionResult> EnvironmentDefinitions,
     string? DefaultNamingTemplate,
     IReadOnlyList<ProjectResourceNamingTemplateResult> ResourceNamingTemplates,
-    GitRepositoryConfigurationResult? GitRepositoryConfiguration);
+    GitRepositoryConfigurationResult? GitRepositoryConfiguration,
+    string RepositoryMode);

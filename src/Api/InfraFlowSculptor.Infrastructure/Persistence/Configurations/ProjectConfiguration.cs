@@ -67,6 +67,14 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .WithOne()
             .HasForeignKey<GitRepositoryConfiguration>(x => x.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ========================
+        // RepositoryMode
+        // ========================
+        builder.Property(x => x.RepositoryMode)
+            .HasConversion(new EnumValueConverter<RepositoryMode, RepositoryModeEnum>())
+            .HasDefaultValue(new RepositoryMode(RepositoryModeEnum.MultiRepo))
+            .IsRequired();
     }
 
     private static void ConfigureEnvironments(EntityTypeBuilder<Project> builder)

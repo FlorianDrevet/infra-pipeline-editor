@@ -1,6 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
-import { ProjectResponse, ProjectMemberResponse } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse } from '../../shared/interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
   EnvironmentDefinitionResponse,
@@ -33,8 +35,13 @@ import {
   AddProjectNamingTemplateDialogResult,
 } from './add-project-naming-template-dialog/add-project-naming-template-dialog.component';
 import { GitConfigDialogComponent, GitConfigDialogData } from './git-config-dialog/git-config-dialog.component';
+import {
+  PushToGitDialogComponent,
+  PushToGitDialogData,
+} from '../config-detail/push-to-git-dialog/push-to-git-dialog.component';
 import { RESOURCE_TYPE_OPTIONS } from '../config-detail/enums/resource-type.enum';
 import { TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
+import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { FormsModule } from '@angular/forms';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
@@ -49,6 +56,7 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     RouterLink,
     FormsModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
@@ -59,6 +67,14 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
+  animations: [
+    trigger('slideIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-8px)' }),
+        animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
+  ],
 })
 export class ProjectDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -68,6 +84,7 @@ export class ProjectDetailComponent implements OnInit {
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
+  private readonly bicepService = inject(BicepGeneratorService);
 
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly configs = signal<InfrastructureConfigResponse[]>([]);
@@ -83,6 +100,34 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly namingErrorKey = signal('');
   protected readonly roles = ROLES;
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
+
+  // ─── Repository Mode ───
+  protected readonly repoModeSaving = signal(false);
+  protected readonly repoModeError = signal('');
+
+  protected readonly isMonoRepo = computed(() => this.project()?.repositoryMode === 'MonoRepo');
+
+  // ─── Project Bicep Generation (mono-repo) ───
+  protected readonly projectBicepLoading = signal(false);
+  protected readonly projectBicepResult = signal<GenerateProjectBicepResponse | null>(null);
+  protected readonly projectBicepErrorKey = signal('');
+  protected readonly projectBicepPanelOpen = signal(false);
+  protected readonly projectBicepExpandedFolders = signal<Set<string>>(new Set());
+
+  protected readonly commonFileEntries = computed(() => {
+    const result = this.projectBicepResult();
+    if (!result) return [];
+    return Object.entries(result.commonFileUris).map(([key, value]) => ({ key, value }));
+  });
+
+  protected readonly configFolders = computed(() => {
+    const result = this.projectBicepResult();
+    if (!result) return [];
+    return Object.entries(result.configFileUris).map(([configName, files]) => ({
+      configName,
+      files: Object.entries(files).map(([key, value]) => ({ key, value })),
+    }));
+  });
 
   // ─── Git Config ───
   protected readonly gitTestLoading = signal(false);
@@ -498,6 +543,92 @@ export class ProjectDetailComponent implements OnInit {
         this.configErrorKey.set('PROJECT_DETAIL.DELETE_CONFIG.ERROR');
       }
     });
+  }
+
+  // ─── Repository Mode ───
+
+  protected async onRepositoryModeChange(newMode: string): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId) return;
+
+    this.repoModeSaving.set(true);
+    this.repoModeError.set('');
+
+    try {
+      await this.projectService.setRepositoryMode(projectId, { repositoryMode: newMode });
+      this.project.update((p) => (p ? { ...p, repositoryMode: newMode } : p));
+      // Close bicep panel when switching modes
+      this.projectBicepPanelOpen.set(false);
+      this.projectBicepResult.set(null);
+    } catch {
+      this.repoModeError.set('PROJECT_DETAIL.REPO_MODE.ERROR');
+    } finally {
+      this.repoModeSaving.set(false);
+    }
+  }
+
+  // ─── Project Bicep Generation (mono-repo) ───
+
+  protected async generateProjectBicep(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId || this.projectBicepLoading()) return;
+
+    this.projectBicepLoading.set(true);
+    this.projectBicepErrorKey.set('');
+    this.projectBicepResult.set(null);
+    this.projectBicepPanelOpen.set(true);
+
+    try {
+      const result = await this.projectService.generateProjectBicep(projectId);
+      this.projectBicepResult.set(result);
+
+      // Auto-expand Common and each config folder
+      const folders = new Set<string>(['Common']);
+      for (const configName of Object.keys(result.configFileUris ?? {})) {
+        folders.add(configName);
+      }
+      this.projectBicepExpandedFolders.set(folders);
+    } catch {
+      this.projectBicepErrorKey.set('PROJECT_DETAIL.BICEP.GENERATE_ERROR');
+    } finally {
+      this.projectBicepLoading.set(false);
+    }
+  }
+
+  protected closeProjectBicepPanel(): void {
+    this.projectBicepPanelOpen.set(false);
+    this.projectBicepResult.set(null);
+    this.projectBicepErrorKey.set('');
+  }
+
+  protected toggleProjectBicepFolder(folder: string): void {
+    this.projectBicepExpandedFolders.update((set) => {
+      const next = new Set(set);
+      if (next.has(folder)) {
+        next.delete(folder);
+      } else {
+        next.add(folder);
+      }
+      return next;
+    });
+  }
+
+  protected isProjectBicepFolderExpanded(folder: string): boolean {
+    return this.projectBicepExpandedFolders().has(folder);
+  }
+
+  protected openProjectPushToGitDialog(): void {
+    const project = this.project();
+    const gitConfig = project?.gitRepositoryConfiguration;
+    if (!project || !gitConfig) return;
+
+    const data: PushToGitDialogData = {
+      configId: '', // Not used for project push
+      projectId: project.id,
+      gitConfig,
+      isProjectLevel: true,
+    };
+    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 
   // ─── Git Configuration ───

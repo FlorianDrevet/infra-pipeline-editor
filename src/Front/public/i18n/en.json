@@ -575,6 +575,20 @@
       "MEMBERS": "Members",
       "GIT": "Git"
     },
+    "REPO_MODE": {
+      "MULTI": "Multi-repo",
+      "MONO": "Mono-repo",
+      "ERROR": "Unable to change repository mode."
+    },
+    "BICEP": {
+      "GENERATE": "Generate Bicep",
+      "PUSH_TO_GIT": "Push to Git",
+      "PANEL_TITLE": "Project Bicep Generation",
+      "GENERATING": "Generating Bicep files for all configurations...",
+      "GENERATE_ERROR": "Unable to generate Bicep files for the project.",
+      "RETRY": "Retry",
+      "SHARED": "Shared"
+    },
     "STATE": {
       "LOADING_TITLE": "Loading project",
       "LOADING_DESCRIPTION": "Fetching project details from the API."

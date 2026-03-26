@@ -51,6 +51,15 @@ public sealed class Project : AggregateRoot<ProjectId>
     public IReadOnlyCollection<ProjectResourceNamingTemplate> ResourceNamingTemplates
         => _resourceNamingTemplates.AsReadOnly();
 
+    // ─── Repository Mode ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Gets the repository mode for this project.
+    /// <see cref="RepositoryModeEnum.MultiRepo"/>: each configuration has its own repository/push.
+    /// <see cref="RepositoryModeEnum.MonoRepo"/>: all configurations share a single repository/push at project level.
+    /// </summary>
+    public RepositoryMode RepositoryMode { get; private set; } = new(RepositoryModeEnum.MultiRepo);
+
     // ─── Git Repository Configuration ───────────────────────────────────────
 
     /// <summary>Gets the optional Git repository configuration for pushing generated Bicep files.</summary>
@@ -242,5 +251,13 @@ public sealed class Project : AggregateRoot<ProjectId>
 
         GitRepositoryConfiguration = null;
         return Result.Deleted;
+    }
+
+    // ─── Repository Mode Management ─────────────────────────────────────────
+
+    /// <summary>Sets the repository mode for this project.</summary>
+    public void SetRepositoryMode(RepositoryMode mode)
+    {
+        RepositoryMode = mode;
     }
 }
