@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossConfigReferences;
+using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListIncomingCrossConfigReferences;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Contracts.Projects.Responses;
@@ -87,6 +88,13 @@ public class InfraConfigMappingConfig : IRegister
         config.NewConfig<CrossConfigReferenceDetailResult, CrossConfigReferenceResponse>()
             .Map(dest => dest.ReferenceId, src => src.ReferenceId.ToString())
             .Map(dest => dest.TargetConfigId, src => src.TargetConfigId.ToString())
+            .Map(dest => dest.TargetResourceId, src => src.TargetResourceId.ToString());
+
+        // IncomingCrossConfigReferenceResult -> IncomingCrossConfigReferenceResponse
+        config.NewConfig<IncomingCrossConfigReferenceResult, IncomingCrossConfigReferenceResponse>()
+            .Map(dest => dest.ReferenceId, src => src.ReferenceId.ToString())
+            .Map(dest => dest.SourceConfigId, src => src.SourceConfigId.ToString())
+            .Map(dest => dest.SourceResourceId, src => src.SourceResourceId.ToString())
             .Map(dest => dest.TargetResourceId, src => src.TargetResourceId.ToString());
 
         // ProjectResourceResult -> ProjectResourceResponse

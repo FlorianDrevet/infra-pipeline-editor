@@ -25,7 +25,10 @@ public sealed class ListCrossConfigReferencesQueryHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        var config = authResult.Value;
+        var config = await infraConfigRepository.GetByIdWithMembersAsync(configId, cancellationToken);
+        if (config is null)
+            return authResult.Errors;
+
         var results = new List<CrossConfigReferenceDetailResult>();
 
         foreach (var reference in config.CrossConfigReferences)

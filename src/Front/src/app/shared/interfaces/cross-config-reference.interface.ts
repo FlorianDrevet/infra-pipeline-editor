@@ -1,15 +1,26 @@
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface CrossConfigReferenceResponse {
-  id: string;
+  referenceId: string;
   targetResourceId: string;
   targetResourceName: string;
   targetResourceType: string;
   targetResourceGroupName: string;
   targetConfigId: string;
   targetConfigName: string;
-  alias: string;
-  purpose: string | null;
+}
+
+export interface IncomingCrossConfigReferenceResponse {
+  referenceId: string;
+  sourceConfigId: string;
+  sourceConfigName: string;
+  sourceResourceId: string;
+  sourceResourceName: string;
+  sourceResourceType: string;
+  sourceResourceGroupName: string;
+  targetResourceId: string;
+  targetResourceName: string;
+  targetResourceType: string;
 }
 
 export interface ProjectResourceResponse {
@@ -25,6 +36,4 @@ export interface ProjectResourceResponse {
 
 export interface AddCrossConfigReferenceRequest {
   targetResourceId: string;
-  alias: string;
-  purpose?: string;
 }

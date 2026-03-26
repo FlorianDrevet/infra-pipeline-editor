@@ -5,6 +5,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveCrossCon
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInheritance;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossConfigReferences;
+using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListIncomingCrossConfigReferences;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupsByConfig;
 using MediatR;
@@ -229,6 +230,29 @@ public static class InfrastructureConfigController
                 .WithSummary("Remove a cross-config resource reference")
                 .WithDescription("Removes a cross-configuration resource reference from the infrastructure configuration.")
                 .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // GET /{id:guid}/incoming-cross-config-references
+            config.MapGet("/{id:guid}/incoming-cross-config-references",
+                    async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListIncomingCrossConfigReferencesQuery(id);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            refs =>
+                            {
+                                var responses = refs.Select(r => mapper.Map<IncomingCrossConfigReferenceResponse>(r)).ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListIncomingCrossConfigReferences")
+                .WithSummary("List incoming cross-config references")
+                .WithDescription("Returns resources from other configurations in the same project that depend on resources in this configuration.")
+                .Produces<IReadOnlyList<IncomingCrossConfigReferenceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });

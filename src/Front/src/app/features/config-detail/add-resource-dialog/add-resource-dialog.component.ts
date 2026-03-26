@@ -510,10 +510,8 @@ export class AddResourceDialogComponent {
       const refs = await this.infraConfigService.getCrossConfigReferences(this.data.configId);
       const alreadyReferenced = refs.some(r => r.targetResourceId === plan.resourceId);
       if (!alreadyReferenced) {
-        const alias = plan.resourceName.replace(/[^a-zA-Z0-9]/g, '');
         await this.infraConfigService.addCrossConfigReference(this.data.configId, {
           targetResourceId: plan.resourceId,
-          alias,
         });
       }
     } catch {

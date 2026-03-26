@@ -62,13 +62,16 @@ import {
 } from './add-cross-config-reference-dialog/add-cross-config-reference-dialog.component';
 import {
   CrossConfigReferenceResponse,
+  IncomingCrossConfigReferenceResponse,
   AddCrossConfigReferenceRequest,
 } from '../../shared/interfaces/cross-config-reference.interface';
 
 interface ResourceDisplayItem {
   resource: AzureResourceResponse;
   children?: AzureResourceResponse[];
+  incomingChildren?: IncomingCrossConfigReferenceResponse[];
   isParent: boolean;
+  crossConfigRef?: CrossConfigReferenceResponse;
 }
 
 interface BicepModuleFolder {
@@ -196,6 +199,7 @@ export class ConfigDetailComponent implements OnInit {
 
   // ─── Cross-Config References ───
   protected readonly crossConfigReferences = signal<CrossConfigReferenceResponse[]>([]);
+  protected readonly incomingCrossConfigReferences = signal<IncomingCrossConfigReferenceResponse[]>([]);
   protected readonly crossConfigLoading = signal(false);
   protected readonly crossConfigErrorKey = signal('');
   protected readonly crossConfigLoaded = signal(false);
@@ -293,12 +297,6 @@ export class ConfigDetailComponent implements OnInit {
       ]);
       this.config.set(config);
       this.resourceGroups.set(resourceGroups);
-      await this.openDefaultResourceGroup(resourceGroups);
-      this.recentlyViewedService.trackView({
-        id: config.id,
-        name: config.name,
-        type: 'config',
-      });
 
       // Load the parent project for inheritance data
       if (config.projectId) {
@@ -316,6 +314,16 @@ export class ConfigDetailComponent implements OnInit {
       if (firstEnv) {
         this.previewEnvId.set(firstEnv.id);
       }
+
+      // Load cross-config references BEFORE expanding RGs so they appear in resource lists
+      await this.loadCrossConfigReferences();
+
+      await this.openDefaultResourceGroup(resourceGroups);
+      this.recentlyViewedService.trackView({
+        id: config.id,
+        name: config.name,
+        type: 'config',
+      });
     } catch {
       this.loadError.set('CONFIG_DETAIL.ERROR.LOAD_FAILED');
     } finally {
@@ -361,14 +369,18 @@ export class ConfigDetailComponent implements OnInit {
     try {
       const resources = await this.resourceGroupService.getResources(rgId);
       this.rgResources.update((prev) => ({ ...prev, [rgId]: resources }));
-      // Auto-expand all parent resources by default
+      // Auto-expand all parent resources by default (local + cross-config virtual)
       const parentIds = resources
         .filter((r) => PARENT_CHILD_RESOURCE_TYPES[r.resourceType])
         .map((r) => r.id);
-      if (parentIds.length > 0) {
+      const crossConfigParentIds = this.crossConfigReferences()
+        .filter((ref) => PARENT_CHILD_RESOURCE_TYPES[ref.targetResourceType] && !parentIds.includes(ref.targetResourceId))
+        .map((ref) => ref.targetResourceId);
+      const allParentIds = [...parentIds, ...crossConfigParentIds];
+      if (allParentIds.length > 0) {
         this.expandedParentResources.update((prev) => {
           const next = new Set(prev);
-          parentIds.forEach((id) => next.add(id));
+          allParentIds.forEach((id) => next.add(id));
           return next;
         });
       }
@@ -409,7 +421,7 @@ export class ConfigDetailComponent implements OnInit {
     const childrenByParent = new Map<string, AzureResourceResponse[]>();
     const standalone: AzureResourceResponse[] = [];
 
-    // Index parents
+    // Index local parents
     for (const res of resources) {
       if (PARENT_CHILD_RESOURCE_TYPES[res.resourceType]) {
         parentMap.set(res.id, res);
@@ -419,25 +431,69 @@ export class ConfigDetailComponent implements OnInit {
       }
     }
 
-    // Assign children to their parents; fallback to standalone
+    // Index cross-config references whose type is a parent type as virtual parents
+    const crossConfigParentRefs = new Map<string, CrossConfigReferenceResponse>();
+    for (const ref of this.crossConfigReferences()) {
+      if (PARENT_CHILD_RESOURCE_TYPES[ref.targetResourceType] && !parentMap.has(ref.targetResourceId)) {
+        crossConfigParentRefs.set(ref.targetResourceId, ref);
+        if (!childrenByParent.has(ref.targetResourceId)) {
+          childrenByParent.set(ref.targetResourceId, []);
+        }
+      }
+    }
+
+    // Assign children to their parents (local or cross-config); fallback to standalone
     for (const res of resources) {
-      if (parentMap.has(res.id)) continue; // skip parents themselves
-      if (CHILD_RESOURCE_TYPES.has(res.resourceType) && res.parentResourceId && parentMap.has(res.parentResourceId)) {
-        childrenByParent.get(res.parentResourceId)!.push(res);
+      if (parentMap.has(res.id)) continue; // skip local parents
+      if (CHILD_RESOURCE_TYPES.has(res.resourceType) && res.parentResourceId) {
+        if (parentMap.has(res.parentResourceId)) {
+          childrenByParent.get(res.parentResourceId)!.push(res);
+        } else if (crossConfigParentRefs.has(res.parentResourceId)) {
+          childrenByParent.get(res.parentResourceId)!.push(res);
+        } else {
+          standalone.push(res);
+        }
       } else {
         standalone.push(res);
       }
     }
 
+    // Build a map of incoming children per target resource (resources from OTHER configs that depend on THIS config's resources)
+    const incomingByTarget = new Map<string, IncomingCrossConfigReferenceResponse[]>();
+    for (const inc of this.incomingCrossConfigReferences()) {
+      const existing = incomingByTarget.get(inc.targetResourceId) ?? [];
+      existing.push(inc);
+      incomingByTarget.set(inc.targetResourceId, existing);
+    }
+
     const result: ResourceDisplayItem[] = [];
 
-    // Emit parents with their children
+    // Emit local parents with their children + incoming children
     for (const [parentId, parent] of parentMap) {
       result.push({
         resource: parent,
         children: childrenByParent.get(parentId) ?? [],
+        incomingChildren: incomingByTarget.get(parentId),
         isParent: true,
       });
+    }
+
+    // Emit cross-config parents that have local children
+    for (const [refResourceId, ref] of crossConfigParentRefs) {
+      const children = childrenByParent.get(refResourceId) ?? [];
+      if (children.length > 0) {
+        result.push({
+          resource: {
+            id: ref.targetResourceId,
+            name: ref.targetResourceName,
+            resourceType: ref.targetResourceType,
+            location: '',
+          },
+          children,
+          isParent: true,
+          crossConfigRef: ref,
+        });
+      }
     }
 
     // Emit standalone resources
@@ -446,6 +502,18 @@ export class ConfigDetailComponent implements OnInit {
     }
 
     return result;
+  }
+
+  /**
+   * Returns cross-config references that are NOT already used as parent groupings
+   * in the given resource group (to avoid duplication in the standalone section).
+   */
+  protected getUnparentedCrossConfigRefs(rgId: string): CrossConfigReferenceResponse[] {
+    const grouped = this.groupResourcesForRg(rgId);
+    const parentedRefIds = new Set(
+      grouped.filter((item) => item.crossConfigRef).map((item) => item.crossConfigRef!.referenceId),
+    );
+    return this.crossConfigReferences().filter((ref) => !parentedRefIds.has(ref.referenceId));
   }
 
   protected toggleParentExpand(parentId: string): void {
@@ -592,6 +660,7 @@ export class ConfigDetailComponent implements OnInit {
           delete updated[rgId];
           return updated;
         });
+        await this.loadCrossConfigReferences();
         await this.loadRgResources(rgId);
       }
     });
@@ -625,6 +694,7 @@ export class ConfigDetailComponent implements OnInit {
           delete updated[rgId];
           return updated;
         });
+        await this.loadCrossConfigReferences();
         await this.loadRgResources(rgId);
       }
     });
@@ -1073,8 +1143,12 @@ export class ConfigDetailComponent implements OnInit {
     this.crossConfigLoading.set(true);
     this.crossConfigErrorKey.set('');
     try {
-      const refs = await this.infraConfigService.getCrossConfigReferences(configId);
+      const [refs, incomingRefs] = await Promise.all([
+        this.infraConfigService.getCrossConfigReferences(configId),
+        this.infraConfigService.getIncomingCrossConfigReferences(configId),
+      ]);
       this.crossConfigReferences.set(refs);
+      this.incomingCrossConfigReferences.set(incomingRefs);
       this.crossConfigLoaded.set(true);
     } catch {
       this.crossConfigErrorKey.set('CONFIG_DETAIL.CROSS_CONFIG_REFS.LOAD_ERROR');
@@ -1121,7 +1195,7 @@ export class ConfigDetailComponent implements OnInit {
       data: {
         titleKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_TITLE',
         messageKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_MESSAGE',
-        messageParams: { name: ref.targetResourceName, alias: ref.alias },
+        messageParams: { name: ref.targetResourceName },
         confirmKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_YES',
         cancelKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_CANCEL',
       } satisfies ConfirmDialogData,
@@ -1132,8 +1206,8 @@ export class ConfigDetailComponent implements OnInit {
       if (!confirmed) return;
       this.crossConfigLoading.set(true);
       try {
-        await this.infraConfigService.removeCrossConfigReference(configId, ref.id);
-        this.crossConfigReferences.update((refs) => refs.filter((r) => r.id !== ref.id));
+        await this.infraConfigService.removeCrossConfigReference(configId, ref.referenceId);
+        this.crossConfigReferences.update((refs) => refs.filter((r) => r.referenceId !== ref.referenceId));
       } catch {
         this.crossConfigErrorKey.set('CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_ERROR');
       } finally {

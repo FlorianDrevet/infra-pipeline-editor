@@ -1707,6 +1707,89 @@
   }
 }
 
+// ─── Cross-config resources in resource list ────
+
+.cross-config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgba(126, 87, 194, 0.25);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #7e57c2;
+    font-size: 0.76rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0 0.25rem 0.15rem;
+  }
+
+  &__icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+    color: #7e57c2;
+  }
+}
+
+.resource-item--cross-config {
+  border-left: 3px solid #7e57c2;
+  background: rgba(126, 87, 194, 0.04);
+  border-color: rgba(126, 87, 194, 0.18);
+  border-style: solid;
+  border-width: 1px 1px 1px 3px;
+}
+
+.resource-parent-group--cross-config {
+  border-color: rgba(126, 87, 194, 0.22);
+  border-left: 3px solid #7e57c2;
+  background: rgba(126, 87, 194, 0.02);
+
+  &.resource-parent-group--expanded {
+    border-color: rgba(126, 87, 194, 0.32);
+    box-shadow: 0 1px 4px rgba(126, 87, 194, 0.08);
+  }
+}
+
+.resource-item__icon--cross-config {
+  color: #7e57c2;
+}
+
+.cross-config-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(126, 87, 194, 0.08);
+  color: #7e57c2;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(126, 87, 194, 0.16);
+  }
+
+  &__icon {
+    font-size: 0.75rem;
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+.cross-config-alias {
+  color: #7e57c2;
+  font-style: italic;
+}
+
 .cross-ref-row__purpose {
   font-size: 0.8rem;
   opacity: 0.5;

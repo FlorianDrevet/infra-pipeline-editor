@@ -10,6 +10,7 @@ import {
 import { ResourceGroupResponse } from '../interfaces/resource-group.interface';
 import {
   CrossConfigReferenceResponse,
+  IncomingCrossConfigReferenceResponse,
   AddCrossConfigReferenceRequest,
 } from '../interfaces/cross-config-reference.interface';
 
@@ -122,6 +123,13 @@ export class InfraConfigService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/infra-config/${configId}/cross-config-references/${referenceId}`
+    );
+  }
+
+  getIncomingCrossConfigReferences(configId: string): Promise<IncomingCrossConfigReferenceResponse[]> {
+    return this.axios.request$<IncomingCrossConfigReferenceResponse[]>(
+      MethodEnum.GET,
+      `/infra-config/${configId}/incoming-cross-config-references`
     );
   }
 }

@@ -141,8 +141,6 @@ export class AddCrossConfigReferenceDialogComponent implements OnInit {
 
     const result: AddCrossConfigReferenceRequest = {
       targetResourceId: resource.resourceId,
-      alias: this.form.value.alias!,
-      purpose: this.form.value.purpose || undefined,
     };
     this.dialogRef.close(result);
   }
