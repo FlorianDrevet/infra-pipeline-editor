@@ -266,7 +266,7 @@ public static class BicepAssembler
     {
         foreach (var companion in module.CompanionModules)
         {
-            if (companion.BlobContainerNames.Count > 0 || companion.CorsRules.Count > 0)
+            if (companion.CorsRules.Count > 0)
             {
                 yield return (
                     GetStorageAccountCorsParameterName(module, companion),
@@ -274,7 +274,7 @@ public static class BicepAssembler
                     companion.CorsRules);
             }
 
-            if (companion.StorageTableNames.Count > 0 || companion.TableCorsRules.Count > 0)
+            if (companion.TableCorsRules.Count > 0)
             {
                 yield return (
                     GetStorageAccountCorsParameterName(module, companion),
@@ -318,15 +318,23 @@ public static class BicepAssembler
         sb.AppendLine("  params: {");
         sb.AppendLine($"    storageAccountName: {storageAccountNameExpression}");
 
-        if (companion.BlobContainerNames.Count > 0 || companion.CorsRules.Count > 0)
+        if (companion.BlobContainerNames.Count > 0)
         {
             sb.AppendLine($"    blobContainerNames: {RenderBicepStringArray(companion.BlobContainerNames)}");
+        }
+
+        if (companion.CorsRules.Count > 0)
+        {
             sb.AppendLine($"    corsRules: {GetStorageAccountCorsParameterName(module, companion)}");
         }
 
-        if (companion.StorageTableNames.Count > 0 || companion.TableCorsRules.Count > 0)
+        if (companion.StorageTableNames.Count > 0)
         {
             sb.AppendLine($"    tableNames: {RenderBicepStringArray(companion.StorageTableNames)}");
+        }
+
+        if (companion.TableCorsRules.Count > 0)
+        {
             sb.AppendLine($"    corsRules: {GetStorageAccountCorsParameterName(module, companion)}");
         }
 
