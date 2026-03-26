@@ -4,6 +4,7 @@ using InfraFlowSculptor.Application.Projects.Commands.AddProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.DeleteProject;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectMember;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProject;
+using InfraFlowSculptor.Application.Projects.Commands.DownloadProjectBicep;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectBicepToGit;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironment;
@@ -591,6 +592,27 @@ public static class ProjectController
                 .WithSummary("Generate Bicep files for the entire project (mono-repo)")
                 .WithDescription("Generates Bicep files for all configurations in the project, organized as a mono-repo with a shared Common folder and per-config deployment folders.")
                 .Produces<GenerateProjectBicepResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{projectId:guid}/generate-bicep/download",
+                    async ([FromRoute] Guid projectId, IMediator mediator) =>
+                    {
+                        var command = new DownloadProjectBicepCommand(new ProjectId(projectId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.File(
+                                value.ZipContent,
+                                "application/zip",
+                                value.FileName),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("DownloadProjectBicep")
+                .WithSummary("Download generated Bicep files for a project")
+                .WithDescription("Downloads the latest generated mono-repo Bicep files for the given project as a ZIP archive.")
+                .Produces(StatusCodes.Status200OK, contentType: "application/zip")
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 

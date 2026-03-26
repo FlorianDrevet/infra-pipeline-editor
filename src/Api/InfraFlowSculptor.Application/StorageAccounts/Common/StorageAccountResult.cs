@@ -11,6 +11,14 @@ public record BlobContainerResult(
     BlobContainerPublicAccess PublicAccess
 );
 
+public record CorsRuleResult(
+    IReadOnlyList<string> AllowedOrigins,
+    IReadOnlyList<string> AllowedMethods,
+    IReadOnlyList<string> AllowedHeaders,
+    IReadOnlyList<string> ExposedHeaders,
+    int MaxAgeInSeconds
+);
+
 public record StorageQueueResult(
     StorageQueueId Id,
     string Name
@@ -31,6 +39,7 @@ public record StorageAccountResult(
     bool AllowBlobPublicAccess,
     bool EnableHttpsTrafficOnly,
     string MinimumTlsVersion,
+    IReadOnlyList<CorsRuleResult> CorsRules,
     IReadOnlyList<BlobContainerResult> BlobContainers,
     IReadOnlyList<StorageQueueResult> Queues,
     IReadOnlyList<StorageTableResult> Tables,

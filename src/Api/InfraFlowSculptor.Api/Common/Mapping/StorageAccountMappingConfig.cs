@@ -20,7 +20,16 @@ public class StorageAccountMappingConfig : IRegister
                 src => src.EnvironmentSettings == null
                     ? null
                     : src.EnvironmentSettings.Select(ec => new StorageAccountEnvironmentConfigData(
-                        ec.EnvironmentName, ec.Sku)).ToList());
+                        ec.EnvironmentName, ec.Sku)).ToList())
+            .Map(dest => dest.CorsRules,
+                src => src.CorsRules == null
+                    ? null
+                    : src.CorsRules.Select(rule => new CorsRuleResult(
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds)).ToList());
 
         config.NewConfig<(Guid Id, UpdateStorageAccountRequest Request), UpdateStorageAccountCommand>()
             .MapWith(src => new UpdateStorageAccountCommand(
@@ -35,12 +44,27 @@ public class StorageAccountMappingConfig : IRegister
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new StorageAccountEnvironmentConfigData(
-                        ec.EnvironmentName, ec.Sku)).ToList()));
+                        ec.EnvironmentName, ec.Sku)).ToList(),
+                src.Request.CorsRules == null
+                    ? null
+                    : src.Request.CorsRules.Select(rule => new CorsRuleResult(
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds)).ToList()));
 
         config.NewConfig<StorageAccount, StorageAccountResult>()
             .Map(dest => dest.Kind, src => src.Kind.Value.ToString())
             .Map(dest => dest.AccessTier, src => src.AccessTier.Value.ToString())
             .Map(dest => dest.MinimumTlsVersion, src => src.MinimumTlsVersion.Value.ToString())
+            .Map(dest => dest.CorsRules,
+                src => src.CorsRules.Select(rule => new CorsRuleResult(
+                    rule.AllowedOrigins,
+                    rule.AllowedMethods,
+                    rule.AllowedHeaders,
+                    rule.ExposedHeaders,
+                    rule.MaxAgeInSeconds)).ToList())
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new StorageAccountEnvironmentConfigData(
                     es.EnvironmentName,
@@ -83,6 +107,8 @@ public class StorageAccountMappingConfig : IRegister
         config.NewConfig<BlobContainerResult, BlobContainerResponse>()
             .Map(dest => dest.Id, src => src.Id.Value)
             .Map(dest => dest.PublicAccess, src => src.PublicAccess.Value.ToString());
+
+        config.NewConfig<CorsRuleResult, CorsRuleResponse>();
 
         config.NewConfig<StorageQueueResult, StorageQueueResponse>()
             .Map(dest => dest.Id, src => src.Id.Value);

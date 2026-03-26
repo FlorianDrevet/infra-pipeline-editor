@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import axios from 'axios';
 import { AxiosService } from './axios.service';
 import { MethodEnum } from '../enums/method.enum';
 import {
@@ -220,6 +221,14 @@ export class ProjectService {
       MethodEnum.POST,
       `/projects/${projectId}/generate-bicep`
     );
+  }
+
+  async downloadProjectZip(projectId: string): Promise<Blob> {
+    const response = await axios.get(
+      `/projects/${projectId}/generate-bicep/download`,
+      { responseType: 'blob' }
+    );
+    return response.data as Blob;
   }
 
   getProjectBicepFileContent(projectId: string, filePath: string): Promise<string> {

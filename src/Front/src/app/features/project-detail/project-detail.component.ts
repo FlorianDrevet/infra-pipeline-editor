@@ -41,7 +41,7 @@ import {
 } from '../config-detail/push-to-git-dialog/push-to-git-dialog.component';
 import { RESOURCE_TYPE_OPTIONS } from '../config-detail/enums/resource-type.enum';
 import { TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
-import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
+import { saveAs } from 'file-saver';
 import { FormsModule } from '@angular/forms';
 import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepFileType, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
 
@@ -86,7 +86,6 @@ export class ProjectDetailComponent implements OnInit {
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
-  private readonly bicepService = inject(BicepGeneratorService);
 
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly configs = signal<InfrastructureConfigResponse[]>([]);
@@ -112,6 +111,7 @@ export class ProjectDetailComponent implements OnInit {
   // ─── Project Bicep Generation (mono-repo) ───
   protected readonly projectBicepLoading = signal(false);
   protected readonly projectBicepResult = signal<GenerateProjectBicepResponse | null>(null);
+  protected readonly projectBicepDownloading = signal(false);
   protected readonly projectBicepErrorKey = signal('');
   protected readonly projectBicepPanelOpen = signal(false);
   protected readonly projectBicepPanelCollapsed = signal(false);
@@ -648,6 +648,22 @@ export class ProjectDetailComponent implements OnInit {
     this.projectBicepPanelOpen.set(false);
     this.projectBicepResult.set(null);
     this.projectBicepErrorKey.set('');
+  }
+
+  protected async downloadProjectBicepFiles(): Promise<void> {
+    const project = this.project();
+    const result = this.projectBicepResult();
+
+    if (!project?.id || !result || this.projectBicepDownloading()) return;
+
+    this.projectBicepDownloading.set(true);
+    try {
+      const blob = await this.projectService.downloadProjectZip(project.id);
+      const projectName = project.name ?? 'project';
+      saveAs(blob, `${projectName}-bicep.zip`);
+    } finally {
+      this.projectBicepDownloading.set(false);
+    }
   }
 
 

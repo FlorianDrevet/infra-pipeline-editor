@@ -25,4 +25,10 @@ public sealed record GeneratedTypeModule
 
     public IReadOnlyDictionary<string, object> Parameters { get; init; } =
         new Dictionary<string, object>();
+
+    /// <summary>
+    /// Optional companion module to deploy alongside this resource
+    /// (e.g. blob service + containers for a Storage Account).
+    /// </summary>
+    public GeneratedCompanionModule? CompanionModule { get; init; }
 }

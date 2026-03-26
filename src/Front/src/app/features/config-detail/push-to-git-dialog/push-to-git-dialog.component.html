@@ -71,6 +71,9 @@
       <div class="push-state push-state--error">
         <mat-icon class="push-state__icon push-state__icon--error">error_outline</mat-icon>
         <p>{{ errorKey() | translate }}</p>
+        @if (errorDetail()) {
+          <p class="push-state__detail">{{ errorDetail() }}</p>
+        }
       </div>
     }
   }

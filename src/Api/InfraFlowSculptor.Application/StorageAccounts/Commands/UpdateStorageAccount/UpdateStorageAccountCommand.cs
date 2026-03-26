@@ -15,5 +15,6 @@ public record UpdateStorageAccountCommand(
     bool AllowBlobPublicAccess,
     bool EnableHttpsTrafficOnly,
     string MinimumTlsVersion,
-    IReadOnlyList<StorageAccountEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<StorageAccountEnvironmentConfigData>? EnvironmentSettings = null,
+    IReadOnlyList<CorsRuleResult>? CorsRules = null
 ) : IRequest<ErrorOr<StorageAccountResult>>;

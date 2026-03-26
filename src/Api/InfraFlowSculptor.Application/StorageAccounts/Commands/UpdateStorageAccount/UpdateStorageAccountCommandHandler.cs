@@ -42,6 +42,17 @@ public class UpdateStorageAccountCommandHandler(
                         ec.Sku is not null ? new StorageAccountSku(Enum.Parse<StorageAccountSku.Sku>(ec.Sku)) : (StorageAccountSku?)null))
                     .ToList());
 
+        if (request.CorsRules is not null)
+            storageAccount.SetCorsRules(
+                request.CorsRules
+                    .Select(rule => (
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds))
+                    .ToList());
+
         var updated = await storageAccountRepository.UpdateAsync(storageAccount);
 
         return mapper.Map<StorageAccountResult>(updated);

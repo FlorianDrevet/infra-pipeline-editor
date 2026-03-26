@@ -20,6 +20,9 @@ public class StorageAccount : AzureResource
     private readonly List<StorageTable> _tables = new();
     public IReadOnlyList<StorageTable> Tables => _tables.AsReadOnly();
 
+    private readonly List<CorsRule> _corsRules = new();
+    public IReadOnlyList<CorsRule> CorsRules => _corsRules.AsReadOnly();
+
     private readonly List<StorageAccountEnvironmentSettings> _environmentSettings = new();
 
     /// <summary>Gets the typed per-environment configuration overrides for this Storage Account.</summary>
@@ -158,6 +161,28 @@ public class StorageAccount : AzureResource
         }
     }
 
+    public void SetCorsRules(
+        IReadOnlyList<(
+            IReadOnlyList<string> AllowedOrigins,
+            IReadOnlyList<string> AllowedMethods,
+            IReadOnlyList<string> AllowedHeaders,
+            IReadOnlyList<string> ExposedHeaders,
+            int MaxAgeInSeconds)> corsRules)
+    {
+        _corsRules.Clear();
+
+        foreach (var rule in corsRules)
+        {
+            _corsRules.Add(CorsRule.Create(
+                Id,
+                rule.AllowedOrigins,
+                rule.AllowedMethods,
+                rule.AllowedHeaders,
+                rule.ExposedHeaders,
+                rule.MaxAgeInSeconds));
+        }
+    }
+
     /// <summary>Creates a new Storage Account with resource-level configuration.</summary>
     public static StorageAccount Create(
         ResourceGroupId resourceGroupId,
@@ -168,7 +193,13 @@ public class StorageAccount : AzureResource
         bool allowBlobPublicAccess,
         bool enableHttpsTrafficOnly,
         StorageAccountTlsVersion minimumTlsVersion,
-        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku)>? environmentSettings = null,
+        IReadOnlyList<(
+            IReadOnlyList<string> AllowedOrigins,
+            IReadOnlyList<string> AllowedMethods,
+            IReadOnlyList<string> AllowedHeaders,
+            IReadOnlyList<string> ExposedHeaders,
+            int MaxAgeInSeconds)>? corsRules = null)
     {
         var storageAccount = new StorageAccount
         {
@@ -185,6 +216,9 @@ public class StorageAccount : AzureResource
 
         if (environmentSettings is not null)
             storageAccount.SetAllEnvironmentSettings(environmentSettings);
+
+        if (corsRules is not null)
+            storageAccount.SetCorsRules(corsRules);
 
         return storageAccount;
     }

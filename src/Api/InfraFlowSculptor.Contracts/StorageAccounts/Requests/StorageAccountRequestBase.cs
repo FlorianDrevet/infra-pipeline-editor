@@ -5,6 +5,24 @@ using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Contracts.StorageAccounts.Requests;
 
+public class CorsRuleEntry
+{
+    [Required]
+    public required List<string> AllowedOrigins { get; init; }
+
+    [Required]
+    public required List<string> AllowedMethods { get; init; }
+
+    [Required]
+    public required List<string> AllowedHeaders { get; init; }
+
+    [Required]
+    public required List<string> ExposedHeaders { get; init; }
+
+    [Range(0, int.MaxValue)]
+    public int MaxAgeInSeconds { get; init; }
+}
+
 /// <summary>Common properties shared by create and update Storage Account requests.</summary>
 public abstract class StorageAccountRequestBase
 {
@@ -36,6 +54,9 @@ public abstract class StorageAccountRequestBase
 
     /// <summary>Per-environment typed configuration overrides (SKU only).</summary>
     public List<StorageAccountEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
+
+    /// <summary>Blob service CORS rules applied after storage account deployment.</summary>
+    public List<CorsRuleEntry>? CorsRules { get; init; }
 }
 
 /// <summary>Typed per-environment configuration entry for a Storage Account. Only SKU varies per environment.</summary>

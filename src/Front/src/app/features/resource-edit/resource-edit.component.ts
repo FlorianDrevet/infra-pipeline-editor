@@ -26,7 +26,7 @@ import { RoleAssignmentService } from '../../shared/services/role-assignment.ser
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { KeyVaultResponse, KeyVaultEnvironmentConfigEntry } from '../../shared/interfaces/key-vault.interface';
 import { RedisCacheResponse, RedisCacheEnvironmentConfigEntry } from '../../shared/interfaces/redis-cache.interface';
-import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry, BlobContainerResponse, StorageQueueResponse, StorageTableResponse } from '../../shared/interfaces/storage-account.interface';
+import { StorageAccountResponse, StorageAccountEnvironmentConfigEntry, BlobContainerResponse, StorageQueueResponse, StorageTableResponse, CorsRuleEntry, CorsRuleResponse } from '../../shared/interfaces/storage-account.interface';
 import { AppServicePlanResponse, AppServicePlanEnvironmentConfigEntry } from '../../shared/interfaces/app-service-plan.interface';
 import { WebAppResponse, WebAppEnvironmentConfigEntry } from '../../shared/interfaces/web-app.interface';
 import { FunctionAppResponse, FunctionAppEnvironmentConfigEntry } from '../../shared/interfaces/function-app.interface';
@@ -299,6 +299,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly showBlobAddForm = signal(false);
   protected readonly showQueueAddForm = signal(false);
   protected readonly showTableAddForm = signal(false);
+  protected readonly storageCorsRulesDraft = signal<CorsRuleEntry[]>([]);
 
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
   protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
@@ -329,6 +330,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     if (!res || this.resourceType !== 'StorageAccount') return [];
     return (res as StorageAccountResponse).tables ?? [];
   });
+
+  protected readonly storageCorsRules = computed<CorsRuleEntry[]>(() => this.storageCorsRulesDraft());
 
   // ─── Role Assignments ───
   protected readonly roleAssignments = signal<RoleAssignmentResponse[]>([]);
@@ -585,6 +588,13 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['allowBlobPublicAccess'] = [sa.allowBlobPublicAccess];
       base['enableHttpsTrafficOnly'] = [sa.enableHttpsTrafficOnly];
       base['minimumTlsVersion'] = [sa.minimumTlsVersion, [Validators.required]];
+      this.storageCorsRulesDraft.set((sa.corsRules ?? []).map(rule => ({
+        allowedOrigins: [...rule.allowedOrigins],
+        allowedMethods: [...rule.allowedMethods],
+        allowedHeaders: [...rule.allowedHeaders],
+        exposedHeaders: [...rule.exposedHeaders],
+        maxAgeInSeconds: rule.maxAgeInSeconds,
+      })));
     } else if (this.resourceType === 'ContainerApp') {
       const ca = resource as ContainerAppResponse;
       base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
@@ -803,6 +813,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             allowBlobPublicAccess: general.allowBlobPublicAccess ?? false,
             enableHttpsTrafficOnly: general.enableHttpsTrafficOnly ?? true,
             minimumTlsVersion: general.minimumTlsVersion,
+            corsRules: this.buildStorageAccountCorsRules(),
             environmentSettings: this.buildStorageAccountEnvSettings(),
           });
           break;
@@ -1332,6 +1343,51 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     { label: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_CONTAINER', value: 'Container' },
   ];
 
+  protected addCorsRule(): void {
+    this.storageCorsRulesDraft.update(rules => [
+      ...rules,
+      {
+        allowedOrigins: [],
+        allowedMethods: [],
+        allowedHeaders: [],
+        exposedHeaders: [],
+        maxAgeInSeconds: 0,
+      },
+    ]);
+    this.formsDirty.set(true);
+  }
+
+  protected removeCorsRule(index: number): void {
+    this.storageCorsRulesDraft.update(rules => rules.filter((_, ruleIndex) => ruleIndex !== index));
+    this.formsDirty.set(true);
+  }
+
+  protected updateCorsRuleListField(index: number, field: 'allowedOrigins' | 'allowedMethods' | 'allowedHeaders' | 'exposedHeaders', rawValue: string): void {
+    const parsed = rawValue
+      .split(',')
+      .map(value => value.trim())
+      .filter(value => value.length > 0);
+
+    this.storageCorsRulesDraft.update(rules => rules.map((rule, ruleIndex) =>
+      ruleIndex === index ? { ...rule, [field]: parsed } : rule
+    ));
+    this.formsDirty.set(true);
+  }
+
+  protected updateCorsRuleMaxAge(index: number, rawValue: string): void {
+    const maxAgeInSeconds = Number(rawValue);
+    this.storageCorsRulesDraft.update(rules => rules.map((rule, ruleIndex) =>
+      ruleIndex === index
+        ? { ...rule, maxAgeInSeconds: Number.isFinite(maxAgeInSeconds) && maxAgeInSeconds >= 0 ? maxAgeInSeconds : 0 }
+        : rule
+    ));
+    this.formsDirty.set(true);
+  }
+
+  protected formatCorsRuleList(values: string[]): string {
+    return values.join(', ');
+  }
+
   private readonly publicAccessI18nMap: Record<string, string> = {
     None: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_NONE',
     Blob: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_BLOB',
@@ -1484,6 +1540,16 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         sku: raw.sku || null,
       };
     });
+  }
+
+  private buildStorageAccountCorsRules(): CorsRuleEntry[] {
+    return this.storageCorsRulesDraft().map(rule => ({
+      allowedOrigins: [...rule.allowedOrigins],
+      allowedMethods: [...rule.allowedMethods],
+      allowedHeaders: [...rule.allowedHeaders],
+      exposedHeaders: [...rule.exposedHeaders],
+      maxAgeInSeconds: rule.maxAgeInSeconds,
+    }));
   }
 
   private buildAppServicePlanEnvSettings(): AppServicePlanEnvironmentConfigEntry[] {

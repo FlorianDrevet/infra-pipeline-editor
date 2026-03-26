@@ -9,6 +9,14 @@ public record BlobContainerResponse(
     string PublicAccess
 );
 
+public record CorsRuleResponse(
+    IReadOnlyList<string> AllowedOrigins,
+    IReadOnlyList<string> AllowedMethods,
+    IReadOnlyList<string> AllowedHeaders,
+    IReadOnlyList<string> ExposedHeaders,
+    int MaxAgeInSeconds
+);
+
 /// <summary>Represents a Storage Queue inside a Storage Account.</summary>
 public record StorageQueueResponse(
     Guid Id,
@@ -32,6 +40,7 @@ public record StorageAccountResponse(
     bool AllowBlobPublicAccess,
     bool EnableHttpsTrafficOnly,
     string MinimumTlsVersion,
+    IReadOnlyList<CorsRuleResponse> CorsRules,
     IReadOnlyList<BlobContainerResponse> BlobContainers,
     IReadOnlyList<StorageQueueResponse> Queues,
     IReadOnlyList<StorageTableResponse> Tables,

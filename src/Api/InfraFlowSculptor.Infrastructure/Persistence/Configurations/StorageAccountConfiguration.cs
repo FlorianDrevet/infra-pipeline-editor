@@ -60,6 +60,15 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
             .HasField("_tables")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
+        builder.HasMany(s => s.CorsRules)
+            .WithOne()
+            .HasForeignKey(cr => cr.StorageAccountId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(s => s.CorsRules)
+            .HasField("_corsRules")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasMany(sa => sa.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.StorageAccountId)

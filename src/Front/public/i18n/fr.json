@@ -586,6 +586,8 @@
     },
     "BICEP": {
       "GENERATE": "Generer Bicep",
+      "DOWNLOAD": "Telecharger tous les fichiers",
+      "DOWNLOADING": "Telechargement...",
       "PUSH_TO_GIT": "Pousser sur Git",
       "PANEL_TITLE": "Generation Bicep du projet",
       "PANEL_GENERATING": "Generation des fichiers Bicep...",

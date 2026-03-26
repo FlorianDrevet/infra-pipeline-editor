@@ -293,6 +293,109 @@
   max-width: 48rem;
 }
 
+.cors-editor {
+  margin-top: 1.25rem;
+  padding: 1.1rem;
+  border-radius: 1.25rem;
+  background: linear-gradient(145deg, rgba(13, 47, 102, 0.04), rgba(0, 159, 189, 0.05));
+  border: 1px solid rgba(146, 191, 235, 0.22);
+}
+
+.cors-editor__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cors-editor__title {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #103454;
+}
+
+.cors-editor__description {
+  margin: 0;
+  color: #617892;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.cors-editor__add {
+  color: #1565c0;
+  border-color: rgba(21, 101, 192, 0.2);
+}
+
+.cors-editor__empty {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+  color: #4f6b84;
+
+  p {
+    margin: 0;
+  }
+}
+
+.cors-rule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.cors-rule-card {
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(146, 191, 235, 0.18);
+  box-shadow: 0 12px 28px rgba(16, 52, 86, 0.06);
+}
+
+.cors-rule-card__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.cors-rule-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(21, 101, 192, 0.08);
+  color: #1565c0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cors-rule-card__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(217, 45, 32, 0.16);
+  background: rgba(217, 45, 32, 0.06);
+  color: #a12d1f;
+  cursor: pointer;
+}
+
+.cors-rule-card__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.85rem;
+}
+
 // ─── Environment Configuration ────
 
 .env-description {

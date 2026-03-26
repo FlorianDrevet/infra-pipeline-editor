@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
+import axios from 'axios';
 import { GitConfigResponse } from '../../../shared/interfaces/project.interface';
 import { PushBicepToGitResponse } from '../../../shared/interfaces/bicep-generator.interface';
 import { BicepGeneratorService } from '../../../shared/services/bicep-generator.service';
@@ -51,6 +52,7 @@ export class PushToGitDialogComponent implements OnInit {
   protected readonly state = signal<DialogState>('form');
   protected readonly result = signal<PushBicepToGitResponse | null>(null);
   protected readonly errorKey = signal('');
+  protected readonly errorDetail = signal('');
   protected readonly allBranches = signal<string[]>([]);
   protected readonly filteredBranches = signal<string[]>([]);
   protected readonly branchesLoading = signal(true);
@@ -107,7 +109,13 @@ export class PushToGitDialogComponent implements OnInit {
         : await this.bicepService.pushToGit(this.data.configId, request);
       this.result.set(response);
       this.state.set('success');
-    } catch {
+    } catch (err: unknown) {
+      let detail = '';
+      if (axios.isAxiosError(err) && err.response?.data) {
+        const data = err.response.data as Record<string, unknown>;
+        detail = (data['detail'] as string | undefined) ?? '';
+      }
+      this.errorDetail.set(detail);
       this.errorKey.set('CONFIG_DETAIL.PUSH_TO_GIT.ERROR');
       this.state.set('error');
     }
@@ -116,6 +124,7 @@ export class PushToGitDialogComponent implements OnInit {
   protected onRetry(): void {
     this.state.set('form');
     this.errorKey.set('');
+    this.errorDetail.set('');
   }
 
   protected onClose(): void {

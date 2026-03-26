@@ -282,6 +282,70 @@
                     </mat-slide-toggle>
                   </div>
                 </div>
+
+                <div class="cors-editor">
+                  <div class="cors-editor__header">
+                    <div>
+                      <h4 class="cors-editor__title">Blob service CORS</h4>
+                      <p class="cors-editor__description">Define origins, methods, headers, and cache duration applied to the blob service.</p>
+                    </div>
+                    @if (canWrite()) {
+                      <button class="ghost-button cors-editor__add" type="button" (click)="addCorsRule()">
+                        <mat-icon>add</mat-icon>
+                        Add rule
+                      </button>
+                    }
+                  </div>
+
+                  @if (storageCorsRules().length === 0) {
+                    <div class="cors-editor__empty">
+                      <mat-icon>shield</mat-icon>
+                      <p>No CORS rule configured for this storage account.</p>
+                    </div>
+                  } @else {
+                    <div class="cors-rule-list">
+                      @for (rule of storageCorsRules(); track $index; let i = $index) {
+                        <div class="cors-rule-card">
+                          <div class="cors-rule-card__topbar">
+                            <span class="cors-rule-card__badge">Rule {{ i + 1 }}</span>
+                            @if (canWrite()) {
+                              <button class="cors-rule-card__remove" type="button" (click)="removeCorsRule(i)">
+                                <mat-icon>close</mat-icon>
+                              </button>
+                            }
+                          </div>
+                          <div class="cors-rule-card__grid">
+                            <mat-form-field appearance="outline" class="form-field">
+                              <mat-label>Allowed origins</mat-label>
+                              <input matInput [value]="formatCorsRuleList(rule.allowedOrigins)" [readonly]="!canWrite()"
+                                (input)="updateCorsRuleListField(i, 'allowedOrigins', $any($event.target).value)" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="form-field">
+                              <mat-label>Allowed methods</mat-label>
+                              <input matInput [value]="formatCorsRuleList(rule.allowedMethods)" [readonly]="!canWrite()"
+                                (input)="updateCorsRuleListField(i, 'allowedMethods', $any($event.target).value)" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="form-field">
+                              <mat-label>Allowed headers</mat-label>
+                              <input matInput [value]="formatCorsRuleList(rule.allowedHeaders)" [readonly]="!canWrite()"
+                                (input)="updateCorsRuleListField(i, 'allowedHeaders', $any($event.target).value)" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="form-field">
+                              <mat-label>Exposed headers</mat-label>
+                              <input matInput [value]="formatCorsRuleList(rule.exposedHeaders)" [readonly]="!canWrite()"
+                                (input)="updateCorsRuleListField(i, 'exposedHeaders', $any($event.target).value)" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="form-field">
+                              <mat-label>Max age in seconds</mat-label>
+                              <input matInput type="number" min="0" [value]="rule.maxAgeInSeconds" [readonly]="!canWrite()"
+                                (input)="updateCorsRuleMaxAge(i, $any($event.target).value)" />
+                            </mat-form-field>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
               </div>
             }
 

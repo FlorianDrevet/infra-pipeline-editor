@@ -52,6 +52,25 @@ public static class BicepAssembler
             {
                 moduleFiles[$"modules/{folder}/types.bicep"] = module.ModuleTypesBicepContent;
             }
+
+            if (module.CompanionModule is not null)
+            {
+                var companion = module.CompanionModule;
+                var companionPath = $"modules/{companion.FolderName}/{companion.FileName}";
+                moduleFiles[companionPath] = AddModuleHeader(
+                    module.ResourceTypeName,
+                    companion.FileName.Replace(".bicep", string.Empty),
+                    companion.FileName.Replace(".bicep", string.Empty),
+                    companion.BicepContent);
+
+                if (!string.IsNullOrWhiteSpace(companion.TypesBicepContent))
+                {
+                    var typesPath = $"modules/{companion.FolderName}/types.bicep";
+                    moduleFiles[typesPath] = moduleFiles.TryGetValue(typesPath, out var existingTypes)
+                        ? MergeTypesContent(existingTypes, companion.TypesBicepContent)
+                        : companion.TypesBicepContent;
+                }
+            }
         }
 
         // Generate role assignment modules only for target resource types that have assignments
@@ -193,6 +212,49 @@ public static class BicepAssembler
     {
         var header = GenerateModuleHeader(resourceTypeName, moduleFileName, moduleName);
         return header + bicepContent;
+    }
+
+    private static string MergeTypesContent(string existingContent, string additionalContent)
+    {
+        if (string.IsNullOrWhiteSpace(additionalContent) || existingContent.Contains(additionalContent, StringComparison.Ordinal))
+        {
+            return existingContent;
+        }
+
+        return $"{existingContent.TrimEnd()}\n\n{additionalContent.Trim()}\n";
+    }
+
+    private static string RenderBicepStringArray(IReadOnlyList<string> values)
+    {
+        if (values.Count == 0)
+        {
+            return "[]";
+        }
+
+        return $"[ {string.Join(", ", values.Select(v => $"'{EscapeBicepString(v)}'"))} ]";
+    }
+
+    private static IEnumerable<string> RenderCorsRules(IReadOnlyList<BlobCorsRuleData> corsRules)
+    {
+        if (corsRules.Count == 0)
+        {
+            yield return "[]";
+            yield break;
+        }
+
+        yield return "[";
+        foreach (var rule in corsRules)
+        {
+            yield return "      {";
+            yield return $"        allowedOrigins: {RenderBicepStringArray(rule.AllowedOrigins)}";
+            yield return $"        allowedMethods: {RenderBicepStringArray(rule.AllowedMethods)}";
+            yield return $"        allowedHeaders: {RenderBicepStringArray(rule.AllowedHeaders)}";
+            yield return $"        exposedHeaders: {RenderBicepStringArray(rule.ExposedHeaders)}";
+            yield return $"        maxAgeInSeconds: {rule.MaxAgeInSeconds}";
+            yield return "      }";
+        }
+
+        yield return "    ]";
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -571,6 +633,27 @@ public static class BicepAssembler
             sb.AppendLine("  }");
             sb.AppendLine("}");
             sb.AppendLine();
+
+            if (module.CompanionModule is not null)
+            {
+                var companion = module.CompanionModule;
+                var companionSymbol = $"{module.ModuleName}BlobsModule";
+
+                sb.AppendLine($"module {companionSymbol} './modules/{companion.FolderName}/{companion.FileName}' = {{");
+                sb.AppendLine($"  name: '{module.ModuleName}Blobs'");
+                sb.AppendLine($"  scope: {rgSymbol}");
+                sb.AppendLine("  params: {");
+                sb.AppendLine($"    storageAccountName: {nameExpr}");
+                sb.AppendLine($"    blobContainerNames: {RenderBicepStringArray(companion.BlobContainerNames)}");
+                sb.AppendLine("    corsRules: ");
+                foreach (var line in RenderCorsRules(companion.CorsRules))
+                {
+                    sb.AppendLine(line);
+                }
+                sb.AppendLine("  }");
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
         }
 
         // ── Role assignment module declarations ─────────────────────────────

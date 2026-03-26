@@ -1,3 +1,4 @@
+using System.Text.Json;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
@@ -105,6 +106,16 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
 
         var saSettings = await dbContext.StorageAccountEnvironmentSettings
             .Where(es => allResourceIds.Contains(es.StorageAccountId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var blobContainers = await dbContext.BlobContainers
+            .Where(bc => allResourceIds.Contains(bc.StorageAccountId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var storageCorsRules = await dbContext.StorageAccountCorsRules
+            .Where(cr => allResourceIds.Contains(cr.StorageAccountId))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
@@ -224,7 +235,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageCorsRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -412,6 +423,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<KeyVaultEnvironmentSettings> kvSettings,
         IReadOnlyList<RedisCacheEnvironmentSettings> rcSettings,
         IReadOnlyList<StorageAccountEnvironmentSettings> saSettings,
+        IReadOnlyList<BlobContainer> blobContainers,
+        IReadOnlyList<CorsRule> storageCorsRules,
         IReadOnlyList<AppServicePlanEnvironmentSettings> aspSettings,
         IReadOnlyList<WebAppEnvironmentSettings> waSettings,
         IReadOnlyList<FunctionAppEnvironmentSettings> faSettings,
@@ -466,6 +479,21 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["accessTier"] = sa.AccessTier.Value.ToString(),
                     ["allowBlobPublicAccess"] = sa.AllowBlobPublicAccess.ToString().ToLower(),
                     ["supportsHttpsTrafficOnly"] = sa.EnableHttpsTrafficOnly.ToString().ToLower(),
+                    ["blobContainerNames"] = JsonSerializer.Serialize(blobContainers
+                        .Where(bc => bc.StorageAccountId == sa.Id)
+                        .Select(bc => bc.Name)
+                        .ToList()),
+                    ["corsRules"] = JsonSerializer.Serialize(storageCorsRules
+                        .Where(rule => rule.StorageAccountId == sa.Id)
+                        .Select(rule => new
+                        {
+                            allowedOrigins = rule.AllowedOrigins,
+                            allowedMethods = rule.AllowedMethods,
+                            allowedHeaders = rule.AllowedHeaders,
+                            exposedHeaders = rule.ExposedHeaders,
+                            maxAgeInSeconds = rule.MaxAgeInSeconds
+                        })
+                        .ToList()),
                     ["minimumTlsVersion"] = sa.MinimumTlsVersion.Value.ToString() switch
                     {
                         "Tls10" => "TLS1_0",

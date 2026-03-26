@@ -95,6 +95,16 @@
                   </h2>
                 </div>
                 <div class="bicep-panel__actions" (click)="$event.stopPropagation()">
+                  @if (projectBicepResult()) {
+                    <button class="bicep-download-btn" (click)="downloadProjectBicepFiles()" [disabled]="projectBicepDownloading()">
+                      @if (projectBicepDownloading()) {
+                        <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                      } @else {
+                        <mat-icon>download</mat-icon>
+                      }
+                      {{ (projectBicepDownloading() ? 'PROJECT_DETAIL.BICEP.DOWNLOADING' : 'PROJECT_DETAIL.BICEP.DOWNLOAD') | translate }}
+                    </button>
+                  }
                   <button class="bicep-panel__close" (click)="closeProjectBicepPanel()" [matTooltip]="'PROJECT_DETAIL.BICEP.CLOSE' | translate">
                     <mat-icon>close</mat-icon>
                   </button>

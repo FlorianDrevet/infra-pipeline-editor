@@ -10,6 +10,22 @@ export interface StorageAccountEnvironmentConfigResponse {
   sku: string | null;
 }
 
+export interface CorsRuleEntry {
+  allowedOrigins: string[];
+  allowedMethods: string[];
+  allowedHeaders: string[];
+  exposedHeaders: string[];
+  maxAgeInSeconds: number;
+}
+
+export interface CorsRuleResponse {
+  allowedOrigins: string[];
+  allowedMethods: string[];
+  allowedHeaders: string[];
+  exposedHeaders: string[];
+  maxAgeInSeconds: number;
+}
+
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface BlobContainerResponse {
@@ -38,6 +54,7 @@ export interface StorageAccountResponse {
   allowBlobPublicAccess: boolean;
   enableHttpsTrafficOnly: boolean;
   minimumTlsVersion: string;
+  corsRules: CorsRuleResponse[];
   blobContainers: BlobContainerResponse[];
   queues: StorageQueueResponse[];
   tables: StorageTableResponse[];
@@ -55,6 +72,7 @@ export interface CreateStorageAccountRequest {
   allowBlobPublicAccess: boolean;
   enableHttpsTrafficOnly: boolean;
   minimumTlsVersion: string;
+  corsRules?: CorsRuleEntry[];
   environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 
@@ -66,6 +84,7 @@ export interface UpdateStorageAccountRequest {
   allowBlobPublicAccess: boolean;
   enableHttpsTrafficOnly: boolean;
   minimumTlsVersion: string;
+  corsRules?: CorsRuleEntry[];
   environmentSettings?: StorageAccountEnvironmentConfigEntry[];
 }
 

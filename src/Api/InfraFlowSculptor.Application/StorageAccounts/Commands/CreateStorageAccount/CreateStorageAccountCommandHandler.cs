@@ -41,6 +41,14 @@ public class CreateStorageAccountCommandHandler(
                 .Select(ec => (
                     ec.EnvironmentName,
                     ec.Sku is not null ? new StorageAccountSku(Enum.Parse<StorageAccountSku.Sku>(ec.Sku)) : (StorageAccountSku?)null))
+                .ToList(),
+            request.CorsRules?
+                .Select(rule => (
+                    rule.AllowedOrigins,
+                    rule.AllowedMethods,
+                    rule.AllowedHeaders,
+                    rule.ExposedHeaders,
+                    rule.MaxAgeInSeconds))
                 .ToList());
 
         var saved = await storageAccountRepository.AddAsync(storageAccount);
