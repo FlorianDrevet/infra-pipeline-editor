@@ -36,4 +36,10 @@ public class GenerationRequest
     /// Used to inject output declarations into source modules and appSettings/env params into target modules.
     /// </summary>
     public IReadOnlyList<AppSettingDefinition> AppSettings { get; set; } = [];
+
+    /// <summary>
+    /// Cross-configuration resource references. Used to generate <c>existing</c> resource group
+    /// and resource declarations in <c>main.bicep</c> for resources owned by sibling configurations.
+    /// </summary>
+    public IReadOnlyList<ExistingResourceReference> ExistingResourceReferences { get; set; } = [];
 }

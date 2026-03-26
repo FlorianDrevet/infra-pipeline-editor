@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Application.Common.Interfaces;
@@ -24,5 +25,15 @@ public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggre
     /// </summary>
     Task<Dictionary<Guid, Guid>> GetChildToParentMappingAsync(
         ResourceGroupId resourceGroupId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Finds the resource group that contains the specified Azure resource.
+    /// </summary>
+    /// <param name="resourceId">The Azure resource identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The resource group, or null if the resource was not found.</returns>
+    Task<Domain.ResourceGroupAggregate.ResourceGroup?> GetByResourceIdAsync(
+        AzureResourceId resourceId,
         CancellationToken cancellationToken = default);
 }

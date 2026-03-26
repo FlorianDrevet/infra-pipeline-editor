@@ -8,6 +8,10 @@ import {
   SetResourceNamingTemplateRequest,
 } from '../interfaces/infra-config.interface';
 import { ResourceGroupResponse } from '../interfaces/resource-group.interface';
+import {
+  CrossConfigReferenceResponse,
+  AddCrossConfigReferenceRequest,
+} from '../interfaces/cross-config-reference.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -91,6 +95,33 @@ export class InfraConfigService {
       MethodEnum.PUT,
       `/infra-config/${id}/inheritance`,
       request
+    );
+  }
+
+  // ─── Cross-Config References ───
+
+  getCrossConfigReferences(configId: string): Promise<CrossConfigReferenceResponse[]> {
+    return this.axios.request$<CrossConfigReferenceResponse[]>(
+      MethodEnum.GET,
+      `/infra-config/${configId}/cross-config-references`
+    );
+  }
+
+  addCrossConfigReference(
+    configId: string,
+    request: AddCrossConfigReferenceRequest
+  ): Promise<CrossConfigReferenceResponse> {
+    return this.axios.request$<CrossConfigReferenceResponse>(
+      MethodEnum.POST,
+      `/infra-config/${configId}/cross-config-references`,
+      request
+    );
+  }
+
+  removeCrossConfigReference(configId: string, referenceId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/infra-config/${configId}/cross-config-references/${referenceId}`
     );
   }
 }

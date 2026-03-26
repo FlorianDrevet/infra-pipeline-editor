@@ -21,4 +21,5 @@ public record InfrastructureConfigResponse(
     bool UseProjectNamingConventions,
     IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates,
     int ResourceGroupCount,
-    int ResourceCount);
+    int ResourceCount,
+    int CrossConfigReferenceCount);

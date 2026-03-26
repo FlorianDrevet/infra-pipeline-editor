@@ -23,13 +23,14 @@ public static class BicepAssembler
         IEnumerable<ResourceDefinition> resources,
         NamingContext namingContext,
         IReadOnlyList<RoleAssignmentDefinition> roleAssignments,
-        IReadOnlyList<AppSettingDefinition> appSettings)
+        IReadOnlyList<AppSettingDefinition> appSettings,
+        IReadOnlyList<ExistingResourceReference>? existingResourceReferences = null)
     {
         var hasRoleAssignments = roleAssignments.Count > 0;
         var typesBicep = GenerateTypesBicep(environments, hasRoleAssignments);
         var functionsBicep = GenerateFunctionsBicep(namingContext);
         var constantsBicep = hasRoleAssignments ? GenerateConstantsBicep(roleAssignments) : string.Empty;
-        var main = GenerateMainBicep(modules, resourceGroups, namingContext, roleAssignments, appSettings);
+        var main = GenerateMainBicep(modules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? []);
 
         var environmentParameterFiles = GenerateEnvironmentParameterFiles(
             modules, environmentNames, resources);
@@ -378,7 +379,8 @@ public static class BicepAssembler
         IReadOnlyList<ResourceGroupDefinition> resourceGroups,
         NamingContext namingContext,
         IReadOnlyList<RoleAssignmentDefinition> roleAssignments,
-        IReadOnlyList<AppSettingDefinition> appSettings)
+        IReadOnlyList<AppSettingDefinition> appSettings,
+        IReadOnlyList<ExistingResourceReference> existingResourceReferences)
     {
         var sb = new StringBuilder();
 
@@ -436,6 +438,46 @@ public static class BicepAssembler
             sb.AppendLine("  location: env.location");
             sb.AppendLine("}");
             sb.AppendLine();
+        }
+
+        // ── Existing resource declarations (cross-config references) ────────
+        if (existingResourceReferences.Count > 0)
+        {
+            // Deduplicate external resource groups (multiple resources may share the same RG)
+            var externalRgs = existingResourceReferences
+                .Select(r => r.ResourceGroupName)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            sb.AppendLine("// ── Cross-configuration existing resource groups ──────────────────");
+            foreach (var extRgName in externalRgs)
+            {
+                var extRgSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRgName)}";
+                var nameExprRg = BuildNamingExpression(extRgName, "rg", "ResourceGroup", namingContext);
+
+                sb.AppendLine($"resource {extRgSymbol} 'Microsoft.Resources/resourceGroups@2024-07-01' existing = {{");
+                sb.AppendLine($"  name: {nameExprRg}");
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("// ── Cross-configuration existing resources ──────────────────────");
+            foreach (var extRef in existingResourceReferences)
+            {
+                var extSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceName)}";
+                var extRgSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceGroupName)}";
+                var nameExprRes = BuildNamingExpression(
+                    extRef.ResourceName, extRef.ResourceAbbreviation,
+                    extRef.ResourceTypeName, namingContext);
+
+                var apiVersion = GetExistingResourceApiVersion(extRef.ResourceType);
+
+                sb.AppendLine($"resource {extSymbol} '{extRef.ResourceType}@{apiVersion}' existing = {{");
+                sb.AppendLine($"  name: {nameExprRes}");
+                sb.AppendLine($"  scope: {extRgSymbol}");
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
         }
 
         // ── Module declarations ─────────────────────────────────────────────
@@ -500,13 +542,22 @@ public static class BicepAssembler
                     }
                     else if (setting.IsOutputReference && setting.SourceResourceName is not null)
                     {
-                        // Find the module symbol for the source resource
-                        var sourceModule = modules.FirstOrDefault(m =>
-                            m.LogicalResourceName.Equals(setting.SourceResourceName, StringComparison.OrdinalIgnoreCase));
-
-                        if (sourceModule is not null)
+                        if (setting.IsSourceCrossConfig)
                         {
-                            sb.AppendLine($"        value: {sourceModule.ModuleName}Module.outputs.{setting.SourceOutputName}");
+                            // Cross-config source: use existing resource property
+                            var extSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(setting.SourceResourceName)}";
+                            sb.AppendLine($"        value: {extSymbol}.{setting.SourceOutputBicepExpression ?? $"properties.{setting.SourceOutputName}"}");
+                        }
+                        else
+                        {
+                            // Same-config source: use module output
+                            var sourceModule = modules.FirstOrDefault(m =>
+                                m.LogicalResourceName.Equals(setting.SourceResourceName, StringComparison.OrdinalIgnoreCase));
+
+                            if (sourceModule is not null)
+                            {
+                                sb.AppendLine($"        value: {sourceModule.ModuleName}Module.outputs.{setting.SourceOutputName}");
+                            }
                         }
                     }
                     else if (setting.StaticValue is not null)
@@ -538,7 +589,11 @@ public static class BicepAssembler
 
                 var targetFolder = GetModuleFolderName(group.TargetResourceTypeName);
                 var moduleFileName = RoleAssignmentModuleTemplates.GetModuleFileName(group.TargetResourceTypeName);
-                var targetRgSymbol = BicepIdentifierHelper.ToBicepIdentifier(group.TargetResourceGroupName);
+
+                // Cross-config targets use existing_ prefixed symbols
+                var targetRgSymbol = group.IsTargetCrossConfig
+                    ? $"existing_{BicepIdentifierHelper.ToBicepIdentifier(group.TargetResourceGroupName)}"
+                    : BicepIdentifierHelper.ToBicepIdentifier(group.TargetResourceGroupName);
 
                 var targetNameExpr = BuildNamingExpression(
                     group.TargetResourceName, group.TargetResourceAbbreviation,
@@ -598,6 +653,7 @@ public static class BicepAssembler
                     ServiceCategory = first.ServiceCategory,
                     ManagedIdentityType = first.ManagedIdentityType,
                     UserAssignedIdentityName = first.UserAssignedIdentityName,
+                    IsTargetCrossConfig = first.IsTargetCrossConfig,
                     Roles = g.Select(ra => new RoleRef(ra.RoleDefinitionName)).ToList()
                 };
             })
@@ -638,6 +694,7 @@ public static class BicepAssembler
         public string ServiceCategory { get; init; } = string.Empty;
         public string ManagedIdentityType { get; init; } = string.Empty;
         public string? UserAssignedIdentityName { get; init; }
+        public bool IsTargetCrossConfig { get; init; }
         public List<RoleRef> Roles { get; init; } = [];
     }
 
@@ -889,4 +946,29 @@ public static class BicepAssembler
     /// </summary>
     private static string EscapeBicepString(string value) =>
         value.Replace("'", "\\'");
+
+    /// <summary>
+    /// Returns the API version to use for <c>existing</c> resource declarations by ARM resource type.
+    /// </summary>
+    private static string GetExistingResourceApiVersion(string armResourceType) =>
+        armResourceType switch
+        {
+            "Microsoft.KeyVault/vaults" => "2023-07-01",
+            "Microsoft.Cache/Redis" => "2024-03-01",
+            "Microsoft.Storage/storageAccounts" => "2023-05-01",
+            "Microsoft.Web/serverfarms" => "2023-12-01",
+            "Microsoft.Web/sites" => "2023-12-01",
+            "Microsoft.Web/sites/functionapp" => "2023-12-01",
+            "Microsoft.ManagedIdentity/userAssignedIdentities" => "2023-01-31",
+            "Microsoft.AppConfiguration/configurationStores" => "2023-03-01",
+            "Microsoft.App/managedEnvironments" => "2024-03-01",
+            "Microsoft.App/containerApps" => "2024-03-01",
+            "Microsoft.OperationalInsights/workspaces" => "2023-09-01",
+            "Microsoft.Insights/components" => "2020-02-02",
+            "Microsoft.DocumentDB/databaseAccounts" => "2024-05-15",
+            "Microsoft.Sql/servers" => "2023-08-01-preview",
+            "Microsoft.Sql/servers/databases" => "2023-08-01-preview",
+            "Microsoft.ServiceBus/namespaces" => "2022-10-01-preview",
+            _ => "2023-01-01"
+        };
 }

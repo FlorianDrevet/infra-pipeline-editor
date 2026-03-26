@@ -22,6 +22,7 @@ import {
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
 } from '../interfaces/infra-config.interface';
+import { ProjectResourceResponse } from '../interfaces/cross-config-reference.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -186,6 +187,15 @@ export class ProjectService {
     return this.axios.request$<GitBranchResponse[]>(
       MethodEnum.GET,
       `/projects/${projectId}/git-config/branches`
+    );
+  }
+
+  // ─── Project Resources ───
+
+  getProjectResources(projectId: string): Promise<ProjectResourceResponse[]> {
+    return this.axios.request$<ProjectResourceResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/resources`
     );
   }
 }

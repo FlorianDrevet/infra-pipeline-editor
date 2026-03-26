@@ -71,5 +71,13 @@ public sealed class InfrastructureConfigConfiguration
             .WithOne(x => x.InfraConfig)
             .HasForeignKey(x => x.InfraConfigId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ========================
+        // CrossConfigResourceReferences (Entity)
+        // ========================
+        builder.HasMany(x => x.CrossConfigReferences)
+            .WithOne()
+            .HasForeignKey(x => x.InfraConfigId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

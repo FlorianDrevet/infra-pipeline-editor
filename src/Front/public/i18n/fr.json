@@ -145,7 +145,8 @@
       "RESOURCE_GROUPS": "Groupes de ressources",
       "ENVIRONMENTS": "Environnements",
       "MEMBERS": "Membres",
-      "NAMING_TEMPLATES": "Nommage"
+      "NAMING_TEMPLATES": "Nommage",
+      "CROSS_CONFIG_REFS": "Références croisées"
     },
     "STATE": {
       "LOADING_TITLE": "Chargement de la configuration",
@@ -516,6 +517,43 @@
       "RETRY": "Reessayer",
       "CLOSE": "Fermer",
       "NO_GIT_CONFIG": "Configurez d'abord un depot Git sur le projet."
+    },
+    "CROSS_CONFIG_REFS": {
+      "OVERLINE": "Dépendances inter-configurations",
+      "TITLE": "Références croisées",
+      "DESCRIPTION": "Référencez des ressources d'autres configurations du même projet pour créer des dépendances inter-configurations (ex : Log Analytics Workspace partagé, ACR commun).",
+      "EMPTY": "Aucune référence croisée configurée.",
+      "EMPTY_HINT": "Ajoutez une référence pour utiliser des ressources d'autres configurations dans vos fichiers Bicep.",
+      "ADD": "Ajouter une référence",
+      "LOADING": "Chargement des références...",
+      "LOAD_ERROR": "Impossible de charger les références croisées.",
+      "TARGET_RESOURCE": "Ressource cible",
+      "ALIAS": "Alias Bicep",
+      "SOURCE_CONFIG": "Configuration source",
+      "RESOURCE_GROUP": "Groupe de ressources",
+      "PURPOSE": "Objectif",
+      "DELETE": "Supprimer la référence",
+      "DELETE_CONFIRM_TITLE": "Supprimer la référence croisée",
+      "DELETE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer la référence vers « {{name}} » ({{alias}}) ? Les fichiers Bicep générés ne pourront plus accéder à cette ressource.",
+      "DELETE_CONFIRM_YES": "Supprimer",
+      "DELETE_CONFIRM_CANCEL": "Annuler",
+      "DELETE_ERROR": "Impossible de supprimer la référence.",
+      "ADD_DIALOG_TITLE": "Ajouter une référence croisée",
+      "ADD_DIALOG_STEP_SELECT": "Sélectionner la ressource",
+      "ADD_DIALOG_STEP_CONFIGURE": "Configurer",
+      "ADD_DIALOG_SEARCH_PLACEHOLDER": "Rechercher une ressource...",
+      "ADD_DIALOG_NO_RESOURCES": "Aucune ressource disponible dans les autres configurations du projet.",
+      "ADD_DIALOG_CONFIG_GROUP": "Configuration : {{name}}",
+      "ADD_DIALOG_ALIAS_LABEL": "Alias",
+      "ADD_DIALOG_ALIAS_HINT": "Nom symbolique utilisé dans les fichiers Bicep générés (ex : coreLogAnalytics, sharedAcr).",
+      "ADD_DIALOG_PURPOSE_LABEL": "Objectif (optionnel)",
+      "ADD_DIALOG_PURPOSE_PLACEHOLDER": "ex : Envoyer les logs Application Insights vers le workspace Log Analytics partagé",
+      "ADD_DIALOG_CANCEL": "Annuler",
+      "ADD_DIALOG_BACK": "Retour",
+      "ADD_DIALOG_NEXT": "Suivant",
+      "ADD_DIALOG_ADD": "Ajouter",
+      "ADD_DIALOG_ERROR": "Impossible d'ajouter la référence croisée.",
+      "ADD_ERROR": "Erreur lors de l'ajout de la référence croisée."
     }
   },
   "PROJECT_DETAIL": {

@@ -56,6 +56,14 @@ import { BicepHighlightPipe } from './pipes/bicep-highlight.pipe';
 import { StorageAccountResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
+import {
+  AddCrossConfigReferenceDialogComponent,
+  AddCrossConfigReferenceDialogData,
+} from './add-cross-config-reference-dialog/add-cross-config-reference-dialog.component';
+import {
+  CrossConfigReferenceResponse,
+  AddCrossConfigReferenceRequest,
+} from '../../shared/interfaces/cross-config-reference.interface';
 
 interface ResourceDisplayItem {
   resource: AzureResourceResponse;
@@ -185,6 +193,12 @@ export class ConfigDetailComponent implements OnInit {
 
   // ─── Inheritance ───
   protected readonly inheritanceLoading = signal(false);
+
+  // ─── Cross-Config References ───
+  protected readonly crossConfigReferences = signal<CrossConfigReferenceResponse[]>([]);
+  protected readonly crossConfigLoading = signal(false);
+  protected readonly crossConfigErrorKey = signal('');
+  protected readonly crossConfigLoaded = signal(false);
 
   protected readonly useProjectNamingConventions = computed(() => this.config()?.useProjectNamingConventions ?? false);
 
@@ -1033,6 +1047,91 @@ export class ConfigDetailComponent implements OnInit {
         }
       } catch {
         this.loadError.set('CONFIG_DETAIL.DELETE.ERROR');
+      }
+    });
+  }
+
+  // ─── Cross-Config References ───
+
+  protected async onTabChange(index: number): Promise<void> {
+    // Tab 3 (0-indexed) is cross-config references — lazy load on first visit
+    if (index === 3 && !this.crossConfigLoaded()) {
+      await this.loadCrossConfigReferences();
+    }
+  }
+
+  protected async loadCrossConfigReferences(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.crossConfigLoading.set(true);
+    this.crossConfigErrorKey.set('');
+    try {
+      const refs = await this.infraConfigService.getCrossConfigReferences(configId);
+      this.crossConfigReferences.set(refs);
+      this.crossConfigLoaded.set(true);
+    } catch {
+      this.crossConfigErrorKey.set('CONFIG_DETAIL.CROSS_CONFIG_REFS.LOAD_ERROR');
+    } finally {
+      this.crossConfigLoading.set(false);
+    }
+  }
+
+  protected openAddCrossConfigReferenceDialog(): void {
+    const configId = this.config()?.id;
+    const projectId = this.config()?.projectId;
+    if (!configId || !projectId) return;
+
+    const dialogRef = this.dialog.open(AddCrossConfigReferenceDialogComponent, {
+      data: {
+        configId,
+        projectId,
+        existingReferenceResourceIds: this.crossConfigReferences().map((r) => r.targetResourceId),
+      } satisfies AddCrossConfigReferenceDialogData,
+      width: '720px',
+      maxHeight: '90vh',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result?: AddCrossConfigReferenceRequest) => {
+      if (!result) return;
+      this.crossConfigLoading.set(true);
+      this.crossConfigErrorKey.set('');
+      try {
+        const created = await this.infraConfigService.addCrossConfigReference(configId, result);
+        this.crossConfigReferences.update((refs) => [...refs, created]);
+      } catch {
+        this.crossConfigErrorKey.set('CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_ERROR');
+      } finally {
+        this.crossConfigLoading.set(false);
+      }
+    });
+  }
+
+  protected removeCrossConfigReference(ref: CrossConfigReferenceResponse): void {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_TITLE',
+        messageKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_MESSAGE',
+        messageParams: { name: ref.targetResourceName, alias: ref.alias },
+        confirmKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_YES',
+        cancelKey: 'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      this.crossConfigLoading.set(true);
+      try {
+        await this.infraConfigService.removeCrossConfigReference(configId, ref.id);
+        this.crossConfigReferences.update((refs) => refs.filter((r) => r.id !== ref.id));
+      } catch {
+        this.crossConfigErrorKey.set('CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_ERROR');
+      } finally {
+        this.crossConfigLoading.set(false);
       }
     });
   }

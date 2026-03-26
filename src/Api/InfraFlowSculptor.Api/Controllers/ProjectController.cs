@@ -18,6 +18,7 @@ using InfraFlowSculptor.Application.Projects.Queries.GetProject;
 using InfraFlowSculptor.Application.Projects.Queries.ListGitBranches;
 using InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectConfigs;
+using InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
 using InfraFlowSculptor.Application.Projects.Queries.ValidateRecentItems;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
@@ -513,6 +514,29 @@ public static class ProjectController
                 .WithSummary("List Git repository branches")
                 .WithDescription("Lists all branches in the configured Git repository. Requires read access to the project.")
                 .Produces<IReadOnlyList<GitBranchResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // GET /{id:guid}/resources
+            group.MapGet("/{id:guid}/resources",
+                    async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListProjectResourcesQuery(id);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            resources =>
+                            {
+                                var responses = resources.Select(r => mapper.Map<ProjectResourceResponse>(r)).ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListProjectResources")
+                .WithSummary("List all resources across configurations")
+                .WithDescription("Returns all Azure resources across all infrastructure configurations in the project. Used for cross-config resource reference selection.")
+                .Produces<IReadOnlyList<ProjectResourceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });

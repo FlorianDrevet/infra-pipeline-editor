@@ -272,7 +272,7 @@
       </section>
     }
 
-    <mat-tab-group class="config-tabs" animationDuration="200ms">
+    <mat-tab-group class="config-tabs" animationDuration="200ms" (selectedTabChange)="onTabChange($event.index)">
       <!-- Resource Groups -->
       <mat-tab>
         <ng-template mat-tab-label>
@@ -865,6 +865,81 @@
                 <p>{{ 'CONFIG_DETAIL.NAMING_TEMPLATES.EMPTY' | translate }}</p>
               </div>
             }
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Cross-Config References -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">link</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.TABS.CROSS_CONFIG_REFS' | translate }}</span>
+          <span class="tab-count">{{ crossConfigReferences().length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="tab-content__toolbar">
+            @if (canWrite()) {
+              <button class="add-rg-btn" (click)="openAddCrossConfigReferenceDialog()">
+                <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
+                {{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD' | translate }}
+              </button>
+            }
+          </div>
+
+          @if (crossConfigErrorKey()) {
+            <p class="rg-error">{{ crossConfigErrorKey() | translate }}</p>
+          }
+
+          @if (crossConfigLoading()) {
+            <div class="empty-state">
+              <mat-spinner diameter="32"></mat-spinner>
+              <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.LOADING' | translate }}</p>
+            </div>
+          } @else if (crossConfigReferences().length > 0) {
+            <div class="rg-list">
+              @for (ref of crossConfigReferences(); track ref.id) {
+                <article class="cross-ref-row">
+                  <mat-icon class="cross-ref-row__icon">{{ resourceTypeIcons[ref.targetResourceType] || 'cloud' }}</mat-icon>
+                  <div class="cross-ref-row__info">
+                    <div class="cross-ref-row__primary">
+                      <strong>{{ ref.targetResourceName }}</strong>
+                      <span class="cross-ref-row__type">{{ ref.targetResourceType }}</span>
+                    </div>
+                    <div class="cross-ref-row__meta">
+                      <span class="cross-ref-row__alias">
+                        <mat-icon>code</mat-icon>
+                        {{ ref.alias }}
+                      </span>
+                      <span class="cross-ref-row__source">
+                        <mat-icon>folder_open</mat-icon>
+                        {{ ref.targetConfigName }}
+                      </span>
+                      <span class="cross-ref-row__rg">
+                        <mat-icon>dns</mat-icon>
+                        {{ ref.targetResourceGroupName }}
+                      </span>
+                    </div>
+                    @if (ref.purpose) {
+                      <span class="cross-ref-row__purpose">{{ ref.purpose }}</span>
+                    }
+                  </div>
+                  @if (canWrite()) {
+                    <button
+                      class="template-action-btn template-action-btn--delete"
+                      [matTooltip]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE' | translate"
+                      (click)="removeCrossConfigReference(ref)">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  }
+                </article>
+              }
+            </div>
+          } @else if (crossConfigLoaded()) {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">link_off</mat-icon>
+              <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.EMPTY' | translate }}</p>
+              <p class="empty-state__hint">{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.EMPTY_HINT' | translate }}</p>
+            </div>
           }
         </div>
       </mat-tab>

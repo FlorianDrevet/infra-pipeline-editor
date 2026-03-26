@@ -49,6 +49,7 @@ export interface InfrastructureConfigResponse {
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
   resourceGroupCount: number;
   resourceCount: number;
+  crossConfigReferenceCount: number;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────

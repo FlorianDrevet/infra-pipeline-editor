@@ -50,4 +50,7 @@ public sealed class RoleAssignmentDefinition
 
     /// <summary>Simple type name of the target resource (e.g. "KeyVault").</summary>
     public string TargetResourceTypeName { get; init; } = string.Empty;
+
+    /// <summary>Whether the target resource belongs to a different (cross-config) configuration.</summary>
+    public bool IsTargetCrossConfig { get; init; }
 }

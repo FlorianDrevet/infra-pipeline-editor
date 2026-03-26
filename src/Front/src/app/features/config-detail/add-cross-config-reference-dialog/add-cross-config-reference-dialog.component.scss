@@ -1,0 +1,125 @@
+.dialog-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.dialog-error {
+  color: var(--mat-sys-error);
+  text-align: center;
+  padding: 1rem;
+}
+
+.dialog-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 0;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.step-header {
+  margin-bottom: 1rem;
+}
+
+.step-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.search-bar {
+  margin-bottom: 0.5rem;
+}
+
+.search-field {
+  width: 100%;
+}
+
+.resource-groups {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.resource-group__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  margin: 1rem 0 0.5rem;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: 0.5rem;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.resource-item__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.resource-item__name {
+  font-weight: 500;
+}
+
+.resource-item__meta {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.resource-item__chevron {
+  opacity: 0.4;
+}
+
+.selected-resource-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.04);
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    span {
+      font-size: 0.8rem;
+      opacity: 0.6;
+    }
+  }
+}
+
+.configure-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}

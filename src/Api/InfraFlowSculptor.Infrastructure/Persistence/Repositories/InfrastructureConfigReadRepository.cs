@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.Domain.AppConfigurationAggregate;
 using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
@@ -259,14 +260,75 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .OfType<AppSettingReadModel>()
             .ToList();
 
+        // ── Load cross-config resource references ───────────────────────────
+        var crossConfigReferences = await dbContext.CrossConfigResourceReferences
+            .Where(r => r.InfraConfigId == configId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var crossConfigRefReadModels = new List<CrossConfigReferenceReadModel>();
+        foreach (var ccRef in crossConfigReferences)
+        {
+            var targetConfig = await dbContext.InfrastructureConfigs
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == ccRef.TargetConfigId, cancellationToken);
+
+            var targetRg = await dbContext.Set<Domain.ResourceGroupAggregate.ResourceGroup>()
+                .Include(rg => rg.Resources)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(rg => rg.Resources.Any(r => r.Id == ccRef.TargetResourceId), cancellationToken);
+
+            if (targetConfig is null || targetRg is null) continue;
+
+            var targetResource = targetRg.Resources.FirstOrDefault(r => r.Id == ccRef.TargetResourceId);
+            if (targetResource is null) continue;
+
+            var resourceTypeName = GetResourceTypeString(targetResource);
+            var simpleTypeName = GetResourceTypeName(targetResource);
+            var abbreviation = ResourceAbbreviationCatalog.GetAbbreviation(simpleTypeName);
+
+            crossConfigRefReadModels.Add(new CrossConfigReferenceReadModel(
+                ReferenceId: ccRef.Id.Value,
+                TargetConfigId: ccRef.TargetConfigId.Value,
+                TargetConfigName: targetConfig.Name.Value,
+                TargetResourceId: ccRef.TargetResourceId.Value,
+                TargetResourceName: targetResource.Name.Value,
+                TargetResourceType: resourceTypeName,
+                TargetResourceGroupName: targetRg.Name.Value,
+                TargetResourceAbbreviation: abbreviation));
+        }
+
+        // ── Enrich role assignments with cross-config info ──────────────────
+        var crossConfigResourceIds = crossConfigReferences
+            .Select(r => r.TargetResourceId)
+            .ToHashSet();
+
+        var enrichedRoleAssignments = roleAssignmentReadModels
+            .Select(ra => ra with { IsTargetCrossConfig = crossConfigResourceIds.Contains(new AzureResourceId(ra.TargetResourceId)) })
+            .ToList();
+
+        // ── Enrich app settings with cross-config info ──────────────────────
+        var crossConfigRefLookup = crossConfigRefReadModels
+            .ToDictionary(r => r.TargetResourceId);
+
+        var enrichedAppSettings = appSettingReadModels
+            .Select(s =>
+            {
+                if (s.SourceResourceId is not null && crossConfigRefLookup.TryGetValue(s.SourceResourceId.Value, out var ccSrc))
+                    return s with { IsSourceCrossConfig = true, SourceResourceGroupName = ccSrc.TargetResourceGroupName };
+                return s;
+            })
+            .ToList();
+
         return new InfrastructureConfigReadModel(
             config.Id.Value,
             config.Name.Value,
             resourceGroups,
             environments,
             namingContext,
-            roleAssignmentReadModels,
-            appSettingReadModels);
+            enrichedRoleAssignments,
+            enrichedAppSettings,
+            crossConfigRefReadModels);
     }
 
     /// <summary>
@@ -594,7 +656,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
     /// <summary>
     /// Maps an <see cref="AzureResource"/> to its Azure resource type string.
     /// </summary>
-    private static string GetResourceTypeString(AzureResource resource) =>
+    public static string GetResourceTypeString(AzureResource resource) =>
         resource switch
         {
             KeyVault => "Microsoft.KeyVault/vaults",
@@ -613,6 +675,31 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             SqlServer => "Microsoft.Sql/servers",
             SqlDatabase => "Microsoft.Sql/servers/databases",
             ServiceBusNamespace => "Microsoft.ServiceBus/namespaces",
+            _ => resource.GetType().Name
+        };
+
+    /// <summary>
+    /// Maps an <see cref="AzureResource"/> to its simple type name (e.g. "KeyVault", "StorageAccount").
+    /// </summary>
+    public static string GetResourceTypeName(AzureResource resource) =>
+        resource switch
+        {
+            KeyVault => "KeyVault",
+            RedisCache => "RedisCache",
+            StorageAccount => "StorageAccount",
+            AppServicePlan => "AppServicePlan",
+            WebApp => "WebApp",
+            FunctionApp => "FunctionApp",
+            UserAssignedIdentity => "UserAssignedIdentity",
+            AppConfiguration => "AppConfiguration",
+            ContainerAppEnvironment => "ContainerAppEnvironment",
+            ContainerApp => "ContainerApp",
+            LogAnalyticsWorkspace => "LogAnalyticsWorkspace",
+            Domain.ApplicationInsightsAggregate.ApplicationInsights => "ApplicationInsights",
+            CosmosDb => "CosmosDb",
+            SqlServer => "SqlServer",
+            SqlDatabase => "SqlDatabase",
+            ServiceBusNamespace => "ServiceBusNamespace",
             _ => resource.GetType().Name
         };
 }

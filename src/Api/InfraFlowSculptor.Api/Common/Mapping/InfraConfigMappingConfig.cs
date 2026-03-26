@@ -1,5 +1,8 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossConfigReferences;
+using InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
+using InfraFlowSculptor.Contracts.Projects.Responses;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate;
@@ -55,7 +58,8 @@ public class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
             .Map(dest => dest.ResourceGroupCount, src => src.ResourceGroupCount)
-            .Map(dest => dest.ResourceCount, src => src.ResourceCount);
+            .Map(dest => dest.ResourceCount, src => src.ResourceCount)
+            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferenceCount);
 
         // InfrastructureConfig domain -> GetInfrastructureConfigResult
         config.NewConfig<Domain.InfrastructureConfigAggregate.InfrastructureConfig, GetInfrastructureConfigResult>()
@@ -64,7 +68,8 @@ public class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.ProjectId, src => src.ProjectId)
             .Map(dest => dest.DefaultNamingTemplate, src => (object?)src.DefaultNamingTemplate != null ? src.DefaultNamingTemplate.Value : null)
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
-            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
+            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferences.Count);
 
         // User entity -> UserResult
         config.NewConfig<User, UserResult>()
@@ -77,5 +82,16 @@ public class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.Id, src => src.Id.Value)
             .Map(dest => dest.FirstName, src => src.FirstName)
             .Map(dest => dest.LastName, src => src.LastName);
+
+        // CrossConfigReferenceDetailResult -> CrossConfigReferenceResponse
+        config.NewConfig<CrossConfigReferenceDetailResult, CrossConfigReferenceResponse>()
+            .Map(dest => dest.ReferenceId, src => src.ReferenceId.ToString())
+            .Map(dest => dest.TargetConfigId, src => src.TargetConfigId.ToString())
+            .Map(dest => dest.TargetResourceId, src => src.TargetResourceId.ToString());
+
+        // ProjectResourceResult -> ProjectResourceResponse
+        config.NewConfig<ProjectResourceResult, ProjectResourceResponse>()
+            .Map(dest => dest.ResourceId, src => src.ResourceId.ToString())
+            .Map(dest => dest.ConfigId, src => src.ConfigId.ToString());
     }
 }

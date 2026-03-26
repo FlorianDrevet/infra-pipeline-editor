@@ -1,0 +1,122 @@
+<h2 mat-dialog-title>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  @if (isLoading()) {
+    <div class="dialog-loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.LOADING' | translate }}</p>
+    </div>
+  } @else if (errorKey()) {
+    <p class="dialog-error">{{ errorKey() | translate }}</p>
+  } @else {
+    <!-- Step 1: Select resource -->
+    @if (step() === 1) {
+      <div class="step-header">
+        <span class="step-label">{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_STEP_SELECT' | translate }}</span>
+      </div>
+
+      <div class="search-bar">
+        <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+          <mat-icon matPrefix>search</mat-icon>
+          <input
+            matInput
+            [placeholder]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_SEARCH_PLACEHOLDER' | translate"
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)" />
+        </mat-form-field>
+      </div>
+
+      @if (hasNoResources()) {
+        <div class="dialog-empty">
+          <mat-icon>link_off</mat-icon>
+          <p>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_NO_RESOURCES' | translate }}</p>
+        </div>
+      } @else {
+        <div class="resource-groups">
+          @for (group of filteredGroups(); track group.configName) {
+            <div class="resource-group">
+              <h4 class="resource-group__title">
+                <mat-icon>folder_open</mat-icon>
+                {{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_CONFIG_GROUP' | translate: { name: group.configName } }}
+              </h4>
+              @for (resource of group.resources; track resource.resourceId) {
+                <button
+                  class="resource-item"
+                  type="button"
+                  (click)="selectResource(resource)">
+                  <mat-icon class="resource-item__icon">{{ resourceTypeIcons[resource.resourceType] || 'cloud' }}</mat-icon>
+                  <div class="resource-item__info">
+                    <span class="resource-item__name">{{ resource.resourceName }}</span>
+                    <span class="resource-item__meta">{{ resource.resourceType }} · {{ resource.resourceGroupName }}</span>
+                  </div>
+                  <mat-icon class="resource-item__chevron">chevron_right</mat-icon>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- Step 2: Configure reference -->
+    @if (step() === 2) {
+      <div class="step-header">
+        <span class="step-label">{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_STEP_CONFIGURE' | translate }}</span>
+      </div>
+
+      @if (selectedResource(); as res) {
+        <div class="selected-resource-summary">
+          <mat-icon>{{ resourceTypeIcons[res.resourceType] || 'cloud' }}</mat-icon>
+          <div>
+            <strong>{{ res.resourceName }}</strong>
+            <span>{{ res.resourceType }} · {{ res.configName }}</span>
+          </div>
+        </div>
+      }
+
+      <form [formGroup]="form" class="configure-form">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_LABEL' | translate }}</mat-label>
+          <input matInput formControlName="alias" />
+          <mat-hint>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_HINT' | translate }}</mat-hint>
+          @if (form.controls.alias.hasError('required') && form.controls.alias.touched) {
+            <mat-error>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_LABEL' | translate }}</mat-error>
+          }
+          @if (form.controls.alias.hasError('pattern') && form.controls.alias.touched) {
+            <mat-error>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_HINT' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_PURPOSE_LABEL' | translate }}</mat-label>
+          <textarea
+            matInput
+            formControlName="purpose"
+            rows="3"
+            [placeholder]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_PURPOSE_PLACEHOLDER' | translate">
+          </textarea>
+        </mat-form-field>
+      </form>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (step() === 1) {
+    <button mat-stroked-button (click)="onCancel()">
+      {{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_CANCEL' | translate }}
+    </button>
+  }
+  @if (step() === 2) {
+    <button mat-stroked-button (click)="goBack()">
+      {{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_BACK' | translate }}
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="form.invalid"
+      (click)="onConfirm()">
+      {{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ADD' | translate }}
+    </button>
+  }
+</mat-dialog-actions>

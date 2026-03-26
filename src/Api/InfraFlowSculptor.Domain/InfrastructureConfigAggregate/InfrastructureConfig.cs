@@ -1,3 +1,5 @@
+using ErrorOr;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -35,6 +37,10 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 
     private readonly List<ParameterDefinition> _parameterDefinitions = new();
     public IReadOnlyCollection<ParameterDefinition> ParameterDefinitions => _parameterDefinitions;
+
+    private readonly List<CrossConfigResourceReference> _crossConfigReferences = [];
+    /// <summary>Gets the cross-configuration resource references owned by this configuration.</summary>
+    public IReadOnlyCollection<CrossConfigResourceReference> CrossConfigReferences => _crossConfigReferences.AsReadOnly();
 
     
     private InfrastructureConfig(InfrastructureConfigId id, Name name, ProjectId projectId): base(id)
@@ -110,5 +116,43 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     public void SetUseProjectNamingConventions(bool value)
     {
         UseProjectNamingConventions = value;
+    }
+
+    // ─── Cross-Config References ────────────────────────────────────────────
+
+    /// <summary>
+    /// Adds a reference to a resource belonging to another infrastructure configuration in the same project.
+    /// </summary>
+    /// <param name="targetConfigId">The target configuration that owns the resource.</param>
+    /// <param name="targetResourceId">The resource to reference.</param>
+    /// <returns>The created reference or an error if a duplicate exists.</returns>
+    public ErrorOr<CrossConfigResourceReference> AddCrossConfigReference(
+        InfrastructureConfigId targetConfigId,
+        AzureResourceId targetResourceId)
+    {
+        if (targetConfigId == Id)
+            return Domain.Common.Errors.Errors.InfrastructureConfig.CannotReferenceSameConfig();
+
+        if (_crossConfigReferences.Any(r => r.TargetResourceId == targetResourceId))
+            return Domain.Common.Errors.Errors.InfrastructureConfig.DuplicateCrossConfigReference(targetResourceId);
+
+        var reference = CrossConfigResourceReference.Create(Id, targetConfigId, targetResourceId);
+        _crossConfigReferences.Add(reference);
+        return reference;
+    }
+
+    /// <summary>
+    /// Removes a cross-configuration resource reference by its identifier.
+    /// </summary>
+    /// <param name="referenceId">The reference to remove.</param>
+    /// <returns><see cref="Result.Deleted"/> on success, or a not-found error.</returns>
+    public ErrorOr<Deleted> RemoveCrossConfigReference(CrossConfigResourceReferenceId referenceId)
+    {
+        var reference = _crossConfigReferences.FirstOrDefault(r => r.Id == referenceId);
+        if (reference is null)
+            return Domain.Common.Errors.Errors.InfrastructureConfig.CrossConfigReferenceNotFound(referenceId);
+
+        _crossConfigReferences.Remove(reference);
+        return Result.Deleted;
     }
 }

@@ -12,4 +12,5 @@ public record GetInfrastructureConfigResult(
     bool UseProjectNamingConventions,
     IReadOnlyList<ResourceNamingTemplateResult> ResourceNamingTemplates,
     int ResourceGroupCount = 0,
-    int ResourceCount = 0);
+    int ResourceCount = 0,
+    int CrossConfigReferenceCount = 0);

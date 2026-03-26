@@ -100,7 +100,8 @@ public sealed class BicepGenerationEngine
             request.Resources,
             request.NamingContext,
             request.RoleAssignments,
-            request.AppSettings);
+            request.AppSettings,
+            request.ExistingResourceReferences);
     }
 
     /// <summary>

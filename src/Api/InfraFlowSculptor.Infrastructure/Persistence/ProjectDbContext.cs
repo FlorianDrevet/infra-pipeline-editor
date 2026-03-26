@@ -90,6 +90,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<ServiceBusQueue> ServiceBusQueues { get; set; } = null!;
     public DbSet<ServiceBusTopicSubscription> ServiceBusTopicSubscriptions { get; set; } = null!;
     public DbSet<GitRepositoryConfiguration> GitRepositoryConfigurations { get; set; } = null!;
+    public DbSet<CrossConfigResourceReference> CrossConfigResourceReferences { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

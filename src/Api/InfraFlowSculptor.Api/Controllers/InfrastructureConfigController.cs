@@ -1,7 +1,10 @@
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddCrossConfigReference;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.DeleteInfraConfig;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveCrossConfigReference;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInheritance;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
+using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossConfigReferences;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupsByConfig;
 using MediatR;
@@ -159,6 +162,72 @@ public static class InfrastructureConfigController
                 .WithName("DeleteInfrastructureConfig")
                 .WithSummary("Delete an infrastructure configuration")
                 .WithDescription("Permanently deletes an infrastructure configuration. Requires Owner access on the parent project.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Cross-Config References ──────────────────────────────────────
+
+            // GET /{id:guid}/cross-config-references
+            config.MapGet("/{id:guid}/cross-config-references",
+                    async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListCrossConfigReferencesQuery(id);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            refs =>
+                            {
+                                var responses = refs.Select(r => mapper.Map<CrossConfigReferenceResponse>(r)).ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListCrossConfigReferences")
+                .WithSummary("List cross-config references")
+                .WithDescription("Returns all cross-configuration resource references for the specified infrastructure configuration, with resolved target metadata.")
+                .Produces<IReadOnlyList<CrossConfigReferenceResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // POST /{id:guid}/cross-config-references
+            config.MapPost("/{id:guid}/cross-config-references",
+                    async ([FromRoute] Guid id, AddCrossConfigReferenceRequest request, IMediator mediator) =>
+                    {
+                        var command = new AddCrossConfigReferenceCommand(id, Guid.Parse(request.TargetResourceId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            reference => Results.Created(
+                                $"/infra-config/{id}/cross-config-references/{reference.ReferenceId}",
+                                reference),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("AddCrossConfigReference")
+                .WithSummary("Add a cross-config resource reference")
+                .WithDescription("Adds a reference to an Azure resource from another infrastructure configuration within the same project. Used for Bicep 'existing' resource declarations.")
+                .Produces<CrossConfigReferenceResult>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // DELETE /{id:guid}/cross-config-references/{refId:guid}
+            config.MapDelete("/{id:guid}/cross-config-references/{refId:guid}",
+                    async ([FromRoute] Guid id, [FromRoute] Guid refId, IMediator mediator) =>
+                    {
+                        var command = new RemoveCrossConfigReferenceCommand(id, refId);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveCrossConfigReference")
+                .WithSummary("Remove a cross-config resource reference")
+                .WithDescription("Removes a cross-configuration resource reference from the infrastructure configuration.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);

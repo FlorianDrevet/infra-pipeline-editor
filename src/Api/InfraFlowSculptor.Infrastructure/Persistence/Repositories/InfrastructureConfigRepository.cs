@@ -18,6 +18,7 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     public async Task<InfrastructureConfig?> GetByIdWithMembersAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default)
     {
         return await Context.InfrastructureConfigs
+            .Include(c => c.CrossConfigReferences)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 

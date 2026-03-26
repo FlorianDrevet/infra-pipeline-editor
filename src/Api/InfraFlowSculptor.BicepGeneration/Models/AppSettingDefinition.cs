@@ -41,4 +41,10 @@ public sealed class AppSettingDefinition
 
     /// <summary>The name of the secret in the Key Vault.</summary>
     public string? SecretName { get; init; }
+
+    /// <summary>Whether the source resource belongs to a different (cross-config) configuration.</summary>
+    public bool IsSourceCrossConfig { get; init; }
+
+    /// <summary>Resource group name of the cross-config source resource.</summary>
+    public string? SourceResourceGroupName { get; init; }
 }

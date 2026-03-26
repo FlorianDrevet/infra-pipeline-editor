@@ -7,7 +7,8 @@ public record InfrastructureConfigReadModel(
     IReadOnlyList<EnvironmentDefinitionReadModel> Environments,
     NamingContextReadModel NamingContext,
     IReadOnlyList<RoleAssignmentReadModel> RoleAssignments,
-    IReadOnlyList<AppSettingReadModel> AppSettings);
+    IReadOnlyList<AppSettingReadModel> AppSettings,
+    IReadOnlyList<CrossConfigReferenceReadModel> CrossConfigReferences);
 
 public record ResourceGroupReadModel(
     Guid Id,
@@ -59,7 +60,8 @@ public record RoleAssignmentReadModel(
     string RoleDefinitionId,
     Guid? UserAssignedIdentityResourceId,
     string? UserAssignedIdentityName,
-    string? UserAssignedIdentityResourceGroupName);
+    string? UserAssignedIdentityResourceGroupName,
+    bool IsTargetCrossConfig = false);
 
 /// <summary>
 /// Read model for an app setting (environment variable) configured on a compute resource.
@@ -78,4 +80,20 @@ public record AppSettingReadModel(
     Guid? KeyVaultResourceId,
     string? KeyVaultResourceName,
     string? SecretName,
-    bool IsKeyVaultReference);
+    bool IsKeyVaultReference,
+    bool IsSourceCrossConfig = false,
+    string? SourceResourceGroupName = null);
+
+/// <summary>
+/// Read model for a cross-configuration resource reference used in Bicep generation.
+/// Contains resolved metadata about the target resource, resource group, and configuration.
+/// </summary>
+public record CrossConfigReferenceReadModel(
+    Guid ReferenceId,
+    Guid TargetConfigId,
+    string TargetConfigName,
+    Guid TargetResourceId,
+    string TargetResourceName,
+    string TargetResourceType,
+    string TargetResourceGroupName,
+    string TargetResourceAbbreviation);

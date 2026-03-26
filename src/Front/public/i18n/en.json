@@ -145,7 +145,8 @@
       "RESOURCE_GROUPS": "Resource groups",
       "ENVIRONMENTS": "Environments",
       "MEMBERS": "Members",
-      "NAMING_TEMPLATES": "Naming"
+      "NAMING_TEMPLATES": "Naming",
+      "CROSS_CONFIG_REFS": "Cross-config references"
     },
     "STATE": {
       "LOADING_TITLE": "Loading configuration",
@@ -520,6 +521,43 @@
       "RETRY": "Retry",
       "CLOSE": "Close",
       "NO_GIT_CONFIG": "Configure a Git repository on the project first."
+    },
+    "CROSS_CONFIG_REFS": {
+      "OVERLINE": "Cross-configuration dependencies",
+      "TITLE": "Cross-config references",
+      "DESCRIPTION": "Reference resources from other configurations in the same project to create cross-config dependencies (e.g., shared Log Analytics Workspace, common ACR).",
+      "EMPTY": "No cross-config references configured.",
+      "EMPTY_HINT": "Add a reference to use resources from other configurations in your Bicep files.",
+      "ADD": "Add reference",
+      "LOADING": "Loading references...",
+      "LOAD_ERROR": "Unable to load cross-config references.",
+      "TARGET_RESOURCE": "Target resource",
+      "ALIAS": "Bicep alias",
+      "SOURCE_CONFIG": "Source configuration",
+      "RESOURCE_GROUP": "Resource group",
+      "PURPOSE": "Purpose",
+      "DELETE": "Delete reference",
+      "DELETE_CONFIRM_TITLE": "Delete cross-config reference",
+      "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete the reference to \"{{name}}\" ({{alias}})? Generated Bicep files will no longer have access to this resource.",
+      "DELETE_CONFIRM_YES": "Delete",
+      "DELETE_CONFIRM_CANCEL": "Cancel",
+      "DELETE_ERROR": "Unable to delete the reference.",
+      "ADD_DIALOG_TITLE": "Add cross-config reference",
+      "ADD_DIALOG_STEP_SELECT": "Select resource",
+      "ADD_DIALOG_STEP_CONFIGURE": "Configure",
+      "ADD_DIALOG_SEARCH_PLACEHOLDER": "Search for a resource...",
+      "ADD_DIALOG_NO_RESOURCES": "No resources available in other configurations of this project.",
+      "ADD_DIALOG_CONFIG_GROUP": "Configuration: {{name}}",
+      "ADD_DIALOG_ALIAS_LABEL": "Alias",
+      "ADD_DIALOG_ALIAS_HINT": "Symbolic name used in generated Bicep files (e.g., coreLogAnalytics, sharedAcr).",
+      "ADD_DIALOG_PURPOSE_LABEL": "Purpose (optional)",
+      "ADD_DIALOG_PURPOSE_PLACEHOLDER": "e.g., Send Application Insights logs to shared Log Analytics workspace",
+      "ADD_DIALOG_CANCEL": "Cancel",
+      "ADD_DIALOG_BACK": "Back",
+      "ADD_DIALOG_NEXT": "Next",
+      "ADD_DIALOG_ADD": "Add",
+      "ADD_DIALOG_ERROR": "Unable to add the cross-config reference.",
+      "ADD_ERROR": "Error adding the cross-config reference."
     }
   },
   "PROJECT_DETAIL": {

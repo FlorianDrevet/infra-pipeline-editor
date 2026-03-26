@@ -131,6 +131,7 @@ public sealed class GenerateBicepCommandHandler(
                     TargetResourceAbbreviation = GetResourceAbbreviation(ra.TargetResourceType),
                     UserAssignedIdentityName = ra.UserAssignedIdentityName,
                     UserAssignedIdentityResourceGroupName = ra.UserAssignedIdentityResourceGroupName,
+                    IsTargetCrossConfig = ra.IsTargetCrossConfig,
                 };
             })
             .ToList();
@@ -162,6 +163,24 @@ public sealed class GenerateBicepCommandHandler(
                     IsKeyVaultReference = s.IsKeyVaultReference,
                     KeyVaultResourceName = s.KeyVaultResourceName,
                     SecretName = s.SecretName,
+                    IsSourceCrossConfig = s.IsSourceCrossConfig,
+                    SourceResourceGroupName = s.SourceResourceGroupName,
+                };
+            })
+            .ToList();
+
+        var existingResourceReferences = config.CrossConfigReferences
+            .Select(ccRef =>
+            {
+                var targetTypeName = GetResourceTypeName(ccRef.TargetResourceType);
+                return new ExistingResourceReference
+                {
+                    ResourceName = ccRef.TargetResourceName,
+                    ResourceTypeName = targetTypeName,
+                    ResourceType = ccRef.TargetResourceType,
+                    ResourceGroupName = ccRef.TargetResourceGroupName,
+                    ResourceAbbreviation = ccRef.TargetResourceAbbreviation,
+                    SourceConfigName = ccRef.TargetConfigName,
                 };
             })
             .ToList();
@@ -175,6 +194,7 @@ public sealed class GenerateBicepCommandHandler(
             NamingContext = namingContext,
             RoleAssignments = roleAssignments,
             AppSettings = appSettingDefinitions,
+            ExistingResourceReferences = existingResourceReferences,
         };
 
         var result = bicepGenerationEngine.Generate(generationRequest);

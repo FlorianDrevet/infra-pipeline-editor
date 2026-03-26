@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
@@ -9,6 +10,7 @@ using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
+using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
@@ -117,5 +119,14 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
         foreach (var item in appInsights) result[item.ChildId] = item.ParentId;
 
         return result;
+    }
+
+    public async Task<ResourceGroup?> GetByResourceIdAsync(
+        AzureResourceId resourceId,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<ResourceGroup>()
+            .Include(rg => rg.Resources)
+            .FirstOrDefaultAsync(rg => rg.Resources.Any(r => r.Id == resourceId), cancellationToken);
     }
 }
