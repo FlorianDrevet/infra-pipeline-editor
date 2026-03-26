@@ -239,10 +239,8 @@ public static class BicepAssembler
         foreach (var env in environments)
         {
             var key = SanitizeBicepKey(env.Name);
-            var shortSuffix = env.Suffix;
-            var envSuffix = string.IsNullOrEmpty(shortSuffix) ? "" : $"-{shortSuffix}";
-            var shortPrefix = env.Prefix;
-            var envPrefix = string.IsNullOrEmpty(shortPrefix) ? "" : $"{shortPrefix}-";
+            var envSuffix = env.Suffix ?? string.Empty;
+            var envPrefix = env.Prefix ?? string.Empty;
 
             sb.AppendLine($"  {key}: {{");
             sb.AppendLine($"    envName: '{env.Name}'");

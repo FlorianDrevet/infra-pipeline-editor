@@ -56,13 +56,21 @@ public sealed class GitHubGitProviderService : IGitProviderService
                 // Target branch does not exist yet — use the base branch SHA
             }
 
-            // 3. Create blobs for each file
+            // 3. Determine the target directory prefix for cleanup
+            var targetPrefix = string.IsNullOrEmpty(request.BasePath) ? "" : $"{request.BasePath}/";
+
+            // 4. List existing files in the target directory on the parent commit
+            //    so we can delete files that are no longer generated.
+            var newFilePaths = new HashSet<string>(StringComparer.Ordinal);
             var treeItems = new List<NewTreeItem>();
+
             foreach (var (relativePath, content) in request.Files)
             {
                 var blobPath = string.IsNullOrEmpty(request.BasePath)
                     ? relativePath
                     : $"{request.BasePath}/{relativePath}";
+
+                newFilePaths.Add(blobPath);
 
                 treeItems.Add(new NewTreeItem
                 {
@@ -73,18 +81,44 @@ public sealed class GitHubGitProviderService : IGitProviderService
                 });
             }
 
-            // 4. Create tree based on the parent commit (target branch tip or base branch)
+            // 5. Get recursive tree of the parent commit to find stale files to delete
+            var parentCommit = await client.Git.Commit.Get(request.Owner, request.RepositoryName, parentSha);
+            var existingTree = await client.Git.Tree.GetRecursive(
+                request.Owner, request.RepositoryName, parentCommit.Tree.Sha);
+
+            foreach (var item in existingTree.Tree)
+            {
+                if (item.Type != TreeType.Blob)
+                    continue;
+
+                var isInTargetDir = string.IsNullOrEmpty(targetPrefix)
+                    || item.Path.StartsWith(targetPrefix, StringComparison.Ordinal);
+
+                if (isInTargetDir && !newFilePaths.Contains(item.Path))
+                {
+                    // Mark file for deletion by setting sha to null
+                    treeItems.Add(new NewTreeItem
+                    {
+                        Path = item.Path,
+                        Mode = "100644",
+                        Type = TreeType.Blob,
+                        Sha = null,
+                    });
+                }
+            }
+
+            // 6. Create tree based on the parent commit (target branch tip or base branch)
             var newTree = new NewTree { BaseTree = parentSha };
             foreach (var item in treeItems)
                 newTree.Tree.Add(item);
 
             var tree = await client.Git.Tree.Create(request.Owner, request.RepositoryName, newTree);
 
-            // 5. Create commit whose parent is the correct branch tip
+            // 7. Create commit whose parent is the correct branch tip
             var newCommit = new NewCommit(request.CommitMessage, tree.Sha, parentSha);
             var commit = await client.Git.Commit.Create(request.Owner, request.RepositoryName, newCommit);
 
-            // 6. Create or update branch reference
+            // 8. Create or update branch reference
             string branchRef = $"refs/heads/{request.TargetBranchName}";
             if (targetBranchExists)
             {

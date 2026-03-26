@@ -74,23 +74,47 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
 
             // When target branch exists, determine which files already exist on it
             // so we can use "edit" changeType instead of "add" for existing files.
+            // Also list ALL files in the target directory to delete stale ones.
             var existingFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if (targetSha is not null)
-            {
-                foreach (var (relativePath, _) in request.Files)
-                {
-                    var filePath = string.IsNullOrEmpty(request.BasePath)
-                        ? relativePath
-                        : $"{request.BasePath}/{relativePath}";
+            var allExistingFilesInTargetDir = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var branchToInspect = targetSha is not null ? request.TargetBranchName : request.BaseBranch;
+            var targetDirPath = string.IsNullOrEmpty(request.BasePath) ? "/" : $"/{request.BasePath}";
 
-                    var itemUrl = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}/items?path=/{filePath}&versionDescriptor.version={request.TargetBranchName}&api-version={ApiVersion}";
-                    var itemResponse = await client.GetAsync(itemUrl, cancellationToken);
-                    if (itemResponse.IsSuccessStatusCode)
-                        existingFilePaths.Add(filePath);
+            // List all existing files in the target directory recursively
+            {
+                var itemsUrl = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}/items?scopePath={targetDirPath}&recursionLevel=full&versionDescriptor.version={branchToInspect}&api-version={ApiVersion}";
+                var itemsResponse = await client.GetAsync(itemsUrl, cancellationToken);
+                if (itemsResponse.IsSuccessStatusCode)
+                {
+                    var itemsList = await itemsResponse.Content.ReadFromJsonAsync<AdoItemList>(cancellationToken: cancellationToken);
+                    if (itemsList?.Value is not null)
+                    {
+                        foreach (var item in itemsList.Value)
+                        {
+                            if (item is { IsFolder: false, Path: not null })
+                            {
+                                // Remove leading '/' for consistent comparison
+                                var normalizedPath = item.Path.TrimStart('/');
+                                allExistingFilesInTargetDir.Add(normalizedPath);
+                            }
+                        }
+                    }
                 }
             }
 
+            // Determine which new files already exist (for edit vs add)
+            foreach (var (relativePath, _) in request.Files)
+            {
+                var filePath = string.IsNullOrEmpty(request.BasePath)
+                    ? relativePath
+                    : $"{request.BasePath}/{relativePath}";
+
+                if (allExistingFilesInTargetDir.Contains(filePath))
+                    existingFilePaths.Add(filePath);
+            }
+
             // 3. Build the push payload
+            var newFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var changes = new List<object>();
             foreach (var (relativePath, content) in request.Files)
             {
@@ -98,6 +122,7 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
                     ? relativePath
                     : $"{request.BasePath}/{relativePath}";
 
+                newFilePaths.Add(filePath);
                 var changeType = existingFilePaths.Contains(filePath) ? "edit" : "add";
 
                 changes.Add(new
@@ -106,6 +131,19 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
                     item = new { path = $"/{filePath}" },
                     newContent = new { content, contentType = "rawtext" },
                 });
+            }
+
+            // 4. Delete stale files that exist in the target directory but are not in the new generation
+            foreach (var existingFile in allExistingFilesInTargetDir)
+            {
+                if (!newFilePaths.Contains(existingFile))
+                {
+                    changes.Add(new
+                    {
+                        changeType = "delete",
+                        item = new { path = $"/{existingFile}" },
+                    });
+                }
             }
 
             var refUpdates = new List<object>();
@@ -241,5 +279,20 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
     {
         [JsonPropertyName("commitId")]
         public string? CommitId { get; set; }
+    }
+
+    private sealed class AdoItemList
+    {
+        [JsonPropertyName("value")]
+        public List<AdoItem>? Value { get; set; }
+    }
+
+    private sealed class AdoItem
+    {
+        [JsonPropertyName("path")]
+        public string? Path { get; set; }
+
+        [JsonPropertyName("isFolder")]
+        public bool IsFolder { get; set; }
     }
 }
