@@ -78,10 +78,14 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
             var existingFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var allExistingFilesInTargetDir = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var branchToInspect = targetSha is not null ? request.TargetBranchName : request.BaseBranch;
-            var targetDirPath = string.IsNullOrEmpty(request.BasePath) ? "/" : $"/{request.BasePath}";
+            var hasBasePath = !string.IsNullOrEmpty(request.BasePath);
 
-            // List all existing files in the target directory recursively
+            // List all existing files in the target directory recursively.
+            // Only do this when a BasePath is configured; without BasePath the
+            // scope would be the entire repo and we'd delete unrelated files.
+            if (hasBasePath)
             {
+                var targetDirPath = $"/{request.BasePath}";
                 var itemsUrl = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}/items?scopePath={targetDirPath}&recursionLevel=full&versionDescriptor.version={branchToInspect}&api-version={ApiVersion}";
                 var itemsResponse = await client.GetAsync(itemsUrl, cancellationToken);
                 if (itemsResponse.IsSuccessStatusCode)
@@ -101,13 +105,24 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
                     }
                 }
             }
+            else if (targetSha is not null)
+            {
+                // No BasePath — check file-by-file for edit vs add
+                foreach (var (relativePath, _) in request.Files)
+                {
+                    var itemUrl = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}/items?path=/{relativePath}&versionDescriptor.version={branchToInspect}&api-version={ApiVersion}";
+                    var itemResponse = await client.GetAsync(itemUrl, cancellationToken);
+                    if (itemResponse.IsSuccessStatusCode)
+                        allExistingFilesInTargetDir.Add(relativePath);
+                }
+            }
 
             // Determine which new files already exist (for edit vs add)
             foreach (var (relativePath, _) in request.Files)
             {
-                var filePath = string.IsNullOrEmpty(request.BasePath)
-                    ? relativePath
-                    : $"{request.BasePath}/{relativePath}";
+                var filePath = hasBasePath
+                    ? $"{request.BasePath}/{relativePath}"
+                    : relativePath;
 
                 if (allExistingFilesInTargetDir.Contains(filePath))
                     existingFilePaths.Add(filePath);
@@ -133,16 +148,20 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
                 });
             }
 
-            // 4. Delete stale files that exist in the target directory but are not in the new generation
-            foreach (var existingFile in allExistingFilesInTargetDir)
+            // 4. Delete stale files that exist in the target directory but are not in the new generation.
+            //    Only when a BasePath is configured — without it we cannot safely determine the scope.
+            if (hasBasePath)
             {
-                if (!newFilePaths.Contains(existingFile))
+                foreach (var existingFile in allExistingFilesInTargetDir)
                 {
-                    changes.Add(new
+                    if (!newFilePaths.Contains(existingFile))
                     {
-                        changeType = "delete",
-                        item = new { path = $"/{existingFile}" },
-                    });
+                        changes.Add(new
+                        {
+                            changeType = "delete",
+                            item = new { path = $"/{existingFile}" },
+                        });
+                    }
                 }
             }
 

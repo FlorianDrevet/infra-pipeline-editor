@@ -83,32 +83,37 @@ public sealed class GitHubGitProviderService : IGitProviderService
 
             // 5. Get recursive tree of the parent commit to find stale files to delete
             var parentCommit = await client.Git.Commit.Get(request.Owner, request.RepositoryName, parentSha);
-            var existingTree = await client.Git.Tree.GetRecursive(
-                request.Owner, request.RepositoryName, parentCommit.Tree.Sha);
+            var parentTreeSha = parentCommit.Tree.Sha;
 
-            foreach (var item in existingTree.Tree)
+            // Only clean up stale files when a BasePath is configured,
+            // otherwise we'd delete every other file in the repository.
+            if (!string.IsNullOrEmpty(targetPrefix))
             {
-                if (item.Type != TreeType.Blob)
-                    continue;
+                var existingTree = await client.Git.Tree.GetRecursive(
+                    request.Owner, request.RepositoryName, parentTreeSha);
 
-                var isInTargetDir = string.IsNullOrEmpty(targetPrefix)
-                    || item.Path.StartsWith(targetPrefix, StringComparison.Ordinal);
-
-                if (isInTargetDir && !newFilePaths.Contains(item.Path))
+                foreach (var item in existingTree.Tree)
                 {
-                    // Mark file for deletion by setting sha to null
-                    treeItems.Add(new NewTreeItem
+                    if (item.Type != TreeType.Blob)
+                        continue;
+
+                    if (item.Path.StartsWith(targetPrefix, StringComparison.Ordinal)
+                        && !newFilePaths.Contains(item.Path))
                     {
-                        Path = item.Path,
-                        Mode = "100644",
-                        Type = TreeType.Blob,
-                        Sha = null,
-                    });
+                        // Mark file for deletion by setting sha to null
+                        treeItems.Add(new NewTreeItem
+                        {
+                            Path = item.Path,
+                            Mode = "100644",
+                            Type = TreeType.Blob,
+                            Sha = null,
+                        });
+                    }
                 }
             }
 
-            // 6. Create tree based on the parent commit (target branch tip or base branch)
-            var newTree = new NewTree { BaseTree = parentSha };
+            // 6. Create tree based on the parent commit tree
+            var newTree = new NewTree { BaseTree = parentTreeSha };
             foreach (var item in treeItems)
                 newTree.Tree.Add(item);
 
