@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -105,6 +106,7 @@ interface BicepModuleFolder {
 export class ConfigDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly keyVaultService = inject(KeyVaultService);
@@ -284,6 +286,35 @@ export class ConfigDetailComponent implements OnInit {
       return;
     }
     await this.loadConfig(id);
+
+    // React to route param changes (e.g. cross-config navigation)
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async (params) => {
+      const newId = params.get('id');
+      if (newId && newId !== this.config()?.id) {
+        this.resetState();
+        await this.loadConfig(newId);
+      }
+    });
+  }
+
+  private resetState(): void {
+    this.config.set(null);
+    this.project.set(null);
+    this.resourceGroups.set([]);
+    this.expandedRgId.set(null);
+    this.rgResources.set({});
+    this.expandedParentResources.set(new Set<string>());
+    this.crossConfigReferences.set([]);
+    this.incomingCrossConfigReferences.set([]);
+    this.crossConfigLoaded.set(false);
+    this.crossConfigErrorKey.set('');
+    this.bicepResult.set(null);
+    this.bicepPanelOpen.set(false);
+    this.bicepViewerFile.set(null);
+    this.bicepViewerContent.set(null);
+    this.storageAccountDetails.set({});
+    this.previewEnvId.set(null);
+    this.loadError.set('');
   }
 
   private async loadConfig(id: string): Promise<void> {

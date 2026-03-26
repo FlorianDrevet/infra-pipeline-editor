@@ -32,6 +32,7 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
         CancellationToken cancellationToken = default)
     {
         return await Context.Set<ResourceGroup>()
+            .Include(r => r.Resources)
             .Where(r => r.InfraConfigId == infraConfigId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
