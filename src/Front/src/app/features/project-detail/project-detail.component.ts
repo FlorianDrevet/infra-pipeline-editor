@@ -43,6 +43,7 @@ import { RESOURCE_TYPE_OPTIONS } from '../config-detail/enums/resource-type.enum
 import { TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { FormsModule } from '@angular/forms';
+import { BicepHighlightPipe } from '../config-detail/pipes/bicep-highlight.pipe';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
@@ -55,6 +56,7 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     TranslateModule,
     RouterLink,
     FormsModule,
+    BicepHighlightPipe,
     MatButtonModule,
     MatButtonToggleModule,
     MatDialogModule,
@@ -113,6 +115,11 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectBicepErrorKey = signal('');
   protected readonly projectBicepPanelOpen = signal(false);
   protected readonly projectBicepExpandedFolders = signal<Set<string>>(new Set());
+
+  protected readonly projectBicepPanelCollapsed = signal(false);
+  protected readonly projectBicepViewerFile = signal<string | null>(null);
+  protected readonly projectBicepViewerContent = signal<string | null>(null);
+  protected readonly projectBicepViewerLoading = signal(false);
 
   protected readonly commonFileEntries = computed(() => {
     const result = this.projectBicepResult();
@@ -599,6 +606,8 @@ export class ProjectDetailComponent implements OnInit {
     this.projectBicepPanelOpen.set(false);
     this.projectBicepResult.set(null);
     this.projectBicepErrorKey.set('');
+    this.projectBicepViewerFile.set(null);
+    this.projectBicepViewerContent.set(null);
   }
 
   protected toggleProjectBicepFolder(folder: string): void {
@@ -615,6 +624,32 @@ export class ProjectDetailComponent implements OnInit {
 
   protected isProjectBicepFolderExpanded(folder: string): boolean {
     return this.projectBicepExpandedFolders().has(folder);
+  }
+
+  protected async selectProjectBicepFile(fileKey: string, fileUri: string): Promise<void> {
+    if (this.projectBicepViewerLoading()) return;
+    if (this.projectBicepViewerFile() === fileKey) {
+      this.projectBicepViewerFile.set(null);
+      this.projectBicepViewerContent.set(null);
+      return;
+    }
+    this.projectBicepViewerFile.set(fileKey);
+    this.projectBicepViewerContent.set(null);
+    this.projectBicepViewerLoading.set(true);
+    try {
+      const response = await fetch(fileUri);
+      const text = await response.text();
+      this.projectBicepViewerContent.set(text);
+    } catch {
+      this.projectBicepViewerContent.set(null);
+    } finally {
+      this.projectBicepViewerLoading.set(false);
+    }
+  }
+
+  protected closeProjectBicepViewer(): void {
+    this.projectBicepViewerFile.set(null);
+    this.projectBicepViewerContent.set(null);
   }
 
   protected openProjectPushToGitDialog(): void {

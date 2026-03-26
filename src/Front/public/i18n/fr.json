@@ -588,10 +588,19 @@
       "GENERATE": "Generer Bicep",
       "PUSH_TO_GIT": "Pousser sur Git",
       "PANEL_TITLE": "Generation Bicep du projet",
+      "PANEL_GENERATING": "Generation des fichiers Bicep...",
+      "PANEL_SUCCESS": "Fichiers Bicep generes avec succes",
+      "PANEL_ERROR": "Echec de la generation",
       "GENERATING": "Generation des fichiers Bicep pour toutes les configurations...",
+      "TERMINAL_GENERATING": "az bicep build --project toutes-les-configurations",
+      "TERMINAL_DONE": "Generation terminee \u2014 artefacts disponibles",
+      "ARTIFACTS": "sortie",
       "GENERATE_ERROR": "Impossible de generer les fichiers Bicep pour le projet.",
       "RETRY": "Reessayer",
-      "SHARED": "Partage"
+      "SHARED": "Partage",
+      "FILE_LOADING": "Chargement du contenu du fichier...",
+      "FILE_ERROR": "Impossible de charger le contenu du fichier.",
+      "CLOSE": "Fermer le panneau"
     },
     "STATE": {
       "LOADING_TITLE": "Chargement du projet",

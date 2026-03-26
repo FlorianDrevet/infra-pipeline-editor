@@ -75,84 +75,209 @@
 
           <!-- Project Bicep Panel (mono-repo) -->
           @if (projectBicepPanelOpen()) {
-            <div class="bicep-panel" @slideIn>
-              <div class="bicep-panel__header">
-                <span class="bicep-panel__title">
-                  <mat-icon class="bicep-panel__title-icon">terminal</mat-icon>
-                  {{ 'PROJECT_DETAIL.BICEP.PANEL_TITLE' | translate }}
-                </span>
-                <button class="bicep-panel__close" (click)="closeProjectBicepPanel()">
-                  <mat-icon>close</mat-icon>
-                </button>
-              </div>
-              <div class="bicep-panel__body">
-                @if (projectBicepLoading()) {
-                  <div class="bicep-panel__loading">
-                    <mat-spinner diameter="24"></mat-spinner>
-                    <span>{{ 'PROJECT_DETAIL.BICEP.GENERATING' | translate }}</span>
-                  </div>
-                } @else if (projectBicepErrorKey()) {
-                  <div class="bicep-panel__error">
-                    <mat-icon>error_outline</mat-icon>
-                    <span>{{ projectBicepErrorKey() | translate }}</span>
-                    <button class="bicep-panel__retry" (click)="generateProjectBicep()">
-                      {{ 'PROJECT_DETAIL.BICEP.RETRY' | translate }}
-                    </button>
-                  </div>
-                } @else if (projectBicepResult()) {
-                  <div class="bicep-tree">
-                    <!-- Common folder -->
-                    @if (commonFileEntries().length > 0) {
-                      <div class="bicep-tree__folder">
-                        <button class="bicep-tree__folder-btn" (click)="toggleProjectBicepFolder('Common')">
-                          <mat-icon class="bicep-tree__chevron" [class.bicep-tree__chevron--open]="isProjectBicepFolderExpanded('Common')">
-                            chevron_right
-                          </mat-icon>
-                          <mat-icon class="bicep-tree__folder-icon">folder_shared</mat-icon>
-                          <span class="bicep-tree__folder-name">Common/</span>
-                          <span class="bicep-tree__folder-badge bicep-tree__folder-badge--common">{{ 'PROJECT_DETAIL.BICEP.SHARED' | translate }}</span>
-                        </button>
-                        @if (isProjectBicepFolderExpanded('Common')) {
-                          <div class="bicep-tree__children">
-                            @for (entry of commonFileEntries(); track entry.key) {
-                              <a class="bicep-tree__file" [href]="entry.value" target="_blank" rel="noopener">
-                                <mat-icon class="bicep-tree__file-icon">description</mat-icon>
-                                <span>{{ entry.key }}</span>
-                                <mat-icon class="bicep-tree__open-icon">open_in_new</mat-icon>
-                              </a>
-                            }
-                          </div>
-                        }
-                      </div>
+            <section class="bicep-panel" [class.bicep-panel--success]="projectBicepResult()" [class.bicep-panel--error]="projectBicepErrorKey()">
+              <div class="bicep-panel__header" (click)="projectBicepPanelCollapsed.set(!projectBicepPanelCollapsed())">
+                <div class="bicep-panel__title-row">
+                  <mat-icon class="bicep-panel__chevron" [class.bicep-panel__chevron--open]="!projectBicepPanelCollapsed()">chevron_right</mat-icon>
+                  <mat-icon class="bicep-panel__title-icon">
+                    @if (projectBicepLoading()) { hourglass_top }
+                    @else if (projectBicepResult()) { check_circle }
+                    @else { error_outline }
+                  </mat-icon>
+                  <h2 class="bicep-panel__title">
+                    @if (projectBicepLoading()) {
+                      {{ 'PROJECT_DETAIL.BICEP.PANEL_GENERATING' | translate }}
+                    } @else if (projectBicepResult()) {
+                      {{ 'PROJECT_DETAIL.BICEP.PANEL_SUCCESS' | translate }}
+                    } @else {
+                      {{ 'PROJECT_DETAIL.BICEP.PANEL_ERROR' | translate }}
                     }
+                  </h2>
+                </div>
+                <div class="bicep-panel__actions" (click)="$event.stopPropagation()">
+                  <button class="bicep-panel__close" (click)="closeProjectBicepPanel()" [matTooltip]="'PROJECT_DETAIL.BICEP.CLOSE' | translate">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
 
-                    <!-- Per-config folders -->
-                    @for (folder of configFolders(); track folder.configName) {
-                      <div class="bicep-tree__folder">
-                        <button class="bicep-tree__folder-btn" (click)="toggleProjectBicepFolder(folder.configName)">
-                          <mat-icon class="bicep-tree__chevron" [class.bicep-tree__chevron--open]="isProjectBicepFolderExpanded(folder.configName)">
-                            chevron_right
-                          </mat-icon>
-                          <mat-icon class="bicep-tree__folder-icon">folder</mat-icon>
-                          <span class="bicep-tree__folder-name">{{ folder.configName }}/</span>
-                        </button>
-                        @if (isProjectBicepFolderExpanded(folder.configName)) {
-                          <div class="bicep-tree__children">
-                            @for (fileEntry of folder.files; track fileEntry.key) {
-                              <a class="bicep-tree__file" [href]="fileEntry.value" target="_blank" rel="noopener">
-                                <mat-icon class="bicep-tree__file-icon">description</mat-icon>
-                                <span>{{ fileEntry.key }}</span>
-                                <mat-icon class="bicep-tree__open-icon">open_in_new</mat-icon>
-                              </a>
+              @if (!projectBicepPanelCollapsed()) {
+                <div class="bicep-panel__body">
+
+                  @if (projectBicepLoading()) {
+                    <div class="bicep-panel__loading">
+                      <div class="bicep-terminal">
+                        <div class="bicep-terminal__bar">
+                          <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                          <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                          <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                          <span class="bicep-terminal__bar-title">bicep-generator</span>
+                        </div>
+                        <div class="bicep-terminal__body">
+                          <p class="bicep-terminal__line bicep-terminal__line--active">
+                            <span class="bicep-terminal__prompt">$</span>
+                            {{ 'PROJECT_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}
+                            <span class="bicep-terminal__cursor"></span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
+                  @if (projectBicepErrorKey()) {
+                    <div class="bicep-panel__error-body">
+                      <p>{{ projectBicepErrorKey() | translate }}</p>
+                      <button class="bicep-retry-btn" (click)="generateProjectBicep()">
+                        <mat-icon>refresh</mat-icon>
+                        {{ 'PROJECT_DETAIL.BICEP.RETRY' | translate }}
+                      </button>
+                    </div>
+                  }
+
+                  @if (projectBicepResult()) {
+                    <div class="bicep-terminal">
+                      <div class="bicep-terminal__bar">
+                        <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                        <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                        <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                        <span class="bicep-terminal__bar-title">bicep-generator &mdash; {{ 'PROJECT_DETAIL.BICEP.ARTIFACTS' | translate }}</span>
+                      </div>
+                      <div class="bicep-terminal__body">
+                        <p class="bicep-terminal__line">
+                          <span class="bicep-terminal__prompt">$</span>
+                          {{ 'PROJECT_DETAIL.BICEP.TERMINAL_DONE' | translate }}
+                        </p>
+                        <div class="bicep-tree">
+                          <!-- Common folder -->
+                          @if (commonFileEntries().length > 0) {
+                            <button class="bicep-tree__folder" (click)="toggleProjectBicepFolder('Common')">
+                              <mat-icon class="bicep-tree__folder-chevron" [class.bicep-tree__folder-chevron--open]="isProjectBicepFolderExpanded('Common')">chevron_right</mat-icon>
+                              <mat-icon class="bicep-tree__folder-icon">{{ isProjectBicepFolderExpanded('Common') ? 'folder_open' : 'folder_shared' }}</mat-icon>
+                              <span>Common/</span>
+                              <span class="bicep-tree__badge bicep-tree__badge--types">{{ 'PROJECT_DETAIL.BICEP.SHARED' | translate }}</span>
+                            </button>
+                            @if (isProjectBicepFolderExpanded('Common')) {
+                              <div class="bicep-tree__folder-children">
+                                @for (entry of commonFileEntries(); track entry.key) {
+                                  @if (entry.key === 'types.bicep') {
+                                    <button class="bicep-tree__item bicep-tree__item--submodule"
+                                            [class.bicep-tree__item--active]="projectBicepViewerFile() === 'Common/' + entry.key"
+                                            (click)="selectProjectBicepFile('Common/' + entry.key, entry.value)">
+                                      <mat-icon class="bicep-tree__icon">data_object</mat-icon>
+                                      <span class="bicep-tree__name">{{ entry.key }}</span>
+                                      <span class="bicep-tree__badge bicep-tree__badge--types">{{ 'CONFIG_DETAIL.BICEP.TYPES' | translate }}</span>
+                                    </button>
+                                  } @else if (entry.key === 'functions.bicep') {
+                                    <button class="bicep-tree__item bicep-tree__item--submodule"
+                                            [class.bicep-tree__item--active]="projectBicepViewerFile() === 'Common/' + entry.key"
+                                            (click)="selectProjectBicepFile('Common/' + entry.key, entry.value)">
+                                      <mat-icon class="bicep-tree__icon">functions</mat-icon>
+                                      <span class="bicep-tree__name">{{ entry.key }}</span>
+                                      <span class="bicep-tree__badge bicep-tree__badge--functions">{{ 'CONFIG_DETAIL.BICEP.FUNCTIONS' | translate }}</span>
+                                    </button>
+                                  } @else if (entry.key === 'constants.bicep') {
+                                    <button class="bicep-tree__item bicep-tree__item--submodule"
+                                            [class.bicep-tree__item--active]="projectBicepViewerFile() === 'Common/' + entry.key"
+                                            (click)="selectProjectBicepFile('Common/' + entry.key, entry.value)">
+                                      <mat-icon class="bicep-tree__icon">shield</mat-icon>
+                                      <span class="bicep-tree__name">{{ entry.key }}</span>
+                                      <span class="bicep-tree__badge bicep-tree__badge--constants">{{ 'CONFIG_DETAIL.BICEP.CONSTANTS' | translate }}</span>
+                                    </button>
+                                  } @else {
+                                    <button class="bicep-tree__item bicep-tree__item--submodule"
+                                            [class.bicep-tree__item--active]="projectBicepViewerFile() === 'Common/' + entry.key"
+                                            (click)="selectProjectBicepFile('Common/' + entry.key, entry.value)">
+                                      <mat-icon class="bicep-tree__icon">description</mat-icon>
+                                      <span class="bicep-tree__name">{{ entry.key }}</span>
+                                    </button>
+                                  }
+                                }
+                              </div>
                             }
-                          </div>
-                        }
+                          }
+
+                          <!-- Per-config folders -->
+                          @for (folder of configFolders(); track folder.configName) {
+                            <button class="bicep-tree__folder" (click)="toggleProjectBicepFolder(folder.configName)">
+                              <mat-icon class="bicep-tree__folder-chevron" [class.bicep-tree__folder-chevron--open]="isProjectBicepFolderExpanded(folder.configName)">chevron_right</mat-icon>
+                              <mat-icon class="bicep-tree__folder-icon">{{ isProjectBicepFolderExpanded(folder.configName) ? 'folder_open' : 'folder' }}</mat-icon>
+                              <span>{{ folder.configName }}/</span>
+                            </button>
+                            @if (isProjectBicepFolderExpanded(folder.configName)) {
+                              <div class="bicep-tree__folder-children">
+                                @for (fileEntry of folder.files; track fileEntry.key) {
+                                  @if (fileEntry.key === 'main.bicep') {
+                                    <button class="bicep-tree__item bicep-tree__item--submodule"
+                                            [class.bicep-tree__item--active]="projectBicepViewerFile() === folder.configName + '/' + fileEntry.key"
+                                            (click)="selectProjectBicepFile(folder.configName + '/' + fileEntry.key, fileEntry.value)">
+                                      <mat-icon class="bicep-tree__icon">description</mat-icon>
+                                      <span class="bicep-tree__name">{{ fileEntry.key }}</span>
+                                      <span class="bicep-tree__badge">{{ 'CONFIG_DETAIL.BICEP.ENTRY_POINT' | translate }}</span>
+                                    </button>
+                                  } @else if (fileEntry.key.endsWith('.bicepparam')) {
+                                    <button class="bicep-tree__item bicep-tree__item--submodule"
+                                            [class.bicep-tree__item--active]="projectBicepViewerFile() === folder.configName + '/' + fileEntry.key"
+                                            (click)="selectProjectBicepFile(folder.configName + '/' + fileEntry.key, fileEntry.value)">
+                                      <mat-icon class="bicep-tree__icon">tune</mat-icon>
+                                      <span class="bicep-tree__name">{{ fileEntry.key.split('/').at(-1) }}</span>
+                                      <span class="bicep-tree__badge bicep-tree__badge--params">{{ 'CONFIG_DETAIL.BICEP.PARAMETERS' | translate }}</span>
+                                    </button>
+                                  } @else if (fileEntry.key.endsWith('.roleassignments.module.bicep')) {
+                                    <button class="bicep-tree__item bicep-tree__item--submodule"
+                                            [class.bicep-tree__item--active]="projectBicepViewerFile() === folder.configName + '/' + fileEntry.key"
+                                            (click)="selectProjectBicepFile(folder.configName + '/' + fileEntry.key, fileEntry.value)">
+                                      <mat-icon class="bicep-tree__icon">shield</mat-icon>
+                                      <span class="bicep-tree__name">{{ fileEntry.key.split('/').at(-1) }}</span>
+                                      <span class="bicep-tree__badge bicep-tree__badge--constants">{{ 'CONFIG_DETAIL.BICEP.CONSTANTS' | translate }}</span>
+                                    </button>
+                                  } @else {
+                                    <button class="bicep-tree__item bicep-tree__item--submodule"
+                                            [class.bicep-tree__item--active]="projectBicepViewerFile() === folder.configName + '/' + fileEntry.key"
+                                            (click)="selectProjectBicepFile(folder.configName + '/' + fileEntry.key, fileEntry.value)">
+                                      <mat-icon class="bicep-tree__icon">memory</mat-icon>
+                                      <span class="bicep-tree__name">{{ fileEntry.key.split('/').at(-1) }}</span>
+                                    </button>
+                                  }
+                                }
+                              </div>
+                            }
+                          }
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- File Content Viewer -->
+                    @if (projectBicepViewerFile()) {
+                      <div class="bicep-viewer">
+                        <div class="bicep-viewer__bar">
+                          <span class="bicep-viewer__dot bicep-viewer__dot--red"></span>
+                          <span class="bicep-viewer__dot bicep-viewer__dot--yellow"></span>
+                          <span class="bicep-viewer__dot bicep-viewer__dot--green"></span>
+                          <span class="bicep-viewer__bar-title">{{ projectBicepViewerFile() }}</span>
+                          <button class="bicep-viewer__close" (click)="closeProjectBicepViewer()">
+                            <mat-icon>close</mat-icon>
+                          </button>
+                        </div>
+                        <div class="bicep-viewer__body">
+                          @if (projectBicepViewerLoading()) {
+                            <div class="bicep-viewer__loading">
+                              <span class="bicep-terminal__prompt">$</span>
+                              <span class="bicep-viewer__loading-text">{{ 'PROJECT_DETAIL.BICEP.FILE_LOADING' | translate }}</span>
+                              <span class="bicep-terminal__cursor"></span>
+                            </div>
+                          } @else if (projectBicepViewerContent()) {
+                            <pre class="bicep-viewer__code"><code [innerHTML]="projectBicepViewerContent() | bicepHighlight"></code></pre>
+                          } @else {
+                            <p class="bicep-viewer__error">{{ 'PROJECT_DETAIL.BICEP.FILE_ERROR' | translate }}</p>
+                          }
+                        </div>
                       </div>
                     }
-                  </div>
-                }
-              </div>
-            </div>
+                  }
+
+                </div>
+              }
+            </section>
           }
 
           @if (configs().length > 0) {
