@@ -43,6 +43,7 @@ export interface ValidateRecentItemsRequest {
 export interface CreateProjectRequest {
   name: string;
   description?: string;
+  repositoryMode?: string;
 }
 
 export interface AddProjectMemberRequest {

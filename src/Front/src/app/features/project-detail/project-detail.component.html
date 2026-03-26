@@ -43,33 +43,6 @@
         </ng-template>
         <div class="tab-content">
           <div class="tab-content__toolbar">
-            <!-- Repository Mode Toggle -->
-            @if (canWrite()) {
-              <mat-button-toggle-group
-                class="repo-mode-toggle"
-                [value]="project()!.repositoryMode"
-                [disabled]="repoModeSaving()"
-                (change)="onRepositoryModeChange($event.value)">
-                <mat-button-toggle value="MultiRepo">
-                  <mat-icon class="repo-mode-toggle__icon">call_split</mat-icon>
-                  {{ 'PROJECT_DETAIL.REPO_MODE.MULTI' | translate }}
-                </mat-button-toggle>
-                <mat-button-toggle value="MonoRepo">
-                  <mat-icon class="repo-mode-toggle__icon">folder_shared</mat-icon>
-                  {{ 'PROJECT_DETAIL.REPO_MODE.MONO' | translate }}
-                </mat-button-toggle>
-              </mat-button-toggle-group>
-            } @else {
-              <span class="repo-mode-badge">
-                <mat-icon class="repo-mode-badge__icon">
-                  @if (isMonoRepo()) { folder_shared } @else { call_split }
-                </mat-icon>
-                {{ (isMonoRepo() ? 'PROJECT_DETAIL.REPO_MODE.MONO' : 'PROJECT_DETAIL.REPO_MODE.MULTI') | translate }}
-              </span>
-            }
-
-            <div class="toolbar-spacer"></div>
-
             <!-- Project-level Bicep actions (mono-repo only) -->
             @if (isMonoRepo() && canWrite()) {
               <button class="bicep-btn" (click)="generateProjectBicep()" [disabled]="projectBicepLoading()">
@@ -95,10 +68,6 @@
               </button>
             }
           </div>
-
-          @if (repoModeError()) {
-            <p class="action-error">{{ repoModeError() | translate }}</p>
-          }
 
           @if (configErrorKey()) {
             <p class="action-error">{{ configErrorKey() | translate }}</p>
@@ -519,111 +488,163 @@
         </div>
       </mat-tab>
 
-      <!-- Git Configuration -->
+      <!-- Settings (Repository Mode + Git Config) -->
       <mat-tab>
         <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">code</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.TABS.GIT' | translate }}</span>
+          <mat-icon class="tab-icon">tune</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.TABS.SETTINGS' | translate }}</span>
         </ng-template>
         <div class="tab-content">
-          @if (gitActionError()) {
-            <p class="action-error">{{ gitActionError() | translate }}</p>
-          }
+          <!-- Repository Mode Section -->
+          <section class="settings-section">
+            <h3 class="settings-section__title">
+              <mat-icon class="settings-section__title-icon">call_split</mat-icon>
+              {{ 'PROJECT_DETAIL.SETTINGS.REPO_MODE_TITLE' | translate }}
+            </h3>
+            <p class="settings-section__description">{{ 'PROJECT_DETAIL.SETTINGS.REPO_MODE_DESCRIPTION' | translate }}</p>
 
-          @if (project()!.gitRepositoryConfiguration; as gitConfig) {
-            <article class="git-config-card">
-              <div class="git-config-card__header">
-                <div class="git-config-card__provider">
-                  <mat-icon class="git-config-card__provider-icon">
-                    @if (gitConfig.providerType === 'GitHub') { hub } @else { cloud_queue }
-                  </mat-icon>
-                  <h3>{{ gitConfig.providerType }}</h3>
-                </div>
-                @if (canWrite()) {
-                  <div class="git-config-card__actions">
-                    <button class="add-btn" (click)="testGitConnection()" [disabled]="gitTestLoading()">
-                      @if (gitTestLoading()) {
-                        <mat-spinner diameter="16"></mat-spinner>
-                      } @else {
-                        <mat-icon class="add-btn__icon">sync</mat-icon>
-                      }
-                      {{ (gitTestLoading() ? 'PROJECT_DETAIL.GIT_CONFIG.TESTING' : 'PROJECT_DETAIL.GIT_CONFIG.TEST_CONNECTION') | translate }}
-                    </button>
-                    <button class="add-btn" (click)="openGitConfigDialog()">
-                      <mat-icon class="add-btn__icon">edit</mat-icon>
-                      {{ 'PROJECT_DETAIL.GIT_CONFIG.EDIT' | translate }}
-                    </button>
-                    <button class="delete-config-btn" (click)="openRemoveGitConfigDialog()">
-                      <mat-icon>delete_outline</mat-icon>
-                      {{ 'PROJECT_DETAIL.GIT_CONFIG.REMOVE' | translate }}
-                    </button>
-                  </div>
-                }
-              </div>
+            @if (canWrite()) {
+              <mat-button-toggle-group
+                class="repo-mode-toggle"
+                [value]="project()!.repositoryMode"
+                [disabled]="repoModeSaving()"
+                (change)="onRepositoryModeChange($event.value)">
+                <mat-button-toggle value="MultiRepo">
+                  <mat-icon class="repo-mode-toggle__icon">call_split</mat-icon>
+                  {{ 'PROJECT_DETAIL.REPO_MODE.MULTI' | translate }}
+                </mat-button-toggle>
+                <mat-button-toggle value="MonoRepo">
+                  <mat-icon class="repo-mode-toggle__icon">folder_shared</mat-icon>
+                  {{ 'PROJECT_DETAIL.REPO_MODE.MONO' | translate }}
+                </mat-button-toggle>
+              </mat-button-toggle-group>
+            } @else {
+              <span class="repo-mode-badge">
+                <mat-icon class="repo-mode-badge__icon">
+                  @if (isMonoRepo()) { folder_shared } @else { call_split }
+                </mat-icon>
+                {{ (isMonoRepo() ? 'PROJECT_DETAIL.REPO_MODE.MONO' : 'PROJECT_DETAIL.REPO_MODE.MULTI') | translate }}
+              </span>
+            }
 
-              <div class="git-config-card__details">
-                <div class="detail-row">
-                  <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.REPOSITORY_URL' | translate }}</span>
-                  <a class="detail-link" [href]="gitConfig.repositoryUrl" target="_blank" rel="noopener">
-                    {{ gitConfig.repositoryUrl }}
-                    <mat-icon class="detail-link__icon">open_in_new</mat-icon>
-                  </a>
-                </div>
-                <div class="detail-row">
-                  <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.DEFAULT_BRANCH' | translate }}</span>
-                  <strong>{{ gitConfig.defaultBranch }}</strong>
-                </div>
-                @if (gitConfig.basePath) {
-                  <div class="detail-row">
-                    <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.BASE_PATH' | translate }}</span>
-                    <strong>{{ gitConfig.basePath }}</strong>
-                  </div>
-                }
-                <!-- Key Vault fields removed per new contract -->
-                <div class="detail-row">
-                  <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.OWNER' | translate }}</span>
-                  <strong>{{ gitConfig.owner }}</strong>
-                </div>
-                <div class="detail-row">
-                  <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.REPOSITORY_NAME' | translate }}</span>
-                  <strong>{{ gitConfig.repositoryName }}</strong>
-                </div>
-              </div>
+            @if (repoModeError()) {
+              <p class="action-error">{{ repoModeError() | translate }}</p>
+            }
+          </section>
 
-              <!-- Test Connection Result -->
-              @if (gitTestResult(); as testResult) {
-                <div class="git-test-result" [class.git-test-result--success]="testResult.success" [class.git-test-result--error]="!testResult.success">
-                  @if (testResult.success) {
-                    <mat-icon class="git-test-result__icon">check_circle</mat-icon>
-                    <div class="git-test-result__content">
-                      <strong>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_SUCCESS' | translate }}</strong>
-                      <div class="git-test-result__details">
-                        <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_REPO_NAME' | translate }}: {{ testResult.repositoryFullName }}</span>
-                        <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_BRANCH' | translate }}: {{ testResult.defaultBranch }}</span>
-                      </div>
+          <!-- Git Configuration (mono-repo only) -->
+          @if (isMonoRepo()) {
+            <section class="settings-section">
+              <h3 class="settings-section__title">
+                <mat-icon class="settings-section__title-icon">code</mat-icon>
+                {{ 'PROJECT_DETAIL.GIT_CONFIG.TITLE' | translate }}
+              </h3>
+              <p class="settings-section__description">{{ 'PROJECT_DETAIL.SETTINGS.GIT_MONO_DESCRIPTION' | translate }}</p>
+
+              @if (gitActionError()) {
+                <p class="action-error">{{ gitActionError() | translate }}</p>
+              }
+
+              @if (project()!.gitRepositoryConfiguration; as gitConfig) {
+                <article class="git-config-card">
+                  <div class="git-config-card__header">
+                    <div class="git-config-card__provider">
+                      <mat-icon class="git-config-card__provider-icon">
+                        @if (gitConfig.providerType === 'GitHub') { hub } @else { cloud_queue }
+                      </mat-icon>
+                      <h3>{{ gitConfig.providerType }}</h3>
                     </div>
-                  } @else {
-                    <mat-icon class="git-test-result__icon">error_outline</mat-icon>
-                    <div class="git-test-result__content">
-                      <strong>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_FAILED' | translate }}</strong>
-                      @if (testResult.errorMessage) {
-                        <p>{{ testResult.errorMessage }}</p>
+                    @if (canWrite()) {
+                      <div class="git-config-card__actions">
+                        <button class="add-btn" (click)="testGitConnection()" [disabled]="gitTestLoading()">
+                          @if (gitTestLoading()) {
+                            <mat-spinner diameter="16"></mat-spinner>
+                          } @else {
+                            <mat-icon class="add-btn__icon">sync</mat-icon>
+                          }
+                          {{ (gitTestLoading() ? 'PROJECT_DETAIL.GIT_CONFIG.TESTING' : 'PROJECT_DETAIL.GIT_CONFIG.TEST_CONNECTION') | translate }}
+                        </button>
+                        <button class="add-btn" (click)="openGitConfigDialog()">
+                          <mat-icon class="add-btn__icon">edit</mat-icon>
+                          {{ 'PROJECT_DETAIL.GIT_CONFIG.EDIT' | translate }}
+                        </button>
+                        <button class="delete-config-btn" (click)="openRemoveGitConfigDialog()">
+                          <mat-icon>delete_outline</mat-icon>
+                          {{ 'PROJECT_DETAIL.GIT_CONFIG.REMOVE' | translate }}
+                        </button>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="git-config-card__details">
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.REPOSITORY_URL' | translate }}</span>
+                      <a class="detail-link" [href]="gitConfig.repositoryUrl" target="_blank" rel="noopener">
+                        {{ gitConfig.repositoryUrl }}
+                        <mat-icon class="detail-link__icon">open_in_new</mat-icon>
+                      </a>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.DEFAULT_BRANCH' | translate }}</span>
+                      <strong>{{ gitConfig.defaultBranch }}</strong>
+                    </div>
+                    @if (gitConfig.basePath) {
+                      <div class="detail-row">
+                        <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.BASE_PATH' | translate }}</span>
+                        <strong>{{ gitConfig.basePath }}</strong>
+                      </div>
+                    }
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.OWNER' | translate }}</span>
+                      <strong>{{ gitConfig.owner }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.REPOSITORY_NAME' | translate }}</span>
+                      <strong>{{ gitConfig.repositoryName }}</strong>
+                    </div>
+                  </div>
+
+                  <!-- Test Connection Result -->
+                  @if (gitTestResult(); as testResult) {
+                    <div class="git-test-result" [class.git-test-result--success]="testResult.success" [class.git-test-result--error]="!testResult.success">
+                      @if (testResult.success) {
+                        <mat-icon class="git-test-result__icon">check_circle</mat-icon>
+                        <div class="git-test-result__content">
+                          <strong>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_SUCCESS' | translate }}</strong>
+                          <div class="git-test-result__details">
+                            <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_REPO_NAME' | translate }}: {{ testResult.repositoryFullName }}</span>
+                            <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_BRANCH' | translate }}: {{ testResult.defaultBranch }}</span>
+                          </div>
+                        </div>
+                      } @else {
+                        <mat-icon class="git-test-result__icon">error_outline</mat-icon>
+                        <div class="git-test-result__content">
+                          <strong>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_FAILED' | translate }}</strong>
+                          @if (testResult.errorMessage) {
+                            <p>{{ testResult.errorMessage }}</p>
+                          }
+                        </div>
                       }
                     </div>
                   }
+                </article>
+              } @else {
+                <div class="empty-state">
+                  <mat-icon class="empty-state__icon">code</mat-icon>
+                  <p>{{ 'PROJECT_DETAIL.GIT_CONFIG.EMPTY' | translate }}</p>
+                  @if (canWrite()) {
+                    <button class="add-btn" (click)="openGitConfigDialog()">
+                      <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
+                      {{ 'PROJECT_DETAIL.GIT_CONFIG.CONFIGURE' | translate }}
+                    </button>
+                  }
                 </div>
               }
-            </article>
+            </section>
           } @else {
-            <div class="empty-state">
-              <mat-icon class="empty-state__icon">code</mat-icon>
-              <p>{{ 'PROJECT_DETAIL.GIT_CONFIG.EMPTY' | translate }}</p>
-              @if (canWrite()) {
-                <button class="add-btn" (click)="openGitConfigDialog()">
-                  <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
-                  {{ 'PROJECT_DETAIL.GIT_CONFIG.CONFIGURE' | translate }}
-                </button>
-              }
+            <div class="settings-info-banner">
+              <mat-icon class="settings-info-banner__icon">info_outline</mat-icon>
+              <span>{{ 'PROJECT_DETAIL.SETTINGS.GIT_MULTI_INFO' | translate }}</span>
             </div>
           }
         </div>

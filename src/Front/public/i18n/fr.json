@@ -91,7 +91,9 @@
       "DESCRIPTION_PLACEHOLDER": "Breve description du projet",
       "ERROR_REQUIRED": "Le nom du projet est requis.",
       "ERROR_MIN_LENGTH": "Utilisez au moins 3 caracteres pour un nom pertinent.",
-      "ERROR_MAX_LENGTH": "Le nom doit rester sous 80 caracteres."
+      "ERROR_MAX_LENGTH": "Le nom doit rester sous 80 caracteres.",
+      "REPO_MODE_LABEL": "Mode de depot",
+      "REPO_MODE_HINT": "Multi-repo : un depot Git par configuration. Mono-repo : un seul depot Git partage pour tout le projet."
     },
     "FEEDBACK": {
       "LOAD_ERROR_FALLBACK": "Impossible de charger vos projets. Actualisez la page ou reessayez."
@@ -146,7 +148,12 @@
       "ENVIRONMENTS": "Environnements",
       "MEMBERS": "Membres",
       "NAMING_TEMPLATES": "Nommage",
-      "CROSS_CONFIG_REFS": "Références croisées"
+      "CROSS_CONFIG_REFS": "Références croisées",
+      "GIT": "Git"
+    },
+    "GIT_CONFIG": {
+      "EMPTY": "Aucun depot Git configure pour cette configuration.",
+      "DESCRIPTION": "Configurez le depot Git pour la sortie Bicep de cette configuration."
     },
     "STATE": {
       "LOADING_TITLE": "Chargement de la configuration",
@@ -569,7 +576,8 @@
       "ENVIRONMENTS": "Environnements",
       "NAMING_TEMPLATES": "Nommage",
       "MEMBERS": "Membres",
-      "GIT": "Git"
+      "GIT": "Git",
+      "SETTINGS": "Parametres"
     },
     "REPO_MODE": {
       "MULTI": "Multi-repo",
@@ -790,6 +798,12 @@
         "CANCEL": "Annuler",
         "SAVE": "Enregistrer"
       }
+    },
+    "SETTINGS": {
+      "REPO_MODE_TITLE": "Mode de depot",
+      "REPO_MODE_DESCRIPTION": "Choisissez comment la sortie Bicep est organisee dans les depots Git.",
+      "GIT_MONO_DESCRIPTION": "En mode mono-repo, un seul depot Git stocke la sortie Bicep de toutes les configurations.",
+      "GIT_MULTI_INFO": "En mode multi-repo, chaque configuration possede son propre depot Git. Configurez Git dans l'onglet Git de chaque configuration."
     }
   },
   "RESOURCE_EDIT": {

@@ -1310,3 +1310,60 @@ a.config-card {
     font-size: 0.82rem;
   }
 }
+
+// ─── Settings Section ────
+
+.settings-section {
+  margin-bottom: 1.6rem;
+  padding: 1.25rem;
+  border-radius: 1.2rem;
+  background: #fff;
+  border: 1px solid rgba(113, 159, 204, 0.18);
+  box-shadow: 0 2px 8px rgba(13, 47, 102, 0.05);
+}
+
+.settings-section__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0d2b4f;
+}
+
+.settings-section__title-icon {
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  color: #1565c0;
+}
+
+.settings-section__description {
+  margin: 0 0 1rem;
+  color: #60758e;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.settings-info-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  background: rgba(2, 136, 209, 0.06);
+  border: 1px solid rgba(2, 136, 209, 0.15);
+  color: #0f4372;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.settings-info-banner__icon {
+  color: #0288d1;
+  font-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
+}

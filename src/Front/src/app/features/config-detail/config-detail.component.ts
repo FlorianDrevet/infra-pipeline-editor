@@ -49,7 +49,7 @@ import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.i
 import { saveAs } from 'file-saver';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
-import { ProjectResponse } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS, PARENT_CHILD_RESOURCE_TYPES, CHILD_RESOURCE_TYPES } from './enums/resource-type.enum';
 import { FormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -57,6 +57,7 @@ import { BicepHighlightPipe } from './pipes/bicep-highlight.pipe';
 import { StorageAccountResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
+import { GitConfigDialogComponent, GitConfigDialogData } from '../project-detail/git-config-dialog/git-config-dialog.component';
 import {
   AddCrossConfigReferenceDialogComponent,
   AddCrossConfigReferenceDialogData,
@@ -205,6 +206,13 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly crossConfigLoading = signal(false);
   protected readonly crossConfigErrorKey = signal('');
   protected readonly crossConfigLoaded = signal(false);
+
+  protected readonly isMultiRepo = computed(() => this.project()?.repositoryMode === 'MultiRepo');
+
+  // ─── Git Config (multi-repo, config-level display) ───
+  protected readonly gitTestLoading = signal(false);
+  protected readonly gitTestResult = signal<TestGitConnectionResponse | null>(null);
+  protected readonly gitActionError = signal('');
 
   protected readonly useProjectNamingConventions = computed(() => this.config()?.useProjectNamingConventions ?? false);
 
@@ -1243,6 +1251,79 @@ export class ConfigDetailComponent implements OnInit {
         this.crossConfigErrorKey.set('CONFIG_DETAIL.CROSS_CONFIG_REFS.DELETE_ERROR');
       } finally {
         this.crossConfigLoading.set(false);
+      }
+    });
+  }
+
+  // ─── Git Configuration (multi-repo) ───
+
+  protected openGitConfigDialog(): void {
+    const proj = this.project();
+    if (!proj) return;
+
+    const data: GitConfigDialogData = {
+      projectId: proj.id,
+      existing: proj.gitRepositoryConfiguration,
+    };
+
+    const dialogRef = this.dialog.open(GitConfigDialogComponent, {
+      width: '520px',
+      data,
+    });
+
+    dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {
+      if (result) {
+        this.project.set(result);
+        this.gitTestResult.set(null);
+        this.gitActionError.set('');
+      }
+    });
+  }
+
+  protected async testGitConnection(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId) return;
+
+    this.gitTestLoading.set(true);
+    this.gitTestResult.set(null);
+    this.gitActionError.set('');
+
+    try {
+      const result = await this.projectService.testGitConnection(projectId);
+      this.gitTestResult.set(result);
+    } catch {
+      this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.TEST_FAILED');
+    } finally {
+      this.gitTestLoading.set(false);
+    }
+  }
+
+  protected openRemoveGitConfigDialog(): void {
+    const proj = this.project();
+    if (!proj) return;
+
+    const data: ConfirmDialogData = {
+      titleKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_TITLE',
+      messageKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_MESSAGE',
+      confirmKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_YES',
+      cancelKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_CANCEL',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+
+      this.gitActionError.set('');
+      try {
+        await this.projectService.removeGitConfig(proj.id);
+        this.project.update((p) => {
+          if (!p) return p;
+          return { ...p, gitRepositoryConfiguration: null };
+        });
+        this.gitTestResult.set(null);
+      } catch {
+        this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.REMOVE_ERROR');
       }
     });
   }

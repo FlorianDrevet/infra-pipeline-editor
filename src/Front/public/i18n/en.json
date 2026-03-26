@@ -91,7 +91,9 @@
       "DESCRIPTION_PLACEHOLDER": "Brief description of this project",
       "ERROR_REQUIRED": "A project name is required.",
       "ERROR_MIN_LENGTH": "Use at least 3 characters for a meaningful name.",
-      "ERROR_MAX_LENGTH": "Keep the name under 80 characters."
+      "ERROR_MAX_LENGTH": "Keep the name under 80 characters.",
+      "REPO_MODE_LABEL": "Repository mode",
+      "REPO_MODE_HINT": "Multi-repo: one Git repository per configuration. Mono-repo: one shared Git repository for the entire project."
     },
     "FEEDBACK": {
       "LOAD_ERROR_FALLBACK": "Unable to load your projects. Refresh the page or retry."
@@ -146,7 +148,12 @@
       "ENVIRONMENTS": "Environments",
       "MEMBERS": "Members",
       "NAMING_TEMPLATES": "Naming",
-      "CROSS_CONFIG_REFS": "Cross-config references"
+      "CROSS_CONFIG_REFS": "Cross-config references",
+      "GIT": "Git"
+    },
+    "GIT_CONFIG": {
+      "EMPTY": "No Git repository configured for this configuration.",
+      "DESCRIPTION": "Configure the Git repository for this configuration's Bicep output."
     },
     "STATE": {
       "LOADING_TITLE": "Loading configuration",
@@ -573,7 +580,8 @@
       "ENVIRONMENTS": "Environments",
       "NAMING_TEMPLATES": "Naming",
       "MEMBERS": "Members",
-      "GIT": "Git"
+      "GIT": "Git",
+      "SETTINGS": "Settings"
     },
     "REPO_MODE": {
       "MULTI": "Multi-repo",
@@ -783,6 +791,12 @@
         "CANCEL": "Cancel",
         "SAVE": "Save"
       }
+    },
+    "SETTINGS": {
+      "REPO_MODE_TITLE": "Repository mode",
+      "REPO_MODE_DESCRIPTION": "Choose how Bicep output is organized in Git repositories.",
+      "GIT_MONO_DESCRIPTION": "In mono-repo mode, a single Git repository stores all configurations' Bicep output.",
+      "GIT_MULTI_INFO": "In multi-repo mode, each configuration has its own Git repository. Configure Git in each configuration's Git tab."
     }
   },
   "RESOURCE_EDIT": {
