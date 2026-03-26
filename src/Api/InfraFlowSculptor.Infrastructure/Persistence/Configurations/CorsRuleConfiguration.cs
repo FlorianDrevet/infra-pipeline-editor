@@ -23,6 +23,10 @@ public class CorsRuleConfiguration : IEntityTypeConfiguration<CorsRule>
             .HasConversion(new IdValueConverter<AzureResourceId>())
             .IsRequired();
 
+        builder.Property(cr => cr.ServiceType)
+            .HasConversion(new EnumValueConverter<CorsServiceType, CorsServiceType.Service>())
+            .IsRequired();
+
         builder.Property(cr => cr.AllowedOrigins)
             .HasColumnType("text[]")
             .IsRequired();

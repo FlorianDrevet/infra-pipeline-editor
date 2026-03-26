@@ -16,5 +16,6 @@ public record UpdateStorageAccountCommand(
     bool EnableHttpsTrafficOnly,
     string MinimumTlsVersion,
     IReadOnlyList<StorageAccountEnvironmentConfigData>? EnvironmentSettings = null,
-    IReadOnlyList<CorsRuleResult>? CorsRules = null
+    IReadOnlyList<CorsRuleResult>? CorsRules = null,
+    IReadOnlyList<CorsRuleResult>? TableCorsRules = null
 ) : IRequest<ErrorOr<StorageAccountResult>>;

@@ -40,6 +40,7 @@ public record StorageAccountResult(
     bool EnableHttpsTrafficOnly,
     string MinimumTlsVersion,
     IReadOnlyList<CorsRuleResult> CorsRules,
+    IReadOnlyList<CorsRuleResult> TableCorsRules,
     IReadOnlyList<BlobContainerResult> BlobContainers,
     IReadOnlyList<StorageQueueResult> Queues,
     IReadOnlyList<StorageTableResult> Tables,

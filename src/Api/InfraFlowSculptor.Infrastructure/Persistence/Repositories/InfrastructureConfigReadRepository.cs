@@ -40,6 +40,7 @@ using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
+using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -504,7 +505,18 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                         .Select(table => table.Name)
                         .ToList()),
                     ["corsRules"] = JsonSerializer.Serialize(storageCorsRules
-                        .Where(rule => rule.StorageAccountId == sa.Id)
+                        .Where(rule => rule.StorageAccountId == sa.Id && rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Blob))
+                        .Select(rule => new
+                        {
+                            allowedOrigins = rule.AllowedOrigins,
+                            allowedMethods = rule.AllowedMethods,
+                            allowedHeaders = rule.AllowedHeaders,
+                            exposedHeaders = rule.ExposedHeaders,
+                            maxAgeInSeconds = rule.MaxAgeInSeconds
+                        })
+                        .ToList()),
+                    ["tableCorsRules"] = JsonSerializer.Serialize(storageCorsRules
+                        .Where(rule => rule.StorageAccountId == sa.Id && rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Table))
                         .Select(rule => new
                         {
                             allowedOrigins = rule.AllowedOrigins,

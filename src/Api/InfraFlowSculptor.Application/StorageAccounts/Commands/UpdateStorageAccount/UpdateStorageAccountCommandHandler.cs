@@ -17,6 +17,9 @@ public class UpdateStorageAccountCommandHandler(
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(UpdateStorageAccountCommand request, CancellationToken cancellationToken)
     {
+        var corsRules = CorsRuleSanitizer.Sanitize(request.CorsRules);
+        var tableCorsRules = CorsRuleSanitizer.Sanitize(request.TableCorsRules);
+
         var ctx = new StorageAccountAccessContext(request.Id, storageAccountRepository, resourceGroupRepository, accessService);
         var saResult = await StorageAccountAccessHelper.GetWithWriteAccessAsync(ctx, cancellationToken);
 
@@ -42,9 +45,20 @@ public class UpdateStorageAccountCommandHandler(
                         ec.Sku is not null ? new StorageAccountSku(Enum.Parse<StorageAccountSku.Sku>(ec.Sku)) : (StorageAccountSku?)null))
                     .ToList());
 
-        if (request.CorsRules is not null)
+        if (corsRules is not null)
             storageAccount.SetCorsRules(
-                request.CorsRules
+                corsRules
+                    .Select(rule => (
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds))
+                    .ToList());
+
+        if (tableCorsRules is not null)
+            storageAccount.SetTableCorsRules(
+                tableCorsRules
                     .Select(rule => (
                         rule.AllowedOrigins,
                         rule.AllowedMethods,

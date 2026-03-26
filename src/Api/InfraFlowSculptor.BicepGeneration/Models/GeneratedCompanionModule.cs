@@ -35,4 +35,7 @@ public sealed record GeneratedCompanionModule
 
     /// <summary>CORS rules to apply to the blob service.</summary>
     public IReadOnlyList<BlobCorsRuleData> CorsRules { get; init; } = [];
+
+    /// <summary>CORS rules to apply to the table service.</summary>
+    public IReadOnlyList<BlobCorsRuleData> TableCorsRules { get; init; } = [];
 }

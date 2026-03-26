@@ -67,6 +67,11 @@ import { AppSettingResponse } from '../../shared/interfaces/app-setting.interfac
 /** Union type for any loaded resource */
 type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse;
 
+type CorsServiceKey = 'blob' | 'table';
+type CorsListField = 'allowedOrigins' | 'allowedHeaders' | 'exposedHeaders';
+type CorsMethodField = 'allowedMethods';
+type CorsFieldKey = CorsListField | CorsMethodField | 'maxAgeInSeconds';
+
 /** SKU options per resource type */
 const KEY_VAULT_SKU_OPTIONS = [
   { label: 'Standard', value: 'Standard' },
@@ -126,6 +131,11 @@ const STORAGE_TLS_OPTIONS = [
   { label: 'TLS 1.1', value: 'Tls11' },
   { label: 'TLS 1.2', value: 'Tls12' },
 ];
+
+const STORAGE_CORS_METHOD_OPTIONS = ['DELETE', 'GET', 'HEAD', 'MERGE', 'OPTIONS', 'PATCH', 'POST', 'PUT'];
+const STORAGE_CORS_ALLOWED_HEADER_SUGGESTIONS = ['authorization', 'content-type', 'x-ms-*', 'x-ms-meta*', 'x-ms-client-request-id'];
+const STORAGE_CORS_EXPOSED_HEADER_SUGGESTIONS = ['content-type', 'etag', 'x-ms-*', 'x-ms-meta*', 'x-ms-request-id'];
+const STORAGE_CORS_MAX_AGE_PRESETS = [300, 3600, 86400];
 
 const APP_CONFIGURATION_SKU_OPTIONS = [
   { label: 'Free', value: 'Free' },
@@ -301,6 +311,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly showTableAddForm = signal(false);
   protected readonly storageCorsRulesDraft = signal<CorsRuleEntry[]>([]);
   protected readonly storageTableCorsRulesDraft = signal<CorsRuleEntry[]>([]);
+  protected readonly corsFieldErrors = signal<Record<string, string>>({});
 
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
   protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
@@ -334,6 +345,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected readonly storageCorsRules = computed<CorsRuleEntry[]>(() => this.storageCorsRulesDraft());
   protected readonly storageTableCorsRules = computed<CorsRuleEntry[]>(() => this.storageTableCorsRulesDraft());
+  protected readonly corsMethodOptions = STORAGE_CORS_METHOD_OPTIONS;
+  protected readonly corsAllowedHeaderSuggestions = STORAGE_CORS_ALLOWED_HEADER_SUGGESTIONS;
+  protected readonly corsExposedHeaderSuggestions = STORAGE_CORS_EXPOSED_HEADER_SUGGESTIONS;
+  protected readonly corsMaxAgePresets = STORAGE_CORS_MAX_AGE_PRESETS;
 
   // ─── Role Assignments ───
   protected readonly roleAssignments = signal<RoleAssignmentResponse[]>([]);
@@ -814,6 +829,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           });
           break;
         case 'StorageAccount':
+          if (!this.validateAllStorageCorsRules()) {
+            this.saveError.set('RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.FIX_VALIDATION_ERRORS');
+            this.isSaving.set(false);
+            return;
+          }
+
           await this.storageAccountService.update(this.resourceId, {
             name: general.name,
             location: general.location,
@@ -1354,93 +1375,75 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   ];
 
   protected addCorsRule(): void {
-    this.storageCorsRulesDraft.update(rules => [
-      ...rules,
-      {
-        allowedOrigins: [],
-        allowedMethods: [],
-        allowedHeaders: [],
-        exposedHeaders: [],
-        maxAgeInSeconds: 0,
-      },
-    ]);
-    this.formsDirty.set(true);
+    this.addCorsRuleFor('blob');
   }
 
   protected removeCorsRule(index: number): void {
-    this.storageCorsRulesDraft.update(rules => rules.filter((_, ruleIndex) => ruleIndex !== index));
-    this.formsDirty.set(true);
+    this.removeCorsRuleFor('blob', index);
   }
 
-  protected addCorsRuleValue(index: number, field: 'allowedOrigins' | 'allowedMethods' | 'allowedHeaders' | 'exposedHeaders', value: string): void {
-    const trimmed = value.trim();
-    if (!trimmed) return;
-    this.storageCorsRulesDraft.update(rules => rules.map((rule, i) =>
-      i === index ? { ...rule, [field]: [...rule[field], trimmed] } : rule
-    ));
-    this.formsDirty.set(true);
+  protected addCorsRuleValue(index: number, field: CorsListField, value: string): void {
+    this.addCorsRuleValueFor('blob', index, field, value);
   }
 
-  protected removeCorsRuleValue(index: number, field: 'allowedOrigins' | 'allowedMethods' | 'allowedHeaders' | 'exposedHeaders', valueIndex: number): void {
-    this.storageCorsRulesDraft.update(rules => rules.map((rule, i) =>
-      i === index ? { ...rule, [field]: rule[field].filter((_, vi) => vi !== valueIndex) } : rule
-    ));
-    this.formsDirty.set(true);
+  protected removeCorsRuleValue(index: number, field: CorsListField, valueIndex: number): void {
+    this.removeCorsRuleValueFor('blob', index, field, valueIndex);
+  }
+
+  protected toggleCorsRuleMethod(index: number, method: string): void {
+    this.toggleCorsMethodFor('blob', index, method);
+  }
+
+  protected isCorsRuleMethodSelected(rule: CorsRuleEntry, method: string): boolean {
+    return rule.allowedMethods.includes(method);
   }
 
   protected updateCorsRuleMaxAge(index: number, rawValue: string): void {
-    const maxAgeInSeconds = Number(rawValue);
-    this.storageCorsRulesDraft.update(rules => rules.map((rule, ruleIndex) =>
-      ruleIndex === index
-        ? { ...rule, maxAgeInSeconds: Number.isFinite(maxAgeInSeconds) && maxAgeInSeconds >= 0 ? maxAgeInSeconds : 0 }
-        : rule
-    ));
-    this.formsDirty.set(true);
+    this.updateCorsRuleMaxAgeFor('blob', index, rawValue);
+  }
+
+  protected setCorsRuleMaxAgePreset(index: number, value: number): void {
+    this.setCorsRuleMaxAgePresetFor('blob', index, value);
   }
 
   protected addTableCorsRule(): void {
-    this.storageTableCorsRulesDraft.update(rules => [
-      ...rules,
-      {
-        allowedOrigins: [],
-        allowedMethods: [],
-        allowedHeaders: [],
-        exposedHeaders: [],
-        maxAgeInSeconds: 0,
-      },
-    ]);
-    this.formsDirty.set(true);
+    this.addCorsRuleFor('table');
   }
 
   protected removeTableCorsRule(index: number): void {
-    this.storageTableCorsRulesDraft.update(rules => rules.filter((_, ruleIndex) => ruleIndex !== index));
-    this.formsDirty.set(true);
+    this.removeCorsRuleFor('table', index);
   }
 
-  protected addTableCorsRuleValue(index: number, field: 'allowedOrigins' | 'allowedMethods' | 'allowedHeaders' | 'exposedHeaders', value: string): void {
-    const trimmed = value.trim();
-    if (!trimmed) return;
-    this.storageTableCorsRulesDraft.update(rules => rules.map((rule, i) =>
-      i === index ? { ...rule, [field]: [...rule[field], trimmed] } : rule
-    ));
-    this.formsDirty.set(true);
+  protected addTableCorsRuleValue(index: number, field: CorsListField, value: string): void {
+    this.addCorsRuleValueFor('table', index, field, value);
   }
 
-  protected removeTableCorsRuleValue(index: number, field: 'allowedOrigins' | 'allowedMethods' | 'allowedHeaders' | 'exposedHeaders', valueIndex: number): void {
-    this.storageTableCorsRulesDraft.update(rules => rules.map((rule, i) =>
-      i === index ? { ...rule, [field]: rule[field].filter((_, vi) => vi !== valueIndex) } : rule
-    ));
-    this.formsDirty.set(true);
+  protected removeTableCorsRuleValue(index: number, field: CorsListField, valueIndex: number): void {
+    this.removeCorsRuleValueFor('table', index, field, valueIndex);
+  }
+
+  protected toggleTableCorsRuleMethod(index: number, method: string): void {
+    this.toggleCorsMethodFor('table', index, method);
   }
 
   protected updateTableCorsRuleMaxAge(index: number, rawValue: string): void {
-    const maxAgeInSeconds = Number(rawValue);
-    this.storageTableCorsRulesDraft.update(rules => rules.map((rule, ruleIndex) =>
-      ruleIndex === index
-        ? { ...rule, maxAgeInSeconds: Number.isFinite(maxAgeInSeconds) && maxAgeInSeconds >= 0 ? maxAgeInSeconds : 0 }
-        : rule
-    ));
-    this.formsDirty.set(true);
+    this.updateCorsRuleMaxAgeFor('table', index, rawValue);
+  }
+
+  protected setTableCorsRuleMaxAgePreset(index: number, value: number): void {
+    this.setCorsRuleMaxAgePresetFor('table', index, value);
+  }
+
+  protected corsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey): string {
+    return this.corsFieldErrors()[this.buildCorsErrorKey(service, index, field)] ?? '';
+  }
+
+  protected corsHeaderSuggestions(field: 'allowedHeaders' | 'exposedHeaders'): readonly string[] {
+    return field === 'allowedHeaders' ? this.corsAllowedHeaderSuggestions : this.corsExposedHeaderSuggestions;
+  }
+
+  protected corsMethodTrack(method: string): string {
+    return method;
   }
 
   private readonly publicAccessI18nMap: Record<string, string> = {
@@ -1615,6 +1618,279 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       exposedHeaders: [...rule.exposedHeaders],
       maxAgeInSeconds: rule.maxAgeInSeconds,
     }));
+  }
+
+  private addCorsRuleFor(service: CorsServiceKey): void {
+    this.updateCorsRules(service, rules => [
+      ...rules,
+      {
+        allowedOrigins: [],
+        allowedMethods: ['GET'],
+        allowedHeaders: [],
+        exposedHeaders: [],
+        maxAgeInSeconds: 3600,
+      },
+    ]);
+    this.formsDirty.set(true);
+  }
+
+  private removeCorsRuleFor(service: CorsServiceKey, index: number): void {
+    this.updateCorsRules(service, rules => rules.filter((_, ruleIndex) => ruleIndex !== index));
+    this.clearCorsRuleErrors(service, index);
+    this.formsDirty.set(true);
+  }
+
+  private addCorsRuleValueFor(service: CorsServiceKey, index: number, field: CorsListField, value: string): void {
+    const normalized = field === 'allowedOrigins'
+      ? this.normalizeCorsOrigin(value)
+      : this.normalizeCorsHeader(value);
+
+    const validationError = field === 'allowedOrigins'
+      ? this.validateCorsOrigin(value)
+      : this.validateCorsHeader(value, field);
+
+    if (validationError) {
+      this.setCorsFieldError(service, index, field, validationError);
+      return;
+    }
+
+    const rules = this.corsRulesFor(service);
+    const rule = rules[index];
+    if (!rule) return;
+
+    if (field !== 'allowedOrigins') {
+      const prefixedCount = rule[field].filter(header => header.endsWith('*')).length;
+      const literalCount = rule[field].length - prefixedCount;
+      if (normalized.endsWith('*') && prefixedCount >= 2) {
+        this.setCorsFieldError(service, index, field, 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_TOO_MANY_PREFIX_HEADERS');
+        return;
+      }
+
+      if (!normalized.endsWith('*') && literalCount >= 64) {
+        this.setCorsFieldError(service, index, field, 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_TOO_MANY_LITERAL_HEADERS');
+        return;
+      }
+    }
+
+    if (rule[field].some(existing => existing.toLowerCase() === normalized.toLowerCase())) {
+      this.setCorsFieldError(service, index, field, 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_DUPLICATE_VALUE');
+      return;
+    }
+
+    this.updateCorsRules(service, currentRules => currentRules.map((currentRule, currentIndex) =>
+      currentIndex === index ? { ...currentRule, [field]: [...currentRule[field], normalized] } : currentRule
+    ));
+    this.clearCorsFieldError(service, index, field);
+    this.formsDirty.set(true);
+  }
+
+  private removeCorsRuleValueFor(service: CorsServiceKey, index: number, field: CorsListField, valueIndex: number): void {
+    this.updateCorsRules(service, rules => rules.map((rule, currentIndex) =>
+      currentIndex === index ? { ...rule, [field]: rule[field].filter((_, currentValueIndex) => currentValueIndex !== valueIndex) } : rule
+    ));
+    this.clearCorsFieldError(service, index, field);
+    this.formsDirty.set(true);
+  }
+
+  private toggleCorsMethodFor(service: CorsServiceKey, index: number, method: string): void {
+    const rules = this.corsRulesFor(service);
+    const rule = rules[index];
+    if (!rule) return;
+
+    const nextMethods = rule.allowedMethods.includes(method)
+      ? rule.allowedMethods.filter(existing => existing !== method)
+      : [...rule.allowedMethods, method].sort((left, right) => this.corsMethodOptions.indexOf(left) - this.corsMethodOptions.indexOf(right));
+
+    this.updateCorsRules(service, currentRules => currentRules.map((currentRule, currentIndex) =>
+      currentIndex === index ? { ...currentRule, allowedMethods: nextMethods } : currentRule
+    ));
+
+    if (nextMethods.length === 0) {
+      this.setCorsFieldError(service, index, 'allowedMethods', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_METHOD_REQUIRED');
+    } else {
+      this.clearCorsFieldError(service, index, 'allowedMethods');
+    }
+
+    this.formsDirty.set(true);
+  }
+
+  private updateCorsRuleMaxAgeFor(service: CorsServiceKey, index: number, rawValue: string): void {
+    const trimmed = rawValue.trim();
+    const maxAgeInSeconds = Number(trimmed);
+    if (!trimmed || !Number.isInteger(maxAgeInSeconds) || maxAgeInSeconds < 0) {
+      this.setCorsFieldError(service, index, 'maxAgeInSeconds', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_MAX_AGE');
+      return;
+    }
+
+    this.updateCorsRules(service, rules => rules.map((rule, ruleIndex) =>
+      ruleIndex === index ? { ...rule, maxAgeInSeconds } : rule
+    ));
+    this.clearCorsFieldError(service, index, 'maxAgeInSeconds');
+    this.formsDirty.set(true);
+  }
+
+  private setCorsRuleMaxAgePresetFor(service: CorsServiceKey, index: number, value: number): void {
+    this.updateCorsRules(service, rules => rules.map((rule, ruleIndex) =>
+      ruleIndex === index ? { ...rule, maxAgeInSeconds: value } : rule
+    ));
+    this.clearCorsFieldError(service, index, 'maxAgeInSeconds');
+    this.formsDirty.set(true);
+  }
+
+  private corsRulesFor(service: CorsServiceKey): CorsRuleEntry[] {
+    return service === 'blob' ? this.storageCorsRulesDraft() : this.storageTableCorsRulesDraft();
+  }
+
+  private updateCorsRules(service: CorsServiceKey, updater: (rules: CorsRuleEntry[]) => CorsRuleEntry[]): void {
+    if (service === 'blob') {
+      this.storageCorsRulesDraft.update(updater);
+      return;
+    }
+
+    this.storageTableCorsRulesDraft.update(updater);
+  }
+
+  private validateAllStorageCorsRules(): boolean {
+    let isValid = true;
+    this.corsFieldErrors.set({});
+
+    for (const service of ['blob', 'table'] as const) {
+      this.corsRulesFor(service).forEach((rule, index) => {
+        if (rule.allowedOrigins.length === 0) {
+          this.setCorsFieldError(service, index, 'allowedOrigins', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_ORIGIN_REQUIRED');
+          isValid = false;
+        }
+
+        if (rule.allowedMethods.length === 0) {
+          this.setCorsFieldError(service, index, 'allowedMethods', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_METHOD_REQUIRED');
+          isValid = false;
+        }
+
+        if (!Number.isInteger(rule.maxAgeInSeconds) || rule.maxAgeInSeconds < 0) {
+          this.setCorsFieldError(service, index, 'maxAgeInSeconds', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_MAX_AGE');
+          isValid = false;
+        }
+
+        for (const origin of rule.allowedOrigins) {
+          if (this.validateCorsOrigin(origin)) {
+            this.setCorsFieldError(service, index, 'allowedOrigins', 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN');
+            isValid = false;
+            break;
+          }
+        }
+
+        for (const field of ['allowedHeaders', 'exposedHeaders'] as const) {
+          for (const header of rule[field]) {
+            const headerError = this.validateCorsHeader(header, field);
+            if (headerError) {
+              this.setCorsFieldError(service, index, field, headerError);
+              isValid = false;
+              break;
+            }
+          }
+        }
+      });
+    }
+
+    return isValid;
+  }
+
+  private validateCorsOrigin(value: string): string {
+    const normalized = value.trim();
+    if (!normalized) {
+      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_EMPTY_VALUE';
+    }
+
+    if (normalized.length > 256) {
+      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_TOO_LONG';
+    }
+
+    if (normalized === '*') {
+      return '';
+    }
+
+    const withoutTrailingSlash = normalized.replace(/\/+$/, '');
+    if (withoutTrailingSlash.includes('*.')) {
+      const wildcardPattern = /^https?:\/\/\*\.[a-z0-9-]+(?:\.[a-z0-9-]+)*(?::\d{1,5})?$/i;
+      return wildcardPattern.test(withoutTrailingSlash)
+        ? ''
+        : 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN';
+    }
+
+    try {
+      const url = new URL(withoutTrailingSlash);
+      const isHttp = url.protocol === 'http:' || url.protocol === 'https:';
+      const hasNoPath = url.pathname === '' || url.pathname === '/';
+      const noSearch = !url.search;
+      const noHash = !url.hash;
+      return isHttp && hasNoPath && noSearch && noHash
+        ? ''
+        : 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN';
+    } catch {
+      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN';
+    }
+  }
+
+  private normalizeCorsOrigin(value: string): string {
+    const normalized = value.trim().replace(/\/+$/, '');
+    if (normalized === '*' || normalized.includes('*.')) {
+      return normalized.toLowerCase();
+    }
+
+    try {
+      const url = new URL(normalized);
+      return `${url.protocol}//${url.host}`.toLowerCase();
+    } catch {
+      return normalized;
+    }
+  }
+
+  private validateCorsHeader(value: string, field: 'allowedHeaders' | 'exposedHeaders'): string {
+    const normalized = value.trim();
+    if (!normalized) {
+      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_EMPTY_VALUE';
+    }
+
+    if (normalized.length > 256) {
+      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_TOO_LONG';
+    }
+
+    const headerPattern = /^[A-Za-z0-9!#$%&'*+.^_`|~-]+(?:-[A-Za-z0-9!#$%&'*+.^_`|~-]+)*\*?$/;
+    if (!headerPattern.test(normalized)) {
+      return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_HEADER';
+    }
+
+    void field;
+    return '';
+  }
+
+  private normalizeCorsHeader(value: string): string {
+    return value.trim().toLowerCase();
+  }
+
+  private buildCorsErrorKey(service: CorsServiceKey, index: number, field: CorsFieldKey): string {
+    return `${service}:${index}:${field}`;
+  }
+
+  private setCorsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey, errorKey: string): void {
+    this.corsFieldErrors.update(errors => ({
+      ...errors,
+      [this.buildCorsErrorKey(service, index, field)]: errorKey,
+    }));
+  }
+
+  private clearCorsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey): void {
+    this.corsFieldErrors.update(errors => {
+      const updated = { ...errors };
+      delete updated[this.buildCorsErrorKey(service, index, field)];
+      return updated;
+    });
+  }
+
+  private clearCorsRuleErrors(service: CorsServiceKey, index: number): void {
+    this.corsFieldErrors.update(errors => Object.fromEntries(
+      Object.entries(errors).filter(([key]) => !key.startsWith(`${service}:${index}:`))
+    ));
   }
 
   private buildAppServicePlanEnvSettings(): AppServicePlanEnvironmentConfigEntry[] {

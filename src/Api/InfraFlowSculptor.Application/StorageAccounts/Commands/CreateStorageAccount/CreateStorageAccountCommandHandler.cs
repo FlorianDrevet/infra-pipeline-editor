@@ -19,6 +19,9 @@ public class CreateStorageAccountCommandHandler(
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(CreateStorageAccountCommand request, CancellationToken cancellationToken)
     {
+        var corsRules = CorsRuleSanitizer.Sanitize(request.CorsRules);
+        var tableCorsRules = CorsRuleSanitizer.Sanitize(request.TableCorsRules);
+
         var resourceGroup = await resourceGroupRepository.GetByIdAsync(request.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.ResourceGroup.NotFound(request.ResourceGroupId);
@@ -42,7 +45,15 @@ public class CreateStorageAccountCommandHandler(
                     ec.EnvironmentName,
                     ec.Sku is not null ? new StorageAccountSku(Enum.Parse<StorageAccountSku.Sku>(ec.Sku)) : (StorageAccountSku?)null))
                 .ToList(),
-            request.CorsRules?
+            corsRules?
+                .Select(rule => (
+                    rule.AllowedOrigins,
+                    rule.AllowedMethods,
+                    rule.AllowedHeaders,
+                    rule.ExposedHeaders,
+                    rule.MaxAgeInSeconds))
+                .ToList(),
+            tableCorsRules?
                 .Select(rule => (
                     rule.AllowedOrigins,
                     rule.AllowedMethods,

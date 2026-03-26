@@ -278,9 +278,14 @@ public static class BicepAssembler
             }
         }
 
-        if (companion.StorageTableNames.Count > 0)
+        if (companion.StorageTableNames.Count > 0 || companion.TableCorsRules.Count > 0)
         {
             sb.AppendLine($"    tableNames: {RenderBicepStringArray(companion.StorageTableNames)}");
+            sb.AppendLine("    corsRules: ");
+            foreach (var line in RenderCorsRules(companion.TableCorsRules))
+            {
+                sb.AppendLine(line);
+            }
         }
 
         if (companion.QueueNames.Count > 0)

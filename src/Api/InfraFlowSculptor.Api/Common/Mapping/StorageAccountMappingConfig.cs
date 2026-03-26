@@ -29,6 +29,15 @@ public class StorageAccountMappingConfig : IRegister
                         rule.AllowedMethods,
                         rule.AllowedHeaders,
                         rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds)).ToList())
+            .Map(dest => dest.TableCorsRules,
+                src => src.TableCorsRules == null
+                    ? null
+                    : src.TableCorsRules.Select(rule => new CorsRuleResult(
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
                         rule.MaxAgeInSeconds)).ToList());
 
         config.NewConfig<(Guid Id, UpdateStorageAccountRequest Request), UpdateStorageAccountCommand>()
@@ -52,6 +61,14 @@ public class StorageAccountMappingConfig : IRegister
                         rule.AllowedMethods,
                         rule.AllowedHeaders,
                         rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds)).ToList(),
+                src.Request.TableCorsRules == null
+                    ? null
+                    : src.Request.TableCorsRules.Select(rule => new CorsRuleResult(
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
                         rule.MaxAgeInSeconds)).ToList()));
 
         config.NewConfig<StorageAccount, StorageAccountResult>()
@@ -60,6 +77,13 @@ public class StorageAccountMappingConfig : IRegister
             .Map(dest => dest.MinimumTlsVersion, src => src.MinimumTlsVersion.Value.ToString())
             .Map(dest => dest.CorsRules,
                 src => src.CorsRules.Select(rule => new CorsRuleResult(
+                    rule.AllowedOrigins,
+                    rule.AllowedMethods,
+                    rule.AllowedHeaders,
+                    rule.ExposedHeaders,
+                    rule.MaxAgeInSeconds)).ToList())
+            .Map(dest => dest.TableCorsRules,
+                src => src.TableCorsRules.Select(rule => new CorsRuleResult(
                     rule.AllowedOrigins,
                     rule.AllowedMethods,
                     rule.AllowedHeaders,

@@ -18,6 +18,7 @@ public sealed class StorageAccountTypeBicepGenerator
         var queueNames = ParseQueueNames(resource.Properties);
         var storageTableNames = ParseStorageTableNames(resource.Properties);
         var corsRules = ParseCorsRules(resource.Properties);
+        var tableCorsRules = ParseTableCorsRules(resource.Properties);
 
         var companions = new List<GeneratedCompanionModule>();
 
@@ -49,7 +50,7 @@ public sealed class StorageAccountTypeBicepGenerator
             });
         }
 
-        if (storageTableNames.Count > 0)
+        if (storageTableNames.Count > 0 || tableCorsRules.Count > 0)
         {
             companions.Add(new GeneratedCompanionModule
             {
@@ -59,7 +60,8 @@ public sealed class StorageAccountTypeBicepGenerator
                 FolderName = "StorageAccount",
                 BicepContent = TablesModuleTemplate,
                 TypesBicepContent = BlobsTypesTemplate,
-                StorageTableNames = storageTableNames
+                StorageTableNames = storageTableNames,
+                TableCorsRules = tableCorsRules
             });
         }
 
@@ -128,6 +130,23 @@ public sealed class StorageAccountTypeBicepGenerator
             r.maxAgeInSeconds))
             .ToList();
     }
+
+        private static List<BlobCorsRuleData> ParseTableCorsRules(IReadOnlyDictionary<string, string> properties)
+        {
+          if (!properties.TryGetValue("tableCorsRules", out var json) || string.IsNullOrEmpty(json))
+            return [];
+
+          var raw = JsonSerializer.Deserialize<List<CorsRuleJson>>(json);
+          if (raw is null) return [];
+
+          return raw.Select(r => new BlobCorsRuleData(
+            r.allowedOrigins ?? [],
+            r.allowedMethods ?? [],
+            r.allowedHeaders ?? [],
+            r.exposedHeaders ?? [],
+            r.maxAgeInSeconds))
+            .ToList();
+        }
 
     private sealed record CorsRuleJson(
         List<string>? allowedOrigins,

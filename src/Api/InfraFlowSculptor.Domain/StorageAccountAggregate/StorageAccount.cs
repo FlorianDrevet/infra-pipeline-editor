@@ -21,7 +21,9 @@ public class StorageAccount : AzureResource
     public IReadOnlyList<StorageTable> Tables => _tables.AsReadOnly();
 
     private readonly List<CorsRule> _corsRules = new();
-    public IReadOnlyList<CorsRule> CorsRules => _corsRules.AsReadOnly();
+    public IReadOnlyList<CorsRule> AllCorsRules => _corsRules.AsReadOnly();
+    public IReadOnlyList<CorsRule> CorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Blob)).ToList();
+    public IReadOnlyList<CorsRule> TableCorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Table)).ToList();
 
     private readonly List<StorageAccountEnvironmentSettings> _environmentSettings = new();
 
@@ -168,13 +170,33 @@ public class StorageAccount : AzureResource
             IReadOnlyList<string> AllowedHeaders,
             IReadOnlyList<string> ExposedHeaders,
             int MaxAgeInSeconds)> corsRules)
+        => SetServiceCorsRules(new CorsServiceType(CorsServiceType.Service.Blob), corsRules);
+
+    public void SetTableCorsRules(
+        IReadOnlyList<(
+            IReadOnlyList<string> AllowedOrigins,
+            IReadOnlyList<string> AllowedMethods,
+            IReadOnlyList<string> AllowedHeaders,
+            IReadOnlyList<string> ExposedHeaders,
+            int MaxAgeInSeconds)> corsRules)
+        => SetServiceCorsRules(new CorsServiceType(CorsServiceType.Service.Table), corsRules);
+
+    private void SetServiceCorsRules(
+        CorsServiceType serviceType,
+        IReadOnlyList<(
+            IReadOnlyList<string> AllowedOrigins,
+            IReadOnlyList<string> AllowedMethods,
+            IReadOnlyList<string> AllowedHeaders,
+            IReadOnlyList<string> ExposedHeaders,
+            int MaxAgeInSeconds)> corsRules)
     {
-        _corsRules.Clear();
+        _corsRules.RemoveAll(rule => rule.ServiceType == serviceType);
 
         foreach (var rule in corsRules)
         {
             _corsRules.Add(CorsRule.Create(
                 Id,
+                serviceType,
                 rule.AllowedOrigins,
                 rule.AllowedMethods,
                 rule.AllowedHeaders,
@@ -199,7 +221,13 @@ public class StorageAccount : AzureResource
             IReadOnlyList<string> AllowedMethods,
             IReadOnlyList<string> AllowedHeaders,
             IReadOnlyList<string> ExposedHeaders,
-            int MaxAgeInSeconds)>? corsRules = null)
+            int MaxAgeInSeconds)>? corsRules = null,
+        IReadOnlyList<(
+            IReadOnlyList<string> AllowedOrigins,
+            IReadOnlyList<string> AllowedMethods,
+            IReadOnlyList<string> AllowedHeaders,
+            IReadOnlyList<string> ExposedHeaders,
+            int MaxAgeInSeconds)>? tableCorsRules = null)
     {
         var storageAccount = new StorageAccount
         {
@@ -219,6 +247,9 @@ public class StorageAccount : AzureResource
 
         if (corsRules is not null)
             storageAccount.SetCorsRules(corsRules);
+
+        if (tableCorsRules is not null)
+            storageAccount.SetTableCorsRules(tableCorsRules);
 
         return storageAccount;
     }

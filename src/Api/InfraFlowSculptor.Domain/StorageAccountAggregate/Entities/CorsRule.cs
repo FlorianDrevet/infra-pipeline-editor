@@ -8,6 +8,8 @@ public class CorsRule : Entity<CorsRuleId>
 {
     public AzureResourceId StorageAccountId { get; private set; } = null!;
 
+    public CorsServiceType ServiceType { get; private set; } = null!;
+
     public List<string> AllowedOrigins { get; private set; } = [];
 
     public List<string> AllowedMethods { get; private set; } = [];
@@ -27,12 +29,14 @@ public class CorsRule : Entity<CorsRuleId>
     }
 
     public void Update(
+        CorsServiceType serviceType,
         IReadOnlyList<string> allowedOrigins,
         IReadOnlyList<string> allowedMethods,
         IReadOnlyList<string> allowedHeaders,
         IReadOnlyList<string> exposedHeaders,
         int maxAgeInSeconds)
     {
+        ServiceType = serviceType;
         AllowedOrigins = [.. allowedOrigins];
         AllowedMethods = [.. allowedMethods];
         AllowedHeaders = [.. allowedHeaders];
@@ -42,6 +46,7 @@ public class CorsRule : Entity<CorsRuleId>
 
     public static CorsRule Create(
         AzureResourceId storageAccountId,
+        CorsServiceType serviceType,
         IReadOnlyList<string> allowedOrigins,
         IReadOnlyList<string> allowedMethods,
         IReadOnlyList<string> allowedHeaders,
@@ -51,6 +56,7 @@ public class CorsRule : Entity<CorsRuleId>
         return new CorsRule(CorsRuleId.CreateUnique())
         {
             StorageAccountId = storageAccountId,
+            ServiceType = serviceType,
             AllowedOrigins = [.. allowedOrigins],
             AllowedMethods = [.. allowedMethods],
             AllowedHeaders = [.. allowedHeaders],
