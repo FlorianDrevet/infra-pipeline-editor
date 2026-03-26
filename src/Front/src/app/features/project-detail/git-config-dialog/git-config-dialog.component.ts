@@ -69,13 +69,14 @@ export class GitConfigDialogComponent {
 
     try {
       const value = this.form.getRawValue();
-      const updated = await this.projectService.setGitConfig(this.data.projectId, {
+      await this.projectService.setGitConfig(this.data.projectId, {
         providerType: value.providerType!,
         repositoryUrl: value.repositoryUrl!,
         defaultBranch: value.defaultBranch!,
         basePath: value.basePath || null,
         personalAccessToken: value.personalAccessToken!,
       });
+      const updated = await this.projectService.getProject(this.data.projectId);
       this.dialogRef.close(updated);
     } catch {
       this.errorKey.set('PROJECT_DETAIL.GIT_CONFIG.DIALOG_ERROR');
