@@ -1495,6 +1495,26 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.formsDirty.set(true);
   }
 
+  protected toggleLifecycleRuleContainer(ruleIndex: number, containerName: string): void {
+    this.lifecycleRulesDraft.update(rules =>
+      rules.map((r, i) => {
+        if (i !== ruleIndex) return r;
+        const selected = r.containerNames.includes(containerName);
+        return {
+          ...r,
+          containerNames: selected
+            ? r.containerNames.filter(cn => cn !== containerName)
+            : [...r.containerNames, containerName],
+        };
+      }),
+    );
+    this.formsDirty.set(true);
+  }
+
+  protected isLifecycleContainerSelected(rule: { containerNames: string[] }, containerName: string): boolean {
+    return rule.containerNames.includes(containerName);
+  }
+
   protected corsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey): string {
     return this.corsFieldErrors()[this.buildCorsErrorKey(service, index, field)] ?? '';
   }

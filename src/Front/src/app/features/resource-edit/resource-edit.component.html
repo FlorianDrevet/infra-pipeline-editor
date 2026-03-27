@@ -1218,33 +1218,25 @@
                               </mat-form-field>
 
                               <!-- CONTAINER NAMES -->
-                              <div class="cors-field">
+                              <div class="cors-field cors-field--methods">
                                 <div class="cors-field__head">
                                   <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.CONTAINER_NAMES' | translate }}</span>
                                   <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.CONTAINER_NAMES_HINT' | translate }}</span>
                                 </div>
-                                <div class="cors-field__chips">
-                                  @for (cn of rule.containerNames; track $index; let ci = $index) {
-                                    <span class="cors-field__chip">
-                                      {{ cn }}
-                                      @if (canWrite()) {
-                                        <button class="cors-field__chip-remove" type="button" (click)="removeLifecycleRuleContainer(i, ci)">&times;</button>
-                                      }
-                                    </span>
-                                  }
-                                </div>
-                                @if (storageBlobContainers().length > 0 && canWrite()) {
-                                  <div class="cors-field__suggestions">
+                                @if (storageBlobContainers().length > 0) {
+                                  <div class="cors-methods">
                                     @for (container of storageBlobContainers(); track container.id) {
-                                      <button class="cors-field__suggestion" type="button"
-                                        [disabled]="rule.containerNames.includes(container.name)"
-                                        (click)="addLifecycleRuleContainer(i, container.name)">
-                                        {{ container.name }}
+                                      <button type="button"
+                                        class="cors-methods__option"
+                                        [class.cors-methods__option--selected]="isLifecycleContainerSelected(rule, container.name)"
+                                        [disabled]="!canWrite()"
+                                        (click)="toggleLifecycleRuleContainer(i, container.name)">
+                                        <span class="cors-methods__check">{{ isLifecycleContainerSelected(rule, container.name) ? '✓' : '+' }}</span>
+                                        <span>{{ container.name }}</span>
                                       </button>
                                     }
                                   </div>
-                                }
-                                @if (storageBlobContainers().length === 0) {
+                                } @else {
                                   <p class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.NO_CONTAINERS_HINT' | translate }}</p>
                                 }
                               </div>
