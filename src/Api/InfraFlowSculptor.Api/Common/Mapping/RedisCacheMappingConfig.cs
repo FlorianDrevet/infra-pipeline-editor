@@ -45,15 +45,15 @@ public class RedisCacheMappingConfig : IRegister
             .Map(dest => dest.RedisVersion, src => src.RedisVersion)
             .Map(dest => dest.EnableNonSslPort, src => src.EnableNonSslPort)
             .Map(dest => dest.MinimumTlsVersion,
-                src => (object?)src.MinimumTlsVersion != null ? src.MinimumTlsVersion.Value.ToString() : null)
+                src => src.MinimumTlsVersion != null ? src.MinimumTlsVersion.Value.ToString() : null)
             .Map(dest => dest.DisableAccessKeyAuthentication, src => src.DisableAccessKeyAuthentication)
             .Map(dest => dest.EnableAadAuth, src => src.EnableAadAuth)
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new RedisCacheEnvironmentConfigData(
                     es.EnvironmentName,
-                    (object?)es.Sku != null ? es.Sku.Value.ToString() : null,
+                    es.Sku != null ? es.Sku.Value.ToString() : null,
                     es.Capacity,
-                    (object?)es.MaxMemoryPolicy != null ? es.MaxMemoryPolicy.Value.ToString() : null)).ToList());
+                    es.MaxMemoryPolicy != null ? es.MaxMemoryPolicy.Value.ToString() : null)).ToList());
 
         config.NewConfig<RedisCacheEnvironmentConfigData, RedisCacheEnvironmentConfigResponse>()
             .MapWith(src => new RedisCacheEnvironmentConfigResponse(

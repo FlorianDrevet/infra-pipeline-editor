@@ -349,6 +349,8 @@ public record {AggregateName}Response(string Id, string Name, string ResourceGro
 
 Dans `src/Api/InfraFlowSculptor.Api/Common/Mapping/{AggregateName}MappingConfig.cs` :
 
+> **Null-check sur ValueObject nullable** : utiliser `x != null` (typé). Les opérateurs `==`/`!=` de `ValueObject` acceptent `ValueObject?`. **Ne jamais** caster en `(object?)` et **ne jamais** utiliser `is not null` (CS8122 : interdit dans les expression trees Mapster).
+
 ```csharp
 /// <summary>Mapster mapping configuration for the {AggregateName} feature.</summary>
 public sealed class {AggregateName}MappingConfig : IRegister

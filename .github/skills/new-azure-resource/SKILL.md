@@ -80,7 +80,7 @@
 | # | Fichier | Action |
 |---|---------|--------|
 | 31 | `Controllers/{ResourceName}Controller.cs` | **CRÉER** — 4 endpoints (GET/POST/PUT/DELETE) |
-| 32 | `Common/Mapping/{ResourceName}MappingConfig.cs` | **CRÉER** — Mapster IRegister |
+| 32 | `Common/Mapping/{ResourceName}MappingConfig.cs` | **CRÉER** — Mapster IRegister. Null-check sur ValueObject nullable : `x != null` (typé, JAMAIS `(object?)x != null` ni `x is not null` — CS8122 expression trees) |
 | 33 | `Program.cs` | **MODIFIER** — `app.Use{ResourceName}Controller()` |
 
 ### 8. BICEP GENERATION (`src/Api/InfraFlowSculptor.BicepGeneration/`)

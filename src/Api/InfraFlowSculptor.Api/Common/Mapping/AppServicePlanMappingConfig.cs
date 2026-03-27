@@ -38,7 +38,7 @@ public sealed class AppServicePlanMappingConfig : IRegister
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new AppServicePlanEnvironmentConfigData(
                     es.EnvironmentName,
-                    (object?)es.Sku != null ? es.Sku.Value.ToString() : null,
+                    es.Sku != null ? es.Sku.Value.ToString() : null,
                     es.Capacity)).ToList())
             .Map(dest => dest.OsType, src => src.OsType.Value.ToString());
 

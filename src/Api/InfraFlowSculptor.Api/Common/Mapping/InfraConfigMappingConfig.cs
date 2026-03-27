@@ -67,7 +67,7 @@ public class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.ProjectId, src => src.ProjectId)
-            .Map(dest => dest.DefaultNamingTemplate, src => (object?)src.DefaultNamingTemplate != null ? src.DefaultNamingTemplate.Value : null)
+            .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate != null ? src.DefaultNamingTemplate.Value : null)
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
             .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferences.Count);

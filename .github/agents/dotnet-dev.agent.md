@@ -427,6 +427,22 @@ public KeyVaultRepository(ProjectDbContext context)
 #pragma warning disable CS8600 // ← interdit sauf justification documentée
 ```
 
+### Null-check sur ValueObject dans Mapster (expression trees)
+
+Les mappings Mapster compilent en **expression trees** → l'opérateur `is not null` est **interdit** (CS8122).
+Les opérateurs `==`/`!=` de `ValueObject` acceptent des paramètres **nullable** (`ValueObject?`), donc un simple `!= null` typé suffit :
+
+```csharp
+// ✅ Null-check typé — fonctionne dans les expression trees
+es.Sku != null ? es.Sku.Value.ToString() : null
+
+// ❌ Cast (object?) — perd le typage, inutile
+(object?)es.Sku != null ? es.Sku.Value.ToString() : null
+
+// ❌ Pattern matching — interdit dans expression trees (CS8122)
+es.Sku is not null ? es.Sku.Value.ToString() : null
+```
+
 ---
 
 ## 8. Immutabilité — Records, init, readonly

@@ -105,7 +105,7 @@ public class StorageAccountMappingConfig : IRegister
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new StorageAccountEnvironmentConfigData(
                     es.EnvironmentName,
-                    (object?)es.Sku != null ? es.Sku.Value.ToString() : null)).ToList())
+                    es.Sku != null ? es.Sku.Value.ToString() : null)).ToList())
             .Map(dest => dest.LifecycleRules,
                 src => src.LifecycleRules.Select(rule => new BlobLifecycleRuleResult(
                     rule.RuleName,

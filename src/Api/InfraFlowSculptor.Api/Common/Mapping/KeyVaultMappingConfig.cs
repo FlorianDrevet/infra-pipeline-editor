@@ -41,7 +41,7 @@ public class KeyVaultMappingConfig : IRegister
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new KeyVaultEnvironmentConfigData(
                     es.EnvironmentName,
-                    (object?)es.Sku != null ? es.Sku.Value.ToString() : null)).ToList());
+                    es.Sku != null ? es.Sku.Value.ToString() : null)).ToList());
 
         config.NewConfig<KeyVaultEnvironmentConfigData, KeyVaultEnvironmentConfigResponse>()
             .MapWith(src => new KeyVaultEnvironmentConfigResponse(

@@ -38,7 +38,7 @@ public sealed class SqlDatabaseMappingConfig : IRegister
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new SqlDatabaseEnvironmentConfigData(
                     es.EnvironmentName,
-                    (object?)es.Sku != null ? es.Sku.Value.ToString() : null,
+                    es.Sku != null ? es.Sku.Value.ToString() : null,
                     es.MaxSizeGb,
                     es.ZoneRedundant)).ToList())
             .Map(dest => dest.Collation, src => src.Collation)

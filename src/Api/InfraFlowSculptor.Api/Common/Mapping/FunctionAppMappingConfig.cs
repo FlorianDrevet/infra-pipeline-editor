@@ -41,7 +41,7 @@ public sealed class FunctionAppMappingConfig : IRegister
                 src => src.EnvironmentSettings.Select(es => new FunctionAppEnvironmentConfigData(
                     es.EnvironmentName,
                     es.HttpsOnly,
-                    (object?)es.RuntimeStack != null ? es.RuntimeStack.Value.ToString() : null,
+                    es.RuntimeStack != null ? es.RuntimeStack.Value.ToString() : null,
                     es.RuntimeVersion,
                     es.MaxInstanceCount,
                     es.FunctionsWorkerRuntime)).ToList())
