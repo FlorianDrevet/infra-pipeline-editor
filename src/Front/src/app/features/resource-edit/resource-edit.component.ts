@@ -464,7 +464,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     const tabIndex = this.mainTabIndex();
     const isOnSaveableTab = this.isUserAssignedIdentity()
       ? tabIndex === 0
-      : tabIndex === 0 || tabIndex === 1;
+      : tabIndex === 0 || tabIndex === 1 || (this.isStorageAccount() && tabIndex === 3);
     return this.formsDirty() && isOnSaveableTab && this.canWrite();
   });
 
@@ -1449,16 +1449,19 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       ...rules,
       { ruleName: '', containerNames: [], timeToLiveInDays: 30 },
     ]);
+    this.formsDirty.set(true);
   }
 
   protected removeLifecycleRule(index: number): void {
     this.lifecycleRulesDraft.update(rules => rules.filter((_, i) => i !== index));
+    this.formsDirty.set(true);
   }
 
   protected updateLifecycleRuleName(index: number, name: string): void {
     this.lifecycleRulesDraft.update(rules =>
       rules.map((r, i) => (i === index ? { ...r, ruleName: name } : r)),
     );
+    this.formsDirty.set(true);
   }
 
   protected updateLifecycleRuleTtl(index: number, rawValue: string): void {
@@ -1467,6 +1470,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.lifecycleRulesDraft.update(rules =>
       rules.map((r, i) => (i === index ? { ...r, timeToLiveInDays: parsed } : r)),
     );
+    this.formsDirty.set(true);
   }
 
   protected addLifecycleRuleContainer(index: number, containerName: string): void {
@@ -1478,6 +1482,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return { ...r, containerNames: [...r.containerNames, trimmed] };
       }),
     );
+    this.formsDirty.set(true);
   }
 
   protected removeLifecycleRuleContainer(ruleIndex: number, containerIndex: number): void {
@@ -1487,6 +1492,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return { ...r, containerNames: r.containerNames.filter((_, ci) => ci !== containerIndex) };
       }),
     );
+    this.formsDirty.set(true);
   }
 
   protected corsFieldError(service: CorsServiceKey, index: number, field: CorsFieldKey): string {

@@ -1137,8 +1137,8 @@
         "RULE_NAME": "Nom de la r\u00e8gle",
         "RULE_NAME_HINT": "Un identifiant unique pour cette r\u00e8gle (ex. cleanup-logs).",
         "CONTAINER_NAMES": "Conteneurs cibl\u00e9s",
-        "CONTAINER_NAMES_HINT": "S\u00e9lectionnez ou saisissez les noms des conteneurs blob concern\u00e9s par cette r\u00e8gle.",
-        "ADD_CONTAINER_PLACEHOLDER": "Ajouter un nom de conteneur\u2026",
+        "CONTAINER_NAMES_HINT": "S\u00e9lectionnez les conteneurs blob concern\u00e9s par cette r\u00e8gle.",
+        "NO_CONTAINERS_HINT": "Aucun conteneur blob disponible. Ajoutez des conteneurs ci-dessus.",
         "TTL_DAYS": "R\u00e9tention (jours)",
         "TTL_HINT": "Les blobs seront supprim\u00e9s apr\u00e8s ce nombre de jours depuis la derni\u00e8re modification (1\u201336 500)."
       }

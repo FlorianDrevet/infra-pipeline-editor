@@ -1130,8 +1130,8 @@
         "RULE_NAME": "Rule name",
         "RULE_NAME_HINT": "A unique identifier for this lifecycle rule (e.g. cleanup-logs).",
         "CONTAINER_NAMES": "Target containers",
-        "CONTAINER_NAMES_HINT": "Select or type the blob container names this rule applies to.",
-        "ADD_CONTAINER_PLACEHOLDER": "Add a container name…",
+        "CONTAINER_NAMES_HINT": "Select the blob containers this rule applies to.",
+        "NO_CONTAINERS_HINT": "No blob containers available. Add containers above first.",
         "TTL_DAYS": "Retention (days)",
         "TTL_HINT": "Blobs will be deleted after this many days since last modification (1–36 500)."
       }
