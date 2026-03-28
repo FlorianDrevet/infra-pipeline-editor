@@ -962,15 +962,16 @@
       "DESCRIPTION": "Role assignments granted through this User-Assigned Managed Identity. Each entry shows which source resource accesses which target resource, and with which role.",
       "LOADING": "Loading granted rights...",
       "EMPTY": "No resource is using this identity yet.",
-      "LOAD_ERROR": "Unable to load granted rights. Please try again."
+      "LOAD_ERROR": "Unable to load granted rights. Please try again.",
+      "ASSIGN_RIGHT": "Assign a right"
     },
     "USED_BY": {
-      "DESCRIPTION": "Resources that use this managed identity. You can unlink a resource to switch its role assignments to System Assigned identity.",
+      "DESCRIPTION": "Resources that use this managed identity. You can unlink a resource to delete the role assignments that go through it.",
       "LOADING": "Loading resources using this identity...",
       "EMPTY": "No resource is using this identity yet.",
       "UNLINK": "Unlink",
       "UNLINK_RESOURCE_TITLE": "Unlink resource from identity",
-      "UNLINK_RESOURCE_MESSAGE": "Switch all role assignments of \"{{resource}}\" from this identity to System Assigned? The granted rights of this identity are not affected.",
+      "UNLINK_RESOURCE_MESSAGE": "Delete all role assignments of \"{{resource}}\" going through this identity? Other rights of this identity are not affected.",
       "UNLINK_YES": "Unlink",
       "UNLINK_CANCEL": "Cancel",
       "UNLINK_ERROR": "Unable to unlink the resource. Please try again."
@@ -1052,7 +1053,12 @@
       "NEW_IDENTITY_NAME": "Identity name",
       "CREATING_IDENTITY": "Creating...",
       "CREATE_IDENTITY_ERROR": "Unable to create the identity. Please try again.",
-      "CREATE_IDENTITY_SUBMIT": "Create"
+      "CREATE_IDENTITY_SUBMIT": "Create",
+      "SELECT_SOURCE_RESOURCE": "Which resource uses this identity?",
+      "SELECT_SOURCE_RESOURCE_DESC": "Choose the resource that will use the managed identity to access other resources.",
+      "SELECT_TARGET_RESOURCE": "Which resource to access?",
+      "SELECT_TARGET_RESOURCE_DESC": "Choose the resource this managed identity will access.",
+      "SELECT_ROLE": "Which role to assign?"
     },
     "STORAGE_SERVICES": {
       "BLOB_CONTAINERS": "Blob Containers",

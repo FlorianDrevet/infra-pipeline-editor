@@ -1706,6 +1706,15 @@
               <p>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.DESCRIPTION' | translate }}</p>
             </div>
 
+            @if (canWrite()) {
+              <div class="ra-actions">
+                <button class="ra-add-btn" (click)="openAddRoleAssignmentDialog()">
+                  <mat-icon>add</mat-icon>
+                  {{ 'RESOURCE_EDIT.GRANTED_RIGHTS.ASSIGN_RIGHT' | translate }}
+                </button>
+              </div>
+            }
+
             @if (identityRoleAssignmentsError()) {
               <div class="feedback-banner feedback-banner--error" role="alert">
                 <mat-icon>error_outline</mat-icon>

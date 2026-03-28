@@ -25,6 +25,10 @@ export interface AddRoleAssignmentDialogData {
   siblingResources: AzureResourceResponse[];
   resourceGroupId: string;
   configLocation: string;
+  // When opening from a UAI's Granted Rights tab
+  isFromUserAssignedIdentity?: boolean;
+  userAssignedIdentityId?: string;
+  userAssignedIdentityName?: string;
 }
 
 @Component({
@@ -54,12 +58,21 @@ export class AddRoleAssignmentDialogComponent {
 
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
 
-  // ─── Step management ───
-  protected readonly step = signal<1 | 2>(1);
+  // ─── UAI mode detection ───
+  protected readonly isFromUAI = computed(() => !!this.data.isFromUserAssignedIdentity);
 
-  // ─── Step 1 — Target selection ───
+  // ─── Step management ───
+  protected readonly step = signal<1 | 2 | 3>(1);
+
+  // ─── Step 1 — Target selection (normal) / Source selection (UAI) ───
   protected readonly targets = computed(() => this.data.siblingResources);
+  protected readonly uaiSourceCandidates = computed(() =>
+    this.data.siblingResources.filter(r => r.resourceType !== 'UserAssignedIdentity')
+  );
   protected readonly selectedTarget = signal<AzureResourceResponse | null>(null);
+
+  // ─── UAI mode: source resource selection ───
+  protected readonly selectedSource = signal<AzureResourceResponse | null>(null);
 
   // ─── Step 2 — Configuration ───
   protected readonly availableRoles = signal<AzureRoleDefinitionResponse[]>([]);
@@ -81,17 +94,53 @@ export class AddRoleAssignmentDialogComponent {
   protected readonly isCreatingIdentity = signal(false);
 
   protected readonly canSubmit = computed(() => {
-    const hasTarget = !!this.selectedTarget();
-    const hasRole = !!this.selectedRoleId();
-    const hasIdentityType = !!this.selectedIdentityType();
     const notSubmitting = !this.isSubmitting();
+    const hasRole = !!this.selectedRoleId();
+
+    if (this.isFromUAI()) {
+      return !!this.selectedSource() && !!this.selectedTarget() && hasRole && notSubmitting;
+    }
+
+    const hasTarget = !!this.selectedTarget();
+    const hasIdentityType = !!this.selectedIdentityType();
     const identityOk = this.selectedIdentityType() !== 'UserAssigned' || !!this.selectedIdentityId();
     return hasTarget && hasRole && hasIdentityType && notSubmitting && identityOk;
   });
 
   protected selectTarget(resource: AzureResourceResponse): void {
     this.selectedTarget.set(resource);
-    this.goToStep2();
+    if (this.isFromUAI()) {
+      this.goToUAIStep3();
+    } else {
+      this.goToStep2();
+    }
+  }
+
+  // ─── UAI mode: source selection (step 1) ───
+  protected selectSource(resource: AzureResourceResponse): void {
+    this.selectedSource.set(resource);
+    this.step.set(2);
+    this.errorKey.set('');
+  }
+
+  // ─── UAI mode: step 3 — load roles for target ───
+  private async goToUAIStep3(): Promise<void> {
+    this.step.set(3);
+    this.errorKey.set('');
+    this.selectedRoleId.set('');
+
+    const target = this.selectedTarget();
+    if (!target) return;
+
+    this.rolesLoading.set(true);
+    try {
+      const roles = await this.roleAssignmentService.getAvailableRoleDefinitions(target.id);
+      this.availableRoles.set(roles);
+    } catch {
+      this.availableRoles.set([]);
+    } finally {
+      this.rolesLoading.set(false);
+    }
   }
 
   protected async goToStep2(): Promise<void> {
@@ -114,7 +163,16 @@ export class AddRoleAssignmentDialogComponent {
   }
 
   protected goBack(): void {
-    this.step.set(1);
+    if (this.isFromUAI()) {
+      const current = this.step();
+      if (current === 3) {
+        this.step.set(2);
+      } else if (current === 2) {
+        this.step.set(1);
+      }
+    } else {
+      this.step.set(1);
+    }
     this.errorKey.set('');
   }
 
@@ -174,13 +232,26 @@ export class AddRoleAssignmentDialogComponent {
     this.errorKey.set('');
 
     try {
-      const result = await this.roleAssignmentService.add(this.data.sourceResourceId, {
-        targetResourceId: target.id,
-        managedIdentityType: this.selectedIdentityType(),
-        roleDefinitionId: this.selectedRoleId(),
-        userAssignedIdentityId: this.selectedIdentityType() === 'UserAssigned' ? this.selectedIdentityId() || undefined : undefined,
-      });
-      this.dialogRef.close(result);
+      if (this.isFromUAI()) {
+        const source = this.selectedSource();
+        if (!source) return;
+
+        const result = await this.roleAssignmentService.add(source.id, {
+          targetResourceId: target.id,
+          managedIdentityType: 'UserAssigned',
+          roleDefinitionId: this.selectedRoleId(),
+          userAssignedIdentityId: this.data.userAssignedIdentityId,
+        });
+        this.dialogRef.close(result);
+      } else {
+        const result = await this.roleAssignmentService.add(this.data.sourceResourceId, {
+          targetResourceId: target.id,
+          managedIdentityType: this.selectedIdentityType(),
+          roleDefinitionId: this.selectedRoleId(),
+          userAssignedIdentityId: this.selectedIdentityType() === 'UserAssigned' ? this.selectedIdentityId() || undefined : undefined,
+        });
+        this.dialogRef.close(result);
+      }
     } catch {
       this.errorKey.set('RESOURCE_EDIT.ADD_ROLE_DIALOG.ERROR');
     } finally {

@@ -28,10 +28,22 @@ public sealed class BicepGenerationEngine
         var modules = new List<GeneratedTypeModule>();
 
         // Determine which source resources need system-assigned identity output
-        var sourceResourcesNeedingIdentity = request.RoleAssignments
+        var sourceResourcesNeedingSystemIdentity = request.RoleAssignments
             .Where(ra => ra.ManagedIdentityType == "SystemAssigned")
             .Select(ra => ra.SourceResourceName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Determine which source resources need user-assigned identity injection
+        // Maps: source resource name → list of UAI module identifiers
+        var sourceResourcesNeedingUserIdentity = request.RoleAssignments
+            .Where(ra => ra.ManagedIdentityType == "UserAssigned" && ra.UserAssignedIdentityName is not null)
+            .GroupBy(ra => ra.SourceResourceName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(ra => BicepIdentifierHelper.ToBicepIdentifier(ra.UserAssignedIdentityName!))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList(),
+                StringComparer.OrdinalIgnoreCase);
 
         // Determine which source resources need output declarations for app settings
         var outputsBySourceResource = request.AppSettings
@@ -64,9 +76,16 @@ public sealed class BicepGenerationEngine
 
             // Inject system-assigned identity and principalId output
             // for resources that are sources of role assignments
-            if (sourceResourcesNeedingIdentity.Contains(resource.Name))
+            if (sourceResourcesNeedingSystemIdentity.Contains(resource.Name))
             {
                 moduleBicepContent = InjectSystemAssignedIdentity(moduleBicepContent);
+            }
+
+            // Inject user-assigned identity block for resources that reference a UAI
+            if (sourceResourcesNeedingUserIdentity.TryGetValue(resource.Name, out var uaiIdentifiers))
+            {
+                var alsoHasSystem = sourceResourcesNeedingSystemIdentity.Contains(resource.Name);
+                moduleBicepContent = InjectUserAssignedIdentity(moduleBicepContent, uaiIdentifiers, alsoHasSystem);
             }
 
             // Inject output declarations for resources referenced by app settings
@@ -190,6 +209,108 @@ public sealed class BicepGenerationEngine
         // Append principalId output
         moduleBicep = moduleBicep.TrimEnd() +
             $"\n\noutput principalId string = {symbol}.identity.principalId\n";
+
+        return moduleBicep;
+    }
+
+    /// <summary>
+    /// Injects <c>identity: { type: 'UserAssigned', userAssignedIdentities: { ... } }</c>
+    /// into the resource declaration. When the resource also has SystemAssigned identity,
+    /// upgrades to <c>'SystemAssigned, UserAssigned'</c>.
+    /// Each UAI is referenced via a resource-id parameter.
+    /// </summary>
+    private static string InjectUserAssignedIdentity(
+        string moduleBicep,
+        List<string> uaiIdentifiers,
+        bool alsoHasSystemAssigned)
+    {
+        // Build parameter declarations for each UAI resource ID
+        var paramDeclarations = new System.Text.StringBuilder();
+        foreach (var uaiId in uaiIdentifiers)
+        {
+            var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
+            if (moduleBicep.Contains($"param {paramName} "))
+                continue;
+            paramDeclarations.AppendLine($"@description('Resource ID of user-assigned identity: {uaiId}')");
+            paramDeclarations.AppendLine($"param {paramName} string");
+        }
+
+        // Insert params before the first 'var' or 'resource' line
+        if (paramDeclarations.Length > 0)
+        {
+            var insertIdx = FindFirstLineIndex(moduleBicep, "var ");
+            if (insertIdx < 0)
+                insertIdx = FindFirstLineIndex(moduleBicep, "resource ");
+            if (insertIdx >= 0)
+            {
+                moduleBicep = moduleBicep.Insert(insertIdx, paramDeclarations.ToString() + "\n");
+            }
+        }
+
+        // Build the userAssignedIdentities object entries
+        var uaiEntries = new System.Text.StringBuilder();
+        foreach (var uaiId in uaiIdentifiers)
+        {
+            var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
+            uaiEntries.AppendLine($"      '${{${paramName}}}': {{}}");
+        }
+
+        // Determine desired identity type
+        var identityType = alsoHasSystemAssigned
+            ? "SystemAssigned, UserAssigned"
+            : "UserAssigned";
+
+        if (moduleBicep.Contains("identity:"))
+        {
+            // Identity block already exists (SystemAssigned was injected first).
+            // Replace type and add userAssignedIdentities.
+            moduleBicep = moduleBicep.Replace(
+                "type: 'SystemAssigned'",
+                $"type: '{identityType}'\n    userAssignedIdentities: {{\n{uaiEntries}    }}");
+        }
+        else
+        {
+            // No identity block yet — inject before 'properties:' or before closing brace
+            var identityBlock =
+                $"  identity: {{\n    type: '{identityType}'\n    userAssignedIdentities: {{\n{uaiEntries}    }}\n  }}\n";
+
+            var propertiesIdx = moduleBicep.IndexOf("  properties:", StringComparison.Ordinal);
+            if (propertiesIdx >= 0)
+            {
+                moduleBicep = moduleBicep.Insert(propertiesIdx, identityBlock);
+            }
+            else
+            {
+                // For resources without properties block, insert before closing } of the resource
+                var symbolMatch = Regex.Match(moduleBicep, @"resource\s+(\w+)\s+'");
+                if (symbolMatch.Success)
+                {
+                    var symbol = symbolMatch.Groups[1].Value;
+                    var resourcePattern = new Regex($@"resource\s+{Regex.Escape(symbol)}\s+'[^']+'\s*=\s*\{{");
+                    var resourceMatch = resourcePattern.Match(moduleBicep);
+                    if (resourceMatch.Success)
+                    {
+                        var braceStart = resourceMatch.Index + resourceMatch.Length;
+                        var depth = 1;
+                        var insertPos = -1;
+                        for (var i = braceStart; i < moduleBicep.Length; i++)
+                        {
+                            if (moduleBicep[i] == '{') depth++;
+                            else if (moduleBicep[i] == '}')
+                            {
+                                depth--;
+                                if (depth == 0) { insertPos = i; break; }
+                            }
+                        }
+
+                        if (insertPos >= 0)
+                        {
+                            moduleBicep = moduleBicep.Insert(insertPos, identityBlock);
+                        }
+                    }
+                }
+            }
+        }
 
         return moduleBicep;
     }

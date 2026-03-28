@@ -39,6 +39,7 @@ public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepG
           location: location
         }
 
+        output resourceId string = identity.id
         output principalId string = identity.properties.principalId
         output clientId string = identity.properties.clientId
         """;

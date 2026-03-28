@@ -717,6 +717,17 @@ public static class BicepAssembler
             .GroupBy(s => s.TargetResourceName, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
 
+        // Group user-assigned identity references by source resource name
+        var uaiBySourceResource = roleAssignments
+            .Where(ra => ra.ManagedIdentityType == "UserAssigned" && ra.UserAssignedIdentityName is not null)
+            .GroupBy(ra => ra.SourceResourceName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(ra => ra.UserAssignedIdentityName!)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList(),
+                StringComparer.OrdinalIgnoreCase);
+
         foreach (var module in modules)
         {
             var rgSymbol = BicepIdentifierHelper.ToBicepIdentifier(module.ResourceGroupName);
@@ -735,6 +746,22 @@ public static class BicepAssembler
             foreach (var paramKey in module.Parameters.Keys)
             {
                 sb.AppendLine($"    {paramKey}: {module.ModuleName}{Capitalize(paramKey)}");
+            }
+
+            // Pass user-assigned identity resource IDs to the module
+            if (uaiBySourceResource.TryGetValue(module.LogicalResourceName, out var uaiNames))
+            {
+                foreach (var uaiName in uaiNames)
+                {
+                    var uaiId = BicepIdentifierHelper.ToBicepIdentifier(uaiName);
+                    var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
+                    var uaiModuleSymbol = modules.FirstOrDefault(m =>
+                        m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
+                    if (uaiModuleSymbol is not null)
+                    {
+                        sb.AppendLine($"    {paramName}: {uaiModuleSymbol.ModuleName}Module.outputs.resourceId");
+                    }
+                }
             }
 
             // Inject appSettings / envVars param for compute modules only
