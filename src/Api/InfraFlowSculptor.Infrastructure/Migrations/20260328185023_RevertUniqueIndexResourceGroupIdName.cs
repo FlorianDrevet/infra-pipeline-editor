@@ -13,9 +13,9 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
             // The unique index (ResourceGroupId, Name) was too strict for TPT inheritance —
             // it prevented different resource types from sharing the same name in a resource group.
             // Revert to the original non-unique index on ResourceGroupId only.
-            migrationBuilder.DropIndex(
-                name: "IX_AzureResource_ResourceGroupId_Name",
-                table: "AzureResource");
+            // Use IF EXISTS because the index may not be present in all database instances.
+            migrationBuilder.Sql(
+                """DROP INDEX IF EXISTS "IX_AzureResource_ResourceGroupId_Name";""");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AzureResource_ResourceGroupId",
