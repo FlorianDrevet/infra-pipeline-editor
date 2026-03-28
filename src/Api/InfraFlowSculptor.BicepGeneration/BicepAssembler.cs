@@ -768,7 +768,7 @@ public static class BicepAssembler
             if (module.UsesParameterizedIdentity)
             {
                 // Parameterized identity: pass identityType and UAI resource IDs.
-                var identityKind = module.IdentityKind ?? "None";
+                var identityKind = module.IdentityKind ?? "SystemAssigned";
                 sb.AppendLine($"    identityType: '{identityKind}'");
 
                 // Pass UAI resource IDs if this resource uses UserAssigned identity

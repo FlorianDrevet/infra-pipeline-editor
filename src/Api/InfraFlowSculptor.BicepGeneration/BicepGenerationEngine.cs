@@ -155,7 +155,10 @@ public sealed class BicepGenerationEngine
                 LogicalResourceName = resource.Name,
                 ResourceAbbreviation = resource.ResourceAbbreviation,
                 IdentityKind = identityKind,
-                UsesParameterizedIdentity = isMixed
+                UsesParameterizedIdentity = isMixed,
+                ModuleTypesBicepContent = isMixed
+                    ? (module.ModuleTypesBicepContent ?? string.Empty) + ManagedIdentityTypeBicepType
+                    : module.ModuleTypesBicepContent
             });
         }
 
@@ -408,8 +411,11 @@ public sealed class BicepGenerationEngine
 
     /// <summary>
     /// Injects a parameterized identity block into the module template.
-    /// The module receives <c>param identityType string</c> and optional UAI resource ID params.
+    /// The module receives <c>param identityType ManagedIdentityType</c> (typed union from types.bicep)
+    /// and optional UAI resource ID params.
     /// The identity section is built dynamically at deployment time.
+    /// Also appends <c>ManagedIdentityType</c> to the module's <c>types.bicep</c> content
+    /// and adds the import to the module template.
     /// </summary>
     private static string InjectParameterizedIdentity(string moduleBicep, List<string> allUaiIds)
     {
@@ -426,10 +432,13 @@ public sealed class BicepGenerationEngine
         if (moduleBicep.Contains("\n  identity:"))
             return moduleBicep;
 
+        // Add ManagedIdentityType to the import line in the module template
+        moduleBicep = AddTypeImport(moduleBicep, "ManagedIdentityType");
+
         // Build param declarations
         var paramSb = new System.Text.StringBuilder();
-        paramSb.AppendLine("@description('Managed identity type for this resource (None, SystemAssigned, UserAssigned, or SystemAssigned, UserAssigned)')");
-        paramSb.AppendLine("param identityType string = 'None'");
+        paramSb.AppendLine("@description('Managed identity type for this resource')");
+        paramSb.AppendLine("param identityType ManagedIdentityType = 'SystemAssigned'");
         paramSb.AppendLine();
 
         foreach (var uaiId in allUaiIds)
@@ -474,24 +483,24 @@ public sealed class BicepGenerationEngine
             }
         }
 
-        // Build the conditional identity block
+        // Build the identity block — always present (no 'None' case)
         string identityBlock;
         if (hasUais)
         {
             identityBlock = """
-              identity: identityType != 'None' ? {
+              identity: {
                 type: identityType
                 userAssignedIdentities: contains(identityType, 'UserAssigned') ? userAssignedIdentityMap : null
-              } : null
+              }
 
             """;
         }
         else
         {
             identityBlock = """
-              identity: identityType != 'None' ? {
+              identity: {
                 type: identityType
-              } : null
+              }
 
             """;
         }
@@ -503,7 +512,7 @@ public sealed class BicepGenerationEngine
             moduleBicep = moduleBicep.Insert(propertiesIdx, identityBlock);
         }
 
-        // Append principalId output (only meaningful for SystemAssigned, but safe to include always)
+        // Append principalId output (empty string when no SystemAssigned component)
         if (!moduleBicep.Contains("output principalId"))
         {
             moduleBicep = moduleBicep.TrimEnd() +
@@ -511,6 +520,39 @@ public sealed class BicepGenerationEngine
         }
 
         return moduleBicep;
+    }
+
+    /// <summary>
+    /// The <c>ManagedIdentityType</c> Bicep type definition to append to a module's <c>types.bicep</c>.
+    /// </summary>
+    internal const string ManagedIdentityTypeBicepType = """
+
+        @export()
+        @description('Managed identity type for Azure resources')
+        type ManagedIdentityType = 'SystemAssigned' | 'UserAssigned' | 'SystemAssigned, UserAssigned'
+        """;
+
+    /// <summary>
+    /// Adds <paramref name="typeName"/> to the existing <c>import { ... } from './types.bicep'</c> line.
+    /// If no import line exists, prepends a new one.
+    /// </summary>
+    private static string AddTypeImport(string moduleBicep, string typeName)
+    {
+        // Match existing import line: import { Foo, Bar } from './types.bicep'
+        var importRegex = new Regex(@"import\s*\{([^}]+)\}\s*from\s*'\.\/types\.bicep'");
+        var match = importRegex.Match(moduleBicep);
+        if (match.Success)
+        {
+            var existingImports = match.Groups[1].Value;
+            if (existingImports.Contains(typeName))
+                return moduleBicep;
+
+            var newImports = existingImports.TrimEnd() + ", " + typeName + " ";
+            return moduleBicep.Replace(match.Value, $"import {{{newImports}}} from './types.bicep'");
+        }
+
+        // No import line — prepend one
+        return $"import {{ {typeName} }} from './types.bicep'\n\n" + moduleBicep;
     }
 
     private static string Capitalize(string s) =>
