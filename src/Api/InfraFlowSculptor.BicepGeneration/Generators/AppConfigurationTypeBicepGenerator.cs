@@ -80,5 +80,11 @@ public sealed class AppConfigurationTypeBicepGenerator
             publicNetworkAccess: publicNetworkAccess
           }
         }
+
+        @description('The resource ID of the App Configuration store')
+        output id string = appConfig.id
+
+        @description('The endpoint of the App Configuration store')
+        output endpoint string = appConfig.properties.endpoint
         """;
 }

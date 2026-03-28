@@ -77,5 +77,14 @@ public sealed class ApplicationInsightsTypeBicepGenerator
             IngestionMode: ingestionMode
           }
         }
+
+        @description('The resource ID of the Application Insights resource')
+        output id string = applicationInsights.id
+
+        @description('The instrumentation key of the Application Insights resource')
+        output instrumentationKey string = applicationInsights.properties.InstrumentationKey
+
+        @description('The connection string of the Application Insights resource')
+        output connectionString string = applicationInsights.properties.ConnectionString
         """;
 }

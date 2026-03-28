@@ -107,5 +107,14 @@ public sealed class CosmosDbTypeBicepGenerator
             ]
           }
         }
+
+        @description('The resource ID of the Cosmos DB account')
+        output id string = cosmosDbAccount.id
+
+        @description('The document endpoint of the Cosmos DB account')
+        output documentEndpoint string = cosmosDbAccount.properties.documentEndpoint
+
+        @description('The name of the Cosmos DB account')
+        output name string = cosmosDbAccount.name
         """;
 }

@@ -86,5 +86,14 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
             ]
           }
         }
+
+        @description('The resource ID of the Container App Environment')
+        output id string = containerAppEnv.id
+
+        @description('The default domain of the Container App Environment')
+        output defaultDomain string = containerAppEnv.properties.defaultDomain
+
+        @description('The static IP of the Container App Environment')
+        output staticIp string = containerAppEnv.properties.staticIp
         """;
 }

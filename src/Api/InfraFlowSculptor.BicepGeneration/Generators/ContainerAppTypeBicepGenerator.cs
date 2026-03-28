@@ -105,5 +105,14 @@ public sealed class ContainerAppTypeBicepGenerator
             }
           }
         }
+
+        @description('The resource ID of the Container App')
+        output id string = containerApp.id
+
+        @description('The FQDN of the Container App')
+        output fqdn string = containerApp.properties.configuration.ingress != null ? containerApp.properties.configuration.ingress.fqdn : ''
+
+        @description('The latest revision FQDN of the Container App')
+        output latestRevisionFqdn string = containerApp.properties.latestRevisionFqdn
         """;
 }

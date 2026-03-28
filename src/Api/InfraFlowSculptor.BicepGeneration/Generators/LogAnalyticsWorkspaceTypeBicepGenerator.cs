@@ -69,5 +69,8 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
         }
 
         output logAnalyticsWorkspaceId string = logAnalyticsWorkspace.id
+
+        @description('The customer ID (workspace ID) of the Log Analytics workspace')
+        output customerId string = logAnalyticsWorkspace.properties.customerId
         """;
 }

@@ -875,16 +875,7 @@ public static class BicepAssembler
 
                             if (kvModule is not null)
                             {
-                                if (isContainerApp)
-                                {
-                                    // ContainerApp uses keyVaultUrl in the secrets array pattern
-                                    sb.AppendLine($"        value: '${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{EscapeBicepString(setting.SecretName)}'");
-                                }
-                                else
-                                {
-                                    // WebApp/FunctionApp use @Microsoft.KeyVault(SecretUri=...) syntax
-                                    sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{EscapeBicepString(setting.SecretName)})'");
-                                }
+                                sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{EscapeBicepString(setting.SecretName)})'");
                             }
                         }
                     }

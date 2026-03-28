@@ -100,5 +100,14 @@ public sealed class FunctionAppTypeBicepGenerator
             }
           }
         }
+
+        @description('The resource ID of the Function App')
+        output id string = functionApp.id
+
+        @description('The default host name of the Function App')
+        output defaultHostName string = functionApp.properties.defaultHostName
+
+        @description('The principal ID of the system-assigned managed identity')
+        output principalId string = functionApp.identity.principalId
         """;
 }

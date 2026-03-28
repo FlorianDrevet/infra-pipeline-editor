@@ -100,5 +100,17 @@ public sealed class RedisCacheTypeBicepGenerator
             }
           }
         }
+
+        @description('The resource ID of the Redis Cache')
+        output id string = redis.id
+
+        @description('The host name of the Redis Cache')
+        output hostName string = redis.properties.hostName
+
+        @description('The SSL port of the Redis Cache')
+        output sslPort int = redis.properties.sslPort
+
+        @description('The non-SSL port of the Redis Cache')
+        output port int = redis.properties.port
         """;
 }

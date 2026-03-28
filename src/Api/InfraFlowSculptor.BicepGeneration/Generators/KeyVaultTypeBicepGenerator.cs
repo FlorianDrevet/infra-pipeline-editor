@@ -74,6 +74,15 @@ public sealed class KeyVaultTypeBicepGenerator
                 enableSoftDelete: {{enableSoftDelete}}
               }
             }
+
+            @description('The resource ID of the Key Vault')
+            output id string = kv.id
+
+            @description('The name of the Key Vault')
+            output name string = kv.name
+
+            @description('The URI of the Key Vault')
+            output vaultUri string = kv.properties.vaultUri
             """;
     }
 

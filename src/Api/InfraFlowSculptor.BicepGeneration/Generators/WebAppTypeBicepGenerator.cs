@@ -82,5 +82,14 @@ public sealed class WebAppTypeBicepGenerator
             }
           }
         }
+
+        @description('The resource ID of the Web App')
+        output id string = webApp.id
+
+        @description('The default host name of the Web App')
+        output defaultHostName string = webApp.properties.defaultHostName
+
+        @description('The principal ID of the system-assigned managed identity')
+        output principalId string = webApp.identity.principalId
         """;
 }

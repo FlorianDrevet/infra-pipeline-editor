@@ -240,6 +240,24 @@ public sealed class StorageAccountTypeBicepGenerator
             accessTier: accessTier
           }
         }
+
+        @description('The resource ID of the Storage Account')
+        output id string = storage.id
+
+        @description('The name of the Storage Account')
+        output name string = storage.name
+
+        @description('The primary blob endpoint')
+        output primaryBlobEndpoint string = storage.properties.primaryEndpoints.blob
+
+        @description('The primary table endpoint')
+        output primaryTableEndpoint string = storage.properties.primaryEndpoints.table
+
+        @description('The primary queue endpoint')
+        output primaryQueueEndpoint string = storage.properties.primaryEndpoints.queue
+
+        @description('The primary file endpoint')
+        output primaryFileEndpoint string = storage.properties.primaryEndpoints.file
         """;
 
     private const string BlobsTypesTemplate = """
