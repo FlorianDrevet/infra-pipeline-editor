@@ -17,10 +17,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
             migrationBuilder.Sql(
                 """DROP INDEX IF EXISTS "IX_AzureResource_ResourceGroupId_Name";""");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AzureResource_ResourceGroupId",
-                table: "AzureResource",
-                column: "ResourceGroupId");
+            migrationBuilder.Sql(
+                """CREATE INDEX IF NOT EXISTS "IX_AzureResource_ResourceGroupId" ON "AzureResource" ("ResourceGroupId");""");
         }
 
         /// <inheritdoc />
