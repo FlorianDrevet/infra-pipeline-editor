@@ -153,7 +153,7 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
     {
         var result = new Dictionary<Guid, List<string>>();
 
-        // Get all resource IDs in this resource group
+        // Get all resource IDs in this resource group as raw Guid values
         var resourceIds = await Context.Set<AzureResource>()
             .AsNoTracking()
             .Where(r => r.ResourceGroupId == resourceGroupId)
@@ -162,94 +162,99 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
 
         if (resourceIds.Count == 0) return result;
 
+        // Build a subquery (not materialized) for use in server-side joins
+        var resourceIdsQuery = Context.Set<AzureResource>()
+            .Where(r => r.ResourceGroupId == resourceGroupId)
+            .Select(r => r.Id);
+
         // Query each typed environment settings table
         await CollectEnvNamesAsync(
             Context.Set<KeyVaultEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.KeyVaultId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.KeyVaultId))
                 .Select(es => new ResourceEnvironmentEntry(es.KeyVaultId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<RedisCacheEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.RedisCacheId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.RedisCacheId))
                 .Select(es => new ResourceEnvironmentEntry(es.RedisCacheId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<StorageAccountEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.StorageAccountId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.StorageAccountId))
                 .Select(es => new ResourceEnvironmentEntry(es.StorageAccountId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<AppServicePlanEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.AppServicePlanId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.AppServicePlanId))
                 .Select(es => new ResourceEnvironmentEntry(es.AppServicePlanId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<WebAppEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.WebAppId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.WebAppId))
                 .Select(es => new ResourceEnvironmentEntry(es.WebAppId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<FunctionAppEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.FunctionAppId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.FunctionAppId))
                 .Select(es => new ResourceEnvironmentEntry(es.FunctionAppId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<AppConfigurationEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.AppConfigurationId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.AppConfigurationId))
                 .Select(es => new ResourceEnvironmentEntry(es.AppConfigurationId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<ContainerAppEnvironmentEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.ContainerAppEnvironmentId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.ContainerAppEnvironmentId))
                 .Select(es => new ResourceEnvironmentEntry(es.ContainerAppEnvironmentId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<ContainerAppEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.ContainerAppId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.ContainerAppId))
                 .Select(es => new ResourceEnvironmentEntry(es.ContainerAppId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<LogAnalyticsWorkspaceEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.LogAnalyticsWorkspaceId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.LogAnalyticsWorkspaceId))
                 .Select(es => new ResourceEnvironmentEntry(es.LogAnalyticsWorkspaceId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<ApplicationInsightsEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.ApplicationInsightsId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.ApplicationInsightsId))
                 .Select(es => new ResourceEnvironmentEntry(es.ApplicationInsightsId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<CosmosDbEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.CosmosDbId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.CosmosDbId))
                 .Select(es => new ResourceEnvironmentEntry(es.CosmosDbId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<SqlServerEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.SqlServerId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.SqlServerId))
                 .Select(es => new ResourceEnvironmentEntry(es.SqlServerId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<SqlDatabaseEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.SqlDatabaseId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.SqlDatabaseId))
                 .Select(es => new ResourceEnvironmentEntry(es.SqlDatabaseId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         await CollectEnvNamesAsync(
             Context.Set<ServiceBusNamespaceEnvironmentSettings>()
-                .Where(es => resourceIds.Contains(es.ServiceBusNamespaceId.Value))
+                .Where(es => resourceIdsQuery.Contains(es.ServiceBusNamespaceId))
                 .Select(es => new ResourceEnvironmentEntry(es.ServiceBusNamespaceId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
