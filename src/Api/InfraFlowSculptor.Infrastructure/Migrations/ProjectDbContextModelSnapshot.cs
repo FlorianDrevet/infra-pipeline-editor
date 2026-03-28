@@ -194,10 +194,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid?>("SourceResourceId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("StaticValue")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("KeyVaultResourceId");
@@ -208,6 +204,32 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("AppSettings", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.AppSettingEnvironmentValue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AppSettingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppSettingId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("AppSettingEnvironmentValues", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.InputOutputLink", b =>
@@ -1452,6 +1474,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.AppSettingEnvironmentValue", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.Entites.AppSetting", null)
+                        .WithMany("EnvironmentValues")
+                        .HasForeignKey("AppSettingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.InputOutputLink", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", "SourceResource")
@@ -2005,6 +2036,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("ParameterUsages");
 
                     b.Navigation("RoleAssignments");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.AppSetting", b =>
+                {
+                    b.Navigation("EnvironmentValues");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>
