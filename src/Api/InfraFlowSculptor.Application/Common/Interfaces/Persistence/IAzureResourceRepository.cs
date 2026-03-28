@@ -17,6 +17,16 @@ public interface IAzureResourceRepository
     /// </summary>
     /// <param name="identityId">The <see cref="AzureResourceId"/> of the User-Assigned Identity.</param>
     /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
-    /// <returns>A list of <see cref="RoleAssignment"/> entities.</returns>
+    /// <returns>A list of tracked <see cref="RoleAssignment"/> entities.</returns>
     Task<List<RoleAssignment>> GetRoleAssignmentsByIdentityIdAsync(AzureResourceId identityId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reverts all role assignments referencing the specified User-Assigned Identity
+    /// back to system-assigned managed identity (sets <see cref="RoleAssignment.UserAssignedIdentityId"/>
+    /// to <c>null</c> and <see cref="RoleAssignment.ManagedIdentityType"/> to <c>SystemAssigned</c>).
+    /// </summary>
+    /// <param name="identityId">The <see cref="AzureResourceId"/> of the User-Assigned Identity being removed.</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
+    /// <returns>The number of role assignments that were reverted.</returns>
+    Task<int> RevertRoleAssignmentsToSystemAssignedAsync(AzureResourceId identityId, CancellationToken cancellationToken = default);
 }

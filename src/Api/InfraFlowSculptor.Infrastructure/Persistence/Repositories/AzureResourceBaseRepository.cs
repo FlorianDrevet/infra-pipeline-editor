@@ -54,8 +54,21 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         CancellationToken cancellationToken = default)
     {
         return await context.RoleAssignments
-            .AsNoTracking()
             .Where(r => r.UserAssignedIdentityId == identityId)
             .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> RevertRoleAssignmentsToSystemAssignedAsync(
+        AzureResourceId identityId,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.RoleAssignments
+            .Where(r => r.UserAssignedIdentityId == identityId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(r => r.ManagedIdentityType,
+                    new ManagedIdentityType(ManagedIdentityType.IdentityTypeEnum.SystemAssigned))
+                .SetProperty(r => r.UserAssignedIdentityId, (AzureResourceId?)null),
+                cancellationToken);
     }
 }

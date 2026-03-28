@@ -1173,7 +1173,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected resolveIdentityName(identityId: string): string {
     const res = this.allResources().find(r => r.id === identityId);
-    return res?.name ?? identityId;
+    if (res) return res.name;
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identityId);
+    return isUuid ? `⚠ ${identityId.substring(0, 8)}…` : identityId;
   }
 
   protected async switchToSystemAssigned(assignment: RoleAssignmentResponse): Promise<void> {
@@ -1232,13 +1234,16 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       maxHeight: '85vh',
     });
 
-    dialogRef.afterClosed().subscribe((result?: RoleAssignmentResponse) => {
+    dialogRef.afterClosed().subscribe(async (result?: RoleAssignmentResponse) => {
       if (result) {
         if (this.isUserAssignedIdentity()) {
           this.loadIdentityRoleAssignments();
         } else {
           this.roleAssignments.update(list => [...list, result]);
           this.loadRoleAssignments();
+        }
+        if (result.userAssignedIdentityId && !this.allResources().some(r => r.id === result.userAssignedIdentityId)) {
+          await this.loadAllResources();
         }
       }
     });
