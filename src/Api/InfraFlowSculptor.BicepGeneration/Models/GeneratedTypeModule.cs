@@ -46,6 +46,20 @@ public sealed record GeneratedTypeModule
     /// </summary>
     public IReadOnlyList<GeneratedCompanionModule> CompanionModules { get; init; } = [];
 
+    /// <summary>
+    /// The identity kind for this specific resource instance.
+    /// <c>None</c> = no identity needed, <c>SystemAssigned</c> / <c>UserAssigned</c> / <c>SystemAssigned, UserAssigned</c>.
+    /// When <c>null</c>, identity is not managed by module parameterization.
+    /// </summary>
+    public string? IdentityKind { get; init; }
+
+    /// <summary>
+    /// Whether the module template uses parameterized identity
+    /// (multiple identity types coexist for the same ARM resource type).
+    /// When <c>true</c>, <c>main.bicep</c> must pass <c>identityType</c> and possibly UAI params.
+    /// </summary>
+    public bool UsesParameterizedIdentity { get; init; }
+
     private static string NormalizePrimaryModuleFileName(string moduleFileName)
     {
         if (string.IsNullOrWhiteSpace(moduleFileName))

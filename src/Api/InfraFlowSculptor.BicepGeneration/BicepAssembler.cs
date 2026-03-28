@@ -762,23 +762,51 @@ public static class BicepAssembler
                 sb.AppendLine($"    {paramKey}: {module.ModuleName}{Capitalize(paramKey)}");
             }
 
-            // Pass user-assigned identity resource IDs to the module.
-            // Skip UAI modules themselves — they don't consume their own resource ID.
-            // Uses composite key (name, type) to avoid ambiguity when resources share names.
+            // ── Identity params ─────────────────────────────────────────────
             var moduleKey = (module.LogicalResourceName, module.ResourceTypeName);
-            if (module.ResourceTypeName != "UserAssignedIdentity"
-                && uaiBySourceResource.TryGetValue(moduleKey, out var uaiNames))
+
+            if (module.UsesParameterizedIdentity)
             {
-                foreach (var uaiName in uaiNames)
+                // Parameterized identity: pass identityType and UAI resource IDs.
+                var identityKind = module.IdentityKind ?? "None";
+                sb.AppendLine($"    identityType: '{identityKind}'");
+
+                // Pass UAI resource IDs if this resource uses UserAssigned identity
+                if (module.ResourceTypeName != "UserAssignedIdentity"
+                    && uaiBySourceResource.TryGetValue(moduleKey, out var uaiNamesParam))
                 {
-                    var uaiId = BicepIdentifierHelper.ToBicepIdentifier(uaiName);
-                    var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-                    var uaiModuleSymbol = modules.FirstOrDefault(m =>
-                        m.ResourceTypeName == "UserAssignedIdentity"
-                        && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
-                    if (uaiModuleSymbol is not null)
+                    foreach (var uaiName in uaiNamesParam)
                     {
-                        sb.AppendLine($"    {paramName}: {uaiModuleSymbol.ModuleName}Module.outputs.resourceId");
+                        var uaiId = BicepIdentifierHelper.ToBicepIdentifier(uaiName);
+                        var pName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
+                        var uaiModSym = modules.FirstOrDefault(m =>
+                            m.ResourceTypeName == "UserAssignedIdentity"
+                            && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
+                        if (uaiModSym is not null)
+                        {
+                            sb.AppendLine($"    {pName}: {uaiModSym.ModuleName}Module.outputs.resourceId");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Hardcoded identity: pass UAI resource IDs to the module (existing behavior).
+                // Skip UAI modules themselves — they don't consume their own resource ID.
+                if (module.ResourceTypeName != "UserAssignedIdentity"
+                    && uaiBySourceResource.TryGetValue(moduleKey, out var uaiNames))
+                {
+                    foreach (var uaiName in uaiNames)
+                    {
+                        var uaiId = BicepIdentifierHelper.ToBicepIdentifier(uaiName);
+                        var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
+                        var uaiModuleSymbol = modules.FirstOrDefault(m =>
+                            m.ResourceTypeName == "UserAssignedIdentity"
+                            && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
+                        if (uaiModuleSymbol is not null)
+                        {
+                            sb.AppendLine($"    {paramName}: {uaiModuleSymbol.ModuleName}Module.outputs.resourceId");
+                        }
                     }
                 }
             }
