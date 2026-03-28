@@ -42,6 +42,9 @@ public sealed class RoleAssignmentDefinition
     /// <summary>Name of the User-Assigned Identity resource (when ManagedIdentityType is UserAssigned).</summary>
     public string? UserAssignedIdentityName { get; init; }
 
+    /// <summary>Unique identifier of the User-Assigned Identity resource (when ManagedIdentityType is UserAssigned).</summary>
+    public Guid? UserAssignedIdentityResourceId { get; init; }
+
     /// <summary>Resource group of the User-Assigned Identity (when ManagedIdentityType is UserAssigned).</summary>
     public string? UserAssignedIdentityResourceGroupName { get; init; }
 

@@ -1073,7 +1073,7 @@ public static class BicepAssembler
     {
         return roleAssignments
             .GroupBy(ra => (ra.SourceResourceName, ra.TargetResourceName, ra.ManagedIdentityType,
-                ra.UserAssignedIdentityName))
+                ra.UserAssignedIdentityResourceId))
             .Select(g =>
             {
                 var first = g.First();

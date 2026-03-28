@@ -196,6 +196,7 @@ public sealed class GenerateProjectBicepCommandHandler(
                     TargetResourceTypeName = targetTypeName,
                     TargetResourceAbbreviation = GetResourceAbbreviation(ra.TargetResourceType),
                     UserAssignedIdentityName = ra.UserAssignedIdentityName,
+                    UserAssignedIdentityResourceId = ra.UserAssignedIdentityResourceId,
                     UserAssignedIdentityResourceGroupName = ra.UserAssignedIdentityResourceGroupName,
                     IsTargetCrossConfig = ra.IsTargetCrossConfig,
                 };

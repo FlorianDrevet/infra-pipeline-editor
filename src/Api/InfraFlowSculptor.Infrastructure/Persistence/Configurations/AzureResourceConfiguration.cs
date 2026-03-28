@@ -37,6 +37,9 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
             .IsRequired(false)
             .HasMaxLength(260);
 
+        builder.HasIndex(x => new { x.ResourceGroupId, x.Name })
+            .IsUnique();
+
         // Configuration de la relation DependsOn
         builder.HasMany(r => r.DependsOn)
             .WithMany()
