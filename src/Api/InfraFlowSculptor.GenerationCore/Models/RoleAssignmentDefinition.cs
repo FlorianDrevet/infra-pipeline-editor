@@ -1,7 +1,7 @@
-namespace InfraFlowSculptor.BicepGeneration.Models;
+namespace InfraFlowSculptor.GenerationCore.Models;
 
 /// <summary>
-/// Represents a role assignment between two Azure resources for Bicep generation.
+/// Represents a role assignment between two Azure resources.
 /// The source resource's managed identity is granted a role on the target resource.
 /// </summary>
 public sealed class RoleAssignmentDefinition
@@ -36,7 +36,7 @@ public sealed class RoleAssignmentDefinition
     /// <summary>Description of the role definition.</summary>
     public string RoleDefinitionDescription { get; init; } = string.Empty;
 
-    /// <summary>Bicep service category key for the constants.bicep grouping (e.g. "keyvault").</summary>
+    /// <summary>Service category key for constants grouping (e.g. "keyvault").</summary>
     public string ServiceCategory { get; init; } = string.Empty;
 
     /// <summary>Name of the User-Assigned Identity resource (when ManagedIdentityType is UserAssigned).</summary>

@@ -1,4 +1,4 @@
-namespace InfraFlowSculptor.BicepGeneration.Models;
+namespace InfraFlowSculptor.GenerationCore.Models;
 
 /// <summary>
 /// Represents an app setting (environment variable) to be injected into a compute resource module.
@@ -15,8 +15,6 @@ public sealed class AppSettingDefinition
     /// <summary>
     /// Per-environment static values. Key = environment name, Value = the value for that environment.
     /// Null/empty when this is a reference-based setting.
-    /// When populated, the Bicep generator emits a <c>param</c> in <c>main.bicep</c>
-    /// and assigns the per-environment value in each <c>.bicepparam</c> file.
     /// </summary>
     public IReadOnlyDictionary<string, string>? EnvironmentValues { get; init; }
 
@@ -58,16 +56,12 @@ public sealed class AppSettingDefinition
 
     /// <summary>
     /// Whether this setting exports a sensitive resource output to a Key Vault secret.
-    /// When <c>true</c>, the Bicep generator must create a <c>Microsoft.KeyVault/vaults/secrets</c>
-    /// resource with the value from the source output (<see cref="SourceOutputBicepExpression"/>)
-    /// and reference it via a Key Vault reference in the compute resource.
     /// </summary>
     public bool IsSensitiveOutputExportedToKeyVault { get; init; }
 
     /// <summary>
     /// Determines how the secret value is assigned for a static Key Vault reference.
     /// Valid values: <c>"ViaBicepparam"</c> or <c>"DirectInKeyVault"</c>.
-    /// Null when this is not a static Key Vault reference.
     /// </summary>
     public string? SecretValueAssignment { get; init; }
 }

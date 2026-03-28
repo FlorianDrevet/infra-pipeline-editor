@@ -36,4 +36,12 @@ public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggre
     Task<Domain.ResourceGroupAggregate.ResourceGroup?> GetByResourceIdAsync(
         AzureResourceId resourceId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns a mapping of resource IDs to their configured environment names,
+    /// by querying all typed environment settings TPT tables for resources in the given resource group.
+    /// </summary>
+    Task<Dictionary<Guid, List<string>>> GetConfiguredEnvironmentsByResourceGroupAsync(
+        ResourceGroupId resourceGroupId,
+        CancellationToken cancellationToken = default);
 }

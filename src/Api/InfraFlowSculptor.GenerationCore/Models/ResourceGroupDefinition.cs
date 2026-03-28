@@ -1,4 +1,4 @@
-namespace InfraFlowSculptor.BicepGeneration.Models;
+namespace InfraFlowSculptor.GenerationCore.Models;
 
 /// <summary>
 /// Represents a resource group with its logical name and location.

@@ -16,6 +16,8 @@
     <Project Path="src/Api/InfraFlowSculptor.Api/InfraFlowSculptor.Api.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Application/InfraFlowSculptor.Application.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.BicepGeneration/InfraFlowSculptor.BicepGeneration.csproj" />
+    <Project Path="src/Api/InfraFlowSculptor.GenerationCore/InfraFlowSculptor.GenerationCore.csproj" />
+    <Project Path="src/Api/InfraFlowSculptor.PipelineGeneration/InfraFlowSculptor.PipelineGeneration.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Contracts/InfraFlowSculptor.Contracts.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Domain/InfraFlowSculptor.Domain.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Infrastructure/InfraFlowSculptor.Infrastructure.csproj" />

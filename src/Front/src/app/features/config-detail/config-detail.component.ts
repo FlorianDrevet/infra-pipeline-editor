@@ -43,9 +43,11 @@ import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
+import { PipelineGeneratorService } from '../../shared/services/pipeline-generator.service';
 import { CascadeDeleteDialogComponent, CascadeDeleteDialogData } from '../../shared/components/cascade-delete-dialog/cascade-delete-dialog.component';
 import { DependentResourceResponse } from '../../shared/interfaces/dependent-resource.interface';
 import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
+import { GeneratePipelineResponse } from '../../shared/interfaces/pipeline-generator.interface';
 import { saveAs } from 'file-saver';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
@@ -117,6 +119,7 @@ export class ConfigDetailComponent implements OnInit {
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
   private readonly projectService = inject(ProjectService);
   private readonly bicepService = inject(BicepGeneratorService);
+  private readonly pipelineService = inject(PipelineGeneratorService);
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
@@ -207,6 +210,48 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly loadConfigBicepFile = (filePath: string): Promise<string> => {
     const configId = this.config()?.id ?? '';
     return this.bicepService.getFileContent(configId, filePath);
+  };
+
+  // ─── Pipeline Generation ───
+  protected readonly pipelineLoading = signal(false);
+  protected readonly pipelineResult = signal<GeneratePipelineResponse | null>(null);
+  protected readonly pipelineErrorKey = signal('');
+  protected readonly pipelinePanelOpen = signal(false);
+  protected readonly pipelinePanelCollapsed = signal(false);
+  protected readonly pipelineDownloading = signal(false);
+
+  protected readonly configPipelineNodes = computed<BicepTreeNode[]>(() => {
+    const result = this.pipelineResult();
+    if (!result) return [];
+    const nodes: BicepTreeNode[] = [];
+
+    const folderMap = new Map<string, { name: string; files: Array<{ path: string; displayName: string; uri: string }> }>();
+
+    for (const [filePath, uri] of Object.entries(result.fileUris)) {
+      const parts = filePath.split('/');
+      if (parts.length >= 2) {
+        const folderName = parts.slice(0, -1).join('/');
+        const displayName = parts[parts.length - 1];
+        if (!folderMap.has(folderName)) folderMap.set(folderName, { name: folderName, files: [] });
+        folderMap.get(folderName)!.files.push({ path: filePath, displayName, uri });
+      } else {
+        nodes.push({ kind: 'file', path: filePath, displayName: filePath, type: 'generic', uri, depth: 0, parentFolderKey: '' });
+      }
+    }
+
+    for (const [folderKey, folder] of folderMap) {
+      nodes.push({ kind: 'folder', key: folderKey, name: `${folder.name}/`, folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
+      for (const file of folder.files) {
+        nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type: 'generic', uri: file.uri, depth: 1, parentFolderKey: folderKey } satisfies BicepFileNode);
+      }
+    }
+
+    return nodes;
+  });
+
+  protected readonly loadConfigPipelineFile = (filePath: string): Promise<string> => {
+    const configId = this.config()?.id ?? '';
+    return this.pipelineService.getFileContent(configId, filePath);
   };
 
   // ─── Inheritance ───

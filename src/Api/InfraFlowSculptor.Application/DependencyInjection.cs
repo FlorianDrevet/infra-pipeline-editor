@@ -5,6 +5,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.BicepGeneration.Generators;
+using InfraFlowSculptor.PipelineGeneration;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using InfraFlowSculptor.Application.Common.Behaviors;
@@ -47,6 +48,9 @@ public static class DependencyInjection
         services.AddSingleton<IResourceTypeBicepGenerator, SqlDatabaseTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, ServiceBusNamespaceTypeBicepGenerator>();
         services.AddSingleton<BicepGenerationEngine>();
+
+        // Pipeline generation engine
+        services.AddSingleton<PipelineGenerationEngine>();
 
         return services;
     }

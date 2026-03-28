@@ -1,8 +1,8 @@
-namespace InfraFlowSculptor.BicepGeneration.Models;
+namespace InfraFlowSculptor.GenerationCore.Models;
 
 /// <summary>
 /// Represents a cross-configuration resource reference that will be generated
-/// as a Bicep <c>existing</c> resource declaration in <c>main.bicep</c>.
+/// as an existing resource declaration in deployment artifacts.
 /// </summary>
 public sealed class ExistingResourceReference
 {

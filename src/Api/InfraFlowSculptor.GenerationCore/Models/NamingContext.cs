@@ -1,7 +1,7 @@
-namespace InfraFlowSculptor.BicepGeneration.Models;
+namespace InfraFlowSculptor.GenerationCore.Models;
 
 /// <summary>
-/// Holds naming template information used to generate Bicep naming functions.
+/// Holds naming template information used to generate naming functions.
 /// Contains the default template and optional per-resource-type overrides.
 /// </summary>
 public sealed class NamingContext
@@ -25,7 +25,7 @@ public sealed class NamingContext
     /// <summary>
     /// Maps resource type names to their standard abbreviations
     /// (e.g. "KeyVault" → "kv", "ResourceGroup" → "rg").
-    /// Used when calling naming functions in main.bicep.
+    /// Used when calling naming functions.
     /// </summary>
     public IReadOnlyDictionary<string, string> ResourceAbbreviations { get; init; } =
         new Dictionary<string, string>();

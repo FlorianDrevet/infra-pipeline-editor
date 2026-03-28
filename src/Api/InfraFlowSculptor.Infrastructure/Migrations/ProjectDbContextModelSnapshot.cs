@@ -160,8 +160,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ResourceGroupId", "Name")
-                        .IsUnique();
+                    b.HasIndex("ResourceGroupId");
 
                     b.ToTable("AzureResource", (string)null);
 

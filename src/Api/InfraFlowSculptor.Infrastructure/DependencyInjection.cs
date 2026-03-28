@@ -97,6 +97,7 @@ public static class DependencyInjection
         services.AddSingleton(Options.Create(blobSettings));
 
         services.AddSingleton<IBlobService, BlobService>();
+        services.AddSingleton<IGeneratedArtifactService, GeneratedArtifactService>();
 
         return services;
     }

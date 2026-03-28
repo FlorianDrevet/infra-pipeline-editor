@@ -86,6 +86,7 @@ app.UseSqlDatabaseController();
 app.UseServiceBusNamespaceController();
 app.UseAppSettingController();
 app.UseBicepGenerationController();
+app.UsePipelineGenerationController();
 app.MapDefaultEndpoints();
 
 await app.RunAsync();

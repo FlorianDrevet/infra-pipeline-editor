@@ -1,5 +1,8 @@
-namespace InfraFlowSculptor.BicepGeneration.Models;
+namespace InfraFlowSculptor.GenerationCore.Models;
 
+/// <summary>
+/// Represents an Azure resource definition with its type, properties, and per-environment config overrides.
+/// </summary>
 public class ResourceDefinition
 {
     public string Name { get; set; } = string.Empty;

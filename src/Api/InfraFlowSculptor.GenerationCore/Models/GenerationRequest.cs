@@ -1,13 +1,15 @@
-namespace InfraFlowSculptor.BicepGeneration.Models;
+namespace InfraFlowSculptor.GenerationCore.Models;
 
+/// <summary>
+/// Shared generation request containing all infrastructure configuration data
+/// required by both Bicep and Pipeline generation engines.
+/// </summary>
 public class GenerationRequest
 {
     public IEnumerable<ResourceDefinition> Resources { get; set; } = new List<ResourceDefinition>();
 
     /// <summary>
     /// All environment definitions with their name, location, prefix, and suffix.
-    /// Used to generate the <c>types.bicep</c> environment variable map
-    /// and one <c>.bicepparam</c> per environment.
     /// </summary>
     public IReadOnlyList<EnvironmentDefinition> Environments { get; set; } = [];
 
@@ -15,31 +17,27 @@ public class GenerationRequest
 
     /// <summary>
     /// All environment names defined on the infrastructure configuration.
-    /// Used to generate one <c>.bicepparam</c> per environment.
     /// </summary>
     public IReadOnlyList<string> EnvironmentNames { get; set; } = [];
 
     /// <summary>
     /// Naming templates and resource abbreviations used to generate
-    /// <c>functions.bicep</c> and resolve resource names in <c>main.bicep</c>.
+    /// naming functions and resolve resource names.
     /// </summary>
     public NamingContext NamingContext { get; set; } = new();
 
     /// <summary>
     /// All role assignments configured between resources.
-    /// Used to generate <c>constants.bicep</c>, role assignment modules, and RBAC declarations in <c>main.bicep</c>.
     /// </summary>
     public IReadOnlyList<RoleAssignmentDefinition> RoleAssignments { get; set; } = [];
 
     /// <summary>
     /// All app settings (environment variables) configured on compute resources.
-    /// Used to inject output declarations into source modules and appSettings/env params into target modules.
     /// </summary>
     public IReadOnlyList<AppSettingDefinition> AppSettings { get; set; } = [];
 
     /// <summary>
-    /// Cross-configuration resource references. Used to generate <c>existing</c> resource group
-    /// and resource declarations in <c>main.bicep</c> for resources owned by sibling configurations.
+    /// Cross-configuration resource references.
     /// </summary>
     public IReadOnlyList<ExistingResourceReference> ExistingResourceReferences { get; set; } = [];
 }

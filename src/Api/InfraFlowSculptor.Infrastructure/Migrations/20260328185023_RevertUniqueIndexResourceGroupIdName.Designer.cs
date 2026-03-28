@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InfraFlowSculptor.Infrastructure.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    [Migration("20260328183116_AddUniqueIndexResourceGroupIdName")]
-    partial class AddUniqueIndexResourceGroupIdName
+    [Migration("20260328185023_RevertUniqueIndexResourceGroupIdName")]
+    partial class RevertUniqueIndexResourceGroupIdName
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -163,8 +163,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ResourceGroupId", "Name")
-                        .IsUnique();
+                    b.HasIndex("ResourceGroupId");
 
                     b.ToTable("AzureResource", (string)null);
 

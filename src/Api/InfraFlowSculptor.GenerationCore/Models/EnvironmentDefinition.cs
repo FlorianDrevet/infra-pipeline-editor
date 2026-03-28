@@ -1,8 +1,8 @@
-namespace InfraFlowSculptor.BicepGeneration.Models;
+namespace InfraFlowSculptor.GenerationCore.Models;
 
 /// <summary>
 /// Represents an environment with all its deployment-specific variables
-/// used for Bicep resource naming and location resolution.
+/// used for resource naming and location resolution.
 /// </summary>
 public class EnvironmentDefinition
 {
