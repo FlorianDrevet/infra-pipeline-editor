@@ -276,6 +276,7 @@
       "ADD_STORAGE_STEP_CONFIG": "Configure",
       "STORAGE_SUB_EMPTY": "No storage services yet.",
       "EDIT": "Edit resource",
+      "MISSING_ENV_TOOLTIP": "Unconfigured environment(s)",
       "DELETE": "Delete resource",
       "DELETE_CONFIRM_TITLE": "Delete resource",
       "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete the {{type}} \u201c{{name}}\u201d? This action cannot be undone.",
@@ -512,6 +513,21 @@
       "DOWNLOADING": "Downloading...",
       "FILE_LOADING": "Loading file content...",
       "FILE_ERROR": "Unable to load file content."
+    },
+    "GENERATION": {
+      "TAB_BICEP": "Bicep",
+      "TAB_PIPELINE": "Pipeline"
+    },
+    "PIPELINE": {
+      "GENERATE": "Generate Pipeline",
+      "GENERATING": "Generating...",
+      "DOWNLOAD": "Download Pipeline",
+      "PUSH_TO_GIT": "Push to Git",
+      "NO_FILES": "No generated pipeline files",
+      "ARTIFACTS": "output",
+      "TERMINAL_DONE": "Generation complete \u2014 pipeline artifacts ready",
+      "GENERATE_ERROR": "Unable to generate pipeline files. Please check your configuration has at least one resource group with resources.",
+      "GENERATE_AUTH_ERROR": "Authentication failed for the pipeline generation API. Please sign out and sign in again, then retry."
     },
     "PUSH_TO_GIT": {
       "BUTTON": "Push to Git",

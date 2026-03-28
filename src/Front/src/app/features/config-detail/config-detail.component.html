@@ -48,90 +48,153 @@
       </div>
     </section>
 
-    <!-- Bicep Generation Panel -->
-    @if (bicepPanelOpen()) {
-      <section class="bicep-panel" [class.bicep-panel--success]="bicepResult()" [class.bicep-panel--error]="bicepErrorKey()">
-        <div class="bicep-panel__header" (click)="bicepPanelCollapsed.set(!bicepPanelCollapsed())">
-          <div class="bicep-panel__title-row">
-            <mat-icon class="bicep-panel__chevron" [class.bicep-panel__chevron--open]="!bicepPanelCollapsed()">chevron_right</mat-icon>
-            <mat-icon class="bicep-panel__title-icon">
-              @if (bicepLoading()) { hourglass_top }
-              @else if (bicepResult()) { check_circle }
-              @else { error_outline }
-            </mat-icon>
-            <h2 class="bicep-panel__title">
-              @if (bicepLoading()) {
-                {{ 'CONFIG_DETAIL.BICEP.PANEL_GENERATING' | translate }}
-              } @else if (bicepResult()) {
-                {{ 'CONFIG_DETAIL.BICEP.PANEL_SUCCESS' | translate }}
-              } @else {
-                {{ 'CONFIG_DETAIL.BICEP.PANEL_ERROR' | translate }}
-              }
-            </h2>
-          </div>
-          <div class="bicep-panel__actions" (click)="$event.stopPropagation()">
-            @if (bicepResult()) {
-              <button class="bicep-download-btn" (click)="downloadBicepFiles()" [disabled]="bicepDownloading()">
-                @if (bicepDownloading()) {
-                  <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+    <!-- Generation Panels (Bicep + Pipeline) -->
+    @if (isMultiRepo()) {
+      <mat-tab-group class="generation-tabs" animationDuration="200ms">
+        <!-- Bicep Tab -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">terminal</mat-icon>
+            <span>{{ 'CONFIG_DETAIL.GENERATION.TAB_BICEP' | translate }}</span>
+          </ng-template>
+          <div class="generation-tab-content">
+            <div class="generation-tab-content__toolbar">
+              <button class="bicep-cta" (click)="generateBicep()" [disabled]="bicepLoading()">
+                @if (bicepLoading()) {
+                  <mat-spinner diameter="18" class="bicep-cta__spinner"></mat-spinner>
                 } @else {
-                  <mat-icon>download</mat-icon>
+                  <mat-icon class="bicep-cta__icon">terminal</mat-icon>
                 }
-                {{ (bicepDownloading() ? 'CONFIG_DETAIL.BICEP.DOWNLOADING' : 'CONFIG_DETAIL.BICEP.DOWNLOAD') | translate }}
+                {{ (bicepLoading() ? 'CONFIG_DETAIL.BICEP.GENERATING' : 'CONFIG_DETAIL.BICEP.GENERATE') | translate }}
               </button>
-            }
-            <button class="bicep-panel__close" (click)="closeBicepPanel()" [matTooltip]="'CONFIG_DETAIL.BICEP.CLOSE' | translate">
-              <mat-icon>close</mat-icon>
-            </button>
-          </div>
-        </div>
-
-        @if (!bicepPanelCollapsed()) {
-          <div class="bicep-panel__body">
-
-        @if (bicepLoading()) {
-          <div class="bicep-panel__loading">
-            <div class="bicep-terminal">
-              <div class="bicep-terminal__bar">
-                <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
-                <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
-                <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
-                <span class="bicep-terminal__bar-title">bicep-generator</span>
-              </div>
-              <div class="bicep-terminal__body">
-                <p class="bicep-terminal__line bicep-terminal__line--active">
-                  <span class="bicep-terminal__prompt">$</span>
-                  {{ 'CONFIG_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}
-                  <span class="bicep-terminal__cursor"></span>
-                </p>
-              </div>
+              @if (bicepResult()) {
+                <button class="bicep-download-btn" (click)="downloadBicepFiles()" [disabled]="bicepDownloading()">
+                  @if (bicepDownloading()) {
+                    <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                  } @else {
+                    <mat-icon>download</mat-icon>
+                  }
+                  {{ (bicepDownloading() ? 'CONFIG_DETAIL.BICEP.DOWNLOADING' : 'CONFIG_DETAIL.BICEP.DOWNLOAD') | translate }}
+                </button>
+              }
             </div>
-          </div>
-        }
 
-        @if (bicepErrorKey()) {
-          <div class="bicep-panel__error-body">
-            <p>{{ bicepErrorKey() | translate }}</p>
-            <button class="bicep-retry-btn" (click)="generateBicep()">
-              <mat-icon>refresh</mat-icon>
-              {{ 'CONFIG_DETAIL.BICEP.RETRY' | translate }}
-            </button>
-          </div>
-        }
+            @if (bicepLoading()) {
+              <div class="bicep-panel__loading">
+                <div class="bicep-terminal">
+                  <div class="bicep-terminal__bar">
+                    <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                    <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                    <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                    <span class="bicep-terminal__bar-title">bicep-generator</span>
+                  </div>
+                  <div class="bicep-terminal__body">
+                    <p class="bicep-terminal__line bicep-terminal__line--active">
+                      <span class="bicep-terminal__prompt">$</span>
+                      {{ 'CONFIG_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}
+                      <span class="bicep-terminal__cursor"></span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            }
 
-        @if (configBicepNodes().length > 0) {
-          <app-bicep-file-panel
-            [nodes]="configBicepNodes()"
-            [barTitle]="'bicep-generator \u2014 ' + ('CONFIG_DETAIL.BICEP.ARTIFACTS' | translate)"
-            [terminalDoneText]="'CONFIG_DETAIL.BICEP.TERMINAL_DONE' | translate"
-            [fileLoadingText]="'CONFIG_DETAIL.BICEP.FILE_LOADING' | translate"
-            [fileErrorText]="'CONFIG_DETAIL.BICEP.FILE_ERROR' | translate"
-            [loadFile]="loadConfigBicepFile">
-          </app-bicep-file-panel>
-        }
+            @if (bicepErrorKey()) {
+              <div class="bicep-panel__error-body">
+                <p>{{ bicepErrorKey() | translate }}</p>
+                <button class="bicep-retry-btn" (click)="generateBicep()">
+                  <mat-icon>refresh</mat-icon>
+                  {{ 'CONFIG_DETAIL.BICEP.RETRY' | translate }}
+                </button>
+              </div>
+            }
+
+            @if (configBicepNodes().length > 0) {
+              <app-bicep-file-panel
+                [nodes]="configBicepNodes()"
+                [barTitle]="'bicep-generator \u2014 ' + ('CONFIG_DETAIL.BICEP.ARTIFACTS' | translate)"
+                [terminalDoneText]="'CONFIG_DETAIL.BICEP.TERMINAL_DONE' | translate"
+                [fileLoadingText]="'CONFIG_DETAIL.BICEP.FILE_LOADING' | translate"
+                [fileErrorText]="'CONFIG_DETAIL.BICEP.FILE_ERROR' | translate"
+                [loadFile]="loadConfigBicepFile">
+              </app-bicep-file-panel>
+            }
           </div>
-        }
-      </section>
+        </mat-tab>
+
+        <!-- Pipeline Tab -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">account_tree</mat-icon>
+            <span>{{ 'CONFIG_DETAIL.GENERATION.TAB_PIPELINE' | translate }}</span>
+          </ng-template>
+          <div class="generation-tab-content">
+            <div class="generation-tab-content__toolbar">
+              <button class="bicep-cta" (click)="generatePipeline()" [disabled]="pipelineLoading()">
+                @if (pipelineLoading()) {
+                  <mat-spinner diameter="18" class="bicep-cta__spinner"></mat-spinner>
+                } @else {
+                  <mat-icon class="bicep-cta__icon">account_tree</mat-icon>
+                }
+                {{ (pipelineLoading() ? 'CONFIG_DETAIL.PIPELINE.GENERATING' : 'CONFIG_DETAIL.PIPELINE.GENERATE') | translate }}
+              </button>
+              @if (pipelineResult()) {
+                <button class="bicep-download-btn" (click)="downloadPipelineFiles()" [disabled]="pipelineDownloading()">
+                  @if (pipelineDownloading()) {
+                    <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                  } @else {
+                    <mat-icon>download</mat-icon>
+                  }
+                  {{ (pipelineDownloading() ? 'CONFIG_DETAIL.BICEP.DOWNLOADING' : 'CONFIG_DETAIL.PIPELINE.DOWNLOAD') | translate }}
+                </button>
+              }
+            </div>
+
+            @if (pipelineLoading()) {
+              <div class="bicep-panel__loading">
+                <div class="bicep-terminal">
+                  <div class="bicep-terminal__bar">
+                    <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                    <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                    <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                    <span class="bicep-terminal__bar-title">pipeline-generator</span>
+                  </div>
+                  <div class="bicep-terminal__body">
+                    <p class="bicep-terminal__line bicep-terminal__line--active">
+                      <span class="bicep-terminal__prompt">$</span>
+                      {{ 'CONFIG_DETAIL.PIPELINE.GENERATING' | translate }}
+                      <span class="bicep-terminal__cursor"></span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (pipelineErrorKey()) {
+              <div class="bicep-panel__error-body">
+                <p>{{ pipelineErrorKey() | translate }}</p>
+                <button class="bicep-retry-btn" (click)="generatePipeline()">
+                  <mat-icon>refresh</mat-icon>
+                  {{ 'CONFIG_DETAIL.BICEP.RETRY' | translate }}
+                </button>
+              </div>
+            }
+
+            @if (configPipelineNodes().length > 0) {
+              <app-bicep-file-panel
+                [nodes]="configPipelineNodes()"
+                [barTitle]="'pipeline-generator \u2014 ' + ('CONFIG_DETAIL.PIPELINE.ARTIFACTS' | translate)"
+                [terminalDoneText]="'CONFIG_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
+                [fileLoadingText]="'CONFIG_DETAIL.BICEP.FILE_LOADING' | translate"
+                [fileErrorText]="'CONFIG_DETAIL.BICEP.FILE_ERROR' | translate"
+                [loadFile]="loadConfigPipelineFile">
+              </app-bicep-file-panel>
+            } @else if (!pipelineLoading() && !pipelineErrorKey()) {
+              <p class="generation-empty">{{ 'CONFIG_DETAIL.PIPELINE.NO_FILES' | translate }}</p>
+            }
+          </div>
+        </mat-tab>
+      </mat-tab-group>
     }
 
     <mat-tab-group class="config-tabs" animationDuration="200ms" (selectedTabChange)="onTabChange($event.index)">
@@ -230,6 +293,13 @@
                                           <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
                                             <mat-icon class="naming-preview__icon">label</mat-icon>
                                             {{ preview }}
+                                          </span>
+                                        }
+                                        @if (hasMissingEnvironments(item.resource)) {
+                                          <span class="missing-env-badge"
+                                                [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + getMissingEnvironments(item.resource).join(', ')">
+                                            <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
+                                            {{ getMissingEnvironments(item.resource).length }}
                                           </span>
                                         }
                                       </div>
@@ -361,6 +431,13 @@
                                               {{ preview }}
                                             </span>
                                           }
+                                          @if (hasMissingEnvironments(item.resource)) {
+                                            <span class="missing-env-badge"
+                                                  [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + getMissingEnvironments(item.resource).join(', ')">
+                                              <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
+                                              {{ getMissingEnvironments(item.resource).length }}
+                                            </span>
+                                          }
                                         }
                                       </div>
                                       <span class="resource-item__type">
@@ -406,6 +483,13 @@
                                                   <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
                                                     <mat-icon class="naming-preview__icon">label</mat-icon>
                                                     {{ preview }}
+                                                  </span>
+                                                }
+                                                @if (hasMissingEnvironments(child)) {
+                                                  <span class="missing-env-badge"
+                                                        [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + getMissingEnvironments(child).join(', ')">
+                                                    <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
+                                                    {{ getMissingEnvironments(child).length }}
                                                   </span>
                                                 }
                                               </div>
@@ -475,6 +559,13 @@
                                         <span class="naming-preview" [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_TOOLTIP' | translate">
                                           <mat-icon class="naming-preview__icon">label</mat-icon>
                                           {{ preview }}
+                                        </span>
+                                      }
+                                      @if (hasMissingEnvironments(item.resource)) {
+                                        <span class="missing-env-badge"
+                                              [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + getMissingEnvironments(item.resource).join(', ')">
+                                          <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
+                                          {{ getMissingEnvironments(item.resource).length }}
                                         </span>
                                       }
                                     </div>

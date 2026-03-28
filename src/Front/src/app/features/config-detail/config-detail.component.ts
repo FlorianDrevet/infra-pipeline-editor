@@ -278,6 +278,29 @@ export class ConfigDetailComponent implements OnInit {
     return [...envs].sort((a, b) => a.order - b.order);
   });
 
+  /** Resource types that have no per-environment settings. */
+  private readonly ENV_SETTINGS_EXCLUDED_TYPES = new Set(['UserAssignedIdentity']);
+
+  /**
+   * Returns the list of environment names that are defined in the project
+   * but not yet configured for the given resource. Returns empty array if
+   * the resource type has no environment settings or if all environments are configured.
+   */
+  protected getMissingEnvironments(resource: AzureResourceResponse): string[] {
+    if (this.ENV_SETTINGS_EXCLUDED_TYPES.has(resource.resourceType)) return [];
+    const allEnvNames = this.projectSortedEnvironments().map(e => e.name);
+    if (allEnvNames.length === 0) return [];
+    const configured = new Set(resource.configuredEnvironments ?? []);
+    return allEnvNames.filter(name => !configured.has(name));
+  }
+
+  /**
+   * Returns true if the resource has at least one missing environment configuration.
+   */
+  protected hasMissingEnvironments(resource: AzureResourceResponse): boolean {
+    return this.getMissingEnvironments(resource).length > 0;
+  }
+
   // canWrite defaults to true — access checks are now at project level
   protected readonly canWrite = signal(true);
 
@@ -1137,6 +1160,60 @@ export class ConfigDetailComponent implements OnInit {
       saveAs(blob, `${configName}-bicep.zip`);
     } finally {
       this.bicepDownloading.set(false);
+    }
+  }
+
+  // ─── Pipeline Generation ───
+
+  protected async generatePipeline(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.pipelineLoading()) return;
+
+    this.pipelineLoading.set(true);
+    this.pipelineErrorKey.set('');
+    this.pipelineResult.set(null);
+    this.pipelinePanelOpen.set(true);
+
+    try {
+      const result = await this.pipelineService.generate({ infrastructureConfigId: configId });
+      this.pipelineResult.set(result);
+    } catch (err: unknown) {
+      const axios = await import('axios');
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        if (status === 401 || status === 403) {
+          this.pipelineErrorKey.set('CONFIG_DETAIL.PIPELINE.GENERATE_AUTH_ERROR');
+        } else {
+          this.pipelineErrorKey.set('CONFIG_DETAIL.PIPELINE.GENERATE_ERROR');
+        }
+      } else {
+        this.pipelineErrorKey.set('CONFIG_DETAIL.PIPELINE.GENERATE_ERROR');
+      }
+    } finally {
+      this.pipelineLoading.set(false);
+    }
+  }
+
+  protected closePipelinePanel(): void {
+    this.pipelinePanelOpen.set(false);
+    this.pipelineResult.set(null);
+    this.pipelineErrorKey.set('');
+  }
+
+  protected async downloadPipelineFiles(): Promise<void> {
+    const result = this.pipelineResult();
+    if (!result || this.pipelineDownloading()) return;
+
+    this.pipelineDownloading.set(true);
+    try {
+      const configId = this.config()?.id;
+      if (!configId) return;
+
+      const blob = await this.pipelineService.downloadZip(configId);
+      const configName = this.config()?.name ?? 'pipeline';
+      saveAs(blob, `${configName}-pipeline.zip`);
+    } finally {
+      this.pipelineDownloading.set(false);
     }
   }
 
