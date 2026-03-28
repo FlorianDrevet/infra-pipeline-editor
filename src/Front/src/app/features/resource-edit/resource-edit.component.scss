@@ -1582,6 +1582,15 @@
     border: 1px solid rgba(156, 39, 176, 0.18);
     color: #7b1fa2;
   }
+
+  &--assignment {
+    background: rgba(96, 125, 139, 0.06);
+    border: 1px solid rgba(96, 125, 139, 0.15);
+    color: #455a64;
+    text-transform: none;
+    font-weight: 600;
+    font-size: 0.7rem;
+  }
 }
 
 // ─── Storage Services ────

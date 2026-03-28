@@ -82,7 +82,8 @@ public record AppSettingReadModel(
     string? SecretName,
     bool IsKeyVaultReference,
     bool IsSourceCrossConfig = false,
-    string? SourceResourceGroupName = null);
+    string? SourceResourceGroupName = null,
+    string? SecretValueAssignment = null);
 
 /// <summary>
 /// Read model for a cross-configuration resource reference used in Bicep generation.

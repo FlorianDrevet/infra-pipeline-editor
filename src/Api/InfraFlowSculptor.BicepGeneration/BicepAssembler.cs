@@ -86,9 +86,12 @@ public static class BicepAssembler
             moduleFiles[$"modules/{folder}/{fileName}"] = RoleAssignmentModuleTemplates.GenerateModule(typeName);
         }
 
-        // Generate Key Vault secret module if sensitive outputs are exported to KV
+        // Generate Key Vault secret module if sensitive outputs are exported to KV or ViaBicepparam secrets exist
         var hasSensitiveExports = appSettings.Any(s => s.IsSensitiveOutputExportedToKeyVault);
-        if (hasSensitiveExports)
+        var hasViaBicepparamSecrets = appSettings.Any(s =>
+            s.IsKeyVaultReference && !s.IsSensitiveOutputExportedToKeyVault
+            && s.SecretValueAssignment == "ViaBicepparam");
+        if (hasSensitiveExports || hasViaBicepparamSecrets)
         {
             moduleFiles["modules/KeyVault/kvSecret.module.bicep"] = GenerateKvSecretModule();
         }
@@ -665,6 +668,18 @@ public static class BicepAssembler
             sb.AppendLine($"param {paramName} string");
         }
 
+        // Secure parameter declarations for ViaBicepparam Key Vault secrets
+        foreach (var setting in appSettings.Where(s =>
+            s.IsKeyVaultReference && !s.IsSensitiveOutputExportedToKeyVault
+            && s.SecretValueAssignment == "ViaBicepparam"))
+        {
+            var paramName = GetSecureAppSettingParamName(setting.TargetResourceName, setting.SecretName!);
+            sb.AppendLine();
+            sb.AppendLine("@secure()");
+            sb.AppendLine($"@description('Secret value for Key Vault secret \\'{EscapeBicepString(setting.SecretName!)}\\' used by {setting.TargetResourceName}')");
+            sb.AppendLine($"param {paramName} string");
+        }
+
         sb.AppendLine();
 
         // ── Environment resolution ──────────────────────────────────────────
@@ -843,21 +858,33 @@ public static class BicepAssembler
                     }
                     else if (setting.IsKeyVaultReference && setting.KeyVaultResourceName is not null && setting.SecretName is not null)
                     {
-                        // Manual Key Vault secret reference (user-specified secret name)
-                        var kvModule = modules.FirstOrDefault(m =>
-                            m.LogicalResourceName.Equals(setting.KeyVaultResourceName, StringComparison.OrdinalIgnoreCase));
-
-                        if (kvModule is not null)
+                        if (setting.SecretValueAssignment == "ViaBicepparam")
                         {
-                            if (isContainerApp)
+                            // ViaBicepparam secret — reference the generated kvSecret module's secretUri output
+                            var targetIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.TargetResourceName);
+                            var secretIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.SecretName);
+                            var secretModuleSymbol = $"{targetIdentifier}{Capitalize(secretIdentifier)}SecretModule";
+
+                            sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{secretModuleSymbol}.outputs.secretUri}})'");
+                        }
+                        else
+                        {
+                            // Manual Key Vault secret reference (DirectInKeyVault — user-specified secret name)
+                            var kvModule = modules.FirstOrDefault(m =>
+                                m.LogicalResourceName.Equals(setting.KeyVaultResourceName, StringComparison.OrdinalIgnoreCase));
+
+                            if (kvModule is not null)
                             {
-                                // ContainerApp uses keyVaultUrl in the secrets array pattern
-                                sb.AppendLine($"        value: '${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{EscapeBicepString(setting.SecretName)}'");
-                            }
-                            else
-                            {
-                                // WebApp/FunctionApp use @Microsoft.KeyVault(SecretUri=...) syntax
-                                sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{EscapeBicepString(setting.SecretName)})'");
+                                if (isContainerApp)
+                                {
+                                    // ContainerApp uses keyVaultUrl in the secrets array pattern
+                                    sb.AppendLine($"        value: '${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{EscapeBicepString(setting.SecretName)}'");
+                                }
+                                else
+                                {
+                                    // WebApp/FunctionApp use @Microsoft.KeyVault(SecretUri=...) syntax
+                                    sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{EscapeBicepString(setting.SecretName)})'");
+                                }
                             }
                         }
                     }
@@ -944,6 +971,49 @@ public static class BicepAssembler
                 sb.AppendLine($"    keyVaultName: {kvNameExpr}");
                 sb.AppendLine($"    secretName: '{EscapeBicepString(export.SecretName!)}'");
                 sb.AppendLine($"    secretValue: {sourceModule.ModuleName}Module.outputs.{export.SourceOutputName}");
+                sb.AppendLine("  }");
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
+        }
+
+        // ── Key Vault secrets for ViaBicepparam static secrets ────────────
+        var viaBicepparamSecrets = appSettings
+            .Where(s => s.IsKeyVaultReference && !s.IsSensitiveOutputExportedToKeyVault
+                && s.SecretValueAssignment == "ViaBicepparam"
+                && s.KeyVaultResourceName is not null
+                && s.SecretName is not null)
+            .ToList();
+
+        if (viaBicepparamSecrets.Count > 0)
+        {
+            sb.AppendLine("// ── Key Vault secrets for ViaBicepparam static secrets ──────────────────");
+            sb.AppendLine();
+
+            foreach (var secret in viaBicepparamSecrets)
+            {
+                var kvModule = modules.FirstOrDefault(m =>
+                    m.LogicalResourceName.Equals(secret.KeyVaultResourceName!, StringComparison.OrdinalIgnoreCase));
+
+                if (kvModule is null)
+                    continue;
+
+                var kvRgSymbol = BicepIdentifierHelper.ToBicepIdentifier(kvModule.ResourceGroupName);
+                var secretIdentifier = BicepIdentifierHelper.ToBicepIdentifier(secret.SecretName!);
+                var targetIdentifier = BicepIdentifierHelper.ToBicepIdentifier(secret.TargetResourceName);
+                var secretModuleSymbol = $"{targetIdentifier}{Capitalize(secretIdentifier)}SecretModule";
+                var kvNameExpr = BuildNamingExpression(
+                    kvModule.LogicalResourceName, kvModule.ResourceAbbreviation,
+                    kvModule.ResourceTypeName, namingContext);
+                var secureParamName = GetSecureAppSettingParamName(secret.TargetResourceName, secret.SecretName!);
+
+                sb.AppendLine($"module {secretModuleSymbol} './modules/KeyVault/kvSecret.module.bicep' = {{");
+                sb.AppendLine($"  name: '{targetIdentifier}-{EscapeBicepString(secret.SecretName!).ToLowerInvariant()}-secret'");
+                sb.AppendLine($"  scope: {kvRgSymbol}");
+                sb.AppendLine("  params: {");
+                sb.AppendLine($"    keyVaultName: {kvNameExpr}");
+                sb.AppendLine($"    secretName: '{EscapeBicepString(secret.SecretName!)}'");
+                sb.AppendLine($"    secretValue: {secureParamName}");
                 sb.AppendLine("  }");
                 sb.AppendLine("}");
                 sb.AppendLine();
@@ -1211,6 +1281,15 @@ public static class BicepAssembler
             sb.AppendLine($"param {paramName} = '{EscapeBicepString(value)}'");
         }
 
+        // ── ViaBicepparam secure params (placeholder — to be filled at deployment time) ──
+        foreach (var setting in appSettings.Where(s =>
+            s.IsKeyVaultReference && !s.IsSensitiveOutputExportedToKeyVault
+            && s.SecretValueAssignment == "ViaBicepparam"))
+        {
+            var paramName = GetSecureAppSettingParamName(setting.TargetResourceName, setting.SecretName!);
+            sb.AppendLine($"param {paramName} = ''");
+        }
+
         return sb.ToString();
     }
 
@@ -1308,6 +1387,17 @@ public static class BicepAssembler
         var moduleName = BicepIdentifierHelper.ToBicepIdentifier(targetResourceName);
         var pascalName = ToPascalCaseFromEnvVar(settingName);
         return $"{moduleName}{pascalName}";
+    }
+
+    /// <summary>
+    /// Builds a deterministic Bicep param name for a secure Key Vault secret value.
+    /// Convention: <c>{moduleName}{PascalCase(secretName)}SecretValue</c>.
+    /// </summary>
+    private static string GetSecureAppSettingParamName(string targetResourceName, string secretName)
+    {
+        var moduleName = BicepIdentifierHelper.ToBicepIdentifier(targetResourceName);
+        var pascalName = ToPascalCaseFromEnvVar(secretName);
+        return $"{moduleName}{pascalName}SecretValue";
     }
 
     /// <summary>

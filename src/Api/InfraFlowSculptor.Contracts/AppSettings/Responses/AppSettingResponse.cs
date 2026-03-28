@@ -12,4 +12,5 @@ public record AppSettingResponse(
     string? KeyVaultResourceId,
     string? SecretName,
     bool IsKeyVaultReference,
-    bool? HasKeyVaultAccess);
+    bool? HasKeyVaultAccess,
+    string? SecretValueAssignment);

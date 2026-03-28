@@ -46,6 +46,12 @@ public sealed class AppSetting : Entity<AppSettingId>
     /// </summary>
     public string? SecretName { get; private set; }
 
+    /// <summary>
+    /// Determines how the secret value is assigned for a static Key Vault reference.
+    /// Null when this is not a static Key Vault reference.
+    /// </summary>
+    public SecretValueAssignment? SecretValueAssignment { get; private set; }
+
     private AppSetting() { }
 
     /// <summary>Creates a new <see cref="AppSetting"/> with per-environment static values.</summary>
@@ -91,11 +97,17 @@ public sealed class AppSetting : Entity<AppSettingId>
         };
 
     /// <summary>Creates a new <see cref="AppSetting"/> referencing a Key Vault secret.</summary>
+    /// <param name="resourceId">The owning resource identifier.</param>
+    /// <param name="name">The environment variable name.</param>
+    /// <param name="keyVaultResourceId">The Key Vault resource identifier.</param>
+    /// <param name="secretName">The secret name in the Key Vault.</param>
+    /// <param name="assignment">Determines how the secret value is assigned.</param>
     internal static AppSetting CreateKeyVaultReference(
         AzureResourceId resourceId,
         string name,
         AzureResourceId keyVaultResourceId,
-        string secretName)
+        string secretName,
+        SecretValueAssignment assignment)
         => new()
         {
             Id = AppSettingId.CreateUnique(),
@@ -105,6 +117,7 @@ public sealed class AppSetting : Entity<AppSettingId>
             SourceOutputName = null,
             KeyVaultResourceId = keyVaultResourceId,
             SecretName = secretName,
+            SecretValueAssignment = assignment,
         };
 
     /// <summary>
@@ -160,18 +173,30 @@ public sealed class AppSetting : Entity<AppSettingId>
     }
 
     /// <summary>Updates this app setting to reference a Key Vault secret.</summary>
-    internal void UpdateToKeyVaultReference(string name, AzureResourceId keyVaultResourceId, string secretName)
+    /// <param name="name">The new environment variable name.</param>
+    /// <param name="keyVaultResourceId">The Key Vault resource identifier.</param>
+    /// <param name="secretName">The secret name in the Key Vault.</param>
+    /// <param name="assignment">Determines how the secret value is assigned.</param>
+    internal void UpdateToKeyVaultReference(
+        string name,
+        AzureResourceId keyVaultResourceId,
+        string secretName,
+        SecretValueAssignment assignment)
     {
         Name = name;
         SourceResourceId = null;
         SourceOutputName = null;
         KeyVaultResourceId = keyVaultResourceId;
         SecretName = secretName;
+        SecretValueAssignment = assignment;
         _environmentValues.Clear();
     }
 
     /// <summary>Gets whether this setting is a static-value setting (not a reference).</summary>
     public bool IsStatic => !IsOutputReference && !IsKeyVaultReference;
+
+    /// <summary>Gets whether this setting is a static secret stored in Key Vault (not an output reference).</summary>
+    public bool IsSecretStatic => IsKeyVaultReference && !IsOutputReference;
 
     /// <summary>Gets whether this setting is a resource output reference.</summary>
     public bool IsOutputReference => SourceResourceId is not null;

@@ -128,12 +128,14 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// <param name="name">The environment variable name.</param>
     /// <param name="keyVaultResourceId">The Key Vault resource identifier.</param>
     /// <param name="secretName">The secret name in the Key Vault.</param>
+    /// <param name="assignment">Determines how the secret value is assigned.</param>
     public AppSetting AddKeyVaultReferenceAppSetting(
         string name,
         AzureResourceId keyVaultResourceId,
-        string secretName)
+        string secretName,
+        SecretValueAssignment assignment)
     {
-        var setting = AppSetting.CreateKeyVaultReference(Id, name, keyVaultResourceId, secretName);
+        var setting = AppSetting.CreateKeyVaultReference(Id, name, keyVaultResourceId, secretName, assignment);
         _appSettings.Add(setting);
         return setting;
     }

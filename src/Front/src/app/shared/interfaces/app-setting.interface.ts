@@ -12,6 +12,7 @@ export interface AppSettingResponse {
   secretName?: string | null;
   isKeyVaultReference: boolean;
   hasKeyVaultAccess?: boolean | null;
+  secretValueAssignment?: string | null;
 }
 
 export interface AvailableOutputsResponse {
@@ -41,4 +42,5 @@ export interface AddAppSettingRequest {
   keyVaultResourceId?: string | null;
   secretName?: string | null;
   exportToKeyVault?: boolean;
+  secretValueAssignment?: string | null;
 }

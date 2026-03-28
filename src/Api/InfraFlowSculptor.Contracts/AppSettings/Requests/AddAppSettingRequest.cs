@@ -33,4 +33,10 @@ public class AddAppSettingRequest
     /// Requires <see cref="KeyVaultResourceId"/> and <see cref="SourceResourceId"/>/<see cref="SourceOutputName"/> to be set.
     /// </summary>
     public bool ExportToKeyVault { get; init; }
+
+    /// <summary>
+    /// Determines how the secret value is assigned for a static Key Vault reference.
+    /// Valid values: "ViaBicepparam" or "DirectInKeyVault". Defaults to "DirectInKeyVault" if not provided.
+    /// </summary>
+    public string? SecretValueAssignment { get; init; }
 }

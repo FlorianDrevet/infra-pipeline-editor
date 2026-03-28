@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.AppSettings.Common;
 using InfraFlowSculptor.Application.AppSettings.Queries.CheckKeyVaultAccess;
 using InfraFlowSculptor.Application.AppSettings.Queries.GetAvailableOutputs;
+using InfraFlowSculptor.Contracts.AppSettings.Requests;
 using InfraFlowSculptor.Contracts.AppSettings.Responses;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using Mapster;
@@ -28,7 +29,14 @@ public class AppSettingMappingConfig : IRegister
                 src.KeyVaultResourceId != null ? src.KeyVaultResourceId.Value.ToString() : null,
                 src.SecretName,
                 src.IsKeyVaultReference,
-                src.HasKeyVaultAccess));
+                src.HasKeyVaultAccess,
+                src.SecretValueAssignment != null ? src.SecretValueAssignment.ToString() : null));
+
+        config.NewConfig<AddAppSettingRequest, Application.AppSettings.Commands.AddAppSetting.AddAppSettingCommand>()
+            .Map(dest => dest.SecretValueAssignment,
+                src => src.SecretValueAssignment != null
+                    ? Enum.Parse<SecretValueAssignment>(src.SecretValueAssignment, true)
+                    : (SecretValueAssignment?)null);
 
         config.NewConfig<CheckKeyVaultAccessResult, CheckKeyVaultAccessResponse>()
             .MapWith(src => new CheckKeyVaultAccessResponse(

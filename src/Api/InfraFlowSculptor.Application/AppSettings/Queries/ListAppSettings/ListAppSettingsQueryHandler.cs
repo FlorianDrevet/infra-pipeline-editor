@@ -31,7 +31,8 @@ public sealed class ListAppSettingsQueryHandler(
                 s.SourceResourceId,
                 s.SourceOutputName, s.IsOutputReference,
                 s.KeyVaultResourceId, s.SecretName,
-                s.IsKeyVaultReference, null))
+                s.IsKeyVaultReference, null,
+                s.SecretValueAssignment))
             .ToList();
     }
 }

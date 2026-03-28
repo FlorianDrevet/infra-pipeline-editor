@@ -10,13 +10,6 @@
     </button>
     <button
       class="mode-btn"
-      [class.mode-btn--active]="mode() === 'keyvault'"
-      (click)="onModeChange('keyvault')">
-      <mat-icon>vpn_key</mat-icon>
-      {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.MODE_KEYVAULT' | translate }}
-    </button>
-    <button
-      class="mode-btn"
       [class.mode-btn--active]="mode() === 'static'"
       (click)="onModeChange('static')">
       <mat-icon>edit_note</mat-icon>
@@ -36,24 +29,159 @@
     <mat-dialog-content class="as-dialog__content">
       <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SUBTITLE_STATIC' | translate }}</p>
 
+      <!-- Variable name (always visible) -->
       <div class="config-section">
         <mat-form-field appearance="outline" class="config-section__field">
           <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_LABEL' | translate }}</mat-label>
-          <input matInput [ngModel]="settingName()" (ngModelChange)="settingName.set($event)" placeholder="MY_VARIABLE_NAME" />
+          <input matInput [ngModel]="settingName()" (ngModelChange)="settingName.set($event)" [placeholder]="isSecret() ? suggestedName() : 'MY_VARIABLE_NAME'" />
         </mat-form-field>
       </div>
 
-      <div class="env-values-section">
-        <p class="env-values-section__label">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUES_LABEL' | translate }}</p>
-        @for (env of data.environments; track env.name) {
-          <div class="config-section">
-            <mat-form-field appearance="outline" class="config-section__field">
-              <mat-label>{{ env.name }}</mat-label>
-              <input matInput [ngModel]="environmentValues()[env.name] || ''" (ngModelChange)="updateEnvironmentValue(env.name, $event)" [placeholder]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUE_PLACEHOLDER' | translate" />
-            </mat-form-field>
-          </div>
-        }
+      <!-- Is Secret toggle -->
+      <div class="secret-toggle-section">
+        <mat-slide-toggle
+          [ngModel]="isSecret()"
+          (ngModelChange)="onIsSecretToggle($event)"
+          color="primary">
+          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.IS_SECRET_LABEL' | translate }}
+        </mat-slide-toggle>
       </div>
+
+      <!-- Non-secret: environment values -->
+      @if (!isSecret()) {
+        <div class="env-values-section">
+          <p class="env-values-section__label">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUES_LABEL' | translate }}</p>
+          @for (env of data.environments; track env.name) {
+            <div class="config-section">
+              <mat-form-field appearance="outline" class="config-section__field">
+                <mat-label>{{ env.name }}</mat-label>
+                <input matInput [ngModel]="environmentValues()[env.name] || ''" (ngModelChange)="updateEnvironmentValue(env.name, $event)" [placeholder]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUE_PLACEHOLDER' | translate" />
+              </mat-form-field>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Secret flow: KV selection + assignment mode + secret name -->
+      @if (isSecret()) {
+        <div class="secret-kv-section">
+          <h4 class="sensitive-kv-config__title">
+            <mat-icon>vpn_key</mat-icon>
+            {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_TITLE_SELECT' | translate }}
+          </h4>
+
+          @if (keyVaultResources().length === 0) {
+            <div class="as-dialog__empty">
+              <mat-icon>vpn_key_off</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NO_VAULTS' | translate }}</p>
+            </div>
+          } @else {
+            <div class="target-list target-list--compact">
+              @for (res of keyVaultResources(); track res.id) {
+                <button
+                  class="target-card"
+                  [class.target-card--selected]="selectedKeyVault()?.id === res.id"
+                  (click)="selectStaticKeyVault(res)">
+                  <mat-icon class="target-card__icon">vpn_key</mat-icon>
+                  <div class="target-card__info">
+                    <span class="target-card__name">{{ res.name }}</span>
+                    <span class="target-card__meta">KeyVault · {{ res.location }}</span>
+                  </div>
+                </button>
+              }
+            </div>
+          }
+
+          @if (selectedKeyVault()) {
+            <!-- Access check -->
+            @if (kvAccessChecking()) {
+              <div class="as-dialog__loading">
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_CHECKING_ACCESS' | translate }}</span>
+              </div>
+            } @else if (kvHasAccess() === false) {
+              <div class="kv-access-warning" role="alert">
+                <mat-icon>warning</mat-icon>
+                <div class="kv-access-warning__content">
+                  <span class="kv-access-warning__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NO_ACCESS_TITLE' | translate }}</span>
+                  <span class="kv-access-warning__desc">
+                    {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NO_ACCESS_DESC' | translate: { role: kvMissingRoleName() } }}
+                  </span>
+                  <button
+                    mat-stroked-button
+                    class="assign-role-btn"
+                    [disabled]="sensitiveRoleAssigning()"
+                    (click)="assignSensitiveRole(); $event.stopPropagation()">
+                    @if (sensitiveRoleAssigning()) {
+                      <mat-spinner diameter="14" class="submit-spinner"></mat-spinner>
+                      {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGNING_ROLE' | translate }}
+                    } @else {
+                      <span class="btn-content"><mat-icon>shield</mat-icon> {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}</span>
+                    }
+                  </button>
+                  @if (sensitiveRoleError()) {
+                    <span class="assign-role-error">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ROLE_ERROR' | translate }}</span>
+                  }
+                </div>
+              </div>
+            } @else if (kvHasAccess() === true) {
+              <div class="kv-access-ok">
+                <mat-icon>check_circle</mat-icon>
+                <span>
+                  @if (sensitiveRoleAssigned()) {
+                    {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ROLE_ASSIGNED' | translate }}
+                  } @else {
+                    {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_ACCESS_OK' | translate }}
+                  }
+                </span>
+              </div>
+            }
+
+            <!-- Assignment mode choice -->
+            <h4 class="assignment-mode-title">
+              {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SECRET_ASSIGNMENT_TITLE' | translate }}
+            </h4>
+
+            <div class="sensitive-choice">
+              <!-- Via bicepparam (recommended) -->
+              <button
+                class="sensitive-choice-card sensitive-choice-card--kv"
+                [class.sensitive-choice-card--selected]="secretAssignmentMode() === 'ViaBicepparam'"
+                (click)="selectSecretAssignmentMode('ViaBicepparam')">
+                <div class="sensitive-choice-card__header">
+                  <mat-icon>description</mat-icon>
+                  <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_VIA_BICEPPARAM' | translate }}</span>
+                  <span class="sensitive-choice-card__badge sensitive-choice-card__badge--recommended">
+                    {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_RECOMMENDED' | translate }}
+                  </span>
+                </div>
+                <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_VIA_BICEPPARAM_DESC' | translate }}</p>
+              </button>
+
+              <!-- Directly in Key Vault -->
+              <button
+                class="sensitive-choice-card sensitive-choice-card--direct-kv"
+                [class.sensitive-choice-card--selected]="secretAssignmentMode() === 'DirectInKeyVault'"
+                (click)="selectSecretAssignmentMode('DirectInKeyVault')">
+                <div class="sensitive-choice-card__header">
+                  <mat-icon>vpn_key</mat-icon>
+                  <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_DIRECT_IN_KV' | translate }}</span>
+                </div>
+                <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_DIRECT_IN_KV_DESC' | translate }}</p>
+              </button>
+            </div>
+
+            <!-- Secret name -->
+            <div class="config-section">
+              <mat-form-field appearance="outline" class="config-section__field">
+                <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SECRET_NAME_LABEL' | translate }}</mat-label>
+                <input matInput [ngModel]="secretName()" (ngModelChange)="secretName.set($event)" placeholder="my-secret-name" />
+                <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SECRET_NAME_HINT' | translate }}</mat-hint>
+              </mat-form-field>
+            </div>
+          }
+        </div>
+      }
 
       @if (errorKey()) {
         <div class="as-dialog__error" role="alert">
@@ -137,7 +265,6 @@
       <mat-dialog-content class="as-dialog__content">
         <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SUBTITLE_SELECT_OUTPUT' | translate }}</p>
 
-        <!-- Selected source summary -->
         @if (selectedSource(); as source) {
           <div class="selected-source-summary">
             <mat-icon>{{ resourceTypeIcons[source.resourceType] || 'widgets' }}</mat-icon>
@@ -157,7 +284,6 @@
             <p>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NO_OUTPUTS' | translate }}</p>
           </div>
         } @else {
-          <!-- Non-sensitive outputs -->
           @if (nonSensitiveOutputs().length > 0) {
             <h4 class="output-section-title">
               <mat-icon>lock_open</mat-icon>
@@ -179,7 +305,6 @@
             </div>
           }
 
-          <!-- Sensitive outputs -->
           @if (sensitiveOutputs().length > 0) {
             <h4 class="output-section-title output-section-title--sensitive">
               <mat-icon>lock</mat-icon>
@@ -226,7 +351,6 @@
       <mat-dialog-content class="as-dialog__content">
         <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_CHOICE_SUBTITLE' | translate }}</p>
 
-        <!-- Selected output summary -->
         @if (selectedOutput(); as output) {
           <div class="selected-source-summary">
             <mat-icon>output</mat-icon>
@@ -239,7 +363,6 @@
         }
 
         <div class="sensitive-choice">
-          <!-- Option A: Export to Key Vault (recommended) -->
           <button
             class="sensitive-choice-card sensitive-choice-card--kv"
             [class.sensitive-choice-card--selected]="sensitiveChoice() === 'keyvault'"
@@ -254,7 +377,6 @@
             <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_EXPORT_KV_DESC' | translate }}</p>
           </button>
 
-          <!-- Option B: Use directly (not recommended) -->
           <button
             class="sensitive-choice-card sensitive-choice-card--direct"
             [class.sensitive-choice-card--selected]="sensitiveChoice() === 'direct'"
@@ -267,7 +389,6 @@
           </button>
         </div>
 
-        <!-- Expanded content for Key Vault choice -->
         @if (sensitiveChoice() === 'keyvault') {
           <div class="sensitive-kv-config">
             <h4 class="sensitive-kv-config__title">
@@ -298,7 +419,6 @@
             }
 
             @if (selectedKeyVault()) {
-              <!-- Access check -->
               @if (kvAccessChecking()) {
                 <div class="as-dialog__loading">
                   <mat-spinner diameter="20"></mat-spinner>
@@ -321,10 +441,7 @@
                         <mat-spinner diameter="14" class="submit-spinner"></mat-spinner>
                         {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGNING_ROLE' | translate }}
                       } @else {
-                        <ng-container>
-                          <mat-icon>shield</mat-icon>
-                          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}
-                        </ng-container>
+                        <span class="btn-content"><mat-icon>shield</mat-icon> {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}</span>
                       }
                     </button>
                     @if (sensitiveRoleError()) {
@@ -345,7 +462,6 @@
                 </div>
               }
 
-              <!-- Secret name -->
               <div class="config-section">
                 <mat-form-field appearance="outline" class="config-section__field">
                   <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_SECRET_NAME' | translate }}</mat-label>
@@ -357,7 +473,6 @@
           </div>
         }
 
-        <!-- Expanded content for Direct choice -->
         @if (sensitiveChoice() === 'direct') {
           <div class="sensitive-direct-config">
             <div class="sensitive-warning-banner" role="alert">
@@ -400,7 +515,6 @@
       <mat-dialog-content class="as-dialog__content">
         <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SUBTITLE_NAME' | translate }}</p>
 
-        <!-- Summary of what was selected -->
         <div class="selection-summary">
           @if (selectedSource(); as source) {
             <div class="selection-summary__item">
@@ -464,181 +578,5 @@
       </mat-dialog-actions>
     }
   }
-
-  <!-- ═══════════════════════════════════════════════════════════════ -->
-  <!-- KEY VAULT REFERENCE MODE                                        -->
-  <!-- ═══════════════════════════════════════════════════════════════ -->
-  @if (mode() === 'keyvault') {
-    <!-- ─── Step 1: Select Key Vault ─── -->
-    @if (step() === 1) {
-      <h2 mat-dialog-title class="as-dialog__title">
-        <mat-icon>vpn_key</mat-icon>
-        {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_TITLE_SELECT' | translate }}
-      </h2>
-
-      <mat-dialog-content class="as-dialog__content">
-        <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_SUBTITLE_SELECT' | translate }}</p>
-
-        @if (keyVaultResources().length === 0) {
-          <div class="as-dialog__empty">
-            <mat-icon>vpn_key_off</mat-icon>
-            <p>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NO_VAULTS' | translate }}</p>
-          </div>
-        } @else {
-          <div class="target-list">
-            @for (res of keyVaultResources(); track res.id) {
-              <button
-                class="target-card"
-                [class.target-card--selected]="selectedKeyVault()?.id === res.id"
-                (click)="selectKeyVault(res)">
-                <mat-icon class="target-card__icon">vpn_key</mat-icon>
-                <div class="target-card__info">
-                  <span class="target-card__name">{{ res.name }}</span>
-                  <span class="target-card__meta">KeyVault · {{ res.location }}</span>
-                </div>
-                <mat-icon class="target-card__arrow">chevron_right</mat-icon>
-              </button>
-            }
-          </div>
-        }
-      </mat-dialog-content>
-
-      <mat-dialog-actions class="as-dialog__actions" align="end">
-        <button mat-stroked-button (click)="onCancel()">
-          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CANCEL' | translate }}
-        </button>
-      </mat-dialog-actions>
-    }
-
-    <!-- ─── Step 2: Secret name + access check ─── -->
-    @if (step() === 2) {
-      <h2 mat-dialog-title class="as-dialog__title">
-        <mat-icon>lock</mat-icon>
-        {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_TITLE_SECRET' | translate }}
-      </h2>
-
-      <mat-dialog-content class="as-dialog__content">
-        <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_SUBTITLE_SECRET' | translate }}</p>
-
-        <!-- Selected KV summary -->
-        @if (selectedKeyVault(); as kv) {
-          <div class="selected-source-summary">
-            <mat-icon>vpn_key</mat-icon>
-            <span>{{ kv.name }}</span>
-            <span class="selected-source-summary__type">KeyVault</span>
-          </div>
-        }
-
-        <!-- Access check warning -->
-        @if (kvAccessChecking()) {
-          <div class="as-dialog__loading">
-            <mat-spinner diameter="20"></mat-spinner>
-            <span>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_CHECKING_ACCESS' | translate }}</span>
-          </div>
-        } @else if (kvHasAccess() === false) {
-          <div class="kv-access-warning" role="alert">
-            <mat-icon>warning</mat-icon>
-            <div class="kv-access-warning__content">
-              <span class="kv-access-warning__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NO_ACCESS_TITLE' | translate }}</span>
-              <span class="kv-access-warning__desc">
-                {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NO_ACCESS_DESC' | translate: { roleName: kvMissingRoleName() } }}
-              </span>
-            </div>
-          </div>
-        } @else if (kvHasAccess() === true) {
-          <div class="kv-access-ok">
-            <mat-icon>check_circle</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_ACCESS_OK' | translate }}</span>
-          </div>
-        }
-
-        <div class="config-section">
-          <mat-form-field appearance="outline" class="config-section__field">
-            <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_SECRET_NAME_LABEL' | translate }}</mat-label>
-            <input matInput [ngModel]="secretName()" (ngModelChange)="secretName.set($event)" placeholder="my-secret-name" />
-            <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_SECRET_NAME_HINT' | translate }}</mat-hint>
-          </mat-form-field>
-        </div>
-      </mat-dialog-content>
-
-      <mat-dialog-actions class="as-dialog__actions" align="end">
-        <button mat-stroked-button (click)="goBack()">
-          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
-          [disabled]="!secretName().trim()"
-          (click)="goToKvStep3()">
-          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NEXT' | translate }}
-        </button>
-      </mat-dialog-actions>
-    }
-
-    <!-- ─── Step 3: Name the variable ─── -->
-    @if (step() === 3) {
-      <h2 mat-dialog-title class="as-dialog__title">
-        <mat-icon>data_object</mat-icon>
-        {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.TITLE_NAME' | translate }}
-      </h2>
-
-      <mat-dialog-content class="as-dialog__content">
-        <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SUBTITLE_NAME' | translate }}</p>
-
-        <!-- Summary of selections -->
-        <div class="selection-summary">
-          @if (selectedKeyVault(); as kv) {
-            <div class="selection-summary__item">
-              <mat-icon>vpn_key</mat-icon>
-              <span>{{ kv.name }}</span>
-            </div>
-          }
-          <div class="selection-summary__item selection-summary__item--output">
-            <mat-icon>lock</mat-icon>
-            <span>{{ secretName() }}</span>
-          </div>
-        </div>
-
-        @if (kvHasAccess() === false) {
-          <div class="kv-access-warning kv-access-warning--compact" role="alert">
-            <mat-icon>warning</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NO_ACCESS_REMINDER' | translate }}</span>
-          </div>
-        }
-
-        <div class="config-section">
-          <mat-form-field appearance="outline" class="config-section__field">
-            <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_LABEL' | translate }}</mat-label>
-            <input matInput [ngModel]="settingName()" (ngModelChange)="settingName.set($event)" [placeholder]="suggestedName()" />
-            <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_HINT' | translate }}</mat-hint>
-          </mat-form-field>
-        </div>
-
-        @if (errorKey()) {
-          <div class="as-dialog__error" role="alert">
-            <mat-icon>error_outline</mat-icon>
-            {{ errorKey() | translate }}
-          </div>
-        }
-      </mat-dialog-content>
-
-      <mat-dialog-actions class="as-dialog__actions" align="end">
-        <button mat-stroked-button (click)="goBack()">
-          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
-          [disabled]="!canSubmit()"
-          (click)="onSubmit()">
-          @if (isSubmitting()) {
-            <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
-            {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADDING' | translate }}
-          } @else {
-            {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADD' | translate }}
-          }
-        </button>
-      </mat-dialog-actions>
-    }
-  }
 </div>
+

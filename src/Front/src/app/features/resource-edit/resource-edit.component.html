@@ -1713,6 +1713,17 @@
                             <mat-icon>vpn_key</mat-icon>
                             {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_REF' | translate }}
                           </span>
+                          @if (setting.secretValueAssignment) {
+                            <span class="as-badge as-badge--assignment">
+                              @if (setting.secretValueAssignment === 'ViaBicepparam') {
+                                <mat-icon>description</mat-icon>
+                                via bicepparam
+                              } @else {
+                                <mat-icon>vpn_key</mat-icon>
+                                {{ 'RESOURCE_EDIT.APP_SETTINGS.DIRECT_IN_KV' | translate }}
+                              }
+                            </span>
+                          }
                           @if (setting.keyVaultResourceId) {
                             <span class="as-badge as-badge--source">
                               <mat-icon>vpn_key</mat-icon>

@@ -53,6 +53,11 @@ public sealed class AppSettingConfiguration : IEntityTypeConfiguration<AppSettin
             .IsRequired(false)
             .HasMaxLength(256);
 
+        builder.Property(s => s.SecretValueAssignment)
+            .HasConversion<string?>()
+            .IsRequired(false)
+            .HasMaxLength(64);
+
         builder.HasOne<AzureResource>()
             .WithMany()
             .HasForeignKey(s => s.SourceResourceId)

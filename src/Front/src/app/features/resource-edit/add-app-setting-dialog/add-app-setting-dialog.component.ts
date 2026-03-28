@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
@@ -40,6 +41,7 @@ export interface AddAppSettingDialogData {
     MatFormFieldModule,
     MatTooltipModule,
     MatCheckboxModule,
+    MatSlideToggleModule,
   ],
   templateUrl: './add-app-setting-dialog.component.html',
   styleUrl: './add-app-setting-dialog.component.scss',
@@ -52,8 +54,8 @@ export class AddAppSettingDialogComponent {
 
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
 
-  // ─── Mode: static value, resource output, or key vault reference ───
-  protected readonly mode = signal<'static' | 'output' | 'keyvault'>('output');
+  // ─── Mode: static value or resource output ───
+  protected readonly mode = signal<'static' | 'output'>('output');
 
   // ─── Step management (output mode: 1→2→3(sensitive)→4 or 1→2→4) ───
   protected readonly step = signal<1 | 2 | 3 | 4>(1);
@@ -81,13 +83,17 @@ export class AddAppSettingDialogComponent {
   protected readonly sensitiveRoleError = signal(false);
   protected readonly kvMissingRoleDefinitionId = signal<string | null>(null);
 
-  // ─── Key Vault mode — Step 1: Select KV ───
+  // ─── Static mode — Is Secret toggle ───
+  protected readonly isSecret = signal(false);
+  protected readonly secretAssignmentMode = signal<'ViaBicepparam' | 'DirectInKeyVault' | null>(null);
+
+  // ─── Key Vault selection (shared: static secret + output sensitive) ───
   protected readonly keyVaultResources = computed(() =>
     this.data.siblingResources.filter(r => r.resourceType === 'KeyVault')
   );
   protected readonly selectedKeyVault = signal<AzureResourceResponse | null>(null);
 
-  // ─── Key Vault mode — Step 2: Secret name + access check ───
+  // ─── Key Vault access check ───
   protected readonly secretName = signal('');
   protected readonly kvAccessChecking = signal(false);
   protected readonly kvHasAccess = signal<boolean | null>(null);
@@ -102,7 +108,7 @@ export class AddAppSettingDialogComponent {
   protected readonly errorKey = signal('');
 
   protected readonly suggestedName = computed(() => {
-    if (this.mode() === 'keyvault') {
+    if (this.mode() === 'static' && this.isSecret()) {
       const kv = this.selectedKeyVault();
       const secret = this.secretName();
       if (!kv || !secret) return '';
@@ -130,10 +136,12 @@ export class AddAppSettingDialogComponent {
     const name = this.settingName().trim();
     if (!name || this.isSubmitting()) return false;
     if (this.mode() === 'static') {
+      if (this.isSecret()) {
+        return !!this.selectedKeyVault() && !!this.secretName().trim() && !!this.secretAssignmentMode();
+      }
       const vals = this.environmentValues();
       return Object.values(vals).some(v => v.trim().length > 0);
     }
-    if (this.mode() === 'keyvault') return !!this.selectedKeyVault() && !!this.secretName().trim();
     // output mode — final step is now step 4
     return !!this.selectedSource() && !!this.selectedOutput();
   });
@@ -146,7 +154,7 @@ export class AddAppSettingDialogComponent {
     return false;
   });
 
-  protected onModeChange(value: 'static' | 'output' | 'keyvault'): void {
+  protected onModeChange(value: 'static' | 'output'): void {
     this.mode.set(value);
     this.step.set(1);
     this.selectedSource.set(null);
@@ -167,6 +175,32 @@ export class AddAppSettingDialogComponent {
     this.sensitiveRoleAssigning.set(false);
     this.sensitiveRoleAssigned.set(false);
     this.sensitiveRoleError.set(false);
+    this.isSecret.set(false);
+    this.secretAssignmentMode.set(null);
+  }
+
+  protected onIsSecretToggle(value: boolean): void {
+    this.isSecret.set(value);
+    if (!value) {
+      this.selectedKeyVault.set(null);
+      this.secretName.set('');
+      this.secretAssignmentMode.set(null);
+      this.kvHasAccess.set(null);
+      this.kvMissingRoleName.set(null);
+      this.kvMissingRoleDefinitionId.set(null);
+      this.sensitiveRoleAssigning.set(false);
+      this.sensitiveRoleAssigned.set(false);
+      this.sensitiveRoleError.set(false);
+    }
+  }
+
+  protected selectStaticKeyVault(resource: AzureResourceResponse): void {
+    this.selectedKeyVault.set(resource);
+    this.checkKeyVaultAccess();
+  }
+
+  protected selectSecretAssignmentMode(mode: 'ViaBicepparam' | 'DirectInKeyVault'): void {
+    this.secretAssignmentMode.set(mode);
   }
 
   protected selectSource(resource: AzureResourceResponse): void {
@@ -259,14 +293,6 @@ export class AddAppSettingDialogComponent {
     }
   }
 
-  // ─── Key Vault mode ───
-
-  protected selectKeyVault(resource: AzureResourceResponse): void {
-    this.selectedKeyVault.set(resource);
-    this.step.set(2);
-    this.checkKeyVaultAccess();
-  }
-
   protected async checkKeyVaultAccess(): Promise<void> {
     const kv = this.selectedKeyVault();
     if (!kv) return;
@@ -288,29 +314,16 @@ export class AddAppSettingDialogComponent {
     }
   }
 
-  protected goToKvStep3(): void {
-    this.settingName.set(this.suggestedName());
-    this.step.set(3);
-  }
-
   protected goBack(): void {
     const currentStep = this.step();
     if (this.mode() === 'output') {
       if (currentStep === 4) {
-        // If came from sensitive step, go back to step 3; otherwise step 2
         if (this.selectedOutputIsSensitive()) {
           this.step.set(3);
         } else {
           this.step.set(2);
         }
       } else if (currentStep === 3) {
-        this.step.set(2);
-      } else if (currentStep === 2) {
-        this.step.set(1);
-      }
-    } else {
-      // KV mode: steps are 1→2→3
-      if (currentStep === 3) {
         this.step.set(2);
       } else if (currentStep === 2) {
         this.step.set(1);
@@ -328,12 +341,17 @@ export class AddAppSettingDialogComponent {
 
     try {
       let request;
-      if (this.mode() === 'keyvault') {
-        request = {
-          name,
-          keyVaultResourceId: this.selectedKeyVault()!.id,
-          secretName: this.secretName().trim(),
-        };
+      if (this.mode() === 'static') {
+        if (this.isSecret()) {
+          request = {
+            name,
+            keyVaultResourceId: this.selectedKeyVault()!.id,
+            secretName: this.secretName().trim(),
+            secretValueAssignment: this.secretAssignmentMode(),
+          };
+        } else {
+          request = { name, environmentValues: this.environmentValues() };
+        }
       } else if (this.mode() === 'output') {
         if (this.sensitiveChoice() === 'keyvault') {
           request = {

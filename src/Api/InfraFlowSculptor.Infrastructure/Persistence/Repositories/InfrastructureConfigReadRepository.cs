@@ -310,7 +310,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     KeyVaultResourceId: s.KeyVaultResourceId?.Value,
                     KeyVaultResourceName: keyVaultResourceName,
                     SecretName: s.SecretName,
-                    IsKeyVaultReference: s.IsKeyVaultReference);
+                    IsKeyVaultReference: s.IsKeyVaultReference,
+                    SecretValueAssignment: s.SecretValueAssignment?.ToString());
             })
             .OfType<AppSettingReadModel>()
             .ToList();

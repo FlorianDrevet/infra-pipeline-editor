@@ -104,7 +104,8 @@ public sealed class AddAppSettingCommandHandler(
             var setting = resource.AddKeyVaultReferenceAppSetting(
                 request.Name,
                 request.KeyVaultResourceId,
-                request.SecretName);
+                request.SecretName,
+                request.SecretValueAssignment ?? SecretValueAssignment.DirectInKeyVault);
 
             await azureResourceRepository.UpdateAsync(resource, cancellationToken);
 
@@ -176,5 +177,6 @@ public sealed class AddAppSettingCommandHandler(
             setting.SourceResourceId,
             setting.SourceOutputName, setting.IsOutputReference,
             setting.KeyVaultResourceId, setting.SecretName,
-            setting.IsKeyVaultReference, hasKeyVaultAccess);
+            setting.IsKeyVaultReference, hasKeyVaultAccess,
+            setting.SecretValueAssignment);
 }

@@ -430,6 +430,20 @@
     }
   }
 
+  &--direct-kv {
+    border-color: rgba(21, 101, 192, 0.18);
+
+    .sensitive-choice-card__header mat-icon {
+      color: #1565c0;
+    }
+
+    &:hover {
+      border-color: rgba(21, 101, 192, 0.4);
+      background: rgba(21, 101, 192, 0.03);
+      box-shadow: 0 4px 16px rgba(21, 101, 192, 0.08);
+    }
+  }
+
   &--selected {
     &.sensitive-choice-card--kv {
       border-color: #2e7d32;
@@ -439,6 +453,11 @@
     &.sensitive-choice-card--direct {
       border-color: #f57f17;
       background: rgba(245, 127, 23, 0.06);
+    }
+
+    &.sensitive-choice-card--direct-kv {
+      border-color: #1565c0;
+      background: rgba(21, 101, 192, 0.06);
     }
   }
 }
@@ -524,6 +543,12 @@
     width: 1rem;
     height: 1rem;
     margin-right: 0.25rem;
+  }
+
+  .btn-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
   }
 }
 
@@ -621,6 +646,29 @@
 .submit-spinner {
   display: inline-block;
   margin-right: 0.5rem;
+}
+
+// ─── Secret toggle section ───
+
+.secret-toggle-section {
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.75rem;
+  background: rgba(21, 101, 192, 0.03);
+  border: 1px solid rgba(21, 101, 192, 0.1);
+}
+
+.secret-kv-section {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(146, 191, 235, 0.15);
+}
+
+.assignment-mode-title {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #103454;
 }
 
 // ─── Key vault access warning / success ───

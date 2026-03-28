@@ -14,4 +14,5 @@ public sealed record AppSettingResult(
     AzureResourceId? KeyVaultResourceId,
     string? SecretName,
     bool IsKeyVaultReference,
-    bool? HasKeyVaultAccess);
+    bool? HasKeyVaultAccess,
+    SecretValueAssignment? SecretValueAssignment);

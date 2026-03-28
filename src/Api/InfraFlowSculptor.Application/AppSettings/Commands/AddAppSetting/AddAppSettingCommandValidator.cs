@@ -39,5 +39,11 @@ public sealed class AddAppSettingCommandValidator : AbstractValidator<AddAppSett
             .MaximumLength(256)
             .WithMessage("Secret name must not exceed 256 characters.")
             .When(x => x.SecretName is not null);
+
+        // SecretValueAssignment must be a valid enum value when provided
+        RuleFor(x => x.SecretValueAssignment)
+            .IsInEnum()
+            .WithMessage("SecretValueAssignment must be a valid value (ViaBicepparam or DirectInKeyVault).")
+            .When(x => x.SecretValueAssignment is not null);
     }
 }

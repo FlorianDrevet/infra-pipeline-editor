@@ -986,6 +986,7 @@
       "STATIC_VALUE": "Static value",
       "OUTPUT_REF": "Output reference",
       "KV_REF": "Key Vault reference",
+      "DIRECT_IN_KV": "Direct entry",
       "REMOVE": "Remove",
       "REMOVE_TITLE": "Remove app setting",
       "REMOVE_MESSAGE": "Remove the app setting \"{{name}}\"? This action cannot be undone.",
@@ -996,7 +997,6 @@
     },
     "ADD_APP_SETTING_DIALOG": {
       "MODE_OUTPUT": "Resource output",
-      "MODE_KEYVAULT": "Key Vault reference",
       "MODE_STATIC": "Static value",
       "TITLE_STATIC": "Add static app setting",
       "SUBTITLE_STATIC": "Set a variable name and a value for each environment.",
@@ -1049,7 +1049,16 @@
       "SENSITIVE_ASSIGN_ROLE": "Assign Key Vault Secrets User role",
       "SENSITIVE_ASSIGNING_ROLE": "Assigning role...",
       "SENSITIVE_ROLE_ASSIGNED": "Role assigned successfully",
-      "SENSITIVE_ROLE_ERROR": "Unable to assign the role"
+      "SENSITIVE_ROLE_ERROR": "Unable to assign the role",
+      "IS_SECRET_LABEL": "This parameter is a secret",
+      "SECRET_ASSIGNMENT_TITLE": "Value assignment mode",
+      "OPTION_VIA_BICEPPARAM": "Via bicepparam",
+      "OPTION_VIA_BICEPPARAM_DESC": "The value will be provided at deployment time. A secure parameter will be declared and initialized to '' in the bicepparam file.",
+      "OPTION_DIRECT_IN_KV": "Directly in Key Vault",
+      "OPTION_DIRECT_IN_KV_DESC": "The value will be entered manually in the Azure Key Vault portal. No Bicep parameter will be generated for this value.",
+      "OPTION_RECOMMENDED": "Recommended",
+      "SECRET_NAME_LABEL": "Secret name in Key Vault",
+      "SECRET_NAME_HINT": "The name under which the secret will be stored in Key Vault"
     },
     "ADD_ROLE_DIALOG": {
       "TITLE_SELECT_TARGET": "Select target resource",

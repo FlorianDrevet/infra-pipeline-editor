@@ -63,4 +63,11 @@ public sealed class AppSettingDefinition
     /// and reference it via a Key Vault reference in the compute resource.
     /// </summary>
     public bool IsSensitiveOutputExportedToKeyVault { get; init; }
+
+    /// <summary>
+    /// Determines how the secret value is assigned for a static Key Vault reference.
+    /// Valid values: <c>"ViaBicepparam"</c> or <c>"DirectInKeyVault"</c>.
+    /// Null when this is not a static Key Vault reference.
+    /// </summary>
+    public string? SecretValueAssignment { get; init; }
 }

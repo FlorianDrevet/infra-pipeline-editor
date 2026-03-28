@@ -238,6 +238,7 @@ public sealed class GenerateProjectBicepCommandHandler(
                     IsSourceCrossConfig = s.IsSourceCrossConfig,
                     SourceResourceGroupName = s.SourceResourceGroupName,
                     IsSensitiveOutputExportedToKeyVault = isSensitiveExport,
+                    SecretValueAssignment = s.SecretValueAssignment?.ToString(),
                 };
             })
             .ToList();

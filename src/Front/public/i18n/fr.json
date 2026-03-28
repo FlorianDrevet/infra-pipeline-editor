@@ -993,6 +993,7 @@
       "STATIC_VALUE": "Valeur statique",
       "OUTPUT_REF": "R\u00e9f\u00e9rence de sortie",
       "KV_REF": "R\u00e9f\u00e9rence Key Vault",
+      "DIRECT_IN_KV": "Saisie directe",
       "REMOVE": "Supprimer",
       "REMOVE_TITLE": "Supprimer la variable",
       "REMOVE_MESSAGE": "Supprimer la variable \u00ab {{name}} \u00bb ? Cette action est irr\u00e9versible.",
@@ -1003,10 +1004,9 @@
     },
     "ADD_APP_SETTING_DIALOG": {
       "MODE_OUTPUT": "Sortie de ressource",
-      "MODE_KEYVAULT": "R\u00e9f\u00e9rence Key Vault",
       "MODE_STATIC": "Valeur statique",
       "TITLE_STATIC": "Ajouter une variable statique",
-      "SUBTITLE_STATIC": "D\u00e9finissez un nom et une valeur fixe pour la variable d'environnement.",
+      "SUBTITLE_STATIC": "Définissez un nom et une valeur fixe pour la variable d'environnement.",
       "TITLE_SELECT_SOURCE": "S\u00e9lectionner la ressource source",
       "SUBTITLE_SELECT_SOURCE": "Choisissez la ressource dont vous souhaitez exporter une sortie comme variable d'environnement.",
       "TITLE_SELECT_OUTPUT": "S\u00e9lectionner la sortie",
@@ -1056,7 +1056,16 @@
       "SENSITIVE_ASSIGN_ROLE": "Assigner le r\u00f4le Key Vault Secrets User",
       "SENSITIVE_ASSIGNING_ROLE": "Assignation en cours...",
       "SENSITIVE_ROLE_ASSIGNED": "R\u00f4le assign\u00e9 avec succ\u00e8s",
-      "SENSITIVE_ROLE_ERROR": "Impossible d'assigner le r\u00f4le"
+      "SENSITIVE_ROLE_ERROR": "Impossible d'assigner le r\u00f4le",
+      "IS_SECRET_LABEL": "Ce param\u00e8tre est un secret",
+      "SECRET_ASSIGNMENT_TITLE": "Mode d'assignation de la valeur",
+      "OPTION_VIA_BICEPPARAM": "Via bicepparam",
+      "OPTION_VIA_BICEPPARAM_DESC": "La valeur sera fournie au moment du d\u00e9ploiement. Un param\u00e8tre s\u00e9curis\u00e9 sera d\u00e9clar\u00e9 et initialis\u00e9 \u00e0 '' dans le fichier bicepparam.",
+      "OPTION_DIRECT_IN_KV": "Directement dans le Key Vault",
+      "OPTION_DIRECT_IN_KV_DESC": "La valeur sera saisie manuellement dans le portail Azure du Key Vault. Aucun param\u00e8tre Bicep ne sera g\u00e9n\u00e9r\u00e9 pour cette valeur.",
+      "OPTION_RECOMMENDED": "Recommand\u00e9",
+      "SECRET_NAME_LABEL": "Nom du secret dans le Key Vault",
+      "SECRET_NAME_HINT": "Le nom sous lequel le secret sera stock\u00e9 dans le Key Vault"
     },
     "ADD_ROLE_DIALOG": {
       "TITLE_SELECT_TARGET": "S\u00e9lectionner la ressource cible",
