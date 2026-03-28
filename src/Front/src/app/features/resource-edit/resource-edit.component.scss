@@ -1199,6 +1199,55 @@
   }
 }
 
+// ─── Assign UAI dropdown menu ────
+
+::ng-deep .ra-uai-assign-menu {
+  .mat-mdc-menu-content {
+    min-width: 280px;
+    padding: 0.35rem 0;
+  }
+
+  .mat-mdc-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 1rem;
+    min-height: 3rem;
+
+    .mat-icon {
+      color: #5e35b1;
+      font-size: 1.25rem;
+      width: 1.25rem;
+      height: 1.25rem;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.ra-uai-assign-menu__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.ra-uai-assign-menu__name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #311b92;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ra-uai-assign-menu__type {
+  font-size: 0.68rem;
+  color: #7e57c2;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 // ─── UAI collapsible groups in role assignments ────
 
 .ra-uai-group {

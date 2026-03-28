@@ -29,10 +29,6 @@ export interface AddRoleAssignmentDialogData {
   isFromUserAssignedIdentity?: boolean;
   userAssignedIdentityId?: string;
   userAssignedIdentityName?: string;
-  // When opening from a resource with a pre-selected UAI
-  preSelectedIdentityType?: string;
-  preSelectedIdentityId?: string;
-  preSelectedIdentityName?: string;
 }
 
 @Component({
@@ -81,7 +77,7 @@ export class AddRoleAssignmentDialogComponent {
   // ─── Step 2 — Configuration ───
   protected readonly availableRoles = signal<AzureRoleDefinitionResponse[]>([]);
   protected readonly rolesLoading = signal(false);
-  protected readonly selectedIdentityType = signal<string>(this.data.preSelectedIdentityType ?? 'SystemAssigned');
+  protected readonly selectedIdentityType = signal<string>('SystemAssigned');
   protected readonly selectedRoleId = signal<string>('');
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
@@ -92,7 +88,7 @@ export class AddRoleAssignmentDialogComponent {
     const fromSiblings = this.data.siblingResources.filter(r => r.resourceType === 'UserAssignedIdentity');
     return [...fromSiblings, ...this.extraIdentities()];
   });
-  protected readonly selectedIdentityId = signal<string>(this.data.preSelectedIdentityId ?? '');
+  protected readonly selectedIdentityId = signal<string>('');
   protected readonly showCreateIdentity = signal(false);
   protected readonly newIdentityName = signal('');
   protected readonly isCreatingIdentity = signal(false);

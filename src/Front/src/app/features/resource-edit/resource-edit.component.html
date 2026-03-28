@@ -767,11 +767,14 @@
                   <mat-icon>person_add</mat-icon>
                   {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_UAI' | translate }}
                 </button>
-                <mat-menu #assignUaiMenu="matMenu" class="ra-identity-menu">
+                <mat-menu #assignUaiMenu="matMenu" class="ra-uai-assign-menu">
                   @for (identity of availableUserAssignedIdentities(); track identity.id) {
-                    <button mat-menu-item (click)="openAddRoleAssignmentWithUai(identity.id, identity.name)">
+                    <button mat-menu-item (click)="assignUaiToResource(identity.id)">
                       <mat-icon>person</mat-icon>
-                      <span>{{ identity.name }}</span>
+                      <div class="ra-uai-assign-menu__label">
+                        <span class="ra-uai-assign-menu__name">{{ identity.name }}</span>
+                        <span class="ra-uai-assign-menu__type">User Assigned Identity</span>
+                      </div>
                     </button>
                   }
                 </mat-menu>

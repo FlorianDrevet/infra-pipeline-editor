@@ -1244,30 +1244,25 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected openAddRoleAssignmentWithUai(identityId: string, identityName: string): void {
-    const data: AddRoleAssignmentDialogData = {
-      sourceResourceId: this.resourceId,
-      currentResourceName: this.resource()?.name ?? '',
-      siblingResources: this.allResources(),
-      resourceGroupId: (this.resource() as { resourceGroupId?: string })?.resourceGroupId ?? '',
-      configLocation: this.resource()?.location ?? 'EastUS2',
-      preSelectedIdentityType: 'UserAssigned',
-      preSelectedIdentityId: identityId,
-      preSelectedIdentityName: identityName,
-    };
+  protected async assignUaiToResource(identityId: string): Promise<void> {
+    this.roleAssignmentsError.set('');
+    const systemRAs = this.groupedRoleAssignments().systemAssigned;
+    if (systemRAs.length === 0) return;
 
-    const dialogRef = this.dialog.open(AddRoleAssignmentDialogComponent, {
-      data,
-      width: '520px',
-      maxHeight: '85vh',
-    });
-
-    dialogRef.afterClosed().subscribe((result?: RoleAssignmentResponse) => {
-      if (result) {
-        this.roleAssignments.update(list => [...list, result]);
-        this.loadRoleAssignments();
+    try {
+      for (const ra of systemRAs) {
+        const updated = await this.roleAssignmentService.updateIdentity(
+          this.resourceId,
+          ra.id,
+          { managedIdentityType: 'UserAssigned', userAssignedIdentityId: identityId }
+        );
+        this.roleAssignments.update(list =>
+          list.map(existing => existing.id === updated.id ? updated : existing)
+        );
       }
-    });
+    } catch {
+      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UPDATE_IDENTITY_ERROR');
+    }
   }
 
   protected openRemoveRoleAssignmentDialog(assignment: RoleAssignmentResponse): void {
