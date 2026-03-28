@@ -748,8 +748,10 @@ public static class BicepAssembler
                 sb.AppendLine($"    {paramKey}: {module.ModuleName}{Capitalize(paramKey)}");
             }
 
-            // Pass user-assigned identity resource IDs to the module
-            if (uaiBySourceResource.TryGetValue(module.LogicalResourceName, out var uaiNames))
+            // Pass user-assigned identity resource IDs to the module.
+            // Skip UAI modules themselves — they don't consume their own resource ID.
+            if (module.ResourceTypeName != "UserAssignedIdentity"
+                && uaiBySourceResource.TryGetValue(module.LogicalResourceName, out var uaiNames))
             {
                 foreach (var uaiName in uaiNames)
                 {

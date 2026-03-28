@@ -869,6 +869,7 @@
 .ra-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
@@ -1182,6 +1183,147 @@
     height: 1rem;
     color: #1565c0;
   }
+}
+
+// ─── Assign UAI button variant ────
+
+.ra-add-btn--uai {
+  border-color: rgba(103, 58, 183, 0.3);
+  background: linear-gradient(135deg, rgba(103, 58, 183, 0.08), rgba(156, 39, 176, 0.06));
+  color: #5e35b1;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(103, 58, 183, 0.14), rgba(156, 39, 176, 0.1));
+    border-color: rgba(103, 58, 183, 0.45);
+    box-shadow: 0 4px 16px rgba(103, 58, 183, 0.12);
+  }
+}
+
+// ─── UAI collapsible groups in role assignments ────
+
+.ra-uai-group {
+  border-radius: 0.9rem;
+  border: 1.5px solid rgba(103, 58, 183, 0.15);
+  background: rgba(103, 58, 183, 0.02);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &--expanded {
+    border-color: rgba(103, 58, 183, 0.28);
+    box-shadow: 0 2px 8px rgba(103, 58, 183, 0.08);
+  }
+}
+
+.ra-uai-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: background 0.15s;
+
+  &:hover { background: rgba(103, 58, 183, 0.04); }
+
+  &__chevron {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: #7e57c2;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+
+    .ra-uai-group--expanded & { transform: rotate(180deg); }
+  }
+
+  &__icon {
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    color: #5e35b1;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #311b92;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__type {
+    font-size: 0.68rem;
+    color: #7e57c2;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.2rem;
+    height: 1.2rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: rgba(103, 58, 183, 0.1);
+    color: #5e35b1;
+    font-size: 0.68rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  &__nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+    color: #5e35b1;
+    text-decoration: none;
+    transition: background 0.15s;
+    flex-shrink: 0;
+
+    &:hover { background: rgba(103, 58, 183, 0.1); }
+
+    mat-icon {
+      font-size: 1rem;
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}
+
+.ra-uai-children {
+  border-top: 1px solid rgba(103, 58, 183, 0.12);
+  padding: 0.5rem 0.9rem 0.65rem 2.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(103, 58, 183, 0.015);
+}
+
+.ra-card--child {
+  border-left: 2px solid rgba(103, 58, 183, 0.22);
+  border-radius: 0 0.85rem 0.85rem 0;
+  padding-left: 0.75rem;
+  background: rgba(255, 255, 255, 0.6);
 }
 
 // ─── UAI Granted Rights ────

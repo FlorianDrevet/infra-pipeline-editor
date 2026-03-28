@@ -81,8 +81,10 @@ public sealed class BicepGenerationEngine
                 moduleBicepContent = InjectSystemAssignedIdentity(moduleBicepContent);
             }
 
-            // Inject user-assigned identity block for resources that reference a UAI
-            if (sourceResourcesNeedingUserIdentity.TryGetValue(resource.Name, out var uaiIdentifiers))
+            // Inject user-assigned identity block for resources that reference a UAI.
+            // Skip UAI resources themselves — they ARE the identity, they don't consume one.
+            if (resource.Type != "Microsoft.ManagedIdentity/userAssignedIdentities"
+                && sourceResourcesNeedingUserIdentity.TryGetValue(resource.Name, out var uaiIdentifiers))
             {
                 var alsoHasSystem = sourceResourcesNeedingSystemIdentity.Contains(resource.Name);
                 moduleBicepContent = InjectUserAssignedIdentity(moduleBicepContent, uaiIdentifiers, alsoHasSystem);

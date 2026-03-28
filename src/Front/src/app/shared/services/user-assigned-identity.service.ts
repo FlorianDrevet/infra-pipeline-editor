@@ -47,4 +47,12 @@ export class UserAssignedIdentityService {
       `/user-assigned-identity/${id}/granted-role-assignments`
     );
   }
+
+  unlinkResource(identityId: string, sourceResourceId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.POST,
+      `/user-assigned-identity/${identityId}/unlink-resource`,
+      { sourceResourceId }
+    );
+  }
 }

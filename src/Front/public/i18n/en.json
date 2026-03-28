@@ -956,7 +956,9 @@
       "SWITCH_IDENTITY": "Switch identity",
       "SWITCH_TO_SYSTEM": "Switch to System Assigned",
       "ASSIGN_USER_IDENTITY": "Assign a User Assigned Identity",
-      "UPDATE_IDENTITY_ERROR": "Unable to update the managed identity. Please try again."
+      "UPDATE_IDENTITY_ERROR": "Unable to update the managed identity. Please try again.",
+      "ASSIGN_UAI": "Assign identity",
+      "NAV_TO_UAI": "Go to identity"
     },
     "GRANTED_RIGHTS": {
       "DESCRIPTION": "Role assignments granted through this User-Assigned Managed Identity. Each entry shows which source resource accesses which target resource, and with which role.",

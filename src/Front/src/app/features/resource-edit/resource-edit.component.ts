@@ -363,16 +363,60 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.allResources().filter(r => r.resourceType === 'UserAssignedIdentity')
   );
 
+  /** Role assignments grouped by identity: system-assigned flat + per-UAI collapsible groups */
+  protected readonly groupedRoleAssignments = computed(() => {
+    const all = this.roleAssignments();
+    const systemAssigned: RoleAssignmentResponse[] = [];
+    const uaiMap = new Map<string, { identityId: string; identityName: string; assignments: RoleAssignmentResponse[] }>();
+    for (const ra of all) {
+      if (ra.managedIdentityType === 'UserAssigned' && ra.userAssignedIdentityId) {
+        const existing = uaiMap.get(ra.userAssignedIdentityId);
+        if (existing) {
+          existing.assignments.push(ra);
+        } else {
+          uaiMap.set(ra.userAssignedIdentityId, {
+            identityId: ra.userAssignedIdentityId,
+            identityName: this.resolveIdentityName(ra.userAssignedIdentityId),
+            assignments: [ra],
+          });
+        }
+      } else {
+        systemAssigned.push(ra);
+      }
+    }
+    return { systemAssigned, uaiGroups: [...uaiMap.values()] };
+  });
+
+  protected readonly expandedUaiIds = signal<Set<string>>(new Set());
+
+  protected toggleUaiExpand(identityId: string): void {
+    this.expandedUaiIds.update(set => {
+      const next = new Set(set);
+      if (next.has(identityId)) {
+        next.delete(identityId);
+      } else {
+        next.add(identityId);
+      }
+      return next;
+    });
+  }
+
+  protected isUaiExpanded(identityId: string): boolean {
+    return this.expandedUaiIds().has(identityId);
+  }
+
   // ─── Identity Granted Role Assignments (UAI only) ───
   protected readonly identityRoleAssignments = signal<IdentityRoleAssignmentResponse[]>([]);
   protected readonly identityRoleAssignmentsLoading = signal(false);
   protected readonly identityRoleAssignmentsError = signal('');
 
-  /** Resources that use this UAI, grouped by source resource */
+  /** Resources that use this UAI, grouped by source resource (excludes the UAI itself) */
   protected readonly usedByResources = computed(() => {
     const assignments = this.identityRoleAssignments();
     const grouped = new Map<string, { sourceResourceId: string; sourceResourceName: string; sourceResourceType: string; assignments: IdentityRoleAssignmentResponse[] }>();
     for (const ra of assignments) {
+      // Skip assignments where the UAI is both source and identity (self-owned grants)
+      if (ra.sourceResourceId === this.resourceId) continue;
       const existing = grouped.get(ra.sourceResourceId);
       if (existing) {
         existing.assignments.push(ra);
@@ -1200,6 +1244,32 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     });
   }
 
+  protected openAddRoleAssignmentWithUai(identityId: string, identityName: string): void {
+    const data: AddRoleAssignmentDialogData = {
+      sourceResourceId: this.resourceId,
+      currentResourceName: this.resource()?.name ?? '',
+      siblingResources: this.allResources(),
+      resourceGroupId: (this.resource() as { resourceGroupId?: string })?.resourceGroupId ?? '',
+      configLocation: this.resource()?.location ?? 'EastUS2',
+      preSelectedIdentityType: 'UserAssigned',
+      preSelectedIdentityId: identityId,
+      preSelectedIdentityName: identityName,
+    };
+
+    const dialogRef = this.dialog.open(AddRoleAssignmentDialogComponent, {
+      data,
+      width: '520px',
+      maxHeight: '85vh',
+    });
+
+    dialogRef.afterClosed().subscribe((result?: RoleAssignmentResponse) => {
+      if (result) {
+        this.roleAssignments.update(list => [...list, result]);
+        this.loadRoleAssignments();
+      }
+    });
+  }
+
   protected openRemoveRoleAssignmentDialog(assignment: RoleAssignmentResponse): void {
     const roleName = this.resolveRoleName(assignment.roleDefinitionId);
     const targetName = this.resolveTargetName(assignment.targetResourceId);
@@ -1267,9 +1337,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private async unlinkAllAssignmentsForResource(group: { sourceResourceId: string; assignments: IdentityRoleAssignmentResponse[] }): Promise<void> {
     this.identityRoleAssignmentsError.set('');
     try {
-      for (const ra of group.assignments) {
-        await this.roleAssignmentService.remove(ra.sourceResourceId, ra.id);
-      }
+      await this.userAssignedIdentityService.unlinkResource(this.resourceId, group.sourceResourceId);
       await this.loadIdentityRoleAssignments();
     } catch {
       this.identityRoleAssignmentsError.set('RESOURCE_EDIT.USED_BY.UNLINK_ERROR');

@@ -963,7 +963,9 @@
       "SWITCH_IDENTITY": "Changer d\u2019identit\u00e9",
       "SWITCH_TO_SYSTEM": "Passer en System Assigned",
       "ASSIGN_USER_IDENTITY": "Assigner une identit\u00e9 User Assigned",
-      "UPDATE_IDENTITY_ERROR": "Impossible de mettre \u00e0 jour l\u2019identit\u00e9 manag\u00e9e. Veuillez r\u00e9essayer."
+      "UPDATE_IDENTITY_ERROR": "Impossible de mettre \u00e0 jour l\u2019identit\u00e9 manag\u00e9e. Veuillez r\u00e9essayer.",
+      "ASSIGN_UAI": "Assigner une identit\u00e9",
+      "NAV_TO_UAI": "Acc\u00e9der \u00e0 l\u2019identit\u00e9"
     },
     "GRANTED_RIGHTS": {
       "DESCRIPTION": "Liste des r\u00f4les attribu\u00e9s via cette identit\u00e9 manag\u00e9e User Assigned. Chaque entr\u00e9e montre quelle ressource source acc\u00e8de \u00e0 quelle ressource cible, et avec quel r\u00f4le.",
