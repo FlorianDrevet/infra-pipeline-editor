@@ -86,6 +86,13 @@ public static class BicepAssembler
             moduleFiles[$"modules/{folder}/{fileName}"] = RoleAssignmentModuleTemplates.GenerateModule(typeName);
         }
 
+        // Generate Key Vault secret module if sensitive outputs are exported to KV
+        var hasSensitiveExports = appSettings.Any(s => s.IsSensitiveOutputExportedToKeyVault);
+        if (hasSensitiveExports)
+        {
+            moduleFiles["modules/KeyVault/kvSecret.module.bicep"] = GenerateKvSecretModule();
+        }
+
         return new GenerationResult
         {
             MainBicep = main,
@@ -717,16 +724,16 @@ public static class BicepAssembler
             .GroupBy(s => s.TargetResourceName, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
 
-        // Group user-assigned identity references by source resource name
+        // Group user-assigned identity references by (source name, source type name).
+        // Uses composite key to avoid ambiguity when multiple resources share the same name.
         var uaiBySourceResource = roleAssignments
             .Where(ra => ra.ManagedIdentityType == "UserAssigned" && ra.UserAssignedIdentityName is not null)
-            .GroupBy(ra => ra.SourceResourceName, StringComparer.OrdinalIgnoreCase)
+            .GroupBy(ra => (ra.SourceResourceName, ra.SourceResourceTypeName))
             .ToDictionary(
                 g => g.Key,
                 g => g.Select(ra => ra.UserAssignedIdentityName!)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList(),
-                StringComparer.OrdinalIgnoreCase);
+                    .ToList());
 
         foreach (var module in modules)
         {
@@ -750,15 +757,18 @@ public static class BicepAssembler
 
             // Pass user-assigned identity resource IDs to the module.
             // Skip UAI modules themselves — they don't consume their own resource ID.
+            // Uses composite key (name, type) to avoid ambiguity when resources share names.
+            var moduleKey = (module.LogicalResourceName, module.ResourceTypeName);
             if (module.ResourceTypeName != "UserAssignedIdentity"
-                && uaiBySourceResource.TryGetValue(module.LogicalResourceName, out var uaiNames))
+                && uaiBySourceResource.TryGetValue(moduleKey, out var uaiNames))
             {
                 foreach (var uaiName in uaiNames)
                 {
                     var uaiId = BicepIdentifierHelper.ToBicepIdentifier(uaiName);
                     var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
                     var uaiModuleSymbol = modules.FirstOrDefault(m =>
-                        m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
+                        m.ResourceTypeName == "UserAssignedIdentity"
+                        && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
                     if (uaiModuleSymbol is not null)
                     {
                         sb.AppendLine($"    {paramName}: {uaiModuleSymbol.ModuleName}Module.outputs.resourceId");
@@ -837,6 +847,50 @@ public static class BicepAssembler
             foreach (var companion in module.CompanionModules)
             {
                 AppendStorageAccountCompanionModule(sb, module, companion, rgSymbol, nameExpr);
+            }
+        }
+
+        // ── Key Vault secrets for sensitive output exports ────────────────
+        var sensitiveExports = appSettings
+            .Where(s => s.IsSensitiveOutputExportedToKeyVault
+                && s.KeyVaultResourceName is not null
+                && s.SecretName is not null
+                && s.SourceResourceName is not null
+                && s.SourceOutputBicepExpression is not null)
+            .ToList();
+
+        if (sensitiveExports.Count > 0)
+        {
+            sb.AppendLine("// ── Key Vault secrets for sensitive resource outputs ──────────────────");
+            sb.AppendLine();
+
+            foreach (var export in sensitiveExports)
+            {
+                var kvModule = modules.FirstOrDefault(m =>
+                    m.LogicalResourceName.Equals(export.KeyVaultResourceName!, StringComparison.OrdinalIgnoreCase));
+                var sourceModule = modules.FirstOrDefault(m =>
+                    m.LogicalResourceName.Equals(export.SourceResourceName!, StringComparison.OrdinalIgnoreCase));
+
+                if (kvModule is null || sourceModule is null)
+                    continue;
+
+                var kvRgSymbol = BicepIdentifierHelper.ToBicepIdentifier(kvModule.ResourceGroupName);
+                var secretIdentifier = BicepIdentifierHelper.ToBicepIdentifier(export.SecretName!);
+                var secretModuleSymbol = $"{sourceModule.ModuleName}{Capitalize(secretIdentifier)}SecretModule";
+                var kvNameExpr = BuildNamingExpression(
+                    kvModule.LogicalResourceName, kvModule.ResourceAbbreviation,
+                    kvModule.ResourceTypeName, namingContext);
+
+                sb.AppendLine($"module {secretModuleSymbol} './modules/KeyVault/kvSecret.module.bicep' = {{");
+                sb.AppendLine($"  name: '{sourceModule.ModuleName}-{EscapeBicepString(export.SecretName!).ToLowerInvariant()}-secret'");
+                sb.AppendLine($"  scope: {kvRgSymbol}");
+                sb.AppendLine("  params: {");
+                sb.AppendLine($"    keyVaultName: {kvNameExpr}");
+                sb.AppendLine($"    secretName: '{EscapeBicepString(export.SecretName!)}'");
+                sb.AppendLine($"    secretValue: {sourceModule.ModuleName}Module.outputs.{export.SourceOutputName}");
+                sb.AppendLine("  }");
+                sb.AppendLine("}");
+                sb.AppendLine();
             }
         }
 
@@ -1247,4 +1301,42 @@ public static class BicepAssembler
             "Microsoft.ServiceBus/namespaces" => "2022-10-01-preview",
             _ => "2023-01-01"
         };
+
+    /// <summary>
+    /// Generates the reusable Key Vault secret module template used when sensitive outputs
+    /// are exported to a Key Vault.
+    /// </summary>
+    private static string GenerateKvSecretModule()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("// ──────────────────────────────────────────────────────────────────────");
+        sb.AppendLine("// Key Vault Secret Module — stores a sensitive value in a Key Vault");
+        sb.AppendLine("// ──────────────────────────────────────────────────────────────────────");
+        sb.AppendLine();
+        sb.AppendLine("@description('Name of the Key Vault')");
+        sb.AppendLine("param keyVaultName string");
+        sb.AppendLine();
+        sb.AppendLine("@description('Name of the secret')");
+        sb.AppendLine("param secretName string");
+        sb.AppendLine();
+        sb.AppendLine("@secure()");
+        sb.AppendLine("@description('Value of the secret')");
+        sb.AppendLine("param secretValue string");
+        sb.AppendLine();
+        sb.AppendLine("resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {");
+        sb.AppendLine("  name: keyVaultName");
+        sb.AppendLine("}");
+        sb.AppendLine();
+        sb.AppendLine("resource secret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {");
+        sb.AppendLine("  parent: keyVault");
+        sb.AppendLine("  name: secretName");
+        sb.AppendLine("  properties: {");
+        sb.AppendLine("    value: secretValue");
+        sb.AppendLine("  }");
+        sb.AppendLine("}");
+        sb.AppendLine();
+        sb.AppendLine("@description('The secret URI including version')");
+        sb.AppendLine("output secretUri string = secret.properties.secretUri");
+        return sb.ToString();
+    }
 }

@@ -138,6 +138,28 @@ public class AzureResource : AggregateRoot<AzureResourceId>
         return setting;
     }
 
+    /// <summary>
+    /// Adds an app setting that exports a sensitive resource output as a Key Vault secret
+    /// and references that secret via a Key Vault reference.
+    /// </summary>
+    /// <param name="name">The environment variable name.</param>
+    /// <param name="sourceResourceId">The source resource whose output is exported.</param>
+    /// <param name="sourceOutputName">The output name on the source resource.</param>
+    /// <param name="keyVaultResourceId">The Key Vault resource where the secret will be stored.</param>
+    /// <param name="secretName">The secret name in the Key Vault.</param>
+    public AppSetting AddSensitiveOutputKeyVaultReferenceAppSetting(
+        string name,
+        AzureResourceId sourceResourceId,
+        string sourceOutputName,
+        AzureResourceId keyVaultResourceId,
+        string secretName)
+    {
+        var setting = AppSetting.CreateSensitiveOutputKeyVaultReference(
+            Id, name, sourceResourceId, sourceOutputName, keyVaultResourceId, secretName);
+        _appSettings.Add(setting);
+        return setting;
+    }
+
     /// <summary>Removes an app setting by its identifier.</summary>
     public void RemoveAppSetting(AppSettingId appSettingId)
     {

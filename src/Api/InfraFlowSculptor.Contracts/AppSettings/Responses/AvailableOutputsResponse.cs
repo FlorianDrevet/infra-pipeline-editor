@@ -8,4 +8,5 @@ public record AvailableOutputsResponse(
 /// <summary>Describes a single available output on a resource type.</summary>
 public record OutputDefinitionResponse(
     string Name,
-    string Description);
+    string Description,
+    bool IsSensitive);

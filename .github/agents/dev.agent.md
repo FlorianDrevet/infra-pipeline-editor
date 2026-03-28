@@ -53,8 +53,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 ## Table de routage — Quel agent pour quelle tâche ?
 
 | Tâche | Agent à utiliser | Fichier |
-|-------|-----------------|---------|
-| Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
+|-------|-----------------|---------|| Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` || Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
 | Modifier/créer du code C#/.NET | **`dotnet-dev`** | `.github/agents/dotnet-dev.agent.md` |
 | Modifier/créer du code Angular | **`angular-front`** + charger le skill `ui-ux-front-saas` si UI | `.github/agents/angular-front.agent.md` |
 | Debug runtime/AppHost Aspire | **`aspire-debug`** | `.github/agents/aspire-debug.agent.md` |
@@ -63,6 +62,9 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Toute PR/commit → relire les conventions PR | **`pr-manager`** | `.github/agents/pr-manager.agent.md` |
 
 ### Règles de délégation
+
+- **Nouvelle feature, demande complexe, ou changement architectural significatif** :
+  Déléguer d'abord à `architect` pour obtenir un plan d'implémentation validé. L'architecte challenge la demande, vérifie la cohérence avec l'existant, et produit un plan étape par étape attribuant chaque action à l'agent expert approprié. Une fois le plan reçu, `dev` coordonne l'exécution en suivant le plan à la lettre.
 
 - **Feature CQRS complète** (Domain + Application + Infrastructure + Contracts + API + Migration + Frontend) :
   Charge le skill `cqrs-feature`, puis coordonne toi-même en appliquant les règles de `dotnet-dev` pour le code C# et en déléguant à `angular-front` pour le frontend.
@@ -81,6 +83,9 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 
 - **Incident runtime Aspire** (ressource KO, startup fail, logs/traces, dépendance indisponible) :
   Déléguer à `aspire-debug` pour le diagnostic MCP et la stratégie de recovery avant modification de code.
+
+- **Question d'architecture, challenge de faisabilité, analyse d'impact** :
+  Déléguer à `architect`. L'architecte ne code pas — il analyse, challenge, et produit un plan. Si le plan identifie du refactoring préalable, le faire avant d'implémenter la feature.
 
 ---
 

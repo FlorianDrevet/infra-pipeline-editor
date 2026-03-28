@@ -64,15 +64,12 @@ export class AddRoleAssignmentDialogComponent {
   // ─── Step management ───
   protected readonly step = signal<1 | 2 | 3>(1);
 
-  // ─── Step 1 — Target selection (normal) / Source selection (UAI) ───
+  // ─── Step 1 — Target selection (normal & UAI) ───
   protected readonly targets = computed(() => this.data.siblingResources);
-  protected readonly uaiSourceCandidates = computed(() =>
+  protected readonly uaiTargetCandidates = computed(() =>
     this.data.siblingResources.filter(r => r.resourceType !== 'UserAssignedIdentity')
   );
   protected readonly selectedTarget = signal<AzureResourceResponse | null>(null);
-
-  // ─── UAI mode: source resource selection ───
-  protected readonly selectedSource = signal<AzureResourceResponse | null>(null);
 
   // ─── Step 2 — Configuration ───
   protected readonly availableRoles = signal<AzureRoleDefinitionResponse[]>([]);
@@ -96,12 +93,12 @@ export class AddRoleAssignmentDialogComponent {
   protected readonly canSubmit = computed(() => {
     const notSubmitting = !this.isSubmitting();
     const hasRole = !!this.selectedRoleId();
+    const hasTarget = !!this.selectedTarget();
 
     if (this.isFromUAI()) {
-      return !!this.selectedSource() && !!this.selectedTarget() && hasRole && notSubmitting;
+      return hasTarget && hasRole && notSubmitting;
     }
 
-    const hasTarget = !!this.selectedTarget();
     const hasIdentityType = !!this.selectedIdentityType();
     const identityOk = this.selectedIdentityType() !== 'UserAssigned' || !!this.selectedIdentityId();
     return hasTarget && hasRole && hasIdentityType && notSubmitting && identityOk;
@@ -110,22 +107,15 @@ export class AddRoleAssignmentDialogComponent {
   protected selectTarget(resource: AzureResourceResponse): void {
     this.selectedTarget.set(resource);
     if (this.isFromUAI()) {
-      this.goToUAIStep3();
+      this.goToUAIStep2();
     } else {
       this.goToStep2();
     }
   }
 
-  // ─── UAI mode: source selection (step 1) ───
-  protected selectSource(resource: AzureResourceResponse): void {
-    this.selectedSource.set(resource);
+  // ─── UAI mode: step 2 — load roles for selected target ───
+  private async goToUAIStep2(): Promise<void> {
     this.step.set(2);
-    this.errorKey.set('');
-  }
-
-  // ─── UAI mode: step 3 — load roles for target ───
-  private async goToUAIStep3(): Promise<void> {
-    this.step.set(3);
     this.errorKey.set('');
     this.selectedRoleId.set('');
 
@@ -163,16 +153,7 @@ export class AddRoleAssignmentDialogComponent {
   }
 
   protected goBack(): void {
-    if (this.isFromUAI()) {
-      const current = this.step();
-      if (current === 3) {
-        this.step.set(2);
-      } else if (current === 2) {
-        this.step.set(1);
-      }
-    } else {
-      this.step.set(1);
-    }
+    this.step.set(1);
     this.errorKey.set('');
   }
 
@@ -233,10 +214,8 @@ export class AddRoleAssignmentDialogComponent {
 
     try {
       if (this.isFromUAI()) {
-        const source = this.selectedSource();
-        if (!source) return;
-
-        const result = await this.roleAssignmentService.add(source.id, {
+        // UAI mode: the UAI itself is the source resource
+        const result = await this.roleAssignmentService.add(this.data.userAssignedIdentityId!, {
           targetResourceId: target.id,
           managedIdentityType: 'UserAssigned',
           roleDefinitionId: this.selectedRoleId(),

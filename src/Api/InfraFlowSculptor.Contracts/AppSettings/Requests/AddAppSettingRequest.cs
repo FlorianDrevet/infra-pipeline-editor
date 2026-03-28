@@ -27,4 +27,11 @@ public class AddAppSettingRequest
     /// <summary>The secret name in the Key Vault (null for non-KV settings).</summary>
     [MaxLength(256)]
     public string? SecretName { get; init; }
+
+    /// <summary>
+    /// When <c>true</c>, a sensitive resource output will be exported as a Key Vault secret
+    /// and a Key Vault reference will be used for the app setting instead of a direct value.
+    /// Requires <see cref="KeyVaultResourceId"/> and <see cref="SourceResourceId"/>/<see cref="SourceOutputName"/> to be set.
+    /// </summary>
+    public bool ExportToKeyVault { get; init; }
 }

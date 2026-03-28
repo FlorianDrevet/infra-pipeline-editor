@@ -7,7 +7,8 @@ namespace InfraFlowSculptor.Domain.Common.ResourceOutputs;
 /// <param name="Name">The Bicep output name (e.g., "vaultUri").</param>
 /// <param name="Description">Human-readable description of the output.</param>
 /// <param name="BicepExpression">The Bicep property expression used in the module (e.g., "kv.properties.vaultUri").</param>
-public sealed record ResourceOutputDefinition(string Name, string Description, string BicepExpression);
+/// <param name="IsSensitive">Whether this output contains sensitive data (keys, connection strings, passwords).</param>
+public sealed record ResourceOutputDefinition(string Name, string Description, string BicepExpression, bool IsSensitive = false);
 
 /// <summary>
 /// Catalog of available outputs per Azure resource type.
@@ -27,6 +28,8 @@ public static class ResourceOutputCatalog
         [
             new("hostName", "Redis host name", "redisCache.properties.hostName"),
             new("sslPort", "Redis SSL port", "string(redisCache.properties.sslPort)"),
+            new("connectionString", "Redis connection string", "'${redisCache.properties.hostName}:${redisCache.properties.sslPort},password=${redisCache.listKeys().primaryKey},ssl=True,abortConnect=False'", IsSensitive: true),
+            new("primaryKey", "Redis primary access key", "redisCache.listKeys().primaryKey", IsSensitive: true),
         ],
         ["StorageAccount"] =
         [
@@ -34,6 +37,8 @@ public static class ResourceOutputCatalog
             new("primaryBlobEndpoint", "Primary Blob endpoint", "storageAccount.properties.primaryEndpoints.blob"),
             new("primaryQueueEndpoint", "Primary Queue endpoint", "storageAccount.properties.primaryEndpoints.queue"),
             new("primaryTableEndpoint", "Primary Table endpoint", "storageAccount.properties.primaryEndpoints.table"),
+            new("connectionString", "Storage account connection string", "'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value}'", IsSensitive: true),
+            new("primaryKey", "Storage account primary access key", "storageAccount.listKeys().keys[0].value", IsSensitive: true),
         ],
         ["AppConfiguration"] =
         [
@@ -51,10 +56,13 @@ public static class ResourceOutputCatalog
         ["CosmosDb"] =
         [
             new("documentEndpoint", "Cosmos DB document endpoint", "cosmosDb.properties.documentEndpoint"),
+            new("primaryConnectionString", "Cosmos DB primary connection string", "cosmosDb.listConnectionStrings().connectionStrings[0].connectionString", IsSensitive: true),
+            new("primaryKey", "Cosmos DB primary master key", "cosmosDb.listKeys().primaryMasterKey", IsSensitive: true),
         ],
         ["SqlServer"] =
         [
             new("fullyQualifiedDomainName", "SQL Server FQDN", "sqlServer.properties.fullyQualifiedDomainName"),
+            new("connectionString", "SQL Server connection string (ADO.NET)", "'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Authentication=Active Directory Default;'", IsSensitive: true),
         ],
         ["ContainerAppEnvironment"] =
         [
@@ -85,6 +93,10 @@ public static class ResourceOutputCatalog
         ["SqlDatabase"] =
         [
             new("id", "SQL Database resource ID", "sqlDatabase.id"),
+        ],
+        ["ServiceBusNamespace"] =
+        [
+            new("connectionString", "Service Bus primary connection string", "serviceBusNamespace.listKeys('${serviceBusNamespace.id}/authorizationRules/RootManageSharedAccessKey', serviceBusNamespace.apiVersion).primaryConnectionString", IsSensitive: true),
         ],
     };
 

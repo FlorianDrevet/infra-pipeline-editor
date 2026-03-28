@@ -1,31 +1,31 @@
 <div class="role-dialog">
   @if (isFromUAI()) {
     <!-- ════════════════════════════════════════════════════════════════════ -->
-    <!-- UAI MODE: 3 steps — Source → Target → Role                         -->
+    <!-- UAI MODE: 2 steps — Target → Role                                  -->
     <!-- ════════════════════════════════════════════════════════════════════ -->
 
-    <!-- ─── UAI Step 1: Select source resource ─── -->
+    <!-- ─── UAI Step 1: Select target resource (scope) ─── -->
     @if (step() === 1) {
       <h2 mat-dialog-title class="role-dialog__title">
-        <mat-icon>devices</mat-icon>
-        {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SELECT_SOURCE_RESOURCE' | translate }}
+        <mat-icon>ads_click</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SELECT_TARGET_RESOURCE' | translate }}
       </h2>
 
       <mat-dialog-content class="role-dialog__content">
-        <p class="role-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SELECT_SOURCE_RESOURCE_DESC' | translate }}</p>
+        <p class="role-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SELECT_TARGET_RESOURCE_DESC' | translate }}</p>
 
-        @if (uaiSourceCandidates().length === 0) {
+        @if (uaiTargetCandidates().length === 0) {
           <div class="role-dialog__empty">
             <mat-icon>search_off</mat-icon>
             <p>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_TARGETS' | translate }}</p>
           </div>
         } @else {
           <div class="target-list">
-            @for (res of uaiSourceCandidates(); track res.id) {
+            @for (res of uaiTargetCandidates(); track res.id) {
               <button
                 class="target-card"
-                [class.target-card--selected]="selectedSource()?.id === res.id"
-                (click)="selectSource(res)">
+                [class.target-card--selected]="selectedTarget()?.id === res.id"
+                (click)="selectTarget(res)">
                 <mat-icon class="target-card__icon">{{ resourceTypeIcons[res.resourceType] || 'widgets' }}</mat-icon>
                 <div class="target-card__info">
                   <span class="target-card__name">{{ res.name }}</span>
@@ -45,73 +45,15 @@
       </mat-dialog-actions>
     }
 
-    <!-- ─── UAI Step 2: Select target resource ─── -->
+    <!-- ─── UAI Step 2: Select role ─── -->
     @if (step() === 2) {
-      <h2 mat-dialog-title class="role-dialog__title">
-        <mat-icon>ads_click</mat-icon>
-        {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SELECT_TARGET_RESOURCE' | translate }}
-      </h2>
-
-      <mat-dialog-content class="role-dialog__content">
-        <p class="role-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SELECT_TARGET_RESOURCE_DESC' | translate }}</p>
-
-        <!-- Selected source summary -->
-        @if (selectedSource(); as source) {
-          <div class="selected-target-summary">
-            <mat-icon>{{ resourceTypeIcons[source.resourceType] || 'widgets' }}</mat-icon>
-            <span>{{ source.name }}</span>
-            <span class="selected-target-summary__type">{{ source.resourceType }}</span>
-          </div>
-        }
-
-        @if (targets().length === 0) {
-          <div class="role-dialog__empty">
-            <mat-icon>search_off</mat-icon>
-            <p>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_TARGETS' | translate }}</p>
-          </div>
-        } @else {
-          <div class="target-list">
-            @for (res of targets(); track res.id) {
-              <button
-                class="target-card"
-                [class.target-card--selected]="selectedTarget()?.id === res.id"
-                (click)="selectTarget(res)">
-                <mat-icon class="target-card__icon">{{ resourceTypeIcons[res.resourceType] || 'widgets' }}</mat-icon>
-                <div class="target-card__info">
-                  <span class="target-card__name">{{ res.name }}</span>
-                  <span class="target-card__meta">{{ res.resourceType }} · {{ res.location }}</span>
-                </div>
-                <mat-icon class="target-card__arrow">chevron_right</mat-icon>
-              </button>
-            }
-          </div>
-        }
-      </mat-dialog-content>
-
-      <mat-dialog-actions class="role-dialog__actions" align="end">
-        <button mat-stroked-button (click)="goBack()">
-          <mat-icon>arrow_back</mat-icon>
-          {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
-        </button>
-      </mat-dialog-actions>
-    }
-
-    <!-- ─── UAI Step 3: Select role ─── -->
-    @if (step() === 3) {
       <h2 mat-dialog-title class="role-dialog__title">
         <mat-icon>admin_panel_settings</mat-icon>
         {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SELECT_ROLE' | translate }}
       </h2>
 
       <mat-dialog-content class="role-dialog__content">
-        <!-- Selected source + target summary -->
-        @if (selectedSource(); as source) {
-          <div class="selected-target-summary">
-            <mat-icon>{{ resourceTypeIcons[source.resourceType] || 'widgets' }}</mat-icon>
-            <span>{{ source.name }}</span>
-            <span class="selected-target-summary__type">{{ source.resourceType }}</span>
-          </div>
-        }
+        <!-- Selected target summary -->
         @if (selectedTarget(); as target) {
           <div class="selected-target-summary">
             <mat-icon>{{ resourceTypeIcons[target.resourceType] || 'widgets' }}</mat-icon>

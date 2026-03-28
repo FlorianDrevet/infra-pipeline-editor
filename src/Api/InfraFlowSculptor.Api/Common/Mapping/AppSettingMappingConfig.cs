@@ -39,6 +39,6 @@ public class AppSettingMappingConfig : IRegister
         config.NewConfig<AvailableOutputsResult, AvailableOutputsResponse>()
             .MapWith(src => new AvailableOutputsResponse(
                 src.ResourceTypeName,
-                src.Outputs.Select(o => new OutputDefinitionResponse(o.Name, o.Description)).ToList()));
+                src.Outputs.Select(o => new OutputDefinitionResponse(o.Name, o.Description, o.IsSensitive)).ToList()));
     }
 }

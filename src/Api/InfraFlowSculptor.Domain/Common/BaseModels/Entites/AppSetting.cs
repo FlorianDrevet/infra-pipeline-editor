@@ -95,6 +95,30 @@ public sealed class AppSetting : Entity<AppSettingId>
             SecretName = secretName,
         };
 
+    /// <summary>
+    /// Creates a new <see cref="AppSetting"/> that exports a sensitive resource output
+    /// as a Key Vault secret and references it via a Key Vault reference.
+    /// Stores both the KV reference and the source output info for Bicep secret generation.
+    /// </summary>
+    internal static AppSetting CreateSensitiveOutputKeyVaultReference(
+        AzureResourceId resourceId,
+        string name,
+        AzureResourceId sourceResourceId,
+        string sourceOutputName,
+        AzureResourceId keyVaultResourceId,
+        string secretName)
+        => new()
+        {
+            Id = AppSettingId.CreateUnique(),
+            ResourceId = resourceId,
+            Name = name,
+            StaticValue = null,
+            SourceResourceId = sourceResourceId,
+            SourceOutputName = sourceOutputName,
+            KeyVaultResourceId = keyVaultResourceId,
+            SecretName = secretName,
+        };
+
     /// <summary>Updates this app setting to a static value.</summary>
     internal void UpdateToStatic(string name, string value)
     {

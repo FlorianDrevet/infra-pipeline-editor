@@ -13,6 +13,7 @@ namespace InfraFlowSculptor.Application.AppSettings.Commands.AddAppSetting;
 /// <param name="SourceOutputName">The output name on the source resource (null for static values).</param>
 /// <param name="KeyVaultResourceId">Identifier of the Key Vault resource for a KV reference (null for non-KV settings).</param>
 /// <param name="SecretName">The secret name in the Key Vault (null for non-KV settings).</param>
+/// <param name="ExportToKeyVault">When true, a sensitive output is exported as a Key Vault secret and referenced via KV reference.</param>
 public record AddAppSettingCommand(
     AzureResourceId ResourceId,
     string Name,
@@ -20,5 +21,6 @@ public record AddAppSettingCommand(
     AzureResourceId? SourceResourceId,
     string? SourceOutputName,
     AzureResourceId? KeyVaultResourceId,
-    string? SecretName
+    string? SecretName,
+    bool ExportToKeyVault = false
 ) : IRequest<ErrorOr<AppSettingResult>>;

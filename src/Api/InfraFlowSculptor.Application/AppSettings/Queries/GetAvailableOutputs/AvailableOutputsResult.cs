@@ -8,4 +8,5 @@ public sealed record AvailableOutputsResult(
 /// <summary>Describes a single output.</summary>
 public sealed record OutputDefinitionResult(
     string Name,
-    string Description);
+    string Description,
+    bool IsSensitive);

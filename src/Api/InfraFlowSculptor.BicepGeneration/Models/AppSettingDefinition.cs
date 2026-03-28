@@ -47,4 +47,12 @@ public sealed class AppSettingDefinition
 
     /// <summary>Resource group name of the cross-config source resource.</summary>
     public string? SourceResourceGroupName { get; init; }
+
+    /// <summary>
+    /// Whether this setting exports a sensitive resource output to a Key Vault secret.
+    /// When <c>true</c>, the Bicep generator must create a <c>Microsoft.KeyVault/vaults/secrets</c>
+    /// resource with the value from the source output (<see cref="SourceOutputBicepExpression"/>)
+    /// and reference it via a Key Vault reference in the compute resource.
+    /// </summary>
+    public bool IsSensitiveOutputExportedToKeyVault { get; init; }
 }

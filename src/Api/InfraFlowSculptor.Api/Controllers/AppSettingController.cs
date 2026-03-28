@@ -54,7 +54,8 @@ public static class AppSettingController
                             request.KeyVaultResourceId.HasValue
                                 ? new AzureResourceId(request.KeyVaultResourceId.Value)
                                 : null,
-                            request.SecretName);
+                            request.SecretName,
+                            request.ExportToKeyVault);
 
                         var result = await mediator.Send(command);
 

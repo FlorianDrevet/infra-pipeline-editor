@@ -54,6 +54,44 @@ public sealed class AddAppSettingCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
+        // Export sensitive output to Key Vault: validate source output + KV, then create combined reference
+        if (request.ExportToKeyVault
+            && request.SourceResourceId is not null && request.SourceOutputName is not null
+            && request.KeyVaultResourceId is not null && request.SecretName is not null)
+        {
+            var sourceResource = await azureResourceRepository.GetByIdAsync(
+                request.SourceResourceId, cancellationToken);
+
+            if (sourceResource is null)
+                return Errors.AppSetting.SourceResourceNotFound(request.SourceResourceId);
+
+            var sourceType = sourceResource.GetType().Name;
+            var outputDef = ResourceOutputCatalog.FindOutput(sourceType, request.SourceOutputName);
+
+            if (outputDef is null)
+                return Errors.AppSetting.InvalidOutput(request.SourceOutputName, sourceType);
+
+            var keyVaultResource = await azureResourceRepository.GetByIdAsync(
+                request.KeyVaultResourceId, cancellationToken);
+
+            if (keyVaultResource is null || keyVaultResource is not KeyVault)
+                return Errors.AppSetting.KeyVaultNotFound(request.KeyVaultResourceId);
+
+            var setting = resource.AddSensitiveOutputKeyVaultReferenceAppSetting(
+                request.Name,
+                request.SourceResourceId,
+                request.SourceOutputName,
+                request.KeyVaultResourceId,
+                request.SecretName);
+
+            await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+
+            var hasAccess = await CheckKeyVaultAccessAsync(
+                request.ResourceId, request.KeyVaultResourceId, cancellationToken);
+
+            return ToResult(setting, hasAccess);
+        }
+
         // Key Vault reference: validate the KV resource exists and check access
         if (request.KeyVaultResourceId is not null && request.SecretName is not null)
         {

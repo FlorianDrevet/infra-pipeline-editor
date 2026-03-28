@@ -27,6 +27,6 @@ public sealed class GetAvailableOutputsQueryHandler(
 
         return new AvailableOutputsResult(
             resourceTypeName,
-            outputs.Select(o => new OutputDefinitionResult(o.Name, o.Description)).ToList());
+            outputs.Select(o => new OutputDefinitionResult(o.Name, o.Description, o.IsSensitive)).ToList());
     }
 }

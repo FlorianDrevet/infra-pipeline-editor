@@ -27,32 +27,38 @@ public sealed class BicepGenerationEngine
     {
         var modules = new List<GeneratedTypeModule>();
 
-        // Determine which source resources need system-assigned identity output
+        // Determine which source resources need system-assigned identity output.
+        // Key = (Name, ARM ResourceType) to avoid ambiguity when multiple resources share the same name.
         var sourceResourcesNeedingSystemIdentity = request.RoleAssignments
             .Where(ra => ra.ManagedIdentityType == "SystemAssigned")
-            .Select(ra => ra.SourceResourceName)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            .Select(ra => (ra.SourceResourceName, ra.SourceResourceType))
+            .ToHashSet();
 
-        // Determine which source resources need user-assigned identity injection
-        // Maps: source resource name → list of UAI module identifiers
+        // Determine which source resources need user-assigned identity injection.
+        // Key = (Name, ARM ResourceType) to avoid ambiguity when multiple resources share the same name.
+        // Maps: (source name, source type) → list of UAI module identifiers
         var sourceResourcesNeedingUserIdentity = request.RoleAssignments
             .Where(ra => ra.ManagedIdentityType == "UserAssigned" && ra.UserAssignedIdentityName is not null)
-            .GroupBy(ra => ra.SourceResourceName, StringComparer.OrdinalIgnoreCase)
+            .GroupBy(ra => (ra.SourceResourceName, ra.SourceResourceType))
             .ToDictionary(
                 g => g.Key,
                 g => g.Select(ra => BicepIdentifierHelper.ToBicepIdentifier(ra.UserAssignedIdentityName!))
                     .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList(),
-                StringComparer.OrdinalIgnoreCase);
+                    .ToList());
 
         // Determine which source resources need output declarations for app settings
+        // Include both regular output references AND sensitive outputs exported to KV
         var outputsBySourceResource = request.AppSettings
-            .Where(s => s.IsOutputReference && s.SourceResourceName is not null
+            .Where(s => (s.IsOutputReference || s.IsSensitiveOutputExportedToKeyVault)
+                && s.SourceResourceName is not null
                 && s.SourceOutputName is not null && s.SourceOutputBicepExpression is not null)
             .GroupBy(s => s.SourceResourceName!, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(
                 g => g.Key,
-                g => g.Select(s => (OutputName: s.SourceOutputName!, BicepExpression: s.SourceOutputBicepExpression!))
+                g => g.Select(s => (
+                        OutputName: s.SourceOutputName!,
+                        BicepExpression: s.SourceOutputBicepExpression!,
+                        IsSecure: s.IsSensitiveOutputExportedToKeyVault))
                     .DistinctBy(x => x.OutputName, StringComparer.OrdinalIgnoreCase)
                     .ToList(),
                 StringComparer.OrdinalIgnoreCase);
@@ -75,8 +81,10 @@ public sealed class BicepGenerationEngine
             var moduleBicepContent = module.ModuleBicepContent;
 
             // Inject system-assigned identity and principalId output
-            // for resources that are sources of role assignments
-            if (sourceResourcesNeedingSystemIdentity.Contains(resource.Name))
+            // for resources that are sources of role assignments.
+            // Uses composite key (Name, Type) to avoid ambiguity when resources share names.
+            var resourceKey = (resource.Name, resource.Type);
+            if (sourceResourcesNeedingSystemIdentity.Contains(resourceKey))
             {
                 moduleBicepContent = InjectSystemAssignedIdentity(moduleBicepContent);
             }
@@ -84,9 +92,9 @@ public sealed class BicepGenerationEngine
             // Inject user-assigned identity block for resources that reference a UAI.
             // Skip UAI resources themselves — they ARE the identity, they don't consume one.
             if (resource.Type != "Microsoft.ManagedIdentity/userAssignedIdentities"
-                && sourceResourcesNeedingUserIdentity.TryGetValue(resource.Name, out var uaiIdentifiers))
+                && sourceResourcesNeedingUserIdentity.TryGetValue(resourceKey, out var uaiIdentifiers))
             {
-                var alsoHasSystem = sourceResourcesNeedingSystemIdentity.Contains(resource.Name);
+                var alsoHasSystem = sourceResourcesNeedingSystemIdentity.Contains(resourceKey);
                 moduleBicepContent = InjectUserAssignedIdentity(moduleBicepContent, uaiIdentifiers, alsoHasSystem);
             }
 
@@ -323,22 +331,32 @@ public sealed class BicepGenerationEngine
     /// <summary>
     /// Injects <c>output</c> declarations into a module template for outputs
     /// that are referenced by app settings on other resources.
+    /// Sensitive outputs are decorated with <c>@secure()</c> to prevent leaking to deployment logs.
     /// </summary>
     private static string InjectOutputDeclarations(
         string moduleBicep,
-        List<(string OutputName, string BicepExpression)> outputs)
+        List<(string OutputName, string BicepExpression, bool IsSecure)> outputs)
     {
         var sb = new System.Text.StringBuilder(moduleBicep.TrimEnd());
 
-        foreach (var (outputName, bicepExpression) in outputs)
+        foreach (var (outputName, bicepExpression, isSecure) in outputs)
         {
             // Skip if output already declared
             if (moduleBicep.Contains($"output {outputName} "))
                 continue;
 
             sb.AppendLine();
-            sb.AppendLine();
-            sb.Append($"output {outputName} string = {bicepExpression}");
+            if (isSecure)
+            {
+                sb.AppendLine();
+                sb.AppendLine("@secure()");
+                sb.Append($"output {outputName} string = {bicepExpression}");
+            }
+            else
+            {
+                sb.AppendLine();
+                sb.Append($"output {outputName} string = {bicepExpression}");
+            }
         }
 
         sb.AppendLine();

@@ -48,6 +48,9 @@ public sealed class RoleAssignmentDefinition
     /// <summary>Resource abbreviation of the target resource (for naming expression).</summary>
     public string TargetResourceAbbreviation { get; init; } = string.Empty;
 
+    /// <summary>Simple type name of the source resource (e.g. "ContainerApp").</summary>
+    public string SourceResourceTypeName { get; init; } = string.Empty;
+
     /// <summary>Simple type name of the target resource (e.g. "KeyVault").</summary>
     public string TargetResourceTypeName { get; init; } = string.Empty;
 

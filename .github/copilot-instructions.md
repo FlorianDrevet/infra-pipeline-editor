@@ -33,6 +33,7 @@
 ## Specialized agents
 
 - **Main entry point** — Use the `dev` agent (`.github/agents/dev.agent.md`) as the primary entry point for any task. It reads `MEMORY.md`, routes to the right specialist, loads relevant Skills, and updates `MEMORY.md` at the end.
+- **Architecture review & planning** — Use the `architect` agent (`.github/agents/architect.agent.md`) for any architecture analysis, feasibility check, implementation planning, or challenge of a feature request against the existing codebase. The architect never codes — it produces structured implementation plans for expert agents to follow.
 - **Backend C#/.NET** — Any C# code generation or modification MUST follow `.github/agents/dotnet-dev.agent.md` conventions (XML docs, no magic strings, SOLID, async/await, EF Core, FluentValidation, sealed, guard clauses, no code smells).
 - **Frontend Angular** — Any work in `src\Front` MUST use the `angular-front` agent (`.github/agents/angular-front.agent.md`).
 - **Aspire runtime debugging** — Any runtime/AppHost investigation (resource failures, logs/traces, startup issues) MUST use the `aspire-debug` agent (`.github/agents/aspire-debug.agent.md`).

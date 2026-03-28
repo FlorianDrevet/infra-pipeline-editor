@@ -111,6 +111,7 @@ public sealed class GenerateBicepCommandHandler(
             .Select(ra =>
             {
                 var targetTypeName = GetResourceTypeName(ra.TargetResourceType);
+                var sourceTypeName = GetResourceTypeName(ra.SourceResourceType);
                 var roleDef = AzureRoleDefinitionCatalog.GetForResourceType(targetTypeName)
                     .FirstOrDefault(r => r.Id.Equals(ra.RoleDefinitionId, StringComparison.OrdinalIgnoreCase));
 
@@ -118,6 +119,7 @@ public sealed class GenerateBicepCommandHandler(
                 {
                     SourceResourceName = ra.SourceResourceName,
                     SourceResourceType = ra.SourceResourceType,
+                    SourceResourceTypeName = sourceTypeName,
                     SourceResourceGroupName = ra.SourceResourceGroupName,
                     TargetResourceName = ra.TargetResourceName,
                     TargetResourceType = ra.TargetResourceType,
@@ -150,6 +152,11 @@ public sealed class GenerateBicepCommandHandler(
                     bicepExpression = outputDef?.BicepExpression;
                 }
 
+                // Detect sensitive output exported to KV: has both source + KV references
+                var isSensitiveExport = s.IsKeyVaultReference
+                    && s.SourceResourceId is not null
+                    && s.SourceOutputName is not null;
+
                 return new AppSettingDefinition
                 {
                     Name = s.Name,
@@ -165,6 +172,7 @@ public sealed class GenerateBicepCommandHandler(
                     SecretName = s.SecretName,
                     IsSourceCrossConfig = s.IsSourceCrossConfig,
                     SourceResourceGroupName = s.SourceResourceGroupName,
+                    IsSensitiveOutputExportedToKeyVault = isSensitiveExport,
                 };
             })
             .ToList();
