@@ -31,6 +31,7 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
     {
         return await context.Set<AzureResource>()
             .Include(r => r.AppSettings)
+                .ThenInclude(s => s.EnvironmentValues)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 

@@ -25,7 +25,10 @@ public sealed class ListAppSettingsQueryHandler(
         return resource.AppSettings
             .Select(s => new AppSettingResult(
                 s.Id, s.ResourceId, s.Name,
-                s.StaticValue, s.SourceResourceId,
+                s.EnvironmentValues.Count > 0
+                    ? s.EnvironmentValues.ToDictionary(ev => ev.EnvironmentName, ev => ev.Value)
+                    : null,
+                s.SourceResourceId,
                 s.SourceOutputName, s.IsOutputReference,
                 s.KeyVaultResourceId, s.SecretName,
                 s.IsKeyVaultReference, null))

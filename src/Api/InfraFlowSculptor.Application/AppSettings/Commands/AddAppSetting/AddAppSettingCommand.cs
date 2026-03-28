@@ -17,7 +17,7 @@ namespace InfraFlowSculptor.Application.AppSettings.Commands.AddAppSetting;
 public record AddAppSettingCommand(
     AzureResourceId ResourceId,
     string Name,
-    string? StaticValue,
+    IReadOnlyDictionary<string, string>? EnvironmentValues,
     AzureResourceId? SourceResourceId,
     string? SourceOutputName,
     AzureResourceId? KeyVaultResourceId,

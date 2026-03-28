@@ -46,7 +46,7 @@ public static class AppSettingController
                         var command = new AddAppSettingCommand(
                             new AzureResourceId(resourceId),
                             request.Name,
-                            request.StaticValue,
+                            request.EnvironmentValues,
                             request.SourceResourceId.HasValue
                                 ? new AzureResourceId(request.SourceResourceId.Value)
                                 : null,

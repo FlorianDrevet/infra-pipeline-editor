@@ -5,7 +5,7 @@ public record AppSettingResponse(
     string Id,
     string ResourceId,
     string Name,
-    string? StaticValue,
+    Dictionary<string, string>? EnvironmentValues,
     string? SourceResourceId,
     string? SourceOutputName,
     bool IsOutputReference,

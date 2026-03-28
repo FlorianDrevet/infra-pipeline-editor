@@ -71,7 +71,7 @@ public record AppSettingReadModel(
     string ResourceName,
     string ResourceType,
     string Name,
-    string? StaticValue,
+    IReadOnlyDictionary<string, string>? EnvironmentValues,
     Guid? SourceResourceId,
     string? SourceResourceName,
     string? SourceResourceType,

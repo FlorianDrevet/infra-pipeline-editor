@@ -17,13 +17,13 @@ public sealed class AddAppSettingCommandValidator : AbstractValidator<AddAppSett
             .MaximumLength(256)
             .WithMessage("App setting name must not exceed 256 characters.");
 
-        // Either static value, output reference, Key Vault reference, or ExportToKeyVault must be provided
+        // Either environment values (static), output reference, Key Vault reference, or ExportToKeyVault must be provided
         RuleFor(x => x)
             .Must(x =>
-                !string.IsNullOrEmpty(x.StaticValue)
+                (x.EnvironmentValues is not null && x.EnvironmentValues.Count > 0)
                 || (x.SourceResourceId is not null && !string.IsNullOrEmpty(x.SourceOutputName))
                 || (x.KeyVaultResourceId is not null && !string.IsNullOrEmpty(x.SecretName)))
-            .WithMessage("Either a static value, a source resource output reference, or a Key Vault reference must be provided.");
+            .WithMessage("Either environment values (static), a source resource output reference, or a Key Vault reference must be provided.");
 
         // ExportToKeyVault requires both source output AND Key Vault fields
         RuleFor(x => x)

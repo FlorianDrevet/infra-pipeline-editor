@@ -203,6 +203,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
 
         // ── Load app settings for all resources in this config ──────────────
         var appSettings = await dbContext.AppSettings
+            .Include(s => s.EnvironmentValues)
             .Where(s => allResourceIds.Contains(s.ResourceId))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -298,7 +299,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ResourceName: owner.Resource.Name.Value,
                     ResourceType: GetResourceTypeString(owner.Resource),
                     Name: s.Name,
-                    StaticValue: s.StaticValue,
+                    EnvironmentValues: s.EnvironmentValues.Count > 0
+                        ? s.EnvironmentValues.ToDictionary(ev => ev.EnvironmentName, ev => ev.Value)
+                        : null,
                     SourceResourceId: s.SourceResourceId?.Value,
                     SourceResourceName: sourceResourceName,
                     SourceResourceType: sourceResourceType,

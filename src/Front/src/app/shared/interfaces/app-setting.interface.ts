@@ -4,7 +4,7 @@ export interface AppSettingResponse {
   id: string;
   resourceId: string;
   name: string;
-  staticValue?: string | null;
+  environmentValues?: Record<string, string> | null;
   sourceResourceId?: string | null;
   sourceOutputName?: string | null;
   isOutputReference: boolean;
@@ -22,6 +22,7 @@ export interface AvailableOutputsResponse {
 export interface OutputDefinitionResponse {
   name: string;
   description: string;
+  isSensitive: boolean;
 }
 
 export interface CheckKeyVaultAccessResponse {
@@ -34,9 +35,10 @@ export interface CheckKeyVaultAccessResponse {
 
 export interface AddAppSettingRequest {
   name: string;
-  staticValue?: string | null;
+  environmentValues?: Record<string, string> | null;
   sourceResourceId?: string | null;
   sourceOutputName?: string | null;
   keyVaultResourceId?: string | null;
   secretName?: string | null;
+  exportToKeyVault?: boolean;
 }

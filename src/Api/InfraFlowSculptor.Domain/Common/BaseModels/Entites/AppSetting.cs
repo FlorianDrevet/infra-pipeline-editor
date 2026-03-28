@@ -15,10 +15,12 @@ public sealed class AppSetting : Entity<AppSettingId>
     /// <summary>The environment variable name (e.g., KEYVAULT_URI).</summary>
     public string Name { get; private set; } = string.Empty;
 
+    private readonly List<AppSettingEnvironmentValue> _environmentValues = [];
+
     /// <summary>
-    /// The static value for this setting. Null when this is a resource output reference.
+    /// Per-environment values for this static setting. Empty when this is a reference-based setting.
     /// </summary>
-    public string? StaticValue { get; private set; }
+    public IReadOnlyCollection<AppSettingEnvironmentValue> EnvironmentValues => _environmentValues.AsReadOnly();
 
     /// <summary>
     /// Identifier of the source resource whose output is referenced.
@@ -46,20 +48,32 @@ public sealed class AppSetting : Entity<AppSettingId>
 
     private AppSetting() { }
 
-    /// <summary>Creates a new <see cref="AppSetting"/> with a static value.</summary>
+    /// <summary>Creates a new <see cref="AppSetting"/> with per-environment static values.</summary>
+    /// <param name="resourceId">The owning resource identifier.</param>
+    /// <param name="name">The environment variable name.</param>
+    /// <param name="environmentValues">A dictionary of environment name → value.</param>
     internal static AppSetting CreateStatic(
         AzureResourceId resourceId,
         string name,
-        string value)
-        => new()
+        IReadOnlyDictionary<string, string> environmentValues)
+    {
+        var setting = new AppSetting
         {
             Id = AppSettingId.CreateUnique(),
             ResourceId = resourceId,
             Name = name,
-            StaticValue = value,
             SourceResourceId = null,
             SourceOutputName = null,
         };
+
+        foreach (var (envName, value) in environmentValues)
+        {
+            setting._environmentValues.Add(
+                AppSettingEnvironmentValue.Create(setting.Id, envName, value));
+        }
+
+        return setting;
+    }
 
     /// <summary>Creates a new <see cref="AppSetting"/> referencing another resource's output.</summary>
     internal static AppSetting CreateOutputReference(
@@ -72,7 +86,6 @@ public sealed class AppSetting : Entity<AppSettingId>
             Id = AppSettingId.CreateUnique(),
             ResourceId = resourceId,
             Name = name,
-            StaticValue = null,
             SourceResourceId = sourceResourceId,
             SourceOutputName = sourceOutputName,
         };
@@ -88,7 +101,6 @@ public sealed class AppSetting : Entity<AppSettingId>
             Id = AppSettingId.CreateUnique(),
             ResourceId = resourceId,
             Name = name,
-            StaticValue = null,
             SourceResourceId = null,
             SourceOutputName = null,
             KeyVaultResourceId = keyVaultResourceId,
@@ -112,45 +124,54 @@ public sealed class AppSetting : Entity<AppSettingId>
             Id = AppSettingId.CreateUnique(),
             ResourceId = resourceId,
             Name = name,
-            StaticValue = null,
             SourceResourceId = sourceResourceId,
             SourceOutputName = sourceOutputName,
             KeyVaultResourceId = keyVaultResourceId,
             SecretName = secretName,
         };
 
-    /// <summary>Updates this app setting to a static value.</summary>
-    internal void UpdateToStatic(string name, string value)
+    /// <summary>Updates this app setting to static per-environment values.</summary>
+    /// <param name="name">The new environment variable name.</param>
+    /// <param name="environmentValues">A dictionary of environment name → value.</param>
+    internal void UpdateToStatic(string name, IReadOnlyDictionary<string, string> environmentValues)
     {
         Name = name;
-        StaticValue = value;
         SourceResourceId = null;
         SourceOutputName = null;
         KeyVaultResourceId = null;
         SecretName = null;
+        _environmentValues.Clear();
+        foreach (var (envName, value) in environmentValues)
+        {
+            _environmentValues.Add(
+                AppSettingEnvironmentValue.Create(Id, envName, value));
+        }
     }
 
     /// <summary>Updates this app setting to reference a resource output.</summary>
     internal void UpdateToOutputReference(string name, AzureResourceId sourceResourceId, string sourceOutputName)
     {
         Name = name;
-        StaticValue = null;
         SourceResourceId = sourceResourceId;
         SourceOutputName = sourceOutputName;
         KeyVaultResourceId = null;
         SecretName = null;
+        _environmentValues.Clear();
     }
 
     /// <summary>Updates this app setting to reference a Key Vault secret.</summary>
     internal void UpdateToKeyVaultReference(string name, AzureResourceId keyVaultResourceId, string secretName)
     {
         Name = name;
-        StaticValue = null;
         SourceResourceId = null;
         SourceOutputName = null;
         KeyVaultResourceId = keyVaultResourceId;
         SecretName = secretName;
+        _environmentValues.Clear();
     }
+
+    /// <summary>Gets whether this setting is a static-value setting (not a reference).</summary>
+    public bool IsStatic => !IsOutputReference && !IsKeyVaultReference;
 
     /// <summary>Gets whether this setting is a resource output reference.</summary>
     public bool IsOutputReference => SourceResourceId is not null;

@@ -1375,6 +1375,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         resourceId: this.resourceId,
         currentResourceName: this.resource()?.name ?? '',
         siblingResources: this.allResources(),
+        environments: this.environments().map(e => ({ name: e.name })),
       } satisfies AddAppSettingDialogData,
       width: '520px',
       maxHeight: '85vh',

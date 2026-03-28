@@ -142,7 +142,7 @@ public sealed class AddAppSettingCommandHandler(
         // Static value
         var staticSetting = resource.AddStaticAppSetting(
             request.Name,
-            request.StaticValue ?? string.Empty);
+            request.EnvironmentValues ?? new Dictionary<string, string>());
 
         await azureResourceRepository.UpdateAsync(resource, cancellationToken);
 
@@ -170,7 +170,10 @@ public sealed class AddAppSettingCommandHandler(
         bool? hasKeyVaultAccess)
         => new(
             setting.Id, setting.ResourceId, setting.Name,
-            setting.StaticValue, setting.SourceResourceId,
+            setting.EnvironmentValues.Count > 0
+                ? setting.EnvironmentValues.ToDictionary(ev => ev.EnvironmentName, ev => ev.Value)
+                : null,
+            setting.SourceResourceId,
             setting.SourceOutputName, setting.IsOutputReference,
             setting.KeyVaultResourceId, setting.SecretName,
             setting.IsKeyVaultReference, hasKeyVaultAccess);

@@ -7,7 +7,7 @@ public sealed record AppSettingResult(
     AppSettingId Id,
     AzureResourceId ResourceId,
     string Name,
-    string? StaticValue,
+    IReadOnlyDictionary<string, string>? EnvironmentValues,
     AzureResourceId? SourceResourceId,
     string? SourceOutputName,
     bool IsOutputReference,

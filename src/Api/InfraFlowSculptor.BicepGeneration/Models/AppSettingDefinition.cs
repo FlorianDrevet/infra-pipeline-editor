@@ -9,8 +9,16 @@ public sealed class AppSettingDefinition
     /// <summary>The environment variable name (e.g. "KeyVaultUri").</summary>
     public string Name { get; init; } = string.Empty;
 
-    /// <summary>Static value (when <see cref="IsOutputReference"/> is <c>false</c>).</summary>
+    /// <summary>Static value (when <see cref="IsOutputReference"/> is <c>false</c>). Deprecated — use <see cref="EnvironmentValues"/>.</summary>
     public string? StaticValue { get; init; }
+
+    /// <summary>
+    /// Per-environment static values. Key = environment name, Value = the value for that environment.
+    /// Null/empty when this is a reference-based setting.
+    /// When populated, the Bicep generator emits a <c>param</c> in <c>main.bicep</c>
+    /// and assigns the per-environment value in each <c>.bicepparam</c> file.
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? EnvironmentValues { get; init; }
 
     /// <summary>Logical name of the source resource that exposes the output.</summary>
     public string? SourceResourceName { get; init; }

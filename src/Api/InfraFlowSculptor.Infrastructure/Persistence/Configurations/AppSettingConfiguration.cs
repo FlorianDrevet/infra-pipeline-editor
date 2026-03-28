@@ -28,9 +28,10 @@ public sealed class AppSettingConfiguration : IEntityTypeConfiguration<AppSettin
             .IsRequired()
             .HasMaxLength(256);
 
-        builder.Property(s => s.StaticValue)
-            .IsRequired(false)
-            .HasMaxLength(4000);
+        builder.HasMany(s => s.EnvironmentValues)
+            .WithOne()
+            .HasForeignKey(ev => ev.AppSettingId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Property(s => s.SourceResourceId)
             .HasConversion(

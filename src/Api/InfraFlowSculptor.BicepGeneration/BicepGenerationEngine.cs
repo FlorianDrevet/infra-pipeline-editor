@@ -171,8 +171,8 @@ public sealed class BicepGenerationEngine
 
         var symbol = symbolMatch.Groups[1].Value;
 
-        // Check if identity block already exists
-        if (moduleBicep.Contains("identity:"))
+        // Check if identity block already exists (match indented block, not param substrings)
+        if (moduleBicep.Contains("\n  identity:"))
             return moduleBicep;
 
         // Check if principalId output already exists
@@ -270,7 +270,7 @@ public sealed class BicepGenerationEngine
             ? "SystemAssigned, UserAssigned"
             : "UserAssigned";
 
-        if (moduleBicep.Contains("identity:"))
+        if (moduleBicep.Contains("\n  identity:"))
         {
             // Identity block already exists (SystemAssigned was injected first).
             // Replace type and add userAssignedIdentities.

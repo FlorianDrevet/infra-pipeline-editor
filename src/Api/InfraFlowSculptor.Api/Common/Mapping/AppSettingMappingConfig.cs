@@ -21,7 +21,7 @@ public class AppSettingMappingConfig : IRegister
                 src.Id.Value.ToString(),
                 src.ResourceId.Value.ToString(),
                 src.Name,
-                src.StaticValue,
+                src.EnvironmentValues != null ? new Dictionary<string, string>(src.EnvironmentValues) : null,
                 src.SourceResourceId != null ? src.SourceResourceId.Value.ToString() : null,
                 src.SourceOutputName,
                 src.IsOutputReference,

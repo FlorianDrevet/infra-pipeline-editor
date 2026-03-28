@@ -160,7 +160,8 @@ public sealed class GenerateBicepCommandHandler(
                 return new AppSettingDefinition
                 {
                     Name = s.Name,
-                    StaticValue = s.StaticValue,
+                    StaticValue = null,
+                    EnvironmentValues = s.EnvironmentValues,
                     SourceResourceName = s.SourceResourceName,
                     SourceOutputName = s.SourceOutputName,
                     SourceResourceTypeName = sourceTypeName,

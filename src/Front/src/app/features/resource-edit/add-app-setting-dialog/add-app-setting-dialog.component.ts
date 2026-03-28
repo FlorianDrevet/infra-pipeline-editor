@@ -8,10 +8,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { AppSettingService } from '../../../shared/services/app-setting.service';
+import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
 import { AppSettingResponse, OutputDefinitionResponse } from '../../../shared/interfaces/app-setting.interface';
 import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
 
@@ -19,6 +21,7 @@ export interface AddAppSettingDialogData {
   resourceId: string;
   currentResourceName: string;
   siblingResources: AzureResourceResponse[];
+  environments: { name: string }[];
 }
 
 @Component({
@@ -36,22 +39,24 @@ export interface AddAppSettingDialogData {
     MatSelectModule,
     MatFormFieldModule,
     MatTooltipModule,
+    MatCheckboxModule,
   ],
   templateUrl: './add-app-setting-dialog.component.html',
   styleUrl: './add-app-setting-dialog.component.scss',
 })
 export class AddAppSettingDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<AddAppSettingDialogComponent>);
-  private readonly data: AddAppSettingDialogData = inject(MAT_DIALOG_DATA);
+  protected readonly data: AddAppSettingDialogData = inject(MAT_DIALOG_DATA);
   private readonly appSettingService = inject(AppSettingService);
+  private readonly roleAssignmentService = inject(RoleAssignmentService);
 
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
 
   // ─── Mode: static value, resource output, or key vault reference ───
   protected readonly mode = signal<'static' | 'output' | 'keyvault'>('output');
 
-  // ─── Step management ───
-  protected readonly step = signal<1 | 2 | 3>(1);
+  // ─── Step management (output mode: 1→2→3(sensitive)→4 or 1→2→4) ───
+  protected readonly step = signal<1 | 2 | 3 | 4>(1);
 
   // ─── Step 1 — Source selection (output mode) ───
   protected readonly sourceResources = computed(() => this.data.siblingResources);
@@ -61,6 +66,20 @@ export class AddAppSettingDialogComponent {
   protected readonly availableOutputs = signal<OutputDefinitionResponse[]>([]);
   protected readonly outputsLoading = signal(false);
   protected readonly selectedOutput = signal<OutputDefinitionResponse | null>(null);
+
+  // ─── Step 2 — Sensitive / Non-sensitive split ───
+  protected readonly nonSensitiveOutputs = computed(() => this.availableOutputs().filter(o => !o.isSensitive));
+  protected readonly sensitiveOutputs = computed(() => this.availableOutputs().filter(o => o.isSensitive));
+  protected readonly selectedOutputIsSensitive = computed(() => this.selectedOutput()?.isSensitive ?? false);
+
+  // ─── Step 3 — Sensitive security choice ───
+  protected readonly sensitiveChoice = signal<'keyvault' | 'direct' | null>(null);
+  protected readonly sensitiveDirectConfirmed = signal(false);
+  protected readonly sensitiveSecretName = signal('');
+  protected readonly sensitiveRoleAssigning = signal(false);
+  protected readonly sensitiveRoleAssigned = signal(false);
+  protected readonly sensitiveRoleError = signal(false);
+  protected readonly kvMissingRoleDefinitionId = signal<string | null>(null);
 
   // ─── Key Vault mode — Step 1: Select KV ───
   protected readonly keyVaultResources = computed(() =>
@@ -74,9 +93,9 @@ export class AddAppSettingDialogComponent {
   protected readonly kvHasAccess = signal<boolean | null>(null);
   protected readonly kvMissingRoleName = signal<string | null>(null);
 
-  // ─── Step 3 / Static — Name configuration ───
+  // ─── Step 4 / Static — Name configuration ───
   protected readonly settingName = signal('');
-  protected readonly staticValue = signal('');
+  protected readonly environmentValues = signal<Record<string, string>>({});
 
   // ─── Submit state ───
   protected readonly isSubmitting = signal(false);
@@ -86,6 +105,14 @@ export class AddAppSettingDialogComponent {
     if (this.mode() === 'keyvault') {
       const kv = this.selectedKeyVault();
       const secret = this.secretName();
+      if (!kv || !secret) return '';
+      const prefix = kv.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+      const suffix = secret.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+      return `${prefix}__${suffix}`;
+    }
+    if (this.mode() === 'output' && this.sensitiveChoice() === 'keyvault') {
+      const kv = this.selectedKeyVault();
+      const secret = this.sensitiveSecretName();
       if (!kv || !secret) return '';
       const prefix = kv.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
       const suffix = secret.toUpperCase().replace(/[^A-Z0-9]/g, '_');
@@ -102,9 +129,21 @@ export class AddAppSettingDialogComponent {
   protected readonly canSubmit = computed(() => {
     const name = this.settingName().trim();
     if (!name || this.isSubmitting()) return false;
-    if (this.mode() === 'static') return true;
+    if (this.mode() === 'static') {
+      const vals = this.environmentValues();
+      return Object.values(vals).some(v => v.trim().length > 0);
+    }
     if (this.mode() === 'keyvault') return !!this.selectedKeyVault() && !!this.secretName().trim();
+    // output mode — final step is now step 4
     return !!this.selectedSource() && !!this.selectedOutput();
+  });
+
+  protected readonly canProceedFromSensitiveStep = computed(() => {
+    const choice = this.sensitiveChoice();
+    if (!choice) return false;
+    if (choice === 'keyvault') return !!this.selectedKeyVault() && !!this.sensitiveSecretName().trim();
+    if (choice === 'direct') return this.sensitiveDirectConfirmed();
+    return false;
   });
 
   protected onModeChange(value: 'static' | 'output' | 'keyvault'): void {
@@ -115,10 +154,19 @@ export class AddAppSettingDialogComponent {
     this.selectedKeyVault.set(null);
     this.secretName.set('');
     this.settingName.set('');
-    this.staticValue.set('');
+    this.environmentValues.set(
+      Object.fromEntries(this.data.environments.map(e => [e.name, '']))
+    );
     this.errorKey.set('');
     this.kvHasAccess.set(null);
     this.kvMissingRoleName.set(null);
+    this.kvMissingRoleDefinitionId.set(null);
+    this.sensitiveChoice.set(null);
+    this.sensitiveDirectConfirmed.set(false);
+    this.sensitiveSecretName.set('');
+    this.sensitiveRoleAssigning.set(false);
+    this.sensitiveRoleAssigned.set(false);
+    this.sensitiveRoleError.set(false);
   }
 
   protected selectSource(resource: AzureResourceResponse): void {
@@ -147,8 +195,68 @@ export class AddAppSettingDialogComponent {
 
   protected selectOutput(output: OutputDefinitionResponse): void {
     this.selectedOutput.set(output);
+    if (output.isSensitive) {
+      // Go to step 3 — sensitive security choice
+      this.sensitiveChoice.set(null);
+      this.sensitiveDirectConfirmed.set(false);
+      this.sensitiveSecretName.set(this.generateSecretName());
+      this.selectedKeyVault.set(null);
+      this.kvHasAccess.set(null);
+      this.kvMissingRoleName.set(null);
+      this.kvMissingRoleDefinitionId.set(null);
+      this.sensitiveRoleAssigning.set(false);
+      this.sensitiveRoleAssigned.set(false);
+      this.sensitiveRoleError.set(false);
+      this.step.set(3);
+    } else {
+      // Non-sensitive → go directly to step 4 (name)
+      this.settingName.set(this.suggestedName());
+      this.step.set(4);
+    }
+  }
+
+  protected selectSensitiveChoice(choice: 'keyvault' | 'direct'): void {
+    this.sensitiveChoice.set(choice);
+    this.sensitiveDirectConfirmed.set(false);
+    if (choice === 'keyvault') {
+      this.selectedKeyVault.set(null);
+      this.kvHasAccess.set(null);
+    }
+  }
+
+  protected selectSensitiveKeyVault(resource: AzureResourceResponse): void {
+    this.selectedKeyVault.set(resource);
+    this.checkKeyVaultAccess();
+  }
+
+  protected proceedFromSensitiveStep(): void {
     this.settingName.set(this.suggestedName());
-    this.step.set(3);
+    this.step.set(4);
+  }
+
+  protected async assignSensitiveRole(): Promise<void> {
+    const kv = this.selectedKeyVault();
+    const roleDefId = this.kvMissingRoleDefinitionId();
+    if (!kv || !roleDefId) return;
+
+    this.sensitiveRoleAssigning.set(true);
+    this.sensitiveRoleError.set(false);
+
+    try {
+      await this.roleAssignmentService.add(this.data.resourceId, {
+        targetResourceId: kv.id,
+        roleDefinitionId: roleDefId,
+        managedIdentityType: 'SystemAssigned',
+      });
+      this.sensitiveRoleAssigned.set(true);
+      this.kvHasAccess.set(true);
+      this.kvMissingRoleName.set(null);
+      this.kvMissingRoleDefinitionId.set(null);
+    } catch {
+      this.sensitiveRoleError.set(true);
+    } finally {
+      this.sensitiveRoleAssigning.set(false);
+    }
   }
 
   // ─── Key Vault mode ───
@@ -166,11 +274,13 @@ export class AddAppSettingDialogComponent {
     this.kvAccessChecking.set(true);
     this.kvHasAccess.set(null);
     this.kvMissingRoleName.set(null);
+    this.kvMissingRoleDefinitionId.set(null);
 
     try {
       const result = await this.appSettingService.checkKeyVaultAccess(this.data.resourceId, kv.id);
       this.kvHasAccess.set(result.hasAccess);
       this.kvMissingRoleName.set(result.missingRoleName ?? null);
+      this.kvMissingRoleDefinitionId.set(result.missingRoleDefinitionId ?? null);
     } catch {
       this.kvHasAccess.set(null);
     } finally {
@@ -184,10 +294,27 @@ export class AddAppSettingDialogComponent {
   }
 
   protected goBack(): void {
-    if (this.step() === 3) {
-      this.step.set(2);
-    } else if (this.step() === 2) {
-      this.step.set(1);
+    const currentStep = this.step();
+    if (this.mode() === 'output') {
+      if (currentStep === 4) {
+        // If came from sensitive step, go back to step 3; otherwise step 2
+        if (this.selectedOutputIsSensitive()) {
+          this.step.set(3);
+        } else {
+          this.step.set(2);
+        }
+      } else if (currentStep === 3) {
+        this.step.set(2);
+      } else if (currentStep === 2) {
+        this.step.set(1);
+      }
+    } else {
+      // KV mode: steps are 1→2→3
+      if (currentStep === 3) {
+        this.step.set(2);
+      } else if (currentStep === 2) {
+        this.step.set(1);
+      }
     }
     this.errorKey.set('');
   }
@@ -208,13 +335,24 @@ export class AddAppSettingDialogComponent {
           secretName: this.secretName().trim(),
         };
       } else if (this.mode() === 'output') {
-        request = {
-          name,
-          sourceResourceId: this.selectedSource()!.id,
-          sourceOutputName: this.selectedOutput()!.name,
-        };
+        if (this.sensitiveChoice() === 'keyvault') {
+          request = {
+            name,
+            sourceResourceId: this.selectedSource()!.id,
+            sourceOutputName: this.selectedOutput()!.name,
+            keyVaultResourceId: this.selectedKeyVault()!.id,
+            secretName: this.sensitiveSecretName().trim(),
+            exportToKeyVault: true,
+          };
+        } else {
+          request = {
+            name,
+            sourceResourceId: this.selectedSource()!.id,
+            sourceOutputName: this.selectedOutput()!.name,
+          };
+        }
       } else {
-        request = { name, staticValue: this.staticValue() };
+        request = { name, environmentValues: this.environmentValues() };
       }
 
       const result = await this.appSettingService.add(this.data.resourceId, request);
@@ -226,7 +364,20 @@ export class AddAppSettingDialogComponent {
     }
   }
 
+  protected updateEnvironmentValue(envName: string, value: string): void {
+    this.environmentValues.update(current => ({ ...current, [envName]: value }));
+  }
+
   protected onCancel(): void {
     this.dialogRef.close(undefined);
+  }
+
+  private generateSecretName(): string {
+    const source = this.selectedSource();
+    const output = this.selectedOutput();
+    if (!source || !output) return '';
+    const prefix = source.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const suffix = output.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    return `${prefix}-${suffix}`;
   }
 }

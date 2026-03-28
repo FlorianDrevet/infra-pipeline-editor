@@ -33,7 +33,7 @@ public static class BicepAssembler
         var main = GenerateMainBicep(modules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? []);
 
         var environmentParameterFiles = GenerateEnvironmentParameterFiles(
-            modules, environmentNames, resources);
+            modules, environmentNames, resources, appSettings);
 
         var moduleFiles = new Dictionary<string, string>();
 
@@ -658,6 +658,13 @@ public static class BicepAssembler
             }
         }
 
+        // Static app setting parameter declarations
+        foreach (var setting in appSettings.Where(s => s.EnvironmentValues is { Count: > 0 }))
+        {
+            var paramName = GetStaticAppSettingParamName(setting.TargetResourceName, setting.Name);
+            sb.AppendLine($"param {paramName} string");
+        }
+
         sb.AppendLine();
 
         // ── Environment resolution ──────────────────────────────────────────
@@ -790,9 +797,25 @@ public static class BicepAssembler
                     sb.AppendLine("      {");
                     sb.AppendLine($"        name: '{setting.Name}'");
 
-                    if (setting.IsKeyVaultReference && setting.KeyVaultResourceName is not null && setting.SecretName is not null)
+                    if (setting.IsSensitiveOutputExportedToKeyVault
+                        && setting.SourceResourceName is not null
+                        && setting.SecretName is not null)
                     {
-                        // Key Vault secret reference
+                        // Sensitive output exported to KV — reference the generated kvSecret module's secretUri output
+                        var sourceModule = modules.FirstOrDefault(m =>
+                            m.LogicalResourceName.Equals(setting.SourceResourceName, StringComparison.OrdinalIgnoreCase));
+
+                        if (sourceModule is not null)
+                        {
+                            var secretIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.SecretName);
+                            var secretModuleSymbol = $"{sourceModule.ModuleName}{Capitalize(secretIdentifier)}SecretModule";
+
+                            sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{secretModuleSymbol}.outputs.secretUri}})'");
+                        }
+                    }
+                    else if (setting.IsKeyVaultReference && setting.KeyVaultResourceName is not null && setting.SecretName is not null)
+                    {
+                        // Manual Key Vault secret reference (user-specified secret name)
                         var kvModule = modules.FirstOrDefault(m =>
                             m.LogicalResourceName.Equals(setting.KeyVaultResourceName, StringComparison.OrdinalIgnoreCase));
 
@@ -829,6 +852,11 @@ public static class BicepAssembler
                                 sb.AppendLine($"        value: {sourceModule.ModuleName}Module.outputs.{setting.SourceOutputName}");
                             }
                         }
+                    }
+                    else if (setting.EnvironmentValues is { Count: > 0 })
+                    {
+                        var settingParamName = GetStaticAppSettingParamName(module.LogicalResourceName, setting.Name);
+                        sb.AppendLine($"        value: {settingParamName}");
                     }
                     else if (setting.StaticValue is not null)
                     {
@@ -1028,7 +1056,8 @@ public static class BicepAssembler
     private static Dictionary<string, string> GenerateEnvironmentParameterFiles(
         IReadOnlyCollection<GeneratedTypeModule> modules,
         IReadOnlyList<string> environmentNames,
-        IEnumerable<ResourceDefinition> resources)
+        IEnumerable<ResourceDefinition> resources,
+        IReadOnlyList<AppSettingDefinition> appSettings)
     {
         var resourceList = resources.ToList();
         var result = new Dictionary<string, string>();
@@ -1036,7 +1065,7 @@ public static class BicepAssembler
         foreach (var envName in environmentNames)
         {
             var envModules = ApplyEnvironmentOverrides(modules, envName, resourceList);
-            var paramContent = GenerateMainParameters(envModules, envName);
+            var paramContent = GenerateMainParameters(envModules, envName, appSettings);
             var fileName = $"main.{envName.ToLowerInvariant()}.bicepparam";
             result[fileName] = paramContent;
         }
@@ -1113,7 +1142,8 @@ public static class BicepAssembler
     /// </summary>
     private static string GenerateMainParameters(
         IReadOnlyCollection<GeneratedTypeModule> modules,
-        string environmentName)
+        string environmentName,
+        IReadOnlyList<AppSettingDefinition> appSettings)
     {
         var sb = new StringBuilder();
         var normalizedEnvironmentName = SanitizeBicepKey(environmentName);
@@ -1141,6 +1171,16 @@ public static class BicepAssembler
             }
 
             sb.AppendLine();
+        }
+
+        // ── Static app setting params (per-environment values) ──────────
+        foreach (var setting in appSettings.Where(s => s.EnvironmentValues is { Count: > 0 }))
+        {
+            var paramName = GetStaticAppSettingParamName(setting.TargetResourceName, setting.Name);
+            var value = setting.EnvironmentValues!.TryGetValue(environmentName, out var envValue)
+                ? envValue
+                : string.Empty;
+            sb.AppendLine($"param {paramName} = '{EscapeBicepString(value)}'");
         }
 
         return sb.ToString();
@@ -1230,6 +1270,47 @@ public static class BicepAssembler
 
     private static string Capitalize(string s) =>
         s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+
+    /// <summary>
+    /// Builds a deterministic Bicep param name for a static app setting.
+    /// Convention: <c>{moduleName}{PascalCase(settingName)}</c>.
+    /// </summary>
+    private static string GetStaticAppSettingParamName(string targetResourceName, string settingName)
+    {
+        var moduleName = BicepIdentifierHelper.ToBicepIdentifier(targetResourceName);
+        var pascalName = ToPascalCaseFromEnvVar(settingName);
+        return $"{moduleName}{pascalName}";
+    }
+
+    /// <summary>
+    /// Converts an environment variable name (SNAKE_CASE) to PascalCase.
+    /// E.g. "MY_API_URL" → "MyApiUrl", "APP__HOST" → "AppHost".
+    /// </summary>
+    private static string ToPascalCaseFromEnvVar(string envVarName)
+    {
+        var sb = new StringBuilder();
+        var capitalizeNext = true;
+        foreach (var c in envVarName)
+        {
+            if (c is '_' or '-' or '.')
+            {
+                capitalizeNext = true;
+                continue;
+            }
+
+            if (capitalizeNext)
+            {
+                sb.Append(char.ToUpperInvariant(c));
+                capitalizeNext = false;
+            }
+            else
+            {
+                sb.Append(char.ToLowerInvariant(c));
+            }
+        }
+
+        return sb.ToString();
+    }
 
     private static string InferBicepType(object value)
     {

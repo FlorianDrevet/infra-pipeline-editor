@@ -10,9 +10,8 @@ public class AddAppSettingRequest
     [MaxLength(256)]
     public required string Name { get; init; }
 
-    /// <summary>The static value (null when using a resource output reference).</summary>
-    [MaxLength(4000)]
-    public string? StaticValue { get; init; }
+    /// <summary>Per-environment values for a static setting. Null when using a reference.</summary>
+    public Dictionary<string, string>? EnvironmentValues { get; init; }
 
     /// <summary>Identifier of the source resource for output reference (null for static values).</summary>
     public Guid? SourceResourceId { get; init; }

@@ -100,12 +100,12 @@ public class AzureResource : AggregateRoot<AzureResourceId>
         return assignment;
     }
 
-    /// <summary>Adds a static-value app setting to this resource.</summary>
+    /// <summary>Adds a static-value app setting with per-environment values to this resource.</summary>
     /// <param name="name">The environment variable name.</param>
-    /// <param name="value">The static value.</param>
-    public AppSetting AddStaticAppSetting(string name, string value)
+    /// <param name="environmentValues">A dictionary of environment name → value.</param>
+    public AppSetting AddStaticAppSetting(string name, IReadOnlyDictionary<string, string> environmentValues)
     {
-        var setting = AppSetting.CreateStatic(Id, name, value);
+        var setting = AppSetting.CreateStatic(Id, name, environmentValues);
         _appSettings.Add(setting);
         return setting;
     }
@@ -168,11 +168,11 @@ public class AzureResource : AggregateRoot<AzureResourceId>
             _appSettings.Remove(setting);
     }
 
-    /// <summary>Updates an existing app setting to a static value.</summary>
-    public void UpdateAppSettingToStatic(AppSettingId appSettingId, string name, string value)
+    /// <summary>Updates an existing app setting to static per-environment values.</summary>
+    public void UpdateAppSettingToStatic(AppSettingId appSettingId, string name, IReadOnlyDictionary<string, string> environmentValues)
     {
         var setting = _appSettings.FirstOrDefault(s => s.Id == appSettingId);
-        setting?.UpdateToStatic(name, value);
+        setting?.UpdateToStatic(name, environmentValues);
     }
 
     /// <summary>Updates an existing app setting to reference a resource output.</summary>
