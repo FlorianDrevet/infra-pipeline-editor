@@ -45,7 +45,8 @@ public sealed class SetProjectGitConfigCommandHandler(
             providerType,
             command.RepositoryUrl,
             command.DefaultBranch,
-            command.BasePath);
+            command.BasePath,
+            command.PipelineBasePath);
 
         await projectRepository.UpdateAsync(project);
 

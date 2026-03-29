@@ -62,7 +62,7 @@ public sealed class PushPipelineToGitCommandHandler(
             BaseBranch = gitConfig.DefaultBranch,
             TargetBranchName = command.BranchName,
             CommitMessage = command.CommitMessage,
-            BasePath = gitConfig.BasePath,
+            BasePath = gitConfig.PipelineBasePath,
             Files = files,
         }, cancellationToken);
     }

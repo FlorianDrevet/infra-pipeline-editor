@@ -122,6 +122,7 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
             .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
             .Map(dest => dest.BasePath, src => src.BasePath)
+            .Map(dest => dest.PipelineBasePath, src => src.PipelineBasePath)
             .Map(dest => dest.Owner, src => src.Owner)
             .Map(dest => dest.RepositoryName, src => src.RepositoryName);
 
@@ -132,6 +133,7 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
             .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
             .Map(dest => dest.BasePath, src => src.BasePath)
+            .Map(dest => dest.PipelineBasePath, src => src.PipelineBasePath)
             .Map(dest => dest.Owner, src => src.Owner)
             .Map(dest => dest.RepositoryName, src => src.RepositoryName);
 

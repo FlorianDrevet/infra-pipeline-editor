@@ -9,5 +9,6 @@ public record GitRepositoryConfigurationResult(
     string RepositoryUrl,
     string DefaultBranch,
     string? BasePath,
+    string? PipelineBasePath,
     string Owner,
     string RepositoryName);

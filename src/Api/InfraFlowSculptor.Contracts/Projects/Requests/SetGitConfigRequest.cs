@@ -21,6 +21,9 @@ public sealed class SetGitConfigRequest
     /// <summary>Optional sub-path inside the repository where Bicep files should be pushed.</summary>
     public string? BasePath { get; init; }
 
+    /// <summary>Optional sub-path inside the repository where Pipeline files should be pushed.</summary>
+    public string? PipelineBasePath { get; init; }
+
     /// <summary>The personal access token used to authenticate with the Git provider.</summary>
     [Required]
     public required string PersonalAccessToken { get; init; }

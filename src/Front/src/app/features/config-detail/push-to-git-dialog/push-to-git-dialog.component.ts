@@ -12,6 +12,7 @@ import axios from 'axios';
 import { GitConfigResponse } from '../../../shared/interfaces/project.interface';
 import { PushBicepToGitResponse } from '../../../shared/interfaces/bicep-generator.interface';
 import { BicepGeneratorService } from '../../../shared/services/bicep-generator.service';
+import { PipelineGeneratorService } from '../../../shared/services/pipeline-generator.service';
 import { ProjectService } from '../../../shared/services/project.service';
 
 export interface PushToGitDialogData {
@@ -19,6 +20,7 @@ export interface PushToGitDialogData {
   projectId: string;
   gitConfig: GitConfigResponse;
   isProjectLevel?: boolean;
+  isPipeline?: boolean;
 }
 
 type DialogState = 'form' | 'pushing' | 'success' | 'error';
@@ -44,10 +46,12 @@ export class PushToGitDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<PushToGitDialogComponent>);
   private readonly data: PushToGitDialogData = inject(MAT_DIALOG_DATA);
   private readonly bicepService = inject(BicepGeneratorService);
+  private readonly pipelineService = inject(PipelineGeneratorService);
   private readonly projectService = inject(ProjectService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly isProjectLevel = this.data.isProjectLevel ?? false;
+  protected readonly isPipeline = this.data.isPipeline ?? false;
 
   protected readonly state = signal<DialogState>('form');
   protected readonly result = signal<PushBicepToGitResponse | null>(null);
@@ -102,11 +106,15 @@ export class PushToGitDialogComponent implements OnInit {
       const value = this.form.getRawValue();
       const request = {
         branchName: value.branchName!,
-        commitMessage: value.commitMessage || null,
+        commitMessage: value.commitMessage || '',
       };
       const response = this.isProjectLevel
-        ? await this.projectService.pushProjectBicepToGit(this.data.projectId, request)
-        : await this.bicepService.pushToGit(this.data.configId, request);
+        ? (this.isPipeline
+          ? await this.projectService.pushProjectPipelineToGit(this.data.projectId, request)
+          : await this.projectService.pushProjectBicepToGit(this.data.projectId, request))
+        : (this.isPipeline
+          ? await this.pipelineService.pushToGit(this.data.configId, request)
+          : await this.bicepService.pushToGit(this.data.configId, request));
       this.result.set(response);
       this.state.set('success');
     } catch (err: unknown) {

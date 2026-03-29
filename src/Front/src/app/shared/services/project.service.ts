@@ -16,6 +16,7 @@ import {
   UpdateProjectEnvironmentRequest,
   SetRepositoryModeRequest,
   GenerateProjectBicepResponse,
+  GenerateProjectPipelineResponse,
 } from '../interfaces/project.interface';
 import {
   PushBicepToGitRequest,
@@ -245,6 +246,41 @@ export class ProjectService {
     return this.axios.request$<PushBicepToGitResponse>(
       MethodEnum.POST,
       `/projects/${projectId}/push-to-git`,
+      request
+    );
+  }
+
+  // ─── Project Pipeline Generation (mono-repo) ───
+
+  generateProjectPipeline(projectId: string): Promise<GenerateProjectPipelineResponse> {
+    return this.axios.request$<GenerateProjectPipelineResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/generate-pipeline`
+    );
+  }
+
+  async downloadProjectPipelineZip(projectId: string): Promise<Blob> {
+    const response = await axios.get(
+      `/projects/${projectId}/generate-pipeline/download`,
+      { responseType: 'blob' }
+    );
+    return response.data as Blob;
+  }
+
+  getProjectPipelineFileContent(projectId: string, filePath: string): Promise<string> {
+    return this.axios.request$<{ content: string }>(
+      MethodEnum.GET,
+      `/projects/${projectId}/generate-pipeline/files/${filePath}`
+    ).then(response => response.content);
+  }
+
+  pushProjectPipelineToGit(
+    projectId: string,
+    request: PushBicepToGitRequest
+  ): Promise<PushBicepToGitResponse> {
+    return this.axios.request$<PushBicepToGitResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/push-pipeline-to-git`,
       request
     );
   }

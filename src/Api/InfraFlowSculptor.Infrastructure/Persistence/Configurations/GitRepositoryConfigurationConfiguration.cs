@@ -29,6 +29,7 @@ public sealed class GitRepositoryConfigurationConfiguration
         builder.Property(x => x.RepositoryUrl).IsRequired().HasMaxLength(500);
         builder.Property(x => x.DefaultBranch).IsRequired().HasMaxLength(200).HasDefaultValue("main");
         builder.Property(x => x.BasePath).HasMaxLength(500);
+        builder.Property(x => x.PipelineBasePath).HasMaxLength(500);
         builder.Property(x => x.Owner).IsRequired().HasMaxLength(200);
         builder.Property(x => x.RepositoryName).IsRequired().HasMaxLength(200);
 

@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
-import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse } from '../../shared/interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
   EnvironmentDefinitionResponse,
@@ -116,6 +116,14 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectBicepPanelOpen = signal(false);
   protected readonly projectBicepPanelCollapsed = signal(false);
 
+  // ─── Project Pipeline Generation (mono-repo) ───
+  protected readonly projectPipelineLoading = signal(false);
+  protected readonly projectPipelineResult = signal<GenerateProjectPipelineResponse | null>(null);
+  protected readonly projectPipelineDownloading = signal(false);
+  protected readonly projectPipelineErrorKey = signal('');
+  protected readonly projectPipelinePanelOpen = signal(false);
+  protected readonly projectPipelinePanelCollapsed = signal(false);
+
   protected readonly projectBicepNodes = computed<BicepTreeNode[]>(() => {
     const result = this.projectBicepResult();
     if (!result) return [];
@@ -183,6 +191,26 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly loadProjectBicepFile = (filePath: string): Promise<string> => {
     const projectId = this.project()?.id ?? '';
     return this.projectService.getProjectBicepFileContent(projectId, filePath);
+  };
+
+  protected readonly projectPipelineNodes = computed<BicepTreeNode[]>(() => {
+    const result = this.projectPipelineResult();
+    if (!result) return [];
+    const nodes: BicepTreeNode[] = [];
+
+    for (const [configName, files] of Object.entries(result.configFileUris)) {
+      nodes.push({ kind: 'folder', key: configName, name: `${configName}/`, folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
+      for (const [fileName] of Object.entries(files)) {
+        nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: fileName.split('/').at(-1)!, type: 'generic', uri: `${configName}/${fileName}`, depth: 1, parentFolderKey: configName } satisfies BicepFileNode);
+      }
+    }
+
+    return nodes;
+  });
+
+  protected readonly loadProjectPipelineFile = (filePath: string): Promise<string> => {
+    const projectId = this.project()?.id ?? '';
+    return this.projectService.getProjectPipelineFileContent(projectId, filePath);
   };
 
   // ─── Git Config ───
@@ -613,9 +641,11 @@ export class ProjectDetailComponent implements OnInit {
     try {
       await this.projectService.setRepositoryMode(projectId, { repositoryMode: newMode });
       this.project.update((p) => (p ? { ...p, repositoryMode: newMode } : p));
-      // Close bicep panel when switching modes
+      // Close bicep and pipeline panels when switching modes
       this.projectBicepPanelOpen.set(false);
       this.projectBicepResult.set(null);
+      this.projectPipelinePanelOpen.set(false);
+      this.projectPipelineResult.set(null);
     } catch {
       this.repoModeError.set('PROJECT_DETAIL.REPO_MODE.ERROR');
     } finally {
@@ -642,6 +672,44 @@ export class ProjectDetailComponent implements OnInit {
     } finally {
       this.projectBicepLoading.set(false);
     }
+  }
+
+  // ─── Project Pipeline Generation (mono-repo) ───
+
+  protected async generateProjectPipeline(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId || this.projectPipelineLoading()) return;
+
+    this.projectPipelineLoading.set(true);
+    this.projectPipelineErrorKey.set('');
+    this.projectPipelineResult.set(null);
+    this.projectPipelinePanelOpen.set(true);
+
+    try {
+      const result = await this.projectService.generateProjectPipeline(projectId);
+      this.projectPipelineResult.set(result);
+    } catch {
+      this.projectPipelineErrorKey.set('PROJECT_DETAIL.PIPELINE.GENERATE_ERROR');
+    } finally {
+      this.projectPipelineLoading.set(false);
+    }
+  }
+
+  // ─── Unified Generate All (mono-repo) ───
+
+  protected readonly projectGenerateAllLoading = computed(
+    () => this.projectBicepLoading() || this.projectPipelineLoading(),
+  );
+
+  protected async generateAll(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId || this.projectGenerateAllLoading()) return;
+
+    // Launch both generations in parallel
+    await Promise.all([
+      this.generateProjectBicep(),
+      this.generateProjectPipeline(),
+    ]);
   }
 
   protected closeProjectBicepPanel(): void {
@@ -678,6 +746,43 @@ export class ProjectDetailComponent implements OnInit {
       projectId: project.id,
       gitConfig,
       isProjectLevel: true,
+    };
+    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
+  }
+
+  protected closeProjectPipelinePanel(): void {
+    this.projectPipelinePanelOpen.set(false);
+    this.projectPipelineResult.set(null);
+    this.projectPipelineErrorKey.set('');
+  }
+
+  protected async downloadProjectPipelineFiles(): Promise<void> {
+    const project = this.project();
+    const result = this.projectPipelineResult();
+
+    if (!project?.id || !result || this.projectPipelineDownloading()) return;
+
+    this.projectPipelineDownloading.set(true);
+    try {
+      const blob = await this.projectService.downloadProjectPipelineZip(project.id);
+      const projectName = project.name ?? 'project';
+      saveAs(blob, `${projectName}-pipeline.zip`);
+    } finally {
+      this.projectPipelineDownloading.set(false);
+    }
+  }
+
+  protected openProjectPipelinePushToGitDialog(): void {
+    const project = this.project();
+    const gitConfig = project?.gitRepositoryConfiguration;
+    if (!project || !gitConfig) return;
+
+    const data: PushToGitDialogData = {
+      configId: '',
+      projectId: project.id,
+      gitConfig,
+      isProjectLevel: true,
+      isPipeline: true,
     };
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }

@@ -11,5 +11,6 @@ public record SetProjectGitConfigCommand(
     string RepositoryUrl,
     string DefaultBranch,
     string? BasePath,
+    string? PipelineBasePath,
     string PersonalAccessToken
 ) : IRequest<ErrorOr<Success>>;

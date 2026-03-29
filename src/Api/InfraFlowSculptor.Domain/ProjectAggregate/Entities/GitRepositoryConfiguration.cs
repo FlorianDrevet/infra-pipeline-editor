@@ -22,6 +22,9 @@ public sealed class GitRepositoryConfiguration : Entity<GitRepositoryConfigurati
     /// <summary>Gets the optional sub-path inside the repository where Bicep files should be pushed.</summary>
     public string? BasePath { get; private set; }
 
+    /// <summary>Gets the optional sub-path inside the repository where Pipeline files should be pushed.</summary>
+    public string? PipelineBasePath { get; private set; }
+
     /// <summary>Gets the repository owner (org or user, extracted from the URL).</summary>
     public string Owner { get; private set; } = null!;
 
@@ -40,6 +43,7 @@ public sealed class GitRepositoryConfiguration : Entity<GitRepositoryConfigurati
         string repositoryUrl,
         string defaultBranch,
         string? basePath,
+        string? pipelineBasePath,
         ProjectId projectId)
     {
         var (owner, repoName) = ExtractOwnerAndRepo(providerType, repositoryUrl);
@@ -51,6 +55,7 @@ public sealed class GitRepositoryConfiguration : Entity<GitRepositoryConfigurati
             RepositoryUrl = repositoryUrl.TrimEnd('/'),
             DefaultBranch = defaultBranch,
             BasePath = NormalizeBasePath(basePath),
+            PipelineBasePath = NormalizeBasePath(pipelineBasePath),
             Owner = owner,
             RepositoryName = repoName,
             ProjectId = projectId,
@@ -62,7 +67,8 @@ public sealed class GitRepositoryConfiguration : Entity<GitRepositoryConfigurati
         GitProviderType providerType,
         string repositoryUrl,
         string defaultBranch,
-        string? basePath)
+        string? basePath,
+        string? pipelineBasePath)
     {
         var (owner, repoName) = ExtractOwnerAndRepo(providerType, repositoryUrl);
 
@@ -70,6 +76,7 @@ public sealed class GitRepositoryConfiguration : Entity<GitRepositoryConfigurati
         RepositoryUrl = repositoryUrl.TrimEnd('/');
         DefaultBranch = defaultBranch;
         BasePath = NormalizeBasePath(basePath);
+        PipelineBasePath = NormalizeBasePath(pipelineBasePath);
         Owner = owner;
         RepositoryName = repoName;
     }

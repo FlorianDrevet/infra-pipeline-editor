@@ -5,8 +5,11 @@ using InfraFlowSculptor.Application.Projects.Commands.DeleteProject;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectMember;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProject;
 using InfraFlowSculptor.Application.Projects.Commands.DownloadProjectBicep;
+using InfraFlowSculptor.Application.Projects.Commands.DownloadProjectPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
+using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectBicepToGit;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectPipelineToGit;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectGitConfig;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
@@ -20,6 +23,7 @@ using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectMemberRole;
 using InfraFlowSculptor.Application.Projects.Queries.GetProject;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectBicepFileContent;
+using InfraFlowSculptor.Application.Projects.Queries.GetProjectPipelineFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.ListGitBranches;
 using InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectConfigs;
@@ -656,6 +660,96 @@ public static class ProjectController
                 .WithName("PushProjectBicepToGit")
                 .WithSummary("Push project-level Bicep files to Git (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated Bicep files to the configured Git repository. Used in MonoRepo mode.")
+                .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Project-level Pipeline Generation (mono-repo) ──────────────
+
+            group.MapPost("/{projectId:guid}/generate-pipeline",
+                    async ([FromRoute] Guid projectId, IMediator mediator) =>
+                    {
+                        var command = new GenerateProjectPipelineCommand(new ProjectId(projectId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value =>
+                            {
+                                var response = new GenerateProjectPipelineResponse(
+                                    value.ConfigFileUris);
+                                return Results.Created($"/projects/{projectId}/generate-pipeline", response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GenerateProjectPipeline")
+                .WithSummary("Generate pipeline files for the entire project (mono-repo)")
+                .WithDescription("Generates Azure DevOps pipeline YAML files for all configurations in the project.")
+                .Produces<GenerateProjectPipelineResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{projectId:guid}/generate-pipeline/download",
+                    async ([FromRoute] Guid projectId, IMediator mediator) =>
+                    {
+                        var command = new DownloadProjectPipelineCommand(new ProjectId(projectId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.File(
+                                value.ZipContent,
+                                "application/zip",
+                                value.FileName),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("DownloadProjectPipeline")
+                .WithSummary("Download generated pipeline files for a project")
+                .WithDescription("Downloads the latest generated mono-repo pipeline files for the given project as a ZIP archive.")
+                .Produces(StatusCodes.Status200OK, contentType: "application/zip")
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{projectId:guid}/generate-pipeline/files/{*filePath}",
+                    async ([FromRoute] Guid projectId, [FromRoute] string filePath, IMediator mediator) =>
+                    {
+                        var query = new GetProjectPipelineFileContentQuery(projectId, filePath);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            value => Results.Ok(new { content = value.Content }),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GetProjectPipelineFileContent")
+                .WithSummary("Get generated pipeline file content for a project")
+                .WithDescription("Reads the latest generated mono-repo pipeline file content for the given project and relative file path.")
+                .Produces(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Project-level Pipeline Push to Git (mono-repo) ───────────────────
+
+            group.MapPost("/{projectId:guid}/push-pipeline-to-git",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] PushBicepToGitRequest request,
+                        IMediator mediator,
+                        IMapper mapper) =>
+                    {
+                        var command = new PushProjectPipelineToGitCommand(
+                            new ProjectId(projectId),
+                            request.BranchName,
+                            request.CommitMessage);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.Ok(mapper.Map<PushBicepToGitResponse>(value)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("PushProjectPipelineToGit")
+                .WithSummary("Push project-level pipeline files to Git (mono-repo)")
+                .WithDescription("Pushes the latest project-level generated pipeline files to the configured Git repository. Used in MonoRepo mode.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);

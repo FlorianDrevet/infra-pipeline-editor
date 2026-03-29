@@ -32,6 +32,12 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.PIPELINE_BASE_PATH' | translate }}</mat-label>
+      <input matInput formControlName="pipelineBasePath"
+             [placeholder]="'PROJECT_DETAIL.GIT_CONFIG.FORM.PIPELINE_BASE_PATH_PLACEHOLDER' | translate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>{{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.PERSONAL_ACCESS_TOKEN' | translate }}</mat-label>
       <input matInput formControlName="personalAccessToken"
              [type]="showPat() ? 'text' : 'password'"

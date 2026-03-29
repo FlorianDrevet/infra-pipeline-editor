@@ -605,6 +605,9 @@
       "MONO": "Mono-repo",
       "ERROR": "Unable to change repository mode."
     },
+    "GENERATE_ALL": {
+      "BUTTON": "Generate All"
+    },
     "BICEP": {
       "GENERATE": "Generate Bicep",
       "DOWNLOAD": "Download all files",
@@ -621,6 +624,24 @@
       "GENERATE_ERROR": "Unable to generate Bicep files for the project.",
       "RETRY": "Retry",
       "SHARED": "Shared",
+      "FILE_LOADING": "Loading file content...",
+      "FILE_ERROR": "Unable to load file content.",
+      "CLOSE": "Close panel"
+    },
+    "PIPELINE": {
+      "GENERATE": "Generate Pipeline",
+      "DOWNLOAD": "Download all files",
+      "DOWNLOADING": "Downloading...",
+      "PUSH_TO_GIT": "Push Pipeline to Git",
+      "PANEL_TITLE": "Project Pipeline Generation",
+      "PANEL_GENERATING": "Generating pipeline files...",
+      "PANEL_SUCCESS": "Pipeline files generated successfully",
+      "PANEL_ERROR": "Generation failed",
+      "TERMINAL_GENERATING": "az pipelines build --project all-configurations",
+      "TERMINAL_DONE": "Generation complete \u2014 pipeline artifacts ready",
+      "ARTIFACTS": "output",
+      "GENERATE_ERROR": "Unable to generate pipeline files for the project.",
+      "RETRY": "Retry",
       "FILE_LOADING": "Loading file content...",
       "FILE_ERROR": "Unable to load file content.",
       "CLOSE": "Close panel"
@@ -783,7 +804,8 @@
       "PROVIDER": "Provider",
       "REPOSITORY_URL": "Repository URL",
       "DEFAULT_BRANCH": "Default branch",
-      "BASE_PATH": "Base path",
+      "BASE_PATH": "Bicep base path",
+      "PIPELINE_BASE_PATH": "Pipeline base path",
       "OWNER": "Owner",
       "REPOSITORY_NAME": "Repository name",
       "EDIT": "Edit",
@@ -808,8 +830,10 @@
         "REPOSITORY_URL_PLACEHOLDER": "https://github.com/org/repo",
         "DEFAULT_BRANCH": "Default branch",
         "DEFAULT_BRANCH_PLACEHOLDER": "main",
-        "BASE_PATH": "Base path (optional)",
+        "BASE_PATH": "Bicep base path (optional)",
         "BASE_PATH_PLACEHOLDER": "infra/bicep",
+        "PIPELINE_BASE_PATH": "Pipeline base path (optional)",
+        "PIPELINE_BASE_PATH_PLACEHOLDER": "pipelines",
         "PERSONAL_ACCESS_TOKEN": "Personal Access Token (PAT)",
         "PERSONAL_ACCESS_TOKEN_PLACEHOLDER": "Paste your PAT here",
         "PAT_HELP_GITHUB": "To generate a GitHub PAT: Settings > Developer settings > Personal access tokens > Fine-grained tokens. Required scopes: Contents (Read & Write).",

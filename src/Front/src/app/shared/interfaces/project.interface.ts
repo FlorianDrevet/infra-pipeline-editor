@@ -92,6 +92,7 @@ export interface GitConfigResponse {
   repositoryUrl: string;
   defaultBranch: string;
   basePath?: string | null;
+  pipelineBasePath?: string | null;
   owner: string;
   repositoryName: string;
 }
@@ -101,6 +102,7 @@ export interface SetGitConfigRequest {
   repositoryUrl: string;
   defaultBranch: string;
   basePath?: string | null;
+  pipelineBasePath?: string | null;
   personalAccessToken: string;
 }
 
@@ -124,5 +126,9 @@ export interface SetRepositoryModeRequest {
 
 export interface GenerateProjectBicepResponse {
   commonFileUris: Record<string, string>;
+  configFileUris: Record<string, Record<string, string>>;
+}
+
+export interface GenerateProjectPipelineResponse {
   configFileUris: Record<string, Record<string, string>>;
 }

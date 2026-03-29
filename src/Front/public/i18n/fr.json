@@ -601,6 +601,9 @@
       "MONO": "Mono-repo",
       "ERROR": "Impossible de changer le mode de depot."
     },
+    "GENERATE_ALL": {
+      "BUTTON": "Tout generer"
+    },
     "BICEP": {
       "GENERATE": "Generer Bicep",
       "DOWNLOAD": "Telecharger tous les fichiers",
@@ -617,6 +620,24 @@
       "GENERATE_ERROR": "Impossible de generer les fichiers Bicep pour le projet.",
       "RETRY": "Reessayer",
       "SHARED": "Partage",
+      "FILE_LOADING": "Chargement du contenu du fichier...",
+      "FILE_ERROR": "Impossible de charger le contenu du fichier.",
+      "CLOSE": "Fermer le panneau"
+    },
+    "PIPELINE": {
+      "GENERATE": "Generer Pipeline",
+      "DOWNLOAD": "Telecharger tous les fichiers",
+      "DOWNLOADING": "Telechargement...",
+      "PUSH_TO_GIT": "Pousser Pipeline sur Git",
+      "PANEL_TITLE": "Generation Pipeline du projet",
+      "PANEL_GENERATING": "Generation des fichiers pipeline...",
+      "PANEL_SUCCESS": "Fichiers pipeline generes avec succes",
+      "PANEL_ERROR": "Echec de la generation",
+      "TERMINAL_GENERATING": "az pipelines build --project toutes-les-configurations",
+      "TERMINAL_DONE": "Generation terminee \u2014 artefacts pipeline disponibles",
+      "ARTIFACTS": "sortie",
+      "GENERATE_ERROR": "Impossible de generer les fichiers pipeline pour le projet.",
+      "RETRY": "Reessayer",
       "FILE_LOADING": "Chargement du contenu du fichier...",
       "FILE_ERROR": "Impossible de charger le contenu du fichier.",
       "CLOSE": "Fermer le panneau"
@@ -790,7 +811,8 @@
       "PROVIDER": "Fournisseur",
       "REPOSITORY_URL": "URL du depot",
       "DEFAULT_BRANCH": "Branche par defaut",
-      "BASE_PATH": "Chemin de base",
+      "BASE_PATH": "Chemin de base Bicep",
+      "PIPELINE_BASE_PATH": "Chemin de base Pipeline",
       "OWNER": "Proprietaire",
       "REPOSITORY_NAME": "Nom du depot",
       "EDIT": "Modifier",
@@ -815,8 +837,10 @@
         "REPOSITORY_URL_PLACEHOLDER": "https://github.com/org/repo",
         "DEFAULT_BRANCH": "Branche par defaut",
         "DEFAULT_BRANCH_PLACEHOLDER": "main",
-        "BASE_PATH": "Chemin de base (optionnel)",
+        "BASE_PATH": "Chemin de base Bicep (optionnel)",
         "BASE_PATH_PLACEHOLDER": "infra/bicep",
+        "PIPELINE_BASE_PATH": "Chemin de base Pipeline (optionnel)",
+        "PIPELINE_BASE_PATH_PLACEHOLDER": "pipelines",
         "PERSONAL_ACCESS_TOKEN": "Jeton d'accès personnel (PAT)",
         "PERSONAL_ACCESS_TOKEN_PLACEHOLDER": "Collez votre PAT ici",
         "PAT_HELP_GITHUB": "Pour generer un PAT GitHub : Settings > Developer settings > Personal access tokens > Fine-grained tokens. Scopes requis : Contents (Read & Write).",

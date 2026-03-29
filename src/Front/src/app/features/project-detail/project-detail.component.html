@@ -43,20 +43,24 @@
         </ng-template>
         <div class="tab-content">
           <div class="tab-content__toolbar">
-            <!-- Project-level Bicep actions (mono-repo only) -->
+            <!-- Project-level Generate All (mono-repo only) -->
             @if (isMonoRepo() && canWrite()) {
-              <button class="bicep-btn" (click)="generateProjectBicep()" [disabled]="projectBicepLoading()">
-                @if (projectBicepLoading()) {
+              <button class="bicep-btn" (click)="generateAll()" [disabled]="projectGenerateAllLoading()">
+                @if (projectGenerateAllLoading()) {
                   <mat-spinner diameter="16"></mat-spinner>
                 } @else {
                   <mat-icon class="bicep-btn__icon">terminal</mat-icon>
                 }
-                {{ 'PROJECT_DETAIL.BICEP.GENERATE' | translate }}
+                {{ 'PROJECT_DETAIL.GENERATE_ALL.BUTTON' | translate }}
               </button>
               @if (project()!.gitRepositoryConfiguration) {
                 <button class="push-btn" (click)="openProjectPushToGitDialog()" [disabled]="!projectBicepResult()">
                   <mat-icon class="push-btn__icon">rocket_launch</mat-icon>
                   {{ 'PROJECT_DETAIL.BICEP.PUSH_TO_GIT' | translate }}
+                </button>
+                <button class="push-btn" (click)="openProjectPipelinePushToGitDialog()" [disabled]="!projectPipelineResult()">
+                  <mat-icon class="push-btn__icon">rocket_launch</mat-icon>
+                  {{ 'PROJECT_DETAIL.PIPELINE.PUSH_TO_GIT' | translate }}
                 </button>
               }
             }
@@ -155,6 +159,93 @@
                     </app-bicep-file-panel>
                   }
 
+
+                </div>
+              }
+            </section>
+          }
+
+          <!-- Project Pipeline Panel (mono-repo) -->
+          @if (projectPipelinePanelOpen()) {
+            <section class="bicep-panel" [class.bicep-panel--success]="projectPipelineResult()" [class.bicep-panel--error]="projectPipelineErrorKey()">
+              <div class="bicep-panel__header" (click)="projectPipelinePanelCollapsed.set(!projectPipelinePanelCollapsed())">
+                <div class="bicep-panel__title-row">
+                  <mat-icon class="bicep-panel__chevron" [class.bicep-panel__chevron--open]="!projectPipelinePanelCollapsed()">chevron_right</mat-icon>
+                  <mat-icon class="bicep-panel__title-icon">
+                    @if (projectPipelineLoading()) { hourglass_top }
+                    @else if (projectPipelineResult()) { check_circle }
+                    @else { error_outline }
+                  </mat-icon>
+                  <h2 class="bicep-panel__title">
+                    @if (projectPipelineLoading()) {
+                      {{ 'PROJECT_DETAIL.PIPELINE.PANEL_GENERATING' | translate }}
+                    } @else if (projectPipelineResult()) {
+                      {{ 'PROJECT_DETAIL.PIPELINE.PANEL_SUCCESS' | translate }}
+                    } @else {
+                      {{ 'PROJECT_DETAIL.PIPELINE.PANEL_ERROR' | translate }}
+                    }
+                  </h2>
+                </div>
+                <div class="bicep-panel__actions" (click)="$event.stopPropagation()">
+                  @if (projectPipelineResult()) {
+                    <button class="bicep-download-btn" (click)="downloadProjectPipelineFiles()" [disabled]="projectPipelineDownloading()">
+                      @if (projectPipelineDownloading()) {
+                        <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                      } @else {
+                        <mat-icon>download</mat-icon>
+                      }
+                      {{ (projectPipelineDownloading() ? 'PROJECT_DETAIL.PIPELINE.DOWNLOADING' : 'PROJECT_DETAIL.PIPELINE.DOWNLOAD') | translate }}
+                    </button>
+                  }
+                  <button class="bicep-panel__close" (click)="closeProjectPipelinePanel()" [matTooltip]="'PROJECT_DETAIL.PIPELINE.CLOSE' | translate">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              @if (!projectPipelinePanelCollapsed()) {
+                <div class="bicep-panel__body">
+
+                  @if (projectPipelineLoading()) {
+                    <div class="bicep-panel__loading">
+                      <div class="bicep-terminal">
+                        <div class="bicep-terminal__bar">
+                          <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                          <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                          <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                          <span class="bicep-terminal__bar-title">pipeline-generator</span>
+                        </div>
+                        <div class="bicep-terminal__body">
+                          <p class="bicep-terminal__line bicep-terminal__line--active">
+                            <span class="bicep-terminal__prompt">$</span>
+                            {{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}
+                            <span class="bicep-terminal__cursor"></span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
+                  @if (projectPipelineErrorKey()) {
+                    <div class="bicep-panel__error-body">
+                      <p>{{ projectPipelineErrorKey() | translate }}</p>
+                      <button class="bicep-retry-btn" (click)="generateProjectPipeline()">
+                        <mat-icon>refresh</mat-icon>
+                        {{ 'PROJECT_DETAIL.PIPELINE.RETRY' | translate }}
+                      </button>
+                    </div>
+                  }
+
+                  @if (projectPipelineNodes().length > 0) {
+                    <app-bicep-file-panel
+                      [nodes]="projectPipelineNodes()"
+                      [barTitle]="'pipeline-generator \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
+                      [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
+                      [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
+                      [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
+                      [loadFile]="loadProjectPipelineFile">
+                    </app-bicep-file-panel>
+                  }
 
                 </div>
               }
@@ -598,6 +689,12 @@
                       <div class="detail-row">
                         <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.BASE_PATH' | translate }}</span>
                         <strong>{{ gitConfig.basePath }}</strong>
+                      </div>
+                    }
+                    @if (gitConfig.pipelineBasePath) {
+                      <div class="detail-row">
+                        <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.PIPELINE_BASE_PATH' | translate }}</span>
+                        <strong>{{ gitConfig.pipelineBasePath }}</strong>
                       </div>
                     }
                     <div class="detail-row">
