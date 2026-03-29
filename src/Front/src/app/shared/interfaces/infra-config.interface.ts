@@ -31,6 +31,7 @@ export interface EnvironmentDefinitionResponse {
   subscriptionId: string;
   order: number;
   requiresApproval: boolean;
+  azureResourceManagerConnection?: string | null;
   tags: TagResponse[];
 }
 

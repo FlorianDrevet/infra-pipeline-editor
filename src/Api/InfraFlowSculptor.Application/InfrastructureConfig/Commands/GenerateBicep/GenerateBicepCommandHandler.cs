@@ -98,6 +98,8 @@ public sealed class GenerateBicepCommandHandler(
                 Location = e.Location,
                 Prefix = e.Prefix,
                 Suffix = e.Suffix,
+                AzureResourceManagerConnection = e.AzureResourceManagerConnection,
+                SubscriptionId = e.SubscriptionId,
             })
             .ToList();
 

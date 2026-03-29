@@ -952,7 +952,98 @@ a.config-card {
   height: 1.1rem;
 }
 
-// ─── Bicep Panel (mono-repo) ────
+// ─── Generation Panel (wrapper) ────
+
+.generation-panel {
+  margin-bottom: 1.5rem;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.92);
+    letter-spacing: -0.01em;
+  }
+
+  &__close {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.6rem;
+    color: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+    padding: 0.3rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 82, 82, 0.15);
+      border-color: rgba(255, 82, 82, 0.3);
+      color: #ff5252;
+    }
+  }
+}
+
+// ─── Generation Tabs ────
+
+.generation-tabs {
+  border-radius: 1.4rem;
+  background: rgba(10, 18, 32, 0.92);
+  border: 1px solid rgba(0, 188, 212, 0.2);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+
+  ::ng-deep .mat-mdc-tab-header {
+    border-bottom: 1px solid rgba(0, 188, 212, 0.15);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0 0.5rem;
+  }
+
+  ::ng-deep .mdc-tab__text-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+    font-size: 0.84rem;
+  }
+
+  ::ng-deep .mdc-tab--active .mdc-tab__text-label { color: #00bcd4; }
+
+  ::ng-deep .mdc-tab-indicator__content--underline {
+    border-color: #00bcd4;
+    border-width: 2.5px;
+  }
+}
+
+.generation-tab-content {
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.generation-tab-content__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.generation-empty {
+  margin: 0;
+  padding: 1.5rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.88rem;
+}
 
 // ─── Bicep Panel (mono-repo) ────
 

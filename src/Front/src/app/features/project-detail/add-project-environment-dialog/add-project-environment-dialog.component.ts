@@ -94,6 +94,7 @@ export class AddProjectEnvironmentDialogComponent {
     location: [this.data.existing?.location ?? '', [Validators.required]],
     tenantId: [this.data.existing?.tenantId ?? '', [Validators.required]],
     subscriptionId: [this.data.existing?.subscriptionId ?? '', [Validators.required]],
+    azureResourceManagerConnection: [this.data.existing?.azureResourceManagerConnection ?? ''],
     shortName: [this.data.existing?.shortName ?? ''],
     prefix: [this.data.existing?.prefix ?? ''],
     suffix: [this.data.existing?.suffix ?? ''],
@@ -155,6 +156,7 @@ export class AddProjectEnvironmentDialogComponent {
       suffix: values.suffix || undefined,
       order: this.computeTargetOrder(),
       requiresApproval: values.requiresApproval ?? false,
+      azureResourceManagerConnection: values.azureResourceManagerConnection || undefined,
     };
 
     try {

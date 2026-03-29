@@ -511,8 +511,13 @@
       "FILE_ERROR": "Impossible de charger le contenu du fichier."
     },
     "GENERATION": {
+      "TITLE": "Résultats de génération",
       "TAB_BICEP": "Bicep",
       "TAB_PIPELINE": "Pipeline"
+    },
+    "GENERATE_ALL": {
+      "BUTTON": "Générer",
+      "GENERATING": "Génération en cours..."
     },
     "PIPELINE": {
       "GENERATE": "Generer Pipeline",
@@ -602,7 +607,12 @@
       "ERROR": "Impossible de changer le mode de depot."
     },
     "GENERATE_ALL": {
-      "BUTTON": "Tout generer"
+      "BUTTON": "Générer"
+    },
+    "GENERATION": {
+      "TITLE": "Résultats de génération",
+      "TAB_BICEP": "Bicep",
+      "TAB_PIPELINE": "Pipeline"
     },
     "BICEP": {
       "GENERATE": "Generer Bicep",
@@ -725,6 +735,8 @@
         "TENANT_ID_PLACEHOLDER": "ex : xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
         "SUBSCRIPTION_ID": "Subscription ID",
         "SUBSCRIPTION_ID_PLACEHOLDER": "ex : xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "AZURE_RM_CONNECTION": "Connexion Azure Resource Manager",
+        "AZURE_RM_CONNECTION_PLACEHOLDER": "ex : mySubscriptionServiceConnection",
         "SHORT_NAME": "Nom court",
         "SHORT_NAME_PLACEHOLDER": "ex : dev, qa, prod",
         "PREFIX": "Prefixe de nommage",

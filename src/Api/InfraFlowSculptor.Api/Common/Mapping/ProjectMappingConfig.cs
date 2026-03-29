@@ -60,6 +60,7 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.SubscriptionId, src => src.SubscriptionId.Value)
             .Map(dest => dest.Order, src => src.Order.Value)
             .Map(dest => dest.RequiresApproval, src => src.RequiresApproval.Value)
+            .Map(dest => dest.AzureResourceManagerConnection, src => src.AzureResourceManagerConnection)
             .Map(dest => dest.Tags, src => src.Tags);
 
         // ProjectEnvironmentDefinitionResult -> EnvironmentDefinitionResponse (reuses InfraConfig response)

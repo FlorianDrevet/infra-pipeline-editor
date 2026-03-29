@@ -18,4 +18,5 @@ public record EnvironmentDefinitionData(
     SubscriptionId SubscriptionId,
     Order Order,
     RequiresApproval RequiresApproval,
+    string? AzureResourceManagerConnection,
     IEnumerable<Tag> Tags);

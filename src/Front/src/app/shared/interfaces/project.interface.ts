@@ -67,6 +67,7 @@ export interface AddProjectEnvironmentRequest {
   subscriptionId: string;
   order?: number;
   requiresApproval?: boolean;
+  azureResourceManagerConnection?: string;
   tags?: TagRequest[];
 }
 
@@ -80,6 +81,7 @@ export interface UpdateProjectEnvironmentRequest {
   subscriptionId: string;
   order?: number;
   requiresApproval?: boolean;
+  azureResourceManagerConnection?: string;
   tags?: TagRequest[];
 }
 

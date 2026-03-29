@@ -44,6 +44,7 @@ public sealed class AddProjectEnvironmentCommandHandler(
             new SubscriptionId(command.SubscriptionId),
             new Order(command.Order),
             new RequiresApproval(command.RequiresApproval),
+            command.AzureResourceManagerConnection,
             tags);
 
         var env = project.AddEnvironment(data);

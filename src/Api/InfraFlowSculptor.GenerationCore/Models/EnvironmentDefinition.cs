@@ -20,4 +20,10 @@ public class EnvironmentDefinition
 
     /// <summary>Gets or sets the raw suffix value (e.g. "dev").</summary>
     public string Suffix { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the Azure DevOps service connection name used for ARM deployments in this environment.</summary>
+    public string? AzureResourceManagerConnection { get; set; }
+
+    /// <summary>Gets or sets the Azure subscription ID for this environment.</summary>
+    public string? SubscriptionId { get; set; }
 }

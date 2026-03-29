@@ -17,5 +17,6 @@ public record AddProjectEnvironmentCommand(
     Guid SubscriptionId,
     int Order,
     bool RequiresApproval,
+    string? AzureResourceManagerConnection,
     IReadOnlyList<(string Name, string Value)> Tags
 ) : IRequest<ErrorOr<ProjectEnvironmentDefinitionResult>>;

@@ -40,6 +40,9 @@ public class UpdateProjectEnvironmentRequest
     /// <summary>When true, deployments targeting this environment require explicit approval before proceeding.</summary>
     public bool RequiresApproval { get; init; } = false;
 
+    /// <summary>Azure DevOps service connection name used for ARM deployments in this environment.</summary>
+    public string? AzureResourceManagerConnection { get; init; }
+
     /// <summary>Full replacement list of Azure tags for this environment.</summary>
     public IReadOnlyList<TagRequest> Tags { get; init; } = [];
 }

@@ -34,7 +34,9 @@ public record EnvironmentDefinitionReadModel(
     string ShortName,
     string Location,
     string Prefix,
-    string Suffix);
+    string Suffix,
+    string? AzureResourceManagerConnection,
+    string? SubscriptionId);
 
 /// <summary>
 /// Read model for the project-level naming context

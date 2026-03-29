@@ -17,4 +17,5 @@ public record ProjectEnvironmentDefinitionResult(
     Guid SubscriptionId,
     int Order,
     bool RequiresApproval,
+    string? AzureResourceManagerConnection,
     IReadOnlyList<TagResult> Tags);

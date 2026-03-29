@@ -266,6 +266,29 @@ export class ConfigDetailComponent implements OnInit {
 
   protected readonly isMultiRepo = computed(() => this.project()?.repositoryMode === 'MultiRepo');
 
+  // ─── Unified generation (multi-repo) ───
+  protected readonly generateAllLoading = computed(
+    () => this.bicepLoading() || this.pipelineLoading(),
+  );
+  protected readonly generationPanelOpen = computed(
+    () => this.bicepPanelOpen() || this.pipelinePanelOpen() || this.bicepLoading() || this.pipelineLoading(),
+  );
+
+  protected async generateAll(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.generateAllLoading()) return;
+
+    await Promise.all([
+      this.generateBicep(),
+      this.generatePipeline(),
+    ]);
+  }
+
+  protected closeGenerationPanel(): void {
+    this.closeBicepPanel();
+    this.closePipelinePanel();
+  }
+
   // ─── Git Config (multi-repo, config-level display) ───
   protected readonly gitTestLoading = signal(false);
   protected readonly gitTestResult = signal<TestGitConnectionResponse | null>(null);

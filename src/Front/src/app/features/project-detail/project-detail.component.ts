@@ -701,6 +701,10 @@ export class ProjectDetailComponent implements OnInit {
     () => this.projectBicepLoading() || this.projectPipelineLoading(),
   );
 
+  protected readonly projectGenerationPanelOpen = computed(
+    () => this.projectBicepPanelOpen() || this.projectPipelinePanelOpen() || this.projectBicepLoading() || this.projectPipelineLoading(),
+  );
+
   protected async generateAll(): Promise<void> {
     const projectId = this.project()?.id;
     if (!projectId || this.projectGenerateAllLoading()) return;
@@ -710,6 +714,11 @@ export class ProjectDetailComponent implements OnInit {
       this.generateProjectBicep(),
       this.generateProjectPipeline(),
     ]);
+  }
+
+  protected closeProjectGenerationPanel(): void {
+    this.closeProjectBicepPanel();
+    this.closeProjectPipelinePanel();
   }
 
   protected closeProjectBicepPanel(): void {

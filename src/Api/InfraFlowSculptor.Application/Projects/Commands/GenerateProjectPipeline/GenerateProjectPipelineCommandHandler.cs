@@ -119,6 +119,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
                 Location = e.Location,
                 Prefix = e.Prefix,
                 Suffix = e.Suffix,
+                AzureResourceManagerConnection = e.AzureResourceManagerConnection,
+                SubscriptionId = e.SubscriptionId,
             })
             .ToList();
 

@@ -26,7 +26,7 @@ public sealed class PipelineGenerationResult : IGenerationResult
             var files = new Dictionary<string, string>();
 
             if (!string.IsNullOrEmpty(MainPipelineYaml))
-                files["azure-pipelines.yml"] = MainPipelineYaml;
+                files["pipelines/ci.pipeline.yml"] = MainPipelineYaml;
 
             foreach (var (path, content) in TemplateFiles)
                 files[path] = content;

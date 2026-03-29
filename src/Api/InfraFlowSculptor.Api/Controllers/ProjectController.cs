@@ -257,6 +257,7 @@ public static class ProjectController
                             request.SubscriptionId,
                             request.Order,
                             request.RequiresApproval,
+                            request.AzureResourceManagerConnection,
                             request.Tags.Select(t => (t.Name, t.Value)).ToList()
                         );
                         var result = await mediator.Send(command);
@@ -293,6 +294,7 @@ public static class ProjectController
                             request.SubscriptionId,
                             request.Order,
                             request.RequiresApproval,
+                            request.AzureResourceManagerConnection,
                             request.Tags.Select(t => (t.Name, t.Value)).ToList()
                         );
                         var result = await mediator.Send(command);

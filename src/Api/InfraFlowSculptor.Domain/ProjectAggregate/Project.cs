@@ -145,6 +145,7 @@ public sealed class Project : AggregateRoot<ProjectId>
         env.SubscriptionId = data.SubscriptionId;
         env.Order = data.Order;
         env.RequiresApproval = data.RequiresApproval;
+        env.AzureResourceManagerConnection = data.AzureResourceManagerConnection;
         env.SetTags(data.Tags);
         return env;
     }

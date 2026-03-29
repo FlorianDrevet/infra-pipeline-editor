@@ -10,6 +10,7 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// <param name="SubscriptionId">Azure subscription where resources are created.</param>
 /// <param name="Order">Deployment ordering index (lower = deployed first).</param>
 /// <param name="RequiresApproval">Whether deployments to this environment require explicit approval.</param>
+/// <param name="AzureResourceManagerConnection">Azure DevOps service connection name for ARM deployments.</param>
 /// <param name="Tags">Azure resource tags applied to all resources in this environment.</param>
 public record EnvironmentDefinitionResponse(
     string Id,
@@ -22,6 +23,7 @@ public record EnvironmentDefinitionResponse(
     Guid SubscriptionId,
     int Order,
     bool RequiresApproval,
+    string? AzureResourceManagerConnection,
     IReadOnlyList<TagResponse> Tags);
 
 /// <summary>A key/value Azure resource tag.</summary>

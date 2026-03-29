@@ -77,178 +77,142 @@
             <p class="action-error">{{ configErrorKey() | translate }}</p>
           }
 
-          <!-- Project Bicep Panel (mono-repo) -->
-          @if (projectBicepPanelOpen()) {
-            <section class="bicep-panel" [class.bicep-panel--success]="projectBicepResult()" [class.bicep-panel--error]="projectBicepErrorKey()">
-              <div class="bicep-panel__header" (click)="projectBicepPanelCollapsed.set(!projectBicepPanelCollapsed())">
-                <div class="bicep-panel__title-row">
-                  <mat-icon class="bicep-panel__chevron" [class.bicep-panel__chevron--open]="!projectBicepPanelCollapsed()">chevron_right</mat-icon>
-                  <mat-icon class="bicep-panel__title-icon">
-                    @if (projectBicepLoading()) { hourglass_top }
-                    @else if (projectBicepResult()) { check_circle }
-                    @else { error_outline }
-                  </mat-icon>
-                  <h2 class="bicep-panel__title">
+          <!-- Project Generation Panel (mono-repo) — shown only after clicking Generate -->
+          @if (projectGenerationPanelOpen()) {
+            <section class="generation-panel">
+              <div class="generation-panel__header">
+                <h3 class="generation-panel__title">{{ 'PROJECT_DETAIL.GENERATION.TITLE' | translate }}</h3>
+                <button class="generation-panel__close" (click)="closeProjectGenerationPanel()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <mat-tab-group class="generation-tabs" animationDuration="200ms">
+                <!-- Bicep Tab -->
+                <mat-tab>
+                  <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">terminal</mat-icon>
+                    <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BICEP' | translate }}</span>
+                  </ng-template>
+                  <div class="generation-tab-content">
+                    <div class="generation-tab-content__toolbar">
+                      @if (projectBicepResult()) {
+                        <button class="bicep-download-btn" (click)="downloadProjectBicepFiles()" [disabled]="projectBicepDownloading()">
+                          @if (projectBicepDownloading()) {
+                            <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                          } @else {
+                            <mat-icon>download</mat-icon>
+                          }
+                          {{ (projectBicepDownloading() ? 'PROJECT_DETAIL.BICEP.DOWNLOADING' : 'PROJECT_DETAIL.BICEP.DOWNLOAD') | translate }}
+                        </button>
+                      }
+                    </div>
+
                     @if (projectBicepLoading()) {
-                      {{ 'PROJECT_DETAIL.BICEP.PANEL_GENERATING' | translate }}
-                    } @else if (projectBicepResult()) {
-                      {{ 'PROJECT_DETAIL.BICEP.PANEL_SUCCESS' | translate }}
-                    } @else {
-                      {{ 'PROJECT_DETAIL.BICEP.PANEL_ERROR' | translate }}
-                    }
-                  </h2>
-                </div>
-                <div class="bicep-panel__actions" (click)="$event.stopPropagation()">
-                  @if (projectBicepResult()) {
-                    <button class="bicep-download-btn" (click)="downloadProjectBicepFiles()" [disabled]="projectBicepDownloading()">
-                      @if (projectBicepDownloading()) {
-                        <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
-                      } @else {
-                        <mat-icon>download</mat-icon>
-                      }
-                      {{ (projectBicepDownloading() ? 'PROJECT_DETAIL.BICEP.DOWNLOADING' : 'PROJECT_DETAIL.BICEP.DOWNLOAD') | translate }}
-                    </button>
-                  }
-                  <button class="bicep-panel__close" (click)="closeProjectBicepPanel()" [matTooltip]="'PROJECT_DETAIL.BICEP.CLOSE' | translate">
-                    <mat-icon>close</mat-icon>
-                  </button>
-                </div>
-              </div>
-
-              @if (!projectBicepPanelCollapsed()) {
-                <div class="bicep-panel__body">
-
-                  @if (projectBicepLoading()) {
-                    <div class="bicep-panel__loading">
-                      <div class="bicep-terminal">
-                        <div class="bicep-terminal__bar">
-                          <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
-                          <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
-                          <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
-                          <span class="bicep-terminal__bar-title">bicep-generator</span>
-                        </div>
-                        <div class="bicep-terminal__body">
-                          <p class="bicep-terminal__line bicep-terminal__line--active">
-                            <span class="bicep-terminal__prompt">$</span>
-                            {{ 'PROJECT_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}
-                            <span class="bicep-terminal__cursor"></span>
-                          </p>
+                      <div class="bicep-panel__loading">
+                        <div class="bicep-terminal">
+                          <div class="bicep-terminal__bar">
+                            <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                            <span class="bicep-terminal__bar-title">bicep-generator</span>
+                          </div>
+                          <div class="bicep-terminal__body">
+                            <p class="bicep-terminal__line bicep-terminal__line--active">
+                              <span class="bicep-terminal__prompt">$</span>
+                              {{ 'PROJECT_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}
+                              <span class="bicep-terminal__cursor"></span>
+                            </p>
+                          </div>
                         </div>
                       </div>
+                    }
+
+                    @if (projectBicepErrorKey()) {
+                      <div class="bicep-panel__error-body">
+                        <p>{{ projectBicepErrorKey() | translate }}</p>
+                        <button class="bicep-retry-btn" (click)="generateProjectBicep()">
+                          <mat-icon>refresh</mat-icon>
+                          {{ 'PROJECT_DETAIL.BICEP.RETRY' | translate }}
+                        </button>
+                      </div>
+                    }
+
+                    @if (projectBicepNodes().length > 0) {
+                      <app-bicep-file-panel
+                        [nodes]="projectBicepNodes()"
+                        [barTitle]="'bicep-generator \u2014 ' + ('PROJECT_DETAIL.BICEP.ARTIFACTS' | translate)"
+                        [terminalDoneText]="'PROJECT_DETAIL.BICEP.TERMINAL_DONE' | translate"
+                        [fileLoadingText]="'PROJECT_DETAIL.BICEP.FILE_LOADING' | translate"
+                        [fileErrorText]="'PROJECT_DETAIL.BICEP.FILE_ERROR' | translate"
+                        [loadFile]="loadProjectBicepFile">
+                      </app-bicep-file-panel>
+                    }
+                  </div>
+                </mat-tab>
+
+                <!-- Pipeline Tab -->
+                <mat-tab>
+                  <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">account_tree</mat-icon>
+                    <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_PIPELINE' | translate }}</span>
+                  </ng-template>
+                  <div class="generation-tab-content">
+                    <div class="generation-tab-content__toolbar">
+                      @if (projectPipelineResult()) {
+                        <button class="bicep-download-btn" (click)="downloadProjectPipelineFiles()" [disabled]="projectPipelineDownloading()">
+                          @if (projectPipelineDownloading()) {
+                            <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                          } @else {
+                            <mat-icon>download</mat-icon>
+                          }
+                          {{ (projectPipelineDownloading() ? 'PROJECT_DETAIL.PIPELINE.DOWNLOADING' : 'PROJECT_DETAIL.PIPELINE.DOWNLOAD') | translate }}
+                        </button>
+                      }
                     </div>
-                  }
 
-                  @if (projectBicepErrorKey()) {
-                    <div class="bicep-panel__error-body">
-                      <p>{{ projectBicepErrorKey() | translate }}</p>
-                      <button class="bicep-retry-btn" (click)="generateProjectBicep()">
-                        <mat-icon>refresh</mat-icon>
-                        {{ 'PROJECT_DETAIL.BICEP.RETRY' | translate }}
-                      </button>
-                    </div>
-                  }
-
-                  @if (projectBicepNodes().length > 0) {
-                    <app-bicep-file-panel
-                      [nodes]="projectBicepNodes()"
-                      [barTitle]="'bicep-generator \u2014 ' + ('PROJECT_DETAIL.BICEP.ARTIFACTS' | translate)"
-                      [terminalDoneText]="'PROJECT_DETAIL.BICEP.TERMINAL_DONE' | translate"
-                      [fileLoadingText]="'PROJECT_DETAIL.BICEP.FILE_LOADING' | translate"
-                      [fileErrorText]="'PROJECT_DETAIL.BICEP.FILE_ERROR' | translate"
-                      [loadFile]="loadProjectBicepFile">
-                    </app-bicep-file-panel>
-                  }
-
-
-                </div>
-              }
-            </section>
-          }
-
-          <!-- Project Pipeline Panel (mono-repo) -->
-          @if (projectPipelinePanelOpen()) {
-            <section class="bicep-panel" [class.bicep-panel--success]="projectPipelineResult()" [class.bicep-panel--error]="projectPipelineErrorKey()">
-              <div class="bicep-panel__header" (click)="projectPipelinePanelCollapsed.set(!projectPipelinePanelCollapsed())">
-                <div class="bicep-panel__title-row">
-                  <mat-icon class="bicep-panel__chevron" [class.bicep-panel__chevron--open]="!projectPipelinePanelCollapsed()">chevron_right</mat-icon>
-                  <mat-icon class="bicep-panel__title-icon">
-                    @if (projectPipelineLoading()) { hourglass_top }
-                    @else if (projectPipelineResult()) { check_circle }
-                    @else { error_outline }
-                  </mat-icon>
-                  <h2 class="bicep-panel__title">
                     @if (projectPipelineLoading()) {
-                      {{ 'PROJECT_DETAIL.PIPELINE.PANEL_GENERATING' | translate }}
-                    } @else if (projectPipelineResult()) {
-                      {{ 'PROJECT_DETAIL.PIPELINE.PANEL_SUCCESS' | translate }}
-                    } @else {
-                      {{ 'PROJECT_DETAIL.PIPELINE.PANEL_ERROR' | translate }}
-                    }
-                  </h2>
-                </div>
-                <div class="bicep-panel__actions" (click)="$event.stopPropagation()">
-                  @if (projectPipelineResult()) {
-                    <button class="bicep-download-btn" (click)="downloadProjectPipelineFiles()" [disabled]="projectPipelineDownloading()">
-                      @if (projectPipelineDownloading()) {
-                        <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
-                      } @else {
-                        <mat-icon>download</mat-icon>
-                      }
-                      {{ (projectPipelineDownloading() ? 'PROJECT_DETAIL.PIPELINE.DOWNLOADING' : 'PROJECT_DETAIL.PIPELINE.DOWNLOAD') | translate }}
-                    </button>
-                  }
-                  <button class="bicep-panel__close" (click)="closeProjectPipelinePanel()" [matTooltip]="'PROJECT_DETAIL.PIPELINE.CLOSE' | translate">
-                    <mat-icon>close</mat-icon>
-                  </button>
-                </div>
-              </div>
-
-              @if (!projectPipelinePanelCollapsed()) {
-                <div class="bicep-panel__body">
-
-                  @if (projectPipelineLoading()) {
-                    <div class="bicep-panel__loading">
-                      <div class="bicep-terminal">
-                        <div class="bicep-terminal__bar">
-                          <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
-                          <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
-                          <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
-                          <span class="bicep-terminal__bar-title">pipeline-generator</span>
-                        </div>
-                        <div class="bicep-terminal__body">
-                          <p class="bicep-terminal__line bicep-terminal__line--active">
-                            <span class="bicep-terminal__prompt">$</span>
-                            {{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}
-                            <span class="bicep-terminal__cursor"></span>
-                          </p>
+                      <div class="bicep-panel__loading">
+                        <div class="bicep-terminal">
+                          <div class="bicep-terminal__bar">
+                            <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                            <span class="bicep-terminal__bar-title">pipeline-generator</span>
+                          </div>
+                          <div class="bicep-terminal__body">
+                            <p class="bicep-terminal__line bicep-terminal__line--active">
+                              <span class="bicep-terminal__prompt">$</span>
+                              {{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}
+                              <span class="bicep-terminal__cursor"></span>
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  }
+                    }
 
-                  @if (projectPipelineErrorKey()) {
-                    <div class="bicep-panel__error-body">
-                      <p>{{ projectPipelineErrorKey() | translate }}</p>
-                      <button class="bicep-retry-btn" (click)="generateProjectPipeline()">
-                        <mat-icon>refresh</mat-icon>
-                        {{ 'PROJECT_DETAIL.PIPELINE.RETRY' | translate }}
-                      </button>
-                    </div>
-                  }
+                    @if (projectPipelineErrorKey()) {
+                      <div class="bicep-panel__error-body">
+                        <p>{{ projectPipelineErrorKey() | translate }}</p>
+                        <button class="bicep-retry-btn" (click)="generateProjectPipeline()">
+                          <mat-icon>refresh</mat-icon>
+                          {{ 'PROJECT_DETAIL.PIPELINE.RETRY' | translate }}
+                        </button>
+                      </div>
+                    }
 
-                  @if (projectPipelineNodes().length > 0) {
-                    <app-bicep-file-panel
-                      [nodes]="projectPipelineNodes()"
-                      [barTitle]="'pipeline-generator \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
-                      [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
-                      [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
-                      [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
-                      [loadFile]="loadProjectPipelineFile">
-                    </app-bicep-file-panel>
-                  }
-
-                </div>
-              }
+                    @if (projectPipelineNodes().length > 0) {
+                      <app-bicep-file-panel
+                        [nodes]="projectPipelineNodes()"
+                        [barTitle]="'pipeline-generator \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
+                        [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
+                        [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
+                        [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
+                        [loadFile]="loadProjectPipelineFile">
+                      </app-bicep-file-panel>
+                    }
+                  </div>
+                </mat-tab>
+              </mat-tab-group>
             </section>
           }
 

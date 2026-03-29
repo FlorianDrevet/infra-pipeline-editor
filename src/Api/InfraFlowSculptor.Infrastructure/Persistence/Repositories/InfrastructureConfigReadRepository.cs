@@ -406,7 +406,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 e.ShortName.Value,
                 MapLocation(e.Location),
                 e.Prefix.Value,
-                e.Suffix.Value)).ToList();
+                e.Suffix.Value,
+                e.AzureResourceManagerConnection,
+                e.SubscriptionId.Value.ToString())).ToList();
     }
 
     /// <summary>

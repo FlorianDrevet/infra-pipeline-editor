@@ -47,6 +47,9 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
     /// <summary>Gets whether deployments to this environment require explicit approval.</summary>
     public RequiresApproval RequiresApproval { get; set; }
 
+    /// <summary>Gets the Azure DevOps service connection name used for ARM deployments in this environment.</summary>
+    public string? AzureResourceManagerConnection { get; set; }
+
     private readonly List<Tag> _tags = new();
 
     /// <summary>Gets the Azure resource tags for this environment.</summary>
@@ -76,6 +79,7 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
         SubscriptionId = data.SubscriptionId;
         Order = data.Order;
         RequiresApproval = data.RequiresApproval;
+        AzureResourceManagerConnection = data.AzureResourceManagerConnection;
         _tags.AddRange(data.Tags);
     }
 }

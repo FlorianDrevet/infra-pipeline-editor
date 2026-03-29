@@ -119,6 +119,9 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             env.Property(x => x.RequiresApproval)
                 .HasConversion(new SingleValueConverter<RequiresApproval, bool>());
 
+            env.Property(x => x.AzureResourceManagerConnection)
+                .HasMaxLength(256);
+
             env.OwnsMany(x => x.Tags, tag =>
             {
                 tag.ToTable("ProjectEnvironmentTags");

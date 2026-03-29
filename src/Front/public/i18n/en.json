@@ -515,8 +515,13 @@
       "FILE_ERROR": "Unable to load file content."
     },
     "GENERATION": {
+      "TITLE": "Generation Results",
       "TAB_BICEP": "Bicep",
       "TAB_PIPELINE": "Pipeline"
+    },
+    "GENERATE_ALL": {
+      "BUTTON": "Generate",
+      "GENERATING": "Generating..."
     },
     "PIPELINE": {
       "GENERATE": "Generate Pipeline",
@@ -606,7 +611,12 @@
       "ERROR": "Unable to change repository mode."
     },
     "GENERATE_ALL": {
-      "BUTTON": "Generate All"
+      "BUTTON": "Generate"
+    },
+    "GENERATION": {
+      "TITLE": "Generation Results",
+      "TAB_BICEP": "Bicep",
+      "TAB_PIPELINE": "Pipeline"
     },
     "BICEP": {
       "GENERATE": "Generate Bicep",
@@ -724,6 +734,8 @@
         "LOCATION": "Azure location",
         "TENANT_ID": "Tenant ID",
         "SUBSCRIPTION_ID": "Subscription ID",
+        "AZURE_RM_CONNECTION": "Azure Resource Manager Connection",
+        "AZURE_RM_CONNECTION_PLACEHOLDER": "Example: mySubscriptionServiceConnection",
         "SHORT_NAME": "Short name",
         "SHORT_NAME_PLACEHOLDER": "Example: dev, qa, prod",
         "PREFIX": "Prefix",
