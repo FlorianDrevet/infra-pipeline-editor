@@ -621,7 +621,13 @@
     "TAGS": {
       "TITLE": "Tags",
       "EDIT_TOOLTIP": "Modifier les tags",
+      "EDIT_BUTTON": "Modifier les tags",
+      "EDITING_TITLE": "Modification des tags",
+      "ADD": "Ajouter",
+      "REMOVE_TOOLTIP": "Supprimer ce tag",
+      "EDIT_HINT": "Ajoutez votre premier tag via le formulaire ci-dessus.",
       "EMPTY": "Aucun tag défini",
+      "EMPTY_HINT": "Les tags sont appliqués à toutes les ressources Azure générées. Cliquez sur Modifier pour ajouter votre premier tag.",
       "SAVE": "Enregistrer les tags",
       "CANCEL": "Annuler",
       "TAG_NAME": "Clé",

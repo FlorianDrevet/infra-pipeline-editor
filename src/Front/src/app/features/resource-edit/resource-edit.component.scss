@@ -223,24 +223,6 @@
   font-weight: 700;
 }
 
-.tab-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-left: 0.3rem;
-
-  &--soon {
-    background: rgba(255, 152, 0, 0.12);
-    color: #e65100;
-    border: 1px solid rgba(255, 152, 0, 0.2);
-  }
-}
-
 .tab-content {
   padding: 1.4rem;
 }
@@ -743,65 +725,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 1rem;
-}
-
-// ─── Coming Soon Panels ────
-
-.coming-soon-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 3.5rem 2rem;
-  text-align: center;
-
-  &__icon {
-    font-size: 3rem;
-    width: 3rem;
-    height: 3rem;
-    color: rgba(13, 101, 192, 0.18);
-  }
-
-  h3 {
-    margin: 0;
-    color: #103454;
-    font-size: 1.1rem;
-  }
-
-  p {
-    margin: 0;
-    color: #617892;
-    font-size: 0.88rem;
-    line-height: 1.55;
-    max-width: 35rem;
-  }
-
-  &__features {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.6rem;
-    margin-top: 0.75rem;
-  }
-}
-
-.feature-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.85rem;
-  border-radius: 999px;
-  background: rgba(255, 152, 0, 0.06);
-  border: 1px solid rgba(255, 152, 0, 0.15);
-  color: #e65100;
-  font-size: 0.78rem;
-  font-weight: 600;
-
-  mat-icon {
-    font-size: 0.95rem;
-    width: 0.95rem;
-    height: 0.95rem;
-  }
 }
 
 // ─── States ────

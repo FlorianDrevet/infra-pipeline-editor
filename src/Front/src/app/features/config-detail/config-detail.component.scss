@@ -406,66 +406,136 @@
   font-weight: 600;
 }
 
-// ─── Settings Section (Tags) ─────────────────────
+// ─── Tags Tab ─────────────────────
 
-.settings-section {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+.tags-view-list,
+.tags-edit-list {
+  display: grid;
+  gap: 0.55rem;
+}
 
-  &__title {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.75);
-    margin: 0;
+.tag-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.8rem 1.1rem;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #fff, #f6fbff);
+  border: 1px solid rgba(146, 191, 235, 0.18);
+  position: relative;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    border-color: rgba(21, 101, 192, 0.22);
+    box-shadow: 0 2px 8px rgba(21, 101, 192, 0.06);
+  }
+
+  &--readonly {
+    cursor: default;
+  }
+
+  &__indicator {
+    width: 4px;
+    height: 1.8rem;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #1565c0, #00bcd4);
+    flex-shrink: 0;
+  }
+
+  &__meta {
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.65rem;
+    min-width: 0;
+
+    strong {
+      color: #103454;
+      font-size: 0.88rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+  }
+
+  &__value {
+    color: #617892;
+    font-size: 0.84rem;
+    word-break: break-all;
   }
 }
 
-.settings-section__title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
+// ─── Tags Edit Card ────
 
-.tags-display {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  min-height: 2rem;
-  align-items: center;
-}
-
-.tags-empty {
-  font-size: 0.85rem;
-  color: rgba(0, 0, 0, 0.4);
-  font-style: italic;
-}
-
-.tags-editor {
+.tags-edit-card {
+  border-radius: 1.15rem;
+  background: rgba(0, 188, 212, 0.04);
+  border: 1px solid rgba(0, 188, 212, 0.18);
+  padding: 1.25rem 1.4rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
+  gap: 1rem;
 
-.tags-add-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 
-.tag-name-field {
-  width: 180px;
-}
+    mat-icon {
+      font-size: 1.15rem;
+      width: 1.15rem;
+      height: 1.15rem;
+      color: #00838f;
+    }
 
-.tag-value-field {
-  width: 220px;
-}
+    span {
+      color: #00838f;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+  }
 
-.tags-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
+  &__form {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  &__name {
+    flex: 1;
+    min-width: 160px;
+    max-width: 220px;
+  }
+
+  &__value {
+    flex: 1.4;
+    min-width: 180px;
+    max-width: 320px;
+  }
+
+  &__hint {
+    margin: 0;
+    color: #617892;
+    font-size: 0.84rem;
+    font-style: italic;
+  }
+
+  &__error {
+    margin: 0;
+    color: #c62828;
+    font-size: 0.84rem;
+    font-weight: 500;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+    padding-top: 0.35rem;
+    border-top: 1px solid rgba(0, 188, 212, 0.1);
+  }
 }
 
 // ─── Resource Groups ────

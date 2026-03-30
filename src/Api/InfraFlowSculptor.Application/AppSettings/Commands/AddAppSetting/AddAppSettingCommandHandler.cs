@@ -56,6 +56,43 @@ public sealed class AddAppSettingCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
+        // Variable group + Key Vault reference: pipeline variable stored as KV secret
+        if (request.VariableGroupId is not null && request.PipelineVariableName is not null
+            && request.KeyVaultResourceId is not null && request.SecretName is not null)
+        {
+            var infraConfig = authResult.Value;
+            var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
+                infraConfig.ProjectId, cancellationToken);
+
+            var variableGroupId = new ProjectPipelineVariableGroupId(request.VariableGroupId.Value);
+            var variableGroup = project?.PipelineVariableGroups
+                .FirstOrDefault(g => g.Id == variableGroupId);
+
+            if (variableGroup is null)
+                return Errors.Project.VariableGroupNotFoundError(variableGroupId);
+
+            var keyVaultResource = await azureResourceRepository.GetByIdAsync(
+                request.KeyVaultResourceId, cancellationToken);
+
+            if (keyVaultResource is null || keyVaultResource is not KeyVault)
+                return Errors.AppSetting.KeyVaultNotFound(request.KeyVaultResourceId);
+
+            var setting = resource.AddViaVariableGroupKeyVaultReferenceAppSetting(
+                request.Name,
+                variableGroupId,
+                request.PipelineVariableName,
+                request.KeyVaultResourceId,
+                request.SecretName,
+                request.SecretValueAssignment ?? SecretValueAssignment.DirectInKeyVault);
+
+            await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+
+            var hasAccess = await CheckKeyVaultAccessAsync(
+                request.ResourceId, request.KeyVaultResourceId, cancellationToken);
+
+            return ToResult(setting, hasAccess, variableGroup.GroupName);
+        }
+
         // Variable group reference: validate the group exists on the project
         if (request.VariableGroupId is not null && request.PipelineVariableName is not null)
         {

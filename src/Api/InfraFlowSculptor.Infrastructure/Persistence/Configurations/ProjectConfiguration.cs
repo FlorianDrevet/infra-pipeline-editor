@@ -154,6 +154,8 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
                 tag.Property(t => t.Name).HasMaxLength(100);
                 tag.Property(t => t.Value).HasMaxLength(500);
             });
+
+            env.Navigation(x => x.Tags).HasField("_tags").UsePropertyAccessMode(PropertyAccessMode.Field);
         });
     }
 }

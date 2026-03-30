@@ -149,6 +149,11 @@ export class AddAppSettingDialogComponent {
     const name = this.settingName().trim();
     if (!name || this.isSubmitting()) return false;
     if (this.mode() === 'static') {
+      if (this.isViaVariableGroup() && this.isSecret()) {
+        const hasVg = this.isCreatingNewGroup() ? this.newGroupName().trim().length > 0 : !!this.selectedVariableGroupId();
+        return hasVg && this.pipelineVariableName().trim().length > 0
+          && !!this.selectedKeyVault() && !!this.secretName().trim() && !!this.secretAssignmentMode();
+      }
       if (this.isViaVariableGroup()) {
         const hasVg = this.isCreatingNewGroup() ? this.newGroupName().trim().length > 0 : !!this.selectedVariableGroupId();
         return hasVg && this.pipelineVariableName().trim().length > 0;
@@ -410,7 +415,16 @@ export class AddAppSettingDialogComponent {
 
       let request;
       if (this.mode() === 'static') {
-        if (this.isViaVariableGroup()) {
+        if (this.isViaVariableGroup() && this.isSecret()) {
+          request = {
+            name,
+            variableGroupId: variableGroupId ?? undefined,
+            pipelineVariableName: this.pipelineVariableName().trim(),
+            keyVaultResourceId: this.selectedKeyVault()!.id,
+            secretName: this.secretName().trim(),
+            secretValueAssignment: this.secretAssignmentMode(),
+          };
+        } else if (this.isViaVariableGroup()) {
           request = {
             name,
             variableGroupId: variableGroupId ?? undefined,

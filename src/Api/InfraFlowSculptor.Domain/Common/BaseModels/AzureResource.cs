@@ -200,6 +200,30 @@ public class AzureResource : AggregateRoot<AzureResourceId>
         return setting;
     }
 
+    /// <summary>
+    /// Adds an app setting whose value comes from a pipeline variable group
+    /// and is stored as a Key Vault secret referenced by the app setting.
+    /// </summary>
+    /// <param name="name">The environment variable name.</param>
+    /// <param name="variableGroupId">The pipeline variable group identifier.</param>
+    /// <param name="pipelineVariableName">The pipeline variable name within the group.</param>
+    /// <param name="keyVaultResourceId">The Key Vault resource identifier.</param>
+    /// <param name="secretName">The secret name in the Key Vault.</param>
+    /// <param name="assignment">Determines how the secret value is assigned.</param>
+    public AppSetting AddViaVariableGroupKeyVaultReferenceAppSetting(
+        string name,
+        ProjectPipelineVariableGroupId variableGroupId,
+        string pipelineVariableName,
+        AzureResourceId keyVaultResourceId,
+        string secretName,
+        SecretValueAssignment assignment)
+    {
+        var setting = AppSetting.CreateViaVariableGroupKeyVaultReference(
+            Id, name, variableGroupId, pipelineVariableName, keyVaultResourceId, secretName, assignment);
+        _appSettings.Add(setting);
+        return setting;
+    }
+
     /// <summary>Removes an app setting by its identifier.</summary>
     /// <summary>Removes an app setting by its identifier. No-op if not found.</summary>
     public void RemoveAppSetting(AppSettingId appSettingId)

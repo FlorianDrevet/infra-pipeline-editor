@@ -672,60 +672,101 @@
           <span class="tab-count">{{ configTags().length }}</span>
         </ng-template>
         <div class="tab-content">
-          <div class="settings-section__title-row">
-            <h3 class="settings-section__title">{{ 'CONFIG_DETAIL.TAGS.TITLE' | translate }}</h3>
-            @if (!isEditingConfigTags() && canWrite()) {
-              <button mat-icon-button (click)="startEditConfigTags()" [matTooltip]="'CONFIG_DETAIL.TAGS.EDIT_TOOLTIP' | translate">
+
+          <!-- Toolbar -->
+          <div class="tab-content__toolbar">
+            @if (canWrite() && !isEditingConfigTags()) {
+              <button class="template-action-btn template-action-btn--add" (click)="startEditConfigTags()">
                 <mat-icon>edit</mat-icon>
+                {{ 'CONFIG_DETAIL.TAGS.EDIT_BUTTON' | translate }}
               </button>
             }
           </div>
 
-          @if (!isEditingConfigTags()) {
-            <div class="tags-display">
-              @if (configTags().length === 0) {
-                <span class="tags-empty">{{ 'CONFIG_DETAIL.TAGS.EMPTY' | translate }}</span>
-              } @else {
-                <mat-chip-set>
-                  @for (tag of configTags(); track tag.name) {
-                    <mat-chip>{{ tag.name }}{{ tag.value ? ': ' + tag.value : '' }}</mat-chip>
+          @if (isEditingConfigTags()) {
+            <!-- Edit mode -->
+            <div class="tags-edit-card">
+              <div class="tags-edit-card__header">
+                <mat-icon class="tags-edit-card__icon">label_important</mat-icon>
+                <span>{{ 'CONFIG_DETAIL.TAGS.EDITING_TITLE' | translate }}</span>
+              </div>
+
+              <div class="tags-edit-card__form">
+                <mat-form-field class="tags-edit-card__name" appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>{{ 'CONFIG_DETAIL.TAGS.TAG_NAME' | translate }}</mat-label>
+                  <input matInput [formControl]="configTagNameCtrl"
+                    (keydown.enter)="addConfigTag(); $event.preventDefault()" />
+                </mat-form-field>
+                <mat-form-field class="tags-edit-card__value" appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>{{ 'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate }}</mat-label>
+                  <input matInput [formControl]="configTagValueCtrl"
+                    (keydown.enter)="addConfigTag(); $event.preventDefault()" />
+                </mat-form-field>
+                <button class="template-action-btn template-action-btn--add" (click)="addConfigTag()"
+                  [disabled]="!configTagNameCtrl.value.trim()">
+                  <mat-icon>add</mat-icon>
+                  {{ 'CONFIG_DETAIL.TAGS.ADD' | translate }}
+                </button>
+              </div>
+
+              @if (editingConfigTags().length > 0) {
+                <div class="tags-edit-list">
+                  @for (tag of editingConfigTags(); track tag.name) {
+                    <article class="tag-row">
+                      <div class="tag-row__meta">
+                        <strong>{{ tag.name }}</strong>
+                        <span class="tag-row__value">{{ tag.value || '—' }}</span>
+                      </div>
+                      <button class="template-action-btn template-action-btn--delete"
+                        [matTooltip]="'CONFIG_DETAIL.TAGS.REMOVE_TOOLTIP' | translate"
+                        (click)="removeConfigTag(tag.name)">
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
+                    </article>
                   }
-                </mat-chip-set>
+                </div>
+              } @else {
+                <p class="tags-edit-card__hint">{{ 'CONFIG_DETAIL.TAGS.EDIT_HINT' | translate }}</p>
               }
+
+              @if (configTagsErrorKey()) {
+                <p class="tags-edit-card__error">{{ configTagsErrorKey() | translate }}</p>
+              }
+
+              <div class="tags-edit-card__actions">
+                <button mat-stroked-button (click)="cancelConfigTagsEdit()">
+                  {{ 'CONFIG_DETAIL.TAGS.CANCEL' | translate }}
+                </button>
+                <button mat-flat-button color="primary" (click)="saveConfigTags()" [disabled]="configTagsSaving()">
+                  @if (configTagsSaving()) {
+                    <mat-spinner diameter="18"></mat-spinner>
+                  } @else {
+                    {{ 'CONFIG_DETAIL.TAGS.SAVE' | translate }}
+                  }
+                </button>
+              </div>
             </div>
           } @else {
-            <div class="tags-editor">
-              <div class="tags-add-row">
-                <mat-form-field class="tag-name-field" appearance="outline" subscriptSizing="dynamic">
-                  <mat-label>{{ 'CONFIG_DETAIL.TAGS.TAG_NAME' | translate }}</mat-label>
-                  <input matInput [formControl]="configTagNameCtrl" />
-                </mat-form-field>
-                <mat-form-field class="tag-value-field" appearance="outline" subscriptSizing="dynamic">
-                  <mat-label>{{ 'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate }}</mat-label>
-                  <input matInput [formControl]="configTagValueCtrl" />
-                </mat-form-field>
-                <button mat-icon-button (click)="addConfigTag()" [disabled]="!configTagNameCtrl.value.trim()">
-                  <mat-icon>add</mat-icon>
-                </button>
-              </div>
-              <mat-chip-set>
-                @for (tag of editingConfigTags(); track tag.name) {
-                  <mat-chip (removed)="removeConfigTag(tag.name)">
-                    {{ tag.name }}{{ tag.value ? ': ' + tag.value : '' }}
-                    <button matChipRemove><mat-icon>cancel</mat-icon></button>
-                  </mat-chip>
+            <!-- View mode -->
+            @if (configTags().length > 0) {
+              <div class="tags-view-list">
+                @for (tag of configTags(); track tag.name) {
+                  <article class="tag-row tag-row--readonly">
+                    <div class="tag-row__indicator"></div>
+                    <div class="tag-row__meta">
+                      <strong>{{ tag.name }}</strong>
+                      <span class="tag-row__value">{{ tag.value }}</span>
+                    </div>
+                  </article>
                 }
-              </mat-chip-set>
-              @if (configTagsErrorKey()) {
-                <p class="rg-error">{{ configTagsErrorKey() | translate }}</p>
-              }
-              <div class="tags-actions">
-                <button mat-stroked-button (click)="cancelConfigTagsEdit()">{{ 'CONFIG_DETAIL.TAGS.CANCEL' | translate }}</button>
-                <button mat-raised-button color="primary" (click)="saveConfigTags()" [disabled]="configTagsSaving()">
-                  @if (configTagsSaving()) { <mat-spinner diameter="18" /> } @else { {{ 'CONFIG_DETAIL.TAGS.SAVE' | translate }} }
-                </button>
               </div>
-            </div>
+            } @else {
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">label_important</mat-icon>
+                <p>{{ 'CONFIG_DETAIL.TAGS.EMPTY' | translate }}</p>
+                <p class="empty-state__hint">{{ 'CONFIG_DETAIL.TAGS.EMPTY_HINT' | translate }}</p>
+              </div>
+            }
           }
         </div>
       </mat-tab>

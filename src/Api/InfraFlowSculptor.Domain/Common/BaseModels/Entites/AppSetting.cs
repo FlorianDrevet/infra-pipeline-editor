@@ -175,6 +175,37 @@ public sealed class AppSetting : Entity<AppSettingId>
             PipelineVariableName = pipelineVariableName,
         };
 
+    /// <summary>
+    /// Creates a new <see cref="AppSetting"/> whose value comes from a pipeline variable group
+    /// and is stored as a Key Vault secret referenced by the app setting.
+    /// </summary>
+    /// <param name="resourceId">The owning resource identifier.</param>
+    /// <param name="name">The environment variable name.</param>
+    /// <param name="variableGroupId">The pipeline variable group identifier.</param>
+    /// <param name="pipelineVariableName">The pipeline variable name within the group.</param>
+    /// <param name="keyVaultResourceId">The Key Vault resource identifier.</param>
+    /// <param name="secretName">The secret name in the Key Vault.</param>
+    /// <param name="assignment">Determines how the secret value is assigned.</param>
+    internal static AppSetting CreateViaVariableGroupKeyVaultReference(
+        AzureResourceId resourceId,
+        string name,
+        ProjectPipelineVariableGroupId variableGroupId,
+        string pipelineVariableName,
+        AzureResourceId keyVaultResourceId,
+        string secretName,
+        SecretValueAssignment assignment)
+        => new()
+        {
+            Id = AppSettingId.CreateUnique(),
+            ResourceId = resourceId,
+            Name = name,
+            VariableGroupId = variableGroupId,
+            PipelineVariableName = pipelineVariableName,
+            KeyVaultResourceId = keyVaultResourceId,
+            SecretName = secretName,
+            SecretValueAssignment = assignment,
+        };
+
     /// <summary>Updates this app setting to static per-environment values.</summary>
     /// <param name="name">The new environment variable name.</param>
     /// <param name="environmentValues">A dictionary of environment name → value.</param>

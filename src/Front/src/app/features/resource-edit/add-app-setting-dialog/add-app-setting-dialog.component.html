@@ -110,8 +110,8 @@
         </div>
       }
 
-      <!-- Secret flow: KV selection + assignment mode + secret name (only when secret without VG) -->
-      @if (isSecret() && !isViaVariableGroup()) {
+      <!-- Secret flow: KV selection + assignment mode + secret name -->
+      @if (isSecret()) {
         <div class="secret-kv-section">
           <h4 class="sensitive-kv-config__title">
             <mat-icon>vpn_key</mat-icon>

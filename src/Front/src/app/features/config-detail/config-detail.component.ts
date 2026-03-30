@@ -1512,8 +1512,8 @@ export class ConfigDetailComponent implements OnInit {
     this.configTagsSaving.set(true);
     this.configTagsErrorKey.set('');
     try {
-      const updated = await this.infraConfigService.setTags(configId, { tags: this.editingConfigTags() });
-      this.config.set(updated);
+      await this.infraConfigService.setTags(configId, { tags: this.editingConfigTags() });
+      this.config.update(c => c ? { ...c, tags: this.editingConfigTags() } : c);
       this.isEditingConfigTags.set(false);
       this.editingConfigTags.set([]);
     } catch {

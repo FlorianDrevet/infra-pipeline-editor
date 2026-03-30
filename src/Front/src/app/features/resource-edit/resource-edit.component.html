@@ -1928,27 +1928,6 @@
             }
           </div>
         </mat-tab>
-      } @else {
-        <!-- App Configuration Tab (placeholder for non-compute resources) -->
-        <mat-tab [disabled]="true">
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">tune</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.APP_CONFIG' | translate }}</span>
-            <span class="tab-badge tab-badge--soon">{{ 'RESOURCE_EDIT.TABS.COMING_SOON' | translate }}</span>
-          </ng-template>
-          <div class="tab-content">
-            <div class="coming-soon-panel">
-              <mat-icon class="coming-soon-panel__icon">settings_applications</mat-icon>
-              <h3>{{ 'RESOURCE_EDIT.COMING_SOON.CONFIG_TITLE' | translate }}</h3>
-              <p>{{ 'RESOURCE_EDIT.COMING_SOON.CONFIG_DESC' | translate }}</p>
-              <div class="coming-soon-panel__features">
-                <span class="feature-chip"><mat-icon>data_object</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.ENV_VARS' | translate }}</span>
-                <span class="feature-chip"><mat-icon>vpn_key</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.SECRETS' | translate }}</span>
-                <span class="feature-chip"><mat-icon>swap_horiz</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.PER_ENV_OVERRIDE' | translate }}</span>
-              </div>
-            </div>
-          </div>
-        </mat-tab>
       }
     </mat-tab-group>
 
