@@ -50,6 +50,7 @@ export interface InfrastructureConfigResponse {
   resourceGroupCount: number;
   resourceCount: number;
   crossConfigReferenceCount: number;
+  tags: TagResponse[];
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -62,6 +63,10 @@ export interface CreateInfrastructureConfigRequest {
 export interface TagRequest {
   name: string;
   value: string;
+}
+
+export interface SetInfraConfigTagsRequest {
+  tags: TagRequest[];
 }
 
 export interface AddMemberRequest {

@@ -19,6 +19,7 @@ import {
   GenerateProjectPipelineResponse,
   ProjectPipelineVariableGroupResponse,
   AddProjectPipelineVariableGroupRequest,
+  SetProjectTagsRequest,
 } from '../interfaces/project.interface';
 import {
   PushBicepToGitRequest,
@@ -311,6 +312,16 @@ export class ProjectService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/projects/${projectId}/pipeline-variable-groups/${groupId}`
+    );
+  }
+
+  // ─── Tags ───
+
+  setTags(projectId: string, request: SetProjectTagsRequest): Promise<ProjectResponse> {
+    return this.axios.request$<ProjectResponse>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/tags`,
+      request
     );
   }
 }

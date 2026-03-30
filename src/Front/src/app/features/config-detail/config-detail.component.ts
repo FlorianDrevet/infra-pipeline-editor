@@ -15,6 +15,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import {
   InfrastructureConfigResponse,
   ResourceNamingTemplateResponse,
+  SetInfraConfigTagsRequest,
+  TagRequest,
 } from '../../shared/interfaces/infra-config.interface';
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
@@ -56,7 +58,8 @@ import { AuthenticationService } from '../../shared/services/authentication.serv
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { ProjectResponse, TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS, PARENT_CHILD_RESOURCE_TYPES, CHILD_RESOURCE_TYPES } from './enums/resource-type.enum';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import { StorageAccountResponse } from '../../shared/interfaces/storage-account.interface';
@@ -86,7 +89,9 @@ interface ResourceDisplayItem {
     TranslateModule,
     RouterLink,
     FormsModule,
+    ReactiveFormsModule,
     MatButtonModule,
+    MatChipsModule,
     MatDialogModule,
     MatExpansionModule,
     MatFormFieldModule,

@@ -643,6 +643,77 @@
           <span>{{ 'PROJECT_DETAIL.TABS.SETTINGS' | translate }}</span>
         </ng-template>
         <div class="tab-content">
+          <!-- Tags Section -->
+          <section class="settings-section">
+            <div class="settings-section__title-row">
+              <h3 class="settings-section__title">
+                <mat-icon class="settings-section__title-icon">label</mat-icon>
+                {{ 'PROJECT_DETAIL.TAGS.TITLE' | translate }}
+              </h3>
+              @if (canWrite() && !isEditingProjectTags()) {
+                <button class="template-action-btn template-action-btn--inline" (click)="startEditProjectTags()">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              }
+            </div>
+
+            @if (!isEditingProjectTags()) {
+              @if (projectTags().length > 0) {
+                <div class="tags-display">
+                  @for (tag of projectTags(); track tag.name) {
+                    <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
+                  }
+                </div>
+              } @else {
+                <p class="tags-empty">{{ 'PROJECT_DETAIL.TAGS.EMPTY' | translate }}</p>
+              }
+            } @else {
+              <div class="tags-editor">
+                <div class="tags-add-row">
+                  <mat-form-field appearance="outline" class="tag-name-field">
+                    <mat-label>{{ 'PROJECT_DETAIL.TAGS.TAG_NAME' | translate }}</mat-label>
+                    <input matInput [formControl]="tagNameCtrl" (keydown.enter)="addProjectTag()" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="tag-value-field">
+                    <mat-label>{{ 'PROJECT_DETAIL.TAGS.TAG_VALUE' | translate }}</mat-label>
+                    <input matInput [formControl]="tagValueCtrl" (keydown.enter)="addProjectTag()" />
+                  </mat-form-field>
+                  <button type="button" mat-icon-button (click)="addProjectTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+
+                @if (editingTags().length > 0) {
+                  <mat-chip-set>
+                    @for (tag of editingTags(); track tag.name) {
+                      <mat-chip (removed)="removeProjectTag(tag.name)">
+                        <span>{{ tag.name }}: {{ tag.value }}</span>
+                        <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                      </mat-chip>
+                    }
+                  </mat-chip-set>
+                }
+
+                @if (tagsErrorKey()) {
+                  <p class="action-error">{{ tagsErrorKey() | translate }}</p>
+                }
+
+                <div class="tags-actions">
+                  <button mat-stroked-button type="button" (click)="cancelProjectTagsEdit()" [disabled]="tagsSaving()">
+                    {{ 'PROJECT_DETAIL.TAGS.CANCEL' | translate }}
+                  </button>
+                  <button mat-flat-button color="primary" type="button" (click)="saveProjectTags()" [disabled]="tagsSaving()">
+                    @if (tagsSaving()) {
+                      <mat-spinner diameter="16"></mat-spinner>
+                    } @else {
+                      {{ 'PROJECT_DETAIL.TAGS.SAVE' | translate }}
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+          </section>
+
           <!-- Repository Mode Section -->
           <section class="settings-section">
             <h3 class="settings-section__title">

@@ -26,6 +26,7 @@ using InfraFlowSculptor.Domain.CosmosDbAggregate.Entities;
 using InfraFlowSculptor.Domain.SqlServerAggregate.Entities;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
@@ -256,6 +257,12 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
             Context.Set<ServiceBusNamespaceEnvironmentSettings>()
                 .Where(es => resourceIdsQuery.Contains(es.ServiceBusNamespaceId))
                 .Select(es => new ResourceEnvironmentEntry(es.ServiceBusNamespaceId.Value, es.EnvironmentName)),
+            result, cancellationToken);
+
+        await CollectEnvNamesAsync(
+            Context.Set<ContainerRegistryEnvironmentSettings>()
+                .Where(es => resourceIdsQuery.Contains(es.ContainerRegistryId))
+                .Select(es => new ResourceEnvironmentEntry(es.ContainerRegistryId.Value, es.EnvironmentName)),
             result, cancellationToken);
 
         return result;

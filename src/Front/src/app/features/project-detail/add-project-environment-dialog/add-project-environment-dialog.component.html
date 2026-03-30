@@ -81,6 +81,34 @@
       }
     </div>
 
+    <!-- Tags -->
+    <div class="tags-section">
+      <p class="tags-section__label">{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAGS' | translate }}</p>
+      <div class="tags-add-row">
+        <mat-form-field appearance="outline" class="tag-name-field">
+          <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAG_NAME' | translate }}</mat-label>
+          <input matInput [formControl]="tagNameCtrl" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="tag-value-field">
+          <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAG_VALUE' | translate }}</mat-label>
+          <input matInput [formControl]="tagValueCtrl" />
+        </mat-form-field>
+        <button type="button" mat-icon-button (click)="addTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+      @if (localTags().length > 0) {
+        <mat-chip-set>
+          @for (tag of localTags(); track tag.name) {
+            <mat-chip (removed)="removeTag(tag.name)">
+              <span>{{ tag.name }}: {{ tag.value }}</span>
+              <button matChipRemove><mat-icon>cancel</mat-icon></button>
+            </mat-chip>
+          }
+        </mat-chip-set>
+      }
+    </div>
+
     <mat-slide-toggle formControlName="requiresApproval" color="primary">
       {{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.REQUIRES_APPROVAL' | translate }}
     </mat-slide-toggle>

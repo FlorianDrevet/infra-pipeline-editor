@@ -77,6 +77,9 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .WithOne()
             .HasForeignKey(x => x.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(x => x.PipelineVariableGroups)
+            .HasField("_projectPipelineVariableGroups")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         // ========================
         // RepositoryMode

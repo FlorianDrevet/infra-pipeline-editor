@@ -6,6 +6,7 @@ import {
   CreateInfrastructureConfigRequest,
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
+  SetInfraConfigTagsRequest,
 } from '../interfaces/infra-config.interface';
 import { ResourceGroupResponse } from '../interfaces/resource-group.interface';
 import {
@@ -130,6 +131,16 @@ export class InfraConfigService {
     return this.axios.request$<IncomingCrossConfigReferenceResponse[]>(
       MethodEnum.GET,
       `/infra-config/${configId}/incoming-cross-config-references`
+    );
+  }
+
+  // ─── Tags ───
+
+  setTags(id: string, request: SetInfraConfigTagsRequest): Promise<InfrastructureConfigResponse> {
+    return this.axios.request$<InfrastructureConfigResponse>(
+      MethodEnum.PUT,
+      `/infra-config/${id}/tags`,
+      request
     );
   }
 

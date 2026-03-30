@@ -13,11 +13,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
-import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse, ProjectPipelineVariableGroupResponse, SetProjectTagsRequest } from '../../shared/interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
   EnvironmentDefinitionResponse,
   ResourceNamingTemplateResponse,
+  TagRequest,
 } from '../../shared/interfaces/infra-config.interface';
 import { UserResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../shared/services/project.service';
@@ -45,7 +46,8 @@ import { RESOURCE_TYPE_OPTIONS } from '../config-detail/enums/resource-type.enum
 import { TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
 import { AddVariableGroupDialogComponent } from '../config-detail/add-variable-group-dialog/add-variable-group-dialog.component';
 import { saveAs } from 'file-saver';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatChipsModule } from '@angular/material/chips';
 import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepFileType, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
@@ -59,9 +61,11 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     TranslateModule,
     RouterLink,
     FormsModule,
+    ReactiveFormsModule,
     BicepFilePanelComponent,
     MatButtonModule,
     MatButtonToggleModule,
+    MatChipsModule,
     MatDialogModule,
     MatExpansionModule,
     MatFormFieldModule,
@@ -110,6 +114,16 @@ export class ProjectDetailComponent implements OnInit {
   // ─── Repository Mode ───
   protected readonly repoModeSaving = signal(false);
   protected readonly repoModeError = signal('');
+
+  // ─── Project Tags ───
+  protected readonly isEditingProjectTags = signal(false);
+  protected readonly editingTags = signal<TagRequest[]>([]);
+  protected readonly tagsErrorKey = signal('');
+  protected readonly tagsSaving = signal(false);
+  protected readonly tagNameCtrl = new FormControl('', { nonNullable: true });
+  protected readonly tagValueCtrl = new FormControl('', { nonNullable: true });
+
+  protected readonly projectTags = computed(() => this.project()?.tags ?? []);
 
   protected readonly isMonoRepo = computed(() => this.project()?.repositoryMode === 'MonoRepo');
 
@@ -720,6 +734,53 @@ export class ProjectDetailComponent implements OnInit {
       this.repoModeError.set('PROJECT_DETAIL.REPO_MODE.ERROR');
     } finally {
       this.repoModeSaving.set(false);
+    }
+  }
+
+  // ─── Project Tags ───
+
+  protected startEditProjectTags(): void {
+    this.editingTags.set(this.projectTags().map(t => ({ name: t.name, value: t.value })));
+    this.tagNameCtrl.reset();
+    this.tagValueCtrl.reset();
+    this.tagsErrorKey.set('');
+    this.isEditingProjectTags.set(true);
+  }
+
+  protected addProjectTag(): void {
+    const name = this.tagNameCtrl.value.trim();
+    const value = this.tagValueCtrl.value.trim();
+    if (!name || !value) return;
+    if (this.editingTags().some(t => t.name === name)) return;
+    this.editingTags.update(tags => [...tags, { name, value }]);
+    this.tagNameCtrl.reset();
+    this.tagValueCtrl.reset();
+  }
+
+  protected removeProjectTag(name: string): void {
+    this.editingTags.update(tags => tags.filter(t => t.name !== name));
+  }
+
+  protected cancelProjectTagsEdit(): void {
+    this.isEditingProjectTags.set(false);
+    this.tagsErrorKey.set('');
+  }
+
+  protected async saveProjectTags(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId) return;
+
+    this.tagsSaving.set(true);
+    this.tagsErrorKey.set('');
+
+    try {
+      const updated = await this.projectService.setTags(projectId, { tags: this.editingTags() });
+      this.project.set(updated);
+      this.isEditingProjectTags.set(false);
+    } catch {
+      this.tagsErrorKey.set('PROJECT_DETAIL.TAGS.SAVE_ERROR');
+    } finally {
+      this.tagsSaving.set(false);
     }
   }
 

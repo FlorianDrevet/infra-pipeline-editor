@@ -2,6 +2,7 @@ import {
   EnvironmentDefinitionResponse,
   ResourceNamingTemplateResponse,
   TagRequest,
+  TagResponse,
 } from './infra-config.interface';
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -25,6 +26,7 @@ export interface ProjectResponse {
   defaultNamingTemplate: string | null;
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
   gitRepositoryConfiguration?: GitConfigResponse | null;
+  tags: TagResponse[];
 }
 
 export interface RecentItemResponse {
@@ -44,6 +46,10 @@ export interface CreateProjectRequest {
   name: string;
   description?: string;
   repositoryMode?: string;
+}
+
+export interface SetProjectTagsRequest {
+  tags: TagRequest[];
 }
 
 export interface AddProjectMemberRequest {
