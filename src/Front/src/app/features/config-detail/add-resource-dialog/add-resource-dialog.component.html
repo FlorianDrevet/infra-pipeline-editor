@@ -194,21 +194,54 @@
               </button>
             }
           </div>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
-              <mat-select formControlName="runtimeStack">
-                @for (option of runtimeStackOptions; track option.value) {
-                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label class="form-field__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE' | translate }}</label>
+            <mat-button-toggle-group
+              [value]="deploymentMode()"
+              (change)="onDeploymentModeChange($event.value)">
+              <mat-button-toggle value="Code">
+                <mat-icon>code</mat-icon>
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE_CODE' | translate }}
+              </mat-button-toggle>
+              <mat-button-toggle value="Container">
+                <mat-icon>inventory_2</mat-icon>
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE_CONTAINER' | translate }}
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+          @if (!isContainerMode()) {
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
+                <mat-select formControlName="runtimeStack">
+                  @for (option of runtimeStackOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
+                <input matInput formControlName="runtimeVersion"
+                  [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION_PLACEHOLDER' | translate" />
+              </mat-form-field>
+            </div>
+          }
+          @if (isContainerMode()) {
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CONTAINER_REGISTRY' | translate }}</mat-label>
+              <mat-select formControlName="containerRegistryId">
+                <mat-option [value]="null">{{ 'CONFIG_DETAIL.RESOURCES.FORM.ACR_NONE' | translate }}</mat-option>
+                @for (acr of availableContainerRegistries(); track acr.id) {
+                  <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
                 }
               </mat-select>
             </mat-form-field>
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
-              <input matInput formControlName="runtimeVersion"
-                [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION_PLACEHOLDER' | translate" />
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.DOCKER_IMAGE_NAME' | translate }}</mat-label>
+              <input matInput formControlName="dockerImageName"
+                [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
             </mat-form-field>
-          </div>
+          }
           <mat-slide-toggle formControlName="alwaysOn" color="primary">
             {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALWAYS_ON' | translate }}
           </mat-slide-toggle>
@@ -230,21 +263,54 @@
               </button>
             }
           </div>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
-              <mat-select formControlName="runtimeStack">
-                @for (option of functionAppRuntimeStackOptions; track option.value) {
-                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label class="form-field__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE' | translate }}</label>
+            <mat-button-toggle-group
+              [value]="deploymentMode()"
+              (change)="onDeploymentModeChange($event.value)">
+              <mat-button-toggle value="Code">
+                <mat-icon>code</mat-icon>
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE_CODE' | translate }}
+              </mat-button-toggle>
+              <mat-button-toggle value="Container">
+                <mat-icon>inventory_2</mat-icon>
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE_CONTAINER' | translate }}
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+          @if (!isContainerMode()) {
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
+                <mat-select formControlName="runtimeStack">
+                  @for (option of functionAppRuntimeStackOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
+                <input matInput formControlName="runtimeVersion"
+                  [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION_PLACEHOLDER' | translate" />
+              </mat-form-field>
+            </div>
+          }
+          @if (isContainerMode()) {
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CONTAINER_REGISTRY' | translate }}</mat-label>
+              <mat-select formControlName="containerRegistryId">
+                <mat-option [value]="null">{{ 'CONFIG_DETAIL.RESOURCES.FORM.ACR_NONE' | translate }}</mat-option>
+                @for (acr of availableContainerRegistries(); track acr.id) {
+                  <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
                 }
               </mat-select>
             </mat-form-field>
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
-              <input matInput formControlName="runtimeVersion"
-                [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION_PLACEHOLDER' | translate" />
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.DOCKER_IMAGE_NAME' | translate }}</mat-label>
+              <input matInput formControlName="dockerImageName"
+                [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
             </mat-form-field>
-          </div>
+          }
           <mat-slide-toggle formControlName="httpsOnly" color="primary">
             {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
           </mat-slide-toggle>

@@ -379,6 +379,21 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.allResources().filter(r => r.resourceType === 'UserAssignedIdentity')
   );
 
+  /** The currently assigned UAI (first group), or null if none */
+  protected readonly assignedUai = computed(() => {
+    const groups = this.groupedRoleAssignments().uaiGroups;
+    if (groups.length === 0) return null;
+    return groups[0];
+  });
+
+  /** UAIs available for switching (excludes the currently assigned one) */
+  protected readonly switchableIdentities = computed(() => {
+    const assigned = this.assignedUai();
+    const all = this.availableUserAssignedIdentities();
+    if (!assigned) return all;
+    return all.filter(r => r.id !== assigned.identityId);
+  });
+
   protected readonly availableContainerRegistries = computed(() =>
     this.allResources().filter(r => r.resourceType === 'ContainerRegistry')
   );
@@ -395,9 +410,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly acrMissingRoleDefinitionId = signal<string | null>(null);
   protected readonly acrRoleAssigning = signal(false);
 
-  protected readonly selectedContainerRegistryId = computed(() => {
-    if (!this.generalForm) return null;
-    return this.generalForm.get('containerRegistryId')?.value ?? null;
+  protected readonly selectedContainerRegistryId = signal<string | null>(null);
+
+  protected readonly isSaveBlockedByAcr = computed(() => {
+    if (!this.isContainerMode()) return false;
+    if (!this.selectedContainerRegistryId()) return false;
+    return this.acrAccessChecking() || this.acrHasAccess() === false;
   });
 
   /** Role assignments grouped by identity: system-assigned flat + per-UAI collapsible groups */
@@ -740,6 +758,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['alwaysOn'] = [wa.alwaysOn];
       base['httpsOnly'] = [wa.httpsOnly];
       this.deploymentMode.set((wa.deploymentMode as 'Code' | 'Container') || 'Code');
+      this.selectedContainerRegistryId.set(wa.containerRegistryId ?? null);
     } else if (this.resourceType === 'FunctionApp') {
       const fa = resource as FunctionAppResponse;
       base['appServicePlanId'] = [fa.appServicePlanId];
@@ -750,6 +769,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['runtimeVersion'] = [fa.runtimeVersion];
       base['httpsOnly'] = [fa.httpsOnly];
       this.deploymentMode.set((fa.deploymentMode as 'Code' | 'Container') || 'Code');
+      this.selectedContainerRegistryId.set(fa.containerRegistryId ?? null);
     } else if (this.resourceType === 'StorageAccount') {
       const sa = resource as StorageAccountResponse;
       base['kind'] = [sa.kind, [Validators.required]];
@@ -963,7 +983,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected async onSave(): Promise<void> {
-    if (this.generalForm.invalid || this.isSaving()) return;
+    if (this.generalForm.invalid || this.isSaving() || this.isSaveBlockedByAcr()) return;
 
     this.isSaving.set(true);
     this.saveError.set('');
@@ -1159,6 +1179,13 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.buildGeneralForm(res);
     this.buildEnvForms(res);
     this.watchFormChanges();
+    this.selectedContainerRegistryId.set(this.generalForm.get('containerRegistryId')?.value ?? null);
+    const acrId = this.generalForm.get('containerRegistryId')?.value;
+    if (acrId && this.deploymentMode() === 'Container') {
+      this.checkAcrPullAccess(acrId);
+    } else {
+      this.acrHasAccess.set(null);
+    }
   }
 
   protected onDeploymentModeChange(mode: 'Code' | 'Container'): void {
@@ -1168,6 +1195,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected async onContainerRegistryChange(acrId: string | null): Promise<void> {
+    this.selectedContainerRegistryId.set(acrId);
     this.acrHasAccess.set(null);
     this.acrMissingRoleName.set(null);
     this.acrMissingRoleDefinitionId.set(null);

@@ -1001,7 +1001,34 @@
                 <mat-icon>add</mat-icon>
                 {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ADD' | translate }}
               </button>
-              @if (availableUserAssignedIdentities().length > 0) {
+              @if (assignedUai(); as uai) {
+                <!-- UAI already assigned → show current + switch button -->
+                <div class="ra-assigned-uai">
+                  <div class="ra-assigned-uai__current">
+                    <mat-icon class="ra-assigned-uai__icon">person</mat-icon>
+                    <span class="ra-assigned-uai__name">{{ uai.identityName }}</span>
+                  </div>
+                  @if (switchableIdentities().length > 0) {
+                    <button class="ra-add-btn ra-add-btn--switch" [matMenuTriggerFor]="assignUaiMenu"
+                            [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_UAI_TOOLTIP' | translate">
+                      <mat-icon>swap_horiz</mat-icon>
+                      {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_UAI' | translate }}
+                    </button>
+                    <mat-menu #assignUaiMenu="matMenu" class="ra-uai-assign-menu">
+                      @for (identity of switchableIdentities(); track identity.id) {
+                        <button mat-menu-item (click)="assignUaiToResource(identity.id)">
+                          <mat-icon>person</mat-icon>
+                          <div class="ra-uai-assign-menu__label">
+                            <span class="ra-uai-assign-menu__name">{{ identity.name }}</span>
+                            <span class="ra-uai-assign-menu__type">User Assigned Identity</span>
+                          </div>
+                        </button>
+                      }
+                    </mat-menu>
+                  }
+                </div>
+              } @else if (availableUserAssignedIdentities().length > 0) {
+                <!-- No UAI assigned yet → show assign button -->
                 <button class="ra-add-btn ra-add-btn--uai" [matMenuTriggerFor]="assignUaiMenu">
                   <mat-icon>person_add</mat-icon>
                   {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_UAI' | translate }}
@@ -2254,6 +2281,9 @@
         <div class="save-bar__info">
           <mat-icon class="save-bar__icon">edit_note</mat-icon>
           <span>{{ 'RESOURCE_EDIT.ACTIONS.UNSAVED_CHANGES' | translate }}</span>
+          @if (isSaveBlockedByAcr()) {
+            <span class="save-bar__warning">{{ 'RESOURCE_EDIT.ACTIONS.ACR_SAVE_BLOCKED' | translate }}</span>
+          }
         </div>
         <div class="save-bar__actions">
           <button class="save-bar__discard" (click)="discardChanges()">
@@ -2262,7 +2292,7 @@
           <button
             class="save-bar__save"
             (click)="onSave()"
-            [disabled]="isSaving() || generalForm.invalid">
+            [disabled]="isSaving() || generalForm.invalid || isSaveBlockedByAcr()">
             @if (isSaving()) {
               <mat-spinner diameter="16" class="save-bar__spinner"></mat-spinner>
             } @else {

@@ -2,6 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -242,6 +243,7 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
   standalone: true,
   imports: [
     MatButtonModule,
+    MatButtonToggleModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
@@ -287,6 +289,11 @@ export class AddResourceDialogComponent {
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
   protected readonly envFormsValid = signal(true);
+
+  // ── Deployment Mode (WebApp / FunctionApp) ──
+  protected readonly deploymentMode = signal<'Code' | 'Container'>('Code');
+  protected readonly isContainerMode = computed(() => this.deploymentMode() === 'Container');
+  protected readonly availableContainerRegistries = signal<AzureResourceResponse[]>([]);
 
   // ── Parent resource pre-selection ──
   private readonly parentResource = this.data.parentResource;
@@ -493,6 +500,7 @@ export class AddResourceDialogComponent {
       const allResources = allResourceArrays.flat();
       const plans = allResources.filter(r => r.resourceType === filterType);
       this.existingPlans.set(plans);
+      this.availableContainerRegistries.set(allResources.filter(r => r.resourceType === 'ContainerRegistry'));
 
       // Load cross-config resources from other configs in the same project
       const projectResources = await this.projectService.getProjectResources(this.data.projectId);
@@ -693,6 +701,7 @@ export class AddResourceDialogComponent {
     this.selectedType.set(null);
     this.selectedPlanId.set(this.parentResource?.id ?? null);
     this.selectedPlanName.set(this.parentResource?.name ?? null);
+    this.deploymentMode.set('Code');
     this.step.set('type');
     this.errorKey.set('');
     this.clearExtraValidators();
@@ -701,6 +710,21 @@ export class AddResourceDialogComponent {
   protected onBackToCommon(): void {
     this.step.set('common');
     this.errorKey.set('');
+  }
+
+  protected onDeploymentModeChange(mode: 'Code' | 'Container'): void {
+    this.deploymentMode.set(mode);
+    this.commonForm.patchValue({ deploymentMode: mode });
+    if (mode === 'Code') {
+      this.commonForm.patchValue({ containerRegistryId: null, dockerImageName: null });
+      this.commonForm.controls.runtimeStack.setValidators([Validators.required]);
+      this.commonForm.controls.runtimeVersion.setValidators([Validators.required]);
+    } else {
+      this.commonForm.controls.runtimeStack.clearValidators();
+      this.commonForm.controls.runtimeVersion.clearValidators();
+    }
+    this.commonForm.controls.runtimeStack.updateValueAndValidity();
+    this.commonForm.controls.runtimeVersion.updateValueAndValidity();
   }
 
   protected onBackFromCommon(): void {

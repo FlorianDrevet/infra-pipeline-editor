@@ -979,6 +979,7 @@
       "SAVE": "Enregistrer",
       "SAVING": "Enregistrement...",
       "UNSAVED_CHANGES": "Vous avez des modifications non enregistr\u00e9es",
+      "ACR_SAVE_BLOCKED": "Impossible de sauvegarder : acc\u00e8s ACR manquant. Accordez le r\u00f4le requis.",
       "DISCARD": "Annuler"
     },
     "FEEDBACK": {
@@ -1121,6 +1122,8 @@
       "ASSIGN_USER_IDENTITY": "Assigner une identit\u00e9 User Assigned",
       "UPDATE_IDENTITY_ERROR": "Impossible de mettre \u00e0 jour l\u2019identit\u00e9 manag\u00e9e. Veuillez r\u00e9essayer.",
       "ASSIGN_UAI": "Assigner une identit\u00e9",
+      "SWITCH_UAI": "Changer d\u2019identit\u00e9",
+      "SWITCH_UAI_TOOLTIP": "Une seule identit\u00e9 User Assigned peut \u00eatre assign\u00e9e \u2014 basculer vers une autre",
       "NAV_TO_UAI": "Acc\u00e9der \u00e0 l\u2019identit\u00e9"
     },
     "GRANTED_RIGHTS": {
