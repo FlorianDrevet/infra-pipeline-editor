@@ -159,6 +159,16 @@ public sealed class GenerateProjectPipelineCommandHandler(
             RoleAssignments = [],
             AppSettings = [],
             ExistingResourceReferences = [],
+            PipelineVariableGroups = config.PipelineVariableGroups
+                .Select(g => new PipelineVariableGroupDefinition
+                {
+                    GroupName = g.GroupName,
+                    Mappings = g.Mappings.Select(m => new PipelineVariableMappingDefinition
+                    {
+                        PipelineVariableName = m.PipelineVariableName,
+                        BicepParameterName = m.BicepParameterName,
+                    }).ToList(),
+                }).ToList(),
         };
     }
 

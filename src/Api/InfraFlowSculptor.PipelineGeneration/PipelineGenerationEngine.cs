@@ -100,6 +100,12 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("        variables:");
         sb.AppendLine("          - template: variables/${{ environment }}.yml");
         sb.AppendLine("          - template: variables/vars.yml");
+
+        // Emit variable group references
+        foreach (var group in request.PipelineVariableGroups)
+        {
+            sb.AppendLine($"          - group: {group.GroupName}");
+        }
         sb.AppendLine();
         sb.AppendLine("        jobs:");
         sb.AppendLine("          - template: ../.azuredevops/jobs/deploy.job.yml");
@@ -116,6 +122,13 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine($"                  deploymentName: {configName.ToLowerInvariant()}-infra-$(Build.BuildNumber)");
         sb.AppendLine($"                  templateFile: {configName}/main.bicep");
         sb.AppendLine($"                  templateParametersFile: {configName}/parameters/main.${{{{environment}}}}.bicepparam");
+
+        // Emit overrideParameters from variable group mappings
+        var overrideParams = BuildOverrideParameters(request.PipelineVariableGroups);
+        if (!string.IsNullOrEmpty(overrideParams))
+        {
+            sb.AppendLine($"                  overrideParameters: {overrideParams}");
+        }
 
         return sb.ToString();
     }
@@ -210,6 +223,23 @@ public sealed class PipelineGenerationEngine
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Builds the overrideParameters string from all variable group mappings.
+    /// Format: <c>-bicepParam $(PIPELINE_VAR) -bicepParam2 $(PIPELINE_VAR2)</c>
+    /// </summary>
+    private static string BuildOverrideParameters(
+        IReadOnlyList<GenerationCore.Models.PipelineVariableGroupDefinition> variableGroups)
+    {
+        var allMappings = variableGroups
+            .SelectMany(g => g.Mappings)
+            .ToList();
+
+        if (allMappings.Count == 0)
+            return string.Empty;
+
+        return string.Join(" ", allMappings.Select(m => $"-{m.BicepParameterName} $({m.PipelineVariableName})"));
+    }
+
     private static string GenerateSharedDeployJob()
     {
         var sb = new StringBuilder();
@@ -249,6 +279,7 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("              deploymentName: ${{ deployment.deploymentName }}");
         sb.AppendLine("              templateFile: '$(Pipeline.Workspace)/**/${{ deployment.templateFile }}'");
         sb.AppendLine("              templateParametersFile: '$(Pipeline.Workspace)/**/${{ deployment.templateParametersFile }}'");
+        sb.AppendLine("              overrideParameters: ${{ deployment.overrideParameters }}");
 
         return sb.ToString();
     }
@@ -273,6 +304,9 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("    type: string");
         sb.AppendLine("  - name: templateParametersFile");
         sb.AppendLine("    type: string");
+        sb.AppendLine("  - name: overrideParameters");
+        sb.AppendLine("    type: string");
+        sb.AppendLine("    default: ''");
         sb.AppendLine();
         sb.AppendLine("steps:");
         sb.AppendLine("  - task: AzureResourceManagerTemplateDeployment@3");
@@ -287,6 +321,7 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("      templateLocation: 'Linked artifact'");
         sb.AppendLine("      csmFile: '${{ parameters.templateFile }}'");
         sb.AppendLine("      csmParametersFile: '${{ parameters.templateParametersFile }}'");
+        sb.AppendLine("      overrideParameters: '${{ parameters.overrideParameters }}'");
         sb.AppendLine("      deploymentMode: 'Validation'");
         sb.AppendLine();
         sb.AppendLine("  - task: AzureResourceManagerTemplateDeployment@3");
@@ -301,6 +336,7 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("      templateLocation: 'Linked artifact'");
         sb.AppendLine("      csmFile: '${{ parameters.templateFile }}'");
         sb.AppendLine("      csmParametersFile: '${{ parameters.templateParametersFile }}'");
+        sb.AppendLine("      overrideParameters: '${{ parameters.overrideParameters }}'");
         sb.AppendLine("      deploymentMode: 'Incremental'");
         sb.AppendLine("      deploymentOutputs: 'armOutputs'");
         sb.AppendLine();

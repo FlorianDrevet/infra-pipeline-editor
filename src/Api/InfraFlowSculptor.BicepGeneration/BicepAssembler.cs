@@ -1555,4 +1555,61 @@ public static class BicepAssembler
         sb.AppendLine("output secretUri string = secret.properties.secretUri");
         return sb.ToString();
     }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Module output pruning
+    // ────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// <summary>
+    /// Removes output declarations from a module template that are not in the specified
+    /// set of used output names. Also removes decorators (<c>@description</c>, <c>@secure</c>)
+    /// that immediately precede removed output lines.
+    /// </summary>
+    internal static string PruneUnusedOutputs(string moduleBicepContent, HashSet<string> usedOutputNames)
+    {
+        var lines = moduleBicepContent.Split('\n');
+        var result = new List<string>(lines.Length);
+
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var trimmed = lines[i].TrimStart();
+
+            if (trimmed.StartsWith("output "))
+            {
+                // Parse output name: "output <name> <type> = ..."
+                var spaceIdx = trimmed.IndexOf(' ', 7);
+                var outputName = spaceIdx > 7 ? trimmed[7..spaceIdx] : trimmed[7..];
+
+                if (!usedOutputNames.Contains(outputName))
+                {
+                    // Remove preceding decorator lines (@description, @secure) and blank lines
+                    while (result.Count > 0)
+                    {
+                        var prevTrimmed = result[^1].TrimStart();
+                        if (prevTrimmed.StartsWith('@') || string.IsNullOrWhiteSpace(result[^1]))
+                        {
+                            result.RemoveAt(result.Count - 1);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    continue;
+                }
+            }
+
+            result.Add(lines[i]);
+        }
+
+        // Clean up trailing blank lines
+        while (result.Count > 0 && string.IsNullOrWhiteSpace(result[^1]))
+        {
+            result.RemoveAt(result.Count - 1);
+        }
+
+        return string.Join('\n', result) + '\n';
+    }
 }

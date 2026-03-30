@@ -25,6 +25,48 @@ public sealed class BicepGenerationEngine
 
     public GenerationResult Generate(GenerationRequest request)
     {
+        var result = GenerateCore(request);
+        PruneModuleOutputs(result);
+        return result;
+    }
+
+    /// <summary>
+    /// Generates Bicep files for an entire project in mono-repo mode.
+    /// Each configuration is generated independently, then assembled into a shared Common folder
+    /// and per-configuration folders. Unused outputs are pruned using the combined references
+    /// from all configuration <c>main.bicep</c> files.
+    /// </summary>
+    public MonoRepoGenerationResult GenerateMonoRepo(MonoRepoGenerationRequest request)
+    {
+        var perConfigResults = new Dictionary<string, GenerationResult>();
+        var hasAnyRoleAssignments = false;
+
+        foreach (var (configName, configRequest) in request.ConfigRequests)
+        {
+            var result = GenerateCore(configRequest);
+            perConfigResults[configName] = result;
+
+            if (configRequest.RoleAssignments.Count > 0)
+                hasAnyRoleAssignments = true;
+        }
+
+        var monoResult = MonoRepoBicepAssembler.Assemble(
+            perConfigResults,
+            request.NamingContext,
+            request.Environments,
+            hasAnyRoleAssignments);
+
+        PruneMonoRepoModuleOutputs(monoResult, perConfigResults);
+
+        return monoResult;
+    }
+
+    /// <summary>
+    /// Core generation logic shared by single-config and mono-repo paths.
+    /// Returns an un-pruned <see cref="GenerationResult"/>.
+    /// </summary>
+    private GenerationResult GenerateCore(GenerationRequest request)
+    {
         var modules = new List<GeneratedTypeModule>();
 
         // ── Compute per-resource identity needs ─────────────────────────────
@@ -172,32 +214,6 @@ public sealed class BicepGenerationEngine
             request.RoleAssignments,
             request.AppSettings,
             request.ExistingResourceReferences);
-    }
-
-    /// <summary>
-    /// Generates Bicep files for an entire project in mono-repo mode.
-    /// Each configuration is generated independently, then assembled into a shared Common folder
-    /// and per-configuration folders.
-    /// </summary>
-    public MonoRepoGenerationResult GenerateMonoRepo(MonoRepoGenerationRequest request)
-    {
-        var perConfigResults = new Dictionary<string, GenerationResult>();
-        var hasAnyRoleAssignments = false;
-
-        foreach (var (configName, configRequest) in request.ConfigRequests)
-        {
-            var result = Generate(configRequest);
-            perConfigResults[configName] = result;
-
-            if (configRequest.RoleAssignments.Count > 0)
-                hasAnyRoleAssignments = true;
-        }
-
-        return MonoRepoBicepAssembler.Assemble(
-            perConfigResults,
-            request.NamingContext,
-            request.Environments,
-            hasAnyRoleAssignments);
     }
 
     /// <summary>
@@ -721,5 +737,130 @@ public sealed class BicepGenerationEngine
             idx += line.Length + 1; // +1 for the '\n'
         }
         return -1;
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Module output pruning
+    // ────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Prunes unused output declarations from the module files of a single-config
+    /// <see cref="GenerationResult"/> based on output references in <c>main.bicep</c>.
+    /// </summary>
+    private static void PruneModuleOutputs(GenerationResult result)
+    {
+        if (result.ModuleFiles is not Dictionary<string, string> mutableModuleFiles)
+            return;
+
+        var usedOutputsByPath = CollectUsedOutputsByPath(result.MainBicep, mutableModuleFiles);
+
+        foreach (var path in mutableModuleFiles.Keys.ToList())
+        {
+            var usedOutputs = usedOutputsByPath.GetValueOrDefault(path)
+                ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            mutableModuleFiles[path] = BicepAssembler.PruneUnusedOutputs(mutableModuleFiles[path], usedOutputs);
+        }
+    }
+
+    /// <summary>
+    /// Prunes unused output declarations from the shared <c>CommonFiles</c> of a
+    /// <see cref="MonoRepoGenerationResult"/> using the combined output references from
+    /// all per-config <c>main.bicep</c> files.
+    /// </summary>
+    private static void PruneMonoRepoModuleOutputs(
+        MonoRepoGenerationResult monoResult,
+        IReadOnlyDictionary<string, GenerationResult> perConfigResults)
+    {
+        // Collect used outputs from ALL config main.bicep files (union)
+        var combinedUsedOutputs = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var (_, configResult) in perConfigResults)
+        {
+            // Use the per-config ModuleFiles to map module names to file paths
+            var configUsed = CollectUsedOutputsByPath(configResult.MainBicep, configResult.ModuleFiles);
+
+            foreach (var (path, outputs) in configUsed)
+            {
+                // In mono-repo, common files use prefix "modules/" directly
+                if (!combinedUsedOutputs.TryGetValue(path, out var existing))
+                {
+                    existing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    combinedUsedOutputs[path] = existing;
+                }
+
+                existing.UnionWith(outputs);
+            }
+        }
+
+        // Prune the shared common module files
+        var mutableCommon = monoResult.CommonFiles as Dictionary<string, string>
+            ?? new Dictionary<string, string>(monoResult.CommonFiles);
+
+        foreach (var path in mutableCommon.Keys.ToList())
+        {
+            if (!path.StartsWith("modules/", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var usedOutputs = combinedUsedOutputs.GetValueOrDefault(path)
+                ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            mutableCommon[path] = BicepAssembler.PruneUnusedOutputs(mutableCommon[path], usedOutputs);
+        }
+    }
+
+    /// <summary>
+    /// Scans <c>main.bicep</c> for <c>{moduleName}Module.outputs.{outputName}</c> references
+    /// and maps them to module file paths using the module file dictionary keys.
+    /// </summary>
+    private static Dictionary<string, HashSet<string>> CollectUsedOutputsByPath(
+        string mainBicep,
+        IReadOnlyDictionary<string, string> moduleFiles)
+    {
+        // Build a lookup from module symbol prefix → file path.
+        // Module symbols in main.bicep follow the pattern: {moduleName}Module
+        // Module file paths follow: modules/{Folder}/{fileName}
+        // We extract the module base name from the file path and match with main.bicep symbols.
+        var outputRefRegex = new Regex(@"(\w+)Module\.outputs\.(\w+)");
+        var matches = outputRefRegex.Matches(mainBicep);
+
+        // Build reverse lookup: module symbol name (before "Module") → module file paths
+        // We'll match module names from main.bicep when they appear in the match set.
+        var symbolToPath = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var match in matches.Cast<Match>())
+        {
+            var symbolName = match.Groups[1].Value;
+            if (symbolToPath.ContainsKey(symbolName))
+                continue;
+
+            // Find the module file path by matching the module declaration in main.bicep
+            // Pattern: module {symbolName}Module './modules/{Folder}/{fileName}'
+            var declRegex = new Regex(
+                @"module\s+" + Regex.Escape(symbolName) + @"Module\s+'\.\/([^']+)'");
+            var declMatch = declRegex.Match(mainBicep);
+            if (declMatch.Success)
+            {
+                symbolToPath[symbolName] = declMatch.Groups[1].Value;
+            }
+        }
+
+        var result = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (Match match in matches)
+        {
+            var symbolName = match.Groups[1].Value;
+            var outputName = match.Groups[2].Value;
+
+            if (!symbolToPath.TryGetValue(symbolName, out var filePath))
+                continue;
+
+            if (!result.TryGetValue(filePath, out var outputs))
+            {
+                outputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                result[filePath] = outputs;
+            }
+
+            outputs.Add(outputName);
+        }
+
+        return result;
     }
 }

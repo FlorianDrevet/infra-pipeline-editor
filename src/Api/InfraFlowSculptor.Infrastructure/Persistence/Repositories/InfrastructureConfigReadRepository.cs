@@ -376,6 +376,23 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             })
             .ToList();
 
+        // ── Load pipeline variable groups ───────────────────────────────────
+        var pipelineVariableGroups = await dbContext.PipelineVariableGroups
+            .Include(g => g.Mappings)
+            .Where(g => g.InfraConfigId == configId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var pipelineVariableGroupReadModels = pipelineVariableGroups
+            .Select(g => new PipelineVariableGroupReadModel(
+                g.Id.Value,
+                g.GroupName,
+                g.Mappings.Select(m => new PipelineVariableMappingReadModel(
+                    m.Id.Value,
+                    m.PipelineVariableName,
+                    m.BicepParameterName)).ToList()))
+            .ToList();
+
         return new InfrastructureConfigReadModel(
             config.Id.Value,
             config.Name.Value,
@@ -384,7 +401,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             namingContext,
             enrichedRoleAssignments,
             enrichedAppSettings,
-            crossConfigRefReadModels);
+            crossConfigRefReadModels,
+            pipelineVariableGroupReadModels);
     }
 
     /// <summary>
