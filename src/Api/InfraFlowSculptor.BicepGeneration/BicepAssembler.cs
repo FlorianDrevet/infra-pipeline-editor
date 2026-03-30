@@ -486,7 +486,7 @@ public static class BicepAssembler
             sb.AppendLine("    tags: {");
             foreach (var (tagKey, tagValue) in env.Tags)
             {
-                sb.AppendLine($"      '{EscapeBicepString(tagKey)}': '{EscapeBicepString(tagValue)}'");
+                sb.AppendLine($"      {EscapeBicepString(tagKey)}: '{EscapeBicepString(tagValue)}'");
             }
             sb.AppendLine("    }");
             sb.AppendLine("  }");
