@@ -6,6 +6,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.Errors;
@@ -25,27 +26,7 @@ public sealed class GenerateProjectBicepCommandHandler(
     /// <summary>The subdirectory name where Bicep parameter files are stored.</summary>
     private const string ParametersDirectory = "parameters";
 
-    /// <summary>
-    /// Maps Azure resource type strings to their simple type names used in naming template lookups.
-    /// </summary>
-    private static readonly Dictionary<string, string> ResourceTypeNames = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["Microsoft.KeyVault/vaults"] = "KeyVault",
-        ["Microsoft.Cache/Redis"] = "RedisCache",
-        ["Microsoft.Storage/storageAccounts"] = "StorageAccount",
-        ["Microsoft.Web/serverfarms"] = "AppServicePlan",
-        ["Microsoft.Web/sites"] = "WebApp",
-        ["Microsoft.Web/sites/functionapp"] = "FunctionApp",
-        ["Microsoft.ManagedIdentity/userAssignedIdentities"] = "UserAssignedIdentity",
-        ["Microsoft.AppConfiguration/configurationStores"] = "AppConfiguration",
-        ["Microsoft.App/managedEnvironments"] = "ContainerAppEnvironment",
-        ["Microsoft.App/containerApps"] = "ContainerApp",
-        ["Microsoft.OperationalInsights/workspaces"] = "LogAnalyticsWorkspace",
-        ["Microsoft.Insights/components"] = "ApplicationInsights",
-        ["Microsoft.DocumentDB/databaseAccounts"] = "CosmosDb",
-        ["Microsoft.Sql/servers"] = "SqlServer",
-        ["Microsoft.Sql/servers/databases"] = "SqlDatabase",
-    };
+
 
     /// <inheritdoc />
     public async Task<ErrorOr<GenerateProjectBicepResult>> Handle(
@@ -62,9 +43,7 @@ public sealed class GenerateProjectBicepCommandHandler(
             command.ProjectId.Value, cancellationToken);
 
         if (configs.Count == 0)
-            return Error.NotFound(
-                "Project.NoConfigurations",
-                "No infrastructure configurations found for this project.");
+            return Errors.Project.NoConfigurationsError();
 
         // 3. Build per-config generation requests
         var configRequests = new Dictionary<string, GenerationRequest>();
@@ -278,10 +257,10 @@ public sealed class GenerateProjectBicepCommandHandler(
 
     private static string GetResourceAbbreviation(string azureResourceType)
     {
-        var typeName = ResourceTypeNames.GetValueOrDefault(azureResourceType, azureResourceType);
+        var typeName = AzureResourceTypes.GetFriendlyName(azureResourceType);
         return ResourceAbbreviationCatalog.GetAbbreviation(typeName);
     }
 
     private static string GetResourceTypeName(string azureResourceType) =>
-        ResourceTypeNames.GetValueOrDefault(azureResourceType, azureResourceType);
+        AzureResourceTypes.GetFriendlyName(azureResourceType);
 }

@@ -31,6 +31,14 @@ public sealed class ProjectRepository(ProjectDbContext context)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     /// <inheritdoc />
+    public async Task<Project?> GetByIdWithPipelineVariableGroupsAsync(
+        ProjectId id, CancellationToken cancellationToken = default)
+        => await Context.Projects
+            .Include(p => p.PipelineVariableGroups)
+                .ThenInclude(g => g.Mappings)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+    /// <inheritdoc />
     public async Task<List<Project>> GetAllForUserAsync(
         UserId userId, CancellationToken cancellationToken = default)
         => await Context.Projects

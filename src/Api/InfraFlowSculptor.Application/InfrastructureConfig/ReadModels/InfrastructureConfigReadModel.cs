@@ -3,6 +3,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 public record InfrastructureConfigReadModel(
     Guid Id,
     string Name,
+    Guid ProjectId,
     IReadOnlyList<ResourceGroupReadModel> ResourceGroups,
     IReadOnlyList<EnvironmentDefinitionReadModel> Environments,
     NamingContextReadModel NamingContext,

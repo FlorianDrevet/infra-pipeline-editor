@@ -22,11 +22,14 @@ Comme le moteur Bicep, il est **indépendant du domaine** et travaille avec des 
     │   PipelineGenerationEngine        │   ← Moteur principal
     │   Pour chaque config :            │
     │     → ci.pipeline.yml             │
+    │     → pr.pipeline.yml             │
     │     → release.pipeline.yml        │
     │     → variables/*.yml             │
     │   Shared templates :              │
     │     → pipelines/ci.pipeline.yml   │
+    │     → pipelines/pr.pipeline.yml   │
     │     → jobs/deploy.job.yml         │
+    │     → steps/checkout.step.yml     │
     │     → steps/deploy-template.step  │
     └──────────────┬────────────────────┘
                    │
@@ -61,9 +64,7 @@ public PipelineGenerationResult Generate(GenerationRequest request, string confi
 | Fichier | Contenu |
 |---------|---------|
 | `ci.pipeline.yml` | Pipeline CI (build, validate, what-if) |
-| `release.pipeline.yml` | Pipeline de release (déploiement par environnement) |
-| `variables/vars.yml` | Variables partagées de la config |
-| `variables/{env}.yml` | Variables spécifiques par environnement (dev, staging, prod…) |
+| `pr.pipeline.yml` | Pipeline PR (validation Bicep sur pull request) |
 
 ### `GenerateSharedTemplates()` — Templates communs
 
@@ -71,15 +72,18 @@ Génère les templates réutilisables partagés entre toutes les configs :
 
 ```csharp
 public static IReadOnlyDictionary<string, string> GenerateSharedTemplates(
-    IReadOnlyList<string> configNames)
+    IReadOnlyList<string> configNames,
+    IReadOnlyList<string> environmentNames)
 ```
 
 **Fichiers produits :**
 
 | Fichier | Contenu |
-|---------|---------|
+|---------|--------|
 | `pipelines/ci.pipeline.yml` | Template CI partagé orchestrant toutes les configs |
-| `jobs/deploy.job.yml` | Job de déploiement réutilisable |
+| `pipelines/pr.pipeline.yml` | Template PR partagé — validation Bicep (lint via `az bicep build`), mise à jour bicepconfig, steps extensibles |
+| `jobs/deploy.job.yml` | Job de déploiement réutilisable (paramètres `projectName` et `environment` avec listes de valeurs strictes) |
+| `steps/checkout.step.yml` | Step de checkout avec nettoyage sparse (ne conserve que les répertoires listés) |
 | `steps/deploy-template.step.yml` | Steps de déploiement Bicep (validate, what-if, deploy) |
 
 ---
@@ -96,7 +100,8 @@ En mode mono-repo, l'assembleur organise la sortie sous un dossier `.azuredevops
 public static class MonoRepoPipelineAssembler
 {
     public static MonoRepoPipelineResult Assemble(
-        IReadOnlyDictionary<string, PipelineGenerationResult> perConfigResults)
+        IReadOnlyDictionary<string, PipelineGenerationResult> perConfigResults,
+        IReadOnlyList<string> environmentNames)
 }
 ```
 
@@ -105,13 +110,16 @@ public static class MonoRepoPipelineAssembler
 ```
 .azuredevops/
 ├── pipelines/
-│   └── ci.pipeline.yml           ← Template CI partagé
+│   ├── ci.pipeline.yml           ← Template CI partagé
+│   └── pr.pipeline.yml           ← Template PR partagé (validation Bicep)
 ├── jobs/
 │   └── deploy.job.yml            ← Job de déploiement réutilisable
 ├── steps/
+│   ├── checkout.step.yml         ← Checkout sparse (directories filtrés)
 │   └── deploy-template.step.yml  ← Steps Bicep (validate/what-if/deploy)
 ├── ConfigA/
 │   ├── ci.pipeline.yml           ← CI spécifique à ConfigA
+│   ├── pr.pipeline.yml           ← PR validation spécifique à ConfigA
 │   ├── release.pipeline.yml      ← Release spécifique à ConfigA
 │   └── variables/
 │       ├── vars.yml              ← Variables partagées de ConfigA
@@ -119,6 +127,7 @@ public static class MonoRepoPipelineAssembler
 │       └── prod.yml              ← Variables prod
 └── ConfigB/
     ├── ci.pipeline.yml
+    ├── pr.pipeline.yml
     ├── release.pipeline.yml
     └── variables/
         └── ...

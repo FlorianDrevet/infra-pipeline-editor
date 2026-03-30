@@ -41,6 +41,7 @@ using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -396,6 +397,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         return new InfrastructureConfigReadModel(
             config.Id.Value,
             config.Name.Value,
+            config.ProjectId.Value,
             resourceGroups,
             environments,
             namingContext,
@@ -783,22 +785,22 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
     public static string GetResourceTypeString(AzureResource resource) =>
         resource switch
         {
-            KeyVault => "Microsoft.KeyVault/vaults",
-            RedisCache => "Microsoft.Cache/Redis",
-            StorageAccount => "Microsoft.Storage/storageAccounts",
-            AppServicePlan => "Microsoft.Web/serverfarms",
-            WebApp => "Microsoft.Web/sites",
-            FunctionApp => "Microsoft.Web/sites/functionapp",
-            UserAssignedIdentity => "Microsoft.ManagedIdentity/userAssignedIdentities",
-            AppConfiguration => "Microsoft.AppConfiguration/configurationStores",
-            ContainerAppEnvironment => "Microsoft.App/managedEnvironments",
-            ContainerApp => "Microsoft.App/containerApps",
-            LogAnalyticsWorkspace => "Microsoft.OperationalInsights/workspaces",
-            Domain.ApplicationInsightsAggregate.ApplicationInsights => "Microsoft.Insights/components",
-            CosmosDb => "Microsoft.DocumentDB/databaseAccounts",
-            SqlServer => "Microsoft.Sql/servers",
-            SqlDatabase => "Microsoft.Sql/servers/databases",
-            ServiceBusNamespace => "Microsoft.ServiceBus/namespaces",
+            KeyVault => AzureResourceTypes.ArmTypes.KeyVault,
+            RedisCache => AzureResourceTypes.ArmTypes.RedisCache,
+            StorageAccount => AzureResourceTypes.ArmTypes.StorageAccount,
+            AppServicePlan => AzureResourceTypes.ArmTypes.AppServicePlan,
+            WebApp => AzureResourceTypes.ArmTypes.WebApp,
+            FunctionApp => AzureResourceTypes.ArmTypes.FunctionApp,
+            UserAssignedIdentity => AzureResourceTypes.ArmTypes.UserAssignedIdentity,
+            AppConfiguration => AzureResourceTypes.ArmTypes.AppConfiguration,
+            ContainerAppEnvironment => AzureResourceTypes.ArmTypes.ContainerAppEnvironment,
+            ContainerApp => AzureResourceTypes.ArmTypes.ContainerApp,
+            LogAnalyticsWorkspace => AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace,
+            Domain.ApplicationInsightsAggregate.ApplicationInsights => AzureResourceTypes.ArmTypes.ApplicationInsights,
+            CosmosDb => AzureResourceTypes.ArmTypes.CosmosDb,
+            SqlServer => AzureResourceTypes.ArmTypes.SqlServer,
+            SqlDatabase => AzureResourceTypes.ArmTypes.SqlDatabase,
+            ServiceBusNamespace => AzureResourceTypes.ArmTypes.ServiceBusNamespace,
             _ => resource.GetType().Name
         };
 
@@ -808,22 +810,22 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
     public static string GetResourceTypeName(AzureResource resource) =>
         resource switch
         {
-            KeyVault => "KeyVault",
-            RedisCache => "RedisCache",
-            StorageAccount => "StorageAccount",
-            AppServicePlan => "AppServicePlan",
-            WebApp => "WebApp",
-            FunctionApp => "FunctionApp",
-            UserAssignedIdentity => "UserAssignedIdentity",
-            AppConfiguration => "AppConfiguration",
-            ContainerAppEnvironment => "ContainerAppEnvironment",
-            ContainerApp => "ContainerApp",
-            LogAnalyticsWorkspace => "LogAnalyticsWorkspace",
-            Domain.ApplicationInsightsAggregate.ApplicationInsights => "ApplicationInsights",
-            CosmosDb => "CosmosDb",
-            SqlServer => "SqlServer",
-            SqlDatabase => "SqlDatabase",
-            ServiceBusNamespace => "ServiceBusNamespace",
+            KeyVault => AzureResourceTypes.KeyVault,
+            RedisCache => AzureResourceTypes.RedisCache,
+            StorageAccount => AzureResourceTypes.StorageAccount,
+            AppServicePlan => AzureResourceTypes.AppServicePlan,
+            WebApp => AzureResourceTypes.WebApp,
+            FunctionApp => AzureResourceTypes.FunctionApp,
+            UserAssignedIdentity => AzureResourceTypes.UserAssignedIdentity,
+            AppConfiguration => AzureResourceTypes.AppConfiguration,
+            ContainerAppEnvironment => AzureResourceTypes.ContainerAppEnvironment,
+            ContainerApp => AzureResourceTypes.ContainerApp,
+            LogAnalyticsWorkspace => AzureResourceTypes.LogAnalyticsWorkspace,
+            Domain.ApplicationInsightsAggregate.ApplicationInsights => AzureResourceTypes.ApplicationInsights,
+            CosmosDb => AzureResourceTypes.CosmosDb,
+            SqlServer => AzureResourceTypes.SqlServer,
+            SqlDatabase => AzureResourceTypes.SqlDatabase,
+            ServiceBusNamespace => AzureResourceTypes.ServiceBusNamespace,
             _ => resource.GetType().Name
         };
 }

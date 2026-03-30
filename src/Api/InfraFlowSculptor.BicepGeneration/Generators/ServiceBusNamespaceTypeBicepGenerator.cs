@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -10,10 +11,10 @@ public sealed class ServiceBusNamespaceTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.ServiceBus/namespaces";
+        => AzureResourceTypes.ArmTypes.ServiceBusNamespace;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "ServiceBusNamespace";
+    public string ResourceTypeName => AzureResourceTypes.ServiceBusNamespace;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

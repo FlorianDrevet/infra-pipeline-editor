@@ -3,6 +3,7 @@ using System.Text;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Domain.Common.Errors;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.DownloadProjectBicep;
@@ -26,9 +27,7 @@ public sealed class DownloadProjectBicepCommandHandler(
         var allBlobs = await blobService.ListBlobsAsync(prefix);
 
         if (allBlobs.Count == 0)
-            return Error.NotFound(
-                "DownloadProjectBicep.NotFound",
-                $"No generated Bicep files found for project '{command.ProjectId.Value}'.");
+            return Errors.Project.BicepFilesNotFoundError(command.ProjectId.Value);
 
         var latestPrefix = allBlobs
             .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))

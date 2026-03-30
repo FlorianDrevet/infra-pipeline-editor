@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -6,10 +7,10 @@ public sealed class KeyVaultTypeBicepGenerator
     : IResourceTypeBicepGenerator
 {
     public string ResourceType
-        => "Microsoft.KeyVault/vaults";
+        => AzureResourceTypes.ArmTypes.KeyVault;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "KeyVault";
+    public string ResourceTypeName => AzureResourceTypes.KeyVault;
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {

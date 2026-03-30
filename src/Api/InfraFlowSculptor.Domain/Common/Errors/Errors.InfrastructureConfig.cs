@@ -76,5 +76,35 @@ public static partial class Errors
             code: "InfrastructureConfig.VariableMappingNotFound",
             description: $"Variable mapping '{mappingId}' was not found."
         );
+
+        /// <summary>Returned when no generated Bicep files exist for the given configuration.</summary>
+        public static Error BicepFilesNotFoundError(Guid configId) => Error.NotFound(
+            code: "InfrastructureConfig.BicepFilesNotFound",
+            description: $"No generated Bicep files found for configuration '{configId}'."
+        );
+
+        /// <summary>Returned when a specific Bicep file is not found in the latest generation.</summary>
+        public static Error BicepFileNotFoundError(string filePath) => Error.NotFound(
+            code: "InfrastructureConfig.BicepFileNotFound",
+            description: $"File '{filePath}' was not found."
+        );
+
+        /// <summary>Returned when no generated pipeline files exist for the given configuration.</summary>
+        public static Error PipelineFilesNotFoundError(Guid configId) => Error.NotFound(
+            code: "InfrastructureConfig.PipelineFilesNotFound",
+            description: $"No generated pipeline files found for configuration '{configId}'."
+        );
+
+        /// <summary>Returned when a specific pipeline file is not found in the latest generation.</summary>
+        public static Error PipelineFileNotFoundError(string filePath) => Error.NotFound(
+            code: "InfrastructureConfig.PipelineFileNotFound",
+            description: $"File '{filePath}' was not found."
+        );
+
+        /// <summary>Returned when no naming template override exists for the given resource type.</summary>
+        public static Error ResourceNamingTemplateNotFoundError(string resourceType) => Error.NotFound(
+            code: "InfrastructureConfig.ResourceNamingTemplateNotFound",
+            description: $"No naming template override exists for resource type '{resourceType}'."
+        );
     }
 }

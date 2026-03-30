@@ -43,5 +43,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\InfraFlowSculptor.Application\InfraFlowSculptor.Application.csproj" />
+        <ProjectReference Include="..\InfraFlowSculptor.GenerationCore\InfraFlowSculptor.GenerationCore.csproj" />
     </ItemGroup>
 </Project>

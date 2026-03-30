@@ -33,7 +33,7 @@ public sealed class AddProjectMemberCommandHandler(
             return Errors.Project.MemberAlreadyExistsError();
 
         if (!Enum.TryParse<Role.RoleEnum>(command.Role, out var roleEnum))
-            return Error.Validation("Project.InvalidRole", $"Invalid role: {command.Role}");
+            return Errors.Project.InvalidRoleError(command.Role);
 
         project.AddMember(targetUserId, new Role(roleEnum));
         var saved = await projectRepository.UpdateAsync(project);

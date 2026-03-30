@@ -26,9 +26,7 @@ public sealed class SetRepositoryModeCommandHandler(
             return Errors.Project.NotFoundError(command.ProjectId);
 
         if (!Enum.TryParse<RepositoryModeEnum>(command.RepositoryMode, ignoreCase: true, out var modeEnum))
-            return Error.Validation(
-                "Project.InvalidRepositoryMode",
-                $"Invalid repository mode '{command.RepositoryMode}'. Valid values: MultiRepo, MonoRepo.");
+            return Errors.Project.InvalidRepositoryModeError(command.RepositoryMode);
 
         project.SetRepositoryMode(new RepositoryMode(modeEnum));
         await projectRepository.UpdateAsync(project);

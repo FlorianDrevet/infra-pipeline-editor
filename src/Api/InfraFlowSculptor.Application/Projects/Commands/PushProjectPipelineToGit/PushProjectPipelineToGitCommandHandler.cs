@@ -70,9 +70,7 @@ public sealed class PushProjectPipelineToGitCommandHandler(
         var allBlobs = await blobService.ListBlobsAsync(prefix);
 
         if (allBlobs.Count == 0)
-            return Error.NotFound(
-                "PushProjectPipelineToGit.NoFiles",
-                $"No generated pipeline files found for project '{projectId}'.");
+            return Errors.Project.PipelineFilesNotFoundError(projectId);
 
         // Find the latest timestamp folder (format: pipeline/project/{projectId}/{yyyyMMddHHmmss}/...)
         var latestPrefix = allBlobs
@@ -97,9 +95,7 @@ public sealed class PushProjectPipelineToGitCommandHandler(
         }
 
         if (files.Count == 0)
-            return Error.NotFound(
-                "PushProjectPipelineToGit.NoFiles",
-                $"No generated pipeline files found for project '{projectId}'.");
+            return Errors.Project.PipelineFilesNotFoundError(projectId);
 
         return files;
     }

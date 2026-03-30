@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -10,10 +11,10 @@ public sealed class ContainerAppTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.App/containerApps";
+        => AzureResourceTypes.ArmTypes.ContainerApp;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "ContainerApp";
+    public string ResourceTypeName => AzureResourceTypes.ContainerApp;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

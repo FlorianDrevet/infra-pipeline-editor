@@ -1325,6 +1325,10 @@
   --mat-tab-header-active-label-text-color: #00bcd4;
   --mat-tab-header-active-hover-label-text-color: #00e5ff;
   --mat-tab-header-active-focus-label-text-color: #00e5ff;
+  --mat-tab-header-active-focus-state-layer-opacity: 0;
+  --mat-tab-header-active-pressed-state-layer-opacity: 0;
+  --mat-tab-header-inactive-focus-state-layer-opacity: 0;
+  --mat-tab-header-inactive-pressed-state-layer-opacity: 0;
 
   ::ng-deep .mat-mdc-tab-header {
     border-bottom: 1px solid rgba(0, 188, 212, 0.15);
@@ -2276,4 +2280,107 @@
   .config-tabs ::ng-deep .mdc-tab__text-label span:not(.tab-count) {
     display: none;
   }
+}
+
+// ─── Pipeline Variable Groups ───
+
+.vg-panel-icon {
+  margin-right: 0.5rem;
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: rgba(148, 203, 255, 0.85);
+}
+
+.vg-mapping-list {
+  margin: 0.5rem 0;
+}
+
+.vg-mapping-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.vg-mapping-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  code {
+    font-size: 0.82rem;
+    color: rgba(148, 203, 255, 0.9);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+  }
+}
+
+.vg-mapping-col {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vg-mapping-arrow {
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.9rem;
+}
+
+.vg-mapping-col--action {
+  flex: 0 0 2rem;
+}
+
+.vg-mapping-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 0.15rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s;
+
+  &:hover {
+    color: #ef5350;
+    background: rgba(239, 83, 80, 0.1);
+  }
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.vg-no-mappings {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.85rem;
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
+.vg-add-mapping-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.vg-add-mapping-field {
+  flex: 1;
 }

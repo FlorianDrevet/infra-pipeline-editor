@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -10,10 +11,10 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.OperationalInsights/workspaces";
+        => AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "LogAnalyticsWorkspace";
+    public string ResourceTypeName => AzureResourceTypes.LogAnalyticsWorkspace;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

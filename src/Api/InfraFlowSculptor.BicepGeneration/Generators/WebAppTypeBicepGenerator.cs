@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -6,10 +7,10 @@ public sealed class WebAppTypeBicepGenerator
     : IResourceTypeBicepGenerator
 {
     public string ResourceType
-        => "Microsoft.Web/sites";
+        => AzureResourceTypes.ArmTypes.WebApp;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "WebApp";
+    public string ResourceTypeName => AzureResourceTypes.WebApp;
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {

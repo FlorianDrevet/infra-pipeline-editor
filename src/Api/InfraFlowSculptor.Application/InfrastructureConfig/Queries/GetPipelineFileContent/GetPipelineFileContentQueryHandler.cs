@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 
@@ -17,9 +18,7 @@ public sealed class GetPipelineFileContentQueryHandler(IGeneratedArtifactService
             "pipeline", query.InfrastructureConfigId, query.FilePath, cancellationToken);
 
         if (content is null)
-            return Error.NotFound(
-                "PipelineFile.NotFound",
-                $"File '{query.FilePath}' was not found.");
+            return Errors.InfrastructureConfig.PipelineFileNotFoundError(query.FilePath);
 
         return new GetPipelineFileContentResult(content);
     }

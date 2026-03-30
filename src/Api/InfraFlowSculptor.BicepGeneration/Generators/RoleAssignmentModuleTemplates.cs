@@ -1,3 +1,5 @@
+using InfraFlowSculptor.GenerationCore;
+
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
 /// <summary>
@@ -22,22 +24,22 @@ public static class RoleAssignmentModuleTemplates
     /// </summary>
     private static readonly Dictionary<string, ResourceTypeMetadata> Metadata = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["KeyVault"] = new("Microsoft.KeyVault/vaults", "2023-07-01", "keyVault", "keyvault", "Key Vault"),
-        ["RedisCache"] = new("Microsoft.Cache/Redis", "2023-08-01", "redisCache", "redis", "Redis Cache"),
-        ["StorageAccount"] = new("Microsoft.Storage/storageAccounts", "2023-01-01", "storageAccount", "storage", "Storage Account"),
-        ["AppServicePlan"] = new("Microsoft.Web/serverfarms", "2023-12-01", "appServicePlan", "appserviceplan", "App Service Plan"),
-        ["WebApp"] = new("Microsoft.Web/sites", "2023-12-01", "webApp", "webapp", "Web App"),
-        ["FunctionApp"] = new("Microsoft.Web/sites", "2023-12-01", "functionApp", "functionapp", "Function App"),
-        ["UserAssignedIdentity"] = new("Microsoft.ManagedIdentity/userAssignedIdentities", "2023-01-31", "identity", "identity", "User Assigned Identity"),
-        ["AppConfiguration"] = new("Microsoft.AppConfiguration/configurationStores", "2023-03-01", "appConfig", "appconfiguration", "App Configuration"),
-        ["ContainerAppEnvironment"] = new("Microsoft.App/managedEnvironments", "2024-03-01", "containerAppEnv", "containerappenvironment", "Container App Environment"),
-        ["ContainerApp"] = new("Microsoft.App/containerApps", "2024-03-01", "containerApp", "containerapp", "Container App"),
-        ["LogAnalyticsWorkspace"] = new("Microsoft.OperationalInsights/workspaces", "2023-09-01", "logAnalyticsWorkspace", "loganalytics", "Log Analytics Workspace"),
-        ["ApplicationInsights"] = new("Microsoft.Insights/components", "2020-02-02", "applicationInsights", "applicationinsights", "Application Insights"),
-        ["CosmosDb"] = new("Microsoft.DocumentDB/databaseAccounts", "2024-05-15", "cosmosDbAccount", "cosmos", "Cosmos DB"),
-        ["SqlServer"] = new("Microsoft.Sql/servers", "2023-08-01-preview", "sqlServer", "sqlserver", "SQL Server"),
-        ["SqlDatabase"] = new("Microsoft.Sql/servers/databases", "2023-08-01-preview", "sqlDatabase", "sqldatabase", "SQL Database"),
-        ["ServiceBusNamespace"] = new("Microsoft.ServiceBus/namespaces", "2022-10-01-preview", "serviceBusNamespace", "servicebus", "Service Bus Namespace"),
+        [AzureResourceTypes.KeyVault] = new(AzureResourceTypes.ArmTypes.KeyVault, "2023-07-01", "keyVault", "keyvault", "Key Vault"),
+        [AzureResourceTypes.RedisCache] = new(AzureResourceTypes.ArmTypes.RedisCache, "2023-08-01", "redisCache", "redis", "Redis Cache"),
+        [AzureResourceTypes.StorageAccount] = new(AzureResourceTypes.ArmTypes.StorageAccount, "2023-01-01", "storageAccount", "storage", "Storage Account"),
+        [AzureResourceTypes.AppServicePlan] = new(AzureResourceTypes.ArmTypes.AppServicePlan, "2023-12-01", "appServicePlan", "appserviceplan", "App Service Plan"),
+        [AzureResourceTypes.WebApp] = new(AzureResourceTypes.ArmTypes.WebApp, "2023-12-01", "webApp", "webapp", "Web App"),
+        [AzureResourceTypes.FunctionApp] = new(AzureResourceTypes.ArmTypes.WebApp, "2023-12-01", "functionApp", "functionapp", "Function App"),
+        [AzureResourceTypes.UserAssignedIdentity] = new(AzureResourceTypes.ArmTypes.UserAssignedIdentity, "2023-01-31", "identity", "identity", "User Assigned Identity"),
+        [AzureResourceTypes.AppConfiguration] = new(AzureResourceTypes.ArmTypes.AppConfiguration, "2023-03-01", "appConfig", "appconfiguration", "App Configuration"),
+        [AzureResourceTypes.ContainerAppEnvironment] = new(AzureResourceTypes.ArmTypes.ContainerAppEnvironment, "2024-03-01", "containerAppEnv", "containerappenvironment", "Container App Environment"),
+        [AzureResourceTypes.ContainerApp] = new(AzureResourceTypes.ArmTypes.ContainerApp, "2024-03-01", "containerApp", "containerapp", "Container App"),
+        [AzureResourceTypes.LogAnalyticsWorkspace] = new(AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace, "2023-09-01", "logAnalyticsWorkspace", "loganalytics", "Log Analytics Workspace"),
+        [AzureResourceTypes.ApplicationInsights] = new(AzureResourceTypes.ArmTypes.ApplicationInsights, "2020-02-02", "applicationInsights", "applicationinsights", "Application Insights"),
+        [AzureResourceTypes.CosmosDb] = new(AzureResourceTypes.ArmTypes.CosmosDb, "2024-05-15", "cosmosDbAccount", "cosmos", "Cosmos DB"),
+        [AzureResourceTypes.SqlServer] = new(AzureResourceTypes.ArmTypes.SqlServer, "2023-08-01-preview", "sqlServer", "sqlserver", "SQL Server"),
+        [AzureResourceTypes.SqlDatabase] = new(AzureResourceTypes.ArmTypes.SqlDatabase, "2023-08-01-preview", "sqlDatabase", "sqldatabase", "SQL Database"),
+        [AzureResourceTypes.ServiceBusNamespace] = new(AzureResourceTypes.ArmTypes.ServiceBusNamespace, "2022-10-01-preview", "serviceBusNamespace", "servicebus", "Service Bus Namespace"),
     };
 
     /// <summary>

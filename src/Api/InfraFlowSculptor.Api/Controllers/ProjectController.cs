@@ -21,6 +21,10 @@ using InfraFlowSculptor.Application.Projects.Commands.SetRepositoryMode;
 using InfraFlowSculptor.Application.Projects.Commands.TestGitConnection;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectMemberRole;
+using InfraFlowSculptor.Application.Projects.Commands.AddProjectPipelineVariableGroup;
+using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectPipelineVariableGroup;
+using InfraFlowSculptor.Application.Projects.Commands.AddProjectPipelineVariableMapping;
+using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectPipelineVariableMapping;
 using InfraFlowSculptor.Application.Projects.Queries.GetProject;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectBicepFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectPipelineFileContent;
@@ -28,6 +32,7 @@ using InfraFlowSculptor.Application.Projects.Queries.ListGitBranches;
 using InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectConfigs;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
+using InfraFlowSculptor.Application.Projects.Queries.ListProjectPipelineVariableGroups;
 using InfraFlowSculptor.Application.Projects.Queries.ValidateRecentItems;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
@@ -752,6 +757,120 @@ public static class ProjectController
                 .WithSummary("Push project-level pipeline files to Git (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated pipeline files to the configured Git repository. Used in MonoRepo mode.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Pipeline Variable Groups (project-level) ────────────────
+
+            // GET /{projectId:guid}/pipeline-variable-groups
+            group.MapGet("/{projectId:guid}/pipeline-variable-groups",
+                    async ([FromRoute] Guid projectId, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListProjectPipelineVariableGroupsQuery(new ProjectId(projectId));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            groups =>
+                            {
+                                var responses = groups.Select(g => mapper.Map<ProjectPipelineVariableGroupResponse>(g)).ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListProjectPipelineVariableGroups")
+                .WithSummary("List project-level pipeline variable groups")
+                .WithDescription("Returns all Azure DevOps Variable Groups (Libraries) configured at project level, shared across all configurations.")
+                .Produces<IReadOnlyList<ProjectPipelineVariableGroupResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // POST /{projectId:guid}/pipeline-variable-groups
+            group.MapPost("/{projectId:guid}/pipeline-variable-groups",
+                    async ([FromRoute] Guid projectId, AddProjectPipelineVariableGroupRequest request, IMediator mediator) =>
+                    {
+                        var command = new AddProjectPipelineVariableGroupCommand(new ProjectId(projectId), request.GroupName);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            g => Results.Created(
+                                $"/projects/{projectId}/pipeline-variable-groups/{g.GroupId}",
+                                new ProjectPipelineVariableGroupResponse(
+                                    g.GroupId.ToString(),
+                                    g.GroupName,
+                                    [])),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("AddProjectPipelineVariableGroup")
+                .WithSummary("Add a project-level pipeline variable group")
+                .WithDescription("Adds an Azure DevOps Variable Group (Library) reference to the project, shared across all configurations for pipeline generation.")
+                .Produces<ProjectPipelineVariableGroupResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // DELETE /{projectId:guid}/pipeline-variable-groups/{groupId:guid}
+            group.MapDelete("/{projectId:guid}/pipeline-variable-groups/{groupId:guid}",
+                    async ([FromRoute] Guid projectId, [FromRoute] Guid groupId, IMediator mediator) =>
+                    {
+                        var command = new RemoveProjectPipelineVariableGroupCommand(new ProjectId(projectId), groupId);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveProjectPipelineVariableGroup")
+                .WithSummary("Remove a project-level pipeline variable group")
+                .WithDescription("Removes a variable group and all its mappings from the project.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // POST /{projectId:guid}/pipeline-variable-groups/{groupId:guid}/mappings
+            group.MapPost("/{projectId:guid}/pipeline-variable-groups/{groupId:guid}/mappings",
+                    async ([FromRoute] Guid projectId, [FromRoute] Guid groupId, AddProjectPipelineVariableMappingRequest request, IMediator mediator) =>
+                    {
+                        var command = new AddProjectPipelineVariableMappingCommand(
+                            new ProjectId(projectId), groupId, request.PipelineVariableName, request.BicepParameterName);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            mapping => Results.Created(
+                                $"/projects/{projectId}/pipeline-variable-groups/{groupId}/mappings/{mapping.MappingId}",
+                                new ProjectPipelineVariableMappingResponse(
+                                    mapping.MappingId.ToString(),
+                                    mapping.PipelineVariableName,
+                                    mapping.BicepParameterName)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("AddProjectPipelineVariableMapping")
+                .WithSummary("Add a variable mapping to a project-level group")
+                .WithDescription("Maps a pipeline variable from the Azure DevOps Library to a Bicep parameter for override during deployment.")
+                .Produces<ProjectPipelineVariableMappingResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // DELETE /{projectId:guid}/pipeline-variable-groups/{groupId:guid}/mappings/{mappingId:guid}
+            group.MapDelete("/{projectId:guid}/pipeline-variable-groups/{groupId:guid}/mappings/{mappingId:guid}",
+                    async ([FromRoute] Guid projectId, [FromRoute] Guid groupId, [FromRoute] Guid mappingId, IMediator mediator) =>
+                    {
+                        var command = new RemoveProjectPipelineVariableMappingCommand(new ProjectId(projectId), groupId, mappingId);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveProjectPipelineVariableMapping")
+                .WithSummary("Remove a variable mapping from a project-level group")
+                .WithDescription("Removes a variable-to-Bicep-parameter mapping from the specified project-level pipeline variable group.")
+                .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });

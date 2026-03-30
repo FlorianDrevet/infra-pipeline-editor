@@ -34,7 +34,7 @@ public sealed class UpdateProjectMemberRoleCommandHandler(
             return Errors.Project.MemberNotFoundError();
 
         if (!Enum.TryParse<Role.RoleEnum>(command.NewRole, out var roleEnum))
-            return Error.Validation("Project.InvalidRole", $"Invalid role: {command.NewRole}");
+            return Errors.Project.InvalidRoleError(command.NewRole);
 
         project.ChangeRole(targetUserId, new Role(roleEnum));
         var saved = await projectRepository.UpdateAsync(project);

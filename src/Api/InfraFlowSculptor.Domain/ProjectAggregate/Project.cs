@@ -51,6 +51,14 @@ public sealed class Project : AggregateRoot<ProjectId>
     public IReadOnlyCollection<ProjectResourceNamingTemplate> ResourceNamingTemplates
         => _resourceNamingTemplates.AsReadOnly();
 
+    // ─── Pipeline Variable Groups ──────────────────────────────────────────
+
+    private readonly List<ProjectPipelineVariableGroup> _projectPipelineVariableGroups = [];
+
+    /// <summary>Gets the project-level pipeline variable groups (shared across all configurations).</summary>
+    public IReadOnlyCollection<ProjectPipelineVariableGroup> PipelineVariableGroups
+        => _projectPipelineVariableGroups.AsReadOnly();
+
     // ─── Repository Mode ────────────────────────────────────────────────────
 
     /// <summary>
@@ -221,6 +229,33 @@ public sealed class Project : AggregateRoot<ProjectId>
             return false;
         _resourceNamingTemplates.Remove(existing);
         return true;
+    }
+
+    // ─── Pipeline Variable Group Management ───────────────────────────────
+
+    /// <summary>Adds a new pipeline variable group to this project.</summary>
+    public ErrorOr<ProjectPipelineVariableGroup> AddPipelineVariableGroup(string groupName)
+    {
+        if (_projectPipelineVariableGroups.Any(g =>
+                string.Equals(g.GroupName, groupName, StringComparison.OrdinalIgnoreCase)))
+        {
+            return Domain.Common.Errors.Errors.Project.DuplicateVariableGroupError(groupName);
+        }
+
+        var group = ProjectPipelineVariableGroup.Create(Id, groupName);
+        _projectPipelineVariableGroups.Add(group);
+        return group;
+    }
+
+    /// <summary>Removes a pipeline variable group and all its mappings from this project.</summary>
+    public ErrorOr<Deleted> RemovePipelineVariableGroup(ProjectPipelineVariableGroupId groupId)
+    {
+        var group = _projectPipelineVariableGroups.FirstOrDefault(g => g.Id == groupId);
+        if (group is null)
+            return Domain.Common.Errors.Errors.Project.VariableGroupNotFoundError(groupId);
+
+        _projectPipelineVariableGroups.Remove(group);
+        return Result.Deleted;
     }
 
     // ─── Git Repository Configuration Management ────────────────────────────

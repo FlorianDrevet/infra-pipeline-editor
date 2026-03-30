@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -6,10 +7,10 @@ public sealed class RedisCacheTypeBicepGenerator
     : IResourceTypeBicepGenerator
 {
     public string ResourceType
-        => "Microsoft.Cache/Redis";
+        => AzureResourceTypes.ArmTypes.RedisCache;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "RedisCache";
+    public string ResourceTypeName => AzureResourceTypes.RedisCache;
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {

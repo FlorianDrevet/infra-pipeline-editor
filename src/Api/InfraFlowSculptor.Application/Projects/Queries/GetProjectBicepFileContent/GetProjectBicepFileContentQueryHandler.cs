@@ -1,6 +1,7 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Domain.Common.Errors;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Queries.GetProjectBicepFileContent;
@@ -25,9 +26,7 @@ public sealed class GetProjectBicepFileContentQueryHandler(
         var allBlobs = await blobService.ListBlobsAsync(prefix);
 
         if (allBlobs.Count == 0)
-            return Error.NotFound(
-                "ProjectBicepFile.NotFound",
-                $"No generated Bicep files found for project '{query.ProjectId}'.");
+            return Errors.Project.BicepFilesNotFoundError(query.ProjectId);
 
         var latestPrefix = allBlobs
             .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
@@ -39,9 +38,7 @@ public sealed class GetProjectBicepFileContentQueryHandler(
         var content = await blobService.DownloadContentAsync(blobName);
 
         if (content is null)
-            return Error.NotFound(
-                "ProjectBicepFile.NotFound",
-                $"File '{query.FilePath}' was not found.");
+            return Errors.Project.BicepFileNotFoundError(query.FilePath);
 
         return new GetProjectBicepFileContentResult(content);
     }

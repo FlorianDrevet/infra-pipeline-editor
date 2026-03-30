@@ -17,6 +17,10 @@ import {
   SetRepositoryModeRequest,
   GenerateProjectBicepResponse,
   GenerateProjectPipelineResponse,
+  ProjectPipelineVariableGroupResponse,
+  AddProjectPipelineVariableGroupRequest,
+  AddProjectPipelineVariableMappingRequest,
+  ProjectPipelineVariableMappingResponse,
 } from '../interfaces/project.interface';
 import {
   PushBicepToGitRequest,
@@ -282,6 +286,56 @@ export class ProjectService {
       MethodEnum.POST,
       `/projects/${projectId}/push-pipeline-to-git`,
       request
+    );
+  }
+
+  // ─── Pipeline Variable Groups ───
+
+  getPipelineVariableGroups(projectId: string): Promise<ProjectPipelineVariableGroupResponse[]> {
+    return this.axios.request$<ProjectPipelineVariableGroupResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/pipeline-variable-groups`
+    );
+  }
+
+  addPipelineVariableGroup(
+    projectId: string,
+    request: AddProjectPipelineVariableGroupRequest
+  ): Promise<ProjectPipelineVariableGroupResponse> {
+    return this.axios.request$<ProjectPipelineVariableGroupResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/pipeline-variable-groups`,
+      request
+    );
+  }
+
+  removePipelineVariableGroup(projectId: string, groupId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/pipeline-variable-groups/${groupId}`
+    );
+  }
+
+  addPipelineVariableMapping(
+    projectId: string,
+    groupId: string,
+    request: AddProjectPipelineVariableMappingRequest
+  ): Promise<ProjectPipelineVariableMappingResponse> {
+    return this.axios.request$<ProjectPipelineVariableMappingResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/pipeline-variable-groups/${groupId}/mappings`,
+      request
+    );
+  }
+
+  removePipelineVariableMapping(
+    projectId: string,
+    groupId: string,
+    mappingId: string
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/pipeline-variable-groups/${groupId}/mappings/${mappingId}`
     );
   }
 }

@@ -96,6 +96,8 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<CrossConfigResourceReference> CrossConfigResourceReferences { get; set; } = null!;
     public DbSet<PipelineVariableGroup> PipelineVariableGroups { get; set; } = null!;
     public DbSet<PipelineVariableMapping> PipelineVariableMappings { get; set; } = null!;
+    public DbSet<ProjectPipelineVariableGroup> ProjectPipelineVariableGroups { get; set; } = null!;
+    public DbSet<ProjectPipelineVariableMapping> ProjectPipelineVariableMappings { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

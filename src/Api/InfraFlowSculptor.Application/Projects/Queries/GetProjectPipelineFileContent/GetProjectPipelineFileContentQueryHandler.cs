@@ -1,6 +1,7 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Domain.Common.Errors;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Queries.GetProjectPipelineFileContent;
@@ -25,9 +26,7 @@ public sealed class GetProjectPipelineFileContentQueryHandler(
         var allBlobs = await blobService.ListBlobsAsync(prefix);
 
         if (allBlobs.Count == 0)
-            return Error.NotFound(
-                "ProjectPipelineFile.NotFound",
-                $"No generated pipeline files found for project '{query.ProjectId}'.");
+            return Errors.Project.PipelineFilesNotFoundError(query.ProjectId);
 
         var latestPrefix = allBlobs
             .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
@@ -39,9 +38,7 @@ public sealed class GetProjectPipelineFileContentQueryHandler(
         var content = await blobService.DownloadContentAsync(blobName);
 
         if (content is null)
-            return Error.NotFound(
-                "ProjectPipelineFile.NotFound",
-                $"File '{query.FilePath}' was not found.");
+            return Errors.Project.PipelineFileNotFoundError(query.FilePath);
 
         return new GetProjectPipelineFileContentResult(content);
     }

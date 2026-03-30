@@ -49,9 +49,7 @@ public sealed class PushPipelineToGitCommandHandler(
             "pipeline", command.InfrastructureConfigId, cancellationToken);
 
         if (files is null || files.Count == 0)
-            return Error.NotFound(
-                "PushPipelineToGit.NoFiles",
-                $"No generated pipeline files found for configuration '{command.InfrastructureConfigId}'.");
+            return Errors.InfrastructureConfig.PipelineFilesNotFoundError(command.InfrastructureConfigId);
 
         var gitProvider = gitProviderFactory.Create(gitConfig.ProviderType);
         return await gitProvider.PushFilesAsync(new GitPushRequest

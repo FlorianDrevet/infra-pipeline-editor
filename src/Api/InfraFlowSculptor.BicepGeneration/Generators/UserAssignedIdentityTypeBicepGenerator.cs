@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -8,10 +9,10 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepGenerator
 {
     /// <inheritdoc />
-    public string ResourceType => "Microsoft.ManagedIdentity/userAssignedIdentities";
+    public string ResourceType => AzureResourceTypes.ArmTypes.UserAssignedIdentity;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "UserAssignedIdentity";
+    public string ResourceTypeName => AzureResourceTypes.UserAssignedIdentity;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

@@ -133,3 +133,26 @@ export interface GenerateProjectPipelineResponse {
   commonFileUris: Record<string, string>;
   configFileUris: Record<string, Record<string, string>>;
 }
+
+// ─── Project Pipeline Variable Groups ────────────────────────────────────────
+
+export interface ProjectPipelineVariableMappingResponse {
+  id: string;
+  pipelineVariableName: string;
+  bicepParameterName: string;
+}
+
+export interface ProjectPipelineVariableGroupResponse {
+  id: string;
+  groupName: string;
+  mappings: ProjectPipelineVariableMappingResponse[];
+}
+
+export interface AddProjectPipelineVariableGroupRequest {
+  groupName: string;
+}
+
+export interface AddProjectPipelineVariableMappingRequest {
+  pipelineVariableName: string;
+  bicepParameterName: string;
+}

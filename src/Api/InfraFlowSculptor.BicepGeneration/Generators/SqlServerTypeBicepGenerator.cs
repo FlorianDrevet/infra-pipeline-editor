@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -8,10 +9,10 @@ public sealed class SqlServerTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.Sql/servers";
+        => AzureResourceTypes.ArmTypes.SqlServer;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "SqlServer";
+    public string ResourceTypeName => AzureResourceTypes.SqlServer;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

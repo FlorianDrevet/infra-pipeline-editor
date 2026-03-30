@@ -77,9 +77,7 @@ public sealed class PushBicepToGitCommandHandler(
         var allBlobs = await blobService.ListBlobsAsync(prefix);
 
         if (allBlobs.Count == 0)
-            return Error.NotFound(
-                "PushBicepToGit.NoFiles",
-                $"No generated Bicep files found for configuration '{configId}'.");
+            return Errors.InfrastructureConfig.BicepFilesNotFoundError(configId);
 
         // Find the latest timestamp folder (format: bicep/{configId}/{yyyyMMddHHmmss}/...)
         var latestPrefix = allBlobs
@@ -104,9 +102,7 @@ public sealed class PushBicepToGitCommandHandler(
         }
 
         if (files.Count == 0)
-            return Error.NotFound(
-                "PushBicepToGit.NoFiles",
-                $"No generated Bicep files found for configuration '{configId}'.");
+            return Errors.InfrastructureConfig.BicepFilesNotFoundError(configId);
 
         return files;
     }

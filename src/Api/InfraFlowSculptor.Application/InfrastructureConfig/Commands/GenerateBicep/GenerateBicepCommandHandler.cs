@@ -3,8 +3,11 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.BicepGeneration;
+using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.ResourceOutputs;
@@ -29,28 +32,7 @@ public sealed class GenerateBicepCommandHandler(
     /// </summary>
     private const string BicepParameterExtension = ".bicepparam";
 
-    /// <summary>
-    /// Maps Azure resource type strings to their simple type names used in naming template lookups
-    /// and abbreviation resolution via <see cref="ResourceAbbreviationCatalog"/>.
-    /// </summary>
-    private static readonly Dictionary<string, string> ResourceTypeNames = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["Microsoft.KeyVault/vaults"] = "KeyVault",
-        ["Microsoft.Cache/Redis"] = "RedisCache",
-        ["Microsoft.Storage/storageAccounts"] = "StorageAccount",
-        ["Microsoft.Web/serverfarms"] = "AppServicePlan",
-        ["Microsoft.Web/sites"] = "WebApp",
-        ["Microsoft.Web/sites/functionapp"] = "FunctionApp",
-        ["Microsoft.ManagedIdentity/userAssignedIdentities"] = "UserAssignedIdentity",
-        ["Microsoft.AppConfiguration/configurationStores"] = "AppConfiguration",
-        ["Microsoft.App/managedEnvironments"] = "ContainerAppEnvironment",
-        ["Microsoft.App/containerApps"] = "ContainerApp",
-        ["Microsoft.OperationalInsights/workspaces"] = "LogAnalyticsWorkspace",
-        ["Microsoft.Insights/components"] = "ApplicationInsights",
-        ["Microsoft.DocumentDB/databaseAccounts"] = "CosmosDb",
-        ["Microsoft.Sql/servers"] = "SqlServer",
-        ["Microsoft.Sql/servers/databases"] = "SqlDatabase",
-    };
+
 
     public async Task<ErrorOr<GenerateBicepResult>> Handle(
         GenerateBicepCommand command,
@@ -60,9 +42,7 @@ public sealed class GenerateBicepCommandHandler(
             command.InfrastructureConfigId, cancellationToken);
 
         if (config is null)
-            return Error.NotFound(
-                "InfrastructureConfig.NotFound",
-                $"Infrastructure configuration '{command.InfrastructureConfigId}' was not found.");
+            return Errors.InfrastructureConfig.NotFoundError(new InfrastructureConfigId(command.InfrastructureConfigId));
 
         var resources = config.ResourceGroups
             .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
@@ -286,7 +266,7 @@ public sealed class GenerateBicepCommandHandler(
     /// </summary>
     private static string GetResourceAbbreviation(string azureResourceType)
     {
-        var typeName = ResourceTypeNames.GetValueOrDefault(azureResourceType, azureResourceType);
+        var typeName = AzureResourceTypes.GetFriendlyName(azureResourceType);
         return ResourceAbbreviationCatalog.GetAbbreviation(typeName);
     }
 
@@ -294,5 +274,5 @@ public sealed class GenerateBicepCommandHandler(
     /// Resolves the simple resource type name from the Azure resource type string (e.g. "Microsoft.KeyVault/vaults" → "KeyVault").
     /// </summary>
     private static string GetResourceTypeName(string azureResourceType) =>
-        ResourceTypeNames.GetValueOrDefault(azureResourceType, azureResourceType);
+        AzureResourceTypes.GetFriendlyName(azureResourceType);
 }

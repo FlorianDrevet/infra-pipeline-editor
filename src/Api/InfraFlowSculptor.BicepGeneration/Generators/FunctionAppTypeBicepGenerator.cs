@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -8,10 +9,10 @@ public sealed class FunctionAppTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.Web/sites/functionapp";
+        => AzureResourceTypes.ArmTypes.FunctionApp;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "FunctionApp";
+    public string ResourceTypeName => AzureResourceTypes.FunctionApp;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

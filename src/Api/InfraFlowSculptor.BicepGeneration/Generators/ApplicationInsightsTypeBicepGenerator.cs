@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -10,10 +11,10 @@ public sealed class ApplicationInsightsTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.Insights/components";
+        => AzureResourceTypes.ArmTypes.ApplicationInsights;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "ApplicationInsights";
+    public string ResourceTypeName => AzureResourceTypes.ApplicationInsights;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

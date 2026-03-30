@@ -779,6 +779,53 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("project_members", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "GroupName")
+                        .IsUnique();
+
+                    b.ToTable("ProjectPipelineVariableGroups", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableMapping", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BicepParameterName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("PipelineVariableName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("VariableGroupId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VariableGroupId", "BicepParameterName")
+                        .IsUnique();
+
+                    b.ToTable("ProjectPipelineVariableMappings", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectResourceNamingTemplate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1734,6 +1781,24 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Project", null)
+                        .WithMany("PipelineVariableGroups")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableMapping", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup", null)
+                        .WithMany("Mappings")
+                        .HasForeignKey("VariableGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectResourceNamingTemplate", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Project", "Project")
@@ -2135,11 +2200,18 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("ResourceNamingTemplates");
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup", b =>
+                {
+                    b.Navigation("Mappings");
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Project", b =>
                 {
                     b.Navigation("GitRepositoryConfiguration");
 
                     b.Navigation("Members");
+
+                    b.Navigation("PipelineVariableGroups");
 
                     b.Navigation("ResourceNamingTemplates");
                 });

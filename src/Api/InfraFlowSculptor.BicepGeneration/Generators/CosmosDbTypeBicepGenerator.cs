@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -10,10 +11,10 @@ public sealed class CosmosDbTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.DocumentDB/databaseAccounts";
+        => AzureResourceTypes.ArmTypes.CosmosDb;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "CosmosDb";
+    public string ResourceTypeName => AzureResourceTypes.CosmosDb;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

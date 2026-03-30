@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 
@@ -17,9 +18,7 @@ public sealed class DownloadPipelineCommandHandler(IGeneratedArtifactService art
             "pipeline", command.InfrastructureConfigId, cancellationToken);
 
         if (result is null)
-            return Error.NotFound(
-                "DownloadPipeline.NotFound",
-                $"No generated pipeline files found for configuration '{command.InfrastructureConfigId}'.");
+            return Errors.InfrastructureConfig.PipelineFilesNotFoundError(command.InfrastructureConfigId);
 
         return new DownloadPipelineResult(result.Value.ZipContent, result.Value.FileName);
     }

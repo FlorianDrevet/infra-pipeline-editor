@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -10,10 +11,10 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.App/managedEnvironments";
+        => AzureResourceTypes.ArmTypes.ContainerAppEnvironment;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "ContainerAppEnvironment";
+    public string ResourceTypeName => AzureResourceTypes.ContainerAppEnvironment;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

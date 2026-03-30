@@ -33,7 +33,7 @@
       </div>
     </section>
 
-    <mat-tab-group class="project-tabs" animationDuration="200ms">
+    <mat-tab-group class="project-tabs" animationDuration="200ms" (selectedTabChange)="onTabChange($event.index)">
       <!-- Configurations -->
       <mat-tab>
         <ng-template mat-tab-label>
@@ -540,6 +540,109 @@
             <div class="empty-state">
               <mat-icon class="empty-state__icon">group</mat-icon>
               <p>{{ 'PROJECT_DETAIL.MEMBERS.EMPTY' | translate }}</p>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Pipeline Variable Groups -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">library_books</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.TABS.PIPELINE_VARIABLES' | translate }}</span>
+          <span class="tab-count">{{ variableGroups().length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          @if (vgErrorKey()) {
+            <p class="action-error">{{ vgErrorKey() | translate }}</p>
+          }
+
+          @if (canWrite()) {
+            <div class="tab-content__toolbar">
+              <button class="add-btn" (click)="openAddVariableGroupDialog()">
+                <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
+                {{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.ADD_GROUP' | translate }}
+              </button>
+            </div>
+          }
+
+          @if (vgLoading()) {
+            <div class="empty-state">
+              <mat-spinner diameter="32"></mat-spinner>
+            </div>
+          } @else if (variableGroups().length > 0) {
+            <mat-accordion multi>
+              @for (group of variableGroups(); track group.id) {
+                <mat-expansion-panel (opened)="initMappingInput(group.id)">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>
+                      <mat-icon class="vg-panel-icon">library_books</mat-icon>
+                      {{ group.groupName }}
+                    </mat-panel-title>
+                    <mat-panel-description>
+                      {{ group.mappings.length }} {{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.MAPPINGS' | translate }}
+                    </mat-panel-description>
+                  </mat-expansion-panel-header>
+
+                  <!-- Mappings list -->
+                  @if (group.mappings.length > 0) {
+                    <div class="vg-mapping-list">
+                      <div class="vg-mapping-header">
+                        <span class="vg-mapping-col">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.PIPELINE_VARIABLE' | translate }}</span>
+                        <span class="vg-mapping-col">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.BICEP_PARAMETER' | translate }}</span>
+                        <span class="vg-mapping-col--action"></span>
+                      </div>
+                      @for (mapping of group.mappings; track mapping.id) {
+                        <div class="vg-mapping-row">
+                          <span class="vg-mapping-col"><code>{{ mapping.pipelineVariableName }}</code></span>
+                          <span class="vg-mapping-col vg-mapping-arrow">→</span>
+                          <span class="vg-mapping-col"><code>{{ mapping.bicepParameterName }}</code></span>
+                          @if (canWrite()) {
+                            <button class="vg-mapping-delete" [matTooltip]="'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_MAPPING' | translate" (click)="openRemoveMappingDialog(group, mapping.id)">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <p class="vg-no-mappings">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.NO_MAPPINGS' | translate }}</p>
+                  }
+
+                  <!-- Inline add mapping form -->
+                  @if (canWrite()) {
+                    <div class="vg-add-mapping-row">
+                      <mat-form-field appearance="outline" class="vg-add-mapping-field">
+                        <mat-label>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.PIPELINE_VARIABLE' | translate }}</mat-label>
+                        <input matInput [value]="vgMappingInputs()[group.id]?.pipelineVar ?? ''" (input)="updateMappingInput(group.id, 'pipelineVar', $any($event.target).value)" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="vg-add-mapping-field">
+                        <mat-label>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.BICEP_PARAMETER' | translate }}</mat-label>
+                        <input matInput [value]="vgMappingInputs()[group.id]?.bicepParam ?? ''" (input)="updateMappingInput(group.id, 'bicepParam', $any($event.target).value)" />
+                      </mat-form-field>
+                      <button class="add-btn" [disabled]="!vgMappingInputs()[group.id]?.pipelineVar || !vgMappingInputs()[group.id]?.bicepParam" (click)="addMapping(group.id)">
+                        <mat-icon class="add-btn__icon">add</mat-icon>
+                        {{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.ADD_MAPPING' | translate }}
+                      </button>
+                    </div>
+                  }
+
+                  <mat-action-row>
+                    @if (canWrite()) {
+                      <button class="delete-config-btn" (click)="openRemoveVariableGroupDialog(group)">
+                        <mat-icon>delete_outline</mat-icon>
+                        {{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate }}
+                      </button>
+                    }
+                  </mat-action-row>
+                </mat-expansion-panel>
+              }
+            </mat-accordion>
+          } @else if (vgLoaded()) {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">library_books</mat-icon>
+              <p>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.EMPTY' | translate }}</p>
+              <p class="empty-state__hint">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.EMPTY_HINT' | translate }}</p>
             </div>
           }
         </div>

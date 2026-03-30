@@ -2,6 +2,7 @@ using System.Text;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration;
 
@@ -113,21 +114,21 @@ public static class BicepAssembler
     private static string GetModuleFolderName(string resourceTypeName) =>
         resourceTypeName switch
         {
-            "KeyVault" => "KeyVault",
-            "RedisCache" => "RedisCache",
-            "StorageAccount" => "StorageAccount",
-            "AppServicePlan" => "AppServicePlan",
-            "WebApp" => "WebApp",
-            "FunctionApp" => "FunctionApp",
-            "UserAssignedIdentity" => "UserAssignedIdentity",
-            "AppConfiguration" => "AppConfiguration",
-            "ContainerAppEnvironment" => "ContainerAppEnvironment",
-            "ContainerApp" => "ContainerApp",
-            "LogAnalyticsWorkspace" => "LogAnalyticsWorkspace",
-            "ApplicationInsights" => "ApplicationInsights",
-            "CosmosDb" => "CosmosDb",
-            "SqlServer" => "SqlServer",
-            "SqlDatabase" => "SqlDatabase",
+            AzureResourceTypes.KeyVault => AzureResourceTypes.KeyVault,
+            AzureResourceTypes.RedisCache => AzureResourceTypes.RedisCache,
+            AzureResourceTypes.StorageAccount => AzureResourceTypes.StorageAccount,
+            AzureResourceTypes.AppServicePlan => AzureResourceTypes.AppServicePlan,
+            AzureResourceTypes.WebApp => AzureResourceTypes.WebApp,
+            AzureResourceTypes.FunctionApp => AzureResourceTypes.FunctionApp,
+            AzureResourceTypes.UserAssignedIdentity => AzureResourceTypes.UserAssignedIdentity,
+            AzureResourceTypes.AppConfiguration => AzureResourceTypes.AppConfiguration,
+            AzureResourceTypes.ContainerAppEnvironment => AzureResourceTypes.ContainerAppEnvironment,
+            AzureResourceTypes.ContainerApp => AzureResourceTypes.ContainerApp,
+            AzureResourceTypes.LogAnalyticsWorkspace => AzureResourceTypes.LogAnalyticsWorkspace,
+            AzureResourceTypes.ApplicationInsights => AzureResourceTypes.ApplicationInsights,
+            AzureResourceTypes.CosmosDb => AzureResourceTypes.CosmosDb,
+            AzureResourceTypes.SqlServer => AzureResourceTypes.SqlServer,
+            AzureResourceTypes.SqlDatabase => AzureResourceTypes.SqlDatabase,
             _ => resourceTypeName
         };
 
@@ -137,22 +138,22 @@ public static class BicepAssembler
     private static string GetResourceTypeDisplayName(string resourceTypeName) =>
         resourceTypeName switch
         {
-            "KeyVault" => "Key Vault",
-            "RedisCache" => "Redis Cache",
-            "StorageAccount" => "Storage Account",
-            "AppServicePlan" => "App Service Plan",
-            "WebApp" => "Web App",
-            "FunctionApp" => "Function App",
-            "UserAssignedIdentity" => "User Assigned Identity",
-            "AppConfiguration" => "App Configuration",
-            "ContainerAppEnvironment" => "Container App Environment",
-            "ContainerApp" => "Container App",
-            "LogAnalyticsWorkspace" => "Log Analytics Workspace",
-            "ApplicationInsights" => "Application Insights",
-            "CosmosDb" => "Cosmos DB",
-            "SqlServer" => "SQL Server",
-            "SqlDatabase" => "SQL Database",
-            "ServiceBusNamespace" => "Service Bus Namespace",
+            AzureResourceTypes.KeyVault => "Key Vault",
+            AzureResourceTypes.RedisCache => "Redis Cache",
+            AzureResourceTypes.StorageAccount => "Storage Account",
+            AzureResourceTypes.AppServicePlan => "App Service Plan",
+            AzureResourceTypes.WebApp => "Web App",
+            AzureResourceTypes.FunctionApp => "Function App",
+            AzureResourceTypes.UserAssignedIdentity => "User Assigned Identity",
+            AzureResourceTypes.AppConfiguration => "App Configuration",
+            AzureResourceTypes.ContainerAppEnvironment => "Container App Environment",
+            AzureResourceTypes.ContainerApp => "Container App",
+            AzureResourceTypes.LogAnalyticsWorkspace => "Log Analytics Workspace",
+            AzureResourceTypes.ApplicationInsights => "Application Insights",
+            AzureResourceTypes.CosmosDb => "Cosmos DB",
+            AzureResourceTypes.SqlServer => "SQL Server",
+            AzureResourceTypes.SqlDatabase => "SQL Database",
+            AzureResourceTypes.ServiceBusNamespace => "Service Bus Namespace",
             _ => resourceTypeName
         };
 
@@ -162,22 +163,22 @@ public static class BicepAssembler
     private static string GetResourceTypeDocumentationUrl(string resourceTypeName) =>
         resourceTypeName switch
         {
-            "KeyVault" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/vaults",
-            "RedisCache" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.cache/redis",
-            "StorageAccount" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts",
-            "AppServicePlan" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/serverfarms",
-            "WebApp" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites",
-            "FunctionApp" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites",
-            "UserAssignedIdentity" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.managedidentity/userassignedidentities",
-            "AppConfiguration" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.appconfiguration/configurationstores",
-            "ContainerAppEnvironment" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments",
-            "ContainerApp" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps",
-            "LogAnalyticsWorkspace" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.operationalinsights/workspaces",
-            "ApplicationInsights" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components",
-            "CosmosDb" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/databaseaccounts",
-            "SqlServer" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.sql/servers",
-            "SqlDatabase" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.sql/servers/databases",
-            "ServiceBusNamespace" => "https://learn.microsoft.com/en-us/azure/templates/microsoft.servicebus/namespaces",
+            AzureResourceTypes.KeyVault => "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/vaults",
+            AzureResourceTypes.RedisCache => "https://learn.microsoft.com/en-us/azure/templates/microsoft.cache/redis",
+            AzureResourceTypes.StorageAccount => "https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts",
+            AzureResourceTypes.AppServicePlan => "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/serverfarms",
+            AzureResourceTypes.WebApp => "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites",
+            AzureResourceTypes.FunctionApp => "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites",
+            AzureResourceTypes.UserAssignedIdentity => "https://learn.microsoft.com/en-us/azure/templates/microsoft.managedidentity/userassignedidentities",
+            AzureResourceTypes.AppConfiguration => "https://learn.microsoft.com/en-us/azure/templates/microsoft.appconfiguration/configurationstores",
+            AzureResourceTypes.ContainerAppEnvironment => "https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments",
+            AzureResourceTypes.ContainerApp => "https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps",
+            AzureResourceTypes.LogAnalyticsWorkspace => "https://learn.microsoft.com/en-us/azure/templates/microsoft.operationalinsights/workspaces",
+            AzureResourceTypes.ApplicationInsights => "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components",
+            AzureResourceTypes.CosmosDb => "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/databaseaccounts",
+            AzureResourceTypes.SqlServer => "https://learn.microsoft.com/en-us/azure/templates/microsoft.sql/servers",
+            AzureResourceTypes.SqlDatabase => "https://learn.microsoft.com/en-us/azure/templates/microsoft.sql/servers/databases",
+            AzureResourceTypes.ServiceBusNamespace => "https://learn.microsoft.com/en-us/azure/templates/microsoft.servicebus/namespaces",
             _ => string.Empty
         };
 
@@ -827,11 +828,11 @@ public static class BicepAssembler
             }
 
             // Inject appSettings / envVars param for compute modules only
-            var isComputeModule = module.ResourceTypeName is "WebApp" or "FunctionApp" or "ContainerApp";
+            var isComputeModule = module.ResourceTypeName is AzureResourceTypes.WebApp or AzureResourceTypes.FunctionApp or AzureResourceTypes.ContainerApp;
             if (isComputeModule
                 && appSettingsByTarget.TryGetValue(module.LogicalResourceName, out var resourceAppSettings))
             {
-                var isContainerApp = module.ResourceTypeName == "ContainerApp";
+                var isContainerApp = module.ResourceTypeName == AzureResourceTypes.ContainerApp;
                 var paramName = isContainerApp ? "envVars" : "appSettings";
 
                 sb.AppendLine($"    {paramName}: [");
@@ -1210,21 +1211,21 @@ public static class BicepAssembler
     {
         return resourceType switch
         {
-            "Microsoft.KeyVault/vaults" => "keyVault",
-            "Microsoft.Cache/Redis" => "redisCache",
-            "Microsoft.Storage/storageAccounts" => "storageAccount",
-            "Microsoft.Web/serverfarms" => "appServicePlan",
-            "Microsoft.Web/sites" => "webApp",
-            "Microsoft.Web/sites/functionapp" => "functionApp",
-            "Microsoft.ManagedIdentity/userAssignedIdentities" => "userAssignedIdentity",
-            "Microsoft.AppConfiguration/configurationStores" => "appConfiguration",
-            "Microsoft.App/managedEnvironments" => "containerAppEnvironment",
-            "Microsoft.App/containerApps" => "containerApp",
-            "Microsoft.OperationalInsights/workspaces" => "logAnalyticsWorkspace",
-            "Microsoft.Insights/components" => "applicationInsights",
-            "Microsoft.DocumentDB/databaseAccounts" => "cosmosDb",
-            "Microsoft.Sql/servers" => "sqlServer",
-            "Microsoft.Sql/servers/databases" => "sqlDatabase",
+            AzureResourceTypes.ArmTypes.KeyVault => "keyVault",
+            AzureResourceTypes.ArmTypes.RedisCache => "redisCache",
+            AzureResourceTypes.ArmTypes.StorageAccount => "storageAccount",
+            AzureResourceTypes.ArmTypes.AppServicePlan => "appServicePlan",
+            AzureResourceTypes.ArmTypes.WebApp => "webApp",
+            AzureResourceTypes.ArmTypes.FunctionApp => "functionApp",
+            AzureResourceTypes.ArmTypes.UserAssignedIdentity => "userAssignedIdentity",
+            AzureResourceTypes.ArmTypes.AppConfiguration => "appConfiguration",
+            AzureResourceTypes.ArmTypes.ContainerAppEnvironment => "containerAppEnvironment",
+            AzureResourceTypes.ArmTypes.ContainerApp => "containerApp",
+            AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace => "logAnalyticsWorkspace",
+            AzureResourceTypes.ArmTypes.ApplicationInsights => "applicationInsights",
+            AzureResourceTypes.ArmTypes.CosmosDb => "cosmosDb",
+            AzureResourceTypes.ArmTypes.SqlServer => "sqlServer",
+            AzureResourceTypes.ArmTypes.SqlDatabase => "sqlDatabase",
             _ => "unknown"
         };
     }
@@ -1556,60 +1557,74 @@ public static class BicepAssembler
         return sb.ToString();
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // Module output pruning
-    // ────────────────────────────────────────────────────────────────────────
-
     /// <summary>
-    /// <summary>
-    /// Removes output declarations from a module template that are not in the specified
-    /// set of used output names. Also removes decorators (<c>@description</c>, <c>@secure</c>)
-    /// that immediately precede removed output lines.
+    /// Removes <c>output</c> declarations from a Bicep file whose names are not in
+    /// <paramref name="usedOutputs" />.  Preserves all other content verbatim.
     /// </summary>
-    internal static string PruneUnusedOutputs(string moduleBicepContent, HashSet<string> usedOutputNames)
+    /// <param name="bicepContent">The full content of a generated Bicep module file.</param>
+    /// <param name="usedOutputs">The set of output names that are actually referenced.</param>
+    /// <returns>The Bicep content with unused output declarations stripped.</returns>
+    public static string PruneUnusedOutputs(string bicepContent, HashSet<string> usedOutputs)
     {
-        var lines = moduleBicepContent.Split('\n');
-        var result = new List<string>(lines.Length);
+        if (string.IsNullOrEmpty(bicepContent))
+            return bicepContent;
 
-        for (var i = 0; i < lines.Length; i++)
+        // Match a full output declaration block:
+        //   optional @description(...)  annotation line(s)
+        //   output <name> <type> = <expression>
+        // The regex captures the output name so we can decide whether to keep it.
+        // We use a line-by-line approach to avoid multi-line regex complexity.
+        var lines = bicepContent.Split('\n');
+        var result = new StringBuilder(bicepContent.Length);
+        var pendingAnnotations = new List<string>();
+
+        foreach (var rawLine in lines)
         {
-            var trimmed = lines[i].TrimStart();
+            var line = rawLine.TrimEnd('\r');
 
-            if (trimmed.StartsWith("output "))
+            // Buffer @description / @secure / @export annotations — they belong to the next declaration.
+            if (line.TrimStart().StartsWith('@'))
             {
-                // Parse output name: "output <name> <type> = ..."
-                var spaceIdx = trimmed.IndexOf(' ', 7);
-                var outputName = spaceIdx > 7 ? trimmed[7..spaceIdx] : trimmed[7..];
+                pendingAnnotations.Add(line);
+                continue;
+            }
 
-                if (!usedOutputNames.Contains(outputName))
+            // Detect an output declaration: output <name> ...
+            var trimmed = line.TrimStart();
+            if (trimmed.StartsWith("output ", StringComparison.Ordinal))
+            {
+                var parts = trimmed.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries);
+                var outputName = parts.Length >= 2 ? parts[1] : string.Empty;
+
+                if (!usedOutputs.Contains(outputName))
                 {
-                    // Remove preceding decorator lines (@description, @secure) and blank lines
-                    while (result.Count > 0)
-                    {
-                        var prevTrimmed = result[^1].TrimStart();
-                        if (prevTrimmed.StartsWith('@') || string.IsNullOrWhiteSpace(result[^1]))
-                        {
-                            result.RemoveAt(result.Count - 1);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
+                    // Drop this output and its pending annotations.
+                    pendingAnnotations.Clear();
                     continue;
                 }
             }
 
-            result.Add(lines[i]);
+            // Flush buffered annotations before any non-output line.
+            foreach (var annotation in pendingAnnotations)
+            {
+                result.Append(annotation).Append('\n');
+            }
+            pendingAnnotations.Clear();
+
+            result.Append(line).Append('\n');
         }
 
-        // Clean up trailing blank lines
-        while (result.Count > 0 && string.IsNullOrWhiteSpace(result[^1]))
+        // Flush any trailing annotations (edge case).
+        foreach (var annotation in pendingAnnotations)
         {
-            result.RemoveAt(result.Count - 1);
+            result.Append(annotation).Append('\n');
         }
 
-        return string.Join('\n', result) + '\n';
+        // Remove trailing newline added by the loop if the original didn't end with one.
+        var output = result.ToString();
+        if (!bicepContent.EndsWith('\n') && output.EndsWith('\n'))
+            output = output[..^1];
+
+        return output;
     }
 }

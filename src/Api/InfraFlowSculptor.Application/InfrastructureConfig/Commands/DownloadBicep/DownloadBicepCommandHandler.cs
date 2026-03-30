@@ -2,6 +2,7 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using System.IO.Compression;
 using System.Text;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 
@@ -18,9 +19,7 @@ public sealed class DownloadBicepCommandHandler(IBlobService blobService)
         var allBlobs = await blobService.ListBlobsAsync(prefix);
 
         if (allBlobs.Count == 0)
-            return Error.NotFound(
-                "DownloadBicep.NotFound",
-                $"No generated Bicep files found for configuration '{command.InfrastructureConfigId}'.");
+            return Errors.InfrastructureConfig.BicepFilesNotFoundError(command.InfrastructureConfigId);
 
         // Find the latest timestamp folder (format: bicep/{configId}/{yyyyMMddHHmmss}/...)
         var latestPrefix = allBlobs

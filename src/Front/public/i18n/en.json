@@ -149,6 +149,7 @@
       "MEMBERS": "Members",
       "NAMING_TEMPLATES": "Naming",
       "CROSS_CONFIG_REFS": "Cross-config references",
+      "PIPELINE_VARIABLES": "Pipeline Variables",
       "GIT": "Git"
     },
     "GIT_CONFIG": {
@@ -591,6 +592,32 @@
       "ADD_DIALOG_ADD": "Add",
       "ADD_DIALOG_ERROR": "Unable to add the cross-config reference.",
       "ADD_ERROR": "Error adding the cross-config reference."
+    },
+    "PIPELINE_VARIABLES": {
+      "TAB": "Pipeline Variables",
+      "ADD_GROUP": "Add Variable Group",
+      "ADD_MAPPING": "Add Mapping",
+      "REMOVE_GROUP": "Remove Group",
+      "REMOVE_MAPPING": "Remove",
+      "EMPTY": "No pipeline variable groups configured.",
+      "EMPTY_HINT": "Add Azure DevOps Library references to inject pipeline variables into your Bicep parameters during deployment.",
+      "GROUP_NAME": "Group Name",
+      "GROUP_NAME_PLACEHOLDER": "e.g. my-library-name or my-secrets-{env}",
+      "GROUP_NAME_HINT": "Use {env} to scope the group per environment (e.g. dev, stg, prd).",
+      "PIPELINE_VARIABLE": "Pipeline Variable",
+      "BICEP_PARAMETER": "Bicep Parameter",
+      "MAPPINGS": "Mappings",
+      "NO_MAPPINGS": "No mappings configured",
+      "CONFIRM_DELETE_GROUP": "Delete this variable group and all its mappings?",
+      "CONFIRM_DELETE_MAPPING": "Remove this variable mapping?",
+      "ERROR_ADD_GROUP": "Failed to add variable group.",
+      "ERROR_REMOVE_GROUP": "Failed to remove variable group.",
+      "ERROR_ADD_MAPPING": "Failed to add mapping.",
+      "ERROR_REMOVE_MAPPING": "Failed to remove mapping.",
+      "SCOPE_CONFIG": "Configuration-specific",
+      "SCOPE_PROJECT": "Shared across all configurations",
+      "DIALOG_CANCEL": "Cancel",
+      "DIALOG_ADD": "Add"
     }
   },
   "PROJECT_DETAIL": {
@@ -602,6 +629,7 @@
       "ENVIRONMENTS": "Environments",
       "NAMING_TEMPLATES": "Naming",
       "MEMBERS": "Members",
+      "PIPELINE_VARIABLES": "Pipeline Variables",
       "GIT": "Git",
       "SETTINGS": "Settings"
     },
@@ -861,6 +889,28 @@
       "REPO_MODE_DESCRIPTION": "Choose how Bicep output is organized in Git repositories.",
       "GIT_MONO_DESCRIPTION": "In mono-repo mode, a single Git repository stores all configurations' Bicep output.",
       "GIT_MULTI_INFO": "In multi-repo mode, each configuration has its own Git repository. Configure Git in each configuration's Git tab."
+    },
+    "PIPELINE_VARIABLES": {
+      "TAB": "Pipeline Variables",
+      "ADD_GROUP": "Add Shared Variable Group",
+      "ADD_MAPPING": "Add Mapping",
+      "REMOVE_GROUP": "Remove Group",
+      "REMOVE_MAPPING": "Remove",
+      "EMPTY": "No shared pipeline variable groups configured.",
+      "EMPTY_HINT": "Add shared Azure DevOps Library references available to all configurations in this project.",
+      "GROUP_NAME": "Group Name",
+      "GROUP_NAME_PLACEHOLDER": "e.g. shared-secrets or shared-secrets-{env}",
+      "GROUP_NAME_HINT": "Use {env} to scope the group per environment (e.g. dev, stg, prd).",
+      "PIPELINE_VARIABLE": "Pipeline Variable",
+      "BICEP_PARAMETER": "Bicep Parameter",
+      "MAPPINGS": "Mappings",
+      "NO_MAPPINGS": "No mappings configured",
+      "CONFIRM_DELETE_GROUP": "Delete this shared variable group and all its mappings?",
+      "CONFIRM_DELETE_MAPPING": "Remove this variable mapping?",
+      "ERROR_ADD_GROUP": "Failed to add shared variable group.",
+      "ERROR_REMOVE_GROUP": "Failed to remove shared variable group.",
+      "ERROR_ADD_MAPPING": "Failed to add mapping.",
+      "ERROR_REMOVE_MAPPING": "Failed to remove mapping."
     }
   },
   "RESOURCE_EDIT": {

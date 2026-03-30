@@ -1,10 +1,11 @@
+using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Models;
 
 namespace InfraFlowSculptor.PipelineGeneration;
 
 /// <summary>
 /// Assembles pipeline output for mono-repo mode. Produces a <c>.azuredevops/</c> folder with
-/// shared templates and per-configuration folders each containing CI/release pipelines and variables.
+/// shared templates (including root-level variables) and per-configuration folders each containing CI/release pipelines.
 /// </summary>
 public static class MonoRepoPipelineAssembler
 {
@@ -12,13 +13,15 @@ public static class MonoRepoPipelineAssembler
     /// Assembles the complete mono-repo pipeline output from per-config generation results.
     /// </summary>
     /// <param name="perConfigResults">Per-config results keyed by config name.</param>
+    /// <param name="environments">The deduplicated environment definitions across all configurations.</param>
     /// <returns>A <see cref="MonoRepoPipelineResult"/> with common and per-config files.</returns>
     public static MonoRepoPipelineResult Assemble(
-        IReadOnlyDictionary<string, PipelineGenerationResult> perConfigResults)
+        IReadOnlyDictionary<string, PipelineGenerationResult> perConfigResults,
+        IReadOnlyList<EnvironmentDefinition> environments)
     {
-        // ── Shared templates (same for all configs) ─────────────────────────
+        // ── Shared templates (same for all configs) + root variables ────────
         var configNames = perConfigResults.Keys.ToList();
-        var commonFiles = PipelineGenerationEngine.GenerateSharedTemplates(configNames);
+        var commonFiles = PipelineGenerationEngine.GenerateSharedTemplates(configNames, environments);
 
         // ── Per-config folders ──────────────────────────────────────────────
         var configFiles = new Dictionary<string, IReadOnlyDictionary<string, string>>();

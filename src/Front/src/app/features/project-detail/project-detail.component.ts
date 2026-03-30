@@ -4,14 +4,16 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
-import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
   EnvironmentDefinitionResponse,
@@ -41,6 +43,7 @@ import {
 } from '../config-detail/push-to-git-dialog/push-to-git-dialog.component';
 import { RESOURCE_TYPE_OPTIONS } from '../config-detail/enums/resource-type.enum';
 import { TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
+import { AddVariableGroupDialogComponent } from '../config-detail/add-variable-group-dialog/add-variable-group-dialog.component';
 import { saveAs } from 'file-saver';
 import { FormsModule } from '@angular/forms';
 import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepFileType, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
@@ -60,8 +63,10 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     MatButtonModule,
     MatButtonToggleModule,
     MatDialogModule,
+    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
+    MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     MatTabsModule,
@@ -123,6 +128,13 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectPipelineErrorKey = signal('');
   protected readonly projectPipelinePanelOpen = signal(false);
   protected readonly projectPipelinePanelCollapsed = signal(false);
+
+  // ─── Pipeline Variable Groups ───
+  protected readonly variableGroups = signal<ProjectPipelineVariableGroupResponse[]>([]);
+  protected readonly vgLoading = signal(false);
+  protected readonly vgErrorKey = signal('');
+  protected readonly vgLoaded = signal(false);
+  protected readonly vgMappingInputs = signal<Record<string, { pipelineVar: string; bicepParam: string }>>({});
 
   protected readonly projectBicepNodes = computed<BicepTreeNode[]>(() => {
     const result = this.projectBicepResult();
@@ -924,6 +936,149 @@ export class ProjectDetailComponent implements OnInit {
         this.gitTestResult.set(null);
       } catch {
         this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.REMOVE_ERROR');
+      }
+    });
+  }
+
+  // ─── Pipeline Variable Groups ───
+
+  protected async onTabChange(index: number): Promise<void> {
+    // Tab 4 is pipeline variable groups — lazy load on first visit
+    if (index === 4 && !this.vgLoaded()) {
+      await this.loadVariableGroups();
+    }
+  }
+
+  protected async loadVariableGroups(): Promise<void> {
+    const project = this.project();
+    if (!project) return;
+
+    this.vgLoading.set(true);
+    this.vgErrorKey.set('');
+    try {
+      const groups = await this.projectService.getPipelineVariableGroups(project.id);
+      this.variableGroups.set(groups);
+      this.vgLoaded.set(true);
+    } catch {
+      this.vgErrorKey.set('PROJECT_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
+    } finally {
+      this.vgLoading.set(false);
+    }
+  }
+
+  protected openAddVariableGroupDialog(): void {
+    const dialogRef = this.dialog.open(AddVariableGroupDialogComponent, {
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (groupName?: string) => {
+      if (!groupName) return;
+      const project = this.project();
+      if (!project) return;
+
+      this.vgErrorKey.set('');
+      try {
+        const newGroup = await this.projectService.addPipelineVariableGroup(project.id, { groupName });
+        this.variableGroups.update(groups => [...groups, newGroup]);
+      } catch {
+        this.vgErrorKey.set('PROJECT_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
+      }
+    });
+  }
+
+  protected openRemoveVariableGroupDialog(group: ProjectPipelineVariableGroupResponse): void {
+    const data: ConfirmDialogData = {
+      titleKey: 'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP',
+      messageKey: 'PROJECT_DETAIL.PIPELINE_VARIABLES.CONFIRM_DELETE_GROUP',
+      confirmKey: 'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP',
+      cancelKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.DIALOG_CANCEL',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      const project = this.project();
+      if (!project) return;
+
+      this.vgErrorKey.set('');
+      try {
+        await this.projectService.removePipelineVariableGroup(project.id, group.id);
+        this.variableGroups.update(groups => groups.filter(g => g.id !== group.id));
+      } catch {
+        this.vgErrorKey.set('PROJECT_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_GROUP');
+      }
+    });
+  }
+
+  protected initMappingInput(groupId: string): void {
+    this.vgMappingInputs.update(inputs => ({
+      ...inputs,
+      [groupId]: { pipelineVar: '', bicepParam: '' },
+    }));
+  }
+
+  protected updateMappingInput(groupId: string, field: 'pipelineVar' | 'bicepParam', value: string): void {
+    this.vgMappingInputs.update(inputs => ({
+      ...inputs,
+      [groupId]: { ...inputs[groupId], [field]: value },
+    }));
+  }
+
+  protected async addMapping(groupId: string): Promise<void> {
+    const project = this.project();
+    if (!project) return;
+
+    const input = this.vgMappingInputs()[groupId];
+    if (!input?.pipelineVar || !input?.bicepParam) return;
+
+    this.vgErrorKey.set('');
+    try {
+      const mapping = await this.projectService.addPipelineVariableMapping(project.id, groupId, {
+        pipelineVariableName: input.pipelineVar,
+        bicepParameterName: input.bicepParam,
+      });
+      this.variableGroups.update(groups =>
+        groups.map(g =>
+          g.id === groupId ? { ...g, mappings: [...g.mappings, mapping] } : g
+        )
+      );
+      this.vgMappingInputs.update(inputs => ({
+        ...inputs,
+        [groupId]: { pipelineVar: '', bicepParam: '' },
+      }));
+    } catch {
+      this.vgErrorKey.set('PROJECT_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_MAPPING');
+    }
+  }
+
+  protected openRemoveMappingDialog(group: ProjectPipelineVariableGroupResponse, mappingId: string): void {
+    const data: ConfirmDialogData = {
+      titleKey: 'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_MAPPING',
+      messageKey: 'PROJECT_DETAIL.PIPELINE_VARIABLES.CONFIRM_DELETE_MAPPING',
+      confirmKey: 'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_MAPPING',
+      cancelKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.DIALOG_CANCEL',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      const project = this.project();
+      if (!project) return;
+
+      this.vgErrorKey.set('');
+      try {
+        await this.projectService.removePipelineVariableMapping(project.id, group.id, mappingId);
+        this.variableGroups.update(groups =>
+          groups.map(g =>
+            g.id === group.id
+              ? { ...g, mappings: g.mappings.filter(m => m.id !== mappingId) }
+              : g
+          )
+        );
+      } catch {
+        this.vgErrorKey.set('PROJECT_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_MAPPING');
       }
     });
   }

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -7,10 +8,10 @@ public sealed class StorageAccountTypeBicepGenerator
     : IResourceTypeBicepGenerator
 {
     public string ResourceType
-        => "Microsoft.Storage/storageAccounts";
+        => AzureResourceTypes.ArmTypes.StorageAccount;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "StorageAccount";
+    public string ResourceTypeName => AzureResourceTypes.StorageAccount;
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {

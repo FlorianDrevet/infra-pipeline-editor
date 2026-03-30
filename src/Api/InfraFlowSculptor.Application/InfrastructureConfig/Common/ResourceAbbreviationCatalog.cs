@@ -1,3 +1,5 @@
+using InfraFlowSculptor.GenerationCore;
+
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Common;
 
 /// <summary>
@@ -8,23 +10,23 @@ public static class ResourceAbbreviationCatalog
 {
     private static readonly Dictionary<string, string> Abbreviations = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["KeyVault"] = "kv",
-        ["RedisCache"] = "redis",
-        ["StorageAccount"] = "stg",
-        ["ResourceGroup"] = "rg",
-        ["AppServicePlan"] = "asp",
-        ["WebApp"] = "app",
-        ["FunctionApp"] = "func",
-        ["UserAssignedIdentity"] = "id",
-        ["AppConfiguration"] = "appcs",
-        ["ContainerAppEnvironment"] = "cae",
-        ["ContainerApp"] = "ca",
-        ["LogAnalyticsWorkspace"] = "law",
-        ["ApplicationInsights"] = "appi",
-        ["CosmosDb"] = "cosmos",
-        ["SqlServer"] = "sql",
-        ["SqlDatabase"] = "sqldb",
-        ["ServiceBusNamespace"] = "sb",
+        [AzureResourceTypes.KeyVault] = "kv",
+        [AzureResourceTypes.RedisCache] = "redis",
+        [AzureResourceTypes.StorageAccount] = "stg",
+        [AzureResourceTypes.ResourceGroup] = "rg",
+        [AzureResourceTypes.AppServicePlan] = "asp",
+        [AzureResourceTypes.WebApp] = "app",
+        [AzureResourceTypes.FunctionApp] = "func",
+        [AzureResourceTypes.UserAssignedIdentity] = "id",
+        [AzureResourceTypes.AppConfiguration] = "appcs",
+        [AzureResourceTypes.ContainerAppEnvironment] = "cae",
+        [AzureResourceTypes.ContainerApp] = "ca",
+        [AzureResourceTypes.LogAnalyticsWorkspace] = "law",
+        [AzureResourceTypes.ApplicationInsights] = "appi",
+        [AzureResourceTypes.CosmosDb] = "cosmos",
+        [AzureResourceTypes.SqlServer] = "sql",
+        [AzureResourceTypes.SqlDatabase] = "sqldb",
+        [AzureResourceTypes.ServiceBusNamespace] = "sb",
     };
 
     /// <summary>

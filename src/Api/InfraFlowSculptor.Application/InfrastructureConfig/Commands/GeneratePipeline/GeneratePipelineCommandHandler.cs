@@ -3,6 +3,11 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
+using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration;
 using MediatR;
@@ -12,6 +17,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.GeneratePi
 /// <summary>Handles the <see cref="GeneratePipelineCommand"/>.</summary>
 public sealed class GeneratePipelineCommandHandler(
     IInfrastructureConfigReadRepository configRepository,
+    IProjectRepository projectRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     IGeneratedArtifactService artifactService)
     : ICommandHandler<GeneratePipelineCommand, GeneratePipelineResult>
@@ -24,9 +30,22 @@ public sealed class GeneratePipelineCommandHandler(
             command.InfrastructureConfigId, cancellationToken);
 
         if (config is null)
-            return Error.NotFound(
-                "InfrastructureConfig.NotFound",
-                $"Infrastructure configuration '{command.InfrastructureConfigId}' was not found.");
+            return Errors.InfrastructureConfig.NotFoundError(new InfrastructureConfigId(command.InfrastructureConfigId));
+
+        // Load project-level pipeline variable groups
+        var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
+            new ProjectId(config.ProjectId), cancellationToken);
+
+        var projectVariableGroups = project?.PipelineVariableGroups
+            .Select(g => new PipelineVariableGroupDefinition
+            {
+                GroupName = g.GroupName,
+                Mappings = g.Mappings.Select(m => new PipelineVariableMappingDefinition
+                {
+                    PipelineVariableName = m.PipelineVariableName,
+                    BicepParameterName = m.BicepParameterName,
+                }).ToList(),
+            }).ToList() ?? [];
 
         var resources = config.ResourceGroups
             .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
@@ -86,16 +105,7 @@ public sealed class GeneratePipelineCommandHandler(
             RoleAssignments = [],
             AppSettings = [],
             ExistingResourceReferences = [],
-            PipelineVariableGroups = config.PipelineVariableGroups
-                .Select(g => new PipelineVariableGroupDefinition
-                {
-                    GroupName = g.GroupName,
-                    Mappings = g.Mappings.Select(m => new PipelineVariableMappingDefinition
-                    {
-                        PipelineVariableName = m.PipelineVariableName,
-                        BicepParameterName = m.BicepParameterName,
-                    }).ToList(),
-                }).ToList(),
+            PipelineVariableGroups = MergeVariableGroups(projectVariableGroups, config.PipelineVariableGroups),
         };
 
         var result = pipelineGenerationEngine.Generate(generationRequest, config.Name);
@@ -113,28 +123,35 @@ public sealed class GeneratePipelineCommandHandler(
         return new GeneratePipelineResult(fileUris);
     }
 
-    /// <summary>
-    /// Maps Azure resource type strings to their simple type names.
-    /// </summary>
-    private static readonly Dictionary<string, string> ResourceTypeNames = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["Microsoft.KeyVault/vaults"] = "KeyVault",
-        ["Microsoft.Cache/Redis"] = "RedisCache",
-        ["Microsoft.Storage/storageAccounts"] = "StorageAccount",
-        ["Microsoft.Web/serverfarms"] = "AppServicePlan",
-        ["Microsoft.Web/sites"] = "WebApp",
-        ["Microsoft.Web/sites/functionapp"] = "FunctionApp",
-        ["Microsoft.ManagedIdentity/userAssignedIdentities"] = "UserAssignedIdentity",
-        ["Microsoft.AppConfiguration/configurationStores"] = "AppConfiguration",
-        ["Microsoft.App/managedEnvironments"] = "ContainerAppEnvironment",
-        ["Microsoft.App/containerApps"] = "ContainerApp",
-        ["Microsoft.OperationalInsights/workspaces"] = "LogAnalyticsWorkspace",
-        ["Microsoft.Insights/components"] = "ApplicationInsights",
-        ["Microsoft.DocumentDB/databaseAccounts"] = "CosmosDb",
-        ["Microsoft.Sql/servers"] = "SqlServer",
-        ["Microsoft.Sql/servers/databases"] = "SqlDatabase",
-    };
-
     private static string GetResourceTypeName(string azureResourceType) =>
-        ResourceTypeNames.GetValueOrDefault(azureResourceType, azureResourceType);
+        AzureResourceTypes.GetFriendlyName(azureResourceType);
+
+    /// <summary>
+    /// Merges project-level and config-level variable groups.
+    /// Config-level groups take precedence when a group name already exists at project level.
+    /// </summary>
+    private static List<PipelineVariableGroupDefinition> MergeVariableGroups(
+        List<PipelineVariableGroupDefinition> projectGroups,
+        IReadOnlyList<PipelineVariableGroupReadModel> configGroups)
+    {
+        var merged = new Dictionary<string, PipelineVariableGroupDefinition>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var pg in projectGroups)
+            merged[pg.GroupName] = pg;
+
+        foreach (var cg in configGroups)
+        {
+            merged[cg.GroupName] = new PipelineVariableGroupDefinition
+            {
+                GroupName = cg.GroupName,
+                Mappings = cg.Mappings.Select(m => new PipelineVariableMappingDefinition
+                {
+                    PipelineVariableName = m.PipelineVariableName,
+                    BicepParameterName = m.BicepParameterName,
+                }).ToList(),
+            };
+        }
+
+        return merged.Values.ToList();
+    }
 }

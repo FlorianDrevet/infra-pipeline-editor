@@ -3,8 +3,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -64,6 +66,12 @@ import {
   CrossConfigReferenceResponse,
   IncomingCrossConfigReferenceResponse,
 } from '../../shared/interfaces/cross-config-reference.interface';
+import {
+  PipelineVariableGroupResponse,
+  AddPipelineVariableGroupRequest,
+  AddPipelineVariableMappingRequest,
+} from '../../shared/interfaces/infra-config.interface';
+import { AddVariableGroupDialogComponent } from './add-variable-group-dialog/add-variable-group-dialog.component';
 
 interface ResourceDisplayItem {
   resource: AzureResourceResponse;
@@ -83,8 +91,10 @@ interface ResourceDisplayItem {
     FormsModule,
     MatButtonModule,
     MatDialogModule,
+    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
+    MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     MatSlideToggleModule,
@@ -263,6 +273,13 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly crossConfigLoading = signal(false);
   protected readonly crossConfigErrorKey = signal('');
   protected readonly crossConfigLoaded = signal(false);
+
+  // ─── Pipeline Variable Groups ───
+  protected readonly variableGroups = signal<PipelineVariableGroupResponse[]>([]);
+  protected readonly vgLoading = signal(false);
+  protected readonly vgErrorKey = signal('');
+  protected readonly vgLoaded = signal(false);
+  protected readonly vgMappingInputs = signal<Record<string, { pipelineVar: string; bicepParam: string }>>({});
 
   protected readonly isMultiRepo = computed(() => this.project()?.repositoryMode === 'MultiRepo');
 
@@ -1279,6 +1296,10 @@ export class ConfigDetailComponent implements OnInit {
     if (index === 3 && !this.crossConfigLoaded()) {
       await this.loadCrossConfigReferences();
     }
+    // Tab 4 is pipeline variable groups — lazy load on first visit
+    if (index === 4 && !this.vgLoaded()) {
+      await this.loadVariableGroups();
+    }
   }
 
   protected async loadCrossConfigReferences(): Promise<void> {
@@ -1373,6 +1394,142 @@ export class ConfigDetailComponent implements OnInit {
         this.gitTestResult.set(null);
       } catch {
         this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.REMOVE_ERROR');
+      }
+    });
+  }
+
+  // ─── Pipeline Variable Groups ───
+
+  private async loadVariableGroups(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.vgLoading.set(true);
+    this.vgErrorKey.set('');
+    try {
+      const groups = await this.infraConfigService.getPipelineVariableGroups(configId);
+      this.variableGroups.set(groups);
+      this.vgLoaded.set(true);
+    } catch {
+      this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
+    } finally {
+      this.vgLoading.set(false);
+    }
+  }
+
+  protected openAddVariableGroupDialog(): void {
+    const dialogRef = this.dialog.open(AddVariableGroupDialogComponent, {
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (groupName?: string) => {
+      if (!groupName) return;
+      const configId = this.config()?.id;
+      if (!configId) return;
+
+      this.vgErrorKey.set('');
+      try {
+        const newGroup = await this.infraConfigService.addPipelineVariableGroup(configId, { groupName });
+        this.variableGroups.update(groups => [...groups, newGroup]);
+      } catch {
+        this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
+      }
+    });
+  }
+
+  protected openRemoveVariableGroupDialog(group: PipelineVariableGroupResponse): void {
+    const data: ConfirmDialogData = {
+      titleKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP',
+      messageKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.CONFIRM_DELETE_GROUP',
+      confirmKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP',
+      cancelKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.DIALOG_CANCEL',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      const configId = this.config()?.id;
+      if (!configId) return;
+
+      this.vgErrorKey.set('');
+      try {
+        await this.infraConfigService.removePipelineVariableGroup(configId, group.id);
+        this.variableGroups.update(groups => groups.filter(g => g.id !== group.id));
+      } catch {
+        this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_GROUP');
+      }
+    });
+  }
+
+  protected initMappingInput(groupId: string): void {
+    this.vgMappingInputs.update(inputs => ({
+      ...inputs,
+      [groupId]: { pipelineVar: '', bicepParam: '' },
+    }));
+  }
+
+  protected updateMappingInput(groupId: string, field: 'pipelineVar' | 'bicepParam', value: string): void {
+    this.vgMappingInputs.update(inputs => ({
+      ...inputs,
+      [groupId]: { ...inputs[groupId], [field]: value },
+    }));
+  }
+
+  protected async addMapping(groupId: string): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    const input = this.vgMappingInputs()[groupId];
+    if (!input?.pipelineVar || !input?.bicepParam) return;
+
+    this.vgErrorKey.set('');
+    try {
+      const mapping = await this.infraConfigService.addPipelineVariableMapping(configId, groupId, {
+        pipelineVariableName: input.pipelineVar,
+        bicepParameterName: input.bicepParam,
+      });
+      this.variableGroups.update(groups =>
+        groups.map(g =>
+          g.id === groupId ? { ...g, mappings: [...g.mappings, mapping] } : g
+        )
+      );
+      this.vgMappingInputs.update(inputs => ({
+        ...inputs,
+        [groupId]: { pipelineVar: '', bicepParam: '' },
+      }));
+    } catch {
+      this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_MAPPING');
+    }
+  }
+
+  protected openRemoveMappingDialog(group: PipelineVariableGroupResponse, mappingId: string): void {
+    const data: ConfirmDialogData = {
+      titleKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_MAPPING',
+      messageKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.CONFIRM_DELETE_MAPPING',
+      confirmKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_MAPPING',
+      cancelKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.DIALOG_CANCEL',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      const configId = this.config()?.id;
+      if (!configId) return;
+
+      this.vgErrorKey.set('');
+      try {
+        await this.infraConfigService.removePipelineVariableMapping(configId, group.id, mappingId);
+        this.variableGroups.update(groups =>
+          groups.map(g =>
+            g.id === group.id
+              ? { ...g, mappings: g.mappings.filter(m => m.id !== mappingId) }
+              : g
+          )
+        );
+      } catch {
+        this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_MAPPING');
       }
     });
   }

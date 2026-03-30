@@ -6,6 +6,7 @@ using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.GenerationCore;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.RoleAssignments.Queries.ListRoleAssignmentsByIdentity;
@@ -100,14 +101,7 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandler(
     private static Dictionary<string, string> BuildRoleDefinitionLookup()
     {
         var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var resourceTypes = new[]
-        {
-            "KeyVault", "RedisCache", "StorageAccount", "AppServicePlan", "WebApp",
-            "FunctionApp", "UserAssignedIdentity", "AppConfiguration",
-            "ContainerAppEnvironment", "ContainerApp", "LogAnalyticsWorkspace",
-            "ApplicationInsights", "CosmosDb", "SqlServer", "SqlDatabase",
-            "ServiceBusNamespace"
-        };
+        var resourceTypes = AzureResourceTypes.All;
 
         foreach (var rt in resourceTypes)
         {
