@@ -46,4 +46,14 @@ public class GenerationRequest
     /// Used by the pipeline generation engine to emit <c>- group:</c> references and <c>overrideParameters</c>.
     /// </summary>
     public IReadOnlyList<PipelineVariableGroupDefinition> PipelineVariableGroups { get; set; } = [];
+
+    /// <summary>
+    /// Project-level default tags applied to all resources.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ProjectTags { get; set; } = new Dictionary<string, string>();
+
+    /// <summary>
+    /// Configuration-level tags that extend or override project-level tags.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ConfigTags { get; set; } = new Dictionary<string, string>();
 }

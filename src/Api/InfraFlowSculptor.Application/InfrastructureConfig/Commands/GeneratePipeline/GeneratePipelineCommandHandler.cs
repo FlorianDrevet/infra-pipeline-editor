@@ -94,6 +94,7 @@ public sealed class GeneratePipelineCommandHandler(
                 Suffix = e.Suffix,
                 AzureResourceManagerConnection = e.AzureResourceManagerConnection,
                 SubscriptionId = e.SubscriptionId,
+                Tags = e.Tags,
             })
             .ToList();
 

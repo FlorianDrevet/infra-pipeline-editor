@@ -26,4 +26,7 @@ public class EnvironmentDefinition
 
     /// <summary>Gets or sets the Azure subscription ID for this environment.</summary>
     public string? SubscriptionId { get; set; }
+
+    /// <summary>Gets or sets the environment-scoped tags (key-value pairs).</summary>
+    public IReadOnlyDictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
 }

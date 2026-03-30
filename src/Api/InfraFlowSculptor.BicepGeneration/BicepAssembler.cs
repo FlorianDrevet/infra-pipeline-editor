@@ -25,13 +25,15 @@ public static class BicepAssembler
         NamingContext namingContext,
         IReadOnlyList<RoleAssignmentDefinition> roleAssignments,
         IReadOnlyList<AppSettingDefinition> appSettings,
-        IReadOnlyList<ExistingResourceReference>? existingResourceReferences = null)
+        IReadOnlyList<ExistingResourceReference>? existingResourceReferences = null,
+        IReadOnlyDictionary<string, string>? projectTags = null,
+        IReadOnlyDictionary<string, string>? configTags = null)
     {
         var hasRoleAssignments = roleAssignments.Count > 0;
         var typesBicep = GenerateTypesBicep(environments, hasRoleAssignments);
         var functionsBicep = GenerateFunctionsBicep(namingContext);
         var constantsBicep = hasRoleAssignments ? GenerateConstantsBicep(roleAssignments) : string.Empty;
-        var main = GenerateMainBicep(modules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? []);
+        var main = GenerateMainBicep(modules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? [], projectTags, configTags);
 
         var environmentParameterFiles = GenerateEnvironmentParameterFiles(
             modules, environmentNames, resources, appSettings);
@@ -462,6 +464,7 @@ public static class BicepAssembler
         sb.AppendLine("  envSuffix: string");
         sb.AppendLine("  envPrefix: string");
         sb.AppendLine("  location: string");
+        sb.AppendLine("  tags: object");
         sb.AppendLine("}");
         sb.AppendLine();
 
@@ -480,6 +483,12 @@ public static class BicepAssembler
             sb.AppendLine($"    envSuffix: '{envSuffix}'");
             sb.AppendLine($"    envPrefix: '{envPrefix}'");
             sb.AppendLine($"    location: '{env.Location}'");
+            sb.AppendLine("    tags: {");
+            foreach (var (tagKey, tagValue) in env.Tags)
+            {
+                sb.AppendLine($"      '{EscapeBicepString(tagKey)}': '{EscapeBicepString(tagValue)}'");
+            }
+            sb.AppendLine("    }");
             sb.AppendLine("  }");
         }
 
@@ -610,7 +619,9 @@ public static class BicepAssembler
         NamingContext namingContext,
         IReadOnlyList<RoleAssignmentDefinition> roleAssignments,
         IReadOnlyList<AppSettingDefinition> appSettings,
-        IReadOnlyList<ExistingResourceReference> existingResourceReferences)
+        IReadOnlyList<ExistingResourceReference> existingResourceReferences,
+        IReadOnlyDictionary<string, string>? projectTags = null,
+        IReadOnlyDictionary<string, string>? configTags = null)
     {
         var sb = new StringBuilder();
 
@@ -687,6 +698,48 @@ public static class BicepAssembler
         sb.AppendLine("var env = environments[environmentName]");
         sb.AppendLine();
 
+        // ── Tags merging (project → config → environment) ──────────────────
+        var hasProjectTags = projectTags is { Count: > 0 };
+        var hasConfigTags = configTags is { Count: > 0 };
+
+        if (hasProjectTags || hasConfigTags)
+        {
+            if (hasProjectTags)
+            {
+                sb.AppendLine("var projectTags = {");
+                foreach (var (tagKey, tagValue) in projectTags!)
+                {
+                    sb.AppendLine($"  '{EscapeBicepString(tagKey)}': '{EscapeBicepString(tagValue)}'");
+                }
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
+
+            if (hasConfigTags)
+            {
+                sb.AppendLine("var configTags = {");
+                foreach (var (tagKey, tagValue) in configTags!)
+                {
+                    sb.AppendLine($"  '{EscapeBicepString(tagKey)}': '{EscapeBicepString(tagValue)}'");
+                }
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
+
+            // Merge: environment tags override config tags, which override project tags
+            var unionParts = new List<string>();
+            if (hasProjectTags) unionParts.Add("projectTags");
+            if (hasConfigTags) unionParts.Add("configTags");
+            unionParts.Add("env.tags");
+
+            sb.AppendLine($"var tags = union({string.Join(", ", unionParts)})");
+        }
+        else
+        {
+            sb.AppendLine("var tags = env.tags");
+        }
+        sb.AppendLine();
+
         // ── Resource group declarations ─────────────────────────────────────
         foreach (var rg in resourceGroups)
         {
@@ -697,6 +750,7 @@ public static class BicepAssembler
             sb.AppendLine($"resource {rgSymbol} 'Microsoft.Resources/resourceGroups@2024-07-01' = {{");
             sb.AppendLine($"  name: {nameExpr}");
             sb.AppendLine("  location: env.location");
+            sb.AppendLine("  tags: tags");
             sb.AppendLine("}");
             sb.AppendLine();
         }
@@ -772,6 +826,7 @@ public static class BicepAssembler
             sb.AppendLine("  params: {");
             sb.AppendLine("    location: env.location");
             sb.AppendLine($"    name: {nameExpr}");
+            sb.AppendLine("    tags: tags");
 
             foreach (var paramKey in module.Parameters.Keys)
             {
@@ -1369,6 +1424,19 @@ public static class BicepAssembler
     {
         if (string.IsNullOrEmpty(name)) return "unknown";
         return name.Replace(' ', '_').Replace('-', '_').ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// Checks whether any tag source has tags defined.
+    /// </summary>
+    private static bool HasAnyTags(
+        IReadOnlyList<EnvironmentDefinition> environments,
+        IReadOnlyDictionary<string, string>? projectTags,
+        IReadOnlyDictionary<string, string>? configTags)
+    {
+        if (projectTags is { Count: > 0 }) return true;
+        if (configTags is { Count: > 0 }) return true;
+        return environments.Any(e => e.Tags.Count > 0);
     }
 
     private static string Capitalize(string s) =>

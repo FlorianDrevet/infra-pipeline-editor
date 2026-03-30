@@ -189,6 +189,9 @@ public sealed class BicepGenerationEngine
                 moduleBicepContent = InjectAppSettingsParam(moduleBicepContent, resource.Type);
             }
 
+            // Inject tags param and apply to resource declaration
+            moduleBicepContent = InjectTagsParam(moduleBicepContent);
+
             modules.Add(module with
             {
                 ModuleName = moduleName,
@@ -213,7 +216,9 @@ public sealed class BicepGenerationEngine
             request.NamingContext,
             request.RoleAssignments,
             request.AppSettings,
-            request.ExistingResourceReferences);
+            request.ExistingResourceReferences,
+            request.ProjectTags,
+            request.ConfigTags);
     }
 
     /// <summary>
@@ -619,6 +624,42 @@ public sealed class BicepGenerationEngine
             return InjectContainerAppEnvVars(moduleBicep);
 
         return InjectWebFunctionAppSettings(moduleBicep);
+    }
+
+    /// <summary>
+    /// Injects <c>param tags object = {}</c> and <c>tags: tags</c> into a resource module template.
+    /// </summary>
+    private static string InjectTagsParam(string moduleBicep)
+    {
+        if (moduleBicep.Contains("param tags "))
+            return moduleBicep;
+
+        // Add the tags param declaration after existing params
+        var paramDecl = "\n@description('Resource tags')\nparam tags object = {}\n";
+
+        // Find place to insert: after the last param line
+        var lastParamIdx = moduleBicep.LastIndexOf("\nparam ", StringComparison.Ordinal);
+        if (lastParamIdx >= 0)
+        {
+            var endOfLine = moduleBicep.IndexOf('\n', lastParamIdx + 1);
+            if (endOfLine >= 0)
+            {
+                moduleBicep = moduleBicep.Insert(endOfLine, paramDecl);
+            }
+        }
+
+        // Add tags: tags to the resource declaration, after "location: location"
+        var locationIdx = moduleBicep.IndexOf("location: location", StringComparison.Ordinal);
+        if (locationIdx >= 0)
+        {
+            var endOfLocationLine = moduleBicep.IndexOf('\n', locationIdx);
+            if (endOfLocationLine >= 0)
+            {
+                moduleBicep = moduleBicep.Insert(endOfLocationLine, "\n  tags: tags");
+            }
+        }
+
+        return moduleBicep;
     }
 
     /// <summary>

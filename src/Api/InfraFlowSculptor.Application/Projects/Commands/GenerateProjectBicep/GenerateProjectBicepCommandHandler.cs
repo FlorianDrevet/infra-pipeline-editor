@@ -143,6 +143,7 @@ public sealed class GenerateProjectBicepCommandHandler(
                 Suffix = e.Suffix,
                 AzureResourceManagerConnection = e.AzureResourceManagerConnection,
                 SubscriptionId = e.SubscriptionId,
+                Tags = e.Tags,
             })
             .ToList();
 
@@ -252,6 +253,8 @@ public sealed class GenerateProjectBicepCommandHandler(
             RoleAssignments = roleAssignments,
             AppSettings = appSettingDefinitions,
             ExistingResourceReferences = existingResourceReferences,
+            ProjectTags = config.ProjectTags,
+            ConfigTags = config.ConfigTags,
         };
     }
 

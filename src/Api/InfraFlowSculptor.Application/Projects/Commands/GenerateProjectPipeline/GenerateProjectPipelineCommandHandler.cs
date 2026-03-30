@@ -71,6 +71,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
                 Suffix = e.Suffix,
                 AzureResourceManagerConnection = e.AzureResourceManagerConnection,
                 SubscriptionId = e.SubscriptionId,
+                Tags = e.Tags,
             })
             .ToList();
 
@@ -145,6 +146,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
                 Suffix = e.Suffix,
                 AzureResourceManagerConnection = e.AzureResourceManagerConnection,
                 SubscriptionId = e.SubscriptionId,
+                Tags = e.Tags,
             })
             .ToList();
 
