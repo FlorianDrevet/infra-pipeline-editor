@@ -19,6 +19,11 @@ import {
 } from '../../../shared/interfaces/role-assignment.interface';
 import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
 
+export interface AddRoleAssignmentDialogResult {
+  roleAssignment: RoleAssignmentResponse;
+  createdIdentities: AzureResourceResponse[];
+}
+
 export interface AddRoleAssignmentDialogData {
   sourceResourceId: string;
   currentResourceName: string;
@@ -51,7 +56,7 @@ export interface AddRoleAssignmentDialogData {
   styleUrl: './add-role-assignment-dialog.component.scss',
 })
 export class AddRoleAssignmentDialogComponent {
-  private readonly dialogRef = inject(MatDialogRef<AddRoleAssignmentDialogComponent>);
+  private readonly dialogRef = inject(MatDialogRef<AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogResult | undefined>);
   private readonly data: AddRoleAssignmentDialogData = inject(MAT_DIALOG_DATA);
   private readonly roleAssignmentService = inject(RoleAssignmentService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
@@ -221,7 +226,7 @@ export class AddRoleAssignmentDialogComponent {
           roleDefinitionId: this.selectedRoleId(),
           userAssignedIdentityId: this.data.userAssignedIdentityId,
         });
-        this.dialogRef.close(result);
+        this.dialogRef.close({ roleAssignment: result, createdIdentities: this.extraIdentities() });
       } else {
         const result = await this.roleAssignmentService.add(this.data.sourceResourceId, {
           targetResourceId: target.id,
@@ -229,7 +234,7 @@ export class AddRoleAssignmentDialogComponent {
           roleDefinitionId: this.selectedRoleId(),
           userAssignedIdentityId: this.selectedIdentityType() === 'UserAssigned' ? this.selectedIdentityId() || undefined : undefined,
         });
-        this.dialogRef.close(result);
+        this.dialogRef.close({ roleAssignment: result, createdIdentities: this.extraIdentities() });
       }
     } catch {
       this.errorKey.set('RESOURCE_EDIT.ADD_ROLE_DIALOG.ERROR');

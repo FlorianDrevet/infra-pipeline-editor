@@ -62,7 +62,7 @@ import { OS_TYPE_OPTIONS } from '../config-detail/enums/os-type.enum';
 import { RUNTIME_STACK_OPTIONS } from '../config-detail/enums/runtime-stack.enum';
 import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../config-detail/enums/function-app-runtime-stack.enum';
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service-plan-sku.enum';
-import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
+import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData, AddRoleAssignmentDialogResult } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 import { AddAppSettingDialogComponent, AddAppSettingDialogData } from './add-app-setting-dialog/add-app-setting-dialog.component';
 import { AppSettingService } from '../../shared/services/app-setting.service';
 import { AppSettingResponse } from '../../shared/interfaces/app-setting.interface';
@@ -1304,8 +1304,17 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       maxHeight: '85vh',
     });
 
-    dialogRef.afterClosed().subscribe(async (result?: RoleAssignmentResponse) => {
-      if (result) {
+    dialogRef.afterClosed().subscribe(async (dialogResult?: AddRoleAssignmentDialogResult) => {
+      if (dialogResult) {
+        const result = dialogResult.roleAssignment;
+        // Immediately add any newly created identities so names resolve without delay
+        if (dialogResult.createdIdentities.length > 0) {
+          this.allResources.update(list => {
+            const existingIds = new Set(list.map(r => r.id));
+            const newOnes = dialogResult.createdIdentities.filter(ci => !existingIds.has(ci.id));
+            return newOnes.length > 0 ? [...list, ...newOnes] : list;
+          });
+        }
         if (this.isUserAssignedIdentity()) {
           this.loadIdentityRoleAssignments();
         } else {

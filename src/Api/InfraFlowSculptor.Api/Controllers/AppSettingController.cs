@@ -55,7 +55,12 @@ public static class AppSettingController
                                 ? new AzureResourceId(request.KeyVaultResourceId.Value)
                                 : null,
                             request.SecretName,
-                            request.ExportToKeyVault);
+                            request.ExportToKeyVault,
+                            request.SecretValueAssignment is not null
+                                ? Enum.Parse<SecretValueAssignment>(request.SecretValueAssignment, true)
+                                : null,
+                            request.VariableGroupId,
+                            request.PipelineVariableName);
 
                         var result = await mediator.Send(command);
 

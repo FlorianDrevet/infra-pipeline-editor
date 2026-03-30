@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.ContainerRegistries.Commands.CreateContainerRegistry;
 using InfraFlowSculptor.Application.ContainerRegistries.Commands.DeleteContainerRegistry;
 using InfraFlowSculptor.Application.ContainerRegistries.Commands.UpdateContainerRegistry;
+using InfraFlowSculptor.Application.ContainerRegistries.Queries.CheckAcrPullAccess;
 using InfraFlowSculptor.Application.ContainerRegistries.Queries.GetContainerRegistry;
 using InfraFlowSculptor.Contracts.ContainerRegistries.Requests;
 using InfraFlowSculptor.Contracts.ContainerRegistries.Responses;
@@ -111,6 +112,30 @@ public static class ContainerRegistryController
                 .WithSummary("Delete a Container Registry")
                 .WithDescription("Permanently deletes an Azure Container Registry resource.")
                 .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // Endpoint to check whether a compute resource has AcrPull access on a Container Registry
+            var acrAccessGroup = endpoints.MapGroup("/azure-resources/{resourceId:guid}/check-acr-pull-access")
+                .WithTags("Container Registries");
+
+            acrAccessGroup.MapGet("/{containerRegistryId:guid}",
+                    async ([FromRoute] Guid resourceId, [FromRoute] Guid containerRegistryId,
+                        IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new CheckAcrPullAccessQuery(
+                            new AzureResourceId(resourceId),
+                            new AzureResourceId(containerRegistryId));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            access => Results.Ok(mapper.Map<CheckAcrPullAccessResponse>(access)),
+                            errors => errors.Result());
+                    })
+                .WithName("CheckAcrPullAccess")
+                .WithSummary("Check ACR Pull access")
+                .WithDescription("Checks whether a compute resource has the AcrPull role assignment on the specified Container Registry.")
+                .Produces<CheckAcrPullAccessResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });

@@ -10,6 +10,9 @@ public static class AzureRoleDefinitionCatalog
     /// <summary>Well-known role definition ID for "Key Vault Secrets User".</summary>
     public const string KeyVaultSecretsUser = "4633458b-17de-408a-b874-0445c86b69e6";
 
+    /// <summary>Well-known role definition ID for "AcrPull".</summary>
+    public const string AcrPull = "7f951dda-4ed3-4680-a7ca-43fe172d538e";
+
     private const string KeyVaultDocsUrl =
         "https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide";
 
