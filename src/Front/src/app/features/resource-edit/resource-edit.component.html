@@ -1928,92 +1928,200 @@
                 <p>{{ 'RESOURCE_EDIT.APP_SETTINGS.EMPTY' | translate }}</p>
               </div>
             } @else {
-              <!-- App setting cards -->
-              <div class="ra-list">
-                @for (setting of appSettings(); track setting.id) {
-                  <div class="ra-card">
-                    <div class="ra-card__main">
-                      <div class="ra-card__target">
-                        <mat-icon class="ra-card__target-icon">{{ setting.isViaVariableGroup ? 'library_books' : setting.isKeyVaultReference ? 'vpn_key' : setting.isOutputReference ? 'swap_horiz' : 'edit_note' }}</mat-icon>
-                        <div class="ra-card__target-info">
-                          <span class="ra-card__target-name as-card__name">{{ setting.name }}</span>
-                          @if (setting.isViaVariableGroup && setting.variableGroupName) {
-                            <span class="ra-card__target-type">{{ setting.variableGroupName }} · $({{ setting.pipelineVariableName }})</span>
-                          } @else if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
-                            <span class="ra-card__target-type">{{ resolveSourceName(setting.keyVaultResourceId) }} · {{ setting.secretName }}</span>
-                          } @else if (setting.isOutputReference && setting.sourceResourceId) {
-                            <span class="ra-card__target-type">{{ resolveSourceName(setting.sourceResourceId) }} · {{ setting.sourceOutputName }}</span>
-                          } @else {
-                            <span class="ra-card__target-type">{{ 'RESOURCE_EDIT.APP_SETTINGS.STATIC_VALUE' | translate }}</span>
+              <!-- ═══ SECTION: Secrets (Key Vault) — grouped by KV ═══ -->
+              @if (appSettingsGrouped().secretsByKv.length > 0) {
+                <section class="as-section as-section--secret">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--secret">
+                        <mat-icon>shield</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_SECRETS' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_SECRETS_DESC' | translate }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  @for (kvGroup of appSettingsGrouped().secretsByKv; track kvGroup.kvId) {
+                    <div class="as-group">
+                      <div class="as-group__header">
+                        <mat-icon class="as-group__icon as-group__icon--kv">vpn_key</mat-icon>
+                        <span class="as-group__name">{{ kvGroup.kvName }}</span>
+                        <span class="as-group__count">{{ kvGroup.settings.length }}</span>
+                      </div>
+                      <div class="as-group__items">
+                        @for (setting of kvGroup.settings; track setting.id) {
+                          <div class="as-row as-row--secret">
+                            <div class="as-row__left">
+                              <span class="as-row__var-name">{{ setting.name }}</span>
+                              <span class="as-row__arrow">→</span>
+                              <span class="as-row__secret-name">{{ setting.secretName }}</span>
+                            </div>
+                            <div class="as-row__right">
+                              @if (setting.isViaVariableGroup && setting.variableGroupName) {
+                                <span class="as-pill as-pill--vg">
+                                  <mat-icon>account_tree</mat-icon>
+                                  {{ setting.variableGroupName }} · $({{ setting.pipelineVariableName }})
+                                </span>
+                              }
+                              @if (setting.secretValueAssignment && setting.secretValueAssignment !== 'ViaBicepparam') {
+                                <span class="as-pill as-pill--assignment">
+                                  <mat-icon>vpn_key</mat-icon>
+                                  {{ 'RESOURCE_EDIT.APP_SETTINGS.DIRECT_IN_KV' | translate }}
+                                </span>
+                              }
+                              @if (canWrite()) {
+                                <button class="as-row__delete" (click)="openRemoveAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
+                                  <mat-icon>close</mat-icon>
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </section>
+              }
+
+              <!-- ═══ SECTION: Pipeline Variable Groups — grouped by VG ═══ -->
+              @if (appSettingsGrouped().byVg.length > 0) {
+                <section class="as-section as-section--vg">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--vg">
+                        <mat-icon>account_tree</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_VG' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_VG_DESC' | translate }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  @for (vgGroup of appSettingsGrouped().byVg; track vgGroup.vgId) {
+                    <div class="as-group">
+                      <div class="as-group__header">
+                        <mat-icon class="as-group__icon as-group__icon--vg">library_books</mat-icon>
+                        <span class="as-group__name">{{ vgGroup.vgName }}</span>
+                        <span class="as-group__count">{{ vgGroup.settings.length }}</span>
+                      </div>
+                      <div class="as-group__items">
+                        @for (setting of vgGroup.settings; track setting.id) {
+                          <div class="as-row as-row--vg">
+                            <div class="as-row__left">
+                              <span class="as-row__var-name">{{ setting.name }}</span>
+                              <span class="as-row__arrow">→</span>
+                              <span class="as-row__pipeline-var">$({{ setting.pipelineVariableName }})</span>
+                            </div>
+                            <div class="as-row__right">
+                              @if (canWrite()) {
+                                <button class="as-row__delete" (click)="openRemoveAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
+                                  <mat-icon>close</mat-icon>
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </section>
+              }
+
+              <!-- ═══ SECTION: Resource Outputs ═══ -->
+              @if (appSettingsGrouped().outputs.length > 0) {
+                <section class="as-section as-section--output">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--output">
+                        <mat-icon>swap_horiz</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_OUTPUTS' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_OUTPUTS_DESC' | translate }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="as-group__items">
+                    @for (setting of appSettingsGrouped().outputs; track setting.id) {
+                      <div class="as-row as-row--output">
+                        <div class="as-row__left">
+                          <span class="as-row__var-name">{{ setting.name }}</span>
+                          <span class="as-row__arrow">←</span>
+                          @if (setting.sourceResourceId) {
+                            <mat-icon class="as-row__source-icon">{{ resourceTypeIcons[resolveSourceType(setting.sourceResourceId)] || 'widgets' }}</mat-icon>
+                            <span class="as-row__source-name">{{ resolveSourceName(setting.sourceResourceId) }}</span>
+                            <span class="as-row__output-dot">·</span>
+                            <span class="as-row__output-name">{{ setting.sourceOutputName }}</span>
                           }
                         </div>
-                      </div>
-                      <div class="ra-card__details">
-                        @if (setting.isViaVariableGroup) {
-                          <span class="as-badge as-badge--ref">
-                            <mat-icon>library_books</mat-icon>
-                            {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.VIA_VARIABLE_GROUP' | translate }}
-                          </span>
-                          @if (setting.variableGroupName) {
-                            <span class="as-badge as-badge--source">
-                              <mat-icon>library_books</mat-icon>
-                              {{ setting.variableGroupName }}
-                            </span>
-                          }
-                        } @else if (setting.isKeyVaultReference) {
-                          <span class="as-badge as-badge--kv">
-                            <mat-icon>vpn_key</mat-icon>
-                            {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_REF' | translate }}
-                          </span>
-                          @if (setting.secretValueAssignment) {
-                            <span class="as-badge as-badge--assignment">
-                              @if (setting.secretValueAssignment === 'ViaBicepparam') {
-                                <mat-icon>description</mat-icon>
-                                via bicepparam
-                              } @else {
-                                <mat-icon>vpn_key</mat-icon>
-                                {{ 'RESOURCE_EDIT.APP_SETTINGS.DIRECT_IN_KV' | translate }}
-                              }
-                            </span>
-                          }
-                          @if (setting.keyVaultResourceId) {
-                            <span class="as-badge as-badge--source">
+                        <div class="as-row__right">
+                          @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
+                            <span class="as-pill as-pill--kv">
                               <mat-icon>vpn_key</mat-icon>
                               {{ resolveSourceName(setting.keyVaultResourceId) }}
                             </span>
                           }
-                        } @else if (setting.isOutputReference) {
-                          <span class="as-badge as-badge--ref">
-                            <mat-icon>output</mat-icon>
-                            {{ 'RESOURCE_EDIT.APP_SETTINGS.OUTPUT_REF' | translate }}
-                          </span>
-                          @if (setting.sourceResourceId) {
-                            <span class="as-badge as-badge--source">
-                              <mat-icon>{{ resourceTypeIcons[resolveSourceType(setting.sourceResourceId)] || 'widgets' }}</mat-icon>
-                              {{ resolveSourceType(setting.sourceResourceId) }}
-                            </span>
+                          @if (canWrite()) {
+                            <button class="as-row__delete" (click)="openRemoveAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
+                              <mat-icon>close</mat-icon>
+                            </button>
                           }
-                        } @else {
-                          <span class="as-badge as-badge--static">
-                            <mat-icon>edit_note</mat-icon>
-                            {{ 'RESOURCE_EDIT.APP_SETTINGS.STATIC_VALUE' | translate }}
-                          </span>
-                        }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </section>
+              }
+
+              <!-- ═══ SECTION: Static Values ═══ -->
+              @if (appSettingsGrouped().statics.length > 0) {
+                <section class="as-section as-section--static">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--static">
+                        <mat-icon>edit_note</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_STATIC' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_STATIC_DESC' | translate }}</p>
                       </div>
                     </div>
-                    <div class="ra-card__actions">
-                      @if (canWrite()) {
-                        <button
-                          class="ra-card__remove-btn"
-                          (click)="openRemoveAppSettingDialog(setting)"
-                          [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
-                          <mat-icon>close</mat-icon>
-                        </button>
-                      }
-                    </div>
                   </div>
-                }
-              </div>
+
+                  <div class="as-group__items">
+                    @for (setting of appSettingsGrouped().statics; track setting.id) {
+                      <div class="as-row as-row--static">
+                        <div class="as-row__left">
+                          <span class="as-row__var-name">{{ setting.name }}</span>
+                          @if (setting.environmentValues) {
+                            <div class="as-row__env-chips">
+                              @for (env of environments(); track env.name) {
+                                @if (setting.environmentValues![env.name]; as val) {
+                                  <span class="as-env-chip" [matTooltip]="env.name + ': ' + val">
+                                    <span class="as-env-chip__env">{{ env.name }}</span>
+                                    <span class="as-env-chip__val">{{ val }}</span>
+                                  </span>
+                                }
+                              }
+                            </div>
+                          }
+                        </div>
+                        <div class="as-row__right">
+                          @if (canWrite()) {
+                            <button class="as-row__delete" (click)="openRemoveAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </section>
+              }
             }
           </div>
         </mat-tab>

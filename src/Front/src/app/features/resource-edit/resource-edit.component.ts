@@ -477,6 +477,57 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     ['WebApp', 'FunctionApp', 'ContainerApp'].includes(this.resourceType)
   );
 
+  /** App settings grouped by category for sectioned display */
+  protected readonly appSettingsGrouped = computed(() => {
+    const all = this.appSettings();
+
+    // 1. Secrets grouped by Key Vault
+    const secretsByKv = new Map<string, { kvName: string; kvId: string; settings: AppSettingResponse[] }>();
+    // 2. Variable Group (non-secret) grouped by VG
+    const byVg = new Map<string, { vgName: string; vgId: string; settings: AppSettingResponse[] }>();
+    // 3. Output references
+    const outputs: AppSettingResponse[] = [];
+    // 4. Static values
+    const statics: AppSettingResponse[] = [];
+
+    for (const s of all) {
+      if (s.isKeyVaultReference && s.keyVaultResourceId) {
+        const kvId = s.keyVaultResourceId;
+        if (!secretsByKv.has(kvId)) {
+          secretsByKv.set(kvId, { kvName: this.resolveSourceName(kvId), kvId, settings: [] });
+        }
+        secretsByKv.get(kvId)!.settings.push(s);
+      } else if (s.isViaVariableGroup && s.variableGroupId) {
+        const vgId = s.variableGroupId;
+        if (!byVg.has(vgId)) {
+          byVg.set(vgId, { vgName: s.variableGroupName ?? vgId, vgId, settings: [] });
+        }
+        byVg.get(vgId)!.settings.push(s);
+      } else if (s.isOutputReference) {
+        outputs.push(s);
+      } else {
+        statics.push(s);
+      }
+    }
+
+    return {
+      secretsByKv: [...secretsByKv.values()],
+      byVg: [...byVg.values()],
+      outputs,
+      statics,
+    };
+  });
+
+  protected readonly appSettingsSectionCount = computed(() => {
+    const g = this.appSettingsGrouped();
+    let n = 0;
+    if (g.secretsByKv.length > 0) n++;
+    if (g.byVg.length > 0) n++;
+    if (g.outputs.length > 0) n++;
+    if (g.statics.length > 0) n++;
+    return n;
+  });
+
   // ─── Options ───
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
   protected readonly locationOptions = LOCATION_OPTIONS;
