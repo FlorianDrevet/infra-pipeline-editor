@@ -71,7 +71,6 @@ export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
       ResourceTypeEnum.FunctionApp,
       ResourceTypeEnum.ContainerAppEnvironment,
       ResourceTypeEnum.ContainerApp,
-      ResourceTypeEnum.ContainerRegistry,
     ],
   },
   {
@@ -84,6 +83,7 @@ export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
       ResourceTypeEnum.SqlServer,
       ResourceTypeEnum.SqlDatabase,
       ResourceTypeEnum.ServiceBusNamespace,
+      ResourceTypeEnum.ContainerRegistry,
     ],
   },
   {

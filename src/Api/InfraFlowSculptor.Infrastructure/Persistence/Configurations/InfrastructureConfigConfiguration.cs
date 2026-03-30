@@ -93,5 +93,6 @@ public sealed class InfrastructureConfigConfiguration
             tag.Property(t => t.Name).HasMaxLength(100);
             tag.Property(t => t.Value).HasMaxLength(500);
         });
+        builder.Navigation(c => c.Tags).HasField("_tags").UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

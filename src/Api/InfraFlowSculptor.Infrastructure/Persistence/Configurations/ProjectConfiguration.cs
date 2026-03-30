@@ -97,6 +97,7 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             tag.Property(t => t.Name).HasMaxLength(100);
             tag.Property(t => t.Value).HasMaxLength(500);
         });
+        builder.Navigation(p => p.Tags).HasField("_tags").UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 
     private static void ConfigureEnvironments(EntityTypeBuilder<Project> builder)
