@@ -42,7 +42,6 @@
         <mat-slide-toggle
           [ngModel]="isSecret()"
           (ngModelChange)="onIsSecretToggle($event)"
-          [disabled]="isViaVariableGroup()"
           color="primary">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.IS_SECRET_LABEL' | translate }}
         </mat-slide-toggle>
@@ -53,7 +52,6 @@
         <mat-slide-toggle
           [ngModel]="isViaVariableGroup()"
           (ngModelChange)="onViaVariableGroupToggle($event)"
-          [disabled]="isSecret()"
           color="primary">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.VIA_VARIABLE_GROUP' | translate }}
         </mat-slide-toggle>
@@ -97,14 +95,10 @@
         </div>
       }
 
-      <!-- Non-secret: environment values -->
-      @if (!isSecret()) {
+      <!-- Per-environment values (hidden when variable group or secret is checked) -->
+      @if (!isSecret() && !isViaVariableGroup()) {
         <div class="env-values-section">
-          @if (isViaVariableGroup()) {
-            <p class="env-values-section__label">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUES_OPTIONAL' | translate }}</p>
-          } @else {
-            <p class="env-values-section__label">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUES_LABEL' | translate }}</p>
-          }
+          <p class="env-values-section__label">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUES_LABEL' | translate }}</p>
           @for (env of data.environments; track env.name) {
             <div class="config-section">
               <mat-form-field appearance="outline" class="config-section__field">
@@ -116,8 +110,8 @@
         </div>
       }
 
-      <!-- Secret flow: KV selection + assignment mode + secret name -->
-      @if (isSecret()) {
+      <!-- Secret flow: KV selection + assignment mode + secret name (only when secret without VG) -->
+      @if (isSecret() && !isViaVariableGroup()) {
         <div class="secret-kv-section">
           <h4 class="sensitive-kv-config__title">
             <mat-icon>vpn_key</mat-icon>

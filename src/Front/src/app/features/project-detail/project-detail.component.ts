@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatExpansionModule } from '@angular/material/expansion';
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -67,7 +67,6 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     MatButtonToggleModule,
     MatChipsModule,
     MatDialogModule,
-    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -774,8 +773,8 @@ export class ProjectDetailComponent implements OnInit {
     this.tagsErrorKey.set('');
 
     try {
-      const updated = await this.projectService.setTags(projectId, { tags: this.editingTags() });
-      this.project.set(updated);
+      await this.projectService.setTags(projectId, { tags: this.editingTags() });
+      this.project.update(p => p ? { ...p, tags: this.editingTags() } : p);
       this.isEditingProjectTags.set(false);
     } catch {
       this.tagsErrorKey.set('PROJECT_DETAIL.TAGS.SAVE_ERROR');
@@ -1017,7 +1016,7 @@ export class ProjectDetailComponent implements OnInit {
     this.vgErrorKey.set('');
     try {
       const groups = await this.projectService.getPipelineVariableGroups(project.id);
-      this.variableGroups.set(groups);
+      this.variableGroups.set(groups.map(g => ({ ...g, variables: g.variables ?? [] })));
       this.vgLoaded.set(true);
     } catch {
       this.vgErrorKey.set('PROJECT_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
@@ -1039,7 +1038,7 @@ export class ProjectDetailComponent implements OnInit {
       this.vgErrorKey.set('');
       try {
         const newGroup = await this.projectService.addPipelineVariableGroup(project.id, { groupName });
-        this.variableGroups.update(groups => [...groups, newGroup]);
+        this.variableGroups.update(groups => [...groups, { ...newGroup, variables: newGroup.variables ?? [] }]);
       } catch {
         this.vgErrorKey.set('PROJECT_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
       }

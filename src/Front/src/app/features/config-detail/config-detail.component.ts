@@ -3,7 +3,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -93,7 +92,6 @@ interface ResourceDisplayItem {
     MatButtonModule,
     MatChipsModule,
     MatDialogModule,
-    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -282,6 +280,15 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly vgLoading = signal(false);
   protected readonly vgErrorKey = signal('');
   protected readonly vgLoaded = signal(false);
+
+  // ─── Config Tags ───
+  protected readonly isEditingConfigTags = signal(false);
+  protected readonly editingConfigTags = signal<TagRequest[]>([]);
+  protected readonly configTagsErrorKey = signal('');
+  protected readonly configTagsSaving = signal(false);
+  protected readonly configTagNameCtrl = new FormControl('', { nonNullable: true });
+  protected readonly configTagValueCtrl = new FormControl('', { nonNullable: true });
+  protected readonly configTags = computed(() => this.config()?.tags ?? []);
 
   protected readonly isMultiRepo = computed(() => this.project()?.repositoryMode === 'MultiRepo');
 
@@ -1413,7 +1420,7 @@ export class ConfigDetailComponent implements OnInit {
     this.vgErrorKey.set('');
     try {
       const groups = await this.projectService.getPipelineVariableGroups(projectId);
-      this.variableGroups.set(groups);
+      this.variableGroups.set(groups.map(g => ({ ...g, variables: g.variables ?? [] })));
       this.vgLoaded.set(true);
     } catch {
       this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
@@ -1435,7 +1442,7 @@ export class ConfigDetailComponent implements OnInit {
       this.vgErrorKey.set('');
       try {
         const newGroup = await this.projectService.addPipelineVariableGroup(projectId, { groupName });
-        this.variableGroups.update(groups => [...groups, newGroup]);
+        this.variableGroups.update(groups => [...groups, { ...newGroup, variables: newGroup.variables ?? [] }]);
       } catch {
         this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
       }
@@ -1465,5 +1472,54 @@ export class ConfigDetailComponent implements OnInit {
         this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_GROUP');
       }
     });
+  }
+
+  // ─── Config Tags ───
+
+  protected startEditConfigTags(): void {
+    this.editingConfigTags.set(this.configTags().map(t => ({ name: t.name, value: t.value })));
+    this.configTagNameCtrl.reset();
+    this.configTagValueCtrl.reset();
+    this.configTagsErrorKey.set('');
+    this.isEditingConfigTags.set(true);
+  }
+
+  protected addConfigTag(): void {
+    const name = this.configTagNameCtrl.value.trim();
+    const value = this.configTagValueCtrl.value.trim();
+    if (!name) return;
+    this.editingConfigTags.update(tags => [
+      ...tags.filter(t => t.name !== name),
+      { name, value },
+    ]);
+    this.configTagNameCtrl.reset();
+    this.configTagValueCtrl.reset();
+  }
+
+  protected removeConfigTag(name: string): void {
+    this.editingConfigTags.update(tags => tags.filter(t => t.name !== name));
+  }
+
+  protected cancelConfigTagsEdit(): void {
+    this.isEditingConfigTags.set(false);
+    this.editingConfigTags.set([]);
+    this.configTagsErrorKey.set('');
+  }
+
+  protected async saveConfigTags(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.configTagsSaving()) return;
+    this.configTagsSaving.set(true);
+    this.configTagsErrorKey.set('');
+    try {
+      const updated = await this.infraConfigService.setTags(configId, { tags: this.editingConfigTags() });
+      this.config.set(updated);
+      this.isEditingConfigTags.set(false);
+      this.editingConfigTags.set([]);
+    } catch {
+      this.configTagsErrorKey.set('CONFIG_DETAIL.TAGS.SAVE_ERROR');
+    } finally {
+      this.configTagsSaving.set(false);
+    }
   }
 }

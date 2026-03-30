@@ -145,7 +145,7 @@
     },
     "TABS": {
       "RESOURCE_GROUPS": "Resource groups",
-      "ENVIRONMENTS": "Environments",
+      "TAGS": "Tags",
       "MEMBERS": "Members",
       "NAMING_TEMPLATES": "Naming",
       "CROSS_CONFIG_REFS": "Cross-config references",
@@ -618,6 +618,16 @@
       "SCOPE_PROJECT": "Shared across all configurations",
       "DIALOG_CANCEL": "Cancel",
       "DIALOG_ADD": "Add"
+    },
+    "TAGS": {
+      "TITLE": "Tags",
+      "EDIT_TOOLTIP": "Edit tags",
+      "EMPTY": "No tags defined",
+      "SAVE": "Save tags",
+      "CANCEL": "Cancel",
+      "TAG_NAME": "Key",
+      "TAG_VALUE": "Value",
+      "SAVE_ERROR": "Unable to save tags."
     }
   },
   "PROJECT_DETAIL": {
@@ -775,7 +785,10 @@
         "REQUIRES_APPROVAL": "Requires approval before deployment",
         "CANCEL": "Cancel",
         "ADD": "Add",
-        "SAVE": "Save"
+        "SAVE": "Save",
+        "TAGS": "Tags",
+        "TAG_NAME": "Key",
+        "TAG_VALUE": "Value"
       }
     },
     "NAMING_TEMPLATES": {
@@ -909,6 +922,15 @@
       "CONFIRM_DELETE_GROUP": "Delete this shared variable group and all its mappings?",
       "ERROR_ADD_GROUP": "Failed to add shared variable group.",
       "ERROR_REMOVE_GROUP": "Failed to remove shared variable group."
+    },
+    "TAGS": {
+      "TITLE": "Tags",
+      "EMPTY": "No tags defined",
+      "SAVE": "Save tags",
+      "CANCEL": "Cancel",
+      "TAG_NAME": "Key",
+      "TAG_VALUE": "Value",
+      "SAVE_ERROR": "Unable to save tags."
     }
   },
   "RESOURCE_EDIT": {

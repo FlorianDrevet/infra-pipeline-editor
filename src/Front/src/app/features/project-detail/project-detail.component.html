@@ -577,55 +577,55 @@
               <mat-spinner diameter="32"></mat-spinner>
             </div>
           } @else if (variableGroups().length > 0) {
-            <mat-accordion multi>
+            <div class="vg-list">
               @for (group of variableGroups(); track group.id) {
-                <mat-expansion-panel>
-                  <mat-expansion-panel-header>
-                    <mat-panel-title>
-                      <mat-icon class="vg-panel-icon">library_books</mat-icon>
-                      {{ group.groupName }}
-                    </mat-panel-title>
-                    <mat-panel-description>
-                      {{ group.variables.length }} {{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.VARIABLE_NAME' | translate }}
-                    </mat-panel-description>
-                  </mat-expansion-panel-header>
+                <article class="vg-card">
+                  <div class="vg-card__header">
+                    <div class="vg-card__title-row">
+                      <mat-icon class="vg-card__icon">library_books</mat-icon>
+                      <h3 class="vg-card__name">{{ group.groupName }}</h3>
+                      <span class="vg-card__count">{{ group.variables.length }}</span>
+                    </div>
+                    @if (canWrite()) {
+                      <button class="vg-card__delete" (click)="openRemoveVariableGroupDialog(group)"
+                              [matTooltip]="'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate">
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
+                    }
+                  </div>
 
-                  <!-- Variables table (read-only, derived from app settings) -->
                   @if (group.variables.length > 0) {
-                    <div class="vg-mapping-list">
-                      <div class="vg-mapping-header">
-                        <span class="vg-mapping-col">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.VARIABLE_NAME' | translate }}</span>
-                        <span class="vg-mapping-col">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.APP_SETTING' | translate }}</span>
-                        <span class="vg-mapping-col">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.RESOURCE' | translate }}</span>
-                        <span class="vg-mapping-col">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.RESOURCE_TYPE' | translate }}</span>
-                        <span class="vg-mapping-col">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.CONFIG' | translate }}</span>
+                    <div class="vg-card__table">
+                      <div class="vg-card__table-header">
+                        <span class="vg-col vg-col--variable">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.VARIABLE_NAME' | translate }}</span>
+                        <span class="vg-col vg-col--setting">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.APP_SETTING' | translate }}</span>
+                        <span class="vg-col vg-col--resource">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.RESOURCE' | translate }}</span>
+                        <span class="vg-col vg-col--type">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.RESOURCE_TYPE' | translate }}</span>
+                        <span class="vg-col vg-col--config">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.CONFIG' | translate }}</span>
                       </div>
                       @for (variable of group.variables; track variable.pipelineVariableName) {
-                        <div class="vg-mapping-row">
-                          <span class="vg-mapping-col"><code>{{ variable.pipelineVariableName }}</code></span>
-                          <span class="vg-mapping-col vg-mapping-arrow">→</span>
-                          <span class="vg-mapping-col">{{ variable.appSettingName }}</span>
-                          <span class="vg-mapping-col">{{ variable.resourceName }}</span>
-                          <span class="vg-mapping-col">{{ variable.resourceType }}</span>
-                          <span class="vg-mapping-col">{{ variable.configName }}</span>
+                        <div class="vg-card__table-row">
+                          <span class="vg-col vg-col--variable">
+                            <code class="vg-variable-code">{{ variable.pipelineVariableName }}</code>
+                          </span>
+                          <span class="vg-col vg-col--setting">{{ variable.appSettingName }}</span>
+                          <span class="vg-col vg-col--resource">{{ variable.resourceName }}</span>
+                          <span class="vg-col vg-col--type">
+                            <span class="vg-type-chip">{{ variable.resourceType }}</span>
+                          </span>
+                          <span class="vg-col vg-col--config">{{ variable.configName }}</span>
                         </div>
                       }
                     </div>
                   } @else {
-                    <p class="vg-no-mappings">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.NO_VARIABLES' | translate }}</p>
+                    <div class="vg-card__empty">
+                      <mat-icon class="vg-card__empty-icon">info_outline</mat-icon>
+                      <p>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.NO_VARIABLES' | translate }}</p>
+                    </div>
                   }
-
-                  <mat-action-row>
-                    @if (canWrite()) {
-                      <button class="delete-config-btn" (click)="openRemoveVariableGroupDialog(group)">
-                        <mat-icon>delete_outline</mat-icon>
-                        {{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate }}
-                      </button>
-                    }
-                  </mat-action-row>
-                </mat-expansion-panel>
+                </article>
               }
-            </mat-accordion>
+            </div>
           } @else if (vgLoaded()) {
             <div class="empty-state">
               <mat-icon class="empty-state__icon">library_books</mat-icon>

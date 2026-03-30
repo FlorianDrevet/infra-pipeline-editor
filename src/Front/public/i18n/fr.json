@@ -145,7 +145,7 @@
     },
     "TABS": {
       "RESOURCE_GROUPS": "Groupes de ressources",
-      "ENVIRONMENTS": "Environnements",
+      "TAGS": "Tags",
       "MEMBERS": "Membres",
       "NAMING_TEMPLATES": "Nommage",
       "CROSS_CONFIG_REFS": "Références croisées",
@@ -236,7 +236,10 @@
         "REQUIRES_APPROVAL": "Approbation requise avant deploiement",
         "CANCEL": "Annuler",
         "ADD": "Ajouter",
-        "SAVE": "Enregistrer"
+        "SAVE": "Enregistrer",
+        "TAGS": "Tags",
+        "TAG_NAME": "Clé",
+        "TAG_VALUE": "Valeur"
       }
     },
     "RESOURCE_GROUPS": {
@@ -614,6 +617,16 @@
       "SCOPE_PROJECT": "Partagé entre toutes les configurations",
       "DIALOG_CANCEL": "Annuler",
       "DIALOG_ADD": "Ajouter"
+    },
+    "TAGS": {
+      "TITLE": "Tags",
+      "EDIT_TOOLTIP": "Modifier les tags",
+      "EMPTY": "Aucun tag défini",
+      "SAVE": "Enregistrer les tags",
+      "CANCEL": "Annuler",
+      "TAG_NAME": "Clé",
+      "TAG_VALUE": "Valeur",
+      "SAVE_ERROR": "Impossible d'enregistrer les tags."
     }
   },
   "PROJECT_DETAIL": {
@@ -780,7 +793,10 @@
         "ORDER": "Ordre de deploiement",
         "TIMELINE_ARIA": "Ordre de deploiement des environnements",
         "ORDER_HELP": "Position dans le pipeline",
-        "ORDER_LABEL": "Ordre de deploiement"
+        "ORDER_LABEL": "Ordre de deploiement",
+        "TAGS": "Tags",
+        "TAG_NAME": "Clé",
+        "TAG_VALUE": "Valeur"
       }
     },
     "NAMING_TEMPLATES": {
@@ -916,6 +932,15 @@
       "CONFIRM_DELETE_GROUP": "Supprimer ce groupe de variables partagé et tous ses mappings ?",
       "ERROR_ADD_GROUP": "Impossible d'ajouter le groupe de variables partagé.",
       "ERROR_REMOVE_GROUP": "Impossible de supprimer le groupe de variables partagé."
+    },
+    "TAGS": {
+      "TITLE": "Tags",
+      "EMPTY": "Aucun tag défini",
+      "SAVE": "Enregistrer les tags",
+      "CANCEL": "Annuler",
+      "TAG_NAME": "Clé",
+      "TAG_VALUE": "Valeur",
+      "SAVE_ERROR": "Impossible d'enregistrer les tags."
     }
   },
   "RESOURCE_EDIT": {

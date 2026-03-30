@@ -219,7 +219,6 @@ export class AddAppSettingDialogComponent {
   protected async onViaVariableGroupToggle(value: boolean): Promise<void> {
     this.isViaVariableGroup.set(value);
     if (value) {
-      this.isSecret.set(false);
       await this.loadVariableGroups();
     } else {
       this.selectedVariableGroupId.set(null);
@@ -416,7 +415,6 @@ export class AddAppSettingDialogComponent {
             name,
             variableGroupId: variableGroupId ?? undefined,
             pipelineVariableName: this.pipelineVariableName().trim(),
-            environmentValues: this.environmentValues(),
           };
         } else if (this.isSecret()) {
           request = {

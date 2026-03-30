@@ -664,77 +664,67 @@
         </div>
       </mat-tab>
 
-      <!-- Environments (read-only from project) -->
+      <!-- Tags -->
       <mat-tab>
         <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">cloud_queue</mat-icon>
-          <span>{{ 'CONFIG_DETAIL.TABS.ENVIRONMENTS' | translate }}</span>
-          <span class="tab-count">{{ projectSortedEnvironments().length }}</span>
+          <mat-icon class="tab-icon">label_important</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.TABS.TAGS' | translate }}</span>
+          <span class="tab-count">{{ configTags().length }}</span>
         </ng-template>
         <div class="tab-content">
-          <div class="inheritance-banner inheritance-banner--inherited">
-            <div class="inheritance-banner__info">
-              <mat-icon class="inheritance-banner__icon">link</mat-icon>
-              <span>{{ 'CONFIG_DETAIL.INHERITANCE.ENVIRONMENTS_INHERITED' | translate }}</span>
-            </div>
+          <div class="settings-section__title-row">
+            <h3 class="settings-section__title">{{ 'CONFIG_DETAIL.TAGS.TITLE' | translate }}</h3>
+            @if (!isEditingConfigTags() && canWrite()) {
+              <button mat-icon-button (click)="startEditConfigTags()" [matTooltip]="'CONFIG_DETAIL.TAGS.EDIT_TOOLTIP' | translate">
+                <mat-icon>edit</mat-icon>
+              </button>
+            }
           </div>
 
-          @if (projectSortedEnvironments().length > 0) {
-            <div class="env-pipeline">
-              @for (env of projectSortedEnvironments(); track env.id; let last = $last) {
-                <article class="env-card env-card--readonly">
-                  <div class="env-card__header">
-                    <h3>{{ env.name }}</h3>
-                    <span class="inherited-chip">
-                      <mat-icon>link</mat-icon>
-                      {{ 'CONFIG_DETAIL.INHERITANCE.FROM_PROJECT' | translate }}
-                    </span>
-                  </div>
-                  <div class="env-card__details">
-                    <div class="detail-row">
-                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.LOCATION' | translate }}</span>
-                      <strong>{{ env.location }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.SHORT_NAME' | translate }}</span>
-                      <strong>{{ env.shortName || '—' }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.PREFIX' | translate }}</span>
-                      <strong>{{ env.prefix || '—' }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.SUFFIX' | translate }}</span>
-                      <strong>{{ env.suffix || '—' }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.SUBSCRIPTION_ID' | translate }}</span>
-                      <strong class="mono">{{ env.subscriptionId }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'CONFIG_DETAIL.ENVIRONMENTS.REQUIRES_APPROVAL' | translate }}</span>
-                      <strong>{{ env.requiresApproval ? ('CONFIG_DETAIL.BOOLEAN.YES' | translate) : ('CONFIG_DETAIL.BOOLEAN.NO' | translate) }}</strong>
-                    </div>
-                  </div>
-                  @if (env.tags.length > 0) {
-                    <div class="env-card__tags">
-                      @for (tag of env.tags; track tag.name) {
-                        <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
-                      }
-                    </div>
+          @if (!isEditingConfigTags()) {
+            <div class="tags-display">
+              @if (configTags().length === 0) {
+                <span class="tags-empty">{{ 'CONFIG_DETAIL.TAGS.EMPTY' | translate }}</span>
+              } @else {
+                <mat-chip-set>
+                  @for (tag of configTags(); track tag.name) {
+                    <mat-chip>{{ tag.name }}{{ tag.value ? ': ' + tag.value : '' }}</mat-chip>
                   }
-                </article>
-                @if (!last) {
-                  <div class="env-pipeline__connector">
-                    <mat-icon>arrow_forward</mat-icon>
-                  </div>
-                }
+                </mat-chip-set>
               }
             </div>
           } @else {
-            <div class="empty-state">
-              <mat-icon class="empty-state__icon">cloud_queue</mat-icon>
-              <p>{{ 'CONFIG_DETAIL.INHERITANCE.NO_PROJECT_ENVIRONMENTS' | translate }}</p>
+            <div class="tags-editor">
+              <div class="tags-add-row">
+                <mat-form-field class="tag-name-field" appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>{{ 'CONFIG_DETAIL.TAGS.TAG_NAME' | translate }}</mat-label>
+                  <input matInput [formControl]="configTagNameCtrl" />
+                </mat-form-field>
+                <mat-form-field class="tag-value-field" appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>{{ 'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate }}</mat-label>
+                  <input matInput [formControl]="configTagValueCtrl" />
+                </mat-form-field>
+                <button mat-icon-button (click)="addConfigTag()" [disabled]="!configTagNameCtrl.value.trim()">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+              <mat-chip-set>
+                @for (tag of editingConfigTags(); track tag.name) {
+                  <mat-chip (removed)="removeConfigTag(tag.name)">
+                    {{ tag.name }}{{ tag.value ? ': ' + tag.value : '' }}
+                    <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                  </mat-chip>
+                }
+              </mat-chip-set>
+              @if (configTagsErrorKey()) {
+                <p class="rg-error">{{ configTagsErrorKey() | translate }}</p>
+              }
+              <div class="tags-actions">
+                <button mat-stroked-button (click)="cancelConfigTagsEdit()">{{ 'CONFIG_DETAIL.TAGS.CANCEL' | translate }}</button>
+                <button mat-raised-button color="primary" (click)="saveConfigTags()" [disabled]="configTagsSaving()">
+                  @if (configTagsSaving()) { <mat-spinner diameter="18" /> } @else { {{ 'CONFIG_DETAIL.TAGS.SAVE' | translate }} }
+                </button>
+              </div>
             </div>
           }
         </div>
@@ -978,55 +968,55 @@
               <mat-spinner diameter="32"></mat-spinner>
             </div>
           } @else if (variableGroups().length > 0) {
-            <mat-accordion multi>
+            <div class="vg-list">
               @for (group of variableGroups(); track group.id) {
-                <mat-expansion-panel>
-                  <mat-expansion-panel-header>
-                    <mat-panel-title>
-                      <mat-icon class="vg-panel-icon">library_books</mat-icon>
-                      {{ group.groupName }}
-                    </mat-panel-title>
-                    <mat-panel-description>
-                      {{ group.variables.length }} {{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.VARIABLE_NAME' | translate }}
-                    </mat-panel-description>
-                  </mat-expansion-panel-header>
+                <article class="vg-card">
+                  <div class="vg-card__header">
+                    <div class="vg-card__title-row">
+                      <mat-icon class="vg-card__icon">library_books</mat-icon>
+                      <h3 class="vg-card__name">{{ group.groupName }}</h3>
+                      <span class="vg-card__count">{{ group.variables.length }}</span>
+                    </div>
+                    @if (canWrite()) {
+                      <button class="vg-card__delete" (click)="openRemoveVariableGroupDialog(group)"
+                              [matTooltip]="'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate">
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
+                    }
+                  </div>
 
-                  <!-- Variables table (read-only, derived from app settings) -->
                   @if (group.variables.length > 0) {
-                    <div class="vg-mapping-list">
-                      <div class="vg-mapping-header">
-                        <span class="vg-mapping-col">{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.VARIABLE_NAME' | translate }}</span>
-                        <span class="vg-mapping-col">{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.APP_SETTING' | translate }}</span>
-                        <span class="vg-mapping-col">{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.RESOURCE' | translate }}</span>
-                        <span class="vg-mapping-col">{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.RESOURCE_TYPE' | translate }}</span>
-                        <span class="vg-mapping-col">{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.CONFIG' | translate }}</span>
+                    <div class="vg-card__table">
+                      <div class="vg-card__table-header">
+                        <span class="vg-col vg-col--variable">{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.VARIABLE_NAME' | translate }}</span>
+                        <span class="vg-col vg-col--setting">{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.APP_SETTING' | translate }}</span>
+                        <span class="vg-col vg-col--resource">{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.RESOURCE' | translate }}</span>
+                        <span class="vg-col vg-col--type">{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.RESOURCE_TYPE' | translate }}</span>
+                        <span class="vg-col vg-col--config">{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.CONFIG' | translate }}</span>
                       </div>
                       @for (variable of group.variables; track variable.pipelineVariableName) {
-                        <div class="vg-mapping-row">
-                          <span class="vg-mapping-col"><code>{{ variable.pipelineVariableName }}</code></span>
-                          <span class="vg-mapping-col vg-mapping-arrow">→</span>
-                          <span class="vg-mapping-col">{{ variable.appSettingName }}</span>
-                          <span class="vg-mapping-col">{{ variable.resourceName }}</span>
-                          <span class="vg-mapping-col">{{ variable.resourceType }}</span>
-                          <span class="vg-mapping-col">{{ variable.configName }}</span>
+                        <div class="vg-card__table-row">
+                          <span class="vg-col vg-col--variable">
+                            <code class="vg-variable-code">{{ variable.pipelineVariableName }}</code>
+                          </span>
+                          <span class="vg-col vg-col--setting">{{ variable.appSettingName }}</span>
+                          <span class="vg-col vg-col--resource">{{ variable.resourceName }}</span>
+                          <span class="vg-col vg-col--type">
+                            <span class="vg-type-chip">{{ variable.resourceType }}</span>
+                          </span>
+                          <span class="vg-col vg-col--config">{{ variable.configName }}</span>
                         </div>
                       }
                     </div>
                   } @else {
-                    <p class="vg-no-mappings">{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.NO_VARIABLES' | translate }}</p>
+                    <div class="vg-card__empty">
+                      <mat-icon class="vg-card__empty-icon">info_outline</mat-icon>
+                      <p>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.NO_VARIABLES' | translate }}</p>
+                    </div>
                   }
-
-                  <mat-action-row>
-                    @if (canWrite()) {
-                      <button class="delete-btn" (click)="openRemoveVariableGroupDialog(group)">
-                        <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
-                        {{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate }}
-                      </button>
-                    }
-                  </mat-action-row>
-                </mat-expansion-panel>
+                </article>
               }
-            </mat-accordion>
+            </div>
           } @else if (vgLoaded()) {
             <div class="empty-state">
               <mat-icon class="empty-state__icon">library_books</mat-icon>
