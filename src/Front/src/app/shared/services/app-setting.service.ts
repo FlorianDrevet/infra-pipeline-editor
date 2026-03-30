@@ -5,6 +5,7 @@ import {
   AppSettingResponse,
   AvailableOutputsResponse,
   AddAppSettingRequest,
+  UpdateStaticAppSettingRequest,
   CheckKeyVaultAccessResponse,
 } from '../interfaces/app-setting.interface';
 
@@ -39,6 +40,14 @@ export class AppSettingService {
     return this.axios.request$<AppSettingResponse>(
       MethodEnum.POST,
       `/azure-resources/${resourceId}/app-settings`,
+      request
+    );
+  }
+
+  update(resourceId: string, appSettingId: string, request: UpdateStaticAppSettingRequest): Promise<AppSettingResponse> {
+    return this.axios.request$<AppSettingResponse>(
+      MethodEnum.PUT,
+      `/azure-resources/${resourceId}/app-settings/${appSettingId}`,
       request
     );
   }

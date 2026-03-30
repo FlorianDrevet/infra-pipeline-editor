@@ -50,3 +50,8 @@ export interface AddAppSettingRequest {
   variableGroupId?: string;
   pipelineVariableName?: string;
 }
+
+export interface UpdateStaticAppSettingRequest {
+  name: string;
+  environmentValues: Record<string, string>;
+}

@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.AppSettings.Commands.AddAppSetting;
 using InfraFlowSculptor.Application.AppSettings.Commands.RemoveAppSetting;
+using InfraFlowSculptor.Application.AppSettings.Commands.UpdateStaticAppSetting;
 using InfraFlowSculptor.Application.AppSettings.Queries.CheckKeyVaultAccess;
 using InfraFlowSculptor.Application.AppSettings.Queries.GetAvailableOutputs;
 using InfraFlowSculptor.Application.AppSettings.Queries.ListAppSettings;
@@ -88,6 +89,27 @@ public static class AppSettingController
                             errors => errors.Result());
                     })
                 .WithName("RemoveAppSetting");
+
+            group.MapPut("/{appSettingId:guid}",
+                    async ([FromRoute] Guid resourceId,
+                        [FromRoute] Guid appSettingId,
+                        [FromBody] UpdateStaticAppSettingRequest request,
+                        IMediator mediator,
+                        IMapper mapper) =>
+                    {
+                        var command = new UpdateStaticAppSettingCommand(
+                            new AzureResourceId(resourceId),
+                            new AppSettingId(appSettingId),
+                            request.Name,
+                            request.EnvironmentValues);
+
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            appSetting => Results.Ok(mapper.Map<AppSettingResponse>(appSetting)),
+                            errors => errors.Result());
+                    })
+                .WithName("UpdateStaticAppSetting");
 
             // Endpoint to get available outputs from a resource (for building the UI picker)
             var outputsGroup = endpoints.MapGroup("/azure-resources/{resourceId:guid}/available-outputs")

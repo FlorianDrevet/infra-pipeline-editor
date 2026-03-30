@@ -503,8 +503,13 @@ export class AddAppSettingDialogComponent {
 
       const result = await this.appSettingService.add(this.data.resourceId, request);
       this.dialogRef.close(result);
-    } catch {
-      this.errorKey.set('RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ERROR');
+    } catch (err: unknown) {
+      const axios = await import('axios');
+      if (axios.isAxiosError(err) && err.response?.status === 409) {
+        this.errorKey.set('RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ERROR_DUPLICATE');
+      } else {
+        this.errorKey.set('RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ERROR');
+      }
     } finally {
       this.isSubmitting.set(false);
     }

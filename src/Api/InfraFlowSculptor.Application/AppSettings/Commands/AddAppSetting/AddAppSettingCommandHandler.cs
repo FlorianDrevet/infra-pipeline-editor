@@ -56,6 +56,9 @@ public sealed class AddAppSettingCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
+        if (resource.AppSettings.Any(s => string.Equals(s.Name, request.Name, StringComparison.OrdinalIgnoreCase)))
+            return Errors.AppSetting.DuplicateNameError(request.Name);
+
         // Variable group + Key Vault reference: pipeline variable stored as KV secret
         if (request.VariableGroupId is not null && request.PipelineVariableName is not null
             && request.KeyVaultResourceId is not null && request.SecretName is not null)

@@ -64,6 +64,7 @@ import { FUNCTION_APP_RUNTIME_STACK_OPTIONS } from '../config-detail/enums/funct
 import { APP_SERVICE_PLAN_SKU_OPTIONS } from '../config-detail/enums/app-service-plan-sku.enum';
 import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData, AddRoleAssignmentDialogResult } from './add-role-assignment-dialog/add-role-assignment-dialog.component';
 import { AddAppSettingDialogComponent, AddAppSettingDialogData } from './add-app-setting-dialog/add-app-setting-dialog.component';
+import { EditStaticAppSettingDialogComponent, EditStaticAppSettingDialogData } from './edit-static-app-setting-dialog/edit-static-app-setting-dialog.component';
 import { AppSettingService } from '../../shared/services/app-setting.service';
 import { AppSettingResponse } from '../../shared/interfaces/app-setting.interface';
 
@@ -499,23 +500,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly appSettingsGrouped = computed(() => {
     const all = this.appSettings();
 
-    // 1. Secrets grouped by Key Vault
-    const secretsByKv = new Map<string, { kvName: string; kvId: string; settings: AppSettingResponse[] }>();
-    // 2. Variable Group (non-secret) grouped by VG
+    // 1. Variable Groups (including VG+KV secret combos) grouped by VG
     const byVg = new Map<string, { vgName: string; vgId: string; settings: AppSettingResponse[] }>();
-    // 3. Output references
+    // 2. Output references
     const outputs: AppSettingResponse[] = [];
-    // 4. Static values
+    // 3. Static values (including pure KV references without VG)
     const statics: AppSettingResponse[] = [];
 
     for (const s of all) {
-      if (s.isKeyVaultReference && s.keyVaultResourceId) {
-        const kvId = s.keyVaultResourceId;
-        if (!secretsByKv.has(kvId)) {
-          secretsByKv.set(kvId, { kvName: this.resolveSourceName(kvId), kvId, settings: [] });
-        }
-        secretsByKv.get(kvId)!.settings.push(s);
-      } else if (s.isViaVariableGroup && s.variableGroupId) {
+      if (s.isViaVariableGroup && s.variableGroupId) {
         const vgId = s.variableGroupId;
         if (!byVg.has(vgId)) {
           byVg.set(vgId, { vgName: s.variableGroupName ?? vgId, vgId, settings: [] });
@@ -529,7 +522,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
 
     return {
-      secretsByKv: [...secretsByKv.values()],
       byVg: [...byVg.values()],
       outputs,
       statics,
@@ -539,7 +531,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly appSettingsSectionCount = computed(() => {
     const g = this.appSettingsGrouped();
     let n = 0;
-    if (g.secretsByKv.length > 0) n++;
     if (g.byVg.length > 0) n++;
     if (g.outputs.length > 0) n++;
     if (g.statics.length > 0) n++;
@@ -1630,6 +1621,26 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
       if (!confirmed) return;
       await this.removeAppSetting(setting.id);
+    });
+  }
+
+  protected openEditStaticAppSettingDialog(setting: AppSettingResponse): void {
+    const dialogRef = this.dialog.open(EditStaticAppSettingDialogComponent, {
+      data: {
+        resourceId: this.resourceId,
+        appSettingId: setting.id,
+        currentName: setting.name,
+        currentEnvironmentValues: setting.environmentValues ?? {},
+        environments: this.environments().map(e => ({ name: e.name })),
+      } satisfies EditStaticAppSettingDialogData,
+      width: '480px',
+      maxHeight: '80vh',
+    });
+
+    dialogRef.afterClosed().subscribe((result?: AppSettingResponse) => {
+      if (result) {
+        this.appSettings.update(list => list.map(s => s.id === result.id ? result : s));
+      }
     });
   }
 

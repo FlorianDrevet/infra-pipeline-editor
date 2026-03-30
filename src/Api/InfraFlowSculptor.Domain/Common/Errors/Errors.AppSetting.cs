@@ -38,5 +38,17 @@ public static partial class Errors
             Error.NotFound(
                 code: "AppSetting.KeyVaultNotFound",
                 description: $"The Key Vault resource with id '{id.Value}' was not found.");
+
+        /// <summary>Returns an error when an app setting with the same name already exists on the resource.</summary>
+        public static Error DuplicateNameError(string name) =>
+            Error.Conflict(
+                code: "AppSetting.DuplicateName",
+                description: $"An app setting named '{name}' already exists on this resource.");
+
+        /// <summary>Returns an error when attempting to edit a non-static app setting as if it were static.</summary>
+        public static Error CannotEditNonStaticError() =>
+            Error.Validation(
+                code: "AppSetting.CannotEditNonStatic",
+                description: "Only static app settings can be edited this way.");
     }
 }

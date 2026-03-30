@@ -144,90 +144,98 @@
               <div class="form-section">
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
 
-                <!-- Deployment Mode Toggle -->
-                <div class="form-grid" style="margin-bottom: 1rem;">
-                  <div class="form-field">
-                    <label class="form-field__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE' | translate }}</label>
-                    <mat-button-toggle-group
-                      [value]="deploymentMode()"
-                      (change)="onDeploymentModeChange($event.value)"
-                      [disabled]="!canWrite()">
-                      <mat-button-toggle value="Code">
-                        <mat-icon>code</mat-icon>
-                        {{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE' | translate }}
-                      </mat-button-toggle>
-                      <mat-button-toggle value="Container">
-                        <mat-icon>inventory_2</mat-icon>
-                        {{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CONTAINER' | translate }}
-                      </mat-button-toggle>
-                    </mat-button-toggle-group>
+                <!-- Deployment Mode Selector -->
+                <div class="deployment-mode">
+                  <div class="deployment-mode__toggle" [class.deployment-mode__toggle--container]="isContainerMode()">
+                    <div class="deployment-mode__slider"></div>
+                    <button class="deployment-mode__segment"
+                            [class.deployment-mode__segment--active]="!isContainerMode()"
+                            [disabled]="!canWrite()"
+                            (click)="onDeploymentModeChange('Code')">
+                      <mat-icon class="deployment-mode__icon">code</mat-icon>
+                      <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE' | translate }}</span>
+                    </button>
+                    <button class="deployment-mode__segment"
+                            [class.deployment-mode__segment--active]="isContainerMode()"
+                            [disabled]="!canWrite()"
+                            (click)="onDeploymentModeChange('Container')">
+                      <mat-icon class="deployment-mode__icon">inventory_2</mat-icon>
+                      <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CONTAINER' | translate }}</span>
+                    </button>
                   </div>
                 </div>
 
-                <div class="form-grid">
-                  <!-- Code mode fields -->
+                <!-- Mode content panel -->
+                <div class="deployment-content">
                   @if (!isContainerMode()) {
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                      <mat-select formControlName="runtimeStack">
-                        @for (opt of runtimeStackOptions; track opt.value) {
-                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                      <input matInput formControlName="runtimeVersion" />
-                    </mat-form-field>
-                  }
+                    <!-- Code mode -->
+                    <div class="form-grid">
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
+                        <mat-select formControlName="runtimeStack">
+                          @for (opt of runtimeStackOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
+                        <input matInput formControlName="runtimeVersion" />
+                      </mat-form-field>
+                    </div>
+                  } @else {
+                    <!-- Container mode -->
+                    <div class="form-grid">
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
+                        <mat-select formControlName="containerRegistryId" (selectionChange)="onContainerRegistryChange($event.value)">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
+                          @for (acr of availableContainerRegistries(); track acr.id) {
+                            <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
+                          }
+                        </mat-select>
+                        <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate }}</mat-label>
+                        <input matInput formControlName="dockerImageName" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
+                      </mat-form-field>
+                    </div>
 
-                  <!-- Container mode fields -->
-                  @if (isContainerMode()) {
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
-                      <mat-select formControlName="containerRegistryId" (selectionChange)="onContainerRegistryChange($event.value)">
-                        <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
-                        @for (acr of availableContainerRegistries(); track acr.id) {
-                          <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
-                        }
-                      </mat-select>
-                      <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
-                    </mat-form-field>
-
-                    <!-- ACR Pull access check -->
+                    <!-- ACR Pull access check banner -->
                     @if (selectedContainerRegistryId()) {
-                      <div class="form-field acr-access-check">
+                      <div class="acr-status-banner" [class.acr-status-banner--checking]="acrAccessChecking()" [class.acr-status-banner--ok]="!acrAccessChecking() && acrHasAccess() === true" [class.acr-status-banner--warn]="!acrAccessChecking() && acrHasAccess() === false">
                         @if (acrAccessChecking()) {
-                          <mat-spinner diameter="18" class="acr-access-check__spinner"></mat-spinner>
-                          <span class="acr-access-check__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
+                          <mat-spinner diameter="18" class="acr-status-banner__spinner"></mat-spinner>
+                          <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
                         } @else if (acrHasAccess() === true) {
-                          <mat-icon class="acr-access-check__icon acr-access-check__icon--ok">check_circle</mat-icon>
-                          <span class="acr-access-check__text acr-access-check__text--ok">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
+                          <mat-icon class="acr-status-banner__icon">check_circle</mat-icon>
+                          <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
                         } @else if (acrHasAccess() === false) {
-                          <mat-icon class="acr-access-check__icon acr-access-check__icon--warn">warning</mat-icon>
-                          <span class="acr-access-check__text acr-access-check__text--warn">
-                            {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_MISSING' | translate: { role: acrMissingRoleName() } }}
-                          </span>
-                          <button mat-stroked-button color="primary" class="acr-access-check__action"
-                                  [disabled]="acrRoleAssigning()"
-                                  (click)="addAcrPullRoleAssignment()">
-                            @if (acrRoleAssigning()) {
-                              <mat-spinner diameter="16"></mat-spinner>
-                            } @else {
-                              <mat-icon>add</mat-icon>
-                            }
-                            {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_ADD_ROLE' | translate }}
-                          </button>
+                          <mat-icon class="acr-status-banner__icon">warning</mat-icon>
+                          <div class="acr-status-banner__body">
+                            <span class="acr-status-banner__text">
+                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_MISSING' | translate: { role: acrMissingRoleName() } }}
+                            </span>
+                            <button mat-flat-button class="acr-status-banner__action"
+                                    [disabled]="acrRoleAssigning()"
+                                    (click)="addAcrPullRoleAssignment()">
+                              @if (acrRoleAssigning()) {
+                                <mat-spinner diameter="14"></mat-spinner>
+                              } @else {
+                                <mat-icon>add_circle_outline</mat-icon>
+                              }
+                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_ADD_ROLE' | translate }}
+                            </button>
+                          </div>
                         }
                       </div>
                     }
-
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate }}</mat-label>
-                      <input matInput formControlName="dockerImageName" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
-                    </mat-form-field>
                   }
+                </div>
 
+                <!-- Common toggles -->
+                <div class="form-grid" style="margin-top: 1rem;">
                   <div class="form-field form-field--toggle">
                     <mat-slide-toggle formControlName="alwaysOn" color="primary">
                       {{ 'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate }}
@@ -247,90 +255,98 @@
               <div class="form-section">
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
 
-                <!-- Deployment Mode Toggle -->
-                <div class="form-grid" style="margin-bottom: 1rem;">
-                  <div class="form-field">
-                    <label class="form-field__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE' | translate }}</label>
-                    <mat-button-toggle-group
-                      [value]="deploymentMode()"
-                      (change)="onDeploymentModeChange($event.value)"
-                      [disabled]="!canWrite()">
-                      <mat-button-toggle value="Code">
-                        <mat-icon>code</mat-icon>
-                        {{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE' | translate }}
-                      </mat-button-toggle>
-                      <mat-button-toggle value="Container">
-                        <mat-icon>inventory_2</mat-icon>
-                        {{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CONTAINER' | translate }}
-                      </mat-button-toggle>
-                    </mat-button-toggle-group>
+                <!-- Deployment Mode Selector -->
+                <div class="deployment-mode">
+                  <div class="deployment-mode__toggle" [class.deployment-mode__toggle--container]="isContainerMode()">
+                    <div class="deployment-mode__slider"></div>
+                    <button class="deployment-mode__segment"
+                            [class.deployment-mode__segment--active]="!isContainerMode()"
+                            [disabled]="!canWrite()"
+                            (click)="onDeploymentModeChange('Code')">
+                      <mat-icon class="deployment-mode__icon">code</mat-icon>
+                      <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE' | translate }}</span>
+                    </button>
+                    <button class="deployment-mode__segment"
+                            [class.deployment-mode__segment--active]="isContainerMode()"
+                            [disabled]="!canWrite()"
+                            (click)="onDeploymentModeChange('Container')">
+                      <mat-icon class="deployment-mode__icon">inventory_2</mat-icon>
+                      <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CONTAINER' | translate }}</span>
+                    </button>
                   </div>
                 </div>
 
-                <div class="form-grid">
-                  <!-- Code mode fields -->
+                <!-- Mode content panel -->
+                <div class="deployment-content">
                   @if (!isContainerMode()) {
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                      <mat-select formControlName="runtimeStack">
-                        @for (opt of functionAppRuntimeStackOptions; track opt.value) {
-                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                      <input matInput formControlName="runtimeVersion" />
-                    </mat-form-field>
-                  }
+                    <!-- Code mode -->
+                    <div class="form-grid">
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
+                        <mat-select formControlName="runtimeStack">
+                          @for (opt of functionAppRuntimeStackOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
+                        <input matInput formControlName="runtimeVersion" />
+                      </mat-form-field>
+                    </div>
+                  } @else {
+                    <!-- Container mode -->
+                    <div class="form-grid">
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
+                        <mat-select formControlName="containerRegistryId" (selectionChange)="onContainerRegistryChange($event.value)">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
+                          @for (acr of availableContainerRegistries(); track acr.id) {
+                            <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
+                          }
+                        </mat-select>
+                        <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate }}</mat-label>
+                        <input matInput formControlName="dockerImageName" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
+                      </mat-form-field>
+                    </div>
 
-                  <!-- Container mode fields -->
-                  @if (isContainerMode()) {
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
-                      <mat-select formControlName="containerRegistryId" (selectionChange)="onContainerRegistryChange($event.value)">
-                        <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
-                        @for (acr of availableContainerRegistries(); track acr.id) {
-                          <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
-                        }
-                      </mat-select>
-                      <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
-                    </mat-form-field>
-
-                    <!-- ACR Pull access check -->
+                    <!-- ACR Pull access check banner -->
                     @if (selectedContainerRegistryId()) {
-                      <div class="form-field acr-access-check">
+                      <div class="acr-status-banner" [class.acr-status-banner--checking]="acrAccessChecking()" [class.acr-status-banner--ok]="!acrAccessChecking() && acrHasAccess() === true" [class.acr-status-banner--warn]="!acrAccessChecking() && acrHasAccess() === false">
                         @if (acrAccessChecking()) {
-                          <mat-spinner diameter="18" class="acr-access-check__spinner"></mat-spinner>
-                          <span class="acr-access-check__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
+                          <mat-spinner diameter="18" class="acr-status-banner__spinner"></mat-spinner>
+                          <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
                         } @else if (acrHasAccess() === true) {
-                          <mat-icon class="acr-access-check__icon acr-access-check__icon--ok">check_circle</mat-icon>
-                          <span class="acr-access-check__text acr-access-check__text--ok">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
+                          <mat-icon class="acr-status-banner__icon">check_circle</mat-icon>
+                          <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
                         } @else if (acrHasAccess() === false) {
-                          <mat-icon class="acr-access-check__icon acr-access-check__icon--warn">warning</mat-icon>
-                          <span class="acr-access-check__text acr-access-check__text--warn">
-                            {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_MISSING' | translate: { role: acrMissingRoleName() } }}
-                          </span>
-                          <button mat-stroked-button color="primary" class="acr-access-check__action"
-                                  [disabled]="acrRoleAssigning()"
-                                  (click)="addAcrPullRoleAssignment()">
-                            @if (acrRoleAssigning()) {
-                              <mat-spinner diameter="16"></mat-spinner>
-                            } @else {
-                              <mat-icon>add</mat-icon>
-                            }
-                            {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_ADD_ROLE' | translate }}
-                          </button>
+                          <mat-icon class="acr-status-banner__icon">warning</mat-icon>
+                          <div class="acr-status-banner__body">
+                            <span class="acr-status-banner__text">
+                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_MISSING' | translate: { role: acrMissingRoleName() } }}
+                            </span>
+                            <button mat-flat-button class="acr-status-banner__action"
+                                    [disabled]="acrRoleAssigning()"
+                                    (click)="addAcrPullRoleAssignment()">
+                              @if (acrRoleAssigning()) {
+                                <mat-spinner diameter="14"></mat-spinner>
+                              } @else {
+                                <mat-icon>add_circle_outline</mat-icon>
+                              }
+                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_ADD_ROLE' | translate }}
+                            </button>
+                          </div>
                         }
                       </div>
                     }
-
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate }}</mat-label>
-                      <input matInput formControlName="dockerImageName" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
-                    </mat-form-field>
                   }
+                </div>
 
+                <!-- Common toggles -->
+                <div class="form-grid" style="margin-top: 1rem;">
                   <div class="form-field form-field--toggle">
                     <mat-slide-toggle formControlName="httpsOnly" color="primary">
                       {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
@@ -355,35 +371,37 @@
                     </mat-select>
                     <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
                   </mat-form-field>
+                </div>
 
-                  <!-- ACR Pull access check -->
-                  @if (selectedContainerRegistryId()) {
-                    <div class="form-field acr-access-check">
-                      @if (acrAccessChecking()) {
-                        <mat-spinner diameter="18" class="acr-access-check__spinner"></mat-spinner>
-                        <span class="acr-access-check__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
-                      } @else if (acrHasAccess() === true) {
-                        <mat-icon class="acr-access-check__icon acr-access-check__icon--ok">check_circle</mat-icon>
-                        <span class="acr-access-check__text acr-access-check__text--ok">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
-                      } @else if (acrHasAccess() === false) {
-                        <mat-icon class="acr-access-check__icon acr-access-check__icon--warn">warning</mat-icon>
-                        <span class="acr-access-check__text acr-access-check__text--warn">
+                <!-- ACR Pull access check banner -->
+                @if (selectedContainerRegistryId()) {
+                  <div class="acr-status-banner" [class.acr-status-banner--checking]="acrAccessChecking()" [class.acr-status-banner--ok]="!acrAccessChecking() && acrHasAccess() === true" [class.acr-status-banner--warn]="!acrAccessChecking() && acrHasAccess() === false">
+                    @if (acrAccessChecking()) {
+                      <mat-spinner diameter="18" class="acr-status-banner__spinner"></mat-spinner>
+                      <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
+                    } @else if (acrHasAccess() === true) {
+                      <mat-icon class="acr-status-banner__icon">check_circle</mat-icon>
+                      <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
+                    } @else if (acrHasAccess() === false) {
+                      <mat-icon class="acr-status-banner__icon">warning</mat-icon>
+                      <div class="acr-status-banner__body">
+                        <span class="acr-status-banner__text">
                           {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_MISSING' | translate: { role: acrMissingRoleName() } }}
                         </span>
-                        <button mat-stroked-button color="primary" class="acr-access-check__action"
+                        <button mat-flat-button class="acr-status-banner__action"
                                 [disabled]="acrRoleAssigning()"
                                 (click)="addAcrPullRoleAssignment()">
                           @if (acrRoleAssigning()) {
-                            <mat-spinner diameter="16"></mat-spinner>
+                            <mat-spinner diameter="14"></mat-spinner>
                           } @else {
-                            <mat-icon>add</mat-icon>
+                            <mat-icon>add_circle_outline</mat-icon>
                           }
                           {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_ADD_ROLE' | translate }}
                         </button>
-                      }
-                    </div>
-                  }
-                </div>
+                      </div>
+                    }
+                  </div>
+                }
               </div>
             }
 
@@ -1955,63 +1973,6 @@
                 <p>{{ 'RESOURCE_EDIT.APP_SETTINGS.EMPTY' | translate }}</p>
               </div>
             } @else {
-              <!-- ═══ SECTION: Secrets (Key Vault) — grouped by KV ═══ -->
-              @if (appSettingsGrouped().secretsByKv.length > 0) {
-                <section class="as-section as-section--secret">
-                  <div class="as-section__header">
-                    <div class="as-section__header-left">
-                      <div class="as-section__icon-box as-section__icon-box--secret">
-                        <mat-icon>shield</mat-icon>
-                      </div>
-                      <div class="as-section__header-text">
-                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_SECRETS' | translate }}</h4>
-                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_SECRETS_DESC' | translate }}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  @for (kvGroup of appSettingsGrouped().secretsByKv; track kvGroup.kvId) {
-                    <div class="as-group">
-                      <div class="as-group__header">
-                        <mat-icon class="as-group__icon as-group__icon--kv">vpn_key</mat-icon>
-                        <span class="as-group__name">{{ kvGroup.kvName }}</span>
-                        <span class="as-group__count">{{ kvGroup.settings.length }}</span>
-                      </div>
-                      <div class="as-group__items">
-                        @for (setting of kvGroup.settings; track setting.id) {
-                          <div class="as-row as-row--secret">
-                            <div class="as-row__left">
-                              <span class="as-row__var-name">{{ setting.name }}</span>
-                              <span class="as-row__arrow">→</span>
-                              <span class="as-row__secret-name">{{ setting.secretName }}</span>
-                            </div>
-                            <div class="as-row__right">
-                              @if (setting.isViaVariableGroup && setting.variableGroupName) {
-                                <span class="as-pill as-pill--vg">
-                                  <mat-icon>account_tree</mat-icon>
-                                  {{ setting.variableGroupName }} · $({{ setting.pipelineVariableName }})
-                                </span>
-                              }
-                              @if (setting.secretValueAssignment && setting.secretValueAssignment !== 'ViaBicepparam') {
-                                <span class="as-pill as-pill--assignment">
-                                  <mat-icon>vpn_key</mat-icon>
-                                  {{ 'RESOURCE_EDIT.APP_SETTINGS.DIRECT_IN_KV' | translate }}
-                                </span>
-                              }
-                              @if (canWrite()) {
-                                <button class="as-row__delete" (click)="openRemoveAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
-                                  <mat-icon>close</mat-icon>
-                                </button>
-                              }
-                            </div>
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  }
-                </section>
-              }
-
               <!-- ═══ SECTION: Pipeline Variable Groups — grouped by VG ═══ -->
               @if (appSettingsGrouped().byVg.length > 0) {
                 <section class="as-section as-section--vg">
@@ -2036,13 +1997,21 @@
                       </div>
                       <div class="as-group__items">
                         @for (setting of vgGroup.settings; track setting.id) {
-                          <div class="as-row as-row--vg">
+                          <div class="as-row" [class.as-row--secret]="setting.isKeyVaultReference" [class.as-row--vg]="!setting.isKeyVaultReference">
                             <div class="as-row__left">
                               <span class="as-row__var-name">{{ setting.name }}</span>
                               <span class="as-row__arrow">→</span>
                               <span class="as-row__pipeline-var">$({{ setting.pipelineVariableName }})</span>
                             </div>
                             <div class="as-row__right">
+                              @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
+                                <span class="as-kv-tag">
+                                  <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                                  <span class="as-kv-tag__name">{{ resolveSourceName(setting.keyVaultResourceId) }}</span>
+                                  <span class="as-kv-tag__sep">/</span>
+                                  <span class="as-kv-tag__secret">{{ setting.secretName }}</span>
+                                </span>
+                              }
                               @if (canWrite()) {
                                 <button class="as-row__delete" (click)="openRemoveAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
                                   <mat-icon>close</mat-icon>
@@ -2121,10 +2090,18 @@
 
                   <div class="as-group__items">
                     @for (setting of appSettingsGrouped().statics; track setting.id) {
-                      <div class="as-row as-row--static">
+                      <div class="as-row" [class.as-row--secret]="setting.isKeyVaultReference" [class.as-row--static]="!setting.isKeyVaultReference">
                         <div class="as-row__left">
                           <span class="as-row__var-name">{{ setting.name }}</span>
-                          @if (setting.environmentValues) {
+                          @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
+                            <span class="as-row__arrow">→</span>
+                            <span class="as-kv-tag">
+                              <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                              <span class="as-kv-tag__name">{{ resolveSourceName(setting.keyVaultResourceId) }}</span>
+                              <span class="as-kv-tag__sep">/</span>
+                              <span class="as-kv-tag__secret">{{ setting.secretName }}</span>
+                            </span>
+                          } @else if (setting.environmentValues) {
                             <div class="as-row__env-chips">
                               @for (env of environments(); track env.name) {
                                 @if (setting.environmentValues![env.name]; as val) {
@@ -2138,6 +2115,11 @@
                           }
                         </div>
                         <div class="as-row__right">
+                          @if (canWrite() && !setting.isKeyVaultReference) {
+                            <button class="as-row__edit" (click)="openEditStaticAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.EDIT' | translate">
+                              <mat-icon>edit</mat-icon>
+                            </button>
+                          }
                           @if (canWrite()) {
                             <button class="as-row__delete" (click)="openRemoveAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
                               <mat-icon>close</mat-icon>
