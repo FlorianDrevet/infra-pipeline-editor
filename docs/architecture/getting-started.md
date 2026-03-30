@@ -11,9 +11,10 @@ La meilleure façon de comprendre le projet est de **suivre une requête du déb
 | 1 | `Api/Controllers/KeyVaultController.cs` | Endpoint `POST /keyvault` → reçoit un `CreateKeyVaultRequest` |
 | 2 | `Api/Common/Mapping/KeyVaultMappingConfig.cs` | Mapster convertit `CreateKeyVaultRequest` → `CreateKeyVaultCommand` |
 | 3 | `Application/KeyVaults/Commands/CreateKeyVault/CreateKeyVaultCommandValidator.cs` | FluentValidation vérifie les règles (si le fichier existe) |
-| 4 | `Application/KeyVaults/Commands/CreateKeyVault/CreateKeyVaultCommandHandler.cs` | Handler : vérifie l'accès, appelle `KeyVault.Create()`, persiste |
+| 4 | `Application/KeyVaults/Commands/CreateKeyVault/CreateKeyVaultCommandHandler.cs` | Handler : vérifie l'accès, appelle `KeyVault.Create()`, track les changements |
 | 5 | `Domain/KeyVaultAggregate/KeyVault.cs` | Factory method `Create()` — la logique métier |
-| 6 | `Infrastructure/Persistence/Repositories/KeyVaultRepository.cs` | `AddAsync()` → `SaveChangesAsync()` via EF Core |
+| 6 | `Infrastructure/Persistence/Repositories/KeyVaultRepository.cs` | `AddAsync()` → track dans le DbContext (pas de `SaveChanges`) |
+| 6b | `Application/Common/Behaviors/UnitOfWorkBehavior.cs` | `SaveChangesAsync()` atomique si le handler réussit |
 | 7 | `Api/Controllers/KeyVaultController.cs` | `result.Match()` → `Results.Ok(mapper.Map<KeyVaultResponse>(...))` |
 
 ### Les dossiers importants
@@ -188,5 +189,6 @@ npm run typecheck    # Vérification TypeScript
 - [Architecture du projet](overview.md) — Vue d'ensemble
 - [Domain-Driven Design](ddd-concepts.md) — Concepts DDD
 - [CQRS et MediatR](cqrs-patterns.md) — Pipeline de commandes/queries
+- [Unit of Work](unit-of-work.md) — Persistance atomique via le pipeline MediatR
 - [Couche API](api-layer.md) — Endpoints et mapping
 - [Persistance EF Core](persistence.md) — Repositories et configurations

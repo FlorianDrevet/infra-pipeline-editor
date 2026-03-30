@@ -26,28 +26,28 @@ public static class ResourceOutputCatalog
         ],
         ["RedisCache"] =
         [
-            new("hostName", "Redis host name", "redisCache.properties.hostName"),
-            new("sslPort", "Redis SSL port", "string(redisCache.properties.sslPort)"),
-            new("connectionString", "Redis connection string", "'${redisCache.properties.hostName}:${redisCache.properties.sslPort},password=${redisCache.listKeys().primaryKey},ssl=True,abortConnect=False'", IsSensitive: true),
-            new("primaryKey", "Redis primary access key", "redisCache.listKeys().primaryKey", IsSensitive: true),
+            new("hostName", "Redis host name", "redis.properties.hostName"),
+            new("sslPort", "Redis SSL port", "string(redis.properties.sslPort)"),
+            new("connectionString", "Redis connection string", "'${redis.properties.hostName}:${redis.properties.sslPort},password=${redis.listKeys().primaryKey},ssl=True,abortConnect=False'", IsSensitive: true),
+            new("primaryKey", "Redis primary access key", "redis.listKeys().primaryKey", IsSensitive: true),
         ],
         ["StorageAccount"] =
         [
-            new("storageAccountName", "Storage account name", "storageAccount.name"),
-            new("primaryBlobEndpoint", "Primary Blob endpoint", "storageAccount.properties.primaryEndpoints.blob"),
-            new("primaryQueueEndpoint", "Primary Queue endpoint", "storageAccount.properties.primaryEndpoints.queue"),
-            new("primaryTableEndpoint", "Primary Table endpoint", "storageAccount.properties.primaryEndpoints.table"),
-            new("connectionString", "Storage account connection string", "'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value}'", IsSensitive: true),
-            new("primaryKey", "Storage account primary access key", "storageAccount.listKeys().keys[0].value", IsSensitive: true),
+            new("storageAccountName", "Storage account name", "storage.name"),
+            new("primaryBlobEndpoint", "Primary Blob endpoint", "storage.properties.primaryEndpoints.blob"),
+            new("primaryQueueEndpoint", "Primary Queue endpoint", "storage.properties.primaryEndpoints.queue"),
+            new("primaryTableEndpoint", "Primary Table endpoint", "storage.properties.primaryEndpoints.table"),
+            new("connectionString", "Storage account connection string", "'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value}'", IsSensitive: true),
+            new("primaryKey", "Storage account primary access key", "storage.listKeys().keys[0].value", IsSensitive: true),
         ],
         ["AppConfiguration"] =
         [
-            new("endpoint", "App Configuration endpoint", "appConfiguration.properties.endpoint"),
+            new("endpoint", "App Configuration endpoint", "appConfig.properties.endpoint"),
         ],
         ["ApplicationInsights"] =
         [
-            new("connectionString", "Application Insights connection string", "appInsights.properties.ConnectionString"),
-            new("instrumentationKey", "Application Insights instrumentation key", "appInsights.properties.InstrumentationKey"),
+            new("connectionString", "Application Insights connection string", "applicationInsights.properties.ConnectionString"),
+            new("instrumentationKey", "Application Insights instrumentation key", "applicationInsights.properties.InstrumentationKey"),
         ],
         ["LogAnalyticsWorkspace"] =
         [
@@ -55,9 +55,9 @@ public static class ResourceOutputCatalog
         ],
         ["CosmosDb"] =
         [
-            new("documentEndpoint", "Cosmos DB document endpoint", "cosmosDb.properties.documentEndpoint"),
-            new("primaryConnectionString", "Cosmos DB primary connection string", "cosmosDb.listConnectionStrings().connectionStrings[0].connectionString", IsSensitive: true),
-            new("primaryKey", "Cosmos DB primary master key", "cosmosDb.listKeys().primaryMasterKey", IsSensitive: true),
+            new("documentEndpoint", "Cosmos DB document endpoint", "cosmosDbAccount.properties.documentEndpoint"),
+            new("primaryConnectionString", "Cosmos DB primary connection string", "cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString", IsSensitive: true),
+            new("primaryKey", "Cosmos DB primary master key", "cosmosDbAccount.listKeys().primaryMasterKey", IsSensitive: true),
         ],
         ["SqlServer"] =
         [
@@ -66,8 +66,8 @@ public static class ResourceOutputCatalog
         ],
         ["ContainerAppEnvironment"] =
         [
-            new("defaultDomain", "Container App Environment default domain", "containerAppEnvironment.properties.defaultDomain"),
-            new("staticIp", "Container App Environment static IP", "containerAppEnvironment.properties.staticIp"),
+            new("defaultDomain", "Container App Environment default domain", "containerAppEnv.properties.defaultDomain"),
+            new("staticIp", "Container App Environment static IP", "containerAppEnv.properties.staticIp"),
         ],
         ["UserAssignedIdentity"] =
         [

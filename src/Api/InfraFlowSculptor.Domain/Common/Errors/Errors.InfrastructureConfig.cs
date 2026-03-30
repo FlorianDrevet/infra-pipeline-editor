@@ -1,6 +1,7 @@
 ﻿using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using PipelineVariableGroup = InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.PipelineVariableGroup;
 
 namespace InfraFlowSculptor.Domain.Common.Errors;
 
@@ -50,6 +51,30 @@ public static partial class Errors
         public static Error TargetResourceNotInSameProject() => Error.Validation(
             code: "InfrastructureConfig.TargetResourceNotInSameProject",
             description: "The target resource must belong to a configuration within the same project."
+        );
+
+        /// <summary>Returns an error when a pipeline variable group with the same name already exists.</summary>
+        public static Error DuplicateVariableGroup(string groupName) => Error.Conflict(
+            code: "InfrastructureConfig.DuplicateVariableGroup",
+            description: $"A pipeline variable group named '{groupName}' already exists in this configuration."
+        );
+
+        /// <summary>Returns an error when a pipeline variable group is not found.</summary>
+        public static Error VariableGroupNotFound(PipelineVariableGroup.PipelineVariableGroupId groupId) => Error.NotFound(
+            code: "InfrastructureConfig.VariableGroupNotFound",
+            description: $"Pipeline variable group '{groupId}' was not found."
+        );
+
+        /// <summary>Returns an error when a duplicate Bicep parameter mapping already exists in this group.</summary>
+        public static Error DuplicateVariableMapping(string bicepParameterName) => Error.Conflict(
+            code: "InfrastructureConfig.DuplicateVariableMapping",
+            description: $"A mapping for Bicep parameter '{bicepParameterName}' already exists in this variable group."
+        );
+
+        /// <summary>Returns an error when a variable mapping is not found in the group.</summary>
+        public static Error VariableMappingNotFound(PipelineVariableGroup.PipelineVariableMappingId mappingId) => Error.NotFound(
+            code: "InfrastructureConfig.VariableMappingNotFound",
+            description: $"Variable mapping '{mappingId}' was not found."
         );
     }
 }

@@ -8,7 +8,8 @@ public record InfrastructureConfigReadModel(
     NamingContextReadModel NamingContext,
     IReadOnlyList<RoleAssignmentReadModel> RoleAssignments,
     IReadOnlyList<AppSettingReadModel> AppSettings,
-    IReadOnlyList<CrossConfigReferenceReadModel> CrossConfigReferences);
+    IReadOnlyList<CrossConfigReferenceReadModel> CrossConfigReferences,
+    IReadOnlyList<PipelineVariableGroupReadModel> PipelineVariableGroups);
 
 public record ResourceGroupReadModel(
     Guid Id,
@@ -100,3 +101,19 @@ public record CrossConfigReferenceReadModel(
     string TargetResourceType,
     string TargetResourceGroupName,
     string TargetResourceAbbreviation);
+
+/// <summary>
+/// Read model for a pipeline variable group configured on an infrastructure configuration.
+/// </summary>
+public record PipelineVariableGroupReadModel(
+    Guid GroupId,
+    string GroupName,
+    IReadOnlyList<PipelineVariableMappingReadModel> Mappings);
+
+/// <summary>
+/// Read model for a single variable-to-Bicep-parameter mapping within a pipeline variable group.
+/// </summary>
+public record PipelineVariableMappingReadModel(
+    Guid MappingId,
+    string PipelineVariableName,
+    string BicepParameterName);

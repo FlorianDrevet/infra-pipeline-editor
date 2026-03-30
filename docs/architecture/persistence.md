@@ -7,7 +7,8 @@ La couche Infrastructure (`InfraFlowSculptor.Infrastructure`) implémente la per
 1. **Le DbContext** — Point d'accès à la base de données
 2. **Les configurations d'entités** — Comment chaque type de domaine est mappé en table
 3. **Les repositories** — Abstraction entre les handlers et EF Core
-4. **Les converters** — Conversion des value objects en types SQL
+4. **Le Unit of Work** — Persistance atomique de tous les changements d'une commande
+5. **Les converters** — Conversion des value objects en types SQL
 
 ---
 
@@ -195,11 +196,10 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
     public virtual async Task<T?> GetByIdAsync(ValueObject id, CancellationToken ct)
         => await Context.Set<TEntity>().FindAsync(ct, id);
 
-    public virtual async Task<TEntity> AddAsync(TEntity entity)
+    public virtual Task<TEntity> AddAsync(TEntity entity)
     {
         var res = Context.Set<TEntity>().Add(entity);
-        await Context.SaveChangesAsync();
-        return res.Entity;
+        return Task.FromResult(res.Entity);  // Track uniquement, pas de SaveChanges
     }
 
     public virtual async Task<IEnumerable<TEntity>> GetAllAsync(
@@ -211,9 +211,11 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
         return await query.ToListAsync();
     }
 
-    // ... UpdateAsync, DeleteAsync
+    // ... UpdateAsync, DeleteAsync (même pattern : track sans SaveChanges)
 }
 ```
+
+> **Important — Unit of Work :** Les repositories ne doivent **jamais** appeler `SaveChangesAsync()`. Ils se contentent de tracker les changements dans le DbContext. C'est le `UnitOfWorkBehavior` (pipeline MediatR) qui appelle `SaveChangesAsync()` une seule fois après l'exécution réussie du handler. Voir [Unit of Work](unit-of-work.md) pour les détails.
 
 Les repositories spécialisés héritent de `BaseRepository` et ajoutent des queries avec `Include` :
 
@@ -280,6 +282,7 @@ Les migrations sont appliquées automatiquement au démarrage de l'application.
 
 ## Pages connexes
 
+- [Unit of Work](unit-of-work.md) — Persistance atomique via le pipeline MediatR
 - [Domain-Driven Design](ddd-concepts.md) — Les value objects et entités mappés par EF Core
 - [CQRS et MediatR](cqrs-patterns.md) — Les handlers qui utilisent les repositories
 - [Couche API](api-layer.md) — Le point d'entrée HTTP

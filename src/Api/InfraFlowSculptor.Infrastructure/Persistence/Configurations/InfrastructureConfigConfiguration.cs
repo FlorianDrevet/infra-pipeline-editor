@@ -81,5 +81,13 @@ public sealed class InfrastructureConfigConfiguration
             .WithOne()
             .HasForeignKey(x => x.InfraConfigId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ========================
+        // PipelineVariableGroups (Entity)
+        // ========================
+        builder.HasMany(x => x.PipelineVariableGroups)
+            .WithOne()
+            .HasForeignKey(x => x.InfraConfigId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

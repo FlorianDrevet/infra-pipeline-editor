@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.PipelineVariableGroup;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.Common.Models;
@@ -52,6 +53,10 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     private readonly List<CrossConfigResourceReference> _crossConfigReferences = [];
     /// <summary>Gets the cross-configuration resource references owned by this configuration.</summary>
     public IReadOnlyCollection<CrossConfigResourceReference> CrossConfigReferences => _crossConfigReferences.AsReadOnly();
+
+    private readonly List<PipelineVariableGroup> _pipelineVariableGroups = [];
+    /// <summary>Gets the Azure DevOps Pipeline Variable Groups configured for this infrastructure.</summary>
+    public IReadOnlyCollection<PipelineVariableGroup> PipelineVariableGroups => _pipelineVariableGroups.AsReadOnly();
 
     private InfrastructureConfig(InfrastructureConfigId id, Name name, ProjectId projectId) : base(id)
     {
@@ -173,6 +178,38 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
             return Domain.Common.Errors.Errors.InfrastructureConfig.CrossConfigReferenceNotFound(referenceId);
 
         _crossConfigReferences.Remove(reference);
+        return Result.Deleted;
+    }
+
+    // ─── Pipeline Variable Groups ───────────────────────────────────────────
+
+    /// <summary>
+    /// Adds a new Azure DevOps Pipeline Variable Group to this configuration.
+    /// </summary>
+    /// <param name="groupName">The name of the Variable Group in Azure DevOps.</param>
+    /// <returns>The created group or an error if a duplicate name exists.</returns>
+    public ErrorOr<PipelineVariableGroup> AddPipelineVariableGroup(string groupName)
+    {
+        if (_pipelineVariableGroups.Any(g => g.GroupName == groupName))
+            return Domain.Common.Errors.Errors.InfrastructureConfig.DuplicateVariableGroup(groupName);
+
+        var group = PipelineVariableGroup.Create(Id, groupName);
+        _pipelineVariableGroups.Add(group);
+        return group;
+    }
+
+    /// <summary>
+    /// Removes a pipeline variable group by its identifier.
+    /// </summary>
+    /// <param name="groupId">The group to remove.</param>
+    /// <returns><see cref="Result.Deleted"/> on success, or a not-found error.</returns>
+    public ErrorOr<Deleted> RemovePipelineVariableGroup(PipelineVariableGroupId groupId)
+    {
+        var group = _pipelineVariableGroups.FirstOrDefault(g => g.Id == groupId);
+        if (group is null)
+            return Domain.Common.Errors.Errors.InfrastructureConfig.VariableGroupNotFound(groupId);
+
+        _pipelineVariableGroups.Remove(group);
         return Result.Deleted;
     }
 }

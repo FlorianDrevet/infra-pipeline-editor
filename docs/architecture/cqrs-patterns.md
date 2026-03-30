@@ -74,12 +74,12 @@ public record CreateKeyVaultCommand(
     Name Name,
     Location Location,
     IReadOnlyList<KeyVaultEnvironmentConfigData>? EnvironmentSettings
-) : IRequest<ErrorOr<KeyVaultResult>>;
+) : ICommand<KeyVaultResult>;
 ```
 
 **Points clés :**
 - C'est un `record` immuable (les propriétés ne changent pas après création)
-- Implémente `IRequest<ErrorOr<T>>` — le `T` est le type de résultat en cas de succès
+- Implémente `ICommand<T>` (pas `IRequest` directement) — le `T` est le type de résultat en cas de succès. Voir la section [Interfaces de marquage CQRS](#interfaces-de-marquage-cqrs) ci-dessous.
 - Les paramètres utilisent des **value objects** du domaine (`Name`, `Location`, `ResourceGroupId`), pas des primitifs
 - `ErrorOr<T>` permet de retourner soit un succès (`T`), soit une liste d'erreurs
 
@@ -95,7 +95,7 @@ public sealed class CreateKeyVaultCommandHandler(
     IKeyVaultRepository keyVaultRepository,
     IResourceGroupRepository resourceGroupRepository,
     IMapper mapper)
-    : IRequestHandler<CreateKeyVaultCommand, ErrorOr<KeyVaultResult>>
+    : ICommandHandler<CreateKeyVaultCommand, KeyVaultResult>
 {
     public async Task<ErrorOr<KeyVaultResult>> Handle(
         CreateKeyVaultCommand command,
@@ -169,10 +169,10 @@ Fichier : src/Api/InfraFlowSculptor.Application/Projects/Queries/GetProject/GetP
 ```
 
 ```csharp
-public record GetProjectQuery(ProjectId Id) : IRequest<ErrorOr<ProjectResult>>;
+public record GetProjectQuery(ProjectId Id) : IQuery<ProjectResult>;
 ```
 
-Même pattern que les commands : un `record` avec `IRequest<ErrorOr<T>>`.
+Même pattern que les commands : un `record`, mais avec `IQuery<T>` au lieu de `ICommand<T>`. Les queries ne passent pas par le `UnitOfWorkBehavior`.
 
 ### 2. Le handler
 
@@ -185,7 +185,7 @@ public sealed class GetProjectQueryHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
     IMapper mapper)
-    : IRequestHandler<GetProjectQuery, ErrorOr<ProjectResult>>
+    : IQueryHandler<GetProjectQuery, ProjectResult>
 {
     public async Task<ErrorOr<ProjectResult>> Handle(
         GetProjectQuery query,
@@ -207,7 +207,7 @@ public sealed class GetProjectQueryHandler(
 }
 ```
 
-**Différence avec un Command handler :** pas de mutation, pas de `SaveChanges`. On charge et on retourne.
+**Différence avec un Command handler :** pas de mutation, pas de `SaveChanges`. On charge et on retourne. Comme la query implémente `IQuery<T>` (et non `ICommandBase`), le `UnitOfWorkBehavior` ne s'applique pas.
 
 ---
 
@@ -259,8 +259,11 @@ public class ValidationBehavior<TRequest, TResponse>(IValidator<TRequest>? valid
 Le behavior est enregistré dans `Application/DependencyInjection.cs` :
 ```csharp
 services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+services.AddScoped(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
 services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 ```
+
+> **Ordre important :** `ValidationBehavior` est enregistré **avant** `UnitOfWorkBehavior`. Ainsi, la validation s'exécute d'abord ; si elle échoue, le handler et le UoW ne sont jamais invoqués.
 
 ### Exemple de validator
 
@@ -345,6 +348,22 @@ Le service résout l'accès via l'appartenance au **projet** parent :
 
 ---
 
+## Interfaces de marquage CQRS
+
+Le projet définit des interfaces dédiées au lieu d'utiliser directement `IRequest<ErrorOr<T>>` de MediatR. Cela permet au `UnitOfWorkBehavior` de distinguer les commandes (écriture) des queries (lecture) :
+
+| Interface | Hérite de | Rôle |
+|-----------|-----------|------|
+| `ICommandBase` | – | Marqueur non-générique utilisé par le UoW |
+| `ICommand<TResult>` | `IRequest<ErrorOr<TResult>>`, `ICommandBase` | Commande (écriture) → passe par le UoW |
+| `IQuery<TResult>` | `IRequest<ErrorOr<TResult>>` | Query (lecture) → ne passe PAS par le UoW |
+| `ICommandHandler<TCmd, TResult>` | `IRequestHandler<TCmd, ErrorOr<TResult>>` | Handler de commande |
+| `IQueryHandler<TQuery, TResult>` | `IRequestHandler<TQuery, ErrorOr<TResult>>` | Handler de query |
+
+> Pour une explication complète du fonctionnement et des raisons d'être de ces interfaces, voir la page dédiée [Unit of Work](unit-of-work.md).
+
+---
+
 ## Résumé du pipeline complet
 
 ```
@@ -359,17 +378,26 @@ ISender.Send(command)
     │
     ▼
 ┌─────────────────────────────────┐
-│   ValidationBehavior            │
+│   ValidationBehavior            │   ← Étape 1 : validation
 │   FluentValidation si présent   │
 │   → erreurs 400 si invalide    │
 └──────────────┬──────────────────┘
                │
                ▼
 ┌─────────────────────────────────┐
-│   Command/Query Handler         │
+│   UnitOfWorkBehavior            │   ← Étape 2 : wrapper persistance
+│   (Commands uniquement)         │     (ICommandBase seulement)
+│   Appelle le handler            │
+│   Si succès → SaveChangesAsync  │
+│   Si erreur → rien (rollback)   │
+└──────────────┬──────────────────┘
+               │
+               ▼
+┌─────────────────────────────────┐
+│   Command/Query Handler         │   ← Étape 3 : logique métier
 │   1. Vérif accès               │
 │   2. Logique de domaine        │
-│   3. Persistance               │
+│   3. Repositories (track)      │
 │   4. Mapping résultat          │
 │   → ErrorOr<T>                 │
 └──────────────┬──────────────────┘
@@ -381,10 +409,13 @@ Endpoint: result.Match(ok => ..., errors => ...)
 HTTP Response (200/400/403/404/500)
 ```
 
+> **Note :** Les repositories ne font que tracker les changements (pas de `SaveChangesAsync`). C'est le `UnitOfWorkBehavior` qui persiste tout de manière atomique. Voir [Unit of Work](unit-of-work.md) pour les détails.
+
 ---
 
 ## Pages connexes
 
+- [Unit of Work](unit-of-work.md) — Persitance atomique via le pipeline MediatR
 - [Domain-Driven Design (DDD)](ddd-concepts.md) — Les objets manipulés par les handlers
 - [Couche API](api-layer.md) — Comme les endpoints appellent MediatR et mappent les résultats
 - [Persistance EF Core](persistence.md) — Les repositories utilisés par les handlers

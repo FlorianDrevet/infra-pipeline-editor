@@ -40,4 +40,10 @@ public class GenerationRequest
     /// Cross-configuration resource references.
     /// </summary>
     public IReadOnlyList<ExistingResourceReference> ExistingResourceReferences { get; set; } = [];
+
+    /// <summary>
+    /// Azure DevOps Pipeline Variable Groups with their variable-to-Bicep-parameter mappings.
+    /// Used by the pipeline generation engine to emit <c>- group:</c> references and <c>overrideParameters</c>.
+    /// </summary>
+    public IReadOnlyList<PipelineVariableGroupDefinition> PipelineVariableGroups { get; set; } = [];
 }

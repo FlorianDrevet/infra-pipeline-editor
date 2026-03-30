@@ -885,7 +885,11 @@ public static class BicepAssembler
                         {
                             // Cross-config source: use existing resource property
                             var extSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(setting.SourceResourceName)}";
-                            sb.AppendLine($"        value: {extSymbol}.{setting.SourceOutputBicepExpression ?? $"properties.{setting.SourceOutputName}"}");
+                            // Strip the resource symbolic name prefix from catalog BicepExpression
+                            // e.g. "kv.properties.vaultUri" → "properties.vaultUri"
+                            var propertyPath = StripResourceSymbolPrefix(setting.SourceOutputBicepExpression)
+                                               ?? $"properties.{setting.SourceOutputName}";
+                            sb.AppendLine($"        value: {extSymbol}.{propertyPath}");
                         }
                         else
                         {
@@ -1466,6 +1470,28 @@ public static class BicepAssembler
     /// </summary>
     private static string EscapeBicepString(string value) =>
         value.Replace("'", "\\'");
+
+    /// <summary>
+    /// Strips the leading resource symbolic name from a catalog BicepExpression.
+    /// For example, <c>kv.properties.vaultUri</c> becomes <c>properties.vaultUri</c>.
+    /// Returns <c>null</c> if the expression is null or cannot be stripped (e.g. string interpolation).
+    /// </summary>
+    private static string? StripResourceSymbolPrefix(string? bicepExpression)
+    {
+        if (bicepExpression is null)
+            return null;
+
+        var firstDot = bicepExpression.IndexOf('.');
+        if (firstDot < 0)
+            return bicepExpression;
+
+        // Only strip if the prefix is a simple identifier (no quotes, parens, or interpolation)
+        var prefix = bicepExpression[..firstDot];
+        if (prefix.All(c => char.IsLetterOrDigit(c) || c == '_'))
+            return bicepExpression[(firstDot + 1)..];
+
+        return bicepExpression;
+    }
 
     /// <summary>
     /// Returns the API version to use for <c>existing</c> resource declarations by ARM resource type.

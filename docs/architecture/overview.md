@@ -107,17 +107,23 @@ Voici le cheminement complet d'une requête, de l'appel HTTP à la réponse :
        │  ValidationBehavior → FluentValidation
        │  si erreur → ErrorOr<T> avec erreurs de validation
        │
-4. Command Handler  (Application/KeyVaults/Commands/CreateKeyVault/)
+4. MediatR Pipeline (suite)
+       │  UnitOfWorkBehavior (commands uniquement)
+       │  Wraps le handler et appelle SaveChangesAsync si succès
+       │
+5. Command Handler  (Application/KeyVaults/Commands/CreateKeyVault/)
        │  Vérification d'accès (IInfraConfigAccessService)
        │  Création du domaine (KeyVault.Create(...))
-       │  Persistance (IKeyVaultRepository.AddAsync)
+       │  Repository : track les changements (pas de SaveChanges)
        │  Mapster : Domain → Result DTO
        │
-5. Retour ErrorOr<KeyVaultResult>
+6. UnitOfWorkBehavior : SaveChangesAsync() si succès
        │
-6. Endpoint → result.Match(ok => Results.Ok(...), errors => errors.ToErrorResult())
+7. Retour ErrorOr<KeyVaultResult>
        │
-7. HTTP Response (200 OK ou 400/403/404/500)
+8. Endpoint → result.Match(ok => Results.Ok(...), errors => errors.ToErrorResult())
+       │
+9. HTTP Response (200 OK ou 400/403/404/500)
 ```
 
 ---
@@ -129,8 +135,8 @@ Chaque couche expose une méthode d'extension pour enregistrer ses services :
 | Méthode | Projet | Ce qu'elle enregistre |
 |---------|--------|----------------------|
 | `AddPresentation()` | Api | Mapster, Authorization policies, OpenAPI |
-| `AddApplication()` | Application | MediatR, ValidationBehavior, FluentValidation, services métier, générateurs Bicep |
-| `AddInfrastructure()` | Infrastructure | Repositories, Auth JWT, Azure clients, Blob, Git providers, CurrentUser |
+| `AddApplication()` | Application | MediatR, ValidationBehavior, UnitOfWorkBehavior, FluentValidation, services métier, générateurs Bicep |
+| `AddInfrastructure()` | Infrastructure | Repositories, UnitOfWork, Auth JWT, Azure clients, Blob, Git providers, CurrentUser |
 
 Dans `Program.cs` :
 ```csharp
