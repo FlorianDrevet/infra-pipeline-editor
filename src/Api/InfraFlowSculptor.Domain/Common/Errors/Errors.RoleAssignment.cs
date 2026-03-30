@@ -5,26 +5,31 @@ namespace InfraFlowSculptor.Domain.Common.Errors;
 
 public static partial class Errors
 {
+    /// <summary>Domain errors related to role assignments.</summary>
     public static class RoleAssignment
     {
+        /// <summary>Returned when the source resource of a role assignment does not exist.</summary>
         public static Error SourceResourceNotFound(AzureResourceId id) => Error.NotFound(
             code: "RoleAssignment.SourceResourceNotFound",
             description: $"A resource with the given id {id} does not exist.",
             metadata: new Dictionary<string, object> { { "Id", id.ToString() } }
         );
 
+        /// <summary>Returned when the target resource of a role assignment does not exist.</summary>
         public static Error TargetResourceNotFound(AzureResourceId id) => Error.NotFound(
             code: "RoleAssignment.TargetResourceNotFound",
             description: $"The target resource with the given id {id} does not exist.",
             metadata: new Dictionary<string, object> { { "Id", id.ToString() } }
         );
 
+        /// <summary>Returned when a role assignment with the specified identifier does not exist.</summary>
         public static Error NotFound(RoleAssignmentId id) => Error.NotFound(
             code: "RoleAssignment.NotFound",
             description: $"A role assignment with the given id {id} does not exist.",
             metadata: new Dictionary<string, object> { { "Id", id.ToString() } }
         );
 
+        /// <summary>Returned when a role definition is not applicable to the target resource type.</summary>
         public static Error InvalidRoleDefinitionForResourceType(string roleDefinitionId, string resourceType) =>
             Error.Validation(
                 code: "RoleAssignment.InvalidRoleDefinition",

@@ -6,14 +6,17 @@ namespace InfraFlowSculptor.Domain.Common.Errors;
 
 public static partial class Errors
 {
+    /// <summary>Domain errors related to the Infrastructure Configuration aggregate.</summary>
     public static class InfrastructureConfig
     {
+        /// <summary>Returned when an infrastructure configuration with the specified identifier does not exist.</summary>
         public static Error NotFoundError(InfrastructureConfigId id) => Error.NotFound(
             code: "InfrastructureConfig.NotFound",
             description: $"A InfrastructureConfig with the given id {id} does not exist.",
             metadata: new Dictionary<string, object> { { "Id", id.ToString() } }
         );
 
+        /// <summary>Returned when the caller lacks sufficient permissions on the configuration.</summary>
         public static Error ForbiddenError() => Error.Forbidden(
             code: "InfrastructureConfig.Forbidden",
             description: "You do not have sufficient permissions to perform this action on this configuration."

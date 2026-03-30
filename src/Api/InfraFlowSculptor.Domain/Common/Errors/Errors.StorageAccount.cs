@@ -6,26 +6,31 @@ namespace InfraFlowSculptor.Domain.Common.Errors;
 
 public static partial class Errors
 {
+    /// <summary>Domain errors related to the Storage Account aggregate.</summary>
     public static class StorageAccount
     {
+        /// <summary>Returned when a storage account with the specified identifier does not exist.</summary>
         public static Error NotFoundError(AzureResourceId id) => Error.NotFound(
             code: "StorageAccount.NotFound",
             description: $"A storage account with the given id {id} does not exist.",
             metadata: new Dictionary<string, object> { { "Id", id.ToString() } }
         );
 
+        /// <summary>Returned when a blob container with the specified identifier does not exist.</summary>
         public static Error BlobContainerNotFoundError(BlobContainerId id) => Error.NotFound(
             code: "StorageAccount.BlobContainerNotFound",
             description: $"A blob container with the given id {id} does not exist.",
             metadata: new Dictionary<string, object> { { "Id", id.ToString() } }
         );
 
+        /// <summary>Returned when a queue with the specified identifier does not exist.</summary>
         public static Error QueueNotFoundError(StorageQueueId id) => Error.NotFound(
             code: "StorageAccount.QueueNotFound",
             description: $"A queue with the given id {id} does not exist.",
             metadata: new Dictionary<string, object> { { "Id", id.ToString() } }
         );
 
+        /// <summary>Returned when a table with the specified identifier does not exist.</summary>
         public static Error TableNotFoundError(StorageTableId id) => Error.NotFound(
             code: "StorageAccount.TableNotFound",
             description: $"A table with the given id {id} does not exist.",
