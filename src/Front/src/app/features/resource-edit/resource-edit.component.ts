@@ -67,6 +67,9 @@ import { AddAppSettingDialogComponent, AddAppSettingDialogData } from './add-app
 import { EditStaticAppSettingDialogComponent, EditStaticAppSettingDialogData } from './edit-static-app-setting-dialog/edit-static-app-setting-dialog.component';
 import { AppSettingService } from '../../shared/services/app-setting.service';
 import { AppSettingResponse } from '../../shared/interfaces/app-setting.interface';
+import { AppConfigurationKeyService } from './services/app-configuration-key.service';
+import { AppConfigurationKeyResponse } from './models/app-configuration-key.interface';
+import { AddAppConfigKeyDialogComponent, AddAppConfigKeyDialogData } from './add-app-config-key-dialog/add-app-config-key-dialog.component';
 
 /** Union type for any loaded resource */
 type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse;
@@ -301,6 +304,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly roleAssignmentService = inject(RoleAssignmentService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly appSettingService = inject(AppSettingService);
+  private readonly configKeyService = inject(AppConfigurationKeyService);
 
   // ─── Route params ───
   protected configId = '';
@@ -412,6 +416,22 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly acrRoleAssigning = signal(false);
 
   protected readonly selectedContainerRegistryId = signal<string | null>(null);
+
+  // UAI state for ACR flow
+  protected readonly acrAssignedUaiId = signal<string | null>(null);
+  protected readonly acrAssignedUaiName = signal<string | null>(null);
+  protected readonly acrHasUai = signal(false);
+  protected readonly acrSelectedUaiId = signal<string | null>(null);
+
+  /** UI state machine for ACR/UAI flow: idle | checking | ok | uai-missing-role | no-uai */
+  protected readonly acrUaiState = computed(() => {
+    if (this.acrAccessChecking()) return 'checking' as const;
+    if (this.acrHasAccess() === true) return 'ok' as const;
+    if (this.acrHasAccess() === null) return 'idle' as const;
+    // hasAccess === false
+    if (this.acrAssignedUaiId()) return 'uai-missing-role' as const;
+    return 'no-uai' as const;
+  });
 
   protected readonly isSaveBlockedByAcr = computed(() => {
     if (!this.isContainerMode()) return false;
@@ -536,6 +556,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     if (g.statics.length > 0) n++;
     return n;
   });
+
+  // ─── Configuration Keys (AppConfiguration) ───
+  protected readonly configKeys = signal<AppConfigurationKeyResponse[]>([]);
+  protected readonly configKeysLoading = signal(false);
+  protected readonly configKeysError = signal('');
+  protected readonly supportsConfigKeys = computed(() => this.resourceType === 'AppConfiguration');
 
   // ─── Options ───
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
@@ -673,6 +699,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       this.loadAllResources();
       if (this.supportsAppSettings()) {
         this.loadAppSettings();
+      }
+      if (this.supportsConfigKeys()) {
+        this.loadConfigKeys();
       }
       if (this.isUserAssignedIdentity()) {
         this.loadIdentityRoleAssignments();
@@ -1190,6 +1219,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.acrHasAccess.set(null);
     this.acrMissingRoleName.set(null);
     this.acrMissingRoleDefinitionId.set(null);
+    this.acrAssignedUaiId.set(null);
+    this.acrAssignedUaiName.set(null);
+    this.acrHasUai.set(false);
+    this.acrSelectedUaiId.set(null);
     if (!acrId) return;
     await this.checkAcrPullAccess(acrId);
   }
@@ -1202,12 +1235,22 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.acrHasAccess.set(null);
     this.acrMissingRoleName.set(null);
     this.acrMissingRoleDefinitionId.set(null);
+    this.acrAssignedUaiId.set(null);
+    this.acrAssignedUaiName.set(null);
+    this.acrHasUai.set(false);
 
     try {
       const result = await this.containerRegistryService.checkAcrPullAccess(this.resourceId, registryId);
       this.acrHasAccess.set(result.hasAccess);
       this.acrMissingRoleName.set(result.missingRoleName ?? null);
       this.acrMissingRoleDefinitionId.set(result.missingRoleDefinitionId ?? null);
+      this.acrAssignedUaiId.set(result.assignedUserAssignedIdentityId ?? null);
+      this.acrAssignedUaiName.set(result.assignedUserAssignedIdentityName ?? null);
+      this.acrHasUai.set(result.hasUserAssignedIdentity);
+      // Pre-select the assigned UAI if one exists
+      if (result.assignedUserAssignedIdentityId) {
+        this.acrSelectedUaiId.set(result.assignedUserAssignedIdentityId);
+      }
     } catch {
       this.acrHasAccess.set(null);
     } finally {
@@ -1218,14 +1261,16 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected async addAcrPullRoleAssignment(): Promise<void> {
     const acrId = this.generalForm.get('containerRegistryId')?.value;
     const roleDefId = this.acrMissingRoleDefinitionId();
-    if (!acrId || !roleDefId) return;
+    const uaiId = this.acrSelectedUaiId() ?? this.acrAssignedUaiId();
+    if (!acrId || !roleDefId || !uaiId) return;
 
     this.acrRoleAssigning.set(true);
     try {
       await this.roleAssignmentService.add(this.resourceId, {
         targetResourceId: acrId,
-        managedIdentityType: 'SystemAssigned',
+        managedIdentityType: 'UserAssigned',
         roleDefinitionId: roleDefId,
+        userAssignedIdentityId: uaiId,
       });
       await this.checkAcrPullAccess(acrId);
       await this.loadRoleAssignments();
@@ -1652,6 +1697,74 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     } catch {
       this.appSettingsError.set('RESOURCE_EDIT.APP_SETTINGS.REMOVE_ERROR');
     }
+  }
+
+  // ─── Configuration Keys ───
+
+  private async loadConfigKeys(): Promise<void> {
+    this.configKeysLoading.set(true);
+    this.configKeysError.set('');
+    try {
+      const keys = await this.configKeyService.list(this.resourceId);
+      this.configKeys.set(keys);
+    } catch {
+      this.configKeysError.set('RESOURCE_EDIT.CONFIG_KEYS.LOAD_ERROR');
+    } finally {
+      this.configKeysLoading.set(false);
+    }
+  }
+
+  protected openAddConfigKeyDialog(): void {
+    const dialogRef = this.dialog.open(AddAppConfigKeyDialogComponent, {
+      data: {
+        appConfigurationId: this.resourceId,
+        siblingResources: this.allResources(),
+        environments: this.environments().map(e => ({ name: e.name })),
+        projectId: this.config()?.projectId ?? '',
+      } satisfies AddAppConfigKeyDialogData,
+      width: '520px',
+      maxHeight: '85vh',
+    });
+
+    dialogRef.afterClosed().subscribe((result?: AppConfigurationKeyResponse) => {
+      if (result) {
+        this.configKeys.update(list => [...list, result]);
+      }
+    });
+  }
+
+  protected openRemoveConfigKeyDialog(configKey: AppConfigurationKeyResponse): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.CONFIG_KEYS.REMOVE_TITLE',
+        messageKey: 'RESOURCE_EDIT.CONFIG_KEYS.REMOVE_MESSAGE',
+        messageParams: { name: configKey.key },
+        confirmKey: 'RESOURCE_EDIT.CONFIG_KEYS.REMOVE_YES',
+        cancelKey: 'RESOURCE_EDIT.CONFIG_KEYS.REMOVE_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      await this.removeConfigKey(configKey.id);
+    });
+  }
+
+  private async removeConfigKey(configKeyId: string): Promise<void> {
+    this.configKeysError.set('');
+    try {
+      await this.configKeyService.remove(this.resourceId, configKeyId);
+      this.configKeys.update(list => list.filter(k => k.id !== configKeyId));
+    } catch {
+      this.configKeysError.set('RESOURCE_EDIT.CONFIG_KEYS.REMOVE_ERROR');
+    }
+  }
+
+  protected getConfigKeyType(key: AppConfigurationKeyResponse): string {
+    if (key.isKeyVaultReference) return 'RESOURCE_EDIT.CONFIG_KEYS.TYPE_KV';
+    if (key.isViaVariableGroup) return 'RESOURCE_EDIT.CONFIG_KEYS.TYPE_VG';
+    return 'RESOURCE_EDIT.CONFIG_KEYS.TYPE_STATIC';
   }
 
   // ─── Storage Services ───

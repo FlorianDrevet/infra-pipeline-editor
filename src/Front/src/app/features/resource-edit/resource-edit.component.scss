@@ -258,6 +258,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 1rem;
+
+  &--full {
+    grid-template-columns: 1fr;
+  }
 }
 
 .form-field {
@@ -272,7 +276,7 @@
 }
 
 .general-form {
-  max-width: 48rem;
+  max-width: none;
 }
 
 .cors-editor {
@@ -2361,6 +2365,70 @@
   border: 1px solid rgba(146, 191, 235, 0.15);
 }
 
+// ─── ACR UAI Recommendation Callout ────
+
+.acr-uai-callout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  margin-bottom: 0.75rem;
+  background: rgba(13, 101, 192, 0.04);
+  border: 1px solid rgba(13, 101, 192, 0.12);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  &__icon {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: #0d65c0;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #0d65c0;
+  }
+
+  &__text {
+    font-size: 0.78rem;
+    line-height: 1.55;
+    color: rgba(16, 52, 84, 0.78);
+    margin: 0;
+    padding-left: 1.6rem;
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #0d65c0;
+    text-decoration: none;
+    padding-left: 1.6rem;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: #0a4f99;
+      text-decoration: underline;
+    }
+  }
+
+  &__link-icon {
+    font-size: 0.85rem;
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+}
+
 // ─── ACR Status Banner ────
 
 .acr-status-banner {
@@ -2414,6 +2482,21 @@
 
   &__text {
     line-height: 1.4;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__uai-select {
+    min-width: 14rem;
+
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
   }
 
   &__action {

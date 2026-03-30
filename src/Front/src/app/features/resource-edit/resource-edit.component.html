@@ -185,7 +185,7 @@
                     </div>
                   } @else {
                     <!-- Container mode -->
-                    <div class="form-grid">
+                    <div class="form-grid form-grid--full">
                       <mat-form-field appearance="outline" class="form-field">
                         <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
                         <mat-select formControlName="containerRegistryId" (selectionChange)="onContainerRegistryChange($event.value)">
@@ -202,33 +202,93 @@
                       </mat-form-field>
                     </div>
 
-                    <!-- ACR Pull access check banner -->
+                    <!-- ACR Pull access check banner (UAI flow) -->
                     @if (selectedContainerRegistryId()) {
-                      <div class="acr-status-banner" [class.acr-status-banner--checking]="acrAccessChecking()" [class.acr-status-banner--ok]="!acrAccessChecking() && acrHasAccess() === true" [class.acr-status-banner--warn]="!acrAccessChecking() && acrHasAccess() === false">
-                        @if (acrAccessChecking()) {
-                          <mat-spinner diameter="18" class="acr-status-banner__spinner"></mat-spinner>
-                          <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
-                        } @else if (acrHasAccess() === true) {
-                          <mat-icon class="acr-status-banner__icon">check_circle</mat-icon>
-                          <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
-                        } @else if (acrHasAccess() === false) {
-                          <mat-icon class="acr-status-banner__icon">warning</mat-icon>
-                          <div class="acr-status-banner__body">
-                            <span class="acr-status-banner__text">
-                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_MISSING' | translate: { role: acrMissingRoleName() } }}
-                            </span>
-                            <button mat-flat-button class="acr-status-banner__action"
-                                    [disabled]="acrRoleAssigning()"
-                                    (click)="addAcrPullRoleAssignment()">
-                              @if (acrRoleAssigning()) {
-                                <mat-spinner diameter="14"></mat-spinner>
-                              } @else {
-                                <mat-icon>add_circle_outline</mat-icon>
-                              }
-                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_ADD_ROLE' | translate }}
-                            </button>
-                          </div>
+                      <div class="acr-status-banner"
+                           [class.acr-status-banner--checking]="acrUaiState() === 'checking'"
+                           [class.acr-status-banner--ok]="acrUaiState() === 'ok'"
+                           [class.acr-status-banner--warn]="acrUaiState() === 'uai-missing-role' || acrUaiState() === 'no-uai'">
+                        @switch (acrUaiState()) {
+                          @case ('checking') {
+                            <mat-spinner diameter="18" class="acr-status-banner__spinner"></mat-spinner>
+                            <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
+                          }
+                          @case ('ok') {
+                            <mat-icon class="acr-status-banner__icon">check_circle</mat-icon>
+                            <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
+                          }
+                          @case ('uai-missing-role') {
+                            <mat-icon class="acr-status-banner__icon">warning</mat-icon>
+                            <div class="acr-status-banner__body">
+                              <span class="acr-status-banner__text">
+                                {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}
+                              </span>
+                              <div class="acr-status-banner__actions">
+                                <button mat-flat-button class="acr-status-banner__action"
+                                        [disabled]="acrRoleAssigning()"
+                                        (click)="addAcrPullRoleAssignment()">
+                                  @if (acrRoleAssigning()) {
+                                    <mat-spinner diameter="14"></mat-spinner>
+                                  } @else {
+                                    <mat-icon>add_circle_outline</mat-icon>
+                                  }
+                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
+                                </button>
+                                <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                                  <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                                  <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                    @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                      <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                              </div>
+                            </div>
+                          }
+                          @case ('no-uai') {
+                            <mat-icon class="acr-status-banner__icon">warning</mat-icon>
+                            <div class="acr-status-banner__body">
+                              <span class="acr-status-banner__text">
+                                {{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate }}
+                              </span>
+                              <div class="acr-status-banner__actions">
+                                <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                                  <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                                  <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                    @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                      <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                                @if (acrSelectedUaiId()) {
+                                  <button mat-flat-button class="acr-status-banner__action"
+                                          [disabled]="acrRoleAssigning()"
+                                          (click)="addAcrPullRoleAssignment()">
+                                    @if (acrRoleAssigning()) {
+                                      <mat-spinner diameter="14"></mat-spinner>
+                                    } @else {
+                                      <mat-icon>add_circle_outline</mat-icon>
+                                    }
+                                    {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
+                                  </button>
+                                }
+                              </div>
+                            </div>
+                          }
                         }
+                      </div>
+
+                      <!-- UAI info callout -->
+                      <div class="acr-uai-callout">
+                        <div class="acr-uai-callout__header">
+                          <mat-icon class="acr-uai-callout__icon">lightbulb</mat-icon>
+                          <span class="acr-uai-callout__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TITLE' | translate }}</span>
+                        </div>
+                        <p class="acr-uai-callout__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
+                        <a class="acr-uai-callout__link" href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
+                          <mat-icon class="acr-uai-callout__link-icon">open_in_new</mat-icon>
+                          {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
+                        </a>
                       </div>
                     }
                   }
@@ -296,7 +356,7 @@
                     </div>
                   } @else {
                     <!-- Container mode -->
-                    <div class="form-grid">
+                    <div class="form-grid form-grid--full">
                       <mat-form-field appearance="outline" class="form-field">
                         <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
                         <mat-select formControlName="containerRegistryId" (selectionChange)="onContainerRegistryChange($event.value)">
@@ -313,33 +373,93 @@
                       </mat-form-field>
                     </div>
 
-                    <!-- ACR Pull access check banner -->
+                    <!-- ACR Pull access check banner (UAI flow) -->
                     @if (selectedContainerRegistryId()) {
-                      <div class="acr-status-banner" [class.acr-status-banner--checking]="acrAccessChecking()" [class.acr-status-banner--ok]="!acrAccessChecking() && acrHasAccess() === true" [class.acr-status-banner--warn]="!acrAccessChecking() && acrHasAccess() === false">
-                        @if (acrAccessChecking()) {
-                          <mat-spinner diameter="18" class="acr-status-banner__spinner"></mat-spinner>
-                          <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
-                        } @else if (acrHasAccess() === true) {
-                          <mat-icon class="acr-status-banner__icon">check_circle</mat-icon>
-                          <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
-                        } @else if (acrHasAccess() === false) {
-                          <mat-icon class="acr-status-banner__icon">warning</mat-icon>
-                          <div class="acr-status-banner__body">
-                            <span class="acr-status-banner__text">
-                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_MISSING' | translate: { role: acrMissingRoleName() } }}
-                            </span>
-                            <button mat-flat-button class="acr-status-banner__action"
-                                    [disabled]="acrRoleAssigning()"
-                                    (click)="addAcrPullRoleAssignment()">
-                              @if (acrRoleAssigning()) {
-                                <mat-spinner diameter="14"></mat-spinner>
-                              } @else {
-                                <mat-icon>add_circle_outline</mat-icon>
-                              }
-                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_ADD_ROLE' | translate }}
-                            </button>
-                          </div>
+                      <div class="acr-status-banner"
+                           [class.acr-status-banner--checking]="acrUaiState() === 'checking'"
+                           [class.acr-status-banner--ok]="acrUaiState() === 'ok'"
+                           [class.acr-status-banner--warn]="acrUaiState() === 'uai-missing-role' || acrUaiState() === 'no-uai'">
+                        @switch (acrUaiState()) {
+                          @case ('checking') {
+                            <mat-spinner diameter="18" class="acr-status-banner__spinner"></mat-spinner>
+                            <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
+                          }
+                          @case ('ok') {
+                            <mat-icon class="acr-status-banner__icon">check_circle</mat-icon>
+                            <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
+                          }
+                          @case ('uai-missing-role') {
+                            <mat-icon class="acr-status-banner__icon">warning</mat-icon>
+                            <div class="acr-status-banner__body">
+                              <span class="acr-status-banner__text">
+                                {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}
+                              </span>
+                              <div class="acr-status-banner__actions">
+                                <button mat-flat-button class="acr-status-banner__action"
+                                        [disabled]="acrRoleAssigning()"
+                                        (click)="addAcrPullRoleAssignment()">
+                                  @if (acrRoleAssigning()) {
+                                    <mat-spinner diameter="14"></mat-spinner>
+                                  } @else {
+                                    <mat-icon>add_circle_outline</mat-icon>
+                                  }
+                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
+                                </button>
+                                <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                                  <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                                  <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                    @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                      <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                              </div>
+                            </div>
+                          }
+                          @case ('no-uai') {
+                            <mat-icon class="acr-status-banner__icon">warning</mat-icon>
+                            <div class="acr-status-banner__body">
+                              <span class="acr-status-banner__text">
+                                {{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate }}
+                              </span>
+                              <div class="acr-status-banner__actions">
+                                <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                                  <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                                  <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                    @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                      <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                                @if (acrSelectedUaiId()) {
+                                  <button mat-flat-button class="acr-status-banner__action"
+                                          [disabled]="acrRoleAssigning()"
+                                          (click)="addAcrPullRoleAssignment()">
+                                    @if (acrRoleAssigning()) {
+                                      <mat-spinner diameter="14"></mat-spinner>
+                                    } @else {
+                                      <mat-icon>add_circle_outline</mat-icon>
+                                    }
+                                    {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
+                                  </button>
+                                }
+                              </div>
+                            </div>
+                          }
                         }
+                      </div>
+
+                      <!-- UAI info callout -->
+                      <div class="acr-uai-callout">
+                        <div class="acr-uai-callout__header">
+                          <mat-icon class="acr-uai-callout__icon">lightbulb</mat-icon>
+                          <span class="acr-uai-callout__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TITLE' | translate }}</span>
+                        </div>
+                        <p class="acr-uai-callout__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
+                        <a class="acr-uai-callout__link" href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
+                          <mat-icon class="acr-uai-callout__link-icon">open_in_new</mat-icon>
+                          {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
+                        </a>
                       </div>
                     }
                   }
@@ -360,7 +480,8 @@
             @if (resourceType === 'ContainerApp') {
               <div class="form-section">
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
-                <div class="form-grid">
+
+                <div class="form-grid form-grid--full">
                   <mat-form-field appearance="outline" class="form-field">
                     <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
                     <mat-select formControlName="containerRegistryId" (selectionChange)="onContainerRegistryChange($event.value)">
@@ -373,33 +494,93 @@
                   </mat-form-field>
                 </div>
 
-                <!-- ACR Pull access check banner -->
+                <!-- ACR Pull access check banner (UAI flow) -->
                 @if (selectedContainerRegistryId()) {
-                  <div class="acr-status-banner" [class.acr-status-banner--checking]="acrAccessChecking()" [class.acr-status-banner--ok]="!acrAccessChecking() && acrHasAccess() === true" [class.acr-status-banner--warn]="!acrAccessChecking() && acrHasAccess() === false">
-                    @if (acrAccessChecking()) {
-                      <mat-spinner diameter="18" class="acr-status-banner__spinner"></mat-spinner>
-                      <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
-                    } @else if (acrHasAccess() === true) {
-                      <mat-icon class="acr-status-banner__icon">check_circle</mat-icon>
-                      <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
-                    } @else if (acrHasAccess() === false) {
-                      <mat-icon class="acr-status-banner__icon">warning</mat-icon>
-                      <div class="acr-status-banner__body">
-                        <span class="acr-status-banner__text">
-                          {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_MISSING' | translate: { role: acrMissingRoleName() } }}
-                        </span>
-                        <button mat-flat-button class="acr-status-banner__action"
-                                [disabled]="acrRoleAssigning()"
-                                (click)="addAcrPullRoleAssignment()">
-                          @if (acrRoleAssigning()) {
-                            <mat-spinner diameter="14"></mat-spinner>
-                          } @else {
-                            <mat-icon>add_circle_outline</mat-icon>
-                          }
-                          {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_ADD_ROLE' | translate }}
-                        </button>
-                      </div>
+                  <div class="acr-status-banner"
+                       [class.acr-status-banner--checking]="acrUaiState() === 'checking'"
+                       [class.acr-status-banner--ok]="acrUaiState() === 'ok'"
+                       [class.acr-status-banner--warn]="acrUaiState() === 'uai-missing-role' || acrUaiState() === 'no-uai'">
+                    @switch (acrUaiState()) {
+                      @case ('checking') {
+                        <mat-spinner diameter="18" class="acr-status-banner__spinner"></mat-spinner>
+                        <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
+                      }
+                      @case ('ok') {
+                        <mat-icon class="acr-status-banner__icon">check_circle</mat-icon>
+                        <span class="acr-status-banner__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
+                      }
+                      @case ('uai-missing-role') {
+                        <mat-icon class="acr-status-banner__icon">warning</mat-icon>
+                        <div class="acr-status-banner__body">
+                          <span class="acr-status-banner__text">
+                            {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}
+                          </span>
+                          <div class="acr-status-banner__actions">
+                            <button mat-flat-button class="acr-status-banner__action"
+                                    [disabled]="acrRoleAssigning()"
+                                    (click)="addAcrPullRoleAssignment()">
+                              @if (acrRoleAssigning()) {
+                                <mat-spinner diameter="14"></mat-spinner>
+                              } @else {
+                                <mat-icon>add_circle_outline</mat-icon>
+                              }
+                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
+                            </button>
+                            <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                              <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                              <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                  <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                }
+                              </mat-select>
+                            </mat-form-field>
+                          </div>
+                        </div>
+                      }
+                      @case ('no-uai') {
+                        <mat-icon class="acr-status-banner__icon">warning</mat-icon>
+                        <div class="acr-status-banner__body">
+                          <span class="acr-status-banner__text">
+                            {{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate }}
+                          </span>
+                          <div class="acr-status-banner__actions">
+                            <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                              <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                              <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                  <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                }
+                              </mat-select>
+                            </mat-form-field>
+                            @if (acrSelectedUaiId()) {
+                              <button mat-flat-button class="acr-status-banner__action"
+                                      [disabled]="acrRoleAssigning()"
+                                      (click)="addAcrPullRoleAssignment()">
+                                @if (acrRoleAssigning()) {
+                                  <mat-spinner diameter="14"></mat-spinner>
+                                } @else {
+                                  <mat-icon>add_circle_outline</mat-icon>
+                                }
+                                {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
                     }
+                  </div>
+
+                  <!-- UAI info callout -->
+                  <div class="acr-uai-callout">
+                    <div class="acr-uai-callout__header">
+                      <mat-icon class="acr-uai-callout__icon">lightbulb</mat-icon>
+                      <span class="acr-uai-callout__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TITLE' | translate }}</span>
+                    </div>
+                    <p class="acr-uai-callout__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
+                    <a class="acr-uai-callout__link" href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
+                      <mat-icon class="acr-uai-callout__link-icon">open_in_new</mat-icon>
+                      {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
+                    </a>
                   </div>
                 }
               </div>
@@ -2131,6 +2312,96 @@
                   </div>
                 </section>
               }
+            }
+          </div>
+        </mat-tab>
+      } @else if (supportsConfigKeys()) {
+        <!-- Configuration Keys Tab (AppConfiguration only) -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">settings</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.CONFIG_KEYS' | translate }}</span>
+            @if (configKeys().length > 0) {
+              <span class="tab-count">{{ configKeys().length }}</span>
+            }
+          </ng-template>
+          <div class="tab-content">
+            <!-- Description banner -->
+            <div class="env-description">
+              <mat-icon class="env-description__icon">settings</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.CONFIG_KEYS.DESCRIPTION' | translate }}</p>
+            </div>
+
+            <!-- Add button -->
+            @if (canWrite()) {
+              <div class="ra-actions">
+                <button class="ra-add-btn" (click)="openAddConfigKeyDialog()">
+                  <mat-icon>add</mat-icon>
+                  {{ 'RESOURCE_EDIT.CONFIG_KEYS.ADD' | translate }}
+                </button>
+              </div>
+            }
+
+            <!-- Error banner -->
+            @if (configKeysError()) {
+              <div class="feedback-banner feedback-banner--error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                {{ configKeysError() | translate }}
+              </div>
+            }
+
+            <!-- Loading state -->
+            @if (configKeysLoading()) {
+              <div class="ra-loading">
+                <mat-spinner diameter="28"></mat-spinner>
+                <span>{{ 'RESOURCE_EDIT.CONFIG_KEYS.LOADING' | translate }}</span>
+              </div>
+            } @else if (configKeys().length === 0) {
+              <!-- Empty state -->
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">settings_applications</mat-icon>
+                <p>{{ 'RESOURCE_EDIT.CONFIG_KEYS.EMPTY' | translate }}</p>
+              </div>
+            } @else {
+              <!-- Configuration Keys table -->
+              <div class="as-section">
+                <div class="as-section__rows">
+                  @for (configKey of configKeys(); track configKey.id) {
+                    <div class="as-row">
+                      <div class="as-row__main">
+                        <div class="as-row__name-group">
+                          <span class="as-row__name">{{ configKey.key }}</span>
+                          @if (configKey.label) {
+                            <span class="as-row__meta">{{ configKey.label }}</span>
+                          }
+                        </div>
+                        <div class="as-row__badges">
+                          <span class="as-row__badge" [class.as-row__badge--kv]="configKey.isKeyVaultReference" [class.as-row__badge--vg]="configKey.isViaVariableGroup">
+                            {{ getConfigKeyType(configKey) | translate }}
+                          </span>
+                          @if (configKey.isKeyVaultReference && configKey.secretName) {
+                            <span class="as-row__meta">{{ configKey.secretName }}</span>
+                          }
+                          @if (configKey.isViaVariableGroup && configKey.variableGroupName) {
+                            <span class="as-row__meta">{{ configKey.variableGroupName }}</span>
+                          }
+                        </div>
+                      </div>
+                      @if (canWrite()) {
+                        <div class="as-row__actions">
+                          <button
+                            mat-icon-button
+                            class="as-row__delete"
+                            [matTooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate"
+                            (click)="openRemoveConfigKeyDialog(configKey)">
+                            <mat-icon>delete_outline</mat-icon>
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
             }
           </div>
         </mat-tab>

@@ -76,6 +76,7 @@ app.UseWebAppController();
 app.UseFunctionAppController();
 app.UseUserAssignedIdentityController();
 app.UseAppConfigurationController();
+app.UseAppConfigurationKeyController();
 app.UseContainerAppEnvironmentController();
 app.UseContainerAppController();
 app.UseLogAnalyticsWorkspaceController();

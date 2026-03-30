@@ -2,6 +2,7 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 
 namespace InfraFlowSculptor.Application.ContainerRegistries.Queries.CheckAcrPullAccess;
@@ -22,13 +23,68 @@ public sealed class CheckAcrPullAccessQueryHandler(
         if (resource is null)
             return Errors.ContainerRegistry.NotFoundError(request.ResourceId);
 
-        var hasAccess = resource.RoleAssignments.Any(ra =>
+        // Look for a UAI-based AcrPull role assignment targeting this container registry
+        var uaiAcrPull = resource.RoleAssignments.FirstOrDefault(ra =>
             ra.TargetResourceId == request.ContainerRegistryId &&
-            ra.RoleDefinitionId == AzureRoleDefinitionCatalog.AcrPull);
+            ra.RoleDefinitionId == AzureRoleDefinitionCatalog.AcrPull &&
+            ra.ManagedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned &&
+            ra.UserAssignedIdentityId is not null);
+
+        if (uaiAcrPull is not null)
+        {
+            var uaiResource = await azureResourceRepository.GetByIdAsync(
+                uaiAcrPull.UserAssignedIdentityId!, cancellationToken);
+
+            return new CheckAcrPullAccessResult(
+                HasAccess: true,
+                MissingRoleDefinitionId: null,
+                MissingRoleName: null,
+                AssignedUserAssignedIdentityId: uaiAcrPull.UserAssignedIdentityId!.Value.ToString(),
+                AssignedUserAssignedIdentityName: uaiResource?.Name.Value,
+                HasUserAssignedIdentity: true);
+        }
+
+        // Look for any UAI-based role assignment targeting this container registry (but not AcrPull)
+        var uaiOnAcr = resource.RoleAssignments.FirstOrDefault(ra =>
+            ra.TargetResourceId == request.ContainerRegistryId &&
+            ra.ManagedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned &&
+            ra.UserAssignedIdentityId is not null);
+
+        string? assignedUaiId = null;
+        string? assignedUaiName = null;
+        var hasUai = false;
+
+        if (uaiOnAcr is not null)
+        {
+            assignedUaiId = uaiOnAcr.UserAssignedIdentityId!.Value.ToString();
+            var uaiResource = await azureResourceRepository.GetByIdAsync(
+                uaiOnAcr.UserAssignedIdentityId!, cancellationToken);
+            assignedUaiName = uaiResource?.Name.Value;
+            hasUai = true;
+        }
+        else
+        {
+            // Check if any UAI-based role assignment exists at all on this resource
+            var anyUai = resource.RoleAssignments.FirstOrDefault(ra =>
+                ra.ManagedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned &&
+                ra.UserAssignedIdentityId is not null);
+
+            if (anyUai is not null)
+            {
+                assignedUaiId = anyUai.UserAssignedIdentityId!.Value.ToString();
+                var uaiResource = await azureResourceRepository.GetByIdAsync(
+                    anyUai.UserAssignedIdentityId!, cancellationToken);
+                assignedUaiName = uaiResource?.Name.Value;
+                hasUai = true;
+            }
+        }
 
         return new CheckAcrPullAccessResult(
-            HasAccess: hasAccess,
-            MissingRoleDefinitionId: hasAccess ? null : AzureRoleDefinitionCatalog.AcrPull,
-            MissingRoleName: hasAccess ? null : "AcrPull");
+            HasAccess: false,
+            MissingRoleDefinitionId: AzureRoleDefinitionCatalog.AcrPull,
+            MissingRoleName: "AcrPull",
+            AssignedUserAssignedIdentityId: assignedUaiId,
+            AssignedUserAssignedIdentityName: assignedUaiName,
+            HasUserAssignedIdentity: hasUai);
     }
 }

@@ -76,6 +76,8 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<UserAssignedIdentity> UserAssignedIdentities { get; set; } = null!;
     public DbSet<AppConfiguration> AppConfigurations { get; set; } = null!;
     public DbSet<AppConfigurationEnvironmentSettings> AppConfigurationEnvironmentSettings { get; set; } = null!;
+    public DbSet<AppConfigurationKey> AppConfigurationKeys { get; set; } = null!;
+    public DbSet<AppConfigurationKeyEnvironmentValue> AppConfigurationKeyEnvironmentValues { get; set; } = null!;
     public DbSet<ContainerAppEnvironment> ContainerAppEnvironments { get; set; } = null!;
     public DbSet<ContainerAppEnvironmentEnvironmentSettings> ContainerAppEnvironmentEnvironmentSettings { get; set; } = null!;
     public DbSet<ContainerApp> ContainerApps { get; set; } = null!;

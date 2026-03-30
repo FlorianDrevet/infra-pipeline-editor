@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.AppConfigurationAggregate;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,8 @@ public sealed class AppConfigurationRepository : AzureResourceRepository<AppConf
         return await Context.Set<AppConfiguration>()
             .Include(ac => ac.DependsOn)
             .Include(ac => ac.EnvironmentSettings)
+            .Include(ac => ac.ConfigurationKeys)
+                .ThenInclude(ck => ck.EnvironmentValues)
             .FirstOrDefaultAsync(ac => ac.Id == id, cancellationToken);
     }
 
@@ -34,8 +37,21 @@ public sealed class AppConfigurationRepository : AzureResourceRepository<AppConf
         return await Context.Set<AppConfiguration>()
             .Include(ac => ac.DependsOn)
             .Include(ac => ac.EnvironmentSettings)
+            .Include(ac => ac.ConfigurationKeys)
+                .ThenInclude(ck => ck.EnvironmentValues)
             .Where(ac => ac.ResourceGroupId == resourceGroupId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<AppConfiguration?> GetByIdWithConfigurationKeysAsync(
+        AzureResourceId id,
+        CancellationToken cancellationToken)
+    {
+        return await Context.Set<AppConfiguration>()
+            .Include(ac => ac.ConfigurationKeys)
+                .ThenInclude(ck => ck.EnvironmentValues)
+            .FirstOrDefaultAsync(ac => ac.Id == id, cancellationToken);
     }
 }

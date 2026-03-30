@@ -47,4 +47,7 @@ export interface CheckAcrPullAccessResponse {
   hasAccess: boolean;
   missingRoleDefinitionId?: string;
   missingRoleName?: string;
+  assignedUserAssignedIdentityId?: string;
+  assignedUserAssignedIdentityName?: string;
+  hasUserAssignedIdentity: boolean;
 }

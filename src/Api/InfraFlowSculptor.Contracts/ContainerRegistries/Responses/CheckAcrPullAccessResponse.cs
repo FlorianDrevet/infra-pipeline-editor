@@ -4,4 +4,7 @@ namespace InfraFlowSculptor.Contracts.ContainerRegistries.Responses;
 public record CheckAcrPullAccessResponse(
     bool HasAccess,
     string? MissingRoleDefinitionId,
-    string? MissingRoleName);
+    string? MissingRoleName,
+    string? AssignedUserAssignedIdentityId,
+    string? AssignedUserAssignedIdentityName,
+    bool HasUserAssignedIdentity);
