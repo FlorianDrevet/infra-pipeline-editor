@@ -9,12 +9,23 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.Common.BaseModels;
 
+/// <summary>
+/// Base aggregate root for all Azure resources managed by a resource group.
+/// Provides shared behavior: dependencies, role assignments, app settings, and parameter usages.
+/// Derived types use EF Core TPT (Table-Per-Type) inheritance.
+/// </summary>
 public class AzureResource : AggregateRoot<AzureResourceId>
 {
+    /// <summary>Gets the parent resource group identifier.</summary>
     public required ResourceGroupId ResourceGroupId { get; set; }
+
+    /// <summary>Navigation property to the parent resource group.</summary>
     public ResourceGroup ResourceGroup { get; set; } = null!;
 
+    /// <summary>Gets the display name of the resource.</summary>
     public required Name Name { get; set; }
+
+    /// <summary>Gets the Azure region where the resource is deployed.</summary>
     public required Location Location { get; set; }
 
     /// <summary>
@@ -23,31 +34,42 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// </summary>
     public string? CustomNameOverride { get; set; }
     
-    private readonly List<AzureResource> _dependsOn = new List<AzureResource>();
+    private readonly List<AzureResource> _dependsOn = [];
+
+    /// <summary>Gets the resources this resource depends on.</summary>
     public IReadOnlyList<AzureResource> DependsOn => _dependsOn.AsReadOnly();
-    
+
+    /// <summary>Gets the parameter usages allowed by this resource type. Override in derived classes to restrict.</summary>
     protected virtual IReadOnlyCollection<ParameterUsage> AllowedParameterUsages { get; }
 
-    private readonly List<ResourceParameterUsage> _parameterUsages = new();
+    private readonly List<ResourceParameterUsage> _parameterUsages = [];
+
+    /// <summary>Gets the parameter usages assigned to this resource.</summary>
     public IReadOnlyCollection<ResourceParameterUsage> ParameterUsages => _parameterUsages;
-    
-    private readonly List<InputOutputLink> _inputs = new();
+
+    private readonly List<InputOutputLink> _inputs = [];
+
+    /// <summary>Gets the input links from other resources to this resource.</summary>
     public IReadOnlyCollection<InputOutputLink> Inputs => _inputs;
 
-    private readonly List<InputOutputLink> _outputs = new();
+    private readonly List<InputOutputLink> _outputs = [];
+
+    /// <summary>Gets the output links from this resource to other resources.</summary>
     public IReadOnlyCollection<InputOutputLink> Outputs => _outputs;
 
-    private readonly List<RoleAssignment> _roleAssignments = new();
+    private readonly List<RoleAssignment> _roleAssignments = [];
     public IReadOnlyCollection<RoleAssignment> RoleAssignments => _roleAssignments.AsReadOnly();
 
-    private readonly List<AppSetting> _appSettings = new();
+    private readonly List<AppSetting> _appSettings = [];
     /// <summary>Gets the application settings (environment variables) configured on this resource.</summary>
     public IReadOnlyCollection<AppSetting> AppSettings => _appSettings.AsReadOnly();
 
+    /// <summary>Registers a dependency on another Azure resource in the same resource group.</summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource attempts to depend on itself.</exception>
     public void AddDependency(AzureResource resource)
     {
         if (resource.Id == Id)
-            throw new InvalidOperationException("Une ressource ne peut pas dépendre d'elle-même.");
+            throw new InvalidOperationException("A resource cannot depend on itself.");
 
         if (_dependsOn.Any(r => r.Id == resource.Id))
             return;
@@ -78,6 +100,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
         _roleAssignments.Add(RoleAssignment.Create(Id, targetResourceId, managedIdentityType, roleDefinitionId, userAssignedIdentityId));
     }
 
+    /// <summary>Removes a role assignment by its identifier. No-op if not found.</summary>
     public void RemoveRoleAssignment(RoleAssignmentId roleAssignmentId)
     {
         var assignment = _roleAssignments.FirstOrDefault(r => r.Id == roleAssignmentId);
@@ -163,6 +186,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     }
 
     /// <summary>Removes an app setting by its identifier.</summary>
+    /// <summary>Removes an app setting by its identifier. No-op if not found.</summary>
     public void RemoveAppSetting(AppSettingId appSettingId)
     {
         var setting = _appSettings.FirstOrDefault(s => s.Id == appSettingId);
@@ -200,6 +224,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
             new ResourceParameterUsage(Id, parameter.Id, usage));
     }
 
+    /// <summary>EF Core constructor.</summary>
     protected AzureResource()
     {
     }

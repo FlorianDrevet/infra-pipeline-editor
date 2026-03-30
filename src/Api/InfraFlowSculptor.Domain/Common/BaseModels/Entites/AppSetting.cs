@@ -190,7 +190,7 @@ public sealed class AppSetting : Entity<AppSettingId>
         SecretName = secretName;
         SecretValueAssignment = assignment;
         _environmentValues.Clear();
-    }
+    }   
 
     /// <summary>Gets whether this setting is a static-value setting (not a reference).</summary>
     public bool IsStatic => !IsOutputReference && !IsKeyVaultReference;

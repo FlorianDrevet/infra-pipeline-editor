@@ -7,6 +7,10 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.RedisCacheAggregate;
 
+/// <summary>
+/// Represents an Azure Cache for Redis resource (<c>Microsoft.Cache/Redis</c>).
+/// Supports per-environment SKU overrides, TLS configuration, and AAD authentication.
+/// </summary>
 public class RedisCache : AzureResource
 {
     private readonly List<RedisCacheEnvironmentSettings> _environmentSettings = new();
@@ -36,6 +40,7 @@ public class RedisCache : AzureResource
     {
     }
 
+    /// <summary>Updates the resource-level properties of this Redis Cache.</summary>
     public void Update(
         Name name,
         Location location,
@@ -92,6 +97,7 @@ public class RedisCache : AzureResource
         }
     }
 
+    /// <summary>Creates a new <see cref="RedisCache"/> with a generated identifier.</summary>
     public static RedisCache Create(
         ResourceGroupId resourceGroupId,
         Name name,

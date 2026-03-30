@@ -9,28 +9,44 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.StorageAccountAggregate;
 
+/// <summary>
+/// Represents an Azure Storage Account resource (<c>Microsoft.Storage/storageAccounts</c>).
+/// Manages blob containers, queues, tables, CORS rules, and blob lifecycle rules as sub-resources.
+/// </summary>
 public class StorageAccount : AzureResource
 {
-    private readonly List<BlobContainer> _blobContainers = new();
+    private readonly List<BlobContainer> _blobContainers = [];
+
+    /// <summary>Gets the blob containers in this storage account.</summary>
     public IReadOnlyList<BlobContainer> BlobContainers => _blobContainers.AsReadOnly();
 
-    private readonly List<StorageQueue> _queues = new();
+    private readonly List<StorageQueue> _queues = [];
+
+    /// <summary>Gets the queues in this storage account.</summary>
     public IReadOnlyList<StorageQueue> Queues => _queues.AsReadOnly();
 
-    private readonly List<StorageTable> _tables = new();
+    private readonly List<StorageTable> _tables = [];
+
+    /// <summary>Gets the tables in this storage account.</summary>
     public IReadOnlyList<StorageTable> Tables => _tables.AsReadOnly();
 
-    private readonly List<CorsRule> _corsRules = new();
+    private readonly List<CorsRule> _corsRules = [];
+
+    /// <summary>Gets all CORS rules (both Blob and Table service types).</summary>
     public IReadOnlyList<CorsRule> AllCorsRules => _corsRules.AsReadOnly();
+
+    /// <summary>Gets CORS rules applicable to the Blob service.</summary>
     public IReadOnlyList<CorsRule> CorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Blob)).ToList();
+
+    /// <summary>Gets CORS rules applicable to the Table service.</summary>
     public IReadOnlyList<CorsRule> TableCorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Table)).ToList();
 
-    private readonly List<BlobLifecycleRule> _lifecycleRules = new();
+    private readonly List<BlobLifecycleRule> _lifecycleRules = [];
 
     /// <summary>Gets the blob lifecycle management rules for this Storage Account.</summary>
     public IReadOnlyList<BlobLifecycleRule> LifecycleRules => _lifecycleRules.AsReadOnly();
 
-    private readonly List<StorageAccountEnvironmentSettings> _environmentSettings = new();
+    private readonly List<StorageAccountEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Storage Account.</summary>
     public IReadOnlyCollection<StorageAccountEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();
@@ -168,6 +184,7 @@ public class StorageAccount : AzureResource
         }
     }
 
+    /// <summary>Replaces all Blob service CORS rules with the provided set.</summary>
     public void SetCorsRules(
         IReadOnlyList<(
             IReadOnlyList<string> AllowedOrigins,
@@ -177,6 +194,7 @@ public class StorageAccount : AzureResource
             int MaxAgeInSeconds)> corsRules)
         => SetServiceCorsRules(new CorsServiceType(CorsServiceType.Service.Blob), corsRules);
 
+    /// <summary>Replaces all Table service CORS rules with the provided set.</summary>
     public void SetTableCorsRules(
         IReadOnlyList<(
             IReadOnlyList<string> AllowedOrigins,

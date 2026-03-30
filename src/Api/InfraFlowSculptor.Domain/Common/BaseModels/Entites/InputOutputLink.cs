@@ -3,18 +3,31 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 
+/// <summary>
+/// Represents a directed link between two Azure resources where the source
+/// resource provides an output consumed as input by the target resource.
+/// </summary>
 public sealed class InputOutputLink : Entity<InputOutputId>
 {
+    /// <summary>Navigation to the source resource providing the output.</summary>
     public AzureResource SourceResource { get; private set; } = null!;
+
+    /// <summary>Identifier of the source resource.</summary>
     public AzureResourceId SourceResourceId { get; private set; }
 
+    /// <summary>Navigation to the target resource consuming the input.</summary>
     public AzureResource TargetResource { get; private set; } = null!;
+
+    /// <summary>Identifier of the target resource.</summary>
     public AzureResourceId TargetResourceId { get; private set; }
 
+    /// <summary>The output type on the source resource (must be a valid enum member).</summary>
     public string OutputType { get; private set; }
+
+    /// <summary>The input type on the target resource (must be a valid enum member).</summary>
     public string InputType { get; private set; }
 
-    private InputOutputLink(InputOutputId id,AzureResource source,
+    private InputOutputLink(InputOutputId id, AzureResource source,
         AzureResource target,
         string outputType,
         string inputType)
@@ -22,18 +35,22 @@ public sealed class InputOutputLink : Entity<InputOutputId>
     {
         SourceResource = source;
         SourceResourceId = source.Id;
-        
+
         TargetResource = target;
         TargetResourceId = target.Id;
-        
+
         OutputType = outputType;
         InputType = inputType;
-        
+
         if (SourceResourceId == TargetResourceId)
-            throw new InvalidOperationException("Une ressource ne peut pas se lier à elle-même.");
+            throw new InvalidOperationException("A resource cannot link to itself.");
     }
 
-    public static InputOutputLink Create<TInput, TOutput> (AzureResource source,
+    /// <summary>
+    /// Creates a new <see cref="InputOutputLink"/> between two resources after validating
+    /// that both the output and input types are defined members of their respective enums.
+    /// </summary>
+    public static InputOutputLink Create<TInput, TOutput>(AzureResource source,
         AzureResource target,
         string outputType,
         string inputType) where TInput : Enum where TOutput : Enum

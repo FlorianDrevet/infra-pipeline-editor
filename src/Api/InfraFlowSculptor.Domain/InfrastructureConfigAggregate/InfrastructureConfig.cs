@@ -9,8 +9,13 @@ using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
 namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 
+/// <summary>
+/// Represents a single Azure infrastructure configuration within a project.
+/// Groups resource groups, parameter definitions, naming templates, and cross-config references.
+/// </summary>
 public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 {
+    /// <summary>Gets the display name of this configuration.</summary>
     public Name Name { get; private set; } = null!;
 
     /// <summary>Gets the identifier of the parent project.</summary>
@@ -29,21 +34,26 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     /// </summary>
     public bool UseProjectNamingConventions { get; private set; } = true;
 
-    private readonly List<ResourceGroup> _resourceGroups = new();
+    private readonly List<ResourceGroup> _resourceGroups = [];
+
+    /// <summary>Gets the resource groups owned by this configuration.</summary>
     public IReadOnlyList<ResourceGroup> ResourceGroups => _resourceGroups.AsReadOnly();
 
-    private readonly List<ResourceNamingTemplate> _resourceNamingTemplates = new();
+    private readonly List<ResourceNamingTemplate> _resourceNamingTemplates = [];
+
+    /// <summary>Gets the per-resource-type naming template overrides for this configuration.</summary>
     public IReadOnlyCollection<ResourceNamingTemplate> ResourceNamingTemplates => _resourceNamingTemplates.AsReadOnly();
 
-    private readonly List<ParameterDefinition> _parameterDefinitions = new();
+    private readonly List<ParameterDefinition> _parameterDefinitions = [];
+
+    /// <summary>Gets the parameter definitions declared in this configuration.</summary>
     public IReadOnlyCollection<ParameterDefinition> ParameterDefinitions => _parameterDefinitions;
 
     private readonly List<CrossConfigResourceReference> _crossConfigReferences = [];
     /// <summary>Gets the cross-configuration resource references owned by this configuration.</summary>
     public IReadOnlyCollection<CrossConfigResourceReference> CrossConfigReferences => _crossConfigReferences.AsReadOnly();
 
-    
-    private InfrastructureConfig(InfrastructureConfigId id, Name name, ProjectId projectId): base(id)
+    private InfrastructureConfig(InfrastructureConfigId id, Name name, ProjectId projectId) : base(id)
     {
         Name = name;
         ProjectId = projectId;
@@ -57,10 +67,13 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return new InfrastructureConfig(InfrastructureConfigId.CreateUnique(), name, projectId);
     }
 
+    /// <summary>EF Core constructor.</summary>
     public InfrastructureConfig()
     {
     }
-    
+
+    /// <summary>Adds a resource group if one with the same name does not already exist.</summary>
+    /// <returns><c>true</c> if added; <c>false</c> if a duplicate name exists.</returns>
     public bool AddResourceGroup(ResourceGroup resourceGroup)
     {
         if (_resourceGroups.Any(rg => rg.Name == resourceGroup.Name))
@@ -70,11 +83,14 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return true;
     }
     
+    /// <summary>Removes a resource group from this configuration.</summary>
+    /// <returns><c>true</c> if removed; <c>false</c> if not found.</returns>
     public bool RemoveResourceGroup(ResourceGroup resourceGroup)
     {
         return _resourceGroups.Remove(resourceGroup);
     }
     
+    /// <summary>Renames this infrastructure configuration.</summary>
     public void Rename(Name name)
     {
         Name = name;
@@ -82,11 +98,13 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 
     // ─── Naming Convention ───────────────────────────────────────────────────
 
+    /// <summary>Sets or clears the default naming template for this configuration.</summary>
     public void SetDefaultNamingTemplate(NamingTemplate? template)
     {
         DefaultNamingTemplate = template;
     }
 
+    /// <summary>Sets or updates a per-resource-type naming template. Creates a new entry if one does not exist.</summary>
     public ResourceNamingTemplate SetResourceNamingTemplate(string resourceType, NamingTemplate template)
     {
         var existing = _resourceNamingTemplates.FirstOrDefault(t => t.ResourceType == resourceType);
@@ -101,6 +119,8 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return entry;
     }
 
+    /// <summary>Removes a per-resource-type naming template.</summary>
+    /// <returns><c>true</c> if removed; <c>false</c> if not found.</returns>
     public bool RemoveResourceNamingTemplate(string resourceType)
     {
         var existing = _resourceNamingTemplates.FirstOrDefault(t => t.ResourceType == resourceType);

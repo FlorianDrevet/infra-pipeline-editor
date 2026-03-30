@@ -9,7 +9,11 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.KeyVaultAggregate;
 
-public class KeyVault: AzureResource
+/// <summary>
+/// Represents an Azure Key Vault resource (<c>Microsoft.KeyVault/vaults</c>).
+/// Stores secrets, keys, and certificates with configurable RBAC and protection policies.
+/// </summary>
+public class KeyVault : AzureResource
 {
     private readonly List<KeyVaultEnvironmentSettings> _environmentSettings = new();
 
@@ -40,6 +44,8 @@ public class KeyVault: AzureResource
             ParameterUsage.Secret
         };
 
+    /// <summary>Adds a secret parameter usage to this Key Vault.</summary>
+    /// <exception cref="InvalidOperationException">Thrown when the parameter is not flagged as secret.</exception>
     public void AddSecret(ParameterDefinition parameter)
     {
         if (!parameter.IsSecret)
@@ -52,6 +58,7 @@ public class KeyVault: AzureResource
     {
     }
     
+    /// <summary>Updates the resource-level properties of this Key Vault.</summary>
     public void Update(
         Name name,
         Location location,
@@ -106,6 +113,7 @@ public class KeyVault: AzureResource
         }
     }
 
+    /// <summary>Creates a new <see cref="KeyVault"/> with a generated identifier and secure defaults.</summary>
     public static KeyVault Create(
         ResourceGroupId resourceGroupId,
         Name name,
