@@ -180,27 +180,75 @@ src/Api/InfraFlowSculptor.Application/
 └── FeatureName/
     ├── Commands/
     │   └── DoSomethingCommand/
-    │       ├── DoSomethingCommand.cs          record : IRequest<ErrorOr<T>>
-    │       ├── DoSomethingCommandHandler.cs   IRequestHandler<Cmd, ErrorOr<T>>
+    │       ├── DoSomethingCommand.cs          record : ICommand<T>
+    │       ├── DoSomethingCommandHandler.cs   ICommandHandler<Cmd, T>
     │       └── DoSomethingCommandValidator.cs AbstractValidator<DoSomethingCommand>
     ├── Queries/
     │   └── GetSomethingQuery/
-    │       ├── GetSomethingQuery.cs           record : IRequest<ErrorOr<T>>
-    │       └── GetSomethingQueryHandler.cs    IRequestHandler<Query, ErrorOr<T>>
+    │       ├── GetSomethingQuery.cs           record : IQuery<T>
+    │       └── GetSomethingQueryHandler.cs    IQueryHandler<Query, T>
     └── Common/
         └── SomethingResult.cs                 Application-layer result DTO
 ```
 
-### 4.2 Registration
+### 4.2 CQRS Marker Interfaces ([2026-03-30])
+
+Commands and queries use project-owned marker interfaces instead of `MediatR.IRequest<ErrorOr<T>>` directly:
+```csharp
+// Application/Common/Interfaces/ICommand.cs
+public interface ICommandBase;  // non-generic marker for UnitOfWorkBehavior constraint
+public interface ICommand<TResult> : IRequest<ErrorOr<TResult>>, ICommandBase;
+
+// Application/Common/Interfaces/IQuery.cs
+public interface IQuery<TResult> : IRequest<ErrorOr<TResult>>;
+
+// Application/Common/Interfaces/ICommandHandler.cs
+public interface ICommandHandler<in TCommand, TResult> : IRequestHandler<TCommand, ErrorOr<TResult>>
+    where TCommand : ICommand<TResult>;
+
+// Application/Common/Interfaces/IQueryHandler.cs
+public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, ErrorOr<TResult>>
+    where TQuery : IQuery<TResult>;
+```
+
+**Convention:** all new commands MUST use `ICommand<T>`, all new queries MUST use `IQuery<T>`, all new handlers MUST use `ICommandHandler<,>` / `IQueryHandler<,>`. Never use `IRequest<ErrorOr<T>>` or `IRequestHandler<,>` directly.
+
+### 4.3 Unit of Work ([2026-03-30])
+
+Persistence is coordinated via a **Unit of Work** pattern implemented as a MediatR pipeline behavior:
+
+- **`IUnitOfWork`** — `Application/Common/Interfaces/IUnitOfWork.cs`
+- **`UnitOfWork`** — `Infrastructure/Persistence/UnitOfWork.cs` (wraps `ProjectDbContext.SaveChangesAsync`)
+- **`UnitOfWorkBehavior<TRequest, TResponse>`** — `Application/Common/Behaviors/UnitOfWorkBehavior.cs`
+
+**How it works:**
+1. The behavior only applies to `ICommand<T>` requests (via `where TRequest : ICommandBase` constraint). Queries are unaffected.
+2. The handler executes and **mutates entities via repositories** (Add/Update/Delete track changes in EF Core without calling SaveChanges).
+3. If the handler returns `ErrorOr` errors → **nothing is persisted** (implicit rollback).
+4. If the handler throws an exception → **nothing is persisted** (SaveChanges never called).
+5. If the handler returns success → `UnitOfWork.SaveChangesAsync()` commits **all** changes in a single atomic batch.
+
+**Pipeline order:** `ValidationBehavior` → `UnitOfWorkBehavior` → Handler.
+
+**Critical:** Repositories MUST NOT call `SaveChangesAsync()`. All persistence is deferred to the UnitOfWorkBehavior. The `BaseRepository`, `AzureResourceBaseRepository`, and all custom repositories have been cleaned of `SaveChangesAsync` calls.
+
+### 4.4 Registration
 
 `DependencyInjection.cs` in the Application project registers everything by assembly scan:
 ```csharp
 services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
+// Order matters: Validation first, then UoW wraps the handler
 services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+services.AddScoped(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
 services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 ```
 
-### 4.3 Shared Authorization Service
+`DependencyInjection.cs` in the Infrastructure project registers:
+```csharp
+services.AddScoped<IUnitOfWork, UnitOfWork>();
+```
+
+### 4.5 Shared Authorization Service
 
 **Member management (Owner-only):**
 ```csharp
@@ -1232,9 +1280,9 @@ L'architecte est un agent senior qui **ne code jamais**. Son rôle :
 ---
 
 ## 16. Changelog
-## 17. Changelog
 
 | Date | Author | Change |
+| 2026-03-30 | copilot | **Unit of Work pattern with ICommand/IQuery marker interfaces**: Implemented UoW via MediatR `IPipelineBehavior`. Created `ICommand<T>`/`ICommandBase` and `IQuery<T>` marker interfaces (replace `IRequest<ErrorOr<T>>`), `ICommandHandler<TCmd, T>`/`IQueryHandler<TQuery, T>` (replace `IRequestHandler<TCmd, ErrorOr<T>>`), `IUnitOfWork`/`UnitOfWork` (wraps `ProjectDbContext.SaveChangesAsync`), `UnitOfWorkBehavior` (calls `SaveChangesAsync` only if `!response.IsError`, constraint: `where TRequest : ICommandBase`). Removed `SaveChangesAsync` from ALL repositories (`BaseRepository`, `AzureResourceBaseRepository`, `StorageAccountRepository`). Registered in DI: `UnitOfWorkBehavior` after `ValidationBehavior` in Application, `UnitOfWork` in Infrastructure. Mass-migrated 292 files: 102 commands → `ICommand<T>`, 44 queries → `IQuery<T>`, 102 command handlers → `ICommandHandler<TCmd, T>`, 44 query handlers → `IQueryHandler<TQuery, T>`. Fixed 3 `MediatR.Unit` edge cases (DeleteInfrastructureConfig, DeleteProject, RemoveProjectMember) → `ErrorOr.Deleted`. Build: 0 errors, 0 warnings. |
 | 2026-03-30 | copilot | **Domain layer XML documentation + code cleanup**: Added comprehensive XML `<summary>` docs to every class, struct, enum, property, and method across the entire Domain layer (~80+ files). **Code cleanup**: (1) Removed dead `implicit operator` on `SingleValueObject<T>` that called `Activator.CreateInstance` on an abstract class. (2) Translated French error strings to English in `AzureResource` and `InputOutputLink`. (3) Fixed DDD encapsulation violations: `ResourceGroup.InfraConfigId/InfraConfig/Location` changed from `public set` to `private set`; `UserAggregate.Tag.Name/Value` and `Name.FirstName/LastName` changed from `public set` to `private set`. (4) Modernized collection initializers: replaced all `= new()` with `= []` across 20 aggregate backing fields (`_environmentSettings`, `_members`, `_queues`, etc.). (5) Fixed `CorsServiceType` inconsistent constructor pattern — aligned with primary constructor like all other `EnumValueObject` types. (6) Added XML docs to all 7 `Errors.*.cs` partial classes (StorageAccount, RoleAssignment, ResourceGroup, RedisCache, Member, KeyVault, InfrastructureConfig). (7) Added enum member docs to AppServicePlanSku, AppServicePlanOsType, WebAppRuntimeStack, SqlDatabaseSku. Build: 0 errors, 30 pre-existing warnings (CS8618/CS8620 nullability). |
 | 2026-03-29 | copilot | **Pipeline Generation Engine — real YAML output**: Rewrote `PipelineGenerationEngine` from stub to full implementation generating Azure DevOps pipeline files: `pipelines/ci.pipeline.yml` (CI with build stage + per-env deploy stages), `jobs/deploy.job.yml` (deploy job template per resource group), `steps/deploy-template.step.yml` (ARM validation + incremental deployment via `AzureResourceManagerTemplateDeployment@3`), `variables/common.variables.yml`, `variables/{env}.variables.yml` (per-env azureResourceManagerConnection + subscriptionId + location). Updated `PipelineGenerationResult.Files` key from `azure-pipelines.yml` to `pipelines/ci.pipeline.yml`. |
 | 2026-03-29 | copilot | **AzureResourceManagerConnection end-to-end**: Added `AzureResourceManagerConnection` (nullable string, max 256) to `ProjectEnvironmentDefinition`, all CQRS commands/handlers, read models, EF Core config, `GenerationCore.EnvironmentDefinition`, all 4 generation handlers, Contracts, API Mapster + controller. Migration: `AddAzureResourceManagerConnection`. **Frontend**: interfaces, environment dialog form control + HTML field, i18n (EN/FR). |

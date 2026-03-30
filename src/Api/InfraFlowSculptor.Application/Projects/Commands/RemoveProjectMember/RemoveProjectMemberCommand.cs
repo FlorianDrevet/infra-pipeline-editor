@@ -8,4 +8,4 @@ namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
 public record RemoveProjectMemberCommand(
     ProjectId ProjectId,
     Guid UserId)
-    : ICommand<Unit>;
+    : ICommand<Deleted>;

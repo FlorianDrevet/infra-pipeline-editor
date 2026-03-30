@@ -6,4 +6,4 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.DeleteInfr
 
 /// <summary>Command to delete an infrastructure configuration. Requires Owner access on the parent project.</summary>
 public record DeleteInfrastructureConfigCommand(InfrastructureConfigId InfraConfigId)
-    : ICommand<Unit>;
+    : ICommand<Deleted>;

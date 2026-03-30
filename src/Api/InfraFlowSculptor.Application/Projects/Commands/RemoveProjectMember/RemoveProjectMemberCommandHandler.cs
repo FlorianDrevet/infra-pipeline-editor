@@ -4,7 +4,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
 
@@ -12,10 +11,10 @@ namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
 public sealed class RemoveProjectMemberCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository)
-    : ICommandHandler<RemoveProjectMemberCommand, Unit>
+    : ICommandHandler<RemoveProjectMemberCommand, Deleted>
 {
     /// <inheritdoc />
-    public async Task<ErrorOr<Unit>> Handle(
+    public async Task<ErrorOr<Deleted>> Handle(
         RemoveProjectMemberCommand command,
         CancellationToken cancellationToken)
     {
@@ -36,6 +35,6 @@ public sealed class RemoveProjectMemberCommandHandler(
         project.RemoveMember(targetUserId);
         await projectRepository.UpdateAsync(project);
 
-        return Unit.Value;
+        return Result.Deleted;
     }
 }
