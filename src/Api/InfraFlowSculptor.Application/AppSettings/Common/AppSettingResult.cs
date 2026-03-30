@@ -15,4 +15,8 @@ public sealed record AppSettingResult(
     string? SecretName,
     bool IsKeyVaultReference,
     bool? HasKeyVaultAccess,
-    SecretValueAssignment? SecretValueAssignment);
+    SecretValueAssignment? SecretValueAssignment,
+    Guid? VariableGroupId,
+    string? PipelineVariableName,
+    string? VariableGroupName,
+    bool IsViaVariableGroup);

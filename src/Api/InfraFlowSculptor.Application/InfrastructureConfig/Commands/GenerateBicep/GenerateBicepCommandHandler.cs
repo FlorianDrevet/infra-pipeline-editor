@@ -81,6 +81,7 @@ public sealed class GenerateBicepCommandHandler(
                 Suffix = e.Suffix,
                 AzureResourceManagerConnection = e.AzureResourceManagerConnection,
                 SubscriptionId = e.SubscriptionId,
+                Tags = e.Tags,
             })
             .ToList();
 
@@ -160,6 +161,9 @@ public sealed class GenerateBicepCommandHandler(
                     SourceResourceGroupName = s.SourceResourceGroupName,
                     IsSensitiveOutputExportedToKeyVault = isSensitiveExport,
                     SecretValueAssignment = s.SecretValueAssignment?.ToString(),
+                    IsViaVariableGroup = s.IsViaVariableGroup,
+                    PipelineVariableName = s.PipelineVariableName,
+                    VariableGroupName = s.VariableGroupName,
                 };
             })
             .ToList();
@@ -190,6 +194,8 @@ public sealed class GenerateBicepCommandHandler(
             RoleAssignments = roleAssignments,
             AppSettings = appSettingDefinitions,
             ExistingResourceReferences = existingResourceReferences,
+            ProjectTags = config.ProjectTags,
+            ConfigTags = config.ConfigTags,
         };
 
         var result = bicepGenerationEngine.Generate(generationRequest);

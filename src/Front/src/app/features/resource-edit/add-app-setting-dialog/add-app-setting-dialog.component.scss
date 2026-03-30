@@ -664,6 +664,17 @@
   border-top: 1px solid rgba(146, 191, 235, 0.15);
 }
 
+.vg-section {
+  margin-top: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.75rem;
+  background: rgba(21, 101, 192, 0.03);
+  border: 1px solid rgba(21, 101, 192, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .assignment-mode-title {
   margin: 1rem 0 0.5rem;
   font-size: 0.84rem;

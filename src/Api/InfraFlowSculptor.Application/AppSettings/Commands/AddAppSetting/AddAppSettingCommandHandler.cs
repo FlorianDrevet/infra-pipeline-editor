@@ -9,6 +9,7 @@ using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.WebAppAggregate;
 using MediatR;
 
@@ -18,6 +19,7 @@ namespace InfraFlowSculptor.Application.AppSettings.Commands.AddAppSetting;
 public sealed class AddAppSettingCommandHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
+    IProjectRepository projectRepository,
     IInfraConfigAccessService accessService)
     : ICommandHandler<AddAppSettingCommand, AppSettingResult>
 {
@@ -53,6 +55,30 @@ public sealed class AddAppSettingCommandHandler(
 
         if (authResult.IsError)
             return authResult.Errors;
+
+        // Variable group reference: validate the group exists on the project
+        if (request.VariableGroupId is not null && request.PipelineVariableName is not null)
+        {
+            var infraConfig = authResult.Value;
+            var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
+                infraConfig.ProjectId, cancellationToken);
+
+            var variableGroupId = new ProjectPipelineVariableGroupId(request.VariableGroupId.Value);
+            var variableGroup = project?.PipelineVariableGroups
+                .FirstOrDefault(g => g.Id == variableGroupId);
+
+            if (variableGroup is null)
+                return Errors.Project.VariableGroupNotFoundError(variableGroupId);
+
+            var setting = resource.AddViaVariableGroupAppSetting(
+                request.Name,
+                variableGroupId,
+                request.PipelineVariableName);
+
+            await azureResourceRepository.UpdateAsync(resource, cancellationToken);
+
+            return ToResult(setting, null, variableGroup.GroupName);
+        }
 
         // Export sensitive output to Key Vault: validate source output + KV, then create combined reference
         if (request.ExportToKeyVault
@@ -168,7 +194,8 @@ public sealed class AddAppSettingCommandHandler(
 
     private static AppSettingResult ToResult(
         Domain.Common.BaseModels.Entites.AppSetting setting,
-        bool? hasKeyVaultAccess)
+        bool? hasKeyVaultAccess,
+        string? variableGroupName = null)
         => new(
             setting.Id, setting.ResourceId, setting.Name,
             setting.EnvironmentValues.Count > 0
@@ -178,5 +205,9 @@ public sealed class AddAppSettingCommandHandler(
             setting.SourceOutputName, setting.IsOutputReference,
             setting.KeyVaultResourceId, setting.SecretName,
             setting.IsKeyVaultReference, hasKeyVaultAccess,
-            setting.SecretValueAssignment);
+            setting.SecretValueAssignment,
+            setting.VariableGroupId?.Value,
+            setting.PipelineVariableName,
+            variableGroupName,
+            setting.IsViaVariableGroup);
 }

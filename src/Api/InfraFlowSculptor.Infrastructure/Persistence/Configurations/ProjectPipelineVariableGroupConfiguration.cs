@@ -31,10 +31,5 @@ public sealed class ProjectPipelineVariableGroupConfiguration
 
         builder.HasIndex(x => new { x.ProjectId, x.GroupName })
             .IsUnique();
-
-        builder.HasMany(x => x.Mappings)
-            .WithOne()
-            .HasForeignKey(x => x.VariableGroupId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

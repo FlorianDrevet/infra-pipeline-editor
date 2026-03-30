@@ -35,7 +35,6 @@ public sealed class ProjectRepository(ProjectDbContext context)
         ProjectId id, CancellationToken cancellationToken = default)
         => await Context.Projects
             .Include(p => p.PipelineVariableGroups)
-                .ThenInclude(g => g.Mappings)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     /// <inheritdoc />

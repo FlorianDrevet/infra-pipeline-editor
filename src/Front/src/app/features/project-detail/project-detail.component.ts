@@ -134,7 +134,6 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly vgLoading = signal(false);
   protected readonly vgErrorKey = signal('');
   protected readonly vgLoaded = signal(false);
-  protected readonly vgMappingInputs = signal<Record<string, { pipelineVar: string; bicepParam: string }>>({});
 
   protected readonly projectBicepNodes = computed<BicepTreeNode[]>(() => {
     const result = this.projectBicepResult();
@@ -1007,78 +1006,6 @@ export class ProjectDetailComponent implements OnInit {
         this.variableGroups.update(groups => groups.filter(g => g.id !== group.id));
       } catch {
         this.vgErrorKey.set('PROJECT_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_GROUP');
-      }
-    });
-  }
-
-  protected initMappingInput(groupId: string): void {
-    this.vgMappingInputs.update(inputs => ({
-      ...inputs,
-      [groupId]: { pipelineVar: '', bicepParam: '' },
-    }));
-  }
-
-  protected updateMappingInput(groupId: string, field: 'pipelineVar' | 'bicepParam', value: string): void {
-    this.vgMappingInputs.update(inputs => ({
-      ...inputs,
-      [groupId]: { ...inputs[groupId], [field]: value },
-    }));
-  }
-
-  protected async addMapping(groupId: string): Promise<void> {
-    const project = this.project();
-    if (!project) return;
-
-    const input = this.vgMappingInputs()[groupId];
-    if (!input?.pipelineVar || !input?.bicepParam) return;
-
-    this.vgErrorKey.set('');
-    try {
-      const mapping = await this.projectService.addPipelineVariableMapping(project.id, groupId, {
-        pipelineVariableName: input.pipelineVar,
-        bicepParameterName: input.bicepParam,
-      });
-      this.variableGroups.update(groups =>
-        groups.map(g =>
-          g.id === groupId ? { ...g, mappings: [...g.mappings, mapping] } : g
-        )
-      );
-      this.vgMappingInputs.update(inputs => ({
-        ...inputs,
-        [groupId]: { pipelineVar: '', bicepParam: '' },
-      }));
-    } catch {
-      this.vgErrorKey.set('PROJECT_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_MAPPING');
-    }
-  }
-
-  protected openRemoveMappingDialog(group: ProjectPipelineVariableGroupResponse, mappingId: string): void {
-    const data: ConfirmDialogData = {
-      titleKey: 'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_MAPPING',
-      messageKey: 'PROJECT_DETAIL.PIPELINE_VARIABLES.CONFIRM_DELETE_MAPPING',
-      confirmKey: 'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_MAPPING',
-      cancelKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.DIALOG_CANCEL',
-    };
-
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-      const project = this.project();
-      if (!project) return;
-
-      this.vgErrorKey.set('');
-      try {
-        await this.projectService.removePipelineVariableMapping(project.id, group.id, mappingId);
-        this.variableGroups.update(groups =>
-          groups.map(g =>
-            g.id === group.id
-              ? { ...g, mappings: g.mappings.filter(m => m.id !== mappingId) }
-              : g
-          )
-        );
-      } catch {
-        this.vgErrorKey.set('PROJECT_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_MAPPING');
       }
     });
   }

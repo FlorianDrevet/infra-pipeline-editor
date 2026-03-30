@@ -46,13 +46,4 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
             .Where(c => c.ProjectId == projectId)
             .ToListAsync(cancellationToken);
     }
-
-    /// <inheritdoc />
-    public async Task<InfrastructureConfig?> GetByIdWithPipelineVariableGroupsAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default)
-    {
-        return await Context.InfrastructureConfigs
-            .Include(c => c.PipelineVariableGroups)
-                .ThenInclude(g => g.Mappings)
-            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
-    }
 }

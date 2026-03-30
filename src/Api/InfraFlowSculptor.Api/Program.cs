@@ -84,6 +84,7 @@ app.UseCosmosDbController();
 app.UseSqlServerController();
 app.UseSqlDatabaseController();
 app.UseServiceBusNamespaceController();
+app.UseContainerRegistryController();
 app.UseAppSettingController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();

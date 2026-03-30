@@ -40,6 +40,8 @@ using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
+using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.Infrastructure.Persistence;
@@ -84,6 +86,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .Include(c => c.ResourceGroups)
                 .ThenInclude(rg => rg.Resources)
             .Include(c => c.ResourceNamingTemplates)
+            .Include(c => c.Tags)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == configId, cancellationToken);
 
@@ -196,6 +199,11 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var crSettings = await dbContext.ContainerRegistryEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.ContainerRegistryId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         // ── Load role assignments for all resources in this config ───────────
         var roleAssignments = await dbContext.RoleAssignments
             .Where(ra => allResourceIds.Contains(ra.SourceResourceId))
@@ -253,7 +261,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, lifecycleRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, lifecycleRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings, crSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -267,11 +275,24 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         // ── Load parent project for environments and naming context ─────────
         var project = await dbContext.Projects
             .Include(p => p.ResourceNamingTemplates)
+            .Include(p => p.Tags)
+            .Include(p => p.EnvironmentDefinitions)
+                .ThenInclude(e => e.Tags)
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == config.ProjectId, cancellationToken);
 
         var environments = BuildEnvironmentList(config, project);
         var namingContext = BuildNamingContext(config, project);
+
+        // ── Load pipeline variable groups for VG name resolution ────────────
+        var projectVarGroups = project is not null
+            ? await dbContext.ProjectPipelineVariableGroups
+                .Where(g => g.ProjectId == project.Id)
+                .AsNoTracking()
+                .ToListAsync(cancellationToken)
+            : [];
+
+        var varGroupLookup = projectVarGroups.ToDictionary(g => g.Id, g => g.GroupName);
 
         var appSettingReadModels = appSettings
             .Select(s =>
@@ -312,7 +333,11 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     KeyVaultResourceName: keyVaultResourceName,
                     SecretName: s.SecretName,
                     IsKeyVaultReference: s.IsKeyVaultReference,
-                    SecretValueAssignment: s.SecretValueAssignment?.ToString());
+                    SecretValueAssignment: s.SecretValueAssignment?.ToString(),
+                    VariableGroupId: s.VariableGroupId?.Value,
+                    PipelineVariableName: s.PipelineVariableName,
+                    VariableGroupName: s.VariableGroupId is not null && varGroupLookup.TryGetValue(s.VariableGroupId, out var vgName) ? vgName : null,
+                    IsViaVariableGroup: s.IsViaVariableGroup);
             })
             .OfType<AppSettingReadModel>()
             .ToList();
@@ -377,22 +402,12 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             })
             .ToList();
 
-        // ── Load pipeline variable groups ───────────────────────────────────
-        var pipelineVariableGroups = await dbContext.PipelineVariableGroups
-            .Include(g => g.Mappings)
-            .Where(g => g.InfraConfigId == configId)
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        var projectTags = project?.Tags
+            .ToDictionary(t => t.Name, t => t.Value)
+            ?? new Dictionary<string, string>();
 
-        var pipelineVariableGroupReadModels = pipelineVariableGroups
-            .Select(g => new PipelineVariableGroupReadModel(
-                g.Id.Value,
-                g.GroupName,
-                g.Mappings.Select(m => new PipelineVariableMappingReadModel(
-                    m.Id.Value,
-                    m.PipelineVariableName,
-                    m.BicepParameterName)).ToList()))
-            .ToList();
+        var configTags = config.Tags
+            .ToDictionary(t => t.Name, t => t.Value);
 
         return new InfrastructureConfigReadModel(
             config.Id.Value,
@@ -404,7 +419,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             enrichedRoleAssignments,
             enrichedAppSettings,
             crossConfigRefReadModels,
-            pipelineVariableGroupReadModels);
+            projectTags,
+            configTags);
     }
 
     /// <summary>
@@ -428,7 +444,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 e.Prefix.Value,
                 e.Suffix.Value,
                 e.AzureResourceManagerConnection,
-                e.SubscriptionId.Value.ToString())).ToList();
+                e.SubscriptionId.Value.ToString(),
+                e.Tags.ToDictionary(t => t.Name, t => t.Value))).ToList();
     }
 
     /// <summary>
@@ -481,7 +498,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<CosmosDbEnvironmentSettings> cosmosSettings,
         IReadOnlyList<SqlServerEnvironmentSettings> sqlServerSettings,
         IReadOnlyList<SqlDatabaseEnvironmentSettings> sqlDbSettings,
-        IReadOnlyList<ServiceBusNamespaceEnvironmentSettings> sbSettings)
+        IReadOnlyList<ServiceBusNamespaceEnvironmentSettings> sbSettings,
+        IReadOnlyList<ContainerRegistryEnvironmentSettings> crSettings)
     {
         return resource switch
         {
@@ -736,6 +754,16 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     .Where(es => es.ServiceBusNamespaceId == sb.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
+            ContainerRegistry cr => new AzureResourceReadModel(
+                cr.Id.Value,
+                cr.Name.Value,
+                MapLocation(cr.Location),
+                "Microsoft.ContainerRegistry/registries",
+                new Dictionary<string, string>(),
+                crSettings
+                    .Where(es => es.ContainerRegistryId == cr.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
             _ => null
         };
     }
@@ -801,6 +829,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             SqlServer => AzureResourceTypes.ArmTypes.SqlServer,
             SqlDatabase => AzureResourceTypes.ArmTypes.SqlDatabase,
             ServiceBusNamespace => AzureResourceTypes.ArmTypes.ServiceBusNamespace,
+            ContainerRegistry => AzureResourceTypes.ArmTypes.ContainerRegistry,
             _ => resource.GetType().Name
         };
 

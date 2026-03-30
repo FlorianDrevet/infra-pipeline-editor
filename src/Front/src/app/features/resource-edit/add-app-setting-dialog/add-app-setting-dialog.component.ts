@@ -15,7 +15,9 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { AppSettingService } from '../../../shared/services/app-setting.service';
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
+import { ProjectService } from '../../../shared/services/project.service';
 import { AppSettingResponse, OutputDefinitionResponse } from '../../../shared/interfaces/app-setting.interface';
+import { ProjectPipelineVariableGroupResponse } from '../../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
 
 export interface AddAppSettingDialogData {
@@ -23,6 +25,7 @@ export interface AddAppSettingDialogData {
   currentResourceName: string;
   siblingResources: AzureResourceResponse[];
   environments: { name: string }[];
+  projectId: string;
 }
 
 @Component({
@@ -51,11 +54,21 @@ export class AddAppSettingDialogComponent {
   protected readonly data: AddAppSettingDialogData = inject(MAT_DIALOG_DATA);
   private readonly appSettingService = inject(AppSettingService);
   private readonly roleAssignmentService = inject(RoleAssignmentService);
+  private readonly projectService = inject(ProjectService);
 
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
 
   // ─── Mode: static value or resource output ───
   protected readonly mode = signal<'static' | 'output'>('output');
+
+  // ─── Variable Group (static mode only) ───
+  protected readonly isViaVariableGroup = signal(false);
+  protected readonly vgOptions = signal<ProjectPipelineVariableGroupResponse[]>([]);
+  protected readonly vgLoading = signal(false);
+  protected readonly selectedVariableGroupId = signal<string | null>(null);
+  protected readonly newGroupName = signal('');
+  protected readonly isCreatingNewGroup = signal(false);
+  protected readonly pipelineVariableName = signal('');
 
   // ─── Step management (output mode: 1→2→3(sensitive)→4 or 1→2→4) ───
   protected readonly step = signal<1 | 2 | 3 | 4>(1);
@@ -136,6 +149,10 @@ export class AddAppSettingDialogComponent {
     const name = this.settingName().trim();
     if (!name || this.isSubmitting()) return false;
     if (this.mode() === 'static') {
+      if (this.isViaVariableGroup()) {
+        const hasVg = this.isCreatingNewGroup() ? this.newGroupName().trim().length > 0 : !!this.selectedVariableGroupId();
+        return hasVg && this.pipelineVariableName().trim().length > 0;
+      }
       if (this.isSecret()) {
         return !!this.selectedKeyVault() && !!this.secretName().trim() && !!this.secretAssignmentMode();
       }
@@ -177,6 +194,11 @@ export class AddAppSettingDialogComponent {
     this.sensitiveRoleError.set(false);
     this.isSecret.set(false);
     this.secretAssignmentMode.set(null);
+    this.isViaVariableGroup.set(false);
+    this.selectedVariableGroupId.set(null);
+    this.newGroupName.set('');
+    this.isCreatingNewGroup.set(false);
+    this.pipelineVariableName.set('');
   }
 
   protected onIsSecretToggle(value: boolean): void {
@@ -191,6 +213,43 @@ export class AddAppSettingDialogComponent {
       this.sensitiveRoleAssigning.set(false);
       this.sensitiveRoleAssigned.set(false);
       this.sensitiveRoleError.set(false);
+    }
+  }
+
+  protected async onViaVariableGroupToggle(value: boolean): Promise<void> {
+    this.isViaVariableGroup.set(value);
+    if (value) {
+      this.isSecret.set(false);
+      await this.loadVariableGroups();
+    } else {
+      this.selectedVariableGroupId.set(null);
+      this.newGroupName.set('');
+      this.isCreatingNewGroup.set(false);
+      this.pipelineVariableName.set('');
+    }
+  }
+
+  private async loadVariableGroups(): Promise<void> {
+    if (!this.data.projectId) return;
+    this.vgLoading.set(true);
+    try {
+      const groups = await this.projectService.getPipelineVariableGroups(this.data.projectId);
+      this.vgOptions.set(groups);
+    } catch {
+      this.vgOptions.set([]);
+    } finally {
+      this.vgLoading.set(false);
+    }
+  }
+
+  protected onVgSelectionChange(value: string): void {
+    if (value === '__create_new__') {
+      this.isCreatingNewGroup.set(true);
+      this.selectedVariableGroupId.set(null);
+    } else {
+      this.isCreatingNewGroup.set(false);
+      this.selectedVariableGroupId.set(value);
+      this.newGroupName.set('');
     }
   }
 
@@ -340,9 +399,26 @@ export class AddAppSettingDialogComponent {
     this.errorKey.set('');
 
     try {
+      // If creating a new variable group, create it first
+      let variableGroupId = this.selectedVariableGroupId();
+      if (this.mode() === 'static' && this.isViaVariableGroup() && this.isCreatingNewGroup()) {
+        const newGroupName = this.newGroupName().trim();
+        if (newGroupName && this.data.projectId) {
+          const newGroup = await this.projectService.addPipelineVariableGroup(this.data.projectId, { groupName: newGroupName });
+          variableGroupId = newGroup.id;
+        }
+      }
+
       let request;
       if (this.mode() === 'static') {
-        if (this.isSecret()) {
+        if (this.isViaVariableGroup()) {
+          request = {
+            name,
+            variableGroupId: variableGroupId ?? undefined,
+            pipelineVariableName: this.pipelineVariableName().trim(),
+            environmentValues: this.environmentValues(),
+          };
+        } else if (this.isSecret()) {
           request = {
             name,
             keyVaultResourceId: this.selectedKeyVault()!.id,

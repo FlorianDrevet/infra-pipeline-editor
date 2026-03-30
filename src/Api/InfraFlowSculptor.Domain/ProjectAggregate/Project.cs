@@ -51,6 +51,20 @@ public sealed class Project : AggregateRoot<ProjectId>
     public IReadOnlyCollection<ProjectResourceNamingTemplate> ResourceNamingTemplates
         => _resourceNamingTemplates.AsReadOnly();
 
+    // ─── Tags ───────────────────────────────────────────────────────────────
+
+    private readonly List<Tag> _tags = [];
+
+    /// <summary>Gets the project-level default tags applied to all resources.</summary>
+    public IReadOnlyCollection<Tag> Tags => _tags;
+
+    /// <summary>Replaces all project-level tags with the provided collection.</summary>
+    public void SetTags(IEnumerable<Tag> tags)
+    {
+        _tags.Clear();
+        _tags.AddRange(tags);
+    }
+
     // ─── Pipeline Variable Groups ──────────────────────────────────────────
 
     private readonly List<ProjectPipelineVariableGroup> _projectPipelineVariableGroups = [];

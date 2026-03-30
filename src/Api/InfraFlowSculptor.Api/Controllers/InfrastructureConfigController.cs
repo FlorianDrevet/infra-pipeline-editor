@@ -1,17 +1,13 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddCrossConfigReference;
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddPipelineVariableGroup;
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddPipelineVariableMapping;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.DeleteInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveCrossConfigReference;
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemovePipelineVariableGroup;
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemovePipelineVariableMapping;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInfraConfigTags;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInheritance;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossConfigReferences;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListIncomingCrossConfigReferences;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
-using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListPipelineVariableGroups;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupsByConfig;
 using MediatR;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
@@ -152,6 +148,28 @@ public static class InfrastructureConfigController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
+            // PUT /{id:guid}/tags
+            config.MapPut("/{id:guid}/tags",
+                    async ([FromRoute] Guid id, [FromBody] SetInfraConfigTagsRequest request, ISender sender) =>
+                    {
+                        var command = new SetInfraConfigTagsCommand(
+                            id,
+                            request.Tags.Select(t => (t.Name, t.Value)).ToList());
+                        var result = await sender.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetInfraConfigTags")
+                .WithSummary("Set configuration-level tags")
+                .WithDescription("Replaces all configuration-level tags with the provided set. These tags extend or override project-level tags. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
             // DELETE /{id:guid}
             config.MapDelete("/{id:guid}",
                     async ([FromRoute] Guid id, IMediator mediator) =>
@@ -261,119 +279,6 @@ public static class InfrastructureConfigController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            // ── Pipeline Variable Groups ─────────────────────────────────────
-
-            // GET /{id:guid}/pipeline-variable-groups
-            config.MapGet("/{id:guid}/pipeline-variable-groups",
-                    async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
-                    {
-                        var query = new ListPipelineVariableGroupsQuery(id);
-                        var result = await mediator.Send(query);
-
-                        return result.Match(
-                            groups =>
-                            {
-                                var responses = groups.Select(g => mapper.Map<PipelineVariableGroupResponse>(g)).ToList();
-                                return TypedResults.Ok(responses);
-                            },
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("ListPipelineVariableGroups")
-                .WithSummary("List pipeline variable groups")
-                .WithDescription("Returns all Azure DevOps Variable Groups (Libraries) configured for pipeline generation on this infrastructure configuration.")
-                .Produces<IReadOnlyList<PipelineVariableGroupResponse>>(StatusCodes.Status200OK)
-                .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
-
-            // POST /{id:guid}/pipeline-variable-groups
-            config.MapPost("/{id:guid}/pipeline-variable-groups",
-                    async ([FromRoute] Guid id, AddPipelineVariableGroupRequest request, IMediator mediator) =>
-                    {
-                        var command = new AddPipelineVariableGroupCommand(id, request.GroupName);
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            group => Results.Created(
-                                $"/infra-config/{id}/pipeline-variable-groups/{group.GroupId}",
-                                new PipelineVariableGroupResponse(
-                                    group.GroupId.ToString(),
-                                    group.GroupName,
-                                    [])),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("AddPipelineVariableGroup")
-                .WithSummary("Add a pipeline variable group")
-                .WithDescription("Adds an Azure DevOps Variable Group (Library) reference to the infrastructure configuration for pipeline generation.")
-                .Produces<PipelineVariableGroupResponse>(StatusCodes.Status201Created)
-                .ProducesProblem(StatusCodes.Status400BadRequest)
-                .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
-
-            // DELETE /{id:guid}/pipeline-variable-groups/{groupId:guid}
-            config.MapDelete("/{id:guid}/pipeline-variable-groups/{groupId:guid}",
-                    async ([FromRoute] Guid id, [FromRoute] Guid groupId, IMediator mediator) =>
-                    {
-                        var command = new RemovePipelineVariableGroupCommand(id, groupId);
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            _ => Results.NoContent(),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("RemovePipelineVariableGroup")
-                .WithSummary("Remove a pipeline variable group")
-                .WithDescription("Removes a variable group and all its mappings from the infrastructure configuration.")
-                .Produces(StatusCodes.Status204NoContent)
-                .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
-
-            // POST /{id:guid}/pipeline-variable-groups/{groupId:guid}/mappings
-            config.MapPost("/{id:guid}/pipeline-variable-groups/{groupId:guid}/mappings",
-                    async ([FromRoute] Guid id, [FromRoute] Guid groupId, AddPipelineVariableMappingRequest request, IMediator mediator) =>
-                    {
-                        var command = new AddPipelineVariableMappingCommand(
-                            id, groupId, request.PipelineVariableName, request.BicepParameterName);
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            mapping => Results.Created(
-                                $"/infra-config/{id}/pipeline-variable-groups/{groupId}/mappings/{mapping.MappingId}",
-                                new PipelineVariableMappingResponse(
-                                    mapping.MappingId.ToString(),
-                                    mapping.PipelineVariableName,
-                                    mapping.BicepParameterName)),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("AddPipelineVariableMapping")
-                .WithSummary("Add a variable mapping to a group")
-                .WithDescription("Maps a pipeline variable from the Azure DevOps Library to a Bicep parameter for override during deployment.")
-                .Produces<PipelineVariableMappingResponse>(StatusCodes.Status201Created)
-                .ProducesProblem(StatusCodes.Status400BadRequest)
-                .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
-
-            // DELETE /{id:guid}/pipeline-variable-groups/{groupId:guid}/mappings/{mappingId:guid}
-            config.MapDelete("/{id:guid}/pipeline-variable-groups/{groupId:guid}/mappings/{mappingId:guid}",
-                    async ([FromRoute] Guid id, [FromRoute] Guid groupId, [FromRoute] Guid mappingId, IMediator mediator) =>
-                    {
-                        var command = new RemovePipelineVariableMappingCommand(id, groupId, mappingId);
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            _ => Results.NoContent(),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("RemovePipelineVariableMapping")
-                .WithSummary("Remove a variable mapping")
-                .WithDescription("Removes a variable-to-Bicep-parameter mapping from the specified pipeline variable group.")
-                .Produces(StatusCodes.Status204NoContent)
-                .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
 }

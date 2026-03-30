@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddSingleton<IResourceTypeBicepGenerator, SqlServerTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, SqlDatabaseTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, ServiceBusNamespaceTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, ContainerRegistryTypeBicepGenerator>();
         services.AddSingleton<BicepGenerationEngine>();
 
         // Pipeline generation engine

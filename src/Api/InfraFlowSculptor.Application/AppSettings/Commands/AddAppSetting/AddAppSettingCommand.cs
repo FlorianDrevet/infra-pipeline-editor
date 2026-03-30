@@ -15,6 +15,8 @@ namespace InfraFlowSculptor.Application.AppSettings.Commands.AddAppSetting;
 /// <param name="SecretName">The secret name in the Key Vault (null for non-KV settings).</param>
 /// <param name="ExportToKeyVault">When true, a sensitive output is exported as a Key Vault secret and referenced via KV reference.</param>
 /// <param name="SecretValueAssignment">Determines how the secret value is assigned for a static Key Vault reference (null defaults to DirectInKeyVault).</param>
+/// <param name="VariableGroupId">Optional identifier of the pipeline variable group this setting belongs to.</param>
+/// <param name="PipelineVariableName">The pipeline variable name within the variable group. Required when <paramref name="VariableGroupId"/> is set.</param>
 public record AddAppSettingCommand(
     AzureResourceId ResourceId,
     string Name,
@@ -24,5 +26,7 @@ public record AddAppSettingCommand(
     AzureResourceId? KeyVaultResourceId,
     string? SecretName,
     bool ExportToKeyVault = false,
-    SecretValueAssignment? SecretValueAssignment = null
+    SecretValueAssignment? SecretValueAssignment = null,
+    Guid? VariableGroupId = null,
+    string? PipelineVariableName = null
 ) : ICommand<AppSettingResult>;

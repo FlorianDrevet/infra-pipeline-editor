@@ -34,6 +34,7 @@ import { CosmosDbService } from '../../../shared/services/cosmos-db.service';
 import { SqlServerService } from '../../../shared/services/sql-server.service';
 import { SqlDatabaseService } from '../../../shared/services/sql-database.service';
 import { ServiceBusNamespaceService } from '../../../shared/services/service-bus-namespace.service';
+import { ContainerRegistryService } from '../../../shared/services/container-registry.service';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
@@ -50,6 +51,7 @@ import { CosmosDbEnvironmentConfigEntry } from '../../../shared/interfaces/cosmo
 import { SqlServerEnvironmentConfigEntry } from '../../../shared/interfaces/sql-server.interface';
 import { SqlDatabaseEnvironmentConfigEntry } from '../../../shared/interfaces/sql-database.interface';
 import { ServiceBusNamespaceEnvironmentConfigEntry } from '../../../shared/interfaces/service-bus-namespace.interface';
+import { ContainerRegistryEnvironmentConfigEntry } from '../../../shared/interfaces/container-registry.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../../shared/services/infra-config.service';
 import { ProjectService } from '../../../shared/services/project.service';
@@ -159,6 +161,17 @@ const CAE_SKU_OPTIONS = [
   { label: 'Premium', value: 'Premium' },
 ];
 
+const ACR_SKU_OPTIONS = [
+  { label: 'Basic', value: 'Basic' },
+  { label: 'Standard', value: 'Standard' },
+  { label: 'Premium', value: 'Premium' },
+];
+
+const ACR_PUBLIC_NETWORK_OPTIONS = [
+  { label: 'Enabled', value: 'Enabled' },
+  { label: 'Disabled', value: 'Disabled' },
+];
+
 const CAE_WORKLOAD_PROFILE_OPTIONS = [
   { label: 'Consumption', value: 'Consumption' },
   { label: 'D4', value: 'D4' },
@@ -263,6 +276,7 @@ export class AddResourceDialogComponent {
   private readonly sqlServerService = inject(SqlServerService);
   private readonly sqlDatabaseService = inject(SqlDatabaseService);
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
+  private readonly containerRegistryService = inject(ContainerRegistryService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -340,6 +354,8 @@ export class AddResourceDialogComponent {
   protected readonly cosmosApiTypeOptions = COSMOS_API_TYPE_OPTIONS;
   protected readonly cosmosConsistencyLevelOptions = COSMOS_CONSISTENCY_LEVEL_OPTIONS;
   protected readonly cosmosBackupPolicyOptions = COSMOS_BACKUP_POLICY_OPTIONS;
+  protected readonly acrSkuOptions = ACR_SKU_OPTIONS;
+  protected readonly acrPublicNetworkOptions = ACR_PUBLIC_NETWORK_OPTIONS;
 
   protected readonly ResourceTypeEnum = ResourceTypeEnum;
 
@@ -828,6 +844,13 @@ export class AddResourceDialogComponent {
           disableLocalAuth: [false],
           minimumTlsVersion: ['1.2'],
         });
+      case ResourceTypeEnum.ContainerRegistry:
+        return this.fb.group({
+          sku: ['Standard', [Validators.required]],
+          adminUserEnabled: [false],
+          publicNetworkAccess: ['Enabled', [Validators.required]],
+          zoneRedundancy: [false],
+        });
     }
   }
 
@@ -1034,6 +1057,15 @@ export class AddResourceDialogComponent {
           });
           break;
         }
+        case ResourceTypeEnum.ContainerRegistry: {
+          await this.containerRegistryService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            environmentSettings: this.buildContainerRegistryEnvironmentSettings(),
+          });
+          break;
+        }
       }
       this.dialogRef.close(true);
     } catch {
@@ -1234,6 +1266,19 @@ export class AddResourceDialogComponent {
         zoneRedundant: raw.zoneRedundant ?? null,
         disableLocalAuth: raw.disableLocalAuth ?? null,
         minimumTlsVersion: raw.minimumTlsVersion || null,
+      };
+    });
+  }
+
+  private buildContainerRegistryEnvironmentSettings(): ContainerRegistryEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        sku: raw.sku || null,
+        adminUserEnabled: raw.adminUserEnabled ?? null,
+        publicNetworkAccess: raw.publicNetworkAccess || null,
+        zoneRedundancy: raw.zoneRedundancy ?? null,
       };
     });
   }

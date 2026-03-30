@@ -1,6 +1,8 @@
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -70,5 +72,20 @@ public sealed class AppSettingConfiguration : IEntityTypeConfiguration<AppSettin
 
         builder.HasIndex(s => new { s.ResourceId, s.Name })
             .IsUnique();
+
+        builder.Property(s => s.VariableGroupId)
+            .HasConversion(
+                v => v == null ? (Guid?)null : v.Value,
+                v => v.HasValue ? new ProjectPipelineVariableGroupId(v.Value) : null)
+            .IsRequired(false);
+
+        builder.Property(s => s.PipelineVariableName)
+            .IsRequired(false)
+            .HasMaxLength(256);
+
+        builder.HasOne<ProjectPipelineVariableGroup>()
+            .WithMany()
+            .HasForeignKey(s => s.VariableGroupId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

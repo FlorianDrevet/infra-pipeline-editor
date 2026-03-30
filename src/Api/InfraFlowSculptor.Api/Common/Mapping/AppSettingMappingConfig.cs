@@ -30,7 +30,11 @@ public sealed class AppSettingMappingConfig : IRegister
                 src.SecretName,
                 src.IsKeyVaultReference,
                 src.HasKeyVaultAccess,
-                src.SecretValueAssignment != null ? src.SecretValueAssignment.ToString() : null));
+                src.SecretValueAssignment != null ? src.SecretValueAssignment.ToString() : null,
+                src.VariableGroupId != null ? src.VariableGroupId.Value.ToString() : null,
+                src.PipelineVariableName,
+                src.VariableGroupName,
+                src.IsViaVariableGroup));
 
         config.NewConfig<AddAppSettingRequest, Application.AppSettings.Commands.AddAppSetting.AddAppSettingCommand>()
             .Map(dest => dest.SecretValueAssignment,

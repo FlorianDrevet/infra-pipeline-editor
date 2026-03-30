@@ -27,13 +27,7 @@ public sealed class ListProjectPipelineVariableGroupsQueryHandler(
         return project.PipelineVariableGroups
             .Select(g => new ProjectPipelineVariableGroupResult(
                 g.Id.Value,
-                g.GroupName,
-                g.Mappings
-                    .Select(m => new ProjectPipelineVariableMappingResult(
-                        m.Id.Value,
-                        m.PipelineVariableName,
-                        m.BicepParameterName))
-                    .ToList()))
+                g.GroupName))
             .ToList();
     }
 }

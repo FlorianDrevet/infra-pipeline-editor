@@ -64,4 +64,13 @@ public sealed class AppSettingDefinition
     /// Valid values: <c>"ViaBicepparam"</c> or <c>"DirectInKeyVault"</c>.
     /// </summary>
     public string? SecretValueAssignment { get; init; }
+
+    /// <summary>Whether this setting's value comes from a pipeline variable group at deploy time.</summary>
+    public bool IsViaVariableGroup { get; init; }
+
+    /// <summary>The name of the pipeline variable within the variable group.</summary>
+    public string? PipelineVariableName { get; init; }
+
+    /// <summary>The display name of the pipeline variable group this setting belongs to.</summary>
+    public string? VariableGroupName { get; init; }
 }

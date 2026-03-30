@@ -180,6 +180,10 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<string>("PipelineVariableName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.Property<Guid>("ResourceId")
                         .HasColumnType("uuid");
 
@@ -198,11 +202,16 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid?>("SourceResourceId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("VariableGroupId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("KeyVaultResourceId");
 
                     b.HasIndex("SourceResourceId");
+
+                    b.HasIndex("VariableGroupId");
 
                     b.HasIndex("ResourceId", "Name")
                         .IsUnique();
@@ -417,6 +426,41 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("ContainerAppEnvironmentEnvironmentSettings", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities.ContainerRegistryEnvironmentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("AdminUserEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ContainerRegistryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("PublicNetworkAccess")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Sku")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool?>("ZoneRedundancy")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContainerRegistryId", "EnvironmentName")
+                        .IsUnique();
+
+                    b.ToTable("ContainerRegistryEnvironmentSettings", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.CosmosDbAggregate.Entities.CosmosDbEnvironmentSettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -548,53 +592,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasIndex("InfraConfigId");
 
                     b.ToTable("ParameterDefinitions", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.PipelineVariableGroup", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("GroupName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<Guid>("InfraConfigId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InfraConfigId", "GroupName")
-                        .IsUnique();
-
-                    b.ToTable("PipelineVariableGroups", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.PipelineVariableMapping", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("BicepParameterName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("PipelineVariableName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<Guid>("VariableGroupId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("VariableGroupId", "BicepParameterName")
-                        .IsUnique();
-
-                    b.ToTable("PipelineVariableMappings", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ResourceNamingTemplate", b =>
@@ -798,32 +795,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ProjectPipelineVariableGroups", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableMapping", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("BicepParameterName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("PipelineVariableName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<Guid>("VariableGroupId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("VariableGroupId", "BicepParameterName")
-                        .IsUnique();
-
-                    b.ToTable("ProjectPipelineVariableMappings", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectResourceNamingTemplate", b =>
@@ -1322,6 +1293,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("ContainerAppEnvironments", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerRegistryAggregate.ContainerRegistry", b =>
+                {
+                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
+
+                    b.ToTable("ContainerRegistries", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.CosmosDbAggregate.CosmosDb", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
@@ -1574,6 +1552,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("SourceResourceId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup", null)
+                        .WithMany()
+                        .HasForeignKey("VariableGroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.AppSettingEnvironmentValue", b =>
@@ -1661,6 +1644,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities.ContainerRegistryEnvironmentSettings", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ContainerRegistryAggregate.ContainerRegistry", null)
+                        .WithMany("EnvironmentSettings")
+                        .HasForeignKey("ContainerRegistryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.CosmosDbAggregate.Entities.CosmosDbEnvironmentSettings", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.CosmosDbAggregate.CosmosDb", null)
@@ -1693,24 +1685,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", null)
                         .WithMany("ParameterDefinitions")
                         .HasForeignKey("InfraConfigId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.PipelineVariableGroup", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", null)
-                        .WithMany("PipelineVariableGroups")
-                        .HasForeignKey("InfraConfigId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.PipelineVariableMapping", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.PipelineVariableGroup", null)
-                        .WithMany("Mappings")
-                        .HasForeignKey("VariableGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1786,15 +1760,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Project", null)
                         .WithMany("PipelineVariableGroups")
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableMapping", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup", null)
-                        .WithMany("Mappings")
-                        .HasForeignKey("VariableGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -2065,6 +2030,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerRegistryAggregate.ContainerRegistry", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithOne()
+                        .HasForeignKey("InfraFlowSculptor.Domain.ContainerRegistryAggregate.ContainerRegistry", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.CosmosDbAggregate.CosmosDb", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
@@ -2182,27 +2156,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("EnvironmentValues");
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.PipelineVariableGroup", b =>
-                {
-                    b.Navigation("Mappings");
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", b =>
                 {
                     b.Navigation("CrossConfigReferences");
 
                     b.Navigation("ParameterDefinitions");
 
-                    b.Navigation("PipelineVariableGroups");
-
                     b.Navigation("ResourceGroups");
 
                     b.Navigation("ResourceNamingTemplates");
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup", b =>
-                {
-                    b.Navigation("Mappings");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Project", b =>
@@ -2242,6 +2204,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate.ContainerAppEnvironment", b =>
+                {
+                    b.Navigation("EnvironmentSettings");
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ContainerRegistryAggregate.ContainerRegistry", b =>
                 {
                     b.Navigation("EnvironmentSettings");
                 });

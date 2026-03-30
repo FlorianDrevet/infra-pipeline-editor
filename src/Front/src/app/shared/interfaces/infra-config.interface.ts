@@ -81,25 +81,4 @@ export interface SetResourceNamingTemplateRequest {
   template: string;
 }
 
-// ─── Pipeline Variable Groups ────────────────────────────────────────────────
-
-export interface PipelineVariableMappingResponse {
-  id: string;
-  pipelineVariableName: string;
-  bicepParameterName: string;
-}
-
-export interface PipelineVariableGroupResponse {
-  id: string;
-  groupName: string;
-  mappings: PipelineVariableMappingResponse[];
-}
-
-export interface AddPipelineVariableGroupRequest {
-  groupName: string;
-}
-
-export interface AddPipelineVariableMappingRequest {
-  pipelineVariableName: string;
-  bicepParameterName: string;
-}
+// ─── Pipeline Variable Groups (removed — now project-level only) ─────────────

@@ -13,6 +13,10 @@ export interface AppSettingResponse {
   isKeyVaultReference: boolean;
   hasKeyVaultAccess?: boolean | null;
   secretValueAssignment?: string | null;
+  variableGroupId: string | null;
+  pipelineVariableName: string | null;
+  variableGroupName: string | null;
+  isViaVariableGroup: boolean;
 }
 
 export interface AvailableOutputsResponse {
@@ -43,4 +47,6 @@ export interface AddAppSettingRequest {
   secretName?: string | null;
   exportToKeyVault?: boolean;
   secretValueAssignment?: string | null;
+  variableGroupId?: string;
+  pipelineVariableName?: string;
 }

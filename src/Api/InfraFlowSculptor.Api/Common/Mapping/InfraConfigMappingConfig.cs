@@ -58,6 +58,7 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate)
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.Tags, src => src.Tags)
             .Map(dest => dest.ResourceGroupCount, src => src.ResourceGroupCount)
             .Map(dest => dest.ResourceCount, src => src.ResourceCount)
             .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferenceCount);
@@ -70,6 +71,7 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate != null ? src.DefaultNamingTemplate.Value : null)
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.Tags, src => src.Tags)
             .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferences.Count);
 
         // User entity -> UserResult

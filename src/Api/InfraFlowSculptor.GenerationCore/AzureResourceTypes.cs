@@ -24,6 +24,7 @@ public static class AzureResourceTypes
     public const string SqlServer = "SqlServer";
     public const string SqlDatabase = "SqlDatabase";
     public const string ServiceBusNamespace = "ServiceBusNamespace";
+    public const string ContainerRegistry = "ContainerRegistry";
     public const string ResourceGroup = "ResourceGroup";
 
     /// <summary>
@@ -47,6 +48,7 @@ public static class AzureResourceTypes
         public const string SqlServer = "Microsoft.Sql/servers";
         public const string SqlDatabase = "Microsoft.Sql/servers/databases";
         public const string ServiceBusNamespace = "Microsoft.ServiceBus/namespaces";
+        public const string ContainerRegistry = "Microsoft.ContainerRegistry/registries";
     }
 
     /// <summary>
@@ -71,6 +73,7 @@ public static class AzureResourceTypes
         [ArmTypes.SqlServer] = SqlServer,
         [ArmTypes.SqlDatabase] = SqlDatabase,
         [ArmTypes.ServiceBusNamespace] = ServiceBusNamespace,
+        [ArmTypes.ContainerRegistry] = ContainerRegistry,
     };
 
     /// <summary>
@@ -82,7 +85,7 @@ public static class AzureResourceTypes
         WebApp, FunctionApp, UserAssignedIdentity, AppConfiguration,
         ContainerAppEnvironment, ContainerApp, LogAnalyticsWorkspace,
         ApplicationInsights, CosmosDb, SqlServer, SqlDatabase,
-        ServiceBusNamespace,
+        ServiceBusNamespace, ContainerRegistry,
     ];
 
     /// <summary>

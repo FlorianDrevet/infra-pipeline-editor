@@ -4,6 +4,7 @@ using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ResourceParameterUsage;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
@@ -181,6 +182,20 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     {
         var setting = AppSetting.CreateSensitiveOutputKeyVaultReference(
             Id, name, sourceResourceId, sourceOutputName, keyVaultResourceId, secretName);
+        _appSettings.Add(setting);
+        return setting;
+    }
+
+    /// <summary>Adds an app setting whose value comes from a pipeline variable group at deploy time.</summary>
+    /// <param name="name">The environment variable name.</param>
+    /// <param name="variableGroupId">The pipeline variable group identifier.</param>
+    /// <param name="pipelineVariableName">The pipeline variable name within the group.</param>
+    public AppSetting AddViaVariableGroupAppSetting(
+        string name,
+        ProjectPipelineVariableGroupId variableGroupId,
+        string pipelineVariableName)
+    {
+        var setting = AppSetting.CreateViaVariableGroup(Id, name, variableGroupId, pipelineVariableName);
         _appSettings.Add(setting);
         return setting;
     }

@@ -136,23 +136,20 @@ export interface GenerateProjectPipelineResponse {
 
 // ─── Project Pipeline Variable Groups ────────────────────────────────────────
 
-export interface ProjectPipelineVariableMappingResponse {
-  id: string;
+export interface PipelineVariableUsageResponse {
   pipelineVariableName: string;
-  bicepParameterName: string;
+  appSettingName: string;
+  resourceName: string;
+  resourceType: string;
+  configName: string;
 }
 
 export interface ProjectPipelineVariableGroupResponse {
   id: string;
   groupName: string;
-  mappings: ProjectPipelineVariableMappingResponse[];
+  variables: PipelineVariableUsageResponse[];
 }
 
 export interface AddProjectPipelineVariableGroupRequest {
   groupName: string;
-}
-
-export interface AddProjectPipelineVariableMappingRequest {
-  pipelineVariableName: string;
-  bicepParameterName: string;
 }

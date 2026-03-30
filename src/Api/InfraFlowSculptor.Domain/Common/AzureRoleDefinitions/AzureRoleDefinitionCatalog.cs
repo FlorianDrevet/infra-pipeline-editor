@@ -414,6 +414,33 @@ public static class AzureRoleDefinitionCatalog
             ServiceBusNamespaceDocsUrl),
     ];
 
+    private const string ContainerRegistryDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-roles";
+
+    /// <summary>Azure RBAC role definitions for Container Registry.</summary>
+    private static readonly IReadOnlyList<AzureRoleDefinition> ContainerRegistryRoles =
+    [
+        new("7f951dda-4ed3-4680-a7ca-43fe172d538d",
+            "AcrPush",
+            "Allows push and pull of images to an Azure Container Registry.",
+            ContainerRegistryDocsUrl),
+
+        new("7f951dda-4ed3-4680-a7ca-43fe172d538e",
+            "AcrPull",
+            "Allows pull of images from an Azure Container Registry.",
+            ContainerRegistryDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            ContainerRegistryDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            ContainerRegistryDocsUrl),
+    ];
+
     private const string SqlDatabaseDocsUrl =
         "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview";
 
@@ -458,6 +485,7 @@ public static class AzureRoleDefinitionCatalog
         { "SqlServer", SqlServerRoles },
         { "SqlDatabase", SqlDatabaseRoles },
         { "ServiceBusNamespace", ServiceBusNamespaceRoles },
+        { "ContainerRegistry", ContainerRegistryRoles },
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>

@@ -15,8 +15,6 @@ public static partial class Errors
         private const string MemberNotFoundCode = "Project.MemberNotFound";
         private const string DuplicateVariableGroupCode = "Project.DuplicateVariableGroup";
         private const string VariableGroupNotFoundCode = "Project.VariableGroupNotFound";
-        private const string DuplicateVariableMappingCode = "Project.DuplicateVariableMapping";
-        private const string VariableMappingNotFoundCode = "Project.VariableMappingNotFound";
 
         /// <summary>Returns a not-found error for the given project identifier.</summary>
         public static Error NotFoundError(ProjectId id) =>
@@ -45,14 +43,6 @@ public static partial class Errors
         /// <summary>Returns a not-found error for the given variable group identifier.</summary>
         public static Error VariableGroupNotFoundError(ProjectPipelineVariableGroupId groupId) =>
             Error.NotFound(code: VariableGroupNotFoundCode, description: $"No pipeline variable group with id '{groupId}' was found in this project.");
-
-        /// <summary>Returns an error when a mapping with the same Bicep parameter already exists.</summary>
-        public static Error DuplicateVariableMappingError(string bicepParameterName) =>
-            Error.Conflict(code: DuplicateVariableMappingCode, description: $"A mapping for Bicep parameter '{bicepParameterName}' already exists in this group.");
-
-        /// <summary>Returns a not-found error for the given variable mapping identifier.</summary>
-        public static Error VariableMappingNotFoundError(ProjectPipelineVariableMappingId mappingId) =>
-            Error.NotFound(code: VariableMappingNotFoundCode, description: $"No pipeline variable mapping with id '{mappingId}' was found in this group.");
 
         /// <summary>Returned when a role string cannot be parsed into a valid role enum value.</summary>
         public static Error InvalidRoleError(string role) =>

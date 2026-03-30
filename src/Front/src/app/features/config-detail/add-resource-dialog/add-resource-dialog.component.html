@@ -785,6 +785,32 @@
                   </mat-slide-toggle>
                 </div>
               }
+              @case (ResourceTypeEnum.ContainerRegistry) {
+                <div [formGroup]="getEnvFormGroup(i)" class="env-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKU' | translate }}</mat-label>
+                    <mat-select formControlName="sku">
+                      @for (option of acrSkuOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.PUBLIC_NETWORK_ACCESS' | translate }}</mat-label>
+                    <mat-select formControlName="publicNetworkAccess">
+                      @for (option of acrPublicNetworkOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-slide-toggle formControlName="adminUserEnabled" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ADMIN_USER_ENABLED' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="zoneRedundancy" color="primary">
+                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANCY' | translate }}
+                  </mat-slide-toggle>
+                </div>
+              }
             }
           </mat-tab>
         }

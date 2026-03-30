@@ -13,4 +13,8 @@ public record AppSettingResponse(
     string? SecretName,
     bool IsKeyVaultReference,
     bool? HasKeyVaultAccess,
-    string? SecretValueAssignment);
+    string? SecretValueAssignment,
+    string? VariableGroupId,
+    string? PipelineVariableName,
+    string? VariableGroupName,
+    bool IsViaVariableGroup);

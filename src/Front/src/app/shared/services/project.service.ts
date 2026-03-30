@@ -19,8 +19,6 @@ import {
   GenerateProjectPipelineResponse,
   ProjectPipelineVariableGroupResponse,
   AddProjectPipelineVariableGroupRequest,
-  AddProjectPipelineVariableMappingRequest,
-  ProjectPipelineVariableMappingResponse,
 } from '../interfaces/project.interface';
 import {
   PushBicepToGitRequest,
@@ -313,29 +311,6 @@ export class ProjectService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/projects/${projectId}/pipeline-variable-groups/${groupId}`
-    );
-  }
-
-  addPipelineVariableMapping(
-    projectId: string,
-    groupId: string,
-    request: AddProjectPipelineVariableMappingRequest
-  ): Promise<ProjectPipelineVariableMappingResponse> {
-    return this.axios.request$<ProjectPipelineVariableMappingResponse>(
-      MethodEnum.POST,
-      `/projects/${projectId}/pipeline-variable-groups/${groupId}/mappings`,
-      request
-    );
-  }
-
-  removePipelineVariableMapping(
-    projectId: string,
-    groupId: string,
-    mappingId: string
-  ): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/projects/${projectId}/pipeline-variable-groups/${groupId}/mappings/${mappingId}`
     );
   }
 }

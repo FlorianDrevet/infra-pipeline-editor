@@ -45,16 +45,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
         var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
             command.ProjectId, cancellationToken);
 
-        var projectVariableGroups = project?.PipelineVariableGroups
-            .Select(g => new PipelineVariableGroupDefinition
-            {
-                GroupName = g.GroupName,
-                Mappings = g.Mappings.Select(m => new PipelineVariableMappingDefinition
-                {
-                    PipelineVariableName = m.PipelineVariableName,
-                    BicepParameterName = m.BicepParameterName,
-                }).ToList(),
-            }).ToList() ?? [];
+        var projectVariableGroups = project?.PipelineVariableGroups.ToList() ?? [];
 
         // 4. Generate pipeline YAML per config (mono-repo mode: no per-config variables)
         var perConfigResults = new Dictionary<string, PipelineGenerationResult>();
@@ -115,7 +106,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
 
     private static GenerationRequest BuildGenerationRequest(
         InfrastructureConfigReadModel config,
-        List<PipelineVariableGroupDefinition> projectVariableGroups)
+        List<Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup> projectVariableGroups)
     {
         var resources = config.ResourceGroups
             .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
@@ -164,6 +155,28 @@ public sealed class GenerateProjectPipelineCommandHandler(
             ResourceAbbreviations = ResourceAbbreviationCatalog.GetAll(),
         };
 
+        // Derive PVG mappings from app settings linked to each variable group
+        var pipelineVariableGroups = projectVariableGroups
+            .Select(g =>
+            {
+                var mappings = config.AppSettings
+                    .Where(s => s.IsViaVariableGroup && s.VariableGroupId.HasValue
+                        && s.VariableGroupId.Value == g.Id.Value)
+                    .Select(s => new PipelineVariableMappingDefinition
+                    {
+                        PipelineVariableName = s.PipelineVariableName!,
+                        BicepParameterName = s.Name,
+                    })
+                    .ToList();
+
+                return new PipelineVariableGroupDefinition
+                {
+                    GroupName = g.GroupName,
+                    Mappings = mappings,
+                };
+            })
+            .ToList();
+
         return new GenerationRequest
         {
             Resources = resources,
@@ -174,7 +187,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             RoleAssignments = [],
             AppSettings = [],
             ExistingResourceReferences = [],
-            PipelineVariableGroups = MergeVariableGroups(projectVariableGroups, config.PipelineVariableGroups),
+            PipelineVariableGroups = pipelineVariableGroups,
         };
     }
 
@@ -184,32 +197,4 @@ public sealed class GenerateProjectPipelineCommandHandler(
         return ResourceAbbreviationCatalog.GetAbbreviation(typeName);
     }
 
-    /// <summary>
-    /// Merges project-level and config-level variable groups.
-    /// Config-level groups take precedence when a group name already exists at project level.
-    /// </summary>
-    private static List<PipelineVariableGroupDefinition> MergeVariableGroups(
-        List<PipelineVariableGroupDefinition> projectGroups,
-        IReadOnlyList<PipelineVariableGroupReadModel> configGroups)
-    {
-        var merged = new Dictionary<string, PipelineVariableGroupDefinition>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var pg in projectGroups)
-            merged[pg.GroupName] = pg;
-
-        foreach (var cg in configGroups)
-        {
-            merged[cg.GroupName] = new PipelineVariableGroupDefinition
-            {
-                GroupName = cg.GroupName,
-                Mappings = cg.Mappings.Select(m => new PipelineVariableMappingDefinition
-                {
-                    PipelineVariableName = m.PipelineVariableName,
-                    BicepParameterName = m.BicepParameterName,
-                }).ToList(),
-            };
-        }
-
-        return merged.Values.ToList();
-    }
 }

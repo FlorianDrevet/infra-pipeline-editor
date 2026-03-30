@@ -39,4 +39,17 @@ public class AddAppSettingRequest
     /// Valid values: "ViaBicepparam" or "DirectInKeyVault". Defaults to "DirectInKeyVault" if not provided.
     /// </summary>
     public string? SecretValueAssignment { get; init; }
+
+    /// <summary>
+    /// Optional identifier of the pipeline variable group this setting belongs to.
+    /// When set, the app setting's value comes from a pipeline variable injected at deploy time.
+    /// </summary>
+    public Guid? VariableGroupId { get; init; }
+
+    /// <summary>
+    /// The name of the pipeline variable within the variable group.
+    /// Required when <see cref="VariableGroupId"/> is set.
+    /// </summary>
+    [MaxLength(256)]
+    public string? PipelineVariableName { get; init; }
 }

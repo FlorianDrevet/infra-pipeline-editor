@@ -37,6 +37,7 @@ import { LogAnalyticsWorkspaceResponse, LogAnalyticsWorkspaceEnvironmentConfigEn
 import { ApplicationInsightsResponse, ApplicationInsightsEnvironmentConfigEntry } from '../../shared/interfaces/application-insights.interface';
 import { CosmosDbResponse, CosmosDbEnvironmentConfigEntry } from '../../shared/interfaces/cosmos-db.interface';
 import { ServiceBusNamespaceResponse, ServiceBusNamespaceEnvironmentConfigEntry } from '../../shared/interfaces/service-bus-namespace.interface';
+import { ContainerRegistryResponse, ContainerRegistryEnvironmentConfigEntry } from '../../shared/interfaces/container-registry.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
@@ -48,6 +49,7 @@ import { LogAnalyticsWorkspaceService } from '../../shared/services/log-analytic
 import { ApplicationInsightsService } from '../../shared/services/application-insights.service';
 import { CosmosDbService } from '../../shared/services/cosmos-db.service';
 import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
+import { ContainerRegistryService } from '../../shared/services/container-registry.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
@@ -65,7 +67,7 @@ import { AppSettingService } from '../../shared/services/app-setting.service';
 import { AppSettingResponse } from '../../shared/interfaces/app-setting.interface';
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse;
 
 type CorsServiceKey = 'blob' | 'table';
 type CorsListField = 'allowedOrigins' | 'allowedHeaders' | 'exposedHeaders';
@@ -236,6 +238,17 @@ const COSMOS_BACKUP_POLICY_OPTIONS = [
   { label: 'Continuous', value: 'Continuous' },
 ];
 
+const ACR_SKU_OPTIONS = [
+  { label: 'Basic', value: 'Basic' },
+  { label: 'Standard', value: 'Standard' },
+  { label: 'Premium', value: 'Premium' },
+];
+
+const ACR_PUBLIC_NETWORK_OPTIONS = [
+  { label: 'Enabled', value: 'Enabled' },
+  { label: 'Disabled', value: 'Disabled' },
+];
+
 @Component({
   selector: 'app-resource-edit',
   standalone: true,
@@ -277,6 +290,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly applicationInsightsService = inject(ApplicationInsightsService);
   private readonly cosmosDbService = inject(CosmosDbService);
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
+  private readonly containerRegistryService = inject(ContainerRegistryService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -469,6 +483,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly cosmosApiTypeOptions = COSMOS_API_TYPE_OPTIONS;
   protected readonly cosmosConsistencyLevelOptions = COSMOS_CONSISTENCY_LEVEL_OPTIONS;
   protected readonly cosmosBackupPolicyOptions = COSMOS_BACKUP_POLICY_OPTIONS;
+  protected readonly acrSkuOptions = ACR_SKU_OPTIONS;
+  protected readonly acrPublicNetworkOptions = ACR_PUBLIC_NETWORK_OPTIONS;
 
   // ─── Forms ───
   protected generalForm!: FormGroup;
@@ -609,6 +625,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return this.cosmosDbService.getById(this.resourceId);
       case 'ServiceBusNamespace':
         return this.serviceBusNamespaceService.getById(this.resourceId);
+      case 'ContainerRegistry':
+        return this.containerRegistryService.getById(this.resourceId);
       default:
         throw new Error(`Unknown resource type: ${this.resourceType}`);
     }
@@ -840,6 +858,16 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           minimumTlsVersion: [settings?.minimumTlsVersion ?? null],
         });
       }
+      case 'ContainerRegistry': {
+        const cr = resource as ContainerRegistryResponse;
+        const settings = cr.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          sku: [settings?.sku ?? null],
+          adminUserEnabled: [settings?.adminUserEnabled ?? null],
+          publicNetworkAccess: [settings?.publicNetworkAccess ?? null],
+          zoneRedundancy: [settings?.zoneRedundancy ?? null],
+        });
+      }
     }
   }
 
@@ -986,6 +1014,13 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             name: general.name,
             location: general.location,
             environmentSettings: this.buildServiceBusNamespaceEnvSettings(),
+          });
+          break;
+        case 'ContainerRegistry':
+          await this.containerRegistryService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            environmentSettings: this.buildContainerRegistryEnvSettings(),
           });
           break;
       }
@@ -1376,6 +1411,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         currentResourceName: this.resource()?.name ?? '',
         siblingResources: this.allResources(),
         environments: this.environments().map(e => ({ name: e.name })),
+        projectId: this.config()?.projectId ?? '',
       } satisfies AddAppSettingDialogData,
       width: '520px',
       maxHeight: '85vh',
@@ -2199,6 +2235,19 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         zoneRedundant: raw.zoneRedundant ?? null,
         disableLocalAuth: raw.disableLocalAuth ?? null,
         minimumTlsVersion: raw.minimumTlsVersion || null,
+      };
+    });
+  }
+
+  private buildContainerRegistryEnvSettings(): ContainerRegistryEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        sku: raw.sku || null,
+        adminUserEnabled: raw.adminUserEnabled ?? null,
+        publicNetworkAccess: raw.publicNetworkAccess || null,
+        zoneRedundancy: raw.zoneRedundancy ?? null,
       };
     });
   }

@@ -3,7 +3,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
-using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -37,14 +36,24 @@ public sealed class GeneratePipelineCommandHandler(
             new ProjectId(config.ProjectId), cancellationToken);
 
         var projectVariableGroups = project?.PipelineVariableGroups
-            .Select(g => new PipelineVariableGroupDefinition
+            .Select(g =>
             {
-                GroupName = g.GroupName,
-                Mappings = g.Mappings.Select(m => new PipelineVariableMappingDefinition
+                // Derive mappings from app settings linked to this variable group
+                var mappings = config.AppSettings
+                    .Where(s => s.IsViaVariableGroup && s.VariableGroupId.HasValue
+                        && s.VariableGroupId.Value == g.Id.Value)
+                    .Select(s => new PipelineVariableMappingDefinition
+                    {
+                        PipelineVariableName = s.PipelineVariableName!,
+                        BicepParameterName = s.Name,
+                    })
+                    .ToList();
+
+                return new PipelineVariableGroupDefinition
                 {
-                    PipelineVariableName = m.PipelineVariableName,
-                    BicepParameterName = m.BicepParameterName,
-                }).ToList(),
+                    GroupName = g.GroupName,
+                    Mappings = mappings,
+                };
             }).ToList() ?? [];
 
         var resources = config.ResourceGroups
@@ -105,7 +114,7 @@ public sealed class GeneratePipelineCommandHandler(
             RoleAssignments = [],
             AppSettings = [],
             ExistingResourceReferences = [],
-            PipelineVariableGroups = MergeVariableGroups(projectVariableGroups, config.PipelineVariableGroups),
+            PipelineVariableGroups = projectVariableGroups,
         };
 
         var result = pipelineGenerationEngine.Generate(generationRequest, config.Name);
@@ -125,33 +134,4 @@ public sealed class GeneratePipelineCommandHandler(
 
     private static string GetResourceTypeName(string azureResourceType) =>
         AzureResourceTypes.GetFriendlyName(azureResourceType);
-
-    /// <summary>
-    /// Merges project-level and config-level variable groups.
-    /// Config-level groups take precedence when a group name already exists at project level.
-    /// </summary>
-    private static List<PipelineVariableGroupDefinition> MergeVariableGroups(
-        List<PipelineVariableGroupDefinition> projectGroups,
-        IReadOnlyList<PipelineVariableGroupReadModel> configGroups)
-    {
-        var merged = new Dictionary<string, PipelineVariableGroupDefinition>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var pg in projectGroups)
-            merged[pg.GroupName] = pg;
-
-        foreach (var cg in configGroups)
-        {
-            merged[cg.GroupName] = new PipelineVariableGroupDefinition
-            {
-                GroupName = cg.GroupName,
-                Mappings = cg.Mappings.Select(m => new PipelineVariableMappingDefinition
-                {
-                    PipelineVariableName = m.PipelineVariableName,
-                    BicepParameterName = m.BicepParameterName,
-                }).ToList(),
-            };
-        }
-
-        return merged.Values.ToList();
-    }
 }

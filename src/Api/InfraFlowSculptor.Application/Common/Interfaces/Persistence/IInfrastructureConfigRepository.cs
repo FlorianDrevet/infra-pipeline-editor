@@ -20,9 +20,4 @@ public interface IInfrastructureConfigRepository : IRepository<Domain.Infrastruc
     /// Returns all infrastructure configurations belonging to the given project.
     /// </summary>
     Task<List<Domain.InfrastructureConfigAggregate.InfrastructureConfig>> GetByProjectIdAsync(ProjectId projectId, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Loads the InfrastructureConfig with PipelineVariableGroups and their Mappings.
-    /// </summary>
-    Task<Domain.InfrastructureConfigAggregate.InfrastructureConfig?> GetByIdWithPipelineVariableGroupsAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default);
 }

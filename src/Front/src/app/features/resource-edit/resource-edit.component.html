@@ -729,6 +729,36 @@
                         </mat-slide-toggle>
                       </div>
                     }
+                    @case ('ContainerRegistry') {
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                        <mat-select formControlName="sku">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of acrSkuOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.PUBLIC_NETWORK_ACCESS' | translate }}</mat-label>
+                        <mat-select formControlName="publicNetworkAccess">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of acrPublicNetworkOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="adminUserEnabled" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.ADMIN_USER_ENABLED' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="zoneRedundancy" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANCY' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                    }
                   }
                 </form>
               </div>
@@ -1695,10 +1725,12 @@
                   <div class="ra-card">
                     <div class="ra-card__main">
                       <div class="ra-card__target">
-                        <mat-icon class="ra-card__target-icon">{{ setting.isKeyVaultReference ? 'vpn_key' : setting.isOutputReference ? 'swap_horiz' : 'edit_note' }}</mat-icon>
+                        <mat-icon class="ra-card__target-icon">{{ setting.isViaVariableGroup ? 'library_books' : setting.isKeyVaultReference ? 'vpn_key' : setting.isOutputReference ? 'swap_horiz' : 'edit_note' }}</mat-icon>
                         <div class="ra-card__target-info">
                           <span class="ra-card__target-name as-card__name">{{ setting.name }}</span>
-                          @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
+                          @if (setting.isViaVariableGroup && setting.variableGroupName) {
+                            <span class="ra-card__target-type">{{ setting.variableGroupName }} · $({{ setting.pipelineVariableName }})</span>
+                          } @else if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
                             <span class="ra-card__target-type">{{ resolveSourceName(setting.keyVaultResourceId) }} · {{ setting.secretName }}</span>
                           } @else if (setting.isOutputReference && setting.sourceResourceId) {
                             <span class="ra-card__target-type">{{ resolveSourceName(setting.sourceResourceId) }} · {{ setting.sourceOutputName }}</span>
@@ -1708,7 +1740,18 @@
                         </div>
                       </div>
                       <div class="ra-card__details">
-                        @if (setting.isKeyVaultReference) {
+                        @if (setting.isViaVariableGroup) {
+                          <span class="as-badge as-badge--ref">
+                            <mat-icon>library_books</mat-icon>
+                            {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.VIA_VARIABLE_GROUP' | translate }}
+                          </span>
+                          @if (setting.variableGroupName) {
+                            <span class="as-badge as-badge--source">
+                              <mat-icon>library_books</mat-icon>
+                              {{ setting.variableGroupName }}
+                            </span>
+                          }
+                        } @else if (setting.isKeyVaultReference) {
                           <span class="as-badge as-badge--kv">
                             <mat-icon>vpn_key</mat-icon>
                             {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_REF' | translate }}

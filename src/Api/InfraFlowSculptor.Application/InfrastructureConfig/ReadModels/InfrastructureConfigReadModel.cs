@@ -10,7 +10,8 @@ public record InfrastructureConfigReadModel(
     IReadOnlyList<RoleAssignmentReadModel> RoleAssignments,
     IReadOnlyList<AppSettingReadModel> AppSettings,
     IReadOnlyList<CrossConfigReferenceReadModel> CrossConfigReferences,
-    IReadOnlyList<PipelineVariableGroupReadModel> PipelineVariableGroups);
+    IReadOnlyDictionary<string, string> ProjectTags,
+    IReadOnlyDictionary<string, string> ConfigTags);
 
 public record ResourceGroupReadModel(
     Guid Id,
@@ -38,7 +39,8 @@ public record EnvironmentDefinitionReadModel(
     string Prefix,
     string Suffix,
     string? AzureResourceManagerConnection,
-    string? SubscriptionId);
+    string? SubscriptionId,
+    IReadOnlyDictionary<string, string> Tags);
 
 /// <summary>
 /// Read model for the project-level naming context
@@ -87,7 +89,11 @@ public record AppSettingReadModel(
     bool IsKeyVaultReference,
     bool IsSourceCrossConfig = false,
     string? SourceResourceGroupName = null,
-    string? SecretValueAssignment = null);
+    string? SecretValueAssignment = null,
+    Guid? VariableGroupId = null,
+    string? PipelineVariableName = null,
+    string? VariableGroupName = null,
+    bool IsViaVariableGroup = false);
 
 /// <summary>
 /// Read model for a cross-configuration resource reference used in Bicep generation.
@@ -102,19 +108,3 @@ public record CrossConfigReferenceReadModel(
     string TargetResourceType,
     string TargetResourceGroupName,
     string TargetResourceAbbreviation);
-
-/// <summary>
-/// Read model for a pipeline variable group configured on an infrastructure configuration.
-/// </summary>
-public record PipelineVariableGroupReadModel(
-    Guid GroupId,
-    string GroupName,
-    IReadOnlyList<PipelineVariableMappingReadModel> Mappings);
-
-/// <summary>
-/// Read model for a single variable-to-Bicep-parameter mapping within a pipeline variable group.
-/// </summary>
-public record PipelineVariableMappingReadModel(
-    Guid MappingId,
-    string PipelineVariableName,
-    string BicepParameterName);

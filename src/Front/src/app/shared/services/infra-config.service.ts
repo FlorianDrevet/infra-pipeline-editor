@@ -6,10 +6,6 @@ import {
   CreateInfrastructureConfigRequest,
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
-  PipelineVariableGroupResponse,
-  AddPipelineVariableGroupRequest,
-  AddPipelineVariableMappingRequest,
-  PipelineVariableMappingResponse,
 } from '../interfaces/infra-config.interface';
 import { ResourceGroupResponse } from '../interfaces/resource-group.interface';
 import {
@@ -137,53 +133,5 @@ export class InfraConfigService {
     );
   }
 
-  // ─── Pipeline Variable Groups ───
-
-  getPipelineVariableGroups(configId: string): Promise<PipelineVariableGroupResponse[]> {
-    return this.axios.request$<PipelineVariableGroupResponse[]>(
-      MethodEnum.GET,
-      `/infra-config/${configId}/pipeline-variable-groups`
-    );
-  }
-
-  addPipelineVariableGroup(
-    configId: string,
-    request: AddPipelineVariableGroupRequest
-  ): Promise<PipelineVariableGroupResponse> {
-    return this.axios.request$<PipelineVariableGroupResponse>(
-      MethodEnum.POST,
-      `/infra-config/${configId}/pipeline-variable-groups`,
-      request
-    );
-  }
-
-  removePipelineVariableGroup(configId: string, groupId: string): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/infra-config/${configId}/pipeline-variable-groups/${groupId}`
-    );
-  }
-
-  addPipelineVariableMapping(
-    configId: string,
-    groupId: string,
-    request: AddPipelineVariableMappingRequest
-  ): Promise<PipelineVariableMappingResponse> {
-    return this.axios.request$<PipelineVariableMappingResponse>(
-      MethodEnum.POST,
-      `/infra-config/${configId}/pipeline-variable-groups/${groupId}/mappings`,
-      request
-    );
-  }
-
-  removePipelineVariableMapping(
-    configId: string,
-    groupId: string,
-    mappingId: string
-  ): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/infra-config/${configId}/pipeline-variable-groups/${groupId}/mappings/${mappingId}`
-    );
-  }
+  // ─── Pipeline Variable Groups (removed — now project-level only) ───
 }

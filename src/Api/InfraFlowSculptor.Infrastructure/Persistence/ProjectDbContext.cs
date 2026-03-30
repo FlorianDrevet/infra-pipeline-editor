@@ -35,6 +35,8 @@ using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
+using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -92,12 +94,11 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<ServiceBusNamespaceEnvironmentSettings> ServiceBusNamespaceEnvironmentSettings { get; set; } = null!;
     public DbSet<ServiceBusQueue> ServiceBusQueues { get; set; } = null!;
     public DbSet<ServiceBusTopicSubscription> ServiceBusTopicSubscriptions { get; set; } = null!;
+    public DbSet<ContainerRegistry> ContainerRegistries { get; set; } = null!;
+    public DbSet<ContainerRegistryEnvironmentSettings> ContainerRegistryEnvironmentSettings { get; set; } = null!;
     public DbSet<GitRepositoryConfiguration> GitRepositoryConfigurations { get; set; } = null!;
     public DbSet<CrossConfigResourceReference> CrossConfigResourceReferences { get; set; } = null!;
-    public DbSet<PipelineVariableGroup> PipelineVariableGroups { get; set; } = null!;
-    public DbSet<PipelineVariableMapping> PipelineVariableMappings { get; set; } = null!;
     public DbSet<ProjectPipelineVariableGroup> ProjectPipelineVariableGroups { get; set; } = null!;
-    public DbSet<ProjectPipelineVariableMapping> ProjectPipelineVariableMappings { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

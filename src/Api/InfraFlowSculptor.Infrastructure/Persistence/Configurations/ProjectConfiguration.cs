@@ -85,6 +85,18 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .HasConversion(new EnumValueConverter<RepositoryMode, RepositoryModeEnum>())
             .HasDefaultValue(new RepositoryMode(RepositoryModeEnum.MultiRepo))
             .IsRequired();
+
+        // ========================
+        // Tags (OWNED)
+        // ========================
+        builder.OwnsMany(p => p.Tags, tag =>
+        {
+            tag.ToTable("ProjectTags");
+            tag.WithOwner().HasForeignKey("ProjectId");
+            tag.HasKey("ProjectId", "Name");
+            tag.Property(t => t.Name).HasMaxLength(100);
+            tag.Property(t => t.Value).HasMaxLength(500);
+        });
     }
 
     private static void ConfigureEnvironments(EntityTypeBuilder<Project> builder)

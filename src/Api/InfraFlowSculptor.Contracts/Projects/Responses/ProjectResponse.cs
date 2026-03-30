@@ -12,4 +12,5 @@ public record ProjectResponse(
     string? DefaultNamingTemplate,
     IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates,
     GitConfigResponse? GitRepositoryConfiguration,
-    string RepositoryMode);
+    string RepositoryMode,
+    IReadOnlyList<TagResponse> Tags);

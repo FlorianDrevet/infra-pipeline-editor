@@ -42,15 +42,69 @@
         <mat-slide-toggle
           [ngModel]="isSecret()"
           (ngModelChange)="onIsSecretToggle($event)"
+          [disabled]="isViaVariableGroup()"
           color="primary">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.IS_SECRET_LABEL' | translate }}
         </mat-slide-toggle>
       </div>
 
+      <!-- Via Variable Group toggle -->
+      <div class="secret-toggle-section">
+        <mat-slide-toggle
+          [ngModel]="isViaVariableGroup()"
+          (ngModelChange)="onViaVariableGroupToggle($event)"
+          [disabled]="isSecret()"
+          color="primary">
+          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.VIA_VARIABLE_GROUP' | translate }}
+        </mat-slide-toggle>
+      </div>
+
+      <!-- Variable Group selection -->
+      @if (isViaVariableGroup()) {
+        <div class="config-section vg-section">
+          @if (vgLoading()) {
+            <div class="as-dialog__loading">
+              <mat-spinner diameter="20"></mat-spinner>
+            </div>
+          } @else {
+            <mat-form-field appearance="outline" class="config-section__field">
+              <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SELECT_VARIABLE_GROUP' | translate }}</mat-label>
+              <mat-select [ngModel]="selectedVariableGroupId() ?? (isCreatingNewGroup() ? '__create_new__' : '')" (ngModelChange)="onVgSelectionChange($event)">
+                @for (vg of vgOptions(); track vg.id) {
+                  <mat-option [value]="vg.id">{{ vg.groupName }}</mat-option>
+                }
+                <mat-option value="__create_new__">
+                  <mat-icon>add</mat-icon>
+                  {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CREATE_NEW_GROUP' | translate }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            @if (isCreatingNewGroup()) {
+              <mat-form-field appearance="outline" class="config-section__field">
+                <mat-label>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME' | translate }}</mat-label>
+                <input matInput [ngModel]="newGroupName()" (ngModelChange)="newGroupName.set($event)" [placeholder]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_PLACEHOLDER' | translate" />
+                <mat-hint>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_HINT' | translate }}</mat-hint>
+              </mat-form-field>
+            }
+
+            <mat-form-field appearance="outline" class="config-section__field">
+              <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME' | translate }}</mat-label>
+              <input matInput [ngModel]="pipelineVariableName()" (ngModelChange)="pipelineVariableName.set($event)" placeholder="myVariableName" />
+              <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME_HINT' | translate }}</mat-hint>
+            </mat-form-field>
+          }
+        </div>
+      }
+
       <!-- Non-secret: environment values -->
       @if (!isSecret()) {
         <div class="env-values-section">
-          <p class="env-values-section__label">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUES_LABEL' | translate }}</p>
+          @if (isViaVariableGroup()) {
+            <p class="env-values-section__label">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUES_OPTIONAL' | translate }}</p>
+          } @else {
+            <p class="env-values-section__label">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUES_LABEL' | translate }}</p>
+          }
           @for (env of data.environments; track env.name) {
             <div class="config-section">
               <mat-form-field appearance="outline" class="config-section__field">

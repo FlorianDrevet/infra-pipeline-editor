@@ -17,13 +17,14 @@ public sealed class AddAppSettingCommandValidator : AbstractValidator<AddAppSett
             .MaximumLength(256)
             .WithMessage("App setting name must not exceed 256 characters.");
 
-        // Either environment values (static), output reference, Key Vault reference, or ExportToKeyVault must be provided
+        // Either environment values (static), output reference, Key Vault reference, or variable group must be provided
         RuleFor(x => x)
             .Must(x =>
                 (x.EnvironmentValues is not null && x.EnvironmentValues.Count > 0)
                 || (x.SourceResourceId is not null && !string.IsNullOrEmpty(x.SourceOutputName))
-                || (x.KeyVaultResourceId is not null && !string.IsNullOrEmpty(x.SecretName)))
-            .WithMessage("Either environment values (static), a source resource output reference, or a Key Vault reference must be provided.");
+                || (x.KeyVaultResourceId is not null && !string.IsNullOrEmpty(x.SecretName))
+                || (x.VariableGroupId is not null && !string.IsNullOrEmpty(x.PipelineVariableName)))
+            .WithMessage("Either environment values (static), a source resource output reference, a Key Vault reference, or a variable group reference must be provided.");
 
         // ExportToKeyVault requires both source output AND Key Vault fields
         RuleFor(x => x)
@@ -45,5 +46,16 @@ public sealed class AddAppSettingCommandValidator : AbstractValidator<AddAppSett
             .IsInEnum()
             .WithMessage("SecretValueAssignment must be a valid value (ViaBicepparam or DirectInKeyVault).")
             .When(x => x.SecretValueAssignment is not null);
+
+        // VariableGroupId requires PipelineVariableName
+        RuleFor(x => x.PipelineVariableName)
+            .NotEmpty()
+            .WithMessage("PipelineVariableName is required when VariableGroupId is set.")
+            .When(x => x.VariableGroupId is not null);
+
+        RuleFor(x => x.PipelineVariableName)
+            .MaximumLength(256)
+            .WithMessage("PipelineVariableName must not exceed 256 characters.")
+            .When(x => x.PipelineVariableName is not null);
     }
 }

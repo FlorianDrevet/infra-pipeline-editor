@@ -40,6 +40,7 @@ public static class RoleAssignmentModuleTemplates
         [AzureResourceTypes.SqlServer] = new(AzureResourceTypes.ArmTypes.SqlServer, "2023-08-01-preview", "sqlServer", "sqlserver", "SQL Server"),
         [AzureResourceTypes.SqlDatabase] = new(AzureResourceTypes.ArmTypes.SqlDatabase, "2023-08-01-preview", "sqlDatabase", "sqldatabase", "SQL Database"),
         [AzureResourceTypes.ServiceBusNamespace] = new(AzureResourceTypes.ArmTypes.ServiceBusNamespace, "2022-10-01-preview", "serviceBusNamespace", "servicebus", "Service Bus Namespace"),
+        [AzureResourceTypes.ContainerRegistry] = new(AzureResourceTypes.ArmTypes.ContainerRegistry, "2023-07-01", "containerRegistry", "containerregistry", "Container Registry"),
     };
 
     /// <summary>

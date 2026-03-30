@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 
@@ -51,6 +52,18 @@ public sealed class AppSetting : Entity<AppSettingId>
     /// Null when this is not a static Key Vault reference.
     /// </summary>
     public SecretValueAssignment? SecretValueAssignment { get; private set; }
+
+    /// <summary>
+    /// Optional identifier of the pipeline variable group this setting belongs to.
+    /// When set, the app setting's value comes from a pipeline variable injected at deploy time.
+    /// </summary>
+    public ProjectPipelineVariableGroupId? VariableGroupId { get; private set; }
+
+    /// <summary>
+    /// The name of the pipeline variable within the variable group.
+    /// Required when <see cref="VariableGroupId"/> is set.
+    /// </summary>
+    public string? PipelineVariableName { get; private set; }
 
     private AppSetting() { }
 
@@ -143,6 +156,25 @@ public sealed class AppSetting : Entity<AppSettingId>
             SecretName = secretName,
         };
 
+    /// <summary>Creates a new <see cref="AppSetting"/> whose value comes from a pipeline variable group at deploy time.</summary>
+    /// <param name="resourceId">The owning resource identifier.</param>
+    /// <param name="name">The environment variable name.</param>
+    /// <param name="variableGroupId">The pipeline variable group identifier.</param>
+    /// <param name="pipelineVariableName">The pipeline variable name within the group.</param>
+    internal static AppSetting CreateViaVariableGroup(
+        AzureResourceId resourceId,
+        string name,
+        ProjectPipelineVariableGroupId variableGroupId,
+        string pipelineVariableName)
+        => new()
+        {
+            Id = AppSettingId.CreateUnique(),
+            ResourceId = resourceId,
+            Name = name,
+            VariableGroupId = variableGroupId,
+            PipelineVariableName = pipelineVariableName,
+        };
+
     /// <summary>Updates this app setting to static per-environment values.</summary>
     /// <param name="name">The new environment variable name.</param>
     /// <param name="environmentValues">A dictionary of environment name → value.</param>
@@ -153,6 +185,8 @@ public sealed class AppSetting : Entity<AppSettingId>
         SourceOutputName = null;
         KeyVaultResourceId = null;
         SecretName = null;
+        VariableGroupId = null;
+        PipelineVariableName = null;
         _environmentValues.Clear();
         foreach (var (envName, value) in environmentValues)
         {
@@ -169,6 +203,8 @@ public sealed class AppSetting : Entity<AppSettingId>
         SourceOutputName = sourceOutputName;
         KeyVaultResourceId = null;
         SecretName = null;
+        VariableGroupId = null;
+        PipelineVariableName = null;
         _environmentValues.Clear();
     }
 
@@ -190,10 +226,30 @@ public sealed class AppSetting : Entity<AppSettingId>
         SecretName = secretName;
         SecretValueAssignment = assignment;
         _environmentValues.Clear();
-    }   
+    }
+
+    /// <summary>Updates this app setting to receive its value from a pipeline variable group at deploy time.</summary>
+    /// <param name="name">The new environment variable name.</param>
+    /// <param name="variableGroupId">The pipeline variable group identifier.</param>
+    /// <param name="pipelineVariableName">The pipeline variable name within the group.</param>
+    internal void UpdateToViaVariableGroup(
+        string name,
+        ProjectPipelineVariableGroupId variableGroupId,
+        string pipelineVariableName)
+    {
+        Name = name;
+        SourceResourceId = null;
+        SourceOutputName = null;
+        KeyVaultResourceId = null;
+        SecretName = null;
+        SecretValueAssignment = null;
+        VariableGroupId = variableGroupId;
+        PipelineVariableName = pipelineVariableName;
+        _environmentValues.Clear();
+    }
 
     /// <summary>Gets whether this setting is a static-value setting (not a reference).</summary>
-    public bool IsStatic => !IsOutputReference && !IsKeyVaultReference;
+    public bool IsStatic => !IsOutputReference && !IsKeyVaultReference && !IsViaVariableGroup;
 
     /// <summary>Gets whether this setting is a static secret stored in Key Vault (not an output reference).</summary>
     public bool IsSecretStatic => IsKeyVaultReference && !IsOutputReference;
@@ -203,4 +259,7 @@ public sealed class AppSetting : Entity<AppSettingId>
 
     /// <summary>Gets whether this setting is a Key Vault secret reference.</summary>
     public bool IsKeyVaultReference => KeyVaultResourceId is not null;
+
+    /// <summary>Gets whether this setting's value comes from a pipeline variable group at deploy time.</summary>
+    public bool IsViaVariableGroup => VariableGroupId is not null;
 }

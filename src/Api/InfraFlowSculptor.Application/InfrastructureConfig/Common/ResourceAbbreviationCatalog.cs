@@ -27,6 +27,7 @@ public static class ResourceAbbreviationCatalog
         [AzureResourceTypes.SqlServer] = "sql",
         [AzureResourceTypes.SqlDatabase] = "sqldb",
         [AzureResourceTypes.ServiceBusNamespace] = "sb",
+        [AzureResourceTypes.ContainerRegistry] = "acr",
     };
 
     /// <summary>

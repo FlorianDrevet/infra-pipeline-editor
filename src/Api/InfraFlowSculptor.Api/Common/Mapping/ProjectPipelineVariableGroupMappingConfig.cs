@@ -12,12 +12,6 @@ public sealed class ProjectPipelineVariableGroupMappingConfig : IRegister
     {
         config.NewConfig<ProjectPipelineVariableGroupResult, ProjectPipelineVariableGroupResponse>()
             .Map(dest => dest.Id, src => src.GroupId.ToString())
-            .Map(dest => dest.GroupName, src => src.GroupName)
-            .Map(dest => dest.Mappings, src => src.Mappings);
-
-        config.NewConfig<ProjectPipelineVariableMappingResult, ProjectPipelineVariableMappingResponse>()
-            .Map(dest => dest.Id, src => src.MappingId.ToString())
-            .Map(dest => dest.PipelineVariableName, src => src.PipelineVariableName)
-            .Map(dest => dest.BicepParameterName, src => src.BicepParameterName);
+            .Map(dest => dest.GroupName, src => src.GroupName);
     }
 }

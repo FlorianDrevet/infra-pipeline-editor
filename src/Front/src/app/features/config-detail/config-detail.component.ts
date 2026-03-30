@@ -43,6 +43,7 @@ import { CosmosDbService } from '../../shared/services/cosmos-db.service';
 import { SqlServerService } from '../../shared/services/sql-server.service';
 import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
+import { ContainerRegistryService } from '../../shared/services/container-registry.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
 import { PipelineGeneratorService } from '../../shared/services/pipeline-generator.service';
@@ -66,11 +67,7 @@ import {
   CrossConfigReferenceResponse,
   IncomingCrossConfigReferenceResponse,
 } from '../../shared/interfaces/cross-config-reference.interface';
-import {
-  PipelineVariableGroupResponse,
-  AddPipelineVariableGroupRequest,
-  AddPipelineVariableMappingRequest,
-} from '../../shared/interfaces/infra-config.interface';
+import { ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
 import { AddVariableGroupDialogComponent } from './add-variable-group-dialog/add-variable-group-dialog.component';
 
 interface ResourceDisplayItem {
@@ -127,6 +124,7 @@ export class ConfigDetailComponent implements OnInit {
   private readonly sqlServerService = inject(SqlServerService);
   private readonly sqlDatabaseService = inject(SqlDatabaseService);
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
+  private readonly containerRegistryService = inject(ContainerRegistryService);
   private readonly projectService = inject(ProjectService);
   private readonly bicepService = inject(BicepGeneratorService);
   private readonly pipelineService = inject(PipelineGeneratorService);
@@ -275,11 +273,10 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly crossConfigLoaded = signal(false);
 
   // ─── Pipeline Variable Groups ───
-  protected readonly variableGroups = signal<PipelineVariableGroupResponse[]>([]);
+  protected readonly variableGroups = signal<ProjectPipelineVariableGroupResponse[]>([]);
   protected readonly vgLoading = signal(false);
   protected readonly vgErrorKey = signal('');
   protected readonly vgLoaded = signal(false);
-  protected readonly vgMappingInputs = signal<Record<string, { pipelineVar: string; bicepParam: string }>>({});
 
   protected readonly isMultiRepo = computed(() => this.project()?.repositoryMode === 'MultiRepo');
 
@@ -1122,6 +1119,9 @@ export class ConfigDetailComponent implements OnInit {
         case 'ServiceBusNamespace':
           await this.serviceBusNamespaceService.delete(resource.id);
           break;
+        case 'ContainerRegistry':
+          await this.containerRegistryService.delete(resource.id);
+          break;
       }
       // Refresh resource list for this resource group
       this.rgResources.update((prev) => {
@@ -1401,13 +1401,13 @@ export class ConfigDetailComponent implements OnInit {
   // ─── Pipeline Variable Groups ───
 
   private async loadVariableGroups(): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId) return;
+    const projectId = this.config()?.projectId;
+    if (!projectId) return;
 
     this.vgLoading.set(true);
     this.vgErrorKey.set('');
     try {
-      const groups = await this.infraConfigService.getPipelineVariableGroups(configId);
+      const groups = await this.projectService.getPipelineVariableGroups(projectId);
       this.variableGroups.set(groups);
       this.vgLoaded.set(true);
     } catch {
@@ -1424,12 +1424,12 @@ export class ConfigDetailComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(async (groupName?: string) => {
       if (!groupName) return;
-      const configId = this.config()?.id;
-      if (!configId) return;
+      const projectId = this.config()?.projectId;
+      if (!projectId) return;
 
       this.vgErrorKey.set('');
       try {
-        const newGroup = await this.infraConfigService.addPipelineVariableGroup(configId, { groupName });
+        const newGroup = await this.projectService.addPipelineVariableGroup(projectId, { groupName });
         this.variableGroups.update(groups => [...groups, newGroup]);
       } catch {
         this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
@@ -1437,7 +1437,7 @@ export class ConfigDetailComponent implements OnInit {
     });
   }
 
-  protected openRemoveVariableGroupDialog(group: PipelineVariableGroupResponse): void {
+  protected openRemoveVariableGroupDialog(group: ProjectPipelineVariableGroupResponse): void {
     const data: ConfirmDialogData = {
       titleKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP',
       messageKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.CONFIRM_DELETE_GROUP',
@@ -1449,87 +1449,15 @@ export class ConfigDetailComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
       if (!confirmed) return;
-      const configId = this.config()?.id;
-      if (!configId) return;
+      const projectId = this.config()?.projectId;
+      if (!projectId) return;
 
       this.vgErrorKey.set('');
       try {
-        await this.infraConfigService.removePipelineVariableGroup(configId, group.id);
+        await this.projectService.removePipelineVariableGroup(projectId, group.id);
         this.variableGroups.update(groups => groups.filter(g => g.id !== group.id));
       } catch {
         this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_GROUP');
-      }
-    });
-  }
-
-  protected initMappingInput(groupId: string): void {
-    this.vgMappingInputs.update(inputs => ({
-      ...inputs,
-      [groupId]: { pipelineVar: '', bicepParam: '' },
-    }));
-  }
-
-  protected updateMappingInput(groupId: string, field: 'pipelineVar' | 'bicepParam', value: string): void {
-    this.vgMappingInputs.update(inputs => ({
-      ...inputs,
-      [groupId]: { ...inputs[groupId], [field]: value },
-    }));
-  }
-
-  protected async addMapping(groupId: string): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId) return;
-
-    const input = this.vgMappingInputs()[groupId];
-    if (!input?.pipelineVar || !input?.bicepParam) return;
-
-    this.vgErrorKey.set('');
-    try {
-      const mapping = await this.infraConfigService.addPipelineVariableMapping(configId, groupId, {
-        pipelineVariableName: input.pipelineVar,
-        bicepParameterName: input.bicepParam,
-      });
-      this.variableGroups.update(groups =>
-        groups.map(g =>
-          g.id === groupId ? { ...g, mappings: [...g.mappings, mapping] } : g
-        )
-      );
-      this.vgMappingInputs.update(inputs => ({
-        ...inputs,
-        [groupId]: { pipelineVar: '', bicepParam: '' },
-      }));
-    } catch {
-      this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_MAPPING');
-    }
-  }
-
-  protected openRemoveMappingDialog(group: PipelineVariableGroupResponse, mappingId: string): void {
-    const data: ConfirmDialogData = {
-      titleKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_MAPPING',
-      messageKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.CONFIRM_DELETE_MAPPING',
-      confirmKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_MAPPING',
-      cancelKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.DIALOG_CANCEL',
-    };
-
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-      const configId = this.config()?.id;
-      if (!configId) return;
-
-      this.vgErrorKey.set('');
-      try {
-        await this.infraConfigService.removePipelineVariableMapping(configId, group.id, mappingId);
-        this.variableGroups.update(groups =>
-          groups.map(g =>
-            g.id === group.id
-              ? { ...g, mappings: g.mappings.filter(m => m.id !== mappingId) }
-              : g
-          )
-        );
-      } catch {
-        this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_MAPPING');
       }
     });
   }

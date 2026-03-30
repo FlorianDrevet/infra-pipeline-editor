@@ -83,11 +83,15 @@ public sealed class InfrastructureConfigConfiguration
             .OnDelete(DeleteBehavior.Cascade);
 
         // ========================
-        // PipelineVariableGroups (Entity)
+        // Tags (OWNED)
         // ========================
-        builder.HasMany(x => x.PipelineVariableGroups)
-            .WithOne()
-            .HasForeignKey(x => x.InfraConfigId)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.OwnsMany(c => c.Tags, tag =>
+        {
+            tag.ToTable("InfrastructureConfigTags");
+            tag.WithOwner().HasForeignKey("InfrastructureConfigId");
+            tag.HasKey("InfrastructureConfigId", "Name");
+            tag.Property(t => t.Name).HasMaxLength(100);
+            tag.Property(t => t.Value).HasMaxLength(500);
+        });
     }
 }

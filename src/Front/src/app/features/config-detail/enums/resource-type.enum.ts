@@ -18,6 +18,7 @@ export enum ResourceTypeEnum {
   SqlServer = 'SqlServer',
   SqlDatabase = 'SqlDatabase',
   ServiceBusNamespace = 'ServiceBusNamespace',
+  ContainerRegistry = 'ContainerRegistry',
 }
 
 /**
@@ -48,6 +49,7 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   SqlServer: 'dns',
   SqlDatabase: 'table_chart',
   ServiceBusNamespace: 'swap_horiz',
+  ContainerRegistry: 'inventory_2',
 };
 
 export interface ResourceTypeCategory {
@@ -69,6 +71,7 @@ export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
       ResourceTypeEnum.FunctionApp,
       ResourceTypeEnum.ContainerAppEnvironment,
       ResourceTypeEnum.ContainerApp,
+      ResourceTypeEnum.ContainerRegistry,
     ],
   },
   {
@@ -123,6 +126,7 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Record<string, string> = {
   SqlServer: 'sql',
   SqlDatabase: 'sqldb',
   ServiceBusNamespace: 'sb',
+  ContainerRegistry: 'acr',
 };
 
 /**
