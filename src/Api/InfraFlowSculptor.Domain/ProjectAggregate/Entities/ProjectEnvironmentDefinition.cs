@@ -47,7 +47,7 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
     /// <summary>Gets the Azure DevOps service connection name used for ARM deployments in this environment.</summary>
     public string? AzureResourceManagerConnection { get; set; }
 
-    private readonly List<Tag> _tags = new();
+    private readonly List<Tag> _tags = [];
 
     /// <summary>Gets the Azure resource tags for this environment.</summary>
     public IReadOnlyCollection<Tag> Tags => _tags;

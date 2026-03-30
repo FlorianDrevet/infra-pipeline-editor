@@ -13,7 +13,7 @@ namespace InfraFlowSculptor.Domain.RedisCacheAggregate;
 /// </summary>
 public class RedisCache : AzureResource
 {
-    private readonly List<RedisCacheEnvironmentSettings> _environmentSettings = new();
+    private readonly List<RedisCacheEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Redis Cache.</summary>
     public IReadOnlyCollection<RedisCacheEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();

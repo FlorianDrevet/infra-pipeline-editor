@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 /// <summary>Represents an Azure SQL Database resource.</summary>
 public class SqlDatabase : AzureResource
 {
-    private readonly List<SqlDatabaseEnvironmentSettings> _environmentSettings = new();
+    private readonly List<SqlDatabaseEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this SQL Database.</summary>
     public IReadOnlyCollection<SqlDatabaseEnvironmentSettings> EnvironmentSettings

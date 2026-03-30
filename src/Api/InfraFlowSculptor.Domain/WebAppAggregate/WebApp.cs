@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Domain.WebAppAggregate;
 /// <summary>Represents an Azure Web App resource.</summary>
 public class WebApp : AzureResource
 {
-    private readonly List<WebAppEnvironmentSettings> _environmentSettings = new();
+    private readonly List<WebAppEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Web App.</summary>
     public IReadOnlyCollection<WebAppEnvironmentSettings> EnvironmentSettings

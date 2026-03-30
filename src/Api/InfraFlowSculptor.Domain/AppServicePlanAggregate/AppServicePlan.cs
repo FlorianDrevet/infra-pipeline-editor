@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Domain.AppServicePlanAggregate;
 /// <summary>Represents an Azure App Service Plan resource.</summary>
 public class AppServicePlan : AzureResource
 {
-    private readonly List<AppServicePlanEnvironmentSettings> _environmentSettings = new();
+    private readonly List<AppServicePlanEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this App Service Plan.</summary>
     public IReadOnlyCollection<AppServicePlanEnvironmentSettings> EnvironmentSettings

@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Domain.SqlServerAggregate;
 /// <summary>Represents an Azure SQL Server resource.</summary>
 public class SqlServer : AzureResource
 {
-    private readonly List<SqlServerEnvironmentSettings> _environmentSettings = new();
+    private readonly List<SqlServerEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this SQL Server.</summary>
     public IReadOnlyCollection<SqlServerEnvironmentSettings> EnvironmentSettings

@@ -16,9 +16,9 @@ namespace InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
 /// </summary>
 public class ServiceBusNamespace : AzureResource
 {
-    private readonly List<ServiceBusNamespaceEnvironmentSettings> _environmentSettings = new();
-    private readonly List<ServiceBusQueue> _queues = new();
-    private readonly List<ServiceBusTopicSubscription> _topicSubscriptions = new();
+    private readonly List<ServiceBusNamespaceEnvironmentSettings> _environmentSettings = [];
+    private readonly List<ServiceBusQueue> _queues = [];
+    private readonly List<ServiceBusTopicSubscription> _topicSubscriptions = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Service Bus Namespace.</summary>
     public IReadOnlyCollection<ServiceBusNamespaceEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();

@@ -12,7 +12,7 @@ namespace InfraFlowSculptor.Domain.ContainerAppAggregate;
 /// </summary>
 public class ContainerApp : AzureResource
 {
-    private readonly List<ContainerAppEnvironmentSettings> _environmentSettings = new();
+    private readonly List<ContainerAppEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Container App.</summary>
     public IReadOnlyCollection<ContainerAppEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();

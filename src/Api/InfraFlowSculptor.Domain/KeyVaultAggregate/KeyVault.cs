@@ -15,7 +15,7 @@ namespace InfraFlowSculptor.Domain.KeyVaultAggregate;
 /// </summary>
 public class KeyVault : AzureResource
 {
-    private readonly List<KeyVaultEnvironmentSettings> _environmentSettings = new();
+    private readonly List<KeyVaultEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Key Vault.</summary>
     public IReadOnlyCollection<KeyVaultEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();

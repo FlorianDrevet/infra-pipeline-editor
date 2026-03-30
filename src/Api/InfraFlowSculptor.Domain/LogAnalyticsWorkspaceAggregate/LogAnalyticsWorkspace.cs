@@ -12,7 +12,7 @@ namespace InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate;
 /// </summary>
 public class LogAnalyticsWorkspace : AzureResource
 {
-    private readonly List<LogAnalyticsWorkspaceEnvironmentSettings> _environmentSettings = new();
+    private readonly List<LogAnalyticsWorkspaceEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Log Analytics Workspace.</summary>
     public IReadOnlyCollection<LogAnalyticsWorkspaceEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();

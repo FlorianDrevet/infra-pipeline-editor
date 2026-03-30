@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Domain.FunctionAppAggregate;
 /// <summary>Represents an Azure Function App resource.</summary>
 public class FunctionApp : AzureResource
 {
-    private readonly List<FunctionAppEnvironmentSettings> _environmentSettings = new();
+    private readonly List<FunctionAppEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Function App.</summary>
     public IReadOnlyCollection<FunctionAppEnvironmentSettings> EnvironmentSettings

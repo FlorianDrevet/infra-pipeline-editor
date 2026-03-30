@@ -23,14 +23,14 @@ public sealed class Project : AggregateRoot<ProjectId>
 
     // ─── Members ────────────────────────────────────────────────────────────
 
-    private readonly List<ProjectMember> _members = new();
+    private readonly List<ProjectMember> _members = [];
 
     /// <summary>Gets the members of this project with their roles.</summary>
     public IReadOnlyCollection<ProjectMember> Members => _members.AsReadOnly();
 
     // ─── Environment Definitions ────────────────────────────────────────────
 
-    private readonly List<ProjectEnvironmentDefinition> _environmentDefinitions = new();
+    private readonly List<ProjectEnvironmentDefinition> _environmentDefinitions = [];
 
     /// <summary>Gets the project-level environment definitions.</summary>
     public IReadOnlyCollection<ProjectEnvironmentDefinition> EnvironmentDefinitions
@@ -45,7 +45,7 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// </summary>
     public NamingTemplate? DefaultNamingTemplate { get; private set; }
 
-    private readonly List<ProjectResourceNamingTemplate> _resourceNamingTemplates = new();
+    private readonly List<ProjectResourceNamingTemplate> _resourceNamingTemplates = [];
 
     /// <summary>Gets the project-level per-resource-type naming template overrides.</summary>
     public IReadOnlyCollection<ProjectResourceNamingTemplate> ResourceNamingTemplates
