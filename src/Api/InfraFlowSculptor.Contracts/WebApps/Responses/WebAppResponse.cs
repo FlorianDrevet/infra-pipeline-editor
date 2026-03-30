@@ -23,5 +23,8 @@ public record WebAppResponse(
     string RuntimeVersion,
     bool AlwaysOn,
     bool HttpsOnly,
+    string DeploymentMode,
+    Guid? ContainerRegistryId,
+    string? DockerImageName,
     IReadOnlyList<WebAppEnvironmentConfigResponse> EnvironmentSettings
 );

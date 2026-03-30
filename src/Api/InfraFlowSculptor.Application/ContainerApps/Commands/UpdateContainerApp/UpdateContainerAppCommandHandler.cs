@@ -43,7 +43,10 @@ public sealed class UpdateContainerAppCommandHandler(
         if (containerAppEnvironment is null)
             return Errors.ContainerAppEnvironment.NotFoundError(containerAppEnvironmentId);
 
-        containerApp.Update(request.Name, request.Location, containerAppEnvironmentId);
+        containerApp.Update(request.Name, request.Location, containerAppEnvironmentId,
+            request.ContainerRegistryId.HasValue
+                ? new AzureResourceId(request.ContainerRegistryId.Value)
+                : null);
 
         if (request.EnvironmentSettings is not null)
             containerApp.SetAllEnvironmentSettings(

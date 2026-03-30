@@ -29,6 +29,15 @@ public class FunctionApp : AzureResource
     /// <summary>Gets whether the app requires HTTPS only.</summary>
     public bool HttpsOnly { get; private set; }
 
+    /// <summary>Gets the deployment mode (Code or Container).</summary>
+    public DeploymentMode DeploymentMode { get; private set; } = new(Common.ValueObjects.DeploymentMode.DeploymentModeType.Code);
+
+    /// <summary>Gets the optional Container Registry identifier for container deployments.</summary>
+    public AzureResourceId? ContainerRegistryId { get; private set; }
+
+    /// <summary>Gets the Docker image name for container deployments (e.g., "myapp/func").</summary>
+    public string? DockerImageName { get; private set; }
+
     /// <inheritdoc />
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages
         => Array.Empty<ParameterUsage>();
@@ -44,7 +53,10 @@ public class FunctionApp : AzureResource
         AzureResourceId appServicePlanId,
         FunctionAppRuntimeStack runtimeStack,
         string runtimeVersion,
-        bool httpsOnly)
+        bool httpsOnly,
+        DeploymentMode deploymentMode,
+        AzureResourceId? containerRegistryId,
+        string? dockerImageName)
     {
         Name = name;
         Location = location;
@@ -52,6 +64,9 @@ public class FunctionApp : AzureResource
         RuntimeStack = runtimeStack;
         RuntimeVersion = runtimeVersion;
         HttpsOnly = httpsOnly;
+        DeploymentMode = deploymentMode;
+        ContainerRegistryId = containerRegistryId;
+        DockerImageName = dockerImageName;
     }
 
     /// <summary>
@@ -64,19 +79,20 @@ public class FunctionApp : AzureResource
         FunctionAppRuntimeStack? runtimeStack,
         string? runtimeVersion,
         int? maxInstanceCount,
-        string? functionsWorkerRuntime)
+        string? functionsWorkerRuntime,
+        string? dockerImageTag)
     {
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
         if (existing is not null)
         {
-            existing.Update(httpsOnly, runtimeStack, runtimeVersion, maxInstanceCount, functionsWorkerRuntime);
+            existing.Update(httpsOnly, runtimeStack, runtimeVersion, maxInstanceCount, functionsWorkerRuntime, dockerImageTag);
         }
         else
         {
             _environmentSettings.Add(
-                FunctionAppEnvironmentSettings.Create(Id, environmentName, httpsOnly, runtimeStack, runtimeVersion, maxInstanceCount, functionsWorkerRuntime));
+                FunctionAppEnvironmentSettings.Create(Id, environmentName, httpsOnly, runtimeStack, runtimeVersion, maxInstanceCount, functionsWorkerRuntime, dockerImageTag));
         }
     }
 
@@ -84,13 +100,13 @@ public class FunctionApp : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, bool? HttpsOnly, FunctionAppRuntimeStack? RuntimeStack, string? RuntimeVersion, int? MaxInstanceCount, string? FunctionsWorkerRuntime)> settings)
+        IReadOnlyList<(string EnvironmentName, bool? HttpsOnly, FunctionAppRuntimeStack? RuntimeStack, string? RuntimeVersion, int? MaxInstanceCount, string? FunctionsWorkerRuntime, string? DockerImageTag)> settings)
     {
         _environmentSettings.Clear();
         foreach (var s in settings)
         {
             _environmentSettings.Add(
-                FunctionAppEnvironmentSettings.Create(Id, s.EnvironmentName, s.HttpsOnly, s.RuntimeStack, s.RuntimeVersion, s.MaxInstanceCount, s.FunctionsWorkerRuntime));
+                FunctionAppEnvironmentSettings.Create(Id, s.EnvironmentName, s.HttpsOnly, s.RuntimeStack, s.RuntimeVersion, s.MaxInstanceCount, s.FunctionsWorkerRuntime, s.DockerImageTag));
         }
     }
 
@@ -103,7 +119,10 @@ public class FunctionApp : AzureResource
         FunctionAppRuntimeStack runtimeStack,
         string runtimeVersion,
         bool httpsOnly,
-        IReadOnlyList<(string EnvironmentName, bool? HttpsOnly, FunctionAppRuntimeStack? RuntimeStack, string? RuntimeVersion, int? MaxInstanceCount, string? FunctionsWorkerRuntime)>? environmentSettings = null)
+        DeploymentMode deploymentMode,
+        AzureResourceId? containerRegistryId,
+        string? dockerImageName,
+        IReadOnlyList<(string EnvironmentName, bool? HttpsOnly, FunctionAppRuntimeStack? RuntimeStack, string? RuntimeVersion, int? MaxInstanceCount, string? FunctionsWorkerRuntime, string? DockerImageTag)>? environmentSettings = null)
     {
         var functionApp = new FunctionApp
         {
@@ -114,7 +133,10 @@ public class FunctionApp : AzureResource
             AppServicePlanId = appServicePlanId,
             RuntimeStack = runtimeStack,
             RuntimeVersion = runtimeVersion,
-            HttpsOnly = httpsOnly
+            HttpsOnly = httpsOnly,
+            DeploymentMode = deploymentMode,
+            ContainerRegistryId = containerRegistryId,
+            DockerImageName = dockerImageName
         };
 
         if (environmentSettings is not null)

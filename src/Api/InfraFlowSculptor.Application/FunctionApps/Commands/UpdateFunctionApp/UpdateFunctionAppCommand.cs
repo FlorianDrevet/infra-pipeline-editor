@@ -15,5 +15,8 @@ public record UpdateFunctionAppCommand(
     string RuntimeStack,
     string RuntimeVersion,
     bool HttpsOnly,
+    string DeploymentMode,
+    Guid? ContainerRegistryId,
+    string? DockerImageName,
     IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<FunctionAppResult>;

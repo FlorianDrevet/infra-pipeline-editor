@@ -28,6 +28,9 @@ public sealed class WebAppEnvironmentSettings : Entity<WebAppEnvironmentSettings
     /// <summary>Gets or sets the runtime version override for this environment (e.g., "8.0", "20").</summary>
     public string? RuntimeVersion { get; private set; }
 
+    /// <summary>Gets or sets the Docker image tag override for this environment (e.g., "latest", "v1.2.3").</summary>
+    public string? DockerImageTag { get; private set; }
+
     private WebAppEnvironmentSettings() { }
 
     internal WebAppEnvironmentSettings(
@@ -36,7 +39,8 @@ public sealed class WebAppEnvironmentSettings : Entity<WebAppEnvironmentSettings
         bool? alwaysOn,
         bool? httpsOnly,
         WebAppRuntimeStack? runtimeStack,
-        string? runtimeVersion)
+        string? runtimeVersion,
+        string? dockerImageTag)
         : base(WebAppEnvironmentSettingsId.CreateUnique())
     {
         WebAppId = webAppId;
@@ -45,6 +49,7 @@ public sealed class WebAppEnvironmentSettings : Entity<WebAppEnvironmentSettings
         HttpsOnly = httpsOnly;
         RuntimeStack = runtimeStack;
         RuntimeVersion = runtimeVersion;
+        DockerImageTag = dockerImageTag;
     }
 
     /// <summary>
@@ -56,16 +61,18 @@ public sealed class WebAppEnvironmentSettings : Entity<WebAppEnvironmentSettings
         bool? alwaysOn,
         bool? httpsOnly,
         WebAppRuntimeStack? runtimeStack,
-        string? runtimeVersion)
-        => new(webAppId, environmentName, alwaysOn, httpsOnly, runtimeStack, runtimeVersion);
+        string? runtimeVersion,
+        string? dockerImageTag)
+        => new(webAppId, environmentName, alwaysOn, httpsOnly, runtimeStack, runtimeVersion, dockerImageTag);
 
     /// <summary>Updates the configuration overrides for this environment.</summary>
-    public void Update(bool? alwaysOn, bool? httpsOnly, WebAppRuntimeStack? runtimeStack, string? runtimeVersion)
+    public void Update(bool? alwaysOn, bool? httpsOnly, WebAppRuntimeStack? runtimeStack, string? runtimeVersion, string? dockerImageTag)
     {
         AlwaysOn = alwaysOn;
         HttpsOnly = httpsOnly;
         RuntimeStack = runtimeStack;
         RuntimeVersion = runtimeVersion;
+        DockerImageTag = dockerImageTag;
     }
 
     /// <summary>
@@ -78,6 +85,7 @@ public sealed class WebAppEnvironmentSettings : Entity<WebAppEnvironmentSettings
         if (HttpsOnly is not null) dict["httpsOnly"] = HttpsOnly.Value.ToString().ToLower();
         if (RuntimeStack is not null) dict["runtimeStack"] = RuntimeStack.Value.ToString().ToLower();
         if (RuntimeVersion is not null) dict["runtimeVersion"] = RuntimeVersion;
+        if (DockerImageTag is not null) dict["dockerImageTag"] = DockerImageTag;
         return dict;
     }
 }

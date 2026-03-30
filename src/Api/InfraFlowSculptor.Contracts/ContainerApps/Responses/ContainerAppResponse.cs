@@ -9,5 +9,6 @@ public record ContainerAppResponse(
     string Name,
     string Location,
     Guid ContainerAppEnvironmentId,
+    Guid? ContainerRegistryId,
     IReadOnlyList<ContainerAppEnvironmentConfigResponse> EnvironmentSettings
 );

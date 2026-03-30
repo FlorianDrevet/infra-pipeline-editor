@@ -10,10 +10,12 @@ namespace InfraFlowSculptor.Application.FunctionApps.Common;
 /// <param name="RuntimeVersion">Optional runtime version override (e.g., "8.0", "20").</param>
 /// <param name="MaxInstanceCount">Optional maximum scale-out instance count override.</param>
 /// <param name="FunctionsWorkerRuntime">Optional Functions worker runtime override (e.g., "dotnet-isolated", "node").</param>
+/// <param name="DockerImageTag">Optional Docker image tag override for this environment (e.g., "latest", "v1.2.3").</param>
 public record FunctionAppEnvironmentConfigData(
     string EnvironmentName,
     bool? HttpsOnly,
     string? RuntimeStack,
     string? RuntimeVersion,
     int? MaxInstanceCount,
-    string? FunctionsWorkerRuntime);
+    string? FunctionsWorkerRuntime,
+    string? DockerImageTag);

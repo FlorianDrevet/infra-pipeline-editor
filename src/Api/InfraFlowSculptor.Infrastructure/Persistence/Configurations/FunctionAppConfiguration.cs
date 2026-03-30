@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +38,20 @@ public sealed class FunctionAppConfiguration : IEntityTypeConfiguration<Function
             .IsRequired();
 
         builder.Property(x => x.HttpsOnly);
+
+        builder.Property(x => x.DeploymentMode)
+            .IsRequired()
+            .HasConversion(
+                v => v.Value.ToString(),
+                v => new DeploymentMode(
+                    Enum.Parse<DeploymentMode.DeploymentModeType>(v)));
+
+        builder.Property(x => x.ContainerRegistryId)
+            .HasConversion(new IdValueConverter<AzureResourceId>())
+            .IsRequired(false);
+
+        builder.Property(x => x.DockerImageName)
+            .IsRequired(false);
 
         builder.HasMany(x => x.EnvironmentSettings)
             .WithOne()

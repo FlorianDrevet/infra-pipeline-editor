@@ -648,6 +648,26 @@
   margin-right: 0.5rem;
 }
 
+// ─── Static step title ───
+
+.static-step-title {
+  margin: 0.75rem 0 0.65rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #103454;
+}
+
+.env-values-section {
+  margin-top: 0.5rem;
+
+  &__label {
+    margin: 0 0 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #617892;
+  }
+}
+
 // ─── Secret toggle section ───
 
 .secret-toggle-section {

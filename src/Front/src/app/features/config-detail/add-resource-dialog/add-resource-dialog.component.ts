@@ -384,6 +384,9 @@ export class AddResourceDialogComponent {
     containerAppEnvironmentId: [''],
     logAnalyticsWorkspaceId: [''],
     sqlServerId: [''],
+    deploymentMode: ['Code'],
+    containerRegistryId: [null as string | null],
+    dockerImageName: [null as string | null],
     runtimeStack: [''],
     runtimeVersion: [''],
     alwaysOn: [true],
@@ -941,6 +944,9 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             appServicePlanId: common.appServicePlanId!,
+            deploymentMode: common.deploymentMode || 'Code',
+            containerRegistryId: common.deploymentMode === 'Container' ? (common.containerRegistryId || null) : null,
+            dockerImageName: common.deploymentMode === 'Container' ? (common.dockerImageName || null) : null,
             runtimeStack: common.runtimeStack!,
             runtimeVersion: common.runtimeVersion!,
             alwaysOn: common.alwaysOn!,
@@ -955,6 +961,9 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             appServicePlanId: common.appServicePlanId!,
+            deploymentMode: common.deploymentMode || 'Code',
+            containerRegistryId: common.deploymentMode === 'Container' ? (common.containerRegistryId || null) : null,
+            dockerImageName: common.deploymentMode === 'Container' ? (common.dockerImageName || null) : null,
             runtimeStack: common.runtimeStack!,
             runtimeVersion: common.runtimeVersion!,
             httpsOnly: common.httpsOnly!,
@@ -994,6 +1003,7 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             containerAppEnvironmentId: common.containerAppEnvironmentId!,
+            containerRegistryId: common.containerRegistryId || null,
             environmentSettings: this.buildContainerAppEnvironmentSettings(),
           });
           break;
@@ -1127,6 +1137,7 @@ export class AddResourceDialogComponent {
         httpsOnly: raw.httpsOnly ?? null,
         runtimeStack: raw.runtimeStack || null,
         runtimeVersion: raw.runtimeVersion || null,
+        dockerImageTag: raw.dockerImageTag || null,
       };
     });
   }
@@ -1141,6 +1152,7 @@ export class AddResourceDialogComponent {
         runtimeVersion: raw.runtimeVersion || null,
         maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
         functionsWorkerRuntime: raw.functionsWorkerRuntime || null,
+        dockerImageTag: raw.dockerImageTag || null,
       };
     });
   }

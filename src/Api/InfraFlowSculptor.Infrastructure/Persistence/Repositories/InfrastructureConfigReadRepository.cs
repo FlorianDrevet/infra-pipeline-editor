@@ -621,7 +621,10 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["runtimeVersion"] = wa.RuntimeVersion,
                     ["alwaysOn"] = wa.AlwaysOn.ToString().ToLower(),
                     ["httpsOnly"] = wa.HttpsOnly.ToString().ToLower(),
-                    ["appServicePlanId"] = wa.AppServicePlanId.Value.ToString()
+                    ["appServicePlanId"] = wa.AppServicePlanId.Value.ToString(),
+                    ["deploymentMode"] = wa.DeploymentMode.Value.ToString(),
+                    ["containerRegistryId"] = wa.ContainerRegistryId?.Value.ToString() ?? "",
+                    ["dockerImageName"] = wa.DockerImageName ?? ""
                 },
                 waSettings
                     .Where(es => es.WebAppId == wa.Id)
@@ -637,7 +640,10 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["runtimeStack"] = fa.RuntimeStack.Value.ToString().ToLower(),
                     ["runtimeVersion"] = fa.RuntimeVersion,
                     ["httpsOnly"] = fa.HttpsOnly.ToString().ToLower(),
-                    ["appServicePlanId"] = fa.AppServicePlanId.Value.ToString()
+                    ["appServicePlanId"] = fa.AppServicePlanId.Value.ToString(),
+                    ["deploymentMode"] = fa.DeploymentMode.Value.ToString(),
+                    ["containerRegistryId"] = fa.ContainerRegistryId?.Value.ToString() ?? "",
+                    ["dockerImageName"] = fa.DockerImageName ?? ""
                 },
                 faSettings
                     .Where(es => es.FunctionAppId == fa.Id)
@@ -677,7 +683,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 "Microsoft.App/containerApps",
                 new Dictionary<string, string>
                 {
-                    ["containerAppEnvironmentId"] = ca.ContainerAppEnvironmentId.Value.ToString()
+                    ["containerAppEnvironmentId"] = ca.ContainerAppEnvironmentId.Value.ToString(),
+                    ["containerRegistryId"] = ca.ContainerRegistryId?.Value.ToString() ?? ""
                 },
                 caSettings
                     .Where(es => es.ContainerAppId == ca.Id)

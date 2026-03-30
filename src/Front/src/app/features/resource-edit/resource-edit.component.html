@@ -143,19 +143,62 @@
             @if (resourceType === 'WebApp') {
               <div class="form-section">
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+
+                <!-- Deployment Mode Toggle -->
+                <div class="form-grid" style="margin-bottom: 1rem;">
+                  <div class="form-field">
+                    <label class="form-field__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE' | translate }}</label>
+                    <mat-button-toggle-group
+                      [value]="deploymentMode()"
+                      (change)="onDeploymentModeChange($event.value)"
+                      [disabled]="!canWrite()">
+                      <mat-button-toggle value="Code">
+                        <mat-icon>code</mat-icon>
+                        {{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE' | translate }}
+                      </mat-button-toggle>
+                      <mat-button-toggle value="Container">
+                        <mat-icon>inventory_2</mat-icon>
+                        {{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CONTAINER' | translate }}
+                      </mat-button-toggle>
+                    </mat-button-toggle-group>
+                  </div>
+                </div>
+
                 <div class="form-grid">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                    <mat-select formControlName="runtimeStack">
-                      @for (opt of runtimeStackOptions; track opt.value) {
-                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                    <input matInput formControlName="runtimeVersion" />
-                  </mat-form-field>
+                  <!-- Code mode fields -->
+                  @if (!isContainerMode()) {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
+                      <mat-select formControlName="runtimeStack">
+                        @for (opt of runtimeStackOptions; track opt.value) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
+                      <input matInput formControlName="runtimeVersion" />
+                    </mat-form-field>
+                  }
+
+                  <!-- Container mode fields -->
+                  @if (isContainerMode()) {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
+                      <mat-select formControlName="containerRegistryId">
+                        <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
+                        @for (acr of availableContainerRegistries(); track acr.id) {
+                          <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
+                        }
+                      </mat-select>
+                      <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate }}</mat-label>
+                      <input matInput formControlName="dockerImageName" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
+                    </mat-form-field>
+                  }
+
                   <div class="form-field form-field--toggle">
                     <mat-slide-toggle formControlName="alwaysOn" color="primary">
                       {{ 'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate }}
@@ -174,24 +217,86 @@
             @if (resourceType === 'FunctionApp') {
               <div class="form-section">
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+
+                <!-- Deployment Mode Toggle -->
+                <div class="form-grid" style="margin-bottom: 1rem;">
+                  <div class="form-field">
+                    <label class="form-field__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE' | translate }}</label>
+                    <mat-button-toggle-group
+                      [value]="deploymentMode()"
+                      (change)="onDeploymentModeChange($event.value)"
+                      [disabled]="!canWrite()">
+                      <mat-button-toggle value="Code">
+                        <mat-icon>code</mat-icon>
+                        {{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE' | translate }}
+                      </mat-button-toggle>
+                      <mat-button-toggle value="Container">
+                        <mat-icon>inventory_2</mat-icon>
+                        {{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CONTAINER' | translate }}
+                      </mat-button-toggle>
+                    </mat-button-toggle-group>
+                  </div>
+                </div>
+
                 <div class="form-grid">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                    <mat-select formControlName="runtimeStack">
-                      @for (opt of functionAppRuntimeStackOptions; track opt.value) {
-                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                    <input matInput formControlName="runtimeVersion" />
-                  </mat-form-field>
+                  <!-- Code mode fields -->
+                  @if (!isContainerMode()) {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
+                      <mat-select formControlName="runtimeStack">
+                        @for (opt of functionAppRuntimeStackOptions; track opt.value) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
+                      <input matInput formControlName="runtimeVersion" />
+                    </mat-form-field>
+                  }
+
+                  <!-- Container mode fields -->
+                  @if (isContainerMode()) {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
+                      <mat-select formControlName="containerRegistryId">
+                        <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
+                        @for (acr of availableContainerRegistries(); track acr.id) {
+                          <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
+                        }
+                      </mat-select>
+                      <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate }}</mat-label>
+                      <input matInput formControlName="dockerImageName" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
+                    </mat-form-field>
+                  }
+
                   <div class="form-field form-field--toggle">
                     <mat-slide-toggle formControlName="httpsOnly" color="primary">
                       {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
                     </mat-slide-toggle>
                   </div>
+                </div>
+              </div>
+            }
+
+            <!-- ContainerApp ACR field -->
+            @if (resourceType === 'ContainerApp') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
+                    <mat-select formControlName="containerRegistryId">
+                      <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
+                      @for (acr of availableContainerRegistries(); track acr.id) {
+                        <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
+                      }
+                    </mat-select>
+                    <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
                 </div>
               </div>
             }
@@ -399,20 +504,29 @@
                       </mat-form-field>
                     }
                     @case ('WebApp') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                        <mat-select formControlName="runtimeStack">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of runtimeStackOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                        <input matInput formControlName="runtimeVersion" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
+                      @if (!isContainerMode()) {
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
+                          <mat-select formControlName="runtimeStack">
+                            <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                            @for (opt of runtimeStackOptions; track opt.value) {
+                              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
+                          <input matInput formControlName="runtimeVersion" />
+                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                        </mat-form-field>
+                      }
+                      @if (isContainerMode()) {
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG' | translate }}</mat-label>
+                          <input matInput formControlName="dockerImageTag" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG_PLACEHOLDER' | translate" />
+                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                        </mat-form-field>
+                      }
                       <div class="form-field form-field--toggle">
                         <mat-slide-toggle formControlName="alwaysOn" color="primary">
                           {{ 'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate }}
@@ -425,25 +539,34 @@
                       </div>
                     }
                     @case ('FunctionApp') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                        <mat-select formControlName="runtimeStack">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of functionAppRuntimeStackOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                        <input matInput formControlName="runtimeVersion" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.FUNCTIONS_WORKER_RUNTIME' | translate }}</mat-label>
-                        <input matInput formControlName="functionsWorkerRuntime" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
+                      @if (!isContainerMode()) {
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
+                          <mat-select formControlName="runtimeStack">
+                            <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                            @for (opt of functionAppRuntimeStackOptions; track opt.value) {
+                              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
+                          <input matInput formControlName="runtimeVersion" />
+                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.FUNCTIONS_WORKER_RUNTIME' | translate }}</mat-label>
+                          <input matInput formControlName="functionsWorkerRuntime" />
+                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                        </mat-form-field>
+                      }
+                      @if (isContainerMode()) {
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG' | translate }}</mat-label>
+                          <input matInput formControlName="dockerImageTag" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG_PLACEHOLDER' | translate" />
+                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                        </mat-form-field>
+                      }
                       <mat-form-field appearance="outline" class="form-field">
                         <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MAX_INSTANCE_COUNT' | translate }}</mat-label>
                         <input matInput type="number" formControlName="maxInstanceCount" />

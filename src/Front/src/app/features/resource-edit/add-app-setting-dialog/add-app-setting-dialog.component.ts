@@ -9,7 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
@@ -44,7 +44,6 @@ export interface AddAppSettingDialogData {
     MatFormFieldModule,
     MatTooltipModule,
     MatCheckboxModule,
-    MatSlideToggleModule,
   ],
   templateUrl: './add-app-setting-dialog.component.html',
   styleUrl: './add-app-setting-dialog.component.scss',
@@ -61,8 +60,27 @@ export class AddAppSettingDialogComponent {
   // ─── Mode: static value or resource output ───
   protected readonly mode = signal<'static' | 'output'>('output');
 
+  // ─── Static mode — Step-based flow ───
+  protected readonly staticStep = signal<1 | 2>(1);
+  protected readonly staticType = signal<'standard' | 'secret' | null>(null);
+  protected readonly standardValueSource = signal<'environments' | 'variableGroup' | null>(null);
+  protected readonly secretValueSource = signal<'viaBicepparam' | 'directInKeyVault' | 'variableGroup' | null>(null);
+
+  // Derived from step choices (replaces old toggle signals)
+  protected readonly isSecret = computed(() => this.staticType() === 'secret');
+  protected readonly isViaVariableGroup = computed(() => {
+    if (this.staticType() === 'standard') return this.standardValueSource() === 'variableGroup';
+    if (this.staticType() === 'secret') return this.secretValueSource() === 'variableGroup';
+    return false;
+  });
+  protected readonly secretAssignmentMode = computed<'ViaBicepparam' | 'DirectInKeyVault' | null>(() => {
+    const src = this.secretValueSource();
+    if (src === 'viaBicepparam' || src === 'variableGroup') return 'ViaBicepparam';
+    if (src === 'directInKeyVault') return 'DirectInKeyVault';
+    return null;
+  });
+
   // ─── Variable Group (static mode only) ───
-  protected readonly isViaVariableGroup = signal(false);
   protected readonly vgOptions = signal<ProjectPipelineVariableGroupResponse[]>([]);
   protected readonly vgLoading = signal(false);
   protected readonly selectedVariableGroupId = signal<string | null>(null);
@@ -95,10 +113,6 @@ export class AddAppSettingDialogComponent {
   protected readonly sensitiveRoleAssigned = signal(false);
   protected readonly sensitiveRoleError = signal(false);
   protected readonly kvMissingRoleDefinitionId = signal<string | null>(null);
-
-  // ─── Static mode — Is Secret toggle ───
-  protected readonly isSecret = signal(false);
-  protected readonly secretAssignmentMode = signal<'ViaBicepparam' | 'DirectInKeyVault' | null>(null);
 
   // ─── Key Vault selection (shared: static secret + output sensitive) ───
   protected readonly keyVaultResources = computed(() =>
@@ -149,20 +163,30 @@ export class AddAppSettingDialogComponent {
     const name = this.settingName().trim();
     if (!name || this.isSubmitting()) return false;
     if (this.mode() === 'static') {
-      if (this.isViaVariableGroup() && this.isSecret()) {
-        const hasVg = this.isCreatingNewGroup() ? this.newGroupName().trim().length > 0 : !!this.selectedVariableGroupId();
-        return hasVg && this.pipelineVariableName().trim().length > 0
-          && !!this.selectedKeyVault() && !!this.secretName().trim() && !!this.secretAssignmentMode();
+      const type = this.staticType();
+      if (type === 'standard') {
+        const src = this.standardValueSource();
+        if (src === 'variableGroup') {
+          const hasVg = this.isCreatingNewGroup() ? this.newGroupName().trim().length > 0 : !!this.selectedVariableGroupId();
+          return hasVg && this.pipelineVariableName().trim().length > 0;
+        }
+        if (src === 'environments') {
+          const vals = this.environmentValues();
+          return Object.values(vals).some(v => v.trim().length > 0);
+        }
+        return false;
       }
-      if (this.isViaVariableGroup()) {
-        const hasVg = this.isCreatingNewGroup() ? this.newGroupName().trim().length > 0 : !!this.selectedVariableGroupId();
-        return hasVg && this.pipelineVariableName().trim().length > 0;
+      if (type === 'secret') {
+        const hasKv = !!this.selectedKeyVault() && !!this.secretName().trim();
+        if (!hasKv) return false;
+        const src = this.secretValueSource();
+        if (src === 'variableGroup') {
+          const hasVg = this.isCreatingNewGroup() ? this.newGroupName().trim().length > 0 : !!this.selectedVariableGroupId();
+          return hasVg && this.pipelineVariableName().trim().length > 0;
+        }
+        return src === 'viaBicepparam' || src === 'directInKeyVault';
       }
-      if (this.isSecret()) {
-        return !!this.selectedKeyVault() && !!this.secretName().trim() && !!this.secretAssignmentMode();
-      }
-      const vals = this.environmentValues();
-      return Object.values(vals).some(v => v.trim().length > 0);
+      return false;
     }
     // output mode — final step is now step 4
     return !!this.selectedSource() && !!this.selectedOutput();
@@ -179,6 +203,10 @@ export class AddAppSettingDialogComponent {
   protected onModeChange(value: 'static' | 'output'): void {
     this.mode.set(value);
     this.step.set(1);
+    this.staticStep.set(1);
+    this.staticType.set(null);
+    this.standardValueSource.set(null);
+    this.secretValueSource.set(null);
     this.selectedSource.set(null);
     this.selectedOutput.set(null);
     this.selectedKeyVault.set(null);
@@ -197,40 +225,56 @@ export class AddAppSettingDialogComponent {
     this.sensitiveRoleAssigning.set(false);
     this.sensitiveRoleAssigned.set(false);
     this.sensitiveRoleError.set(false);
-    this.isSecret.set(false);
-    this.secretAssignmentMode.set(null);
-    this.isViaVariableGroup.set(false);
     this.selectedVariableGroupId.set(null);
     this.newGroupName.set('');
     this.isCreatingNewGroup.set(false);
     this.pipelineVariableName.set('');
   }
 
-  protected onIsSecretToggle(value: boolean): void {
-    this.isSecret.set(value);
-    if (!value) {
-      this.selectedKeyVault.set(null);
-      this.secretName.set('');
-      this.secretAssignmentMode.set(null);
-      this.kvHasAccess.set(null);
-      this.kvMissingRoleName.set(null);
-      this.kvMissingRoleDefinitionId.set(null);
-      this.sensitiveRoleAssigning.set(false);
-      this.sensitiveRoleAssigned.set(false);
-      this.sensitiveRoleError.set(false);
+  // ─── Static step-based flow ───
+
+  protected async selectStaticType(type: 'standard' | 'secret'): Promise<void> {
+    this.staticType.set(type);
+    this.staticStep.set(2);
+    this.standardValueSource.set(null);
+    this.secretValueSource.set(null);
+    this.selectedKeyVault.set(null);
+    this.secretName.set('');
+    this.kvHasAccess.set(null);
+    this.kvMissingRoleName.set(null);
+    this.kvMissingRoleDefinitionId.set(null);
+    this.sensitiveRoleAssigning.set(false);
+    this.sensitiveRoleAssigned.set(false);
+    this.sensitiveRoleError.set(false);
+    this.selectedVariableGroupId.set(null);
+    this.newGroupName.set('');
+    this.isCreatingNewGroup.set(false);
+    this.pipelineVariableName.set('');
+  }
+
+  protected async selectStandardValueSource(source: 'environments' | 'variableGroup'): Promise<void> {
+    this.standardValueSource.set(source);
+    if (source === 'variableGroup') {
+      await this.loadVariableGroups();
     }
   }
 
-  protected async onViaVariableGroupToggle(value: boolean): Promise<void> {
-    this.isViaVariableGroup.set(value);
-    if (value) {
+  protected async selectSecretValueSource(source: 'viaBicepparam' | 'directInKeyVault' | 'variableGroup'): Promise<void> {
+    this.secretValueSource.set(source);
+    if (source === 'variableGroup') {
       await this.loadVariableGroups();
-    } else {
-      this.selectedVariableGroupId.set(null);
-      this.newGroupName.set('');
-      this.isCreatingNewGroup.set(false);
-      this.pipelineVariableName.set('');
     }
+  }
+
+  protected goBackStatic(): void {
+    const currentStep = this.staticStep();
+    if (currentStep === 2) {
+      this.staticStep.set(1);
+      this.staticType.set(null);
+      this.standardValueSource.set(null);
+      this.secretValueSource.set(null);
+    }
+    this.errorKey.set('');
   }
 
   private async loadVariableGroups(): Promise<void> {
@@ -260,10 +304,6 @@ export class AddAppSettingDialogComponent {
   protected selectStaticKeyVault(resource: AzureResourceResponse): void {
     this.selectedKeyVault.set(resource);
     this.checkKeyVaultAccess();
-  }
-
-  protected selectSecretAssignmentMode(mode: 'ViaBicepparam' | 'DirectInKeyVault'): void {
-    this.secretAssignmentMode.set(mode);
   }
 
   protected selectSource(resource: AzureResourceResponse): void {

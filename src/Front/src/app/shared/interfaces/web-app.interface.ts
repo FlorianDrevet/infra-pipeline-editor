@@ -6,6 +6,7 @@ export interface WebAppEnvironmentConfigEntry {
   httpsOnly?: boolean | null;
   runtimeStack?: string | null;
   runtimeVersion?: string | null;
+  dockerImageTag?: string | null;
 }
 
 export interface WebAppEnvironmentConfigResponse {
@@ -14,6 +15,7 @@ export interface WebAppEnvironmentConfigResponse {
   httpsOnly: boolean | null;
   runtimeStack: string | null;
   runtimeVersion: string | null;
+  dockerImageTag: string | null;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -24,6 +26,9 @@ export interface WebAppResponse {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode: string;
+  containerRegistryId: string | null;
+  dockerImageName: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   alwaysOn: boolean;
@@ -38,6 +43,9 @@ export interface CreateWebAppRequest {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode?: string;
+  containerRegistryId?: string | null;
+  dockerImageName?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   alwaysOn: boolean;
@@ -49,6 +57,9 @@ export interface UpdateWebAppRequest {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode?: string;
+  containerRegistryId?: string | null;
+  dockerImageName?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   alwaysOn: boolean;

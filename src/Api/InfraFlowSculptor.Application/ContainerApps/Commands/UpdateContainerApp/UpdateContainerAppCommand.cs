@@ -12,5 +12,6 @@ public record UpdateContainerAppCommand(
     Name Name,
     Location Location,
     Guid ContainerAppEnvironmentId,
+    Guid? ContainerRegistryId,
     IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<ContainerAppResult>;

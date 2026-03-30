@@ -32,6 +32,15 @@ public class WebApp : AzureResource
     /// <summary>Gets whether the app requires HTTPS only.</summary>
     public bool HttpsOnly { get; private set; }
 
+    /// <summary>Gets the deployment mode (Code or Container).</summary>
+    public DeploymentMode DeploymentMode { get; private set; } = new(Common.ValueObjects.DeploymentMode.DeploymentModeType.Code);
+
+    /// <summary>Gets the optional Container Registry identifier for container deployments.</summary>
+    public AzureResourceId? ContainerRegistryId { get; private set; }
+
+    /// <summary>Gets the Docker image name for container deployments (e.g., "myapp/api").</summary>
+    public string? DockerImageName { get; private set; }
+
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages
         => Array.Empty<ParameterUsage>();
 
@@ -47,7 +56,10 @@ public class WebApp : AzureResource
         WebAppRuntimeStack runtimeStack,
         string runtimeVersion,
         bool alwaysOn,
-        bool httpsOnly)
+        bool httpsOnly,
+        DeploymentMode deploymentMode,
+        AzureResourceId? containerRegistryId,
+        string? dockerImageName)
     {
         Name = name;
         Location = location;
@@ -56,6 +68,9 @@ public class WebApp : AzureResource
         RuntimeVersion = runtimeVersion;
         AlwaysOn = alwaysOn;
         HttpsOnly = httpsOnly;
+        DeploymentMode = deploymentMode;
+        ContainerRegistryId = containerRegistryId;
+        DockerImageName = dockerImageName;
     }
 
     /// <summary>
@@ -67,19 +82,20 @@ public class WebApp : AzureResource
         bool? alwaysOn,
         bool? httpsOnly,
         WebAppRuntimeStack? runtimeStack,
-        string? runtimeVersion)
+        string? runtimeVersion,
+        string? dockerImageTag)
     {
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
         if (existing is not null)
         {
-            existing.Update(alwaysOn, httpsOnly, runtimeStack, runtimeVersion);
+            existing.Update(alwaysOn, httpsOnly, runtimeStack, runtimeVersion, dockerImageTag);
         }
         else
         {
             _environmentSettings.Add(
-                WebAppEnvironmentSettings.Create(Id, environmentName, alwaysOn, httpsOnly, runtimeStack, runtimeVersion));
+                WebAppEnvironmentSettings.Create(Id, environmentName, alwaysOn, httpsOnly, runtimeStack, runtimeVersion, dockerImageTag));
         }
     }
 
@@ -87,13 +103,13 @@ public class WebApp : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, WebAppRuntimeStack? RuntimeStack, string? RuntimeVersion)> settings)
+        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, WebAppRuntimeStack? RuntimeStack, string? RuntimeVersion, string? DockerImageTag)> settings)
     {
         _environmentSettings.Clear();
         foreach (var s in settings)
         {
             _environmentSettings.Add(
-                WebAppEnvironmentSettings.Create(Id, s.EnvironmentName, s.AlwaysOn, s.HttpsOnly, s.RuntimeStack, s.RuntimeVersion));
+                WebAppEnvironmentSettings.Create(Id, s.EnvironmentName, s.AlwaysOn, s.HttpsOnly, s.RuntimeStack, s.RuntimeVersion, s.DockerImageTag));
         }
     }
 
@@ -107,7 +123,10 @@ public class WebApp : AzureResource
         string runtimeVersion,
         bool alwaysOn,
         bool httpsOnly,
-        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, WebAppRuntimeStack? RuntimeStack, string? RuntimeVersion)>? environmentSettings = null)
+        DeploymentMode deploymentMode,
+        AzureResourceId? containerRegistryId,
+        string? dockerImageName,
+        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, WebAppRuntimeStack? RuntimeStack, string? RuntimeVersion, string? DockerImageTag)>? environmentSettings = null)
     {
         var webApp = new WebApp
         {
@@ -119,7 +138,10 @@ public class WebApp : AzureResource
             RuntimeStack = runtimeStack,
             RuntimeVersion = runtimeVersion,
             AlwaysOn = alwaysOn,
-            HttpsOnly = httpsOnly
+            HttpsOnly = httpsOnly,
+            DeploymentMode = deploymentMode,
+            ContainerRegistryId = containerRegistryId,
+            DockerImageName = dockerImageName
         };
 
         if (environmentSettings is not null)

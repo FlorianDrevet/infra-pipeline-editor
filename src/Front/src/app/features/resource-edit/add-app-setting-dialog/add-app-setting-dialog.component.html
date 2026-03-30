@@ -18,7 +18,7 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <!-- STATIC VALUE MODE                                              -->
+  <!-- STATIC VALUE MODE — Step-based card flow                       -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
   @if (mode() === 'static') {
     <h2 mat-dialog-title class="as-dialog__title">
@@ -29,7 +29,7 @@
     <mat-dialog-content class="as-dialog__content">
       <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SUBTITLE_STATIC' | translate }}</p>
 
-      <!-- Variable name (always visible) -->
+      <!-- Variable name (always visible through all steps) -->
       <div class="config-section">
         <mat-form-field appearance="outline" class="config-section__field">
           <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_LABEL' | translate }}</mat-label>
@@ -37,81 +37,134 @@
         </mat-form-field>
       </div>
 
-      <!-- Is Secret toggle -->
-      <div class="secret-toggle-section">
-        <mat-slide-toggle
-          [ngModel]="isSecret()"
-          (ngModelChange)="onIsSecretToggle($event)"
-          color="primary">
-          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.IS_SECRET_LABEL' | translate }}
-        </mat-slide-toggle>
-      </div>
+      <!-- ─── Static Step 1: What type of variable? ─── -->
+      @if (staticStep() === 1) {
+        <h4 class="static-step-title">
+          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_STEP1_TITLE' | translate }}
+        </h4>
 
-      <!-- Via Variable Group toggle -->
-      <div class="secret-toggle-section">
-        <mat-slide-toggle
-          [ngModel]="isViaVariableGroup()"
-          (ngModelChange)="onViaVariableGroupToggle($event)"
-          color="primary">
-          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.VIA_VARIABLE_GROUP' | translate }}
-        </mat-slide-toggle>
-      </div>
-
-      <!-- Variable Group selection -->
-      @if (isViaVariableGroup()) {
-        <div class="config-section vg-section">
-          @if (vgLoading()) {
-            <div class="as-dialog__loading">
-              <mat-spinner diameter="20"></mat-spinner>
+        <div class="sensitive-choice">
+          <!-- Standard variable -->
+          <button
+            class="sensitive-choice-card sensitive-choice-card--direct-kv"
+            [class.sensitive-choice-card--selected]="staticType() === 'standard'"
+            (click)="selectStaticType('standard')">
+            <div class="sensitive-choice-card__header">
+              <mat-icon>tune</mat-icon>
+              <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_STANDARD_TITLE' | translate }}</span>
             </div>
-          } @else {
-            <mat-form-field appearance="outline" class="config-section__field">
-              <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SELECT_VARIABLE_GROUP' | translate }}</mat-label>
-              <mat-select [ngModel]="selectedVariableGroupId() ?? (isCreatingNewGroup() ? '__create_new__' : '')" (ngModelChange)="onVgSelectionChange($event)">
-                @for (vg of vgOptions(); track vg.id) {
-                  <mat-option [value]="vg.id">{{ vg.groupName }}</mat-option>
-                }
-                <mat-option value="__create_new__">
-                  <mat-icon>add</mat-icon>
-                  {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CREATE_NEW_GROUP' | translate }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+            <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_STANDARD_DESC' | translate }}</p>
+          </button>
 
-            @if (isCreatingNewGroup()) {
+          <!-- Secret (Key Vault) -->
+          <button
+            class="sensitive-choice-card sensitive-choice-card--kv"
+            [class.sensitive-choice-card--selected]="staticType() === 'secret'"
+            (click)="selectStaticType('secret')">
+            <div class="sensitive-choice-card__header">
+              <mat-icon>vpn_key</mat-icon>
+              <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_SECRET_TITLE' | translate }}</span>
+              <span class="sensitive-badge sensitive-badge--sm">
+                <mat-icon>lock</mat-icon>
+                {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_SECURE_BADGE' | translate }}
+              </span>
+            </div>
+            <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_SECRET_DESC' | translate }}</p>
+          </button>
+        </div>
+      }
+
+      <!-- ─── Static Step 2a: Standard variable — How is the value provided? ─── -->
+      @if (staticStep() === 2 && staticType() === 'standard') {
+        <h4 class="static-step-title">
+          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_STEP2A_TITLE' | translate }}
+        </h4>
+
+        <div class="sensitive-choice">
+          <!-- Per-environment values -->
+          <button
+            class="sensitive-choice-card sensitive-choice-card--kv"
+            [class.sensitive-choice-card--selected]="standardValueSource() === 'environments'"
+            (click)="selectStandardValueSource('environments')">
+            <div class="sensitive-choice-card__header">
+              <mat-icon>description</mat-icon>
+              <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_ENV_VALUES_TITLE' | translate }}</span>
+              <span class="sensitive-choice-card__badge sensitive-choice-card__badge--recommended">
+                {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_RECOMMENDED' | translate }}
+              </span>
+            </div>
+            <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_ENV_VALUES_DESC' | translate }}</p>
+          </button>
+
+          <!-- Pipeline variable group -->
+          <button
+            class="sensitive-choice-card sensitive-choice-card--direct-kv"
+            [class.sensitive-choice-card--selected]="standardValueSource() === 'variableGroup'"
+            (click)="selectStandardValueSource('variableGroup')">
+            <div class="sensitive-choice-card__header">
+              <mat-icon>account_tree</mat-icon>
+              <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_VG_TITLE' | translate }}</span>
+            </div>
+            <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_VG_DESC' | translate }}</p>
+          </button>
+        </div>
+
+        <!-- Inline: Per-environment value fields -->
+        @if (standardValueSource() === 'environments') {
+          <div class="env-values-section">
+            <p class="env-values-section__label">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUES_LABEL' | translate }}</p>
+            @for (env of data.environments; track env.name) {
+              <div class="config-section">
+                <mat-form-field appearance="outline" class="config-section__field">
+                  <mat-label>{{ env.name }}</mat-label>
+                  <input matInput [ngModel]="environmentValues()[env.name] || ''" (ngModelChange)="updateEnvironmentValue(env.name, $event)" [placeholder]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUE_PLACEHOLDER' | translate" />
+                </mat-form-field>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Inline: Variable Group selection -->
+        @if (standardValueSource() === 'variableGroup') {
+          <div class="config-section vg-section">
+            @if (vgLoading()) {
+              <div class="as-dialog__loading">
+                <mat-spinner diameter="20"></mat-spinner>
+              </div>
+            } @else {
               <mat-form-field appearance="outline" class="config-section__field">
-                <mat-label>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME' | translate }}</mat-label>
-                <input matInput [ngModel]="newGroupName()" (ngModelChange)="newGroupName.set($event)" [placeholder]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_PLACEHOLDER' | translate" />
-                <mat-hint>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_HINT' | translate }}</mat-hint>
+                <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SELECT_VARIABLE_GROUP' | translate }}</mat-label>
+                <mat-select [ngModel]="selectedVariableGroupId() ?? (isCreatingNewGroup() ? '__create_new__' : '')" (ngModelChange)="onVgSelectionChange($event)">
+                  @for (vg of vgOptions(); track vg.id) {
+                    <mat-option [value]="vg.id">{{ vg.groupName }}</mat-option>
+                  }
+                  <mat-option value="__create_new__">
+                    <mat-icon>add</mat-icon>
+                    {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CREATE_NEW_GROUP' | translate }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              @if (isCreatingNewGroup()) {
+                <mat-form-field appearance="outline" class="config-section__field">
+                  <mat-label>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME' | translate }}</mat-label>
+                  <input matInput [ngModel]="newGroupName()" (ngModelChange)="newGroupName.set($event)" [placeholder]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_PLACEHOLDER' | translate" />
+                  <mat-hint>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_HINT' | translate }}</mat-hint>
+                </mat-form-field>
+              }
+
+              <mat-form-field appearance="outline" class="config-section__field">
+                <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME' | translate }}</mat-label>
+                <input matInput [ngModel]="pipelineVariableName()" (ngModelChange)="pipelineVariableName.set($event)" placeholder="myVariableName" />
+                <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME_HINT' | translate }}</mat-hint>
               </mat-form-field>
             }
-
-            <mat-form-field appearance="outline" class="config-section__field">
-              <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME' | translate }}</mat-label>
-              <input matInput [ngModel]="pipelineVariableName()" (ngModelChange)="pipelineVariableName.set($event)" placeholder="myVariableName" />
-              <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME_HINT' | translate }}</mat-hint>
-            </mat-form-field>
-          }
-        </div>
+          </div>
+        }
       }
 
-      <!-- Per-environment values (hidden when variable group or secret is checked) -->
-      @if (!isSecret() && !isViaVariableGroup()) {
-        <div class="env-values-section">
-          <p class="env-values-section__label">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUES_LABEL' | translate }}</p>
-          @for (env of data.environments; track env.name) {
-            <div class="config-section">
-              <mat-form-field appearance="outline" class="config-section__field">
-                <mat-label>{{ env.name }}</mat-label>
-                <input matInput [ngModel]="environmentValues()[env.name] || ''" (ngModelChange)="updateEnvironmentValue(env.name, $event)" [placeholder]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUE_PLACEHOLDER' | translate" />
-              </mat-form-field>
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Secret flow: KV selection + assignment mode + secret name -->
-      @if (isSecret()) {
+      <!-- ─── Static Step 2b: Secret — Key Vault configuration ─── -->
+      @if (staticStep() === 2 && staticType() === 'secret') {
         <div class="secret-kv-section">
           <h4 class="sensitive-kv-config__title">
             <mat-icon>vpn_key</mat-icon>
@@ -185,40 +238,6 @@
               </div>
             }
 
-            <!-- Assignment mode choice -->
-            <h4 class="assignment-mode-title">
-              {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SECRET_ASSIGNMENT_TITLE' | translate }}
-            </h4>
-
-            <div class="sensitive-choice">
-              <!-- Via bicepparam (recommended) -->
-              <button
-                class="sensitive-choice-card sensitive-choice-card--kv"
-                [class.sensitive-choice-card--selected]="secretAssignmentMode() === 'ViaBicepparam'"
-                (click)="selectSecretAssignmentMode('ViaBicepparam')">
-                <div class="sensitive-choice-card__header">
-                  <mat-icon>description</mat-icon>
-                  <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_VIA_BICEPPARAM' | translate }}</span>
-                  <span class="sensitive-choice-card__badge sensitive-choice-card__badge--recommended">
-                    {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_RECOMMENDED' | translate }}
-                  </span>
-                </div>
-                <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_VIA_BICEPPARAM_DESC' | translate }}</p>
-              </button>
-
-              <!-- Directly in Key Vault -->
-              <button
-                class="sensitive-choice-card sensitive-choice-card--direct-kv"
-                [class.sensitive-choice-card--selected]="secretAssignmentMode() === 'DirectInKeyVault'"
-                (click)="selectSecretAssignmentMode('DirectInKeyVault')">
-                <div class="sensitive-choice-card__header">
-                  <mat-icon>vpn_key</mat-icon>
-                  <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_DIRECT_IN_KV' | translate }}</span>
-                </div>
-                <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_DIRECT_IN_KV_DESC' | translate }}</p>
-              </button>
-            </div>
-
             <!-- Secret name -->
             <div class="config-section">
               <mat-form-field appearance="outline" class="config-section__field">
@@ -229,6 +248,92 @@
             </div>
           }
         </div>
+
+        <!-- ─── Static Step 3b: How is the secret value set? ─── -->
+        @if (selectedKeyVault() && secretName().trim()) {
+          <h4 class="static-step-title">
+            {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_STEP3B_TITLE' | translate }}
+          </h4>
+
+          <div class="sensitive-choice">
+            <!-- Via Bicep parameter -->
+            <button
+              class="sensitive-choice-card sensitive-choice-card--kv"
+              [class.sensitive-choice-card--selected]="secretValueSource() === 'viaBicepparam'"
+              (click)="selectSecretValueSource('viaBicepparam')">
+              <div class="sensitive-choice-card__header">
+                <mat-icon>description</mat-icon>
+                <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_VIA_BICEPPARAM' | translate }}</span>
+                <span class="sensitive-choice-card__badge sensitive-choice-card__badge--recommended">
+                  {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_RECOMMENDED' | translate }}
+                </span>
+              </div>
+              <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_VIA_BICEPPARAM_DESC' | translate }}</p>
+            </button>
+
+            <!-- Directly in Key Vault -->
+            <button
+              class="sensitive-choice-card sensitive-choice-card--direct-kv"
+              [class.sensitive-choice-card--selected]="secretValueSource() === 'directInKeyVault'"
+              (click)="selectSecretValueSource('directInKeyVault')">
+              <div class="sensitive-choice-card__header">
+                <mat-icon>vpn_key</mat-icon>
+                <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_DIRECT_IN_KV' | translate }}</span>
+              </div>
+              <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_DIRECT_IN_KV_DESC' | translate }}</p>
+            </button>
+
+            <!-- Via pipeline variable group -->
+            <button
+              class="sensitive-choice-card sensitive-choice-card--direct-kv"
+              [class.sensitive-choice-card--selected]="secretValueSource() === 'variableGroup'"
+              (click)="selectSecretValueSource('variableGroup')">
+              <div class="sensitive-choice-card__header">
+                <mat-icon>account_tree</mat-icon>
+                <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_VG_TITLE' | translate }}</span>
+              </div>
+              <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_SECRET_VG_DESC' | translate }}</p>
+            </button>
+          </div>
+
+          <!-- Inline: Variable Group selection for secret + VG -->
+          @if (secretValueSource() === 'variableGroup') {
+            <div class="config-section vg-section">
+              @if (vgLoading()) {
+                <div class="as-dialog__loading">
+                  <mat-spinner diameter="20"></mat-spinner>
+                </div>
+              } @else {
+                <mat-form-field appearance="outline" class="config-section__field">
+                  <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SELECT_VARIABLE_GROUP' | translate }}</mat-label>
+                  <mat-select [ngModel]="selectedVariableGroupId() ?? (isCreatingNewGroup() ? '__create_new__' : '')" (ngModelChange)="onVgSelectionChange($event)">
+                    @for (vg of vgOptions(); track vg.id) {
+                      <mat-option [value]="vg.id">{{ vg.groupName }}</mat-option>
+                    }
+                    <mat-option value="__create_new__">
+                      <mat-icon>add</mat-icon>
+                      {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CREATE_NEW_GROUP' | translate }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                @if (isCreatingNewGroup()) {
+                  <mat-form-field appearance="outline" class="config-section__field">
+                    <mat-label>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME' | translate }}</mat-label>
+                    <input matInput [ngModel]="newGroupName()" (ngModelChange)="newGroupName.set($event)" [placeholder]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_PLACEHOLDER' | translate" />
+                    <mat-hint>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
+                }
+
+                <mat-form-field appearance="outline" class="config-section__field">
+                  <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME' | translate }}</mat-label>
+                  <input matInput [ngModel]="pipelineVariableName()" (ngModelChange)="pipelineVariableName.set($event)" placeholder="myVariableName" />
+                  <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME_HINT' | translate }}</mat-hint>
+                </mat-form-field>
+              }
+            </div>
+          }
+        }
       }
 
       @if (errorKey()) {
@@ -240,9 +345,15 @@
     </mat-dialog-content>
 
     <mat-dialog-actions class="as-dialog__actions" align="end">
-      <button mat-stroked-button (click)="onCancel()">
-        {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CANCEL' | translate }}
-      </button>
+      @if (staticStep() === 2) {
+        <button mat-stroked-button (click)="goBackStatic()">
+          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
+        </button>
+      } @else {
+        <button mat-stroked-button (click)="onCancel()">
+          {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CANCEL' | translate }}
+        </button>
+      }
       <button
         mat-flat-button
         color="primary"

@@ -21,5 +21,8 @@ public record FunctionAppResponse(
     string RuntimeStack,
     string RuntimeVersion,
     bool HttpsOnly,
+    string DeploymentMode,
+    Guid? ContainerRegistryId,
+    string? DockerImageName,
     IReadOnlyList<FunctionAppEnvironmentConfigResponse> EnvironmentSettings
 );

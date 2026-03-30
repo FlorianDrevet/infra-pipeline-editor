@@ -13,4 +13,5 @@ public record ContainerAppResult(
     Name Name,
     Location Location,
     Guid ContainerAppEnvironmentId,
+    Guid? ContainerRegistryId,
     IReadOnlyList<ContainerAppEnvironmentConfigData> EnvironmentSettings);

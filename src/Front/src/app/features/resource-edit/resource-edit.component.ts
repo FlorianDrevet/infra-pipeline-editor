@@ -14,6 +14,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { TranslateModule } from '@ngx-translate/core';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { KeyVaultService } from '../../shared/services/key-vault.service';
@@ -268,6 +269,7 @@ const ACR_PUBLIC_NETWORK_OPTIONS = [
     MatTabsModule,
     MatTooltipModule,
     MatMenuModule,
+    MatButtonToggleModule,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
@@ -376,6 +378,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly availableUserAssignedIdentities = computed(() =>
     this.allResources().filter(r => r.resourceType === 'UserAssignedIdentity')
   );
+
+  protected readonly availableContainerRegistries = computed(() =>
+    this.allResources().filter(r => r.resourceType === 'ContainerRegistry')
+  );
+
+  // ─── Deployment Mode (WebApp / FunctionApp) ───
+  protected readonly deploymentMode = signal<'Code' | 'Container'>('Code');
+
+  protected readonly isContainerMode = computed(() => this.deploymentMode() === 'Container');
 
   /** Role assignments grouped by identity: system-assigned flat + per-UAI collapsible groups */
   protected readonly groupedRoleAssignments = computed(() => {
@@ -652,16 +663,24 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     } else if (this.resourceType === 'WebApp') {
       const wa = resource as WebAppResponse;
       base['appServicePlanId'] = [wa.appServicePlanId];
+      base['deploymentMode'] = [wa.deploymentMode || 'Code'];
+      base['containerRegistryId'] = [wa.containerRegistryId ?? null];
+      base['dockerImageName'] = [wa.dockerImageName ?? null];
       base['runtimeStack'] = [wa.runtimeStack, [Validators.required]];
       base['runtimeVersion'] = [wa.runtimeVersion];
       base['alwaysOn'] = [wa.alwaysOn];
       base['httpsOnly'] = [wa.httpsOnly];
+      this.deploymentMode.set((wa.deploymentMode as 'Code' | 'Container') || 'Code');
     } else if (this.resourceType === 'FunctionApp') {
       const fa = resource as FunctionAppResponse;
       base['appServicePlanId'] = [fa.appServicePlanId];
+      base['deploymentMode'] = [fa.deploymentMode || 'Code'];
+      base['containerRegistryId'] = [fa.containerRegistryId ?? null];
+      base['dockerImageName'] = [fa.dockerImageName ?? null];
       base['runtimeStack'] = [fa.runtimeStack, [Validators.required]];
       base['runtimeVersion'] = [fa.runtimeVersion];
       base['httpsOnly'] = [fa.httpsOnly];
+      this.deploymentMode.set((fa.deploymentMode as 'Code' | 'Container') || 'Code');
     } else if (this.resourceType === 'StorageAccount') {
       const sa = resource as StorageAccountResponse;
       base['kind'] = [sa.kind, [Validators.required]];
@@ -691,6 +710,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     } else if (this.resourceType === 'ContainerApp') {
       const ca = resource as ContainerAppResponse;
       base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
+      base['containerRegistryId'] = [ca.containerRegistryId ?? null];
     } else if (this.resourceType === 'ApplicationInsights') {
       const ai = resource as ApplicationInsightsResponse;
       base['logAnalyticsWorkspaceId'] = [ai.logAnalyticsWorkspaceId];
@@ -761,6 +781,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           httpsOnly: [settings?.httpsOnly ?? null],
           runtimeStack: [settings?.runtimeStack ?? null],
           runtimeVersion: [settings?.runtimeVersion ?? null],
+          dockerImageTag: [settings?.dockerImageTag ?? null],
         });
       }
       case 'FunctionApp': {
@@ -772,6 +793,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           runtimeVersion: [settings?.runtimeVersion ?? null],
           maxInstanceCount: [settings?.maxInstanceCount ?? null],
           functionsWorkerRuntime: [settings?.functionsWorkerRuntime ?? null],
+          dockerImageTag: [settings?.dockerImageTag ?? null],
         });
       }
       default:
@@ -941,6 +963,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             name: general.name,
             location: general.location,
             appServicePlanId: general.appServicePlanId,
+            deploymentMode: general.deploymentMode || 'Code',
+            containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
+            dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
             runtimeStack: general.runtimeStack,
             runtimeVersion: general.runtimeVersion,
             alwaysOn: general.alwaysOn,
@@ -953,6 +978,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             name: general.name,
             location: general.location,
             appServicePlanId: general.appServicePlanId,
+            deploymentMode: general.deploymentMode || 'Code',
+            containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
+            dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
             runtimeStack: general.runtimeStack,
             runtimeVersion: general.runtimeVersion,
             httpsOnly: general.httpsOnly,
@@ -984,6 +1012,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             name: general.name,
             location: general.location,
             containerAppEnvironmentId: general.containerAppEnvironmentId,
+            containerRegistryId: general.containerRegistryId || null,
             environmentSettings: this.buildContainerAppEnvSettings(),
           });
           break;
@@ -1061,6 +1090,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.buildGeneralForm(res);
     this.buildEnvForms(res);
     this.watchFormChanges();
+  }
+
+  protected onDeploymentModeChange(mode: 'Code' | 'Container'): void {
+    this.deploymentMode.set(mode);
+    this.generalForm.patchValue({ deploymentMode: mode });
+    this.formsDirty.set(true);
   }
 
   ngOnDestroy(): void {
@@ -2118,6 +2153,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         httpsOnly: raw.httpsOnly ?? null,
         runtimeStack: raw.runtimeStack || null,
         runtimeVersion: raw.runtimeVersion || null,
+        dockerImageTag: raw.dockerImageTag || null,
       };
     });
   }
@@ -2132,6 +2168,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         runtimeVersion: raw.runtimeVersion || null,
         maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
         functionsWorkerRuntime: raw.functionsWorkerRuntime || null,
+        dockerImageTag: raw.dockerImageTag || null,
       };
     });
   }

@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.WebAppAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,20 @@ public class WebAppConfiguration : IEntityTypeConfiguration<WebApp>
         builder.Property(x => x.AlwaysOn);
 
         builder.Property(x => x.HttpsOnly);
+
+        builder.Property(x => x.DeploymentMode)
+            .IsRequired()
+            .HasConversion(
+                v => v.Value.ToString(),
+                v => new DeploymentMode(
+                    Enum.Parse<DeploymentMode.DeploymentModeType>(v)));
+
+        builder.Property(x => x.ContainerRegistryId)
+            .HasConversion(new IdValueConverter<AzureResourceId>())
+            .IsRequired(false);
+
+        builder.Property(x => x.DockerImageName)
+            .IsRequired(false);
 
         builder.HasMany(x => x.EnvironmentSettings)
             .WithOne()

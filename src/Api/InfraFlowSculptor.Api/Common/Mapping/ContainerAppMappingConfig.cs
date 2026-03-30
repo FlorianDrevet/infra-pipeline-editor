@@ -28,6 +28,7 @@ public sealed class ContainerAppMappingConfig : IRegister
                 src.Request.Name.Adapt<Name>(),
                 src.Request.Location.Adapt<Location>(),
                 src.Request.ContainerAppEnvironmentId,
+                src.Request.ContainerRegistryId,
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new ContainerAppEnvironmentConfigData(
@@ -46,7 +47,8 @@ public sealed class ContainerAppMappingConfig : IRegister
                     es.IngressTargetPort,
                     es.IngressExternal,
                     es.TransportMethod)).ToList())
-            .Map(dest => dest.ContainerAppEnvironmentId, src => src.ContainerAppEnvironmentId.Value);
+            .Map(dest => dest.ContainerAppEnvironmentId, src => src.ContainerAppEnvironmentId.Value)
+            .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null);
 
         config.NewConfig<ContainerAppEnvironmentConfigData, ContainerAppEnvironmentConfigResponse>()
             .MapWith(src => new ContainerAppEnvironmentConfigResponse(

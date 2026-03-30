@@ -31,6 +31,9 @@ public sealed class FunctionAppEnvironmentSettings : Entity<FunctionAppEnvironme
     /// <summary>Gets or sets the Functions worker runtime override (e.g., "dotnet-isolated", "node", "python").</summary>
     public string? FunctionsWorkerRuntime { get; private set; }
 
+    /// <summary>Gets or sets the Docker image tag override for this environment (e.g., "latest", "v1.2.3").</summary>
+    public string? DockerImageTag { get; private set; }
+
     private FunctionAppEnvironmentSettings() { }
 
     internal FunctionAppEnvironmentSettings(
@@ -40,7 +43,8 @@ public sealed class FunctionAppEnvironmentSettings : Entity<FunctionAppEnvironme
         FunctionAppRuntimeStack? runtimeStack,
         string? runtimeVersion,
         int? maxInstanceCount,
-        string? functionsWorkerRuntime)
+        string? functionsWorkerRuntime,
+        string? dockerImageTag)
         : base(FunctionAppEnvironmentSettingsId.CreateUnique())
     {
         FunctionAppId = functionAppId;
@@ -50,6 +54,7 @@ public sealed class FunctionAppEnvironmentSettings : Entity<FunctionAppEnvironme
         RuntimeVersion = runtimeVersion;
         MaxInstanceCount = maxInstanceCount;
         FunctionsWorkerRuntime = functionsWorkerRuntime;
+        DockerImageTag = dockerImageTag;
     }
 
     /// <summary>
@@ -62,8 +67,9 @@ public sealed class FunctionAppEnvironmentSettings : Entity<FunctionAppEnvironme
         FunctionAppRuntimeStack? runtimeStack,
         string? runtimeVersion,
         int? maxInstanceCount,
-        string? functionsWorkerRuntime)
-        => new(functionAppId, environmentName, httpsOnly, runtimeStack, runtimeVersion, maxInstanceCount, functionsWorkerRuntime);
+        string? functionsWorkerRuntime,
+        string? dockerImageTag)
+        => new(functionAppId, environmentName, httpsOnly, runtimeStack, runtimeVersion, maxInstanceCount, functionsWorkerRuntime, dockerImageTag);
 
     /// <summary>Updates the configuration overrides for this environment.</summary>
     public void Update(
@@ -71,13 +77,15 @@ public sealed class FunctionAppEnvironmentSettings : Entity<FunctionAppEnvironme
         FunctionAppRuntimeStack? runtimeStack,
         string? runtimeVersion,
         int? maxInstanceCount,
-        string? functionsWorkerRuntime)
+        string? functionsWorkerRuntime,
+        string? dockerImageTag)
     {
         HttpsOnly = httpsOnly;
         RuntimeStack = runtimeStack;
         RuntimeVersion = runtimeVersion;
         MaxInstanceCount = maxInstanceCount;
         FunctionsWorkerRuntime = functionsWorkerRuntime;
+        DockerImageTag = dockerImageTag;
     }
 
     /// <summary>
@@ -91,6 +99,7 @@ public sealed class FunctionAppEnvironmentSettings : Entity<FunctionAppEnvironme
         if (RuntimeVersion is not null) dict["runtimeVersion"] = RuntimeVersion;
         if (MaxInstanceCount is not null) dict["maxInstanceCount"] = MaxInstanceCount.Value.ToString();
         if (FunctionsWorkerRuntime is not null) dict["functionsWorkerRuntime"] = FunctionsWorkerRuntime;
+        if (DockerImageTag is not null) dict["dockerImageTag"] = DockerImageTag;
         return dict;
     }
 }

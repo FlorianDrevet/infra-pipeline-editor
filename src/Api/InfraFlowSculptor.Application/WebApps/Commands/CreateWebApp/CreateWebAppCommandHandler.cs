@@ -3,6 +3,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.WebApps.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.WebAppAggregate;
 using InfraFlowSculptor.Domain.WebAppAggregate.ValueObjects;
 using MapsterMapper;
@@ -42,6 +43,13 @@ public class CreateWebAppCommandHandler(
         var runtimeStack = new WebAppRuntimeStack(
             Enum.Parse<WebAppRuntimeStack.WebAppRuntimeStackEnum>(request.RuntimeStack));
 
+        var deploymentMode = new DeploymentMode(
+            Enum.Parse<DeploymentMode.DeploymentModeType>(request.DeploymentMode));
+
+        var containerRegistryId = request.ContainerRegistryId.HasValue
+            ? new AzureResourceId(request.ContainerRegistryId.Value)
+            : (AzureResourceId?)null;
+
         var webApp = WebApp.Create(
             request.ResourceGroupId,
             request.Name,
@@ -51,6 +59,9 @@ public class CreateWebAppCommandHandler(
             request.RuntimeVersion,
             request.AlwaysOn,
             request.HttpsOnly,
+            deploymentMode,
+            containerRegistryId,
+            request.DockerImageName,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName,
                     ec.AlwaysOn,
@@ -58,7 +69,8 @@ public class CreateWebAppCommandHandler(
                     ec.RuntimeStack is not null
                         ? new WebAppRuntimeStack(Enum.Parse<WebAppRuntimeStack.WebAppRuntimeStackEnum>(ec.RuntimeStack))
                         : (WebAppRuntimeStack?)null,
-                    ec.RuntimeVersion))
+                    ec.RuntimeVersion,
+                    ec.DockerImageTag))
                 .ToList());
 
         var saved = await webAppRepository.AddAsync(webApp);

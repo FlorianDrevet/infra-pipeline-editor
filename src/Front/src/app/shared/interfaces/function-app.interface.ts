@@ -7,6 +7,7 @@ export interface FunctionAppEnvironmentConfigEntry {
   runtimeVersion?: string | null;
   maxInstanceCount?: number | null;
   functionsWorkerRuntime?: string | null;
+  dockerImageTag?: string | null;
 }
 
 export interface FunctionAppEnvironmentConfigResponse {
@@ -16,6 +17,7 @@ export interface FunctionAppEnvironmentConfigResponse {
   runtimeVersion: string | null;
   maxInstanceCount: number | null;
   functionsWorkerRuntime: string | null;
+  dockerImageTag: string | null;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -26,6 +28,9 @@ export interface FunctionAppResponse {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode: string;
+  containerRegistryId: string | null;
+  dockerImageName: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;
@@ -39,6 +44,9 @@ export interface CreateFunctionAppRequest {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode?: string;
+  containerRegistryId?: string | null;
+  dockerImageName?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;
@@ -49,6 +57,9 @@ export interface UpdateFunctionAppRequest {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode?: string;
+  containerRegistryId?: string | null;
+  dockerImageName?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;

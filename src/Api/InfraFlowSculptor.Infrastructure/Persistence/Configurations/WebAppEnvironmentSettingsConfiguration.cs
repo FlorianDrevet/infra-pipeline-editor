@@ -40,5 +40,8 @@ public class WebAppEnvironmentSettingsConfiguration
                     : null);
 
         builder.Property(x => x.RuntimeVersion);
+
+        builder.Property(x => x.DockerImageTag)
+            .IsRequired(false);
     }
 }

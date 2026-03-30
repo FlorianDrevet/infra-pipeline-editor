@@ -19,6 +19,10 @@ public abstract class ContainerAppRequestBase
     [Required, GuidValidation]
     public required Guid ContainerAppEnvironmentId { get; init; }
 
+    /// <summary>Optional Container Registry identifier for authenticated image pulls.</summary>
+    [GuidValidation]
+    public Guid? ContainerRegistryId { get; init; }
+
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<ContainerAppEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }

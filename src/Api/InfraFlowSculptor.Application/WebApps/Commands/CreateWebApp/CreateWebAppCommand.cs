@@ -16,5 +16,8 @@ public record CreateWebAppCommand(
     string RuntimeVersion,
     bool AlwaysOn,
     bool HttpsOnly,
+    string DeploymentMode,
+    Guid? ContainerRegistryId,
+    string? DockerImageName,
     IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<WebAppResult>;
