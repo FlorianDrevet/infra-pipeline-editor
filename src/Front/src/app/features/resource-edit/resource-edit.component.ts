@@ -388,6 +388,18 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected readonly isContainerMode = computed(() => this.deploymentMode() === 'Container');
 
+  // ─── ACR Pull Access Check ───
+  protected readonly acrAccessChecking = signal(false);
+  protected readonly acrHasAccess = signal<boolean | null>(null);
+  protected readonly acrMissingRoleName = signal<string | null>(null);
+  protected readonly acrMissingRoleDefinitionId = signal<string | null>(null);
+  protected readonly acrRoleAssigning = signal(false);
+
+  protected readonly selectedContainerRegistryId = computed(() => {
+    if (!this.generalForm) return null;
+    return this.generalForm.get('containerRegistryId')?.value ?? null;
+  });
+
   /** Role assignments grouped by identity: system-assigned flat + per-UAI collapsible groups */
   protected readonly groupedRoleAssignments = computed(() => {
     const all = this.roleAssignments();
@@ -1096,6 +1108,56 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.deploymentMode.set(mode);
     this.generalForm.patchValue({ deploymentMode: mode });
     this.formsDirty.set(true);
+  }
+
+  protected async onContainerRegistryChange(acrId: string | null): Promise<void> {
+    this.acrHasAccess.set(null);
+    this.acrMissingRoleName.set(null);
+    this.acrMissingRoleDefinitionId.set(null);
+    if (!acrId) return;
+    await this.checkAcrPullAccess(acrId);
+  }
+
+  protected async checkAcrPullAccess(acrId?: string): Promise<void> {
+    const registryId = acrId ?? this.generalForm.get('containerRegistryId')?.value;
+    if (!registryId) return;
+
+    this.acrAccessChecking.set(true);
+    this.acrHasAccess.set(null);
+    this.acrMissingRoleName.set(null);
+    this.acrMissingRoleDefinitionId.set(null);
+
+    try {
+      const result = await this.containerRegistryService.checkAcrPullAccess(this.resourceId, registryId);
+      this.acrHasAccess.set(result.hasAccess);
+      this.acrMissingRoleName.set(result.missingRoleName ?? null);
+      this.acrMissingRoleDefinitionId.set(result.missingRoleDefinitionId ?? null);
+    } catch {
+      this.acrHasAccess.set(null);
+    } finally {
+      this.acrAccessChecking.set(false);
+    }
+  }
+
+  protected async addAcrPullRoleAssignment(): Promise<void> {
+    const acrId = this.generalForm.get('containerRegistryId')?.value;
+    const roleDefId = this.acrMissingRoleDefinitionId();
+    if (!acrId || !roleDefId) return;
+
+    this.acrRoleAssigning.set(true);
+    try {
+      await this.roleAssignmentService.add(this.resourceId, {
+        targetResourceId: acrId,
+        managedIdentityType: 'SystemAssigned',
+        roleDefinitionId: roleDefId,
+      });
+      await this.checkAcrPullAccess(acrId);
+      await this.loadRoleAssignments();
+    } catch {
+      // Error handled silently; the UI will still show the missing role
+    } finally {
+      this.acrRoleAssigning.set(false);
+    }
   }
 
   ngOnDestroy(): void {

@@ -40,3 +40,11 @@ export interface UpdateContainerRegistryRequest {
   location: string;
   environmentSettings?: ContainerRegistryEnvironmentConfigEntry[];
 }
+
+// ─── ACR Access Check ────────────────────────────────────────────────────────
+
+export interface CheckAcrPullAccessResponse {
+  hasAccess: boolean;
+  missingRoleDefinitionId?: string;
+  missingRoleName?: string;
+}
