@@ -13,7 +13,6 @@ public record ProjectEnvironmentDefinitionResult(
     string Prefix,
     string Suffix,
     string Location,
-    Guid TenantId,
     Guid SubscriptionId,
     int Order,
     bool RequiresApproval,

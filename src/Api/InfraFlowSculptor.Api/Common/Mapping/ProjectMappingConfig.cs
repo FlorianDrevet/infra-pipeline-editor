@@ -56,7 +56,6 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.Prefix, src => src.Prefix.Value)
             .Map(dest => dest.Suffix, src => src.Suffix.Value)
             .Map(dest => dest.Location, src => src.Location.Value.ToString())
-            .Map(dest => dest.TenantId, src => src.TenantId.Value)
             .Map(dest => dest.SubscriptionId, src => src.SubscriptionId.Value)
             .Map(dest => dest.Order, src => src.Order.Value)
             .Map(dest => dest.RequiresApproval, src => src.RequiresApproval.Value)

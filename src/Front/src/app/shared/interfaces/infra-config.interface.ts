@@ -27,7 +27,6 @@ export interface EnvironmentDefinitionResponse {
   prefix: string;
   suffix: string;
   location: string;
-  tenantId: string;
   subscriptionId: string;
   order: number;
   requiresApproval: boolean;

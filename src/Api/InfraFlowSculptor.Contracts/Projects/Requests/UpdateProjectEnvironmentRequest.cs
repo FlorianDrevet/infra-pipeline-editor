@@ -26,10 +26,6 @@ public class UpdateProjectEnvironmentRequest
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
-    /// <summary>Azure Active Directory tenant ID associated with this environment.</summary>
-    [Required, GuidValidation]
-    public required Guid TenantId { get; init; }
-
     /// <summary>Azure subscription ID where resources in this environment will be created.</summary>
     [Required, GuidValidation]
     public required Guid SubscriptionId { get; init; }

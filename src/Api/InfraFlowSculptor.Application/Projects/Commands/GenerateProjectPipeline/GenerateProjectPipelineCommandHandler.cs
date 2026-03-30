@@ -5,6 +5,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration;
+using InfraFlowSculptor.PipelineGeneration.Models;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipeline;
@@ -58,27 +59,44 @@ public sealed class GenerateProjectPipelineCommandHandler(
                 "Project.NoConfigurations",
                 "No infrastructure configurations found for this project.");
 
-        // 3. Generate pipeline YAML per config and upload
-        var prefix = $"pipeline/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
-        var configFileUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>();
+        // 3. Generate pipeline YAML per config
+        var perConfigResults = new Dictionary<string, PipelineGenerationResult>();
 
         foreach (var config in configs)
         {
             var generationRequest = BuildGenerationRequest(config);
-            var result = pipelineGenerationEngine.Generate(generationRequest);
-
-            var uris = new Dictionary<string, Uri>();
-            foreach (var (path, content) in result.Files)
-            {
-                var uri = await blobService.UploadContentAsync(
-                    $"{prefix}/{config.Name}/{path}", content, "text/plain");
-                uris[path] = uri;
-            }
-
-            configFileUris[config.Name] = uris;
+            var result = pipelineGenerationEngine.Generate(generationRequest, config.Name);
+            perConfigResults[config.Name] = result;
         }
 
-        return new GenerateProjectPipelineResult(configFileUris);
+        // 4. Assemble mono-repo output
+        var assembled = MonoRepoPipelineAssembler.Assemble(perConfigResults);
+
+        // 5. Upload to blob storage
+        var prefix = $"pipeline/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
+
+        var commonFileUris = new Dictionary<string, Uri>();
+        foreach (var (path, content) in assembled.CommonFiles)
+        {
+            var uri = await blobService.UploadContentAsync(
+                $"{prefix}/.azuredevops/{path}", content, "text/plain");
+            commonFileUris[$".azuredevops/{path}"] = uri;
+        }
+
+        var configFileUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>();
+        foreach (var (configName, files) in assembled.ConfigFiles)
+        {
+            var uris = new Dictionary<string, Uri>();
+            foreach (var (path, content) in files)
+            {
+                var uri = await blobService.UploadContentAsync(
+                    $"{prefix}/{configName}/{path}", content, "text/plain");
+                uris[path] = uri;
+            }
+            configFileUris[configName] = uris;
+        }
+
+        return new GenerateProjectPipelineResult(commonFileUris, configFileUris);
     }
 
     private static GenerationRequest BuildGenerationRequest(

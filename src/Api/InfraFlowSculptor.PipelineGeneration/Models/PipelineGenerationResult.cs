@@ -3,35 +3,18 @@ using InfraFlowSculptor.GenerationCore;
 namespace InfraFlowSculptor.PipelineGeneration.Models;
 
 /// <summary>
-/// Result of Azure DevOps pipeline YAML generation.
-/// Contains the main pipeline file and optional template files.
+/// Result of Azure DevOps pipeline YAML generation for a single configuration.
+/// Contains the per-config pipeline and variable files.
 /// </summary>
 public sealed class PipelineGenerationResult : IGenerationResult
 {
-    /// <summary>Content of the main <c>azure-pipelines.yml</c> file.</summary>
-    public string MainPipelineYaml { get; init; } = string.Empty;
-
     /// <summary>
-    /// Template files referenced by the main pipeline.
-    /// Key = relative file path (e.g. <c>templates/deploy-rg.yml</c>), Value = file content.
+    /// Per-config files: ci.pipeline.yml, release.pipeline.yml, variables/*.yml.
+    /// Key = relative file path, Value = file content.
     /// </summary>
     public IReadOnlyDictionary<string, string> TemplateFiles { get; init; } =
         new Dictionary<string, string>();
 
     /// <inheritdoc />
-    public IReadOnlyDictionary<string, string> Files
-    {
-        get
-        {
-            var files = new Dictionary<string, string>();
-
-            if (!string.IsNullOrEmpty(MainPipelineYaml))
-                files["pipelines/ci.pipeline.yml"] = MainPipelineYaml;
-
-            foreach (var (path, content) in TemplateFiles)
-                files[path] = content;
-
-            return files;
-        }
-    }
+    public IReadOnlyDictionary<string, string> Files => TemplateFiles;
 }

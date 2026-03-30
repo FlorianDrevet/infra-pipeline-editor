@@ -13,7 +13,6 @@ public record AddProjectEnvironmentCommand(
     string Prefix,
     string Suffix,
     string Location,
-    Guid TenantId,
     Guid SubscriptionId,
     int Order,
     bool RequiresApproval,

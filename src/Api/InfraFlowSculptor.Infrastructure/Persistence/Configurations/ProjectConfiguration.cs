@@ -107,9 +107,6 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             env.Property(x => x.Location)
                 .HasConversion(new EnumValueConverter<Location, Location.LocationEnum>());
 
-            env.Property(x => x.TenantId)
-                .HasConversion(new SingleValueConverter<TenantId, Guid>());
-
             env.Property(x => x.SubscriptionId)
                 .HasConversion(new SingleValueConverter<SubscriptionId, Guid>());
 

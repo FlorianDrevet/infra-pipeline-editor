@@ -6,7 +6,6 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// <param name="Prefix">Short prefix used in generated resource names.</param>
 /// <param name="Suffix">Short suffix used in generated resource names.</param>
 /// <param name="Location">Azure region where resources are deployed.</param>
-/// <param name="TenantId">Azure AD tenant associated with this environment.</param>
 /// <param name="SubscriptionId">Azure subscription where resources are created.</param>
 /// <param name="Order">Deployment ordering index (lower = deployed first).</param>
 /// <param name="RequiresApproval">Whether deployments to this environment require explicit approval.</param>
@@ -19,7 +18,6 @@ public record EnvironmentDefinitionResponse(
     string Prefix,
     string Suffix,
     string Location,
-    Guid TenantId,
     Guid SubscriptionId,
     int Order,
     bool RequiresApproval,

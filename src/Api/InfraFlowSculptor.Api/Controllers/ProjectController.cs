@@ -253,7 +253,6 @@ public static class ProjectController
                             request.Prefix,
                             request.Suffix,
                             request.Location,
-                            request.TenantId,
                             request.SubscriptionId,
                             request.Order,
                             request.RequiresApproval,
@@ -290,7 +289,6 @@ public static class ProjectController
                             request.Prefix,
                             request.Suffix,
                             request.Location,
-                            request.TenantId,
                             request.SubscriptionId,
                             request.Order,
                             request.RequiresApproval,
@@ -678,6 +676,7 @@ public static class ProjectController
                             value =>
                             {
                                 var response = new GenerateProjectPipelineResponse(
+                                    value.CommonFileUris,
                                     value.ConfigFileUris);
                                 return Results.Created($"/projects/{projectId}/generate-pipeline", response);
                             },

@@ -92,7 +92,6 @@ export class AddProjectEnvironmentDialogComponent {
   protected readonly form = this.fb.group({
     name: [this.data.existing?.name ?? '', [Validators.required, Validators.minLength(1), Validators.maxLength(100)]],
     location: [this.data.existing?.location ?? '', [Validators.required]],
-    tenantId: [this.data.existing?.tenantId ?? '', [Validators.required]],
     subscriptionId: [this.data.existing?.subscriptionId ?? '', [Validators.required]],
     azureResourceManagerConnection: [this.data.existing?.azureResourceManagerConnection ?? ''],
     shortName: [this.data.existing?.shortName ?? ''],
@@ -149,7 +148,6 @@ export class AddProjectEnvironmentDialogComponent {
     const payload = {
       name: values.name!,
       location: values.location!,
-      tenantId: values.tenantId!,
       subscriptionId: values.subscriptionId!,
       shortName: values.shortName || undefined,
       prefix: values.prefix || undefined,

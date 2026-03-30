@@ -14,7 +14,6 @@ public record EnvironmentDefinitionData(
     Prefix Prefix,
     Suffix Suffix,
     Location Location,
-    TenantId TenantId,
     SubscriptionId SubscriptionId,
     Order Order,
     RequiresApproval RequiresApproval,

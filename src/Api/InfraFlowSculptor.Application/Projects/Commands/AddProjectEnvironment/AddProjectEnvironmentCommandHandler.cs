@@ -40,7 +40,6 @@ public sealed class AddProjectEnvironmentCommandHandler(
             new Prefix(command.Prefix),
             new Suffix(command.Suffix),
             new Location(Enum.Parse<Location.LocationEnum>(command.Location, ignoreCase: true)),
-            new TenantId(command.TenantId),
             new SubscriptionId(command.SubscriptionId),
             new Order(command.Order),
             new RequiresApproval(command.RequiresApproval),

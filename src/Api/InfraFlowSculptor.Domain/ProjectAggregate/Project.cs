@@ -141,7 +141,6 @@ public sealed class Project : AggregateRoot<ProjectId>
         env.Prefix = data.Prefix;
         env.Suffix = data.Suffix;
         env.Location = data.Location;
-        env.TenantId = data.TenantId;
         env.SubscriptionId = data.SubscriptionId;
         env.Order = data.Order;
         env.RequiresApproval = data.RequiresApproval;

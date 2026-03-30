@@ -35,9 +35,6 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
     /// <summary>Gets the default Azure region for this environment.</summary>
     public required Location Location { get; set; }
 
-    /// <summary>Gets the Azure AD tenant identifier.</summary>
-    public required TenantId TenantId { get; set; }
-
     /// <summary>Gets the Azure subscription identifier.</summary>
     public required SubscriptionId SubscriptionId { get; set; }
 
@@ -75,7 +72,6 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
         Prefix = data.Prefix;
         Suffix = data.Suffix;
         Location = data.Location;
-        TenantId = data.TenantId;
         SubscriptionId = data.SubscriptionId;
         Order = data.Order;
         RequiresApproval = data.RequiresApproval;

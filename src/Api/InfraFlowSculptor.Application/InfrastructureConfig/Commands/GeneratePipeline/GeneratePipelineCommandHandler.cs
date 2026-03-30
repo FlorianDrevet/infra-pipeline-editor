@@ -87,7 +87,7 @@ public sealed class GeneratePipelineCommandHandler(
             ExistingResourceReferences = [],
         };
 
-        var result = pipelineGenerationEngine.Generate(generationRequest);
+        var result = pipelineGenerationEngine.Generate(generationRequest, config.Name);
 
         var timestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
         var fileUris = new Dictionary<string, Uri>();

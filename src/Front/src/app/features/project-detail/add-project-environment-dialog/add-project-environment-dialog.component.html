@@ -21,21 +21,16 @@
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="half-width">
-        <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.TENANT_ID' | translate }}</mat-label>
-        <input matInput formControlName="tenantId" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="half-width">
         <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUBSCRIPTION_ID' | translate }}</mat-label>
         <input matInput formControlName="subscriptionId" />
       </mat-form-field>
-    </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION' | translate }}</mat-label>
-      <input matInput formControlName="azureResourceManagerConnection"
-        [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION_PLACEHOLDER' | translate" />
-    </mat-form-field>
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION' | translate }}</mat-label>
+        <input matInput formControlName="azureResourceManagerConnection"
+          [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION_PLACEHOLDER' | translate" />
+      </mat-form-field>
+    </div>
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="half-width">

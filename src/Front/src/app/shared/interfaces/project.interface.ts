@@ -63,7 +63,6 @@ export interface AddProjectEnvironmentRequest {
   prefix?: string;
   suffix?: string;
   location: string;
-  tenantId: string;
   subscriptionId: string;
   order?: number;
   requiresApproval?: boolean;
@@ -77,7 +76,6 @@ export interface UpdateProjectEnvironmentRequest {
   prefix?: string;
   suffix?: string;
   location: string;
-  tenantId: string;
   subscriptionId: string;
   order?: number;
   requiresApproval?: boolean;
@@ -132,5 +130,6 @@ export interface GenerateProjectBicepResponse {
 }
 
 export interface GenerateProjectPipelineResponse {
+  commonFileUris: Record<string, string>;
   configFileUris: Record<string, Record<string, string>>;
 }
