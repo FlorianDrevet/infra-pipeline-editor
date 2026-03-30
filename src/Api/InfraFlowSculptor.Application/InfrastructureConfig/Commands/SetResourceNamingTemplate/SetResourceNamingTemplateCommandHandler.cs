@@ -13,7 +13,7 @@ public class SetResourceNamingTemplateCommandHandler(
     IInfrastructureConfigRepository repository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<SetResourceNamingTemplateCommand, ErrorOr<ResourceNamingTemplateResult>>
+    : ICommandHandler<SetResourceNamingTemplateCommand, ResourceNamingTemplateResult>
 {
     public async Task<ErrorOr<ResourceNamingTemplateResult>> Handle(
         SetResourceNamingTemplateCommand command, CancellationToken cancellationToken)

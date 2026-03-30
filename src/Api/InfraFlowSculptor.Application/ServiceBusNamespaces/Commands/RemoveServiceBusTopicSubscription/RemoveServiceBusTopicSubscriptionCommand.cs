@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.ServiceBusNamespaces.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.RemoveServiceBusTopicSubscription;
 
@@ -11,4 +11,4 @@ namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.RemoveServ
 public record RemoveServiceBusTopicSubscriptionCommand(
     AzureResourceId ServiceBusNamespaceId,
     Guid SubscriptionId
-) : IRequest<ErrorOr<ServiceBusNamespaceResult>>;
+) : ICommand<ServiceBusNamespaceResult>;

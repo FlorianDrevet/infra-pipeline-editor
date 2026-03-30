@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.ContainerApps.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ContainerApps.Commands.UpdateContainerApp;
 
@@ -13,4 +13,4 @@ public record UpdateContainerAppCommand(
     Location Location,
     Guid ContainerAppEnvironmentId,
     IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<ContainerAppResult>>;
+) : ICommand<ContainerAppResult>;

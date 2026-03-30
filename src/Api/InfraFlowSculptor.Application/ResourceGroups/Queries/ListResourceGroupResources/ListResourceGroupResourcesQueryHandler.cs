@@ -13,7 +13,7 @@ namespace InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroup
 public class ListResourceGroupResourcesQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<ListResourceGroupResourcesQuery, ErrorOr<List<AzureResourceResult>>>
+    : IQueryHandler<ListResourceGroupResourcesQuery, List<AzureResourceResult>>
 {
     public async Task<ErrorOr<List<AzureResourceResult>>> Handle(
         ListResourceGroupResourcesQuery query, CancellationToken cancellationToken)

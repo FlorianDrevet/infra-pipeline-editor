@@ -15,7 +15,7 @@ public sealed class CreateProjectCommandHandler(
     IProjectRepository repository,
     ICurrentUser currentUser,
     IMapper mapper)
-    : IRequestHandler<CreateProjectCommand, ErrorOr<ProjectResult>>
+    : ICommandHandler<CreateProjectCommand, ProjectResult>
 {
     /// <summary>Default naming template applied to every new project.</summary>
     private const string DefaultTemplate = "{name}-{resourceAbbr}{suffix}";

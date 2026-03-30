@@ -1,13 +1,13 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
 
 /// <summary>Command to generate Bicep files for an entire project in mono-repo mode.</summary>
 public record GenerateProjectBicepCommand(
     ProjectId ProjectId
-) : IRequest<ErrorOr<GenerateProjectBicepResult>>;
+) : ICommand<GenerateProjectBicepResult>;
 
 /// <summary>Result of mono-repo Bicep generation, containing URIs organized by Common and per-config folders.</summary>
 /// <param name="CommonFileUris">Shared files under the Common/ directory (types.bicep, functions.bicep, modules/...).</param>

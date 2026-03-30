@@ -12,7 +12,7 @@ public class AddQueueCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<AddQueueCommand, ErrorOr<StorageAccountResult>>
+    : ICommandHandler<AddQueueCommand, StorageAccountResult>
 {
     public Task<ErrorOr<StorageAccountResult>> Handle(AddQueueCommand request, CancellationToken cancellationToken)
     {

@@ -10,7 +10,7 @@ public class DeleteStorageAccountCommandHandler(
     IStorageAccountRepository storageAccountRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteStorageAccountCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteStorageAccountCommand, Deleted>
 {
     public async Task<ErrorOr<Deleted>> Handle(DeleteStorageAccountCommand request, CancellationToken cancellationToken)
     {

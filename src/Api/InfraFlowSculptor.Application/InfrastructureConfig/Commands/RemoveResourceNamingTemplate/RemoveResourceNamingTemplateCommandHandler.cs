@@ -9,7 +9,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveReso
 public class RemoveResourceNamingTemplateCommandHandler(
     IInfrastructureConfigRepository repository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<RemoveResourceNamingTemplateCommand, ErrorOr<Deleted>>
+    : ICommandHandler<RemoveResourceNamingTemplateCommand, Deleted>
 {
     public async Task<ErrorOr<Deleted>> Handle(
         RemoveResourceNamingTemplateCommand command, CancellationToken cancellationToken)

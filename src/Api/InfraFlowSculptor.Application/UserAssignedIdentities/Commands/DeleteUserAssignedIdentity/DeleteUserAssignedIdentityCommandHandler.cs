@@ -17,7 +17,7 @@ public sealed class DeleteUserAssignedIdentityCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IAzureResourceRepository azureResourceRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteUserAssignedIdentityCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteUserAssignedIdentityCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

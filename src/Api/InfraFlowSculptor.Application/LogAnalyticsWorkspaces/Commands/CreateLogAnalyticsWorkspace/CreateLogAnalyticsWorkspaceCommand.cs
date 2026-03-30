@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAnalyticsWorkspace;
@@ -12,4 +12,4 @@ public record CreateLogAnalyticsWorkspaceCommand(
     Name Name,
     Location Location,
     IReadOnlyList<LogAnalyticsWorkspaceEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<LogAnalyticsWorkspaceResult>>;
+) : ICommand<LogAnalyticsWorkspaceResult>;

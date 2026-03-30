@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.SetRepositoryMode;
 
@@ -8,4 +8,4 @@ namespace InfraFlowSculptor.Application.Projects.Commands.SetRepositoryMode;
 public record SetRepositoryModeCommand(
     ProjectId ProjectId,
     string RepositoryMode
-) : IRequest<ErrorOr<Success>>;
+) : ICommand<Success>;

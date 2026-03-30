@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetResourceNamingTemplate;
 
@@ -14,4 +14,4 @@ public record SetResourceNamingTemplateCommand(
     InfrastructureConfigId InfraConfigId,
     string ResourceType,
     string Template
-) : IRequest<ErrorOr<ResourceNamingTemplateResult>>;
+) : ICommand<ResourceNamingTemplateResult>;

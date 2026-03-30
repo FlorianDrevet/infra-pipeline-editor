@@ -13,7 +13,7 @@ public class DeleteAppConfigurationCommandHandler(
     IAppConfigurationRepository appConfigurationRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteAppConfigurationCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteAppConfigurationCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

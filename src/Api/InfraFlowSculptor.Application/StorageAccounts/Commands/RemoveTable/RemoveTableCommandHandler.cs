@@ -11,7 +11,7 @@ public class RemoveTableCommandHandler(
     IStorageAccountRepository storageAccountRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<RemoveTableCommand, ErrorOr<Deleted>>
+    : ICommandHandler<RemoveTableCommand, Deleted>
 {
     public Task<ErrorOr<Deleted>> Handle(RemoveTableCommand request, CancellationToken cancellationToken)
     {

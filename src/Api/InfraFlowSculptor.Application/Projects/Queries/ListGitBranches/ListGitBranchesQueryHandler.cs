@@ -14,7 +14,7 @@ public sealed class ListGitBranchesQueryHandler(
     IProjectAccessService accessService,
     IKeyVaultSecretClient keyVaultSecretClient,
     IGitProviderFactory gitProviderFactory)
-    : IRequestHandler<ListGitBranchesQuery, ErrorOr<IReadOnlyList<GitBranchResult>>>
+    : IQueryHandler<ListGitBranchesQuery, IReadOnlyList<GitBranchResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<IReadOnlyList<GitBranchResult>>> Handle(

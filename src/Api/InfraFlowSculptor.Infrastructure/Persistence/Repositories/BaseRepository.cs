@@ -16,11 +16,10 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
         this.Context = context;
     }
 
-    public virtual async Task<TEntity> AddAsync(TEntity entity)
+    public virtual Task<TEntity> AddAsync(TEntity entity)
     {
         var res = Context.Set<TEntity>().Add(entity);
-        await Context.SaveChangesAsync();
-        return res.Entity;
+        return Task.FromResult(res.Entity);
     }
 
     public virtual async Task<bool> DeleteAsync(ValueObject id)
@@ -32,7 +31,6 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
         }
 
         Context.Set<TEntity>().Remove(entity);
-        await Context.SaveChangesAsync();
         return true;
     }
 
@@ -53,10 +51,9 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
         return await query.ToListAsync();
     }
 
-    public virtual async Task<TEntity> UpdateAsync(TEntity entity)
+    public virtual Task<TEntity> UpdateAsync(TEntity entity)
     {
         Context.Entry(entity).State = EntityState.Modified;
-        await Context.SaveChangesAsync();
-        return entity;
+        return Task.FromResult(entity);
     }
 }

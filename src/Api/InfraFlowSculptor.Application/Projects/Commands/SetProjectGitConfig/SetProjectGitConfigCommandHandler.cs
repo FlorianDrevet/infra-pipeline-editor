@@ -13,7 +13,7 @@ public sealed class SetProjectGitConfigCommandHandler(
     IProjectRepository projectRepository,
     IProjectAccessService accessService,
     IKeyVaultSecretClient keyVaultClient)
-    : IRequestHandler<SetProjectGitConfigCommand, ErrorOr<Success>>
+    : ICommandHandler<SetProjectGitConfigCommand, Success>
 {
     /// <summary>The Key Vault secret name prefix for Git PATs.</summary>
     private const string SecretNamePrefix = "git-pat-";

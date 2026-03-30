@@ -16,7 +16,7 @@ public sealed class UpdateLogAnalyticsWorkspaceCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateLogAnalyticsWorkspaceCommand, ErrorOr<LogAnalyticsWorkspaceResult>>
+    : ICommandHandler<UpdateLogAnalyticsWorkspaceCommand, LogAnalyticsWorkspaceResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<LogAnalyticsWorkspaceResult>> Handle(

@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInheritance;
 
@@ -8,4 +8,4 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInherit
 public record SetInheritanceCommand(
     InfrastructureConfigId InfraConfigId,
     bool UseProjectNamingConventions
-) : IRequest<ErrorOr<Success>>;
+) : ICommand<Success>;

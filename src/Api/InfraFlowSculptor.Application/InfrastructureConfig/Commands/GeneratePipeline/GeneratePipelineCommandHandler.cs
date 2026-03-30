@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -13,7 +14,7 @@ public sealed class GeneratePipelineCommandHandler(
     IInfrastructureConfigReadRepository configRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     IGeneratedArtifactService artifactService)
-    : IRequestHandler<GeneratePipelineCommand, ErrorOr<GeneratePipelineResult>>
+    : ICommandHandler<GeneratePipelineCommand, GeneratePipelineResult>
 {
     public async Task<ErrorOr<GeneratePipelineResult>> Handle(
         GeneratePipelineCommand command,

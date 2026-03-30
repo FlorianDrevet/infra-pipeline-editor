@@ -15,7 +15,7 @@ public sealed class PushProjectBicepToGitCommandHandler(
     IKeyVaultSecretClient keyVaultClient,
     IGitProviderFactory gitProviderFactory,
     IBlobService blobService)
-    : IRequestHandler<PushProjectBicepToGitCommand, ErrorOr<PushBicepToGitResult>>
+    : ICommandHandler<PushProjectBicepToGitCommand, PushBicepToGitResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<PushBicepToGitResult>> Handle(

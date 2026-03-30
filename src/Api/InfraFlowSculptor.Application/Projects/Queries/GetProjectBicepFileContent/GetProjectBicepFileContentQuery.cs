@@ -1,11 +1,11 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Queries.GetProjectBicepFileContent;
 
 public record GetProjectBicepFileContentQuery(
     Guid ProjectId,
     string FilePath
-) : IRequest<ErrorOr<GetProjectBicepFileContentResult>>;
+) : IQuery<GetProjectBicepFileContentResult>;
 
 public record GetProjectBicepFileContentResult(string Content);

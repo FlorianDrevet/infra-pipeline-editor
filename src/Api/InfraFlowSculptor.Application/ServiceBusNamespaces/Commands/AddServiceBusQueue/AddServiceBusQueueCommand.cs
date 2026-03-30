@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.ServiceBusNamespaces.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.AddServiceBusQueue;
 
@@ -11,4 +11,4 @@ namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.AddService
 public record AddServiceBusQueueCommand(
     AzureResourceId ServiceBusNamespaceId,
     string Name
-) : IRequest<ErrorOr<ServiceBusNamespaceResult>>;
+) : ICommand<ServiceBusNamespaceResult>;

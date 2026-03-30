@@ -13,13 +13,13 @@ public sealed class ResourceParameterUsage
     : Entity<ResourceParameterUsageId>
 {
     /// <summary>Gets the Azure resource that consumes this parameter.</summary>
-    public AzureResourceId ResourceId { get; private set; }
+    public AzureResourceId ResourceId { get; private set; } = null!;
 
     /// <summary>Gets the parameter definition being consumed.</summary>
-    public ParameterDefinitionId ParameterId { get; private set; }
+    public ParameterDefinitionId ParameterId { get; private set; } = null!;
 
     /// <summary>Gets the purpose of this parameter usage (secret, appSetting, connectionString).</summary>
-    public ParameterUsage Purpose { get; private set; }
+    public ParameterUsage Purpose { get; private set; } = null!;
 
     private ResourceParameterUsage() { }
 

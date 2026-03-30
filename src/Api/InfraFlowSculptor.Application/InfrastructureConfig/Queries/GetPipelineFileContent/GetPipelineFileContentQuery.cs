@@ -1,5 +1,5 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetPipelineFileContent;
 
@@ -7,7 +7,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetPipeline
 public record GetPipelineFileContentQuery(
     Guid InfrastructureConfigId,
     string FilePath
-) : IRequest<ErrorOr<GetPipelineFileContentResult>>;
+) : IQuery<GetPipelineFileContentResult>;
 
 /// <summary>Result containing the file content.</summary>
 public record GetPipelineFileContentResult(string Content);

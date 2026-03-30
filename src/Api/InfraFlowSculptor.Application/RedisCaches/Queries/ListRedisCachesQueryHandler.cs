@@ -13,7 +13,7 @@ public class ListRedisCachesQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<ListRedisCachesQuery, ErrorOr<List<RedisCacheResult>>>
+    : IQueryHandler<ListRedisCachesQuery, List<RedisCacheResult>>
 {
     public async Task<ErrorOr<List<RedisCacheResult>>> Handle(ListRedisCachesQuery query, CancellationToken cancellationToken)
     {

@@ -18,7 +18,7 @@ public class CreateWebAppCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateWebAppCommand, ErrorOr<WebAppResult>>
+    : ICommandHandler<CreateWebAppCommand, WebAppResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<WebAppResult>> Handle(

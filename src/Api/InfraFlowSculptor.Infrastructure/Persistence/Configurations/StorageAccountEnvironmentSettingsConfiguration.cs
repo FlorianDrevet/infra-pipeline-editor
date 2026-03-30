@@ -31,7 +31,9 @@ public sealed class StorageAccountEnvironmentSettingsConfiguration
 
         builder.Property(x => x.Sku)
             .IsRequired(false)
+#pragma warning disable CS8620 // Nullability mismatch — EF Core handles null conversion internally
             .HasConversion(new EnumValueConverter<StorageAccountSku, StorageAccountSku.Sku>());
+#pragma warning restore CS8620
 
         builder.HasIndex(x => new { x.StorageAccountId, x.EnvironmentName })
             .IsUnique();

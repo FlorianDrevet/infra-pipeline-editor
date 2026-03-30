@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.UserAssignedIdentities.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.UserAssignedIdentities.Queries.GetUserAssignedIdentity;
 
@@ -10,4 +10,4 @@ namespace InfraFlowSculptor.Application.UserAssignedIdentities.Queries.GetUserAs
 /// </summary>
 public record GetUserAssignedIdentityQuery(
     AzureResourceId Id
-) : IRequest<ErrorOr<UserAssignedIdentityResult>>;
+) : IQuery<UserAssignedIdentityResult>;

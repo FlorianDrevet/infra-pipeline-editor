@@ -15,7 +15,7 @@ public sealed class DeleteLogAnalyticsWorkspaceCommandHandler(
     IApplicationInsightsRepository applicationInsightsRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteLogAnalyticsWorkspaceCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteLogAnalyticsWorkspaceCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

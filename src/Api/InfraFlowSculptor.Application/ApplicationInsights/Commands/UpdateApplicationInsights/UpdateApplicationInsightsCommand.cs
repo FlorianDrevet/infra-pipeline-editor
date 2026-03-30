@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.ApplicationInsights.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ApplicationInsights.Commands.UpdateApplicationInsights;
 
@@ -13,4 +13,4 @@ public record UpdateApplicationInsightsCommand(
     Location Location,
     Guid LogAnalyticsWorkspaceId,
     IReadOnlyList<ApplicationInsightsEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<ApplicationInsightsResult>>;
+) : ICommand<ApplicationInsightsResult>;

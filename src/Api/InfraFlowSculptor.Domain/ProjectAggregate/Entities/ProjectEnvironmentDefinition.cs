@@ -39,10 +39,10 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
     public required SubscriptionId SubscriptionId { get; set; }
 
     /// <summary>Gets the deployment ordering index (lower = deployed first).</summary>
-    public Order Order { get; set; }
+    public Order Order { get; set; } = null!;
 
     /// <summary>Gets whether deployments to this environment require explicit approval.</summary>
-    public RequiresApproval RequiresApproval { get; set; }
+    public RequiresApproval RequiresApproval { get; set; } = null!;
 
     /// <summary>Gets the Azure DevOps service connection name used for ARM deployments in this environment.</summary>
     public string? AzureResourceManagerConnection { get; set; }

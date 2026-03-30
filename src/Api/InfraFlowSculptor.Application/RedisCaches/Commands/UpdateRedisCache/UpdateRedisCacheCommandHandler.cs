@@ -14,7 +14,7 @@ public class UpdateRedisCacheCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateRedisCacheCommand, ErrorOr<RedisCacheResult>>
+    : ICommandHandler<UpdateRedisCacheCommand, RedisCacheResult>
 {
     public async Task<ErrorOr<RedisCacheResult>> Handle(UpdateRedisCacheCommand request, CancellationToken cancellationToken)
     {

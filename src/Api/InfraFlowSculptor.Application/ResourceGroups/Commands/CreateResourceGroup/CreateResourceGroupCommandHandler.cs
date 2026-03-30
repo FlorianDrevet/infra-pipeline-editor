@@ -12,7 +12,7 @@ public class CreateResourceGroupCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateResourceGroupCommand, ErrorOr<ResourceGroupResult>>
+    : ICommandHandler<CreateResourceGroupCommand, ResourceGroupResult>
 {
     public async Task<ErrorOr<ResourceGroupResult>> Handle(CreateResourceGroupCommand request, CancellationToken cancellationToken)
     {

@@ -12,7 +12,7 @@ public class AddBlobContainerCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<AddBlobContainerCommand, ErrorOr<StorageAccountResult>>
+    : ICommandHandler<AddBlobContainerCommand, StorageAccountResult>
 {
     public Task<ErrorOr<StorageAccountResult>> Handle(AddBlobContainerCommand request, CancellationToken cancellationToken)
     {

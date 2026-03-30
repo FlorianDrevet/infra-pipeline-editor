@@ -16,7 +16,7 @@ public sealed class UpdateContainerAppEnvironmentCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateContainerAppEnvironmentCommand, ErrorOr<ContainerAppEnvironmentResult>>
+    : ICommandHandler<UpdateContainerAppEnvironmentCommand, ContainerAppEnvironmentResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ContainerAppEnvironmentResult>> Handle(

@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using ErrorOr;
 using MediatR;
@@ -6,7 +7,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.DownloadPi
 
 /// <summary>Handles the <see cref="DownloadPipelineCommand"/>.</summary>
 public sealed class DownloadPipelineCommandHandler(IGeneratedArtifactService artifactService)
-    : IRequestHandler<DownloadPipelineCommand, ErrorOr<DownloadPipelineResult>>
+    : ICommandHandler<DownloadPipelineCommand, DownloadPipelineResult>
 {
     public async Task<ErrorOr<DownloadPipelineResult>> Handle(
         DownloadPipelineCommand command,

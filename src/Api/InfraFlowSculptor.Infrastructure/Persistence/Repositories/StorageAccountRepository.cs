@@ -56,11 +56,10 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<BlobContainer> AddBlobContainerAsync(BlobContainer container)
+    public Task<BlobContainer> AddBlobContainerAsync(BlobContainer container)
     {
         Context.Set<BlobContainer>().Add(container);
-        await Context.SaveChangesAsync();
-        return container;
+        return Task.FromResult(container);
     }
 
     public async Task<bool> RemoveBlobContainerAsync(AzureResourceId storageAccountId, BlobContainerId id)
@@ -71,15 +70,13 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
             return false;
 
         Context.Set<BlobContainer>().Remove(container);
-        await Context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<StorageQueue> AddQueueAsync(StorageQueue queue)
+    public Task<StorageQueue> AddQueueAsync(StorageQueue queue)
     {
         Context.Set<StorageQueue>().Add(queue);
-        await Context.SaveChangesAsync();
-        return queue;
+        return Task.FromResult(queue);
     }
 
     public async Task<bool> RemoveQueueAsync(AzureResourceId storageAccountId, StorageQueueId id)
@@ -90,15 +87,13 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
             return false;
 
         Context.Set<StorageQueue>().Remove(queue);
-        await Context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<StorageTable> AddTableAsync(StorageTable table)
+    public Task<StorageTable> AddTableAsync(StorageTable table)
     {
         Context.Set<StorageTable>().Add(table);
-        await Context.SaveChangesAsync();
-        return table;
+        return Task.FromResult(table);
     }
 
     public async Task<bool> RemoveTableAsync(AzureResourceId storageAccountId, StorageTableId id)
@@ -109,7 +104,6 @@ public class StorageAccountRepository : AzureResourceRepository<StorageAccount>,
             return false;
 
         Context.Set<StorageTable>().Remove(table);
-        await Context.SaveChangesAsync();
         return true;
     }
 }

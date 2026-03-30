@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.RoleAssignments.Queries.ListRoleAssignmentsByIdentity;
 
@@ -10,4 +10,4 @@ namespace InfraFlowSculptor.Application.RoleAssignments.Queries.ListRoleAssignme
 /// </summary>
 /// <param name="IdentityId">The <see cref="AzureResourceId"/> of the User-Assigned Identity.</param>
 public record ListRoleAssignmentsByIdentityQuery(AzureResourceId IdentityId)
-    : IRequest<ErrorOr<List<IdentityRoleAssignmentResult>>>;
+    : IQuery<List<IdentityRoleAssignmentResult>>;

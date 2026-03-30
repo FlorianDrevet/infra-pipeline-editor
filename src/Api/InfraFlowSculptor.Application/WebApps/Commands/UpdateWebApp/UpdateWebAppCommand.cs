@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.WebApps.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.WebApps.Commands.UpdateWebApp;
 
@@ -17,4 +17,4 @@ public record UpdateWebAppCommand(
     bool AlwaysOn,
     bool HttpsOnly,
     IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<WebAppResult>>;
+) : ICommand<WebAppResult>;

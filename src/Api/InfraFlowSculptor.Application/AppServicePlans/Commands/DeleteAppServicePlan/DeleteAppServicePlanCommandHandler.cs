@@ -16,7 +16,7 @@ public sealed class DeleteAppServicePlanCommandHandler(
     IFunctionAppRepository functionAppRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteAppServicePlanCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteAppServicePlanCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

@@ -1,13 +1,13 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.DownloadProjectPipeline;
 
 /// <summary>Command to download the latest generated pipeline files for an entire project.</summary>
 public record DownloadProjectPipelineCommand(
     ProjectId ProjectId
-) : IRequest<ErrorOr<DownloadProjectPipelineResult>>;
+) : ICommand<DownloadProjectPipelineResult>;
 
 /// <summary>Result of a project-level pipeline ZIP download.</summary>
 public record DownloadProjectPipelineResult(

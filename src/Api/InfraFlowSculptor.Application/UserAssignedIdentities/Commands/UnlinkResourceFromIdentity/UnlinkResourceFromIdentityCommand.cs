@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.UserAssignedIdentities.Commands.UnlinkResourceFromIdentity;
 
@@ -12,4 +12,4 @@ namespace InfraFlowSculptor.Application.UserAssignedIdentities.Commands.UnlinkRe
 public sealed record UnlinkResourceFromIdentityCommand(
     AzureResourceId IdentityId,
     AzureResourceId SourceResourceId
-) : IRequest<ErrorOr<Deleted>>;
+) : ICommand<Deleted>;

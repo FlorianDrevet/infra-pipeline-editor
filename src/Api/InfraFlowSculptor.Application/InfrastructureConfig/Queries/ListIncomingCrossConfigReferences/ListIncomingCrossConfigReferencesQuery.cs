@@ -1,5 +1,5 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListIncomingCrossConfigReferences;
 
@@ -9,4 +9,4 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListIncomin
 /// </summary>
 /// <param name="InfraConfigId">The infrastructure configuration identifier whose resources are targeted.</param>
 public record ListIncomingCrossConfigReferencesQuery(Guid InfraConfigId)
-    : IRequest<ErrorOr<List<IncomingCrossConfigReferenceResult>>>;
+    : IQuery<List<IncomingCrossConfigReferenceResult>>;

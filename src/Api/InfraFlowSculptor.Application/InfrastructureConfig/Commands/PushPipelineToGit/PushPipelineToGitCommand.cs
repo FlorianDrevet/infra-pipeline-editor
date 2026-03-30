@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.Projects.Common;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushPipelineToGit;
 
@@ -9,4 +9,4 @@ public record PushPipelineToGitCommand(
     Guid InfrastructureConfigId,
     string BranchName,
     string CommitMessage
-) : IRequest<ErrorOr<PushBicepToGitResult>>;
+) : ICommand<PushBicepToGitResult>;

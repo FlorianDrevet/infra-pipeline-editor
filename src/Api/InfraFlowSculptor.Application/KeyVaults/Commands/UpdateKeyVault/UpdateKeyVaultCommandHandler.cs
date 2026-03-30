@@ -14,7 +14,7 @@ public class UpdateKeyVaultCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateKeyVaultCommand, ErrorOr<KeyVaultResult>>
+    : ICommandHandler<UpdateKeyVaultCommand, KeyVaultResult>
 {
     public async Task<ErrorOr<KeyVaultResult>> Handle(UpdateKeyVaultCommand request, CancellationToken cancellationToken)
     {

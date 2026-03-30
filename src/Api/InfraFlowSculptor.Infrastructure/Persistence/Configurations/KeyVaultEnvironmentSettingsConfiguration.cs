@@ -31,7 +31,9 @@ public sealed class KeyVaultEnvironmentSettingsConfiguration
 
         builder.Property(x => x.Sku)
             .IsRequired(false)
+#pragma warning disable CS8620 // Nullability mismatch — EF Core handles null conversion internally
             .HasConversion(new EnumValueConverter<Sku, Sku.SkuEnum>());
+#pragma warning restore CS8620
 
         builder.HasIndex(x => new { x.KeyVaultId, x.EnvironmentName })
             .IsUnique();

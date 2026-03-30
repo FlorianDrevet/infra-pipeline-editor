@@ -17,7 +17,7 @@ public sealed class UpdateUserAssignedIdentityCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateUserAssignedIdentityCommand, ErrorOr<UserAssignedIdentityResult>>
+    : ICommandHandler<UpdateUserAssignedIdentityCommand, UserAssignedIdentityResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<UserAssignedIdentityResult>> Handle(

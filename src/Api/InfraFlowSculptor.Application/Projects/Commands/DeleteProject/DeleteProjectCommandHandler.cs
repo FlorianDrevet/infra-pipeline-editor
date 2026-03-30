@@ -9,7 +9,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.DeleteProject;
 public sealed class DeleteProjectCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository)
-    : IRequestHandler<DeleteProjectCommand, ErrorOr<Unit>>
+    : ICommandHandler<DeleteProjectCommand, Unit>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Unit>> Handle(

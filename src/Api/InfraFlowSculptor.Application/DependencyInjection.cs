@@ -20,8 +20,9 @@ public static class DependencyInjection
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssemblies(typeof(DependencyInjection).Assembly, Assembly.GetExecutingAssembly()));
 
-        // Behaviors
+        // Behaviors (order matters: Validation runs first, then UoW wraps the handler)
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
 
         // Validators
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());

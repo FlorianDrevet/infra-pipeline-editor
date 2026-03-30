@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.DeleteServiceBusNamespace;
 
@@ -8,4 +8,4 @@ namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.DeleteServ
 /// <param name="Id">The Service Bus Namespace identifier.</param>
 public record DeleteServiceBusNamespaceCommand(
     AzureResourceId Id
-) : IRequest<ErrorOr<Deleted>>;
+) : ICommand<Deleted>;

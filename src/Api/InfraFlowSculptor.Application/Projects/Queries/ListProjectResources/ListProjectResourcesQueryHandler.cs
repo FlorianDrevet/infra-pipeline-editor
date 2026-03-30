@@ -14,7 +14,7 @@ public sealed class ListProjectResourcesQueryHandler(
     IProjectAccessService projectAccessService,
     IInfrastructureConfigRepository infraConfigRepository,
     IResourceGroupRepository resourceGroupRepository)
-    : IRequestHandler<ListProjectResourcesQuery, ErrorOr<List<ProjectResourceResult>>>
+    : IQueryHandler<ListProjectResourcesQuery, List<ProjectResourceResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<List<ProjectResourceResult>>> Handle(

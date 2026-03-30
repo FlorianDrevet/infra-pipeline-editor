@@ -25,7 +25,9 @@ public sealed class InfrastructureConfigConfiguration
             .HasConversion(new SingleValueConverter<Name, string>());
 
         builder.Property(x => x.DefaultNamingTemplate)
+#pragma warning disable CS8620 // Nullability mismatch — EF Core handles null conversion internally
             .HasConversion(new SingleValueConverter<NamingTemplate, string>())
+#pragma warning restore CS8620
             .IsRequired(false);
 
         // ========================

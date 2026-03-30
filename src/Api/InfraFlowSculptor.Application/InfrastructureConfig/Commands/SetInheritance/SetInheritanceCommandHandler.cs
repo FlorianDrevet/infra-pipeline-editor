@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInherit
 public sealed class SetInheritanceCommandHandler(
     IInfrastructureConfigRepository repository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<SetInheritanceCommand, ErrorOr<Success>>
+    : ICommandHandler<SetInheritanceCommand, Success>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Success>> Handle(

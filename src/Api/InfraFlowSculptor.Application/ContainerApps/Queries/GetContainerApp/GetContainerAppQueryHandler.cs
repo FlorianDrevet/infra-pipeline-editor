@@ -17,7 +17,7 @@ public sealed class GetContainerAppQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetContainerAppQuery, ErrorOr<ContainerAppResult>>
+    : IQueryHandler<GetContainerAppQuery, ContainerAppResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ContainerAppResult>> Handle(

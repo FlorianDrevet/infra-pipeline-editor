@@ -1,12 +1,12 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.DownloadPipeline;
 
 /// <summary>Command to download the latest generated pipeline YAML files as a zip archive.</summary>
 public record DownloadPipelineCommand(
     Guid InfrastructureConfigId
-) : IRequest<ErrorOr<DownloadPipelineResult>>;
+) : ICommand<DownloadPipelineResult>;
 
 /// <summary>Result containing the zip archive bytes and file name.</summary>
 public record DownloadPipelineResult(

@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using ErrorOr;
 using MediatR;
@@ -5,7 +6,7 @@ using MediatR;
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetBicepFileContent;
 
 public sealed class GetBicepFileContentQueryHandler(IBlobService blobService)
-    : IRequestHandler<GetBicepFileContentQuery, ErrorOr<GetBicepFileContentResult>>
+    : IQueryHandler<GetBicepFileContentQuery, GetBicepFileContentResult>
 {
     public async Task<ErrorOr<GetBicepFileContentResult>> Handle(
         GetBicepFileContentQuery query,

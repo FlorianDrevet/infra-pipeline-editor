@@ -13,7 +13,7 @@ public sealed class ListCrossConfigReferencesQueryHandler(
     IInfraConfigAccessService accessService,
     IInfrastructureConfigRepository infraConfigRepository,
     IResourceGroupRepository resourceGroupRepository)
-    : IRequestHandler<ListCrossConfigReferencesQuery, ErrorOr<List<CrossConfigReferenceDetailResult>>>
+    : IQueryHandler<ListCrossConfigReferencesQuery, List<CrossConfigReferenceDetailResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<List<CrossConfigReferenceDetailResult>>> Handle(

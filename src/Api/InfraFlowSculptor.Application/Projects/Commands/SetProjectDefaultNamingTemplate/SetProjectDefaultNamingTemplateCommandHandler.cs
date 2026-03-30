@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.SetProjectDefaultNamin
 public sealed class SetProjectDefaultNamingTemplateCommandHandler(
     IProjectRepository projectRepository,
     IProjectAccessService accessService)
-    : IRequestHandler<SetProjectDefaultNamingTemplateCommand, ErrorOr<Success>>
+    : ICommandHandler<SetProjectDefaultNamingTemplateCommand, Success>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Success>> Handle(

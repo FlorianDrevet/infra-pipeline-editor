@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.DownloadProjectBicep;
 public sealed class DownloadProjectBicepCommandHandler(
     IProjectAccessService accessService,
     IBlobService blobService)
-    : IRequestHandler<DownloadProjectBicepCommand, ErrorOr<DownloadProjectBicepResult>>
+    : ICommandHandler<DownloadProjectBicepCommand, DownloadProjectBicepResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<DownloadProjectBicepResult>> Handle(

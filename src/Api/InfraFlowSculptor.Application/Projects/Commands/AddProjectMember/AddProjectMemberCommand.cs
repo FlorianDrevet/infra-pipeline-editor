@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.AddProjectMember;
 
@@ -10,4 +10,4 @@ public record AddProjectMemberCommand(
     ProjectId ProjectId,
     Guid UserId,
     string Role)
-    : IRequest<ErrorOr<ProjectResult>>;
+    : ICommand<ProjectResult>;

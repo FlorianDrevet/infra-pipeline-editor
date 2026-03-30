@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.AppConfigurations.Commands.DeleteAppConfiguration;
 
@@ -8,4 +8,4 @@ namespace InfraFlowSculptor.Application.AppConfigurations.Commands.DeleteAppConf
 /// <param name="Id">The App Configuration identifier.</param>
 public record DeleteAppConfigurationCommand(
     AzureResourceId Id
-) : IRequest<ErrorOr<Deleted>>;
+) : ICommand<Deleted>;

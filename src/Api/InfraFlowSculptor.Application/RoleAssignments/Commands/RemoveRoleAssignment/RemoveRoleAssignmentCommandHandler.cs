@@ -10,7 +10,7 @@ public class RemoveRoleAssignmentCommandHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<RemoveRoleAssignmentCommand, ErrorOr<Deleted>>
+    : ICommandHandler<RemoveRoleAssignmentCommand, Deleted>
 {
     public async Task<ErrorOr<Deleted>> Handle(
         RemoveRoleAssignmentCommand request,

@@ -12,7 +12,7 @@ public sealed class RemoveProjectGitConfigCommandHandler(
     IProjectRepository projectRepository,
     IProjectAccessService accessService,
     IKeyVaultSecretClient keyVaultClient)
-    : IRequestHandler<RemoveProjectGitConfigCommand, ErrorOr<Deleted>>
+    : ICommandHandler<RemoveProjectGitConfigCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

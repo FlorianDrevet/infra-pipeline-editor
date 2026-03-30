@@ -15,7 +15,7 @@ public sealed class UnlinkResourceFromIdentityCommandHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<UnlinkResourceFromIdentityCommand, ErrorOr<Deleted>>
+    : ICommandHandler<UnlinkResourceFromIdentityCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

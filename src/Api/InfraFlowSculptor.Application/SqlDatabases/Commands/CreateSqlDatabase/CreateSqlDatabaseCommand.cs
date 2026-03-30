@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.SqlDatabases.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.SqlDatabases.Commands.CreateSqlDatabase;
@@ -14,4 +14,4 @@ public record CreateSqlDatabaseCommand(
     Guid SqlServerId,
     string Collation,
     IReadOnlyList<SqlDatabaseEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<SqlDatabaseResult>>;
+) : ICommand<SqlDatabaseResult>;

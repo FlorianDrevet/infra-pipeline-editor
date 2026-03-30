@@ -12,7 +12,7 @@ public class AddTableCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<AddTableCommand, ErrorOr<StorageAccountResult>>
+    : ICommandHandler<AddTableCommand, StorageAccountResult>
 {
     public Task<ErrorOr<StorageAccountResult>> Handle(AddTableCommand request, CancellationToken cancellationToken)
     {

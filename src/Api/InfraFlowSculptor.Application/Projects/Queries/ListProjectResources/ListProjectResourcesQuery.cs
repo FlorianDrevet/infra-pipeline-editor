@@ -1,5 +1,5 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
 
@@ -9,4 +9,4 @@ namespace InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
 /// </summary>
 /// <param name="ProjectId">The project identifier.</param>
 public record ListProjectResourcesQuery(Guid ProjectId)
-    : IRequest<ErrorOr<List<ProjectResourceResult>>>;
+    : IQuery<List<ProjectResourceResult>>;

@@ -3,6 +3,7 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// <summary>Represents a deployed environment definition belonging to an Infrastructure Configuration.</summary>
 /// <param name="Id">Unique identifier of the environment definition.</param>
 /// <param name="Name">Display name (e.g. "Production", "Staging").</param>
+/// <param name="ShortName">Short environment identifier without separators (e.g. "dev", "qa", "prod").</param>
 /// <param name="Prefix">Short prefix used in generated resource names.</param>
 /// <param name="Suffix">Short suffix used in generated resource names.</param>
 /// <param name="Location">Azure region where resources are deployed.</param>

@@ -17,7 +17,7 @@ public sealed class CreateContainerAppEnvironmentCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateContainerAppEnvironmentCommand, ErrorOr<ContainerAppEnvironmentResult>>
+    : ICommandHandler<CreateContainerAppEnvironmentCommand, ContainerAppEnvironmentResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ContainerAppEnvironmentResult>> Handle(

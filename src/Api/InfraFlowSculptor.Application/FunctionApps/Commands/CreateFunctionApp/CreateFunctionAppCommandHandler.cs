@@ -18,7 +18,7 @@ public sealed class CreateFunctionAppCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateFunctionAppCommand, ErrorOr<FunctionAppResult>>
+    : ICommandHandler<CreateFunctionAppCommand, FunctionAppResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<FunctionAppResult>> Handle(

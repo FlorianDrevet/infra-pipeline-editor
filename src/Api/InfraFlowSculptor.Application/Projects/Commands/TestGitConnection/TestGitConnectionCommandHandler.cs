@@ -14,7 +14,7 @@ public sealed class TestGitConnectionCommandHandler(
     IProjectAccessService accessService,
     IKeyVaultSecretClient keyVaultSecretClient,
     IGitProviderFactory gitProviderFactory)
-    : IRequestHandler<TestGitConnectionCommand, ErrorOr<TestGitConnectionResult>>
+    : ICommandHandler<TestGitConnectionCommand, TestGitConnectionResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<TestGitConnectionResult>> Handle(

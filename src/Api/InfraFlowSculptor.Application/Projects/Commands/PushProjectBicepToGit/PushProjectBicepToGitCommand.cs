@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectBicepToGit;
 
@@ -10,4 +10,4 @@ public record PushProjectBicepToGitCommand(
     ProjectId ProjectId,
     string BranchName,
     string CommitMessage
-) : IRequest<ErrorOr<PushBicepToGitResult>>;
+) : ICommand<PushBicepToGitResult>;

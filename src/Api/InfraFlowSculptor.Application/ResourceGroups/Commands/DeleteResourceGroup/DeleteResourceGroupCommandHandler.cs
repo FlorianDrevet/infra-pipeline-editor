@@ -9,7 +9,7 @@ namespace InfraFlowSculptor.Application.ResourceGroups.Commands.DeleteResourceGr
 public class DeleteResourceGroupCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteResourceGroupCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteResourceGroupCommand, Deleted>
 {
     public async Task<ErrorOr<Deleted>> Handle(DeleteResourceGroupCommand request, CancellationToken cancellationToken)
     {

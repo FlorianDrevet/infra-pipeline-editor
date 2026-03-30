@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectResourceN
 public sealed class RemoveProjectResourceNamingTemplateCommandHandler(
     IProjectRepository projectRepository,
     IProjectAccessService accessService)
-    : IRequestHandler<RemoveProjectResourceNamingTemplateCommand, ErrorOr<Deleted>>
+    : ICommandHandler<RemoveProjectResourceNamingTemplateCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

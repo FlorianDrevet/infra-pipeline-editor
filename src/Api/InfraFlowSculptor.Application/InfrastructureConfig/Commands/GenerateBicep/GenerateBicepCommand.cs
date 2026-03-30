@@ -1,11 +1,11 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBicep;
 
 public record GenerateBicepCommand(
     Guid InfrastructureConfigId
-) : IRequest<ErrorOr<GenerateBicepResult>>;
+) : ICommand<GenerateBicepResult>;
 
 /// <summary>Result of Bicep generation, containing URIs to the generated artifact files.</summary>
 /// <param name="MainBicepUri">URI to the main <c>main.bicep</c> file.</param>

@@ -18,7 +18,7 @@ public sealed class UpdateProjectEnvironmentCommandHandler(
     IProjectRepository projectRepository,
     IProjectAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateProjectEnvironmentCommand, ErrorOr<ProjectEnvironmentDefinitionResult>>
+    : ICommandHandler<UpdateProjectEnvironmentCommand, ProjectEnvironmentDefinitionResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ProjectEnvironmentDefinitionResult>> Handle(

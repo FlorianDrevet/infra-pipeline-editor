@@ -34,6 +34,8 @@ public static class DependencyInjection
             .AddBlob(builderConfiguration)
             .AddRepositories()
             .AddGitProviders(builderConfiguration, hostEnvironment);
+
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         services.AddMigration<ProjectDbContext>();
 

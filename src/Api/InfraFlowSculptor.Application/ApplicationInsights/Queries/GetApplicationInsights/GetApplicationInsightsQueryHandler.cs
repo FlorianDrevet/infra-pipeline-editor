@@ -17,7 +17,7 @@ public sealed class GetApplicationInsightsQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetApplicationInsightsQuery, ErrorOr<ApplicationInsightsResult>>
+    : IQueryHandler<GetApplicationInsightsQuery, ApplicationInsightsResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ApplicationInsightsResult>> Handle(

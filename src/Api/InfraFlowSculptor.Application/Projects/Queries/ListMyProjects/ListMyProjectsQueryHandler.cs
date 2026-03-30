@@ -12,7 +12,7 @@ public sealed class ListMyProjectsQueryHandler(
     IProjectRepository repository,
     ICurrentUser currentUser,
     IMapper mapper)
-    : IRequestHandler<ListMyProjectsQuery, ErrorOr<List<ProjectResult>>>
+    : IQueryHandler<ListMyProjectsQuery, List<ProjectResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<List<ProjectResult>>> Handle(

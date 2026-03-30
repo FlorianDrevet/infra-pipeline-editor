@@ -1,11 +1,11 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Queries.GetProjectPipelineFileContent;
 
 public record GetProjectPipelineFileContentQuery(
     Guid ProjectId,
     string FilePath
-) : IRequest<ErrorOr<GetProjectPipelineFileContentResult>>;
+) : IQuery<GetProjectPipelineFileContentResult>;
 
 public record GetProjectPipelineFileContentResult(string Content);

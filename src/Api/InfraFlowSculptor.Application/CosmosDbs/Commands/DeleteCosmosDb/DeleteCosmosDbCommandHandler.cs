@@ -13,7 +13,7 @@ public class DeleteCosmosDbCommandHandler(
     ICosmosDbRepository cosmosDbRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteCosmosDbCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteCosmosDbCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

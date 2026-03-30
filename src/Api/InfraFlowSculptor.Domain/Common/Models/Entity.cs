@@ -9,7 +9,7 @@ public abstract class Entity<TId> : IEquatable<Entity<TId>>
     where TId : notnull
 {
     /// <summary>Gets the unique identifier for this entity.</summary>
-    public TId Id { get; protected set; }
+    public TId Id { get; protected set; } = default!;
 
     /// <summary>Initializes a new entity with the given identifier.</summary>
     protected Entity(TId id)

@@ -11,7 +11,7 @@ public class RemoveQueueCommandHandler(
     IStorageAccountRepository storageAccountRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<RemoveQueueCommand, ErrorOr<Deleted>>
+    : ICommandHandler<RemoveQueueCommand, Deleted>
 {
     public Task<ErrorOr<Deleted>> Handle(RemoveQueueCommand request, CancellationToken cancellationToken)
     {

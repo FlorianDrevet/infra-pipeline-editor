@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.AppSettings.Common;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
@@ -9,7 +10,7 @@ namespace InfraFlowSculptor.Application.AppSettings.Queries.ListAppSettings;
 /// <summary>Handles the <see cref="ListAppSettingsQuery"/> request.</summary>
 public sealed class ListAppSettingsQueryHandler(
     IAzureResourceRepository azureResourceRepository)
-    : IRequestHandler<ListAppSettingsQuery, ErrorOr<IReadOnlyList<AppSettingResult>>>
+    : IQueryHandler<ListAppSettingsQuery, IReadOnlyList<AppSettingResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<IReadOnlyList<AppSettingResult>>> Handle(

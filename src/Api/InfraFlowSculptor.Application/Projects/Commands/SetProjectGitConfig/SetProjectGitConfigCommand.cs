@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.SetProjectGitConfig;
 
@@ -13,4 +13,4 @@ public record SetProjectGitConfigCommand(
     string? BasePath,
     string? PipelineBasePath,
     string PersonalAccessToken
-) : IRequest<ErrorOr<Success>>;
+) : ICommand<Success>;

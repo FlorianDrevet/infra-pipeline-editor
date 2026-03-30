@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.FunctionApps.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.FunctionApps.Commands.UpdateFunctionApp;
 
@@ -16,4 +16,4 @@ public record UpdateFunctionAppCommand(
     string RuntimeVersion,
     bool HttpsOnly,
     IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<FunctionAppResult>>;
+) : ICommand<FunctionAppResult>;

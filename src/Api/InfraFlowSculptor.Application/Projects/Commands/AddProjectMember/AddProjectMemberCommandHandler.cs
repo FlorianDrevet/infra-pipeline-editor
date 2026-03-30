@@ -15,7 +15,7 @@ public sealed class AddProjectMemberCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
     IMapper mapper)
-    : IRequestHandler<AddProjectMemberCommand, ErrorOr<ProjectResult>>
+    : ICommandHandler<AddProjectMemberCommand, ProjectResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ProjectResult>> Handle(

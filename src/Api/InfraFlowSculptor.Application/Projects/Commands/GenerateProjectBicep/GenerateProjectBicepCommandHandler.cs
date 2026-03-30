@@ -20,7 +20,7 @@ public sealed class GenerateProjectBicepCommandHandler(
     IInfrastructureConfigReadRepository configReadRepository,
     BicepGenerationEngine bicepGenerationEngine,
     IBlobService blobService)
-    : IRequestHandler<GenerateProjectBicepCommand, ErrorOr<GenerateProjectBicepResult>>
+    : ICommandHandler<GenerateProjectBicepCommand, GenerateProjectBicepResult>
 {
     /// <summary>The subdirectory name where Bicep parameter files are stored.</summary>
     private const string ParametersDirectory = "parameters";

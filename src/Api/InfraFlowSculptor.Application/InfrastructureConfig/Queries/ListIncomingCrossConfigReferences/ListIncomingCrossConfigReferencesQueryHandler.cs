@@ -16,7 +16,7 @@ public sealed class ListIncomingCrossConfigReferencesQueryHandler(
     IInfraConfigAccessService accessService,
     IInfrastructureConfigRepository infraConfigRepository,
     IResourceGroupRepository resourceGroupRepository)
-    : IRequestHandler<ListIncomingCrossConfigReferencesQuery, ErrorOr<List<IncomingCrossConfigReferenceResult>>>
+    : IQueryHandler<ListIncomingCrossConfigReferencesQuery, List<IncomingCrossConfigReferenceResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<List<IncomingCrossConfigReferenceResult>>> Handle(

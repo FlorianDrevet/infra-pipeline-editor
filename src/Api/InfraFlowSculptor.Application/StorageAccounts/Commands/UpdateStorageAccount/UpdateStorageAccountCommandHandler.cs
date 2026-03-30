@@ -13,7 +13,7 @@ public class UpdateStorageAccountCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateStorageAccountCommand, ErrorOr<StorageAccountResult>>
+    : ICommandHandler<UpdateStorageAccountCommand, StorageAccountResult>
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(UpdateStorageAccountCommand request, CancellationToken cancellationToken)
     {

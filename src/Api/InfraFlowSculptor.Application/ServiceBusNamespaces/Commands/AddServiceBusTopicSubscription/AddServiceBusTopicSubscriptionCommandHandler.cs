@@ -16,7 +16,7 @@ public class AddServiceBusTopicSubscriptionCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<AddServiceBusTopicSubscriptionCommand, ErrorOr<ServiceBusNamespaceResult>>
+    : ICommandHandler<AddServiceBusTopicSubscriptionCommand, ServiceBusNamespaceResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ServiceBusNamespaceResult>> Handle(

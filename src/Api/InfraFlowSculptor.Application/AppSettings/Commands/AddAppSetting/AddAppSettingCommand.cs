@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.AppSettings.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.AppSettings.Commands.AddAppSetting;
 
@@ -25,4 +25,4 @@ public record AddAppSettingCommand(
     string? SecretName,
     bool ExportToKeyVault = false,
     SecretValueAssignment? SecretValueAssignment = null
-) : IRequest<ErrorOr<AppSettingResult>>;
+) : ICommand<AppSettingResult>;

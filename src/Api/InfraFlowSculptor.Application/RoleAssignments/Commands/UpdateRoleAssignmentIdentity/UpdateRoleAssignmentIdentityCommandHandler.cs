@@ -13,7 +13,7 @@ public sealed class UpdateRoleAssignmentIdentityCommandHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<UpdateRoleAssignmentIdentityCommand, ErrorOr<RoleAssignmentResult>>
+    : ICommandHandler<UpdateRoleAssignmentIdentityCommand, RoleAssignmentResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<RoleAssignmentResult>> Handle(

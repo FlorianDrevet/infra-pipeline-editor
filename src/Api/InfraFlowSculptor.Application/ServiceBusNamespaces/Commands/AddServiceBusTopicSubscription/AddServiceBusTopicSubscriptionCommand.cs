@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.ServiceBusNamespaces.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.AddServiceBusTopicSubscription;
 
@@ -13,4 +13,4 @@ public record AddServiceBusTopicSubscriptionCommand(
     AzureResourceId ServiceBusNamespaceId,
     string TopicName,
     string SubscriptionName
-) : IRequest<ErrorOr<ServiceBusNamespaceResult>>;
+) : ICommand<ServiceBusNamespaceResult>;

@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.AppSettings.Queries.GetAvailableOutputs;
 
@@ -9,4 +9,4 @@ namespace InfraFlowSculptor.Application.AppSettings.Queries.GetAvailableOutputs;
 /// </summary>
 /// <param name="ResourceId">Identifier of the source Azure resource.</param>
 public record GetAvailableOutputsQuery(AzureResourceId ResourceId)
-    : IRequest<ErrorOr<AvailableOutputsResult>>;
+    : IQuery<AvailableOutputsResult>;

@@ -12,7 +12,7 @@ public class GetResourceGroupQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetResourceGroupQuery, ErrorOr<ResourceGroupResult>>
+    : IQueryHandler<GetResourceGroupQuery, ResourceGroupResult>
 {
     public async Task<ErrorOr<ResourceGroupResult>> Handle(GetResourceGroupQuery query, CancellationToken cancellationToken)
     {

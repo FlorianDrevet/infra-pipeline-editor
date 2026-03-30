@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironme
 public sealed class RemoveProjectEnvironmentCommandHandler(
     IProjectRepository projectRepository,
     IProjectAccessService accessService)
-    : IRequestHandler<RemoveProjectEnvironmentCommand, ErrorOr<Deleted>>
+    : ICommandHandler<RemoveProjectEnvironmentCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

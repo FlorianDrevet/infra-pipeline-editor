@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 using InfraFlowSculptor.Application.ResourceGroups.Common;
 
@@ -10,4 +10,4 @@ public record CreateResourceGroupCommand(
     InfrastructureConfigId InfraConfigId,
     Name Name,
     Location Location
-) : IRequest<ErrorOr<ResourceGroupResult>>;
+) : ICommand<ResourceGroupResult>;

@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using System.IO.Compression;
 using System.Text;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -7,7 +8,7 @@ using MediatR;
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.DownloadBicep;
 
 public sealed class DownloadBicepCommandHandler(IBlobService blobService)
-    : IRequestHandler<DownloadBicepCommand, ErrorOr<DownloadBicepResult>>
+    : ICommandHandler<DownloadBicepCommand, DownloadBicepResult>
 {
     public async Task<ErrorOr<DownloadBicepResult>> Handle(
         DownloadBicepCommand command,

@@ -8,7 +8,7 @@ namespace InfraFlowSculptor.Application.Projects.Queries.GetProjectBicepFileCont
 public sealed class GetProjectBicepFileContentQueryHandler(
     IProjectAccessService accessService,
     IBlobService blobService)
-    : IRequestHandler<GetProjectBicepFileContentQuery, ErrorOr<GetProjectBicepFileContentResult>>
+    : IQueryHandler<GetProjectBicepFileContentQuery, GetProjectBicepFileContentResult>
 {
     public async Task<ErrorOr<GetProjectBicepFileContentResult>> Handle(
         GetProjectBicepFileContentQuery query,

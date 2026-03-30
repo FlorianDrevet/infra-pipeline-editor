@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
@@ -16,7 +17,7 @@ public sealed class GenerateBicepCommandHandler(
     IInfrastructureConfigReadRepository configRepository,
     BicepGenerationEngine bicepGenerationEngine,
     IBlobService blobService)
-    : IRequestHandler<GenerateBicepCommand, ErrorOr<GenerateBicepResult>>
+    : ICommandHandler<GenerateBicepCommand, GenerateBicepResult>
 {
     /// <summary>
     /// The subdirectory name where Bicep parameter files are stored.

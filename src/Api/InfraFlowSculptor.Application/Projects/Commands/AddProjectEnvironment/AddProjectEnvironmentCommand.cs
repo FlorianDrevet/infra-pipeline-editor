@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.AddProjectEnvironment;
 
@@ -18,4 +18,4 @@ public record AddProjectEnvironmentCommand(
     bool RequiresApproval,
     string? AzureResourceManagerConnection,
     IReadOnlyList<(string Name, string Value)> Tags
-) : IRequest<ErrorOr<ProjectEnvironmentDefinitionResult>>;
+) : ICommand<ProjectEnvironmentDefinitionResult>;

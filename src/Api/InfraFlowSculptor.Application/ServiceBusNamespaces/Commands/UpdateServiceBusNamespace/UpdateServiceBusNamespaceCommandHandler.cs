@@ -16,7 +16,7 @@ public class UpdateServiceBusNamespaceCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateServiceBusNamespaceCommand, ErrorOr<ServiceBusNamespaceResult>>
+    : ICommandHandler<UpdateServiceBusNamespaceCommand, ServiceBusNamespaceResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ServiceBusNamespaceResult>> Handle(

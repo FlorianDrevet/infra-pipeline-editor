@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.DownloadProjectPipelin
 public sealed class DownloadProjectPipelineCommandHandler(
     IProjectAccessService accessService,
     IBlobService blobService)
-    : IRequestHandler<DownloadProjectPipelineCommand, ErrorOr<DownloadProjectPipelineResult>>
+    : ICommandHandler<DownloadProjectPipelineCommand, DownloadProjectPipelineResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<DownloadProjectPipelineResult>> Handle(

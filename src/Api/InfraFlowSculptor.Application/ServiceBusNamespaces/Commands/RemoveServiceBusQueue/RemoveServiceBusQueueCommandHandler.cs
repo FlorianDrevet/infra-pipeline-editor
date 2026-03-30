@@ -17,7 +17,7 @@ public class RemoveServiceBusQueueCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<RemoveServiceBusQueueCommand, ErrorOr<ServiceBusNamespaceResult>>
+    : ICommandHandler<RemoveServiceBusQueueCommand, ServiceBusNamespaceResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ServiceBusNamespaceResult>> Handle(

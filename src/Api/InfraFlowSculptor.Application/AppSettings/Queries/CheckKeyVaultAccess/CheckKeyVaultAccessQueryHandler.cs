@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
@@ -9,7 +10,7 @@ namespace InfraFlowSculptor.Application.AppSettings.Queries.CheckKeyVaultAccess;
 /// <summary>Handles the <see cref="CheckKeyVaultAccessQuery"/> request.</summary>
 public sealed class CheckKeyVaultAccessQueryHandler(
     IAzureResourceRepository azureResourceRepository)
-    : IRequestHandler<CheckKeyVaultAccessQuery, ErrorOr<CheckKeyVaultAccessResult>>
+    : IQueryHandler<CheckKeyVaultAccessQuery, CheckKeyVaultAccessResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<CheckKeyVaultAccessResult>> Handle(

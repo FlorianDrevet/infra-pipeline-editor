@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.WebApps.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
@@ -17,4 +17,4 @@ public record CreateWebAppCommand(
     bool AlwaysOn,
     bool HttpsOnly,
     IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<WebAppResult>>;
+) : ICommand<WebAppResult>;

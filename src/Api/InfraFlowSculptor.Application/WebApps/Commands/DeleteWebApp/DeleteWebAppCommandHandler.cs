@@ -11,7 +11,7 @@ public class DeleteWebAppCommandHandler(
     IWebAppRepository webAppRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteWebAppCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteWebAppCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.SqlServers.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.SqlServers.Commands.UpdateSqlServer;
 
@@ -14,4 +14,4 @@ public record UpdateSqlServerCommand(
     string Version,
     string AdministratorLogin,
     IReadOnlyList<SqlServerEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<SqlServerResult>>;
+) : ICommand<SqlServerResult>;

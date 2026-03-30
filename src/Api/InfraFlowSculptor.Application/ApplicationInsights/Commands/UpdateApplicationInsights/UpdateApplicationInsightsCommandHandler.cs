@@ -18,7 +18,7 @@ public sealed class UpdateApplicationInsightsCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateApplicationInsightsCommand, ErrorOr<ApplicationInsightsResult>>
+    : ICommandHandler<UpdateApplicationInsightsCommand, ApplicationInsightsResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ApplicationInsightsResult>> Handle(

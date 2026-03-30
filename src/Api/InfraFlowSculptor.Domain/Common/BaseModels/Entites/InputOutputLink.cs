@@ -13,19 +13,19 @@ public sealed class InputOutputLink : Entity<InputOutputId>
     public AzureResource SourceResource { get; private set; } = null!;
 
     /// <summary>Identifier of the source resource.</summary>
-    public AzureResourceId SourceResourceId { get; private set; }
+    public AzureResourceId SourceResourceId { get; private set; } = null!;
 
     /// <summary>Navigation to the target resource consuming the input.</summary>
     public AzureResource TargetResource { get; private set; } = null!;
 
     /// <summary>Identifier of the target resource.</summary>
-    public AzureResourceId TargetResourceId { get; private set; }
+    public AzureResourceId TargetResourceId { get; private set; } = null!;
 
     /// <summary>The output type on the source resource (must be a valid enum member).</summary>
-    public string OutputType { get; private set; }
+    public string OutputType { get; private set; } = null!;
 
     /// <summary>The input type on the target resource (must be a valid enum member).</summary>
-    public string InputType { get; private set; }
+    public string InputType { get; private set; } = null!;
 
     private InputOutputLink(InputOutputId id, AzureResource source,
         AzureResource target,

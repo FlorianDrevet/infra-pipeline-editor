@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.RoleAssignments.Commands.UpdateRoleAssignmentIdentity;
 
@@ -15,4 +15,4 @@ public record UpdateRoleAssignmentIdentityCommand(
     RoleAssignmentId RoleAssignmentId,
     string ManagedIdentityType,
     AzureResourceId? UserAssignedIdentityId
-) : IRequest<ErrorOr<RoleAssignmentResult>>;
+) : ICommand<RoleAssignmentResult>;

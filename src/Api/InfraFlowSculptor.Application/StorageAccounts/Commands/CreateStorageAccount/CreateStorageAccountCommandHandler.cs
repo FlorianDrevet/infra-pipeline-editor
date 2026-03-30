@@ -15,7 +15,7 @@ public class CreateStorageAccountCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateStorageAccountCommand, ErrorOr<StorageAccountResult>>
+    : ICommandHandler<CreateStorageAccountCommand, StorageAccountResult>
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(CreateStorageAccountCommand request, CancellationToken cancellationToken)
     {

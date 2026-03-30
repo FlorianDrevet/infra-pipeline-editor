@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using ErrorOr;
 using MediatR;
@@ -6,7 +7,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetPipeline
 
 /// <summary>Handles the <see cref="GetPipelineFileContentQuery"/>.</summary>
 public sealed class GetPipelineFileContentQueryHandler(IGeneratedArtifactService artifactService)
-    : IRequestHandler<GetPipelineFileContentQuery, ErrorOr<GetPipelineFileContentResult>>
+    : IQueryHandler<GetPipelineFileContentQuery, GetPipelineFileContentResult>
 {
     public async Task<ErrorOr<GetPipelineFileContentResult>> Handle(
         GetPipelineFileContentQuery query,

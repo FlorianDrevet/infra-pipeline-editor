@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.AppConfigurations.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.AppConfigurations.Commands.CreateAppConfiguration;
@@ -16,4 +16,4 @@ public record CreateAppConfigurationCommand(
     Name Name,
     Location Location,
     IReadOnlyList<AppConfigurationEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<AppConfigurationResult>>;
+) : ICommand<AppConfigurationResult>;

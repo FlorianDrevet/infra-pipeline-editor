@@ -8,7 +8,7 @@ namespace InfraFlowSculptor.Application.Projects.Queries.GetProjectPipelineFileC
 public sealed class GetProjectPipelineFileContentQueryHandler(
     IProjectAccessService accessService,
     IBlobService blobService)
-    : IRequestHandler<GetProjectPipelineFileContentQuery, ErrorOr<GetProjectPipelineFileContentResult>>
+    : IQueryHandler<GetProjectPipelineFileContentQuery, GetProjectPipelineFileContentResult>
 {
     public async Task<ErrorOr<GetProjectPipelineFileContentResult>> Handle(
         GetProjectPipelineFileContentQuery query,

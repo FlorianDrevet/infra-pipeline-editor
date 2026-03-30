@@ -43,10 +43,9 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
             .AnyAsync(r => r.Id == id, cancellationToken);
     }
 
-    public async Task<AzureResource> UpdateAsync(AzureResource resource, CancellationToken cancellationToken = default)
+    public Task<AzureResource> UpdateAsync(AzureResource resource, CancellationToken cancellationToken = default)
     {
-        await context.SaveChangesAsync(cancellationToken);
-        return resource;
+        return Task.FromResult(resource);
     }
 
     /// <inheritdoc />

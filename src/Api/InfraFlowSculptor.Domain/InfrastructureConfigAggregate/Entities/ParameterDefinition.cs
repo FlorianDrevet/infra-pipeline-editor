@@ -12,16 +12,16 @@ namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 public sealed class ParameterDefinition : Entity<ParameterDefinitionId>
 {
     /// <summary>Gets the owning infrastructure configuration identifier.</summary>
-    public InfrastructureConfigId InfraConfigId { get; private set; }
+    public InfrastructureConfigId InfraConfigId { get; private set; } = null!;
 
     /// <summary>Gets the parameter display name.</summary>
-    public Name Name { get; private set; }
+    public Name Name { get; private set; } = null!;
 
     /// <summary>Gets the Bicep type of this parameter.</summary>
-    public ParameterType Type { get; private set; }
+    public ParameterType Type { get; private set; } = null!;
 
     /// <summary>Gets whether this parameter is a secret (stored in Key Vault).</summary>
-    public IsSecret IsSecret { get; private set; }
+    public IsSecret IsSecret { get; private set; } = null!;
 
     /// <summary>Gets the optional default value for this parameter.</summary>
     public string? DefaultValue { get; private set; }

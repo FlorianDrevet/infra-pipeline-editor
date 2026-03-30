@@ -13,7 +13,7 @@ public class DeleteServiceBusNamespaceCommandHandler(
     IServiceBusNamespaceRepository serviceBusNamespaceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteServiceBusNamespaceCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteServiceBusNamespaceCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

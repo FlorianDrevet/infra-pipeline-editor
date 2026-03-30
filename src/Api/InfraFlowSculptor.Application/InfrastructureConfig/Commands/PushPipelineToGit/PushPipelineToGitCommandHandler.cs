@@ -17,7 +17,7 @@ public sealed class PushPipelineToGitCommandHandler(
     IKeyVaultSecretClient keyVaultClient,
     IGitProviderFactory gitProviderFactory,
     IGeneratedArtifactService artifactService)
-    : IRequestHandler<PushPipelineToGitCommand, ErrorOr<PushBicepToGitResult>>
+    : ICommandHandler<PushPipelineToGitCommand, PushBicepToGitResult>
 {
     public async Task<ErrorOr<PushBicepToGitResult>> Handle(
         PushPipelineToGitCommand command, CancellationToken cancellationToken)

@@ -14,7 +14,7 @@ public sealed class GetFunctionAppQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetFunctionAppQuery, ErrorOr<FunctionAppResult>>
+    : IQueryHandler<GetFunctionAppQuery, FunctionAppResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<FunctionAppResult>> Handle(

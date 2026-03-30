@@ -20,7 +20,7 @@ public sealed class GetDependentResourcesQueryHandler(
     ISqlDatabaseRepository sqlDatabaseRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<GetDependentResourcesQuery, ErrorOr<List<DependentResourceResult>>>
+    : IQueryHandler<GetDependentResourcesQuery, List<DependentResourceResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<List<DependentResourceResult>>> Handle(

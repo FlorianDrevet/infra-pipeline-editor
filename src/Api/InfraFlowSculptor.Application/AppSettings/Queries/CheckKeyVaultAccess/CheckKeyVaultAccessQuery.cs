@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.AppSettings.Queries.CheckKeyVaultAccess;
 
@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Application.AppSettings.Queries.CheckKeyVaultAccess;
 public record CheckKeyVaultAccessQuery(
     AzureResourceId ResourceId,
     AzureResourceId KeyVaultResourceId
-) : IRequest<ErrorOr<CheckKeyVaultAccessResult>>;
+) : IQuery<CheckKeyVaultAccessResult>;
 
 /// <summary>Result indicating whether the compute resource has Key Vault access.</summary>
 /// <param name="HasAccess">Whether the resource has the required role assignment.</param>

@@ -16,7 +16,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
     IInfrastructureConfigReadRepository configReadRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     IBlobService blobService)
-    : IRequestHandler<GenerateProjectPipelineCommand, ErrorOr<GenerateProjectPipelineResult>>
+    : ICommandHandler<GenerateProjectPipelineCommand, GenerateProjectPipelineResult>
 {
     /// <summary>
     /// Maps Azure resource type strings to their simple type names used in naming template lookups.

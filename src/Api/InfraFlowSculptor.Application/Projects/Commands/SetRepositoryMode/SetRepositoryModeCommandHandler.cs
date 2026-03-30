@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.SetRepositoryMode;
 public sealed class SetRepositoryModeCommandHandler(
     IProjectRepository projectRepository,
     IProjectAccessService accessService)
-    : IRequestHandler<SetRepositoryModeCommand, ErrorOr<Success>>
+    : ICommandHandler<SetRepositoryModeCommand, Success>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Success>> Handle(

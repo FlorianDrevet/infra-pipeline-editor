@@ -36,7 +36,9 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         // DefaultNamingTemplate
         // ========================
         builder.Property(x => x.DefaultNamingTemplate)
+#pragma warning disable CS8620 // Nullability mismatch — EF Core handles null conversion internally
             .HasConversion(new SingleValueConverter<NamingTemplate, string>())
+#pragma warning restore CS8620
             .IsRequired(false);
 
         // ========================

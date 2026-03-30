@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.ServiceBusNamespaces.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.UpdateServiceBusNamespace;
 
@@ -16,4 +16,4 @@ public record UpdateServiceBusNamespaceCommand(
     Name Name,
     Location Location,
     IReadOnlyList<ServiceBusNamespaceEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<ServiceBusNamespaceResult>>;
+) : ICommand<ServiceBusNamespaceResult>;

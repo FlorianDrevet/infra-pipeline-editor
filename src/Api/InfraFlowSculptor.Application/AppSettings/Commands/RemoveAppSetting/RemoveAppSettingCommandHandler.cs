@@ -11,7 +11,7 @@ public sealed class RemoveAppSettingCommandHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<RemoveAppSettingCommand, ErrorOr<Deleted>>
+    : ICommandHandler<RemoveAppSettingCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

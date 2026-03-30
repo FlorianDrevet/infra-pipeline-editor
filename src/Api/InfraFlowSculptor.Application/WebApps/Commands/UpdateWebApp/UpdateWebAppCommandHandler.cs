@@ -17,7 +17,7 @@ public class UpdateWebAppCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateWebAppCommand, ErrorOr<WebAppResult>>
+    : ICommandHandler<UpdateWebAppCommand, WebAppResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<WebAppResult>> Handle(

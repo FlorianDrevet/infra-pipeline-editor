@@ -15,7 +15,7 @@ public class CreateKeyVaultCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateKeyVaultCommand, ErrorOr<KeyVaultResult>>
+    : ICommandHandler<CreateKeyVaultCommand, KeyVaultResult>
 {
     public async Task<ErrorOr<KeyVaultResult>> Handle(CreateKeyVaultCommand request, CancellationToken cancellationToken)
     {

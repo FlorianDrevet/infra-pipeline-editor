@@ -19,7 +19,7 @@ public sealed class AddAppSettingCommandHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<AddAppSettingCommand, ErrorOr<AppSettingResult>>
+    : ICommandHandler<AddAppSettingCommand, AppSettingResult>
 {
     /// <summary>Resource types that support app settings.</summary>
     private static readonly HashSet<string> SupportedTypes =

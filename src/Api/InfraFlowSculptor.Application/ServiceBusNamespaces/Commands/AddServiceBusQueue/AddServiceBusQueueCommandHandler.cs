@@ -16,7 +16,7 @@ public class AddServiceBusQueueCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<AddServiceBusQueueCommand, ErrorOr<ServiceBusNamespaceResult>>
+    : ICommandHandler<AddServiceBusQueueCommand, ServiceBusNamespaceResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ServiceBusNamespaceResult>> Handle(

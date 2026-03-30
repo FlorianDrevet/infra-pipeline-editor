@@ -17,7 +17,7 @@ public class GetServiceBusNamespaceQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetServiceBusNamespaceQuery, ErrorOr<ServiceBusNamespaceResult>>
+    : IQueryHandler<GetServiceBusNamespaceQuery, ServiceBusNamespaceResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ServiceBusNamespaceResult>> Handle(

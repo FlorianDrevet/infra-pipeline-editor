@@ -23,7 +23,9 @@ public class RedisCacheConfiguration : IEntityTypeConfiguration<RedisCache>
 
         builder.Property(rc => rc.MinimumTlsVersion)
             .IsRequired(false)
+#pragma warning disable CS8620 // Nullability mismatch — EF Core handles null conversion internally
             .HasConversion(new EnumValueConverter<TlsVersion, TlsVersion.Version>());
+#pragma warning restore CS8620
 
         builder.Property(rc => rc.DisableAccessKeyAuthentication)
             .IsRequired()

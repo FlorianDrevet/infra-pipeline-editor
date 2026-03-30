@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
@@ -9,7 +10,7 @@ namespace InfraFlowSculptor.Application.AppSettings.Queries.GetAvailableOutputs;
 /// <summary>Handles the <see cref="GetAvailableOutputsQuery"/> request.</summary>
 public sealed class GetAvailableOutputsQueryHandler(
     IAzureResourceRepository azureResourceRepository)
-    : IRequestHandler<GetAvailableOutputsQuery, ErrorOr<AvailableOutputsResult>>
+    : IQueryHandler<GetAvailableOutputsQuery, AvailableOutputsResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<AvailableOutputsResult>> Handle(

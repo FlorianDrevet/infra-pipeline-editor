@@ -17,7 +17,7 @@ public sealed class CreateLogAnalyticsWorkspaceCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateLogAnalyticsWorkspaceCommand, ErrorOr<LogAnalyticsWorkspaceResult>>
+    : ICommandHandler<CreateLogAnalyticsWorkspaceCommand, LogAnalyticsWorkspaceResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<LogAnalyticsWorkspaceResult>> Handle(

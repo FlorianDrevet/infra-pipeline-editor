@@ -15,7 +15,7 @@ public sealed class UpdateProjectMemberRoleCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
     IMapper mapper)
-    : IRequestHandler<UpdateProjectMemberRoleCommand, ErrorOr<ProjectResult>>
+    : ICommandHandler<UpdateProjectMemberRoleCommand, ProjectResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ProjectResult>> Handle(

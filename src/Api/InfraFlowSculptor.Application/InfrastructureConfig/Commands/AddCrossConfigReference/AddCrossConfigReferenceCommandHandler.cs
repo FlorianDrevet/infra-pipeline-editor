@@ -15,7 +15,7 @@ public sealed class AddCrossConfigReferenceCommandHandler(
     IInfraConfigAccessService accessService,
     IInfrastructureConfigRepository infraConfigRepository,
     IResourceGroupRepository resourceGroupRepository)
-    : IRequestHandler<AddCrossConfigReferenceCommand, ErrorOr<CrossConfigReferenceResult>>
+    : ICommandHandler<AddCrossConfigReferenceCommand, CrossConfigReferenceResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<CrossConfigReferenceResult>> Handle(

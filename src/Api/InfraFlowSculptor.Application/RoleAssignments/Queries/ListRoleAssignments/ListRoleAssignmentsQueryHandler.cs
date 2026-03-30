@@ -11,7 +11,7 @@ public class ListRoleAssignmentsQueryHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<ListRoleAssignmentsQuery, ErrorOr<List<RoleAssignmentResult>>>
+    : IQueryHandler<ListRoleAssignmentsQuery, List<RoleAssignmentResult>>
 {
     public async Task<ErrorOr<List<RoleAssignmentResult>>> Handle(
         ListRoleAssignmentsQuery request,

@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectResourceNamingTemplate;
 
@@ -8,4 +8,4 @@ namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectResourceN
 public record RemoveProjectResourceNamingTemplateCommand(
     ProjectId ProjectId,
     string ResourceType
-) : IRequest<ErrorOr<Deleted>>;
+) : ICommand<Deleted>;

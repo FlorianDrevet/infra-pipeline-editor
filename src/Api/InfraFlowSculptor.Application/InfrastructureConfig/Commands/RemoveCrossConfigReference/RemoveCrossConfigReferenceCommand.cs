@@ -1,5 +1,5 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveCrossConfigReference;
 
@@ -9,4 +9,4 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveCros
 /// <param name="InfraConfigId">The infrastructure configuration that owns the reference.</param>
 /// <param name="ReferenceId">The identifier of the cross-config reference to remove.</param>
 public record RemoveCrossConfigReferenceCommand(Guid InfraConfigId, Guid ReferenceId)
-    : IRequest<ErrorOr<Deleted>>;
+    : ICommand<Deleted>;

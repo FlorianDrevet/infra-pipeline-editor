@@ -17,7 +17,7 @@ public sealed class GetUserAssignedIdentityQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetUserAssignedIdentityQuery, ErrorOr<UserAssignedIdentityResult>>
+    : IQueryHandler<GetUserAssignedIdentityQuery, UserAssignedIdentityResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<UserAssignedIdentityResult>> Handle(

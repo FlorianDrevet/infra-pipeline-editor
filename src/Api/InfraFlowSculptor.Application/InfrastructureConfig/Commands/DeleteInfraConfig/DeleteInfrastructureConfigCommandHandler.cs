@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.DeleteInfr
 public sealed class DeleteInfrastructureConfigCommandHandler(
     IInfrastructureConfigRepository configRepository,
     IProjectAccessService projectAccessService)
-    : IRequestHandler<DeleteInfrastructureConfigCommand, ErrorOr<Unit>>
+    : ICommandHandler<DeleteInfrastructureConfigCommand, Unit>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Unit>> Handle(

@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.FunctionApps.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp;
@@ -16,4 +16,4 @@ public record CreateFunctionAppCommand(
     string RuntimeVersion,
     bool HttpsOnly,
     IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<FunctionAppResult>>;
+) : ICommand<FunctionAppResult>;

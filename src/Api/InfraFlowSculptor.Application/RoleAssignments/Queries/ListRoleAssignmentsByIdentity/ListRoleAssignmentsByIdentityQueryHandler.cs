@@ -19,7 +19,7 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandler(
     IUserAssignedIdentityRepository userAssignedIdentityRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<ListRoleAssignmentsByIdentityQuery, ErrorOr<List<IdentityRoleAssignmentResult>>>
+    : IQueryHandler<ListRoleAssignmentsByIdentityQuery, List<IdentityRoleAssignmentResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<List<IdentityRoleAssignmentResult>>> Handle(

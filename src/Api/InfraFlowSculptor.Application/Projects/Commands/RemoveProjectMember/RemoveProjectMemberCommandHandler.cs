@@ -12,7 +12,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
 public sealed class RemoveProjectMemberCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository)
-    : IRequestHandler<RemoveProjectMemberCommand, ErrorOr<Unit>>
+    : ICommandHandler<RemoveProjectMemberCommand, Unit>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Unit>> Handle(

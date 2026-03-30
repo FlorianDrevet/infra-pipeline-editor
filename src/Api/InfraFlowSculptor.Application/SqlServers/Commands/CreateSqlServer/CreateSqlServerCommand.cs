@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.SqlServers.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.SqlServers.Commands.CreateSqlServer;
@@ -14,4 +14,4 @@ public record CreateSqlServerCommand(
     string Version,
     string AdministratorLogin,
     IReadOnlyList<SqlServerEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<SqlServerResult>>;
+) : ICommand<SqlServerResult>;

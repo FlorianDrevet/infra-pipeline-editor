@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Common.Queries.GetDependentResources;
 
@@ -8,4 +8,4 @@ namespace InfraFlowSculptor.Application.Common.Queries.GetDependentResources;
 /// <param name="Id">Identifier of the parent resource.</param>
 public record GetDependentResourcesQuery(
     AzureResourceId Id
-) : IRequest<ErrorOr<List<DependentResourceResult>>>;
+) : IQuery<List<DependentResourceResult>>;

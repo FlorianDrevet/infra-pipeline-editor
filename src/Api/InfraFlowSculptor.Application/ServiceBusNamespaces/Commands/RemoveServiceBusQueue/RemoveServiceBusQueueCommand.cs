@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.ServiceBusNamespaces.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.RemoveServiceBusQueue;
 
@@ -11,4 +11,4 @@ namespace InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.RemoveServ
 public record RemoveServiceBusQueueCommand(
     AzureResourceId ServiceBusNamespaceId,
     Guid QueueId
-) : IRequest<ErrorOr<ServiceBusNamespaceResult>>;
+) : ICommand<ServiceBusNamespaceResult>;

@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.AppSettings.Commands.RemoveAppSetting;
 
@@ -10,4 +10,4 @@ namespace InfraFlowSculptor.Application.AppSettings.Commands.RemoveAppSetting;
 public record RemoveAppSettingCommand(
     AzureResourceId ResourceId,
     AppSettingId AppSettingId
-) : IRequest<ErrorOr<Deleted>>;
+) : ICommand<Deleted>;

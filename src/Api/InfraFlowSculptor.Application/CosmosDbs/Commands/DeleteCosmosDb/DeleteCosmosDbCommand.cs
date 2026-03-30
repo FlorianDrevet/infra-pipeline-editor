@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.CosmosDbs.Commands.DeleteCosmosDb;
 
@@ -8,4 +8,4 @@ namespace InfraFlowSculptor.Application.CosmosDbs.Commands.DeleteCosmosDb;
 /// <param name="Id">The Cosmos DB account identifier.</param>
 public record DeleteCosmosDbCommand(
     AzureResourceId Id
-) : IRequest<ErrorOr<Deleted>>;
+) : ICommand<Deleted>;

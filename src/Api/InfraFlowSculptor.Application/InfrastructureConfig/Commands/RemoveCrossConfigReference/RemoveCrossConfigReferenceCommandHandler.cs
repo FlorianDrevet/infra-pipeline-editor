@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveCros
 public sealed class RemoveCrossConfigReferenceCommandHandler(
     IInfraConfigAccessService accessService,
     IInfrastructureConfigRepository infraConfigRepository)
-    : IRequestHandler<RemoveCrossConfigReferenceCommand, ErrorOr<Deleted>>
+    : ICommandHandler<RemoveCrossConfigReferenceCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(
