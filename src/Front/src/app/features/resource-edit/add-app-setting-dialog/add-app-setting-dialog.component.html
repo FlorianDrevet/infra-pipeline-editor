@@ -253,19 +253,19 @@
           </h4>
 
           <div class="sensitive-choice">
-            <!-- Via Bicep parameter -->
+            <!-- Via pipeline variable group -->
             <button
-              class="sensitive-choice-card sensitive-choice-card--kv"
-              [class.sensitive-choice-card--selected]="secretValueSource() === 'viaBicepparam'"
-              (click)="selectSecretValueSource('viaBicepparam')">
+              class="sensitive-choice-card sensitive-choice-card--direct-kv"
+              [class.sensitive-choice-card--selected]="secretValueSource() === 'variableGroup'"
+              (click)="selectSecretValueSource('variableGroup')">
               <div class="sensitive-choice-card__header">
-                <mat-icon>description</mat-icon>
-                <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_VIA_BICEPPARAM' | translate }}</span>
+                <mat-icon>account_tree</mat-icon>
+                <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_VG_TITLE' | translate }}</span>
                 <span class="sensitive-choice-card__badge sensitive-choice-card__badge--recommended">
                   {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_RECOMMENDED' | translate }}
                 </span>
               </div>
-              <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_VIA_BICEPPARAM_DESC' | translate }}</p>
+              <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_SECRET_VG_DESC' | translate }}</p>
             </button>
 
             <!-- Directly in Key Vault -->
@@ -278,18 +278,6 @@
                 <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_DIRECT_IN_KV' | translate }}</span>
               </div>
               <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.OPTION_DIRECT_IN_KV_DESC' | translate }}</p>
-            </button>
-
-            <!-- Via pipeline variable group -->
-            <button
-              class="sensitive-choice-card sensitive-choice-card--direct-kv"
-              [class.sensitive-choice-card--selected]="secretValueSource() === 'variableGroup'"
-              (click)="selectSecretValueSource('variableGroup')">
-              <div class="sensitive-choice-card__header">
-                <mat-icon>account_tree</mat-icon>
-                <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_VG_TITLE' | translate }}</span>
-              </div>
-              <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.STATIC_SECRET_VG_DESC' | translate }}</p>
             </button>
           </div>
 

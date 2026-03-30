@@ -347,7 +347,7 @@
                 <div class="form-grid">
                   <mat-form-field appearance="outline" class="form-field">
                     <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
-                    <mat-select formControlName="containerRegistryId">
+                    <mat-select formControlName="containerRegistryId" (selectionChange)="onContainerRegistryChange($event.value)">
                       <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
                       @for (acr of availableContainerRegistries(); track acr.id) {
                         <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
@@ -355,6 +355,34 @@
                     </mat-select>
                     <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
                   </mat-form-field>
+
+                  <!-- ACR Pull access check -->
+                  @if (selectedContainerRegistryId()) {
+                    <div class="form-field acr-access-check">
+                      @if (acrAccessChecking()) {
+                        <mat-spinner diameter="18" class="acr-access-check__spinner"></mat-spinner>
+                        <span class="acr-access-check__text">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
+                      } @else if (acrHasAccess() === true) {
+                        <mat-icon class="acr-access-check__icon acr-access-check__icon--ok">check_circle</mat-icon>
+                        <span class="acr-access-check__text acr-access-check__text--ok">{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
+                      } @else if (acrHasAccess() === false) {
+                        <mat-icon class="acr-access-check__icon acr-access-check__icon--warn">warning</mat-icon>
+                        <span class="acr-access-check__text acr-access-check__text--warn">
+                          {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_MISSING' | translate: { role: acrMissingRoleName() } }}
+                        </span>
+                        <button mat-stroked-button color="primary" class="acr-access-check__action"
+                                [disabled]="acrRoleAssigning()"
+                                (click)="addAcrPullRoleAssignment()">
+                          @if (acrRoleAssigning()) {
+                            <mat-spinner diameter="16"></mat-spinner>
+                          } @else {
+                            <mat-icon>add</mat-icon>
+                          }
+                          {{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_ADD_ROLE' | translate }}
+                        </button>
+                      }
+                    </div>
+                  }
                 </div>
               </div>
             }

@@ -602,6 +602,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       this.buildEnvForms(resource);
       this.watchFormChanges();
 
+      // Check ACR pull access if a container registry is already selected
+      const acrId = this.generalForm.get('containerRegistryId')?.value;
+      if (acrId) {
+        this.checkAcrPullAccess(acrId);
+      }
+
       // Load role assignments and sibling resources in background (non-blocking)
       this.loadRoleAssignments();
       this.loadAllResources();
