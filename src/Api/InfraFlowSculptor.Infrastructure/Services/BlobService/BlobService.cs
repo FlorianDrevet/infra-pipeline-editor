@@ -64,7 +64,7 @@ public sealed class BlobService : IBlobService
     public async Task<IReadOnlyList<string>> ListBlobsAsync(string prefix)
     {
         var blobs = new List<string>();
-        await foreach (var blob in _blobContainerClient.GetBlobsAsync(prefix: prefix))
+        await foreach (var blob in _blobContainerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, prefix, CancellationToken.None))
         {
             blobs.Add(blob.Name);
         }
