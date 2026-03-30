@@ -130,6 +130,14 @@ Key value objects per aggregate:
 - `InfrastructureConfig` has a `ProjectId` FK. Access checks (read/write/owner) are resolved via **project membership** — `IInfraConfigAccessService` loads the config, then delegates to `IProjectAccessService.VerifyReadAccessAsync(config.ProjectId)`.
 - `AzureResource` inheritance uses EF Core **TPT**: derived entities call `HasBaseType<AzureResource>().ToTable("...")` in their configurations.
 
+### 3.3bis Domain Code Quality Rules [2026-03-30]
+
+- **All domain classes must have XML `<summary>` docs.** Every class, enum, property, and public method should be documented.
+- **Value object properties must use `private set`** — never `public set`. DDD value objects are immutable.
+- **Error strings must be in English** — no French strings in domain error messages.
+- **Collection initializers:** prefer `= []` over `= new()` for `List<T>` backing fields.
+- **`EnumValueObject` types:** use primary constructor pattern `class Foo(Foo.Bar value) : EnumValueObject<Foo.Bar>(value)` — do not use a separate explicit constructor body.
+
 ### 3.4 Error Definitions
 
 Errors live in `src/Api/InfraFlowSculptor.Domain/Common/Errors/Errors.*.cs` as partial static classes:
@@ -1227,6 +1235,7 @@ L'architecte est un agent senior qui **ne code jamais**. Son rôle :
 ## 17. Changelog
 
 | Date | Author | Change |
+| 2026-03-30 | copilot | **Domain layer XML documentation + code cleanup**: Added comprehensive XML `<summary>` docs to every class, struct, enum, property, and method across the entire Domain layer (~80+ files). **Code cleanup**: (1) Removed dead `implicit operator` on `SingleValueObject<T>` that called `Activator.CreateInstance` on an abstract class. (2) Translated French error strings to English in `AzureResource` and `InputOutputLink`. (3) Fixed DDD encapsulation violations: `ResourceGroup.InfraConfigId/InfraConfig/Location` changed from `public set` to `private set`; `UserAggregate.Tag.Name/Value` and `Name.FirstName/LastName` changed from `public set` to `private set`. (4) Modernized collection initializers: replaced all `= new()` with `= []` across 20 aggregate backing fields (`_environmentSettings`, `_members`, `_queues`, etc.). (5) Fixed `CorsServiceType` inconsistent constructor pattern — aligned with primary constructor like all other `EnumValueObject` types. (6) Added XML docs to all 7 `Errors.*.cs` partial classes (StorageAccount, RoleAssignment, ResourceGroup, RedisCache, Member, KeyVault, InfrastructureConfig). (7) Added enum member docs to AppServicePlanSku, AppServicePlanOsType, WebAppRuntimeStack, SqlDatabaseSku. Build: 0 errors, 30 pre-existing warnings (CS8618/CS8620 nullability). |
 | 2026-03-29 | copilot | **Pipeline Generation Engine — real YAML output**: Rewrote `PipelineGenerationEngine` from stub to full implementation generating Azure DevOps pipeline files: `pipelines/ci.pipeline.yml` (CI with build stage + per-env deploy stages), `jobs/deploy.job.yml` (deploy job template per resource group), `steps/deploy-template.step.yml` (ARM validation + incremental deployment via `AzureResourceManagerTemplateDeployment@3`), `variables/common.variables.yml`, `variables/{env}.variables.yml` (per-env azureResourceManagerConnection + subscriptionId + location). Updated `PipelineGenerationResult.Files` key from `azure-pipelines.yml` to `pipelines/ci.pipeline.yml`. |
 | 2026-03-29 | copilot | **AzureResourceManagerConnection end-to-end**: Added `AzureResourceManagerConnection` (nullable string, max 256) to `ProjectEnvironmentDefinition`, all CQRS commands/handlers, read models, EF Core config, `GenerationCore.EnvironmentDefinition`, all 4 generation handlers, Contracts, API Mapster + controller. Migration: `AddAzureResourceManagerConnection`. **Frontend**: interfaces, environment dialog form control + HTML field, i18n (EN/FR). |
 | 2026-03-29 | copilot | **Remove TenantId, move azureResourceManagerConnection to common pipeline vars**: Removed `TenantId` from `ProjectEnvironmentDefinition` entity, `EnvironmentDefinitionData`, CQRS commands/handlers/validators/results, Contracts requests/response, API controller/Mapster mapping, EF Core config. Migration `RemoveTenantIdFromEnvironments` drops `TenantId` column from `ProjectEnvironments`. Pipeline generation: moved `azureResourceManagerConnection` from per-environment `{env}.yml` to config-level `vars.yml`. **Frontend**: removed `tenantId` from interfaces, environment dialog form/HTML, project-detail + config-detail display rows. |
