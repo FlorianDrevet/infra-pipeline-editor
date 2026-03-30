@@ -12,7 +12,7 @@ using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
-public class InfraConfigMappingConfig : IRegister
+public sealed class InfraConfigMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {

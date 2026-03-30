@@ -9,7 +9,7 @@ using Mapster;
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
 /// <summary>Mapster mapping configuration for app settings request/response types.</summary>
-public class AppSettingMappingConfig : IRegister
+public sealed class AppSettingMappingConfig : IRegister
 {
     /// <inheritdoc />
     public void Register(TypeAdapterConfig config)

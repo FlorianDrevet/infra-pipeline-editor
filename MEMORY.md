@@ -61,30 +61,30 @@ src/
 
 ### 3.1 Aggregates
 
-| Aggregate | Root | Key Entities | Notes |
-|-----------|------|-------------|-------|
-| `Project` | `Project` | `ProjectMember`, `ProjectEnvironmentDefinition`, `ProjectResourceNamingTemplate`, `GitRepositoryConfiguration` | Groups InfrastructureConfigs; owns membership/RBAC, default environments, naming conventions, optional Git push config |
-| `InfrastructureConfig` | `InfrastructureConfig` | `ParameterDefinition`, `ResourceParameterUsage` | Has `ProjectId` FK to Project. Environments are always inherited from the parent Project (no `UseProjectEnvironments` flag; `EnvironmentDefinition` removed). |
-| `ResourceGroup` | `ResourceGroup` | `AzureResource` (base), `InputOutputLink`, `ResourceEnvironmentConfig` | Hosts Azure resources |
-| `KeyVault` | `KeyVault` extends `AzureResource` | `KeyVaultEnvironmentSettings` | TPT in EF Core; typed per-env settings |
-| `RedisCache` | `RedisCache` extends `AzureResource` | `RedisCacheEnvironmentSettings` | TPT in EF Core; typed per-env settings |
-| `StorageAccount` | `StorageAccount` extends `AzureResource` | `StorageAccountEnvironmentSettings`, `BlobContainer`, `StorageQueue`, `StorageTable`, `CorsRule`, `BlobLifecycleRule` | TPT in EF Core; typed per-env settings. Sub-resources: BlobContainer (Name, PublicAccess), StorageQueue (Name), StorageTable (Name) — managed via dedicated CQRS commands. Blob service CORS rules are stored on the aggregate and flow through the main StorageAccount create/update/get endpoints, then into Bicep generation via serialized `corsRules` + `blobContainerNames` properties in `InfrastructureConfigReadRepository`. Blob lifecycle rules (`BlobLifecycleRule`: RuleName, ContainerNames, TimeToLiveInDays) follow the same replace-all pattern as CORS rules, generating `Microsoft.Storage/storageAccounts/managementPolicies@2025-06-01` Bicep resource. Frontend: Storage Services tab keeps blob/queue/table management; blob CORS and lifecycle rules are edited in the General tab of resource-edit. |
-| `StorageAccount` | `StorageAccount` extends `AzureResource` | `StorageAccountEnvironmentSettings`, `BlobContainer`, `StorageQueue`, `StorageTable`, `CorsRule` | Frontend i18n note: the Blob service CORS editor in `resource-edit` must use `RESOURCE_EDIT.STORAGE_SERVICES.CORS.*` translation keys; hardcoded template strings can bypass the active site language. |
-| `StorageAccount` | `StorageAccount` extends `AzureResource` | `StorageAccountEnvironmentSettings`, `BlobContainer`, `StorageQueue`, `StorageTable`, `CorsRule` | Frontend note: the StorageAccount CORS editor now uses chip-style add/remove inputs for multi-value fields and exposes separate Blob/Table CORS sections in `resource-edit`. |
-| `AppServicePlan` | `AppServicePlan` extends `AzureResource` | `AppServicePlanEnvironmentSettings` | TPT in EF Core; typed per-env settings (Sku, Capacity). OsType at resource level. |
-| `WebApp` | `WebApp` extends `AzureResource` | `WebAppEnvironmentSettings` | TPT in EF Core; typed per-env settings (AlwaysOn, HttpsOnly, RuntimeStack, RuntimeVersion). FK to AppServicePlan via `AppServicePlanId`. |
-| `FunctionApp` | `FunctionApp` extends `AzureResource` | `FunctionAppEnvironmentSettings` | TPT in EF Core; typed per-env settings (HttpsOnly, RuntimeStack, RuntimeVersion, MaxInstanceCount, FunctionsWorkerRuntime). FK to AppServicePlan via `AppServicePlanId`. |
-| `UserAssignedIdentity` | `UserAssignedIdentity` extends `AzureResource` | — | TPT in EF Core; simplest resource type, no per-environment settings. `Microsoft.ManagedIdentity/userAssignedIdentities`. |
-| `AppConfiguration` | `AppConfiguration` extends `AzureResource` | `AppConfigurationEnvironmentSettings` | TPT in EF Core; typed per-env settings (Sku, SoftDeleteRetentionInDays, PurgeProtectionEnabled, DisableLocalAuth, PublicNetworkAccess). `Microsoft.AppConfiguration/configurationStores`. |
-| `ContainerAppEnvironment` | `ContainerAppEnvironment` extends `AzureResource` | `ContainerAppEnvironmentEnvironmentSettings` | TPT in EF Core; typed per-env settings (Sku, WorkloadProfileType, InternalLoadBalancerEnabled, ZoneRedundancyEnabled, LogAnalyticsWorkspaceId). `Microsoft.App/managedEnvironments@2024-03-01`. Abbreviation `cae`. |
-| `ContainerApp` | `ContainerApp` extends `AzureResource` | `ContainerAppEnvironmentSettings` | TPT in EF Core; FK to ContainerAppEnvironment via `ContainerAppEnvironmentId`. Typed per-env settings (ContainerImage, CpuCores, MemoryGi, MinReplicas, MaxReplicas, IngressEnabled, IngressTargetPort, IngressExternal, TransportMethod). `Microsoft.App/containerApps@2024-03-01`. Abbreviation `ca`. |
-| `LogAnalyticsWorkspace` | `LogAnalyticsWorkspace` extends `AzureResource` | `LogAnalyticsWorkspaceEnvironmentSettings` | TPT in EF Core; typed per-env settings (Sku, RetentionInDays, DailyQuotaGb). `Microsoft.OperationalInsights/workspaces@2023-09-01`. Abbreviation `law`. |
-| `ApplicationInsights` | `ApplicationInsights` extends `AzureResource` | `ApplicationInsightsEnvironmentSettings` | TPT in EF Core; FK to LogAnalyticsWorkspace via `LogAnalyticsWorkspaceId`. Typed per-env settings (SamplingPercentage, RetentionInDays, DisableIpMasking, DisableLocalAuth, IngestionMode). `Microsoft.Insights/components@2020-02-02`. Abbreviation `appi`. |
-| `CosmosDb` | `CosmosDb` extends `AzureResource` | `CosmosDbEnvironmentSettings` | TPT in EF Core; typed per-env settings (DatabaseApiType, ConsistencyLevel, MaxStalenessPrefix, MaxIntervalInSeconds, EnableAutomaticFailover, EnableMultipleWriteLocations, BackupPolicyType, EnableFreeTier). `Microsoft.DocumentDB/databaseAccounts@2024-05-15`. Abbreviation `cosmos`. |
-| `SqlServer` | `SqlServer` extends `AzureResource` | `SqlServerEnvironmentSettings` | TPT in EF Core; resource-level Version (V12) + AdministratorLogin. Per-env settings (MinimalTlsVersion). `Microsoft.Sql/servers@2023-08-01-preview`. Abbreviation `sql`. |
-| `SqlDatabase` | `SqlDatabase` extends `AzureResource` | `SqlDatabaseEnvironmentSettings` | TPT in EF Core; FK to SqlServer via `SqlServerId`. Per-env settings (Sku: Basic/Standard/Premium/GeneralPurpose/BusinessCritical/Hyperscale, MaxSizeGb, ZoneRedundant). Resource-level Collation. `Microsoft.Sql/servers/databases@2023-08-01-preview`. Abbreviation `sqldb`. |
-| `ServiceBusNamespace` | `ServiceBusNamespace` extends `AzureResource` | `ServiceBusNamespaceEnvironmentSettings` | TPT in EF Core; sub-resources: `ServiceBusQueue` (name), `ServiceBusTopicSubscription` (topicName, subscriptionName). Per-env settings (Sku: Basic/Standard/Premium, Capacity 1-16 for Premium, ZoneRedundant, DisableLocalAuth, MinimumTlsVersion: 1.0/1.1/1.2). `Microsoft.ServiceBus/namespaces@2022-10-01-preview`. Abbreviation `sb`. |
-| `User` | `User` | — | Azure AD user info |
+| Aggregate                 | Root                                              | Key Entities                                                                                                          | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|---------------------------|---------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Project`                 | `Project`                                         | `ProjectMember`, `ProjectEnvironmentDefinition`, `ProjectResourceNamingTemplate`, `GitRepositoryConfiguration`        | Groups InfrastructureConfigs; owns membership/RBAC, default environments, naming conventions, optional Git push config                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `InfrastructureConfig`    | `InfrastructureConfig`                            | `ParameterDefinition`, `ResourceParameterUsage`                                                                       | Has `ProjectId` FK to Project. Environments are always inherited from the parent Project (no `UseProjectEnvironments` flag; `EnvironmentDefinition` removed).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `ResourceGroup`           | `ResourceGroup`                                   | `AzureResource` (base), `InputOutputLink`, `ResourceEnvironmentConfig`                                                | Hosts Azure resources                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `KeyVault`                | `KeyVault` extends `AzureResource`                | `KeyVaultEnvironmentSettings`                                                                                         | TPT in EF Core; typed per-env settings                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `RedisCache`              | `RedisCache` extends `AzureResource`              | `RedisCacheEnvironmentSettings`                                                                                       | TPT in EF Core; typed per-env settings                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `StorageAccount`          | `StorageAccount` extends `AzureResource`          | `StorageAccountEnvironmentSettings`, `BlobContainer`, `StorageQueue`, `StorageTable`, `CorsRule`, `BlobLifecycleRule` | TPT in EF Core; typed per-env settings. Sub-resources: BlobContainer (Name, PublicAccess), StorageQueue (Name), StorageTable (Name) — managed via dedicated CQRS commands. Blob service CORS rules are stored on the aggregate and flow through the main StorageAccount create/update/get endpoints, then into Bicep generation via serialized `corsRules` + `blobContainerNames` properties in `InfrastructureConfigReadRepository`. Blob lifecycle rules (`BlobLifecycleRule`: RuleName, ContainerNames, TimeToLiveInDays) follow the same replace-all pattern as CORS rules, generating `Microsoft.Storage/storageAccounts/managementPolicies@2025-06-01` Bicep resource. Frontend: Storage Services tab keeps blob/queue/table management; blob CORS and lifecycle rules are edited in the General tab of resource-edit. |
+| `StorageAccount`          | `StorageAccount` extends `AzureResource`          | `StorageAccountEnvironmentSettings`, `BlobContainer`, `StorageQueue`, `StorageTable`, `CorsRule`                      | Frontend i18n note: the Blob service CORS editor in `resource-edit` must use `RESOURCE_EDIT.STORAGE_SERVICES.CORS.*` translation keys; hardcoded template strings can bypass the active site language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `StorageAccount`          | `StorageAccount` extends `AzureResource`          | `StorageAccountEnvironmentSettings`, `BlobContainer`, `StorageQueue`, `StorageTable`, `CorsRule`                      | Frontend note: the StorageAccount CORS editor now uses chip-style add/remove inputs for multi-value fields and exposes separate Blob/Table CORS sections in `resource-edit`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `AppServicePlan`          | `AppServicePlan` extends `AzureResource`          | `AppServicePlanEnvironmentSettings`                                                                                   | TPT in EF Core; typed per-env settings (Sku, Capacity). OsType at resource level.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `WebApp`                  | `WebApp` extends `AzureResource`                  | `WebAppEnvironmentSettings`                                                                                           | TPT in EF Core; typed per-env settings (AlwaysOn, HttpsOnly, RuntimeStack, RuntimeVersion). FK to AppServicePlan via `AppServicePlanId`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `FunctionApp`             | `FunctionApp` extends `AzureResource`             | `FunctionAppEnvironmentSettings`                                                                                      | TPT in EF Core; typed per-env settings (HttpsOnly, RuntimeStack, RuntimeVersion, MaxInstanceCount, FunctionsWorkerRuntime). FK to AppServicePlan via `AppServicePlanId`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `UserAssignedIdentity`    | `UserAssignedIdentity` extends `AzureResource`    | —                                                                                                                     | TPT in EF Core; simplest resource type, no per-environment settings. `Microsoft.ManagedIdentity/userAssignedIdentities`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `AppConfiguration`        | `AppConfiguration` extends `AzureResource`        | `AppConfigurationEnvironmentSettings`                                                                                 | TPT in EF Core; typed per-env settings (Sku, SoftDeleteRetentionInDays, PurgeProtectionEnabled, DisableLocalAuth, PublicNetworkAccess). `Microsoft.AppConfiguration/configurationStores`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `ContainerAppEnvironment` | `ContainerAppEnvironment` extends `AzureResource` | `ContainerAppEnvironmentEnvironmentSettings`                                                                          | TPT in EF Core; typed per-env settings (Sku, WorkloadProfileType, InternalLoadBalancerEnabled, ZoneRedundancyEnabled, LogAnalyticsWorkspaceId). `Microsoft.App/managedEnvironments@2024-03-01`. Abbreviation `cae`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `ContainerApp`            | `ContainerApp` extends `AzureResource`            | `ContainerAppEnvironmentSettings`                                                                                     | TPT in EF Core; FK to ContainerAppEnvironment via `ContainerAppEnvironmentId`. Typed per-env settings (ContainerImage, CpuCores, MemoryGi, MinReplicas, MaxReplicas, IngressEnabled, IngressTargetPort, IngressExternal, TransportMethod). `Microsoft.App/containerApps@2024-03-01`. Abbreviation `ca`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `LogAnalyticsWorkspace`   | `LogAnalyticsWorkspace` extends `AzureResource`   | `LogAnalyticsWorkspaceEnvironmentSettings`                                                                            | TPT in EF Core; typed per-env settings (Sku, RetentionInDays, DailyQuotaGb). `Microsoft.OperationalInsights/workspaces@2023-09-01`. Abbreviation `law`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `ApplicationInsights`     | `ApplicationInsights` extends `AzureResource`     | `ApplicationInsightsEnvironmentSettings`                                                                              | TPT in EF Core; FK to LogAnalyticsWorkspace via `LogAnalyticsWorkspaceId`. Typed per-env settings (SamplingPercentage, RetentionInDays, DisableIpMasking, DisableLocalAuth, IngestionMode). `Microsoft.Insights/components@2020-02-02`. Abbreviation `appi`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `CosmosDb`                | `CosmosDb` extends `AzureResource`                | `CosmosDbEnvironmentSettings`                                                                                         | TPT in EF Core; typed per-env settings (DatabaseApiType, ConsistencyLevel, MaxStalenessPrefix, MaxIntervalInSeconds, EnableAutomaticFailover, EnableMultipleWriteLocations, BackupPolicyType, EnableFreeTier). `Microsoft.DocumentDB/databaseAccounts@2024-05-15`. Abbreviation `cosmos`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `SqlServer`               | `SqlServer` extends `AzureResource`               | `SqlServerEnvironmentSettings`                                                                                        | TPT in EF Core; resource-level Version (V12) + AdministratorLogin. Per-env settings (MinimalTlsVersion). `Microsoft.Sql/servers@2023-08-01-preview`. Abbreviation `sql`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `SqlDatabase`             | `SqlDatabase` extends `AzureResource`             | `SqlDatabaseEnvironmentSettings`                                                                                      | TPT in EF Core; FK to SqlServer via `SqlServerId`. Per-env settings (Sku: Basic/Standard/Premium/GeneralPurpose/BusinessCritical/Hyperscale, MaxSizeGb, ZoneRedundant). Resource-level Collation. `Microsoft.Sql/servers/databases@2023-08-01-preview`. Abbreviation `sqldb`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `ServiceBusNamespace`     | `ServiceBusNamespace` extends `AzureResource`     | `ServiceBusNamespaceEnvironmentSettings`                                                                              | TPT in EF Core; sub-resources: `ServiceBusQueue` (name), `ServiceBusTopicSubscription` (topicName, subscriptionName). Per-env settings (Sku: Basic/Standard/Premium, Capacity 1-16 for Premium, ZoneRedundant, DisableLocalAuth, MinimumTlsVersion: 1.0/1.1/1.2). `Microsoft.ServiceBus/namespaces@2022-10-01-preview`. Abbreviation `sb`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `User`                    | `User`                                            | —                                                                                                                     | Azure AD user info                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 **Cross-Config References:**
 `InfrastructureConfig` aggregate owns a `_crossConfigReferences` collection of `CrossConfigResourceReference` entities. Each reference points to a `TargetResourceId` (AzureResourceId) in another config of the same project, with an `Alias` (string, used as Bicep symbol) and optional `Purpose` (string). Methods: `AddCrossConfigReference()`, `RemoveCrossConfigReference()`. Validation: target resource must exist in a different config of the same project (checked in handler). The Bicep generator emits `existing` resource group + `existing` resource declarations for each referenced resource, allowing role assignments, app settings, and other references to cross-config resources.
@@ -305,43 +305,43 @@ Registered in `Program.cs` via `app.UseXyzController()`.
 
 ### 5.2 Existing Endpoints
 
-| Group | Method | Route | Command/Query |
-|-------|--------|-------|--------------|
-| `/infra-config` | GET | `` | `ListMyInfrastructureConfigsQuery` |
-| `/infra-config` | GET | `/{id:guid}` | `GetInfrastructureConfigQuery` |
-| `/infra-config` | POST | `` | `CreateInfrastructureConfigCommand` |
-| `/infra-config` | DELETE | `/{id:guid}` | `DeleteInfrastructureConfigCommand` |
-| `/infra-config` | POST | `/generate-bicep` | `GenerateBicepCommand` |
-| `/infra-config` | POST | `/{id:guid}/members` | `AddMemberCommand` |
-| `/infra-config` | PUT | `/{id:guid}/members/{userId:guid}` | `UpdateMemberRoleCommand` |
-| `/infra-config` | DELETE | `/{id:guid}/members/{userId:guid}` | `RemoveMemberCommand` |
-| `/projects` | DELETE | `/{id:guid}` | `DeleteProjectCommand` |
-| `/projects` | POST | `/validate-recent` | `ValidateRecentItemsQuery` |
-| `/keyvault` | GET/POST/PUT/DELETE | `/{id:guid}` | Key Vault CRUD |
-| `/resource-group` | GET/POST | `/{id:guid}` | Resource Group CRUD |
-| `/redis-cache` | GET/POST/PUT/DELETE | `/{id:guid}` | Redis Cache CRUD |
-| `/app-service-plan` | GET/POST/PUT/DELETE | `/{id:guid}` | App Service Plan CRUD |
-| `/web-app` | GET/POST/PUT/DELETE | `/{id:guid}` | Web App CRUD |
-| `/function-app` | GET/POST/PUT/DELETE | `/{id:guid}` | Function App CRUD |
-| `/generate-bicep` | POST | `` | `GenerateBicepCommand` |
-| `/generate-bicep` | GET | `/{configId:guid}/download` | `DownloadBicepCommand` (returns zip) |
-| `/generate-bicep` | GET | `/{configId:guid}/files/{*filePath}` | `GetBicepFileContentQuery` (returns JSON `{ content }`) |
-| `/generate-bicep` | POST | `/{configId:guid}/push-to-git` | `PushBicepToGitCommand` (push Bicep files to Git repo) |
-| `/projects` | PUT | `/{id:guid}/git-config` | `SetProjectGitConfigCommand` |
-| `/projects` | DELETE | `/{id:guid}/git-config` | `RemoveProjectGitConfigCommand` |
-| `/projects` | POST | `/{id:guid}/git-config/test` | `TestGitConnectionCommand` |
-| `/projects` | GET | `/{id:guid}/git-config/branches` | `ListGitBranchesQuery` |
-| `/projects` | GET | `/{id:guid}/generate-bicep/download` | `DownloadProjectBicepCommand` (returns zip of latest mono-repo snapshot) |
-| `/projects` | POST | `/{id:guid}/generate-pipeline` | `GenerateProjectPipelineCommand` (mono-repo pipeline generation) |
-| `/projects` | GET | `/{id:guid}/generate-pipeline/download` | `DownloadProjectPipelineCommand` (returns zip of latest mono-repo pipeline snapshot) |
-| `/projects` | GET | `/{id:guid}/generate-pipeline/files/{*filePath}` | `GetProjectPipelineFileContentQuery` (returns JSON `{ content }`) |
-| `/projects` | POST | `/{id:guid}/push-pipeline-to-git` | `PushProjectPipelineToGitCommand` (push mono-repo pipeline files to Git) |
-| `/sql-server` | GET/POST/PUT/DELETE | `/{id:guid}` | SQL Server CRUD |
-| `/sql-database` | GET/POST/PUT/DELETE | `/{id:guid}` | SQL Database CRUD |
-| `/generate-pipeline` | POST | `` | `GeneratePipelineCommand` |
-| `/generate-pipeline` | GET | `/{configId:guid}/download` | `DownloadPipelineCommand` (returns zip) |
-| `/generate-pipeline` | GET | `/{configId:guid}/files/{*filePath}` | `GetPipelineFileContentQuery` (returns JSON `{ content }`) |
-| `/generate-pipeline` | POST | `/{configId:guid}/push-to-git` | `PushPipelineToGitCommand` (push pipeline YAML files to Git repo) |
+| Group                | Method              | Route                                            | Command/Query                                                                        |
+|----------------------|---------------------|--------------------------------------------------|--------------------------------------------------------------------------------------|
+| `/infra-config`      | GET                 | ``                                               | `ListMyInfrastructureConfigsQuery`                                                   |
+| `/infra-config`      | GET                 | `/{id:guid}`                                     | `GetInfrastructureConfigQuery`                                                       |
+| `/infra-config`      | POST                | ``                                               | `CreateInfrastructureConfigCommand`                                                  |
+| `/infra-config`      | DELETE              | `/{id:guid}`                                     | `DeleteInfrastructureConfigCommand`                                                  |
+| `/infra-config`      | POST                | `/generate-bicep`                                | `GenerateBicepCommand`                                                               |
+| `/infra-config`      | POST                | `/{id:guid}/members`                             | `AddMemberCommand`                                                                   |
+| `/infra-config`      | PUT                 | `/{id:guid}/members/{userId:guid}`               | `UpdateMemberRoleCommand`                                                            |
+| `/infra-config`      | DELETE              | `/{id:guid}/members/{userId:guid}`               | `RemoveMemberCommand`                                                                |
+| `/projects`          | DELETE              | `/{id:guid}`                                     | `DeleteProjectCommand`                                                               |
+| `/projects`          | POST                | `/validate-recent`                               | `ValidateRecentItemsQuery`                                                           |
+| `/keyvault`          | GET/POST/PUT/DELETE | `/{id:guid}`                                     | Key Vault CRUD                                                                       |
+| `/resource-group`    | GET/POST            | `/{id:guid}`                                     | Resource Group CRUD                                                                  |
+| `/redis-cache`       | GET/POST/PUT/DELETE | `/{id:guid}`                                     | Redis Cache CRUD                                                                     |
+| `/app-service-plan`  | GET/POST/PUT/DELETE | `/{id:guid}`                                     | App Service Plan CRUD                                                                |
+| `/web-app`           | GET/POST/PUT/DELETE | `/{id:guid}`                                     | Web App CRUD                                                                         |
+| `/function-app`      | GET/POST/PUT/DELETE | `/{id:guid}`                                     | Function App CRUD                                                                    |
+| `/generate-bicep`    | POST                | ``                                               | `GenerateBicepCommand`                                                               |
+| `/generate-bicep`    | GET                 | `/{configId:guid}/download`                      | `DownloadBicepCommand` (returns zip)                                                 |
+| `/generate-bicep`    | GET                 | `/{configId:guid}/files/{*filePath}`             | `GetBicepFileContentQuery` (returns JSON `{ content }`)                              |
+| `/generate-bicep`    | POST                | `/{configId:guid}/push-to-git`                   | `PushBicepToGitCommand` (push Bicep files to Git repo)                               |
+| `/projects`          | PUT                 | `/{id:guid}/git-config`                          | `SetProjectGitConfigCommand`                                                         |
+| `/projects`          | DELETE              | `/{id:guid}/git-config`                          | `RemoveProjectGitConfigCommand`                                                      |
+| `/projects`          | POST                | `/{id:guid}/git-config/test`                     | `TestGitConnectionCommand`                                                           |
+| `/projects`          | GET                 | `/{id:guid}/git-config/branches`                 | `ListGitBranchesQuery`                                                               |
+| `/projects`          | GET                 | `/{id:guid}/generate-bicep/download`             | `DownloadProjectBicepCommand` (returns zip of latest mono-repo snapshot)             |
+| `/projects`          | POST                | `/{id:guid}/generate-pipeline`                   | `GenerateProjectPipelineCommand` (mono-repo pipeline generation)                     |
+| `/projects`          | GET                 | `/{id:guid}/generate-pipeline/download`          | `DownloadProjectPipelineCommand` (returns zip of latest mono-repo pipeline snapshot) |
+| `/projects`          | GET                 | `/{id:guid}/generate-pipeline/files/{*filePath}` | `GetProjectPipelineFileContentQuery` (returns JSON `{ content }`)                    |
+| `/projects`          | POST                | `/{id:guid}/push-pipeline-to-git`                | `PushProjectPipelineToGitCommand` (push mono-repo pipeline files to Git)             |
+| `/sql-server`        | GET/POST/PUT/DELETE | `/{id:guid}`                                     | SQL Server CRUD                                                                      |
+| `/sql-database`      | GET/POST/PUT/DELETE | `/{id:guid}`                                     | SQL Database CRUD                                                                    |
+| `/generate-pipeline` | POST                | ``                                               | `GeneratePipelineCommand`                                                            |
+| `/generate-pipeline` | GET                 | `/{configId:guid}/download`                      | `DownloadPipelineCommand` (returns zip)                                              |
+| `/generate-pipeline` | GET                 | `/{configId:guid}/files/{*filePath}`             | `GetPipelineFileContentQuery` (returns JSON `{ content }`)                           |
+| `/generate-pipeline` | POST                | `/{configId:guid}/push-to-git`                   | `PushPipelineToGitCommand` (push pipeline YAML files to Git repo)                    |
 
 ### 5.3 Error Conversion
 
@@ -551,11 +551,11 @@ builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
 
 Fichier `src/Front/proxy.conf.js` : lit les variables d'environnement Aspire pour configurer le proxy :
 
-| Chemin | Variable Aspire | Destination |
-|--------|-----------------|-------------|
-| `/api-proxy/*` | `services__infraflowsculptor-api__https__0` ou `__http__0` | API backend |
-| `/bicep-api-proxy/*` | `services__bicep-generator-api__https__0` ou `__http__0` | Bicep Generator API |
-| `/otlp/*` | `OTEL_EXPORTER_OTLP_ENDPOINT` | Aspire Dashboard OTLP |
+| Chemin               | Variable Aspire                                            | Destination           |
+|----------------------|------------------------------------------------------------|-----------------------|
+| `/api-proxy/*`       | `services__infraflowsculptor-api__https__0` ou `__http__0` | API backend           |
+| `/bicep-api-proxy/*` | `services__bicep-generator-api__https__0` ou `__http__0`   | Bicep Generator API   |
+| `/otlp/*`            | `OTEL_EXPORTER_OTLP_ENDPOINT`                              | Aspire Dashboard OTLP |
 
 - Le frontend utilise `api_url: '/api-proxy'` (environment.aspire.ts)
 - Le frontend utilise `bicep_api_url: '/bicep-api-proxy'` (environment.aspire.ts)
@@ -565,21 +565,21 @@ Fichier `src/Front/proxy.conf.js` : lit les variables d'environnement Aspire pou
 
 ### 12.3 Configurations Angular
 
-| Config | Fichier env | Usage |
-|--------|-------------|-------|
-| `development` | `environment.development.ts` | `npm run start` (dev standalone) |
-| `aspire` | `environment.aspire.ts` | `npm run start:aspire` (via Aspire) |
-| `production` | `environment.ts` | `npm run build` |
+| Config        | Fichier env                  | Usage                               |
+|---------------|------------------------------|-------------------------------------|
+| `development` | `environment.development.ts` | `npm run start` (dev standalone)    |
+| `aspire`      | `environment.aspire.ts`      | `npm run start:aspire` (via Aspire) |
+| `production`  | `environment.ts`             | `npm run build`                     |
 
 ### 12.4 Variables Aspire injectées pour le frontend
 
-| Variable | Description |
-|----------|-------------|
-| `services__infraflowsculptor-api__http__0` | URL HTTP de l'API principale |
-| `services__infraflowsculptor-api__https__0` | URL HTTPS de l'API principale |
-| `services__bicep-generator-api__http__0` | URL HTTP de l'API Bicep Generator |
-| `services__bicep-generator-api__https__0` | URL HTTPS de l'API Bicep Generator |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | URL OTLP du dashboard Aspire (si WithOtlpExporter activé) |
+| Variable                                    | Description                                               |
+|---------------------------------------------|-----------------------------------------------------------|
+| `services__infraflowsculptor-api__http__0`  | URL HTTP de l'API principale                              |
+| `services__infraflowsculptor-api__https__0` | URL HTTPS de l'API principale                             |
+| `services__bicep-generator-api__http__0`    | URL HTTP de l'API Bicep Generator                         |
+| `services__bicep-generator-api__https__0`   | URL HTTPS de l'API Bicep Generator                        |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`               | URL OTLP du dashboard Aspire (si WithOtlpExporter activé) |
 
 ---
 
@@ -686,24 +686,24 @@ param sku SkuName = 'standard'
 
 All module params now have `@description()` decorators. Types are defined only where parameter values can be meaningfully constrained (string enums). Resources like UserAssignedIdentity have no types.bicep (only `location`/`name` params).
 
-| Module folder | Exported types |
-|---------------|---------------|
-| KeyVault | `SkuName` |
-| RedisCache | `SkuName`, `SkuFamily`, `TlsVersion` |
-| StorageAccount | `SkuName`, `StorageKind`, `AccessTier`, `TlsVersion` |
-| AppServicePlan | `SkuName`, `OsType` |
-| WebApp | `RuntimeStack` |
-| FunctionApp | `RuntimeStack`, `WorkerRuntime` |
-| UserAssignedIdentity | _(none)_ |
-| AppConfiguration | `SkuName`, `PublicNetworkAccess` |
-| ContainerAppEnvironment | `SkuName`, `WorkloadProfileType` |
-| ContainerApp | `TransportMethod` |
-| LogAnalyticsWorkspace | `SkuName` |
-| ApplicationInsights | `IngestionMode` |
-| CosmosDb | `DatabaseKind`, `ConsistencyLevel`, `BackupPolicyType` |
-| SqlServer | `SqlServerVersion`, `TlsVersion` |
-| SqlDatabase | `SkuName` |
-| ServiceBusNamespace | `SkuName`, `TlsVersion` |
+| Module folder           | Exported types                                         |
+|-------------------------|--------------------------------------------------------|
+| KeyVault                | `SkuName`                                              |
+| RedisCache              | `SkuName`, `SkuFamily`, `TlsVersion`                   |
+| StorageAccount          | `SkuName`, `StorageKind`, `AccessTier`, `TlsVersion`   |
+| AppServicePlan          | `SkuName`, `OsType`                                    |
+| WebApp                  | `RuntimeStack`                                         |
+| FunctionApp             | `RuntimeStack`, `WorkerRuntime`                        |
+| UserAssignedIdentity    | _(none)_                                               |
+| AppConfiguration        | `SkuName`, `PublicNetworkAccess`                       |
+| ContainerAppEnvironment | `SkuName`, `WorkloadProfileType`                       |
+| ContainerApp            | `TransportMethod`                                      |
+| LogAnalyticsWorkspace   | `SkuName`                                              |
+| ApplicationInsights     | `IngestionMode`                                        |
+| CosmosDb                | `DatabaseKind`, `ConsistencyLevel`, `BackupPolicyType` |
+| SqlServer               | `SqlServerVersion`, `TlsVersion`                       |
+| SqlDatabase             | `SkuName`                                              |
+| ServiceBusNamespace     | `SkuName`, `TlsVersion`                                |
 
 ### 14.0.4 StorageAccount companion modules ([2026-03-26])
 
@@ -1188,6 +1188,23 @@ La fonctionnalité Azure DevOps "Publish code as wiki" (sync auto Git → wiki) 
 Un **Skill** est un fichier `SKILL.md` de connaissance pure, chargé à la demande avec `read_file` quand la tâche le justifie.
 Pas d'outils, lazy-loaded, composable. Idéal pour centraliser un workflow réutilisable sans alourdir les agents.
 Voir la section "Skills" de `copilot-instructions.md` pour la liste des skills disponibles.
+
+---
+
+## 24. Incident runtime Aspire — reset PostgreSQL infraDb ([2026-03-30])
+
+- Contexte: DbGate peut afficher une page blanche meme si la ressource est `Running`/`Healthy`.
+- AppHost cible: `src/Aspire/InfraFlowSculptor.AppHost/AppHost.cs`.
+- Ressources DB Aspire:
+    - serveur PostgreSQL: `postgres` (container image `postgres:17.6`)
+    - base applicative: `infraDb` (`postgres.AddDatabase("infraDb")`)
+- Procedure de reset fiable sans DbGate (depuis terminal):
+    1. Recuperer le conteneur Postgres actif via `docker ps`.
+    2. Recuperer `POSTGRES_PASSWORD` dans le conteneur (`docker exec <id> sh -lc "printenv POSTGRES_PASSWORD"`).
+    3. Executer `DROP DATABASE IF EXISTS "infraDb";` puis `CREATE DATABASE "infraDb";` avec `psql` + `PGPASSWORD`.
+    4. Valider la reinitialisation avec `psql -d infraDb -c '\dt'` (attendu: `Did not find any relations.`).
+- Commande utile de terminaison des connexions avant drop:
+    `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'infraDb' AND pid <> pg_backend_pid();`
 
 ---
 

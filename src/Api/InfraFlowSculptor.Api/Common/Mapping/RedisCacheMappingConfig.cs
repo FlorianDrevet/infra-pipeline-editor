@@ -10,7 +10,7 @@ using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
-public class RedisCacheMappingConfig : IRegister
+public sealed class RedisCacheMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {

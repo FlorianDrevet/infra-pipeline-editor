@@ -9,7 +9,7 @@ using Mapster;
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
 /// <summary>Mapster mapping configuration for role assignment request/response types.</summary>
-public class RoleAssignmentMappingConfig : IRegister
+public sealed class RoleAssignmentMappingConfig : IRegister
 {
     /// <inheritdoc />
     public void Register(TypeAdapterConfig config)

@@ -11,7 +11,7 @@ using Mapster;
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
 /// <summary>Mapster mapping configuration for the Service Bus Namespace aggregate.</summary>
-public class ServiceBusNamespaceMappingConfig : IRegister
+public sealed class ServiceBusNamespaceMappingConfig : IRegister
 {
     /// <inheritdoc />
     public void Register(TypeAdapterConfig config)

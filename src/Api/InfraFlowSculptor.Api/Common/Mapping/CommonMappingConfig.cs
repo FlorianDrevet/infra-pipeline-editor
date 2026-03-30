@@ -4,7 +4,7 @@ using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
-public class CommonMappingConfig : IRegister
+public sealed class CommonMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {

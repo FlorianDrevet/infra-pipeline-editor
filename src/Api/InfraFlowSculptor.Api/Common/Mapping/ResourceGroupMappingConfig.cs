@@ -6,7 +6,7 @@ using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
-public class ResourceGroupMappingConfig : IRegister
+public sealed class ResourceGroupMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {

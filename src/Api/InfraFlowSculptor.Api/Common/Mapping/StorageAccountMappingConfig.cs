@@ -11,7 +11,7 @@ using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
-public class StorageAccountMappingConfig : IRegister
+public sealed class StorageAccountMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {

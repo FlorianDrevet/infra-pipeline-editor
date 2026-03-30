@@ -10,7 +10,7 @@ using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
-public class KeyVaultMappingConfig : IRegister
+public sealed class KeyVaultMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
