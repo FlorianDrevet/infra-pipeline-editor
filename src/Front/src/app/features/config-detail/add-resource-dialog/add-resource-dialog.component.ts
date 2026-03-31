@@ -878,6 +878,8 @@ export class AddResourceDialogComponent {
           publicNetworkAccess: ['Enabled', [Validators.required]],
           zoneRedundancy: [false],
         });
+      default:
+        return this.fb.group({});
     }
   }
 

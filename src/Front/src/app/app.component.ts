@@ -15,6 +15,7 @@ import { filter, map, startWith } from 'rxjs';
 import { TranslateModule } from '@ngx-translate/core';
 import 'agent-ui-annotation';
 import type { AnnotationElement } from 'agent-ui-annotation';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -28,6 +29,7 @@ export class AppComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
+  protected readonly isAnnotationEnabled = !environment.production;
   protected readonly annotationRef = viewChild<ElementRef<AnnotationElement>>('annotationRef');
 
   protected isLoginPage = toSignal(
@@ -39,6 +41,10 @@ export class AppComponent {
   );
 
   constructor() {
+    if (!this.isAnnotationEnabled) {
+      return;
+    }
+
     afterNextRender(() => {
       const annotationElement = this.annotationRef()?.nativeElement;
 
