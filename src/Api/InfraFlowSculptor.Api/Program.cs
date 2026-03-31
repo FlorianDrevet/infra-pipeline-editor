@@ -86,6 +86,7 @@ app.UseSqlServerController();
 app.UseSqlDatabaseController();
 app.UseServiceBusNamespaceController();
 app.UseContainerRegistryController();
+app.UseEventHubNamespaceController();
 app.UseAppSettingController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();

@@ -420,6 +420,37 @@ public static class AzureRoleDefinitionCatalog
     private const string ContainerRegistryDocsUrl =
         "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-roles";
 
+    private const string EventHubNamespaceDocsUrl =
+        "https://learn.microsoft.com/en-us/azure/event-hubs/authorize-access-azure-active-directory";
+
+    private static readonly IReadOnlyList<AzureRoleDefinition> EventHubNamespaceRoles =
+    [
+        new("f526a384-b230-433a-b45c-95f59c4a2dec",
+            "Azure Event Hubs Data Owner",
+            "Allows for full access to Azure Event Hubs resources.",
+            EventHubNamespaceDocsUrl),
+
+        new("2b629674-e913-4c01-ae53-ef4638d8f975",
+            "Azure Event Hubs Data Sender",
+            "Allows send access to Azure Event Hubs resources.",
+            EventHubNamespaceDocsUrl),
+
+        new("a638d3c7-ab3a-418d-83e6-5f17a39d4fde",
+            "Azure Event Hubs Data Receiver",
+            "Allows receive access to Azure Event Hubs resources.",
+            EventHubNamespaceDocsUrl),
+
+        new("b24988ac-6180-42a0-ab88-20f7382dd24c",
+            "Contributor",
+            "Full management access to all resources, but does not allow you to assign roles in Azure RBAC.",
+            EventHubNamespaceDocsUrl),
+
+        new("acdd72a7-3385-48ef-bd42-f606fba81ae7",
+            "Reader",
+            "View all resources, but does not allow you to make any changes.",
+            EventHubNamespaceDocsUrl),
+    ];
+
     /// <summary>Azure RBAC role definitions for Container Registry.</summary>
     private static readonly IReadOnlyList<AzureRoleDefinition> ContainerRegistryRoles =
     [
@@ -489,6 +520,7 @@ public static class AzureRoleDefinitionCatalog
         { "SqlDatabase", SqlDatabaseRoles },
         { "ServiceBusNamespace", ServiceBusNamespaceRoles },
         { "ContainerRegistry", ContainerRegistryRoles },
+        { "EventHubNamespace", EventHubNamespaceRoles },
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>

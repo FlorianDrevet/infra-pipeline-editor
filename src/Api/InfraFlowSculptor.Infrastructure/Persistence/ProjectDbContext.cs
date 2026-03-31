@@ -37,6 +37,8 @@ using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
+using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
+using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -98,6 +100,10 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<ServiceBusTopicSubscription> ServiceBusTopicSubscriptions { get; set; } = null!;
     public DbSet<ContainerRegistry> ContainerRegistries { get; set; } = null!;
     public DbSet<ContainerRegistryEnvironmentSettings> ContainerRegistryEnvironmentSettings { get; set; } = null!;
+    public DbSet<EventHubNamespace> EventHubNamespaces { get; set; } = null!;
+    public DbSet<EventHubNamespaceEnvironmentSettings> EventHubNamespaceEnvironmentSettings { get; set; } = null!;
+    public DbSet<Domain.EventHubNamespaceAggregate.Entities.EventHub> EventHubs { get; set; } = null!;
+    public DbSet<EventHubConsumerGroup> EventHubConsumerGroups { get; set; } = null!;
     public DbSet<GitRepositoryConfiguration> GitRepositoryConfigurations { get; set; } = null!;
     public DbSet<CrossConfigResourceReference> CrossConfigResourceReferences { get; set; } = null!;
     public DbSet<ProjectPipelineVariableGroup> ProjectPipelineVariableGroups { get; set; } = null!;

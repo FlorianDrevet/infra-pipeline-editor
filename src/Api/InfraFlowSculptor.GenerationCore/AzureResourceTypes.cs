@@ -25,6 +25,7 @@ public static class AzureResourceTypes
     public const string SqlDatabase = "SqlDatabase";
     public const string ServiceBusNamespace = "ServiceBusNamespace";
     public const string ContainerRegistry = "ContainerRegistry";
+    public const string EventHubNamespace = "EventHubNamespace";
     public const string ResourceGroup = "ResourceGroup";
 
     /// <summary>
@@ -49,6 +50,7 @@ public static class AzureResourceTypes
         public const string SqlDatabase = "Microsoft.Sql/servers/databases";
         public const string ServiceBusNamespace = "Microsoft.ServiceBus/namespaces";
         public const string ContainerRegistry = "Microsoft.ContainerRegistry/registries";
+        public const string EventHubNamespace = "Microsoft.EventHub/namespaces";
     }
 
     /// <summary>
@@ -74,6 +76,7 @@ public static class AzureResourceTypes
         [ArmTypes.SqlDatabase] = SqlDatabase,
         [ArmTypes.ServiceBusNamespace] = ServiceBusNamespace,
         [ArmTypes.ContainerRegistry] = ContainerRegistry,
+        [ArmTypes.EventHubNamespace] = EventHubNamespace,
     };
 
     /// <summary>
@@ -85,7 +88,7 @@ public static class AzureResourceTypes
         WebApp, FunctionApp, UserAssignedIdentity, AppConfiguration,
         ContainerAppEnvironment, ContainerApp, LogAnalyticsWorkspace,
         ApplicationInsights, CosmosDb, SqlServer, SqlDatabase,
-        ServiceBusNamespace, ContainerRegistry,
+        ServiceBusNamespace, ContainerRegistry, EventHubNamespace,
     ];
 
     /// <summary>

@@ -42,6 +42,8 @@ using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
 using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
+using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
+using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.Infrastructure.Persistence;
@@ -204,6 +206,11 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var ehSettings = await dbContext.EventHubNamespaceEnvironmentSettings
+            .Where(es => allResourceIds.Contains(es.EventHubNamespaceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         // ── Load role assignments for all resources in this config ───────────
         var roleAssignments = await dbContext.RoleAssignments
             .Where(ra => allResourceIds.Contains(ra.SourceResourceId))
@@ -261,7 +268,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, lifecycleRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings, crSettings))
+                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, lifecycleRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings, crSettings, ehSettings))
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 
@@ -499,7 +506,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         IReadOnlyList<SqlServerEnvironmentSettings> sqlServerSettings,
         IReadOnlyList<SqlDatabaseEnvironmentSettings> sqlDbSettings,
         IReadOnlyList<ServiceBusNamespaceEnvironmentSettings> sbSettings,
-        IReadOnlyList<ContainerRegistryEnvironmentSettings> crSettings)
+        IReadOnlyList<ContainerRegistryEnvironmentSettings> crSettings,
+        IReadOnlyList<EventHubNamespaceEnvironmentSettings> ehSettings)
     {
         return resource switch
         {
@@ -771,6 +779,16 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     .Where(es => es.ContainerRegistryId == cr.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
                     .ToList()),
+            EventHubNamespace eh => new AzureResourceReadModel(
+                eh.Id.Value,
+                eh.Name.Value,
+                MapLocation(eh.Location),
+                "Microsoft.EventHub/namespaces",
+                new Dictionary<string, string>(),
+                ehSettings
+                    .Where(es => es.EventHubNamespaceId == eh.Id)
+                    .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))
+                    .ToList()),
             _ => null
         };
     }
@@ -837,6 +855,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             SqlDatabase => AzureResourceTypes.ArmTypes.SqlDatabase,
             ServiceBusNamespace => AzureResourceTypes.ArmTypes.ServiceBusNamespace,
             ContainerRegistry => AzureResourceTypes.ArmTypes.ContainerRegistry,
+            EventHubNamespace => AzureResourceTypes.ArmTypes.EventHubNamespace,
             _ => resource.GetType().Name
         };
 
@@ -862,6 +881,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             SqlServer => AzureResourceTypes.SqlServer,
             SqlDatabase => AzureResourceTypes.SqlDatabase,
             ServiceBusNamespace => AzureResourceTypes.ServiceBusNamespace,
+            EventHubNamespace => AzureResourceTypes.EventHubNamespace,
             _ => resource.GetType().Name
         };
 }

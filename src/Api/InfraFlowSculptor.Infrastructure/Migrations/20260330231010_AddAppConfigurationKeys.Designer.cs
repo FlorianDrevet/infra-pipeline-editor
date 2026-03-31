@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InfraFlowSculptor.Infrastructure.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    partial class ProjectDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260330231010_AddAppConfigurationKeys")]
+    partial class AddAppConfigurationKeys
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -580,97 +583,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("CosmosDbEnvironmentSettings", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities.EventHub", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("EventHubNamespaceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(260)
-                        .HasColumnType("character varying(260)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EventHubNamespaceId", "Name")
-                        .IsUnique();
-
-                    b.ToTable("EventHubs", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities.EventHubConsumerGroup", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ConsumerGroupName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("EventHubName")
-                        .IsRequired()
-                        .HasMaxLength(260)
-                        .HasColumnType("character varying(260)");
-
-                    b.Property<Guid>("EventHubNamespaceId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EventHubNamespaceId", "EventHubName", "ConsumerGroupName")
-                        .IsUnique();
-
-                    b.ToTable("EventHubConsumerGroups", (string)null);
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities.EventHubNamespaceEnvironmentSettings", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool?>("AutoInflateEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<int?>("Capacity")
-                        .HasColumnType("integer");
-
-                    b.Property<bool?>("DisableLocalAuth")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("EnvironmentName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<Guid>("EventHubNamespaceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int?>("MaxThroughputUnits")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("MinimumTlsVersion")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
-                    b.Property<string>("Sku")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<bool?>("ZoneRedundant")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EventHubNamespaceId", "EnvironmentName")
-                        .IsUnique();
-
-                    b.ToTable("EventHubNamespaceEnvironmentSettings", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.Entities.FunctionAppEnvironmentSettings", b =>
@@ -1480,13 +1392,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("CosmosDbAccounts", (string)null);
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.EventHubNamespace", b =>
-                {
-                    b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
-
-                    b.ToTable("EventHubNamespaces", (string)null);
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
@@ -1886,33 +1791,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.CosmosDbAggregate.CosmosDb", null)
                         .WithMany("EnvironmentSettings")
                         .HasForeignKey("CosmosDbId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities.EventHub", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.EventHubNamespace", null)
-                        .WithMany("EventHubs")
-                        .HasForeignKey("EventHubNamespaceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities.EventHubConsumerGroup", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.EventHubNamespace", null)
-                        .WithMany("ConsumerGroups")
-                        .HasForeignKey("EventHubNamespaceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities.EventHubNamespaceEnvironmentSettings", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.EventHubNamespace", null)
-                        .WithMany("EnvironmentSettings")
-                        .HasForeignKey("EventHubNamespaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -2351,15 +2229,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.EventHubNamespace", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
-                        .WithOne()
-                        .HasForeignKey("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.EventHubNamespace", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
@@ -2535,15 +2404,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
             modelBuilder.Entity("InfraFlowSculptor.Domain.CosmosDbAggregate.CosmosDb", b =>
                 {
                     b.Navigation("EnvironmentSettings");
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.EventHubNamespaceAggregate.EventHubNamespace", b =>
-                {
-                    b.Navigation("ConsumerGroups");
-
-                    b.Navigation("EnvironmentSettings");
-
-                    b.Navigation("EventHubs");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.FunctionAppAggregate.FunctionApp", b =>

@@ -28,6 +28,7 @@ public static class ResourceAbbreviationCatalog
         [AzureResourceTypes.SqlDatabase] = "sqldb",
         [AzureResourceTypes.ServiceBusNamespace] = "sb",
         [AzureResourceTypes.ContainerRegistry] = "acr",
+        [AzureResourceTypes.EventHubNamespace] = "evhns",
     };
 
     /// <summary>
