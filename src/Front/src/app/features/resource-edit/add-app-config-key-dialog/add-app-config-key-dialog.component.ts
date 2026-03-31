@@ -62,11 +62,11 @@ export class AddAppConfigKeyDialogComponent {
   protected readonly staticValueSource = signal<'environments' | 'variableGroup' | null>(null);
 
   // ─── Secret sub-step ───
-  protected readonly secretValueSource = signal<'viaBicepparam' | 'directInKeyVault' | 'variableGroup' | null>(null);
+  protected readonly secretValueSource = signal<'directInKeyVault' | 'variableGroup' | null>(null);
 
   protected readonly secretAssignmentMode = computed<'ViaBicepparam' | 'DirectInKeyVault' | null>(() => {
     const src = this.secretValueSource();
-    if (src === 'viaBicepparam' || src === 'variableGroup') return 'ViaBicepparam';
+    if (src === 'variableGroup') return 'ViaBicepparam';
     if (src === 'directInKeyVault') return 'DirectInKeyVault';
     return null;
   });
@@ -133,7 +133,7 @@ export class AddAppConfigKeyDialogComponent {
           : !!this.selectedVariableGroupId();
         return hasVg && this.pipelineVariableName().trim().length > 0;
       }
-      return src === 'viaBicepparam' || src === 'directInKeyVault';
+      return src === 'directInKeyVault';
     }
 
     return false;
@@ -172,7 +172,7 @@ export class AddAppConfigKeyDialogComponent {
     }
   }
 
-  protected async selectSecretValueSource(source: 'viaBicepparam' | 'directInKeyVault' | 'variableGroup'): Promise<void> {
+  protected async selectSecretValueSource(source: 'directInKeyVault' | 'variableGroup'): Promise<void> {
     this.secretValueSource.set(source);
     if (source === 'variableGroup') {
       await this.loadVariableGroups();

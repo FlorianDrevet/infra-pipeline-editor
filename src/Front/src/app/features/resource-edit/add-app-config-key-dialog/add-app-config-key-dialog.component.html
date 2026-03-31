@@ -233,21 +233,6 @@
         </h4>
 
         <div class="sensitive-choice">
-          <!-- Via Bicepparam -->
-          <button
-            class="sensitive-choice-card sensitive-choice-card--kv"
-            [class.sensitive-choice-card--selected]="secretValueSource() === 'viaBicepparam'"
-            (click)="selectSecretValueSource('viaBicepparam')">
-            <div class="sensitive-choice-card__header">
-              <mat-icon>description</mat-icon>
-              <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.OPTION_VIA_BICEPPARAM' | translate }}</span>
-              <span class="sensitive-badge sensitive-badge--sm">
-                {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.OPTION_RECOMMENDED' | translate }}
-              </span>
-            </div>
-            <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.OPTION_VIA_BICEPPARAM_DESC' | translate }}</p>
-          </button>
-
           <!-- Directly in Key Vault -->
           <button
             class="sensitive-choice-card sensitive-choice-card--direct-kv"
