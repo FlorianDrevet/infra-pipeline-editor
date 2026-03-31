@@ -12,13 +12,13 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { AzureResourceResponse } from '../../../../shared/interfaces/resource-group.interface';
-import { RoleAssignmentService } from '../../../../shared/services/role-assignment.service';
-import { ProjectService } from '../../../../shared/services/project.service';
-import { AppSettingService } from '../../../../shared/services/app-setting.service';
-import { ProjectPipelineVariableGroupResponse } from '../../../../shared/interfaces/project.interface';
-import { AppConfigurationKeyService } from '../../services/app-configuration-key.service';
-import { AppConfigurationKeyResponse, AddAppConfigurationKeyRequest } from '../../models/app-configuration-key.interface';
+import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
+import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
+import { ProjectService } from '../../../shared/services/project.service';
+import { AppSettingService } from '../../../shared/services/app-setting.service';
+import { ProjectPipelineVariableGroupResponse } from '../../../shared/interfaces/project.interface';
+import { AppConfigurationKeyService } from '../services/app-configuration-key.service';
+import { AppConfigurationKeyResponse, AddAppConfigurationKeyRequest } from '../models/app-configuration-key.interface';
 
 export interface AddAppConfigKeyDialogData {
   appConfigurationId: string;
