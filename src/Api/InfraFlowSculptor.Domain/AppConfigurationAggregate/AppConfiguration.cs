@@ -166,6 +166,47 @@ public class AppConfiguration : AzureResource
         return configKey;
     }
 
+    /// <summary>Adds a configuration key that references an output from a sibling resource.</summary>
+    /// <param name="key">The configuration key name.</param>
+    /// <param name="label">Optional label for the key.</param>
+    /// <param name="sourceResourceId">The source resource identifier.</param>
+    /// <param name="sourceOutputName">The output name on the source resource.</param>
+    /// <returns>The created <see cref="AppConfigurationKey"/>.</returns>
+    public AppConfigurationKey AddOutputReferenceConfigurationKey(
+        string key,
+        string? label,
+        AzureResourceId sourceResourceId,
+        string sourceOutputName)
+    {
+        var configKey = AppConfigurationKey.CreateOutputReference(
+            Id, key, label, sourceResourceId, sourceOutputName);
+        _configurationKeys.Add(configKey);
+        return configKey;
+    }
+
+    /// <summary>Adds a configuration key for a sensitive output exported as a Key Vault secret.</summary>
+    /// <param name="key">The configuration key name.</param>
+    /// <param name="label">Optional label for the key.</param>
+    /// <param name="sourceResourceId">The source resource identifier.</param>
+    /// <param name="sourceOutputName">The output name on the source resource.</param>
+    /// <param name="keyVaultResourceId">The Key Vault resource identifier.</param>
+    /// <param name="secretName">The secret name in the Key Vault.</param>
+    /// <returns>The created <see cref="AppConfigurationKey"/>.</returns>
+    public AppConfigurationKey AddSensitiveOutputKeyVaultReferenceConfigurationKey(
+        string key,
+        string? label,
+        AzureResourceId sourceResourceId,
+        string sourceOutputName,
+        AzureResourceId keyVaultResourceId,
+        string secretName)
+    {
+        var configKey = AppConfigurationKey.CreateSensitiveOutputKeyVaultReference(
+            Id, key, label, sourceResourceId, sourceOutputName,
+            keyVaultResourceId, secretName);
+        _configurationKeys.Add(configKey);
+        return configKey;
+    }
+
     /// <summary>Removes a configuration key from this App Configuration.</summary>
     /// <param name="configurationKeyId">The identifier of the configuration key to remove.</param>
     public void RemoveConfigurationKey(AppConfigurationKeyId configurationKeyId)

@@ -16,9 +16,11 @@ import { AzureResourceResponse } from '../../../shared/interfaces/resource-group
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
 import { ProjectService } from '../../../shared/services/project.service';
 import { AppSettingService } from '../../../shared/services/app-setting.service';
+import { OutputDefinitionResponse } from '../../../shared/interfaces/app-setting.interface';
 import { ProjectPipelineVariableGroupResponse } from '../../../shared/interfaces/project.interface';
 import { AppConfigurationKeyService } from '../services/app-configuration-key.service';
 import { AppConfigurationKeyResponse, AddAppConfigurationKeyRequest } from '../models/app-configuration-key.interface';
+import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
 
 export interface AddAppConfigKeyDialogData {
   appConfigurationId: string;
@@ -55,8 +57,10 @@ export class AddAppConfigKeyDialogComponent {
   private readonly roleAssignmentService = inject(RoleAssignmentService);
   private readonly projectService = inject(ProjectService);
 
-  // ─── Mode: static value or secret ───
-  protected readonly mode = signal<'static' | 'secret'>('static');
+  protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
+
+  // ─── Mode: static value, secret, or output ───
+  protected readonly mode = signal<'static' | 'secret' | 'output'>('static');
 
   // ─── Static sub-step ───
   protected readonly staticValueSource = signal<'environments' | 'variableGroup' | null>(null);
@@ -100,9 +104,47 @@ export class AddAppConfigKeyDialogComponent {
   protected readonly secretName = signal('');
   protected readonly environmentValues = signal<Record<string, string>>({});
 
+  // ─── Output mode — Step-based wizard (1→2→3(sensitive)→4) ───
+  protected readonly step = signal<1 | 2 | 3 | 4>(1);
+
+  // Step 1 — Source selection
+  protected readonly sourceResources = computed(() => this.data.siblingResources);
+  protected readonly selectedSource = signal<AzureResourceResponse | null>(null);
+
+  // Step 2 — Output selection
+  protected readonly availableOutputs = signal<OutputDefinitionResponse[]>([]);
+  protected readonly outputsLoading = signal(false);
+  protected readonly selectedOutput = signal<OutputDefinitionResponse | null>(null);
+
+  protected readonly nonSensitiveOutputs = computed(() => this.availableOutputs().filter(o => !o.isSensitive));
+  protected readonly sensitiveOutputs = computed(() => this.availableOutputs().filter(o => o.isSensitive));
+  protected readonly selectedOutputIsSensitive = computed(() => this.selectedOutput()?.isSensitive ?? false);
+
+  // Step 3 — Sensitive security choice
+  protected readonly sensitiveChoice = signal<'keyvault' | 'direct' | null>(null);
+  protected readonly sensitiveDirectConfirmed = signal(false);
+  protected readonly sensitiveSecretName = signal('');
+
   // ─── Submit state ───
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
+
+  protected readonly suggestedKeyName = computed(() => {
+    if (this.mode() === 'output' && this.sensitiveChoice() === 'keyvault') {
+      const kv = this.selectedKeyVault();
+      const secret = this.sensitiveSecretName();
+      if (!kv || !secret) return '';
+      const prefix = kv.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+      const suffix = secret.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+      return `${prefix}__${suffix}`;
+    }
+    const source = this.selectedSource();
+    const output = this.selectedOutput();
+    if (!source || !output) return '';
+    const prefix = source.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+    const suffix = output.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+    return `${prefix}__${suffix}`;
+  });
 
   protected readonly canSubmit = computed(() => {
     const key = this.keyName().trim();
@@ -136,10 +178,22 @@ export class AddAppConfigKeyDialogComponent {
       return src === 'directInKeyVault';
     }
 
+    if (this.mode() === 'output') {
+      return !!this.selectedSource() && !!this.selectedOutput();
+    }
+
     return false;
   });
 
-  protected onModeChange(value: 'static' | 'secret'): void {
+  protected readonly canProceedFromSensitiveStep = computed(() => {
+    const choice = this.sensitiveChoice();
+    if (!choice) return false;
+    if (choice === 'keyvault') return !!this.selectedKeyVault() && !!this.sensitiveSecretName().trim();
+    if (choice === 'direct') return this.sensitiveDirectConfirmed();
+    return false;
+  });
+
+  protected onModeChange(value: 'static' | 'secret' | 'output'): void {
     this.mode.set(value);
     this.staticValueSource.set(null);
     this.secretValueSource.set(null);
@@ -158,6 +212,17 @@ export class AddAppConfigKeyDialogComponent {
     this.newGroupName.set('');
     this.isCreatingNewGroup.set(false);
     this.pipelineVariableName.set('');
+    // Reset output-mode signals
+    this.step.set(1);
+    this.selectedSource.set(null);
+    this.selectedOutput.set(null);
+    this.availableOutputs.set([]);
+    this.sensitiveChoice.set(null);
+    this.sensitiveDirectConfirmed.set(false);
+    this.sensitiveSecretName.set('');
+    this.sensitiveRoleAssigning.set(false);
+    this.sensitiveRoleAssigned.set(false);
+    this.sensitiveRoleError.set(false);
   }
 
   protected async selectStaticValueSource(source: 'environments' | 'variableGroup'): Promise<void> {
@@ -230,6 +295,112 @@ export class AddAppConfigKeyDialogComponent {
     }
   }
 
+  // ─── Output mode — Step navigation ───
+
+  protected selectSource(resource: AzureResourceResponse): void {
+    this.selectedSource.set(resource);
+    this.goToStep2();
+  }
+
+  protected async goToStep2(): Promise<void> {
+    this.step.set(2);
+    this.errorKey.set('');
+    this.selectedOutput.set(null);
+
+    const source = this.selectedSource();
+    if (!source) return;
+
+    this.outputsLoading.set(true);
+    try {
+      const response = await this.appSettingService.getAvailableOutputs(source.id);
+      this.availableOutputs.set(response.outputs);
+    } catch {
+      this.availableOutputs.set([]);
+    } finally {
+      this.outputsLoading.set(false);
+    }
+  }
+
+  protected selectOutput(output: OutputDefinitionResponse): void {
+    this.selectedOutput.set(output);
+    if (output.isSensitive) {
+      this.sensitiveChoice.set(null);
+      this.sensitiveDirectConfirmed.set(false);
+      this.sensitiveSecretName.set(this.generateSecretName());
+      this.selectedKeyVault.set(null);
+      this.kvHasAccess.set(null);
+      this.kvMissingRoleName.set(null);
+      this.kvMissingRoleDefinitionId.set(null);
+      this.sensitiveRoleAssigning.set(false);
+      this.sensitiveRoleAssigned.set(false);
+      this.sensitiveRoleError.set(false);
+      this.step.set(3);
+    } else {
+      this.keyName.set(this.suggestedKeyName());
+      this.step.set(4);
+    }
+  }
+
+  protected selectSensitiveChoice(choice: 'keyvault' | 'direct'): void {
+    this.sensitiveChoice.set(choice);
+    this.sensitiveDirectConfirmed.set(false);
+    if (choice === 'keyvault') {
+      this.selectedKeyVault.set(null);
+      this.kvHasAccess.set(null);
+    }
+  }
+
+  protected selectSensitiveKeyVault(resource: AzureResourceResponse): void {
+    this.selectedKeyVault.set(resource);
+    this.checkKeyVaultAccess();
+  }
+
+  protected proceedFromSensitiveStep(): void {
+    this.keyName.set(this.suggestedKeyName());
+    this.step.set(4);
+  }
+
+  protected async assignSensitiveRole(): Promise<void> {
+    const kv = this.selectedKeyVault();
+    const roleDefId = this.kvMissingRoleDefinitionId();
+    if (!kv || !roleDefId) return;
+
+    this.sensitiveRoleAssigning.set(true);
+    this.sensitiveRoleError.set(false);
+
+    try {
+      await this.roleAssignmentService.add(this.data.appConfigurationId, {
+        targetResourceId: kv.id,
+        roleDefinitionId: roleDefId,
+        managedIdentityType: 'SystemAssigned',
+      });
+      this.sensitiveRoleAssigned.set(true);
+      this.kvHasAccess.set(true);
+      this.kvMissingRoleName.set(null);
+      this.kvMissingRoleDefinitionId.set(null);
+    } catch {
+      this.sensitiveRoleError.set(true);
+    } finally {
+      this.sensitiveRoleAssigning.set(false);
+    }
+  }
+
+  protected goBack(): void {
+    const currentStep = this.step();
+    if (currentStep === 4) {
+      if (this.selectedOutputIsSensitive()) {
+        this.step.set(3);
+      } else {
+        this.step.set(2);
+      }
+    } else if (currentStep === 3) {
+      this.step.set(2);
+    } else if (currentStep === 2) {
+      this.step.set(1);
+    }
+    this.errorKey.set('');
+  }
+
   private async loadVariableGroups(): Promise<void> {
     if (!this.data.projectId) return;
     this.vgLoading.set(true);
@@ -284,7 +455,15 @@ export class AddAppConfigKeyDialogComponent {
         request.label = labelValue;
       }
 
-      if (this.mode() === 'secret') {
+      if (this.mode() === 'output') {
+        request.sourceResourceId = this.selectedSource()!.id;
+        request.sourceOutputName = this.selectedOutput()!.name;
+        if (this.sensitiveChoice() === 'keyvault') {
+          request.keyVaultResourceId = this.selectedKeyVault()!.id;
+          request.secretName = this.sensitiveSecretName().trim();
+          request.exportToKeyVault = true;
+        }
+      } else if (this.mode() === 'secret') {
         request.keyVaultResourceId = this.selectedKeyVault()!.id;
         request.secretName = this.secretName().trim();
         request.secretValueAssignment = this.secretAssignmentMode() ?? undefined;
@@ -326,4 +505,13 @@ export class AddAppConfigKeyDialogComponent {
     if (this.mode() === 'secret') return this.secretValueSource() === 'variableGroup';
     return false;
   });
+
+  private generateSecretName(): string {
+    const source = this.selectedSource();
+    const output = this.selectedOutput();
+    if (!source || !output) return '';
+    const prefix = source.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const suffix = output.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    return `${prefix}-${suffix}`;
+  }
 }

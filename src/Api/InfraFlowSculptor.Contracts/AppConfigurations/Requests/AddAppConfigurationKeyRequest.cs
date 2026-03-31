@@ -42,4 +42,14 @@ public class AddAppConfigurationKeyRequest
     /// </summary>
     [MaxLength(256)]
     public string? PipelineVariableName { get; init; }
+
+    /// <summary>Identifier of the source resource whose output is referenced (null for non-output keys).</summary>
+    public Guid? SourceResourceId { get; init; }
+
+    /// <summary>Name of the output on the source resource (null for non-output keys).</summary>
+    [MaxLength(128)]
+    public string? SourceOutputName { get; init; }
+
+    /// <summary>When true, a sensitive resource output will be exported as a Key Vault secret.</summary>
+    public bool ExportToKeyVault { get; init; }
 }

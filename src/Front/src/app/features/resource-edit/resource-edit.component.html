@@ -2363,45 +2363,168 @@
                 <p>{{ 'RESOURCE_EDIT.CONFIG_KEYS.EMPTY' | translate }}</p>
               </div>
             } @else {
-              <!-- Configuration Keys table -->
-              <div class="as-section">
-                <div class="as-section__rows">
-                  @for (configKey of configKeys(); track configKey.id) {
-                    <div class="as-row">
-                      <div class="as-row__main">
-                        <div class="as-row__name-group">
-                          <span class="as-row__name">{{ configKey.key }}</span>
+              <!-- ═══ SECTION: Pipeline Variable Groups — grouped by VG ═══ -->
+              @if (configKeysGrouped().byVg.length > 0) {
+                <section class="as-section as-section--vg">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--vg">
+                        <mat-icon>account_tree</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_VG' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_VG_DESC' | translate }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  @for (vgGroup of configKeysGrouped().byVg; track vgGroup.vgId) {
+                    <div class="as-group">
+                      <div class="as-group__header">
+                        <mat-icon class="as-group__icon as-group__icon--vg">library_books</mat-icon>
+                        <span class="as-group__name">{{ vgGroup.vgName }}</span>
+                        <span class="as-group__count">{{ vgGroup.keys.length }}</span>
+                      </div>
+                      <div class="as-group__items">
+                        @for (configKey of vgGroup.keys; track configKey.id) {
+                          <div class="as-row" [class.as-row--secret]="configKey.isKeyVaultReference" [class.as-row--vg]="!configKey.isKeyVaultReference">
+                            <div class="as-row__left">
+                              <span class="as-row__var-name">{{ configKey.key }}</span>
+                              @if (configKey.label) {
+                                <span class="as-row__meta as-row__label">{{ configKey.label }}</span>
+                              }
+                              <span class="as-row__arrow">→</span>
+                              <span class="as-row__pipeline-var">$({{ configKey.pipelineVariableName }})</span>
+                            </div>
+                            <div class="as-row__right">
+                              @if (configKey.isKeyVaultReference && configKey.keyVaultResourceId) {
+                                <span class="as-kv-tag">
+                                  <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                                  <span class="as-kv-tag__name">{{ resolveSourceName(configKey.keyVaultResourceId) }}</span>
+                                  <span class="as-kv-tag__sep">/</span>
+                                  <span class="as-kv-tag__secret">{{ configKey.secretName }}</span>
+                                </span>
+                              }
+                              @if (canWrite()) {
+                                <button class="as-row__delete" (click)="openRemoveConfigKeyDialog(configKey)" [matTooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate">
+                                  <mat-icon>close</mat-icon>
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </section>
+              }
+
+              <!-- ═══ SECTION: Resource Outputs ═══ -->
+              @if (configKeysGrouped().outputs.length > 0) {
+                <section class="as-section as-section--output">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--output">
+                        <mat-icon>swap_horiz</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_OUTPUTS' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_OUTPUTS_DESC' | translate }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="as-group__items">
+                    @for (configKey of configKeysGrouped().outputs; track configKey.id) {
+                      <div class="as-row as-row--output">
+                        <div class="as-row__left">
+                          <span class="as-row__var-name">{{ configKey.key }}</span>
                           @if (configKey.label) {
-                            <span class="as-row__meta">{{ configKey.label }}</span>
+                            <span class="as-row__meta as-row__label">{{ configKey.label }}</span>
+                          }
+                          <span class="as-row__arrow">←</span>
+                          @if (configKey.sourceResourceId) {
+                            <mat-icon class="as-row__source-icon">{{ resourceTypeIcons[resolveSourceType(configKey.sourceResourceId)] || 'widgets' }}</mat-icon>
+                            <span class="as-row__source-name">{{ resolveSourceName(configKey.sourceResourceId) }}</span>
+                            <span class="as-row__output-dot">·</span>
+                            <span class="as-row__output-name">{{ configKey.sourceOutputName }}</span>
                           }
                         </div>
-                        <div class="as-row__badges">
-                          <span class="as-row__badge" [class.as-row__badge--kv]="configKey.isKeyVaultReference" [class.as-row__badge--vg]="configKey.isViaVariableGroup">
-                            {{ getConfigKeyType(configKey) | translate }}
-                          </span>
-                          @if (configKey.isKeyVaultReference && configKey.secretName) {
-                            <span class="as-row__meta">{{ configKey.secretName }}</span>
+                        <div class="as-row__right">
+                          @if (configKey.isKeyVaultReference && configKey.keyVaultResourceId) {
+                            <span class="as-pill as-pill--kv">
+                              <mat-icon>vpn_key</mat-icon>
+                              {{ resolveSourceName(configKey.keyVaultResourceId) }}
+                            </span>
                           }
-                          @if (configKey.isViaVariableGroup && configKey.variableGroupName) {
-                            <span class="as-row__meta">{{ configKey.variableGroupName }}</span>
+                          @if (canWrite()) {
+                            <button class="as-row__delete" (click)="openRemoveConfigKeyDialog(configKey)" [matTooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate">
+                              <mat-icon>close</mat-icon>
+                            </button>
                           }
                         </div>
                       </div>
-                      @if (canWrite()) {
-                        <div class="as-row__actions">
-                          <button
-                            mat-icon-button
-                            class="as-row__delete"
-                            [matTooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate"
-                            (click)="openRemoveConfigKeyDialog(configKey)">
-                            <mat-icon>delete_outline</mat-icon>
-                          </button>
-                        </div>
-                      }
+                    }
+                  </div>
+                </section>
+              }
+
+              <!-- ═══ SECTION: Static Values ═══ -->
+              @if (configKeysGrouped().statics.length > 0) {
+                <section class="as-section as-section--static">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--static">
+                        <mat-icon>edit_note</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_STATIC' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_STATIC_DESC' | translate }}</p>
+                      </div>
                     </div>
-                  }
-                </div>
-              </div>
+                  </div>
+
+                  <div class="as-group__items">
+                    @for (configKey of configKeysGrouped().statics; track configKey.id) {
+                      <div class="as-row" [class.as-row--secret]="configKey.isKeyVaultReference" [class.as-row--static]="!configKey.isKeyVaultReference">
+                        <div class="as-row__left">
+                          <span class="as-row__var-name">{{ configKey.key }}</span>
+                          @if (configKey.label) {
+                            <span class="as-row__meta as-row__label">{{ configKey.label }}</span>
+                          }
+                          @if (configKey.isKeyVaultReference && configKey.keyVaultResourceId) {
+                            <span class="as-row__arrow">→</span>
+                            <span class="as-kv-tag">
+                              <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                              <span class="as-kv-tag__name">{{ resolveSourceName(configKey.keyVaultResourceId) }}</span>
+                              <span class="as-kv-tag__sep">/</span>
+                              <span class="as-kv-tag__secret">{{ configKey.secretName }}</span>
+                            </span>
+                          } @else if (configKey.environmentValues) {
+                            <div class="as-row__env-chips">
+                              @for (env of environments(); track env.name) {
+                                @if (configKey.environmentValues![env.name]; as val) {
+                                  <span class="as-env-chip" [matTooltip]="env.name + ': ' + val">
+                                    <span class="as-env-chip__env">{{ env.name }}</span>
+                                    <span class="as-env-chip__val">{{ val }}</span>
+                                  </span>
+                                }
+                              }
+                            </div>
+                          }
+                        </div>
+                        <div class="as-row__right">
+                          @if (canWrite()) {
+                            <button class="as-row__delete" (click)="openRemoveConfigKeyDialog(configKey)" [matTooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </section>
+              }
             }
           </div>
         </mat-tab>

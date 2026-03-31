@@ -22,13 +22,25 @@ public sealed class AddAppConfigurationKeyCommandValidator : AbstractValidator<A
             .WithMessage("Label must not exceed 128 characters.")
             .When(x => x.Label is not null);
 
-        // Either environment values (static), Key Vault reference, or variable group must be provided
+        // Either environment values (static), Key Vault reference, variable group, or output reference must be provided
         RuleFor(x => x)
             .Must(x =>
                 (x.EnvironmentValues is not null && x.EnvironmentValues.Count > 0)
                 || (x.KeyVaultResourceId is not null && !string.IsNullOrEmpty(x.SecretName))
-                || (x.VariableGroupId is not null && !string.IsNullOrEmpty(x.PipelineVariableName)))
-            .WithMessage("Either environment values (static), a Key Vault reference, or a variable group reference must be provided.");
+                || (x.VariableGroupId is not null && !string.IsNullOrEmpty(x.PipelineVariableName))
+                || (x.SourceResourceId is not null && !string.IsNullOrEmpty(x.SourceOutputName)))
+            .WithMessage("Either environment values (static), a Key Vault reference, a variable group reference, or an output reference must be provided.");
+
+        RuleFor(x => x)
+            .Must(x => !x.ExportToKeyVault || (x.SourceResourceId is not null && x.SourceOutputName is not null
+                && x.KeyVaultResourceId is not null && !string.IsNullOrEmpty(x.SecretName)))
+            .WithMessage("ExportToKeyVault requires both a source output and a Key Vault reference.")
+            .When(x => x.ExportToKeyVault);
+
+        RuleFor(x => x.SourceOutputName)
+            .MaximumLength(128)
+            .WithMessage("Source output name must not exceed 128 characters.")
+            .When(x => x.SourceOutputName is not null);
 
         RuleFor(x => x.SecretName)
             .MaximumLength(256)

@@ -47,6 +47,11 @@ public static class AppConfigurationKeyController
                             request.Key,
                             request.Label,
                             request.EnvironmentValues,
+                            request.SourceResourceId.HasValue
+                                ? new AzureResourceId(request.SourceResourceId.Value)
+                                : null,
+                            request.SourceOutputName,
+                            request.ExportToKeyVault,
                             request.KeyVaultResourceId.HasValue
                                 ? new AzureResourceId(request.KeyVaultResourceId.Value)
                                 : null,

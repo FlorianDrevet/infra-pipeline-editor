@@ -41,3 +41,23 @@ export interface IdentityRoleAssignmentResponse {
   roleDefinitionId: string;
   roleName: string;
 }
+
+// ─── Impact Analysis ─────────────────────────────────────────────────────────
+
+export interface RoleAssignmentImpactItemResponse {
+  affectedResourceId: string;
+  affectedResourceName: string;
+  affectedResourceType: string;
+  targetResourceId: string;
+  targetResourceName: string;
+  targetResourceType: string;
+  impactType: string;
+  description: string;
+  severity: string;
+  affectedSettingsCount: number | null;
+}
+
+export interface RoleAssignmentImpactResponse {
+  hasImpact: boolean;
+  impacts: RoleAssignmentImpactItemResponse[];
+}

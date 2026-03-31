@@ -3,6 +3,13 @@
   <div class="as-dialog__mode-bar">
     <button
       class="mode-btn"
+      [class.mode-btn--active]="mode() === 'output'"
+      (click)="onModeChange('output')">
+      <mat-icon>swap_horiz</mat-icon>
+      {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.MODE_OUTPUT' | translate }}
+    </button>
+    <button
+      class="mode-btn"
       [class.mode-btn--active]="mode() === 'static'"
       (click)="onModeChange('static')">
       <mat-icon>tune</mat-icon>
@@ -17,6 +24,10 @@
     </button>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- STATIC / SECRET MODES                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  @if (mode() === 'static' || mode() === 'secret') {
   <h2 mat-dialog-title class="as-dialog__title">
     @if (mode() === 'static') {
       <mat-icon>tune</mat-icon>
@@ -323,4 +334,384 @@
       }
     </button>
   </mat-dialog-actions>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- OUTPUT REFERENCE MODE                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  @if (mode() === 'output') {
+    <!-- ─── Step 1: Select source resource ─── -->
+    @if (step() === 1) {
+      <h2 mat-dialog-title class="as-dialog__title">
+        <mat-icon>ads_click</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.TITLE_SELECT_SOURCE' | translate }}
+      </h2>
+
+      <mat-dialog-content class="as-dialog__content">
+        <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SUBTITLE_SELECT_SOURCE' | translate }}</p>
+
+        @if (sourceResources().length === 0) {
+          <div class="as-dialog__empty">
+            <mat-icon>search_off</mat-icon>
+            <p>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.NO_SOURCES' | translate }}</p>
+          </div>
+        } @else {
+          <div class="target-list">
+            @for (res of sourceResources(); track res.id) {
+              <button
+                class="target-card"
+                [class.target-card--selected]="selectedSource()?.id === res.id"
+                (click)="selectSource(res)">
+                <mat-icon class="target-card__icon">{{ resourceTypeIcons[res.resourceType] || 'widgets' }}</mat-icon>
+                <div class="target-card__info">
+                  <span class="target-card__name">{{ res.name }}</span>
+                  <span class="target-card__meta">{{ res.resourceType }} · {{ res.location }}</span>
+                </div>
+                <mat-icon class="target-card__arrow">chevron_right</mat-icon>
+              </button>
+            }
+          </div>
+        }
+      </mat-dialog-content>
+
+      <mat-dialog-actions class="as-dialog__actions" align="end">
+        <button mat-stroked-button (click)="onCancel()">
+          {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.CANCEL' | translate }}
+        </button>
+      </mat-dialog-actions>
+    }
+
+    <!-- ─── Step 2: Select output (split sensitive / non-sensitive) ─── -->
+    @if (step() === 2) {
+      <h2 mat-dialog-title class="as-dialog__title">
+        <mat-icon>output</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.TITLE_SELECT_OUTPUT' | translate }}
+      </h2>
+
+      <mat-dialog-content class="as-dialog__content">
+        <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SUBTITLE_SELECT_OUTPUT' | translate }}</p>
+
+        @if (selectedSource(); as source) {
+          <div class="selected-source-summary">
+            <mat-icon>{{ resourceTypeIcons[source.resourceType] || 'widgets' }}</mat-icon>
+            <span>{{ source.name }}</span>
+            <span class="selected-source-summary__type">{{ source.resourceType }}</span>
+          </div>
+        }
+
+        @if (outputsLoading()) {
+          <div class="as-dialog__loading">
+            <mat-spinner diameter="24"></mat-spinner>
+            <span>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.LOADING_OUTPUTS' | translate }}</span>
+          </div>
+        } @else if (availableOutputs().length === 0) {
+          <div class="as-dialog__empty">
+            <mat-icon>info_outline</mat-icon>
+            <p>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.NO_OUTPUTS' | translate }}</p>
+          </div>
+        } @else {
+          @if (nonSensitiveOutputs().length > 0) {
+            <h4 class="output-section-title">
+              <mat-icon>lock_open</mat-icon>
+              {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.NON_SENSITIVE_SECTION' | translate }}
+            </h4>
+            <div class="output-list">
+              @for (output of nonSensitiveOutputs(); track output.name) {
+                <button
+                  class="output-card"
+                  [class.output-card--selected]="selectedOutput()?.name === output.name"
+                  (click)="selectOutput(output)">
+                  <div class="output-card__info">
+                    <span class="output-card__name">{{ output.name }}</span>
+                    <span class="output-card__desc">{{ output.description }}</span>
+                  </div>
+                  <mat-icon class="output-card__arrow">chevron_right</mat-icon>
+                </button>
+              }
+            </div>
+          }
+
+          @if (sensitiveOutputs().length > 0) {
+            <h4 class="output-section-title output-section-title--sensitive">
+              <mat-icon>lock</mat-icon>
+              {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_SECTION' | translate }}
+            </h4>
+            <div class="output-list">
+              @for (output of sensitiveOutputs(); track output.name) {
+                <button
+                  class="output-card output-card--sensitive"
+                  [class.output-card--selected]="selectedOutput()?.name === output.name"
+                  (click)="selectOutput(output)">
+                  <div class="output-card__info">
+                    <div class="output-card__name-row">
+                      <span class="output-card__name">{{ output.name }}</span>
+                      <span class="sensitive-badge">
+                        <mat-icon>lock</mat-icon>
+                        {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_BADGE' | translate }}
+                      </span>
+                    </div>
+                    <span class="output-card__desc">{{ output.description }}</span>
+                  </div>
+                  <mat-icon class="output-card__arrow">chevron_right</mat-icon>
+                </button>
+              }
+            </div>
+          }
+        }
+      </mat-dialog-content>
+
+      <mat-dialog-actions class="as-dialog__actions" align="end">
+        <button mat-stroked-button (click)="goBack()">
+          {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.BACK' | translate }}
+        </button>
+      </mat-dialog-actions>
+    }
+
+    <!-- ─── Step 3: Sensitive security choice ─── -->
+    @if (step() === 3) {
+      <h2 mat-dialog-title class="as-dialog__title">
+        <mat-icon>security</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_CHOICE_TITLE' | translate }}
+      </h2>
+
+      <mat-dialog-content class="as-dialog__content">
+        <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_CHOICE_SUBTITLE' | translate }}</p>
+
+        @if (selectedOutput(); as output) {
+          <div class="selected-source-summary">
+            <mat-icon>output</mat-icon>
+            <span class="output-card__name">{{ output.name }}</span>
+            <span class="sensitive-badge">
+              <mat-icon>lock</mat-icon>
+              {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_BADGE' | translate }}
+            </span>
+          </div>
+        }
+
+        <div class="sensitive-choice">
+          <button
+            class="sensitive-choice-card sensitive-choice-card--kv"
+            [class.sensitive-choice-card--selected]="sensitiveChoice() === 'keyvault'"
+            (click)="selectSensitiveChoice('keyvault')">
+            <div class="sensitive-choice-card__header">
+              <mat-icon>vpn_key</mat-icon>
+              <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_EXPORT_KV' | translate }}</span>
+              <span class="sensitive-choice-card__badge sensitive-choice-card__badge--recommended">
+                {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KV_NEXT' | translate }}
+              </span>
+            </div>
+            <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_EXPORT_KV_DESC' | translate }}</p>
+          </button>
+
+          <button
+            class="sensitive-choice-card sensitive-choice-card--direct"
+            [class.sensitive-choice-card--selected]="sensitiveChoice() === 'direct'"
+            (click)="selectSensitiveChoice('direct')">
+            <div class="sensitive-choice-card__header">
+              <mat-icon>warning</mat-icon>
+              <span class="sensitive-choice-card__title">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_DIRECT' | translate }}</span>
+            </div>
+            <p class="sensitive-choice-card__desc">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_DIRECT_DESC' | translate }}</p>
+          </button>
+        </div>
+
+        @if (sensitiveChoice() === 'keyvault') {
+          <div class="sensitive-kv-config">
+            <h4 class="sensitive-kv-config__title">
+              <mat-icon>vpn_key</mat-icon>
+              {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_SELECT_KV' | translate }}
+            </h4>
+
+            @if (keyVaultResources().length === 0) {
+              <div class="as-dialog__empty">
+                <mat-icon>vpn_key_off</mat-icon>
+                <p>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KV_NO_VAULTS' | translate }}</p>
+              </div>
+            } @else {
+              <div class="target-list target-list--compact">
+                @for (res of keyVaultResources(); track res.id) {
+                  <button
+                    class="target-card"
+                    [class.target-card--selected]="selectedKeyVault()?.id === res.id"
+                    (click)="selectSensitiveKeyVault(res)">
+                    <mat-icon class="target-card__icon">vpn_key</mat-icon>
+                    <div class="target-card__info">
+                      <span class="target-card__name">{{ res.name }}</span>
+                      <span class="target-card__meta">KeyVault · {{ res.location }}</span>
+                    </div>
+                  </button>
+                }
+              </div>
+            }
+
+            @if (selectedKeyVault()) {
+              @if (kvAccessChecking()) {
+                <div class="as-dialog__loading">
+                  <mat-spinner diameter="20"></mat-spinner>
+                  <span>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KV_CHECKING_ACCESS' | translate }}</span>
+                </div>
+              } @else if (kvHasAccess() === false) {
+                <div class="kv-access-warning" role="alert">
+                  <mat-icon>warning</mat-icon>
+                  <div class="kv-access-warning__content">
+                    <span class="kv-access-warning__title">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KV_NO_ACCESS_TITLE' | translate }}</span>
+                    <span class="kv-access-warning__desc">
+                      {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KV_NO_ACCESS_DESC' | translate: { role: kvMissingRoleName() } }}
+                    </span>
+                    <button
+                      mat-stroked-button
+                      class="assign-role-btn"
+                      [disabled]="sensitiveRoleAssigning()"
+                      (click)="assignSensitiveRole(); $event.stopPropagation()">
+                      @if (sensitiveRoleAssigning()) {
+                        <mat-spinner diameter="14" class="submit-spinner"></mat-spinner>
+                        {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_ASSIGNING_ROLE' | translate }}
+                      } @else {
+                        <span class="btn-content"><mat-icon>shield</mat-icon> {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_ASSIGN_ROLE' | translate }}</span>
+                      }
+                    </button>
+                    @if (sensitiveRoleError()) {
+                      <span class="assign-role-error">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_ROLE_ERROR' | translate }}</span>
+                    }
+                  </div>
+                </div>
+              } @else if (kvHasAccess() === true) {
+                <div class="kv-access-ok">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>
+                    @if (sensitiveRoleAssigned()) {
+                      {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_ROLE_ASSIGNED' | translate }}
+                    } @else {
+                      {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KV_ACCESS_OK' | translate }}
+                    }
+                  </span>
+                </div>
+              }
+
+              <div class="config-section">
+                <mat-form-field appearance="outline" class="config-section__field">
+                  <mat-label>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_SECRET_NAME_LABEL' | translate }}</mat-label>
+                  <input matInput [ngModel]="sensitiveSecretName()" (ngModelChange)="sensitiveSecretName.set($event)" placeholder="my-secret-name" />
+                  <mat-hint>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_SECRET_NAME_HINT' | translate }}</mat-hint>
+                </mat-form-field>
+              </div>
+            }
+          </div>
+        }
+
+        @if (sensitiveChoice() === 'direct') {
+          <div class="sensitive-direct-zone">
+            <div class="sensitive-warning-banner" role="alert">
+              <mat-icon>warning</mat-icon>
+              <span>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_DIRECT_DESC' | translate }}</span>
+            </div>
+
+            <div class="sensitive-confirm-checkbox">
+              <mat-checkbox
+                [ngModel]="sensitiveDirectConfirmed()"
+                (ngModelChange)="sensitiveDirectConfirmed.set($event)">
+                {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_DIRECT_CONFIRM' | translate }}
+              </mat-checkbox>
+            </div>
+          </div>
+        }
+      </mat-dialog-content>
+
+      <mat-dialog-actions class="as-dialog__actions" align="end">
+        <button mat-stroked-button (click)="goBack()">
+          {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.BACK' | translate }}
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          [disabled]="!canProceedFromSensitiveStep()"
+          (click)="proceedFromSensitiveStep()">
+          {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KV_NEXT' | translate }}
+        </button>
+      </mat-dialog-actions>
+    }
+
+    <!-- ─── Step 4: Configure key name + label ─── -->
+    @if (step() === 4) {
+      <h2 mat-dialog-title class="as-dialog__title">
+        <mat-icon>data_object</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.TITLE_CONFIGURE_KEY' | translate }}
+      </h2>
+
+      <mat-dialog-content class="as-dialog__content">
+        <p class="as-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SUBTITLE_CONFIGURE_KEY' | translate }}</p>
+
+        <div class="selection-summary">
+          @if (selectedSource(); as source) {
+            <div class="selection-summary__item">
+              <mat-icon>{{ resourceTypeIcons[source.resourceType] || 'widgets' }}</mat-icon>
+              <span>{{ source.name }}</span>
+            </div>
+          }
+          @if (selectedOutput(); as output) {
+            <div class="selection-summary__item selection-summary__item--output">
+              <mat-icon>output</mat-icon>
+              <span>{{ output.name }}</span>
+              <span class="selection-summary__desc">{{ output.description }}</span>
+              @if (output.isSensitive) {
+                <span class="sensitive-badge sensitive-badge--sm">
+                  <mat-icon>lock</mat-icon>
+                  {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.SENSITIVE_BADGE' | translate }}
+                </span>
+              }
+            </div>
+          }
+          @if (sensitiveChoice() === 'keyvault' && selectedKeyVault(); as kv) {
+            <div class="selection-summary__item selection-summary__item--output">
+              <mat-icon>vpn_key</mat-icon>
+              <span>{{ kv.name }} / {{ sensitiveSecretName() }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Key name -->
+        <div class="config-section">
+          <mat-form-field appearance="outline" class="config-section__field">
+            <mat-label>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KEY_LABEL' | translate }}</mat-label>
+            <input matInput [ngModel]="keyName()" (ngModelChange)="keyName.set($event)" [placeholder]="suggestedKeyName()" />
+            <mat-hint>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.KEY_HINT' | translate }}</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <!-- Label (optional) -->
+        <div class="config-section">
+          <mat-form-field appearance="outline" class="config-section__field">
+            <mat-label>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.LABEL_LABEL' | translate }}</mat-label>
+            <input matInput [ngModel]="label()" (ngModelChange)="label.set($event)" placeholder="" />
+            <mat-hint>{{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.LABEL_HINT' | translate }}</mat-hint>
+          </mat-form-field>
+        </div>
+
+        @if (errorKey()) {
+          <div class="as-dialog__error" role="alert">
+            <mat-icon>error_outline</mat-icon>
+            {{ errorKey() | translate }}
+          </div>
+        }
+      </mat-dialog-content>
+
+      <mat-dialog-actions class="as-dialog__actions" align="end">
+        <button mat-stroked-button (click)="goBack()">
+          {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.BACK' | translate }}
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          [disabled]="!canSubmit()"
+          (click)="onSubmit()">
+          @if (isSubmitting()) {
+            <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
+            {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.ADDING' | translate }}
+          } @else {
+            {{ 'RESOURCE_EDIT.ADD_CONFIG_KEY_DIALOG.ADD' | translate }}
+          }
+        </button>
+      </mat-dialog-actions>
+    }
+  }
 </div>

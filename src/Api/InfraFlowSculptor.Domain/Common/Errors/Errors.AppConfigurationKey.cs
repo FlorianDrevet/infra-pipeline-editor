@@ -32,5 +32,17 @@ public static partial class Errors
             Error.NotFound(
                 code: "AppConfigurationKey.KeyVaultNotFound",
                 description: $"The Key Vault resource with id '{id.Value}' was not found.");
+
+        /// <summary>Returns an error when the source resource for an output reference is not found.</summary>
+        public static Error SourceResourceNotFound(AzureResourceId id) =>
+            Error.NotFound(
+                code: "AppConfigurationKey.SourceResourceNotFound",
+                description: $"The source resource with id '{id.Value}' was not found.");
+
+        /// <summary>Returns an error when the specified output is not valid for the source resource type.</summary>
+        public static Error InvalidOutput(string outputName, string resourceType) =>
+            Error.Validation(
+                code: "AppConfigurationKey.InvalidOutput",
+                description: $"Output '{outputName}' is not a valid output for resource type '{resourceType}'.");
     }
 }

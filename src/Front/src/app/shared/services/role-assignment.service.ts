@@ -6,6 +6,7 @@ import {
   AzureRoleDefinitionResponse,
   AddRoleAssignmentRequest,
   UpdateRoleAssignmentIdentityRequest,
+  RoleAssignmentImpactResponse,
 } from '../interfaces/role-assignment.interface';
 
 @Injectable({
@@ -57,6 +58,16 @@ export class RoleAssignmentService {
       MethodEnum.PUT,
       `/azure-resources/${resourceId}/role-assignments/${roleAssignmentId}/identity`,
       request
+    );
+  }
+
+  analyzeImpact(
+    resourceId: string,
+    roleAssignmentId: string
+  ): Promise<RoleAssignmentImpactResponse> {
+    return this.axios.request$<RoleAssignmentImpactResponse>(
+      MethodEnum.GET,
+      `/azure-resources/${resourceId}/role-assignments/${roleAssignmentId}/impact-analysis`
     );
   }
 }

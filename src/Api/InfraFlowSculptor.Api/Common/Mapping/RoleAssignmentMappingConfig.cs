@@ -66,5 +66,33 @@ public sealed class RoleAssignmentMappingConfig : IRegister
                 src.TargetResourceType,
                 src.RoleDefinitionId,
                 src.RoleName));
+
+        config.NewConfig<RoleAssignmentImpactItem, RoleAssignmentImpactItemResponse>()
+            .MapWith(src => new RoleAssignmentImpactItemResponse(
+                src.AffectedResourceId,
+                src.AffectedResourceName,
+                src.AffectedResourceType,
+                src.TargetResourceId,
+                src.TargetResourceName,
+                src.TargetResourceType,
+                src.ImpactType,
+                src.Description,
+                src.Severity,
+                src.AffectedSettingsCount));
+
+        config.NewConfig<RoleAssignmentImpactResult, RoleAssignmentImpactResponse>()
+            .MapWith(src => new RoleAssignmentImpactResponse(
+                src.HasImpact,
+                src.Impacts.Select(i => new RoleAssignmentImpactItemResponse(
+                    i.AffectedResourceId,
+                    i.AffectedResourceName,
+                    i.AffectedResourceType,
+                    i.TargetResourceId,
+                    i.TargetResourceName,
+                    i.TargetResourceType,
+                    i.ImpactType,
+                    i.Description,
+                    i.Severity,
+                    i.AffectedSettingsCount)).ToList()));
     }
 }

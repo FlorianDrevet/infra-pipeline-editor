@@ -44,6 +44,21 @@ public sealed class AppConfigurationKeyConfiguration : IEntityTypeConfiguration<
             .HasField("_environmentValues")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
+        builder.Property(k => k.SourceResourceId)
+            .HasConversion(
+                v => v == null ? (Guid?)null : v.Value,
+                v => v.HasValue ? new AzureResourceId(v.Value) : null)
+            .IsRequired(false);
+
+        builder.Property(k => k.SourceOutputName)
+            .IsRequired(false)
+            .HasMaxLength(128);
+
+        builder.HasOne<AzureResource>()
+            .WithMany()
+            .HasForeignKey(k => k.SourceResourceId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Property(k => k.KeyVaultResourceId)
             .HasConversion(
                 v => v == null ? (Guid?)null : v.Value,

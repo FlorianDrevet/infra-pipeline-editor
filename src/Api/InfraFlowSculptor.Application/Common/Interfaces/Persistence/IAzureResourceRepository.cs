@@ -9,6 +9,12 @@ public interface IAzureResourceRepository
     Task<AzureResource?> GetByIdAsync(AzureResourceId id, CancellationToken cancellationToken = default);
     Task<AzureResource?> GetByIdWithRoleAssignmentsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
     Task<AzureResource?> GetByIdWithAppSettingsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns a resource with both its role assignments and app settings loaded.
+    /// </summary>
+    Task<AzureResource?> GetByIdWithRoleAssignmentsAndAppSettingsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
+
     Task<bool> ExistsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
     Task<AzureResource> UpdateAsync(AzureResource resource, CancellationToken cancellationToken = default);
 

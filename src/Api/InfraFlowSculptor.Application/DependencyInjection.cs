@@ -3,6 +3,7 @@ using FluentValidation;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.Projects.Common;
+using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.PipelineGeneration;
@@ -30,6 +31,9 @@ public static class DependencyInjection
         // Access control services
         services.AddScoped<IInfraConfigAccessService, InfraConfigAccessService>();
         services.AddScoped<IProjectAccessService, ProjectAccessService>();
+
+        // Impact analysis
+        services.AddScoped<IRoleAssignmentImpactAnalyzer, RoleAssignmentImpactAnalyzer>();
 
         // Bicep generation domain services
         services.AddSingleton<IResourceTypeBicepGenerator, StorageAccountTypeBicepGenerator>();

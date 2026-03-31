@@ -70,6 +70,7 @@ import { AppSettingResponse } from '../../shared/interfaces/app-setting.interfac
 import { AppConfigurationKeyService } from './services/app-configuration-key.service';
 import { AppConfigurationKeyResponse } from './models/app-configuration-key.interface';
 import { AddAppConfigKeyDialogComponent, AddAppConfigKeyDialogData } from './add-app-config-key-dialog/add-app-config-key-dialog.component';
+import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } from './role-assignment-impact-dialog/role-assignment-impact-dialog.component';
 
 /** Union type for any loaded resource */
 type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse;
@@ -562,6 +563,29 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly configKeysLoading = signal(false);
   protected readonly configKeysError = signal('');
   protected readonly supportsConfigKeys = computed(() => this.resourceType === 'AppConfiguration');
+
+  protected readonly configKeysGrouped = computed(() => {
+    const all = this.configKeys();
+    const byVg = new Map<string, { vgName: string; vgId: string; keys: AppConfigurationKeyResponse[] }>();
+    const outputs: AppConfigurationKeyResponse[] = [];
+    const statics: AppConfigurationKeyResponse[] = [];
+
+    for (const k of all) {
+      if (k.isViaVariableGroup && k.variableGroupId) {
+        const vgId = k.variableGroupId;
+        if (!byVg.has(vgId)) {
+          byVg.set(vgId, { vgName: k.variableGroupName ?? vgId, vgId, keys: [] });
+        }
+        byVg.get(vgId)!.keys.push(k);
+      } else if (k.isOutputReference) {
+        outputs.push(k);
+      } else {
+        statics.push(k);
+      }
+    }
+
+    return { byVg: [...byVg.values()], outputs, statics };
+  });
 
   // ─── Options ───
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
@@ -1536,15 +1560,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     const roleName = this.resolveRoleName(assignment.roleDefinitionId);
     const targetName = this.resolveTargetName(assignment.targetResourceId);
 
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+    const dialogRef = this.dialog.open(RoleAssignmentImpactDialogComponent, {
       data: {
-        titleKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_TITLE',
-        messageKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_MESSAGE',
-        messageParams: { role: roleName, target: targetName },
-        confirmKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_YES',
-        cancelKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_CANCEL',
-      } satisfies ConfirmDialogData,
-      width: '420px',
+        resourceId: this.resourceId,
+        roleAssignmentId: assignment.id,
+        roleName,
+        targetResourceName: targetName,
+      } satisfies RoleAssignmentImpactDialogData,
+      width: '520px',
     });
 
     dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
@@ -1762,6 +1785,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected getConfigKeyType(key: AppConfigurationKeyResponse): string {
+    if (key.isOutputReference) return 'RESOURCE_EDIT.CONFIG_KEYS.TYPE_OUTPUT';
     if (key.isKeyVaultReference) return 'RESOURCE_EDIT.CONFIG_KEYS.TYPE_KV';
     if (key.isViaVariableGroup) return 'RESOURCE_EDIT.CONFIG_KEYS.TYPE_VG';
     return 'RESOURCE_EDIT.CONFIG_KEYS.TYPE_STATIC';

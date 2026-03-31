@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.RoleAssignments.Commands.AddRoleAssignment;
 using InfraFlowSculptor.Application.RoleAssignments.Commands.RemoveRoleAssignment;
 using InfraFlowSculptor.Application.RoleAssignments.Commands.UpdateRoleAssignmentIdentity;
+using InfraFlowSculptor.Application.RoleAssignments.Queries.AnalyzeRoleAssignmentImpact;
 using InfraFlowSculptor.Application.RoleAssignments.Queries.ListAvailableRoleDefinitions;
 using InfraFlowSculptor.Application.RoleAssignments.Queries.ListRoleAssignments;
 using InfraFlowSculptor.Contracts.RoleAssignments.Requests;
@@ -133,6 +134,36 @@ public static class RoleAssignmentController
                         "Deletes the specified role assignment from the source resource. " +
                         "The caller must have write access (Owner or Contributor) on the infrastructure configuration " +
                         "that owns the resource. Returns 204 No Content on success.";
+                    return Task.CompletedTask;
+                });
+
+            group.MapGet("/{roleAssignmentId:guid}/impact-analysis",
+                    async ([FromRoute] Guid resourceId, [FromRoute] Guid roleAssignmentId,
+                        IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new AnalyzeRoleAssignmentImpactQuery(
+                            new AzureResourceId(resourceId),
+                            new RoleAssignmentId(roleAssignmentId));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            impact =>
+                            {
+                                var response = mapper.Map<RoleAssignmentImpactResponse>(impact);
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("AnalyzeRoleAssignmentImpact")
+                .AddOpenApiOperationTransformer((operation, context, ct) =>
+                {
+                    operation.Summary = "Analyze the impact of removing a role assignment";
+                    operation.Description =
+                        "Returns the potential impact of removing the specified role assignment. " +
+                        "Checks for broken container image pulls (AcrPull), inaccessible Key Vault secrets, " +
+                        "and whether this is the last role to the target resource. " +
+                        "Call this endpoint before deleting a role assignment to warn the user about potential issues.";
                     return Task.CompletedTask;
                 });
 

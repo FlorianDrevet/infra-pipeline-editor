@@ -57,6 +57,12 @@ public sealed class AppConfigurationKey : Entity<AppConfigurationKeyId>
     /// </summary>
     public string? PipelineVariableName { get; private set; }
 
+    /// <summary>Identifier of the source resource whose output is referenced. Null when not an output reference.</summary>
+    public AzureResourceId? SourceResourceId { get; private set; }
+
+    /// <summary>Name of the output on the source resource. Null when not an output reference.</summary>
+    public string? SourceOutputName { get; private set; }
+
     private AppConfigurationKey() { }
 
     /// <summary>Creates a new <see cref="AppConfigurationKey"/> with per-environment static values.</summary>
@@ -181,6 +187,8 @@ public sealed class AppConfigurationKey : Entity<AppConfigurationKeyId>
         SecretValueAssignment = null;
         VariableGroupId = null;
         PipelineVariableName = null;
+        SourceResourceId = null;
+        SourceOutputName = null;
         _environmentValues.Clear();
         foreach (var (envName, value) in environmentValues)
         {
@@ -190,11 +198,65 @@ public sealed class AppConfigurationKey : Entity<AppConfigurationKeyId>
     }
 
     /// <summary>Gets whether this key is a static-value key (not a reference).</summary>
-    public bool IsStatic => !IsKeyVaultReference && !IsViaVariableGroup;
+    public bool IsStatic => !IsKeyVaultReference && !IsViaVariableGroup && !IsOutputReference;
+
+    /// <summary>Gets whether this key references an output from another resource.</summary>
+    public bool IsOutputReference => SourceResourceId is not null;
 
     /// <summary>Gets whether this key is a Key Vault secret reference.</summary>
     public bool IsKeyVaultReference => KeyVaultResourceId is not null;
 
     /// <summary>Gets whether this key's value comes from a pipeline variable group at deploy time.</summary>
     public bool IsViaVariableGroup => VariableGroupId is not null;
+
+    /// <summary>Creates a new <see cref="AppConfigurationKey"/> referencing an output from a sibling resource.</summary>
+    /// <param name="appConfigurationId">The owning App Configuration resource identifier.</param>
+    /// <param name="key">The configuration key name.</param>
+    /// <param name="label">Optional label for the key.</param>
+    /// <param name="sourceResourceId">The source resource identifier.</param>
+    /// <param name="sourceOutputName">The output name on the source resource.</param>
+    internal static AppConfigurationKey CreateOutputReference(
+        AzureResourceId appConfigurationId,
+        string key,
+        string? label,
+        AzureResourceId sourceResourceId,
+        string sourceOutputName)
+        => new()
+        {
+            Id = AppConfigurationKeyId.CreateUnique(),
+            AppConfigurationId = appConfigurationId,
+            Key = key,
+            Label = label,
+            SourceResourceId = sourceResourceId,
+            SourceOutputName = sourceOutputName,
+        };
+
+    /// <summary>Creates a new <see cref="AppConfigurationKey"/> for a sensitive output exported as a Key Vault secret.</summary>
+    /// <param name="appConfigurationId">The owning App Configuration resource identifier.</param>
+    /// <param name="key">The configuration key name.</param>
+    /// <param name="label">Optional label for the key.</param>
+    /// <param name="sourceResourceId">The source resource identifier.</param>
+    /// <param name="sourceOutputName">The output name on the source resource.</param>
+    /// <param name="keyVaultResourceId">The Key Vault resource identifier.</param>
+    /// <param name="secretName">The secret name in the Key Vault.</param>
+    internal static AppConfigurationKey CreateSensitiveOutputKeyVaultReference(
+        AzureResourceId appConfigurationId,
+        string key,
+        string? label,
+        AzureResourceId sourceResourceId,
+        string sourceOutputName,
+        AzureResourceId keyVaultResourceId,
+        string secretName)
+        => new()
+        {
+            Id = AppConfigurationKeyId.CreateUnique(),
+            AppConfigurationId = appConfigurationId,
+            Key = key,
+            Label = label,
+            SourceResourceId = sourceResourceId,
+            SourceOutputName = sourceOutputName,
+            KeyVaultResourceId = keyVaultResourceId,
+            SecretName = secretName,
+            SecretValueAssignment = Domain.Common.BaseModels.ValueObjects.SecretValueAssignment.DirectInKeyVault,
+        };
 }

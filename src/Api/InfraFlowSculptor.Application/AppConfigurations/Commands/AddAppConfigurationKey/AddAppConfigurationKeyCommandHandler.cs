@@ -6,6 +6,7 @@ using InfraFlowSculptor.Domain.AppConfigurationAggregate;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.Common.ResourceOutputs;
 using InfraFlowSculptor.Domain.KeyVaultAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
@@ -110,6 +111,45 @@ public sealed class AddAppConfigurationKeyCommandHandler(
             return ToResult(configKey, null, variableGroup.GroupName);
         }
 
+        // Export sensitive output to Key Vault: validate source output + KV, then create combined reference
+        if (request.ExportToKeyVault
+            && request.SourceResourceId is not null && request.SourceOutputName is not null
+            && request.KeyVaultResourceId is not null && request.SecretName is not null)
+        {
+            var sourceResource = await azureResourceRepository.GetByIdAsync(
+                request.SourceResourceId, cancellationToken);
+
+            if (sourceResource is null)
+                return Errors.AppConfigurationKey.SourceResourceNotFound(request.SourceResourceId);
+
+            var sourceType = sourceResource.GetType().Name;
+            var outputDef = ResourceOutputCatalog.FindOutput(sourceType, request.SourceOutputName);
+
+            if (outputDef is null)
+                return Errors.AppConfigurationKey.InvalidOutput(request.SourceOutputName, sourceType);
+
+            var keyVaultResource = await azureResourceRepository.GetByIdAsync(
+                request.KeyVaultResourceId, cancellationToken);
+
+            if (keyVaultResource is null || keyVaultResource is not KeyVault)
+                return Errors.AppConfigurationKey.KeyVaultNotFound(request.KeyVaultResourceId);
+
+            var configKey = appConfig.AddSensitiveOutputKeyVaultReferenceConfigurationKey(
+                request.Key,
+                request.Label,
+                request.SourceResourceId,
+                request.SourceOutputName,
+                request.KeyVaultResourceId,
+                request.SecretName);
+
+            await appConfigurationRepository.UpdateAsync(appConfig);
+
+            var hasAccess = await CheckKeyVaultAccessAsync(
+                request.AppConfigurationId, request.KeyVaultResourceId, cancellationToken);
+
+            return ToResult(configKey, hasAccess);
+        }
+
         // Key Vault reference
         if (request.KeyVaultResourceId is not null && request.SecretName is not null)
         {
@@ -132,6 +172,32 @@ public sealed class AddAppConfigurationKeyCommandHandler(
                 request.AppConfigurationId, request.KeyVaultResourceId, cancellationToken);
 
             return ToResult(configKey, hasAccess);
+        }
+
+        // Output reference: validate the source resource and output
+        if (request.SourceResourceId is not null && request.SourceOutputName is not null)
+        {
+            var sourceResource = await azureResourceRepository.GetByIdAsync(
+                request.SourceResourceId, cancellationToken);
+
+            if (sourceResource is null)
+                return Errors.AppConfigurationKey.SourceResourceNotFound(request.SourceResourceId);
+
+            var sourceType = sourceResource.GetType().Name;
+            var outputDef = ResourceOutputCatalog.FindOutput(sourceType, request.SourceOutputName);
+
+            if (outputDef is null)
+                return Errors.AppConfigurationKey.InvalidOutput(request.SourceOutputName, sourceType);
+
+            var configKey = appConfig.AddOutputReferenceConfigurationKey(
+                request.Key,
+                request.Label,
+                request.SourceResourceId,
+                request.SourceOutputName);
+
+            await appConfigurationRepository.UpdateAsync(appConfig);
+
+            return ToResult(configKey, null);
         }
 
         // Static value
@@ -173,6 +239,9 @@ public sealed class AddAppConfigurationKeyCommandHandler(
             configKey.EnvironmentValues.Count > 0
                 ? configKey.EnvironmentValues.ToDictionary(ev => ev.EnvironmentName, ev => ev.Value)
                 : null,
+            configKey.SourceResourceId,
+            configKey.SourceOutputName,
+            configKey.IsOutputReference,
             configKey.KeyVaultResourceId,
             configKey.SecretName,
             configKey.IsKeyVaultReference,

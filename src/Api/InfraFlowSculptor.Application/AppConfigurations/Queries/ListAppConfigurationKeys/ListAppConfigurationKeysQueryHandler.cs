@@ -69,6 +69,9 @@ public sealed class ListAppConfigurationKeysQueryHandler(
                 k.EnvironmentValues.Count > 0
                     ? k.EnvironmentValues.ToDictionary(ev => ev.EnvironmentName, ev => ev.Value)
                     : null,
+                k.SourceResourceId,
+                k.SourceOutputName,
+                k.IsOutputReference,
                 k.KeyVaultResourceId,
                 k.SecretName,
                 k.IsKeyVaultReference,

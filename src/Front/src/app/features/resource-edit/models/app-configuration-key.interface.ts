@@ -9,6 +9,9 @@ export interface AppConfigurationKeyResponse {
   keyVaultResourceId: string | null;
   secretName: string | null;
   isKeyVaultReference: boolean;
+  sourceResourceId?: string | null;
+  sourceOutputName?: string | null;
+  isOutputReference: boolean;
   hasKeyVaultAccess: boolean | null;
   secretValueAssignment: string | null;
   variableGroupId: string | null;
@@ -28,4 +31,7 @@ export interface AddAppConfigurationKeyRequest {
   secretValueAssignment?: string;
   variableGroupId?: string;
   pipelineVariableName?: string;
+  sourceResourceId?: string;
+  sourceOutputName?: string;
+  exportToKeyVault?: boolean;
 }
