@@ -22,6 +22,10 @@
     "WORKFLOW": "Premium Azure workflow",
     "LEGAL": "Built for cloud governance and delivery teams"
   },
+  "ANNOTATION": {
+    "ACTIVATE": "Enable annotation",
+    "ACTIVATE_ARIA": "Enable annotation tool"
+  },
   "LOGIN": {
     "BRANDING": {
       "TITLE_LINE_1": "Infrastructure as Data,",

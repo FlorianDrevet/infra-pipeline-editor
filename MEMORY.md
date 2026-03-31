@@ -598,6 +598,16 @@ Fichier `src/Front/proxy.conf.js` : lit les variables d'environnement Aspire pou
 
 ## 13. OpenTelemetry Frontend ([2026-03-18])
 
+### 13.1 Annotation tool integration ([2026-03-31])
+
+- Frontend root shell (`src/Front/src/app/app.component.*`) now integrates the web component `<agent-ui-annotation>` from `agent-ui-annotation`.
+- Angular standalone compatibility is handled via `schemas: [CUSTOM_ELEMENTS_SCHEMA]` in `AppComponent`.
+- Custom element registration is done with side-effect import `import 'agent-ui-annotation'`.
+- `viewChild<ElementRef<AnnotationElement>>('annotationRef')` + `afterNextRender()` are used to access the element and initialize it safely after render.
+- A `setBeforeCreateHook()` is configured to enrich annotation context with current route and timestamp.
+- A listener for `annotation:create` is attached and cleaned via `DestroyRef.onDestroy()`.
+- Activation is manual through a small floating button in `app.component.html` calling `activateAnnotation()`; button is hidden on `/login`.
+
 ### Packages installés
 
 ```
