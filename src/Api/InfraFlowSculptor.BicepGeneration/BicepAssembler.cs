@@ -833,6 +833,31 @@ public static class BicepAssembler
                 sb.AppendLine($"    {paramKey}: {module.ModuleName}{Capitalize(paramKey)}");
             }
 
+            // ── Parent module ID references (e.g. appServicePlanId → aspModule.outputs.id) ──
+            foreach (var (paramName, parentLogicalName) in module.ParentModuleIdReferences)
+            {
+                var parentModule = modules.FirstOrDefault(m =>
+                    m.LogicalResourceName.Equals(parentLogicalName, StringComparison.OrdinalIgnoreCase));
+                if (parentModule is not null)
+                {
+                    sb.AppendLine($"    {paramName}: {parentModule.ModuleName}Module.outputs.id");
+                }
+            }
+
+            // ── Parent module name references (e.g. sqlServerName → naming expression) ──
+            foreach (var (paramName, parentLogicalName) in module.ParentModuleNameReferences)
+            {
+                var parentModule = modules.FirstOrDefault(m =>
+                    m.LogicalResourceName.Equals(parentLogicalName, StringComparison.OrdinalIgnoreCase));
+                if (parentModule is not null)
+                {
+                    var parentNameExpr = BuildNamingExpression(
+                        parentModule.LogicalResourceName, parentModule.ResourceAbbreviation,
+                        parentModule.ResourceTypeName, namingContext);
+                    sb.AppendLine($"    {paramName}: {parentNameExpr}");
+                }
+            }
+
             // ── Identity params ─────────────────────────────────────────────
             var moduleKey = (module.LogicalResourceName, module.ResourceTypeName);
 

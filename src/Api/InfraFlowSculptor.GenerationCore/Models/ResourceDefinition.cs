@@ -5,6 +5,9 @@ namespace InfraFlowSculptor.GenerationCore.Models;
 /// </summary>
 public class ResourceDefinition
 {
+    /// <summary>The unique identifier of this resource, used to resolve cross-resource references.</summary>
+    public Guid ResourceId { get; set; }
+
     public string Name { get; set; } = string.Empty;
     public string Sku { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;

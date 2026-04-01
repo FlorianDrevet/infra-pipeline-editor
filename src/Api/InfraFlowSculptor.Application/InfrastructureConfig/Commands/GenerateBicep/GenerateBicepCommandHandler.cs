@@ -47,6 +47,7 @@ public sealed class GenerateBicepCommandHandler(
         var resources = config.ResourceGroups
             .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
             {
+                ResourceId = r.Id,
                 Name = r.Name,
                 Type = r.ResourceType,
                 ResourceGroupName = rg.Name,

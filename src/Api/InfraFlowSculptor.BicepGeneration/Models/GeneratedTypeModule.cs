@@ -60,6 +60,23 @@ public sealed record GeneratedTypeModule
     /// </summary>
     public bool UsesParameterizedIdentity { get; init; }
 
+    /// <summary>
+    /// Maps a Bicep parameter name in this module to the logical name of the parent resource
+    /// whose module <c>outputs.id</c> should be passed.
+    /// Example: <c>"appServicePlanId" → "my-asp"</c> generates
+    /// <c>appServicePlanId: appServicePlanMyAspModule.outputs.id</c> in <c>main.bicep</c>.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ParentModuleIdReferences { get; init; } =
+        new Dictionary<string, string>();
+
+    /// <summary>
+    /// Maps a Bicep parameter name in this module to the logical name of the parent resource
+    /// whose computed naming expression should be passed.
+    /// Used for child resources that need the parent's deployed name (e.g., SqlDatabase → sqlServerName).
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ParentModuleNameReferences { get; init; } =
+        new Dictionary<string, string>();
+
     private static string NormalizePrimaryModuleFileName(string moduleFileName)
     {
         if (string.IsNullOrWhiteSpace(moduleFileName))

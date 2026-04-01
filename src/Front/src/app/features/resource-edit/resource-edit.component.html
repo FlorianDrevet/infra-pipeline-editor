@@ -2224,7 +2224,7 @@
 
                   <div class="as-group__items">
                     @for (setting of appSettingsGrouped().outputs; track setting.id) {
-                      <div class="as-row as-row--output">
+                      <div class="as-row" [class.as-row--secret]="setting.isKeyVaultReference" [class.as-row--output]="!setting.isKeyVaultReference">
                         <div class="as-row__left">
                           <span class="as-row__var-name">{{ setting.name }}</span>
                           <span class="as-row__arrow">←</span>
@@ -2237,9 +2237,11 @@
                         </div>
                         <div class="as-row__right">
                           @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
-                            <span class="as-pill as-pill--kv">
-                              <mat-icon>vpn_key</mat-icon>
-                              {{ resolveSourceName(setting.keyVaultResourceId) }}
+                            <span class="as-kv-tag">
+                              <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                              <span class="as-kv-tag__name">{{ resolveSourceName(setting.keyVaultResourceId) }}</span>
+                              <span class="as-kv-tag__sep">/</span>
+                              <span class="as-kv-tag__secret">{{ setting.secretName }}</span>
                             </span>
                           }
                           @if (canWrite()) {
@@ -2436,7 +2438,7 @@
 
                   <div class="as-group__items">
                     @for (configKey of configKeysGrouped().outputs; track configKey.id) {
-                      <div class="as-row as-row--output">
+                      <div class="as-row" [class.as-row--secret]="configKey.isKeyVaultReference" [class.as-row--output]="!configKey.isKeyVaultReference">
                         <div class="as-row__left">
                           <span class="as-row__var-name">{{ configKey.key }}</span>
                           @if (configKey.label) {
@@ -2452,9 +2454,11 @@
                         </div>
                         <div class="as-row__right">
                           @if (configKey.isKeyVaultReference && configKey.keyVaultResourceId) {
-                            <span class="as-pill as-pill--kv">
-                              <mat-icon>vpn_key</mat-icon>
-                              {{ resolveSourceName(configKey.keyVaultResourceId) }}
+                            <span class="as-kv-tag">
+                              <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                              <span class="as-kv-tag__name">{{ resolveSourceName(configKey.keyVaultResourceId) }}</span>
+                              <span class="as-kv-tag__sep">/</span>
+                              <span class="as-kv-tag__secret">{{ configKey.secretName }}</span>
                             </span>
                           }
                           @if (canWrite()) {

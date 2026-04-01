@@ -119,6 +119,11 @@ public sealed class BicepGenerationEngine
             .Select(s => s.TargetResourceName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+        // ── Build resource ID → logical name lookup for parent references ───
+        var resourceIdToName = request.Resources
+            .Where(r => r.ResourceId != Guid.Empty)
+            .ToDictionary(r => r.ResourceId, r => r.Name);
+
         foreach (var resource in request.Resources)
         {
             var generator = _generators
@@ -192,6 +197,42 @@ public sealed class BicepGenerationEngine
             // Inject tags param and apply to resource declaration
             moduleBicepContent = InjectTagsParam(moduleBicepContent);
 
+            // ── Resolve parent module references (FK cross-resource links) ──
+            var parentModuleIdRefs = new Dictionary<string, string>();
+            var parentModuleNameRefs = new Dictionary<string, string>();
+
+            // appServicePlanId: WebApp and FunctionApp → AppServicePlan module outputs.id
+            if (resource.Properties.TryGetValue("appServicePlanId", out var aspIdStr)
+                && Guid.TryParse(aspIdStr, out var aspGuid)
+                && resourceIdToName.TryGetValue(aspGuid, out var aspName))
+            {
+                parentModuleIdRefs["appServicePlanId"] = aspName;
+            }
+
+            // containerAppEnvironmentId: ContainerApp → ContainerAppEnvironment module outputs.id
+            if (resource.Properties.TryGetValue("containerAppEnvironmentId", out var caeIdStr)
+                && Guid.TryParse(caeIdStr, out var caeGuid)
+                && resourceIdToName.TryGetValue(caeGuid, out var caeName))
+            {
+                parentModuleIdRefs["containerAppEnvironmentId"] = caeName;
+            }
+
+            // logAnalyticsWorkspaceId: ApplicationInsights → LogAnalyticsWorkspace module outputs.id
+            if (resource.Properties.TryGetValue("logAnalyticsWorkspaceId", out var lawIdStr)
+                && Guid.TryParse(lawIdStr, out var lawGuid)
+                && resourceIdToName.TryGetValue(lawGuid, out var lawName))
+            {
+                parentModuleIdRefs["logAnalyticsWorkspaceId"] = lawName;
+            }
+
+            // sqlServerId: SqlDatabase → SqlServer module computed name expression
+            if (resource.Properties.TryGetValue("sqlServerId", out var sqlIdStr)
+                && Guid.TryParse(sqlIdStr, out var sqlGuid)
+                && resourceIdToName.TryGetValue(sqlGuid, out var sqlName))
+            {
+                parentModuleNameRefs["sqlServerName"] = sqlName;
+            }
+
             modules.Add(module with
             {
                 ModuleName = moduleName,
@@ -203,7 +244,9 @@ public sealed class BicepGenerationEngine
                 UsesParameterizedIdentity = isMixed,
                 ModuleTypesBicepContent = isMixed
                     ? (module.ModuleTypesBicepContent ?? string.Empty) + ManagedIdentityTypeBicepType
-                    : module.ModuleTypesBicepContent
+                    : module.ModuleTypesBicepContent,
+                ParentModuleIdReferences = parentModuleIdRefs,
+                ParentModuleNameReferences = parentModuleNameRefs,
             });
         }
 
