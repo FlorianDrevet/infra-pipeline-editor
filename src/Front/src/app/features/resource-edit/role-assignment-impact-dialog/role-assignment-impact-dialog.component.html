@@ -15,7 +15,7 @@
       <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.ERROR' | translate }}</p>
     </div>
   } @else if (impactResult()) {
-    @if (!impactResult()!.hasImpact) {
+    @if (!hasFilteredImpact()) {
       <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.NO_IMPACT' | translate }}</p>
       <p class="impact-detail">
         {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_MESSAGE' | translate: { role: roleName, target: targetResourceName } }}
@@ -66,7 +66,7 @@
     <button mat-stroked-button (click)="cancel()">
       {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CANCEL' | translate }}
     </button>
-    @if (impactResult()!.hasImpact) {
+    @if (hasFilteredImpact()) {
       <button mat-raised-button color="warn" (click)="confirm()">
         {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CONFIRM_DELETE' | translate }}
       </button>

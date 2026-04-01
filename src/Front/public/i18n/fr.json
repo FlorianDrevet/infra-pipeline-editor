@@ -1183,8 +1183,7 @@
       "DELETE_ANYWAY": "Supprimer quand m\u00eame",
       "IMPACT_TYPE": {
         "AcrPullRequired": "\u00ab {{affectedResource}} \u00bb utilise des images de conteneur depuis \u00ab {{targetResource}} \u00bb. Supprimer AcrPull l\u2019emp\u00eachera de t\u00e9l\u00e9charger son image Docker.",
-        "KeyVaultSecretsRequired": "\u00ab {{affectedResource}} \u00bb r\u00e9f\u00e9rence {{count}} secret(s) depuis \u00ab {{targetResource}} \u00bb. Supprimer ce r\u00f4le rompra ces acc\u00e8s aux secrets.",
-        "LastRoleToTarget": "C\u2019est la derni\u00e8re attribution de r\u00f4le de \u00ab {{affectedResource}} \u00bb vers \u00ab {{targetResource}} \u00bb. La ressource perdra tout acc\u00e8s."
+        "KeyVaultSecretsRequired": "\u00ab {{affectedResource}} \u00bb r\u00e9f\u00e9rence {{count}} secret(s) depuis \u00ab {{targetResource}} \u00bb. Supprimer ce r\u00f4le rompra ces acc\u00e8s aux secrets."
       }
     },
     "GRANTED_RIGHTS": {

@@ -1173,8 +1173,7 @@
       "DELETE_ANYWAY": "Delete anyway",
       "IMPACT_TYPE": {
         "AcrPullRequired": "'{{affectedResource}}' uses container images from '{{targetResource}}'. Removing AcrPull will prevent it from pulling its Docker image.",
-        "KeyVaultSecretsRequired": "'{{affectedResource}}' references {{count}} secret(s) from '{{targetResource}}'. Removing this role will break those secret accesses.",
-        "LastRoleToTarget": "This is the last role assignment from '{{affectedResource}}' to '{{targetResource}}'. The resource will lose all access."
+        "KeyVaultSecretsRequired": "'{{affectedResource}}' references {{count}} secret(s) from '{{targetResource}}'. Removing this role will break those secret accesses."
       }
     },
     "GRANTED_RIGHTS": {

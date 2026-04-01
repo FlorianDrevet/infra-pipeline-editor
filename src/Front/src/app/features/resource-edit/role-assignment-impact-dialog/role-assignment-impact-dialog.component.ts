@@ -41,15 +41,10 @@ export class RoleAssignmentImpactDialogComponent implements OnInit {
   protected filteredImpacts = computed(() => {
     const result = this.impactResult();
     if (!result?.impacts) return [];
-    const pairKeys = new Set(
-      result.impacts
-        .filter(i => i.impactType !== 'LastRoleToTarget')
-        .map(i => `${i.affectedResourceId}::${i.targetResourceId}`)
-    );
-    return result.impacts.filter(
-      i => i.impactType !== 'LastRoleToTarget' || !pairKeys.has(`${i.affectedResourceId}::${i.targetResourceId}`)
-    );
+    return result.impacts.filter(i => i.impactType !== 'LastRoleToTarget');
   });
+
+  protected hasFilteredImpact = computed(() => this.filteredImpacts().length > 0);
 
   protected readonly roleName = this.data.roleName;
   protected readonly targetResourceName = this.data.targetResourceName;
