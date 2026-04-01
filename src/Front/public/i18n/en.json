@@ -1158,7 +1158,12 @@
       "ERROR": "Unable to analyze the impact. You can continue with deletion or cancel.",
       "SEVERITY_CRITICAL": "Critical",
       "SEVERITY_WARNING": "Warning",
-      "DELETE_ANYWAY": "Delete anyway"
+      "DELETE_ANYWAY": "Delete anyway",
+      "IMPACT_TYPE": {
+        "AcrPullRequired": "'{{affectedResource}}' uses container images from '{{targetResource}}'. Removing AcrPull will prevent it from pulling its Docker image.",
+        "KeyVaultSecretsRequired": "'{{affectedResource}}' references {{count}} secret(s) from '{{targetResource}}'. Removing this role will break those secret accesses.",
+        "LastRoleToTarget": "This is the last role assignment from '{{affectedResource}}' to '{{targetResource}}'. The resource will lose all access."
+      }
     },
     "GRANTED_RIGHTS": {
       "DESCRIPTION": "Role assignments granted through this User-Assigned Managed Identity. Each entry shows which source resource accesses which target resource, and with which role.",

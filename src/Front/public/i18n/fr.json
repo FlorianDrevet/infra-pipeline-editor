@@ -1168,7 +1168,12 @@
       "ERROR": "Impossible d'analyser l'impact. Vous pouvez continuer avec la suppression ou annuler.",
       "SEVERITY_CRITICAL": "Critique",
       "SEVERITY_WARNING": "Avertissement",
-      "DELETE_ANYWAY": "Supprimer quand m\u00eame"
+      "DELETE_ANYWAY": "Supprimer quand m\u00eame",
+      "IMPACT_TYPE": {
+        "AcrPullRequired": "\u00ab {{affectedResource}} \u00bb utilise des images de conteneur depuis \u00ab {{targetResource}} \u00bb. Supprimer AcrPull l\u2019emp\u00eachera de t\u00e9l\u00e9charger son image Docker.",
+        "KeyVaultSecretsRequired": "\u00ab {{affectedResource}} \u00bb r\u00e9f\u00e9rence {{count}} secret(s) depuis \u00ab {{targetResource}} \u00bb. Supprimer ce r\u00f4le rompra ces acc\u00e8s aux secrets.",
+        "LastRoleToTarget": "C\u2019est la derni\u00e8re attribution de r\u00f4le de \u00ab {{affectedResource}} \u00bb vers \u00ab {{targetResource}} \u00bb. La ressource perdra tout acc\u00e8s."
+      }
     },
     "GRANTED_RIGHTS": {
       "DESCRIPTION": "Liste des r\u00f4les attribu\u00e9s via cette identit\u00e9 manag\u00e9e User Assigned. Chaque entr\u00e9e montre quelle ressource source acc\u00e8de \u00e0 quelle ressource cible, et avec quel r\u00f4le.",

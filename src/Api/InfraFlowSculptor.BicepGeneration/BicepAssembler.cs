@@ -929,7 +929,7 @@ public static class BicepAssembler
                         var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.KeyVaultResourceName);
                         var kvSecretsModuleSymbol = $"{kvIdentifier}KvSecretsModule";
 
-                        sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris['{EscapeBicepString(setting.SecretName)}']}})'");
+                        sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris.{EscapeBicepString(setting.SecretName)}}})'");
                     }
                     else if (setting.IsKeyVaultReference && setting.KeyVaultResourceName is not null && setting.SecretName is not null)
                     {
@@ -939,7 +939,7 @@ public static class BicepAssembler
                             var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.KeyVaultResourceName);
                             var kvSecretsModuleSymbol = $"{kvIdentifier}KvSecretsModule";
 
-                            sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris['{EscapeBicepString(setting.SecretName)}']}})'");
+                            sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris.{EscapeBicepString(setting.SecretName)}}})'");
                         }
                         else
                         {

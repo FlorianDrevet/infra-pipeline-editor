@@ -54,9 +54,9 @@ export class CreateUaiDialogComponent {
       this.dialogRef.close(result);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 409) {
-        this.errorKey.set('CREATE_UAI_DIALOG.ERROR_CONFLICT');
+        this.errorKey.set('RESOURCE_EDIT.CREATE_UAI_DIALOG.ERROR_CONFLICT');
       } else {
-        this.errorKey.set('CREATE_UAI_DIALOG.ERROR');
+        this.errorKey.set('RESOURCE_EDIT.CREATE_UAI_DIALOG.ERROR');
       }
     } finally {
       this.isSubmitting.set(false);

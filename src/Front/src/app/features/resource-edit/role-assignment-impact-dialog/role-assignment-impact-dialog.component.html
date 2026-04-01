@@ -1,4 +1,7 @@
-<h2 mat-dialog-title>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.TITLE' | translate }}</h2>
+<h2 mat-dialog-title class="impact-dialog-title">
+  <mat-icon class="impact-dialog-title__icon">warning_amber</mat-icon>
+  {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.TITLE' | translate }}
+</h2>
 
 <mat-dialog-content>
   @if (loading()) {
@@ -38,7 +41,9 @@
                 }
               </span>
             </div>
-            <p class="impact-item__description">{{ impact.description }}</p>
+            <p class="impact-item__description">
+              {{ ('RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.IMPACT_TYPE.' + impact.impactType) | translate: { affectedResource: impact.affectedResourceName, targetResource: impact.targetResourceName, count: impact.affectedSettingsCount } }}
+            </p>
             <p class="impact-item__resources">
               {{ impact.affectedResourceName }} ({{ impact.affectedResourceType }})
               → {{ impact.targetResourceName }} ({{ impact.targetResourceType }})

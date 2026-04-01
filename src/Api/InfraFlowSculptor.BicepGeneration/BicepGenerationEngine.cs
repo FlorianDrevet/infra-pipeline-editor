@@ -367,7 +367,7 @@ public sealed class BicepGenerationEngine
         foreach (var uaiId in uaiIdentifiers)
         {
             var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-            uaiEntries.AppendLine($"      '${{${paramName}}}': {{}}");
+            uaiEntries.AppendLine($"      '${{{paramName}}}': {{}}");
         }
 
         // Determine desired identity type
