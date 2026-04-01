@@ -228,29 +228,33 @@
                                 {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}
                               </span>
                               <div class="acr-status-banner__actions">
-                                <button mat-flat-button class="acr-status-banner__action"
-                                        [disabled]="acrRoleAssigning()"
-                                        (click)="addAcrPullRoleAssignment()">
-                                  @if (acrRoleAssigning()) {
-                                    <mat-spinner diameter="14"></mat-spinner>
-                                  } @else {
-                                    <mat-icon>add_circle_outline</mat-icon>
-                                  }
-                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
-                                </button>
-                                <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
-                                  <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
-                                  <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
-                                    @for (uai of availableUserAssignedIdentities(); track uai.id) {
-                                      <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                <div class="acr-status-banner__uai-row">
+                                  <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                                    <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                      @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                        <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                      }
+                                    </mat-select>
+                                  </mat-form-field>
+                                  <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--secondary"
+                                          (click)="createNewUai()">
+                                    <mat-icon>add</mat-icon>
+                                    {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+                                  </button>
+                                </div>
+                                <div class="acr-status-banner__action-row">
+                                  <button mat-flat-button class="acr-status-banner__action acr-status-banner__action--primary"
+                                          [disabled]="acrRoleAssigning()"
+                                          (click)="addAcrPullRoleAssignment()">
+                                    @if (acrRoleAssigning()) {
+                                      <mat-spinner diameter="14"></mat-spinner>
+                                    } @else {
+                                      <mat-icon>add_circle_outline</mat-icon>
                                     }
-                                  </mat-select>
-                                </mat-form-field>
-                                <button mat-flat-button class="acr-status-banner__action"
-                                        (click)="createNewUai()">
-                                  <mat-icon>add</mat-icon>
-                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                                </button>
+                                    {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           }
@@ -261,30 +265,34 @@
                                 {{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate }}
                               </span>
                               <div class="acr-status-banner__actions">
-                                <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
-                                  <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
-                                  <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
-                                    @for (uai of availableUserAssignedIdentities(); track uai.id) {
-                                      <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
-                                    }
-                                  </mat-select>
-                                </mat-form-field>
-                                <button mat-flat-button class="acr-status-banner__action"
-                                        (click)="createNewUai()">
-                                  <mat-icon>add</mat-icon>
-                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                                </button>
-                                @if (acrSelectedUaiId()) {
-                                  <button mat-flat-button class="acr-status-banner__action"
-                                          [disabled]="acrRoleAssigning()"
-                                          (click)="addAcrPullRoleAssignment()">
-                                    @if (acrRoleAssigning()) {
-                                      <mat-spinner diameter="14"></mat-spinner>
-                                    } @else {
-                                      <mat-icon>add_circle_outline</mat-icon>
-                                    }
-                                    {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
+                                <div class="acr-status-banner__uai-row">
+                                  <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                                    <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                      @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                        <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                      }
+                                    </mat-select>
+                                  </mat-form-field>
+                                  <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--secondary"
+                                          (click)="createNewUai()">
+                                    <mat-icon>add</mat-icon>
+                                    {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
                                   </button>
+                                </div>
+                                @if (acrSelectedUaiId()) {
+                                  <div class="acr-status-banner__action-row">
+                                    <button mat-flat-button class="acr-status-banner__action acr-status-banner__action--primary"
+                                            [disabled]="acrRoleAssigning()"
+                                            (click)="addAcrPullRoleAssignment()">
+                                      @if (acrRoleAssigning()) {
+                                        <mat-spinner diameter="14"></mat-spinner>
+                                      } @else {
+                                        <mat-icon>add_circle_outline</mat-icon>
+                                      }
+                                      {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
+                                    </button>
+                                  </div>
                                 }
                               </div>
                             </div>
@@ -413,29 +421,33 @@
                                 {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}
                               </span>
                               <div class="acr-status-banner__actions">
-                                <button mat-flat-button class="acr-status-banner__action"
-                                        [disabled]="acrRoleAssigning()"
-                                        (click)="addAcrPullRoleAssignment()">
-                                  @if (acrRoleAssigning()) {
-                                    <mat-spinner diameter="14"></mat-spinner>
-                                  } @else {
-                                    <mat-icon>add_circle_outline</mat-icon>
-                                  }
-                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
-                                </button>
-                                <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
-                                  <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
-                                  <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
-                                    @for (uai of availableUserAssignedIdentities(); track uai.id) {
-                                      <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                <div class="acr-status-banner__uai-row">
+                                  <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                                    <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                      @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                        <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                      }
+                                    </mat-select>
+                                  </mat-form-field>
+                                  <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--secondary"
+                                          (click)="createNewUai()">
+                                    <mat-icon>add</mat-icon>
+                                    {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+                                  </button>
+                                </div>
+                                <div class="acr-status-banner__action-row">
+                                  <button mat-flat-button class="acr-status-banner__action acr-status-banner__action--primary"
+                                          [disabled]="acrRoleAssigning()"
+                                          (click)="addAcrPullRoleAssignment()">
+                                    @if (acrRoleAssigning()) {
+                                      <mat-spinner diameter="14"></mat-spinner>
+                                    } @else {
+                                      <mat-icon>add_circle_outline</mat-icon>
                                     }
-                                  </mat-select>
-                                </mat-form-field>
-                                <button mat-flat-button class="acr-status-banner__action"
-                                        (click)="createNewUai()">
-                                  <mat-icon>add</mat-icon>
-                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                                </button>
+                                    {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           }
@@ -446,30 +458,34 @@
                                 {{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate }}
                               </span>
                               <div class="acr-status-banner__actions">
-                                <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
-                                  <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
-                                  <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
-                                    @for (uai of availableUserAssignedIdentities(); track uai.id) {
-                                      <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
-                                    }
-                                  </mat-select>
-                                </mat-form-field>
-                                <button mat-flat-button class="acr-status-banner__action"
-                                        (click)="createNewUai()">
-                                  <mat-icon>add</mat-icon>
-                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                                </button>
-                                @if (acrSelectedUaiId()) {
-                                  <button mat-flat-button class="acr-status-banner__action"
-                                          [disabled]="acrRoleAssigning()"
-                                          (click)="addAcrPullRoleAssignment()">
-                                    @if (acrRoleAssigning()) {
-                                      <mat-spinner diameter="14"></mat-spinner>
-                                    } @else {
-                                      <mat-icon>add_circle_outline</mat-icon>
-                                    }
-                                    {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
+                                <div class="acr-status-banner__uai-row">
+                                  <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                                    <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                      @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                        <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                      }
+                                    </mat-select>
+                                  </mat-form-field>
+                                  <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--secondary"
+                                          (click)="createNewUai()">
+                                    <mat-icon>add</mat-icon>
+                                    {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
                                   </button>
+                                </div>
+                                @if (acrSelectedUaiId()) {
+                                  <div class="acr-status-banner__action-row">
+                                    <button mat-flat-button class="acr-status-banner__action acr-status-banner__action--primary"
+                                            [disabled]="acrRoleAssigning()"
+                                            (click)="addAcrPullRoleAssignment()">
+                                      @if (acrRoleAssigning()) {
+                                        <mat-spinner diameter="14"></mat-spinner>
+                                      } @else {
+                                        <mat-icon>add_circle_outline</mat-icon>
+                                      }
+                                      {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
+                                    </button>
+                                  </div>
                                 }
                               </div>
                             </div>
@@ -544,29 +560,33 @@
                             {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}
                           </span>
                           <div class="acr-status-banner__actions">
-                            <button mat-flat-button class="acr-status-banner__action"
-                                    [disabled]="acrRoleAssigning()"
-                                    (click)="addAcrPullRoleAssignment()">
-                              @if (acrRoleAssigning()) {
-                                <mat-spinner diameter="14"></mat-spinner>
-                              } @else {
-                                <mat-icon>add_circle_outline</mat-icon>
-                              }
-                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
-                            </button>
-                            <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
-                              <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
-                              <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
-                                @for (uai of availableUserAssignedIdentities(); track uai.id) {
-                                  <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                            <div class="acr-status-banner__uai-row">
+                              <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                                <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                                <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                  @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                    <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                  }
+                                </mat-select>
+                              </mat-form-field>
+                              <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--secondary"
+                                      (click)="createNewUai()">
+                                <mat-icon>add</mat-icon>
+                                {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+                              </button>
+                            </div>
+                            <div class="acr-status-banner__action-row">
+                              <button mat-flat-button class="acr-status-banner__action acr-status-banner__action--primary"
+                                      [disabled]="acrRoleAssigning()"
+                                      (click)="addAcrPullRoleAssignment()">
+                                @if (acrRoleAssigning()) {
+                                  <mat-spinner diameter="14"></mat-spinner>
+                                } @else {
+                                  <mat-icon>add_circle_outline</mat-icon>
                                 }
-                              </mat-select>
-                            </mat-form-field>
-                            <button mat-flat-button class="acr-status-banner__action"
-                                    (click)="createNewUai()">
-                              <mat-icon>add</mat-icon>
-                              {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                            </button>
+                                {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       }
@@ -577,30 +597,34 @@
                             {{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate }}
                           </span>
                           <div class="acr-status-banner__actions">
-                            <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
-                              <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
-                              <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
-                                @for (uai of availableUserAssignedIdentities(); track uai.id) {
-                                  <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
-                                }
-                              </mat-select>
-                            </mat-form-field>
-                            <button mat-flat-button class="acr-status-banner__action"
-                                    (click)="createNewUai()">
-                              <mat-icon>add</mat-icon>
-                              {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                            </button>
-                            @if (acrSelectedUaiId()) {
-                              <button mat-flat-button class="acr-status-banner__action"
-                                      [disabled]="acrRoleAssigning()"
-                                      (click)="addAcrPullRoleAssignment()">
-                                @if (acrRoleAssigning()) {
-                                  <mat-spinner diameter="14"></mat-spinner>
-                                } @else {
-                                  <mat-icon>add_circle_outline</mat-icon>
-                                }
-                                {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
+                            <div class="acr-status-banner__uai-row">
+                              <mat-form-field appearance="outline" class="acr-status-banner__uai-select">
+                                <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate }}</mat-label>
+                                <mat-select [value]="acrSelectedUaiId()" (selectionChange)="acrSelectedUaiId.set($event.value)">
+                                  @for (uai of availableUserAssignedIdentities(); track uai.id) {
+                                    <mat-option [value]="uai.id">{{ uai.name }}</mat-option>
+                                  }
+                                </mat-select>
+                              </mat-form-field>
+                              <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--secondary"
+                                      (click)="createNewUai()">
+                                <mat-icon>add</mat-icon>
+                                {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
                               </button>
+                            </div>
+                            @if (acrSelectedUaiId()) {
+                              <div class="acr-status-banner__action-row">
+                                <button mat-flat-button class="acr-status-banner__action acr-status-banner__action--primary"
+                                        [disabled]="acrRoleAssigning()"
+                                        (click)="addAcrPullRoleAssignment()">
+                                  @if (acrRoleAssigning()) {
+                                    <mat-spinner diameter="14"></mat-spinner>
+                                  } @else {
+                                    <mat-icon>add_circle_outline</mat-icon>
+                                  }
+                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
+                                </button>
+                              </div>
                             }
                           </div>
                         </div>
@@ -1209,7 +1233,7 @@
                 {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ADD' | translate }}
               </button>
               @if (assignedUai(); as uai) {
-                <!-- UAI already assigned → show current + switch button -->
+                <!-- UAI already assigned → show current + switch / unassign buttons -->
                 <div class="ra-assigned-uai">
                   <div class="ra-assigned-uai__current">
                     <mat-icon class="ra-assigned-uai__icon">person</mat-icon>
@@ -1233,6 +1257,12 @@
                       }
                     </mat-menu>
                   }
+                  <button class="ra-add-btn ra-add-btn--unassign"
+                          (click)="openUnassignUaiDialog(uai)"
+                          [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_TOOLTIP' | translate">
+                    <mat-icon>person_remove</mat-icon>
+                    {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI' | translate }}
+                  </button>
                 </div>
               } @else if (availableUserAssignedIdentities().length > 0) {
                 <!-- No UAI assigned yet → show assign button -->

@@ -1609,6 +1609,74 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
+  protected openUnassignUaiDialog(uai: { identityId: string; identityName: string; assignments: RoleAssignmentResponse[] }): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_TITLE',
+        messageKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_MESSAGE',
+        messageParams: { identity: uai.identityName },
+        confirmKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_CONFIRM',
+        cancelKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '480px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      await this.unassignUaiFromResource(uai);
+    });
+  }
+
+  private async unassignUaiFromResource(uai: { identityId: string; identityName: string; assignments: RoleAssignmentResponse[] }): Promise<void> {
+    this.roleAssignmentsError.set('');
+    try {
+      for (const ra of uai.assignments) {
+        const updated = await this.roleAssignmentService.updateIdentity(
+          this.resourceId,
+          ra.id,
+          { managedIdentityType: 'SystemAssigned', userAssignedIdentityId: null }
+        );
+        this.roleAssignments.update(list =>
+          list.map(existing => existing.id === updated.id ? updated : existing)
+        );
+      }
+      await this.checkUaiUsageAndProposeDelete(uai.identityId, uai.identityName);
+    } catch {
+      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_ERROR');
+    }
+  }
+
+  private async checkUaiUsageAndProposeDelete(identityId: string, identityName: string): Promise<void> {
+    try {
+      const grants = await this.userAssignedIdentityService.getGrantedRoleAssignments(identityId);
+      const usedByOthers = grants.some(ra => ra.sourceResourceId !== identityId);
+      if (usedByOthers) return;
+
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        data: {
+          titleKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DELETE_UNUSED_UAI_TITLE',
+          messageKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DELETE_UNUSED_UAI_MESSAGE',
+          messageParams: { identity: identityName },
+          confirmKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DELETE_UNUSED_UAI_CONFIRM',
+          cancelKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DELETE_UNUSED_UAI_CANCEL',
+        } satisfies ConfirmDialogData,
+        width: '480px',
+      });
+
+      dialogRef.afterClosed().subscribe(async (deleteConfirmed?: boolean) => {
+        if (!deleteConfirmed) return;
+        try {
+          await this.userAssignedIdentityService.delete(identityId);
+          this.allResources.update(list => list.filter(r => r.id !== identityId));
+        } catch {
+          this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.DELETE_UAI_ERROR');
+        }
+      });
+    } catch {
+      // Silently fail the usage check — unassign already succeeded
+    }
+  }
+
   protected openRemoveRoleAssignmentDialog(assignment: RoleAssignmentResponse): void {
     const roleName = this.resolveRoleName(assignment.roleDefinitionId);
     const targetName = this.resolveTargetName(assignment.targetResourceId);

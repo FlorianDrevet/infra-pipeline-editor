@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -37,6 +37,19 @@ export class RoleAssignmentImpactDialogComponent implements OnInit {
   protected loading = signal(true);
   protected impactResult = signal<RoleAssignmentImpactResponse | null>(null);
   protected error = signal(false);
+
+  protected filteredImpacts = computed(() => {
+    const result = this.impactResult();
+    if (!result?.impacts) return [];
+    const pairKeys = new Set(
+      result.impacts
+        .filter(i => i.impactType !== 'LastRoleToTarget')
+        .map(i => `${i.affectedResourceId}::${i.targetResourceId}`)
+    );
+    return result.impacts.filter(
+      i => i.impactType !== 'LastRoleToTarget' || !pairKeys.has(`${i.affectedResourceId}::${i.targetResourceId}`)
+    );
+  });
 
   protected readonly roleName = this.data.roleName;
   protected readonly targetResourceName = this.data.targetResourceName;

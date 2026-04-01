@@ -21,13 +21,8 @@
         {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_MESSAGE' | translate: { role: roleName, target: targetResourceName } }}
       </p>
     } @else {
-      <div class="impact-warning-banner">
-        <mat-icon color="warn">warning</mat-icon>
-        <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.HAS_IMPACT_WARNING' | translate }}</span>
-      </div>
-
       <div class="impact-list">
-        @for (impact of impactResult()!.impacts; track impact.affectedResourceId + impact.targetResourceId) {
+        @for (impact of filteredImpacts(); track impact.affectedResourceId + impact.targetResourceId + impact.impactType) {
           <div class="impact-item" [class.impact-item--critical]="impact.severity === 'Critical'" [class.impact-item--warning]="impact.severity === 'Warning'">
             <div class="impact-item__header">
               <mat-icon [class.icon-critical]="impact.severity === 'Critical'" [class.icon-warning]="impact.severity === 'Warning'">
