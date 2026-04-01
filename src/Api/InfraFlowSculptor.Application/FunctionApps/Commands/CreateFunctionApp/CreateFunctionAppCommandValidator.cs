@@ -1,4 +1,5 @@
 using FluentValidation;
+using InfraFlowSculptor.Domain.Common.Catalogs;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp;
@@ -27,6 +28,13 @@ public sealed class CreateFunctionAppCommandValidator : AbstractValidator<Create
             .WithMessage("RuntimeStack must be a valid value (DotNet, Node, Python, Java, PowerShell).");
 
         RuleFor(x => x.RuntimeVersion)
-            .NotEmpty().WithMessage("RuntimeVersion is required.");
+            .NotEmpty().WithMessage("RuntimeVersion is required.")
+            .Must((cmd, version) =>
+            {
+                if (!Enum.TryParse<FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(cmd.RuntimeStack, out var stack))
+                    return true; // RuntimeStack validation handles this
+                return RuntimeVersionCatalog.IsValidFunctionAppVersion(stack, version);
+            })
+            .WithMessage("RuntimeVersion is not a valid version for the selected RuntimeStack.");
     }
 }

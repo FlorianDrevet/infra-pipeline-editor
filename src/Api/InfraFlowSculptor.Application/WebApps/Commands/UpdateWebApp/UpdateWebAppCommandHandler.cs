@@ -61,10 +61,6 @@ public class UpdateWebAppCommandHandler(
                     .Select(ec => (ec.EnvironmentName,
                         ec.AlwaysOn,
                         ec.HttpsOnly,
-                        ec.RuntimeStack is not null
-                            ? new WebAppRuntimeStack(Enum.Parse<WebAppRuntimeStack.WebAppRuntimeStackEnum>(ec.RuntimeStack))
-                            : (WebAppRuntimeStack?)null,
-                        ec.RuntimeVersion,
                         ec.DockerImageTag))
                     .ToList());
 

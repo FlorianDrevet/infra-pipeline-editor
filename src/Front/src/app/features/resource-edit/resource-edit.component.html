@@ -172,7 +172,7 @@
                     <div class="form-grid">
                       <mat-form-field appearance="outline" class="form-field">
                         <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                        <mat-select formControlName="runtimeStack">
+                        <mat-select formControlName="runtimeStack" (selectionChange)="onRuntimeStackChange($event.value)">
                           @for (opt of runtimeStackOptions; track opt.value) {
                             <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
                           }
@@ -180,7 +180,11 @@
                       </mat-form-field>
                       <mat-form-field appearance="outline" class="form-field">
                         <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                        <input matInput formControlName="runtimeVersion" />
+                        <mat-select formControlName="runtimeVersion">
+                          @for (ver of runtimeVersionOptions(); track ver) {
+                            <mat-option [value]="ver">{{ ver }}</mat-option>
+                          }
+                        </mat-select>
                       </mat-form-field>
                     </div>
                   } @else {
@@ -242,6 +246,11 @@
                                     }
                                   </mat-select>
                                 </mat-form-field>
+                                <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--create"
+                                        (click)="createNewUai()">
+                                  <mat-icon>add</mat-icon>
+                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+                                </button>
                               </div>
                             </div>
                           }
@@ -260,6 +269,11 @@
                                     }
                                   </mat-select>
                                 </mat-form-field>
+                                <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--create"
+                                        (click)="createNewUai()">
+                                  <mat-icon>add</mat-icon>
+                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+                                </button>
                                 @if (acrSelectedUaiId()) {
                                   <button mat-flat-button class="acr-status-banner__action"
                                           [disabled]="acrRoleAssigning()"
@@ -343,7 +357,7 @@
                     <div class="form-grid">
                       <mat-form-field appearance="outline" class="form-field">
                         <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                        <mat-select formControlName="runtimeStack">
+                        <mat-select formControlName="runtimeStack" (selectionChange)="onRuntimeStackChange($event.value)">
                           @for (opt of functionAppRuntimeStackOptions; track opt.value) {
                             <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
                           }
@@ -351,7 +365,11 @@
                       </mat-form-field>
                       <mat-form-field appearance="outline" class="form-field">
                         <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                        <input matInput formControlName="runtimeVersion" />
+                        <mat-select formControlName="runtimeVersion">
+                          @for (ver of runtimeVersionOptions(); track ver) {
+                            <mat-option [value]="ver">{{ ver }}</mat-option>
+                          }
+                        </mat-select>
                       </mat-form-field>
                     </div>
                   } @else {
@@ -413,6 +431,11 @@
                                     }
                                   </mat-select>
                                 </mat-form-field>
+                                <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--create"
+                                        (click)="createNewUai()">
+                                  <mat-icon>add</mat-icon>
+                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+                                </button>
                               </div>
                             </div>
                           }
@@ -431,6 +454,11 @@
                                     }
                                   </mat-select>
                                 </mat-form-field>
+                                <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--create"
+                                        (click)="createNewUai()">
+                                  <mat-icon>add</mat-icon>
+                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+                                </button>
                                 @if (acrSelectedUaiId()) {
                                   <button mat-flat-button class="acr-status-banner__action"
                                           [disabled]="acrRoleAssigning()"
@@ -534,6 +562,11 @@
                                 }
                               </mat-select>
                             </mat-form-field>
+                            <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--create"
+                                    (click)="createNewUai()">
+                              <mat-icon>add</mat-icon>
+                              {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+                            </button>
                           </div>
                         </div>
                       }
@@ -552,6 +585,11 @@
                                 }
                               </mat-select>
                             </mat-form-field>
+                            <button mat-stroked-button class="acr-status-banner__action acr-status-banner__action--create"
+                                    (click)="createNewUai()">
+                              <mat-icon>add</mat-icon>
+                              {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+                            </button>
                             @if (acrSelectedUaiId()) {
                               <button mat-flat-button class="acr-status-banner__action"
                                       [disabled]="acrRoleAssigning()"
@@ -789,22 +827,6 @@
                       </mat-form-field>
                     }
                     @case ('WebApp') {
-                      @if (!isContainerMode()) {
-                        <mat-form-field appearance="outline" class="form-field">
-                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                          <mat-select formControlName="runtimeStack">
-                            <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                            @for (opt of runtimeStackOptions; track opt.value) {
-                              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                            }
-                          </mat-select>
-                        </mat-form-field>
-                        <mat-form-field appearance="outline" class="form-field">
-                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                          <input matInput formControlName="runtimeVersion" />
-                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                        </mat-form-field>
-                      }
                       @if (isContainerMode()) {
                         <mat-form-field appearance="outline" class="form-field">
                           <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG' | translate }}</mat-label>
@@ -825,20 +847,6 @@
                     }
                     @case ('FunctionApp') {
                       @if (!isContainerMode()) {
-                        <mat-form-field appearance="outline" class="form-field">
-                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                          <mat-select formControlName="runtimeStack">
-                            <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                            @for (opt of functionAppRuntimeStackOptions; track opt.value) {
-                              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                            }
-                          </mat-select>
-                        </mat-form-field>
-                        <mat-form-field appearance="outline" class="form-field">
-                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                          <input matInput formControlName="runtimeVersion" />
-                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                        </mat-form-field>
                         <mat-form-field appearance="outline" class="form-field">
                           <mat-label>{{ 'RESOURCE_EDIT.FIELDS.FUNCTIONS_WORKER_RUNTIME' | translate }}</mat-label>
                           <input matInput formControlName="functionsWorkerRuntime" />

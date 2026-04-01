@@ -30,15 +30,6 @@ public sealed class FunctionAppEnvironmentSettingsConfiguration
 
         builder.Property(x => x.HttpsOnly);
 
-        builder.Property(x => x.RuntimeStack)
-            .HasConversion(
-                v => (object?)v != null ? v.Value.ToString() : null,
-                v => v != null
-                    ? new FunctionAppRuntimeStack(Enum.Parse<FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(v))
-                    : null);
-
-        builder.Property(x => x.RuntimeVersion);
-
         builder.Property(x => x.MaxInstanceCount);
 
         builder.Property(x => x.FunctionsWorkerRuntime);

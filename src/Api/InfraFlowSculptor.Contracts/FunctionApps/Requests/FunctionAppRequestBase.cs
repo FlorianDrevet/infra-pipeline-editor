@@ -57,13 +57,6 @@ public class FunctionAppEnvironmentConfigEntry
     /// <summary>Optional HTTPS-only override.</summary>
     public bool? HttpsOnly { get; init; }
 
-    /// <summary>Optional runtime stack override.</summary>
-    [EnumValidation(typeof(FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum))]
-    public string? RuntimeStack { get; init; }
-
-    /// <summary>Optional runtime version override.</summary>
-    public string? RuntimeVersion { get; init; }
-
     /// <summary>Optional maximum scale-out instance count override.</summary>
     public int? MaxInstanceCount { get; init; }
 
@@ -78,8 +71,6 @@ public class FunctionAppEnvironmentConfigEntry
 public record FunctionAppEnvironmentConfigResponse(
     string EnvironmentName,
     bool? HttpsOnly,
-    string? RuntimeStack,
-    string? RuntimeVersion,
     int? MaxInstanceCount,
     string? FunctionsWorkerRuntime,
     string? DockerImageTag);

@@ -20,7 +20,7 @@ public sealed class WebAppMappingConfig : IRegister
                 src => src.EnvironmentSettings == null
                     ? null
                     : src.EnvironmentSettings.Select(ec => new WebAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.AlwaysOn, ec.HttpsOnly, ec.RuntimeStack, ec.RuntimeVersion, ec.DockerImageTag)).ToList());
+                        ec.EnvironmentName, ec.AlwaysOn, ec.HttpsOnly, ec.DockerImageTag)).ToList());
 
         config.NewConfig<(Guid Id, UpdateWebAppRequest Request), UpdateWebAppCommand>()
             .MapWith(src => new UpdateWebAppCommand(
@@ -38,7 +38,7 @@ public sealed class WebAppMappingConfig : IRegister
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new WebAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.AlwaysOn, ec.HttpsOnly, ec.RuntimeStack, ec.RuntimeVersion, ec.DockerImageTag)).ToList()));
+                        ec.EnvironmentName, ec.AlwaysOn, ec.HttpsOnly, ec.DockerImageTag)).ToList()));
 
         config.NewConfig<WebApp, WebAppResult>()
             .Map(dest => dest.EnvironmentSettings,
@@ -46,8 +46,6 @@ public sealed class WebAppMappingConfig : IRegister
                     es.EnvironmentName,
                     es.AlwaysOn,
                     es.HttpsOnly,
-                    es.RuntimeStack != null ? es.RuntimeStack.Value.ToString() : null,
-                    es.RuntimeVersion,
                     es.DockerImageTag)).ToList())
             .Map(dest => dest.RuntimeStack, src => src.RuntimeStack.Value.ToString())
             .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value)
@@ -56,6 +54,6 @@ public sealed class WebAppMappingConfig : IRegister
 
         config.NewConfig<WebAppEnvironmentConfigData, WebAppEnvironmentConfigResponse>()
             .MapWith(src => new WebAppEnvironmentConfigResponse(
-                src.EnvironmentName, src.AlwaysOn, src.HttpsOnly, src.RuntimeStack, src.RuntimeVersion, src.DockerImageTag));
+                src.EnvironmentName, src.AlwaysOn, src.HttpsOnly, src.DockerImageTag));
     }
 }

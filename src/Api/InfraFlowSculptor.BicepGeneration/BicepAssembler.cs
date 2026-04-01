@@ -89,14 +89,14 @@ public static class BicepAssembler
             moduleFiles[$"modules/{folder}/{fileName}"] = RoleAssignmentModuleTemplates.GenerateModule(typeName);
         }
 
-        // Generate Key Vault secret module if sensitive outputs are exported to KV or ViaBicepparam secrets exist
+        // Generate Key Vault secrets batch module if sensitive outputs are exported to KV or ViaBicepparam secrets exist
         var hasSensitiveExports = appSettings.Any(s => s.IsSensitiveOutputExportedToKeyVault);
         var hasViaBicepparamSecrets = appSettings.Any(s =>
             s.IsKeyVaultReference && !s.IsSensitiveOutputExportedToKeyVault
             && s.SecretValueAssignment == "ViaBicepparam");
         if (hasSensitiveExports || hasViaBicepparamSecrets)
         {
-            moduleFiles["modules/KeyVault/kvSecret.module.bicep"] = GenerateKvSecretModule();
+            moduleFiles["modules/KeyVault/kvSecrets.module.bicep"] = GenerateKvSecretsModule();
         }
 
         return new GenerationResult
@@ -922,31 +922,24 @@ public static class BicepAssembler
                     sb.AppendLine($"        name: '{setting.Name}'");
 
                     if (setting.IsSensitiveOutputExportedToKeyVault
-                        && setting.SourceResourceName is not null
+                        && setting.KeyVaultResourceName is not null
                         && setting.SecretName is not null)
                     {
-                        // Sensitive output exported to KV — reference the generated kvSecret module's secretUri output
-                        var sourceModule = modules.FirstOrDefault(m =>
-                            m.LogicalResourceName.Equals(setting.SourceResourceName, StringComparison.OrdinalIgnoreCase));
+                        // Sensitive output exported to KV — reference the batch kvSecrets module's dictionary output
+                        var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.KeyVaultResourceName);
+                        var kvSecretsModuleSymbol = $"{kvIdentifier}KvSecretsModule";
 
-                        if (sourceModule is not null)
-                        {
-                            var secretIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.SecretName);
-                            var secretModuleSymbol = $"{sourceModule.ModuleName}{Capitalize(secretIdentifier)}SecretModule";
-
-                            sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{secretModuleSymbol}.outputs.secretUri}})'");
-                        }
+                        sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris['{EscapeBicepString(setting.SecretName)}']}})'");
                     }
                     else if (setting.IsKeyVaultReference && setting.KeyVaultResourceName is not null && setting.SecretName is not null)
                     {
                         if (setting.SecretValueAssignment == "ViaBicepparam")
                         {
-                            // ViaBicepparam secret — reference the generated kvSecret module's secretUri output
-                            var targetIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.TargetResourceName);
-                            var secretIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.SecretName);
-                            var secretModuleSymbol = $"{targetIdentifier}{Capitalize(secretIdentifier)}SecretModule";
+                            // ViaBicepparam secret — reference the batch kvSecrets module's dictionary output
+                            var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.KeyVaultResourceName);
+                            var kvSecretsModuleSymbol = $"{kvIdentifier}KvSecretsModule";
 
-                            sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{secretModuleSymbol}.outputs.secretUri}})'");
+                            sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris['{EscapeBicepString(setting.SecretName)}']}})'");
                         }
                         else
                         {
@@ -1009,87 +1002,81 @@ public static class BicepAssembler
             }
         }
 
-        // ── Key Vault secrets for sensitive output exports ────────────────
-        var sensitiveExports = appSettings
+        // ── Key Vault secrets (batch per Key Vault) ──────────────────────────
+        // Group all secrets (sensitive output exports + ViaBicepparam) by target Key Vault
+        // and emit one batch module call per KV using kvSecrets.module.bicep
+        var allKvSecrets = new List<(string KvResourceName, string SecretName, string ValueExpr)>();
+
+        // Collect sensitive output exports
+        foreach (var export in appSettings
             .Where(s => s.IsSensitiveOutputExportedToKeyVault
                 && s.KeyVaultResourceName is not null
                 && s.SecretName is not null
                 && s.SourceResourceName is not null
-                && s.SourceOutputBicepExpression is not null)
-            .ToList();
-
-        if (sensitiveExports.Count > 0)
+                && s.SourceOutputBicepExpression is not null))
         {
-            sb.AppendLine("// ── Key Vault secrets for sensitive resource outputs ──────────────────");
-            sb.AppendLine();
+            var sourceModule = modules.FirstOrDefault(m =>
+                m.LogicalResourceName.Equals(export.SourceResourceName!, StringComparison.OrdinalIgnoreCase));
 
-            foreach (var export in sensitiveExports)
+            if (sourceModule is not null)
             {
-                var kvModule = modules.FirstOrDefault(m =>
-                    m.LogicalResourceName.Equals(export.KeyVaultResourceName!, StringComparison.OrdinalIgnoreCase));
-                var sourceModule = modules.FirstOrDefault(m =>
-                    m.LogicalResourceName.Equals(export.SourceResourceName!, StringComparison.OrdinalIgnoreCase));
-
-                if (kvModule is null || sourceModule is null)
-                    continue;
-
-                var kvRgSymbol = BicepIdentifierHelper.ToBicepIdentifier(kvModule.ResourceGroupName);
-                var secretIdentifier = BicepIdentifierHelper.ToBicepIdentifier(export.SecretName!);
-                var secretModuleSymbol = $"{sourceModule.ModuleName}{Capitalize(secretIdentifier)}SecretModule";
-                var kvNameExpr = BuildNamingExpression(
-                    kvModule.LogicalResourceName, kvModule.ResourceAbbreviation,
-                    kvModule.ResourceTypeName, namingContext);
-
-                sb.AppendLine($"module {secretModuleSymbol} './modules/KeyVault/kvSecret.module.bicep' = {{");
-                sb.AppendLine($"  name: '{sourceModule.ModuleName}-{EscapeBicepString(export.SecretName!).ToLowerInvariant()}-secret'");
-                sb.AppendLine($"  scope: {kvRgSymbol}");
-                sb.AppendLine("  params: {");
-                sb.AppendLine($"    keyVaultName: {kvNameExpr}");
-                sb.AppendLine($"    secretName: '{EscapeBicepString(export.SecretName!)}'");
-                sb.AppendLine($"    secretValue: {sourceModule.ModuleName}Module.outputs.{export.SourceOutputName}");
-                sb.AppendLine("  }");
-                sb.AppendLine("}");
-                sb.AppendLine();
+                allKvSecrets.Add((
+                    export.KeyVaultResourceName!,
+                    export.SecretName!,
+                    $"{sourceModule.ModuleName}Module.outputs.{export.SourceOutputName}"));
             }
         }
 
-        // ── Key Vault secrets for ViaBicepparam static secrets ────────────
-        var viaBicepparamSecrets = appSettings
+        // Collect ViaBicepparam static secrets
+        foreach (var secret in appSettings
             .Where(s => s.IsKeyVaultReference && !s.IsSensitiveOutputExportedToKeyVault
                 && s.SecretValueAssignment == "ViaBicepparam"
                 && s.KeyVaultResourceName is not null
-                && s.SecretName is not null)
+                && s.SecretName is not null))
+        {
+            var secureParamName = GetSecureAppSettingParamName(secret.TargetResourceName, secret.SecretName!);
+            allKvSecrets.Add((secret.KeyVaultResourceName!, secret.SecretName!, secureParamName));
+        }
+
+        // Emit one batch module call per Key Vault
+        var secretsByKv = allKvSecrets
+            .GroupBy(s => s.KvResourceName, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        if (viaBicepparamSecrets.Count > 0)
+        if (secretsByKv.Count > 0)
         {
-            sb.AppendLine("// ── Key Vault secrets for ViaBicepparam static secrets ──────────────────");
+            sb.AppendLine("// ── Key Vault secrets (batch per Key Vault) ────────────────────────────");
             sb.AppendLine();
 
-            foreach (var secret in viaBicepparamSecrets)
+            foreach (var kvGroup in secretsByKv)
             {
                 var kvModule = modules.FirstOrDefault(m =>
-                    m.LogicalResourceName.Equals(secret.KeyVaultResourceName!, StringComparison.OrdinalIgnoreCase));
+                    m.LogicalResourceName.Equals(kvGroup.Key, StringComparison.OrdinalIgnoreCase));
 
                 if (kvModule is null)
                     continue;
 
+                var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(kvGroup.Key);
+                var kvSecretsModuleSymbol = $"{kvIdentifier}KvSecretsModule";
                 var kvRgSymbol = BicepIdentifierHelper.ToBicepIdentifier(kvModule.ResourceGroupName);
-                var secretIdentifier = BicepIdentifierHelper.ToBicepIdentifier(secret.SecretName!);
-                var targetIdentifier = BicepIdentifierHelper.ToBicepIdentifier(secret.TargetResourceName);
-                var secretModuleSymbol = $"{targetIdentifier}{Capitalize(secretIdentifier)}SecretModule";
                 var kvNameExpr = BuildNamingExpression(
                     kvModule.LogicalResourceName, kvModule.ResourceAbbreviation,
                     kvModule.ResourceTypeName, namingContext);
-                var secureParamName = GetSecureAppSettingParamName(secret.TargetResourceName, secret.SecretName!);
 
-                sb.AppendLine($"module {secretModuleSymbol} './modules/KeyVault/kvSecret.module.bicep' = {{");
-                sb.AppendLine($"  name: '{targetIdentifier}-{EscapeBicepString(secret.SecretName!).ToLowerInvariant()}-secret'");
+                sb.AppendLine($"module {kvSecretsModuleSymbol} './modules/KeyVault/kvSecrets.module.bicep' = {{");
+                sb.AppendLine($"  name: '{kvIdentifier}-kv-secrets'");
                 sb.AppendLine($"  scope: {kvRgSymbol}");
                 sb.AppendLine("  params: {");
                 sb.AppendLine($"    keyVaultName: {kvNameExpr}");
-                sb.AppendLine($"    secretName: '{EscapeBicepString(secret.SecretName!)}'");
-                sb.AppendLine($"    secretValue: {secureParamName}");
+                sb.AppendLine("    secrets: [");
+                foreach (var (_, secretName, valueExpr) in kvGroup)
+                {
+                    sb.AppendLine("      {");
+                    sb.AppendLine($"        name: '{EscapeBicepString(secretName)}'");
+                    sb.AppendLine($"        value: {valueExpr}");
+                    sb.AppendLine("      }");
+                }
+                sb.AppendLine("    ]");
                 sb.AppendLine("  }");
                 sb.AppendLine("}");
                 sb.AppendLine();
@@ -1625,37 +1612,38 @@ public static class BicepAssembler
     /// Generates the reusable Key Vault secret module template used when sensitive outputs
     /// are exported to a Key Vault.
     /// </summary>
-    private static string GenerateKvSecretModule()
+    /// <summary>
+    /// Produces the Key Vault batch secrets module template (<c>kvSecrets.module.bicep</c>).
+    /// Accepts a list of secrets and outputs a dictionary keyed by secret name → secretUri.
+    /// </summary>
+    private static string GenerateKvSecretsModule()
     {
         var sb = new StringBuilder();
         sb.AppendLine("// ──────────────────────────────────────────────────────────────────────");
-        sb.AppendLine("// Key Vault Secret Module — stores a sensitive value in a Key Vault");
+        sb.AppendLine("// Key Vault Secrets Module — stores multiple secrets in a Key Vault");
         sb.AppendLine("// ──────────────────────────────────────────────────────────────────────");
         sb.AppendLine();
         sb.AppendLine("@description('Name of the Key Vault')");
         sb.AppendLine("param keyVaultName string");
         sb.AppendLine();
-        sb.AppendLine("@description('Name of the secret')");
-        sb.AppendLine("param secretName string");
-        sb.AppendLine();
         sb.AppendLine("@secure()");
-        sb.AppendLine("@description('Value of the secret')");
-        sb.AppendLine("param secretValue string");
+        sb.AppendLine("@description('List of secrets to store: { name: string, value: string }[]')");
+        sb.AppendLine("param secrets array");
         sb.AppendLine();
         sb.AppendLine("resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {");
         sb.AppendLine("  name: keyVaultName");
         sb.AppendLine("}");
         sb.AppendLine();
-        sb.AppendLine("resource secret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {");
+        sb.AppendLine("resource kvSecrets 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = [for secret in secrets: {");
         sb.AppendLine("  parent: keyVault");
-        sb.AppendLine("  name: secretName");
+        sb.AppendLine("  name: secret.name");
         sb.AppendLine("  properties: {");
-        sb.AppendLine("    value: secretValue");
+        sb.AppendLine("    value: secret.value");
         sb.AppendLine("  }");
-        sb.AppendLine("}");
+        sb.AppendLine("}]");
         sb.AppendLine();
-        sb.AppendLine("@description('The secret URI including version')");
-        sb.AppendLine("output secretUri string = secret.properties.secretUri");
+        sb.AppendLine("@description('Dictionary of secret URIs keyed by secret name')");
+        sb.AppendLine("output secretUris object = toObject(range(0, length(secrets)), i => secrets[i].name, i => kvSecrets[i].properties.secretUri)");
         return sb.ToString();
     }
 

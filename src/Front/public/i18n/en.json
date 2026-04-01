@@ -439,6 +439,7 @@
         "ACR_ADD_ROLE_TO_UAI": "Add AcrPull role",
         "ACR_SELECT_UAI": "Select a UAI",
         "ACR_ASSIGN_UAI_AND_ROLE": "Assign UAI & add AcrPull",
+        "ACR_CREATE_UAI": "Create new UAI",
         "ACR_UAI_CALLOUT_TITLE": "User Assigned Identity",
         "ACR_UAI_CALLOUT_TEXT": "ACR image pulls use a User Assigned Identity. This avoids the propagation delay of System Assigned Identities, which can cause startup failures when the role assignment has not yet taken effect.",
         "ACR_UAI_CALLOUT_LINK": "Microsoft documentation — Managed Identity best practices",
@@ -1075,6 +1076,7 @@
       "ACR_ADD_ROLE_TO_UAI": "Add AcrPull role",
       "ACR_SELECT_UAI": "Select a UAI",
       "ACR_ASSIGN_UAI_AND_ROLE": "Assign UAI & add AcrPull",
+      "ACR_CREATE_UAI": "Create new UAI",
       "ACR_UAI_CALLOUT_TITLE": "User Assigned Identity",
       "ACR_UAI_CALLOUT_TEXT": "ACR image pulls use a User Assigned Identity. This avoids the propagation delay of System Assigned Identities, which can cause startup failures when the role assignment has not yet taken effect.",
       "ACR_UAI_CALLOUT_LINK": "Microsoft documentation — Managed Identity best practices",
@@ -1286,6 +1288,16 @@
       "STATIC_VG_DESC": "The value comes from an Azure DevOps pipeline variable group, injected at deploy time.",
       "STATIC_STEP3B_TITLE": "How is the secret value set?",
       "STATIC_SECRET_VG_DESC": "The value is injected from a pipeline variable group into the Key Vault secret at deploy time."
+    },
+    "CREATE_UAI_DIALOG": {
+      "TITLE": "New User Assigned Identity",
+      "NAME_LABEL": "Identity name",
+      "NAME_PLACEHOLDER": "e.g. uai-myapp-acr",
+      "LOCATION_INFO": "Location: {{location}} (inherited from parent resource)",
+      "CANCEL": "Cancel",
+      "CREATE": "Create",
+      "ERROR": "Failed to create the identity. Please try again.",
+      "ERROR_CONFLICT": "An identity with this name already exists."
     },
     "EDIT_APP_SETTING_DIALOG": {
       "TITLE": "Edit variable",

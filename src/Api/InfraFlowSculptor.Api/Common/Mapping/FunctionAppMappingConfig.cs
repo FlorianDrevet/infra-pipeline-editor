@@ -20,7 +20,7 @@ public sealed class FunctionAppMappingConfig : IRegister
                 src => src.EnvironmentSettings == null
                     ? null
                     : src.EnvironmentSettings.Select(ec => new FunctionAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.HttpsOnly, ec.RuntimeStack, ec.RuntimeVersion, ec.MaxInstanceCount, ec.FunctionsWorkerRuntime, ec.DockerImageTag)).ToList());
+                        ec.EnvironmentName, ec.HttpsOnly, ec.MaxInstanceCount, ec.FunctionsWorkerRuntime, ec.DockerImageTag)).ToList());
 
         config.NewConfig<(Guid Id, UpdateFunctionAppRequest Request), UpdateFunctionAppCommand>()
             .MapWith(src => new UpdateFunctionAppCommand(
@@ -37,15 +37,13 @@ public sealed class FunctionAppMappingConfig : IRegister
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new FunctionAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.HttpsOnly, ec.RuntimeStack, ec.RuntimeVersion, ec.MaxInstanceCount, ec.FunctionsWorkerRuntime, ec.DockerImageTag)).ToList()));
+                        ec.EnvironmentName, ec.HttpsOnly, ec.MaxInstanceCount, ec.FunctionsWorkerRuntime, ec.DockerImageTag)).ToList()));
 
         config.NewConfig<FunctionApp, FunctionAppResult>()
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new FunctionAppEnvironmentConfigData(
                     es.EnvironmentName,
                     es.HttpsOnly,
-                    es.RuntimeStack != null ? es.RuntimeStack.Value.ToString() : null,
-                    es.RuntimeVersion,
                     es.MaxInstanceCount,
                     es.FunctionsWorkerRuntime,
                     es.DockerImageTag)).ToList())
@@ -56,6 +54,6 @@ public sealed class FunctionAppMappingConfig : IRegister
 
         config.NewConfig<FunctionAppEnvironmentConfigData, FunctionAppEnvironmentConfigResponse>()
             .MapWith(src => new FunctionAppEnvironmentConfigResponse(
-                src.EnvironmentName, src.HttpsOnly, src.RuntimeStack, src.RuntimeVersion, src.MaxInstanceCount, src.FunctionsWorkerRuntime, src.DockerImageTag));
+                src.EnvironmentName, src.HttpsOnly, src.MaxInstanceCount, src.FunctionsWorkerRuntime, src.DockerImageTag));
     }
 }

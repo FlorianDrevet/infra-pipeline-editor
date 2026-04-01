@@ -19,12 +19,6 @@ public sealed class FunctionAppEnvironmentSettings : Entity<FunctionAppEnvironme
     /// <summary>Gets or sets the HTTPS-only override for this environment.</summary>
     public bool? HttpsOnly { get; private set; }
 
-    /// <summary>Gets or sets the runtime stack override for this environment.</summary>
-    public FunctionAppRuntimeStack? RuntimeStack { get; private set; }
-
-    /// <summary>Gets or sets the runtime version override for this environment (e.g., "8.0", "20").</summary>
-    public string? RuntimeVersion { get; private set; }
-
     /// <summary>Gets or sets the maximum number of scale-out instances for this environment.</summary>
     public int? MaxInstanceCount { get; private set; }
 
@@ -40,8 +34,6 @@ public sealed class FunctionAppEnvironmentSettings : Entity<FunctionAppEnvironme
         AzureResourceId functionAppId,
         string environmentName,
         bool? httpsOnly,
-        FunctionAppRuntimeStack? runtimeStack,
-        string? runtimeVersion,
         int? maxInstanceCount,
         string? functionsWorkerRuntime,
         string? dockerImageTag)
@@ -50,8 +42,6 @@ public sealed class FunctionAppEnvironmentSettings : Entity<FunctionAppEnvironme
         FunctionAppId = functionAppId;
         EnvironmentName = environmentName;
         HttpsOnly = httpsOnly;
-        RuntimeStack = runtimeStack;
-        RuntimeVersion = runtimeVersion;
         MaxInstanceCount = maxInstanceCount;
         FunctionsWorkerRuntime = functionsWorkerRuntime;
         DockerImageTag = dockerImageTag;
@@ -64,25 +54,19 @@ public sealed class FunctionAppEnvironmentSettings : Entity<FunctionAppEnvironme
         AzureResourceId functionAppId,
         string environmentName,
         bool? httpsOnly,
-        FunctionAppRuntimeStack? runtimeStack,
-        string? runtimeVersion,
         int? maxInstanceCount,
         string? functionsWorkerRuntime,
         string? dockerImageTag)
-        => new(functionAppId, environmentName, httpsOnly, runtimeStack, runtimeVersion, maxInstanceCount, functionsWorkerRuntime, dockerImageTag);
+        => new(functionAppId, environmentName, httpsOnly, maxInstanceCount, functionsWorkerRuntime, dockerImageTag);
 
     /// <summary>Updates the configuration overrides for this environment.</summary>
     public void Update(
         bool? httpsOnly,
-        FunctionAppRuntimeStack? runtimeStack,
-        string? runtimeVersion,
         int? maxInstanceCount,
         string? functionsWorkerRuntime,
         string? dockerImageTag)
     {
         HttpsOnly = httpsOnly;
-        RuntimeStack = runtimeStack;
-        RuntimeVersion = runtimeVersion;
         MaxInstanceCount = maxInstanceCount;
         FunctionsWorkerRuntime = functionsWorkerRuntime;
         DockerImageTag = dockerImageTag;
@@ -95,8 +79,6 @@ public sealed class FunctionAppEnvironmentSettings : Entity<FunctionAppEnvironme
     {
         var dict = new Dictionary<string, string>();
         if (HttpsOnly is not null) dict["httpsOnly"] = HttpsOnly.Value.ToString().ToLower();
-        if (RuntimeStack is not null) dict["runtimeStack"] = RuntimeStack.Value.ToString().ToLower();
-        if (RuntimeVersion is not null) dict["runtimeVersion"] = RuntimeVersion;
         if (MaxInstanceCount is not null) dict["maxInstanceCount"] = MaxInstanceCount.Value.ToString();
         if (FunctionsWorkerRuntime is not null) dict["functionsWorkerRuntime"] = FunctionsWorkerRuntime;
         if (DockerImageTag is not null) dict["dockerImageTag"] = DockerImageTag;

@@ -1,0 +1,40 @@
+<div class="as-dialog">
+  <h2 mat-dialog-title class="as-dialog__title">
+    <mat-icon>person_add</mat-icon>
+    {{ 'CREATE_UAI_DIALOG.TITLE' | translate }}
+  </h2>
+
+  <mat-dialog-content class="as-dialog__content">
+    <div class="config-section">
+      <mat-form-field appearance="outline" class="config-section__field">
+        <mat-label>{{ 'CREATE_UAI_DIALOG.NAME_LABEL' | translate }}</mat-label>
+        <input matInput [ngModel]="name()" (ngModelChange)="name.set($event)" [placeholder]="'CREATE_UAI_DIALOG.NAME_PLACEHOLDER' | translate" />
+      </mat-form-field>
+    </div>
+
+    <p class="location-info">
+      <mat-icon class="location-info__icon">location_on</mat-icon>
+      {{ 'CREATE_UAI_DIALOG.LOCATION_INFO' | translate: { location: data.location } }}
+    </p>
+
+    @if (errorKey()) {
+      <div class="as-dialog__error">
+        <mat-icon>error_outline</mat-icon>
+        {{ errorKey() | translate }}
+      </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="as-dialog__actions" align="end">
+    <button mat-stroked-button (click)="onCancel()" [disabled]="isSubmitting()">
+      {{ 'CREATE_UAI_DIALOG.CANCEL' | translate }}
+    </button>
+    <button mat-flat-button color="primary" (click)="onCreate()" [disabled]="isSubmitting() || !name()">
+      @if (isSubmitting()) {
+        <mat-spinner diameter="18"></mat-spinner>
+      } @else {
+        {{ 'CREATE_UAI_DIALOG.CREATE' | translate }}
+      }
+    </button>
+  </mat-dialog-actions>
+</div>

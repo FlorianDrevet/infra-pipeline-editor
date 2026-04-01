@@ -71,6 +71,7 @@ import { AppConfigurationKeyService } from './services/app-configuration-key.ser
 import { AppConfigurationKeyResponse } from './models/app-configuration-key.interface';
 import { AddAppConfigKeyDialogComponent, AddAppConfigKeyDialogData } from './add-app-config-key-dialog/add-app-config-key-dialog.component';
 import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } from './role-assignment-impact-dialog/role-assignment-impact-dialog.component';
+import { CreateUaiDialogComponent, CreateUaiDialogData } from './create-uai-dialog/create-uai-dialog.component';
 
 /** Union type for any loaded resource */
 type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse;
@@ -254,6 +255,22 @@ const ACR_PUBLIC_NETWORK_OPTIONS = [
   { label: 'Enabled', value: 'Enabled' },
   { label: 'Disabled', value: 'Disabled' },
 ];
+
+const WEBAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
+  DotNet: ['10', '9', '8'],
+  Node: ['22-lts', '20-lts'],
+  Python: ['3.13', '3.12', '3.11', '3.10'],
+  Java: ['21', '17', '11'],
+  Php: ['8.4', '8.3', '8.2'],
+};
+
+const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
+  DotNet: ['10-isolated', '9-isolated', '8-isolated', '8-in-process'],
+  Node: ['22', '20'],
+  Python: ['3.12', '3.11', '3.10'],
+  Java: ['21', '17', '11'],
+  PowerShell: ['7.4', '7.2'],
+};
 
 @Component({
   selector: 'app-resource-edit',
@@ -618,6 +635,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly cosmosBackupPolicyOptions = COSMOS_BACKUP_POLICY_OPTIONS;
   protected readonly acrSkuOptions = ACR_SKU_OPTIONS;
   protected readonly acrPublicNetworkOptions = ACR_PUBLIC_NETWORK_OPTIONS;
+  protected readonly runtimeVersionOptions = signal<string[]>([]);
 
   // ─── Forms ───
   protected generalForm!: FormGroup;
@@ -857,6 +875,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
 
     this.generalForm = this.fb.group(base);
+
+    // Initialize runtime version options for WebApp/FunctionApp
+    if (this.resourceType === 'WebApp') {
+      const stack = this.generalForm.get('runtimeStack')?.value;
+      this.runtimeVersionOptions.set(WEBAPP_RUNTIME_VERSION_MAP[stack] ?? []);
+    } else if (this.resourceType === 'FunctionApp') {
+      const stack = this.generalForm.get('runtimeStack')?.value;
+      this.runtimeVersionOptions.set(FUNCTIONAPP_RUNTIME_VERSION_MAP[stack] ?? []);
+    }
   }
 
   private buildEnvForms(resource: ResourceData): void {
@@ -912,8 +939,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return this.fb.group({
           alwaysOn: [settings?.alwaysOn ?? null],
           httpsOnly: [settings?.httpsOnly ?? null],
-          runtimeStack: [settings?.runtimeStack ?? null],
-          runtimeVersion: [settings?.runtimeVersion ?? null],
           dockerImageTag: [settings?.dockerImageTag ?? null],
         });
       }
@@ -922,8 +947,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         const settings = fa.environmentSettings?.find(s => s.environmentName === envName);
         return this.fb.group({
           httpsOnly: [settings?.httpsOnly ?? null],
-          runtimeStack: [settings?.runtimeStack ?? null],
-          runtimeVersion: [settings?.runtimeVersion ?? null],
           maxInstanceCount: [settings?.maxInstanceCount ?? null],
           functionsWorkerRuntime: [settings?.functionsWorkerRuntime ?? null],
           dockerImageTag: [settings?.dockerImageTag ?? null],
@@ -1238,6 +1261,18 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.formsDirty.set(true);
   }
 
+  protected onRuntimeStackChange(stack: string): void {
+    const map = this.resourceType === 'FunctionApp'
+      ? FUNCTIONAPP_RUNTIME_VERSION_MAP
+      : WEBAPP_RUNTIME_VERSION_MAP;
+    const versions = map[stack] ?? [];
+    this.runtimeVersionOptions.set(versions);
+    const currentVersion = this.generalForm.get('runtimeVersion')?.value;
+    if (currentVersion && !versions.includes(currentVersion)) {
+      this.generalForm.patchValue({ runtimeVersion: versions[0] ?? '' });
+    }
+  }
+
   protected async onContainerRegistryChange(acrId: string | null): Promise<void> {
     this.selectedContainerRegistryId.set(acrId);
     this.acrHasAccess.set(null);
@@ -1303,6 +1338,24 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     } finally {
       this.acrRoleAssigning.set(false);
     }
+  }
+
+  protected createNewUai(): void {
+    const res = this.resource();
+    if (!res) return;
+    const resourceGroupId = (res as { resourceGroupId?: string })?.resourceGroupId ?? '';
+    const location = res.location ?? 'EastUS2';
+
+    const dialogRef = this.dialog.open(CreateUaiDialogComponent, {
+      data: { resourceGroupId, location } as CreateUaiDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: UserAssignedIdentityResponse | undefined) => {
+      if (!result) return;
+      await this.loadAllResources();
+      this.acrSelectedUaiId.set(result.id);
+    });
   }
 
   ngOnDestroy(): void {
@@ -2455,8 +2508,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         environmentName: ef.envName,
         alwaysOn: raw.alwaysOn ?? null,
         httpsOnly: raw.httpsOnly ?? null,
-        runtimeStack: raw.runtimeStack || null,
-        runtimeVersion: raw.runtimeVersion || null,
         dockerImageTag: raw.dockerImageTag || null,
       };
     });
@@ -2468,8 +2519,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       return {
         environmentName: ef.envName,
         httpsOnly: raw.httpsOnly ?? null,
-        runtimeStack: raw.runtimeStack || null,
-        runtimeVersion: raw.runtimeVersion || null,
         maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
         functionsWorkerRuntime: raw.functionsWorkerRuntime || null,
         dockerImageTag: raw.dockerImageTag || null,

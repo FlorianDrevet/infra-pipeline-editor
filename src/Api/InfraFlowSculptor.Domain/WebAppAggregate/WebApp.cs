@@ -81,8 +81,6 @@ public class WebApp : AzureResource
         string environmentName,
         bool? alwaysOn,
         bool? httpsOnly,
-        WebAppRuntimeStack? runtimeStack,
-        string? runtimeVersion,
         string? dockerImageTag)
     {
         var existing = _environmentSettings.FirstOrDefault(
@@ -90,12 +88,12 @@ public class WebApp : AzureResource
 
         if (existing is not null)
         {
-            existing.Update(alwaysOn, httpsOnly, runtimeStack, runtimeVersion, dockerImageTag);
+            existing.Update(alwaysOn, httpsOnly, dockerImageTag);
         }
         else
         {
             _environmentSettings.Add(
-                WebAppEnvironmentSettings.Create(Id, environmentName, alwaysOn, httpsOnly, runtimeStack, runtimeVersion, dockerImageTag));
+                WebAppEnvironmentSettings.Create(Id, environmentName, alwaysOn, httpsOnly, dockerImageTag));
         }
     }
 
@@ -103,13 +101,13 @@ public class WebApp : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, WebAppRuntimeStack? RuntimeStack, string? RuntimeVersion, string? DockerImageTag)> settings)
+        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)> settings)
     {
         _environmentSettings.Clear();
         foreach (var s in settings)
         {
             _environmentSettings.Add(
-                WebAppEnvironmentSettings.Create(Id, s.EnvironmentName, s.AlwaysOn, s.HttpsOnly, s.RuntimeStack, s.RuntimeVersion, s.DockerImageTag));
+                WebAppEnvironmentSettings.Create(Id, s.EnvironmentName, s.AlwaysOn, s.HttpsOnly, s.DockerImageTag));
         }
     }
 
@@ -126,7 +124,7 @@ public class WebApp : AzureResource
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
         string? dockerImageName,
-        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, WebAppRuntimeStack? RuntimeStack, string? RuntimeVersion, string? DockerImageTag)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)>? environmentSettings = null)
     {
         var webApp = new WebApp
         {

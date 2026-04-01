@@ -60,10 +60,6 @@ public sealed class UpdateFunctionAppCommandHandler(
                 request.EnvironmentSettings
                     .Select(ec => (ec.EnvironmentName,
                         ec.HttpsOnly,
-                        ec.RuntimeStack is not null
-                            ? new FunctionAppRuntimeStack(Enum.Parse<FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(ec.RuntimeStack))
-                            : (FunctionAppRuntimeStack?)null,
-                        ec.RuntimeVersion,
                         ec.MaxInstanceCount,
                         ec.FunctionsWorkerRuntime,
                         ec.DockerImageTag))

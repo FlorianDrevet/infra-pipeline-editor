@@ -63,13 +63,6 @@ public class WebAppEnvironmentConfigEntry
     /// <summary>Optional HTTPS-only override.</summary>
     public bool? HttpsOnly { get; init; }
 
-    /// <summary>Optional runtime stack override.</summary>
-    [EnumValidation(typeof(WebAppRuntimeStack.WebAppRuntimeStackEnum))]
-    public string? RuntimeStack { get; init; }
-
-    /// <summary>Optional runtime version override.</summary>
-    public string? RuntimeVersion { get; init; }
-
     /// <summary>Optional Docker image tag override for this environment (e.g., "latest", "v1.2.3").</summary>
     public string? DockerImageTag { get; init; }
 }
@@ -79,6 +72,4 @@ public record WebAppEnvironmentConfigResponse(
     string EnvironmentName,
     bool? AlwaysOn,
     bool? HttpsOnly,
-    string? RuntimeStack,
-    string? RuntimeVersion,
     string? DockerImageTag);

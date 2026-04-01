@@ -438,6 +438,7 @@
         "ACR_ADD_ROLE_TO_UAI": "Ajouter le r\u00f4le AcrPull",
         "ACR_SELECT_UAI": "S\u00e9lectionner une UAI",
         "ACR_ASSIGN_UAI_AND_ROLE": "Assigner la UAI et ajouter AcrPull",
+        "ACR_CREATE_UAI": "Créer une nouvelle UAI",
         "ACR_UAI_CALLOUT_TITLE": "User Assigned Identity",
         "ACR_UAI_CALLOUT_TEXT": "Les pulls d'images ACR utilisent une User Assigned Identity. Cela \u00e9vite le d\u00e9lai de propagation des System Assigned Identities, qui peut provoquer des \u00e9checs au d\u00e9marrage lorsque l'attribution de r\u00f4le n'est pas encore effective.",
         "ACR_UAI_CALLOUT_LINK": "Documentation Microsoft \u2014 Bonnes pratiques Managed Identity",
@@ -1085,6 +1086,7 @@
       "ACR_ADD_ROLE_TO_UAI": "Ajouter le rôle AcrPull",
       "ACR_SELECT_UAI": "Sélectionner une UAI",
       "ACR_ASSIGN_UAI_AND_ROLE": "Assigner la UAI et ajouter AcrPull",
+      "ACR_CREATE_UAI": "Créer une nouvelle UAI",
       "ACR_UAI_CALLOUT_TITLE": "User Assigned Identity",
       "ACR_UAI_CALLOUT_TEXT": "Les pulls d'images ACR utilisent une User Assigned Identity. Cela évite le délai de propagation des System Assigned Identities, qui peut provoquer des échecs au démarrage lorsque l'attribution de rôle n'est pas encore effective.",
       "ACR_UAI_CALLOUT_LINK": "Documentation Microsoft — Bonnes pratiques Managed Identity",
@@ -1296,6 +1298,16 @@
       "STATIC_VG_DESC": "La valeur provient d'un groupe de variables Azure DevOps, inject\u00e9e au moment du d\u00e9ploiement.",
       "STATIC_STEP3B_TITLE": "Comment la valeur du secret est-elle d\u00e9finie ?",
       "STATIC_SECRET_VG_DESC": "La valeur est inject\u00e9e depuis un groupe de variables pipeline dans le secret du Key Vault au moment du d\u00e9ploiement."
+    },
+    "CREATE_UAI_DIALOG": {
+      "TITLE": "Nouvelle User Assigned Identity",
+      "NAME_LABEL": "Nom de l'identit\u00e9",
+      "NAME_PLACEHOLDER": "ex. uai-myapp-acr",
+      "LOCATION_INFO": "Localisation : {{location}} (h\u00e9rit\u00e9e de la ressource parente)",
+      "CANCEL": "Annuler",
+      "CREATE": "Cr\u00e9er",
+      "ERROR": "Impossible de cr\u00e9er l'identit\u00e9. Veuillez r\u00e9essayer.",
+      "ERROR_CONFLICT": "Une identit\u00e9 portant ce nom existe d\u00e9j\u00e0."
     },
     "EDIT_APP_SETTING_DIALOG": {
       "TITLE": "Modifier la variable",

@@ -3,8 +3,6 @@
 export interface FunctionAppEnvironmentConfigEntry {
   environmentName: string;
   httpsOnly?: boolean | null;
-  runtimeStack?: string | null;
-  runtimeVersion?: string | null;
   maxInstanceCount?: number | null;
   functionsWorkerRuntime?: string | null;
   dockerImageTag?: string | null;
@@ -13,8 +11,6 @@ export interface FunctionAppEnvironmentConfigEntry {
 export interface FunctionAppEnvironmentConfigResponse {
   environmentName: string;
   httpsOnly: boolean | null;
-  runtimeStack: string | null;
-  runtimeVersion: string | null;
   maxInstanceCount: number | null;
   functionsWorkerRuntime: string | null;
   dockerImageTag: string | null;

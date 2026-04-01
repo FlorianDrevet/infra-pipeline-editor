@@ -4,8 +4,6 @@ export interface WebAppEnvironmentConfigEntry {
   environmentName: string;
   alwaysOn?: boolean | null;
   httpsOnly?: boolean | null;
-  runtimeStack?: string | null;
-  runtimeVersion?: string | null;
   dockerImageTag?: string | null;
 }
 
@@ -13,8 +11,6 @@ export interface WebAppEnvironmentConfigResponse {
   environmentName: string;
   alwaysOn: boolean | null;
   httpsOnly: boolean | null;
-  runtimeStack: string | null;
-  runtimeVersion: string | null;
   dockerImageTag: string | null;
 }
 
