@@ -173,6 +173,22 @@ const ACR_PUBLIC_NETWORK_OPTIONS = [
   { label: 'Disabled', value: 'Disabled' },
 ];
 
+const WEBAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
+  DotNet: ['10', '9', '8'],
+  Node: ['22-lts', '20-lts'],
+  Python: ['3.13', '3.12', '3.11', '3.10'],
+  Java: ['21', '17', '11'],
+  Php: ['8.4', '8.3', '8.2'],
+};
+
+const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
+  DotNet: ['10-isolated', '9-isolated', '8-isolated', '8-in-process'],
+  Node: ['22', '20'],
+  Python: ['3.12', '3.11', '3.10'],
+  Java: ['21', '17', '11'],
+  PowerShell: ['7.4', '7.2'],
+};
+
 const CAE_WORKLOAD_PROFILE_OPTIONS = [
   { label: 'Consumption', value: 'Consumption' },
   { label: 'D4', value: 'D4' },
@@ -348,6 +364,7 @@ export class AddResourceDialogComponent {
   protected readonly aspSkuOptions = APP_SERVICE_PLAN_SKU_OPTIONS;
   protected readonly runtimeStackOptions = RUNTIME_STACK_OPTIONS;
   protected readonly functionAppRuntimeStackOptions = FUNCTION_APP_RUNTIME_STACK_OPTIONS;
+  protected readonly runtimeVersionOptions = signal<string[]>([]);
   protected readonly appConfigurationSkuOptions = APP_CONFIGURATION_SKU_OPTIONS;
   protected readonly appConfigurationPublicNetworkOptions = APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS;
   protected readonly caeSkuOptions = CAE_SKU_OPTIONS;
@@ -449,6 +466,9 @@ export class AddResourceDialogComponent {
         this.updateCommonFormValidators(childType);
         this.prefillParentFormField(childType);
         this.step.set('common');
+        if (childType === ResourceTypeEnum.WebApp || childType === ResourceTypeEnum.FunctionApp) {
+          this.loadAvailableContainerRegistries();
+        }
       }
     }
   }
@@ -476,6 +496,9 @@ export class AddResourceDialogComponent {
     if (this.parentResource) {
       this.prefillParentFormField(type);
       this.step.set('common');
+      if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp) {
+        this.loadAvailableContainerRegistries();
+      }
     } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights || type === ResourceTypeEnum.SqlDatabase) {
       this.step.set('plan-selection');
       this.loadExistingPlans();
@@ -485,6 +508,17 @@ export class AddResourceDialogComponent {
   }
 
   // ── Plan selection (WebApp flow) ──
+  private async loadAvailableContainerRegistries(): Promise<void> {
+    try {
+      const resourceGroups = await this.infraConfigService.getResourceGroups(this.data.configId);
+      const allResourceArrays = await Promise.all(resourceGroups.map(rg => this.resourceGroupService.getResources(rg.id)));
+      const allResources = allResourceArrays.flat();
+      this.availableContainerRegistries.set(allResources.filter(r => r.resourceType === 'ContainerRegistry'));
+    } catch {
+      this.availableContainerRegistries.set([]);
+    }
+  }
+
   private async loadExistingPlans(): Promise<void> {
     this.plansLoading.set(true);
     try {
@@ -725,6 +759,16 @@ export class AddResourceDialogComponent {
     }
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
+  }
+
+  protected onRuntimeStackChange(stack: string): void {
+    const type = this.selectedType();
+    const map = type === ResourceTypeEnum.FunctionApp
+      ? FUNCTIONAPP_RUNTIME_VERSION_MAP
+      : WEBAPP_RUNTIME_VERSION_MAP;
+    const versions = map[stack] ?? [];
+    this.runtimeVersionOptions.set(versions);
+    this.commonForm.patchValue({ runtimeVersion: versions[0] ?? '' });
   }
 
   protected onBackFromCommon(): void {

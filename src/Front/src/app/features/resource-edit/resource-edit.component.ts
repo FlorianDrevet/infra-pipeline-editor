@@ -72,6 +72,7 @@ import { AppConfigurationKeyResponse } from './models/app-configuration-key.inte
 import { AddAppConfigKeyDialogComponent, AddAppConfigKeyDialogData } from './add-app-config-key-dialog/add-app-config-key-dialog.component';
 import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } from './role-assignment-impact-dialog/role-assignment-impact-dialog.component';
 import { CreateUaiDialogComponent, CreateUaiDialogData } from './create-uai-dialog/create-uai-dialog.component';
+import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
 
 /** Union type for any loaded resource */
 type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse;
@@ -292,6 +293,7 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     MatTooltipModule,
     MatMenuModule,
     MatButtonToggleModule,
+    CompactSelectComponent,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
@@ -400,6 +402,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected readonly availableUserAssignedIdentities = computed(() =>
     this.allResources().filter(r => r.resourceType === 'UserAssignedIdentity')
+  );
+
+  protected readonly uaiOptionsForSelect = computed(() =>
+    this.availableUserAssignedIdentities().map(uai => ({ value: uai.id, label: uai.name }))
   );
 
   /** The currently assigned UAI (first group), or null if none */
@@ -1634,7 +1640,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         const updated = await this.roleAssignmentService.updateIdentity(
           this.resourceId,
           ra.id,
-          { managedIdentityType: 'SystemAssigned', userAssignedIdentityId: null }
+          { managedIdentityType: 'SystemAssigned' }
         );
         this.roleAssignments.update(list =>
           list.map(existing => existing.id === updated.id ? updated : existing)

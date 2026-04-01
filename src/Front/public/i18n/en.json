@@ -1145,7 +1145,19 @@
       "ASSIGN_UAI": "Assign identity",
       "SWITCH_UAI": "Switch identity",
       "SWITCH_UAI_TOOLTIP": "Only one User Assigned Identity can be assigned — switch to a different one",
-      "NAV_TO_UAI": "Go to identity"
+      "NAV_TO_UAI": "Go to identity",
+      "UNASSIGN_UAI": "Unassign",
+      "UNASSIGN_UAI_TOOLTIP": "Remove the User Assigned Identity from this resource and switch back to System Assigned",
+      "UNASSIGN_UAI_TITLE": "Unassign identity",
+      "UNASSIGN_UAI_MESSAGE": "All role assignments for this resource will be switched from \"{{identity}}\" to System Assigned. Continue?",
+      "UNASSIGN_UAI_CONFIRM": "Unassign",
+      "UNASSIGN_UAI_CANCEL": "Cancel",
+      "UNASSIGN_UAI_ERROR": "Unable to unassign the identity. Please try again.",
+      "DELETE_UNUSED_UAI_TITLE": "Delete unused identity?",
+      "DELETE_UNUSED_UAI_MESSAGE": "The identity \"{{identity}}\" is not used by any other resource. Do you want to delete it?",
+      "DELETE_UNUSED_UAI_CONFIRM": "Delete",
+      "DELETE_UNUSED_UAI_CANCEL": "Keep",
+      "DELETE_UAI_ERROR": "Unable to delete the identity. Please try again."
     },
     "ROLE_ASSIGNMENT_IMPACT": {
       "TITLE": "Impact Analysis",

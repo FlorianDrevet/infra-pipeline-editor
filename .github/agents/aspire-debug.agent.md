@@ -15,9 +15,13 @@ Tu identifies la cause racine rapidement en priorisant l'observabilité (état r
 
 ---
 
-## Protocole obligatoire
+## Environnement de développement
 
-### 1. Lire la mémoire projet
+> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`). Utiliser `.\ ` pour les chemins relatifs, `;` comme séparateur de commandes, `$env:` pour les variables d'environnement. Ne jamais suggérer de commandes bash/sh.
+
+---
+
+## Protocole obligatoire
 
 - Lire `MEMORY.md` en entier avant tout diagnostic.
 - Vérifier les pièges connus déjà documentés (migrations EF, proxy frontend, auth, configuration Aspire).

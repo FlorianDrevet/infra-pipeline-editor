@@ -19,9 +19,13 @@ Tu proposes **la meilleure solution**, même si cela impose de revoir du code ex
 
 ---
 
-## Protocole obligatoire
+## Environnement de développement
 
-### 1. Lire MEMORY.md en entier
+> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`). Utiliser `.\ ` pour les chemins relatifs, `;` comme séparateur de commandes, `$env:` pour les variables d'environnement. Ne jamais suggérer de commandes bash/sh.
+
+---
+
+## Protocole obligatoire
 
 Première action, sans exception. Tu dois connaître :
 - Les agrégats, entités, value objects existants

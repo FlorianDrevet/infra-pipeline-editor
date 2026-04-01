@@ -1140,6 +1140,20 @@
   }
 }
 
+// ─── Unassign UAI button variant ────
+
+.ra-add-btn--unassign {
+  border-color: rgba(211, 47, 47, 0.3);
+  background: linear-gradient(135deg, rgba(211, 47, 47, 0.08), rgba(244, 67, 54, 0.06));
+  color: #c62828;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(211, 47, 47, 0.14), rgba(244, 67, 54, 0.1));
+    border-color: rgba(211, 47, 47, 0.45);
+    box-shadow: 0 4px 16px rgba(211, 47, 47, 0.12);
+  }
+}
+
 // ─── Assigned UAI indicator + switch ────
 
 .ra-assigned-uai {

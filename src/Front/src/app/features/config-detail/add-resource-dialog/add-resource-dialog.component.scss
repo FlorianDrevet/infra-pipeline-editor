@@ -99,6 +99,33 @@
   color: #103454;
 }
 
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-field__label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #546e7a;
+}
+
+::ng-deep .deployment-toggle {
+  width: 100%;
+
+  .mat-button-toggle {
+    flex: 1;
+  }
+
+  .mat-button-toggle-label-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+}
+
 .resource-form {
   display: flex;
   flex-direction: column;

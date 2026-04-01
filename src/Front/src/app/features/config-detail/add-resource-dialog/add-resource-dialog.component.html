@@ -196,7 +196,7 @@
           </div>
           <div class="form-field" style="margin-bottom: 1rem;">
             <label class="form-field__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE' | translate }}</label>
-            <mat-button-toggle-group
+            <mat-button-toggle-group class="deployment-toggle"
               [value]="deploymentMode()"
               (change)="onDeploymentModeChange($event.value)">
               <mat-button-toggle value="Code">
@@ -213,7 +213,7 @@
             <div class="form-row">
               <mat-form-field appearance="outline" class="half-width">
                 <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
-                <mat-select formControlName="runtimeStack">
+                <mat-select formControlName="runtimeStack" (selectionChange)="onRuntimeStackChange($event.value)">
                   @for (option of runtimeStackOptions; track option.value) {
                     <mat-option [value]="option.value">{{ option.label }}</mat-option>
                   }
@@ -221,8 +221,11 @@
               </mat-form-field>
               <mat-form-field appearance="outline" class="half-width">
                 <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
-                <input matInput formControlName="runtimeVersion"
-                  [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION_PLACEHOLDER' | translate" />
+                <mat-select formControlName="runtimeVersion">
+                  @for (ver of runtimeVersionOptions(); track ver) {
+                    <mat-option [value]="ver">{{ ver }}</mat-option>
+                  }
+                </mat-select>
               </mat-form-field>
             </div>
           }
@@ -265,7 +268,7 @@
           </div>
           <div class="form-field" style="margin-bottom: 1rem;">
             <label class="form-field__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE' | translate }}</label>
-            <mat-button-toggle-group
+            <mat-button-toggle-group class="deployment-toggle"
               [value]="deploymentMode()"
               (change)="onDeploymentModeChange($event.value)">
               <mat-button-toggle value="Code">
@@ -282,7 +285,7 @@
             <div class="form-row">
               <mat-form-field appearance="outline" class="half-width">
                 <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
-                <mat-select formControlName="runtimeStack">
+                <mat-select formControlName="runtimeStack" (selectionChange)="onRuntimeStackChange($event.value)">
                   @for (option of functionAppRuntimeStackOptions; track option.value) {
                     <mat-option [value]="option.value">{{ option.label }}</mat-option>
                   }
@@ -290,8 +293,11 @@
               </mat-form-field>
               <mat-form-field appearance="outline" class="half-width">
                 <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
-                <input matInput formControlName="runtimeVersion"
-                  [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION_PLACEHOLDER' | translate" />
+                <mat-select formControlName="runtimeVersion">
+                  @for (ver of runtimeVersionOptions(); track ver) {
+                    <mat-option [value]="ver">{{ ver }}</mat-option>
+                  }
+                </mat-select>
               </mat-form-field>
             </div>
           }

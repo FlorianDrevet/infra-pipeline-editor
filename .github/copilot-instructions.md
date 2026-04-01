@@ -1,12 +1,16 @@
 # Copilot Instructions
 
+## Environnement de développement
+
+> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`). Utiliser `.\ ` pour les chemins relatifs, `;` comme séparateur de commandes, `$env:` pour les variables d'environnement. Ne jamais suggérer de commandes bash/sh.
+
 ## Build, run, and template commands
 
 - Use `.NET SDK 10.0.100` from `global.json`.
 - Build the full solution with `dotnet build .\InfraFlowSculptor.slnx`.
 - Run the full local stack with Aspire via `dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj`.
-- Run the infrastructure configuration API only with `dotnet run --project .\src\Api\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj`.
-- Run the Bicep generator API only with `dotnet run --project .\src\BicepGenerators\BicepGenerator.Api\BicepGenerator.Api.csproj`.
+- Build the infrastructure configuration API only with `dotnet build .\src\Api\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj`.
+- Build the Bicep generator API only with `dotnet build .\src\BicepGenerators\BicepGenerator.Api\BicepGenerator.Api.csproj`.
 - Frontend Angular commands run from `src\Front`:
   - `npm install`
   - `npm run start`

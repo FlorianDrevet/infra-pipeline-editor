@@ -10,6 +10,12 @@ description: 'Point d''entrée principal. Orchestre MEMORY.md, délègue aux age
 
 ---
 
+## Environnement de développement
+
+> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`). Utiliser `.\ ` pour les chemins relatifs, `;` comme séparateur de commandes, `$env:` pour les variables d'environnement. Ne jamais suggérer de commandes bash/sh.
+
+---
+
 ## Protocole obligatoire — Toujours exécuter dans cet ordre
 
 ### 1. Lire MEMORY.md en entier

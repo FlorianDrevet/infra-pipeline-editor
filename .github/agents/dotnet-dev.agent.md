@@ -20,6 +20,12 @@ Tu es l'expert C#/.NET 10 de ce dépôt. Tu maîtrises :
 
 ---
 
+## Environnement de développement
+
+> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`). Utiliser `.\ ` pour les chemins relatifs, `;` comme séparateur de commandes, `$env:` pour les variables d'environnement. Ne jamais suggérer de commandes bash/sh.
+
+---
+
 ## Protocole obligatoire au démarrage
 
 1. Lire `MEMORY.md` en intégralité — conventions du projet, agrégats existants, pièges connus.
