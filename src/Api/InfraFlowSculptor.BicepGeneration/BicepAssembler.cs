@@ -486,7 +486,7 @@ public static class BicepAssembler
             sb.AppendLine("    tags: {");
             foreach (var (tagKey, tagValue) in env.Tags)
             {
-                sb.AppendLine($"      {EscapeBicepString(tagKey)}: '{EscapeBicepString(tagValue)}'");
+                sb.AppendLine($"      {FormatBicepObjectKey(tagKey)}: '{EscapeBicepString(tagValue)}'");
             }
             sb.AppendLine("    }");
             sb.AppendLine("  }");
@@ -709,7 +709,7 @@ public static class BicepAssembler
                 sb.AppendLine("var projectTags = {");
                 foreach (var (tagKey, tagValue) in projectTags!)
                 {
-                    sb.AppendLine($"  '{EscapeBicepString(tagKey)}': '{EscapeBicepString(tagValue)}'");
+                    sb.AppendLine($"  {FormatBicepObjectKey(tagKey)}: '{EscapeBicepString(tagValue)}'");
                 }
                 sb.AppendLine("}");
                 sb.AppendLine();
@@ -720,7 +720,7 @@ public static class BicepAssembler
                 sb.AppendLine("var configTags = {");
                 foreach (var (tagKey, tagValue) in configTags!)
                 {
-                    sb.AppendLine($"  '{EscapeBicepString(tagKey)}': '{EscapeBicepString(tagValue)}'");
+                    sb.AppendLine($"  {FormatBicepObjectKey(tagKey)}: '{EscapeBicepString(tagValue)}'");
                 }
                 sb.AppendLine("}");
                 sb.AppendLine();
@@ -1564,6 +1564,15 @@ public static class BicepAssembler
     /// </summary>
     private static string EscapeBicepString(string value) =>
         value.Replace("'", "\\'");
+
+    /// <summary>
+    /// Formats a Bicep object key: returns the key unquoted if it is a valid Bicep identifier,
+    /// or wraps it in single quotes otherwise (e.g. when it contains hyphens or spaces).
+    /// </summary>
+    private static string FormatBicepObjectKey(string key) =>
+        System.Text.RegularExpressions.Regex.IsMatch(key, @"^[a-zA-Z_][a-zA-Z0-9_]*$")
+            ? key
+            : $"'{EscapeBicepString(key)}'";
 
     /// <summary>
     /// Strips the leading resource symbolic name from a catalog BicepExpression.
