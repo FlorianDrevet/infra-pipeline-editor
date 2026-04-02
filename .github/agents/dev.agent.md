@@ -18,16 +18,26 @@ description: 'Point d''entrée principal. Orchestre MEMORY.md, délègue aux age
 
 ## Protocole obligatoire — Toujours exécuter dans cet ordre
 
-### 1. Lire MEMORY.md en entier
+### 1. Lire MEMORY.md + fichiers thématiques
 
 **C'est la toute première action, sans exception.**
-`MEMORY.md` est la mémoire partagée de tous les agents Copilot du projet. Elle contient :
-- La structure du dépôt, les agrégats existants, les pièges connus
-- Les décisions d'architecture prises
-- Les conventions spécifiques au projet (nommage, EF Core, EF pitfalls, etc.)
-- L'historique des changements par date
 
-Sans cette lecture, tu risques de générer du code incohérent avec l'existant.
+La mémoire projet est structurée en fichiers thématiques sous `.github/memory/` :
+- `MEMORY.md` (racine) est l'**index léger** (~80 lignes max) qui pointe vers les fichiers thématiques
+- `.github/memory/01-solution-overview.md` à `12-api-endpoints.md` contiennent le détail par domaine
+- `.github/memory/changelog.md` contient l'historique des changements récents
+
+**Lecture obligatoire :** `MEMORY.md` + les fichiers thématiques pertinents à la tâche en cours.
+
+### 1bis. Dream Gate Check
+
+Après lecture de `MEMORY.md`, lire `.github/memory/dream-state.md` et :
+1. **Incrémenter** `sessionsSinceLastDream` de 1 (écrire la nouvelle valeur)
+2. **Vérifier les gates :**
+   - Time gate : `lastDreamDate` date ≥ 24h dans le passé ?
+   - Session gate : `sessionsSinceLastDream` ≥ 5 ?
+3. **Si les deux gates sont satisfaites :** invoquer `@dream` via `runSubagent` **AVANT** de traiter la demande utilisateur.
+4. **Si non :** continuer normalement.
 
 ### 2. Analyser la demande et décider
 
@@ -47,11 +57,12 @@ Avant toute génération de code, si un skill est pertinent :
 
 Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâche dépasse ton périmètre de coordination.
 
-### 5. Mettre à jour MEMORY.md
+### 5. Mettre à jour la mémoire projet
 
 **Obligatoire en fin de toute tâche non triviale :**
-- Ajouter les nouveaux agrégats, conventions, pièges découverts
-- Ajouter une ligne dans la section **Changelog** avec la date et la nature du changement
+- Ajouter les informations dans le **fichier thématique** approprié sous `.github/memory/`
+- Ajouter une ligne dans `.github/memory/changelog.md` avec la date et la nature du changement
+- Mettre à jour `MEMORY.md` (index) si un nouveau fichier thématique a été créé
 - Ne jamais supprimer d'informations existantes — compléter ou corriger seulement
 
 ---
@@ -65,6 +76,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Debug runtime/AppHost Aspire | **`aspire-debug`** | `.github/agents/aspire-debug.agent.md` |
 | Créer ou soumettre une Pull Request | **`pr-manager`** | `.github/agents/pr-manager.agent.md` |
 | Fusionner la branche main sur la courante | **`merge-main`** | `.github/agents/merge-main.agent.md` |
+| Consolidation mémoire (dream) | **`dream`** | `.github/agents/dream.agent.md` |
 | Toute PR/commit → relire les conventions PR | **`pr-manager`** | `.github/agents/pr-manager.agent.md` |
 
 ### Règles de délégation
@@ -152,7 +164,7 @@ Son rôle est de **lire la mémoire, analyser, charger les bons outils de connai
 ```
 [ ] Build vérifié : dotnet build .\InfraFlowSculptor.slnx (si code C# touché)
 [ ] Frontend vérifié : npm run typecheck + npm run build dans src/Front (si code Angular touché)
-[ ] MEMORY.md mis à jour (nouveaux agrégats, conventions, pièges)
-[ ] Changelog MEMORY.md : ligne ajoutée avec date et description
+[ ] Fichier thématique mis à jour dans .github/memory/ (nouveaux agrégats, conventions, pièges)
+[ ] Changelog : ligne ajoutée dans .github/memory/changelog.md
 [ ] PR déléguée à pr-manager si poussée sur GitHub
 ```
