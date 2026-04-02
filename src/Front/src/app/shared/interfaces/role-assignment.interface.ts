@@ -1,3 +1,8 @@
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+/** Well-known Azure role definition ID for AcrPull. Must use User Assigned Identity only. */
+export const ACR_PULL_ROLE_DEFINITION_ID = '7f951dda-4ed3-4680-a7ca-43fe172d538e';
+
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface RoleAssignmentResponse {

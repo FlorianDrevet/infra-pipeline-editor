@@ -965,7 +965,9 @@
                                 <mat-icon>swap_horiz</mat-icon>
                               </button>
                               <mat-menu #childIdentityMenu="matMenu" class="ra-identity-menu">
-                                <button mat-menu-item (click)="switchToSystemAssigned(ra)">
+                                <button mat-menu-item
+                                        [disabled]="ra.roleDefinitionId === acrPullRoleId"
+                                        (click)="switchToSystemAssigned(ra)">
                                   <mat-icon>fingerprint</mat-icon>
                                   <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_TO_SYSTEM' | translate }}</span>
                                 </button>
@@ -1805,17 +1807,15 @@
                         [value]="kvEntry.selectedIdentityType"
                         (change)="setKvEntryIdentityType(kvEntry.keyVaultResourceId, $event.value)"
                         class="kv-access-card__toggle-group">
-                        @if (uaiOptionsForSelect().length > 0) {
-                          <mat-button-toggle value="UserAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI' | translate }}</mat-button-toggle>
-                        }
+                        <mat-button-toggle value="UserAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI' | translate }}</mat-button-toggle>
                         <mat-button-toggle value="SystemAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_SAI' | translate }}</mat-button-toggle>
                       </mat-button-toggle-group>
                     </div>
                     @if (kvEntry.selectedIdentityType === 'UserAssigned') {
-                      @if (uaiOptionsForSelect().length === 1) {
+                      @if (assignedUai(); as uai) {
                         <div class="kv-access-card__uai-chip">
                           <mat-icon class="kv-access-card__uai-chip-icon">badge</mat-icon>
-                          <span class="kv-access-card__uai-chip-name">{{ uaiOptionsForSelect()[0].label }}</span>
+                          <span class="kv-access-card__uai-chip-name">{{ uai.identityName }}</span>
                         </div>
                       } @else {
                         <div class="kv-access-card__identity-row">
@@ -1823,15 +1823,19 @@
                             [options]="uaiOptionsForSelect()"
                             [value]="kvEntry.selectedUaiId"
                             [placeholder]="'RESOURCE_EDIT.APP_SETTINGS.KV_SELECT_UAI' | translate"
-                            [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
+                            [emptyText]="'RESOURCE_EDIT.APP_SETTINGS.KV_NO_UAI_AVAILABLE' | translate"
                             (valueChange)="setKvEntryUaiId(kvEntry.keyVaultResourceId, $event)">
                           </app-compact-select>
+                          <button class="kv-access-card__create-uai-btn" (click)="createNewUaiForKvEntry(kvEntry.keyVaultResourceId)">
+                            <mat-icon>add</mat-icon>
+                            {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_CREATE_UAI' | translate }}
+                          </button>
                         </div>
                       }
                     }
                   </div>
                   <button class="kv-access-card__action-btn"
-                    [disabled]="kvEntry.assigning || (kvEntry.selectedIdentityType === 'UserAssigned' && !kvEntry.selectedUaiId)"
+                    [disabled]="kvEntry.assigning || (kvEntry.selectedIdentityType === 'UserAssigned' && !assignedUai() && !kvEntry.selectedUaiId)"
                     (click)="assignKvRole(kvEntry)">
                     @if (kvEntry.assigning) {
                       <mat-spinner diameter="14"></mat-spinner>
@@ -2076,17 +2080,15 @@
                         [value]="kvEntry.selectedIdentityType"
                         (change)="setConfigKeyKvEntryIdentityType(kvEntry.keyVaultResourceId, $event.value)"
                         class="kv-access-card__toggle-group">
-                        @if (uaiOptionsForSelect().length > 0) {
-                          <mat-button-toggle value="UserAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI' | translate }}</mat-button-toggle>
-                        }
+                        <mat-button-toggle value="UserAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI' | translate }}</mat-button-toggle>
                         <mat-button-toggle value="SystemAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_SAI' | translate }}</mat-button-toggle>
                       </mat-button-toggle-group>
                     </div>
                     @if (kvEntry.selectedIdentityType === 'UserAssigned') {
-                      @if (uaiOptionsForSelect().length === 1) {
+                      @if (assignedUai(); as uai) {
                         <div class="kv-access-card__uai-chip">
                           <mat-icon class="kv-access-card__uai-chip-icon">badge</mat-icon>
-                          <span class="kv-access-card__uai-chip-name">{{ uaiOptionsForSelect()[0].label }}</span>
+                          <span class="kv-access-card__uai-chip-name">{{ uai.identityName }}</span>
                         </div>
                       } @else {
                         <div class="kv-access-card__identity-row">
@@ -2094,15 +2096,19 @@
                             [options]="uaiOptionsForSelect()"
                             [value]="kvEntry.selectedUaiId"
                             [placeholder]="'RESOURCE_EDIT.APP_SETTINGS.KV_SELECT_UAI' | translate"
-                            [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
+                            [emptyText]="'RESOURCE_EDIT.APP_SETTINGS.KV_NO_UAI_AVAILABLE' | translate"
                             (valueChange)="setConfigKeyKvEntryUaiId(kvEntry.keyVaultResourceId, $event)">
                           </app-compact-select>
+                          <button class="kv-access-card__create-uai-btn" (click)="createNewUaiForConfigKeyKvEntry(kvEntry.keyVaultResourceId)">
+                            <mat-icon>add</mat-icon>
+                            {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_CREATE_UAI' | translate }}
+                          </button>
                         </div>
                       }
                     }
                   </div>
                   <button class="kv-access-card__action-btn"
-                    [disabled]="kvEntry.assigning || (kvEntry.selectedIdentityType === 'UserAssigned' && !kvEntry.selectedUaiId)"
+                    [disabled]="kvEntry.assigning || (kvEntry.selectedIdentityType === 'UserAssigned' && !assignedUai() && !kvEntry.selectedUaiId)"
                     (click)="assignConfigKeyKvRole(kvEntry)">
                     @if (kvEntry.assigning) {
                       <mat-spinner diameter="14"></mat-spinner>

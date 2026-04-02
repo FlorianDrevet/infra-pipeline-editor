@@ -51,5 +51,10 @@ public static partial class Errors
         public static Error UserAssignedIdentityNotFound(AzureResourceId id) => Error.NotFound(
             code: "RoleAssignment.UserAssignedIdentityNotFound",
             description: $"User-Assigned Identity '{id.Value}' was not found.");
+
+        /// <summary>Error returned when attempting to assign the AcrPull role with System Assigned identity.</summary>
+        public static Error AcrPullRequiresUserAssigned() => Error.Validation(
+            code: "RoleAssignment.AcrPullRequiresUserAssigned",
+            description: "The AcrPull role can only be assigned using a User-Assigned Identity. System Assigned Identity is not supported for AcrPull.");
     }
 }

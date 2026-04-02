@@ -54,7 +54,7 @@ import { ContainerRegistryService } from '../../shared/services/container-regist
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
-import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse, RoleAssignmentImpactResponse } from '../../shared/interfaces/role-assignment.interface';
+import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse, RoleAssignmentImpactResponse, ACR_PULL_ROLE_DEFINITION_ID } from '../../shared/interfaces/role-assignment.interface';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
 import { LOCATION_OPTIONS } from '../../shared/enums/location.enum';
@@ -409,6 +409,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly corsMaxAgePresets = STORAGE_CORS_MAX_AGE_PRESETS;
 
   // ─── Role Assignments ───
+  protected readonly acrPullRoleId = ACR_PULL_ROLE_DEFINITION_ID;
   protected readonly roleAssignments = signal<RoleAssignmentResponse[]>([]);
   protected readonly roleAssignmentsLoading = signal(false);
   protected readonly roleAssignmentsError = signal('');
@@ -472,9 +473,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     return 'no-uai' as const;
   });
 
+  /** True when ACR integration is active: Container mode for WebApp/FunctionApp, or always for ContainerApp. */
+  protected readonly isAcrEnabled = computed(() =>
+    !!this.selectedContainerRegistryId() &&
+    (this.isContainerMode() || this.resourceType === 'ContainerApp')
+  );
+
   protected readonly isSaveBlockedByAcr = computed(() => {
-    if (!this.isContainerMode()) return false;
-    if (!this.selectedContainerRegistryId()) return false;
+    if (!this.isAcrEnabled()) return false;
     return this.acrAccessChecking() || this.acrHasAccess() === false;
   });
 
@@ -773,10 +779,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       this.buildEnvForms(resource);
       this.watchFormChanges();
 
-      // Check ACR pull access if a container registry is already selected
-      const acrId = this.generalForm.get('containerRegistryId')?.value;
-      if (acrId) {
-        this.checkAcrPullAccess(acrId);
+      // Check ACR pull access: container mode for WebApp/FunctionApp, always for ContainerApp
+      if (this.isAcrEnabled()) {
+        this.checkAcrPullAccess();
       }
 
       // Load role assignments and sibling resources in background (non-blocking)
@@ -906,6 +911,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
       base['containerRegistryId'] = [ca.containerRegistryId ?? null];
       base['dockerImageName'] = [ca.dockerImageName ?? null];
+      this.selectedContainerRegistryId.set(ca.containerRegistryId ?? null);
     } else if (this.resourceType === 'ApplicationInsights') {
       const ai = resource as ApplicationInsightsResponse;
       base['logAnalyticsWorkspaceId'] = [ai.logAnalyticsWorkspaceId];
@@ -1291,10 +1297,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.buildGeneralForm(res);
     this.buildEnvForms(res);
     this.watchFormChanges();
-    this.selectedContainerRegistryId.set(this.generalForm.get('containerRegistryId')?.value ?? null);
-    const acrId = this.generalForm.get('containerRegistryId')?.value;
-    if (acrId && this.deploymentMode() === 'Container') {
-      this.checkAcrPullAccess(acrId);
+    // buildGeneralForm sets selectedContainerRegistryId for all applicable types (WebApp, FunctionApp, ContainerApp)
+    if (this.isAcrEnabled()) {
+      this.checkAcrPullAccess();
     } else {
       this.acrHasAccess.set(null);
     }
@@ -1661,10 +1666,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected openUnassignUaiDialog(uai: { identityId: string; identityName: string; assignments: RoleAssignmentResponse[] }): void {
+    const hasAcrPull = uai.assignments.some(ra => ra.roleDefinitionId === ACR_PULL_ROLE_DEFINITION_ID);
+    const messageKey = hasAcrPull
+      ? 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_MESSAGE_ACR_PULL'
+      : 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_MESSAGE';
+
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         titleKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_TITLE',
-        messageKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_MESSAGE',
+        messageKey,
         messageParams: { identity: uai.identityName },
         confirmKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_CONFIRM',
         cancelKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_CANCEL',
@@ -1681,7 +1691,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private async unassignUaiFromResource(uai: { identityId: string; identityName: string; assignments: RoleAssignmentResponse[] }): Promise<void> {
     this.roleAssignmentsError.set('');
     try {
-      for (const ra of uai.assignments) {
+      const acrPullAssignments = uai.assignments.filter(ra => ra.roleDefinitionId === ACR_PULL_ROLE_DEFINITION_ID);
+      const otherAssignments = uai.assignments.filter(ra => ra.roleDefinitionId !== ACR_PULL_ROLE_DEFINITION_ID);
+
+      // Transfer non-AcrPull assignments to System Assigned
+      for (const ra of otherAssignments) {
         const updated = await this.roleAssignmentService.updateIdentity(
           this.resourceId,
           ra.id,
@@ -1691,6 +1705,13 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           list.map(existing => existing.id === updated.id ? updated : existing)
         );
       }
+
+      // Remove AcrPull assignments (cannot be transferred to SAI)
+      for (const ra of acrPullAssignments) {
+        await this.roleAssignmentService.remove(this.resourceId, ra.id);
+        this.roleAssignments.update(list => list.filter(existing => existing.id !== ra.id));
+      }
+
       await this.checkUaiUsageAndProposeDelete(uai.identityId, uai.identityName);
     } catch {
       this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_ERROR');
@@ -1780,7 +1801,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     try {
       await this.roleAssignmentService.remove(this.resourceId, roleAssignmentId);
       this.roleAssignments.update(list => list.filter(ra => ra.id !== roleAssignmentId));
-      if (this.isContainerMode() && this.selectedContainerRegistryId()) {
+      if (this.isAcrEnabled()) {
         await this.checkAcrPullAccess();
       }
       if (this.supportsAppSettings()) {
@@ -1872,8 +1893,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
 
     const uaiOptions = this.uaiOptionsForSelect();
-    const hasUais = uaiOptions.length > 0;
-    const singleUaiId = uaiOptions.length === 1 ? uaiOptions[0].value : null;
+    const assigned = this.assignedUai();
+    const singleUaiId = assigned ? assigned.identityId : (uaiOptions.length === 1 ? uaiOptions[0].value : null);
     const entries: KvMissingRoleEntry[] = [...missingByKv.entries()].map(([kvId, affected]) => ({
       keyVaultResourceId: kvId,
       keyVaultName: this.resolveSourceName(kvId),
@@ -1882,7 +1903,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       affectedSettingsCount: affected.length,
       checking: true,
       assigning: false,
-      selectedIdentityType: hasUais ? 'UserAssigned' as const : 'SystemAssigned' as const,
+      selectedIdentityType: 'UserAssigned' as const,
       selectedUaiId: singleUaiId,
     }));
     this.kvMissingRoleEntries.set(entries);
@@ -1915,7 +1936,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         targetResourceId: entry.keyVaultResourceId,
         managedIdentityType: entry.selectedIdentityType,
         roleDefinitionId: entry.missingRoleDefinitionId!,
-        userAssignedIdentityId: entry.selectedIdentityType === 'UserAssigned' ? entry.selectedUaiId! : undefined,
+        userAssignedIdentityId: entry.selectedIdentityType === 'UserAssigned' ? (this.assignedUai()?.identityId ?? entry.selectedUaiId!) : undefined,
       });
       await this.loadAppSettings();
       await this.loadRoleAssignments();
@@ -1936,6 +1957,24 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.kvMissingRoleEntries.update(list =>
       list.map(e => e.keyVaultResourceId === kvId ? { ...e, selectedUaiId: uaiId } : e)
     );
+  }
+
+  protected createNewUaiForKvEntry(kvId: string): void {
+    const res = this.resource();
+    if (!res) return;
+    const resourceGroupId = (res as { resourceGroupId?: string })?.resourceGroupId ?? '';
+    const location = res.location ?? 'EastUS2';
+
+    const dialogRef = this.dialog.open(CreateUaiDialogComponent, {
+      data: { resourceGroupId, location } as CreateUaiDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: UserAssignedIdentityResponse | undefined) => {
+      if (!result) return;
+      await this.loadAllResources();
+      this.setKvEntryUaiId(kvId, result.id);
+    });
   }
 
   protected resolveSourceName(sourceResourceId: string): string {
@@ -2051,8 +2090,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
 
     const uaiOptions = this.uaiOptionsForSelect();
-    const hasUais = uaiOptions.length > 0;
-    const singleUaiId = uaiOptions.length === 1 ? uaiOptions[0].value : null;
+    const assigned = this.assignedUai();
+    const singleUaiId = assigned ? assigned.identityId : (uaiOptions.length === 1 ? uaiOptions[0].value : null);
     const entries: KvMissingRoleEntry[] = [...missingByKv.entries()].map(([kvId, affected]) => ({
       keyVaultResourceId: kvId,
       keyVaultName: this.resolveSourceName(kvId),
@@ -2061,7 +2100,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       affectedSettingsCount: affected.length,
       checking: true,
       assigning: false,
-      selectedIdentityType: hasUais ? 'UserAssigned' as const : 'SystemAssigned' as const,
+      selectedIdentityType: 'UserAssigned' as const,
       selectedUaiId: singleUaiId,
     }));
     this.configKeyKvMissingRoleEntries.set(entries);
@@ -2094,7 +2133,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         targetResourceId: entry.keyVaultResourceId,
         managedIdentityType: entry.selectedIdentityType,
         roleDefinitionId: entry.missingRoleDefinitionId!,
-        userAssignedIdentityId: entry.selectedIdentityType === 'UserAssigned' ? entry.selectedUaiId! : undefined,
+        userAssignedIdentityId: entry.selectedIdentityType === 'UserAssigned' ? (this.assignedUai()?.identityId ?? entry.selectedUaiId!) : undefined,
       });
       await this.loadConfigKeys();
       await this.loadRoleAssignments();
@@ -2115,6 +2154,24 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.configKeyKvMissingRoleEntries.update(list =>
       list.map(e => e.keyVaultResourceId === kvId ? { ...e, selectedUaiId: uaiId } : e)
     );
+  }
+
+  protected createNewUaiForConfigKeyKvEntry(kvId: string): void {
+    const res = this.resource();
+    if (!res) return;
+    const resourceGroupId = (res as { resourceGroupId?: string })?.resourceGroupId ?? '';
+    const location = res.location ?? 'EastUS2';
+
+    const dialogRef = this.dialog.open(CreateUaiDialogComponent, {
+      data: { resourceGroupId, location } as CreateUaiDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: UserAssignedIdentityResponse | undefined) => {
+      if (!result) return;
+      await this.loadAllResources();
+      this.setConfigKeyKvEntryUaiId(kvId, result.id);
+    });
   }
 
   protected openAddConfigKeyDialog(): void {

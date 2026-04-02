@@ -208,13 +208,19 @@
             class="identity-radio-group"
             [value]="selectedIdentityType()"
             (change)="onIdentityTypeChange($event.value)">
-            <mat-radio-button value="SystemAssigned">
+            <mat-radio-button value="SystemAssigned" [disabled]="isAcrPullSelected()">
               {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED' | translate }}
             </mat-radio-button>
             <mat-radio-button value="UserAssigned">
               {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.USER_ASSIGNED' | translate }}
             </mat-radio-button>
           </mat-radio-group>
+          @if (isAcrPullSelected()) {
+            <p class="config-section__hint">
+              <mat-icon>info_outline</mat-icon>
+              {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ACR_PULL_USER_ASSIGNED_ONLY' | translate }}
+            </p>
+          }
         </div>
 
         <!-- User-Assigned Identity picker -->
@@ -304,7 +310,7 @@
               <mat-label>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_LABEL' | translate }}</mat-label>
               <mat-select
                 [value]="selectedRoleId()"
-                (selectionChange)="selectedRoleId.set($event.value)">
+                (selectionChange)="onRoleChange($event.value)">
                 @for (role of availableRoles(); track role.id) {
                   <mat-option [value]="role.id">
                     {{ role.name }}

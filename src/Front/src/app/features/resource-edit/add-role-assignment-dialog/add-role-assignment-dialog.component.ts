@@ -16,6 +16,7 @@ import { UserAssignedIdentityService } from '../../../shared/services/user-assig
 import {
   AzureRoleDefinitionResponse,
   RoleAssignmentResponse,
+  ACR_PULL_ROLE_DEFINITION_ID,
 } from '../../../shared/interfaces/role-assignment.interface';
 import { RESOURCE_TYPE_ICONS } from '../../config-detail/enums/resource-type.enum';
 
@@ -84,6 +85,10 @@ export class AddRoleAssignmentDialogComponent {
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
 
+  /** AcrPull role can only use User Assigned Identity — force the selection. */
+  protected readonly isAcrPullSelected = computed(() =>
+    this.selectedRoleId() === ACR_PULL_ROLE_DEFINITION_ID
+  );
   // ─── User-Assigned Identity picker ───
   private readonly extraIdentities = signal<AzureResourceResponse[]>([]);
   protected readonly availableIdentities = computed(() => {
@@ -168,6 +173,13 @@ export class AddRoleAssignmentDialogComponent {
       this.selectedIdentityId.set('');
       this.showCreateIdentity.set(false);
       this.newIdentityName.set('');
+    }
+  }
+
+  protected onRoleChange(roleId: string): void {
+    this.selectedRoleId.set(roleId);
+    if (roleId === ACR_PULL_ROLE_DEFINITION_ID && this.selectedIdentityType() === 'SystemAssigned') {
+      this.onIdentityTypeChange('UserAssigned');
     }
   }
 

@@ -3,6 +3,7 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.Errors;
 using MediatR;
 
@@ -39,6 +40,14 @@ public sealed class UpdateRoleAssignmentIdentityCommandHandler(
 
         var managedIdentityType = new ManagedIdentityType(
             Enum.Parse<ManagedIdentityType.IdentityTypeEnum>(request.ManagedIdentityType, ignoreCase: true));
+
+        var existingAssignment = sourceResource.RoleAssignments.FirstOrDefault(r => r.Id == request.RoleAssignmentId);
+        if (existingAssignment is null)
+            return Errors.RoleAssignment.NotFound(request.RoleAssignmentId);
+
+        if (existingAssignment.RoleDefinitionId == AzureRoleDefinitionCatalog.AcrPull
+            && managedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.SystemAssigned)
+            return Errors.RoleAssignment.AcrPullRequiresUserAssigned();
 
         if (managedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned
             && request.UserAssignedIdentityId is null)

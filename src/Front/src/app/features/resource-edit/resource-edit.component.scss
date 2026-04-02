@@ -2720,5 +2720,30 @@
       height: 0.95rem;
     }
   }
+
+  &__create-uai-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border: 1px dashed var(--sys-outline-variant, rgba(16, 52, 84, 0.2));
+    border-radius: 8px;
+    background: transparent;
+    color: var(--sys-primary, #0d65c0);
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      border-color: var(--sys-primary, #0d65c0);
+      color: var(--sys-primary, #0d65c0);
+    }
+  }
 }
 

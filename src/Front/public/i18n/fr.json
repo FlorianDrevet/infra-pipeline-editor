@@ -1177,6 +1177,7 @@
       "UNASSIGN_UAI_TOOLTIP": "Retirer l\u2019identité User Assigned de cette ressource et revenir en System Assigned",
       "UNASSIGN_UAI_TITLE": "Désassigner l\u2019identité",
       "UNASSIGN_UAI_MESSAGE": "Toutes les assignations de rôle de cette ressource passeront de « {{identity}} » à System Assigned. Continuer ?",
+      "UNASSIGN_UAI_MESSAGE_ACR_PULL": "Les assignations de rôle passeront de « {{identity}} » à System Assigned. Les rôles AcrPull seront supprimés (AcrPull ne supporte que le User Assigned Identity). Continuer ?",
       "UNASSIGN_UAI_CONFIRM": "Désassigner",
       "UNASSIGN_UAI_CANCEL": "Annuler",
       "UNASSIGN_UAI_ERROR": "Impossible de désassigner l\u2019identité. Veuillez réessayer.",
@@ -1247,6 +1248,8 @@
       "KV_ON_UAI": "Identit\u00e9 assign\u00e9e par l'utilisateur (UAI)",
       "KV_ON_SAI": "Identit\u00e9 assign\u00e9e par le syst\u00e8me (SAI)",
       "KV_SELECT_UAI": "S\u00e9lectionner une identit\u00e9",
+      "KV_NO_UAI_AVAILABLE": "Aucune identit\u00e9 disponible",
+      "KV_CREATE_UAI": "Cr\u00e9er une identit\u00e9",
       "KV_ASSIGN_ROLE": "Assigner le r\u00f4le"
     },
     "ADD_APP_SETTING_DIALOG": {
@@ -1482,7 +1485,8 @@
       "SELECT_SOURCE_RESOURCE_DESC": "Choisissez la ressource qui utilisera l\u2019identit\u00e9 manag\u00e9e pour acc\u00e9der \u00e0 d\u2019autres ressources.",
       "SELECT_TARGET_RESOURCE": "Quelle ressource acc\u00e9der ?",
       "SELECT_TARGET_RESOURCE_DESC": "Choisissez la ressource \u00e0 laquelle cette identit\u00e9 manag\u00e9e aura acc\u00e8s.",
-      "SELECT_ROLE": "Quel r\u00f4le assigner ?"
+      "SELECT_ROLE": "Quel r\u00f4le assigner ?",
+      "ACR_PULL_USER_ASSIGNED_ONLY": "Le r\u00f4le AcrPull ne peut \u00eatre assign\u00e9 qu\u2019avec une User Assigned Identity."
     },
     "STORAGE_SERVICES": {
       "BLOB_CONTAINERS": "Conteneurs Blob",
