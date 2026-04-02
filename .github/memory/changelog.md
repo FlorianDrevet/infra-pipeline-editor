@@ -4,6 +4,8 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-02 | copilot | dev.agent.md — 3 Coordinator Mode upgrades: (1) step 4bis Plan→Execute→Verify loop, (2) Task Budget IN/OUT OF SCOPE dans template scratchpad, (3) section "Discipline de prompt Static vs Dynamic". Checklist de fin de tâche mise à jour. |
+| 2026-04-02 | copilot | dev.agent.md — Coordinator Mode improvements: Research phase (@Explore, step 2bis), Session Scratchpad (/memories/session/, step 2ter), Precise Delegation rule (no vague prompts), @Explore added to routing table, end-of-task checklist updated. |
 | 2026-04-02 | copilot | Fix ACR re-check reactivity for ContainerApp and WebApp after role removal. Added `isAcrEnabled` computed as single source of truth. |
 | 2026-04-02 | copilot | KV missing role warning for AppConfiguration Config Keys tab — full stack. |
 | 2026-04-02 | copilot | ACR banner UX improvements — no-UAI message, yellow card, why-UAI accordion. |

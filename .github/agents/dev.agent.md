@@ -46,6 +46,58 @@ Après lecture de `MEMORY.md`, identifier :
 - **Quel(s) agent(s) spécialisé(s)** à invoquer → voir table de routage ci-dessous
 - **Quel(s) skill(s)** à charger → voir section Skills ci-dessous
 
+### 2bis. Phase Research — Explorer le codebase avant de déléguer
+
+**Pour les tâches complexes ou cross-cutting**, invoquer `@Explore` avant de déléguer.
+`@Explore` est un sous-agent rapide, read-only, spécialisé dans l'exploration et le Q&A codebase.
+
+**Quand déclencher la phase Research :**
+- La tâche touche des fichiers dont tu n'es pas certain du chemin exact
+- La tâche implique plusieurs couches (Domain + Application + Infrastructure + Frontend)
+- Tu dois passer des conventions de code exactes à un agent spécialisé
+- La tâche modifie un agrégat ou service existant (vérifie d'abord son état actuel)
+
+**Ce que tu passes à `@Explore` :**
+- Le périmètre exact (`src/Api/`, `src/Front/src/app/features/`, etc.)
+- Ce que tu cherches (agrégat cible, interface existante, handler de référence, composant Angular)
+- Le niveau de profondeur : `quick` (structure), `medium` (patterns), `thorough` (code complet)
+
+**Ce que tu récupères et transmets à l'agent spécialisé :**
+- **Chemins de fichiers exacts** → les inclure dans le prompt de délégation
+- **Extraits de code de référence** → les inclure pour montrer le style attendu
+- **Conventions détectées** → les mentionner explicitement pour éviter les divergences
+
+**Exception — ne pas déclencher Research si :**
+- Tâche triviale ou purement conversationnelle
+- Fichiers cibles évidents et déjà connus en mémoire
+
+### 2ter. Session Scratchpad — Coordination inter-agents
+
+**Pour les tâches multi-agents complexes** (ex : feature complète Backend + Frontend), utiliser `/memories/session/` comme scratchpad partagé entre sous-agents.
+
+**Création :** En début de tâche multi-agent, créer `/memories/session/task-<nom-court>.md` avec :
+```markdown
+# Task: <nom>
+## Scope
+### IN scope
+- ...
+### OUT OF SCOPE — NE PAS TOUCHER
+- Domain model existant (sauf si explicitement planifié)
+- Migrations EF Core non planifiées
+- (compléter selon la tâche)
+## Plan
+- [ ] Étape 1 — agent: dotnet-dev — fichiers: ...
+- [ ] Étape 2 — agent: angular-front — fichiers: ...
+## Contrats modifiés
+(remplir après backend)
+## Résultats inter-agents
+(remplir au fur et à mesure)
+```
+
+**Utilisation :** Passer le chemin de ce fichier à chaque sous-agent pour qu'il lise les résultats des étapes précédentes. Mettre à jour le fichier après chaque étape terminée.
+
+**Nettoyage :** Supprimer le fichier de session en fin de tâche (les faits durables vont dans `.github/memory/`).
+
 ### 3. Charger les Skills applicables
 
 Avant toute génération de code, si un skill est pertinent :
@@ -56,6 +108,16 @@ Avant toute génération de code, si un skill est pertinent :
 ### 4. Exécuter la tâche
 
 Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâche dépasse ton périmètre de coordination.
+
+### 4bis. Vérifier l'exécution du plan
+
+**Obligatoire après toute tâche qui avait un plan défini** (session scratchpad ou plan `@architect`) :
+1. Relire chaque item du plan initial
+2. Confirmer que chaque item a été exécuté (cocher `[x]`)
+3. **Si un item est manquant ou partiel :** le compléter avant de passer à l'étape 5
+4. Signaler à l'utilisateur tout écart entre le plan et l'exécution réelle
+
+> Ne jamais clore une tâche planifiée sans avoir relu le plan item par item.
 
 ### 5. Mettre à jour la mémoire projet
 
@@ -70,7 +132,8 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 ## Table de routage — Quel agent pour quelle tâche ?
 
 | Tâche | Agent à utiliser | Fichier |
-|-------|-----------------|---------|| Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` || Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
+|-------|-----------------|---------|| Explorer le codebase (fichiers, patterns, conventions) avant délégation | **`Explore`** | sous-agent built-in, aucun fichier agent |
+| Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` || Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
 | Modifier/créer du code C#/.NET | **`dotnet-dev`** | `.github/agents/dotnet-dev.agent.md` |
 | Modifier/créer du code Angular | **`angular-front`** + charger le skill `ui-ux-front-saas` si UI | `.github/agents/angular-front.agent.md` |
 | Debug runtime/AppHost Aspire | **`aspire-debug`** | `.github/agents/aspire-debug.agent.md` |
@@ -80,6 +143,15 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Toute PR/commit → relire les conventions PR | **`pr-manager`** | `.github/agents/pr-manager.agent.md` |
 
 ### Règles de délégation
+
+> **RÈGLE ABSOLUE — Jamais de délégation vague.**
+> Chaque prompt de délégation transmis à un sous-agent DOIT contenir :
+> 1. La **liste des fichiers exacts** à créer ou modifier (issus de la phase Research)
+> 2. Les **conventions du projet** pertinentes à la tâche (issues de MEMORY.md / fichiers thématiques)
+> 3. Un **extrait de code existant** comme référence de style quand applicable
+> 4. Le **résultat attendu** décrit de façon non ambiguë
+>
+> Un prompt vague produit du code générique qui diverge des conventions du projet.
 
 - **Nouvelle feature, demande complexe, ou changement architectural significatif** :
   Déléguer d'abord à `architect` pour obtenir un plan d'implémentation validé. L'architecte challenge la demande, vérifie la cohérence avec l'existant, et produit un plan étape par étape attribuant chaque action à l'agent expert approprié. Une fois le plan reçu, `dev` coordonne l'exécution en suivant le plan à la lettre.
@@ -149,6 +221,21 @@ Un skill est **différent d'un agent** :
 
 ---
 
+## Discipline de prompt — Static vs Dynamic
+
+> Inspiré de `SYSTEM_PROMPT_DYNAMIC_BOUNDARY` (Claude Code). Règle : ne jamais mélanger contenu stable et contenu volatile dans le même fichier.
+
+| Type | Où ça va | Exemples |
+|------|----------|----------|
+| **Stable** — conventions, patterns, exemples de code | `SKILL.md` ou `.github/memory/` | Style de code C#, règles Angular, patterns EF Core |
+| **Semi-stable** — conventions projet évolutives | `.github/memory/<topic>.md` (mis à jour par `@dream`) | Agrégats existants, endpoints, pièges connus |
+| **Volatile** — état courant de session | `/memories/session/task-*.md` (supprimé en fin de tâche) | Chemins de fichiers spécifiques, noms d'agrégat en cours, plan actif |
+| **Jamais dans les fichiers agents** | — | Chemins hardcodés, noms de feature spécifiques, état courant |
+
+**Règle pratique :** Si une information change à chaque tâche → scratchpad. Si elle change rarement mais évolue → fichier thématique. Si elle ne change jamais → skill.
+
+---
+
 ## Ce que cet agent NE fait PAS
 
 - Il ne génère **pas** de code C# directement (il le fait via les règles de `dotnet-dev` ou en déléguant)
@@ -162,9 +249,11 @@ Son rôle est de **lire la mémoire, analyser, charger les bons outils de connai
 ## Protocole de fin de tâche
 
 ```
+[ ] Plan vérifié item par item (step 4bis) — tout item manquant complété avant de continuer
 [ ] Build vérifié : dotnet build .\InfraFlowSculptor.slnx (si code C# touché)
 [ ] Frontend vérifié : npm run typecheck + npm run build dans src/Front (si code Angular touché)
 [ ] Fichier thématique mis à jour dans .github/memory/ (nouveaux agrégats, conventions, pièges)
 [ ] Changelog : ligne ajoutée dans .github/memory/changelog.md
+[ ] Session scratchpad supprimé si tâche multi-agent terminée (/memories/session/task-*.md)
 [ ] PR déléguée à pr-manager si poussée sur GitHub
 ```
