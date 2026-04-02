@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-03 | copilot | Fix ACR UAI card not appearing for WebApp/FunctionApp/ContainerApp — `onContainerRegistryChange` now patches `generalForm.containerRegistryId` so the child `DeploymentConfigComponent` receives updated `containerRegistryId` input and shows the ACR identity card. |
 | 2026-04-03 | copilot | Fix ACR pull banner not showing for WebApp/FunctionApp when switching to Container mode with ACR already selected — `onDeploymentModeChange` now triggers `checkAcrPullAccess()`. Code already mutualized via `DeploymentConfigComponent`. |
 | 2026-04-03 | copilot | Assign UAI feature: reverted dialog approach, assignUaiToResource now converts SAI→UAI RAs with dedup, shows info message when no SAI RAs exist. Added i18n key ASSIGN_UAI_NO_SAI (fr/en). |
 | 2026-04-02 | copilot | Remove FunctionsWorkerRuntime from FunctionApp per-env (full stack) — derived automatically in Bicep from runtimeStack+runtimeVersion. Migration: `RemoveFunctionsWorkerRuntimeFromFunctionAppEnvSettings`. |

@@ -1330,6 +1330,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected async onContainerRegistryChange(acrId: string | null): Promise<void> {
     this.selectedContainerRegistryId.set(acrId);
+    this.generalForm.patchValue({ containerRegistryId: acrId });
     this.acrHasAccess.set(null);
     this.acrMissingRoleName.set(null);
     this.acrMissingRoleDefinitionId.set(null);
