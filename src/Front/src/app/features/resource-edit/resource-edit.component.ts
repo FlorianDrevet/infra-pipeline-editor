@@ -73,6 +73,20 @@ import { AddAppConfigKeyDialogComponent, AddAppConfigKeyDialogData } from './add
 import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } from './role-assignment-impact-dialog/role-assignment-impact-dialog.component';
 import { CreateUaiDialogComponent, CreateUaiDialogData } from './create-uai-dialog/create-uai-dialog.component';
 import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
+import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
+
+/** Key Vault missing role entry for the KV access warning banner */
+interface KvMissingRoleEntry {
+  keyVaultResourceId: string;
+  keyVaultName: string;
+  missingRoleName: string | null;
+  missingRoleDefinitionId: string | null;
+  affectedSettingsCount: number;
+  checking: boolean;
+  assigning: boolean;
+  selectedIdentityType: 'UserAssigned' | 'SystemAssigned';
+  selectedUaiId: string | null;
+}
 
 /** Union type for any loaded resource */
 type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse;
@@ -294,6 +308,7 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     MatMenuModule,
     MatButtonToggleModule,
     CompactSelectComponent,
+    DeploymentConfigComponent,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
@@ -580,6 +595,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     if (g.statics.length > 0) n++;
     return n;
   });
+
+  // ─── Key Vault Access Check (App Settings) ───
+  protected readonly kvMissingRoleEntries = signal<KvMissingRoleEntry[]>([]);
+  protected readonly kvMissingRoleChecking = signal(false);
 
   // ─── Configuration Keys (AppConfiguration) ───
   protected readonly configKeys = signal<AppConfigurationKeyResponse[]>([]);
@@ -1794,11 +1813,95 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     try {
       const settings = await this.appSettingService.getByResourceId(this.resourceId);
       this.appSettings.set(settings);
+      this.checkKvAccessForAppSettings(settings);
     } catch {
       this.appSettingsError.set('RESOURCE_EDIT.APP_SETTINGS.LOAD_ERROR');
     } finally {
       this.appSettingsLoading.set(false);
     }
+  }
+
+  private async checkKvAccessForAppSettings(settings: AppSettingResponse[]): Promise<void> {
+    const missingByKv = new Map<string, AppSettingResponse[]>();
+    for (const s of settings) {
+      if (s.isKeyVaultReference && s.keyVaultResourceId && s.hasKeyVaultAccess === false) {
+        const existing = missingByKv.get(s.keyVaultResourceId);
+        if (existing) {
+          existing.push(s);
+        } else {
+          missingByKv.set(s.keyVaultResourceId, [s]);
+        }
+      }
+    }
+
+    if (missingByKv.size === 0) {
+      this.kvMissingRoleEntries.set([]);
+      return;
+    }
+
+    const hasUais = this.uaiOptionsForSelect().length > 0;
+    const entries: KvMissingRoleEntry[] = [...missingByKv.entries()].map(([kvId, affected]) => ({
+      keyVaultResourceId: kvId,
+      keyVaultName: this.resolveSourceName(kvId),
+      missingRoleName: null,
+      missingRoleDefinitionId: null,
+      affectedSettingsCount: affected.length,
+      checking: true,
+      assigning: false,
+      selectedIdentityType: hasUais ? 'UserAssigned' as const : 'SystemAssigned' as const,
+      selectedUaiId: null,
+    }));
+    this.kvMissingRoleEntries.set(entries);
+    this.kvMissingRoleChecking.set(true);
+
+    for (const entry of entries) {
+      try {
+        const result = await this.appSettingService.checkKeyVaultAccess(this.resourceId, entry.keyVaultResourceId);
+        this.kvMissingRoleEntries.update(list =>
+          list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId
+            ? { ...e, missingRoleName: result.missingRoleName ?? null, missingRoleDefinitionId: result.missingRoleDefinitionId ?? null, checking: false }
+            : e
+          )
+        );
+      } catch {
+        this.kvMissingRoleEntries.update(list =>
+          list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, checking: false } : e)
+        );
+      }
+    }
+    this.kvMissingRoleChecking.set(false);
+  }
+
+  protected async assignKvRole(entry: KvMissingRoleEntry): Promise<void> {
+    this.kvMissingRoleEntries.update(list =>
+      list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, assigning: true } : e)
+    );
+    try {
+      await this.roleAssignmentService.add(this.resourceId, {
+        targetResourceId: entry.keyVaultResourceId,
+        managedIdentityType: entry.selectedIdentityType,
+        roleDefinitionId: entry.missingRoleDefinitionId!,
+        userAssignedIdentityId: entry.selectedIdentityType === 'UserAssigned' ? entry.selectedUaiId! : undefined,
+      });
+      await this.loadAppSettings();
+      await this.loadRoleAssignments();
+    } catch {
+      this.kvMissingRoleEntries.update(list =>
+        list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, assigning: false } : e)
+      );
+    }
+  }
+
+  protected setKvEntryIdentityType(kvId: string, type: 'UserAssigned' | 'SystemAssigned'): void {
+    this.kvMissingRoleEntries.update(list =>
+      list.map(e => e.keyVaultResourceId === kvId ? { ...e, selectedIdentityType: type, selectedUaiId: type === 'SystemAssigned' ? null : e.selectedUaiId } : e)
+    );
+  }
+
+  protected setKvEntryUaiId(kvId: string, uaiId: string | null): void {
+    this.kvMissingRoleEntries.update(list =>
+      list.map(e => e.keyVaultResourceId === kvId ? { ...e, selectedUaiId: uaiId } : e)
+    );
   }
 
   protected resolveSourceName(sourceResourceId: string): string {

@@ -72,6 +72,11 @@ import {
 import { ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
 import { AddVariableGroupDialogComponent } from './add-variable-group-dialog/add-variable-group-dialog.component';
 import { DiagnosticPopoverComponent } from '../../shared/components/diagnostic-popover/diagnostic-popover.component';
+import {
+  GenerationDiagnosticsDialogComponent,
+  GenerationDiagnosticsDialogData,
+} from '../../shared/components/generation-diagnostics-dialog/generation-diagnostics-dialog.component';
+import { firstValueFrom } from 'rxjs';
 
 interface ResourceDisplayItem {
   resource: AzureResourceResponse;
@@ -319,9 +324,12 @@ export class ConfigDetailComponent implements OnInit {
     const configId = this.config()?.id;
     if (!configId || this.generateAllLoading()) return;
 
+    const shouldContinue = await this.showDiagnosticsDialog();
+    if (!shouldContinue) return;
+
     await Promise.all([
-      this.generateBicep(),
-      this.generatePipeline(),
+      this.doGenerateBicep(),
+      this.doGeneratePipeline(),
     ]);
   }
 
@@ -1178,6 +1186,16 @@ export class ConfigDetailComponent implements OnInit {
     const configId = this.config()?.id;
     if (!configId || this.bicepLoading()) return;
 
+    const shouldContinue = await this.showDiagnosticsDialog();
+    if (!shouldContinue) return;
+
+    await this.doGenerateBicep();
+  }
+
+  private async doGenerateBicep(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.bicepLoading()) return;
+
     this.bicepLoading.set(true);
     this.bicepErrorKey.set('');
     this.bicepResult.set(null);
@@ -1243,6 +1261,16 @@ export class ConfigDetailComponent implements OnInit {
   // ─── Pipeline Generation ───
 
   protected async generatePipeline(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.pipelineLoading()) return;
+
+    const shouldContinue = await this.showDiagnosticsDialog();
+    if (!shouldContinue) return;
+
+    await this.doGeneratePipeline();
+  }
+
+  private async doGeneratePipeline(): Promise<void> {
     const configId = this.config()?.id;
     if (!configId || this.pipelineLoading()) return;
 
@@ -1324,6 +1352,32 @@ export class ConfigDetailComponent implements OnInit {
         this.loadError.set('CONFIG_DETAIL.DELETE.ERROR');
       }
     });
+  }
+
+  // ─── Generation Diagnostics Dialog ───
+
+  private async showDiagnosticsDialog(): Promise<boolean> {
+    const currentDiagnostics = this.diagnostics();
+    if (currentDiagnostics.length === 0) return true;
+
+    const configId = this.config()?.id;
+    const configName = this.config()?.name ?? '';
+    if (!configId) return true;
+
+    const dialogData: GenerationDiagnosticsDialogData = {
+      configDiagnostics: [{
+        configId,
+        configName,
+        diagnostics: currentDiagnostics,
+      }],
+    };
+    const dialogRef = this.dialog.open(GenerationDiagnosticsDialogComponent, {
+      data: dialogData,
+      width: '640px',
+      maxHeight: '80vh',
+    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    return result === true;
   }
 
   // ─── Configuration Diagnostics ───

@@ -1226,7 +1226,14 @@
       "REMOVE_YES": "Remove",
       "REMOVE_CANCEL": "Cancel",
       "REMOVE_ERROR": "Unable to remove the app setting. Please try again.",
-      "LOAD_ERROR": "Unable to load app settings."
+      "LOAD_ERROR": "Unable to load app settings.",
+      "KV_MISSING_ROLE_TITLE": "Missing Key Vault role assignment",
+      "KV_MISSING_ROLE_DESC": "This resource does not have the \"{{role}}\" role on Key Vault \"{{kvName}}\". {{count}} variable(s) reference secrets from this vault and will fail at runtime without this role.",
+      "KV_ASSIGN_ON": "Assign on",
+      "KV_ON_UAI": "User-Assigned Identity",
+      "KV_ON_SAI": "System-Assigned Identity",
+      "KV_SELECT_UAI": "Select identity",
+      "KV_ASSIGN_ROLE": "Assign role"
     },
     "ADD_APP_SETTING_DIALOG": {
       "MODE_OUTPUT": "Resource output",
@@ -1545,5 +1552,14 @@
         "TTL_HINT": "Blobs will be deleted after this many days since last modification (1–36 500)."
       }
     }
+  },
+  "GENERATION_DIAGNOSTICS": {
+    "TITLE": "Configuration Issues Detected",
+    "SUBTITLE": "The following issues were detected in your configuration. You can continue generation anyway or cancel to fix them first.",
+    "CONFIG_SECTION": "Configuration: {{name}}",
+    "RESOURCE_LABEL": "Resource",
+    "GO_TO_RESOURCE": "Go to resource",
+    "CONTINUE": "Continue anyway",
+    "CANCEL": "Cancel"
   }
 }

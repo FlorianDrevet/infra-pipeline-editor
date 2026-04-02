@@ -143,174 +143,31 @@
             @if (resourceType === 'WebApp') {
               <div class="form-section">
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
-
-                <!-- Deployment Mode Selector -->
-                <div class="deployment-mode">
-                  <div class="deployment-mode__toggle" [class.deployment-mode__toggle--container]="isContainerMode()">
-                    <div class="deployment-mode__slider"></div>
-                    <button class="deployment-mode__segment"
-                            [class.deployment-mode__segment--active]="!isContainerMode()"
-                            [disabled]="!canWrite()"
-                            (click)="onDeploymentModeChange('Code')">
-                      <mat-icon class="deployment-mode__icon">code</mat-icon>
-                      <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE' | translate }}</span>
-                    </button>
-                    <button class="deployment-mode__segment"
-                            [class.deployment-mode__segment--active]="isContainerMode()"
-                            [disabled]="!canWrite()"
-                            (click)="onDeploymentModeChange('Container')">
-                      <mat-icon class="deployment-mode__icon">inventory_2</mat-icon>
-                      <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CONTAINER' | translate }}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Mode content panel -->
-                <div class="deployment-content">
-                  @if (!isContainerMode()) {
-                    <!-- Code mode -->
-                    <div class="form-grid">
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                        <mat-select formControlName="runtimeStack" (selectionChange)="onRuntimeStackChange($event.value)">
-                          @for (opt of runtimeStackOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                        <mat-select formControlName="runtimeVersion">
-                          @for (ver of runtimeVersionOptions(); track ver) {
-                            <mat-option [value]="ver">{{ ver }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                    </div>
-                  } @else {
-                    <!-- Container mode -->
-                    <div class="form-grid form-grid--full">
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
-                        <mat-select formControlName="containerRegistryId" (selectionChange)="onContainerRegistryChange($event.value)">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
-                          @for (acr of availableContainerRegistries(); track acr.id) {
-                            <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
-                          }
-                        </mat-select>
-                        <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate }}</mat-label>
-                        <input matInput formControlName="dockerImageName" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
-                      </mat-form-field>
-                    </div>
-
-                    <!-- ACR Pull access check banner (UAI flow) -->
-                    @if (selectedContainerRegistryId()) {
-                      @switch (acrUaiState()) {
-                        @case ('checking') {
-                          <div class="acr-inline-status acr-inline-status--checking">
-                            <mat-spinner diameter="16"></mat-spinner>
-                            <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
-                          </div>
-                        }
-                        @case ('ok') {
-                          <div class="acr-inline-status acr-inline-status--ok">
-                            <mat-icon>check_circle</mat-icon>
-                            <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
-                          </div>
-                        }
-                        @case ('uai-missing-role') {
-                          <div class="acr-identity-card acr-identity-card--warn">
-                            <div class="acr-identity-card__header">
-                              <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
-                              <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
-                            </div>
-                            <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}</p>
-                            <div class="acr-identity-card__identity-section">
-                              <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
-                              <div class="acr-identity-card__identity-row">
-                                <app-compact-select
-                                  [options]="uaiOptionsForSelect()"
-                                  [value]="acrSelectedUaiId()"
-                                  [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
-                                  [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
-                                  (valueChange)="acrSelectedUaiId.set($event)">
-                                </app-compact-select>
-                                <button class="acr-identity-card__create-link" (click)="createNewUai()">
-                                  <mat-icon>add_circle_outline</mat-icon>
-                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                                </button>
-                              </div>
-                            </div>
-                            <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRoleAssignment()">
-                              @if (acrRoleAssigning()) {
-                                <mat-spinner diameter="14"></mat-spinner>
-                              } @else {
-                                <mat-icon>add_circle_outline</mat-icon>
-                              }
-                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
-                            </button>
-                            <div class="acr-identity-card__info">
-                              <mat-icon>info_outline</mat-icon>
-                              <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-                              <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
-                                {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
-                                <mat-icon>open_in_new</mat-icon>
-                              </a>
-                            </div>
-                          </div>
-                        }
-                        @case ('no-uai') {
-                          <div class="acr-identity-card acr-identity-card--warn">
-                            <div class="acr-identity-card__header">
-                              <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
-                              <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
-                            </div>
-                            <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate }}</p>
-                            <div class="acr-identity-card__identity-section">
-                              <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
-                              <div class="acr-identity-card__identity-row">
-                                <app-compact-select
-                                  [options]="uaiOptionsForSelect()"
-                                  [value]="acrSelectedUaiId()"
-                                  [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
-                                  [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
-                                  (valueChange)="acrSelectedUaiId.set($event)">
-                                </app-compact-select>
-                                <button class="acr-identity-card__create-link" (click)="createNewUai()">
-                                  <mat-icon>add_circle_outline</mat-icon>
-                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                                </button>
-                              </div>
-                            </div>
-                            @if (acrSelectedUaiId()) {
-                              <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRoleAssignment()">
-                                @if (acrRoleAssigning()) {
-                                  <mat-spinner diameter="14"></mat-spinner>
-                                } @else {
-                                  <mat-icon>add_circle_outline</mat-icon>
-                                }
-                                {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
-                              </button>
-                            }
-                            <div class="acr-identity-card__info">
-                              <mat-icon>info_outline</mat-icon>
-                              <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-                              <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
-                                {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
-                                <mat-icon>open_in_new</mat-icon>
-                              </a>
-                            </div>
-                          </div>
-                        }
-                      }
-                    }
-                  }
-                </div>
-
-                <!-- Common toggles -->
+                <app-deployment-config
+                  mode="code-or-container"
+                  [deploymentMode]="deploymentMode()"
+                  [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
+                  [dockerImageName]="generalForm.get('dockerImageName')?.value"
+                  [runtimeStack]="generalForm.get('runtimeStack')?.value"
+                  [runtimeVersion]="generalForm.get('runtimeVersion')?.value"
+                  [runtimeStackOptions]="runtimeStackOptions"
+                  [runtimeVersionOptions]="runtimeVersionOptions()"
+                  [availableContainerRegistries]="availableContainerRegistries()"
+                  [acrUaiState]="acrUaiState()"
+                  [acrAssignedUaiName]="acrAssignedUaiName()"
+                  [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [acrRoleAssigning]="acrRoleAssigning()"
+                  [uaiOptions]="uaiOptionsForSelect()"
+                  [canWrite]="canWrite()"
+                  (deploymentModeChange)="onDeploymentModeChange($event)"
+                  (runtimeStackChange)="onRuntimeStackChange($event)"
+                  (runtimeVersionChange)="generalForm.patchValue({ runtimeVersion: $event }); formsDirty.set(true)"
+                  (containerRegistryChange)="onContainerRegistryChange($event)"
+                  (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
+                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (addAcrPullRole)="addAcrPullRoleAssignment()"
+                  (createUai)="createNewUai()">
+                </app-deployment-config>
                 <div class="form-grid" style="margin-top: 1rem;">
                   <div class="form-field form-field--toggle">
                     <mat-slide-toggle formControlName="alwaysOn" color="primary">
@@ -330,174 +187,31 @@
             @if (resourceType === 'FunctionApp') {
               <div class="form-section">
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
-
-                <!-- Deployment Mode Selector -->
-                <div class="deployment-mode">
-                  <div class="deployment-mode__toggle" [class.deployment-mode__toggle--container]="isContainerMode()">
-                    <div class="deployment-mode__slider"></div>
-                    <button class="deployment-mode__segment"
-                            [class.deployment-mode__segment--active]="!isContainerMode()"
-                            [disabled]="!canWrite()"
-                            (click)="onDeploymentModeChange('Code')">
-                      <mat-icon class="deployment-mode__icon">code</mat-icon>
-                      <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE' | translate }}</span>
-                    </button>
-                    <button class="deployment-mode__segment"
-                            [class.deployment-mode__segment--active]="isContainerMode()"
-                            [disabled]="!canWrite()"
-                            (click)="onDeploymentModeChange('Container')">
-                      <mat-icon class="deployment-mode__icon">inventory_2</mat-icon>
-                      <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CONTAINER' | translate }}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Mode content panel -->
-                <div class="deployment-content">
-                  @if (!isContainerMode()) {
-                    <!-- Code mode -->
-                    <div class="form-grid">
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                        <mat-select formControlName="runtimeStack" (selectionChange)="onRuntimeStackChange($event.value)">
-                          @for (opt of functionAppRuntimeStackOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                        <mat-select formControlName="runtimeVersion">
-                          @for (ver of runtimeVersionOptions(); track ver) {
-                            <mat-option [value]="ver">{{ ver }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                    </div>
-                  } @else {
-                    <!-- Container mode -->
-                    <div class="form-grid form-grid--full">
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
-                        <mat-select formControlName="containerRegistryId" (selectionChange)="onContainerRegistryChange($event.value)">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
-                          @for (acr of availableContainerRegistries(); track acr.id) {
-                            <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
-                          }
-                        </mat-select>
-                        <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate }}</mat-label>
-                        <input matInput formControlName="dockerImageName" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
-                      </mat-form-field>
-                    </div>
-
-                    <!-- ACR Pull access check banner (UAI flow) -->
-                    @if (selectedContainerRegistryId()) {
-                      @switch (acrUaiState()) {
-                        @case ('checking') {
-                          <div class="acr-inline-status acr-inline-status--checking">
-                            <mat-spinner diameter="16"></mat-spinner>
-                            <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
-                          </div>
-                        }
-                        @case ('ok') {
-                          <div class="acr-inline-status acr-inline-status--ok">
-                            <mat-icon>check_circle</mat-icon>
-                            <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
-                          </div>
-                        }
-                        @case ('uai-missing-role') {
-                          <div class="acr-identity-card acr-identity-card--warn">
-                            <div class="acr-identity-card__header">
-                              <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
-                              <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
-                            </div>
-                            <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}</p>
-                            <div class="acr-identity-card__identity-section">
-                              <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
-                              <div class="acr-identity-card__identity-row">
-                                <app-compact-select
-                                  [options]="uaiOptionsForSelect()"
-                                  [value]="acrSelectedUaiId()"
-                                  [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
-                                  [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
-                                  (valueChange)="acrSelectedUaiId.set($event)">
-                                </app-compact-select>
-                                <button class="acr-identity-card__create-link" (click)="createNewUai()">
-                                  <mat-icon>add_circle_outline</mat-icon>
-                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                                </button>
-                              </div>
-                            </div>
-                            <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRoleAssignment()">
-                              @if (acrRoleAssigning()) {
-                                <mat-spinner diameter="14"></mat-spinner>
-                              } @else {
-                                <mat-icon>add_circle_outline</mat-icon>
-                              }
-                              {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
-                            </button>
-                            <div class="acr-identity-card__info">
-                              <mat-icon>info_outline</mat-icon>
-                              <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-                              <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
-                                {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
-                                <mat-icon>open_in_new</mat-icon>
-                              </a>
-                            </div>
-                          </div>
-                        }
-                        @case ('no-uai') {
-                          <div class="acr-identity-card acr-identity-card--warn">
-                            <div class="acr-identity-card__header">
-                              <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
-                              <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
-                            </div>
-                            <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate }}</p>
-                            <div class="acr-identity-card__identity-section">
-                              <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
-                              <div class="acr-identity-card__identity-row">
-                                <app-compact-select
-                                  [options]="uaiOptionsForSelect()"
-                                  [value]="acrSelectedUaiId()"
-                                  [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
-                                  [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
-                                  (valueChange)="acrSelectedUaiId.set($event)">
-                                </app-compact-select>
-                                <button class="acr-identity-card__create-link" (click)="createNewUai()">
-                                  <mat-icon>add_circle_outline</mat-icon>
-                                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                                </button>
-                              </div>
-                            </div>
-                            @if (acrSelectedUaiId()) {
-                              <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRoleAssignment()">
-                                @if (acrRoleAssigning()) {
-                                  <mat-spinner diameter="14"></mat-spinner>
-                                } @else {
-                                  <mat-icon>add_circle_outline</mat-icon>
-                                }
-                                {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
-                              </button>
-                            }
-                            <div class="acr-identity-card__info">
-                              <mat-icon>info_outline</mat-icon>
-                              <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-                              <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
-                                {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
-                                <mat-icon>open_in_new</mat-icon>
-                              </a>
-                            </div>
-                          </div>
-                        }
-                      }
-                    }
-                  }
-                </div>
-
-                <!-- Common toggles -->
+                <app-deployment-config
+                  mode="code-or-container"
+                  [deploymentMode]="deploymentMode()"
+                  [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
+                  [dockerImageName]="generalForm.get('dockerImageName')?.value"
+                  [runtimeStack]="generalForm.get('runtimeStack')?.value"
+                  [runtimeVersion]="generalForm.get('runtimeVersion')?.value"
+                  [runtimeStackOptions]="functionAppRuntimeStackOptions"
+                  [runtimeVersionOptions]="runtimeVersionOptions()"
+                  [availableContainerRegistries]="availableContainerRegistries()"
+                  [acrUaiState]="acrUaiState()"
+                  [acrAssignedUaiName]="acrAssignedUaiName()"
+                  [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [acrRoleAssigning]="acrRoleAssigning()"
+                  [uaiOptions]="uaiOptionsForSelect()"
+                  [canWrite]="canWrite()"
+                  (deploymentModeChange)="onDeploymentModeChange($event)"
+                  (runtimeStackChange)="onRuntimeStackChange($event)"
+                  (runtimeVersionChange)="generalForm.patchValue({ runtimeVersion: $event }); formsDirty.set(true)"
+                  (containerRegistryChange)="onContainerRegistryChange($event)"
+                  (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
+                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (addAcrPullRole)="addAcrPullRoleAssignment()"
+                  (createUai)="createNewUai()">
+                </app-deployment-config>
                 <div class="form-grid" style="margin-top: 1rem;">
                   <div class="form-field form-field--toggle">
                     <mat-slide-toggle formControlName="httpsOnly" color="primary">
@@ -512,121 +226,22 @@
             @if (resourceType === 'ContainerApp') {
               <div class="form-section">
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
-
-                <div class="form-grid form-grid--full">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
-                    <mat-select formControlName="containerRegistryId" (selectionChange)="onContainerRegistryChange($event.value)">
-                      <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
-                      @for (acr of availableContainerRegistries(); track acr.id) {
-                        <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
-                      }
-                    </mat-select>
-                    <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
-                  </mat-form-field>
-                </div>
-
-                <!-- ACR Pull access check banner (UAI flow) -->
-                @if (selectedContainerRegistryId()) {
-                  @switch (acrUaiState()) {
-                    @case ('checking') {
-                      <div class="acr-inline-status acr-inline-status--checking">
-                        <mat-spinner diameter="16"></mat-spinner>
-                        <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
-                      </div>
-                    }
-                    @case ('ok') {
-                      <div class="acr-inline-status acr-inline-status--ok">
-                        <mat-icon>check_circle</mat-icon>
-                        <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
-                      </div>
-                    }
-                    @case ('uai-missing-role') {
-                      <div class="acr-identity-card acr-identity-card--warn">
-                        <div class="acr-identity-card__header">
-                          <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
-                          <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
-                        </div>
-                        <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}</p>
-                        <div class="acr-identity-card__identity-section">
-                          <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
-                          <div class="acr-identity-card__identity-row">
-                            <app-compact-select
-                              [options]="uaiOptionsForSelect()"
-                              [value]="acrSelectedUaiId()"
-                              [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
-                              [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
-                              (valueChange)="acrSelectedUaiId.set($event)">
-                            </app-compact-select>
-                            <button class="acr-identity-card__create-link" (click)="createNewUai()">
-                              <mat-icon>add_circle_outline</mat-icon>
-                              {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                            </button>
-                          </div>
-                        </div>
-                        <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRoleAssignment()">
-                          @if (acrRoleAssigning()) {
-                            <mat-spinner diameter="14"></mat-spinner>
-                          } @else {
-                            <mat-icon>add_circle_outline</mat-icon>
-                          }
-                          {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
-                        </button>
-                        <div class="acr-identity-card__info">
-                          <mat-icon>info_outline</mat-icon>
-                          <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-                          <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
-                            {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
-                            <mat-icon>open_in_new</mat-icon>
-                          </a>
-                        </div>
-                      </div>
-                    }
-                    @case ('no-uai') {
-                      <div class="acr-identity-card acr-identity-card--warn">
-                        <div class="acr-identity-card__header">
-                          <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
-                          <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
-                        </div>
-                        <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate }}</p>
-                        <div class="acr-identity-card__identity-section">
-                          <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
-                          <div class="acr-identity-card__identity-row">
-                            <app-compact-select
-                              [options]="uaiOptionsForSelect()"
-                              [value]="acrSelectedUaiId()"
-                              [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
-                              [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
-                              (valueChange)="acrSelectedUaiId.set($event)">
-                            </app-compact-select>
-                            <button class="acr-identity-card__create-link" (click)="createNewUai()">
-                              <mat-icon>add_circle_outline</mat-icon>
-                              {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
-                            </button>
-                          </div>
-                        </div>
-                        @if (acrSelectedUaiId()) {
-                          <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRoleAssignment()">
-                            @if (acrRoleAssigning()) {
-                              <mat-spinner diameter="14"></mat-spinner>
-                            } @else {
-                              <mat-icon>add_circle_outline</mat-icon>
-                            }
-                            {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
-                          </button>
-                        }
-                        <div class="acr-identity-card__info">
-                          <mat-icon>info_outline</mat-icon>
-                          <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-                          <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
-                            {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
-                            <mat-icon>open_in_new</mat-icon>
-                          </a>
-                        </div>
-                      </div>
-                    }
-                  }
-                }
+                <app-deployment-config
+                  mode="container-only"
+                  [showDockerImageName]="false"
+                  [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
+                  [availableContainerRegistries]="availableContainerRegistries()"
+                  [acrUaiState]="acrUaiState()"
+                  [acrAssignedUaiName]="acrAssignedUaiName()"
+                  [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [acrRoleAssigning]="acrRoleAssigning()"
+                  [uaiOptions]="uaiOptionsForSelect()"
+                  [canWrite]="canWrite()"
+                  (containerRegistryChange)="onContainerRegistryChange($event)"
+                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (addAcrPullRole)="addAcrPullRoleAssignment()"
+                  (createUai)="createNewUai()">
+                </app-deployment-config>
               </div>
             }
 
@@ -2158,6 +1773,56 @@
               <div class="feedback-banner feedback-banner--error" role="alert">
                 <mat-icon>error_outline</mat-icon>
                 {{ appSettingsError() | translate }}
+              </div>
+            }
+
+            <!-- Key Vault missing role warnings -->
+            @for (kvEntry of kvMissingRoleEntries(); track kvEntry.keyVaultResourceId) {
+              <div class="kv-access-card kv-access-card--warn">
+                <div class="kv-access-card__header">
+                  <mat-icon class="kv-access-card__header-icon">shield</mat-icon>
+                  <span class="kv-access-card__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_TITLE' | translate }}</span>
+                </div>
+                <p class="kv-access-card__message">
+                  {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_DESC' | translate: { kvName: kvEntry.keyVaultName, role: kvEntry.missingRoleName, count: kvEntry.affectedSettingsCount } }}
+                </p>
+                @if (canWrite()) {
+                  <div class="kv-access-card__identity-section">
+                    <span class="kv-access-card__section-label">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ON' | translate }}</span>
+                    <div class="kv-access-card__identity-row">
+                      <mat-button-toggle-group
+                        [value]="kvEntry.selectedIdentityType"
+                        (change)="setKvEntryIdentityType(kvEntry.keyVaultResourceId, $event.value)"
+                        class="kv-access-card__toggle-group">
+                        @if (uaiOptionsForSelect().length > 0) {
+                          <mat-button-toggle value="UserAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI' | translate }}</mat-button-toggle>
+                        }
+                        <mat-button-toggle value="SystemAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_SAI' | translate }}</mat-button-toggle>
+                      </mat-button-toggle-group>
+                    </div>
+                    @if (kvEntry.selectedIdentityType === 'UserAssigned') {
+                      <div class="kv-access-card__identity-row">
+                        <app-compact-select
+                          [options]="uaiOptionsForSelect()"
+                          [value]="kvEntry.selectedUaiId"
+                          [placeholder]="'RESOURCE_EDIT.APP_SETTINGS.KV_SELECT_UAI' | translate"
+                          [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
+                          (valueChange)="setKvEntryUaiId(kvEntry.keyVaultResourceId, $event)">
+                        </app-compact-select>
+                      </div>
+                    }
+                  </div>
+                  <button class="kv-access-card__action-btn"
+                    [disabled]="kvEntry.assigning || (kvEntry.selectedIdentityType === 'UserAssigned' && !kvEntry.selectedUaiId)"
+                    (click)="assignKvRole(kvEntry)">
+                    @if (kvEntry.assigning) {
+                      <mat-spinner diameter="14"></mat-spinner>
+                    } @else {
+                      <mat-icon>add_circle_outline</mat-icon>
+                    }
+                    {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ROLE' | translate }}
+                  </button>
+                }
               </div>
             }
 

@@ -49,6 +49,12 @@ import { saveAs } from 'file-saver';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepFileType, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
+import {
+  GenerationDiagnosticsDialogComponent,
+  GenerationDiagnosticsDialogData,
+  ConfigDiagnosticGroup,
+} from '../../shared/components/generation-diagnostics-dialog/generation-diagnostics-dialog.component';
+import { firstValueFrom } from 'rxjs';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
@@ -789,6 +795,16 @@ export class ProjectDetailComponent implements OnInit {
     const projectId = this.project()?.id;
     if (!projectId || this.projectBicepLoading()) return;
 
+    const shouldContinue = await this.checkProjectDiagnostics();
+    if (!shouldContinue) return;
+
+    await this.doGenerateProjectBicep();
+  }
+
+  private async doGenerateProjectBicep(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId || this.projectBicepLoading()) return;
+
     this.projectBicepLoading.set(true);
     this.projectBicepErrorKey.set('');
     this.projectBicepResult.set(null);
@@ -807,6 +823,16 @@ export class ProjectDetailComponent implements OnInit {
   // ─── Project Pipeline Generation (mono-repo) ───
 
   protected async generateProjectPipeline(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId || this.projectPipelineLoading()) return;
+
+    const shouldContinue = await this.checkProjectDiagnostics();
+    if (!shouldContinue) return;
+
+    await this.doGenerateProjectPipeline();
+  }
+
+  private async doGenerateProjectPipeline(): Promise<void> {
     const projectId = this.project()?.id;
     if (!projectId || this.projectPipelineLoading()) return;
 
@@ -839,16 +865,55 @@ export class ProjectDetailComponent implements OnInit {
     const projectId = this.project()?.id;
     if (!projectId || this.projectGenerateAllLoading()) return;
 
+    const shouldContinue = await this.checkProjectDiagnostics();
+    if (!shouldContinue) return;
+
     // Launch both generations in parallel
     await Promise.all([
-      this.generateProjectBicep(),
-      this.generateProjectPipeline(),
+      this.doGenerateProjectBicep(),
+      this.doGenerateProjectPipeline(),
     ]);
   }
 
   protected closeProjectGenerationPanel(): void {
     this.closeProjectBicepPanel();
     this.closeProjectPipelinePanel();
+  }
+
+  // ─── Generation Diagnostics Dialog ───
+
+  private async checkProjectDiagnostics(): Promise<boolean> {
+    const allConfigs = this.configs();
+    if (allConfigs.length === 0) return true;
+
+    const results = await Promise.all(
+      allConfigs.map(async (config) => {
+        try {
+          const result = await this.infraConfigService.getDiagnostics(config.id);
+          return { config, diagnostics: result.diagnostics };
+        } catch {
+          return { config, diagnostics: [] };
+        }
+      }),
+    );
+
+    const configsWithIssues: ConfigDiagnosticGroup[] = results
+      .filter(r => r.diagnostics.length > 0)
+      .map(r => ({
+        configId: r.config.id,
+        configName: r.config.name,
+        diagnostics: r.diagnostics,
+      }));
+
+    if (configsWithIssues.length === 0) return true;
+
+    const dialogRef = this.dialog.open(GenerationDiagnosticsDialogComponent, {
+      data: { configDiagnostics: configsWithIssues } satisfies GenerationDiagnosticsDialogData,
+      width: '640px',
+      maxHeight: '80vh',
+    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    return result === true;
   }
 
   protected closeProjectBicepPanel(): void {

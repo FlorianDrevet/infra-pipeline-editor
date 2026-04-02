@@ -1,21 +1,21 @@
 <div class="as-dialog">
   <h2 mat-dialog-title class="as-dialog__title">
     <mat-icon>settings</mat-icon>
-    {{ 'EDIT_APP_SETTING_DIALOG.TITLE' | translate }}
+    {{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.TITLE' | translate }}
   </h2>
 
   <mat-dialog-content class="as-dialog__content">
     <!-- Variable name -->
     <div class="config-section">
       <mat-form-field appearance="outline" class="config-section__field">
-        <mat-label>{{ 'EDIT_APP_SETTING_DIALOG.NAME_LABEL' | translate }}</mat-label>
-        <input matInput [ngModel]="settingName()" (ngModelChange)="settingName.set($event)" [placeholder]="'EDIT_APP_SETTING_DIALOG.NAME_PLACEHOLDER' | translate" />
+        <mat-label>{{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.NAME_LABEL' | translate }}</mat-label>
+        <input matInput [ngModel]="settingName()" (ngModelChange)="settingName.set($event)" [placeholder]="'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.NAME_PLACEHOLDER' | translate" />
       </mat-form-field>
     </div>
 
     <!-- Environment values -->
     <div class="env-values-section">
-      <p class="env-values-section__label">{{ 'EDIT_APP_SETTING_DIALOG.ENV_VALUES_TITLE' | translate }}</p>
+      <p class="env-values-section__label">{{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.ENV_VALUES_TITLE' | translate }}</p>
       @for (env of data.environments; track env.name) {
         <div class="config-section">
           <mat-form-field appearance="outline" class="config-section__field">
@@ -37,13 +37,13 @@
 
   <mat-dialog-actions class="as-dialog__actions" align="end">
     <button mat-stroked-button (click)="onCancel()" [disabled]="isSubmitting()">
-      {{ 'EDIT_APP_SETTING_DIALOG.CANCEL' | translate }}
+      {{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.CANCEL' | translate }}
     </button>
     <button mat-flat-button color="primary" (click)="onSave()" [disabled]="isSubmitting() || !settingName()">
       @if (isSubmitting()) {
         <mat-spinner diameter="18"></mat-spinner>
       } @else {
-        {{ 'EDIT_APP_SETTING_DIALOG.SAVE' | translate }}
+        {{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.SAVE' | translate }}
       }
     </button>
   </mat-dialog-actions>

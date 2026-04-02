@@ -2581,4 +2581,111 @@
   }
 }
 
+// ─── Key Vault Access Card (warn states) ────
+
+.kv-access-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+
+  &--warn {
+    background: #fff;
+    border: 1px solid rgba(245, 166, 35, 0.35);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  &__header-icon {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: #e6a117;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(16, 52, 84, 0.88);
+  }
+
+  &__message {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: rgba(16, 52, 84, 0.65);
+    margin: 0;
+  }
+
+  &__identity-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: rgba(16, 52, 84, 0.03);
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+  }
+
+  &__section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(16, 52, 84, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  &__identity-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+  }
+
+  &__toggle-group {
+    .mat-button-toggle {
+      font-size: 0.78rem;
+      font-weight: 500;
+    }
+  }
+
+  &__action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    height: 32px;
+    padding: 0 1rem;
+    border: none;
+    border-radius: 8px;
+    background: #0d65c0;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 550;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    align-self: flex-start;
+
+    &:hover:not(:disabled) {
+      background: #0a4f99;
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    mat-icon {
+      font-size: 0.95rem;
+      width: 0.95rem;
+      height: 0.95rem;
+    }
+  }
+}
 

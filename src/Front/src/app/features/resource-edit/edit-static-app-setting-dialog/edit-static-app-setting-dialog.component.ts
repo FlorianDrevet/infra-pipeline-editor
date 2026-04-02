@@ -66,9 +66,9 @@ export class EditStaticAppSettingDialogComponent {
       this.dialogRef.close(result);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 409) {
-        this.errorKey.set('EDIT_APP_SETTING_DIALOG.ERROR_DUPLICATE');
+        this.errorKey.set('RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.ERROR_DUPLICATE');
       } else {
-        this.errorKey.set('EDIT_APP_SETTING_DIALOG.ERROR');
+        this.errorKey.set('RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.ERROR');
       }
     } finally {
       this.isSubmitting.set(false);

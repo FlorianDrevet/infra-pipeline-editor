@@ -1236,7 +1236,14 @@
       "REMOVE_YES": "Supprimer",
       "REMOVE_CANCEL": "Annuler",
       "REMOVE_ERROR": "Impossible de supprimer la variable. Veuillez réessayer.",
-      "LOAD_ERROR": "Impossible de charger les variables d'environnement."
+      "LOAD_ERROR": "Impossible de charger les variables d'environnement.",
+      "KV_MISSING_ROLE_TITLE": "Assignation de r\u00f4le Key Vault manquante",
+      "KV_MISSING_ROLE_DESC": "Cette ressource ne dispose pas du r\u00f4le \u00ab {{role}} \u00bb sur le Key Vault \u00ab {{kvName}} \u00bb. {{count}} variable(s) r\u00e9f\u00e9rencent des secrets de ce coffre et \u00e9choueront \u00e0 l'ex\u00e9cution sans ce r\u00f4le.",
+      "KV_ASSIGN_ON": "Assigner sur",
+      "KV_ON_UAI": "Identit\u00e9 assign\u00e9e par l'utilisateur (UAI)",
+      "KV_ON_SAI": "Identit\u00e9 assign\u00e9e par le syst\u00e8me (SAI)",
+      "KV_SELECT_UAI": "S\u00e9lectionner une identit\u00e9",
+      "KV_ASSIGN_ROLE": "Assigner le r\u00f4le"
     },
     "ADD_APP_SETTING_DIALOG": {
       "MODE_OUTPUT": "Sortie de ressource",
@@ -1555,5 +1562,14 @@
         "TTL_HINT": "Les blobs seront supprim\u00e9s apr\u00e8s ce nombre de jours depuis la derni\u00e8re modification (1\u201336 500)."
       }
     }
+  },
+  "GENERATION_DIAGNOSTICS": {
+    "TITLE": "Problèmes de configuration détectés",
+    "SUBTITLE": "Les problèmes suivants ont été détectés dans votre configuration. Vous pouvez continuer la génération malgré tout ou annuler pour les corriger.",
+    "CONFIG_SECTION": "Configuration : {{name}}",
+    "RESOURCE_LABEL": "Ressource",
+    "GO_TO_RESOURCE": "Voir la ressource",
+    "CONTINUE": "Continuer quand même",
+    "CANCEL": "Annuler"
   }
 }
