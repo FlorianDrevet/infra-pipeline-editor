@@ -46,6 +46,7 @@ public sealed class CreateContainerAppCommandHandler(
             request.ContainerRegistryId.HasValue
                 ? new AzureResourceId(request.ContainerRegistryId.Value)
                 : null,
+            request.DockerImageName,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName, ec.ContainerImage, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod))
                 .ToList());

@@ -23,6 +23,9 @@ public abstract class ContainerAppRequestBase
     [GuidValidation]
     public Guid? ContainerRegistryId { get; init; }
 
+    /// <summary>Optional base Docker image name (e.g., "myregistry.azurecr.io/myapp/api") without the tag.</summary>
+    public string? DockerImageName { get; init; }
+
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<ContainerAppEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }

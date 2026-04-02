@@ -23,6 +23,9 @@ public class ContainerApp : AzureResource
     /// <summary>Gets the optional Container Registry identifier for authenticated image pulls.</summary>
     public AzureResourceId? ContainerRegistryId { get; private set; }
 
+    /// <summary>Gets the optional base Docker image name (e.g., "myregistry.azurecr.io/myapp/api") without the tag.</summary>
+    public string? DockerImageName { get; private set; }
+
     /// <inheritdoc />
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages =>
         Array.Empty<ParameterUsage>();
@@ -38,12 +41,14 @@ public class ContainerApp : AzureResource
     /// <param name="location">The new Azure region.</param>
     /// <param name="containerAppEnvironmentId">The identifier of the hosting Container App Environment.</param>
     /// <param name="containerRegistryId">The optional Container Registry identifier for authenticated image pulls.</param>
-    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId)
+    /// <param name="dockerImageName">The optional base Docker image name without the tag.</param>
+    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, string? dockerImageName)
     {
         Name = name;
         Location = location;
         ContainerAppEnvironmentId = containerAppEnvironmentId;
         ContainerRegistryId = containerRegistryId;
+        DockerImageName = dockerImageName;
     }
 
     /// <summary>
@@ -100,6 +105,7 @@ public class ContainerApp : AzureResource
     /// <param name="location">The Azure region.</param>
     /// <param name="containerAppEnvironmentId">The identifier of the hosting Container App Environment.</param>
     /// <param name="containerRegistryId">The optional Container Registry identifier for authenticated image pulls.</param>
+    /// <param name="dockerImageName">The optional base Docker image name without the tag.</param>
     /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
     /// <returns>A new <see cref="ContainerApp"/> aggregate root.</returns>
     public static ContainerApp Create(
@@ -108,6 +114,7 @@ public class ContainerApp : AzureResource
         Location location,
         AzureResourceId containerAppEnvironmentId,
         AzureResourceId? containerRegistryId,
+        string? dockerImageName = null,
         IReadOnlyList<(string EnvironmentName, string? ContainerImage, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod)>? environmentSettings = null)
     {
         var containerApp = new ContainerApp
@@ -117,7 +124,8 @@ public class ContainerApp : AzureResource
             Name = name,
             Location = location,
             ContainerAppEnvironmentId = containerAppEnvironmentId,
-            ContainerRegistryId = containerRegistryId
+            ContainerRegistryId = containerRegistryId,
+            DockerImageName = dockerImageName
         };
 
         if (environmentSettings is not null)

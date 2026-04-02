@@ -61,6 +61,9 @@
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">settings</mat-icon>
           <span>{{ 'RESOURCE_EDIT.TABS.GENERAL' | translate }}</span>
+          @if (generalTabHasWarning()) {
+            <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
+          }
         </ng-template>
         <div class="tab-content">
           <form [formGroup]="generalForm" class="general-form">
@@ -228,7 +231,8 @@
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
                 <app-deployment-config
                   mode="container-only"
-                  [showDockerImageName]="false"
+                  [showDockerImageName]="true"
+                  [dockerImageName]="generalForm.get('dockerImageName')?.value"
                   [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
                   [availableContainerRegistries]="availableContainerRegistries()"
                   [acrUaiState]="acrUaiState()"
@@ -237,6 +241,7 @@
                   [acrRoleAssigning]="acrRoleAssigning()"
                   [uaiOptions]="uaiOptionsForSelect()"
                   [canWrite]="canWrite()"
+                  (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
                   (containerRegistryChange)="onContainerRegistryChange($event)"
                   (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
                   (addAcrPullRole)="addAcrPullRoleAssignment()"
@@ -345,6 +350,9 @@
           <mat-icon class="tab-icon">cloud_queue</mat-icon>
           <span>{{ 'RESOURCE_EDIT.TABS.ENVIRONMENTS' | translate }}</span>
           <span class="tab-count">{{ environments().length }}</span>
+          @if (environmentsTabHasWarning()) {
+            <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ENV_CONFIG' | translate">warning</mat-icon>
+          }
         </ng-template>
         <div class="tab-content">
           @if (environments().length === 0) {
@@ -1749,6 +1757,9 @@
             <span>{{ 'RESOURCE_EDIT.TABS.APP_SETTINGS' | translate }}</span>
             @if (appSettings().length > 0) {
               <span class="tab-count">{{ appSettings().length }}</span>
+            }
+            @if (appSettingsTabHasWarning()) {
+              <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
             }
           </ng-template>
           <div class="tab-content">

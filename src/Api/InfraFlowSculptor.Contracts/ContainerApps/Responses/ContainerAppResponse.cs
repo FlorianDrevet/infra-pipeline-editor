@@ -10,5 +10,6 @@ public record ContainerAppResponse(
     string Location,
     Guid ContainerAppEnvironmentId,
     Guid? ContainerRegistryId,
+    string? DockerImageName,
     IReadOnlyList<ContainerAppEnvironmentConfigResponse> EnvironmentSettings
 );

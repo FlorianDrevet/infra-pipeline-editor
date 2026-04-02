@@ -1020,7 +1020,9 @@
       "STORAGE_SERVICES": "Services de stockage",
       "GRANTED_RIGHTS": "Droits accord\u00e9s",
       "USED_BY": "Utilis\u00e9e par",
-      "CONFIG_KEYS": "Clés de configuration"
+      "CONFIG_KEYS": "Clés de configuration",
+      "WARNING_MISSING_ROLE": "Un r\u00f4le requis n'est pas attribu\u00e9",
+      "WARNING_MISSING_ENV_CONFIG": "Certains environnements ne sont pas configur\u00e9s"
     },
     "GENERAL": {
       "IDENTITY": "Identit\u00e9",

@@ -13,5 +13,6 @@ public record UpdateContainerAppCommand(
     Location Location,
     Guid ContainerAppEnvironmentId,
     Guid? ContainerRegistryId,
+    string? DockerImageName = null,
     IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<ContainerAppResult>;

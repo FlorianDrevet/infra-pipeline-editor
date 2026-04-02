@@ -692,7 +692,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 new Dictionary<string, string>
                 {
                     ["containerAppEnvironmentId"] = ca.ContainerAppEnvironmentId.Value.ToString(),
-                    ["containerRegistryId"] = ca.ContainerRegistryId?.Value.ToString() ?? ""
+                    ["containerRegistryId"] = ca.ContainerRegistryId?.Value.ToString() ?? "",
+                    ["dockerImageName"] = ca.DockerImageName ?? ""
                 },
                 caSettings
                     .Where(es => es.ContainerAppId == ca.Id)

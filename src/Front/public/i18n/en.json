@@ -1010,7 +1010,9 @@
       "STORAGE_SERVICES": "Storage Services",
       "GRANTED_RIGHTS": "Granted Rights",
       "USED_BY": "Used By",
-      "CONFIG_KEYS": "Configuration Keys"
+      "CONFIG_KEYS": "Configuration Keys",
+      "WARNING_MISSING_ROLE": "A required role assignment is missing",
+      "WARNING_MISSING_ENV_CONFIG": "Some environments have no configuration"
     },
     "GENERAL": {
       "IDENTITY": "Identity",

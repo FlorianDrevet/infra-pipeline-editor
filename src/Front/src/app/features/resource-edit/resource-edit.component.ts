@@ -478,6 +478,20 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     return this.acrAccessChecking() || this.acrHasAccess() === false;
   });
 
+  // ─── Tab Warning Badges ───
+  protected readonly generalTabHasWarning = computed(() => this.isSaveBlockedByAcr());
+
+  protected readonly appSettingsTabHasWarning = computed(() => this.kvMissingRoleEntries().length > 0);
+
+  protected readonly environmentsTabHasWarning = computed(() => {
+    const forms = this.envForms();
+    if (forms.length === 0) return false;
+    return forms.some(ef => {
+      const controls = ef.form.controls;
+      return Object.keys(controls).length > 0 && Object.values(controls).every(c => c.value === null || c.value === '');
+    });
+  });
+
   /** Role assignments grouped by identity: system-assigned flat + per-UAI collapsible groups */
   protected readonly groupedRoleAssignments = computed(() => {
     const all = this.roleAssignments();
@@ -887,6 +901,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       const ca = resource as ContainerAppResponse;
       base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
       base['containerRegistryId'] = [ca.containerRegistryId ?? null];
+      base['dockerImageName'] = [ca.dockerImageName ?? null];
     } else if (this.resourceType === 'ApplicationInsights') {
       const ai = resource as ApplicationInsightsResponse;
       base['logAnalyticsWorkspaceId'] = [ai.logAnalyticsWorkspaceId];
@@ -1194,6 +1209,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             location: general.location,
             containerAppEnvironmentId: general.containerAppEnvironmentId,
             containerRegistryId: general.containerRegistryId || null,
+            dockerImageName: general.dockerImageName || null,
             environmentSettings: this.buildContainerAppEnvSettings(),
           });
           break;
