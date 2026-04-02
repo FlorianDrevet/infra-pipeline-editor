@@ -550,6 +550,8 @@
       "WARNINGS_TITLE": "Avertissements de configuration détectés"
     },
     "DIAGNOSTICS": {
+      "TITLE": "Problèmes de configuration",
+      "UNKNOWN_RULE": "{{ruleCode}} : {{target}}",
       "ACR_PULL_MISSING": "Rôle AcrPull manquant sur {{target}}",
       "KEY_VAULT_ACCESS_MISSING": "Rôle Key Vault Secrets User manquant sur {{target}}"
     },
@@ -1182,16 +1184,11 @@
     },
     "ROLE_ASSIGNMENT_IMPACT": {
       "TITLE": "Analyse d'impact",
-      "LOADING": "Analyse de l'impact en cours...",
-      "NO_IMPACT": "Aucun impact d\u00e9tect\u00e9. Voulez-vous supprimer cette attribution de r\u00f4le ?",
       "HAS_IMPACT_WARNING": "La suppression de cette attribution de r\u00f4le peut causer les probl\u00e8mes suivants :",
       "CONFIRM_DELETE": "Supprimer quand m\u00eame",
       "CANCEL": "Annuler",
-      "CONFIRM": "Confirmer",
-      "ERROR": "Impossible d'analyser l'impact. Vous pouvez continuer avec la suppression ou annuler.",
       "SEVERITY_CRITICAL": "Critique",
       "SEVERITY_WARNING": "Avertissement",
-      "DELETE_ANYWAY": "Supprimer quand m\u00eame",
       "IMPACT_TYPE": {
         "AcrPullRequired": "\u00ab {{affectedResource}} \u00bb utilise des images de conteneur depuis \u00ab {{targetResource}} \u00bb. Supprimer AcrPull l\u2019emp\u00eachera de t\u00e9l\u00e9charger son image Docker.",
         "KeyVaultSecretsRequired": "\u00ab {{affectedResource}} \u00bb r\u00e9f\u00e9rence {{count}} secret(s) depuis \u00ab {{targetResource}} \u00bb. Supprimer ce r\u00f4le rompra ces acc\u00e8s aux secrets."

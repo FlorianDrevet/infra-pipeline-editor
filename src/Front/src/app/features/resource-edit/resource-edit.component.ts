@@ -54,7 +54,7 @@ import { ContainerRegistryService } from '../../shared/services/container-regist
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
-import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse } from '../../shared/interfaces/role-assignment.interface';
+import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse, RoleAssignmentImpactResponse } from '../../shared/interfaces/role-assignment.interface';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
 import { LOCATION_OPTIONS } from '../../shared/enums/location.enum';
@@ -1683,16 +1683,43 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected openRemoveRoleAssignmentDialog(assignment: RoleAssignmentResponse): void {
+  protected async openRemoveRoleAssignmentDialog(assignment: RoleAssignmentResponse): Promise<void> {
     const roleName = this.resolveRoleName(assignment.roleDefinitionId);
     const targetName = this.resolveTargetName(assignment.targetResourceId);
 
+    let impactResult: RoleAssignmentImpactResponse;
+    try {
+      impactResult = await this.roleAssignmentService.analyzeImpact(this.resourceId, assignment.id);
+    } catch {
+      // Impact analysis failed — fall back to a simple confirmation dialog
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        data: {
+          titleKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_TITLE',
+          messageKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_MESSAGE',
+          messageParams: { role: roleName, target: targetName },
+          confirmKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_YES',
+          cancelKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_CANCEL',
+        } satisfies ConfirmDialogData,
+        width: '420px',
+      });
+      dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+        if (!confirmed) return;
+        await this.removeRoleAssignment(assignment.id);
+      });
+      return;
+    }
+
+    const filteredImpacts = impactResult.impacts.filter(i => i.impactType !== 'LastRoleToTarget');
+    if (filteredImpacts.length === 0) {
+      await this.removeRoleAssignment(assignment.id);
+      return;
+    }
+
     const dialogRef = this.dialog.open(RoleAssignmentImpactDialogComponent, {
       data: {
-        resourceId: this.resourceId,
-        roleAssignmentId: assignment.id,
         roleName,
         targetResourceName: targetName,
+        impactResult,
       } satisfies RoleAssignmentImpactDialogData,
       width: '520px',
     });
@@ -1708,6 +1735,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     try {
       await this.roleAssignmentService.remove(this.resourceId, roleAssignmentId);
       this.roleAssignments.update(list => list.filter(ra => ra.id !== roleAssignmentId));
+      if (this.isContainerMode() && this.selectedContainerRegistryId()) {
+        await this.checkAcrPullAccess();
+      }
     } catch {
       this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_ERROR');
     }

@@ -551,6 +551,8 @@
       "WARNINGS_TITLE": "Configuration warnings detected"
     },
     "DIAGNOSTICS": {
+      "TITLE": "Configuration issues",
+      "UNKNOWN_RULE": "{{ruleCode}}: {{target}}",
       "ACR_PULL_MISSING": "Missing AcrPull role assignment on {{target}}",
       "KEY_VAULT_ACCESS_MISSING": "Missing Key Vault Secrets User role on {{target}}"
     },
@@ -1172,16 +1174,11 @@
     },
     "ROLE_ASSIGNMENT_IMPACT": {
       "TITLE": "Impact Analysis",
-      "LOADING": "Analyzing impact...",
-      "NO_IMPACT": "No impact detected. Are you sure you want to remove this role assignment?",
       "HAS_IMPACT_WARNING": "Removing this role assignment may cause the following issues:",
       "CONFIRM_DELETE": "Delete anyway",
       "CANCEL": "Cancel",
-      "CONFIRM": "Confirm",
-      "ERROR": "Unable to analyze the impact. You can continue with deletion or cancel.",
       "SEVERITY_CRITICAL": "Critical",
       "SEVERITY_WARNING": "Warning",
-      "DELETE_ANYWAY": "Delete anyway",
       "IMPACT_TYPE": {
         "AcrPullRequired": "'{{affectedResource}}' uses container images from '{{targetResource}}'. Removing AcrPull will prevent it from pulling its Docker image.",
         "KeyVaultSecretsRequired": "'{{affectedResource}}' references {{count}} secret(s) from '{{targetResource}}'. Removing this role will break those secret accesses."

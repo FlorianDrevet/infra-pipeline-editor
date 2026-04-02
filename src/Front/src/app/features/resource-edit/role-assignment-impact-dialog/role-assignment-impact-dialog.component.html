@@ -4,76 +4,39 @@
 </h2>
 
 <mat-dialog-content>
-  @if (loading()) {
-    <div class="impact-loading">
-      <mat-spinner diameter="40"></mat-spinner>
-      <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.LOADING' | translate }}</p>
-    </div>
-  } @else if (error()) {
-    <div class="impact-error">
-      <mat-icon color="warn">error_outline</mat-icon>
-      <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.ERROR' | translate }}</p>
-    </div>
-  } @else if (impactResult()) {
-    @if (!hasFilteredImpact()) {
-      <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.NO_IMPACT' | translate }}</p>
-      <p class="impact-detail">
-        {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_MESSAGE' | translate: { role: roleName, target: targetResourceName } }}
-      </p>
-    } @else {
-      <div class="impact-list">
-        @for (impact of filteredImpacts(); track impact.affectedResourceId + impact.targetResourceId + impact.impactType) {
-          <div class="impact-item" [class.impact-item--critical]="impact.severity === 'Critical'" [class.impact-item--warning]="impact.severity === 'Warning'">
-            <div class="impact-item__header">
-              <mat-icon [class.icon-critical]="impact.severity === 'Critical'" [class.icon-warning]="impact.severity === 'Warning'">
-                {{ severityIcon(impact.severity) }}
-              </mat-icon>
-              <span class="impact-item__severity">
-                @if (impact.severity === 'Critical') {
-                  {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.SEVERITY_CRITICAL' | translate }}
-                } @else {
-                  {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.SEVERITY_WARNING' | translate }}
-                }
-              </span>
-            </div>
-            <p class="impact-item__description">
-              {{ ('RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.IMPACT_TYPE.' + impact.impactType) | translate: { affectedResource: impact.affectedResourceName, targetResource: impact.targetResourceName, count: impact.affectedSettingsCount } }}
-            </p>
-            <p class="impact-item__resources">
-              {{ impact.affectedResourceName }} ({{ impact.affectedResourceType }})
-              → {{ impact.targetResourceName }} ({{ impact.targetResourceType }})
-            </p>
-          </div>
-        }
+  <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.HAS_IMPACT_WARNING' | translate }}</p>
+  <div class="impact-list">
+    @for (impact of filteredImpacts; track impact.affectedResourceId + impact.targetResourceId + impact.impactType) {
+      <div class="impact-item" [class.impact-item--critical]="impact.severity === 'Critical'" [class.impact-item--warning]="impact.severity === 'Warning'">
+        <div class="impact-item__header">
+          <mat-icon [class.icon-critical]="impact.severity === 'Critical'" [class.icon-warning]="impact.severity === 'Warning'">
+            {{ severityIcon(impact.severity) }}
+          </mat-icon>
+          <span class="impact-item__severity">
+            @if (impact.severity === 'Critical') {
+              {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.SEVERITY_CRITICAL' | translate }}
+            } @else {
+              {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.SEVERITY_WARNING' | translate }}
+            }
+          </span>
+        </div>
+        <p class="impact-item__description">
+          {{ ('RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.IMPACT_TYPE.' + impact.impactType) | translate: { affectedResource: impact.affectedResourceName, targetResource: impact.targetResourceName, count: impact.affectedSettingsCount } }}
+        </p>
+        <p class="impact-item__resources">
+          {{ impact.affectedResourceName }} ({{ impact.affectedResourceType }})
+          → {{ impact.targetResourceName }} ({{ impact.targetResourceType }})
+        </p>
       </div>
     }
-  }
+  </div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  @if (loading()) {
-    <button mat-stroked-button (click)="cancel()">
-      {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CANCEL' | translate }}
-    </button>
-  } @else if (error()) {
-    <button mat-stroked-button (click)="cancel()">
-      {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CANCEL' | translate }}
-    </button>
-    <button mat-raised-button color="warn" (click)="confirm()">
-      {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.DELETE_ANYWAY' | translate }}
-    </button>
-  } @else if (impactResult()) {
-    <button mat-stroked-button (click)="cancel()">
-      {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CANCEL' | translate }}
-    </button>
-    @if (hasFilteredImpact()) {
-      <button mat-raised-button color="warn" (click)="confirm()">
-        {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CONFIRM_DELETE' | translate }}
-      </button>
-    } @else {
-      <button mat-raised-button color="primary" (click)="confirm()">
-        {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CONFIRM' | translate }}
-      </button>
-    }
-  }
+  <button mat-stroked-button (click)="cancel()">
+    {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CANCEL' | translate }}
+  </button>
+  <button mat-raised-button color="warn" (click)="confirm()">
+    {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CONFIRM_DELETE' | translate }}
+  </button>
 </mat-dialog-actions>

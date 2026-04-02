@@ -727,27 +727,7 @@
   }
 }
 
-.diagnostic-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.1rem 0.45rem;
-  border-radius: 0.35rem;
-  background: rgba(244, 67, 54, 0.10);
-  color: #c62828;
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-  flex-shrink: 0;
-  cursor: help;
 
-  &__icon {
-    font-size: 0.9rem;
-    width: 0.9rem;
-    height: 0.9rem;
-    flex-shrink: 0;
-  }
-}
 
 .bicep-warnings-banner {
   display: flex;

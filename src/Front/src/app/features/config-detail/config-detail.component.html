@@ -311,11 +311,7 @@
                                           </span>
                                         }
                                         @if (hasResourceDiagnostics(item.resource.id)) {
-                                          <span class="diagnostic-badge"
-                                                [matTooltip]="getResourceDiagnosticTooltip(item.resource.id)">
-                                            <mat-icon class="diagnostic-badge__icon">gpp_bad</mat-icon>
-                                            {{ getResourceDiagnostics(item.resource.id).length }}
-                                          </span>
+                                          <app-diagnostic-popover [diagnostics]="getResourceDiagnostics(item.resource.id)" />
                                         }
                                       </div>
                                       <span class="resource-item__type">{{ item.resource.resourceType }}</span>
@@ -454,11 +450,7 @@
                                             </span>
                                           }
                                           @if (hasResourceDiagnostics(item.resource.id)) {
-                                            <span class="diagnostic-badge"
-                                                  [matTooltip]="getResourceDiagnosticTooltip(item.resource.id)">
-                                              <mat-icon class="diagnostic-badge__icon">gpp_bad</mat-icon>
-                                              {{ getResourceDiagnostics(item.resource.id).length }}
-                                            </span>
+                                            <app-diagnostic-popover [diagnostics]="getResourceDiagnostics(item.resource.id)" />
                                           }
                                         }
                                       </div>
@@ -515,11 +507,7 @@
                                                   </span>
                                                 }
                                                 @if (hasResourceDiagnostics(child.id)) {
-                                                  <span class="diagnostic-badge"
-                                                        [matTooltip]="getResourceDiagnosticTooltip(child.id)">
-                                                    <mat-icon class="diagnostic-badge__icon">gpp_bad</mat-icon>
-                                                    {{ getResourceDiagnostics(child.id).length }}
-                                                  </span>
+                                                  <app-diagnostic-popover [diagnostics]="getResourceDiagnostics(child.id)" />
                                                 }
                                               </div>
                                               <span class="resource-item__type">{{ child.resourceType }}</span>
@@ -598,11 +586,7 @@
                                         </span>
                                       }
                                       @if (hasResourceDiagnostics(item.resource.id)) {
-                                        <span class="diagnostic-badge"
-                                              [matTooltip]="getResourceDiagnosticTooltip(item.resource.id)">
-                                          <mat-icon class="diagnostic-badge__icon">gpp_bad</mat-icon>
-                                          {{ getResourceDiagnostics(item.resource.id).length }}
-                                        </span>
+                                        <app-diagnostic-popover [diagnostics]="getResourceDiagnostics(item.resource.id)" />
                                       }
                                     </div>
                                     <span class="resource-item__type">{{ item.resource.resourceType }}</span>

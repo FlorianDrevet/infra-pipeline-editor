@@ -71,6 +71,7 @@ import {
 } from '../../shared/interfaces/cross-config-reference.interface';
 import { ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
 import { AddVariableGroupDialogComponent } from './add-variable-group-dialog/add-variable-group-dialog.component';
+import { DiagnosticPopoverComponent } from '../../shared/components/diagnostic-popover/diagnostic-popover.component';
 
 interface ResourceDisplayItem {
   resource: AzureResourceResponse;
@@ -101,6 +102,7 @@ interface ResourceDisplayItem {
     MatTabsModule,
     MatTooltipModule,
     BicepFilePanelComponent,
+    DiagnosticPopoverComponent,
   ],
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',
@@ -369,12 +371,6 @@ export class ConfigDetailComponent implements OnInit {
 
   protected hasResourceDiagnostics(resourceId: string): boolean {
     return this.getResourceDiagnostics(resourceId).length > 0;
-  }
-
-  protected getResourceDiagnosticTooltip(resourceId: string): string {
-    return this.getResourceDiagnostics(resourceId)
-      .map(d => `${d.ruleCode}: ${d.targetResourceName}`)
-      .join('\n');
   }
 
   // canWrite defaults to true — access checks are now at project level
