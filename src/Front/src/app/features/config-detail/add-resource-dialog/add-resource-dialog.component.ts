@@ -831,8 +831,6 @@ export class AddResourceDialogComponent {
         return this.fb.group({
           alwaysOn: [true],
           httpsOnly: [true],
-          runtimeStack: [''],
-          runtimeVersion: [''],
         });
       case ResourceTypeEnum.FunctionApp:
         return this.fb.group({
@@ -1205,8 +1203,6 @@ export class AddResourceDialogComponent {
         environmentName: env.name,
         alwaysOn: raw.alwaysOn ?? null,
         httpsOnly: raw.httpsOnly ?? null,
-        runtimeStack: raw.runtimeStack || null,
-        runtimeVersion: raw.runtimeVersion || null,
         dockerImageTag: raw.dockerImageTag || null,
       };
     });

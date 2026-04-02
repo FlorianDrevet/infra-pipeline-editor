@@ -42,3 +42,10 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 ## Shared Components
 - `DeploymentConfigComponent` [2026-04-02] — extracted container/code deployment mode toggle + ACR selector + UAI flow
 - `ConfirmDialogComponent` — reusable confirm dialog with i18n
+
+## PITFALL — Creation Modal sync [2026-04-02]
+When a resource's parameters are moved between general config and per-environment config (or removed), the `add-resource-dialog` MUST be updated in 3 places:
+1. `createEnvFormGroup(type)` — add/remove form controls
+2. `buildXxxEnvironmentSettings()` — add/remove fields in the mapper
+3. HTML `@case (ResourceTypeEnum.Xxx)` in the environments step — add/remove form fields
+Failing to update all 3 causes phantom fields shown in the creation modal that don't match the actual resource schema.
