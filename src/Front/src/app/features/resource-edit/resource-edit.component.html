@@ -1812,15 +1812,22 @@
                       </mat-button-toggle-group>
                     </div>
                     @if (kvEntry.selectedIdentityType === 'UserAssigned') {
-                      <div class="kv-access-card__identity-row">
-                        <app-compact-select
-                          [options]="uaiOptionsForSelect()"
-                          [value]="kvEntry.selectedUaiId"
-                          [placeholder]="'RESOURCE_EDIT.APP_SETTINGS.KV_SELECT_UAI' | translate"
-                          [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
-                          (valueChange)="setKvEntryUaiId(kvEntry.keyVaultResourceId, $event)">
-                        </app-compact-select>
-                      </div>
+                      @if (uaiOptionsForSelect().length === 1) {
+                        <div class="kv-access-card__uai-chip">
+                          <mat-icon class="kv-access-card__uai-chip-icon">badge</mat-icon>
+                          <span class="kv-access-card__uai-chip-name">{{ uaiOptionsForSelect()[0].label }}</span>
+                        </div>
+                      } @else {
+                        <div class="kv-access-card__identity-row">
+                          <app-compact-select
+                            [options]="uaiOptionsForSelect()"
+                            [value]="kvEntry.selectedUaiId"
+                            [placeholder]="'RESOURCE_EDIT.APP_SETTINGS.KV_SELECT_UAI' | translate"
+                            [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
+                            (valueChange)="setKvEntryUaiId(kvEntry.keyVaultResourceId, $event)">
+                          </app-compact-select>
+                        </div>
+                      }
                     }
                   </div>
                   <button class="kv-access-card__action-btn"

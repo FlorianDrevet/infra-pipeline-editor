@@ -2656,6 +2656,31 @@
     flex-wrap: wrap;
   }
 
+  &__uai-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(13, 101, 192, 0.08);
+    border: 1px solid rgba(13, 101, 192, 0.18);
+  }
+
+  &__uai-chip-icon {
+    font-size: 0.95rem;
+    width: 0.95rem;
+    height: 0.95rem;
+    color: #0d65c0;
+    flex-shrink: 0;
+  }
+
+  &__uai-chip-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(16, 52, 84, 0.85);
+    letter-spacing: 0.01em;
+  }
+
   &__toggle-group {
     .mat-button-toggle {
       font-size: 0.78rem;

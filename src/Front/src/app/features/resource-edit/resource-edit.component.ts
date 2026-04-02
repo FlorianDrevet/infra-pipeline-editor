@@ -1861,7 +1861,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const hasUais = this.uaiOptionsForSelect().length > 0;
+    const uaiOptions = this.uaiOptionsForSelect();
+    const hasUais = uaiOptions.length > 0;
+    const singleUaiId = uaiOptions.length === 1 ? uaiOptions[0].value : null;
     const entries: KvMissingRoleEntry[] = [...missingByKv.entries()].map(([kvId, affected]) => ({
       keyVaultResourceId: kvId,
       keyVaultName: this.resolveSourceName(kvId),
@@ -1871,7 +1873,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       checking: true,
       assigning: false,
       selectedIdentityType: hasUais ? 'UserAssigned' as const : 'SystemAssigned' as const,
-      selectedUaiId: null,
+      selectedUaiId: singleUaiId,
     }));
     this.kvMissingRoleEntries.set(entries);
     this.kvMissingRoleChecking.set(true);
