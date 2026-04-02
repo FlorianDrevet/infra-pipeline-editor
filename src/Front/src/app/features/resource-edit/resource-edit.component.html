@@ -2029,6 +2029,9 @@
             @if (configKeys().length > 0) {
               <span class="tab-count">{{ configKeys().length }}</span>
             }
+            @if (configKeysTabHasWarning()) {
+              <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
+            }
           </ng-template>
           <div class="tab-content">
             <!-- Description banner -->
@@ -2052,6 +2055,63 @@
               <div class="feedback-banner feedback-banner--error" role="alert">
                 <mat-icon>error_outline</mat-icon>
                 {{ configKeysError() | translate }}
+              </div>
+            }
+
+            <!-- Key Vault missing role warnings (config keys) -->
+            @for (kvEntry of configKeyKvMissingRoleEntries(); track kvEntry.keyVaultResourceId) {
+              <div class="kv-access-card kv-access-card--warn">
+                <div class="kv-access-card__header">
+                  <mat-icon class="kv-access-card__header-icon">shield</mat-icon>
+                  <span class="kv-access-card__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_TITLE' | translate }}</span>
+                </div>
+                <p class="kv-access-card__message">
+                  {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_DESC' | translate: { kvName: resolveSourceName(kvEntry.keyVaultResourceId), role: kvEntry.missingRoleName, count: kvEntry.affectedSettingsCount } }}
+                </p>
+                @if (canWrite()) {
+                  <div class="kv-access-card__identity-section">
+                    <span class="kv-access-card__section-label">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ON' | translate }}</span>
+                    <div class="kv-access-card__identity-row">
+                      <mat-button-toggle-group
+                        [value]="kvEntry.selectedIdentityType"
+                        (change)="setConfigKeyKvEntryIdentityType(kvEntry.keyVaultResourceId, $event.value)"
+                        class="kv-access-card__toggle-group">
+                        @if (uaiOptionsForSelect().length > 0) {
+                          <mat-button-toggle value="UserAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI' | translate }}</mat-button-toggle>
+                        }
+                        <mat-button-toggle value="SystemAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_SAI' | translate }}</mat-button-toggle>
+                      </mat-button-toggle-group>
+                    </div>
+                    @if (kvEntry.selectedIdentityType === 'UserAssigned') {
+                      @if (uaiOptionsForSelect().length === 1) {
+                        <div class="kv-access-card__uai-chip">
+                          <mat-icon class="kv-access-card__uai-chip-icon">badge</mat-icon>
+                          <span class="kv-access-card__uai-chip-name">{{ uaiOptionsForSelect()[0].label }}</span>
+                        </div>
+                      } @else {
+                        <div class="kv-access-card__identity-row">
+                          <app-compact-select
+                            [options]="uaiOptionsForSelect()"
+                            [value]="kvEntry.selectedUaiId"
+                            [placeholder]="'RESOURCE_EDIT.APP_SETTINGS.KV_SELECT_UAI' | translate"
+                            [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
+                            (valueChange)="setConfigKeyKvEntryUaiId(kvEntry.keyVaultResourceId, $event)">
+                          </app-compact-select>
+                        </div>
+                      }
+                    }
+                  </div>
+                  <button class="kv-access-card__action-btn"
+                    [disabled]="kvEntry.assigning || (kvEntry.selectedIdentityType === 'UserAssigned' && !kvEntry.selectedUaiId)"
+                    (click)="assignConfigKeyKvRole(kvEntry)">
+                    @if (kvEntry.assigning) {
+                      <mat-spinner diameter="14"></mat-spinner>
+                    } @else {
+                      <mat-icon>add_circle_outline</mat-icon>
+                    }
+                    {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ROLE' | translate }}
+                  </button>
+                }
               </div>
             }
 

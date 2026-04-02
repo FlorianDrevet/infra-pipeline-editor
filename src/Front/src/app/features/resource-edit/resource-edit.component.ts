@@ -483,6 +483,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected readonly appSettingsTabHasWarning = computed(() => this.kvMissingRoleEntries().length > 0);
 
+  protected readonly configKeysTabHasWarning = computed(() => this.configKeyKvMissingRoleEntries().length > 0);
+
   protected readonly environmentsTabHasWarning = computed(() => {
     const forms = this.envForms();
     if (forms.length === 0) return false;
@@ -619,6 +621,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly configKeysLoading = signal(false);
   protected readonly configKeysError = signal('');
   protected readonly supportsConfigKeys = computed(() => this.resourceType === 'AppConfiguration');
+  protected readonly configKeyKvMissingRoleEntries = signal<KvMissingRoleEntry[]>([]);
+  protected readonly configKeyKvMissingRoleChecking = signal(false);
 
   protected readonly configKeysGrouped = computed(() => {
     const all = this.configKeys();
@@ -1624,6 +1628,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           if (this.supportsAppSettings()) {
             this.loadAppSettings();
           }
+          if (this.supportsConfigKeys()) {
+            this.loadConfigKeys();
+          }
         }
         if (result.userAssignedIdentityId && !this.allResources().some(r => r.id === result.userAssignedIdentityId)) {
           await this.loadAllResources();
@@ -1778,6 +1785,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       }
       if (this.supportsAppSettings()) {
         this.loadAppSettings();
+      }
+      if (this.supportsConfigKeys()) {
+        this.loadConfigKeys();
       }
     } catch {
       this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_ERROR');
@@ -2014,11 +2024,97 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     try {
       const keys = await this.configKeyService.list(this.resourceId);
       this.configKeys.set(keys);
+      this.checkKvAccessForConfigKeys(keys);
     } catch {
       this.configKeysError.set('RESOURCE_EDIT.CONFIG_KEYS.LOAD_ERROR');
     } finally {
       this.configKeysLoading.set(false);
     }
+  }
+
+  private async checkKvAccessForConfigKeys(keys: AppConfigurationKeyResponse[]): Promise<void> {
+    const missingByKv = new Map<string, AppConfigurationKeyResponse[]>();
+    for (const k of keys) {
+      if (k.isKeyVaultReference && k.keyVaultResourceId && k.hasKeyVaultAccess === false) {
+        const existing = missingByKv.get(k.keyVaultResourceId);
+        if (existing) {
+          existing.push(k);
+        } else {
+          missingByKv.set(k.keyVaultResourceId, [k]);
+        }
+      }
+    }
+
+    if (missingByKv.size === 0) {
+      this.configKeyKvMissingRoleEntries.set([]);
+      return;
+    }
+
+    const uaiOptions = this.uaiOptionsForSelect();
+    const hasUais = uaiOptions.length > 0;
+    const singleUaiId = uaiOptions.length === 1 ? uaiOptions[0].value : null;
+    const entries: KvMissingRoleEntry[] = [...missingByKv.entries()].map(([kvId, affected]) => ({
+      keyVaultResourceId: kvId,
+      keyVaultName: this.resolveSourceName(kvId),
+      missingRoleName: null,
+      missingRoleDefinitionId: null,
+      affectedSettingsCount: affected.length,
+      checking: true,
+      assigning: false,
+      selectedIdentityType: hasUais ? 'UserAssigned' as const : 'SystemAssigned' as const,
+      selectedUaiId: singleUaiId,
+    }));
+    this.configKeyKvMissingRoleEntries.set(entries);
+    this.configKeyKvMissingRoleChecking.set(true);
+
+    for (const entry of entries) {
+      try {
+        const result = await this.appSettingService.checkKeyVaultAccess(this.resourceId, entry.keyVaultResourceId);
+        this.configKeyKvMissingRoleEntries.update(list =>
+          list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId
+            ? { ...e, missingRoleName: result.missingRoleName ?? null, missingRoleDefinitionId: result.missingRoleDefinitionId ?? null, checking: false }
+            : e
+          )
+        );
+      } catch {
+        this.configKeyKvMissingRoleEntries.update(list =>
+          list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, checking: false } : e)
+        );
+      }
+    }
+    this.configKeyKvMissingRoleChecking.set(false);
+  }
+
+  protected async assignConfigKeyKvRole(entry: KvMissingRoleEntry): Promise<void> {
+    this.configKeyKvMissingRoleEntries.update(list =>
+      list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, assigning: true } : e)
+    );
+    try {
+      await this.roleAssignmentService.add(this.resourceId, {
+        targetResourceId: entry.keyVaultResourceId,
+        managedIdentityType: entry.selectedIdentityType,
+        roleDefinitionId: entry.missingRoleDefinitionId!,
+        userAssignedIdentityId: entry.selectedIdentityType === 'UserAssigned' ? entry.selectedUaiId! : undefined,
+      });
+      await this.loadConfigKeys();
+      await this.loadRoleAssignments();
+    } catch {
+      this.configKeyKvMissingRoleEntries.update(list =>
+        list.map(e => e.keyVaultResourceId === entry.keyVaultResourceId ? { ...e, assigning: false } : e)
+      );
+    }
+  }
+
+  protected setConfigKeyKvEntryIdentityType(kvId: string, type: 'UserAssigned' | 'SystemAssigned'): void {
+    this.configKeyKvMissingRoleEntries.update(list =>
+      list.map(e => e.keyVaultResourceId === kvId ? { ...e, selectedIdentityType: type, selectedUaiId: type === 'SystemAssigned' ? null : e.selectedUaiId } : e)
+    );
+  }
+
+  protected setConfigKeyKvEntryUaiId(kvId: string, uaiId: string | null): void {
+    this.configKeyKvMissingRoleEntries.update(list =>
+      list.map(e => e.keyVaultResourceId === kvId ? { ...e, selectedUaiId: uaiId } : e)
+    );
   }
 
   protected openAddConfigKeyDialog(): void {

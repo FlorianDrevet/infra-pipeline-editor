@@ -19,4 +19,10 @@ public interface IAppConfigurationRepository : IRepository<AppConfiguration>
     /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
     /// <returns>The App Configuration aggregate with configuration keys, or null if not found.</returns>
     Task<AppConfiguration?> GetByIdWithConfigurationKeysAsync(AzureResourceId id, CancellationToken cancellationToken);
+
+    /// <summary>Retrieves an App Configuration with its configuration keys, environment values, and role assignments.</summary>
+    /// <param name="id">The App Configuration resource identifier.</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
+    /// <returns>The App Configuration aggregate with configuration keys and role assignments, or null if not found.</returns>
+    Task<AppConfiguration?> GetByIdWithConfigurationKeysAndRoleAssignmentsAsync(AzureResourceId id, CancellationToken cancellationToken);
 }

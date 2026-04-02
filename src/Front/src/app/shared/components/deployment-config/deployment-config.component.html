@@ -112,13 +112,20 @@
               }
               {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
             </button>
-            <div class="acr-identity-card__info">
-              <mat-icon>info_outline</mat-icon>
-              <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-              <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
-                {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
-                <mat-icon>open_in_new</mat-icon>
-              </a>
+            <div class="acr-identity-card__why-section">
+              <button class="acr-identity-card__why-toggle" (click)="showWhyUai = !showWhyUai" type="button">
+                <mat-icon class="acr-identity-card__why-arrow" [class.acr-identity-card__why-arrow--open]="showWhyUai">chevron_right</mat-icon>
+                <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
+              </button>
+              @if (showWhyUai) {
+                <div class="acr-identity-card__why-content">
+                  <p>{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
+                  <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
+                    {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
+                    <mat-icon>open_in_new</mat-icon>
+                  </a>
+                </div>
+              }
             </div>
           </div>
         }
@@ -128,7 +135,7 @@
               <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
               <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
             </div>
-            <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate }}</p>
+            <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI_MSG' | translate }}</p>
             <div class="acr-identity-card__identity-section">
               <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
               <div class="acr-identity-card__identity-row">
@@ -155,13 +162,20 @@
                 {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
               </button>
             }
-            <div class="acr-identity-card__info">
-              <mat-icon>info_outline</mat-icon>
-              <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
-              <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
-                {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
-                <mat-icon>open_in_new</mat-icon>
-              </a>
+            <div class="acr-identity-card__why-section">
+              <button class="acr-identity-card__why-toggle" (click)="showWhyUai = !showWhyUai" type="button">
+                <mat-icon class="acr-identity-card__why-arrow" [class.acr-identity-card__why-arrow--open]="showWhyUai">chevron_right</mat-icon>
+                <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
+              </button>
+              @if (showWhyUai) {
+                <div class="acr-identity-card__why-content">
+                  <p>{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
+                  <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
+                    {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
+                    <mat-icon>open_in_new</mat-icon>
+                  </a>
+                </div>
+              }
             </div>
           </div>
         }

@@ -67,4 +67,6 @@ export class DeploymentConfigComponent {
   protected get hasContainerRegistrySelected(): boolean {
     return !!this.containerRegistryId();
   }
+
+  protected showWhyUai = false;
 }

@@ -54,4 +54,16 @@ public sealed class AppConfigurationRepository : AzureResourceRepository<AppConf
                 .ThenInclude(ck => ck.EnvironmentValues)
             .FirstOrDefaultAsync(ac => ac.Id == id, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<AppConfiguration?> GetByIdWithConfigurationKeysAndRoleAssignmentsAsync(
+        AzureResourceId id,
+        CancellationToken cancellationToken)
+    {
+        return await Context.Set<AppConfiguration>()
+            .Include(ac => ac.ConfigurationKeys)
+                .ThenInclude(ck => ck.EnvironmentValues)
+            .Include(ac => ac.RoleAssignments)
+            .FirstOrDefaultAsync(ac => ac.Id == id, cancellationToken);
+    }
 }

@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.AppConfigurations.Common;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
@@ -20,7 +21,7 @@ public sealed class ListAppConfigurationKeysQueryHandler(
         ListAppConfigurationKeysQuery request,
         CancellationToken cancellationToken)
     {
-        var appConfig = await appConfigurationRepository.GetByIdWithConfigurationKeysAsync(
+        var appConfig = await appConfigurationRepository.GetByIdWithConfigurationKeysAndRoleAssignmentsAsync(
             request.AppConfigurationId, cancellationToken);
 
         if (appConfig is null)
@@ -60,6 +61,12 @@ public sealed class ListAppConfigurationKeysQueryHandler(
             }
         }
 
+        // Build a set of KV resource IDs that have at least one secrets-access role assignment
+        var kvIdsWithAccess = appConfig.RoleAssignments
+            .Where(ra => AzureRoleDefinitionCatalog.KeyVaultSecretsAccessRoles.Contains(ra.RoleDefinitionId))
+            .Select(ra => ra.TargetResourceId)
+            .ToHashSet();
+
         return appConfig.ConfigurationKeys
             .Select(k => new AppConfigurationKeyResult(
                 k.Id,
@@ -75,7 +82,9 @@ public sealed class ListAppConfigurationKeysQueryHandler(
                 k.KeyVaultResourceId,
                 k.SecretName,
                 k.IsKeyVaultReference,
-                null,
+                k.IsKeyVaultReference && k.KeyVaultResourceId is not null
+                    ? kvIdsWithAccess.Contains(k.KeyVaultResourceId)
+                    : null,
                 k.SecretValueAssignment,
                 k.VariableGroupId?.Value,
                 k.PipelineVariableName,
