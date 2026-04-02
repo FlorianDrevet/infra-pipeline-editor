@@ -21,7 +21,7 @@ public static class BicepGenerationController
                 .WithTags("Generate Bicep");
 
             group.MapPost("",
-                    async (GenerateBicepRequest request, IMediator mediator) =>
+                    async (GenerateBicepRequest request, IMediator mediator, IMapper mapper) =>
                     {
                         var command = new GenerateBicepCommand(request.InfrastructureConfigId);
                         var result = await mediator.Send(command);
@@ -29,11 +29,7 @@ public static class BicepGenerationController
                         return result.Match(
                             value =>
                             {
-                                var response = new GenerateBicepResponse(
-                                    value.MainBicepUri,
-                                    value.ConstantsBicepUri,
-                                    value.ParameterFileUris,
-                                    value.ModuleUris);
+                                var response = mapper.Map<GenerateBicepResponse>(value);
                                 return Results.Created(value.MainBicepUri.ToString(), response);
                             },
                             errors => errors.Result()

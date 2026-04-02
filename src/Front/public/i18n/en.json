@@ -440,6 +440,9 @@
         "ACR_SELECT_UAI": "Select a UAI",
         "ACR_ASSIGN_UAI_AND_ROLE": "Assign UAI & add AcrPull",
         "ACR_CREATE_UAI": "Create new UAI",
+        "ACR_IDENTITY_ACCESS": "Identity Access",
+        "ACR_IDENTITY_LABEL": "Identity",
+        "ACR_WHY_UAI": "Why use a User Assigned Identity?",
         "ACR_UAI_CALLOUT_TITLE": "User Assigned Identity",
         "ACR_UAI_CALLOUT_TEXT": "ACR image pulls use a User Assigned Identity. This avoids the propagation delay of System Assigned Identities, which can cause startup failures when the role assignment has not yet taken effect.",
         "ACR_UAI_CALLOUT_LINK": "Microsoft documentation — Managed Identity best practices",
@@ -544,7 +547,12 @@
       "DOWNLOAD": "Download all files",
       "DOWNLOADING": "Downloading...",
       "FILE_LOADING": "Loading file content...",
-      "FILE_ERROR": "Unable to load file content."
+      "FILE_ERROR": "Unable to load file content.",
+      "WARNINGS_TITLE": "Configuration warnings detected"
+    },
+    "DIAGNOSTICS": {
+      "ACR_PULL_MISSING": "Missing AcrPull role assignment on {{target}}",
+      "KEY_VAULT_ACCESS_MISSING": "Missing Key Vault Secrets User role on {{target}}"
     },
     "GENERATION": {
       "TITLE": "Generation Results",
@@ -1077,6 +1085,9 @@
       "ACR_SELECT_UAI": "Select a UAI",
       "ACR_ASSIGN_UAI_AND_ROLE": "Assign UAI & add AcrPull",
       "ACR_CREATE_UAI": "Create new UAI",
+      "ACR_IDENTITY_ACCESS": "Identity Access",
+      "ACR_IDENTITY_LABEL": "Identity",
+      "ACR_WHY_UAI": "Why use a User Assigned Identity?",
       "ACR_UAI_CALLOUT_TITLE": "User Assigned Identity",
       "ACR_UAI_CALLOUT_TEXT": "ACR image pulls use a User Assigned Identity. This avoids the propagation delay of System Assigned Identities, which can cause startup failures when the role assignment has not yet taken effect.",
       "ACR_UAI_CALLOUT_LINK": "Microsoft documentation — Managed Identity best practices",

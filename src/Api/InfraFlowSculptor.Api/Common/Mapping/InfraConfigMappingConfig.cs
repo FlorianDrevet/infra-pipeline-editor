@@ -1,4 +1,7 @@
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBicep;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
+using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetConfigDiagnostics;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossConfigReferences;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListIncomingCrossConfigReferences;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
@@ -103,5 +106,16 @@ public sealed class InfraConfigMappingConfig : IRegister
         config.NewConfig<ProjectResourceResult, ProjectResourceResponse>()
             .Map(dest => dest.ResourceId, src => src.ResourceId.ToString())
             .Map(dest => dest.ConfigId, src => src.ConfigId.ToString());
+
+        // ResourceDiagnosticItem -> ResourceDiagnosticResponse
+        config.NewConfig<ResourceDiagnosticItem, ResourceDiagnosticResponse>()
+            .Map(dest => dest.ResourceId, src => src.ResourceId.ToString())
+            .Map(dest => dest.Severity, src => src.Severity.ToString());
+
+        // GetConfigDiagnosticsResult -> ConfigDiagnosticsResponse
+        config.NewConfig<GetConfigDiagnosticsResult, ConfigDiagnosticsResponse>();
+
+        // GenerateBicepResult -> GenerateBicepResponse
+        config.NewConfig<GenerateBicepResult, GenerateBicepResponse>();
     }
 }

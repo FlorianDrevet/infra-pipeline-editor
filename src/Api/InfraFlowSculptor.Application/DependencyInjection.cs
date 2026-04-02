@@ -2,6 +2,8 @@ using System.Reflection;
 using FluentValidation;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
+using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics.Rules;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.BicepGeneration;
@@ -57,6 +59,11 @@ public static class DependencyInjection
 
         // Pipeline generation engine
         services.AddSingleton<PipelineGenerationEngine>();
+
+        // Configuration diagnostics
+        services.AddScoped<IConfigDiagnosticService, ConfigDiagnosticService>();
+        services.AddScoped<IDiagnosticRule, AcrPullDiagnosticRule>();
+        services.AddScoped<IDiagnosticRule, KeyVaultAccessDiagnosticRule>();
 
         return services;
     }

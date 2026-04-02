@@ -50,7 +50,7 @@ import { BicepGeneratorService } from '../../shared/services/bicep-generator.ser
 import { PipelineGeneratorService } from '../../shared/services/pipeline-generator.service';
 import { CascadeDeleteDialogComponent, CascadeDeleteDialogData } from '../../shared/components/cascade-delete-dialog/cascade-delete-dialog.component';
 import { DependentResourceResponse } from '../../shared/interfaces/dependent-resource.interface';
-import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
+import { GenerateBicepResponse, ResourceDiagnosticResponse } from '../../shared/interfaces/bicep-generator.interface';
 import { GeneratePipelineResponse } from '../../shared/interfaces/pipeline-generator.interface';
 import { saveAs } from 'file-saver';
 import { AuthenticationService } from '../../shared/services/authentication.service';
@@ -268,6 +268,19 @@ export class ConfigDetailComponent implements OnInit {
   // ─── Inheritance ───
   protected readonly inheritanceLoading = signal(false);
 
+  // ─── Configuration Diagnostics ───
+  protected readonly diagnostics = signal<ResourceDiagnosticResponse[]>([]);
+  protected readonly diagnosticsLoading = signal(false);
+  private readonly diagnosticsByResourceId = computed(() => {
+    const map = new Map<string, ResourceDiagnosticResponse[]>();
+    for (const d of this.diagnostics()) {
+      const existing = map.get(d.resourceId) ?? [];
+      existing.push(d);
+      map.set(d.resourceId, existing);
+    }
+    return map;
+  });
+
   // ─── Cross-Config References ───
   protected readonly crossConfigReferences = signal<CrossConfigReferenceResponse[]>([]);
   protected readonly incomingCrossConfigReferences = signal<IncomingCrossConfigReferenceResponse[]>([]);
@@ -348,6 +361,20 @@ export class ConfigDetailComponent implements OnInit {
    */
   protected hasMissingEnvironments(resource: AzureResourceResponse): boolean {
     return this.getMissingEnvironments(resource).length > 0;
+  }
+
+  protected getResourceDiagnostics(resourceId: string): ResourceDiagnosticResponse[] {
+    return this.diagnosticsByResourceId().get(resourceId) ?? [];
+  }
+
+  protected hasResourceDiagnostics(resourceId: string): boolean {
+    return this.getResourceDiagnostics(resourceId).length > 0;
+  }
+
+  protected getResourceDiagnosticTooltip(resourceId: string): string {
+    return this.getResourceDiagnostics(resourceId)
+      .map(d => `${d.ruleCode}: ${d.targetResourceName}`)
+      .join('\n');
   }
 
   // canWrite defaults to true — access checks are now at project level
@@ -449,6 +476,7 @@ export class ConfigDetailComponent implements OnInit {
     this.bicepPanelOpen.set(false);
     this.storageAccountDetails.set({});
     this.previewEnvId.set(null);
+    this.diagnostics.set([]);
     this.loadError.set('');
   }
 
@@ -483,6 +511,7 @@ export class ConfigDetailComponent implements OnInit {
 
       // Load cross-config references BEFORE expanding RGs so they appear in resource lists
       await this.loadCrossConfigReferences();
+      await this.loadDiagnostics();
 
       await this.openDefaultResourceGroup(resourceGroups);
       this.recentlyViewedService.trackView({
@@ -1299,6 +1328,22 @@ export class ConfigDetailComponent implements OnInit {
         this.loadError.set('CONFIG_DETAIL.DELETE.ERROR');
       }
     });
+  }
+
+  // ─── Configuration Diagnostics ───
+
+  private async loadDiagnostics(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+    this.diagnosticsLoading.set(true);
+    try {
+      const result = await this.infraConfigService.getDiagnostics(configId);
+      this.diagnostics.set(result.diagnostics);
+    } catch {
+      // Non-blocking — diagnostics are informational
+    } finally {
+      this.diagnosticsLoading.set(false);
+    }
   }
 
   // ─── Cross-Config References ───

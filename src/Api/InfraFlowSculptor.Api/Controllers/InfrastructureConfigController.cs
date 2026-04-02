@@ -8,6 +8,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossConfigReferences;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListIncomingCrossConfigReferences;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListMyInfraConfigs;
+using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetConfigDiagnostics;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupsByConfig;
 using MediatR;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
@@ -278,6 +279,25 @@ public static class InfrastructureConfigController
                 .Produces<IReadOnlyList<IncomingCrossConfigReferenceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // GET /{id:guid}/diagnostics
+            config.MapGet("/{id:guid}/diagnostics",
+                    async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new GetConfigDiagnosticsQuery(id);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            r => TypedResults.Ok(mapper.Map<ConfigDiagnosticsResponse>(r)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GetConfigDiagnostics")
+                .WithSummary("Get configuration diagnostics")
+                .WithDescription("Runs all diagnostic rules against the configuration and returns findings such as missing RBAC assignments.")
+                .Produces<ConfigDiagnosticsResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         });
     }

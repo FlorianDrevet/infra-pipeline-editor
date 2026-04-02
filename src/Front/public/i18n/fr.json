@@ -439,6 +439,9 @@
         "ACR_SELECT_UAI": "S\u00e9lectionner une UAI",
         "ACR_ASSIGN_UAI_AND_ROLE": "Assigner la UAI et ajouter AcrPull",
         "ACR_CREATE_UAI": "Créer une nouvelle UAI",
+        "ACR_IDENTITY_ACCESS": "Acc\u00e8s Identit\u00e9",
+        "ACR_IDENTITY_LABEL": "Identit\u00e9",
+        "ACR_WHY_UAI": "Pourquoi utiliser une User Assigned Identity ?",
         "ACR_UAI_CALLOUT_TITLE": "User Assigned Identity",
         "ACR_UAI_CALLOUT_TEXT": "Les pulls d'images ACR utilisent une User Assigned Identity. Cela \u00e9vite le d\u00e9lai de propagation des System Assigned Identities, qui peut provoquer des \u00e9checs au d\u00e9marrage lorsque l'attribution de r\u00f4le n'est pas encore effective.",
         "ACR_UAI_CALLOUT_LINK": "Documentation Microsoft \u2014 Bonnes pratiques Managed Identity",
@@ -543,7 +546,12 @@
       "DOWNLOAD": "Telecharger tous les fichiers",
       "DOWNLOADING": "Telechargement...",
       "FILE_LOADING": "Chargement du fichier...",
-      "FILE_ERROR": "Impossible de charger le contenu du fichier."
+      "FILE_ERROR": "Impossible de charger le contenu du fichier.",
+      "WARNINGS_TITLE": "Avertissements de configuration détectés"
+    },
+    "DIAGNOSTICS": {
+      "ACR_PULL_MISSING": "Rôle AcrPull manquant sur {{target}}",
+      "KEY_VAULT_ACCESS_MISSING": "Rôle Key Vault Secrets User manquant sur {{target}}"
     },
     "GENERATION": {
       "TITLE": "Résultats de génération",
@@ -1087,6 +1095,9 @@
       "ACR_SELECT_UAI": "Sélectionner une UAI",
       "ACR_ASSIGN_UAI_AND_ROLE": "Assigner la UAI et ajouter AcrPull",
       "ACR_CREATE_UAI": "Créer une nouvelle UAI",
+      "ACR_IDENTITY_ACCESS": "Accès Identité",
+      "ACR_IDENTITY_LABEL": "Identité",
+      "ACR_WHY_UAI": "Pourquoi utiliser une User Assigned Identity ?",
       "ACR_UAI_CALLOUT_TITLE": "User Assigned Identity",
       "ACR_UAI_CALLOUT_TEXT": "Les pulls d'images ACR utilisent une User Assigned Identity. Cela évite le délai de propagation des System Assigned Identities, qui peut provoquer des échecs au démarrage lorsque l'attribution de rôle n'est pas encore effective.",
       "ACR_UAI_CALLOUT_LINK": "Documentation Microsoft — Bonnes pratiques Managed Identity",

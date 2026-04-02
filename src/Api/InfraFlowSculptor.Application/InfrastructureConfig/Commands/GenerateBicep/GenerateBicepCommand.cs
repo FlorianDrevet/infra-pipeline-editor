@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
+using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBicep;
@@ -12,8 +13,10 @@ public record GenerateBicepCommand(
 /// <param name="ConstantsBicepUri">URI to the optional <c>constants.bicep</c> file (present only when role assignments are configured).</param>
 /// <param name="ParameterFileUris">Map of parameter file names (e.g. <c>main.dev.bicepparam</c>) to their URIs.</param>
 /// <param name="ModuleUris">Map of module paths to their URIs.</param>
+/// <param name="Warnings">Diagnostic findings detected during generation.</param>
 public record GenerateBicepResult(
     Uri MainBicepUri,
     Uri? ConstantsBicepUri,
     IReadOnlyDictionary<string, Uri> ParameterFileUris,
-    IReadOnlyDictionary<string, Uri> ModuleUris);
+    IReadOnlyDictionary<string, Uri> ModuleUris,
+    IReadOnlyList<ResourceDiagnosticItem> Warnings);

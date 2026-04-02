@@ -5,8 +5,10 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// <param name="ConstantsBicepUri">URI to the optional <c>constants.bicep</c> file (present only when role assignments are configured).</param>
 /// <param name="ParameterFileUris">Map of parameter file names (e.g. <c>main.dev.bicepparam</c>) to their URIs.</param>
 /// <param name="ModuleUris">Map of module names to their corresponding <c>.bicep</c> file URIs.</param>
+/// <param name="Warnings">Diagnostic findings detected during Bicep generation.</param>
 public record GenerateBicepResponse(
     Uri MainBicepUri,
     Uri? ConstantsBicepUri,
     IReadOnlyDictionary<string, Uri> ParameterFileUris,
-    IReadOnlyDictionary<string, Uri> ModuleUris);
+    IReadOnlyDictionary<string, Uri> ModuleUris,
+    IReadOnlyList<ResourceDiagnosticResponse> Warnings);

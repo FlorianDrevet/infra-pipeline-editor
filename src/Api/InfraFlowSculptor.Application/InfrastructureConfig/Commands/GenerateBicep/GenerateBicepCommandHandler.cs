@@ -2,6 +2,7 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
 using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
@@ -19,7 +20,8 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBi
 public sealed class GenerateBicepCommandHandler(
     IInfrastructureConfigReadRepository configRepository,
     BicepGenerationEngine bicepGenerationEngine,
-    IBlobService blobService)
+    IBlobService blobService,
+    IConfigDiagnosticService diagnosticService)
     : ICommandHandler<GenerateBicepCommand, GenerateBicepResult>
 {
     /// <summary>
@@ -252,7 +254,9 @@ public sealed class GenerateBicepCommandHandler(
             moduleUris[path] = moduleUri;
         }
 
-        return new GenerateBicepResult(mainBicepUri, constantsBicepUri, parameterUris, moduleUris);
+        var warnings = diagnosticService.Evaluate(config);
+
+        return new GenerateBicepResult(mainBicepUri, constantsBicepUri, parameterUris, moduleUris, warnings);
     }
 
     /// <summary>

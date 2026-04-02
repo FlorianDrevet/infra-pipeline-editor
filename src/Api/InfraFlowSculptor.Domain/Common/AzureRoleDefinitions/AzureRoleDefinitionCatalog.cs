@@ -10,6 +10,23 @@ public static class AzureRoleDefinitionCatalog
     /// <summary>Well-known role definition ID for "Key Vault Secrets User".</summary>
     public const string KeyVaultSecretsUser = "4633458b-17de-408a-b874-0445c86b69e6";
 
+    /// <summary>Well-known role definition ID for "Key Vault Secrets Officer".</summary>
+    public const string KeyVaultSecretsOfficer = "b86a8fe4-44ce-4948-aee5-eccb2c155cd7";
+
+    /// <summary>Well-known role definition ID for "Key Vault Administrator".</summary>
+    public const string KeyVaultAdministrator = "00482a5a-887f-4fb3-b363-3b7fe8e74483";
+
+    /// <summary>
+    /// Set of all Azure role definition IDs that grant access to read Key Vault secrets.
+    /// Used by the impact analyzer to detect broken secret references on role deletion.
+    /// </summary>
+    public static readonly HashSet<string> KeyVaultSecretsAccessRoles =
+    [
+        KeyVaultSecretsUser,
+        KeyVaultSecretsOfficer,
+        KeyVaultAdministrator,
+    ];
+
     /// <summary>Well-known role definition ID for "AcrPull".</summary>
     public const string AcrPull = "7f951dda-4ed3-4680-a7ca-43fe172d538e";
 

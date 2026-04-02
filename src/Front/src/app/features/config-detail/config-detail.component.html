@@ -108,6 +108,22 @@
                 </div>
               }
 
+              @if (bicepResult()?.warnings?.length) {
+                <div class="bicep-warnings-banner">
+                  <mat-icon class="bicep-warnings-banner__icon">gpp_bad</mat-icon>
+                  <div class="bicep-warnings-banner__content">
+                    <strong>{{ 'CONFIG_DETAIL.BICEP.WARNINGS_TITLE' | translate }}</strong>
+                    <ul class="bicep-warnings-banner__list">
+                      @for (w of bicepResult()!.warnings!; track w.resourceId + w.ruleCode) {
+                        <li>
+                          <strong>{{ w.resourceName }}</strong> — {{ 'CONFIG_DETAIL.DIAGNOSTICS.' + w.ruleCode | translate:{ target: w.targetResourceName } }}
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                </div>
+              }
+
               @if (configBicepNodes().length > 0) {
                 <app-bicep-file-panel
                   [nodes]="configBicepNodes()"
@@ -294,6 +310,13 @@
                                             {{ getMissingEnvironments(item.resource).length }}
                                           </span>
                                         }
+                                        @if (hasResourceDiagnostics(item.resource.id)) {
+                                          <span class="diagnostic-badge"
+                                                [matTooltip]="getResourceDiagnosticTooltip(item.resource.id)">
+                                            <mat-icon class="diagnostic-badge__icon">gpp_bad</mat-icon>
+                                            {{ getResourceDiagnostics(item.resource.id).length }}
+                                          </span>
+                                        }
                                       </div>
                                       <span class="resource-item__type">{{ item.resource.resourceType }}</span>
                                     </div>
@@ -430,6 +453,13 @@
                                               {{ getMissingEnvironments(item.resource).length }}
                                             </span>
                                           }
+                                          @if (hasResourceDiagnostics(item.resource.id)) {
+                                            <span class="diagnostic-badge"
+                                                  [matTooltip]="getResourceDiagnosticTooltip(item.resource.id)">
+                                              <mat-icon class="diagnostic-badge__icon">gpp_bad</mat-icon>
+                                              {{ getResourceDiagnostics(item.resource.id).length }}
+                                            </span>
+                                          }
                                         }
                                       </div>
                                       <span class="resource-item__type">
@@ -482,6 +512,13 @@
                                                         [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + getMissingEnvironments(child).join(', ')">
                                                     <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
                                                     {{ getMissingEnvironments(child).length }}
+                                                  </span>
+                                                }
+                                                @if (hasResourceDiagnostics(child.id)) {
+                                                  <span class="diagnostic-badge"
+                                                        [matTooltip]="getResourceDiagnosticTooltip(child.id)">
+                                                    <mat-icon class="diagnostic-badge__icon">gpp_bad</mat-icon>
+                                                    {{ getResourceDiagnostics(child.id).length }}
                                                   </span>
                                                 }
                                               </div>
@@ -558,6 +595,13 @@
                                               [matTooltip]="('CONFIG_DETAIL.RESOURCES.MISSING_ENV_TOOLTIP' | translate) + ': ' + getMissingEnvironments(item.resource).join(', ')">
                                           <mat-icon class="missing-env-badge__icon">warning_amber</mat-icon>
                                           {{ getMissingEnvironments(item.resource).length }}
+                                        </span>
+                                      }
+                                      @if (hasResourceDiagnostics(item.resource.id)) {
+                                        <span class="diagnostic-badge"
+                                              [matTooltip]="getResourceDiagnosticTooltip(item.resource.id)">
+                                          <mat-icon class="diagnostic-badge__icon">gpp_bad</mat-icon>
+                                          {{ getResourceDiagnostics(item.resource.id).length }}
                                         </span>
                                       }
                                     </div>

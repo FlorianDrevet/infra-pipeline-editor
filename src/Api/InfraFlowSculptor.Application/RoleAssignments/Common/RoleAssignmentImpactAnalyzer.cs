@@ -82,7 +82,8 @@ public sealed class RoleAssignmentImpactAnalyzer(
 
     /// <summary>
     /// Rule: If the role being removed is Key Vault Secrets User, check whether the source resource
-    /// has app settings or configuration keys referencing that Key Vault.
+    /// has app settings or configuration keys referencing that Key Vault,
+    /// and no other role assignment from the same source still grants secrets access.
     /// </summary>
     private async Task AnalyzeKeyVaultSecretsImpactAsync(
         AzureResource sourceResource,
@@ -95,10 +96,20 @@ public sealed class RoleAssignmentImpactAnalyzer(
         List<RoleAssignmentImpactItem> impacts,
         CancellationToken cancellationToken)
     {
-        if (roleAssignment.RoleDefinitionId != AzureRoleDefinitionCatalog.KeyVaultSecretsUser)
+        if (!AzureRoleDefinitionCatalog.KeyVaultSecretsAccessRoles.Contains(roleAssignment.RoleDefinitionId))
             return;
 
         if (targetResource is not Domain.KeyVaultAggregate.KeyVault)
+            return;
+
+        // If another role assignment from the same source to the same target still grants secrets access,
+        // removing this one will not break secret resolution.
+        var hasOtherSecretsRole = sourceResource.RoleAssignments
+            .Any(r => r.Id != roleAssignment.Id
+                      && r.TargetResourceId == roleAssignment.TargetResourceId
+                      && AzureRoleDefinitionCatalog.KeyVaultSecretsAccessRoles.Contains(r.RoleDefinitionId));
+
+        if (hasOtherSecretsRole)
             return;
 
         // Check AppSettings on compute resources
@@ -115,7 +126,7 @@ public sealed class RoleAssignmentImpactAnalyzer(
                 TargetResourceId: targetResource.Id.Value,
                 TargetResourceName: targetName,
                 TargetResourceType: targetType,
-                Description: $"'{sourceName}' has {kvSettingsCount} app setting(s) referencing Key Vault '{targetName}'. Removing Key Vault Secrets User will break secret resolution.",
+                Description: $"'{sourceName}' has {kvSettingsCount} app setting(s) referencing Key Vault '{targetName}'. Removing this role will break secret resolution.",
                 Severity: "Critical",
                 AffectedSettingsCount: kvSettingsCount));
         }
@@ -141,7 +152,7 @@ public sealed class RoleAssignmentImpactAnalyzer(
                         TargetResourceId: targetResource.Id.Value,
                         TargetResourceName: targetName,
                         TargetResourceType: targetType,
-                        Description: $"'{sourceName}' has {kvKeysCount} configuration key(s) referencing Key Vault '{targetName}'. Removing Key Vault Secrets User will break Key Vault reference resolution.",
+                        Description: $"'{sourceName}' has {kvKeysCount} configuration key(s) referencing Key Vault '{targetName}'. Removing this role will break Key Vault reference resolution.",
                         Severity: "Critical",
                         AffectedSettingsCount: kvKeysCount));
                 }

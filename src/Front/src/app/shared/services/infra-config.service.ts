@@ -14,6 +14,7 @@ import {
   IncomingCrossConfigReferenceResponse,
   AddCrossConfigReferenceRequest,
 } from '../interfaces/cross-config-reference.interface';
+import { ConfigDiagnosticsResponse } from '../interfaces/config-diagnostics.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -141,6 +142,15 @@ export class InfraConfigService {
       MethodEnum.PUT,
       `/infra-config/${id}/tags`,
       request
+    );
+  }
+
+  // ─── Diagnostics ───
+
+  getDiagnostics(configId: string): Promise<ConfigDiagnosticsResponse> {
+    return this.axios.request$<ConfigDiagnosticsResponse>(
+      MethodEnum.GET,
+      `/infra-config/${configId}/diagnostics`
     );
   }
 
