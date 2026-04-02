@@ -186,14 +186,29 @@
 
 .diagnostics-dialog__navigate-btn {
   flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
-  line-height: 2rem;
+  width: 2rem !important;
+  height: 2rem !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+
+  // Override Material's internal span wrapper
+  .mat-mdc-button-touch-target,
+  .mat-mdc-focus-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   mat-icon {
     font-size: 1rem;
     width: 1rem;
     height: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #78909c;
     transition: color 150ms ease;
   }
@@ -201,6 +216,64 @@
   &:hover mat-icon {
     color: #0288d1;
   }
+}
+
+// ─── Section divider & headers ───
+
+.diagnostics-dialog__section-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+  margin: 1rem 0;
+}
+
+.diagnostics-dialog__section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #37474f;
+  margin-bottom: 0.5rem;
+}
+
+.diagnostics-dialog__section-header-icon {
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+
+  &--error {
+    color: #c62828;
+  }
+
+  &--warning {
+    color: #e65100;
+  }
+}
+
+.diagnostics-dialog__count--warning {
+  background: rgba(230, 81, 0, 0.12);
+  color: #e65100;
+}
+
+// ─── Missing env chips ───
+
+.diagnostics-dialog__missing-envs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+}
+
+.diagnostics-dialog__env-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.25rem;
+  background: rgba(230, 81, 0, 0.1);
+  color: #e65100;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 // ─── Actions ───

@@ -53,7 +53,11 @@ import {
   GenerationDiagnosticsDialogComponent,
   GenerationDiagnosticsDialogData,
   ConfigDiagnosticGroup,
+  ConfigMissingEnvGroup,
+  MissingEnvResource,
 } from '../../shared/components/generation-diagnostics-dialog/generation-diagnostics-dialog.component';
+import { ResourceGroupService } from '../../shared/services/resource-group.service';
+import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { firstValueFrom } from 'rxjs';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
@@ -100,6 +104,7 @@ export class ProjectDetailComponent implements OnInit {
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
+  private readonly resourceGroupService = inject(ResourceGroupService);
 
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly configs = signal<InfrastructureConfigResponse[]>([]);
@@ -886,13 +891,45 @@ export class ProjectDetailComponent implements OnInit {
     const allConfigs = this.configs();
     if (allConfigs.length === 0) return true;
 
+    const project = this.project();
+    const allEnvNames = (project?.environmentDefinitions ?? [])
+      .sort((a, b) => a.order - b.order)
+      .map(e => e.name);
+
+    const ENV_SETTINGS_EXCLUDED_TYPES = new Set(['UserAssignedIdentity']);
+
     const results = await Promise.all(
       allConfigs.map(async (config) => {
         try {
-          const result = await this.infraConfigService.getDiagnostics(config.id);
-          return { config, diagnostics: result.diagnostics };
+          const [diagResult, rgs] = await Promise.all([
+            this.infraConfigService.getDiagnostics(config.id),
+            this.infraConfigService.getResourceGroups(config.id),
+          ]);
+
+          const rgResources = await Promise.all(
+            rgs.map(rg => this.resourceGroupService.getResources(rg.id).catch(() => [] as AzureResourceResponse[])),
+          );
+
+          const missingEnvResources: MissingEnvResource[] = [];
+          for (const resources of rgResources) {
+            for (const resource of resources) {
+              if (ENV_SETTINGS_EXCLUDED_TYPES.has(resource.resourceType)) continue;
+              const configured = new Set(resource.configuredEnvironments ?? []);
+              const missing = allEnvNames.filter(name => !configured.has(name));
+              if (missing.length > 0) {
+                missingEnvResources.push({
+                  resourceId: resource.id,
+                  resourceName: resource.name,
+                  resourceType: resource.resourceType,
+                  missingEnvironments: missing,
+                });
+              }
+            }
+          }
+
+          return { config, diagnostics: diagResult.diagnostics, missingEnvResources };
         } catch {
-          return { config, diagnostics: [] };
+          return { config, diagnostics: [], missingEnvResources: [] as MissingEnvResource[] };
         }
       }),
     );
@@ -905,10 +942,21 @@ export class ProjectDetailComponent implements OnInit {
         diagnostics: r.diagnostics,
       }));
 
-    if (configsWithIssues.length === 0) return true;
+    const configsWithMissingEnvs: ConfigMissingEnvGroup[] = results
+      .filter(r => r.missingEnvResources.length > 0)
+      .map(r => ({
+        configId: r.config.id,
+        configName: r.config.name,
+        resources: r.missingEnvResources,
+      }));
+
+    if (configsWithIssues.length === 0 && configsWithMissingEnvs.length === 0) return true;
 
     const dialogRef = this.dialog.open(GenerationDiagnosticsDialogComponent, {
-      data: { configDiagnostics: configsWithIssues } satisfies GenerationDiagnosticsDialogData,
+      data: {
+        configDiagnostics: configsWithIssues,
+        missingEnvConfigs: configsWithMissingEnvs.length > 0 ? configsWithMissingEnvs : undefined,
+      } satisfies GenerationDiagnosticsDialogData,
       width: '640px',
       maxHeight: '80vh',
     });

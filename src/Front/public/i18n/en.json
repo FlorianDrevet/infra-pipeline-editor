@@ -1560,6 +1560,9 @@
     "RESOURCE_LABEL": "Resource",
     "GO_TO_RESOURCE": "Go to resource",
     "CONTINUE": "Continue anyway",
-    "CANCEL": "Cancel"
+    "CANCEL": "Cancel",
+    "RBAC_SECTION_TITLE": "Permission Issues",
+    "MISSING_ENV_TITLE": "Missing Environment Settings",
+    "MISSING_ENV_SUBTITLE": "The following resources have not been configured for all environments defined in the project."
   }
 }

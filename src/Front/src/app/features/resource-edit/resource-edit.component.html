@@ -1784,7 +1784,7 @@
                   <span class="kv-access-card__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_TITLE' | translate }}</span>
                 </div>
                 <p class="kv-access-card__message">
-                  {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_DESC' | translate: { kvName: kvEntry.keyVaultName, role: kvEntry.missingRoleName, count: kvEntry.affectedSettingsCount } }}
+                  {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_DESC' | translate: { kvName: resolveSourceName(kvEntry.keyVaultResourceId), role: kvEntry.missingRoleName, count: kvEntry.affectedSettingsCount } }}
                 </p>
                 @if (canWrite()) {
                   <div class="kv-access-card__identity-section">

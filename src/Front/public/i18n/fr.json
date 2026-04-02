@@ -1570,6 +1570,9 @@
     "RESOURCE_LABEL": "Ressource",
     "GO_TO_RESOURCE": "Voir la ressource",
     "CONTINUE": "Continuer quand même",
-    "CANCEL": "Annuler"
+    "CANCEL": "Annuler",
+    "RBAC_SECTION_TITLE": "Problèmes de droits",
+    "MISSING_ENV_TITLE": "Paramètres d'environnement manquants",
+    "MISSING_ENV_SUBTITLE": "Les ressources suivantes n'ont pas été configurées pour tous les environnements définis dans le projet."
   }
 }

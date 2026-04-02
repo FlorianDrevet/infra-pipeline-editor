@@ -75,6 +75,7 @@ import { DiagnosticPopoverComponent } from '../../shared/components/diagnostic-p
 import {
   GenerationDiagnosticsDialogComponent,
   GenerationDiagnosticsDialogData,
+  MissingEnvResource,
 } from '../../shared/components/generation-diagnostics-dialog/generation-diagnostics-dialog.component';
 import { firstValueFrom } from 'rxjs';
 
@@ -1358,18 +1359,64 @@ export class ConfigDetailComponent implements OnInit {
 
   private async showDiagnosticsDialog(): Promise<boolean> {
     const currentDiagnostics = this.diagnostics();
-    if (currentDiagnostics.length === 0) return true;
-
     const configId = this.config()?.id;
     const configName = this.config()?.name ?? '';
     if (!configId) return true;
 
+    // Ensure all RG resources are loaded
+    const rgs = this.resourceGroups();
+    const allResources = { ...this.rgResources() };
+    const rgIdsToLoad = rgs.filter(rg => allResources[rg.id] === undefined).map(rg => rg.id);
+    if (rgIdsToLoad.length > 0) {
+      const loaded = await Promise.all(
+        rgIdsToLoad.map(async (rgId) => {
+          try {
+            const resources = await this.resourceGroupService.getResources(rgId);
+            return { rgId, resources };
+          } catch {
+            return { rgId, resources: [] as AzureResourceResponse[] };
+          }
+        }),
+      );
+      for (const { rgId, resources } of loaded) {
+        allResources[rgId] = resources;
+      }
+      this.rgResources.set(allResources);
+    }
+
+    // Collect missing environment settings from loaded resources
+    const missingEnvResources: MissingEnvResource[] = [];
+    for (const resources of Object.values(allResources)) {
+      if (!resources) continue;
+      for (const resource of resources) {
+        const missing = this.getMissingEnvironments(resource);
+        if (missing.length > 0) {
+          missingEnvResources.push({
+            resourceId: resource.id,
+            resourceName: resource.name,
+            resourceType: resource.resourceType,
+            missingEnvironments: missing,
+          });
+        }
+      }
+    }
+
+    const hasDiagnostics = currentDiagnostics.length > 0;
+    const hasMissingEnvs = missingEnvResources.length > 0;
+
+    if (!hasDiagnostics && !hasMissingEnvs) return true;
+
     const dialogData: GenerationDiagnosticsDialogData = {
-      configDiagnostics: [{
+      configDiagnostics: hasDiagnostics ? [{
         configId,
         configName,
         diagnostics: currentDiagnostics,
-      }],
+      }] : [],
+      missingEnvConfigs: hasMissingEnvs ? [{
+        configId,
+        configName,
+        resources: missingEnvResources,
+      }] : undefined,
     };
     const dialogRef = this.dialog.open(GenerationDiagnosticsDialogComponent, {
       data: dialogData,

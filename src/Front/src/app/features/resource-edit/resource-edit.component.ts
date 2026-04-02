@@ -1605,6 +1605,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         } else {
           this.roleAssignments.update(list => [...list, result]);
           this.loadRoleAssignments();
+          if (this.supportsAppSettings()) {
+            this.loadAppSettings();
+          }
         }
         if (result.userAssignedIdentityId && !this.allResources().some(r => r.id === result.userAssignedIdentityId)) {
           await this.loadAllResources();
@@ -1756,6 +1759,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       this.roleAssignments.update(list => list.filter(ra => ra.id !== roleAssignmentId));
       if (this.isContainerMode() && this.selectedContainerRegistryId()) {
         await this.checkAcrPullAccess();
+      }
+      if (this.supportsAppSettings()) {
+        this.loadAppSettings();
       }
     } catch {
       this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE_ERROR');

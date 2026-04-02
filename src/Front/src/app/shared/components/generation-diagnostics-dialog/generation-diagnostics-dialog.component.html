@@ -10,37 +10,95 @@
       {{ 'GENERATION_DIAGNOSTICS.SUBTITLE' | translate }}
     </p>
 
-    @for (group of data.configDiagnostics; track group.configId) {
-      @if (isMultiConfig) {
-        <div class="diagnostics-dialog__group-header">
-          <mat-icon class="diagnostics-dialog__group-icon">settings</mat-icon>
-          <span>{{ 'GENERATION_DIAGNOSTICS.CONFIG_SECTION' | translate: { name: group.configName } }}</span>
-        </div>
-      }
+    @if (hasDiagnostics) {
+      <div class="diagnostics-dialog__section-header">
+        <mat-icon class="diagnostics-dialog__section-header-icon diagnostics-dialog__section-header-icon--error">gpp_bad</mat-icon>
+        <span>{{ 'GENERATION_DIAGNOSTICS.RBAC_SECTION_TITLE' | translate }}</span>
+        <span class="diagnostics-dialog__count">{{ totalDiagnostics }}</span>
+      </div>
 
-      <div class="diagnostics-dialog__list">
-        @for (diag of group.diagnostics; track diag.ruleCode + diag.resourceId + diag.targetResourceName) {
-          <div class="diagnostics-dialog__row" [class]="'diagnostics-dialog__row--' + getSeverityClass(diag.severity)">
-            <div class="diagnostics-dialog__severity-bar"></div>
-            <mat-icon class="diagnostics-dialog__row-icon">{{ getSeverityIcon(diag.severity) }}</mat-icon>
-
-            <div class="diagnostics-dialog__row-body">
-              <div class="diagnostics-dialog__row-header">
-                <span class="diagnostics-dialog__resource-name">{{ diag.resourceName }}</span>
-                <span class="diagnostics-dialog__resource-type">{{ getResourceTypeAbbr(diag.resourceType) }}</span>
-              </div>
-              <span class="diagnostics-dialog__message">{{ getTranslatedMessage(diag) }}</span>
-            </div>
-
-            <button mat-icon-button
-                    class="diagnostics-dialog__navigate-btn"
-                    [matTooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
-                    (click)="navigateToResource(group.configId, diag.resourceId)">
-              <mat-icon>open_in_new</mat-icon>
-            </button>
+      @for (group of data.configDiagnostics; track group.configId) {
+        @if (isMultiConfig) {
+          <div class="diagnostics-dialog__group-header">
+            <mat-icon class="diagnostics-dialog__group-icon">settings</mat-icon>
+            <span>{{ 'GENERATION_DIAGNOSTICS.CONFIG_SECTION' | translate: { name: group.configName } }}</span>
           </div>
         }
+
+        <div class="diagnostics-dialog__list">
+          @for (diag of group.diagnostics; track diag.ruleCode + diag.resourceId + diag.targetResourceName) {
+            <div class="diagnostics-dialog__row" [class]="'diagnostics-dialog__row--' + getSeverityClass(diag.severity)">
+              <div class="diagnostics-dialog__severity-bar"></div>
+              <mat-icon class="diagnostics-dialog__row-icon">{{ getSeverityIcon(diag.severity) }}</mat-icon>
+
+              <div class="diagnostics-dialog__row-body">
+                <div class="diagnostics-dialog__row-header">
+                  <span class="diagnostics-dialog__resource-name">{{ diag.resourceName }}</span>
+                  <span class="diagnostics-dialog__resource-type">{{ getResourceTypeAbbr(diag.resourceType) }}</span>
+                </div>
+                <span class="diagnostics-dialog__message">{{ getTranslatedMessage(diag) }}</span>
+              </div>
+
+              <button mat-icon-button
+                      class="diagnostics-dialog__navigate-btn"
+                      [matTooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                      (click)="navigateToResource(group.configId, diag)">
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    @if (hasMissingEnvs) {
+      @if (hasDiagnostics) {
+        <div class="diagnostics-dialog__section-divider"></div>
+      }
+
+      <div class="diagnostics-dialog__section-header">
+        <mat-icon class="diagnostics-dialog__section-header-icon diagnostics-dialog__section-header-icon--warning">warning_amber</mat-icon>
+        <span>{{ 'GENERATION_DIAGNOSTICS.MISSING_ENV_TITLE' | translate }}</span>
+        <span class="diagnostics-dialog__count diagnostics-dialog__count--warning">{{ totalMissingEnvIssues }}</span>
       </div>
+      <p class="diagnostics-dialog__subtitle">
+        {{ 'GENERATION_DIAGNOSTICS.MISSING_ENV_SUBTITLE' | translate }}
+      </p>
+
+      @for (group of data.missingEnvConfigs; track group.configId) {
+        @if (isMultiConfig) {
+          <div class="diagnostics-dialog__group-header">
+            <mat-icon class="diagnostics-dialog__group-icon">settings</mat-icon>
+            <span>{{ 'GENERATION_DIAGNOSTICS.CONFIG_SECTION' | translate: { name: group.configName } }}</span>
+          </div>
+        }
+
+        <div class="diagnostics-dialog__list">
+          @for (res of group.resources; track res.resourceId) {
+            <div class="diagnostics-dialog__row diagnostics-dialog__row--warning">
+              <div class="diagnostics-dialog__severity-bar"></div>
+              <mat-icon class="diagnostics-dialog__row-icon">warning_amber</mat-icon>
+              <div class="diagnostics-dialog__row-body">
+                <div class="diagnostics-dialog__row-header">
+                  <span class="diagnostics-dialog__resource-name">{{ res.resourceName }}</span>
+                  <span class="diagnostics-dialog__resource-type">{{ getResourceTypeAbbr(res.resourceType) }}</span>
+                </div>
+                <div class="diagnostics-dialog__missing-envs">
+                  @for (env of res.missingEnvironments; track env) {
+                    <span class="diagnostics-dialog__env-chip">{{ env }}</span>
+                  }
+                </div>
+              </div>
+              <button mat-icon-button
+                      class="diagnostics-dialog__navigate-btn"
+                      [matTooltip]="'GENERATION_DIAGNOSTICS.GO_TO_RESOURCE' | translate"
+                      (click)="navigateToMissingEnvResource(group.configId, res)">
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
     }
   </mat-dialog-content>
 
