@@ -37,6 +37,18 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
             .IsRequired(false)
             .HasMaxLength(260);
 
+        builder.Property(x => x.AssignedUserAssignedIdentityId)
+            .HasConversion(
+                v => v == null ? (Guid?)null : v.Value,
+                v => v.HasValue ? new AzureResourceId(v.Value) : null)
+            .IsRequired(false);
+
+        builder.HasOne<AzureResource>()
+            .WithMany()
+            .HasForeignKey(r => r.AssignedUserAssignedIdentityId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Configuration de la relation DependsOn
         builder.HasMany(r => r.DependsOn)
             .WithMany()

@@ -258,7 +258,7 @@
                 </div>
               }
 
-              @if (!showCreateIdentity()) {
+              @if (!showCreateIdentity() && !hasAssignedUai()) {
                 <button mat-stroked-button class="identity-create-btn" (click)="toggleCreateIdentity(true)">
                   <mat-icon>add</mat-icon>
                   {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY' | translate }}
@@ -266,7 +266,7 @@
               }
             }
 
-            @if (showCreateIdentity()) {
+            @if (showCreateIdentity() && !hasAssignedUai()) {
               <div class="identity-create-inline">
                 <mat-form-field appearance="outline" class="identity-create-inline__field">
                   <mat-label>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NEW_IDENTITY_NAME' | translate }}</mat-label>

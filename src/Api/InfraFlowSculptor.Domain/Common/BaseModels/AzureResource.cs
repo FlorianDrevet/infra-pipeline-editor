@@ -65,6 +65,25 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// <summary>Gets the application settings (environment variables) configured on this resource.</summary>
     public IReadOnlyCollection<AppSetting> AppSettings => _appSettings.AsReadOnly();
 
+    /// <summary>Gets the optional User-Assigned Identity explicitly attached to this resource.</summary>
+    public AzureResourceId? AssignedUserAssignedIdentityId { get; private set; }
+
+    /// <summary>
+    /// Assigns a User-Assigned Identity to this resource.
+    /// This models the ARM <c>identity: { type: 'UserAssigned' }</c> concept.
+    /// </summary>
+    /// <param name="identityId">The identifier of the User-Assigned Identity resource.</param>
+    public void AssignUserAssignedIdentity(AzureResourceId identityId)
+    {
+        AssignedUserAssignedIdentityId = identityId;
+    }
+
+    /// <summary>Removes the assigned User-Assigned Identity from this resource.</summary>
+    public void UnassignUserAssignedIdentity()
+    {
+        AssignedUserAssignedIdentityId = null;
+    }
+
     /// <summary>Registers a dependency on another Azure resource in the same resource group.</summary>
     /// <exception cref="InvalidOperationException">Thrown when the resource attempts to depend on itself.</exception>
     public void AddDependency(AzureResource resource)

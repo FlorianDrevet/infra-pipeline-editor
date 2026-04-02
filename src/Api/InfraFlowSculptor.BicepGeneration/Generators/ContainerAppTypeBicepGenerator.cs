@@ -23,7 +23,18 @@ public sealed class ContainerAppTypeBicepGenerator
         var containerRegistryId = resource.Properties.GetValueOrDefault("containerRegistryId", "");
         var hasAcr = !string.IsNullOrEmpty(containerRegistryId);
 
-        var parameters = new Dictionary<string, object>();
+        var parameters = new Dictionary<string, object>
+        {
+            ["containerImage"] = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+            ["cpuCores"] = "0.25",
+            ["memoryGi"] = "0.5Gi",
+            ["minReplicas"] = 0,
+            ["maxReplicas"] = 1,
+            ["ingressEnabled"] = true,
+            ["ingressTargetPort"] = 80,
+            ["ingressExternal"] = true,
+            ["transportMethod"] = "auto"
+        };
 
         if (hasAcr)
         {

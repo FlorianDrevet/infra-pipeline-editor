@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { AxiosService } from './axios.service';
 import { MethodEnum } from '../enums/method.enum';
 import {
+  RoleAssignmentsWithIdentityResponse,
   RoleAssignmentResponse,
   AzureRoleDefinitionResponse,
   AddRoleAssignmentRequest,
@@ -13,12 +14,27 @@ import {
   providedIn: 'root',
 })
 export class RoleAssignmentService {
-  private axios = inject(AxiosService);
+  private readonly axios = inject(AxiosService);
 
-  getByResourceId(resourceId: string): Promise<RoleAssignmentResponse[]> {
-    return this.axios.request$<RoleAssignmentResponse[]>(
+  getByResourceId(resourceId: string): Promise<RoleAssignmentsWithIdentityResponse> {
+    return this.axios.request$<RoleAssignmentsWithIdentityResponse>(
       MethodEnum.GET,
       `/azure-resources/${resourceId}/role-assignments`
+    );
+  }
+
+  assignIdentity(resourceId: string, userAssignedIdentityId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/azure-resources/${resourceId}/assigned-identity`,
+      { userAssignedIdentityId }
+    );
+  }
+
+  unassignIdentity(resourceId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/azure-resources/${resourceId}/assigned-identity`
     );
   }
 

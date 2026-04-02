@@ -268,7 +268,21 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var resourceGroups = config.ResourceGroups.Select(rg =>
         {
             var resources = rg.Resources
-                .Select(r => MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, lifecycleRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings, crSettings, ehSettings))
+                .Select(r =>
+                {
+                    var readModel = MapResource(r, kvSettings, rcSettings, saSettings, blobContainers, storageQueues, storageTables, storageCorsRules, lifecycleRules, aspSettings, waSettings, faSettings, acSettings, caeSettings, caSettings, lawSettings, aiSettings, cosmosSettings, sqlServerSettings, sqlDbSettings, sbSettings, crSettings, ehSettings);
+                    if (readModel is null) return null;
+
+                    // Resolve the assigned UAI name from the resource's FK
+                    string? assignedUaiName = null;
+                    if (r.AssignedUserAssignedIdentityId is not null
+                        && allResources.TryGetValue(r.AssignedUserAssignedIdentityId, out var uaiEntry))
+                    {
+                        assignedUaiName = uaiEntry.Resource.Name.Value;
+                    }
+
+                    return readModel with { AssignedUserAssignedIdentityName = assignedUaiName };
+                })
                 .OfType<AzureResourceReadModel>()
                 .ToList();
 

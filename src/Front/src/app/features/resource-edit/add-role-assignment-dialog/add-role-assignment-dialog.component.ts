@@ -35,6 +35,9 @@ export interface AddRoleAssignmentDialogData {
   isFromUserAssignedIdentity?: boolean;
   userAssignedIdentityId?: string;
   userAssignedIdentityName?: string;
+  // When the source resource already has an assigned UAI
+  assignedUserAssignedIdentityId?: string;
+  assignedUserAssignedIdentityName?: string;
 }
 
 @Component({
@@ -67,6 +70,9 @@ export class AddRoleAssignmentDialogComponent {
   // ─── UAI mode detection ───
   protected readonly isFromUAI = computed(() => !!this.data.isFromUserAssignedIdentity);
 
+  // ─── Assigned UAI on the source resource ───
+  protected readonly hasAssignedUai = computed(() => !!this.data.assignedUserAssignedIdentityId);
+
   // ─── Step management ───
   protected readonly step = signal<1 | 2 | 3>(1);
 
@@ -82,6 +88,14 @@ export class AddRoleAssignmentDialogComponent {
   protected readonly rolesLoading = signal(false);
   protected readonly selectedIdentityType = signal<string>('SystemAssigned');
   protected readonly selectedRoleId = signal<string>('');
+
+  constructor() {
+    // If the source resource has an assigned UAI, pre-select UserAssigned + that identity
+    if (this.data.assignedUserAssignedIdentityId) {
+      this.selectedIdentityType.set('UserAssigned');
+      this.selectedIdentityId.set(this.data.assignedUserAssignedIdentityId);
+    }
+  }
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
 

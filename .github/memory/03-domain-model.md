@@ -27,6 +27,10 @@
 | `ContainerRegistry` | extends `AzureResource` | `ContainerRegistryEnvironmentSettings` | TPT; abbreviation `acr` |
 | `User` | `User` | — | Azure AD user info |
 
+## AzureResource.AssignedUserAssignedIdentityId [2026-04-02]
+
+`AzureResource` has an optional nullable FK `AssignedUserAssignedIdentityId` → `UserAssignedIdentity`. This models the ARM `identity: { type: 'UserAssigned' }` concept — explicitly linking a UAI to a resource, independent of role assignments. Methods: `AssignUserAssignedIdentity(id)`, `UnassignUserAssignedIdentity()`. Bicep engine honors this field for identity block injection.
+
 ## Cross-Config References
 
 `InfrastructureConfig` owns `_crossConfigReferences` collection of `CrossConfigResourceReference` entities. Each reference points to a `TargetResourceId` in another config of the same project, with an `Alias` and optional `Purpose`. The Bicep generator emits `existing` resource group + `existing` resource declarations for each referenced resource.

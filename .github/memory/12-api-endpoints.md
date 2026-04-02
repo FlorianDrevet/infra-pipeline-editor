@@ -29,4 +29,6 @@
 | `/sql-server` | GET/POST/PUT/DELETE | `/{id:guid}` | SQL Server CRUD |
 | `/sql-database` | GET/POST/PUT/DELETE | `/{id:guid}` | SQL Database CRUD |
 | `/azure-resources` | GET | `/{id}/role-assignments/{raId}/impact-analysis` | `AnalyzeRoleAssignmentImpactQuery` |
+| `/azure-resources` | PUT | `/{id}/assigned-identity` | `AssignIdentityToResourceCommand` |
+| `/azure-resources` | DELETE | `/{id}/assigned-identity` | `UnassignIdentityFromResourceCommand` |
 | `/event-hubs` | 8 endpoints | various | EventHubNamespace CRUD + sub-resources |

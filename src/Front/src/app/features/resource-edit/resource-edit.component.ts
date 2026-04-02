@@ -424,11 +424,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.availableUserAssignedIdentities().map(uai => ({ value: uai.id, label: uai.name }))
   );
 
-  /** The currently assigned UAI (first group), or null if none */
+  /** The currently assigned UAI id and name, from the backend wrapper */
+  protected readonly assignedIdentityId = signal<string | null>(null);
+  protected readonly assignedIdentityName = signal<string | null>(null);
+
   protected readonly assignedUai = computed(() => {
-    const groups = this.groupedRoleAssignments().uaiGroups;
-    if (groups.length === 0) return null;
-    return groups[0];
+    const id = this.assignedIdentityId();
+    const name = this.assignedIdentityName();
+    if (!id) return null;
+    return { identityId: id, identityName: name ?? id };
   });
 
   /** UAIs available for switching (excludes the currently assigned one) */
@@ -505,6 +509,17 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     const all = this.roleAssignments();
     const systemAssigned: RoleAssignmentResponse[] = [];
     const uaiMap = new Map<string, { identityId: string; identityName: string; assignments: RoleAssignmentResponse[] }>();
+
+    // Ensure the explicitly assigned UAI always appears as a group, even with 0 RAs
+    const assigned = this.assignedUai();
+    if (assigned) {
+      uaiMap.set(assigned.identityId, {
+        identityId: assigned.identityId,
+        identityName: assigned.identityName,
+        assignments: [],
+      });
+    }
+
     for (const ra of all) {
       if (ra.managedIdentityType === 'UserAssigned' && ra.userAssignedIdentityId) {
         const existing = uaiMap.get(ra.userAssignedIdentityId);
@@ -1501,11 +1516,26 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.roleAssignmentsLoading.set(true);
     this.roleAssignmentsError.set('');
     try {
-      const assignments = await this.roleAssignmentService.getByResourceId(this.resourceId);
-      this.roleAssignments.set(assignments);
+      const result = await this.roleAssignmentService.getByResourceId(this.resourceId);
+      this.roleAssignments.set(result.roleAssignments);
+      this.assignedIdentityId.set(result.assignedUserAssignedIdentityId);
+      this.assignedIdentityName.set(result.assignedUserAssignedIdentityName);
+
+      const assignedUserAssignedIdentityId = result.assignedUserAssignedIdentityId;
+      if (assignedUserAssignedIdentityId) {
+        this.expandedUaiIds.update(current => {
+          if (current.has(assignedUserAssignedIdentityId)) {
+            return current;
+          }
+
+          const next = new Set(current);
+          next.add(assignedUserAssignedIdentityId);
+          return next;
+        });
+      }
 
       // Load role definitions for all unique target resource ids to resolve role names
-      const targetIds = [...new Set(assignments.map(a => a.targetResourceId))];
+      const targetIds = [...new Set(result.roleAssignments.map(a => a.targetResourceId))];
       const allDefs: AzureRoleDefinitionResponse[] = [];
       for (const targetId of targetIds) {
         try {
@@ -1605,6 +1635,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       configLocation: this.resource()?.location ?? 'EastUS2',
     };
 
+    const assignedUai = this.assignedUai();
     const data: AddRoleAssignmentDialogData = this.isUserAssignedIdentity()
       ? {
           ...baseData,
@@ -1612,7 +1643,13 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           userAssignedIdentityId: this.resourceId,
           userAssignedIdentityName: this.resource()?.name ?? '',
         }
-      : baseData;
+      : {
+          ...baseData,
+          ...(assignedUai ? {
+            assignedUserAssignedIdentityId: assignedUai.identityId,
+            assignedUserAssignedIdentityName: assignedUai.identityName,
+          } : {}),
+        };
 
     const dialogRef = this.dialog.open(AddRoleAssignmentDialogComponent, {
       data,
@@ -1652,57 +1689,19 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected async assignUaiToResource(identityId: string): Promise<void> {
     this.roleAssignmentsError.set('');
-    const systemRAs = this.groupedRoleAssignments().systemAssigned;
-
-    if (systemRAs.length === 0) {
-      // No SAI role assignments to convert → inform the user
-      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_UAI_NO_SAI');
-      return;
-    }
-
     try {
-      // Fetch the UAI's existing granted role assignments to detect duplicates
-      const uaiGrantedRAs = await this.userAssignedIdentityService.getGrantedRoleAssignments(identityId);
-      const uaiGrantedKeys = new Set(
-        uaiGrantedRAs.map(ra => `${ra.targetResourceId}::${ra.roleDefinitionId}`)
-      );
-
-      for (const ra of systemRAs) {
-        const key = `${ra.targetResourceId}::${ra.roleDefinitionId}`;
-        if (uaiGrantedKeys.has(key)) {
-          // Duplicate: UAI already has this right → remove the SAI one
-          await this.roleAssignmentService.remove(this.resourceId, ra.id);
-          this.roleAssignments.update(list => list.filter(existing => existing.id !== ra.id));
-        } else {
-          // No duplicate: convert SAI → User-Assigned with the selected UAI
-          const updated = await this.roleAssignmentService.updateIdentity(
-            this.resourceId,
-            ra.id,
-            { managedIdentityType: 'UserAssigned', userAssignedIdentityId: identityId }
-          );
-          this.roleAssignments.update(list =>
-            list.map(existing => existing.id === updated.id ? updated : existing)
-          );
-        }
-      }
-
-      // Reload role assignments to get the full picture (including UAI-sourced ones)
+      await this.roleAssignmentService.assignIdentity(this.resourceId, identityId);
       await this.loadRoleAssignments();
     } catch {
       this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UPDATE_IDENTITY_ERROR');
     }
   }
 
-  protected openUnassignUaiDialog(uai: { identityId: string; identityName: string; assignments: RoleAssignmentResponse[] }): void {
-    const hasAcrPull = uai.assignments.some(ra => ra.roleDefinitionId === ACR_PULL_ROLE_DEFINITION_ID);
-    const messageKey = hasAcrPull
-      ? 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_MESSAGE_ACR_PULL'
-      : 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_MESSAGE';
-
+  protected openUnassignUaiDialog(uai: { identityId: string; identityName: string }): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         titleKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_TITLE',
-        messageKey,
+        messageKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_MESSAGE',
         messageParams: { identity: uai.identityName },
         confirmKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_CONFIRM',
         cancelKey: 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_CANCEL',
@@ -1716,42 +1715,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     });
   }
 
-  private async unassignUaiFromResource(uai: { identityId: string; identityName: string; assignments: RoleAssignmentResponse[] }): Promise<void> {
+  private async unassignUaiFromResource(uai: { identityId: string; identityName: string }): Promise<void> {
     this.roleAssignmentsError.set('');
     try {
-      const acrPullAssignments = uai.assignments.filter(ra => ra.roleDefinitionId === ACR_PULL_ROLE_DEFINITION_ID);
-      const otherAssignments = uai.assignments.filter(ra => ra.roleDefinitionId !== ACR_PULL_ROLE_DEFINITION_ID);
-
-      // Transfer non-AcrPull assignments to System Assigned
-      for (const ra of otherAssignments) {
-        const updated = await this.roleAssignmentService.updateIdentity(
-          this.resourceId,
-          ra.id,
-          { managedIdentityType: 'SystemAssigned' }
-        );
-        this.roleAssignments.update(list =>
-          list.map(existing => existing.id === updated.id ? updated : existing)
-        );
-      }
-
-      // Remove AcrPull assignments (cannot be transferred to SAI)
-      for (const ra of acrPullAssignments) {
-        await this.roleAssignmentService.remove(this.resourceId, ra.id);
-        this.roleAssignments.update(list => list.filter(existing => existing.id !== ra.id));
-      }
-
-      // Refresh dependent tabs after role changes
-      if (acrPullAssignments.length > 0 && this.isAcrEnabled()) {
-        await this.checkAcrPullAccess();
-      }
-      if (this.supportsAppSettings()) {
-        this.loadAppSettings();
-      }
-      if (this.supportsConfigKeys()) {
-        this.loadConfigKeys();
-      }
-
-      await this.checkUaiUsageAndProposeDelete(uai.identityId, uai.identityName);
+      await this.roleAssignmentService.unassignIdentity(this.resourceId);
+      await this.loadRoleAssignments();
     } catch {
       this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_ERROR');
     }

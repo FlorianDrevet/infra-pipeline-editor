@@ -25,7 +25,8 @@ public record AzureResourceReadModel(
     string Location,
     string ResourceType,
     IReadOnlyDictionary<string, string> Properties,
-    IReadOnlyList<ResourceEnvironmentConfigReadModel> EnvironmentConfigs);
+    IReadOnlyList<ResourceEnvironmentConfigReadModel> EnvironmentConfigs,
+    string? AssignedUserAssignedIdentityName = null);
 
 public record ResourceEnvironmentConfigReadModel(
     string EnvironmentName,

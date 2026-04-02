@@ -5,4 +5,4 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 
 namespace InfraFlowSculptor.Application.RoleAssignments.Queries.ListRoleAssignments;
 
-public record ListRoleAssignmentsQuery(AzureResourceId ResourceId) : IQuery<List<RoleAssignmentResult>>;
+public record ListRoleAssignmentsQuery(AzureResourceId ResourceId) : IQuery<RoleAssignmentsWithIdentityResult>;

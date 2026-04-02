@@ -85,6 +85,27 @@ public sealed class BicepGenerationEngine
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToList());
 
+        // Also include resources with explicitly assigned UAI (even if no UA role assignments)
+        foreach (var resource in request.Resources)
+        {
+            if (resource.AssignedUserAssignedIdentityName is not null)
+            {
+                var key = (resource.Name, resource.Type);
+                var uaiBicepId = BicepIdentifierHelper.ToBicepIdentifier(resource.AssignedUserAssignedIdentityName);
+                if (sourceResourcesNeedingUserIdentity.TryGetValue(key, out var existingList))
+                {
+                    if (!existingList.Contains(uaiBicepId, StringComparer.OrdinalIgnoreCase))
+                    {
+                        existingList.Add(uaiBicepId);
+                    }
+                }
+                else
+                {
+                    sourceResourcesNeedingUserIdentity[key] = [uaiBicepId];
+                }
+            }
+        }
+
         // ── Determine per ARM type whether identity is uniform or mixed ─────
         // For each ARM type (excluding UserAssignedIdentity itself), collect the set of
         // distinct identity kinds needed. If only one kind → hardcode in the module template.

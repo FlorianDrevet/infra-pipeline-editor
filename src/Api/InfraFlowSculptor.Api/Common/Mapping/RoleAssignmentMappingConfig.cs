@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.RoleAssignments.Commands.AddRoleAssignment;
+using InfraFlowSculptor.Application.RoleAssignments.Commands.AssignIdentityToResource;
 using InfraFlowSculptor.Application.RoleAssignments.Commands.UpdateRoleAssignmentIdentity;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.Contracts.RoleAssignments.Requests;
@@ -32,6 +33,11 @@ public sealed class RoleAssignmentMappingConfig : IRegister
                 src.Request.UserAssignedIdentityId.HasValue
                     ? new AzureResourceId(src.Request.UserAssignedIdentityId.Value)
                     : null));
+
+        config.NewConfig<(Guid ResourceId, AssignIdentityToResourceRequest Request), AssignIdentityToResourceCommand>()
+            .MapWith(src => new AssignIdentityToResourceCommand(
+                new AzureResourceId(src.ResourceId),
+                new AzureResourceId(src.Request.UserAssignedIdentityId)));
 
         config.NewConfig<ManagedIdentityType, string>()
             .MapWith(src => src.Value.ToString());

@@ -119,7 +119,8 @@ public sealed class GenerateProjectBicepCommandHandler(
                 EnvironmentConfigs = r.EnvironmentConfigs
                     .ToDictionary(
                         ec => ec.EnvironmentName,
-                        ec => (IReadOnlyDictionary<string, string>)ec.Properties)
+                        ec => (IReadOnlyDictionary<string, string>)ec.Properties),
+                AssignedUserAssignedIdentityName = r.AssignedUserAssignedIdentityName,
             }))
             .ToList();
 

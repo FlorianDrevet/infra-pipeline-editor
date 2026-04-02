@@ -1366,6 +1366,22 @@
   background: rgba(103, 58, 183, 0.015);
 }
 
+.ra-uai-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 0.82rem;
+  padding: 0.35rem 0;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: rgba(103, 58, 183, 0.4);
+  }
+}
+
 .ra-card--child {
   border-left: 2px solid rgba(103, 58, 183, 0.22);
   border-radius: 0 0.85rem 0.85rem 0;

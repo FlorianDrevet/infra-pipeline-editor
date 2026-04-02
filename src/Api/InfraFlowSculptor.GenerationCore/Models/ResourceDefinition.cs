@@ -27,4 +27,10 @@ public class ResourceDefinition
     /// </summary>
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> EnvironmentConfigs { get; set; } =
         new Dictionary<string, IReadOnlyDictionary<string, string>>();
+
+    /// <summary>
+    /// The Bicep identifier of the User-Assigned Identity explicitly assigned to this resource, if any.
+    /// When set, the resource's identity block must include 'UserAssigned' even without UA role assignments.
+    /// </summary>
+    public string? AssignedUserAssignedIdentityName { get; set; }
 }

@@ -5,6 +5,12 @@ export const ACR_PULL_ROLE_DEFINITION_ID = '7f951dda-4ed3-4680-a7ca-43fe172d538e
 
 // ─── Responses ───────────────────────────────────────────────────────────────
 
+export interface RoleAssignmentsWithIdentityResponse {
+  assignedUserAssignedIdentityId: string | null;
+  assignedUserAssignedIdentityName: string | null;
+  roleAssignments: RoleAssignmentResponse[];
+}
+
 export interface RoleAssignmentResponse {
   id: string;
   sourceResourceId: string;
@@ -22,6 +28,10 @@ export interface AzureRoleDefinitionResponse {
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
+
+export interface AssignIdentityToResourceRequest {
+  userAssignedIdentityId: string;
+}
 
 export interface AddRoleAssignmentRequest {
   targetResourceId: string;
