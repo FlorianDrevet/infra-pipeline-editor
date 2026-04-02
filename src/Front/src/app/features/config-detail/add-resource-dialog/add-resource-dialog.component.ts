@@ -836,7 +836,6 @@ export class AddResourceDialogComponent {
         return this.fb.group({
           httpsOnly: [true],
           maxInstanceCount: [null as number | null],
-          functionsWorkerRuntime: [''],
         });
       case ResourceTypeEnum.UserAssignedIdentity:
         return this.fb.group({});
@@ -1213,7 +1212,6 @@ export class AddResourceDialogComponent {
         environmentName: env.name,
         httpsOnly: raw.httpsOnly ?? null,
         maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
-        functionsWorkerRuntime: raw.functionsWorkerRuntime || null,
         dockerImageTag: raw.dockerImageTag || null,
       };
     });

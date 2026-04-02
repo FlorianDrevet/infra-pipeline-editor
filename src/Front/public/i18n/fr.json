@@ -1170,6 +1170,7 @@
       "ASSIGN_USER_IDENTITY": "Assigner une identit\u00e9 User Assigned",
       "UPDATE_IDENTITY_ERROR": "Impossible de mettre \u00e0 jour l\u2019identit\u00e9 manag\u00e9e. Veuillez r\u00e9essayer.",
       "ASSIGN_UAI": "Assigner une identité",
+      "ASSIGN_UAI_NO_SAI": "Cette ressource n\u2019a aucune assignation de rôle en System Assigned à convertir. Ajoutez d\u2019abord une assignation de rôle, puis assignez une identité managée.",
       "SWITCH_UAI": "Changer d\u2019identité",
       "SWITCH_UAI_TOOLTIP": "Une seule identité User Assigned peut être assignée \u2014 basculer vers une autre",
       "NAV_TO_UAI": "Accéder à l\u2019identité",

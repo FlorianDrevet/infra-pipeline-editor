@@ -1304,10 +1304,16 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected onDeploymentModeChange(mode: 'Code' | 'Container'): void {
+  protected async onDeploymentModeChange(mode: 'Code' | 'Container'): Promise<void> {
     this.deploymentMode.set(mode);
     this.generalForm.patchValue({ deploymentMode: mode });
     this.formsDirty.set(true);
+
+    if (mode === 'Container' && this.selectedContainerRegistryId()) {
+      await this.checkAcrPullAccess();
+    } else if (mode === 'Code') {
+      this.acrHasAccess.set(null);
+    }
   }
 
   protected onRuntimeStackChange(stack: string): void {
@@ -1646,6 +1652,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected async assignUaiToResource(identityId: string): Promise<void> {
     this.roleAssignmentsError.set('');
     const systemRAs = this.groupedRoleAssignments().systemAssigned;
+
+    if (systemRAs.length === 0) {
+      // No SAI role assignments to convert → inform the user
+      this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_UAI_NO_SAI');
+      return;
+    }
 
     try {
       // Fetch the UAI's existing granted role assignments to detect duplicates

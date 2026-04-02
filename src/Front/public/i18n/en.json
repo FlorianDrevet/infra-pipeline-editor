@@ -1160,6 +1160,7 @@
       "ASSIGN_USER_IDENTITY": "Assign a User Assigned Identity",
       "UPDATE_IDENTITY_ERROR": "Unable to update the managed identity. Please try again.",
       "ASSIGN_UAI": "Assign identity",
+      "ASSIGN_UAI_NO_SAI": "This resource has no System Assigned role assignments to convert. Add a role assignment first, then assign a managed identity.",
       "SWITCH_UAI": "Switch identity",
       "SWITCH_UAI_TOOLTIP": "Only one User Assigned Identity can be assigned — switch to a different one",
       "NAV_TO_UAI": "Go to identity",

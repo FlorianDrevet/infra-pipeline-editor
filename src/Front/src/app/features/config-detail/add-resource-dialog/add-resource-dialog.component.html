@@ -542,11 +542,6 @@
               @case (ResourceTypeEnum.FunctionApp) {
                 <div [formGroup]="getEnvFormGroup(i)" class="env-form">
                   <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.FUNCTIONS_WORKER_RUNTIME' | translate }}</mat-label>
-                    <input matInput formControlName="functionsWorkerRuntime"
-                      [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.FUNCTIONS_WORKER_RUNTIME_PLACEHOLDER' | translate" />
-                  </mat-form-field>
-                  <mat-form-field appearance="outline" class="full-width">
                     <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.MAX_INSTANCE_COUNT' | translate }}</mat-label>
                     <input matInput type="number" formControlName="maxInstanceCount" />
                   </mat-form-field>
