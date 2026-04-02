@@ -1712,6 +1712,17 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         this.roleAssignments.update(list => list.filter(existing => existing.id !== ra.id));
       }
 
+      // Refresh dependent tabs after role changes
+      if (acrPullAssignments.length > 0 && this.isAcrEnabled()) {
+        await this.checkAcrPullAccess();
+      }
+      if (this.supportsAppSettings()) {
+        this.loadAppSettings();
+      }
+      if (this.supportsConfigKeys()) {
+        this.loadConfigKeys();
+      }
+
       await this.checkUaiUsageAndProposeDelete(uai.identityId, uai.identityName);
     } catch {
       this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_ERROR');
