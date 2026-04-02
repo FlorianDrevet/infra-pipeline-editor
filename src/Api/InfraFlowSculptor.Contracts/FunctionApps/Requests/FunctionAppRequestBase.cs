@@ -60,9 +60,6 @@ public class FunctionAppEnvironmentConfigEntry
     /// <summary>Optional maximum scale-out instance count override.</summary>
     public int? MaxInstanceCount { get; init; }
 
-    /// <summary>Optional Functions worker runtime override (e.g., "dotnet-isolated", "node", "python").</summary>
-    public string? FunctionsWorkerRuntime { get; init; }
-
     /// <summary>Optional Docker image tag override for this environment (e.g., "latest", "v1.2.3").</summary>
     public string? DockerImageTag { get; init; }
 }
@@ -72,5 +69,4 @@ public record FunctionAppEnvironmentConfigResponse(
     string EnvironmentName,
     bool? HttpsOnly,
     int? MaxInstanceCount,
-    string? FunctionsWorkerRuntime,
     string? DockerImageTag);

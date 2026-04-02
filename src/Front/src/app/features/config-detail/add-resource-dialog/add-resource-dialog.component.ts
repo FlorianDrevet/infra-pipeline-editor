@@ -835,8 +835,6 @@ export class AddResourceDialogComponent {
       case ResourceTypeEnum.FunctionApp:
         return this.fb.group({
           httpsOnly: [true],
-          runtimeStack: [''],
-          runtimeVersion: [''],
           maxInstanceCount: [null as number | null],
           functionsWorkerRuntime: [''],
         });
@@ -1214,8 +1212,6 @@ export class AddResourceDialogComponent {
       return {
         environmentName: env.name,
         httpsOnly: raw.httpsOnly ?? null,
-        runtimeStack: raw.runtimeStack || null,
-        runtimeVersion: raw.runtimeVersion || null,
         maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
         functionsWorkerRuntime: raw.functionsWorkerRuntime || null,
         dockerImageTag: raw.dockerImageTag || null,

@@ -23,7 +23,6 @@ public sealed class FunctionAppTypeBicepGenerator
         var runtimeStack = resource.Properties.GetValueOrDefault("runtimeStack", "DOTNET");
         var runtimeVersion = resource.Properties.GetValueOrDefault("runtimeVersion", "8.0");
         var httpsOnly = resource.Properties.GetValueOrDefault("httpsOnly", "true") == "true";
-        var functionsWorkerRuntime = resource.Properties.GetValueOrDefault("functionsWorkerRuntime", "");
         var dockerImageName = resource.Properties.GetValueOrDefault("dockerImageName", "");
 
         var parameters = new Dictionary<string, object>
@@ -31,7 +30,6 @@ public sealed class FunctionAppTypeBicepGenerator
             ["runtimeStack"] = runtimeStack,
             ["runtimeVersion"] = runtimeVersion,
             ["httpsOnly"] = httpsOnly,
-            ["functionsWorkerRuntime"] = functionsWorkerRuntime,
             ["deploymentMode"] = deploymentMode,
         };
 
@@ -91,14 +89,13 @@ public sealed class FunctionAppTypeBicepGenerator
         @description('Whether HTTPS only is enforced')
         param httpsOnly bool
 
-        @description('Functions worker runtime override (empty uses runtimeStack)')
-        param functionsWorkerRuntime string = ''
-
         @description('Deployment mode')
         param deploymentMode string = 'Code'
 
         var linuxFxVersion = '${toUpper(runtimeStack)}|${runtimeVersion}'
-        var workerRuntime = !empty(functionsWorkerRuntime) ? functionsWorkerRuntime : toLower(runtimeStack)
+        var workerRuntime = toUpper(runtimeStack) == 'DOTNET'
+          ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet')
+          : toLower(runtimeStack)
 
         resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
           name: name
@@ -156,9 +153,6 @@ public sealed class FunctionAppTypeBicepGenerator
         @description('Whether HTTPS only is enforced')
         param httpsOnly bool
 
-        @description('Functions worker runtime override (empty uses runtimeStack)')
-        param functionsWorkerRuntime string = ''
-
         @description('Deployment mode')
         param deploymentMode string = 'Container'
 
@@ -178,7 +172,9 @@ public sealed class FunctionAppTypeBicepGenerator
         param acrUserManagedIdentityId string = ''
 
         var dockerImage = '${acrLoginServer}/${dockerImageName}:${dockerImageTag}'
-        var workerRuntime = !empty(functionsWorkerRuntime) ? functionsWorkerRuntime : toLower(runtimeStack)
+        var workerRuntime = toUpper(runtimeStack) == 'DOTNET'
+          ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet')
+          : toLower(runtimeStack)
 
         resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
           name: name

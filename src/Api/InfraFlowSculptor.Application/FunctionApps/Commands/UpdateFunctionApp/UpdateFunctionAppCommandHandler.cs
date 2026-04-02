@@ -61,7 +61,6 @@ public sealed class UpdateFunctionAppCommandHandler(
                     .Select(ec => (ec.EnvironmentName,
                         ec.HttpsOnly,
                         ec.MaxInstanceCount,
-                        ec.FunctionsWorkerRuntime,
                         ec.DockerImageTag))
                     .ToList());
 

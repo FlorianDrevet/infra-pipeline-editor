@@ -541,20 +541,6 @@
               }
               @case (ResourceTypeEnum.FunctionApp) {
                 <div [formGroup]="getEnvFormGroup(i)" class="env-form">
-                  <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
-                      <mat-select formControlName="runtimeStack">
-                        @for (option of functionAppRuntimeStackOptions; track option.value) {
-                          <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
-                      <input matInput formControlName="runtimeVersion" />
-                    </mat-form-field>
-                  </div>
                   <mat-form-field appearance="outline" class="full-width">
                     <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.FUNCTIONS_WORKER_RUNTIME' | translate }}</mat-label>
                     <input matInput formControlName="functionsWorkerRuntime"

@@ -77,7 +77,6 @@ public class FunctionApp : AzureResource
         string environmentName,
         bool? httpsOnly,
         int? maxInstanceCount,
-        string? functionsWorkerRuntime,
         string? dockerImageTag)
     {
         var existing = _environmentSettings.FirstOrDefault(
@@ -85,12 +84,12 @@ public class FunctionApp : AzureResource
 
         if (existing is not null)
         {
-            existing.Update(httpsOnly, maxInstanceCount, functionsWorkerRuntime, dockerImageTag);
+            existing.Update(httpsOnly, maxInstanceCount, dockerImageTag);
         }
         else
         {
             _environmentSettings.Add(
-                FunctionAppEnvironmentSettings.Create(Id, environmentName, httpsOnly, maxInstanceCount, functionsWorkerRuntime, dockerImageTag));
+                FunctionAppEnvironmentSettings.Create(Id, environmentName, httpsOnly, maxInstanceCount, dockerImageTag));
         }
     }
 
@@ -98,13 +97,13 @@ public class FunctionApp : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, bool? HttpsOnly, int? MaxInstanceCount, string? FunctionsWorkerRuntime, string? DockerImageTag)> settings)
+        IReadOnlyList<(string EnvironmentName, bool? HttpsOnly, int? MaxInstanceCount, string? DockerImageTag)> settings)
     {
         _environmentSettings.Clear();
         foreach (var s in settings)
         {
             _environmentSettings.Add(
-                FunctionAppEnvironmentSettings.Create(Id, s.EnvironmentName, s.HttpsOnly, s.MaxInstanceCount, s.FunctionsWorkerRuntime, s.DockerImageTag));
+                FunctionAppEnvironmentSettings.Create(Id, s.EnvironmentName, s.HttpsOnly, s.MaxInstanceCount, s.DockerImageTag));
         }
     }
 
@@ -120,7 +119,7 @@ public class FunctionApp : AzureResource
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
         string? dockerImageName,
-        IReadOnlyList<(string EnvironmentName, bool? HttpsOnly, int? MaxInstanceCount, string? FunctionsWorkerRuntime, string? DockerImageTag)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, bool? HttpsOnly, int? MaxInstanceCount, string? DockerImageTag)>? environmentSettings = null)
     {
         var functionApp = new FunctionApp
         {

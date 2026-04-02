@@ -475,13 +475,6 @@
                       </div>
                     }
                     @case ('FunctionApp') {
-                      @if (!isContainerMode()) {
-                        <mat-form-field appearance="outline" class="form-field">
-                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.FUNCTIONS_WORKER_RUNTIME' | translate }}</mat-label>
-                          <input matInput formControlName="functionsWorkerRuntime" />
-                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                        </mat-form-field>
-                      }
                       @if (isContainerMode()) {
                         <mat-form-field appearance="outline" class="form-field">
                           <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG' | translate }}</mat-label>

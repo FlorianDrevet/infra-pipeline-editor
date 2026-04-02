@@ -32,8 +32,6 @@ public sealed class FunctionAppEnvironmentSettingsConfiguration
 
         builder.Property(x => x.MaxInstanceCount);
 
-        builder.Property(x => x.FunctionsWorkerRuntime);
-
         builder.Property(x => x.DockerImageTag)
             .IsRequired(false);
     }

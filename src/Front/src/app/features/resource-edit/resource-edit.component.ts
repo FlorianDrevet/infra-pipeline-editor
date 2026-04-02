@@ -998,7 +998,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return this.fb.group({
           httpsOnly: [settings?.httpsOnly ?? null],
           maxInstanceCount: [settings?.maxInstanceCount ?? null],
-          functionsWorkerRuntime: [settings?.functionsWorkerRuntime ?? null],
           dockerImageTag: [settings?.dockerImageTag ?? null],
         });
       }
@@ -1647,19 +1646,35 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected async assignUaiToResource(identityId: string): Promise<void> {
     this.roleAssignmentsError.set('');
     const systemRAs = this.groupedRoleAssignments().systemAssigned;
-    if (systemRAs.length === 0) return;
 
     try {
+      // Fetch the UAI's existing granted role assignments to detect duplicates
+      const uaiGrantedRAs = await this.userAssignedIdentityService.getGrantedRoleAssignments(identityId);
+      const uaiGrantedKeys = new Set(
+        uaiGrantedRAs.map(ra => `${ra.targetResourceId}::${ra.roleDefinitionId}`)
+      );
+
       for (const ra of systemRAs) {
-        const updated = await this.roleAssignmentService.updateIdentity(
-          this.resourceId,
-          ra.id,
-          { managedIdentityType: 'UserAssigned', userAssignedIdentityId: identityId }
-        );
-        this.roleAssignments.update(list =>
-          list.map(existing => existing.id === updated.id ? updated : existing)
-        );
+        const key = `${ra.targetResourceId}::${ra.roleDefinitionId}`;
+        if (uaiGrantedKeys.has(key)) {
+          // Duplicate: UAI already has this right → remove the SAI one
+          await this.roleAssignmentService.remove(this.resourceId, ra.id);
+          this.roleAssignments.update(list => list.filter(existing => existing.id !== ra.id));
+        } else {
+          // No duplicate: convert SAI → User-Assigned with the selected UAI
+          const updated = await this.roleAssignmentService.updateIdentity(
+            this.resourceId,
+            ra.id,
+            { managedIdentityType: 'UserAssigned', userAssignedIdentityId: identityId }
+          );
+          this.roleAssignments.update(list =>
+            list.map(existing => existing.id === updated.id ? updated : existing)
+          );
+        }
       }
+
+      // Reload role assignments to get the full picture (including UAI-sourced ones)
+      await this.loadRoleAssignments();
     } catch {
       this.roleAssignmentsError.set('RESOURCE_EDIT.ROLE_ASSIGNMENTS.UPDATE_IDENTITY_ERROR');
     }
@@ -2915,7 +2930,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         environmentName: ef.envName,
         httpsOnly: raw.httpsOnly ?? null,
         maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
-        functionsWorkerRuntime: raw.functionsWorkerRuntime || null,
         dockerImageTag: raw.dockerImageTag || null,
       };
     });

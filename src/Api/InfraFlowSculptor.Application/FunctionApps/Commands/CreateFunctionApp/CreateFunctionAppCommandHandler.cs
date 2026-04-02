@@ -65,7 +65,6 @@ public sealed class CreateFunctionAppCommandHandler(
                 .Select(ec => (ec.EnvironmentName,
                     ec.HttpsOnly,
                     ec.MaxInstanceCount,
-                    ec.FunctionsWorkerRuntime,
                     ec.DockerImageTag))
                 .ToList());
 

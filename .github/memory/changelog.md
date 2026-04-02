@@ -4,6 +4,8 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-02 | copilot | Remove FunctionsWorkerRuntime from FunctionApp per-env (full stack) — derived automatically in Bicep from runtimeStack+runtimeVersion. Migration: `RemoveFunctionsWorkerRuntimeFromFunctionAppEnvSettings`. |
+| 2026-04-02 | copilot | Fix FunctionApp creation modal — remove runtimeStack/runtimeVersion from per-env tab (now general config only). `add-resource-dialog`: env form group + builder + HTML template. |
 | 2026-04-02 | copilot | Fix WebApp creation modal — remove runtimeStack/runtimeVersion from per-env tab (now general config only). `add-resource-dialog`: env form group + builder + HTML template. |
 | 2026-04-02 | copilot | dev.agent.md — 3 Coordinator Mode upgrades: (1) step 4bis Plan→Execute→Verify loop, (2) Task Budget IN/OUT OF SCOPE dans template scratchpad, (3) section "Discipline de prompt Static vs Dynamic". Checklist de fin de tâche mise à jour. |
 | 2026-04-02 | copilot | dev.agent.md — Coordinator Mode improvements: Research phase (@Explore, step 2bis), Session Scratchpad (/memories/session/, step 2ter), Precise Delegation rule (no vague prompts), @Explore added to routing table, end-of-task checklist updated. |
