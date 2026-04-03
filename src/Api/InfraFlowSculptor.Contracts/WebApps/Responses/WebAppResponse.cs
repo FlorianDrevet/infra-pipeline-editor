@@ -12,6 +12,12 @@ namespace InfraFlowSculptor.Contracts.WebApps.Responses;
 /// <param name="RuntimeVersion">Runtime version (e.g., "8.0", "20").</param>
 /// <param name="AlwaysOn">Whether the app is always on.</param>
 /// <param name="HttpsOnly">Whether the app requires HTTPS only.</param>
+/// <param name="DeploymentMode">Deployment mode (Code or Container).</param>
+/// <param name="ContainerRegistryId">Optional Container Registry identifier.</param>
+/// <param name="DockerImageName">Docker image name for container deployments.</param>
+/// <param name="DockerfilePath">Relative path to the Dockerfile in the repository.</param>
+/// <param name="SourceCodePath">Relative path to the source code folder.</param>
+/// <param name="BuildCommand">Optional custom build command.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
 public record WebAppResponse(
     Guid Id,
