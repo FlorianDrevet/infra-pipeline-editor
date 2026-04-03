@@ -53,7 +53,7 @@ public class UpdateWebAppCommandHandler(
             ? new AzureResourceId(request.ContainerRegistryId.Value)
             : (AzureResourceId?)null;
 
-        webApp.Update(request.Name, request.Location, appServicePlanId, runtimeStack, request.RuntimeVersion, request.AlwaysOn, request.HttpsOnly, deploymentMode, containerRegistryId, request.DockerImageName);
+        webApp.Update(request.Name, request.Location, appServicePlanId, runtimeStack, request.RuntimeVersion, request.AlwaysOn, request.HttpsOnly, deploymentMode, containerRegistryId, request.DockerImageName, request.DockerfilePath, request.SourceCodePath, request.BuildCommand);
 
         if (request.EnvironmentSettings is not null)
             webApp.SetAllEnvironmentSettings(

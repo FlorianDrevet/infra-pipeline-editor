@@ -9,6 +9,8 @@ using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.PipelineGeneration;
+using InfraFlowSculptor.PipelineGeneration.Generators;
+using InfraFlowSculptor.PipelineGeneration.Generators.App;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using InfraFlowSculptor.Application.Common.Behaviors;
@@ -59,6 +61,14 @@ public static class DependencyInjection
 
         // Pipeline generation engine
         services.AddSingleton<PipelineGenerationEngine>();
+
+        // Application pipeline generation
+        services.AddSingleton<IAppPipelineGenerator, ContainerAppPipelineGenerator>();
+        services.AddSingleton<IAppPipelineGenerator, WebAppContainerPipelineGenerator>();
+        services.AddSingleton<IAppPipelineGenerator, WebAppCodePipelineGenerator>();
+        services.AddSingleton<IAppPipelineGenerator, FunctionAppContainerPipelineGenerator>();
+        services.AddSingleton<IAppPipelineGenerator, FunctionAppCodePipelineGenerator>();
+        services.AddSingleton<AppPipelineGenerationEngine>();
 
         // Configuration diagnostics
         services.AddScoped<IConfigDiagnosticService, ConfigDiagnosticService>();

@@ -430,10 +430,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("ContainerAppId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("ContainerImage")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
                     b.Property<string>("CpuCores")
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");

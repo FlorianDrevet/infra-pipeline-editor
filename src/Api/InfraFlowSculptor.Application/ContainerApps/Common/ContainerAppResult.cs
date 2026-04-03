@@ -15,4 +15,5 @@ public record ContainerAppResult(
     Guid ContainerAppEnvironmentId,
     Guid? ContainerRegistryId,
     string? DockerImageName,
+    string? DockerfilePath,
     IReadOnlyList<ContainerAppEnvironmentConfigData> EnvironmentSettings);

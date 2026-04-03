@@ -1012,8 +1012,25 @@
       "GRANTED_RIGHTS": "Granted Rights",
       "USED_BY": "Used By",
       "CONFIG_KEYS": "Configuration Keys",
+      "APP_PIPELINE": "Application Pipeline",
       "WARNING_MISSING_ROLE": "A required role assignment is missing",
       "WARNING_MISSING_ENV_CONFIG": "Some environments have no configuration"
+    },
+    "APP_PIPELINE": {
+      "DOCKERFILE_PATH": "Dockerfile path",
+      "DOCKERFILE_PATH_HINT": "Relative path in the repository (e.g., ./Dockerfile)",
+      "SOURCE_CODE_PATH": "Source code path",
+      "SOURCE_CODE_PATH_HINT": "Project root folder (e.g., src/Api)",
+      "BUILD_COMMAND": "Build command",
+      "BUILD_COMMAND_HINT": "Custom command (e.g., dotnet publish -c Release)",
+      "GENERATE": "Generate Pipeline",
+      "GENERATING": "Generating...",
+      "GENERATE_ERROR": "Failed to generate the application pipeline",
+      "RETRY": "Retry",
+      "ARTIFACTS": "Generated files",
+      "TERMINAL_DONE": "Application pipeline generated successfully",
+      "FILE_LOADING": "Loading file...",
+      "FILE_ERROR": "Failed to load file"
     },
     "GENERAL": {
       "IDENTITY": "Identity",

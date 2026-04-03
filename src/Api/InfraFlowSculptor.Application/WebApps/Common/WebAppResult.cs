@@ -18,4 +18,7 @@ public record WebAppResult(
     string DeploymentMode,
     Guid? ContainerRegistryId,
     string? DockerImageName,
+    string? DockerfilePath,
+    string? SourceCodePath,
+    string? BuildCommand,
     IReadOnlyList<WebAppEnvironmentConfigData> EnvironmentSettings);

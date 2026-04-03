@@ -43,6 +43,14 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - `DeploymentConfigComponent` [2026-04-02] — extracted container/code deployment mode toggle + ACR selector + UAI flow
 - `ConfirmDialogComponent` — reusable confirm dialog with i18n
 
+## PITFALL — ACR reactivity [2026-04-03]
+- `onContainerRegistryChange` must patch `generalForm.containerRegistryId` so `DeploymentConfigComponent` gets updated input.
+- `onDeploymentModeChange` must trigger `checkAcrPullAccess()` when switching to Container mode with ACR already selected.
+- `isAcrEnabled` should be a single computed source of truth for ACR state.
+
+## PITFALL — Assigned UAI in role assignments list [2026-04-03]
+`groupedRoleAssignments` must seed an assigned-UAI group first (even with 0 RAs). Empty-state condition must account for `assignedUserAssignedIdentity` being set. Related i18n keys: `UAI_NO_ASSIGNMENTS`, `ASSIGN_UAI_NO_SAI`.
+
 ## PITFALL — Creation Modal sync [2026-04-02]
 When a resource's parameters are moved between general config and per-environment config (or removed), the `add-resource-dialog` MUST be updated in 3 places:
 1. `createEnvFormGroup(type)` — add/remove form controls

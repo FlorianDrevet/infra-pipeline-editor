@@ -6,6 +6,17 @@ export interface GeneratePipelineResponse {
   fileUris: Record<string, string>;
 }
 
+// ─── App Pipeline ────────────────────────────────────────────────────────────
+
+export interface GenerateAppPipelineRequest {
+  infrastructureConfigId: string;
+  resourceId: string;
+}
+
+export interface GenerateAppPipelineResponse {
+  fileUris: Record<string, string>;
+}
+
 // ─── Push to Git ─────────────────────────────────────────────────────────────
 
 export interface PushPipelineToGitRequest {

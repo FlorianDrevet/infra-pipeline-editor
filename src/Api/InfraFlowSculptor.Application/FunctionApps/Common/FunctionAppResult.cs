@@ -17,4 +17,7 @@ public record FunctionAppResult(
     string DeploymentMode,
     Guid? ContainerRegistryId,
     string? DockerImageName,
+    string? DockerfilePath,
+    string? SourceCodePath,
+    string? BuildCommand,
     IReadOnlyList<FunctionAppEnvironmentConfigData> EnvironmentSettings);

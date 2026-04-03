@@ -34,6 +34,15 @@
 			"gallery": "https://api.mcp.github.com",
 			"version": "0.33.0"
 		},
+		"gitnexus": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"gitnexus@latest",
+				"mcp"
+			]
+		},
 		"microsoft/azure-devops-mcp": {
 			"type": "stdio",
 			"command": "npx",

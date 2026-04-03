@@ -47,7 +47,8 @@ public sealed class UpdateContainerAppCommandHandler(
             request.ContainerRegistryId.HasValue
                 ? new AzureResourceId(request.ContainerRegistryId.Value)
                 : null,
-            request.DockerImageName);
+            request.DockerImageName,
+            request.DockerfilePath);
 
         if (request.EnvironmentSettings is not null)
             containerApp.SetAllEnvironmentSettings(

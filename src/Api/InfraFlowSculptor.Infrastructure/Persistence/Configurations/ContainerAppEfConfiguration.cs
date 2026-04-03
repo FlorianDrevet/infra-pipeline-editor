@@ -28,6 +28,10 @@ public sealed class ContainerAppConfiguration : IEntityTypeConfiguration<Contain
             .HasMaxLength(512)
             .IsRequired(false);
 
+        builder.Property(x => x.DockerfilePath)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
         builder.HasMany(x => x.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.ContainerAppId)

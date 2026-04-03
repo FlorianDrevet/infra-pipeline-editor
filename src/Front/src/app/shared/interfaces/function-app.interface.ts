@@ -25,6 +25,9 @@ export interface FunctionAppResponse {
   deploymentMode: string;
   containerRegistryId: string | null;
   dockerImageName: string | null;
+  dockerfilePath: string | null;
+  sourceCodePath: string | null;
+  buildCommand: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;
@@ -41,6 +44,9 @@ export interface CreateFunctionAppRequest {
   deploymentMode?: string;
   containerRegistryId?: string | null;
   dockerImageName?: string | null;
+  dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
+  buildCommand?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;
@@ -54,6 +60,9 @@ export interface UpdateFunctionAppRequest {
   deploymentMode?: string;
   containerRegistryId?: string | null;
   dockerImageName?: string | null;
+  dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
+  buildCommand?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;

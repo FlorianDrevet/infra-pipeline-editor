@@ -62,6 +62,9 @@ public class CreateWebAppCommandHandler(
             deploymentMode,
             containerRegistryId,
             request.DockerImageName,
+            request.DockerfilePath,
+            request.SourceCodePath,
+            request.BuildCommand,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName,
                     ec.AlwaysOn,

@@ -35,6 +35,9 @@ public sealed class WebAppMappingConfig : IRegister
                 src.Request.DeploymentMode,
                 src.Request.ContainerRegistryId,
                 src.Request.DockerImageName,
+                src.Request.DockerfilePath,
+                src.Request.SourceCodePath,
+                src.Request.BuildCommand,
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new WebAppEnvironmentConfigData(

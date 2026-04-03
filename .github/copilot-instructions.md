@@ -60,6 +60,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 | `cqrs-feature` | Generating a new aggregate, new CQRS commands/queries/handlers, full feature scaffolding | `.github/skills/cqrs-feature/SKILL.md` |
 | `ui-ux-front-saas` | Any frontend UI/UX work: page design, component visuals, layout, styling, UX states, handoff specs | `.github/skills/ui-ux-front-saas/SKILL.md` |
 | `new-azure-resource` | Adding a new Azure resource type end-to-end (Domain→App→Infra→Contracts→API→Bicep→Frontend→i18n) | `.github/skills/new-azure-resource/SKILL.md` |
+| `gitnexus-workflow` | Code exploration via knowledge graph, impact analysis before modifications, post-change validation, safe refactoring | `.github/skills/gitnexus-workflow/SKILL.md` |
 
 ---
 
@@ -77,6 +78,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 - Error handling uses `ErrorOr<T>` plus the shared API error extensions in `Shared.Api.Errors`; handlers return `ErrorOr` results rather than throwing for expected validation/domain failures.
 - Validation is implemented with FluentValidation and enforced through the MediatR `ValidationBehavior`.
 - Authentication uses Microsoft Entra ID / JWT bearer auth. The API projects set a fallback authenticated policy, expose an `IsAdmin` policy, and use `ICurrentUser`/`CurrentUser` for user context access.
+- Before any refactoring or modification of a shared symbol (interface, base class, cross-cutting service), run `gitnexus_impact()` via the `gitnexus-workflow` skill to assess blast radius. The repo is indexed as `infra-pipeline-editor` in GitNexus.
 - The GitHub prompt and agent files describe the product goal as storing infrastructure configuration in one API and generating Azure Bicep and Azure DevOps pipeline output in the second API. Keep that split in mind when deciding which project should own new behavior.
 - Frontend conventions:
   - **Any frontend work in `src\Front` MUST use the `angular-front` agent** (`.github/agents/angular-front.agent.md`). This agent owns all Angular 19 conventions, signals, standalone components, and project-specific patterns.

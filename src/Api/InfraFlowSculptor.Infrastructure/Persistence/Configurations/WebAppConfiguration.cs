@@ -55,6 +55,18 @@ public class WebAppConfiguration : IEntityTypeConfiguration<WebApp>
         builder.Property(x => x.DockerImageName)
             .IsRequired(false);
 
+        builder.Property(x => x.DockerfilePath)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
+        builder.Property(x => x.SourceCodePath)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
+        builder.Property(x => x.BuildCommand)
+            .HasMaxLength(1000)
+            .IsRequired(false);
+
         builder.HasMany(x => x.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.WebAppId)

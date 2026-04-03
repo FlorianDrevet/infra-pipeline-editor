@@ -1022,8 +1022,25 @@
       "GRANTED_RIGHTS": "Droits accord\u00e9s",
       "USED_BY": "Utilis\u00e9e par",
       "CONFIG_KEYS": "Clés de configuration",
+      "APP_PIPELINE": "Pipeline applicative",
       "WARNING_MISSING_ROLE": "Un r\u00f4le requis n'est pas attribu\u00e9",
       "WARNING_MISSING_ENV_CONFIG": "Certains environnements ne sont pas configur\u00e9s"
+    },
+    "APP_PIPELINE": {
+      "DOCKERFILE_PATH": "Chemin du Dockerfile",
+      "DOCKERFILE_PATH_HINT": "Chemin relatif dans le d\u00e9p\u00f4t (ex: ./Dockerfile)",
+      "SOURCE_CODE_PATH": "Chemin du code source",
+      "SOURCE_CODE_PATH_HINT": "Dossier racine du projet (ex: src/Api)",
+      "BUILD_COMMAND": "Commande de build",
+      "BUILD_COMMAND_HINT": "Commande personnalis\u00e9e (ex: dotnet publish -c Release)",
+      "GENERATE": "G\u00e9n\u00e9rer la pipeline",
+      "GENERATING": "G\u00e9n\u00e9ration en cours...",
+      "GENERATE_ERROR": "Erreur lors de la g\u00e9n\u00e9ration de la pipeline applicative",
+      "RETRY": "R\u00e9essayer",
+      "ARTIFACTS": "Fichiers g\u00e9n\u00e9r\u00e9s",
+      "TERMINAL_DONE": "Pipeline applicative g\u00e9n\u00e9r\u00e9e avec succ\u00e8s",
+      "FILE_LOADING": "Chargement du fichier...",
+      "FILE_ERROR": "Erreur lors du chargement du fichier"
     },
     "GENERAL": {
       "IDENTITY": "Identit\u00e9",

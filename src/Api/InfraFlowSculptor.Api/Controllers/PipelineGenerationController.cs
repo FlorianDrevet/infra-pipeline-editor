@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.DownloadPipeline;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateAppPipeline;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.GeneratePipeline;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushPipelineToGit;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetPipelineFileContent;
@@ -93,6 +94,31 @@ public static class PipelineGenerationController
                 .Produces<PushPipelineToGitResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPost("/app",
+                    async (GenerateAppPipelineRequest request, IMediator mediator) =>
+                    {
+                        var command = new GenerateAppPipelineCommand(
+                            request.InfrastructureConfigId,
+                            request.ResourceId);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value =>
+                            {
+                                var response = new GenerateAppPipelineResponse(value.FileUris);
+                                return Results.Created((string?)null, response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GenerateAppPipeline")
+                .WithSummary("Generate application CI/CD pipeline for a compute resource")
+                .WithDescription("Generates Azure DevOps pipeline YAML files for building and deploying application code to a Container App, Web App, or Function App.")
+                .Produces<GenerateAppPipelineResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status500InternalServerError);
         });
     }
 }

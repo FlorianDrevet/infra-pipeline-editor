@@ -12,7 +12,7 @@
 |------|---------|
 | `.github/memory/01-solution-overview.md` | Tech stack, product goal, solution file |
 | `.github/memory/02-project-structure.md` | Folder tree (Api, Front, Aspire, Shared) |
-| `.github/memory/03-domain-model.md` | All 21 aggregates, domain invariants, code quality rules, error conventions |
+| `.github/memory/03-domain-model.md` | All 22 aggregates, domain invariants, code quality rules, error conventions |
 | `.github/memory/04-cqrs-pattern.md` | CQRS folder structure, marker interfaces, Unit of Work, authorization |
 | `.github/memory/05-api-layer.md` | Endpoint registration, error conversion, contracts, Mapster conventions |
 | `.github/memory/06-persistence.md` | EF Core config, converters, repository pattern, LINQ pitfalls, migrations |
@@ -22,6 +22,7 @@
 | `.github/memory/10-auth-and-build.md` | Auth config, build commands, Sonar rules |
 | `.github/memory/11-agents-skills.md` | All agents and skills registry |
 | `.github/memory/12-api-endpoints.md` | Full API endpoint reference table |
+| `.github/memory/13-code-graph.md` | GitNexus knowledge cache: high-risk symbols, critical flows, clusters |
 | `.github/memory/changelog.md` | Recent changes (pruned > 60 days by dream) |
 | `.github/memory/dream-state.md` | Dream trigger state (lastDreamDate, sessionsSinceLastDream) |
 

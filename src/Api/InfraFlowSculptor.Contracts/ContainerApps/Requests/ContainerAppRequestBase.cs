@@ -26,6 +26,10 @@ public abstract class ContainerAppRequestBase
     /// <summary>Optional base Docker image name (e.g., "myregistry.azurecr.io/myapp/api") without the tag.</summary>
     public string? DockerImageName { get; init; }
 
+    /// <summary>Relative path to the Dockerfile in the repository for pipeline generation.</summary>
+    [MaxLength(500)]
+    public string? DockerfilePath { get; init; }
+
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<ContainerAppEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }

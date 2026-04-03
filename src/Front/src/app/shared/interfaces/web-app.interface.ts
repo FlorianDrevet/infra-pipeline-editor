@@ -25,6 +25,9 @@ export interface WebAppResponse {
   deploymentMode: string;
   containerRegistryId: string | null;
   dockerImageName: string | null;
+  dockerfilePath: string | null;
+  sourceCodePath: string | null;
+  buildCommand: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   alwaysOn: boolean;
@@ -42,6 +45,9 @@ export interface CreateWebAppRequest {
   deploymentMode?: string;
   containerRegistryId?: string | null;
   dockerImageName?: string | null;
+  dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
+  buildCommand?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   alwaysOn: boolean;
@@ -56,6 +62,9 @@ export interface UpdateWebAppRequest {
   deploymentMode?: string;
   containerRegistryId?: string | null;
   dockerImageName?: string | null;
+  dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
+  buildCommand?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   alwaysOn: boolean;

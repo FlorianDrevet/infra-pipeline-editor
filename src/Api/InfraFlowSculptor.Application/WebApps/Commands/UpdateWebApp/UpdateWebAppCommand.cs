@@ -19,5 +19,8 @@ public record UpdateWebAppCommand(
     string DeploymentMode,
     Guid? ContainerRegistryId,
     string? DockerImageName,
+    string? DockerfilePath = null,
+    string? SourceCodePath = null,
+    string? BuildCommand = null,
     IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<WebAppResult>;

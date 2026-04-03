@@ -4,7 +4,7 @@
 - Pure engine in `InfraFlowSculptor.BicepGeneration` (no domain dependency)
 - Strategy pattern: `IResourceTypeBicepGenerator` per resource type
 - Registered as singletons in `Application/DependencyInjection.cs`
-- `AzureResourceTypes` static class in `GenerationCore`: centralized constants for all 17 resource type identifiers. **Never use magic strings.**
+- `AzureResourceTypes` static class in `GenerationCore`: centralized constants for all 18 resource type identifiers (+ ResourceGroup constant). **Never use magic strings.**
 
 ## Output Files
 - `types.bicep` — `EnvironmentName` union, `EnvironmentVariables` type, `environments` map
@@ -23,6 +23,9 @@ Each module folder contains: `{moduleType}.module.bicep` + `types.bicep` (with `
 ## Role Assignment Generation [2026-03-25]
 - `RbacRoleType` in `types.bicep`, `constants.bicep` with used roles, per-target RBAC modules
 - Identity injection: uniform vs mixed mode (parameterized `ManagedIdentityType`)
+
+## ContainerApp Bicep Params [2026-04-03]
+All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, etc.) **must** be added to the generator's `Parameters` dictionary — not just ACR params. Missing entries cause env-specific values to be silently ignored in `.bicepparam` files.
 
 ## Naming Integration [2026-03-23]
 - `NamingTemplateTranslator` converts placeholders to Bicep interpolation

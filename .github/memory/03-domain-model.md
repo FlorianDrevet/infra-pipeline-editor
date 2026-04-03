@@ -5,8 +5,8 @@
 | Aggregate | Root | Key Entities | Notes |
 |---|---|---|---|
 | `Project` | `Project` | `ProjectMember`, `ProjectEnvironmentDefinition`, `ProjectResourceNamingTemplate`, `GitRepositoryConfiguration`, `ProjectPipelineVariableGroup` | Groups InfrastructureConfigs; owns membership/RBAC, default environments, naming conventions, optional Git push config, shared pipeline variable groups |
-| `InfrastructureConfig` | `InfrastructureConfig` | `ParameterDefinition`, `ResourceParameterUsage` | Has `ProjectId` FK to Project. Environments inherited from parent Project. |
-| `ResourceGroup` | `ResourceGroup` | `AzureResource` (base), `InputOutputLink`, `ResourceEnvironmentConfig` | Hosts Azure resources |
+| `InfrastructureConfig` | `InfrastructureConfig` | `ParameterDefinition`, `ResourceParameterUsage`, `ResourceNamingTemplate`, `CrossConfigResourceReference` | Has `ProjectId` FK to Project. Environments inherited from parent Project. |
+| `ResourceGroup` | `ResourceGroup` | `AzureResource` (base) | Hosts Azure resources. No child entities — `ResourceEnvironmentConfig` was removed. |
 | `KeyVault` | extends `AzureResource` | `KeyVaultEnvironmentSettings` | TPT in EF Core |
 | `RedisCache` | extends `AzureResource` | `RedisCacheEnvironmentSettings` | TPT in EF Core |
 | `StorageAccount` | extends `AzureResource` | `StorageAccountEnvironmentSettings`, `BlobContainer`, `StorageQueue`, `StorageTable`, `CorsRule`, `BlobLifecycleRule` | TPT; sub-resources managed via dedicated CQRS commands |
@@ -27,9 +27,24 @@
 | `ContainerRegistry` | extends `AzureResource` | `ContainerRegistryEnvironmentSettings` | TPT; abbreviation `acr` |
 | `User` | `User` | — | Azure AD user info |
 
+## Shared Base Entities (Common/BaseModels/Entites)
+
+These reusable entity types are owned by multiple aggregates:
+
+| Entity | Usage |
+|--------|-------|
+| `AppSetting` | App settings with key/value, used by WebApp, FunctionApp, ContainerApp |
+| `AppSettingEnvironmentValue` | Per-environment overrides for app settings |
+| `InputOutputLink` | Links between resource outputs and other resource inputs |
+| `RoleAssignment` | RBAC role assignment on any AzureResource |
+
 ## AzureResource.AssignedUserAssignedIdentityId [2026-04-02]
 
-`AzureResource` has an optional nullable FK `AssignedUserAssignedIdentityId` → `UserAssignedIdentity`. This models the ARM `identity: { type: 'UserAssigned' }` concept — explicitly linking a UAI to a resource, independent of role assignments. Methods: `AssignUserAssignedIdentity(id)`, `UnassignUserAssignedIdentity()`. Bicep engine honors this field for identity block injection.
+`AzureResource` has an optional nullable FK `AssignedUserAssignedIdentityId` → `UserAssignedIdentity`. Methods: `AssignUserAssignedIdentity(id)`, `UnassignUserAssignedIdentity()`. Bicep engine honors this for identity block injection.
+
+## ContainerApp.DockerImageName [2026-04-02]
+
+`ContainerApp` owns `DockerImageName` at the resource level (not per-env). The `containerImage` property was removed from `ContainerAppEnvironmentSettings`. Bicep generator reads `resource.Properties["dockerImageName"]`.
 
 ## Cross-Config References
 

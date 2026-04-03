@@ -42,10 +42,15 @@ Avant de proposer quoi que ce soit :
 
 ### 3. Explorer le code existant
 
-Utiliser `read` et `search` pour :
-- Trouver le code directement impacté par la demande
-- Identifier les dépendances, les patterns en place, les interfaces existantes
-- Repérer les incohérences ou la dette technique déjà présente dans la zone concernée
+**Utiliser GitNexus en premier** pour la compréhension structurelle, puis `read`/`search` pour le détail :
+
+1. **Charger le skill `gitnexus-workflow`** (`.github/skills/gitnexus-workflow/SKILL.md`) si non déjà en contexte
+2. **`gitnexus_query("concept lié à la demande")`** → identifier les flux d'exécution concernés
+3. **`gitnexus_context("SymboleCible")`** → vue 360° des dépendances (incoming/outgoing)
+4. **`gitnexus_impact(target, "upstream")`** → blast radius des symboles que la demande impacte
+5. Compléter avec `read`/`search` pour le contenu exact des fichiers identifiés
+
+Ces résultats alimentent directement l'étape 4 (Challenge).
 
 ### 4. Challenger la demande
 
@@ -55,8 +60,8 @@ Utiliser `read` et `search` pour :
 |----------|--------|
 | **Pertinence** | Est-ce que cette feature/modification a sa place dans l'architecture actuelle ? Est-ce le bon projet/couche/agrégat pour la porter ? |
 | **Cohérence** | Est-ce que la proposition est cohérente avec les patterns existants (DDD, CQRS, ErrorOr, TPT, etc.) ? Sinon, quel pattern devrait-on suivre ? |
-| **Duplication** | Est-ce qu'un mécanisme existant couvre déjà ce besoin, en tout ou en partie ? Faut-il étendre plutôt que créer ? |
-| **Impact** | Quels sont les effets de bord ? Quelles couches sont impactées ? Y a-t-il un risque de régression ? |
+| **Duplication** | Utiliser `gitnexus_query("concept")` pour détecter les mécanismes existants. Est-ce qu'un mécanisme existant couvre déjà ce besoin, en tout ou en partie ? Faut-il étendre plutôt que créer ? |
+| **Impact** | Exécuter `gitnexus_impact(target, "upstream")` sur chaque symbole modifié. Reporter le blast radius (d=1 WILL BREAK, d=2 LIKELY, d=3 MAY NEED TESTING). Quelles couches sont impactées ? Y a-t-il un risque de régression ? |
 | **Dette technique** | La zone de code visée a-t-elle de la dette technique qu'il faudrait traiter en même temps ? Est-ce qu'ajouter sans refactorer va empirer la situation ? |
 | **Alternative** | Existe-t-il une approche plus simple, plus maintenable, ou plus alignée avec l'architecture ? |
 | **Refonte nécessaire ?** | Si la meilleure solution impose de modifier l'existant (renommer, restructurer, migrer), le dire clairement avec la justification. |
@@ -80,6 +85,7 @@ Le plan doit être **directement exécutable** par les agents spécialisés. Il 
 **Pertinent :** Oui / Non / Partiellement — [justification]
 **Faisable avec l'existant :** Oui / Avec adaptations / Non, refonte requise — [justification]
 **Risques identifiés :** [liste]
+**GitNexus blast radius :** [résultats de `impact()` — d=1/d=2/d=3 par symbole modifié]
 
 ## Décisions d'architecture
 
@@ -170,7 +176,8 @@ L'architecte doit maîtriser l'intégralité de `MEMORY.md` et connaître :
 - La séparation API / Application / Domain / Infrastructure / Contracts
 - Le BicepGeneration engine (self-contained, strategy pattern)
 - Le frontend Angular 19 (signals, standalone, zoneless)
-- Les skills disponibles (`cqrs-feature`, `new-azure-resource`, `ui-ux-front-saas`)
+- Les skills disponibles (`cqrs-feature`, `new-azure-resource`, `ui-ux-front-saas`, `gitnexus-workflow`)
+- Le knowledge graph GitNexus pour l'analyse d'impact et l'exploration structurelle
 
 ---
 

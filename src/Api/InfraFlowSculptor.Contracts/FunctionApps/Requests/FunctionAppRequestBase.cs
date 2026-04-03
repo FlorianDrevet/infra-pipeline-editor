@@ -43,6 +43,18 @@ public abstract class FunctionAppRequestBase
     /// <summary>Docker image name for container deployments (e.g., "myapp/func").</summary>
     public string? DockerImageName { get; init; }
 
+    /// <summary>Relative path to the Dockerfile in the repository for container pipeline generation.</summary>
+    [MaxLength(500)]
+    public string? DockerfilePath { get; init; }
+
+    /// <summary>Relative path to the source code folder for code pipeline generation.</summary>
+    [MaxLength(500)]
+    public string? SourceCodePath { get; init; }
+
+    /// <summary>Optional custom build command for pipeline generation.</summary>
+    [MaxLength(1000)]
+    public string? BuildCommand { get; init; }
+
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<FunctionAppEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }

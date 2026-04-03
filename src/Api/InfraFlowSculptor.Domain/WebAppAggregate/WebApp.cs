@@ -41,6 +41,15 @@ public class WebApp : AzureResource
     /// <summary>Gets the Docker image name for container deployments (e.g., "myapp/api").</summary>
     public string? DockerImageName { get; private set; }
 
+    /// <summary>Gets the optional relative path to the Dockerfile in the repository for container deployments.</summary>
+    public string? DockerfilePath { get; private set; }
+
+    /// <summary>Gets the optional relative path to the source code folder for code deployments.</summary>
+    public string? SourceCodePath { get; private set; }
+
+    /// <summary>Gets the optional custom build command for pipeline generation.</summary>
+    public string? BuildCommand { get; private set; }
+
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages
         => Array.Empty<ParameterUsage>();
 
@@ -59,7 +68,10 @@ public class WebApp : AzureResource
         bool httpsOnly,
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
-        string? dockerImageName)
+        string? dockerImageName,
+        string? dockerfilePath,
+        string? sourceCodePath,
+        string? buildCommand)
     {
         Name = name;
         Location = location;
@@ -71,6 +83,9 @@ public class WebApp : AzureResource
         DeploymentMode = deploymentMode;
         ContainerRegistryId = containerRegistryId;
         DockerImageName = dockerImageName;
+        DockerfilePath = dockerfilePath;
+        SourceCodePath = sourceCodePath;
+        BuildCommand = buildCommand;
     }
 
     /// <summary>
@@ -124,6 +139,9 @@ public class WebApp : AzureResource
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
         string? dockerImageName,
+        string? dockerfilePath = null,
+        string? sourceCodePath = null,
+        string? buildCommand = null,
         IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)>? environmentSettings = null)
     {
         var webApp = new WebApp
@@ -139,7 +157,10 @@ public class WebApp : AzureResource
             HttpsOnly = httpsOnly,
             DeploymentMode = deploymentMode,
             ContainerRegistryId = containerRegistryId,
-            DockerImageName = dockerImageName
+            DockerImageName = dockerImageName,
+            DockerfilePath = dockerfilePath,
+            SourceCodePath = sourceCodePath,
+            BuildCommand = buildCommand
         };
 
         if (environmentSettings is not null)

@@ -14,5 +14,6 @@ public record CreateContainerAppCommand(
     Guid ContainerAppEnvironmentId,
     Guid? ContainerRegistryId,
     string? DockerImageName = null,
+    string? DockerfilePath = null,
     IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<ContainerAppResult>;

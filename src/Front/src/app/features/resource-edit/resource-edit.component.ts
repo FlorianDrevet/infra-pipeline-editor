@@ -74,6 +74,9 @@ import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } f
 import { CreateUaiDialogComponent, CreateUaiDialogData } from './create-uai-dialog/create-uai-dialog.component';
 import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
+import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
+import { PipelineGeneratorService } from '../../shared/services/pipeline-generator.service';
+import { GenerateAppPipelineResponse } from '../../shared/interfaces/pipeline-generator.interface';
 
 /** Key Vault missing role entry for the KV access warning banner */
 interface KvMissingRoleEntry {
@@ -309,6 +312,7 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     MatButtonToggleModule,
     CompactSelectComponent,
     DeploymentConfigComponent,
+    BicepFilePanelComponent,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
@@ -340,6 +344,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly appSettingService = inject(AppSettingService);
   private readonly configKeyService = inject(AppConfigurationKeyService);
+  private readonly pipelineGeneratorService = inject(PipelineGeneratorService);
 
   // ─── Route params ───
   protected configId = '';
@@ -372,6 +377,23 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
   protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
+
+  // ─── App Pipeline ───
+  protected readonly appPipelineResult = signal<GenerateAppPipelineResponse | null>(null);
+  protected readonly appPipelineLoading = signal(false);
+  protected readonly appPipelineErrorKey = signal<string | null>(null);
+
+  protected readonly appPipelineNodes = computed<BicepTreeNode[]>(() => {
+    const result = this.appPipelineResult();
+    if (!result) return [];
+    return this.buildAppPipelineFileTree(Object.keys(result.fileUris));
+  });
+
+  protected supportsAppPipeline(): boolean {
+    return this.resourceType === 'WebApp'
+        || this.resourceType === 'FunctionApp'
+        || this.resourceType === 'ContainerApp';
+  }
 
   protected readonly redisAadWarning = computed(() => {
     if (this.resourceType !== 'RedisCache') return false;
@@ -882,6 +904,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['runtimeVersion'] = [wa.runtimeVersion];
       base['alwaysOn'] = [wa.alwaysOn];
       base['httpsOnly'] = [wa.httpsOnly];
+      base['dockerfilePath'] = [wa.dockerfilePath ?? ''];
+      base['sourceCodePath'] = [wa.sourceCodePath ?? ''];
+      base['buildCommand'] = [wa.buildCommand ?? ''];
       this.deploymentMode.set((wa.deploymentMode as 'Code' | 'Container') || 'Code');
       this.selectedContainerRegistryId.set(wa.containerRegistryId ?? null);
     } else if (this.resourceType === 'FunctionApp') {
@@ -893,6 +918,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['runtimeStack'] = [fa.runtimeStack, [Validators.required]];
       base['runtimeVersion'] = [fa.runtimeVersion];
       base['httpsOnly'] = [fa.httpsOnly];
+      base['dockerfilePath'] = [fa.dockerfilePath ?? ''];
+      base['sourceCodePath'] = [fa.sourceCodePath ?? ''];
+      base['buildCommand'] = [fa.buildCommand ?? ''];
       this.deploymentMode.set((fa.deploymentMode as 'Code' | 'Container') || 'Code');
       this.selectedContainerRegistryId.set(fa.containerRegistryId ?? null);
     } else if (this.resourceType === 'StorageAccount') {
@@ -926,6 +954,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
       base['containerRegistryId'] = [ca.containerRegistryId ?? null];
       base['dockerImageName'] = [ca.dockerImageName ?? null];
+      base['dockerfilePath'] = [ca.dockerfilePath ?? ''];
       this.selectedContainerRegistryId.set(ca.containerRegistryId ?? null);
     } else if (this.resourceType === 'ApplicationInsights') {
       const ai = resource as ApplicationInsightsResponse;
@@ -1185,6 +1214,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             deploymentMode: general.deploymentMode || 'Code',
             containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
             dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
+            dockerfilePath: general.dockerfilePath || null,
+            sourceCodePath: general.sourceCodePath || null,
+            buildCommand: general.buildCommand || null,
             runtimeStack: general.runtimeStack,
             runtimeVersion: general.runtimeVersion,
             alwaysOn: general.alwaysOn,
@@ -1200,6 +1232,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             deploymentMode: general.deploymentMode || 'Code',
             containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
             dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
+            dockerfilePath: general.dockerfilePath || null,
+            sourceCodePath: general.sourceCodePath || null,
+            buildCommand: general.buildCommand || null,
             runtimeStack: general.runtimeStack,
             runtimeVersion: general.runtimeVersion,
             httpsOnly: general.httpsOnly,
@@ -1233,6 +1268,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             containerAppEnvironmentId: general.containerAppEnvironmentId,
             containerRegistryId: general.containerRegistryId || null,
             dockerImageName: general.dockerImageName || null,
+            dockerfilePath: general.dockerfilePath || null,
             environmentSettings: this.buildContainerAppEnvSettings(),
           });
           break;
@@ -3028,5 +3064,69 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         zoneRedundancy: raw.zoneRedundancy ?? null,
       };
     });
+  }
+
+  // ─── App Pipeline Generation ───
+
+  protected async generateAppPipeline(): Promise<void> {
+    this.appPipelineLoading.set(true);
+    this.appPipelineErrorKey.set(null);
+    try {
+      const result = await this.pipelineGeneratorService.generateAppPipeline({
+        infrastructureConfigId: this.configId,
+        resourceId: this.resourceId,
+      });
+      this.appPipelineResult.set(result);
+    } catch {
+      this.appPipelineErrorKey.set('RESOURCE_EDIT.APP_PIPELINE.GENERATE_ERROR');
+    } finally {
+      this.appPipelineLoading.set(false);
+    }
+  }
+
+  protected loadAppPipelineFile = async (filePath: string): Promise<string> => {
+    const uri = this.appPipelineResult()?.fileUris[filePath];
+    if (!uri) return '';
+    const response = await fetch(uri);
+    return response.text();
+  };
+
+  private buildAppPipelineFileTree(filePaths: string[]): BicepTreeNode[] {
+    const nodes: BicepTreeNode[] = [];
+    const addedFolders = new Set<string>();
+
+    for (const filePath of filePaths) {
+      const parts = filePath.split('/');
+      // Create folder nodes for each directory segment
+      let parentKey = '';
+      for (let i = 0; i < parts.length - 1; i++) {
+        const folderKey = parentKey ? `${parentKey}/${parts[i]}` : parts[i];
+        if (!addedFolders.has(folderKey)) {
+          addedFolders.add(folderKey);
+          nodes.push({
+            kind: 'folder',
+            key: folderKey,
+            name: `${parts[i]}/`,
+            folderIcon: i === 0 ? 'folder_shared' : 'folder',
+            depth: i,
+            parentFolderKey: parentKey || undefined,
+          } satisfies BicepFolderNode);
+        }
+        parentKey = folderKey;
+      }
+      // Create file node
+      const fileName = parts[parts.length - 1];
+      nodes.push({
+        kind: 'file',
+        path: filePath,
+        displayName: fileName,
+        type: 'generic',
+        uri: filePath,
+        depth: parts.length - 1,
+        parentFolderKey: parentKey,
+      } satisfies BicepFileNode);
+    }
+
+    return nodes;
   }
 }

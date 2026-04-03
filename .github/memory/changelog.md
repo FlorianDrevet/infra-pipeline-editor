@@ -4,38 +4,15 @@
 
 | Date | Author | Change |
 |------|--------|--------|
-| 2026-04-03 | copilot | Remove `containerImage` from ContainerApp per-environment settings (Domain, Application, Contracts, Mapster, EF Config, Frontend). Image now comes from resource-level `DockerImageName` and is set in the Bicep generator from `resource.Properties["dockerImageName"]`. 8 backend + 5 frontend files modified. |
-| 2026-04-03 | copilot | Fix ContainerApp Bicep generation: added all typed per-env parameters (containerImage, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod) to `ContainerAppTypeBicepGenerator.Generate()` Parameters dict so they flow through main.bicep and .bicepparam environment overrides. Previously only ACR params were declared, meaning env-specific values were silently ignored. |
-| 2026-04-02 | copilot | Identity & Access tab now auto-expands the assigned User Assigned Identity group by default when a resource already has one linked. |
-| 2026-04-02 | copilot | Refactored Assign Identity feature end-to-end: added `AssignedUserAssignedIdentityId` FK on `AzureResource`, created AssignIdentityToResource/UnassignIdentityFromResource CQRS commands with dedup logic, new API endpoints PUT/DELETE `/assigned-identity`, updated ListRoleAssignments to return wrapper with identity info, updated Bicep generation engine to honor explicit UAI assignment, simplified frontend to simple API calls (no more SA→UA conversion). Migration: `AddAssignedUserAssignedIdentityIdToAzureResource`. |
-| 2026-04-03 | copilot | Fix ACR UAI card not appearing for WebApp/FunctionApp/ContainerApp — `onContainerRegistryChange` now patches `generalForm.containerRegistryId` so the child `DeploymentConfigComponent` receives updated `containerRegistryId` input and shows the ACR identity card. |
-| 2026-04-03 | copilot | Fix ACR pull banner not showing for WebApp/FunctionApp when switching to Container mode with ACR already selected — `onDeploymentModeChange` now triggers `checkAcrPullAccess()`. Code already mutualized via `DeploymentConfigComponent`. |
-| 2026-04-02 | copilot | Add role dialog: when source resource has an assigned UAI, auto-select UserAssigned identity type + pre-select the assigned UAI, hide "Créer une nouvelle identité" button. New dialog data fields: `assignedUserAssignedIdentityId`, `assignedUserAssignedIdentityName`. |
-| 2026-04-03 | copilot | Assign UAI feature: reverted dialog approach, assignUaiToResource now converts SAI→UAI RAs with dedup, shows info message when no SAI RAs exist. Added i18n key ASSIGN_UAI_NO_SAI (fr/en). |
-| 2026-04-03 | copilot | Fix assigned UAI not visible in role assignments list — `groupedRoleAssignments` now seeds an assigned-UAI group first (even with 0 RAs), empty-state condition updated to account for assigned UAI, added `UAI_NO_ASSIGNMENTS` i18n key (fr/en), `.ra-uai-empty` style. |
-| 2026-04-02 | copilot | Remove FunctionsWorkerRuntime from FunctionApp per-env (full stack) — derived automatically in Bicep from runtimeStack+runtimeVersion. Migration: `RemoveFunctionsWorkerRuntimeFromFunctionAppEnvSettings`. |
-| 2026-04-02 | copilot | Fix FunctionApp creation modal — remove runtimeStack/runtimeVersion from per-env tab (now general config only). `add-resource-dialog`: env form group + builder + HTML template. |
-| 2026-04-02 | copilot | Fix WebApp creation modal — remove runtimeStack/runtimeVersion from per-env tab (now general config only). `add-resource-dialog`: env form group + builder + HTML template. |
-| 2026-04-02 | copilot | dev.agent.md — 3 Coordinator Mode upgrades: (1) step 4bis Plan→Execute→Verify loop, (2) Task Budget IN/OUT OF SCOPE dans template scratchpad, (3) section "Discipline de prompt Static vs Dynamic". Checklist de fin de tâche mise à jour. |
-| 2026-04-02 | copilot | dev.agent.md — Coordinator Mode improvements: Research phase (@Explore, step 2bis), Session Scratchpad (/memories/session/, step 2ter), Precise Delegation rule (no vague prompts), @Explore added to routing table, end-of-task checklist updated. |
-| 2026-04-02 | copilot | Fix ACR re-check reactivity for ContainerApp and WebApp after role removal. Added `isAcrEnabled` computed as single source of truth. |
-| 2026-04-02 | copilot | KV missing role warning for AppConfiguration Config Keys tab — full stack. |
-| 2026-04-02 | copilot | ACR banner UX improvements — no-UAI message, yellow card, why-UAI accordion. |
-| 2026-04-02 | copilot | KV missing role — UAI chip when single UAI. |
-| 2026-04-02 | copilot | DockerImageName at resource level for ContainerApp — full stack. Migration: `AddDockerImageNameToContainerApp`. |
-| 2026-04-02 | copilot | Tab warning badges on resource-edit tabs (General, Environments, App Settings). |
-| 2026-04-02 | copilot | Missing environment settings section in generation diagnostics modal. |
-| 2026-04-02 | copilot | Skip impact dialog when no impact on role assignment delete. |
-| 2026-04-02 | copilot | Configuration Diagnostics — visual indicators for missing RBAC roles (full stack). |
-| 2026-04-01 | copilot | Remove LastRoleToTarget warning from impact dialog. |
-| 2026-04-01 | copilot | Windows environment + build-only convention added to all agents. |
-| 2026-04-01 | copilot | Fix role-assignment-impact-dialog: i18n + contrast + title icon. |
-| 2026-04-01 | copilot | RuntimeStack/RuntimeVersion moved to general-config only + version dropdown. |
-| 2026-03-31 | copilot | Added EventHubNamespace aggregate — full-stack CQRS. |
-| 2026-03-31 | copilot | Configuration Keys tab visual redesign. |
+| 2026-04-03 | copilot | Memory audit via GitNexus: Fixed aggregate count (21→22), AzureResource children count (21→18), resource type identifiers (17→18), removed ghost entity `ResourceEnvironmentConfig`, added missing base entities (AppSetting, AppSettingEnvironmentValue, InputOutputLink, RoleAssignment) to 03-domain-model, added ResourceNamingTemplate/CrossConfigResourceReference to InfrastructureConfig entities, completely rewrote 12-api-endpoints with all 27 controllers, enriched 13-code-graph with verified counts, fixed incorrect `/infra-config/generate-bicep` route. |
+| 2026-04-03 | copilot | GitNexus integration: new `gitnexus-workflow` skill, modified architect/dotnet-dev/angular-front/dev/dream agents with impact analysis + detect_changes, new `13-code-graph.md` memory file, updated copilot-instructions + 11-agents-skills registry. |
+| 2026-04-03 | copilot | ContainerApp: remove `containerImage` from per-env (now resource-level `DockerImageName`). Fix Bicep generation to emit all typed per-env params. Fix ACR UAI card + ACR pull banner reactivity for WebApp/FunctionApp/ContainerApp. Fix assigned UAI visibility in role assignments list. Assign UAI: revert dialog approach — now converts SAI→UAI with dedup. |
+| 2026-04-02 | copilot | Full Assign Identity refactor: `AssignedUserAssignedIdentityId` FK on AzureResource, CQRS commands, API endpoints, Bicep engine, frontend. Auto-expand identity group. Auto-select UAI in role dialog. Remove FunctionsWorkerRuntime from FunctionApp per-env. Fix WebApp/FunctionApp creation modals. `DockerImageName` at resource level for ContainerApp. Tab warning badges. Config diagnostics modal + missing env settings section. Skip impact dialog when no impact. ACR banner UX improvements. KV missing role warnings. dev.agent.md Coordinator Mode v2 (scratchpad, @Explore, delegation rules). |
+| 2026-04-01 | copilot | Windows env + build-only convention in agents. Fix impact dialog i18n/contrast. RuntimeStack/RuntimeVersion to general-config only. Remove LastRoleToTarget warning. |
+| 2026-03-31 | copilot | EventHubNamespace aggregate full-stack. Configuration Keys tab visual redesign. |
 | 2026-03-30 | copilot | UAI-based ACR role assignment flow. PVG refactor. Unit of Work pattern. Domain XML docs. Pipeline Variable Groups full stack. |
 | 2026-03-29 | copilot | Pipeline Generation Engine — real YAML output. AzureResourceManagerConnection end-to-end. Remove TenantId. |
-| 2026-03-28 | copilot | Unified generation UX. Mono-repo Pipeline Generation. Secret static app settings. Static app settings per environment. architect agent creation. Identity injection mixed mode. |
+| 2026-03-28 | copilot | Unified generation UX. Mono-repo Pipeline Generation. Secret/static app settings per environment. architect agent. Identity injection mixed mode. |
 | 2026-03-27 | copilot | UAI grouping in Identity & Access tab. ValueObject nullable operators fix. StorageAccount CORS + lifecycle to Storage Services tab. EF Core PendingModelChangesWarning fix. |
 | 2026-03-26 | copilot | StorageAccount CORS editor redesign. Storage queue/table Bicep generation. Module file renaming. |
 | 2026-03-24 | copilot | LogAnalyticsWorkspace + ApplicationInsights aggregates — full stack (51 new files). |

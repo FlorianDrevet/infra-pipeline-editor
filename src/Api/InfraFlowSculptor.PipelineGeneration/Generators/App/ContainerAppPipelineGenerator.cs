@@ -1,0 +1,65 @@
+using System.Text;
+using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.GenerationCore.Models;
+
+namespace InfraFlowSculptor.PipelineGeneration.Generators.App;
+
+/// <summary>
+/// Generates CI/CD pipeline YAML for Azure Container App resources.
+/// Container Apps are always deployed as containers (Docker build → ACR push → ACA revision update).
+/// </summary>
+public sealed class ContainerAppPipelineGenerator : IAppPipelineGenerator
+{
+    /// <inheritdoc />
+    public string ResourceType => AzureResourceTypes.ContainerApp;
+
+    /// <inheritdoc />
+    public string DeploymentMode => "Container";
+
+    /// <inheritdoc />
+    public AppPipelineGenerationResult Generate(AppPipelineGenerationRequest request)
+    {
+        var files = new Dictionary<string, string>
+        {
+            [$"{request.ResourceName}/ci.app-pipeline.yml"] = GenerateCiPipeline(request),
+            [$"{request.ResourceName}/release.app-pipeline.yml"] = GenerateReleasePipeline(request),
+        };
+
+        return new AppPipelineGenerationResult { Files = files };
+    }
+
+    private static string GenerateCiPipeline(AppPipelineGenerationRequest request)
+    {
+        var sb = new StringBuilder();
+
+        AppPipelineYamlHelper.AppendCiHeader(sb, request.ResourceName, request.ConfigName);
+
+        AppPipelineYamlHelper.AppendContainerBuildStage(
+            sb,
+            request.ResourceName,
+            request.DockerfilePath,
+            request.DockerImageName,
+            request.ContainerRegistryName);
+
+        return sb.ToString();
+    }
+
+    private static string GenerateReleasePipeline(AppPipelineGenerationRequest request)
+    {
+        var sb = new StringBuilder();
+
+        AppPipelineYamlHelper.AppendReleaseHeader(sb, request.ResourceName);
+        AppPipelineYamlHelper.AppendContainerBuildStage(
+            sb,
+            request.ResourceName,
+            request.DockerfilePath,
+            request.DockerImageName,
+            request.ContainerRegistryName);
+
+        // Remove the "stages:" + Build stage header to avoid duplication — already appended
+        // Deploy stages follow the Build stage in the same stages: block
+        AppPipelineYamlHelper.AppendContainerAppDeployStages(sb, request);
+
+        return sb.ToString();
+    }
+}

@@ -48,7 +48,16 @@ Après lecture de `MEMORY.md`, identifier :
 
 ### 2bis. Phase Research — Explorer le codebase avant de déléguer
 
-**Pour les tâches complexes ou cross-cutting**, invoquer `@Explore` avant de déléguer.
+**Pour les tâches complexes ou cross-cutting**, commencer par GitNexus puis compléter avec `@Explore`.
+
+**Étape 1 — GitNexus (structurel, rapide) :**
+- `gitnexus_query("concept lié à la tâche")` → identifier les flux d'exécution et symboles concernés
+- `gitnexus_context("SymboleCible")` → vue 360° (appelants, appelés, process)
+- `gitnexus_impact(target, "upstream")` → blast radius si modification prévue
+- Référence complète : charger le skill `gitnexus-workflow` (`.github/skills/gitnexus-workflow/SKILL.md`)
+
+**Étape 2 — @Explore (contenu, détail) :**
+`@Explore` reste utile pour la lecture brute de fichiers identifiés par GitNexus.
 `@Explore` est un sous-agent rapide, read-only, spécialisé dans l'exploration et le Q&A codebase.
 
 **Quand déclencher la phase Research :**
@@ -133,6 +142,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 
 | Tâche | Agent à utiliser | Fichier |
 |-------|-----------------|---------|| Explorer le codebase (fichiers, patterns, conventions) avant délégation | **`Explore`** | sous-agent built-in, aucun fichier agent |
+| Analyse d'impact / exploration structurelle avant modification | Charger le skill **`gitnexus-workflow`** | `.github/skills/gitnexus-workflow/SKILL.md` |
 | Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` || Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
 | Modifier/créer du code C#/.NET | **`dotnet-dev`** | `.github/agents/dotnet-dev.agent.md` |
 | Modifier/créer du code Angular | **`angular-front`** + charger le skill `ui-ux-front-saas` si UI | `.github/agents/angular-front.agent.md` |
@@ -150,6 +160,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 > 2. Les **conventions du projet** pertinentes à la tâche (issues de MEMORY.md / fichiers thématiques)
 > 3. Un **extrait de code existant** comme référence de style quand applicable
 > 4. Le **résultat attendu** décrit de façon non ambiguë
+> 5. Le **résultat de `gitnexus_impact()`** si la tâche modifie un symbole partagé (pour que le sous-agent connaisse le blast radius)
 >
 > Un prompt vague produit du code générique qui diverge des conventions du projet.
 
@@ -219,6 +230,11 @@ Un skill est **différent d'un agent** :
 - **Fichier :** `.github/skills/ui-ux-front-saas/SKILL.md`
 - **Contenu :** règles UI/UX SaaS B2B cloud, design system, accessibilité WCAG, responsive, outputs design/handoff, alignement visuel avec la page login existante
 
+#### `gitnexus-workflow`
+- **Quand le charger :** dès qu'une tâche nécessite de l'exploration structurelle (flux d'exécution, dépendances), de l'analyse d'impact avant modification, ou de la validation post-changement
+- **Fichier :** `.github/skills/gitnexus-workflow/SKILL.md`
+- **Contenu :** les commandes GitNexus par phase (exploration, impact, validation, refactoring), les conventions de nommage pour formuler des requêtes précises, l'intégration avec la mémoire projet
+
 ---
 
 ## Discipline de prompt — Static vs Dynamic
@@ -252,6 +268,7 @@ Son rôle est de **lire la mémoire, analyser, charger les bons outils de connai
 [ ] Plan vérifié item par item (step 4bis) — tout item manquant complété avant de continuer
 [ ] Build vérifié : dotnet build .\InfraFlowSculptor.slnx (si code C# touché)
 [ ] Frontend vérifié : npm run typecheck + npm run build dans src/Front (si code Angular touché)
+[ ] GitNexus detect_changes vérifié (si code modifié) — seuls les fichiers/flux attendus sont impactés
 [ ] Fichier thématique mis à jour dans .github/memory/ (nouveaux agrégats, conventions, pièges)
 [ ] Changelog : ligne ajoutée dans .github/memory/changelog.md
 [ ] Session scratchpad supprimé si tâche multi-agent terminée (/memories/session/task-*.md)

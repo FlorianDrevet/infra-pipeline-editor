@@ -32,6 +32,13 @@ Tu es l'expert C#/.NET 10 de ce dépôt. Tu maîtrises :
 2. Lire les fichiers proches du code à modifier pour comprendre le contexte exact.
 3. Vérifier que le build passe avant de commencer (`dotnet build .\InfraFlowSculptor.slnx`).
 4. Pour toute tâche frontend (`src/Front`), déléguer à l'agent `angular-front`.
+5. **Analyse d'impact GitNexus** — Avant de modifier un symbole partagé (interface, service, base class, handler
+   utilisé par plusieurs endpoints), exécuter `gitnexus_impact(target, "upstream")` :
+   - **d=1 (WILL BREAK)** → MUST mettre à jour ces fichiers dans la même tâche
+   - **d=2 (LIKELY AFFECTED)** → SHOULD tester ces chemins
+   - **Risque HIGH/CRITICAL** → alerter l'utilisateur avant de modifier
+   - Si besoin de comprendre un flux complet : `gitnexus_query("concept")` puis `gitnexus_context("Symbol")`
+   - Référence complète : charger le skill `gitnexus-workflow` (`.github/skills/gitnexus-workflow/SKILL.md`)
 
 ---
 
@@ -940,6 +947,7 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 ## 22. Protocole de fin de tâche
 
 1. Exécuter `dotnet build .\InfraFlowSculptor.slnx` — corriger toutes les erreurs.
-2. Si un changement de modèle EF Core : `dotnet ef migrations add <DescriptiveName>`.
-3. Mettre à jour `MEMORY.md` avec les nouvelles conventions ou pièges découverts.
-4. Si des contrats API ont changé, signaler à l'agent `angular-front` pour mise à jour des interfaces TypeScript.
+2. Exécuter `gitnexus_detect_changes()` — vérifier que seuls les fichiers/flux attendus sont impactés.
+3. Si un changement de modèle EF Core : `dotnet ef migrations add <DescriptiveName>`.
+4. Mettre à jour `MEMORY.md` avec les nouvelles conventions ou pièges découverts.
+5. Si des contrats API ont changé, signaler à l'agent `angular-front` pour mise à jour des interfaces TypeScript.
