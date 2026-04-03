@@ -57,7 +57,6 @@ public class ContainerApp : AzureResource
     /// </summary>
     public void SetEnvironmentSettings(
         string environmentName,
-        string? containerImage,
         string? cpuCores,
         string? memoryGi,
         int? minReplicas,
@@ -72,13 +71,13 @@ public class ContainerApp : AzureResource
 
         if (existing is not null)
         {
-            existing.Update(containerImage, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod);
+            existing.Update(cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod);
         }
         else
         {
             _environmentSettings.Add(
                 ContainerAppEnvironmentSettings.Create(
-                    Id, environmentName, containerImage, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod));
+                    Id, environmentName, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod));
         }
     }
 
@@ -86,14 +85,14 @@ public class ContainerApp : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? ContainerImage, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod)> settings)
+        IReadOnlyList<(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod)> settings)
     {
         _environmentSettings.Clear();
         foreach (var s in settings)
         {
             _environmentSettings.Add(
                 ContainerAppEnvironmentSettings.Create(
-                    Id, s.EnvironmentName, s.ContainerImage, s.CpuCores, s.MemoryGi, s.MinReplicas, s.MaxReplicas, s.IngressEnabled, s.IngressTargetPort, s.IngressExternal, s.TransportMethod));
+                    Id, s.EnvironmentName, s.CpuCores, s.MemoryGi, s.MinReplicas, s.MaxReplicas, s.IngressEnabled, s.IngressTargetPort, s.IngressExternal, s.TransportMethod));
         }
     }
 
@@ -115,7 +114,7 @@ public class ContainerApp : AzureResource
         AzureResourceId containerAppEnvironmentId,
         AzureResourceId? containerRegistryId,
         string? dockerImageName = null,
-        IReadOnlyList<(string EnvironmentName, string? ContainerImage, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod)>? environmentSettings = null)
     {
         var containerApp = new ContainerApp
         {

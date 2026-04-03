@@ -6,7 +6,6 @@ namespace InfraFlowSculptor.Application.ContainerApps.Common;
 /// </summary>
 public record ContainerAppEnvironmentConfigData(
     string EnvironmentName,
-    string? ContainerImage,
     string? CpuCores,
     string? MemoryGi,
     int? MinReplicas,

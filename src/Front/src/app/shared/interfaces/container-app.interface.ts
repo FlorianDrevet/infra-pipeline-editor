@@ -2,7 +2,6 @@
 
 export interface ContainerAppEnvironmentConfigEntry {
   environmentName: string;
-  containerImage?: string | null;
   cpuCores?: string | null;
   memoryGi?: string | null;
   minReplicas?: number | null;
@@ -15,7 +14,6 @@ export interface ContainerAppEnvironmentConfigEntry {
 
 export interface ContainerAppEnvironmentConfigResponse {
   environmentName: string;
-  containerImage: string | null;
   cpuCores: string | null;
   memoryGi: string | null;
   minReplicas: number | null;

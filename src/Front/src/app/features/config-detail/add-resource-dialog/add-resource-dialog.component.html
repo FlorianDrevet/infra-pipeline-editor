@@ -612,11 +612,6 @@
               }
               @case (ResourceTypeEnum.ContainerApp) {
                 <div [formGroup]="getEnvFormGroup(i)" class="env-form">
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CONTAINER_IMAGE' | translate }}</mat-label>
-                    <input matInput formControlName="containerImage"
-                      [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.CONTAINER_IMAGE_PLACEHOLDER' | translate" />
-                  </mat-form-field>
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="half-width">
                       <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CPU_CORES' | translate }}</mat-label>

@@ -857,7 +857,6 @@ export class AddResourceDialogComponent {
         });
       case ResourceTypeEnum.ContainerApp:
         return this.fb.group({
-          containerImage: [''],
           cpuCores: ['0.25'],
           memoryGi: ['0.5Gi'],
           minReplicas: [0],
@@ -1250,7 +1249,6 @@ export class AddResourceDialogComponent {
       const raw = this.envFormArray.at(i).getRawValue();
       return {
         environmentName: env.name,
-        containerImage: raw.containerImage || null,
         cpuCores: raw.cpuCores || null,
         memoryGi: raw.memoryGi || null,
         minReplicas: raw.minReplicas != null ? Number(raw.minReplicas) : null,

@@ -16,9 +16,6 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
     /// <summary>Gets the environment name this configuration applies to (e.g., "dev", "staging", "prod").</summary>
     public string EnvironmentName { get; private set; } = string.Empty;
 
-    /// <summary>Gets or sets the container image (e.g., "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest").</summary>
-    public string? ContainerImage { get; private set; }
-
     /// <summary>Gets or sets the CPU cores allocation (e.g., "0.25", "0.5", "1.0", "2.0").</summary>
     public string? CpuCores { get; private set; }
 
@@ -48,7 +45,6 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
     internal ContainerAppEnvironmentSettings(
         AzureResourceId containerAppId,
         string environmentName,
-        string? containerImage,
         string? cpuCores,
         string? memoryGi,
         int? minReplicas,
@@ -61,7 +57,6 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
     {
         ContainerAppId = containerAppId;
         EnvironmentName = environmentName;
-        ContainerImage = containerImage;
         CpuCores = cpuCores;
         MemoryGi = memoryGi;
         MinReplicas = minReplicas;
@@ -78,7 +73,6 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
     public static ContainerAppEnvironmentSettings Create(
         AzureResourceId containerAppId,
         string environmentName,
-        string? containerImage,
         string? cpuCores,
         string? memoryGi,
         int? minReplicas,
@@ -87,11 +81,10 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
         int? ingressTargetPort,
         bool? ingressExternal,
         string? transportMethod)
-        => new(containerAppId, environmentName, containerImage, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod);
+        => new(containerAppId, environmentName, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod);
 
     /// <summary>Updates the configuration overrides for this environment.</summary>
     public void Update(
-        string? containerImage,
         string? cpuCores,
         string? memoryGi,
         int? minReplicas,
@@ -101,7 +94,6 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
         bool? ingressExternal,
         string? transportMethod)
     {
-        ContainerImage = containerImage;
         CpuCores = cpuCores;
         MemoryGi = memoryGi;
         MinReplicas = minReplicas;
@@ -118,7 +110,6 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
     public Dictionary<string, string> ToDictionary()
     {
         var dict = new Dictionary<string, string>();
-        if (ContainerImage is not null) dict["containerImage"] = ContainerImage;
         if (CpuCores is not null) dict["cpuCores"] = CpuCores;
         if (MemoryGi is not null) dict["memoryGi"] = MemoryGi;
         if (MinReplicas is not null) dict["minReplicas"] = MinReplicas.Value.ToString();

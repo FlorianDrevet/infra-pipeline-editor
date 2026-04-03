@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-03 | copilot | Remove `containerImage` from ContainerApp per-environment settings (Domain, Application, Contracts, Mapster, EF Config, Frontend). Image now comes from resource-level `DockerImageName` and is set in the Bicep generator from `resource.Properties["dockerImageName"]`. 8 backend + 5 frontend files modified. |
 | 2026-04-03 | copilot | Fix ContainerApp Bicep generation: added all typed per-env parameters (containerImage, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod) to `ContainerAppTypeBicepGenerator.Generate()` Parameters dict so they flow through main.bicep and .bicepparam environment overrides. Previously only ACR params were declared, meaning env-specific values were silently ignored. |
 | 2026-04-02 | copilot | Identity & Access tab now auto-expands the assigned User Assigned Identity group by default when a resource already has one linked. |
 | 2026-04-02 | copilot | Refactored Assign Identity feature end-to-end: added `AssignedUserAssignedIdentityId` FK on `AzureResource`, created AssignIdentityToResource/UnassignIdentityFromResource CQRS commands with dedup logic, new API endpoints PUT/DELETE `/assigned-identity`, updated ListRoleAssignments to return wrapper with identity info, updated Bicep generation engine to honor explicit UAI assignment, simplified frontend to simple API calls (no more SA→UA conversion). Migration: `AddAssignedUserAssignedIdentityIdToAzureResource`. |

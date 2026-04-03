@@ -37,9 +37,6 @@ public class ContainerAppEnvironmentConfigEntry
     [Required]
     public required string EnvironmentName { get; init; }
 
-    /// <summary>Optional container image override.</summary>
-    public string? ContainerImage { get; init; }
-
     /// <summary>Optional CPU cores allocation (e.g., "0.25", "0.5", "1.0", "2.0").</summary>
     public string? CpuCores { get; init; }
 
@@ -68,7 +65,6 @@ public class ContainerAppEnvironmentConfigEntry
 /// <summary>Response DTO for a typed per-environment Container App configuration.</summary>
 public record ContainerAppEnvironmentConfigResponse(
     string EnvironmentName,
-    string? ContainerImage,
     string? CpuCores,
     string? MemoryGi,
     int? MinReplicas,

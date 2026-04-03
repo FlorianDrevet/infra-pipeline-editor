@@ -23,9 +23,14 @@ public sealed class ContainerAppTypeBicepGenerator
         var containerRegistryId = resource.Properties.GetValueOrDefault("containerRegistryId", "");
         var hasAcr = !string.IsNullOrEmpty(containerRegistryId);
 
+        var dockerImageName = resource.Properties.GetValueOrDefault("dockerImageName", "");
+        var containerImage = !string.IsNullOrEmpty(dockerImageName)
+            ? dockerImageName
+            : "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest";
+
         var parameters = new Dictionary<string, object>
         {
-            ["containerImage"] = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+            ["containerImage"] = containerImage,
             ["cpuCores"] = "0.25",
             ["memoryGi"] = "0.5Gi",
             ["minReplicas"] = 0,

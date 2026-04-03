@@ -1044,7 +1044,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         const ca = resource as ContainerAppResponse;
         const settings = ca.environmentSettings?.find(s => s.environmentName === envName);
         return this.fb.group({
-          containerImage: [settings?.containerImage ?? null],
           cpuCores: [settings?.cpuCores ?? null],
           memoryGi: [settings?.memoryGi ?? null],
           minReplicas: [settings?.minReplicas ?? null],
@@ -2949,7 +2948,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       const raw = ef.form.getRawValue();
       return {
         environmentName: ef.envName,
-        containerImage: raw.containerImage || null,
         cpuCores: raw.cpuCores || null,
         memoryGi: raw.memoryGi || null,
         minReplicas: raw.minReplicas != null ? Number(raw.minReplicas) : null,
