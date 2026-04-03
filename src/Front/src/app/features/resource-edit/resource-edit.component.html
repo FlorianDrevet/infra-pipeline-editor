@@ -2481,8 +2481,10 @@
                   <mat-spinner diameter="20"></mat-spinner>
                   {{ 'RESOURCE_EDIT.APP_PIPELINE.GENERATING' | translate }}
                 } @else {
-                  <mat-icon>play_arrow</mat-icon>
-                  {{ 'RESOURCE_EDIT.APP_PIPELINE.GENERATE' | translate }}
+                  <ng-container>
+                    <mat-icon>play_arrow</mat-icon>
+                    {{ 'RESOURCE_EDIT.APP_PIPELINE.GENERATE' | translate }}
+                  </ng-container>
                 }
               </button>
             </div>
