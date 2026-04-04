@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-04 | copilot | **Moved AgentPoolName from InfrastructureConfig to Project aggregate.** Backend: Domain, EF Core, CQRS (`SetAgentPoolCommand`), Mapster, Contracts, API endpoint all moved to Project. Pipeline generation handlers now read `project.AgentPoolName`. App pipeline YAML: pool placed at root level (before `stages:`). Frontend: Agent Pool UI moved from config-detail tab to project-detail Settings section. All legacy InfraConfig agent-pool code removed. |
 | 2026-04-04 | copilot | Configurable agent pool: `AgentPoolName` on InfrastructureConfig, `PUT /infra-configs/{id}/agent-pool`, `PipelineGenerationEngine.AppendPool()`. EF migration `PoolPipeline`. |
 | 2026-04-04 | copilot | ContainerAppEnvironment: moved `LogAnalyticsWorkspaceId` from per-env to aggregate root (optional FK to LAW AzureResourceId). EF migration `AceWithLaw`. |
 | 2026-04-04 | copilot | ResourceGroup DELETE endpoint: `DELETE /resource-group/{id}` + frontend delete button with confirm dialog. |

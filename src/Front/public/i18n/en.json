@@ -154,7 +154,6 @@
       "NAMING_TEMPLATES": "Naming",
       "CROSS_CONFIG_REFS": "Cross-config references",
       "PIPELINE_VARIABLES": "Pipeline Variables",
-      "AGENT_POOL": "Agent Pool",
       "GIT": "Git"
     },
     "GIT_CONFIG": {
@@ -668,15 +667,6 @@
       "DIALOG_CANCEL": "Cancel",
       "DIALOG_ADD": "Add"
     },
-    "AGENT_POOL": {
-      "SELF_HOSTED": "Self-hosted pool configured",
-      "MICROSOFT_HOSTED": "Microsoft-hosted pool (default)",
-      "DESCRIPTION": "Configure the agent pool name used to run pipelines. Leave empty to use the Microsoft-hosted pool (ubuntu-latest).",
-      "POOL_NAME_LABEL": "Pool name",
-      "POOL_NAME_PLACEHOLDER": "E.g. my-self-hosted-pool",
-      "POOL_NAME_HINT": "Leave empty for ubuntu-latest",
-      "SAVE": "Save"
-    },
     "TAGS": {
       "TITLE": "Tags",
       "EDIT_TOOLTIP": "Edit tags",
@@ -965,7 +955,17 @@
       "REPO_MODE_TITLE": "Repository mode",
       "REPO_MODE_DESCRIPTION": "Choose how Bicep output is organized in Git repositories.",
       "GIT_MONO_DESCRIPTION": "In mono-repo mode, a single Git repository stores all configurations' Bicep output.",
-      "GIT_MULTI_INFO": "In multi-repo mode, each configuration has its own Git repository. Configure Git in each configuration's Git tab."
+      "GIT_MULTI_INFO": "In multi-repo mode, each configuration has its own Git repository. Configure Git in each configuration's Git tab.",
+      "AGENT_POOL": {
+        "TITLE": "Agent Pool",
+        "DESCRIPTION": "Configure the self-hosted agent pool for pipeline generation. By default, pipelines use the Microsoft-hosted pool (vmImage: ubuntu-latest).",
+        "USE_CUSTOM": "Use a custom agent pool",
+        "POOL_NAME": "Pool name",
+        "POOL_HINT": "Exact pool name as configured in Azure DevOps",
+        "SAVE": "Save",
+        "SAVE_SUCCESS": "Agent pool updated",
+        "SAVE_ERROR": "Error updating agent pool"
+      }
     },
     "PIPELINE_VARIABLES": {
       "TAB": "Pipeline Variables",

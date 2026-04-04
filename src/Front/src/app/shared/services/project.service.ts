@@ -20,6 +20,7 @@ import {
   ProjectPipelineVariableGroupResponse,
   AddProjectPipelineVariableGroupRequest,
   SetProjectTagsRequest,
+  SetAgentPoolRequest,
 } from '../interfaces/project.interface';
 import {
   PushBicepToGitRequest,
@@ -321,6 +322,16 @@ export class ProjectService {
     return this.axios.request$<ProjectResponse>(
       MethodEnum.PUT,
       `/projects/${projectId}/tags`,
+      request
+    );
+  }
+
+  // ─── Agent Pool ───
+
+  async setAgentPool(projectId: string, request: SetAgentPoolRequest): Promise<void> {
+    await this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/agent-pool`,
       request
     );
   }

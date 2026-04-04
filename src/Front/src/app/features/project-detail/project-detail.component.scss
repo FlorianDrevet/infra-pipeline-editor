@@ -1782,6 +1782,22 @@ a.config-card {
   line-height: 1.55;
 }
 
+.agent-pool-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 500px;
+
+  .pool-name-field {
+    width: 100%;
+  }
+
+  .agent-pool-actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
 .settings-section__title-row {
   display: flex;
   align-items: center;

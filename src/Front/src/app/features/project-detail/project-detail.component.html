@@ -751,6 +751,48 @@
             }
           </section>
 
+          <!-- Agent Pool -->
+          <section class="settings-section">
+            <h3 class="settings-section__title">
+              <mat-icon class="settings-section__title-icon">dns</mat-icon>
+              {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.TITLE' | translate }}
+            </h3>
+            <p class="settings-section__description">{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.DESCRIPTION' | translate }}</p>
+
+            <div class="agent-pool-form">
+              <mat-slide-toggle
+                [checked]="isCustomPool()"
+                (change)="$event.checked ? agentPoolName.set('') : agentPoolName.set(null)"
+                [disabled]="agentPoolLoading()">
+                {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.USE_CUSTOM' | translate }}
+              </mat-slide-toggle>
+
+              @if (isCustomPool()) {
+                <mat-form-field appearance="outline" class="pool-name-field">
+                  <mat-label>{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_NAME' | translate }}</mat-label>
+                  <input matInput
+                         [value]="agentPoolName() ?? ''"
+                         (input)="agentPoolName.set($any($event.target).value)"
+                         [disabled]="agentPoolLoading()" />
+                  <mat-hint>{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_HINT' | translate }}</mat-hint>
+                </mat-form-field>
+              }
+
+              <div class="agent-pool-actions">
+                <button mat-flat-button
+                        color="primary"
+                        (click)="saveAgentPool()"
+                        [disabled]="agentPoolLoading()">
+                  @if (agentPoolLoading()) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  } @else {
+                    {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.SAVE' | translate }}
+                  }
+                </button>
+              </div>
+            </div>
+          </section>
+
           <!-- Git Configuration (mono-repo only) -->
           @if (isMonoRepo()) {
             <section class="settings-section">

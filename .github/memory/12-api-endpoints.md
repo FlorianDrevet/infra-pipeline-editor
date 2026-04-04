@@ -11,11 +11,11 @@
 | `/infra-config` | POST | `` | `CreateInfrastructureConfigCommand` |
 | `/infra-config` | DELETE | `/{id:guid}` | `DeleteInfrastructureConfigCommand` |
 | `/infra-config` | POST/PUT/DELETE | `/{id:guid}/members/{...}` | Member CRUD |
-| `/infra-configs` | PUT | `/{id:guid}/agent-pool` | `SetAgentPoolCommand` [2026-04-04] |
 | `/projects` | GET | `` | `ListMyProjectsQuery` |
 | `/projects` | GET | `/{id:guid}` | `GetProjectQuery` |
 | `/projects` | POST | `` | `CreateProjectCommand` |
 | `/projects` | DELETE | `/{id:guid}` | `DeleteProjectCommand` |
+| `/projects` | PUT | `/{id:guid}/agent-pool` | `SetAgentPoolCommand` (moved from /infra-configs) [2026-04-04] |
 | `/projects` | POST | `/validate-recent` | `ValidateRecentItemsQuery` |
 | `/projects` | PUT/DELETE | `/{id:guid}/git-config` | Git config CRUD |
 | `/projects` | POST | `/{id:guid}/git-config/test` | `TestGitConnectionCommand` |

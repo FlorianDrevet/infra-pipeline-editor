@@ -154,7 +154,6 @@
       "NAMING_TEMPLATES": "Nommage",
       "CROSS_CONFIG_REFS": "Références croisées",
       "PIPELINE_VARIABLES": "Variables Pipeline",
-      "AGENT_POOL": "Agent Pool",
       "GIT": "Git"
     },
     "GIT_CONFIG": {
@@ -667,15 +666,6 @@
       "DIALOG_CANCEL": "Annuler",
       "DIALOG_ADD": "Ajouter"
     },
-    "AGENT_POOL": {
-      "SELF_HOSTED": "Pool auto-hébergé configuré",
-      "MICROSOFT_HOSTED": "Pool Microsoft hébergé (par défaut)",
-      "DESCRIPTION": "Configurez le nom du pool d'agents utilisé pour l'exécution des pipelines. Laissez vide pour utiliser le pool Microsoft hébergé (ubuntu-latest).",
-      "POOL_NAME_LABEL": "Nom du pool",
-      "POOL_NAME_PLACEHOLDER": "Ex: my-self-hosted-pool",
-      "POOL_NAME_HINT": "Laissez vide pour ubuntu-latest",
-      "SAVE": "Enregistrer"
-    },
     "TAGS": {
       "TITLE": "Tags",
       "EDIT_TOOLTIP": "Modifier les tags",
@@ -975,7 +965,17 @@
       "REPO_MODE_TITLE": "Mode de depot",
       "REPO_MODE_DESCRIPTION": "Choisissez comment la sortie Bicep est organisee dans les depots Git.",
       "GIT_MONO_DESCRIPTION": "En mode mono-repo, un seul depot Git stocke la sortie Bicep de toutes les configurations.",
-      "GIT_MULTI_INFO": "En mode multi-repo, chaque configuration possede son propre depot Git. Configurez Git dans l'onglet Git de chaque configuration."
+      "GIT_MULTI_INFO": "En mode multi-repo, chaque configuration possede son propre depot Git. Configurez Git dans l'onglet Git de chaque configuration.",
+      "AGENT_POOL": {
+        "TITLE": "Pool d'agents",
+        "DESCRIPTION": "Configurez le pool d'agents self-hosted pour la génération de pipelines. Par défaut, les pipelines utilisent le pool Microsoft hébergé (vmImage: ubuntu-latest).",
+        "USE_CUSTOM": "Utiliser un pool d'agents personnalisé",
+        "POOL_NAME": "Nom du pool",
+        "POOL_HINT": "Nom exact du pool tel que configuré dans Azure DevOps",
+        "SAVE": "Enregistrer",
+        "SAVE_SUCCESS": "Pool d'agents mis à jour",
+        "SAVE_ERROR": "Erreur lors de la mise à jour du pool d'agents"
+      }
     },
     "PIPELINE_VARIABLES": {
       "TAB": "Variables Pipeline",

@@ -10,9 +10,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslateModule } from '@ngx-translate/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse, ProjectPipelineVariableGroupResponse, SetProjectTagsRequest } from '../../shared/interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
@@ -82,6 +84,7 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
   ],
@@ -105,6 +108,8 @@ export class ProjectDetailComponent implements OnInit {
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
   private readonly resourceGroupService = inject(ResourceGroupService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly translate = inject(TranslateService);
 
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly configs = signal<InfrastructureConfigResponse[]>([]);
@@ -136,6 +141,11 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectTags = computed(() => this.project()?.tags ?? []);
 
   protected readonly isMonoRepo = computed(() => this.project()?.repositoryMode === 'MonoRepo');
+
+  // ─── Agent Pool ───
+  protected readonly agentPoolLoading = signal(false);
+  protected readonly agentPoolName = signal<string | null>(null);
+  protected readonly isCustomPool = computed(() => !!this.agentPoolName());
 
   // ─── Project Bicep Generation (mono-repo) ───
   protected readonly projectBicepLoading = signal(false);
@@ -371,6 +381,7 @@ export class ProjectDetailComponent implements OnInit {
       this.project.set(project);
       this.configs.set(configs);
       this.availableUsers.set(users);
+      this.agentPoolName.set(project.agentPoolName);
       this.recentlyViewedService.trackView({
         id: project.id,
         name: project.name,
@@ -664,6 +675,33 @@ export class ProjectDetailComponent implements OnInit {
   private async refreshProject(projectId: string): Promise<void> {
     const refreshed = await this.projectService.getProject(projectId);
     this.project.set(refreshed);
+  }
+
+  // ─── Agent Pool ───
+
+  protected async saveAgentPool(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId) return;
+
+    this.agentPoolLoading.set(true);
+    try {
+      await this.projectService.setAgentPool(projectId, {
+        agentPoolName: this.agentPoolName() || null,
+      });
+      this.snackBar.open(
+        this.translate.instant('PROJECT_DETAIL.SETTINGS.AGENT_POOL.SAVE_SUCCESS'),
+        '✕',
+        { duration: 3000 }
+      );
+    } catch {
+      this.snackBar.open(
+        this.translate.instant('PROJECT_DETAIL.SETTINGS.AGENT_POOL.SAVE_ERROR'),
+        '✕',
+        { duration: 5000, panelClass: 'error-snackbar' }
+      );
+    } finally {
+      this.agentPoolLoading.set(false);
+    }
   }
 
   // ─── Delete Project ───
