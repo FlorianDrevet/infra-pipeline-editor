@@ -41,5 +41,13 @@ builder.Navigation(p => p.Tags).HasField("_tags").UsePropertyAccessMode(Property
 - **⚠️ CRITICAL:** Never use `x.Id.Value == id.Value` in LINQ-to-EF. Always compare whole value objects: `x.Id == id`. EF uses `IdValueConverter<T>` to translate.
 - **Namespace note:** `IInfrastructureConfigRepository` uses fully-qualified type name to avoid CS0118 ambiguity.
 
+## FK Cascade / Delete Pitfalls [2026-04-04]
+
+When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `TargetResourceId`), think through the cascade path on parent deletion:
+- **Restrict** causes FK violations when Cascade-delete on `AzureResources` runs before the referencing rows are removed.
+- **SetNull** is safe for optional FKs (e.g. `AppSettings.SourceResourceId`, `AppConfigurationKeys.KeyVaultResourceId`).
+- **Cascade** is safe for mandatory child relationships (e.g. `ResourceLinks.SourceResourceId`, `AzureResourceDependencies.DependsOnId`, `ResourceParameterUsages.ParameterId`, `RoleAssignment.TargetResourceId`).
+- EF Core ordering conflict: if a Cascade-delete on parent already orphans rows, a parallel SetNull on the same rows emits SQL after the rows are gone → FK error. Solution: make both paths Cascade.
+
 ## Migrations
-14+ migration files in `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`. Always add a new migration when changing domain model.
+17+ migration files in `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`. Always add a new migration when changing domain model.

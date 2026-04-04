@@ -36,6 +36,7 @@
 4. **i18n dialog keys:** Use full nested path `RESOURCE_EDIT.DIALOG_NAME.*` (see `08-frontend.md`)
 5. **Magic strings:** Never hardcode Azure resource type identifiers — use `AzureResourceTypes.*` (see `07-bicep-generation.md`)
 6. **Domain quality:** XML docs, `private set`, English errors, `= []` initializers (see `03-domain-model.md`)
+7. **FK cascade on delete:** Cross-resource FKs must be SetNull or Cascade, never Restrict — causes violations on parent cascade-delete (see `06-persistence.md`)
 
 ---
 

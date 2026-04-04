@@ -6,6 +6,15 @@
 - Registered as singletons in `Application/DependencyInjection.cs`
 - `AzureResourceTypes` static class in `GenerationCore`: centralized constants for all 18 resource type identifiers (+ ResourceGroup constant). **Never use magic strings.**
 
+## BicepAssembler Structure [2026-04-04]
+Refactored from monolith (~1680 lines) to thin orchestrator (~180 lines) + 14 specialized classes:
+- `BicepAssembler.cs` — public thin orchestrator (`Assemble()`, `PruneUnusedOutputs()`)
+- `Assemblers/` — per-file generators: `TypesBicepAssembler`, `FunctionsBicepAssembler`, `ConstantsBicepAssembler`, `MainBicepAssembler`, `ParameterFileAssembler`, `KvSecretsModuleAssembler`, `RoleAssignmentAssembler`
+- `Helpers/` — pure functions: `BicepFormattingHelper` (string formatting), `ResourceTypeMetadata` (switch maps), `ModuleHeaderHelper` (headers), `BicepNamingHelper` (naming expressions + param names)
+- `StorageAccount/` — `StorageAccountCompanionHelper` (CORS, lifecycle, companion modules)
+- `Models/` — `GroupedRoleAssignment`, `RoleRef` (extracted internal types)
+- Pattern: Helpers = pure functions (no model deps). Assemblers = produce Bicep strings from models. Orchestrator wires them.
+
 ## Output Files
 - `types.bicep` — `EnvironmentName` union, `EnvironmentVariables` type, `environments` map
 - `functions.bicep` — naming functions from project naming templates

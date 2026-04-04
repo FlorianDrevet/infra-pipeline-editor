@@ -18,15 +18,18 @@
 | `AzureResource` | Base class (TPT) | 18 agrégats enfants héritent — tout changement cascade sur toutes les ressources |
 | `IInfraConfigAccessService` | Interface | Utilisé par tous les handlers Resource pour la vérification d'accès |
 | `BicepGenerationEngine` | Class (970 lignes) | Cœur de la génération Bicep — 2 handlers dépendent + tous les generators |
-| `BicepAssembler` | Class (1719 lignes) | Assemblage final Bicep — couplé au GenerationEngine |
+| `BicepAssembler` | Class (~180 lines) | Thin orchestrator — delegates to 14 specialized classes under `Assemblers/`, `Helpers/`, `StorageAccount/`, `Models/` |
 | `InfrastructureConfigReadRepository` | Class | Point central de lecture — switch cases sur tous les types de ressources |
+| `AppPipelineGenerationEngine` | Class | Orchestrateur app pipeline — 5 generators (Container/Code × resource type), appelé par les 2 pipeline handlers |
+| `MonoRepoPipelineAssembler` | Class | Assembleur pipeline YAML infra — mono-repo structure, couplé aux handlers génération pipeline |
 
 ## Flows critiques
 
 | Flow | Chemin simplifié |
 |------|-----------------|
-| Génération Bicep (config) | `BicepGenerationController` → `GenerateBicepCommandHandler` → `BicepGenerationEngine` → `BicepAssembler` |
+| Génération Bicep (config) | `BicepGenerationController` → `GenerateBicepCommandHandler` → `BicepGenerationEngine` → `BicepAssembler` (→ sub-assemblers) |
 | Génération Bicep (projet) | `BicepGenerationController` → `GenerateProjectBicepCommandHandler` → `BicepGenerationEngine` → `MonoRepoBicepAssembler` |
+| Génération Pipeline (infra+app) | `PipelineGenerationController` → `GeneratePipelineCommandHandler` → `MonoRepoPipelineAssembler` + `AppPipelineGenerationEngine` |
 | CRUD Resource (pattern) | `{Resource}Controller` → MediatR → `{Action}{Resource}CommandHandler` → `I{Resource}Repository` → EF Core |
 
 ## Counts — Verified by Cypher [2026-04-03]
@@ -48,4 +51,4 @@
 
 ---
 
-*Dernière mise à jour : 2026-04-03 — Audit GitNexus vs mémoire*
+*Dernière mise à jour : 2026-04-04 — Dream consolidation*

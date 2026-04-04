@@ -1,4 +1,5 @@
 using System.Text;
+using InfraFlowSculptor.BicepGeneration.Assemblers;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
@@ -35,11 +36,11 @@ public static class MonoRepoBicepAssembler
         }
 
         // ── Generate shared types.bicep ─────────────────────────────────────
-        var typesBicep = BicepAssembler.GenerateTypesBicep(environments, hasAnyRoleAssignments);
+        var typesBicep = TypesBicepAssembler.Generate(environments, hasAnyRoleAssignments);
         commonFiles["types.bicep"] = typesBicep;
 
         // ── Generate shared functions.bicep ─────────────────────────────────
-        var functionsBicep = BicepAssembler.GenerateFunctionsBicep(namingContext);
+        var functionsBicep = FunctionsBicepAssembler.Generate(namingContext);
         commonFiles["functions.bicep"] = functionsBicep;
 
         // ── Merge constants.bicep (union of all role assignments) ───────────
