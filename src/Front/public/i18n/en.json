@@ -256,6 +256,12 @@
       "ADD_DIALOG_TITLE": "New resource group",
       "ADD_DIALOG_ERROR": "Failed to create the resource group.",
       "REFRESH_ERROR": "Failed to reload resource groups.",
+      "DELETE": "Delete resource group",
+      "DELETE_CONFIRM_TITLE": "Delete resource group",
+      "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete the resource group \"{{name}}\"? All resources in this group will also be deleted.",
+      "DELETE_CONFIRM_YES": "Delete",
+      "DELETE_CONFIRM_CANCEL": "Cancel",
+      "DELETE_ERROR": "Failed to delete the resource group.",
       "FORM": {
         "NAME": "Name",
         "NAME_PLACEHOLDER": "e.g. rg-my-project-dev",

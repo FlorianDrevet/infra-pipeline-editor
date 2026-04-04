@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-04 | copilot | Add DELETE /resource-group/{id} endpoint + frontend delete button with confirm dialog on config-detail page. Backend command/handler already existed. |
 | 2026-04-04 | copilot | Refactor BicepAssembler: monolith (~1680 lines) → thin orchestrator (~180 lines) + 14 specialized classes (Assemblers/, Helpers/, StorageAccount/, Models/). Public API unchanged. |
 | 2026-04-04 | copilot | Fix project deletion FK cascade: RoleAssignment.TargetResourceId → Cascade, AppSettings/AppConfigKeys source/KV FKs → SetNull, ResourceLinks/Dependencies/ParameterUsages → Cascade. 3 EF migrations. |
 | 2026-04-04 | copilot | App Pipeline Rework: merged into infra pipeline POST /generate-pipeline. Removed separate endpoint + GenerateAppPipeline CQRS. Added ApplicationName on compute resources, AppPipelineMode (Isolated/Combined) on InfraConfig. Frontend: moved pipeline fields to App Pipeline tab. |

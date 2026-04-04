@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.KeyVaults.Queries;
 using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Commands.CreateResourceGroup;
+using InfraFlowSculptor.Application.ResourceGroups.Commands.DeleteResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.GetResourceGroup;
 using InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupResources;
 using InfraFlowSculptor.Contracts.KeyVaults.Responses;
@@ -93,6 +94,24 @@ public static class ResourceGroupController
                 .WithDescription("Creates a new Azure Resource Group inside an existing Infrastructure Configuration. Requires Owner or Contributor access.")
                 .Produces<ResourceGroupResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            config.MapDelete("/{id:guid}",
+                    async ([FromRoute] Guid id, IMediator mediator) =>
+                    {
+                        var command = new DeleteResourceGroupCommand(new ResourceGroupId(id));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("DeleteResourceGroup")
+                .WithSummary("Delete a Resource Group")
+                .WithDescription("Permanently deletes a Resource Group and all its contained Azure resources. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });

@@ -272,6 +272,12 @@
                         <mat-icon class="add-resource-btn__icon">add_circle_outline</mat-icon>
                         {{ 'CONFIG_DETAIL.RESOURCES.ADD' | translate }}
                       </button>
+                      <button
+                        class="resource-action-btn resource-action-btn--delete"
+                        [matTooltip]="'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE' | translate"
+                        (click)="openDeleteResourceGroupDialog(rg); $event.stopPropagation()">
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
                     }
                     <span class="rg-accordion__count">
                       {{ rgResources()[rg.id]?.length ?? '…' }}

@@ -24,7 +24,7 @@
 | `/projects` | GET | `/{id:guid}/generate-pipeline/download` | `DownloadProjectPipelineCommand` |
 | `/projects` | GET | `/{id:guid}/generate-pipeline/files/{*filePath}` | `GetProjectPipelineFileContentQuery` |
 | `/projects` | POST | `/{id:guid}/push-pipeline-to-git` | `PushProjectPipelineToGitCommand` |
-| `/resource-group` | GET/POST | `/{id:guid}` | ResourceGroup CRUD |
+| `/resource-group` | GET/POST/DELETE | `/{id:guid}` | ResourceGroup CRUD |
 
 ## Azure Resource CRUD (18 types — standard GET/POST/PUT/DELETE pattern)
 

@@ -1046,6 +1046,38 @@ export class ConfigDetailComponent implements OnInit {
     this.config.set(refreshed);
   }
 
+  // ─── Delete Resource Group ───
+
+  protected openDeleteResourceGroupDialog(rg: ResourceGroupResponse): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE_CONFIRM_TITLE',
+        messageKey: 'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE_CONFIRM_MESSAGE',
+        messageParams: { name: rg.name },
+        confirmKey: 'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE_CONFIRM_YES',
+        cancelKey: 'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      try {
+        await this.resourceGroupService.delete(rg.id);
+        const currentConfig = this.config();
+        if (currentConfig) {
+          const resourceGroups = await this.infraConfigService.getResourceGroups(currentConfig.id);
+          this.resourceGroups.set(resourceGroups);
+          if (this.expandedRgId() === rg.id) {
+            this.expandedRgId.set(null);
+          }
+        }
+      } catch {
+        this.rgErrorKey.set('CONFIG_DETAIL.RESOURCE_GROUPS.DELETE_ERROR');
+      }
+    });
+  }
+
   // ─── Delete Resource ───
 
   private readonly CASCADE_PARENT_TYPES = new Set(['LogAnalyticsWorkspace', 'AppServicePlan', 'SqlServer']);
