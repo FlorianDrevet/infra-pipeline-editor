@@ -15,7 +15,7 @@
 | `FunctionApp` | extends `AzureResource` | `FunctionAppEnvironmentSettings` | TPT; FK to AppServicePlan |
 | `UserAssignedIdentity` | extends `AzureResource` | — | TPT; simplest resource type |
 | `AppConfiguration` | extends `AzureResource` | `AppConfigurationEnvironmentSettings`, `AppConfigurationKey`, `AppConfigurationKeyEnvironmentValue` | TPT; configuration keys with 5 modes |
-| `ContainerAppEnvironment` | extends `AzureResource` | `ContainerAppEnvironmentEnvironmentSettings` | TPT; abbreviation `cae`; optional FK to LogAnalyticsWorkspace (`AzureResourceId?`) |
+| `ContainerAppEnvironment` | extends `AzureResource` | `ContainerAppEnvironmentEnvironmentSettings` | TPT; abbreviation `cae`; `LogAnalyticsWorkspaceId` (AzureResourceId?) on aggregate root (moved from per-env [2026-04-04]) |
 | `ContainerApp` | extends `AzureResource` | `ContainerAppEnvironmentSettings` | TPT; FK to ContainerAppEnvironment |
 | `LogAnalyticsWorkspace` | extends `AzureResource` | `LogAnalyticsWorkspaceEnvironmentSettings` | TPT; abbreviation `law` |
 | `ApplicationInsights` | extends `AzureResource` | `ApplicationInsightsEnvironmentSettings` | TPT; FK to LogAnalyticsWorkspace |
@@ -53,6 +53,7 @@ These reusable entity types are owned by multiple aggregates:
 - **WebApp/FunctionApp**: `DockerfilePath`, `SourceCodePath`, `BuildCommand`, `ApplicationName` (all string?)
 - `ApplicationName` is a user-friendly name displayed in Azure DevOps pipeline runs (fallback: resource name)
 - `InfrastructureConfig` has `AppPipelineMode` enum (`Isolated`/`Combined`) — controls whether app pipelines are generated per-resource or as a single combined pipeline
+- `InfrastructureConfig` has `AgentPoolName` (string?) — when set, pipeline YAML uses `pool: name: '<value>'` (self-hosted); when null, `pool: vmImage: ubuntu-latest` (Microsoft-hosted). Endpoint: `PUT /infra-configs/{id}/agent-pool`
 - These are persisted in TPT tables (EF Core), exposed in Create/Update commands and contracts
 
 ## Cross-Config References

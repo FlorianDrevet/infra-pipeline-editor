@@ -7,6 +7,7 @@ import {
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
   SetInfraConfigTagsRequest,
+  SetAgentPoolRequest,
 } from '../interfaces/infra-config.interface';
 import { ResourceGroupResponse } from '../interfaces/resource-group.interface';
 import {
@@ -151,6 +152,16 @@ export class InfraConfigService {
     return this.axios.request$<ConfigDiagnosticsResponse>(
       MethodEnum.GET,
       `/infra-config/${configId}/diagnostics`
+    );
+  }
+
+  // ─── Agent Pool ───
+
+  setAgentPool(id: string, request: SetAgentPoolRequest): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/infra-config/${id}/agent-pool`,
+      request
     );
   }
 

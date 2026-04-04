@@ -276,6 +276,11 @@ export class ConfigDetailComponent implements OnInit {
   // ─── Inheritance ───
   protected readonly inheritanceLoading = signal(false);
 
+  // ─── Agent Pool ───
+  protected readonly agentPoolLoading = signal(false);
+  protected readonly agentPoolName = signal<string>('');
+  protected readonly isCustomPool = computed(() => !!this.config()?.agentPoolName);
+
   // ─── Configuration Diagnostics ───
   protected readonly diagnostics = signal<ResourceDiagnosticResponse[]>([]);
   protected readonly diagnosticsLoading = signal(false);
@@ -496,6 +501,7 @@ export class ConfigDetailComponent implements OnInit {
       ]);
       this.config.set(config);
       this.resourceGroups.set(resourceGroups);
+      this.agentPoolName.set(config.agentPoolName ?? '');
 
       // Load the parent project for inheritance data
       if (config.projectId) {
@@ -1038,6 +1044,21 @@ export class ConfigDetailComponent implements OnInit {
       await this.refreshConfig(configId);
     } finally {
       this.inheritanceLoading.set(false);
+    }
+  }
+
+  protected async saveAgentPool(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.agentPoolLoading.set(true);
+    try {
+      const poolName = this.agentPoolName().trim() || null;
+      await this.infraConfigService.setAgentPool(configId, { agentPoolName: poolName });
+      await this.refreshConfig(configId);
+      this.agentPoolName.set(this.config()?.agentPoolName ?? '');
+    } finally {
+      this.agentPoolLoading.set(false);
     }
   }
 

@@ -11,6 +11,7 @@
 | `/infra-config` | POST | `` | `CreateInfrastructureConfigCommand` |
 | `/infra-config` | DELETE | `/{id:guid}` | `DeleteInfrastructureConfigCommand` |
 | `/infra-config` | POST/PUT/DELETE | `/{id:guid}/members/{...}` | Member CRUD |
+| `/infra-configs` | PUT | `/{id:guid}/agent-pool` | `SetAgentPoolCommand` [2026-04-04] |
 | `/projects` | GET | `` | `ListMyProjectsQuery` |
 | `/projects` | GET | `/{id:guid}` | `GetProjectQuery` |
 | `/projects` | POST | `` | `CreateProjectCommand` |
@@ -24,7 +25,7 @@
 | `/projects` | GET | `/{id:guid}/generate-pipeline/download` | `DownloadProjectPipelineCommand` |
 | `/projects` | GET | `/{id:guid}/generate-pipeline/files/{*filePath}` | `GetProjectPipelineFileContentQuery` |
 | `/projects` | POST | `/{id:guid}/push-pipeline-to-git` | `PushProjectPipelineToGitCommand` |
-| `/resource-group` | GET/POST/DELETE | `/{id:guid}` | ResourceGroup CRUD |
+| `/resource-group` | GET/POST/PUT/DELETE | `/{id:guid}` | ResourceGroup CRUD (DELETE added [2026-04-04]) |
 
 ## Azure Resource CRUD (18 types — standard GET/POST/PUT/DELETE pattern)
 

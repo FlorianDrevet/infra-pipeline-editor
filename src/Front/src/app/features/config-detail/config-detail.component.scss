@@ -2649,3 +2649,30 @@
   height: 1.1rem;
   color: #90a4ae;
 }
+
+// ─── Agent Pool ───
+
+.agent-pool-form {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 0.5rem;
+
+  &__field {
+    flex: 1;
+    max-width: 400px;
+  }
+}
+
+.agent-pool-readonly {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+
+  &__label {
+    color: rgba(255, 255, 255, 0.7);
+  }
+}

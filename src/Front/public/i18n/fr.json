@@ -154,6 +154,7 @@
       "NAMING_TEMPLATES": "Nommage",
       "CROSS_CONFIG_REFS": "Références croisées",
       "PIPELINE_VARIABLES": "Variables Pipeline",
+      "AGENT_POOL": "Agent Pool",
       "GIT": "Git"
     },
     "GIT_CONFIG": {
@@ -665,6 +666,15 @@
       "SCOPE_PROJECT": "Partagé entre toutes les configurations",
       "DIALOG_CANCEL": "Annuler",
       "DIALOG_ADD": "Ajouter"
+    },
+    "AGENT_POOL": {
+      "SELF_HOSTED": "Pool auto-hébergé configuré",
+      "MICROSOFT_HOSTED": "Pool Microsoft hébergé (par défaut)",
+      "DESCRIPTION": "Configurez le nom du pool d'agents utilisé pour l'exécution des pipelines. Laissez vide pour utiliser le pool Microsoft hébergé (ubuntu-latest).",
+      "POOL_NAME_LABEL": "Nom du pool",
+      "POOL_NAME_PLACEHOLDER": "Ex: my-self-hosted-pool",
+      "POOL_NAME_HINT": "Laissez vide pour ubuntu-latest",
+      "SAVE": "Enregistrer"
     },
     "TAGS": {
       "TITLE": "Tags",

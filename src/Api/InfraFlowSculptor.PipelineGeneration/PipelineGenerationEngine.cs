@@ -350,14 +350,25 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("    default: []");
         sb.AppendLine();
         sb.AppendLine("steps:");
-        sb.AppendLine("  - checkout: self");
-        sb.AppendLine("    fetchDepth: 1");
+        sb.AppendLine("  - checkout: none");
         sb.AppendLine();
         sb.AppendLine("  - pwsh: |");
-        sb.AppendLine("      $dirs = @('${{ join(\"','\", parameters.directories) }}')");
-        sb.AppendLine("      $root = \"$(Build.SourcesDirectory)\"");
-        sb.AppendLine("      Get-ChildItem -Path $root -Directory | Where-Object { $dirs -notcontains $_.Name } | Remove-Item -Recurse -Force");
-        sb.AppendLine("    displayName: 'Sparse checkout — keep only needed directories'");
+        sb.AppendLine("      $directories = '${{ convertToJson(parameters.directories) }}' | ConvertFrom-Json");
+        sb.AppendLine("      if ($directories.Count -gt 0) {");
+        sb.AppendLine("          Write-Host \"Doing sparse checkout of: $($directories -join ', ')\"");
+        sb.AppendLine("          git init");
+        sb.AppendLine("          git remote add origin \"$(Build.Repository.Uri)\"");
+        sb.AppendLine("          git config core.sparseCheckout true");
+        sb.AppendLine("          git sparse-checkout init --cone");
+        sb.AppendLine("          foreach ($dir in $directories) {");
+        sb.AppendLine("              git sparse-checkout add $dir");
+        sb.AppendLine("          }");
+        sb.AppendLine("          git pull origin \"$(Build.SourceBranch)\"");
+        sb.AppendLine("          Get-ChildItem -Directory -Force | ForEach-Object { Write-Host $_.Name }");
+        sb.AppendLine("      } else {");
+        sb.AppendLine("          Write-Host \"No directories specified, using normal checkout\"");
+        sb.AppendLine("      }");
+        sb.AppendLine("    displayName: 'Sparse Checkout'");
 
         return sb.ToString();
     }
@@ -390,7 +401,12 @@ public sealed class PipelineGenerationEngine
         AppendPool(sb, agentPoolName);
         sb.AppendLine("        continueOnError: ${{ parameters.continueOnError }}");
         sb.AppendLine("        steps:");
-        sb.AppendLine("          - checkout: self");
+        sb.AppendLine("          - template: ../steps/checkout.step.yml");
+        sb.AppendLine("            parameters:");
+        sb.AppendLine("              directories:");
+        sb.AppendLine("                - .azuredevops");
+        sb.AppendLine("                - Common");
+        sb.AppendLine("                - ${{ parameters.projectName }}");
         sb.AppendLine();
         sb.AppendLine("          - task: CopyFiles@2");
         sb.AppendLine("            displayName: 'Copy Bicep files'");

@@ -1102,6 +1102,60 @@
         </div>
       </mat-tab>
 
+      <!-- Agent Pool -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">dns</mat-icon>
+          <span>{{ 'CONFIG_DETAIL.TABS.AGENT_POOL' | translate }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <!-- Current mode banner -->
+          <div class="inheritance-banner" [class.inheritance-banner--inherited]="isCustomPool()">
+            <div class="inheritance-banner__info">
+              <mat-icon class="inheritance-banner__icon">{{ isCustomPool() ? 'computer' : 'cloud' }}</mat-icon>
+              <span>{{ (isCustomPool() ? 'CONFIG_DETAIL.AGENT_POOL.SELF_HOSTED' : 'CONFIG_DETAIL.AGENT_POOL.MICROSOFT_HOSTED') | translate }}</span>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="env-description" style="margin-bottom: 1rem;">
+            <mat-icon class="env-description__icon">info_outline</mat-icon>
+            <p>{{ 'CONFIG_DETAIL.AGENT_POOL.DESCRIPTION' | translate }}</p>
+          </div>
+
+          @if (canWrite()) {
+            <div class="agent-pool-form">
+              <mat-form-field appearance="outline" class="agent-pool-form__field">
+                <mat-label>{{ 'CONFIG_DETAIL.AGENT_POOL.POOL_NAME_LABEL' | translate }}</mat-label>
+                <input matInput
+                       [value]="agentPoolName()"
+                       (input)="agentPoolName.set($any($event.target).value)"
+                       [placeholder]="'CONFIG_DETAIL.AGENT_POOL.POOL_NAME_PLACEHOLDER' | translate"
+                       [disabled]="agentPoolLoading()">
+                <mat-hint>{{ 'CONFIG_DETAIL.AGENT_POOL.POOL_NAME_HINT' | translate }}</mat-hint>
+              </mat-form-field>
+              <button class="add-rg-btn"
+                      (click)="saveAgentPool()"
+                      [disabled]="agentPoolLoading()">
+                @if (agentPoolLoading()) {
+                  <mat-spinner diameter="16"></mat-spinner>
+                } @else {
+                  <mat-icon class="add-rg-btn__icon">save</mat-icon>
+                }
+                {{ 'CONFIG_DETAIL.AGENT_POOL.SAVE' | translate }}
+              </button>
+            </div>
+          } @else {
+            @if (config()?.agentPoolName) {
+              <div class="agent-pool-readonly">
+                <span class="agent-pool-readonly__label">{{ 'CONFIG_DETAIL.AGENT_POOL.POOL_NAME_LABEL' | translate }}:</span>
+                <strong>{{ config()!.agentPoolName }}</strong>
+              </div>
+            }
+          }
+        </div>
+      </mat-tab>
+
       <!-- Git Configuration (multi-repo only) -->
       @if (isMultiRepo()) {
         <mat-tab>

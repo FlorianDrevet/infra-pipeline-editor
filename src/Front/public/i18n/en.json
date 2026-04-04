@@ -154,6 +154,7 @@
       "NAMING_TEMPLATES": "Naming",
       "CROSS_CONFIG_REFS": "Cross-config references",
       "PIPELINE_VARIABLES": "Pipeline Variables",
+      "AGENT_POOL": "Agent Pool",
       "GIT": "Git"
     },
     "GIT_CONFIG": {
@@ -666,6 +667,15 @@
       "SCOPE_PROJECT": "Shared across all configurations",
       "DIALOG_CANCEL": "Cancel",
       "DIALOG_ADD": "Add"
+    },
+    "AGENT_POOL": {
+      "SELF_HOSTED": "Self-hosted pool configured",
+      "MICROSOFT_HOSTED": "Microsoft-hosted pool (default)",
+      "DESCRIPTION": "Configure the agent pool name used to run pipelines. Leave empty to use the Microsoft-hosted pool (ubuntu-latest).",
+      "POOL_NAME_LABEL": "Pool name",
+      "POOL_NAME_PLACEHOLDER": "E.g. my-self-hosted-pool",
+      "POOL_NAME_HINT": "Leave empty for ubuntu-latest",
+      "SAVE": "Save"
     },
     "TAGS": {
       "TITLE": "Tags",

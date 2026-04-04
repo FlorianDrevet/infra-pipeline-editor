@@ -51,6 +51,7 @@ export interface InfrastructureConfigResponse {
   resourceCount: number;
   crossConfigReferenceCount: number;
   appPipelineMode: string;
+  agentPoolName: string | null;
   tags: TagResponse[];
 }
 
@@ -85,6 +86,10 @@ export interface SetDefaultNamingTemplateRequest {
 
 export interface SetResourceNamingTemplateRequest {
   template: string;
+}
+
+export interface SetAgentPoolRequest {
+  agentPoolName: string | null;
 }
 
 // ─── Pipeline Variable Groups (removed — now project-level only) ─────────────

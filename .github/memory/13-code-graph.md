@@ -51,4 +51,4 @@
 
 ---
 
-*Dernière mise à jour : 2026-04-04 — Dream consolidation*
+*Dernière mise à jour : 2026-04-04 — Dream consolidation (dream cycle)*
