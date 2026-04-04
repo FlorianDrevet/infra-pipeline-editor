@@ -572,6 +572,7 @@
     },
     "GENERATE_ALL": {
       "BUTTON": "Generate",
+      "VALIDATING": "Validating configuration...",
       "GENERATING": "Generating..."
     },
     "PIPELINE": {
@@ -703,7 +704,8 @@
       "ERROR": "Unable to change repository mode."
     },
     "GENERATE_ALL": {
-      "BUTTON": "Generate"
+      "BUTTON": "Generate",
+      "VALIDATING": "Validating configuration..."
     },
     "GENERATION": {
       "TITLE": "Generation Results",

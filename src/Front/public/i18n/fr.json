@@ -571,6 +571,7 @@
     },
     "GENERATE_ALL": {
       "BUTTON": "Générer",
+      "VALIDATING": "Vérification en cours...",
       "GENERATING": "Génération en cours..."
     },
     "PIPELINE": {
@@ -702,7 +703,8 @@
       "ERROR": "Impossible de changer le mode de depot."
     },
     "GENERATE_ALL": {
-      "BUTTON": "Générer"
+      "BUTTON": "Générer",
+      "VALIDATING": "Vérification en cours..."
     },
     "GENERATION": {
       "TITLE": "Résultats de génération",

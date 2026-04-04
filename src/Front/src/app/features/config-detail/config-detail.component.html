@@ -24,7 +24,7 @@
               } @else {
                 <mat-icon class="bicep-cta__icon">terminal</mat-icon>
               }
-              {{ (generateAllLoading() ? 'CONFIG_DETAIL.GENERATE_ALL.GENERATING' : 'CONFIG_DETAIL.GENERATE_ALL.BUTTON') | translate }}
+              {{ (validatingDiagnostics() ? 'CONFIG_DETAIL.GENERATE_ALL.VALIDATING' : generateAllLoading() ? 'CONFIG_DETAIL.GENERATE_ALL.GENERATING' : 'CONFIG_DETAIL.GENERATE_ALL.BUTTON') | translate }}
             </button>
             @if (project()?.gitRepositoryConfiguration) {
               <button class="bicep-cta bicep-cta--git" (click)="openPushToGitDialog()">

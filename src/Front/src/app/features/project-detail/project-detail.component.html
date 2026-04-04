@@ -51,7 +51,7 @@
                 } @else {
                   <mat-icon class="bicep-btn__icon">terminal</mat-icon>
                 }
-                {{ 'PROJECT_DETAIL.GENERATE_ALL.BUTTON' | translate }}
+                {{ (validatingDiagnostics() ? 'PROJECT_DETAIL.GENERATE_ALL.VALIDATING' : 'PROJECT_DETAIL.GENERATE_ALL.BUTTON') | translate }}
               </button>
               @if (project()!.gitRepositoryConfiguration) {
                 <button class="push-btn" (click)="openProjectPushToGitDialog()" [disabled]="!projectBicepResult()">

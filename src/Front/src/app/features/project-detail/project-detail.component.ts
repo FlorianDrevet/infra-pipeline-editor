@@ -147,6 +147,9 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly agentPoolName = signal<string | null>(null);
   protected readonly useCustomPool = signal(false);
 
+  // ─── Diagnostics Validation ───
+  protected readonly validatingDiagnostics = signal(false);
+
   // ─── Project Bicep Generation (mono-repo) ───
   protected readonly projectBicepLoading = signal(false);
   protected readonly projectBicepResult = signal<GenerateProjectBicepResponse | null>(null);
@@ -905,7 +908,7 @@ export class ProjectDetailComponent implements OnInit {
   // ─── Unified Generate All (mono-repo) ───
 
   protected readonly projectGenerateAllLoading = computed(
-    () => this.projectBicepLoading() || this.projectPipelineLoading(),
+    () => this.validatingDiagnostics() || this.projectBicepLoading() || this.projectPipelineLoading(),
   );
 
   protected readonly projectGenerationPanelOpen = computed(
@@ -916,8 +919,13 @@ export class ProjectDetailComponent implements OnInit {
     const projectId = this.project()?.id;
     if (!projectId || this.projectGenerateAllLoading()) return;
 
-    const shouldContinue = await this.checkProjectDiagnostics();
-    if (!shouldContinue) return;
+    this.validatingDiagnostics.set(true);
+    try {
+      const shouldContinue = await this.checkProjectDiagnostics();
+      if (!shouldContinue) return;
+    } finally {
+      this.validatingDiagnostics.set(false);
+    }
 
     // Launch both generations in parallel
     await Promise.all([

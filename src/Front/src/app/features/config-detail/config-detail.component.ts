@@ -164,6 +164,9 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly storageAccountDetails = signal<Record<string, StorageAccountResponse | undefined>>({});
   protected readonly storageDetailsLoading = signal<string | null>(null);
 
+  // ─── Diagnostics Validation ───
+  protected readonly validatingDiagnostics = signal(false);
+
   // ─── Bicep Generation ───
   protected readonly bicepLoading = signal(false);
   protected readonly bicepResult = signal<GenerateBicepResponse | null>(null);
@@ -315,7 +318,7 @@ export class ConfigDetailComponent implements OnInit {
 
   // ─── Unified generation (multi-repo) ───
   protected readonly generateAllLoading = computed(
-    () => this.bicepLoading() || this.pipelineLoading(),
+    () => this.validatingDiagnostics() || this.bicepLoading() || this.pipelineLoading(),
   );
   protected readonly generationPanelOpen = computed(
     () => this.bicepPanelOpen() || this.pipelinePanelOpen() || this.bicepLoading() || this.pipelineLoading(),
@@ -325,8 +328,13 @@ export class ConfigDetailComponent implements OnInit {
     const configId = this.config()?.id;
     if (!configId || this.generateAllLoading()) return;
 
-    const shouldContinue = await this.showDiagnosticsDialog();
-    if (!shouldContinue) return;
+    this.validatingDiagnostics.set(true);
+    try {
+      const shouldContinue = await this.showDiagnosticsDialog();
+      if (!shouldContinue) return;
+    } finally {
+      this.validatingDiagnostics.set(false);
+    }
 
     await Promise.all([
       this.doGenerateBicep(),
@@ -1219,8 +1227,13 @@ export class ConfigDetailComponent implements OnInit {
     const configId = this.config()?.id;
     if (!configId || this.bicepLoading()) return;
 
-    const shouldContinue = await this.showDiagnosticsDialog();
-    if (!shouldContinue) return;
+    this.validatingDiagnostics.set(true);
+    try {
+      const shouldContinue = await this.showDiagnosticsDialog();
+      if (!shouldContinue) return;
+    } finally {
+      this.validatingDiagnostics.set(false);
+    }
 
     await this.doGenerateBicep();
   }
@@ -1297,8 +1310,13 @@ export class ConfigDetailComponent implements OnInit {
     const configId = this.config()?.id;
     if (!configId || this.pipelineLoading()) return;
 
-    const shouldContinue = await this.showDiagnosticsDialog();
-    if (!shouldContinue) return;
+    this.validatingDiagnostics.set(true);
+    try {
+      const shouldContinue = await this.showDiagnosticsDialog();
+      if (!shouldContinue) return;
+    } finally {
+      this.validatingDiagnostics.set(false);
+    }
 
     await this.doGeneratePipeline();
   }
