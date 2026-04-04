@@ -39,7 +39,8 @@ public sealed class ContainerAppPipelineGenerator : IAppPipelineGenerator
             request.ResourceName,
             request.DockerfilePath,
             request.DockerImageName,
-            request.ContainerRegistryName);
+            request.ContainerRegistryName,
+            request.AgentPoolName);
 
         return sb.ToString();
     }
@@ -54,7 +55,8 @@ public sealed class ContainerAppPipelineGenerator : IAppPipelineGenerator
             request.ResourceName,
             request.DockerfilePath,
             request.DockerImageName,
-            request.ContainerRegistryName);
+            request.ContainerRegistryName,
+            request.AgentPoolName);
 
         // Remove the "stages:" + Build stage header to avoid duplication — already appended
         // Deploy stages follow the Build stage in the same stages: block

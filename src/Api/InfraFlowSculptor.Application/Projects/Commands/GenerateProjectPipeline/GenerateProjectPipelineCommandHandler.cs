@@ -98,8 +98,9 @@ public sealed class GenerateProjectPipelineCommandHandler(
             })
             .ToList();
 
-        // 6. Assemble mono-repo output
-        var assembled = MonoRepoPipelineAssembler.Assemble(perConfigResults, environments);
+        // 6. Assemble mono-repo output (use first config's agent pool — all should share the same pool)
+        var agentPoolName = configs.FirstOrDefault()?.AgentPoolName;
+        var assembled = MonoRepoPipelineAssembler.Assemble(perConfigResults, environments, agentPoolName);
 
         // 7. Upload to blob storage
         var prefix = $"pipeline/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
@@ -214,6 +215,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             AppSettings = [],
             ExistingResourceReferences = [],
             PipelineVariableGroups = pipelineVariableGroups,
+            AgentPoolName = config.AgentPoolName,
         };
     }
 
@@ -270,6 +272,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             req.ConfigName = config.Name;
             req.Environments = environments;
             req.IsMonoRepo = true;
+            req.AgentPoolName = config.AgentPoolName;
 
             appRequests.Add(req);
         }

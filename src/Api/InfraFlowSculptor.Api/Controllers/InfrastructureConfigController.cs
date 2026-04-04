@@ -4,6 +4,7 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Commands.DeleteInfraCon
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveCrossConfigReference;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInfraConfigTags;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInheritance;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetAgentPool;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetInfraConfig;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossConfigReferences;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListIncomingCrossConfigReferences;
@@ -146,6 +147,28 @@ public static class InfrastructureConfigController
                 .WithDescription("Controls whether this configuration inherits naming conventions from the parent project. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // PUT /{id:guid}/agent-pool
+            config.MapPut("/{id:guid}/agent-pool",
+                    async ([FromRoute] Guid id, SetAgentPoolRequest request, IMediator mediator) =>
+                    {
+                        var command = new SetAgentPoolCommand(
+                            new InfrastructureConfigId(id),
+                            request.AgentPoolName
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetAgentPool")
+                .WithSummary("Set or clear the agent pool for pipeline generation")
+                .WithDescription("Sets the self-hosted agent pool name used in generated pipelines. Send null or empty to revert to the Microsoft-hosted pool (vmImage: ubuntu-latest). Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 

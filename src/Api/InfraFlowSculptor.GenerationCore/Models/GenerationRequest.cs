@@ -56,4 +56,10 @@ public class GenerationRequest
     /// Configuration-level tags that extend or override project-level tags.
     /// </summary>
     public IReadOnlyDictionary<string, string> ConfigTags { get; set; } = new Dictionary<string, string>();
+
+    /// <summary>
+    /// Self-hosted agent pool name. When set, pipelines use <c>pool: name: 'value'</c>.
+    /// When <c>null</c>, pipelines use the Microsoft-hosted pool (<c>vmImage: ubuntu-latest</c>).
+    /// </summary>
+    public string? AgentPoolName { get; set; }
 }

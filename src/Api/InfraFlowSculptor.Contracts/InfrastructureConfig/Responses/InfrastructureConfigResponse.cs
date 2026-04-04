@@ -15,6 +15,7 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// <param name="ResourceGroupCount">Number of resource groups in this configuration.</param>
 /// <param name="ResourceCount">Total number of Azure resources across all resource groups.</param>
 /// <param name="CrossConfigReferenceCount">Number of cross-configuration resource references.</param>
+/// <param name="AgentPoolName">Self-hosted agent pool name for pipeline generation. Null when using Microsoft-hosted pool.</param>
 public record InfrastructureConfigResponse(
     string Id,
     string Name,
@@ -25,4 +26,5 @@ public record InfrastructureConfigResponse(
     IReadOnlyList<TagResponse> Tags,
     int ResourceGroupCount,
     int ResourceCount,
-    int CrossConfigReferenceCount);
+    int CrossConfigReferenceCount,
+    string? AgentPoolName = null);

@@ -38,7 +38,8 @@ public sealed class WebAppContainerPipelineGenerator : IAppPipelineGenerator
             request.ResourceName,
             request.DockerfilePath,
             request.DockerImageName,
-            request.ContainerRegistryName);
+            request.ContainerRegistryName,
+            request.AgentPoolName);
 
         return sb.ToString();
     }
@@ -53,7 +54,8 @@ public sealed class WebAppContainerPipelineGenerator : IAppPipelineGenerator
             request.ResourceName,
             request.DockerfilePath,
             request.DockerImageName,
-            request.ContainerRegistryName);
+            request.ContainerRegistryName,
+            request.AgentPoolName);
 
         AppPipelineYamlHelper.AppendWebAppContainerDeployStages(sb, request);
 

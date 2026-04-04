@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-04 | copilot | Add configurable agent pool for pipeline generation: Domain (`AgentPoolName` on InfrastructureConfig), EF Core config, ReadModel, GenerationRequest + AppPipelineGenerationRequest, all 10 hardcoded pool refs replaced with `AppendPool()` helper, SetAgentPool CQRS command + API endpoint `PUT /infra-configs/{id}/agent-pool`, Contracts request/response, Mapster mapping. 18 files modified. |
 | 2026-04-05 | copilot | ContainerAppEnvironment LAW selector: moved `logAnalyticsWorkspaceId` from per-env settings to aggregate root as optional FK (`AzureResourceId?`). Backend: Domain, Application (commands/handlers/result), Contracts, Mapster, EF Core config, ReadRepository. Frontend: dropdown selector in resource-edit general form + add-resource-dialog parent selector step (optional). 22 files modified total. |
 | 2026-04-04 | copilot | Fix cross-config ACR dropdown: resource-edit and add-resource-dialog now load ContainerRegistries from all configs in the same project via getProjectResources API. Cross-config ACRs show with `(configName)` suffix. |
 | 2026-04-04 | copilot | Add DELETE /resource-group/{id} endpoint + frontend delete button with confirm dialog on config-detail page. Backend command/handler already existed. |

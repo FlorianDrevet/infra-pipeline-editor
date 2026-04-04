@@ -12,7 +12,8 @@ public record InfrastructureConfigReadModel(
     IReadOnlyList<CrossConfigReferenceReadModel> CrossConfigReferences,
     IReadOnlyDictionary<string, string> ProjectTags,
     IReadOnlyDictionary<string, string> ConfigTags,
-    string AppPipelineMode = "Isolated");
+    string AppPipelineMode = "Isolated",
+    string? AgentPoolName = null);
 
 public record ResourceGroupReadModel(
     Guid Id,

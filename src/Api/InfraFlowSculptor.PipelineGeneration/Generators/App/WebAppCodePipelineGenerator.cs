@@ -39,7 +39,8 @@ public sealed class WebAppCodePipelineGenerator : IAppPipelineGenerator
             request.RuntimeStack,
             request.RuntimeVersion,
             request.SourceCodePath,
-            request.BuildCommand);
+            request.BuildCommand,
+            request.AgentPoolName);
 
         return sb.ToString();
     }
@@ -55,7 +56,8 @@ public sealed class WebAppCodePipelineGenerator : IAppPipelineGenerator
             request.RuntimeStack,
             request.RuntimeVersion,
             request.SourceCodePath,
-            request.BuildCommand);
+            request.BuildCommand,
+            request.AgentPoolName);
 
         AppPipelineYamlHelper.AppendWebAppCodeDeployStages(sb, request);
 

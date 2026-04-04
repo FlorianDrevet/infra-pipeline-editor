@@ -47,6 +47,7 @@ Engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
 - **Isolated mode**: per-resource files under `apps/{applicationName}/ci.app-pipeline.yml` + `release.app-pipeline.yml`
 - **Combined mode**: single `ci.app-pipeline.yml` + `release.app-pipeline.yml` with parallel jobs per resource
 - Shared helper: `AppPipelineYamlHelper` with reusable YAML building blocks
+- **Agent pool**: configurable via `InfrastructureConfig.AgentPoolName`. When set → `pool: name: '<value>'` (self-hosted). When null → `pool: vmImage: ubuntu-latest` (Microsoft-hosted). Central helper: `PipelineGenerationEngine.AppendPool()`. API: `PUT /infra-configs/{id}/agent-pool`.
 - Container mode: Docker@2 build+push → per-env deploy (AzureCLI for ACA, AzureWebApp@1, AzureFunctionApp@2)
 - Code mode: SDK setup → restore/build/test/publish → per-env deploy via app-specific tasks
 - Supports 5 runtimes: DOTNETCORE, NODE, PYTHON, JAVA + fallback

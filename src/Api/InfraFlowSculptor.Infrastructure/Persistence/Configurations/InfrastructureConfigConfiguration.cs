@@ -55,6 +55,10 @@ public sealed class InfrastructureConfigConfiguration
             .HasMaxLength(20)
             .HasDefaultValue(AppPipelineMode.Isolated);
 
+        builder.Property(x => x.AgentPoolName)
+            .HasMaxLength(200)
+            .IsRequired(false);
+
         // ========================
         // ResourceGroups (Entity)
         // ========================

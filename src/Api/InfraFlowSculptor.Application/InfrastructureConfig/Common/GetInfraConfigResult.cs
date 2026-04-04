@@ -14,4 +14,5 @@ public record GetInfrastructureConfigResult(
     IReadOnlyList<TagResult> Tags,
     int ResourceGroupCount = 0,
     int ResourceCount = 0,
-    int CrossConfigReferenceCount = 0);
+    int CrossConfigReferenceCount = 0,
+    string? AgentPoolName = null);

@@ -14,14 +14,16 @@ public static class MonoRepoPipelineAssembler
     /// </summary>
     /// <param name="perConfigResults">Per-config results keyed by config name.</param>
     /// <param name="environments">The deduplicated environment definitions across all configurations.</param>
+    /// <param name="agentPoolName">Optional self-hosted agent pool name for shared templates.</param>
     /// <returns>A <see cref="MonoRepoPipelineResult"/> with common and per-config files.</returns>
     public static MonoRepoPipelineResult Assemble(
         IReadOnlyDictionary<string, PipelineGenerationResult> perConfigResults,
-        IReadOnlyList<EnvironmentDefinition> environments)
+        IReadOnlyList<EnvironmentDefinition> environments,
+        string? agentPoolName = null)
     {
         // ── Shared templates (same for all configs) + root variables ────────
         var configNames = perConfigResults.Keys.ToList();
-        var commonFiles = PipelineGenerationEngine.GenerateSharedTemplates(configNames, environments);
+        var commonFiles = PipelineGenerationEngine.GenerateSharedTemplates(configNames, environments, agentPoolName);
 
         // ── Per-config folders ──────────────────────────────────────────────
         var configFiles = new Dictionary<string, IReadOnlyDictionary<string, string>>();

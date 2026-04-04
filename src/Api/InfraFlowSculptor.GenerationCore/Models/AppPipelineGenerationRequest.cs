@@ -50,4 +50,10 @@ public class AppPipelineGenerationRequest
 
     /// <summary>Whether the project uses mono-repo pipeline structure.</summary>
     public bool IsMonoRepo { get; set; }
+
+    /// <summary>
+    /// Self-hosted agent pool name. When set, pipelines use <c>pool: name: 'value'</c>.
+    /// When <c>null</c>, pipelines use the Microsoft-hosted pool (<c>vmImage: ubuntu-latest</c>).
+    /// </summary>
+    public string? AgentPoolName { get; set; }
 }

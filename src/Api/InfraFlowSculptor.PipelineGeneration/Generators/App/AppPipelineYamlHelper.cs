@@ -3,6 +3,8 @@ using InfraFlowSculptor.GenerationCore.Models;
 
 namespace InfraFlowSculptor.PipelineGeneration.Generators.App;
 
+using static PipelineGenerationEngine;
+
 /// <summary>
 /// Shared helper methods for application pipeline generators.
 /// Provides reusable YAML building blocks for CI and release pipelines.
@@ -61,7 +63,8 @@ internal static class AppPipelineYamlHelper
         string resourceName,
         string? dockerfilePath,
         string? dockerImageName,
-        string? containerRegistryName)
+        string? containerRegistryName,
+        string? agentPoolName = null)
     {
         var dockerfile = dockerfilePath ?? "Dockerfile";
         var imageName = dockerImageName ?? resourceName.ToLowerInvariant();
@@ -70,8 +73,7 @@ internal static class AppPipelineYamlHelper
         sb.AppendLine("stages:");
         sb.AppendLine("  - stage: Build");
         sb.AppendLine($"    displayName: 'Build & Push {resourceName} Image'");
-        sb.AppendLine("    pool:");
-        sb.AppendLine("      vmImage: ubuntu-latest");
+        AppendPool(sb, agentPoolName, "    ");
         sb.AppendLine("    jobs:");
         sb.AppendLine("      - job: BuildAndPush");
         sb.AppendLine("        displayName: 'Build Docker Image'");
@@ -101,15 +103,15 @@ internal static class AppPipelineYamlHelper
         string? runtimeStack,
         string? runtimeVersion,
         string? sourceCodePath,
-        string? buildCommand)
+        string? buildCommand,
+        string? agentPoolName = null)
     {
         var srcPath = sourceCodePath ?? ".";
 
         sb.AppendLine("stages:");
         sb.AppendLine("  - stage: Build");
         sb.AppendLine($"    displayName: 'Build {resourceName}'");
-        sb.AppendLine("    pool:");
-        sb.AppendLine("      vmImage: ubuntu-latest");
+        AppendPool(sb, agentPoolName, "    ");
         sb.AppendLine("    jobs:");
         sb.AppendLine("      - job: BuildAndPublish");
         sb.AppendLine("        displayName: 'Build & Publish Artifact'");
@@ -166,8 +168,7 @@ internal static class AppPipelineYamlHelper
             sb.AppendLine($"      - deployment: Deploy_{envKey}");
             sb.AppendLine($"        displayName: 'Deploy {request.ResourceName} to {env.Name}'");
             sb.AppendLine($"        environment: {env.Name}");
-            sb.AppendLine("        pool:");
-            sb.AppendLine("          vmImage: ubuntu-latest");
+            AppendPool(sb, request.AgentPoolName);
             sb.AppendLine("        strategy:");
             sb.AppendLine("          runOnce:");
             sb.AppendLine("            deploy:");
@@ -211,8 +212,7 @@ internal static class AppPipelineYamlHelper
             sb.AppendLine($"      - deployment: Deploy_{envKey}");
             sb.AppendLine($"        displayName: 'Deploy {request.ResourceName} to {env.Name}'");
             sb.AppendLine($"        environment: {env.Name}");
-            sb.AppendLine("        pool:");
-            sb.AppendLine("          vmImage: ubuntu-latest");
+            AppendPool(sb, request.AgentPoolName);
             sb.AppendLine("        strategy:");
             sb.AppendLine("          runOnce:");
             sb.AppendLine("            deploy:");
@@ -250,8 +250,7 @@ internal static class AppPipelineYamlHelper
             sb.AppendLine($"      - deployment: Deploy_{envKey}");
             sb.AppendLine($"        displayName: 'Deploy {request.ResourceName} to {env.Name}'");
             sb.AppendLine($"        environment: {env.Name}");
-            sb.AppendLine("        pool:");
-            sb.AppendLine("          vmImage: ubuntu-latest");
+            AppendPool(sb, request.AgentPoolName);
             sb.AppendLine("        strategy:");
             sb.AppendLine("          runOnce:");
             sb.AppendLine("            deploy:");
@@ -297,8 +296,7 @@ internal static class AppPipelineYamlHelper
             sb.AppendLine($"      - deployment: Deploy_{envKey}");
             sb.AppendLine($"        displayName: 'Deploy {request.ResourceName} to {env.Name}'");
             sb.AppendLine($"        environment: {env.Name}");
-            sb.AppendLine("        pool:");
-            sb.AppendLine("          vmImage: ubuntu-latest");
+            AppendPool(sb, request.AgentPoolName);
             sb.AppendLine("        strategy:");
             sb.AppendLine("          runOnce:");
             sb.AppendLine("            deploy:");
@@ -336,8 +334,7 @@ internal static class AppPipelineYamlHelper
             sb.AppendLine($"      - deployment: Deploy_{envKey}");
             sb.AppendLine($"        displayName: 'Deploy {request.ResourceName} to {env.Name}'");
             sb.AppendLine($"        environment: {env.Name}");
-            sb.AppendLine("        pool:");
-            sb.AppendLine("          vmImage: ubuntu-latest");
+            AppendPool(sb, request.AgentPoolName);
             sb.AppendLine("        strategy:");
             sb.AppendLine("          runOnce:");
             sb.AppendLine("            deploy:");
