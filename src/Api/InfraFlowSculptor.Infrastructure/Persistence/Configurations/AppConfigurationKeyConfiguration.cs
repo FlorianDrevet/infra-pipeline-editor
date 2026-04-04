@@ -57,7 +57,8 @@ public sealed class AppConfigurationKeyConfiguration : IEntityTypeConfiguration<
         builder.HasOne<AzureResource>()
             .WithMany()
             .HasForeignKey(k => k.SourceResourceId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Property(k => k.KeyVaultResourceId)
             .HasConversion(
@@ -77,7 +78,8 @@ public sealed class AppConfigurationKeyConfiguration : IEntityTypeConfiguration<
         builder.HasOne<AzureResource>()
             .WithMany()
             .HasForeignKey(k => k.KeyVaultResourceId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(k => new { k.AppConfigurationId, k.Key })
             .IsUnique();

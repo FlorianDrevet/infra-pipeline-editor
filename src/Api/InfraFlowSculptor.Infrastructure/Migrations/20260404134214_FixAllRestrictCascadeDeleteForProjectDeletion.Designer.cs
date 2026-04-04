@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InfraFlowSculptor.Infrastructure.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    partial class ProjectDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260404134214_FixAllRestrictCascadeDeleteForProjectDeletion")]
+    partial class FixAllRestrictCascadeDeleteForProjectDeletion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1763,12 +1766,12 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany()
                         .HasForeignKey("KeyVaultResourceId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany()
                         .HasForeignKey("SourceResourceId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup", null)
                         .WithMany()
@@ -1824,7 +1827,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany()
                         .HasForeignKey("KeyVaultResourceId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany("AppSettings")
@@ -1835,7 +1838,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany()
                         .HasForeignKey("SourceResourceId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup", null)
                         .WithMany()

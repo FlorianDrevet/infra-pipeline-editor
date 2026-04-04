@@ -57,7 +57,7 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
                 j => j.HasOne<AzureResource>()
                     .WithMany()
                     .HasForeignKey("DependsOnId")
-                    .OnDelete(DeleteBehavior.Restrict),
+                    .OnDelete(DeleteBehavior.Cascade),
                 j => j.HasOne<AzureResource>()
                     .WithMany()
                     .HasForeignKey("ResourceId")

@@ -63,12 +63,14 @@ public sealed class AppSettingConfiguration : IEntityTypeConfiguration<AppSettin
         builder.HasOne<AzureResource>()
             .WithMany()
             .HasForeignKey(s => s.SourceResourceId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne<AzureResource>()
             .WithMany()
             .HasForeignKey(s => s.KeyVaultResourceId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(s => new { s.ResourceId, s.Name })
             .IsUnique();
