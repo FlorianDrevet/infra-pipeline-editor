@@ -87,7 +87,7 @@ internal static class ParameterFileAssembler
         var sb = new StringBuilder();
         var normalizedEnvironmentName = BicepFormattingHelper.SanitizeBicepKey(environmentName);
 
-        sb.AppendLine("using 'main.bicep'");
+        sb.AppendLine("using '../main.bicep'");
         sb.AppendLine();
         sb.AppendLine($"param environmentName = '{normalizedEnvironmentName}'");
         sb.AppendLine();

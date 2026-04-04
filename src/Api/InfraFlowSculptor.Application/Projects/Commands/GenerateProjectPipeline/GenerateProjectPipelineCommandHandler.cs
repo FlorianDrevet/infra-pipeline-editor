@@ -62,7 +62,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
 
         foreach (var config in configs)
         {
-            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, project);
+            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, projectWithGit ?? project);
             var result = pipelineGenerationEngine.Generate(generationRequest, config.Name, isMonoRepo: true);
 
             // Generate app pipelines for compute resources in this config
@@ -224,6 +224,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             ExistingResourceReferences = [],
             PipelineVariableGroups = pipelineVariableGroups,
             AgentPoolName = project?.AgentPoolName,
+            BicepBasePath = project?.GitRepositoryConfiguration?.BasePath,
         };
     }
 

@@ -62,4 +62,10 @@ public class GenerationRequest
     /// When <c>null</c>, pipelines use the Microsoft-hosted pool (<c>vmImage: ubuntu-latest</c>).
     /// </summary>
     public string? AgentPoolName { get; set; }
+
+    /// <summary>
+    /// Optional sub-path inside the target repository where generated Bicep files are pushed.
+    /// Used by generated release pipelines to resolve exact source paths.
+    /// </summary>
+    public string? BicepBasePath { get; set; }
 }

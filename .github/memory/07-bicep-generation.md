@@ -23,6 +23,10 @@ Refactored from monolith (~1680 lines) to thin orchestrator (~180 lines) + 14 sp
 - `modules/{FolderName}/{moduleType}.module.bicep` + `types.bicep` per resource type
 - `constants.bicep` — RBAC role constants (only when role assignments exist)
 
+## Bicep Param Relative Path [2026-04-04]
+- Generated `.bicepparam` files are stored under `parameters/`, so they must declare `using '../main.bicep'`.
+- `using 'main.bicep'` is invalid from that folder and breaks Azure DevOps ARM deployments after the task compiles `main.bicep`, typically surfacing as `Could not find any file matching the template file pattern`.
+
 ## Module Folder Structure [2026-03-24]
 Each module folder contains: `{moduleType}.module.bicep` + `types.bicep` (with `@export()` union types).
 

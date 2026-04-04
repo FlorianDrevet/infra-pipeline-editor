@@ -41,6 +41,8 @@ public sealed class GeneratePipelineCommandHandler(
         // Load project-level pipeline variable groups
         var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
             new ProjectId(config.ProjectId), cancellationToken);
+        var projectWithGit = await projectRepository.GetByIdWithAllAsync(
+            new ProjectId(config.ProjectId), cancellationToken);
 
         var projectVariableGroups = project?.PipelineVariableGroups
             .Select(g =>
@@ -125,6 +127,7 @@ public sealed class GeneratePipelineCommandHandler(
             ExistingResourceReferences = [],
             PipelineVariableGroups = projectVariableGroups,
             AgentPoolName = project?.AgentPoolName,
+            BicepBasePath = projectWithGit?.GitRepositoryConfiguration?.BasePath,
         };
 
         var result = pipelineGenerationEngine.Generate(generationRequest, config.Name);

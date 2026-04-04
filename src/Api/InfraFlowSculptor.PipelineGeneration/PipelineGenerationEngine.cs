@@ -205,8 +205,8 @@ public sealed class PipelineGenerationEngine
         // One deployment entry — the main Bicep subscription-level deployment
         sb.AppendLine($"                - displayName: \"Deploy {configName} Infrastructure\"");
         sb.AppendLine($"                  deploymentName: {configName.ToLowerInvariant()}-infra-$(Build.BuildNumber)");
-        sb.AppendLine($"                  templateFile: {configName}/main.bicep");
-        sb.AppendLine($"                  templateParametersFile: {configName}/parameters/main.${{{{environment}}}}.bicepparam");
+        sb.AppendLine($"                  templateFile: {BuildSourcesDirectoryPath(BuildRepoRelativePath(request.BicepBasePath, $"{configName}/main.bicep"))}");
+        sb.AppendLine($"                  templateParametersFile: {BuildSourcesDirectoryPath(BuildRepoRelativePath(request.BicepBasePath, $"{configName}/parameters/main.${{{{environment}}}}.bicepparam"))}");
 
         // Emit overrideParameters from variable group mappings
         var overrideParams = BuildOverrideParameters(request.PipelineVariableGroups);
@@ -540,8 +540,8 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("              subscriptionId: ${{ variables.subscriptionId }}");
         sb.AppendLine("              location: ${{ variables.location }}");
         sb.AppendLine("              deploymentName: ${{ deployment.deploymentName }}");
-        sb.AppendLine("              templateFile: '$(Pipeline.Workspace)/**/${{ deployment.templateFile }}'");
-        sb.AppendLine("              templateParametersFile: '$(Pipeline.Workspace)/**/${{ deployment.templateParametersFile }}'");
+        sb.AppendLine("              templateFile: '${{ deployment.templateFile }}'");
+        sb.AppendLine("              templateParametersFile: '${{ deployment.templateParametersFile }}'");
         sb.AppendLine("              overrideParameters: ${{ deployment.overrideParameters }}");
 
         return sb.ToString();
