@@ -145,7 +145,7 @@ export class ProjectDetailComponent implements OnInit {
   // ─── Agent Pool ───
   protected readonly agentPoolLoading = signal(false);
   protected readonly agentPoolName = signal<string | null>(null);
-  protected readonly isCustomPool = computed(() => !!this.agentPoolName());
+  protected readonly useCustomPool = signal(false);
 
   // ─── Project Bicep Generation (mono-repo) ───
   protected readonly projectBicepLoading = signal(false);
@@ -382,6 +382,7 @@ export class ProjectDetailComponent implements OnInit {
       this.configs.set(configs);
       this.availableUsers.set(users);
       this.agentPoolName.set(project.agentPoolName);
+      this.useCustomPool.set(project.agentPoolName != null);
       this.recentlyViewedService.trackView({
         id: project.id,
         name: project.name,
@@ -678,6 +679,13 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   // ─── Agent Pool ───
+
+  protected onCustomPoolToggle(checked: boolean): void {
+    this.useCustomPool.set(checked);
+    if (!checked) {
+      this.agentPoolName.set(null);
+    }
+  }
 
   protected async saveAgentPool(): Promise<void> {
     const projectId = this.project()?.id;

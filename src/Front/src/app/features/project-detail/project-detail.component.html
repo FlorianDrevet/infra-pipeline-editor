@@ -761,13 +761,13 @@
 
             <div class="agent-pool-form">
               <mat-slide-toggle
-                [checked]="isCustomPool()"
-                (change)="$event.checked ? agentPoolName.set('') : agentPoolName.set(null)"
+                [checked]="useCustomPool()"
+                (change)="onCustomPoolToggle($event.checked)"
                 [disabled]="agentPoolLoading()">
                 {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.USE_CUSTOM' | translate }}
               </mat-slide-toggle>
 
-              @if (isCustomPool()) {
+              @if (useCustomPool()) {
                 <mat-form-field appearance="outline" class="pool-name-field">
                   <mat-label>{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_NAME' | translate }}</mat-label>
                   <input matInput

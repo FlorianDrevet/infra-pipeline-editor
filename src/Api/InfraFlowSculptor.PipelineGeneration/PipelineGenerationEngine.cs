@@ -350,8 +350,6 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("    default: []");
         sb.AppendLine();
         sb.AppendLine("steps:");
-        sb.AppendLine("  - checkout: none");
-        sb.AppendLine();
         sb.AppendLine("  - pwsh: |");
         sb.AppendLine("      $directories = '${{ convertToJson(parameters.directories) }}' | ConvertFrom-Json");
         sb.AppendLine();
