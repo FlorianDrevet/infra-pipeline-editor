@@ -20,4 +20,5 @@ public record FunctionAppResult(
     string? DockerfilePath,
     string? SourceCodePath,
     string? BuildCommand,
+    string? ApplicationName,
     IReadOnlyList<FunctionAppEnvironmentConfigData> EnvironmentSettings);

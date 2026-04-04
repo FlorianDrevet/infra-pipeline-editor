@@ -31,6 +31,7 @@ export interface FunctionAppResponse {
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;
+  applicationName: string | null;
   environmentSettings: FunctionAppEnvironmentConfigResponse[];
 }
 
@@ -50,6 +51,7 @@ export interface CreateFunctionAppRequest {
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;
+  applicationName?: string | null;
   environmentSettings?: FunctionAppEnvironmentConfigEntry[];
 }
 
@@ -66,5 +68,6 @@ export interface UpdateFunctionAppRequest {
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;
+  applicationName?: string | null;
   environmentSettings?: FunctionAppEnvironmentConfigEntry[];
 }

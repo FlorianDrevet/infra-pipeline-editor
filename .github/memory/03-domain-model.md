@@ -46,11 +46,13 @@ These reusable entity types are owned by multiple aggregates:
 
 `ContainerApp` owns `DockerImageName` at the resource level (not per-env). The `containerImage` property was removed from `ContainerAppEnvironmentSettings`. Bicep generator reads `resource.Properties["dockerImageName"]`.
 
-## Application Pipeline Properties [2026-04-03]
+## Application Pipeline Properties [2026-04-04]
 
 3 compute aggregates now have CI/CD pipeline config properties:
-- **ContainerApp**: `DockerfilePath` (string?) — Dockerfile path for container build
-- **WebApp/FunctionApp**: `DockerfilePath`, `SourceCodePath`, `BuildCommand` (all string?) — for both container and code modes
+- **ContainerApp**: `DockerfilePath` (string?), `ApplicationName` (string?)
+- **WebApp/FunctionApp**: `DockerfilePath`, `SourceCodePath`, `BuildCommand`, `ApplicationName` (all string?)
+- `ApplicationName` is a user-friendly name displayed in Azure DevOps pipeline runs (fallback: resource name)
+- `InfrastructureConfig` has `AppPipelineMode` enum (`Isolated`/`Combined`) — controls whether app pipelines are generated per-resource or as a single combined pipeline
 - These are persisted in TPT tables (EF Core), exposed in Create/Update commands and contracts
 
 ## Cross-Config References

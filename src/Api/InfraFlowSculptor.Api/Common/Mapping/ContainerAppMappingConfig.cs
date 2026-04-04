@@ -31,6 +31,7 @@ public sealed class ContainerAppMappingConfig : IRegister
                 src.Request.ContainerRegistryId,
                 src.Request.DockerImageName,
                 src.Request.DockerfilePath,
+                src.Request.ApplicationName,
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new ContainerAppEnvironmentConfigData(

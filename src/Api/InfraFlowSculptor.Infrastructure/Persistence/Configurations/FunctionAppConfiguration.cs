@@ -65,6 +65,10 @@ public sealed class FunctionAppConfiguration : IEntityTypeConfiguration<Function
             .HasMaxLength(1000)
             .IsRequired(false);
 
+        builder.Property(x => x.ApplicationName)
+            .HasMaxLength(200)
+            .IsRequired(false);
+
         builder.HasMany(x => x.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.FunctionAppId)

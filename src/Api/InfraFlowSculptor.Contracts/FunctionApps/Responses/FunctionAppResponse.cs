@@ -33,5 +33,6 @@ public record FunctionAppResponse(
     string? DockerfilePath,
     string? SourceCodePath,
     string? BuildCommand,
+    string? ApplicationName,
     IReadOnlyList<FunctionAppEnvironmentConfigResponse> EnvironmentSettings
 );

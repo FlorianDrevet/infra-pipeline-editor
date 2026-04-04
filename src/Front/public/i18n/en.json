@@ -1023,14 +1023,10 @@
       "SOURCE_CODE_PATH_HINT": "Project root folder (e.g., src/Api)",
       "BUILD_COMMAND": "Build command",
       "BUILD_COMMAND_HINT": "Custom command (e.g., dotnet publish -c Release)",
-      "GENERATE": "Generate Pipeline",
-      "GENERATING": "Generating...",
-      "GENERATE_ERROR": "Failed to generate the application pipeline",
-      "RETRY": "Retry",
-      "ARTIFACTS": "Generated files",
-      "TERMINAL_DONE": "Application pipeline generated successfully",
-      "FILE_LOADING": "Loading file...",
-      "FILE_ERROR": "Failed to load file"
+      "APPLICATION_NAME": "Application Name",
+      "APPLICATION_NAME_HINT": "Name displayed in Azure DevOps during pipeline runs (defaults to resource name)",
+      "CONFIG_TITLE": "Application Pipeline Configuration",
+      "CONFIG_HINT": "These settings will be used when generating the pipeline from the configuration page."
     },
     "GENERAL": {
       "IDENTITY": "Identity",

@@ -9,6 +9,9 @@ public class AppPipelineGenerationRequest
     /// <summary>Display name of the target Azure resource.</summary>
     public string ResourceName { get; set; } = string.Empty;
 
+    /// <summary>User-friendly application name for pipeline display. Falls back to <see cref="ResourceName"/> if null.</summary>
+    public string? ApplicationName { get; set; }
+
     /// <summary>Azure resource type identifier (e.g., AzureResourceTypes.WebApp).</summary>
     public string ResourceType { get; set; } = string.Empty;
 

@@ -183,26 +183,6 @@
                     </mat-slide-toggle>
                   </div>
                 </div>
-                <div class="form-grid" style="margin-top: 1rem;">
-                  @if (isContainerMode()) {
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH' | translate }}</mat-label>
-                      <input matInput formControlName="dockerfilePath" placeholder="Dockerfile" />
-                      <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH_HINT' | translate }}</mat-hint>
-                    </mat-form-field>
-                  } @else {
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.SOURCE_CODE_PATH' | translate }}</mat-label>
-                      <input matInput formControlName="sourceCodePath" placeholder="src/MyApp" />
-                      <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.SOURCE_CODE_PATH_HINT' | translate }}</mat-hint>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.BUILD_COMMAND' | translate }}</mat-label>
-                      <input matInput formControlName="buildCommand" placeholder="dotnet publish -c Release" />
-                      <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.BUILD_COMMAND_HINT' | translate }}</mat-hint>
-                    </mat-form-field>
-                  }
-                </div>
               </div>
             }
 
@@ -242,26 +222,6 @@
                     </mat-slide-toggle>
                   </div>
                 </div>
-                <div class="form-grid" style="margin-top: 1rem;">
-                  @if (isContainerMode()) {
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH' | translate }}</mat-label>
-                      <input matInput formControlName="dockerfilePath" placeholder="Dockerfile" />
-                      <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH_HINT' | translate }}</mat-hint>
-                    </mat-form-field>
-                  } @else {
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.SOURCE_CODE_PATH' | translate }}</mat-label>
-                      <input matInput formControlName="sourceCodePath" placeholder="src/MyApp" />
-                      <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.SOURCE_CODE_PATH_HINT' | translate }}</mat-hint>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.BUILD_COMMAND' | translate }}</mat-label>
-                      <input matInput formControlName="buildCommand" placeholder="dotnet publish -c Release" />
-                      <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.BUILD_COMMAND_HINT' | translate }}</mat-hint>
-                    </mat-form-field>
-                  }
-                </div>
               </div>
             }
 
@@ -287,13 +247,6 @@
                   (addAcrPullRole)="addAcrPullRoleAssignment()"
                   (createUai)="createNewUai()">
                 </app-deployment-config>
-                <div class="form-grid" style="margin-top: 1rem;">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH' | translate }}</mat-label>
-                    <input matInput formControlName="dockerfilePath" placeholder="Dockerfile" />
-                    <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH_HINT' | translate }}</mat-hint>
-                  </mat-form-field>
-                </div>
               </div>
             }
 
@@ -2473,42 +2426,43 @@
           </ng-template>
 
           <div class="tab-content">
-            <div class="pipeline-actions">
-              <button mat-flat-button color="primary"
-                      (click)="generateAppPipeline()"
-                      [disabled]="appPipelineLoading()">
-                @if (appPipelineLoading()) {
-                  <mat-spinner diameter="20"></mat-spinner>
-                  {{ 'RESOURCE_EDIT.APP_PIPELINE.GENERATING' | translate }}
-                } @else {
-                  <ng-container>
-                    <mat-icon>play_arrow</mat-icon>
-                    {{ 'RESOURCE_EDIT.APP_PIPELINE.GENERATE' | translate }}
-                  </ng-container>
-                }
-              </button>
-            </div>
-
-            @if (appPipelineErrorKey()) {
-              <div class="pipeline-error">
-                <p>{{ appPipelineErrorKey()! | translate }}</p>
-                <button mat-stroked-button (click)="generateAppPipeline()">
-                  <mat-icon>refresh</mat-icon>
-                  {{ 'RESOURCE_EDIT.APP_PIPELINE.RETRY' | translate }}
-                </button>
+            <div class="form-section">
+              <h3 class="form-section__title">{{ 'RESOURCE_EDIT.APP_PIPELINE.CONFIG_TITLE' | translate }}</h3>
+              <p class="form-section__hint">{{ 'RESOURCE_EDIT.APP_PIPELINE.CONFIG_HINT' | translate }}</p>
+              <div class="form-grid">
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.APPLICATION_NAME' | translate }}</mat-label>
+                  <input matInput formControlName="applicationName" [placeholder]="generalForm.get('name')?.value || ''" />
+                  <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.APPLICATION_NAME_HINT' | translate }}</mat-hint>
+                </mat-form-field>
               </div>
-            }
-
-            @if (appPipelineNodes().length > 0) {
-              <app-bicep-file-panel
-                [nodes]="appPipelineNodes()"
-                [barTitle]="'app-pipeline — ' + ('RESOURCE_EDIT.APP_PIPELINE.ARTIFACTS' | translate)"
-                [terminalDoneText]="'RESOURCE_EDIT.APP_PIPELINE.TERMINAL_DONE' | translate"
-                [fileLoadingText]="'RESOURCE_EDIT.APP_PIPELINE.FILE_LOADING' | translate"
-                [fileErrorText]="'RESOURCE_EDIT.APP_PIPELINE.FILE_ERROR' | translate"
-                [loadFile]="loadAppPipelineFile">
-              </app-bicep-file-panel>
-            }
+              <div class="form-grid" style="margin-top: 1rem;">
+                @if (resourceType === 'ContainerApp') {
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH' | translate }}</mat-label>
+                    <input matInput formControlName="dockerfilePath" placeholder="Dockerfile" />
+                    <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
+                } @else if (isContainerMode()) {
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH' | translate }}</mat-label>
+                    <input matInput formControlName="dockerfilePath" placeholder="Dockerfile" />
+                    <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
+                } @else {
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.SOURCE_CODE_PATH' | translate }}</mat-label>
+                    <input matInput formControlName="sourceCodePath" placeholder="src/MyApp" />
+                    <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.SOURCE_CODE_PATH_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.BUILD_COMMAND' | translate }}</mat-label>
+                    <input matInput formControlName="buildCommand" placeholder="dotnet publish -c Release" />
+                    <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.BUILD_COMMAND_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
+                }
+              </div>
+            </div>
           </div>
         </mat-tab>
       }

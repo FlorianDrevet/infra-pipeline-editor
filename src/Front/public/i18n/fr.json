@@ -1033,14 +1033,10 @@
       "SOURCE_CODE_PATH_HINT": "Dossier racine du projet (ex: src/Api)",
       "BUILD_COMMAND": "Commande de build",
       "BUILD_COMMAND_HINT": "Commande personnalis\u00e9e (ex: dotnet publish -c Release)",
-      "GENERATE": "G\u00e9n\u00e9rer la pipeline",
-      "GENERATING": "G\u00e9n\u00e9ration en cours...",
-      "GENERATE_ERROR": "Erreur lors de la g\u00e9n\u00e9ration de la pipeline applicative",
-      "RETRY": "R\u00e9essayer",
-      "ARTIFACTS": "Fichiers g\u00e9n\u00e9r\u00e9s",
-      "TERMINAL_DONE": "Pipeline applicative g\u00e9n\u00e9r\u00e9e avec succ\u00e8s",
-      "FILE_LOADING": "Chargement du fichier...",
-      "FILE_ERROR": "Erreur lors du chargement du fichier"
+      "APPLICATION_NAME": "Nom de l'applicatif",
+      "APPLICATION_NAME_HINT": "Nom affich\u00e9 dans Azure DevOps lors des ex\u00e9cutions de pipeline (par d\u00e9faut : nom de la ressource)",
+      "CONFIG_TITLE": "Configuration de la pipeline applicative",
+      "CONFIG_HINT": "Ces param\u00e8tres seront utilis\u00e9s lors de la g\u00e9n\u00e9ration de la pipeline depuis la page de configuration."
     },
     "GENERAL": {
       "IDENTITY": "Identit\u00e9",

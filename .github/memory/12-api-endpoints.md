@@ -81,4 +81,3 @@
 | `/generate-pipeline` | GET | `/{configId}/download` | `DownloadPipelineCommand` |
 | `/generate-pipeline` | GET | `/{configId}/files/{*filePath}` | `GetPipelineFileContentQuery` |
 | `/generate-pipeline` | POST | `/{configId}/push-to-git` | `PushPipelineToGitCommand` |
-| `/generate-pipeline` | POST | `/app` | `GenerateAppPipeline` |

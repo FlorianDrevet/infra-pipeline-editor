@@ -50,6 +50,7 @@ export interface InfrastructureConfigResponse {
   resourceGroupCount: number;
   resourceCount: number;
   crossConfigReferenceCount: number;
+  appPipelineMode: string;
   tags: TagResponse[];
 }
 

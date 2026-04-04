@@ -21,5 +21,6 @@ public record CreateFunctionAppCommand(
     string? DockerfilePath = null,
     string? SourceCodePath = null,
     string? BuildCommand = null,
+    string? ApplicationName = null,
     IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<FunctionAppResult>;

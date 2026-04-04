@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\InfraFlowSculptor.Domain\InfraFlowSculptor.Domain.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.GenerationCore\InfraFlowSculptor.GenerationCore.csproj" />
     </ItemGroup>
 

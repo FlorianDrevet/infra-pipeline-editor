@@ -64,6 +64,7 @@ public sealed class CreateFunctionAppCommandHandler(
             request.DockerfilePath,
             request.SourceCodePath,
             request.BuildCommand,
+            request.ApplicationName,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName,
                     ec.HttpsOnly,

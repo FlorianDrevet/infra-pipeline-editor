@@ -29,18 +29,22 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 
 ## Naming Integration [2026-03-23]
 
-## Application Pipeline Generation [2026-04-03]
+## Application Pipeline Generation [2026-04-04]
 
-Separate engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
+Engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
 - Strategy pattern: `IAppPipelineGenerator` dispatched by (ResourceType × DeploymentMode)
 - 5 generators: ContainerApp(Container), WebApp(Container/Code), FunctionApp(Container/Code)
-- Each produces 2 files: `{resourceName}/ci.app-pipeline.yml` + `{resourceName}/release.app-pipeline.yml`
+- `GenerateAll()` method: accepts list of requests + `AppPipelineMode` (Isolated/Combined)
+- **Isolated mode**: per-resource files under `apps/{applicationName}/ci.app-pipeline.yml` + `release.app-pipeline.yml`
+- **Combined mode**: single `ci.app-pipeline.yml` + `release.app-pipeline.yml` with parallel jobs per resource
 - Shared helper: `AppPipelineYamlHelper` with reusable YAML building blocks
 - Container mode: Docker@2 build+push → per-env deploy (AzureCLI for ACA, AzureWebApp@1, AzureFunctionApp@2)
 - Code mode: SDK setup → restore/build/test/publish → per-env deploy via app-specific tasks
 - Supports 5 runtimes: DOTNETCORE, NODE, PYTHON, JAVA + fallback
 - Sequential per-env stages: Deploy_dev → Deploy_staging → Deploy_prod
-- Endpoint: `POST /generate-pipeline/app` body `{ infrastructureConfigId, resourceId }`
+- **No separate endpoint**: app pipelines generated together with infra via `POST /generate-pipeline`
+- `GeneratePipelineCommandHandler` and `GenerateProjectPipelineCommandHandler` both orchestrate infra + app generation
+- Each compute resource has `ApplicationName` (string?) — user-friendly name for DevOps runs (fallback: resource name)
 - `NamingTemplateTranslator` converts placeholders to Bicep interpolation
 - Templates: `{name}`, `{prefix}`, `{suffix}`, `{env}`, `{envShort}`, `{resourceType}`, `{resourceAbbr}`, `{location}`
 - Convention: `envSuffix = '-dev'` (with hyphen), `envShortSuffix = 'dev'` (raw)

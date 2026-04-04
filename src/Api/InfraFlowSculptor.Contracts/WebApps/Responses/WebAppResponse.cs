@@ -35,5 +35,6 @@ public record WebAppResponse(
     string? DockerfilePath,
     string? SourceCodePath,
     string? BuildCommand,
+    string? ApplicationName,
     IReadOnlyList<WebAppEnvironmentConfigResponse> EnvironmentSettings
 );

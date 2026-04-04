@@ -29,6 +29,9 @@ public class ContainerApp : AzureResource
     /// <summary>Gets the optional relative path to the Dockerfile in the repository.</summary>
     public string? DockerfilePath { get; private set; }
 
+    /// <summary>Gets the user-friendly application name displayed in Azure DevOps pipeline runs.</summary>
+    public string? ApplicationName { get; private set; }
+
     /// <inheritdoc />
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages =>
         Array.Empty<ParameterUsage>();
@@ -46,7 +49,8 @@ public class ContainerApp : AzureResource
     /// <param name="containerRegistryId">The optional Container Registry identifier for authenticated image pulls.</param>
     /// <param name="dockerImageName">The optional base Docker image name without the tag.</param>
     /// <param name="dockerfilePath">The optional relative path to the Dockerfile in the repository.</param>
-    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, string? dockerImageName, string? dockerfilePath)
+    /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
+    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, string? dockerImageName, string? dockerfilePath, string? applicationName)
     {
         Name = name;
         Location = location;
@@ -54,6 +58,7 @@ public class ContainerApp : AzureResource
         ContainerRegistryId = containerRegistryId;
         DockerImageName = dockerImageName;
         DockerfilePath = dockerfilePath;
+        ApplicationName = applicationName;
     }
 
     /// <summary>
@@ -111,6 +116,7 @@ public class ContainerApp : AzureResource
     /// <param name="containerRegistryId">The optional Container Registry identifier for authenticated image pulls.</param>
     /// <param name="dockerImageName">The optional base Docker image name without the tag.</param>
     /// <param name="dockerfilePath">The optional relative path to the Dockerfile in the repository.</param>
+    /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
     /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
     /// <returns>A new <see cref="ContainerApp"/> aggregate root.</returns>
     public static ContainerApp Create(
@@ -121,6 +127,7 @@ public class ContainerApp : AzureResource
         AzureResourceId? containerRegistryId,
         string? dockerImageName = null,
         string? dockerfilePath = null,
+        string? applicationName = null,
         IReadOnlyList<(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod)>? environmentSettings = null)
     {
         var containerApp = new ContainerApp
@@ -132,7 +139,8 @@ public class ContainerApp : AzureResource
             ContainerAppEnvironmentId = containerAppEnvironmentId,
             ContainerRegistryId = containerRegistryId,
             DockerImageName = dockerImageName,
-            DockerfilePath = dockerfilePath
+            DockerfilePath = dockerfilePath,
+            ApplicationName = applicationName
         };
 
         if (environmentSettings is not null)

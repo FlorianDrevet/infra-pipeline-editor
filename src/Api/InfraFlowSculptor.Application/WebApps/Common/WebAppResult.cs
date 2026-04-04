@@ -21,4 +21,5 @@ public record WebAppResult(
     string? DockerfilePath,
     string? SourceCodePath,
     string? BuildCommand,
+    string? ApplicationName,
     IReadOnlyList<WebAppEnvironmentConfigData> EnvironmentSettings);

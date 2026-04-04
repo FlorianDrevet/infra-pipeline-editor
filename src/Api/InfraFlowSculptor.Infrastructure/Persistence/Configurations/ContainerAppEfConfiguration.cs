@@ -32,6 +32,10 @@ public sealed class ContainerAppConfiguration : IEntityTypeConfiguration<Contain
             .HasMaxLength(500)
             .IsRequired(false);
 
+        builder.Property(x => x.ApplicationName)
+            .HasMaxLength(200)
+            .IsRequired(false);
+
         builder.HasMany(x => x.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.ContainerAppId)

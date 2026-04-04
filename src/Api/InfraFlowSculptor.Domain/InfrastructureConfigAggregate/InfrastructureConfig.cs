@@ -35,6 +35,9 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     /// </summary>
     public bool UseProjectNamingConventions { get; private set; } = true;
 
+    /// <summary>Gets the application pipeline generation mode (isolated per resource or combined).</summary>
+    public AppPipelineMode AppPipelineMode { get; private set; } = AppPipelineMode.Isolated;
+
     private readonly List<ResourceGroup> _resourceGroups = [];
 
     /// <summary>Gets the resource groups owned by this configuration.</summary>
@@ -150,6 +153,10 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     {
         UseProjectNamingConventions = value;
     }
+
+    /// <summary>Updates the application pipeline generation mode.</summary>
+    /// <param name="mode">The new pipeline mode (Isolated or Combined).</param>
+    public void UpdateAppPipelineMode(AppPipelineMode mode) => AppPipelineMode = mode;
 
     // ─── Cross-Config References ────────────────────────────────────────────
 

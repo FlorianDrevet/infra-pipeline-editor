@@ -4,7 +4,10 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration;
@@ -19,6 +22,11 @@ public sealed class GenerateProjectPipelineCommandHandler(
     IProjectRepository projectRepository,
     IInfrastructureConfigReadRepository configReadRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
+    AppPipelineGenerationEngine appPipelineGenerationEngine,
+    IContainerAppRepository containerAppRepository,
+    IWebAppRepository webAppRepository,
+    IFunctionAppRepository functionAppRepository,
+    IContainerRegistryRepository containerRegistryRepository,
     IBlobService blobService)
     : ICommandHandler<GenerateProjectPipelineCommand, GenerateProjectPipelineResult>
 {
@@ -54,6 +62,21 @@ public sealed class GenerateProjectPipelineCommandHandler(
         {
             var generationRequest = BuildGenerationRequest(config, projectVariableGroups);
             var result = pipelineGenerationEngine.Generate(generationRequest, config.Name, isMonoRepo: true);
+
+            // Generate app pipelines for compute resources in this config
+            var appResult = await GenerateAppPipelinesForConfigAsync(config, cancellationToken)
+                .ConfigureAwait(false);
+
+            // Merge app pipeline files into the infra result
+            if (appResult.Files.Count > 0)
+            {
+                var mergedFiles = new Dictionary<string, string>(result.Files);
+                foreach (var (path, content) in appResult.Files)
+                    mergedFiles[path] = content;
+
+                result = new PipelineGenerationResult { TemplateFiles = mergedFiles };
+            }
+
             perConfigResults[config.Name] = result;
         }
 
@@ -198,6 +221,169 @@ public sealed class GenerateProjectPipelineCommandHandler(
     {
         var typeName = AzureResourceTypes.GetFriendlyName(azureResourceType);
         return ResourceAbbreviationCatalog.GetAbbreviation(typeName);
+    }
+
+    /// <summary>
+    /// Generates app pipelines for all compute resources in the given configuration.
+    /// </summary>
+    private async Task<AppPipelineGenerationResult> GenerateAppPipelinesForConfigAsync(
+        InfrastructureConfigReadModel config,
+        CancellationToken cancellationToken)
+    {
+        var computeTypes = new HashSet<string>
+        {
+            AzureResourceTypes.ContainerApp,
+            AzureResourceTypes.WebApp,
+            AzureResourceTypes.FunctionApp,
+        };
+
+        var computeResources = config.ResourceGroups
+            .SelectMany(rg => rg.Resources)
+            .Where(r => computeTypes.Contains(r.ResourceType))
+            .ToList();
+
+        var appRequests = new List<AppPipelineGenerationRequest>();
+
+        var environments = config.Environments
+            .Select(e => new EnvironmentDefinition
+            {
+                Name = e.Name,
+                ShortName = e.ShortName,
+                Location = e.Location,
+                Prefix = e.Prefix,
+                Suffix = e.Suffix,
+                AzureResourceManagerConnection = e.AzureResourceManagerConnection,
+                SubscriptionId = e.SubscriptionId,
+                Tags = e.Tags,
+            })
+            .ToList();
+
+        foreach (var resource in computeResources)
+        {
+            var resourceId = new AzureResourceId(resource.Id);
+            var req = await BuildAppPipelineRequestAsync(
+                resourceId, resource.ResourceType, cancellationToken).ConfigureAwait(false);
+
+            if (req is null)
+                continue;
+
+            req.ConfigName = config.Name;
+            req.Environments = environments;
+            req.IsMonoRepo = true;
+
+            appRequests.Add(req);
+        }
+
+        var appPipelineMode = Enum.TryParse<AppPipelineMode>(config.AppPipelineMode, out var parsedMode)
+            ? parsedMode
+            : AppPipelineMode.Isolated;
+
+        return appPipelineGenerationEngine.GenerateAll(appRequests, appPipelineMode, config.Name);
+    }
+
+    private async Task<AppPipelineGenerationRequest?> BuildAppPipelineRequestAsync(
+        AzureResourceId resourceId,
+        string resourceType,
+        CancellationToken cancellationToken)
+    {
+        return resourceType switch
+        {
+            AzureResourceTypes.ContainerApp => await BuildFromContainerAppAsync(resourceId, cancellationToken)
+                .ConfigureAwait(false),
+            AzureResourceTypes.WebApp => await BuildFromWebAppAsync(resourceId, cancellationToken)
+                .ConfigureAwait(false),
+            AzureResourceTypes.FunctionApp => await BuildFromFunctionAppAsync(resourceId, cancellationToken)
+                .ConfigureAwait(false),
+            _ => null,
+        };
+    }
+
+    private async Task<AppPipelineGenerationRequest?> BuildFromContainerAppAsync(
+        AzureResourceId resourceId, CancellationToken cancellationToken)
+    {
+        var containerApp = await containerAppRepository
+            .GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false);
+
+        if (containerApp is null) return null;
+
+        var acrName = await ResolveContainerRegistryNameAsync(
+            containerApp.ContainerRegistryId, cancellationToken).ConfigureAwait(false);
+
+        return new AppPipelineGenerationRequest
+        {
+            ResourceName = containerApp.Name,
+            ApplicationName = containerApp.ApplicationName,
+            ResourceType = AzureResourceTypes.ContainerApp,
+            DeploymentMode = DeploymentMode.DeploymentModeType.Container.ToString(),
+            DockerfilePath = containerApp.DockerfilePath,
+            DockerImageName = containerApp.DockerImageName,
+            ContainerRegistryName = acrName,
+        };
+    }
+
+    private async Task<AppPipelineGenerationRequest?> BuildFromWebAppAsync(
+        AzureResourceId resourceId, CancellationToken cancellationToken)
+    {
+        var webApp = await webAppRepository
+            .GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false);
+
+        if (webApp is null) return null;
+
+        var acrName = await ResolveContainerRegistryNameAsync(
+            webApp.ContainerRegistryId, cancellationToken).ConfigureAwait(false);
+
+        return new AppPipelineGenerationRequest
+        {
+            ResourceName = webApp.Name,
+            ApplicationName = webApp.ApplicationName,
+            ResourceType = AzureResourceTypes.WebApp,
+            DeploymentMode = webApp.DeploymentMode.Value.ToString(),
+            DockerfilePath = webApp.DockerfilePath,
+            SourceCodePath = webApp.SourceCodePath,
+            BuildCommand = webApp.BuildCommand,
+            DockerImageName = webApp.DockerImageName,
+            ContainerRegistryName = acrName,
+            RuntimeStack = webApp.RuntimeStack.Value.ToString(),
+            RuntimeVersion = webApp.RuntimeVersion,
+        };
+    }
+
+    private async Task<AppPipelineGenerationRequest?> BuildFromFunctionAppAsync(
+        AzureResourceId resourceId, CancellationToken cancellationToken)
+    {
+        var functionApp = await functionAppRepository
+            .GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false);
+
+        if (functionApp is null) return null;
+
+        var acrName = await ResolveContainerRegistryNameAsync(
+            functionApp.ContainerRegistryId, cancellationToken).ConfigureAwait(false);
+
+        return new AppPipelineGenerationRequest
+        {
+            ResourceName = functionApp.Name,
+            ApplicationName = functionApp.ApplicationName,
+            ResourceType = AzureResourceTypes.FunctionApp,
+            DeploymentMode = functionApp.DeploymentMode.Value.ToString(),
+            DockerfilePath = functionApp.DockerfilePath,
+            SourceCodePath = functionApp.SourceCodePath,
+            BuildCommand = functionApp.BuildCommand,
+            DockerImageName = functionApp.DockerImageName,
+            ContainerRegistryName = acrName,
+            RuntimeStack = functionApp.RuntimeStack.Value.ToString(),
+            RuntimeVersion = functionApp.RuntimeVersion,
+        };
+    }
+
+    private async Task<string?> ResolveContainerRegistryNameAsync(
+        AzureResourceId? containerRegistryId, CancellationToken cancellationToken)
+    {
+        if (containerRegistryId is null) return null;
+
+        var registry = await containerRegistryRepository
+            .GetByIdAsync(containerRegistryId, cancellationToken).ConfigureAwait(false);
+
+        return registry?.Name.Value;
     }
 
 }

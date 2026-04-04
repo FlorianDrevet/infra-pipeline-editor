@@ -35,6 +35,7 @@ export interface ContainerAppResponse {
   containerRegistryId: string | null;
   dockerImageName: string | null;
   dockerfilePath: string | null;
+  applicationName: string | null;
   environmentSettings: ContainerAppEnvironmentConfigResponse[];
 }
 
@@ -48,6 +49,7 @@ export interface CreateContainerAppRequest {
   containerRegistryId?: string | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
+  applicationName?: string | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];
 }
 
@@ -58,5 +60,6 @@ export interface UpdateContainerAppRequest {
   containerRegistryId?: string | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
+  applicationName?: string | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];
 }

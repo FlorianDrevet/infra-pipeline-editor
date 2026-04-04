@@ -441,7 +441,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             enrichedAppSettings,
             crossConfigRefReadModels,
             projectTags,
-            configTags);
+            configTags,
+            config.AppPipelineMode.ToString());
     }
 
     /// <summary>

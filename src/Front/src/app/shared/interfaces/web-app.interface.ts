@@ -32,6 +32,7 @@ export interface WebAppResponse {
   runtimeVersion: string;
   alwaysOn: boolean;
   httpsOnly: boolean;
+  applicationName: string | null;
   environmentSettings: WebAppEnvironmentConfigResponse[];
 }
 
@@ -52,6 +53,7 @@ export interface CreateWebAppRequest {
   runtimeVersion: string;
   alwaysOn: boolean;
   httpsOnly: boolean;
+  applicationName?: string | null;
   environmentSettings?: WebAppEnvironmentConfigEntry[];
 }
 
@@ -69,5 +71,6 @@ export interface UpdateWebAppRequest {
   runtimeVersion: string;
   alwaysOn: boolean;
   httpsOnly: boolean;
+  applicationName?: string | null;
   environmentSettings?: WebAppEnvironmentConfigEntry[];
 }

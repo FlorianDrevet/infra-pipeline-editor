@@ -47,6 +47,9 @@ public class FunctionApp : AzureResource
     /// <summary>Gets the optional custom build command for pipeline generation.</summary>
     public string? BuildCommand { get; private set; }
 
+    /// <summary>Gets the user-friendly application name displayed in Azure DevOps pipeline runs.</summary>
+    public string? ApplicationName { get; private set; }
+
     /// <inheritdoc />
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages
         => Array.Empty<ParameterUsage>();
@@ -68,7 +71,8 @@ public class FunctionApp : AzureResource
         string? dockerImageName,
         string? dockerfilePath,
         string? sourceCodePath,
-        string? buildCommand)
+        string? buildCommand,
+        string? applicationName)
     {
         Name = name;
         Location = location;
@@ -82,6 +86,7 @@ public class FunctionApp : AzureResource
         DockerfilePath = dockerfilePath;
         SourceCodePath = sourceCodePath;
         BuildCommand = buildCommand;
+        ApplicationName = applicationName;
     }
 
     /// <summary>
@@ -137,6 +142,7 @@ public class FunctionApp : AzureResource
         string? dockerfilePath = null,
         string? sourceCodePath = null,
         string? buildCommand = null,
+        string? applicationName = null,
         IReadOnlyList<(string EnvironmentName, bool? HttpsOnly, int? MaxInstanceCount, string? DockerImageTag)>? environmentSettings = null)
     {
         var functionApp = new FunctionApp
@@ -154,7 +160,8 @@ public class FunctionApp : AzureResource
             DockerImageName = dockerImageName,
             DockerfilePath = dockerfilePath,
             SourceCodePath = sourceCodePath,
-            BuildCommand = buildCommand
+            BuildCommand = buildCommand,
+            ApplicationName = applicationName
         };
 
         if (environmentSettings is not null)

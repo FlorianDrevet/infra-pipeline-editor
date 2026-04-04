@@ -30,6 +30,10 @@ public abstract class ContainerAppRequestBase
     [MaxLength(500)]
     public string? DockerfilePath { get; init; }
 
+    /// <summary>User-friendly application name displayed in Azure DevOps pipeline runs.</summary>
+    [MaxLength(200)]
+    public string? ApplicationName { get; init; }
+
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<ContainerAppEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }

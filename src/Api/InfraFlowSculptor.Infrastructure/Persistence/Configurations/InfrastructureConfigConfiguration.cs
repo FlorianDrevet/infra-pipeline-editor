@@ -50,6 +50,11 @@ public sealed class InfrastructureConfigConfiguration
         builder.Property(x => x.UseProjectNamingConventions)
             .HasDefaultValue(true);
 
+        builder.Property(x => x.AppPipelineMode)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(AppPipelineMode.Isolated);
+
         // ========================
         // ResourceGroups (Entity)
         // ========================

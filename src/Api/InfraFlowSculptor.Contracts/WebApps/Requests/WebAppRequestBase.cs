@@ -58,6 +58,10 @@ public abstract class WebAppRequestBase
     [MaxLength(1000)]
     public string? BuildCommand { get; init; }
 
+    /// <summary>User-friendly application name displayed in Azure DevOps pipeline runs.</summary>
+    [MaxLength(200)]
+    public string? ApplicationName { get; init; }
+
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<WebAppEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }

@@ -22,5 +22,6 @@ public record UpdateWebAppCommand(
     string? DockerfilePath = null,
     string? SourceCodePath = null,
     string? BuildCommand = null,
+    string? ApplicationName = null,
     IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<WebAppResult>;

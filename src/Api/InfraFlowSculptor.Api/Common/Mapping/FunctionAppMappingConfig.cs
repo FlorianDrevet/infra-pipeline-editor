@@ -37,6 +37,7 @@ public sealed class FunctionAppMappingConfig : IRegister
                 src.Request.DockerfilePath,
                 src.Request.SourceCodePath,
                 src.Request.BuildCommand,
+                src.Request.ApplicationName,
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new FunctionAppEnvironmentConfigData(
