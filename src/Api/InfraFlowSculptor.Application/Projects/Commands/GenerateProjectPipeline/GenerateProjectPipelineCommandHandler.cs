@@ -232,9 +232,9 @@ public sealed class GenerateProjectPipelineCommandHandler(
     {
         var computeTypes = new HashSet<string>
         {
-            AzureResourceTypes.ContainerApp,
-            AzureResourceTypes.WebApp,
-            AzureResourceTypes.FunctionApp,
+            AzureResourceTypes.ArmTypes.ContainerApp,
+            AzureResourceTypes.ArmTypes.WebApp,
+            AzureResourceTypes.ArmTypes.FunctionApp,
         };
 
         var computeResources = config.ResourceGroups
@@ -288,11 +288,11 @@ public sealed class GenerateProjectPipelineCommandHandler(
     {
         return resourceType switch
         {
-            AzureResourceTypes.ContainerApp => await BuildFromContainerAppAsync(resourceId, cancellationToken)
+            AzureResourceTypes.ArmTypes.ContainerApp => await BuildFromContainerAppAsync(resourceId, cancellationToken)
                 .ConfigureAwait(false),
-            AzureResourceTypes.WebApp => await BuildFromWebAppAsync(resourceId, cancellationToken)
+            AzureResourceTypes.ArmTypes.WebApp => await BuildFromWebAppAsync(resourceId, cancellationToken)
                 .ConfigureAwait(false),
-            AzureResourceTypes.FunctionApp => await BuildFromFunctionAppAsync(resourceId, cancellationToken)
+            AzureResourceTypes.ArmTypes.FunctionApp => await BuildFromFunctionAppAsync(resourceId, cancellationToken)
                 .ConfigureAwait(false),
             _ => null,
         };
