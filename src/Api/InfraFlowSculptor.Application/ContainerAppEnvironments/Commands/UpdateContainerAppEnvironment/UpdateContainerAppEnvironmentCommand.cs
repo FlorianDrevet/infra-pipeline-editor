@@ -11,5 +11,6 @@ public record UpdateContainerAppEnvironmentCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
+    Guid? LogAnalyticsWorkspaceId = null,
     IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<ContainerAppEnvironmentResult>;

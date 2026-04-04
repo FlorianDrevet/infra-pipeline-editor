@@ -367,6 +367,8 @@
         "CREATE_NEW_PLAN_HINT_CAE": "Configure a new environment from scratch",
         "CREATE_NEW_PLAN_HINT_LAW": "Configure a new workspace from scratch",
         "CREATE_NEW_PLAN_HINT_SQL": "Configure a new SQL Server from scratch",
+        "SKIP_PLAN_SELECTION": "Skip — no Log Analytics Workspace",
+        "SKIP_PLAN_HINT_LAW": "You can link a workspace later from the resource settings",
         "CROSS_CONFIG_PLANS": "Other project configurations",
         "CREATE_PLAN_TITLE_ASP": "New App Service Plan",
         "CREATE_PLAN_TITLE_CAE": "New Container App Environment",
@@ -1039,7 +1041,9 @@
       "IDENTITY": "Identity",
       "NAME": "Name",
       "LOCATION": "Azure Region",
-      "CONFIGURATION": "Configuration"
+      "CONFIGURATION": "Configuration",
+      "LOG_ANALYTICS_WORKSPACE": "Log Analytics Workspace",
+      "NONE": "None"
     },
     "FIELDS": {
       "SKU": "SKU",
@@ -1069,6 +1073,7 @@
       "INTERNAL_LOAD_BALANCER": "Internal load balancer",
       "ZONE_REDUNDANCY": "Zone redundancy",
       "LOG_ANALYTICS_WORKSPACE_ID": "Log Analytics workspace ID",
+      "LOG_ANALYTICS_WORKSPACE": "Log Analytics Workspace",
       "CONTAINER_IMAGE": "Container image",
       "CPU_CORES": "CPU cores",
       "MEMORY": "Memory",

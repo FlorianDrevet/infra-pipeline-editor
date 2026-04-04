@@ -387,6 +387,7 @@ export class AddResourceDialogComponent {
     const type = this.selectedType();
     if (type === ResourceTypeEnum.ContainerApp) return 'CAE';
     if (type === ResourceTypeEnum.ApplicationInsights) return 'LAW';
+    if (type === ResourceTypeEnum.ContainerAppEnvironment) return 'LAW';
     if (type === ResourceTypeEnum.SqlDatabase) return 'SQL';
     return 'ASP';
   });
@@ -477,7 +478,7 @@ export class AddResourceDialogComponent {
     if (!this.parentResource) return;
     if (type === ResourceTypeEnum.ContainerApp) {
       this.commonForm.patchValue({ containerAppEnvironmentId: this.parentResource.id });
-    } else if (type === ResourceTypeEnum.ApplicationInsights) {
+    } else if (type === ResourceTypeEnum.ApplicationInsights || type === ResourceTypeEnum.ContainerAppEnvironment) {
       this.commonForm.patchValue({ logAnalyticsWorkspaceId: this.parentResource.id });
     } else if (type === ResourceTypeEnum.SqlDatabase) {
       this.commonForm.patchValue({ sqlServerId: this.parentResource.id });
@@ -499,7 +500,7 @@ export class AddResourceDialogComponent {
       if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp) {
         this.loadAvailableContainerRegistries();
       }
-    } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights || type === ResourceTypeEnum.SqlDatabase) {
+    } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights || type === ResourceTypeEnum.ContainerAppEnvironment || type === ResourceTypeEnum.SqlDatabase) {
       this.step.set('plan-selection');
       this.loadExistingPlans();
     } else {
@@ -512,8 +513,20 @@ export class AddResourceDialogComponent {
     try {
       const resourceGroups = await this.infraConfigService.getResourceGroups(this.data.configId);
       const allResourceArrays = await Promise.all(resourceGroups.map(rg => this.resourceGroupService.getResources(rg.id)));
-      const allResources = allResourceArrays.flat();
-      this.availableContainerRegistries.set(allResources.filter(r => r.resourceType === 'ContainerRegistry'));
+      const localResources = allResourceArrays.flat();
+      const localAcrs = localResources.filter(r => r.resourceType === 'ContainerRegistry');
+
+      // Also load cross-config ACRs from the same project
+      try {
+        const projectResources = await this.projectService.getProjectResources(this.data.projectId);
+        const localIds = new Set(localAcrs.map(r => r.id));
+        const crossConfigAcrs = projectResources
+          .filter(pr => pr.resourceType === 'ContainerRegistry' && pr.configId !== this.data.configId && !localIds.has(pr.resourceId))
+          .map(pr => ({ id: pr.resourceId, resourceType: pr.resourceType, name: `${pr.resourceName} (${pr.configName})`, location: '' } as AzureResourceResponse));
+        this.availableContainerRegistries.set([...localAcrs, ...crossConfigAcrs]);
+      } catch {
+        this.availableContainerRegistries.set(localAcrs);
+      }
     } catch {
       this.availableContainerRegistries.set([]);
     }
@@ -524,6 +537,7 @@ export class AddResourceDialogComponent {
     try {
       const filterType = this.selectedType() === ResourceTypeEnum.ContainerApp ? 'ContainerAppEnvironment'
         : this.selectedType() === ResourceTypeEnum.ApplicationInsights ? 'LogAnalyticsWorkspace'
+        : this.selectedType() === ResourceTypeEnum.ContainerAppEnvironment ? 'LogAnalyticsWorkspace'
         : this.selectedType() === ResourceTypeEnum.SqlDatabase ? 'SqlServer'
         : 'AppServicePlan';
 
@@ -534,7 +548,7 @@ export class AddResourceDialogComponent {
       const allResources = allResourceArrays.flat();
       const plans = allResources.filter(r => r.resourceType === filterType);
       this.existingPlans.set(plans);
-      this.availableContainerRegistries.set(allResources.filter(r => r.resourceType === 'ContainerRegistry'));
+      const localAcrs = allResources.filter(r => r.resourceType === 'ContainerRegistry');
 
       // Load cross-config resources from other configs in the same project
       const projectResources = await this.projectService.getProjectResources(this.data.projectId);
@@ -542,6 +556,13 @@ export class AddResourceDialogComponent {
         r => r.resourceType === filterType && r.configId !== this.data.configId
       );
       this.crossConfigPlans.set(crossConfigResources);
+
+      // Also include cross-config ACRs
+      const localAcrIds = new Set(localAcrs.map(r => r.id));
+      const crossConfigAcrs = projectResources
+        .filter(pr => pr.resourceType === 'ContainerRegistry' && pr.configId !== this.data.configId && !localAcrIds.has(pr.resourceId))
+        .map(pr => ({ id: pr.resourceId, resourceType: pr.resourceType, name: `${pr.resourceName} (${pr.configName})`, location: '' } as AzureResourceResponse));
+      this.availableContainerRegistries.set([...localAcrs, ...crossConfigAcrs]);
     } catch {
       this.existingPlans.set([]);
       this.crossConfigPlans.set([]);
@@ -555,7 +576,7 @@ export class AddResourceDialogComponent {
     this.selectedPlanName.set(plan.name);
     if (this.selectedType() === ResourceTypeEnum.ContainerApp) {
       this.commonForm.patchValue({ containerAppEnvironmentId: plan.id });
-    } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
+    } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights || this.selectedType() === ResourceTypeEnum.ContainerAppEnvironment) {
       this.commonForm.patchValue({ logAnalyticsWorkspaceId: plan.id });
     } else if (this.selectedType() === ResourceTypeEnum.SqlDatabase) {
       this.commonForm.patchValue({ sqlServerId: plan.id });
@@ -584,7 +605,7 @@ export class AddResourceDialogComponent {
     this.selectedPlanName.set(plan.resourceName);
     if (this.selectedType() === ResourceTypeEnum.ContainerApp) {
       this.commonForm.patchValue({ containerAppEnvironmentId: plan.resourceId });
-    } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
+    } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights || this.selectedType() === ResourceTypeEnum.ContainerAppEnvironment) {
       this.commonForm.patchValue({ logAnalyticsWorkspaceId: plan.resourceId });
     } else if (this.selectedType() === ResourceTypeEnum.SqlDatabase) {
       this.commonForm.patchValue({ sqlServerId: plan.resourceId });
@@ -653,6 +674,13 @@ export class AddResourceDialogComponent {
     this.errorKey.set('');
   }
 
+  protected onSkipPlanSelection(): void {
+    this.selectedPlanId.set(null);
+    this.selectedPlanName.set(null);
+    this.commonForm.patchValue({ logAnalyticsWorkspaceId: '' });
+    this.step.set('common');
+  }
+
   protected async onCreatePlanAndContinue(): Promise<void> {
     if (this.createPlanForm.invalid) return;
     this.isCreatingPlan.set(true);
@@ -673,7 +701,7 @@ export class AddResourceDialogComponent {
         this.selectedPlanId.set(created.id);
         this.selectedPlanName.set(created.name);
         this.commonForm.patchValue({ containerAppEnvironmentId: created.id });
-      } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
+      } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights || this.selectedType() === ResourceTypeEnum.ContainerAppEnvironment) {
         const created = await this.logAnalyticsWorkspaceService.create({
           resourceGroupId: this.data.resourceGroupId,
           name: planData.name!,
@@ -853,7 +881,6 @@ export class AddResourceDialogComponent {
           workloadProfileType: ['Consumption'],
           internalLoadBalancerEnabled: [false],
           zoneRedundancyEnabled: [false],
-          logAnalyticsWorkspaceId: [''],
         });
       case ResourceTypeEnum.ContainerApp:
         return this.fb.group({
@@ -1057,6 +1084,7 @@ export class AddResourceDialogComponent {
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
             location: common.location!,
+            logAnalyticsWorkspaceId: common.logAnalyticsWorkspaceId || null,
             environmentSettings: this.buildContainerAppEnvironmentEnvironmentSettings(),
           });
           break;
@@ -1239,7 +1267,6 @@ export class AddResourceDialogComponent {
         workloadProfileType: raw.workloadProfileType || null,
         internalLoadBalancerEnabled: raw.internalLoadBalancerEnabled ?? null,
         zoneRedundancyEnabled: raw.zoneRedundancyEnabled ?? null,
-        logAnalyticsWorkspaceId: raw.logAnalyticsWorkspaceId || null,
       };
     });
   }

@@ -455,6 +455,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.allResources().filter(r => r.resourceType === 'ContainerRegistry')
   );
 
+  protected readonly availableLogAnalyticsWorkspaces = computed(() =>
+    this.allResources().filter(r => r.resourceType === 'LogAnalyticsWorkspace')
+  );
+
   // ─── Deployment Mode (WebApp / FunctionApp) ───
   protected readonly deploymentMode = signal<'Code' | 'Container'>('Code');
 
@@ -945,6 +949,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['dockerfilePath'] = [ca.dockerfilePath ?? ''];
       base['applicationName'] = [ca.applicationName ?? ''];
       this.selectedContainerRegistryId.set(ca.containerRegistryId ?? null);
+    } else if (this.resourceType === 'ContainerAppEnvironment') {
+      const cae = resource as ContainerAppEnvironmentResponse;
+      base['logAnalyticsWorkspaceId'] = [cae.logAnalyticsWorkspaceId ?? null];
     } else if (this.resourceType === 'ApplicationInsights') {
       const ai = resource as ApplicationInsightsResponse;
       base['logAnalyticsWorkspaceId'] = [ai.logAnalyticsWorkspaceId];
@@ -1055,7 +1062,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           workloadProfileType: [settings?.workloadProfileType ?? null],
           internalLoadBalancerEnabled: [settings?.internalLoadBalancerEnabled ?? null],
           zoneRedundancyEnabled: [settings?.zoneRedundancyEnabled ?? null],
-          logAnalyticsWorkspaceId: [settings?.logAnalyticsWorkspaceId ?? null],
         });
       }
       case 'ContainerApp': {
@@ -1249,6 +1255,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           await this.containerAppEnvironmentService.update(this.resourceId, {
             name: general.name,
             location: general.location,
+            logAnalyticsWorkspaceId: general.logAnalyticsWorkspaceId || null,
             environmentSettings: this.buildContainerAppEnvironmentEnvSettings(),
           });
           break;
@@ -1587,8 +1594,29 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       const rgs = await this.infraConfigService.getResourceGroups(this.configId);
       const resourcePromises = rgs.map(rg => this.resourceGroupService.getResources(rg.id));
       const results = await Promise.all(resourcePromises);
-      const flat = results.flat().filter(r => r.id !== this.resourceId);
-      this.allResources.set(flat);
+      const localResources = results.flat().filter(r => r.id !== this.resourceId);
+
+      // Also load cross-config resources from the same project
+      const projectId = this.config()?.projectId;
+      if (projectId) {
+        try {
+          const projectResources = await this.projectService.getProjectResources(projectId);
+          const localIds = new Set(localResources.map(r => r.id));
+          const crossConfig = projectResources
+            .filter(pr => pr.configId !== this.configId && !localIds.has(pr.resourceId) && pr.resourceId !== this.resourceId)
+            .map(pr => ({
+              id: pr.resourceId,
+              resourceType: pr.resourceType,
+              name: `${pr.resourceName} (${pr.configName})`,
+              location: '',
+            } as AzureResourceResponse));
+          this.allResources.set([...localResources, ...crossConfig]);
+        } catch {
+          this.allResources.set(localResources);
+        }
+      } else {
+        this.allResources.set(localResources);
+      }
     } catch {
       this.allResources.set([]);
     }
@@ -2966,7 +2994,6 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         workloadProfileType: raw.workloadProfileType || null,
         internalLoadBalancerEnabled: raw.internalLoadBalancerEnabled ?? null,
         zoneRedundancyEnabled: raw.zoneRedundancyEnabled ?? null,
-        logAnalyticsWorkspaceId: raw.logAnalyticsWorkspaceId || null,
       };
     });
   }

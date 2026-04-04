@@ -339,6 +339,24 @@
               </div>
             }
 
+            <!-- Log Analytics Workspace selector (ContainerAppEnvironment / ApplicationInsights) -->
+            @if (resourceType === 'ContainerAppEnvironment' || resourceType === 'ApplicationInsights') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.LOG_ANALYTICS_WORKSPACE' | translate }}</h3>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.LOG_ANALYTICS_WORKSPACE' | translate }}</mat-label>
+                    <mat-select formControlName="logAnalyticsWorkspaceId">
+                      <mat-option [value]="null">{{ 'RESOURCE_EDIT.GENERAL.NONE' | translate }}</mat-option>
+                      @for (law of availableLogAnalyticsWorkspaces(); track law.id) {
+                        <mat-option [value]="law.id">{{ law.name }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+            }
+
           </form>
         </div>
       </mat-tab>
@@ -546,11 +564,6 @@
                             <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
                           }
                         </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.LOG_ANALYTICS_WORKSPACE_ID' | translate }}</mat-label>
-                        <input matInput formControlName="logAnalyticsWorkspaceId" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
                       </mat-form-field>
                       <div class="form-field form-field--toggle">
                         <mat-slide-toggle formControlName="internalLoadBalancerEnabled" color="primary">

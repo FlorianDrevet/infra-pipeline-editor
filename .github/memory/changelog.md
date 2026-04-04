@@ -4,6 +4,8 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-05 | copilot | ContainerAppEnvironment LAW selector: moved `logAnalyticsWorkspaceId` from per-env settings to aggregate root as optional FK (`AzureResourceId?`). Backend: Domain, Application (commands/handlers/result), Contracts, Mapster, EF Core config, ReadRepository. Frontend: dropdown selector in resource-edit general form + add-resource-dialog parent selector step (optional). 22 files modified total. |
+| 2026-04-04 | copilot | Fix cross-config ACR dropdown: resource-edit and add-resource-dialog now load ContainerRegistries from all configs in the same project via getProjectResources API. Cross-config ACRs show with `(configName)` suffix. |
 | 2026-04-04 | copilot | Add DELETE /resource-group/{id} endpoint + frontend delete button with confirm dialog on config-detail page. Backend command/handler already existed. |
 | 2026-04-04 | copilot | Refactor BicepAssembler: monolith (~1680 lines) → thin orchestrator (~180 lines) + 14 specialized classes (Assemblers/, Helpers/, StorageAccount/, Models/). Public API unchanged. |
 | 2026-04-04 | copilot | Fix project deletion FK cascade: RoleAssignment.TargetResourceId → Cascade, AppSettings/AppConfigKeys source/KV FKs → SetNull, ResourceLinks/Dependencies/ParameterUsages → Cascade. 3 EF migrations. |

@@ -9,5 +9,4 @@ public record ContainerAppEnvironmentEnvironmentConfigData(
     string? Sku,
     string? WorkloadProfileType,
     bool? InternalLoadBalancerEnabled,
-    bool? ZoneRedundancyEnabled,
-    string? LogAnalyticsWorkspaceId);
+    bool? ZoneRedundancyEnabled);

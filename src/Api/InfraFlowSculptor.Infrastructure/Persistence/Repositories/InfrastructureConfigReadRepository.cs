@@ -694,7 +694,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 cae.Name.Value,
                 MapLocation(cae.Location),
                 "Microsoft.App/managedEnvironments",
-                new Dictionary<string, string>(),
+                cae.LogAnalyticsWorkspaceId is not null
+                    ? new Dictionary<string, string> { ["logAnalyticsWorkspaceId"] = cae.LogAnalyticsWorkspaceId.Value.ToString() }
+                    : new Dictionary<string, string>(),
                 caeSettings
                     .Where(es => es.ContainerAppEnvironmentId == cae.Id)
                     .Select(es => new ResourceEnvironmentConfigReadModel(es.EnvironmentName, es.ToDictionary()))

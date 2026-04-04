@@ -8,5 +8,6 @@ public record ContainerAppEnvironmentResponse(
     Guid ResourceGroupId,
     string Name,
     string Location,
+    Guid? LogAnalyticsWorkspaceId,
     IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigResponse> EnvironmentSettings
 );

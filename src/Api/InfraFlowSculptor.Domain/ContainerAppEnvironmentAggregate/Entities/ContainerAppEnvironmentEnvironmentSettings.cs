@@ -28,9 +28,6 @@ public sealed class ContainerAppEnvironmentEnvironmentSettings : Entity<Containe
     /// <summary>Gets or sets whether zone redundancy is enabled.</summary>
     public bool? ZoneRedundancyEnabled { get; private set; }
 
-    /// <summary>Gets or sets the Log Analytics workspace ID for diagnostics.</summary>
-    public string? LogAnalyticsWorkspaceId { get; private set; }
-
     private ContainerAppEnvironmentEnvironmentSettings() { }
 
     internal ContainerAppEnvironmentEnvironmentSettings(
@@ -39,8 +36,7 @@ public sealed class ContainerAppEnvironmentEnvironmentSettings : Entity<Containe
         string? sku,
         string? workloadProfileType,
         bool? internalLoadBalancerEnabled,
-        bool? zoneRedundancyEnabled,
-        string? logAnalyticsWorkspaceId)
+        bool? zoneRedundancyEnabled)
         : base(ContainerAppEnvironmentEnvironmentSettingsId.CreateUnique())
     {
         ContainerAppEnvironmentId = containerAppEnvironmentId;
@@ -49,7 +45,6 @@ public sealed class ContainerAppEnvironmentEnvironmentSettings : Entity<Containe
         WorkloadProfileType = workloadProfileType;
         InternalLoadBalancerEnabled = internalLoadBalancerEnabled;
         ZoneRedundancyEnabled = zoneRedundancyEnabled;
-        LogAnalyticsWorkspaceId = logAnalyticsWorkspaceId;
     }
 
     /// <summary>
@@ -61,23 +56,20 @@ public sealed class ContainerAppEnvironmentEnvironmentSettings : Entity<Containe
         string? sku,
         string? workloadProfileType,
         bool? internalLoadBalancerEnabled,
-        bool? zoneRedundancyEnabled,
-        string? logAnalyticsWorkspaceId)
-        => new(containerAppEnvironmentId, environmentName, sku, workloadProfileType, internalLoadBalancerEnabled, zoneRedundancyEnabled, logAnalyticsWorkspaceId);
+        bool? zoneRedundancyEnabled)
+        => new(containerAppEnvironmentId, environmentName, sku, workloadProfileType, internalLoadBalancerEnabled, zoneRedundancyEnabled);
 
     /// <summary>Updates the configuration overrides for this environment.</summary>
     public void Update(
         string? sku,
         string? workloadProfileType,
         bool? internalLoadBalancerEnabled,
-        bool? zoneRedundancyEnabled,
-        string? logAnalyticsWorkspaceId)
+        bool? zoneRedundancyEnabled)
     {
         Sku = sku;
         WorkloadProfileType = workloadProfileType;
         InternalLoadBalancerEnabled = internalLoadBalancerEnabled;
         ZoneRedundancyEnabled = zoneRedundancyEnabled;
-        LogAnalyticsWorkspaceId = logAnalyticsWorkspaceId;
     }
 
     /// <summary>
@@ -90,7 +82,6 @@ public sealed class ContainerAppEnvironmentEnvironmentSettings : Entity<Containe
         if (WorkloadProfileType is not null) dict["workloadProfileType"] = WorkloadProfileType;
         if (InternalLoadBalancerEnabled is not null) dict["internalLoadBalancerEnabled"] = InternalLoadBalancerEnabled.Value.ToString().ToLower();
         if (ZoneRedundancyEnabled is not null) dict["zoneRedundancyEnabled"] = ZoneRedundancyEnabled.Value.ToString().ToLower();
-        if (LogAnalyticsWorkspaceId is not null) dict["logAnalyticsWorkspaceId"] = LogAnalyticsWorkspaceId;
         return dict;
     }
 }

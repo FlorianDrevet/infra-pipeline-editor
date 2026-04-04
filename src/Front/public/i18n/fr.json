@@ -366,6 +366,8 @@
         "CREATE_NEW_PLAN_HINT_CAE": "Configurer un nouvel environnement depuis z\u00e9ro",
         "CREATE_NEW_PLAN_HINT_LAW": "Configurer un nouveau workspace depuis z\u00e9ro",
         "CREATE_NEW_PLAN_HINT_SQL": "Configurer un nouveau SQL Server depuis z\u00e9ro",
+        "SKIP_PLAN_SELECTION": "Passer \u2014 aucun Log Analytics Workspace",
+        "SKIP_PLAN_HINT_LAW": "Vous pourrez associer un workspace plus tard depuis les param\u00e8tres de la ressource",
         "CROSS_CONFIG_PLANS": "Autres configurations du projet",
         "CREATE_PLAN_TITLE_ASP": "Nouvel App Service Plan",
         "CREATE_PLAN_TITLE_CAE": "Nouveau Container App Environment",
@@ -1049,7 +1051,9 @@
       "IDENTITY": "Identit\u00e9",
       "NAME": "Nom",
       "LOCATION": "R\u00e9gion Azure",
-      "CONFIGURATION": "Configuration"
+      "CONFIGURATION": "Configuration",
+      "LOG_ANALYTICS_WORKSPACE": "Espace de travail Log Analytics",
+      "NONE": "Aucun"
     },
     "FIELDS": {
       "SKU": "SKU",
@@ -1079,6 +1083,7 @@
       "INTERNAL_LOAD_BALANCER": "\u00c9quilibreur de charge interne",
       "ZONE_REDUNDANCY": "Redondance de zone",
       "LOG_ANALYTICS_WORKSPACE_ID": "ID workspace Log Analytics",
+      "LOG_ANALYTICS_WORKSPACE": "Log Analytics Workspace",
       "CONTAINER_IMAGE": "Image du conteneur",
       "CPU_CORES": "C\u0153urs CPU",
       "MEMORY": "M\u00e9moire",

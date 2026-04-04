@@ -14,6 +14,9 @@ public class ContainerAppEnvironment : AzureResource
 {
     private readonly List<ContainerAppEnvironmentEnvironmentSettings> _environmentSettings = [];
 
+    /// <summary>Gets the optional Log Analytics Workspace identifier used for diagnostics.</summary>
+    public AzureResourceId? LogAnalyticsWorkspaceId { get; private set; }
+
     /// <summary>Gets the typed per-environment configuration overrides for this Container App Environment.</summary>
     public IReadOnlyCollection<ContainerAppEnvironmentEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();
 
@@ -30,10 +33,12 @@ public class ContainerAppEnvironment : AzureResource
     /// </summary>
     /// <param name="name">The new display name.</param>
     /// <param name="location">The new Azure region.</param>
-    public void Update(Name name, Location location)
+    /// <param name="logAnalyticsWorkspaceId">Optional Log Analytics Workspace identifier for diagnostics.</param>
+    public void Update(Name name, Location location, AzureResourceId? logAnalyticsWorkspaceId)
     {
         Name = name;
         Location = location;
+        LogAnalyticsWorkspaceId = logAnalyticsWorkspaceId;
     }
 
     /// <summary>
@@ -45,21 +50,20 @@ public class ContainerAppEnvironment : AzureResource
         string? sku,
         string? workloadProfileType,
         bool? internalLoadBalancerEnabled,
-        bool? zoneRedundancyEnabled,
-        string? logAnalyticsWorkspaceId)
+        bool? zoneRedundancyEnabled)
     {
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
         if (existing is not null)
         {
-            existing.Update(sku, workloadProfileType, internalLoadBalancerEnabled, zoneRedundancyEnabled, logAnalyticsWorkspaceId);
+            existing.Update(sku, workloadProfileType, internalLoadBalancerEnabled, zoneRedundancyEnabled);
         }
         else
         {
             _environmentSettings.Add(
                 ContainerAppEnvironmentEnvironmentSettings.Create(
-                    Id, environmentName, sku, workloadProfileType, internalLoadBalancerEnabled, zoneRedundancyEnabled, logAnalyticsWorkspaceId));
+                    Id, environmentName, sku, workloadProfileType, internalLoadBalancerEnabled, zoneRedundancyEnabled));
         }
     }
 
@@ -67,14 +71,14 @@ public class ContainerAppEnvironment : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? Sku, string? WorkloadProfileType, bool? InternalLoadBalancerEnabled, bool? ZoneRedundancyEnabled, string? LogAnalyticsWorkspaceId)> settings)
+        IReadOnlyList<(string EnvironmentName, string? Sku, string? WorkloadProfileType, bool? InternalLoadBalancerEnabled, bool? ZoneRedundancyEnabled)> settings)
     {
         _environmentSettings.Clear();
-        foreach (var (envName, sku, workloadProfileType, internalLoadBalancerEnabled, zoneRedundancyEnabled, logAnalyticsWorkspaceId) in settings)
+        foreach (var (envName, sku, workloadProfileType, internalLoadBalancerEnabled, zoneRedundancyEnabled) in settings)
         {
             _environmentSettings.Add(
                 ContainerAppEnvironmentEnvironmentSettings.Create(
-                    Id, envName, sku, workloadProfileType, internalLoadBalancerEnabled, zoneRedundancyEnabled, logAnalyticsWorkspaceId));
+                    Id, envName, sku, workloadProfileType, internalLoadBalancerEnabled, zoneRedundancyEnabled));
         }
     }
 
@@ -84,20 +88,23 @@ public class ContainerAppEnvironment : AzureResource
     /// <param name="resourceGroupId">The parent resource group identifier.</param>
     /// <param name="name">The display name.</param>
     /// <param name="location">The Azure region.</param>
+    /// <param name="logAnalyticsWorkspaceId">Optional Log Analytics Workspace identifier for diagnostics.</param>
     /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
     /// <returns>A new <see cref="ContainerAppEnvironment"/> aggregate root.</returns>
     public static ContainerAppEnvironment Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? Sku, string? WorkloadProfileType, bool? InternalLoadBalancerEnabled, bool? ZoneRedundancyEnabled, string? LogAnalyticsWorkspaceId)>? environmentSettings = null)
+        AzureResourceId? logAnalyticsWorkspaceId = null,
+        IReadOnlyList<(string EnvironmentName, string? Sku, string? WorkloadProfileType, bool? InternalLoadBalancerEnabled, bool? ZoneRedundancyEnabled)>? environmentSettings = null)
     {
         var containerAppEnvironment = new ContainerAppEnvironment
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location
+            Location = location,
+            LogAnalyticsWorkspaceId = logAnalyticsWorkspaceId
         };
 
         if (environmentSettings is not null)

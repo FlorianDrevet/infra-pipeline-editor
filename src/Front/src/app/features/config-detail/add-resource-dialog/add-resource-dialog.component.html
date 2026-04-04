@@ -90,6 +90,17 @@
             </div>
             <mat-icon class="plan-card__arrow">arrow_forward</mat-icon>
           </button>
+
+          @if (selectedType() === ResourceTypeEnum.ContainerAppEnvironment) {
+            <button class="plan-card plan-card--skip" (click)="onSkipPlanSelection()">
+              <mat-icon class="plan-card__icon">skip_next</mat-icon>
+              <div class="plan-card__info">
+                <span class="plan-card__name">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKIP_PLAN_SELECTION' | translate }}</span>
+                <span class="plan-card__location">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SKIP_PLAN_HINT_LAW' | translate }}</span>
+              </div>
+              <mat-icon class="plan-card__arrow">arrow_forward</mat-icon>
+            </button>
+          }
         </div>
       }
     }
@@ -597,10 +608,6 @@
                         <mat-option [value]="option.value">{{ option.label }}</mat-option>
                       }
                     </mat-select>
-                  </mat-form-field>
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.LOG_ANALYTICS_WORKSPACE_ID' | translate }}</mat-label>
-                    <input matInput formControlName="logAnalyticsWorkspaceId" />
                   </mat-form-field>
                   <mat-slide-toggle formControlName="internalLoadBalancerEnabled" color="primary">
                     {{ 'CONFIG_DETAIL.RESOURCES.FORM.INTERNAL_LOAD_BALANCER' | translate }}
