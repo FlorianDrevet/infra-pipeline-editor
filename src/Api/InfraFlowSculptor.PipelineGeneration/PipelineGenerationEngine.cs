@@ -355,9 +355,7 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("    - checkout: self");
         sb.AppendLine("      clean: true");
         sb.AppendLine("      fetchDepth: 1");
-        sb.AppendLine("      sparseCheckoutDirectories:");
-        sb.AppendLine("        ${{ each dir in parameters.directories }}:");
-        sb.AppendLine("          - ${{ dir }}");
+        sb.AppendLine("      sparseCheckoutDirectories: ${{ join(' ', parameters.directories) }}");
         sb.AppendLine();
         sb.AppendLine("  - ${{ if eq(length(parameters.directories), 0) }}:");
         sb.AppendLine("    - checkout: self");
