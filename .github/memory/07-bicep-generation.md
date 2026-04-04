@@ -28,6 +28,19 @@ Each module folder contains: `{moduleType}.module.bicep` + `types.bicep` (with `
 All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, etc.) **must** be added to the generator's `Parameters` dictionary — not just ACR params. Missing entries cause env-specific values to be silently ignored in `.bicepparam` files.
 
 ## Naming Integration [2026-03-23]
+
+## Application Pipeline Generation [2026-04-03]
+
+Separate engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
+- Strategy pattern: `IAppPipelineGenerator` dispatched by (ResourceType × DeploymentMode)
+- 5 generators: ContainerApp(Container), WebApp(Container/Code), FunctionApp(Container/Code)
+- Each produces 2 files: `{resourceName}/ci.app-pipeline.yml` + `{resourceName}/release.app-pipeline.yml`
+- Shared helper: `AppPipelineYamlHelper` with reusable YAML building blocks
+- Container mode: Docker@2 build+push → per-env deploy (AzureCLI for ACA, AzureWebApp@1, AzureFunctionApp@2)
+- Code mode: SDK setup → restore/build/test/publish → per-env deploy via app-specific tasks
+- Supports 5 runtimes: DOTNETCORE, NODE, PYTHON, JAVA + fallback
+- Sequential per-env stages: Deploy_dev → Deploy_staging → Deploy_prod
+- Endpoint: `POST /generate-pipeline/app` body `{ infrastructureConfigId, resourceId }`
 - `NamingTemplateTranslator` converts placeholders to Bicep interpolation
 - Templates: `{name}`, `{prefix}`, `{suffix}`, `{env}`, `{envShort}`, `{resourceType}`, `{resourceAbbr}`, `{location}`
 - Convention: `envSuffix = '-dev'` (with hyphen), `envShortSuffix = 'dev'` (raw)

@@ -46,6 +46,13 @@ These reusable entity types are owned by multiple aggregates:
 
 `ContainerApp` owns `DockerImageName` at the resource level (not per-env). The `containerImage` property was removed from `ContainerAppEnvironmentSettings`. Bicep generator reads `resource.Properties["dockerImageName"]`.
 
+## Application Pipeline Properties [2026-04-03]
+
+3 compute aggregates now have CI/CD pipeline config properties:
+- **ContainerApp**: `DockerfilePath` (string?) — Dockerfile path for container build
+- **WebApp/FunctionApp**: `DockerfilePath`, `SourceCodePath`, `BuildCommand` (all string?) — for both container and code modes
+- These are persisted in TPT tables (EF Core), exposed in Create/Update commands and contracts
+
 ## Cross-Config References
 
 `InfrastructureConfig` owns `_crossConfigReferences` collection of `CrossConfigResourceReference` entities. Each reference points to a `TargetResourceId` in another config of the same project, with an `Alias` and optional `Purpose`. The Bicep generator emits `existing` resource group + `existing` resource declarations for each referenced resource.
