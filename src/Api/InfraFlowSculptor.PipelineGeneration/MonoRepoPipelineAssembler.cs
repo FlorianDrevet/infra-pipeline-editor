@@ -19,11 +19,18 @@ public static class MonoRepoPipelineAssembler
     public static MonoRepoPipelineResult Assemble(
         IReadOnlyDictionary<string, PipelineGenerationResult> perConfigResults,
         IReadOnlyList<EnvironmentDefinition> environments,
-        string? agentPoolName = null)
+        string? agentPoolName = null,
+        string? bicepBasePath = null,
+        string? pipelineBasePath = null)
     {
         // ── Shared templates (same for all configs) + root variables ────────
         var configNames = perConfigResults.Keys.ToList();
-        var commonFiles = PipelineGenerationEngine.GenerateSharedTemplates(configNames, environments, agentPoolName);
+        var commonFiles = PipelineGenerationEngine.GenerateSharedTemplates(
+            configNames,
+            environments,
+            agentPoolName,
+            bicepBasePath,
+            pipelineBasePath);
 
         // ── Per-config folders ──────────────────────────────────────────────
         var configFiles = new Dictionary<string, IReadOnlyDictionary<string, string>>();

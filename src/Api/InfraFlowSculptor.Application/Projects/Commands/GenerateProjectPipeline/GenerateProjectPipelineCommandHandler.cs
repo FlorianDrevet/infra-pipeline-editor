@@ -52,6 +52,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
         // 3. Load project-level pipeline variable groups
         var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
             command.ProjectId, cancellationToken);
+        var projectWithGit = await projectRepository.GetByIdWithAllAsync(
+            command.ProjectId, cancellationToken);
 
         var projectVariableGroups = project?.PipelineVariableGroups.ToList() ?? [];
 
@@ -100,7 +102,12 @@ public sealed class GenerateProjectPipelineCommandHandler(
 
         // 6. Assemble mono-repo output
         var agentPoolName = project?.AgentPoolName;
-        var assembled = MonoRepoPipelineAssembler.Assemble(perConfigResults, environments, agentPoolName);
+        var assembled = MonoRepoPipelineAssembler.Assemble(
+            perConfigResults,
+            environments,
+            agentPoolName,
+            projectWithGit?.GitRepositoryConfiguration?.BasePath,
+            projectWithGit?.GitRepositoryConfiguration?.PipelineBasePath);
 
         // 7. Upload to blob storage
         var prefix = $"pipeline/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";

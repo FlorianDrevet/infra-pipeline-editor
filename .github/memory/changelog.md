@@ -4,6 +4,8 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-04 | copilot | Fix generated `release.pipeline.yml` invalid YAML when no project pipeline variable groups exist in mono-repo mode: `GenerateConfigReleasePipeline()` now emits the stage-level `variables:` block only when it actually contains templates or variable groups. |
+| 2026-04-04 | copilot | Fix mono-repo infra CI/PR path resolution for Git `BasePath` and `PipelineBasePath`: shared pipeline templates now prefix sparse checkout directories, PR working directory, PR bicepconfig path, and CI `CopyFiles@2` source folder with configured repo subpaths. This addresses successful sparse checkout followed by "no files found" when generated Bicep folders are not at repository root. |
 | 2026-04-04 | copilot | **Generate button: added "validating" loading state.** `validatingDiagnostics` signal in config-detail and project-detail components. Button shows spinner + "Vérification en cours..." / "Validating configuration..." during diagnostics check before generation. i18n keys added for both FR and EN. |
 | 2026-04-04 | copilot | **Moved AgentPoolName from InfrastructureConfig to Project aggregate.** Backend: Domain, EF Core, CQRS (`SetAgentPoolCommand`), Mapster, Contracts, API endpoint all moved to Project. Pipeline generation handlers now read `project.AgentPoolName`. App pipeline YAML: pool placed at root level (before `stages:`). Frontend: Agent Pool UI moved from config-detail tab to project-detail Settings section. All legacy InfraConfig agent-pool code removed. |
 | 2026-04-04 | copilot | Configurable agent pool: `AgentPoolName` on InfrastructureConfig, `PUT /infra-configs/{id}/agent-pool`, `PipelineGenerationEngine.AppendPool()`. EF migration `PoolPipeline`. |
@@ -25,3 +27,4 @@
 | 2026-03-27 | copilot | UAI grouping. ValueObject nullable fix. StorageAccount CORS+lifecycle to Storage tab. |
 | 2026-03-26 | copilot | StorageAccount CORS redesign. Storage queue/table Bicep. Module renaming. |
 | 2026-03-24 | copilot | LogAnalyticsWorkspace + ApplicationInsights -- full stack (51 new files). |
+| 2026-04-04 | copilot | Fix Azure DevOps sparse checkout generation for infra CI/PR templates: switched checkout template `directories` parameter from object to string and pass explicit space-separated paths (`.azuredevops Common <project>` / `.azuredevops <project>`), matching Sprint 248 `sparseCheckoutDirectories` behavior. |
