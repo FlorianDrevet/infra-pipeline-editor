@@ -747,7 +747,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     const tabIndex = this.mainTabIndex();
     const isOnSaveableTab = this.isUserAssignedIdentity()
       ? tabIndex === 0
-      : tabIndex === 0 || tabIndex === 1 || (this.isStorageAccount() && tabIndex === 3);
+      : tabIndex === 0 || tabIndex === 1 || (this.isStorageAccount() && tabIndex === 3) || (this.supportsAppPipeline() && tabIndex === 4);
     return this.formsDirty() && isOnSaveableTab && this.canWrite();
   });
 
