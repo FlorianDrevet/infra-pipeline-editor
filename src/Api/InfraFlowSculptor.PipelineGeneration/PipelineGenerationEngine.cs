@@ -204,7 +204,6 @@ public sealed class PipelineGenerationEngine
 
         // One deployment entry — the main Bicep subscription-level deployment
         sb.AppendLine($"                - displayName: \"Deploy {configName} Infrastructure\"");
-        sb.AppendLine("                  resourceGroupName: ${{ variables.resourceGroupName }}");
         sb.AppendLine($"                  deploymentName: {configName.ToLowerInvariant()}-infra-$(Build.BuildNumber)");
         sb.AppendLine($"                  templateFile: {configName}/main.bicep");
         sb.AppendLine($"                  templateParametersFile: {configName}/parameters/main.${{{{environment}}}}.bicepparam");
@@ -539,7 +538,6 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("            parameters:");
         sb.AppendLine("              azureResourceManagerConnection: ${{ variables.azureResourceManagerConnection }}");
         sb.AppendLine("              subscriptionId: ${{ variables.subscriptionId }}");
-        sb.AppendLine("              resourceGroupName: ${{ deployment.resourceGroupName }}");
         sb.AppendLine("              location: ${{ variables.location }}");
         sb.AppendLine("              deploymentName: ${{ deployment.deploymentName }}");
         sb.AppendLine("              templateFile: '$(Pipeline.Workspace)/**/${{ deployment.templateFile }}'");
@@ -559,8 +557,6 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("    type: string");
         sb.AppendLine("  - name: subscriptionId");
         sb.AppendLine("    type: string");
-        sb.AppendLine("  - name: resourceGroupName");
-        sb.AppendLine("    type: string");
         sb.AppendLine("  - name: location");
         sb.AppendLine("    type: string");
         sb.AppendLine("  - name: deploymentName");
@@ -577,11 +573,9 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("  - task: AzureResourceManagerTemplateDeployment@3");
         sb.AppendLine("    displayName: 'Validate - ${{ parameters.deploymentName }}'");
         sb.AppendLine("    inputs:");
-        sb.AppendLine("      deploymentScope: 'Resource Group'");
+        sb.AppendLine("      deploymentScope: 'Subscription'");
         sb.AppendLine("      azureResourceManagerConnection: '${{ parameters.azureResourceManagerConnection }}'");
         sb.AppendLine("      subscriptionId: '${{ parameters.subscriptionId }}'");
-        sb.AppendLine("      action: 'Create Or Update Resource Group'");
-        sb.AppendLine("      resourceGroupName: '${{ parameters.resourceGroupName }}'");
         sb.AppendLine("      location: '${{ parameters.location }}'");
         sb.AppendLine("      templateLocation: 'Linked artifact'");
         sb.AppendLine("      csmFile: '${{ parameters.templateFile }}'");
@@ -592,11 +586,9 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("  - task: AzureResourceManagerTemplateDeployment@3");
         sb.AppendLine("    displayName: 'Deploy - ${{ parameters.deploymentName }}'");
         sb.AppendLine("    inputs:");
-        sb.AppendLine("      deploymentScope: 'Resource Group'");
+        sb.AppendLine("      deploymentScope: 'Subscription'");
         sb.AppendLine("      azureResourceManagerConnection: '${{ parameters.azureResourceManagerConnection }}'");
         sb.AppendLine("      subscriptionId: '${{ parameters.subscriptionId }}'");
-        sb.AppendLine("      action: 'Create Or Update Resource Group'");
-        sb.AppendLine("      resourceGroupName: '${{ parameters.resourceGroupName }}'");
         sb.AppendLine("      location: '${{ parameters.location }}'");
         sb.AppendLine("      templateLocation: 'Linked artifact'");
         sb.AppendLine("      csmFile: '${{ parameters.templateFile }}'");
