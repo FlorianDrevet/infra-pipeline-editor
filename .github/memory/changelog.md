@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-04 | copilot | Fix generated release/deploy YAML validation for Azure service connections: shared deploy job now passes `azureResourceManagerConnection`, `subscriptionId`, and `location` via compile-time template expressions (`${{ variables.* }}`) instead of runtime macros (`$(...)`), and mono-repo root environment variables now include `location`. This prevents Azure DevOps from rejecting `AzureResourceManagerTemplateDeployment@3` with unresolved `ConnectedServiceName`. |
 | 2026-04-04 | copilot | Fix generated `release.pipeline.yml` invalid YAML when no project pipeline variable groups exist in mono-repo mode: `GenerateConfigReleasePipeline()` now emits the stage-level `variables:` block only when it actually contains templates or variable groups. |
 | 2026-04-04 | copilot | Fix mono-repo infra CI/PR path resolution for Git `BasePath` and `PipelineBasePath`: shared pipeline templates now prefix sparse checkout directories, PR working directory, PR bicepconfig path, and CI `CopyFiles@2` source folder with configured repo subpaths. This addresses successful sparse checkout followed by "no files found" when generated Bicep folders are not at repository root. |
 | 2026-04-04 | copilot | **Generate button: added "validating" loading state.** `validatingDiagnostics` signal in config-detail and project-detail components. Button shows spinner + "Vérification en cours..." / "Validating configuration..." during diagnostics check before generation. i18n keys added for both FR and EN. |

@@ -277,6 +277,11 @@ public sealed class PipelineGenerationEngine
             sb.AppendLine($"  subscriptionId: '{env.SubscriptionId}'");
         }
 
+        if (!string.IsNullOrEmpty(env.Location))
+        {
+            sb.AppendLine($"  location: '{env.Location}'");
+        }
+
         return sb.ToString();
     }
 
@@ -532,10 +537,10 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("      - ${{ each deployment in parameters.deployments }}:");
         sb.AppendLine("          - template: ../steps/deploy-template.step.yml");
         sb.AppendLine("            parameters:");
-        sb.AppendLine("              azureResourceManagerConnection: $(azureResourceManagerConnection)");
-        sb.AppendLine("              subscriptionId: $(subscriptionId)");
+        sb.AppendLine("              azureResourceManagerConnection: ${{ variables.azureResourceManagerConnection }}");
+        sb.AppendLine("              subscriptionId: ${{ variables.subscriptionId }}");
         sb.AppendLine("              resourceGroupName: ${{ deployment.resourceGroupName }}");
-        sb.AppendLine("              location: $(location)");
+        sb.AppendLine("              location: ${{ variables.location }}");
         sb.AppendLine("              deploymentName: ${{ deployment.deploymentName }}");
         sb.AppendLine("              templateFile: '$(Pipeline.Workspace)/**/${{ deployment.templateFile }}'");
         sb.AppendLine("              templateParametersFile: '$(Pipeline.Workspace)/**/${{ deployment.templateParametersFile }}'");
