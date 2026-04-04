@@ -1017,6 +1017,9 @@
       "WARNING_MISSING_ENV_CONFIG": "Some environments have no configuration"
     },
     "APP_PIPELINE": {
+      "DESCRIPTION": "Configure the build and deployment settings used when generating the Azure DevOps application pipeline.",
+      "SECTION_IDENTITY": "Application identity",
+      "SECTION_BUILD": "Build configuration",
       "DOCKERFILE_PATH": "Dockerfile path",
       "DOCKERFILE_PATH_HINT": "Relative path in the repository (e.g., ./Dockerfile)",
       "SOURCE_CODE_PATH": "Source code path",
@@ -1024,9 +1027,7 @@
       "BUILD_COMMAND": "Build command",
       "BUILD_COMMAND_HINT": "Custom command (e.g., dotnet publish -c Release)",
       "APPLICATION_NAME": "Application Name",
-      "APPLICATION_NAME_HINT": "Name displayed in Azure DevOps during pipeline runs (defaults to resource name)",
-      "CONFIG_TITLE": "Application Pipeline Configuration",
-      "CONFIG_HINT": "These settings will be used when generating the pipeline from the configuration page."
+      "APPLICATION_NAME_HINT": "Name displayed in Azure DevOps during pipeline runs (defaults to resource name)"
     },
     "GENERAL": {
       "IDENTITY": "Identity",
