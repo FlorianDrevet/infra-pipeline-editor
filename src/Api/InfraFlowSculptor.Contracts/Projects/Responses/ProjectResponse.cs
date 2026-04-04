@@ -13,4 +13,5 @@ public record ProjectResponse(
     IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates,
     GitConfigResponse? GitRepositoryConfiguration,
     string RepositoryMode,
-    IReadOnlyList<TagResponse> Tags);
+    IReadOnlyList<TagResponse> Tags,
+    string? AgentPoolName = null);

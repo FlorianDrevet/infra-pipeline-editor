@@ -96,7 +96,8 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
             .Map(dest => dest.GitRepositoryConfiguration, src => src.GitRepositoryConfiguration)
             .Map(dest => dest.RepositoryMode, src => src.RepositoryMode.Value.ToString())
-            .Map(dest => dest.Tags, src => src.Tags);
+            .Map(dest => dest.Tags, src => src.Tags)
+            .Map(dest => dest.AgentPoolName, src => src.AgentPoolName);
 
         // ProjectResult -> ProjectResponse
         config.NewConfig<ProjectResult, ProjectResponse>()
@@ -109,7 +110,8 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
             .Map(dest => dest.GitRepositoryConfiguration, src => src.GitRepositoryConfiguration)
             .Map(dest => dest.RepositoryMode, src => src.RepositoryMode)
-            .Map(dest => dest.Tags, src => src.Tags);
+            .Map(dest => dest.Tags, src => src.Tags)
+            .Map(dest => dest.AgentPoolName, src => src.AgentPoolName);
 
         // ── Git Repository Configuration ────────────────────────────────
 

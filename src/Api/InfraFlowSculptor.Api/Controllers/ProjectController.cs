@@ -18,6 +18,7 @@ using InfraFlowSculptor.Application.Projects.Commands.SetProjectDefaultNamingTem
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectGitConfig;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectResourceNamingTemplate;
 using InfraFlowSculptor.Application.Projects.Commands.SetRepositoryMode;
+using InfraFlowSculptor.Application.Projects.Commands.SetAgentPool;
 using InfraFlowSculptor.Application.Projects.Commands.TestGitConnection;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectMemberRole;
@@ -596,6 +597,30 @@ public static class ProjectController
                 .WithName("SetRepositoryMode")
                 .WithSummary("Set the repository mode (MonoRepo/MultiRepo)")
                 .WithDescription("Configures how generated Bicep files are organized: MultiRepo (per-config push) or MonoRepo (project-level push with shared Common folder). Requires Owner access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Agent Pool ──────────────────────────────────────────────
+
+            group.MapPut("/{projectId:guid}/agent-pool",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] SetAgentPoolRequest request,
+                        IMediator mediator) =>
+                    {
+                        var command = new SetAgentPoolCommand(
+                            new ProjectId(projectId),
+                            request.AgentPoolName);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetProjectAgentPool")
+                .WithSummary("Set or clear the agent pool for pipeline generation")
+                .WithDescription("Sets the self-hosted agent pool name used in generated pipelines. Send null or empty to revert to the Microsoft-hosted pool (vmImage: ubuntu-latest). Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);

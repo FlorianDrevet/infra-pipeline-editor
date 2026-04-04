@@ -90,6 +90,13 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .IsRequired();
 
         // ========================
+        // AgentPoolName
+        // ========================
+        builder.Property(x => x.AgentPoolName)
+            .HasMaxLength(200)
+            .IsRequired(false);
+
+        // ========================
         // Tags (OWNED)
         // ========================
         builder.OwnsMany(p => p.Tags, tag =>

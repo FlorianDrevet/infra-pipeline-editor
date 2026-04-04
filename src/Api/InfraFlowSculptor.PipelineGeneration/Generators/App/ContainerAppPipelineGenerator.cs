@@ -32,15 +32,14 @@ public sealed class ContainerAppPipelineGenerator : IAppPipelineGenerator
     {
         var sb = new StringBuilder();
 
-        AppPipelineYamlHelper.AppendCiHeader(sb, request.ResourceName, request.ConfigName);
+        AppPipelineYamlHelper.AppendCiHeader(sb, request.ResourceName, request.ConfigName, request.AgentPoolName);
 
         AppPipelineYamlHelper.AppendContainerBuildStage(
             sb,
             request.ResourceName,
             request.DockerfilePath,
             request.DockerImageName,
-            request.ContainerRegistryName,
-            request.AgentPoolName);
+            request.ContainerRegistryName);
 
         return sb.ToString();
     }
@@ -49,14 +48,13 @@ public sealed class ContainerAppPipelineGenerator : IAppPipelineGenerator
     {
         var sb = new StringBuilder();
 
-        AppPipelineYamlHelper.AppendReleaseHeader(sb, request.ResourceName);
+        AppPipelineYamlHelper.AppendReleaseHeader(sb, request.ResourceName, request.AgentPoolName);
         AppPipelineYamlHelper.AppendContainerBuildStage(
             sb,
             request.ResourceName,
             request.DockerfilePath,
             request.DockerImageName,
-            request.ContainerRegistryName,
-            request.AgentPoolName);
+            request.ContainerRegistryName);
 
         // Remove the "stages:" + Build stage header to avoid duplication — already appended
         // Deploy stages follow the Build stage in the same stages: block

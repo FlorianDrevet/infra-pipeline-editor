@@ -87,6 +87,14 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// <summary>Gets the optional Git repository configuration for pushing generated Bicep files.</summary>
     public GitRepositoryConfiguration? GitRepositoryConfiguration { get; private set; }
 
+    // ─── Agent Pool ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Gets the name of the self-hosted agent pool to use in generated pipelines.
+    /// When <c>null</c>, pipelines use the Microsoft-hosted pool (<c>vmImage: ubuntu-latest</c>).
+    /// </summary>
+    public string? AgentPoolName { get; private set; }
+
     // ─── Constructor ────────────────────────────────────────────────────────
 
     private Project(ProjectId id, Name name, string? description, UserId ownerId) : base(id)
@@ -309,5 +317,13 @@ public sealed class Project : AggregateRoot<ProjectId>
     public void SetRepositoryMode(RepositoryMode mode)
     {
         RepositoryMode = mode;
+    }
+
+    // ─── Agent Pool Management ──────────────────────────────────────────
+
+    /// <summary>Sets or clears the self-hosted agent pool name for pipeline generation.</summary>
+    public void SetAgentPoolName(string? poolName)
+    {
+        AgentPoolName = string.IsNullOrWhiteSpace(poolName) ? null : poolName.Trim();
     }
 }

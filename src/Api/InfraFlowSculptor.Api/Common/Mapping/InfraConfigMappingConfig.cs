@@ -64,8 +64,7 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.Tags, src => src.Tags)
             .Map(dest => dest.ResourceGroupCount, src => src.ResourceGroupCount)
             .Map(dest => dest.ResourceCount, src => src.ResourceCount)
-            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferenceCount)
-            .Map(dest => dest.AgentPoolName, src => src.AgentPoolName);
+            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferenceCount);
 
         // InfrastructureConfig domain -> GetInfrastructureConfigResult
         config.NewConfig<Domain.InfrastructureConfigAggregate.InfrastructureConfig, GetInfrastructureConfigResult>()
@@ -76,8 +75,7 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
             .Map(dest => dest.Tags, src => src.Tags)
-            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferences.Count)
-            .Map(dest => dest.AgentPoolName, src => src.AgentPoolName);
+            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferences.Count);
 
         // User entity -> UserResult
         config.NewConfig<User, UserResult>()

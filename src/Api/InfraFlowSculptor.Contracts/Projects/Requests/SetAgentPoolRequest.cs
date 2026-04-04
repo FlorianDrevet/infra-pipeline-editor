@@ -1,4 +1,4 @@
-namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
+namespace InfraFlowSculptor.Contracts.Projects.Requests;
 
 /// <summary>Request body for setting or clearing the self-hosted agent pool for pipeline generation.</summary>
 public class SetAgentPoolRequest

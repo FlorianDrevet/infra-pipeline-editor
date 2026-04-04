@@ -124,7 +124,7 @@ public sealed class GeneratePipelineCommandHandler(
             AppSettings = [],
             ExistingResourceReferences = [],
             PipelineVariableGroups = projectVariableGroups,
-            AgentPoolName = config.AgentPoolName,
+            AgentPoolName = project?.AgentPoolName,
         };
 
         var result = pipelineGenerationEngine.Generate(generationRequest, config.Name);
@@ -156,7 +156,7 @@ public sealed class GeneratePipelineCommandHandler(
             req.ConfigName = config.Name;
             req.Environments = environments;
             req.PipelineVariableGroups = projectVariableGroups;
-            req.AgentPoolName = config.AgentPoolName;
+            req.AgentPoolName = project?.AgentPoolName;
 
             appRequests.Add(req);
         }

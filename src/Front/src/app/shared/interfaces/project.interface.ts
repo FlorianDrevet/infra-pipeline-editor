@@ -27,6 +27,7 @@ export interface ProjectResponse {
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
   gitRepositoryConfiguration?: GitConfigResponse | null;
   tags: TagResponse[];
+  agentPoolName: string | null;
 }
 
 export interface RecentItemResponse {
@@ -50,6 +51,10 @@ export interface CreateProjectRequest {
 
 export interface SetProjectTagsRequest {
   tags: TagRequest[];
+}
+
+export interface SetAgentPoolRequest {
+  agentPoolName: string | null;
 }
 
 export interface AddProjectMemberRequest {

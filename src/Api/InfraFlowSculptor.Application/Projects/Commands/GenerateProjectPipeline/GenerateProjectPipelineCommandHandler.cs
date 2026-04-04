@@ -60,11 +60,11 @@ public sealed class GenerateProjectPipelineCommandHandler(
 
         foreach (var config in configs)
         {
-            var generationRequest = BuildGenerationRequest(config, projectVariableGroups);
+            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, project);
             var result = pipelineGenerationEngine.Generate(generationRequest, config.Name, isMonoRepo: true);
 
             // Generate app pipelines for compute resources in this config
-            var appResult = await GenerateAppPipelinesForConfigAsync(config, cancellationToken)
+            var appResult = await GenerateAppPipelinesForConfigAsync(config, project, cancellationToken)
                 .ConfigureAwait(false);
 
             // Merge app pipeline files into the infra result
@@ -98,8 +98,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
             })
             .ToList();
 
-        // 6. Assemble mono-repo output (use first config's agent pool — all should share the same pool)
-        var agentPoolName = configs.FirstOrDefault()?.AgentPoolName;
+        // 6. Assemble mono-repo output
+        var agentPoolName = project?.AgentPoolName;
         var assembled = MonoRepoPipelineAssembler.Assemble(perConfigResults, environments, agentPoolName);
 
         // 7. Upload to blob storage
@@ -131,7 +131,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
 
     private static GenerationRequest BuildGenerationRequest(
         InfrastructureConfigReadModel config,
-        List<Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup> projectVariableGroups)
+        List<Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup> projectVariableGroups,
+        Domain.ProjectAggregate.Project? project)
     {
         var resources = config.ResourceGroups
             .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
@@ -215,7 +216,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             AppSettings = [],
             ExistingResourceReferences = [],
             PipelineVariableGroups = pipelineVariableGroups,
-            AgentPoolName = config.AgentPoolName,
+            AgentPoolName = project?.AgentPoolName,
         };
     }
 
@@ -230,6 +231,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
     /// </summary>
     private async Task<AppPipelineGenerationResult> GenerateAppPipelinesForConfigAsync(
         InfrastructureConfigReadModel config,
+        Domain.ProjectAggregate.Project? project,
         CancellationToken cancellationToken)
     {
         var computeTypes = new HashSet<string>
@@ -272,7 +274,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             req.ConfigName = config.Name;
             req.Environments = environments;
             req.IsMonoRepo = true;
-            req.AgentPoolName = config.AgentPoolName;
+            req.AgentPoolName = project?.AgentPoolName;
 
             appRequests.Add(req);
         }

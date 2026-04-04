@@ -32,15 +32,14 @@ public sealed class WebAppCodePipelineGenerator : IAppPipelineGenerator
     {
         var sb = new StringBuilder();
 
-        AppPipelineYamlHelper.AppendCiHeader(sb, request.ResourceName, request.ConfigName);
+        AppPipelineYamlHelper.AppendCiHeader(sb, request.ResourceName, request.ConfigName, request.AgentPoolName);
         AppPipelineYamlHelper.AppendCodeBuildStage(
             sb,
             request.ResourceName,
             request.RuntimeStack,
             request.RuntimeVersion,
             request.SourceCodePath,
-            request.BuildCommand,
-            request.AgentPoolName);
+            request.BuildCommand);
 
         return sb.ToString();
     }
@@ -49,15 +48,14 @@ public sealed class WebAppCodePipelineGenerator : IAppPipelineGenerator
     {
         var sb = new StringBuilder();
 
-        AppPipelineYamlHelper.AppendReleaseHeader(sb, request.ResourceName);
+        AppPipelineYamlHelper.AppendReleaseHeader(sb, request.ResourceName, request.AgentPoolName);
         AppPipelineYamlHelper.AppendCodeBuildStage(
             sb,
             request.ResourceName,
             request.RuntimeStack,
             request.RuntimeVersion,
             request.SourceCodePath,
-            request.BuildCommand,
-            request.AgentPoolName);
+            request.BuildCommand);
 
         AppPipelineYamlHelper.AppendWebAppCodeDeployStages(sb, request);
 
