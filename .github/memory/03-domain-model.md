@@ -53,8 +53,8 @@ These reusable entity types are owned by multiple aggregates:
 - **WebApp/FunctionApp**: `DockerfilePath`, `SourceCodePath`, `BuildCommand`, `ApplicationName` (all string?)
 - `ApplicationName` is a user-friendly name displayed in Azure DevOps pipeline runs (fallback: resource name)
 - `InfrastructureConfig` has `AppPipelineMode` enum (`Isolated`/`Combined`) — controls whether app pipelines are generated per-resource or as a single combined pipeline
-- `InfrastructureConfig` has `AgentPoolName` (string?) — when set, pipeline YAML uses `pool: name: '<value>'` (self-hosted); when null, `pool: vmImage: ubuntu-latest` (Microsoft-hosted). Endpoint: `PUT /infra-configs/{id}/agent-pool`
-- These are persisted in TPT tables (EF Core), exposed in Create/Update commands and contracts
+- `Project` has `AgentPoolName` (string?) — when set, pipeline YAML uses `pool: name: '<value>'` (self-hosted); when null, `pool: vmImage: ubuntu-latest` (Microsoft-hosted). Endpoint: `PUT /projects/{id}/agent-pool`
+- Resource-specific pipeline properties are persisted in compute-resource TPT tables and exposed in Create/Update commands and contracts. `Project.AgentPoolName` is persisted on the Project aggregate and consumed by both config-level and project-level pipeline generation.
 
 ## Cross-Config References
 

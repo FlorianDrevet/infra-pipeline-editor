@@ -1,0 +1,292 @@
+<mxfile host="Electron" modified="2026-04-13T12:30:00.000Z" version="26.0.0">
+  <diagram id="azure-target-architecture" name="Azure Target Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="InfraFlowSculptor - Azure Deployment Architecture"
+                style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;"
+                vertex="1" parent="1">
+          <mxGeometry x="360" y="20" width="680" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="subscription" value="Azure Subscription"
+                style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=14;"
+                vertex="1" parent="1">
+          <mxGeometry x="20" y="70" width="1360" height="790" as="geometry" />
+        </mxCell>
+
+        <mxCell id="resourceGroup" value="Target Resource Group"
+                style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;"
+                vertex="1" parent="subscription">
+          <mxGeometry x="20" y="45" width="1315" height="720" as="geometry" />
+        </mxCell>
+
+        <mxCell id="user" value="Users / Browser"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;"
+                vertex="1" parent="subscription">
+          <mxGeometry x="35" y="120" width="150" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="platformLane" value="Application Platform"
+                style="swimlane;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=13;"
+                vertex="1" parent="resourceGroup">
+          <mxGeometry x="30" y="30" width="610" height="285" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cae" value="Azure Container Apps Environment"
+                style="swimlane;startSize=26;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=12;"
+                vertex="1" parent="platformLane">
+          <mxGeometry x="25" y="45" width="560" height="185" as="geometry" />
+        </mxCell>
+
+        <mxCell id="acaFront" value="ACA Frontend&#xa;Angular app container"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+                vertex="1" parent="cae">
+          <mxGeometry x="55" y="55" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="acaApi" value="ACA Backend API&#xa;ASP.NET Core API container"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+                vertex="1" parent="cae">
+          <mxGeometry x="315" y="55" width="190" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uaiFront" value="User Assigned Identity&#xa;(frontend)"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;"
+                vertex="1" parent="platformLane">
+          <mxGeometry x="80" y="240" width="150" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uaiApi" value="User Assigned Identity&#xa;(backend)"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;"
+                vertex="1" parent="platformLane">
+          <mxGeometry x="355" y="240" width="150" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="opsLane" value="Observability &amp; Delivery"
+                style="swimlane;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=13;"
+                vertex="1" parent="resourceGroup">
+          <mxGeometry x="665" y="30" width="620" height="285" as="geometry" />
+        </mxCell>
+
+        <mxCell id="acr" value="Azure Container Registry"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;"
+                vertex="1" parent="opsLane">
+          <mxGeometry x="35" y="55" width="170" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="law" value="Log Analytics Workspace"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;"
+                vertex="1" parent="opsLane">
+          <mxGeometry x="235" y="55" width="170" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="appi" value="Application Insights"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;"
+                vertex="1" parent="opsLane">
+          <mxGeometry x="435" y="55" width="150" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sharedLane" value="Shared Azure Services"
+                style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;"
+                vertex="1" parent="resourceGroup">
+          <mxGeometry x="30" y="350" width="1255" height="330" as="geometry" />
+        </mxCell>
+
+        <mxCell id="keyVault" value="Key Vault"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+                vertex="1" parent="sharedLane">
+          <mxGeometry x="35" y="55" width="150" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="appConfig" value="App Configuration"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+                vertex="1" parent="sharedLane">
+          <mxGeometry x="220" y="55" width="150" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="storage" value="Storage Account"
+                style="shape=mxgraph.flowchart.database;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+                vertex="1" parent="sharedLane">
+          <mxGeometry x="410" y="45" width="90" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="redis" value="Redis Cache"
+                style="shape=mxgraph.flowchart.database;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+                vertex="1" parent="sharedLane">
+          <mxGeometry x="545" y="45" width="90" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="serviceBus" value="Service Bus Namespace"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+                vertex="1" parent="sharedLane">
+          <mxGeometry x="675" y="55" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="eventHub" value="Event Hub Namespace"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+                vertex="1" parent="sharedLane">
+          <mxGeometry x="885" y="55" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sqlServer" value="SQL Server"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+                vertex="1" parent="sharedLane">
+          <mxGeometry x="150" y="185" width="150" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sqlDb" value="SQL Database"
+                style="shape=mxgraph.flowchart.database;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+                vertex="1" parent="sharedLane">
+          <mxGeometry x="340" y="177" width="90" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cosmos" value="Cosmos DB"
+                style="shape=mxgraph.flowchart.database;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+                vertex="1" parent="sharedLane">
+          <mxGeometry x="485" y="177" width="90" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="notes" value="Le backend consomme les ressources Azure selon la configuration de l'infra.&#xa;Le frontend parle seulement au backend."
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;"
+                vertex="1" parent="sharedLane">
+          <mxGeometry x="700" y="180" width="410" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" value="HTTPS"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="user" target="acaFront" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e2" value="API calls"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="acaFront" target="acaApi" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e3" value="image pull"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;"
+                edge="1" source="acr" target="acaFront" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e4" value="image pull"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;"
+                edge="1" source="acr" target="acaApi" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e5" value="AcrPull"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;"
+                edge="1" source="uaiFront" target="acr" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e6" value="AcrPull + auth"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;"
+                edge="1" source="uaiApi" target="acr" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e7" value="identity"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;"
+                edge="1" source="uaiFront" target="acaFront" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e8" value="identity"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;"
+                edge="1" source="uaiApi" target="acaApi" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e9" value="diagnostics"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="cae" target="law" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e10" value="telemetry"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="acaApi" target="appi" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e11" value="workspace-based"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;"
+                edge="1" source="appi" target="law" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e12" value="secrets"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="acaApi" target="keyVault" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e13" value="config"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="acaApi" target="appConfig" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e14" value="files / blobs"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="acaApi" target="storage" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e15" value="cache"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="acaApi" target="redis" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e16" value="async messaging"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="acaApi" target="serviceBus" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e17" value="event streaming"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="acaApi" target="eventHub" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e18" value="relational data"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="acaApi" target="sqlDb" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e19" value="document data"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;"
+                edge="1" source="acaApi" target="cosmos" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e20" value="hosts"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;"
+                edge="1" source="sqlServer" target="sqlDb" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e21" value="managed environment"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;"
+                edge="1" source="cae" target="acaFront" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e22" value="managed environment"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;"
+                edge="1" source="cae" target="acaApi" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

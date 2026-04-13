@@ -26,3 +26,8 @@ src/
     ├── InfraFlowSculptor.AppHost           Service orchestration (PostgreSQL, DbGate, single API)
     └── InfraFlowSculptor.ServiceDefaults   Shared Aspire defaults
 ```
+
+## Documentation Artifacts
+
+- `docs/architecture/overview.md` provides the written architecture overview.
+- `docs/architecture/infraflowsculptor-architecture.drawio` provides a visual Azure deployment diagram centered on deployed resources and interactions, with separate frontend/backend Azure Container Apps and surrounding Azure services.
