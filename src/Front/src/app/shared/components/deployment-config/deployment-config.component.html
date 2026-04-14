@@ -1,0 +1,185 @@
+<!-- ─── Deployment Mode Toggle (code-or-container only) ─── -->
+@if (mode() === 'code-or-container') {
+  <div class="deployment-mode">
+    <div class="deployment-mode__toggle" [class.deployment-mode__toggle--container]="isContainerMode">
+      <div class="deployment-mode__slider"></div>
+      <button class="deployment-mode__segment"
+              [class.deployment-mode__segment--active]="!isContainerMode"
+              [disabled]="!canWrite()"
+              (click)="deploymentModeChange.emit('Code')">
+        <mat-icon class="deployment-mode__icon">code</mat-icon>
+        <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CODE' | translate }}</span>
+      </button>
+      <button class="deployment-mode__segment"
+              [class.deployment-mode__segment--active]="isContainerMode"
+              [disabled]="!canWrite()"
+              (click)="deploymentModeChange.emit('Container')">
+        <mat-icon class="deployment-mode__icon">inventory_2</mat-icon>
+        <span class="deployment-mode__label">{{ 'RESOURCE_EDIT.FIELDS.DEPLOYMENT_MODE_CONTAINER' | translate }}</span>
+      </button>
+    </div>
+  </div>
+}
+
+<!-- ─── Content Panel ─── -->
+<div class="deployment-content">
+  <!-- Code mode (only for code-or-container when not container) -->
+  @if (mode() === 'code-or-container' && !isContainerMode) {
+    <div class="form-grid">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
+        <mat-select [value]="runtimeStack()" (selectionChange)="runtimeStackChange.emit($event.value)">
+          @for (opt of runtimeStackOptions(); track opt.value) {
+            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
+        <mat-select [value]="runtimeVersion()" (selectionChange)="runtimeVersionChange.emit($event.value)">
+          @for (ver of runtimeVersionOptions(); track ver) {
+            <mat-option [value]="ver">{{ ver }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  }
+
+  <!-- Container mode (code-or-container in container mode, or container-only) -->
+  @if (mode() === 'container-only' || isContainerMode) {
+    <div class="form-grid form-grid--full">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
+        <mat-select [value]="containerRegistryId()" (selectionChange)="containerRegistryChange.emit($event.value)">
+          <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
+          @for (acr of availableContainerRegistries(); track acr.id) {
+            <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
+      </mat-form-field>
+      @if (showDockerImageName()) {
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate }}</mat-label>
+          <input matInput [value]="dockerImageName() ?? ''" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" (input)="dockerImageNameChange.emit($any($event.target).value)" />
+        </mat-form-field>
+      }
+    </div>
+
+    <!-- ACR Pull access check banner (UAI flow) -->
+    @if (hasContainerRegistrySelected) {
+      @switch (acrUaiState()) {
+        @case ('checking') {
+          <div class="acr-inline-status acr-inline-status--checking">
+            <mat-spinner diameter="16"></mat-spinner>
+            <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_CHECKING' | translate }}</span>
+          </div>
+        }
+        @case ('ok') {
+          <div class="acr-inline-status acr-inline-status--ok">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ACCESS_OK' | translate }}</span>
+          </div>
+        }
+        @case ('uai-missing-role') {
+          <div class="acr-identity-card acr-identity-card--warn">
+            <div class="acr-identity-card__header">
+              <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
+              <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
+            </div>
+            <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_MISSING_ROLE' | translate: { name: acrAssignedUaiName() } }}</p>
+            <div class="acr-identity-card__identity-section">
+              <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
+              <div class="acr-identity-card__identity-row">
+                <app-compact-select
+                  [options]="uaiOptions()"
+                  [value]="acrSelectedUaiId()"
+                  [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
+                  [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
+                  (valueChange)="acrSelectedUaiIdChange.emit($event)">
+                </app-compact-select>
+                <button class="acr-identity-card__create-link" (click)="createUai.emit()">
+                  <mat-icon>add_circle_outline</mat-icon>
+                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+                </button>
+              </div>
+            </div>
+            <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()">
+              @if (acrRoleAssigning()) {
+                <mat-spinner diameter="14"></mat-spinner>
+              } @else {
+                <mat-icon>add_circle_outline</mat-icon>
+              }
+              {{ 'RESOURCE_EDIT.FIELDS.ACR_ADD_ROLE_TO_UAI' | translate }}
+            </button>
+            <div class="acr-identity-card__why-section">
+              <button class="acr-identity-card__why-toggle" (click)="showWhyUai = !showWhyUai" type="button">
+                <mat-icon class="acr-identity-card__why-arrow" [class.acr-identity-card__why-arrow--open]="showWhyUai">chevron_right</mat-icon>
+                <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
+              </button>
+              @if (showWhyUai) {
+                <div class="acr-identity-card__why-content">
+                  <p>{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
+                  <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
+                    {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
+                    <mat-icon>open_in_new</mat-icon>
+                  </a>
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @case ('no-uai') {
+          <div class="acr-identity-card acr-identity-card--warn">
+            <div class="acr-identity-card__header">
+              <mat-icon class="acr-identity-card__header-icon">shield</mat-icon>
+              <span class="acr-identity-card__title">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_ACCESS' | translate }}</span>
+            </div>
+            <p class="acr-identity-card__message">{{ 'RESOURCE_EDIT.FIELDS.ACR_NO_UAI_MSG' | translate }}</p>
+            <div class="acr-identity-card__identity-section">
+              <span class="acr-identity-card__section-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_IDENTITY_LABEL' | translate }}</span>
+              <div class="acr-identity-card__identity-row">
+                <app-compact-select
+                  [options]="uaiOptions()"
+                  [value]="acrSelectedUaiId()"
+                  [placeholder]="'RESOURCE_EDIT.FIELDS.ACR_SELECT_UAI' | translate"
+                  [emptyText]="'RESOURCE_EDIT.FIELDS.ACR_NO_UAI' | translate"
+                  (valueChange)="acrSelectedUaiIdChange.emit($event)">
+                </app-compact-select>
+                <button class="acr-identity-card__create-link" (click)="createUai.emit()">
+                  <mat-icon>add_circle_outline</mat-icon>
+                  {{ 'RESOURCE_EDIT.FIELDS.ACR_CREATE_UAI' | translate }}
+                </button>
+              </div>
+            </div>
+            @if (acrSelectedUaiId()) {
+              <button class="acr-identity-card__action-btn" [disabled]="acrRoleAssigning()" (click)="addAcrPullRole.emit()">
+                @if (acrRoleAssigning()) {
+                  <mat-spinner diameter="14"></mat-spinner>
+                } @else {
+                  <mat-icon>add_circle_outline</mat-icon>
+                }
+                {{ 'RESOURCE_EDIT.FIELDS.ACR_ASSIGN_UAI_AND_ROLE' | translate }}
+              </button>
+            }
+            <div class="acr-identity-card__why-section">
+              <button class="acr-identity-card__why-toggle" (click)="showWhyUai = !showWhyUai" type="button">
+                <mat-icon class="acr-identity-card__why-arrow" [class.acr-identity-card__why-arrow--open]="showWhyUai">chevron_right</mat-icon>
+                <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_WHY_UAI' | translate }}</span>
+              </button>
+              @if (showWhyUai) {
+                <div class="acr-identity-card__why-content">
+                  <p>{{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_TEXT' | translate }}</p>
+                  <a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations#choosing-system-or-user-assigned-managed-identities" target="_blank" rel="noopener noreferrer">
+                    {{ 'RESOURCE_EDIT.FIELDS.ACR_UAI_CALLOUT_LINK' | translate }}
+                    <mat-icon>open_in_new</mat-icon>
+                  </a>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+    }
+  }
+</div>

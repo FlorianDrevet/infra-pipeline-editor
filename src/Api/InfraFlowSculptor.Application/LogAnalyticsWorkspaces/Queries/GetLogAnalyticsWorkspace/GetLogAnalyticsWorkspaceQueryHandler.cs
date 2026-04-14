@@ -17,7 +17,7 @@ public sealed class GetLogAnalyticsWorkspaceQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetLogAnalyticsWorkspaceQuery, ErrorOr<LogAnalyticsWorkspaceResult>>
+    : IQueryHandler<GetLogAnalyticsWorkspaceQuery, LogAnalyticsWorkspaceResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<LogAnalyticsWorkspaceResult>> Handle(

@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.UserAssignedIdentities.Commands.DeleteUserAssignedIdentity;
 
@@ -9,4 +9,4 @@ namespace InfraFlowSculptor.Application.UserAssignedIdentities.Commands.DeleteUs
 /// </summary>
 public record DeleteUserAssignedIdentityCommand(
     AzureResourceId Id
-) : IRequest<ErrorOr<Deleted>>;
+) : ICommand<Deleted>;

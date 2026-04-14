@@ -13,7 +13,7 @@ namespace InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroup
 public class ListResourceGroupResourcesQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<ListResourceGroupResourcesQuery, ErrorOr<List<AzureResourceResult>>>
+    : IQueryHandler<ListResourceGroupResourcesQuery, List<AzureResourceResult>>
 {
     public async Task<ErrorOr<List<AzureResourceResult>>> Handle(
         ListResourceGroupResourcesQuery query, CancellationToken cancellationToken)
@@ -31,13 +31,19 @@ public class ListResourceGroupResourcesQueryHandler(
         // to guarantee correct resolution regardless of TPT materialization order.
         var parentMapping = await resourceGroupRepository.GetChildToParentMappingAsync(query.Id, cancellationToken);
 
+        // Query configured environment names per resource from all TPT environment settings tables.
+        var envMapping = await resourceGroupRepository.GetConfiguredEnvironmentsByResourceGroupAsync(query.Id, cancellationToken);
+
         return resourceGroup.Resources
             .Select(r =>
             {
                 var parentId = parentMapping.TryGetValue(r.Id.Value, out var pid)
                     ? new AzureResourceId(pid)
                     : null;
-                return new AzureResourceResult(r.Id, r.GetType().Name, r.Name, r.Location, parentId);
+                var configuredEnvs = envMapping.TryGetValue(r.Id.Value, out var envs)
+                    ? (IReadOnlyList<string>)envs
+                    : Array.Empty<string>();
+                return new AzureResourceResult(r.Id, r.GetType().Name, r.Name, r.Location, parentId, configuredEnvs);
             })
             .ToList();
     }

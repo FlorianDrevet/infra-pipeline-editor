@@ -33,7 +33,7 @@
       </div>
     </section>
 
-    <mat-tab-group class="project-tabs" animationDuration="200ms">
+    <mat-tab-group class="project-tabs" animationDuration="200ms" (selectedTabChange)="onTabChange($event.index)">
       <!-- Configurations -->
       <mat-tab>
         <ng-template mat-tab-label>
@@ -43,6 +43,28 @@
         </ng-template>
         <div class="tab-content">
           <div class="tab-content__toolbar">
+            <!-- Project-level Generate All (mono-repo only) -->
+            @if (isMonoRepo() && canWrite()) {
+              <button class="bicep-btn" (click)="generateAll()" [disabled]="projectGenerateAllLoading()">
+                @if (projectGenerateAllLoading()) {
+                  <mat-spinner diameter="16"></mat-spinner>
+                } @else {
+                  <mat-icon class="bicep-btn__icon">terminal</mat-icon>
+                }
+                {{ (validatingDiagnostics() ? 'PROJECT_DETAIL.GENERATE_ALL.VALIDATING' : 'PROJECT_DETAIL.GENERATE_ALL.BUTTON') | translate }}
+              </button>
+              @if (project()!.gitRepositoryConfiguration) {
+                <button class="push-btn" (click)="openProjectPushToGitDialog()" [disabled]="!projectBicepResult()">
+                  <mat-icon class="push-btn__icon">rocket_launch</mat-icon>
+                  {{ 'PROJECT_DETAIL.BICEP.PUSH_TO_GIT' | translate }}
+                </button>
+                <button class="push-btn" (click)="openProjectPipelinePushToGitDialog()" [disabled]="!projectPipelineResult()">
+                  <mat-icon class="push-btn__icon">rocket_launch</mat-icon>
+                  {{ 'PROJECT_DETAIL.PIPELINE.PUSH_TO_GIT' | translate }}
+                </button>
+              }
+            }
+
             @if (canWrite()) {
               <button class="add-btn" (click)="openAddConfigDialog()">
                 <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
@@ -53,6 +75,145 @@
 
           @if (configErrorKey()) {
             <p class="action-error">{{ configErrorKey() | translate }}</p>
+          }
+
+          <!-- Project Generation Panel (mono-repo) — shown only after clicking Generate -->
+          @if (projectGenerationPanelOpen()) {
+            <section class="generation-panel">
+              <div class="generation-panel__header">
+                <h3 class="generation-panel__title">{{ 'PROJECT_DETAIL.GENERATION.TITLE' | translate }}</h3>
+                <button class="generation-panel__close" (click)="closeProjectGenerationPanel()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <mat-tab-group class="generation-tabs" animationDuration="200ms">
+                <!-- Bicep Tab -->
+                <mat-tab>
+                  <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">terminal</mat-icon>
+                    <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BICEP' | translate }}</span>
+                  </ng-template>
+                  <div class="generation-tab-content">
+                    <div class="generation-tab-content__toolbar">
+                      @if (projectBicepResult()) {
+                        <button class="bicep-download-btn" (click)="downloadProjectBicepFiles()" [disabled]="projectBicepDownloading()">
+                          @if (projectBicepDownloading()) {
+                            <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                          } @else {
+                            <mat-icon>download</mat-icon>
+                          }
+                          {{ (projectBicepDownloading() ? 'PROJECT_DETAIL.BICEP.DOWNLOADING' : 'PROJECT_DETAIL.BICEP.DOWNLOAD') | translate }}
+                        </button>
+                      }
+                    </div>
+
+                    @if (projectBicepLoading()) {
+                      <div class="bicep-panel__loading">
+                        <div class="bicep-terminal">
+                          <div class="bicep-terminal__bar">
+                            <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                            <span class="bicep-terminal__bar-title">bicep-generator</span>
+                          </div>
+                          <div class="bicep-terminal__body">
+                            <p class="bicep-terminal__line bicep-terminal__line--active">
+                              <span class="bicep-terminal__prompt">$</span>
+                              {{ 'PROJECT_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}
+                              <span class="bicep-terminal__cursor"></span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                    @if (projectBicepErrorKey()) {
+                      <div class="bicep-panel__error-body">
+                        <p>{{ projectBicepErrorKey() | translate }}</p>
+                        <button class="bicep-retry-btn" (click)="generateProjectBicep()">
+                          <mat-icon>refresh</mat-icon>
+                          {{ 'PROJECT_DETAIL.BICEP.RETRY' | translate }}
+                        </button>
+                      </div>
+                    }
+
+                    @if (projectBicepNodes().length > 0) {
+                      <app-bicep-file-panel
+                        [nodes]="projectBicepNodes()"
+                        [barTitle]="'bicep-generator \u2014 ' + ('PROJECT_DETAIL.BICEP.ARTIFACTS' | translate)"
+                        [terminalDoneText]="'PROJECT_DETAIL.BICEP.TERMINAL_DONE' | translate"
+                        [fileLoadingText]="'PROJECT_DETAIL.BICEP.FILE_LOADING' | translate"
+                        [fileErrorText]="'PROJECT_DETAIL.BICEP.FILE_ERROR' | translate"
+                        [loadFile]="loadProjectBicepFile">
+                      </app-bicep-file-panel>
+                    }
+                  </div>
+                </mat-tab>
+
+                <!-- Pipeline Tab -->
+                <mat-tab>
+                  <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">account_tree</mat-icon>
+                    <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_PIPELINE' | translate }}</span>
+                  </ng-template>
+                  <div class="generation-tab-content">
+                    <div class="generation-tab-content__toolbar">
+                      @if (projectPipelineResult()) {
+                        <button class="bicep-download-btn" (click)="downloadProjectPipelineFiles()" [disabled]="projectPipelineDownloading()">
+                          @if (projectPipelineDownloading()) {
+                            <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                          } @else {
+                            <mat-icon>download</mat-icon>
+                          }
+                          {{ (projectPipelineDownloading() ? 'PROJECT_DETAIL.PIPELINE.DOWNLOADING' : 'PROJECT_DETAIL.PIPELINE.DOWNLOAD') | translate }}
+                        </button>
+                      }
+                    </div>
+
+                    @if (projectPipelineLoading()) {
+                      <div class="bicep-panel__loading">
+                        <div class="bicep-terminal">
+                          <div class="bicep-terminal__bar">
+                            <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                            <span class="bicep-terminal__bar-title">pipeline-generator</span>
+                          </div>
+                          <div class="bicep-terminal__body">
+                            <p class="bicep-terminal__line bicep-terminal__line--active">
+                              <span class="bicep-terminal__prompt">$</span>
+                              {{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}
+                              <span class="bicep-terminal__cursor"></span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                    @if (projectPipelineErrorKey()) {
+                      <div class="bicep-panel__error-body">
+                        <p>{{ projectPipelineErrorKey() | translate }}</p>
+                        <button class="bicep-retry-btn" (click)="generateProjectPipeline()">
+                          <mat-icon>refresh</mat-icon>
+                          {{ 'PROJECT_DETAIL.PIPELINE.RETRY' | translate }}
+                        </button>
+                      </div>
+                    }
+
+                    @if (projectPipelineNodes().length > 0) {
+                      <app-bicep-file-panel
+                        [nodes]="projectPipelineNodes()"
+                        [barTitle]="'pipeline-generator \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
+                        [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
+                        [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
+                        [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
+                        [loadFile]="loadProjectPipelineFile">
+                      </app-bicep-file-panel>
+                    }
+                  </div>
+                </mat-tab>
+              </mat-tab-group>
+            </section>
           }
 
           @if (configs().length > 0) {
@@ -152,16 +313,16 @@
                       <strong>{{ env.location }}</strong>
                     </div>
                     <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SHORT_NAME' | translate }}</span>
+                      <strong>{{ env.shortName || '—' }}</strong>
+                    </div>
+                    <div class="detail-row">
                       <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.PREFIX' | translate }}</span>
                       <strong>{{ env.prefix || '—' }}</strong>
                     </div>
                     <div class="detail-row">
                       <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SUFFIX' | translate }}</span>
                       <strong>{{ env.suffix || '—' }}</strong>
-                    </div>
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.TENANT_ID' | translate }}</span>
-                      <strong class="mono">{{ env.tenantId }}</strong>
                     </div>
                     <div class="detail-row">
                       <span>{{ 'PROJECT_DETAIL.ENVIRONMENTS.SUBSCRIPTION_ID' | translate }}</span>
@@ -379,6 +540,378 @@
             <div class="empty-state">
               <mat-icon class="empty-state__icon">group</mat-icon>
               <p>{{ 'PROJECT_DETAIL.MEMBERS.EMPTY' | translate }}</p>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Pipeline Variable Groups -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">library_books</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.TABS.PIPELINE_VARIABLES' | translate }}</span>
+          <span class="tab-count">{{ variableGroups().length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          @if (vgErrorKey()) {
+            <p class="action-error">{{ vgErrorKey() | translate }}</p>
+          }
+
+          <!-- Derived hint -->
+          <div class="env-description" style="margin-bottom: 1rem;">
+            <mat-icon class="env-description__icon">info_outline</mat-icon>
+            <p>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.DERIVED_HINT' | translate }}</p>
+          </div>
+
+          @if (canWrite()) {
+            <div class="tab-content__toolbar">
+              <button class="add-btn" (click)="openAddVariableGroupDialog()">
+                <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
+                {{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.ADD_GROUP' | translate }}
+              </button>
+            </div>
+          }
+
+          @if (vgLoading()) {
+            <div class="empty-state">
+              <mat-spinner diameter="32"></mat-spinner>
+            </div>
+          } @else if (variableGroups().length > 0) {
+            <div class="vg-list">
+              @for (group of variableGroups(); track group.id) {
+                <article class="vg-card">
+                  <div class="vg-card__header">
+                    <div class="vg-card__title-row">
+                      <mat-icon class="vg-card__icon">library_books</mat-icon>
+                      <h3 class="vg-card__name">{{ group.groupName }}</h3>
+                      <span class="vg-card__count">{{ group.variables.length }}</span>
+                    </div>
+                    @if (canWrite()) {
+                      <button class="vg-card__delete" (click)="openRemoveVariableGroupDialog(group)"
+                              [matTooltip]="'PROJECT_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP' | translate">
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
+                    }
+                  </div>
+
+                  @if (group.variables.length > 0) {
+                    <div class="vg-card__table">
+                      <div class="vg-card__table-header">
+                        <span class="vg-col vg-col--variable">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.VARIABLE_NAME' | translate }}</span>
+                        <span class="vg-col vg-col--setting">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.APP_SETTING' | translate }}</span>
+                        <span class="vg-col vg-col--resource">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.RESOURCE' | translate }}</span>
+                        <span class="vg-col vg-col--type">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.RESOURCE_TYPE' | translate }}</span>
+                        <span class="vg-col vg-col--config">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.CONFIG' | translate }}</span>
+                      </div>
+                      @for (variable of group.variables; track variable.pipelineVariableName) {
+                        <div class="vg-card__table-row">
+                          <span class="vg-col vg-col--variable">
+                            <code class="vg-variable-code">{{ variable.pipelineVariableName }}</code>
+                          </span>
+                          <span class="vg-col vg-col--setting">{{ variable.appSettingName }}</span>
+                          <span class="vg-col vg-col--resource">{{ variable.resourceName }}</span>
+                          <span class="vg-col vg-col--type">
+                            <span class="vg-type-chip">{{ variable.resourceType }}</span>
+                          </span>
+                          <span class="vg-col vg-col--config">{{ variable.configName }}</span>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <div class="vg-card__empty">
+                      <mat-icon class="vg-card__empty-icon">info_outline</mat-icon>
+                      <p>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.NO_VARIABLES' | translate }}</p>
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          } @else if (vgLoaded()) {
+            <div class="empty-state">
+              <mat-icon class="empty-state__icon">library_books</mat-icon>
+              <p>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.EMPTY' | translate }}</p>
+              <p class="empty-state__hint">{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.EMPTY_HINT' | translate }}</p>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Settings (Repository Mode + Git Config) -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">tune</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.TABS.SETTINGS' | translate }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <!-- Tags Section -->
+          <section class="settings-section">
+            <div class="settings-section__title-row">
+              <h3 class="settings-section__title">
+                <mat-icon class="settings-section__title-icon">label</mat-icon>
+                {{ 'PROJECT_DETAIL.TAGS.TITLE' | translate }}
+              </h3>
+              @if (canWrite() && !isEditingProjectTags()) {
+                <button class="template-action-btn template-action-btn--inline" (click)="startEditProjectTags()">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              }
+            </div>
+
+            @if (!isEditingProjectTags()) {
+              @if (projectTags().length > 0) {
+                <div class="tags-display">
+                  @for (tag of projectTags(); track tag.name) {
+                    <span class="tag-chip">{{ tag.name }}: {{ tag.value }}</span>
+                  }
+                </div>
+              } @else {
+                <p class="tags-empty">{{ 'PROJECT_DETAIL.TAGS.EMPTY' | translate }}</p>
+              }
+            } @else {
+              <div class="tags-editor">
+                <div class="tags-add-row">
+                  <mat-form-field appearance="outline" class="tag-name-field">
+                    <mat-label>{{ 'PROJECT_DETAIL.TAGS.TAG_NAME' | translate }}</mat-label>
+                    <input matInput [formControl]="tagNameCtrl" (keydown.enter)="addProjectTag()" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="tag-value-field">
+                    <mat-label>{{ 'PROJECT_DETAIL.TAGS.TAG_VALUE' | translate }}</mat-label>
+                    <input matInput [formControl]="tagValueCtrl" (keydown.enter)="addProjectTag()" />
+                  </mat-form-field>
+                  <button type="button" mat-icon-button (click)="addProjectTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+
+                @if (editingTags().length > 0) {
+                  <mat-chip-set>
+                    @for (tag of editingTags(); track tag.name) {
+                      <mat-chip (removed)="removeProjectTag(tag.name)">
+                        <span>{{ tag.name }}: {{ tag.value }}</span>
+                        <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                      </mat-chip>
+                    }
+                  </mat-chip-set>
+                }
+
+                @if (tagsErrorKey()) {
+                  <p class="action-error">{{ tagsErrorKey() | translate }}</p>
+                }
+
+                <div class="tags-actions">
+                  <button mat-stroked-button type="button" (click)="cancelProjectTagsEdit()" [disabled]="tagsSaving()">
+                    {{ 'PROJECT_DETAIL.TAGS.CANCEL' | translate }}
+                  </button>
+                  <button mat-flat-button color="primary" type="button" (click)="saveProjectTags()" [disabled]="tagsSaving()">
+                    @if (tagsSaving()) {
+                      <mat-spinner diameter="16"></mat-spinner>
+                    } @else {
+                      {{ 'PROJECT_DETAIL.TAGS.SAVE' | translate }}
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+          </section>
+
+          <!-- Repository Mode Section -->
+          <section class="settings-section">
+            <h3 class="settings-section__title">
+              <mat-icon class="settings-section__title-icon">call_split</mat-icon>
+              {{ 'PROJECT_DETAIL.SETTINGS.REPO_MODE_TITLE' | translate }}
+            </h3>
+            <p class="settings-section__description">{{ 'PROJECT_DETAIL.SETTINGS.REPO_MODE_DESCRIPTION' | translate }}</p>
+
+            @if (canWrite()) {
+              <mat-button-toggle-group
+                class="repo-mode-toggle"
+                [value]="project()!.repositoryMode"
+                [disabled]="repoModeSaving()"
+                (change)="onRepositoryModeChange($event.value)">
+                <mat-button-toggle value="MultiRepo">
+                  <mat-icon class="repo-mode-toggle__icon">call_split</mat-icon>
+                  {{ 'PROJECT_DETAIL.REPO_MODE.MULTI' | translate }}
+                </mat-button-toggle>
+                <mat-button-toggle value="MonoRepo">
+                  <mat-icon class="repo-mode-toggle__icon">folder_shared</mat-icon>
+                  {{ 'PROJECT_DETAIL.REPO_MODE.MONO' | translate }}
+                </mat-button-toggle>
+              </mat-button-toggle-group>
+            } @else {
+              <span class="repo-mode-badge">
+                <mat-icon class="repo-mode-badge__icon">
+                  @if (isMonoRepo()) { folder_shared } @else { call_split }
+                </mat-icon>
+                {{ (isMonoRepo() ? 'PROJECT_DETAIL.REPO_MODE.MONO' : 'PROJECT_DETAIL.REPO_MODE.MULTI') | translate }}
+              </span>
+            }
+
+            @if (repoModeError()) {
+              <p class="action-error">{{ repoModeError() | translate }}</p>
+            }
+          </section>
+
+          <!-- Agent Pool -->
+          <section class="settings-section">
+            <h3 class="settings-section__title">
+              <mat-icon class="settings-section__title-icon">dns</mat-icon>
+              {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.TITLE' | translate }}
+            </h3>
+            <p class="settings-section__description">{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.DESCRIPTION' | translate }}</p>
+
+            <div class="agent-pool-form">
+              <mat-slide-toggle
+                [checked]="useCustomPool()"
+                (change)="onCustomPoolToggle($event.checked)"
+                [disabled]="agentPoolLoading()">
+                {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.USE_CUSTOM' | translate }}
+              </mat-slide-toggle>
+
+              @if (useCustomPool()) {
+                <mat-form-field appearance="outline" class="pool-name-field">
+                  <mat-label>{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_NAME' | translate }}</mat-label>
+                  <input matInput
+                         [value]="agentPoolName() ?? ''"
+                         (input)="agentPoolName.set($any($event.target).value)"
+                         [disabled]="agentPoolLoading()" />
+                  <mat-hint>{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_HINT' | translate }}</mat-hint>
+                </mat-form-field>
+              }
+
+              <div class="agent-pool-actions">
+                <button mat-flat-button
+                        color="primary"
+                        (click)="saveAgentPool()"
+                        [disabled]="agentPoolLoading()">
+                  @if (agentPoolLoading()) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  } @else {
+                    {{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.SAVE' | translate }}
+                  }
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Git Configuration (mono-repo only) -->
+          @if (isMonoRepo()) {
+            <section class="settings-section">
+              <h3 class="settings-section__title">
+                <mat-icon class="settings-section__title-icon">code</mat-icon>
+                {{ 'PROJECT_DETAIL.GIT_CONFIG.TITLE' | translate }}
+              </h3>
+              <p class="settings-section__description">{{ 'PROJECT_DETAIL.SETTINGS.GIT_MONO_DESCRIPTION' | translate }}</p>
+
+              @if (gitActionError()) {
+                <p class="action-error">{{ gitActionError() | translate }}</p>
+              }
+
+              @if (project()!.gitRepositoryConfiguration; as gitConfig) {
+                <article class="git-config-card">
+                  <div class="git-config-card__header">
+                    <div class="git-config-card__provider">
+                      <mat-icon class="git-config-card__provider-icon">
+                        @if (gitConfig.providerType === 'GitHub') { hub } @else { cloud_queue }
+                      </mat-icon>
+                      <h3>{{ gitConfig.providerType }}</h3>
+                    </div>
+                    @if (canWrite()) {
+                      <div class="git-config-card__actions">
+                        <button class="add-btn" (click)="testGitConnection()" [disabled]="gitTestLoading()">
+                          @if (gitTestLoading()) {
+                            <mat-spinner diameter="16"></mat-spinner>
+                          } @else {
+                            <mat-icon class="add-btn__icon">sync</mat-icon>
+                          }
+                          {{ (gitTestLoading() ? 'PROJECT_DETAIL.GIT_CONFIG.TESTING' : 'PROJECT_DETAIL.GIT_CONFIG.TEST_CONNECTION') | translate }}
+                        </button>
+                        <button class="add-btn" (click)="openGitConfigDialog()">
+                          <mat-icon class="add-btn__icon">edit</mat-icon>
+                          {{ 'PROJECT_DETAIL.GIT_CONFIG.EDIT' | translate }}
+                        </button>
+                        <button class="delete-config-btn" (click)="openRemoveGitConfigDialog()">
+                          <mat-icon>delete_outline</mat-icon>
+                          {{ 'PROJECT_DETAIL.GIT_CONFIG.REMOVE' | translate }}
+                        </button>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="git-config-card__details">
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.REPOSITORY_URL' | translate }}</span>
+                      <a class="detail-link" [href]="gitConfig.repositoryUrl" target="_blank" rel="noopener">
+                        {{ gitConfig.repositoryUrl }}
+                        <mat-icon class="detail-link__icon">open_in_new</mat-icon>
+                      </a>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.DEFAULT_BRANCH' | translate }}</span>
+                      <strong>{{ gitConfig.defaultBranch }}</strong>
+                    </div>
+                    @if (gitConfig.basePath) {
+                      <div class="detail-row">
+                        <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.BASE_PATH' | translate }}</span>
+                        <strong>{{ gitConfig.basePath }}</strong>
+                      </div>
+                    }
+                    @if (gitConfig.pipelineBasePath) {
+                      <div class="detail-row">
+                        <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.PIPELINE_BASE_PATH' | translate }}</span>
+                        <strong>{{ gitConfig.pipelineBasePath }}</strong>
+                      </div>
+                    }
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.OWNER' | translate }}</span>
+                      <strong>{{ gitConfig.owner }}</strong>
+                    </div>
+                    <div class="detail-row">
+                      <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.REPOSITORY_NAME' | translate }}</span>
+                      <strong>{{ gitConfig.repositoryName }}</strong>
+                    </div>
+                  </div>
+
+                  <!-- Test Connection Result -->
+                  @if (gitTestResult(); as testResult) {
+                    <div class="git-test-result" [class.git-test-result--success]="testResult.success" [class.git-test-result--error]="!testResult.success">
+                      @if (testResult.success) {
+                        <mat-icon class="git-test-result__icon">check_circle</mat-icon>
+                        <div class="git-test-result__content">
+                          <strong>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_SUCCESS' | translate }}</strong>
+                          <div class="git-test-result__details">
+                            <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_REPO_NAME' | translate }}: {{ testResult.repositoryFullName }}</span>
+                            <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_BRANCH' | translate }}: {{ testResult.defaultBranch }}</span>
+                          </div>
+                        </div>
+                      } @else {
+                        <mat-icon class="git-test-result__icon">error_outline</mat-icon>
+                        <div class="git-test-result__content">
+                          <strong>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_FAILED' | translate }}</strong>
+                          @if (testResult.errorMessage) {
+                            <p>{{ testResult.errorMessage }}</p>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </article>
+              } @else {
+                <div class="empty-state">
+                  <mat-icon class="empty-state__icon">code</mat-icon>
+                  <p>{{ 'PROJECT_DETAIL.GIT_CONFIG.EMPTY' | translate }}</p>
+                  @if (canWrite()) {
+                    <button class="add-btn" (click)="openGitConfigDialog()">
+                      <mat-icon class="add-btn__icon">add_circle_outline</mat-icon>
+                      {{ 'PROJECT_DETAIL.GIT_CONFIG.CONFIGURE' | translate }}
+                    </button>
+                  }
+                </div>
+              }
+            </section>
+          } @else {
+            <div class="settings-info-banner">
+              <mat-icon class="settings-info-banner__icon">info_outline</mat-icon>
+              <span>{{ 'PROJECT_DETAIL.SETTINGS.GIT_MULTI_INFO' | translate }}</span>
             </div>
           }
         </div>

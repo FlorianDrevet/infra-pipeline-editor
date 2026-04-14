@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.CosmosDbs.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.CosmosDbs.Commands.UpdateCosmosDb;
 
@@ -16,4 +16,4 @@ public record UpdateCosmosDbCommand(
     Name Name,
     Location Location,
     IReadOnlyList<CosmosDbEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<CosmosDbResult>>;
+) : ICommand<CosmosDbResult>;

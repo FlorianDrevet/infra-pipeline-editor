@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.SetProjectDefaultNamingTemplate;
 
@@ -8,4 +8,4 @@ namespace InfraFlowSculptor.Application.Projects.Commands.SetProjectDefaultNamin
 public record SetProjectDefaultNamingTemplateCommand(
     ProjectId ProjectId,
     string? Template
-) : IRequest<ErrorOr<Success>>;
+) : ICommand<Success>;

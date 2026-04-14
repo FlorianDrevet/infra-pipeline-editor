@@ -14,7 +14,7 @@ public class UpdateKeyVaultCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateKeyVaultCommand, ErrorOr<KeyVaultResult>>
+    : ICommandHandler<UpdateKeyVaultCommand, KeyVaultResult>
 {
     public async Task<ErrorOr<KeyVaultResult>> Handle(UpdateKeyVaultCommand request, CancellationToken cancellationToken)
     {
@@ -31,7 +31,15 @@ public class UpdateKeyVaultCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        keyVault.Update(request.Name, request.Location);
+        keyVault.Update(
+            request.Name,
+            request.Location,
+            request.EnableRbacAuthorization,
+            request.EnabledForDeployment,
+            request.EnabledForDiskEncryption,
+            request.EnabledForTemplateDeployment,
+            request.EnablePurgeProtection,
+            request.EnableSoftDelete);
 
         if (request.EnvironmentSettings is not null)
             keyVault.SetAllEnvironmentSettings(

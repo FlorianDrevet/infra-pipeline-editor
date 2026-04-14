@@ -1,8 +1,17 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
 using InfraFlowSculptor.BicepGeneration;
+using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.GenerationCore.Models;
+using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
+using InfraFlowSculptor.Domain.Common.ResourceOutputs;
 using ErrorOr;
 using MediatR;
 
@@ -11,8 +20,9 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBi
 public sealed class GenerateBicepCommandHandler(
     IInfrastructureConfigReadRepository configRepository,
     BicepGenerationEngine bicepGenerationEngine,
-    IBlobService blobService)
-    : IRequestHandler<GenerateBicepCommand, ErrorOr<GenerateBicepResult>>
+    IBlobService blobService,
+    IConfigDiagnosticService diagnosticService)
+    : ICommandHandler<GenerateBicepCommand, GenerateBicepResult>
 {
     /// <summary>
     /// The subdirectory name where Bicep parameter files are stored.
@@ -24,28 +34,7 @@ public sealed class GenerateBicepCommandHandler(
     /// </summary>
     private const string BicepParameterExtension = ".bicepparam";
 
-    /// <summary>
-    /// Maps Azure resource type strings to their simple type names used in naming template lookups
-    /// and abbreviation resolution via <see cref="ResourceAbbreviationCatalog"/>.
-    /// </summary>
-    private static readonly Dictionary<string, string> ResourceTypeNames = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["Microsoft.KeyVault/vaults"] = "KeyVault",
-        ["Microsoft.Cache/Redis"] = "RedisCache",
-        ["Microsoft.Storage/storageAccounts"] = "StorageAccount",
-        ["Microsoft.Web/serverfarms"] = "AppServicePlan",
-        ["Microsoft.Web/sites"] = "WebApp",
-        ["Microsoft.Web/sites/functionapp"] = "FunctionApp",
-        ["Microsoft.ManagedIdentity/userAssignedIdentities"] = "UserAssignedIdentity",
-        ["Microsoft.AppConfiguration/configurationStores"] = "AppConfiguration",
-        ["Microsoft.App/managedEnvironments"] = "ContainerAppEnvironment",
-        ["Microsoft.App/containerApps"] = "ContainerApp",
-        ["Microsoft.OperationalInsights/workspaces"] = "LogAnalyticsWorkspace",
-        ["Microsoft.Insights/components"] = "ApplicationInsights",
-        ["Microsoft.DocumentDB/databaseAccounts"] = "CosmosDb",
-        ["Microsoft.Sql/servers"] = "SqlServer",
-        ["Microsoft.Sql/servers/databases"] = "SqlDatabase",
-    };
+
 
     public async Task<ErrorOr<GenerateBicepResult>> Handle(
         GenerateBicepCommand command,
@@ -55,13 +44,12 @@ public sealed class GenerateBicepCommandHandler(
             command.InfrastructureConfigId, cancellationToken);
 
         if (config is null)
-            return Error.NotFound(
-                "InfrastructureConfig.NotFound",
-                $"Infrastructure configuration '{command.InfrastructureConfigId}' was not found.");
+            return Errors.InfrastructureConfig.NotFoundError(new InfrastructureConfigId(command.InfrastructureConfigId));
 
         var resources = config.ResourceGroups
             .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
             {
+                ResourceId = r.Id,
                 Name = r.Name,
                 Type = r.ResourceType,
                 ResourceGroupName = rg.Name,
@@ -71,7 +59,8 @@ public sealed class GenerateBicepCommandHandler(
                 EnvironmentConfigs = r.EnvironmentConfigs
                     .ToDictionary(
                         ec => ec.EnvironmentName,
-                        ec => (IReadOnlyDictionary<string, string>)ec.Properties)
+                        ec => (IReadOnlyDictionary<string, string>)ec.Properties),
+                AssignedUserAssignedIdentityName = r.AssignedUserAssignedIdentityName,
             }))
             .ToList();
 
@@ -90,9 +79,13 @@ public sealed class GenerateBicepCommandHandler(
             .Select(e => new EnvironmentDefinition
             {
                 Name = e.Name,
+                ShortName = e.ShortName,
                 Location = e.Location,
                 Prefix = e.Prefix,
                 Suffix = e.Suffix,
+                AzureResourceManagerConnection = e.AzureResourceManagerConnection,
+                SubscriptionId = e.SubscriptionId,
+                Tags = e.Tags,
             })
             .ToList();
 
@@ -103,6 +96,98 @@ public sealed class GenerateBicepCommandHandler(
             ResourceAbbreviations = ResourceAbbreviationCatalog.GetAll(),
         };
 
+        var roleAssignments = config.RoleAssignments
+            .Select(ra =>
+            {
+                var targetTypeName = GetResourceTypeName(ra.TargetResourceType);
+                var sourceTypeName = GetResourceTypeName(ra.SourceResourceType);
+                var roleDef = AzureRoleDefinitionCatalog.GetForResourceType(targetTypeName)
+                    .FirstOrDefault(r => r.Id.Equals(ra.RoleDefinitionId, StringComparison.OrdinalIgnoreCase));
+
+                return new RoleAssignmentDefinition
+                {
+                    SourceResourceName = ra.SourceResourceName,
+                    SourceResourceType = ra.SourceResourceType,
+                    SourceResourceTypeName = sourceTypeName,
+                    SourceResourceGroupName = ra.SourceResourceGroupName,
+                    TargetResourceName = ra.TargetResourceName,
+                    TargetResourceType = ra.TargetResourceType,
+                    TargetResourceGroupName = ra.TargetResourceGroupName,
+                    ManagedIdentityType = ra.ManagedIdentityType,
+                    RoleDefinitionId = ra.RoleDefinitionId,
+                    RoleDefinitionName = roleDef?.Name ?? ra.RoleDefinitionId,
+                    RoleDefinitionDescription = roleDef?.Description ?? string.Empty,
+                    ServiceCategory = RoleAssignmentModuleTemplates.GetServiceCategory(targetTypeName),
+                    TargetResourceTypeName = targetTypeName,
+                    TargetResourceAbbreviation = GetResourceAbbreviation(ra.TargetResourceType),
+                    UserAssignedIdentityName = ra.UserAssignedIdentityName,
+                    UserAssignedIdentityResourceId = ra.UserAssignedIdentityResourceId,
+                    UserAssignedIdentityResourceGroupName = ra.UserAssignedIdentityResourceGroupName,
+                    IsTargetCrossConfig = ra.IsTargetCrossConfig,
+                };
+            })
+            .ToList();
+
+        var appSettingDefinitions = config.AppSettings
+            .Select(s =>
+            {
+                var sourceTypeName = s.SourceResourceType is not null
+                    ? GetResourceTypeName(s.SourceResourceType)
+                    : null;
+
+                string? bicepExpression = null;
+                if (sourceTypeName is not null && s.SourceOutputName is not null)
+                {
+                    var outputDef = ResourceOutputCatalog.FindOutput(sourceTypeName, s.SourceOutputName);
+                    bicepExpression = outputDef?.BicepExpression;
+                }
+
+                // Detect sensitive output exported to KV: has both source + KV references
+                var isSensitiveExport = s.IsKeyVaultReference
+                    && s.SourceResourceId is not null
+                    && s.SourceOutputName is not null;
+
+                return new AppSettingDefinition
+                {
+                    Name = s.Name,
+                    StaticValue = null,
+                    EnvironmentValues = s.EnvironmentValues,
+                    SourceResourceName = s.SourceResourceName,
+                    SourceOutputName = s.SourceOutputName,
+                    SourceResourceTypeName = sourceTypeName,
+                    TargetResourceName = s.ResourceName,
+                    IsOutputReference = s.IsOutputReference,
+                    SourceOutputBicepExpression = bicepExpression,
+                    IsKeyVaultReference = s.IsKeyVaultReference,
+                    KeyVaultResourceName = s.KeyVaultResourceName,
+                    SecretName = s.SecretName,
+                    IsSourceCrossConfig = s.IsSourceCrossConfig,
+                    SourceResourceGroupName = s.SourceResourceGroupName,
+                    IsSensitiveOutputExportedToKeyVault = isSensitiveExport,
+                    SecretValueAssignment = s.SecretValueAssignment?.ToString(),
+                    IsViaVariableGroup = s.IsViaVariableGroup,
+                    PipelineVariableName = s.PipelineVariableName,
+                    VariableGroupName = s.VariableGroupName,
+                };
+            })
+            .ToList();
+
+        var existingResourceReferences = config.CrossConfigReferences
+            .Select(ccRef =>
+            {
+                var targetTypeName = GetResourceTypeName(ccRef.TargetResourceType);
+                return new ExistingResourceReference
+                {
+                    ResourceName = ccRef.TargetResourceName,
+                    ResourceTypeName = targetTypeName,
+                    ResourceType = ccRef.TargetResourceType,
+                    ResourceGroupName = ccRef.TargetResourceGroupName,
+                    ResourceAbbreviation = ccRef.TargetResourceAbbreviation,
+                    SourceConfigName = ccRef.TargetConfigName,
+                };
+            })
+            .ToList();
+
         var generationRequest = new GenerationRequest
         {
             Resources = resources,
@@ -110,6 +195,11 @@ public sealed class GenerateBicepCommandHandler(
             Environments = environments,
             EnvironmentNames = environmentNames,
             NamingContext = namingContext,
+            RoleAssignments = roleAssignments,
+            AppSettings = appSettingDefinitions,
+            ExistingResourceReferences = existingResourceReferences,
+            ProjectTags = config.ProjectTags,
+            ConfigTags = config.ConfigTags,
         };
 
         var result = bicepGenerationEngine.Generate(generationRequest);
@@ -127,6 +217,16 @@ public sealed class GenerateBicepCommandHandler(
             $"{prefix}/functions.bicep",
             result.FunctionsBicep,
             "text/plain");
+
+        // Upload constants.bicep (only when role assignments exist)
+        Uri? constantsBicepUri = null;
+        if (!string.IsNullOrEmpty(result.ConstantsBicep))
+        {
+            constantsBicepUri = await blobService.UploadContentAsync(
+                $"{prefix}/constants.bicep",
+                result.ConstantsBicep,
+                "text/plain");
+        }
 
         // Upload main.bicep
         var mainBicepUri = await blobService.UploadContentAsync(
@@ -155,7 +255,9 @@ public sealed class GenerateBicepCommandHandler(
             moduleUris[path] = moduleUri;
         }
 
-        return new GenerateBicepResult(mainBicepUri, parameterUris, moduleUris);
+        var warnings = diagnosticService.Evaluate(config);
+
+        return new GenerateBicepResult(mainBicepUri, constantsBicepUri, parameterUris, moduleUris, warnings);
     }
 
     /// <summary>
@@ -176,7 +278,13 @@ public sealed class GenerateBicepCommandHandler(
     /// </summary>
     private static string GetResourceAbbreviation(string azureResourceType)
     {
-        var typeName = ResourceTypeNames.GetValueOrDefault(azureResourceType, azureResourceType);
+        var typeName = AzureResourceTypes.GetFriendlyName(azureResourceType);
         return ResourceAbbreviationCatalog.GetAbbreviation(typeName);
     }
+
+    /// <summary>
+    /// Resolves the simple resource type name from the Azure resource type string (e.g. "Microsoft.KeyVault/vaults" → "KeyVault").
+    /// </summary>
+    private static string GetResourceTypeName(string azureResourceType) =>
+        AzureResourceTypes.GetFriendlyName(azureResourceType);
 }

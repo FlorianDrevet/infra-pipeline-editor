@@ -1,4 +1,5 @@
 using FluentValidation;
+using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 
 namespace InfraFlowSculptor.Application.RoleAssignments.Commands.AddRoleAssignment;
@@ -26,5 +27,10 @@ public sealed class AddRoleAssignmentCommandValidator : AbstractValidator<AddRol
             .NotNull()
             .WithMessage("UserAssignedIdentityId is required when ManagedIdentityType is UserAssigned.")
             .When(x => string.Equals(x.ManagedIdentityType, nameof(ManagedIdentityType.IdentityTypeEnum.UserAssigned), StringComparison.OrdinalIgnoreCase));
+
+        RuleFor(x => x)
+            .Must(cmd => !(cmd.RoleDefinitionId == AzureRoleDefinitionCatalog.AcrPull
+                           && string.Equals(cmd.ManagedIdentityType, nameof(ManagedIdentityType.IdentityTypeEnum.SystemAssigned), StringComparison.OrdinalIgnoreCase)))
+            .WithMessage("The AcrPull role can only be assigned using a User-Assigned Identity.");
     }
 }

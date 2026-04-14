@@ -19,42 +19,17 @@ public sealed class StorageAccountEnvironmentSettings : Entity<StorageAccountEnv
     /// <summary>Gets or sets the performance/replication tier override.</summary>
     public StorageAccountSku? Sku { get; private set; }
 
-    /// <summary>Gets or sets the account kind override.</summary>
-    public StorageAccountKind? Kind { get; private set; }
-
-    /// <summary>Gets or sets the default blob access tier override.</summary>
-    public StorageAccessTier? AccessTier { get; private set; }
-
-    /// <summary>Gets or sets whether public blob access is allowed for this environment.</summary>
-    public bool? AllowBlobPublicAccess { get; private set; }
-
-    /// <summary>Gets or sets whether HTTPS-only traffic is enforced for this environment.</summary>
-    public bool? EnableHttpsTrafficOnly { get; private set; }
-
-    /// <summary>Gets or sets the minimum TLS version override.</summary>
-    public StorageAccountTlsVersion? MinimumTlsVersion { get; private set; }
-
     private StorageAccountEnvironmentSettings() { }
 
     internal StorageAccountEnvironmentSettings(
         AzureResourceId storageAccountId,
         string environmentName,
-        StorageAccountSku? sku,
-        StorageAccountKind? kind,
-        StorageAccessTier? accessTier,
-        bool? allowBlobPublicAccess,
-        bool? enableHttpsTrafficOnly,
-        StorageAccountTlsVersion? minimumTlsVersion)
+        StorageAccountSku? sku)
         : base(StorageAccountEnvironmentSettingsId.CreateUnique())
     {
         StorageAccountId = storageAccountId;
         EnvironmentName = environmentName;
         Sku = sku;
-        Kind = kind;
-        AccessTier = accessTier;
-        AllowBlobPublicAccess = allowBlobPublicAccess;
-        EnableHttpsTrafficOnly = enableHttpsTrafficOnly;
-        MinimumTlsVersion = minimumTlsVersion;
     }
 
     /// <summary>
@@ -63,29 +38,13 @@ public sealed class StorageAccountEnvironmentSettings : Entity<StorageAccountEnv
     public static StorageAccountEnvironmentSettings Create(
         AzureResourceId storageAccountId,
         string environmentName,
-        StorageAccountSku? sku,
-        StorageAccountKind? kind,
-        StorageAccessTier? accessTier,
-        bool? allowBlobPublicAccess,
-        bool? enableHttpsTrafficOnly,
-        StorageAccountTlsVersion? minimumTlsVersion)
-        => new(storageAccountId, environmentName, sku, kind, accessTier, allowBlobPublicAccess, enableHttpsTrafficOnly, minimumTlsVersion);
+        StorageAccountSku? sku)
+        => new(storageAccountId, environmentName, sku);
 
     /// <summary>Updates the configuration overrides for this environment.</summary>
-    public void Update(
-        StorageAccountSku? sku,
-        StorageAccountKind? kind,
-        StorageAccessTier? accessTier,
-        bool? allowBlobPublicAccess,
-        bool? enableHttpsTrafficOnly,
-        StorageAccountTlsVersion? minimumTlsVersion)
+    public void Update(StorageAccountSku? sku)
     {
         Sku = sku;
-        Kind = kind;
-        AccessTier = accessTier;
-        AllowBlobPublicAccess = allowBlobPublicAccess;
-        EnableHttpsTrafficOnly = enableHttpsTrafficOnly;
-        MinimumTlsVersion = minimumTlsVersion;
     }
 
     /// <summary>
@@ -95,20 +54,6 @@ public sealed class StorageAccountEnvironmentSettings : Entity<StorageAccountEnv
     {
         var dict = new Dictionary<string, string>();
         if (Sku is not null) dict["sku"] = Sku.Value.ToString();
-        if (Kind is not null) dict["kind"] = Kind.Value.ToString();
-        if (AccessTier is not null) dict["accessTier"] = AccessTier.Value.ToString();
-        if (AllowBlobPublicAccess is not null) dict["allowBlobPublicAccess"] = AllowBlobPublicAccess.Value.ToString().ToLower();
-        if (EnableHttpsTrafficOnly is not null) dict["supportsHttpsTrafficOnly"] = EnableHttpsTrafficOnly.Value.ToString().ToLower();
-        if (MinimumTlsVersion is not null)
-        {
-            dict["minimumTlsVersion"] = MinimumTlsVersion.Value switch
-            {
-                StorageAccountTlsVersion.Version.Tls10 => "TLS1_0",
-                StorageAccountTlsVersion.Version.Tls11 => "TLS1_1",
-                StorageAccountTlsVersion.Version.Tls12 => "TLS1_2",
-                _ => "TLS1_2"
-            };
-        }
         return dict;
     }
 }

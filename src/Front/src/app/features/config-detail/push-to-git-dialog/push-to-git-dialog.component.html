@@ -1,0 +1,113 @@
+<h2 mat-dialog-title>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.DIALOG_TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  @switch (state()) {
+    @case ('form') {
+      <form [formGroup]="form" class="push-form" (ngSubmit)="onPush()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.BRANCH_NAME' | translate }}</mat-label>
+          <input matInput formControlName="branchName"
+                 [placeholder]="'CONFIG_DETAIL.PUSH_TO_GIT.BRANCH_NAME_PLACEHOLDER' | translate"
+                 [matAutocomplete]="branchAuto" />
+          <mat-autocomplete #branchAuto="matAutocomplete">
+            @if (branchesLoading()) {
+              <mat-option disabled>
+                <div class="branch-loading">
+                  <mat-spinner diameter="18"></mat-spinner>
+                  <span>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.LOADING_BRANCHES' | translate }}</span>
+                </div>
+              </mat-option>
+            } @else {
+              @for (branch of filteredBranches(); track branch) {
+                <mat-option [value]="branch">{{ branch }}</mat-option>
+              }
+              @if (filteredBranches().length === 0) {
+                <mat-option disabled>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.NO_BRANCHES' | translate }}</mat-option>
+              }
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_MESSAGE' | translate }}</mat-label>
+          <input matInput formControlName="commitMessage"
+                 [placeholder]="'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_MESSAGE_PLACEHOLDER' | translate" />
+        </mat-form-field>
+      </form>
+    }
+
+    @case ('pushing') {
+      <div class="push-state push-state--loading">
+        <mat-spinner diameter="36"></mat-spinner>
+        <p>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.PUSHING' | translate }}</p>
+      </div>
+    }
+
+    @case ('success') {
+      <div class="push-state push-state--success">
+        <mat-icon class="push-state__icon push-state__icon--success">check_circle</mat-icon>
+        <h3>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.SUCCESS_TITLE' | translate }}</h3>
+
+        <div class="push-result">
+          <div class="push-result__row">
+            <span>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.BRANCH_URL' | translate }}</span>
+            <a class="push-result__link" [href]="result()!.branchUrl" target="_blank" rel="noopener">
+              {{ result()!.branchName }}
+              <mat-icon class="push-result__link-icon">open_in_new</mat-icon>
+            </a>
+          </div>
+          <div class="push-result__row">
+            <span>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_SHA' | translate }}</span>
+            <code>{{ result()!.commitSha }}</code>
+          </div>
+          <div class="push-result__row">
+            <span>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.FILE_COUNT' | translate: { count: result()!.fileCount } }}</span>
+          </div>
+        </div>
+      </div>
+    }
+
+    @case ('error') {
+      <div class="push-state push-state--error">
+        <mat-icon class="push-state__icon push-state__icon--error">error_outline</mat-icon>
+        <p>{{ errorKey() | translate }}</p>
+        @if (errorDetail()) {
+          <p class="push-state__detail">{{ errorDetail() }}</p>
+        }
+      </div>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @switch (state()) {
+    @case ('form') {
+      <button mat-stroked-button type="button" (click)="onClose()">
+        {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
+      </button>
+      <button mat-flat-button color="primary" (click)="onPush()" [disabled]="form.invalid">
+        <mat-icon>rocket_launch</mat-icon>
+        {{ 'CONFIG_DETAIL.PUSH_TO_GIT.PUSH' | translate }}
+      </button>
+    }
+
+    @case ('pushing') {
+      <!-- No actions while pushing -->
+    }
+
+    @case ('success') {
+      <button mat-flat-button color="primary" (click)="onClose()">
+        {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
+      </button>
+    }
+
+    @case ('error') {
+      <button mat-stroked-button type="button" (click)="onClose()">
+        {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
+      </button>
+      <button mat-flat-button color="primary" (click)="onRetry()">
+        {{ 'CONFIG_DETAIL.PUSH_TO_GIT.RETRY' | translate }}
+      </button>
+    }
+  }
+</mat-dialog-actions>

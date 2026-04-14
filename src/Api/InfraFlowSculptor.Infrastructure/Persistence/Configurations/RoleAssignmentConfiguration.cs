@@ -43,6 +43,12 @@ public sealed class RoleAssignmentConfiguration : IEntityTypeConfiguration<RoleA
         builder.HasOne<AzureResource>()
             .WithMany()
             .HasForeignKey(r => r.TargetResourceId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<AzureResource>()
+            .WithMany()
+            .HasForeignKey(r => r.UserAssignedIdentityId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

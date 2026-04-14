@@ -20,7 +20,7 @@ public sealed class FunctionAppMappingConfig : IRegister
                 src => src.EnvironmentSettings == null
                     ? null
                     : src.EnvironmentSettings.Select(ec => new FunctionAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.HttpsOnly, ec.RuntimeStack, ec.RuntimeVersion, ec.MaxInstanceCount, ec.FunctionsWorkerRuntime)).ToList());
+                        ec.EnvironmentName, ec.HttpsOnly, ec.MaxInstanceCount, ec.DockerImageTag)).ToList());
 
         config.NewConfig<(Guid Id, UpdateFunctionAppRequest Request), UpdateFunctionAppCommand>()
             .MapWith(src => new UpdateFunctionAppCommand(
@@ -31,25 +31,32 @@ public sealed class FunctionAppMappingConfig : IRegister
                 src.Request.RuntimeStack,
                 src.Request.RuntimeVersion,
                 src.Request.HttpsOnly,
+                src.Request.DeploymentMode,
+                src.Request.ContainerRegistryId,
+                src.Request.DockerImageName,
+                src.Request.DockerfilePath,
+                src.Request.SourceCodePath,
+                src.Request.BuildCommand,
+                src.Request.ApplicationName,
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new FunctionAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.HttpsOnly, ec.RuntimeStack, ec.RuntimeVersion, ec.MaxInstanceCount, ec.FunctionsWorkerRuntime)).ToList()));
+                        ec.EnvironmentName, ec.HttpsOnly, ec.MaxInstanceCount, ec.DockerImageTag)).ToList()));
 
         config.NewConfig<FunctionApp, FunctionAppResult>()
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new FunctionAppEnvironmentConfigData(
                     es.EnvironmentName,
                     es.HttpsOnly,
-                    es.RuntimeStack != null ? es.RuntimeStack.Value.ToString() : null,
-                    es.RuntimeVersion,
                     es.MaxInstanceCount,
-                    es.FunctionsWorkerRuntime)).ToList())
+                    es.DockerImageTag)).ToList())
             .Map(dest => dest.RuntimeStack, src => src.RuntimeStack.Value.ToString())
-            .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value);
+            .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value)
+            .Map(dest => dest.DeploymentMode, src => src.DeploymentMode.Value.ToString())
+            .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null);
 
         config.NewConfig<FunctionAppEnvironmentConfigData, FunctionAppEnvironmentConfigResponse>()
             .MapWith(src => new FunctionAppEnvironmentConfigResponse(
-                src.EnvironmentName, src.HttpsOnly, src.RuntimeStack, src.RuntimeVersion, src.MaxInstanceCount, src.FunctionsWorkerRuntime));
+                src.EnvironmentName, src.HttpsOnly, src.MaxInstanceCount, src.DockerImageTag));
     }
 }

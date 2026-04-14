@@ -1,3 +1,4 @@
+using AzureKeyVaultEmulator.Aspire.Hosting;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -16,12 +17,18 @@ var postgres = builder.AddPostgres("postgres")
 
 var database = postgres.AddDatabase("infraDb");
 
+var keyvault = builder
+    .AddAzureKeyVault("keyvault")
+    .RunAsEmulator(new KeyVaultEmulatorOptions { Persist = true });
+
 var infraApi = builder.AddProject<InfraFlowSculptor_Api>("infraflowsculptor-api")
     .WithExternalHttpEndpoints()
     .WithReference(database)
     .WaitFor(database)
     .WithReference(blobs)
-    .WaitFor(blobs);
+    .WaitFor(blobs)
+    .WithReference(keyvault)
+    .WaitFor(keyvault);
 
 builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
     .WithNpm()

@@ -1,4 +1,6 @@
+using System.Text.Json;
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -6,21 +8,75 @@ public sealed class StorageAccountTypeBicepGenerator
     : IResourceTypeBicepGenerator
 {
     public string ResourceType
-        => "Microsoft.Storage/storageAccounts";
+        => AzureResourceTypes.ArmTypes.StorageAccount;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "StorageAccount";
+    public string ResourceTypeName => AzureResourceTypes.StorageAccount;
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
+        var blobContainerNames = ParseBlobContainerNames(resource.Properties);
+        var queueNames = ParseQueueNames(resource.Properties);
+        var storageTableNames = ParseStorageTableNames(resource.Properties);
+        var corsRules = ParseCorsRules(resource.Properties);
+        var tableCorsRules = ParseTableCorsRules(resource.Properties);
+        var lifecycleRules = ParseLifecycleRules(resource.Properties);
+
+        var companions = new List<GeneratedCompanionModule>();
+
+        if (blobContainerNames.Count > 0 || corsRules.Count > 0 || lifecycleRules.Count > 0)
+        {
+            companions.Add(new GeneratedCompanionModule
+            {
+                ModuleSymbolSuffix = "Blobs",
+                DeploymentNameSuffix = "Blobs",
+                FileName = "storage.blobs.module.bicep",
+                FolderName = "StorageAccount",
+                BicepContent = BlobsModuleTemplate,
+                TypesBicepContent = BlobsTypesTemplate,
+                BlobContainerNames = blobContainerNames,
+                CorsRules = corsRules,
+                LifecycleRules = lifecycleRules
+            });
+        }
+
+        if (queueNames.Count > 0)
+        {
+            companions.Add(new GeneratedCompanionModule
+            {
+                ModuleSymbolSuffix = "Queues",
+                DeploymentNameSuffix = "Queues",
+                FileName = "storage.queues.module.bicep",
+                FolderName = "StorageAccount",
+                BicepContent = QueuesModuleTemplate,
+                QueueNames = queueNames
+            });
+        }
+
+        if (storageTableNames.Count > 0 || tableCorsRules.Count > 0)
+        {
+            companions.Add(new GeneratedCompanionModule
+            {
+                ModuleSymbolSuffix = "Tables",
+                DeploymentNameSuffix = "Tables",
+                FileName = "storage.table.module.bicep",
+                FolderName = "StorageAccount",
+                BicepContent = TablesModuleTemplate,
+                TypesBicepContent = BlobsTypesTemplate,
+                StorageTableNames = storageTableNames,
+                TableCorsRules = tableCorsRules
+            });
+        }
+
         return new GeneratedTypeModule
         {
             ModuleName = "storageAccount",
-            ModuleFileName = "storageAccount.bicep",
+            ModuleFileName = "storageAccount",
             ModuleFolderName = "StorageAccount",
             ModuleBicepContent = StorageAccountModuleTemplate,
             ModuleTypesBicepContent = StorageAccountTypesTemplate,
             ResourceTypeName = ResourceTypeName,
+            CompanionModules = companions,
             Parameters = new Dictionary<string, object>
             {
                 ["sku"] = resource.Properties.GetValueOrDefault("sku", "Standard_LRS"),
@@ -33,6 +89,96 @@ public sealed class StorageAccountTypeBicepGenerator
         };
     }
 
+    private static List<string> ParseBlobContainerNames(IReadOnlyDictionary<string, string> properties)
+    {
+        if (!properties.TryGetValue("blobContainerNames", out var json) || string.IsNullOrEmpty(json))
+            return [];
+
+        return JsonSerializer.Deserialize<List<string>>(json) ?? [];
+    }
+
+    private static List<string> ParseStorageTableNames(IReadOnlyDictionary<string, string> properties)
+    {
+        if (!properties.TryGetValue("storageTableNames", out var json) || string.IsNullOrEmpty(json))
+        {
+            return [];
+        }
+
+        return JsonSerializer.Deserialize<List<string>>(json) ?? [];
+    }
+
+    private static List<string> ParseQueueNames(IReadOnlyDictionary<string, string> properties)
+    {
+        if (!properties.TryGetValue("queueNames", out var json) || string.IsNullOrEmpty(json))
+        {
+            return [];
+        }
+
+        return JsonSerializer.Deserialize<List<string>>(json) ?? [];
+    }
+
+    private static List<BlobCorsRuleData> ParseCorsRules(IReadOnlyDictionary<string, string> properties)
+    {
+        if (!properties.TryGetValue("corsRules", out var json) || string.IsNullOrEmpty(json))
+            return [];
+
+        var raw = JsonSerializer.Deserialize<List<CorsRuleJson>>(json);
+        if (raw is null) return [];
+
+        return raw.Select(r => new BlobCorsRuleData(
+            r.allowedOrigins ?? [],
+            r.allowedMethods ?? [],
+            r.allowedHeaders ?? [],
+            r.exposedHeaders ?? [],
+            r.maxAgeInSeconds))
+            .ToList();
+    }
+
+        private static List<BlobCorsRuleData> ParseTableCorsRules(IReadOnlyDictionary<string, string> properties)
+        {
+          if (!properties.TryGetValue("tableCorsRules", out var json) || string.IsNullOrEmpty(json))
+            return [];
+
+          var raw = JsonSerializer.Deserialize<List<CorsRuleJson>>(json);
+          if (raw is null) return [];
+
+          return raw.Select(r => new BlobCorsRuleData(
+            r.allowedOrigins ?? [],
+            r.allowedMethods ?? [],
+            r.allowedHeaders ?? [],
+            r.exposedHeaders ?? [],
+            r.maxAgeInSeconds))
+            .ToList();
+        }
+
+    private sealed record CorsRuleJson(
+        List<string>? allowedOrigins,
+        List<string>? allowedMethods,
+        List<string>? allowedHeaders,
+        List<string>? exposedHeaders,
+        int maxAgeInSeconds);
+
+    private static List<ContainerLifecycleRuleData> ParseLifecycleRules(IReadOnlyDictionary<string, string> properties)
+    {
+        if (!properties.TryGetValue("lifecycleRules", out var json) || string.IsNullOrEmpty(json))
+            return [];
+
+        var raw = JsonSerializer.Deserialize<List<LifecycleRuleJson>>(json);
+        if (raw is null) return [];
+
+        return raw.Select(r => new ContainerLifecycleRuleData(
+            r.ruleName ?? string.Empty,
+            r.containerNames ?? [],
+            r.timeToLiveInDays))
+            .ToList();
+    }
+
+    private sealed record LifecycleRuleJson(
+        string? ruleName,
+        List<string>? containerNames,
+        int timeToLiveInDays);
+
+
     private const string StorageAccountTypesTemplate = """
         @export()
         @description('SKU name for the Storage Account')
@@ -40,7 +186,7 @@ public sealed class StorageAccountTypeBicepGenerator
 
         @export()
         @description('Kind of Storage Account')
-        type StorageKind = 'StorageV2' | 'BlobStorage' | 'BlockBlobStorage' | 'FileStorage' | 'Storage'
+        type StorageKind = 'BlobStorage' | 'BlockBlobStorage' | 'FileStorage' | 'Storage' | 'StorageV2'
 
         @export()
         @description('Access tier for the Storage Account')
@@ -78,27 +224,194 @@ public sealed class StorageAccountTypeBicepGenerator
         @description('Minimum TLS version for client connections')
         param minimumTlsVersion TlsVersion = 'TLS1_2'
 
-        var storagePropertiesBase = {
-          allowBlobPublicAccess: allowBlobPublicAccess
-          supportsHttpsTrafficOnly: supportsHttpsTrafficOnly
-          minimumTlsVersion: minimumTlsVersion
-        }
-
-        var storageAccessTierProperties = contains([
-          'BlobStorage'
-          'StorageV2'
-        ], kind) ? {
-          accessTier: accessTier
-        } : {}
-
-        resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+        resource storage 'Microsoft.Storage/storageAccounts@2025-06-01' = {
           name: name
           location: location
           kind: kind
           sku: {
             name: sku
           }
-          properties: union(storagePropertiesBase, storageAccessTierProperties)
+          identity: {
+            type: 'SystemAssigned'
+          }
+          properties: {
+            allowBlobPublicAccess: allowBlobPublicAccess
+            supportsHttpsTrafficOnly: supportsHttpsTrafficOnly
+            minimumTlsVersion: minimumTlsVersion
+            accessTier: accessTier
+          }
         }
+
+        @description('The resource ID of the Storage Account')
+        output id string = storage.id
+
+        @description('The name of the Storage Account')
+        output name string = storage.name
+
+        @description('The primary blob endpoint')
+        output primaryBlobEndpoint string = storage.properties.primaryEndpoints.blob
+
+        @description('The primary table endpoint')
+        output primaryTableEndpoint string = storage.properties.primaryEndpoints.table
+
+        @description('The primary queue endpoint')
+        output primaryQueueEndpoint string = storage.properties.primaryEndpoints.queue
+
+        @description('The primary file endpoint')
+        output primaryFileEndpoint string = storage.properties.primaryEndpoints.file
+        """;
+
+    private const string BlobsTypesTemplate = """
+        @export()
+        @description('Describes a single CORS rule for the blob service')
+        type CorsRuleDescription = {
+          @description('Allowed origins')
+          allowedOrigins: string[]
+          @description('Allowed methods')
+          allowedMethods: string[]
+          @description('Allowed headers')
+          allowedHeaders: string[]
+          @description('Exposed headers')
+          exposedHeaders: string[]
+          @description('Max age in seconds')
+          maxAgeInSeconds: int
+        }
+
+        @export()
+        @description('Describes a lifecycle rule for automatic blob deletion by TTL')
+        type ContainerLifecycleRule = {
+          @description('Name of the lifecycle rule')
+          ruleName: string
+          @description('Blob container names this rule applies to')
+          containerNames: string[]
+          @description('Number of days after which blobs are deleted')
+          timeToLiveInDays: int
+        }
+        """;
+
+    private const string BlobsModuleTemplate = """
+        import { CorsRuleDescription, ContainerLifecycleRule } from './types.bicep'
+
+        @description('Storage account name')
+        param storageAccountName string
+
+        @description('Blob containers names')
+        param blobContainerNames string[]
+
+        @description('CORS rules')
+        param corsRules CorsRuleDescription[] = []
+
+        @description('Blob lifecycle management rules')
+        param containerLifecycleRules ContainerLifecycleRule[] = []
+
+        resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
+          name: storageAccountName
+        }
+
+        resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2025-06-01' = {
+          name: 'default'
+          parent: storageAccount
+          properties: {
+            cors: {
+              corsRules: corsRules
+            }
+          }
+        }
+
+        resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@2025-06-01' = [
+          for blobContainerName in blobContainerNames: {
+            name: blobContainerName
+            parent: blobService
+          }
+        ]
+
+        var lifecyclePolicyRules = [
+          for rule in containerLifecycleRules: {
+            enabled: true
+            name: rule.ruleName
+            type: 'Lifecycle'
+            definition: {
+              actions: {
+                baseBlob: {
+                  delete: {
+                    daysAfterModificationGreaterThan: rule.timeToLiveInDays
+                  }
+                }
+              }
+              filters: {
+                blobTypes: ['blockBlob']
+                prefixMatch: [for cn in rule.containerNames: '${cn}/']
+              }
+            }
+          }
+        ]
+
+        resource managementPolicies 'Microsoft.Storage/storageAccounts/managementPolicies@2025-06-01' = if (!empty(containerLifecycleRules)) {
+          name: 'default'
+          parent: storageAccount
+          properties: {
+            policy: {
+              rules: lifecyclePolicyRules
+            }
+          }
+        }
+        """;
+
+    private const string TablesModuleTemplate = """
+        import { CorsRuleDescription } from './types.bicep'
+
+        @description('Storage account name')
+        param storageAccountName string
+
+        @description('Table names')
+        param tableNames string[]
+
+        @description('CORS rules')
+        param corsRules CorsRuleDescription[] = []
+
+        resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
+          name: storageAccountName
+        }
+
+        resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2025-06-01' = {
+          name: 'default'
+          parent: storageAccount
+          properties: {
+            cors: {
+              corsRules: corsRules
+            }
+          }
+        }
+
+        resource table 'Microsoft.Storage/storageAccounts/tableServices/tables@2025-06-01' = [
+          for tableName in tableNames: {
+            name: tableName
+            parent: tableService
+          }
+        ]
+        """;
+
+    private const string QueuesModuleTemplate = """
+        @description('Storage account name')
+        param storageAccountName string
+
+        @description('Queue names')
+        param queueNames string[]
+
+        resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
+          name: storageAccountName
+        }
+
+        resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2025-06-01' = {
+          name: 'default'
+          parent: storageAccount
+        }
+
+        resource queue 'Microsoft.Storage/storageAccounts/queueServices/queues@2025-06-01' = [
+          for queueName in queueNames: {
+            name: queueName
+            parent: queueService
+          }
+        ]
         """;
 }

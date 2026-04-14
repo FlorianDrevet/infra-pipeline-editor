@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Domain.WebAppAggregate;
 /// <summary>Represents an Azure Web App resource.</summary>
 public class WebApp : AzureResource
 {
-    private readonly List<WebAppEnvironmentSettings> _environmentSettings = new();
+    private readonly List<WebAppEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Web App.</summary>
     public IReadOnlyCollection<WebAppEnvironmentSettings> EnvironmentSettings
@@ -32,6 +32,27 @@ public class WebApp : AzureResource
     /// <summary>Gets whether the app requires HTTPS only.</summary>
     public bool HttpsOnly { get; private set; }
 
+    /// <summary>Gets the deployment mode (Code or Container).</summary>
+    public DeploymentMode DeploymentMode { get; private set; } = new(Common.ValueObjects.DeploymentMode.DeploymentModeType.Code);
+
+    /// <summary>Gets the optional Container Registry identifier for container deployments.</summary>
+    public AzureResourceId? ContainerRegistryId { get; private set; }
+
+    /// <summary>Gets the Docker image name for container deployments (e.g., "myapp/api").</summary>
+    public string? DockerImageName { get; private set; }
+
+    /// <summary>Gets the optional relative path to the Dockerfile in the repository for container deployments.</summary>
+    public string? DockerfilePath { get; private set; }
+
+    /// <summary>Gets the optional relative path to the source code folder for code deployments.</summary>
+    public string? SourceCodePath { get; private set; }
+
+    /// <summary>Gets the optional custom build command for pipeline generation.</summary>
+    public string? BuildCommand { get; private set; }
+
+    /// <summary>Gets the user-friendly application name displayed in Azure DevOps pipeline runs.</summary>
+    public string? ApplicationName { get; private set; }
+
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages
         => Array.Empty<ParameterUsage>();
 
@@ -47,7 +68,14 @@ public class WebApp : AzureResource
         WebAppRuntimeStack runtimeStack,
         string runtimeVersion,
         bool alwaysOn,
-        bool httpsOnly)
+        bool httpsOnly,
+        DeploymentMode deploymentMode,
+        AzureResourceId? containerRegistryId,
+        string? dockerImageName,
+        string? dockerfilePath,
+        string? sourceCodePath,
+        string? buildCommand,
+        string? applicationName)
     {
         Name = name;
         Location = location;
@@ -56,6 +84,13 @@ public class WebApp : AzureResource
         RuntimeVersion = runtimeVersion;
         AlwaysOn = alwaysOn;
         HttpsOnly = httpsOnly;
+        DeploymentMode = deploymentMode;
+        ContainerRegistryId = containerRegistryId;
+        DockerImageName = dockerImageName;
+        DockerfilePath = dockerfilePath;
+        SourceCodePath = sourceCodePath;
+        BuildCommand = buildCommand;
+        ApplicationName = applicationName;
     }
 
     /// <summary>
@@ -66,20 +101,19 @@ public class WebApp : AzureResource
         string environmentName,
         bool? alwaysOn,
         bool? httpsOnly,
-        WebAppRuntimeStack? runtimeStack,
-        string? runtimeVersion)
+        string? dockerImageTag)
     {
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
         if (existing is not null)
         {
-            existing.Update(alwaysOn, httpsOnly, runtimeStack, runtimeVersion);
+            existing.Update(alwaysOn, httpsOnly, dockerImageTag);
         }
         else
         {
             _environmentSettings.Add(
-                WebAppEnvironmentSettings.Create(Id, environmentName, alwaysOn, httpsOnly, runtimeStack, runtimeVersion));
+                WebAppEnvironmentSettings.Create(Id, environmentName, alwaysOn, httpsOnly, dockerImageTag));
         }
     }
 
@@ -87,13 +121,13 @@ public class WebApp : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, WebAppRuntimeStack? RuntimeStack, string? RuntimeVersion)> settings)
+        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)> settings)
     {
         _environmentSettings.Clear();
         foreach (var s in settings)
         {
             _environmentSettings.Add(
-                WebAppEnvironmentSettings.Create(Id, s.EnvironmentName, s.AlwaysOn, s.HttpsOnly, s.RuntimeStack, s.RuntimeVersion));
+                WebAppEnvironmentSettings.Create(Id, s.EnvironmentName, s.AlwaysOn, s.HttpsOnly, s.DockerImageTag));
         }
     }
 
@@ -107,7 +141,14 @@ public class WebApp : AzureResource
         string runtimeVersion,
         bool alwaysOn,
         bool httpsOnly,
-        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, WebAppRuntimeStack? RuntimeStack, string? RuntimeVersion)>? environmentSettings = null)
+        DeploymentMode deploymentMode,
+        AzureResourceId? containerRegistryId,
+        string? dockerImageName,
+        string? dockerfilePath = null,
+        string? sourceCodePath = null,
+        string? buildCommand = null,
+        string? applicationName = null,
+        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)>? environmentSettings = null)
     {
         var webApp = new WebApp
         {
@@ -119,7 +160,14 @@ public class WebApp : AzureResource
             RuntimeStack = runtimeStack,
             RuntimeVersion = runtimeVersion,
             AlwaysOn = alwaysOn,
-            HttpsOnly = httpsOnly
+            HttpsOnly = httpsOnly,
+            DeploymentMode = deploymentMode,
+            ContainerRegistryId = containerRegistryId,
+            DockerImageName = dockerImageName,
+            DockerfilePath = dockerfilePath,
+            SourceCodePath = sourceCodePath,
+            BuildCommand = buildCommand,
+            ApplicationName = applicationName
         };
 
         if (environmentSettings is not null)

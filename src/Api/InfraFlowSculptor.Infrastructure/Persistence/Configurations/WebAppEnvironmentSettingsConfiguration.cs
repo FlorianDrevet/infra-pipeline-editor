@@ -32,13 +32,7 @@ public class WebAppEnvironmentSettingsConfiguration
 
         builder.Property(x => x.HttpsOnly);
 
-        builder.Property(x => x.RuntimeStack)
-            .HasConversion(
-                v => v != null ? v.Value.ToString() : null,
-                v => v != null
-                    ? new WebAppRuntimeStack(Enum.Parse<WebAppRuntimeStack.WebAppRuntimeStackEnum>(v))
-                    : null);
-
-        builder.Property(x => x.RuntimeVersion);
+        builder.Property(x => x.DockerImageTag)
+            .IsRequired(false);
     }
 }

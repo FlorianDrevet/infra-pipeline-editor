@@ -11,9 +11,9 @@ public class ListRoleAssignmentsQueryHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<ListRoleAssignmentsQuery, ErrorOr<List<RoleAssignmentResult>>>
+    : IQueryHandler<ListRoleAssignmentsQuery, RoleAssignmentsWithIdentityResult>
 {
-    public async Task<ErrorOr<List<RoleAssignmentResult>>> Handle(
+    public async Task<ErrorOr<RoleAssignmentsWithIdentityResult>> Handle(
         ListRoleAssignmentsQuery request,
         CancellationToken cancellationToken)
     {
@@ -34,7 +34,7 @@ public class ListRoleAssignmentsQueryHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
-        var results = resource.RoleAssignments
+        var roleAssignments = resource.RoleAssignments
             .Select(r => new RoleAssignmentResult(
                 r.Id,
                 r.SourceResourceId,
@@ -44,6 +44,20 @@ public class ListRoleAssignmentsQueryHandler(
                 r.UserAssignedIdentityId))
             .ToList();
 
-        return results;
+        string? assignedUaiId = null;
+        string? assignedUaiName = null;
+
+        if (resource.AssignedUserAssignedIdentityId is not null)
+        {
+            assignedUaiId = resource.AssignedUserAssignedIdentityId.Value.ToString();
+            var uaiResource = await azureResourceRepository.GetByIdAsync(
+                resource.AssignedUserAssignedIdentityId, cancellationToken);
+            assignedUaiName = uaiResource?.Name.Value;
+        }
+
+        return new RoleAssignmentsWithIdentityResult(
+            assignedUaiId,
+            assignedUaiName,
+            roleAssignments);
     }
 }

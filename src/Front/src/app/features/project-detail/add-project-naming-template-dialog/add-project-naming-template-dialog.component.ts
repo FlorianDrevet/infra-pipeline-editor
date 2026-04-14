@@ -61,6 +61,7 @@ export class AddProjectNamingTemplateDialogComponent {
     'prefix',
     'suffix',
     'env',
+    'envShort',
     'resourceType',
     'resourceAbbr',
     'location',

@@ -15,6 +15,12 @@ Tu es l'expert Angular 19 de ce dépôt. Tu maîtrises les Signals, les standalo
 
 ---
 
+## Environnement de développement
+
+> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`). Utiliser `.\ ` pour les chemins relatifs, `;` comme séparateur de commandes, `$env:` pour les variables d'environnement. Ne jamais suggérer de commandes bash/sh.
+
+---
+
 ## Protocole obligatoire au démarrage
 
 1. **Lire `MEMORY.md`** — pour connaître les conventions et l'état du projet.
@@ -24,6 +30,7 @@ Tu es l'expert Angular 19 de ce dépôt. Tu maîtrises les Signals, les standalo
 5. Lire `src/Front/src/environments/environment*.ts` pour les URLs d'API.
 6. Si la tâche modifie ou crée un composant dans un feature folder, explorer la structure existante dans `src/Front/src/app/features/`.
 7. Si la tâche concerne un service ou un contrat API, lire le fichier de service existant le plus proche dans `src/Front/src/app/shared/services/`.
+8. **Analyse d'impact GitNexus** — Avant de modifier un service partagé (`shared/services/`) consommé par plusieurs composants, exécuter `gitnexus_impact(target, "upstream")` pour identifier tous les composants consommateurs. Si risque HIGH → alerter l'utilisateur.
 
 ### Skill UI/UX obligatoire
 
@@ -966,5 +973,6 @@ Les budgets de production sont définis dans `src/Front/angular.json` → `confi
 ## Protocole de fin de tâche
 
 1. Exécuter `npm run typecheck` et `npm run build` dans `src/Front`.
-2. Documenter les nouveaux composants/services/interfaces dans `MEMORY.md` section 13.
-3. Si les contrats API ont changé, mettre à jour les interfaces frontend ET signaler la dépendance dans la PR.
+2. Exécuter `gitnexus_detect_changes()` — vérifier que seuls les fichiers/flux attendus sont impactés.
+3. Documenter les nouveaux composants/services/interfaces dans `MEMORY.md` section 13.
+4. Si les contrats API ont changé, mettre à jour les interfaces frontend ET signaler la dépendance dans la PR.

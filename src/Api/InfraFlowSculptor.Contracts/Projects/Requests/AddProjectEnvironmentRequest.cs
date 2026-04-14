@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
+using InfraFlowSculptor.Contracts.Common.Requests;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 
@@ -12,6 +12,10 @@ public class AddProjectEnvironmentRequest
     [Required]
     public required string Name { get; init; }
 
+    /// <summary>Short environment identifier without separators (e.g. "dev", "qa", "prod").</summary>
+    [Required]
+    public required string ShortName { get; init; }
+
     /// <summary>Optional short prefix prepended to generated resource names (e.g. "prod").</summary>
     public string Prefix { get; init; } = string.Empty;
 
@@ -22,10 +26,6 @@ public class AddProjectEnvironmentRequest
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
-    /// <summary>Azure Active Directory tenant ID associated with this environment.</summary>
-    [Required, GuidValidation]
-    public required Guid TenantId { get; init; }
-
     /// <summary>Azure subscription ID where resources in this environment will be created.</summary>
     [Required, GuidValidation]
     public required Guid SubscriptionId { get; init; }
@@ -35,6 +35,9 @@ public class AddProjectEnvironmentRequest
 
     /// <summary>When true, deployments targeting this environment require explicit approval before proceeding.</summary>
     public bool RequiresApproval { get; init; } = false;
+
+    /// <summary>Azure DevOps service connection name used for ARM deployments in this environment (e.g. "mySubscriptionDev").</summary>
+    public string? AzureResourceManagerConnection { get; init; }
 
     /// <summary>Optional list of Azure tags to apply to all resources deployed in this environment.</summary>
     public IReadOnlyList<TagRequest> Tags { get; init; } = [];

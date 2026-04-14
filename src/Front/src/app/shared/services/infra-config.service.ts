@@ -4,12 +4,17 @@ import { MethodEnum } from '../enums/method.enum';
 import {
   InfrastructureConfigResponse,
   CreateInfrastructureConfigRequest,
-  AddEnvironmentRequest,
-  UpdateEnvironmentRequest,
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
+  SetInfraConfigTagsRequest,
 } from '../interfaces/infra-config.interface';
 import { ResourceGroupResponse } from '../interfaces/resource-group.interface';
+import {
+  CrossConfigReferenceResponse,
+  IncomingCrossConfigReferenceResponse,
+  AddCrossConfigReferenceRequest,
+} from '../interfaces/cross-config-reference.interface';
+import { ConfigDiagnosticsResponse } from '../interfaces/config-diagnostics.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -52,36 +57,6 @@ export class InfraConfigService {
     return this.axios.request$<void>(MethodEnum.DELETE, `/infra-config/${id}`);
   }
 
-  addEnvironment(
-    id: string,
-    request: AddEnvironmentRequest
-  ): Promise<InfrastructureConfigResponse> {
-    return this.axios.request$<InfrastructureConfigResponse>(
-      MethodEnum.POST,
-      `/infra-config/${id}/environments`,
-      request
-    );
-  }
-
-  updateEnvironment(
-    id: string,
-    envId: string,
-    request: UpdateEnvironmentRequest
-  ): Promise<InfrastructureConfigResponse> {
-    return this.axios.request$<InfrastructureConfigResponse>(
-      MethodEnum.PUT,
-      `/infra-config/${id}/environments/${envId}`,
-      request
-    );
-  }
-
-  removeEnvironment(id: string, envId: string): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/infra-config/${id}/environments/${envId}`
-    );
-  }
-
   setDefaultNamingTemplate(
     id: string,
     request: SetDefaultNamingTemplateRequest
@@ -117,7 +92,7 @@ export class InfraConfigService {
 
   setInheritance(
     id: string,
-    request: { useProjectEnvironments: boolean; useProjectNamingConventions: boolean }
+    request: { useProjectNamingConventions: boolean }
   ): Promise<void> {
     return this.axios.request$<void>(
       MethodEnum.PUT,
@@ -125,4 +100,59 @@ export class InfraConfigService {
       request
     );
   }
+
+  // ─── Cross-Config References ───
+
+  getCrossConfigReferences(configId: string): Promise<CrossConfigReferenceResponse[]> {
+    return this.axios.request$<CrossConfigReferenceResponse[]>(
+      MethodEnum.GET,
+      `/infra-config/${configId}/cross-config-references`
+    );
+  }
+
+  addCrossConfigReference(
+    configId: string,
+    request: AddCrossConfigReferenceRequest
+  ): Promise<CrossConfigReferenceResponse> {
+    return this.axios.request$<CrossConfigReferenceResponse>(
+      MethodEnum.POST,
+      `/infra-config/${configId}/cross-config-references`,
+      request
+    );
+  }
+
+  removeCrossConfigReference(configId: string, referenceId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/infra-config/${configId}/cross-config-references/${referenceId}`
+    );
+  }
+
+  getIncomingCrossConfigReferences(configId: string): Promise<IncomingCrossConfigReferenceResponse[]> {
+    return this.axios.request$<IncomingCrossConfigReferenceResponse[]>(
+      MethodEnum.GET,
+      `/infra-config/${configId}/incoming-cross-config-references`
+    );
+  }
+
+  // ─── Tags ───
+
+  setTags(id: string, request: SetInfraConfigTagsRequest): Promise<InfrastructureConfigResponse> {
+    return this.axios.request$<InfrastructureConfigResponse>(
+      MethodEnum.PUT,
+      `/infra-config/${id}/tags`,
+      request
+    );
+  }
+
+  // ─── Diagnostics ───
+
+  getDiagnostics(configId: string): Promise<ConfigDiagnosticsResponse> {
+    return this.axios.request$<ConfigDiagnosticsResponse>(
+      MethodEnum.GET,
+      `/infra-config/${configId}/diagnostics`
+    );
+  }
+
+  // ─── Pipeline Variable Groups (removed — now project-level only) ───
 }

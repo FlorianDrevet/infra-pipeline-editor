@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -10,10 +11,10 @@ public sealed class ApplicationInsightsTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.Insights/components";
+        => AzureResourceTypes.ArmTypes.ApplicationInsights;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "ApplicationInsights";
+    public string ResourceTypeName => AzureResourceTypes.ApplicationInsights;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
@@ -21,7 +22,7 @@ public sealed class ApplicationInsightsTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "applicationInsights",
-            ModuleFileName = "applicationInsights.bicep",
+            ModuleFileName = "applicationInsights",
             ModuleFolderName = "ApplicationInsights",
             ModuleBicepContent = ApplicationInsightsModuleTemplate,
             ModuleTypesBicepContent = ApplicationInsightsTypesTemplate,
@@ -77,5 +78,14 @@ public sealed class ApplicationInsightsTypeBicepGenerator
             IngestionMode: ingestionMode
           }
         }
+
+        @description('The resource ID of the Application Insights resource')
+        output id string = applicationInsights.id
+
+        @description('The instrumentation key of the Application Insights resource')
+        output instrumentationKey string = applicationInsights.properties.InstrumentationKey
+
+        @description('The connection string of the Application Insights resource')
+        output connectionString string = applicationInsights.properties.ConnectionString
         """;
 }

@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Domain.AppConfigurationAggregate;
+using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -23,6 +24,15 @@ public class AppConfigurationConfiguration : IEntityTypeConfiguration<AppConfigu
 
         builder.Navigation(ac => ac.EnvironmentSettings)
             .HasField("_environmentSettings")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(ac => ac.ConfigurationKeys)
+            .WithOne()
+            .HasForeignKey(ck => ck.AppConfigurationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(ac => ac.ConfigurationKeys)
+            .HasField("_configurationKeys")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

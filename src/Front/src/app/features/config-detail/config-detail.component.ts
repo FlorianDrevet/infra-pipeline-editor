@@ -1,9 +1,11 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -12,12 +14,12 @@ import { TranslateModule } from '@ngx-translate/core';
 import {
   InfrastructureConfigResponse,
   ResourceNamingTemplateResponse,
-  EnvironmentDefinitionResponse,
+  SetInfraConfigTagsRequest,
+  TagRequest,
 } from '../../shared/interfaces/infra-config.interface';
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { AddEnvironmentDialogComponent, AddEnvironmentDialogData } from './add-environment-dialog/add-environment-dialog.component';
 import { AddResourceGroupDialogComponent, AddResourceGroupDialogData } from './add-resource-group-dialog/add-resource-group-dialog.component';
 import { AddResourceDialogComponent, AddResourceDialogData } from './add-resource-dialog/add-resource-dialog.component';
 import {
@@ -41,32 +43,48 @@ import { ApplicationInsightsService } from '../../shared/services/application-in
 import { CosmosDbService } from '../../shared/services/cosmos-db.service';
 import { SqlServerService } from '../../shared/services/sql-server.service';
 import { SqlDatabaseService } from '../../shared/services/sql-database.service';
+import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
+import { ContainerRegistryService } from '../../shared/services/container-registry.service';
 import { ProjectService } from '../../shared/services/project.service';
 import { BicepGeneratorService } from '../../shared/services/bicep-generator.service';
+import { PipelineGeneratorService } from '../../shared/services/pipeline-generator.service';
 import { CascadeDeleteDialogComponent, CascadeDeleteDialogData } from '../../shared/components/cascade-delete-dialog/cascade-delete-dialog.component';
 import { DependentResourceResponse } from '../../shared/interfaces/dependent-resource.interface';
-import { GenerateBicepResponse } from '../../shared/interfaces/bicep-generator.interface';
+import { GenerateBicepResponse, ResourceDiagnosticResponse } from '../../shared/interfaces/bicep-generator.interface';
+import { GeneratePipelineResponse } from '../../shared/interfaces/pipeline-generator.interface';
 import { saveAs } from 'file-saver';
 import { AuthenticationService } from '../../shared/services/authentication.service';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
-import { ProjectResponse } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS, RESOURCE_TYPE_OPTIONS, PARENT_CHILD_RESOURCE_TYPES, CHILD_RESOURCE_TYPES } from './enums/resource-type.enum';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { BicepHighlightPipe } from './pipes/bicep-highlight.pipe';
+import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
 import { StorageAccountResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
+import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
+import { GitConfigDialogComponent, GitConfigDialogData } from '../project-detail/git-config-dialog/git-config-dialog.component';
+import {
+  CrossConfigReferenceResponse,
+  IncomingCrossConfigReferenceResponse,
+} from '../../shared/interfaces/cross-config-reference.interface';
+import { ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
+import { AddVariableGroupDialogComponent } from './add-variable-group-dialog/add-variable-group-dialog.component';
+import { DiagnosticPopoverComponent } from '../../shared/components/diagnostic-popover/diagnostic-popover.component';
+import {
+  GenerationDiagnosticsDialogComponent,
+  GenerationDiagnosticsDialogData,
+  MissingEnvResource,
+} from '../../shared/components/generation-diagnostics-dialog/generation-diagnostics-dialog.component';
+import { firstValueFrom } from 'rxjs';
 
 interface ResourceDisplayItem {
   resource: AzureResourceResponse;
   children?: AzureResourceResponse[];
+  incomingChildren?: IncomingCrossConfigReferenceResponse[];
   isParent: boolean;
-}
-
-interface BicepModuleFolder {
-  folderName: string;
-  folderKey: string;
-  files: Array<{ name: string; displayName: string; uri: string }>;
+  crossConfigRef?: CrossConfigReferenceResponse;
 }
 
 
@@ -77,16 +95,20 @@ interface BicepModuleFolder {
     TranslateModule,
     RouterLink,
     FormsModule,
+    ReactiveFormsModule,
     MatButtonModule,
+    MatChipsModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
+    MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
-    BicepHighlightPipe,
+    BicepFilePanelComponent,
+    DiagnosticPopoverComponent,
   ],
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',
@@ -94,6 +116,7 @@ interface BicepModuleFolder {
 export class ConfigDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly keyVaultService = inject(KeyVaultService);
@@ -111,8 +134,11 @@ export class ConfigDetailComponent implements OnInit {
   private readonly cosmosDbService = inject(CosmosDbService);
   private readonly sqlServerService = inject(SqlServerService);
   private readonly sqlDatabaseService = inject(SqlDatabaseService);
+  private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
+  private readonly containerRegistryService = inject(ContainerRegistryService);
   private readonly projectService = inject(ProjectService);
   private readonly bicepService = inject(BicepGeneratorService);
+  private readonly pipelineService = inject(PipelineGeneratorService);
   private readonly authService = inject(AuthenticationService);
   private readonly recentlyViewedService = inject(RecentlyViewedService);
   private readonly dialog = inject(MatDialog);
@@ -122,8 +148,6 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly resourceGroups = signal<ResourceGroupResponse[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly loadError = signal('');
-  protected readonly envActionId = signal<string | null>(null);
-  protected readonly envErrorKey = signal('');
   protected readonly namingActionKey = signal<string | null>(null);
   protected readonly namingErrorKey = signal('');
   protected readonly rgErrorKey = signal('');
@@ -140,6 +164,9 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly storageAccountDetails = signal<Record<string, StorageAccountResponse | undefined>>({});
   protected readonly storageDetailsLoading = signal<string | null>(null);
 
+  // ─── Diagnostics Validation ───
+  protected readonly validatingDiagnostics = signal(false);
+
   // ─── Bicep Generation ───
   protected readonly bicepLoading = signal(false);
   protected readonly bicepResult = signal<GenerateBicepResponse | null>(null);
@@ -148,52 +175,220 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly bicepPanelCollapsed = signal(false);
   protected readonly bicepDownloading = signal(false);
 
-  // ─── Bicep File Viewer ───
-  protected readonly bicepViewerFile = signal<string | null>(null);
-  protected readonly bicepViewerContent = signal<string | null>(null);
-  protected readonly bicepViewerLoading = signal(false);
-  protected readonly bicepExpandedFolders = signal<Set<string>>(new Set<string>(['modules', 'parameters']));
+  // ─── Bicep File Panel ───
 
-  protected readonly bicepModuleEntries = computed(() => {
+  protected readonly configBicepNodes = computed<BicepTreeNode[]>(() => {
     const result = this.bicepResult();
-    if (!result?.moduleUris) return [];
-    return Object.entries(result.moduleUris).map(([name, uri]) => ({ name, uri }));
-  });
+    if (!result) return [];
+    const nodes: BicepTreeNode[] = [];
 
-  protected readonly bicepModuleFolders = computed<BicepModuleFolder[]>(() => {
-    const result = this.bicepResult();
-    if (!result?.moduleUris) return [];
-    const folderMap = new Map<string, BicepModuleFolder>();
-    for (const [filePath, uri] of Object.entries(result.moduleUris)) {
-      const parts = filePath.split('/');
-      if (parts.length < 3) continue;
-      const folderName = parts[1];
-      const displayName = parts[2];
-      const folderKey = `modules/${folderName}`;
-      if (!folderMap.has(folderKey)) {
-        folderMap.set(folderKey, { folderName, folderKey, files: [] });
-      }
-      folderMap.get(folderKey)!.files.push({ name: filePath, displayName, uri });
+    // Root-level files — uri is the file path, passed to getFileContent() by loadConfigBicepFile
+    nodes.push({ kind: 'file', path: 'types.bicep', displayName: 'types.bicep', type: 'types', uri: 'types.bicep', depth: 0, parentFolderKey: '' });
+    nodes.push({ kind: 'file', path: 'functions.bicep', displayName: 'functions.bicep', type: 'functions', uri: 'functions.bicep', depth: 0, parentFolderKey: '' });
+    if (result.constantsBicepUri) {
+      nodes.push({ kind: 'file', path: 'constants.bicep', displayName: 'constants.bicep', type: 'constants', uri: 'constants.bicep', depth: 0, parentFolderKey: '' });
     }
-    return Array.from(folderMap.values());
+    nodes.push({ kind: 'file', path: 'main.bicep', displayName: 'main.bicep', type: 'entry-point', uri: 'main.bicep', depth: 0, parentFolderKey: '' });
+
+    // parameters/ folder
+    const params = Object.entries(result.parameterFileUris ?? {});
+    if (params.length > 0) {
+      nodes.push({ kind: 'folder', key: 'parameters', name: 'parameters/', folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
+      for (const [name, uri] of params) {
+        nodes.push({ kind: 'file', path: name, displayName: name.split('/').at(-1)!, type: 'params', uri, depth: 1, parentFolderKey: 'parameters' });
+      }
+    }
+
+    // modules/ folder (with per-resource sub-folders)
+    if (result.moduleUris && Object.keys(result.moduleUris).length > 0) {
+      const folderMap = new Map<string, { name: string; files: Array<{ path: string; displayName: string; uri: string }> }>();
+      for (const [filePath, uri] of Object.entries(result.moduleUris)) {
+        const parts = filePath.split('/');
+        if (parts.length < 3) continue;
+        const folderName = parts[1];
+        const displayName = parts[2];
+        const folderKey = `modules/${folderName}`;
+        if (!folderMap.has(folderKey)) folderMap.set(folderKey, { name: folderName, files: [] });
+        folderMap.get(folderKey)!.files.push({ path: filePath, displayName, uri });
+      }
+      if (folderMap.size > 0) {
+        nodes.push({ kind: 'folder', key: 'modules', name: 'modules/', folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
+        for (const [folderKey, folder] of folderMap) {
+          nodes.push({ kind: 'folder', key: folderKey, name: `${folder.name}/`, folderIcon: 'folder', depth: 1, parentFolderKey: 'modules' } satisfies BicepFolderNode);
+          for (const file of folder.files) {
+            const type =
+              file.displayName === 'types.bicep' ? 'types'
+              : file.displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
+              : 'module-type';
+            nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type, uri: file.uri, depth: 2, parentFolderKey: folderKey } satisfies BicepFileNode);
+          }
+        }
+      }
+    }
+
+    return nodes;
   });
 
-  protected readonly bicepParamEntries = computed(() => {
-    const result = this.bicepResult();
-    if (!result?.parameterFileUris) return [];
-    return Object.entries(result.parameterFileUris).map(([name, uri]) => ({ name, uri }));
+  protected readonly loadConfigBicepFile = (filePath: string): Promise<string> => {
+    const configId = this.config()?.id ?? '';
+    return this.bicepService.getFileContent(configId, filePath);
+  };
+
+  // ─── Pipeline Generation ───
+  protected readonly pipelineLoading = signal(false);
+  protected readonly pipelineResult = signal<GeneratePipelineResponse | null>(null);
+  protected readonly pipelineErrorKey = signal('');
+  protected readonly pipelinePanelOpen = signal(false);
+  protected readonly pipelinePanelCollapsed = signal(false);
+  protected readonly pipelineDownloading = signal(false);
+
+  protected readonly configPipelineNodes = computed<BicepTreeNode[]>(() => {
+    const result = this.pipelineResult();
+    if (!result) return [];
+    const nodes: BicepTreeNode[] = [];
+
+    const folderMap = new Map<string, { name: string; files: Array<{ path: string; displayName: string; uri: string }> }>();
+
+    for (const [filePath, uri] of Object.entries(result.fileUris)) {
+      const parts = filePath.split('/');
+      if (parts.length >= 2) {
+        const folderName = parts.slice(0, -1).join('/');
+        const displayName = parts[parts.length - 1];
+        if (!folderMap.has(folderName)) folderMap.set(folderName, { name: folderName, files: [] });
+        folderMap.get(folderName)!.files.push({ path: filePath, displayName, uri });
+      } else {
+        nodes.push({ kind: 'file', path: filePath, displayName: filePath, type: 'generic', uri, depth: 0, parentFolderKey: '' });
+      }
+    }
+
+    for (const [folderKey, folder] of folderMap) {
+      nodes.push({ kind: 'folder', key: folderKey, name: `${folder.name}/`, folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
+      for (const file of folder.files) {
+        nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type: 'generic', uri: file.uri, depth: 1, parentFolderKey: folderKey } satisfies BicepFileNode);
+      }
+    }
+
+    return nodes;
   });
+
+  protected readonly loadConfigPipelineFile = (filePath: string): Promise<string> => {
+    const configId = this.config()?.id ?? '';
+    return this.pipelineService.getFileContent(configId, filePath);
+  };
 
   // ─── Inheritance ───
   protected readonly inheritanceLoading = signal(false);
 
-  protected readonly useProjectEnvironments = computed(() => this.config()?.useProjectEnvironments ?? false);
+  // ─── Configuration Diagnostics ───
+  protected readonly diagnostics = signal<ResourceDiagnosticResponse[]>([]);
+  protected readonly diagnosticsLoading = signal(false);
+  private readonly diagnosticsByResourceId = computed(() => {
+    const map = new Map<string, ResourceDiagnosticResponse[]>();
+    for (const d of this.diagnostics()) {
+      const existing = map.get(d.resourceId) ?? [];
+      existing.push(d);
+      map.set(d.resourceId, existing);
+    }
+    return map;
+  });
+
+  // ─── Cross-Config References ───
+  protected readonly crossConfigReferences = signal<CrossConfigReferenceResponse[]>([]);
+  protected readonly incomingCrossConfigReferences = signal<IncomingCrossConfigReferenceResponse[]>([]);
+  protected readonly crossConfigLoading = signal(false);
+  protected readonly crossConfigErrorKey = signal('');
+  protected readonly crossConfigLoaded = signal(false);
+
+  // ─── Pipeline Variable Groups ───
+  protected readonly variableGroups = signal<ProjectPipelineVariableGroupResponse[]>([]);
+  protected readonly vgLoading = signal(false);
+  protected readonly vgErrorKey = signal('');
+  protected readonly vgLoaded = signal(false);
+
+  // ─── Config Tags ───
+  protected readonly isEditingConfigTags = signal(false);
+  protected readonly editingConfigTags = signal<TagRequest[]>([]);
+  protected readonly configTagsErrorKey = signal('');
+  protected readonly configTagsSaving = signal(false);
+  protected readonly configTagNameCtrl = new FormControl('', { nonNullable: true });
+  protected readonly configTagValueCtrl = new FormControl('', { nonNullable: true });
+  protected readonly configTags = computed(() => this.config()?.tags ?? []);
+
+  protected readonly isMultiRepo = computed(() => this.project()?.repositoryMode === 'MultiRepo');
+
+  // ─── Unified generation (multi-repo) ───
+  protected readonly generateAllLoading = computed(
+    () => this.validatingDiagnostics() || this.bicepLoading() || this.pipelineLoading(),
+  );
+  protected readonly generationPanelOpen = computed(
+    () => this.bicepPanelOpen() || this.pipelinePanelOpen() || this.bicepLoading() || this.pipelineLoading(),
+  );
+
+  protected async generateAll(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.generateAllLoading()) return;
+
+    this.validatingDiagnostics.set(true);
+    try {
+      const shouldContinue = await this.showDiagnosticsDialog();
+      if (!shouldContinue) return;
+    } finally {
+      this.validatingDiagnostics.set(false);
+    }
+
+    await Promise.all([
+      this.doGenerateBicep(),
+      this.doGeneratePipeline(),
+    ]);
+  }
+
+  protected closeGenerationPanel(): void {
+    this.closeBicepPanel();
+    this.closePipelinePanel();
+  }
+
+  // ─── Git Config (multi-repo, config-level display) ───
+  protected readonly gitTestLoading = signal(false);
+  protected readonly gitTestResult = signal<TestGitConnectionResponse | null>(null);
+  protected readonly gitActionError = signal('');
+
   protected readonly useProjectNamingConventions = computed(() => this.config()?.useProjectNamingConventions ?? false);
 
   protected readonly projectSortedEnvironments = computed(() => {
     const envs = this.project()?.environmentDefinitions ?? [];
     return [...envs].sort((a, b) => a.order - b.order);
   });
+
+  /** Resource types that have no per-environment settings. */
+  private readonly ENV_SETTINGS_EXCLUDED_TYPES = new Set(['UserAssignedIdentity']);
+
+  /**
+   * Returns the list of environment names that are defined in the project
+   * but not yet configured for the given resource. Returns empty array if
+   * the resource type has no environment settings or if all environments are configured.
+   */
+  protected getMissingEnvironments(resource: AzureResourceResponse): string[] {
+    if (this.ENV_SETTINGS_EXCLUDED_TYPES.has(resource.resourceType)) return [];
+    const allEnvNames = this.projectSortedEnvironments().map(e => e.name);
+    if (allEnvNames.length === 0) return [];
+    const configured = new Set(resource.configuredEnvironments ?? []);
+    return allEnvNames.filter(name => !configured.has(name));
+  }
+
+  /**
+   * Returns true if the resource has at least one missing environment configuration.
+   */
+  protected hasMissingEnvironments(resource: AzureResourceResponse): boolean {
+    return this.getMissingEnvironments(resource).length > 0;
+  }
+
+  protected getResourceDiagnostics(resourceId: string): ResourceDiagnosticResponse[] {
+    return this.diagnosticsByResourceId().get(resourceId) ?? [];
+  }
+
+  protected hasResourceDiagnostics(resourceId: string): boolean {
+    return this.getResourceDiagnostics(resourceId).length > 0;
+  }
 
   // canWrite defaults to true — access checks are now at project level
   protected readonly canWrite = signal(true);
@@ -212,10 +407,7 @@ export class ConfigDetailComponent implements OnInit {
   });
 
   protected readonly effectiveEnvironments = computed(() => {
-    if (this.useProjectEnvironments()) {
-      return this.project()?.environmentDefinitions ?? [];
-    }
-    return this.config()?.environmentDefinitions ?? [];
+    return this.project()?.environmentDefinitions ?? [];
   });
 
   protected readonly sortedEnvironments = computed(() => {
@@ -255,6 +447,7 @@ export class ConfigDetailComponent implements OnInit {
       prefix: env.prefix ?? '',
       suffix: env.suffix ?? '',
       env: env.name,
+      envShort: env.shortName ?? '',
       resourceType,
       resourceAbbr: RESOURCE_TYPE_ABBREVIATIONS[resourceType] ?? resourceType.toLowerCase(),
       location: env.location,
@@ -270,6 +463,34 @@ export class ConfigDetailComponent implements OnInit {
       return;
     }
     await this.loadConfig(id);
+
+    // React to route param changes (e.g. cross-config navigation)
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async (params) => {
+      const newId = params.get('id');
+      if (newId && newId !== this.config()?.id) {
+        this.resetState();
+        await this.loadConfig(newId);
+      }
+    });
+  }
+
+  private resetState(): void {
+    this.config.set(null);
+    this.project.set(null);
+    this.resourceGroups.set([]);
+    this.expandedRgId.set(null);
+    this.rgResources.set({});
+    this.expandedParentResources.set(new Set<string>());
+    this.crossConfigReferences.set([]);
+    this.incomingCrossConfigReferences.set([]);
+    this.crossConfigLoaded.set(false);
+    this.crossConfigErrorKey.set('');
+    this.bicepResult.set(null);
+    this.bicepPanelOpen.set(false);
+    this.storageAccountDetails.set({});
+    this.previewEnvId.set(null);
+    this.diagnostics.set([]);
+    this.loadError.set('');
   }
 
   private async loadConfig(id: string): Promise<void> {
@@ -283,11 +504,6 @@ export class ConfigDetailComponent implements OnInit {
       ]);
       this.config.set(config);
       this.resourceGroups.set(resourceGroups);
-      this.recentlyViewedService.trackView({
-        id: config.id,
-        name: config.name,
-        type: 'config',
-      });
 
       // Load the parent project for inheritance data
       if (config.projectId) {
@@ -300,13 +516,22 @@ export class ConfigDetailComponent implements OnInit {
       }
 
       // Pre-select the first effective environment (by order) for the naming preview
-      const effectiveEnvs = config.useProjectEnvironments
-        ? (this.project()?.environmentDefinitions ?? [])
-        : (config.environmentDefinitions ?? []);
+      const effectiveEnvs = this.project()?.environmentDefinitions ?? [];
       const firstEnv = [...effectiveEnvs].sort((a, b) => a.order - b.order)[0];
       if (firstEnv) {
         this.previewEnvId.set(firstEnv.id);
       }
+
+      // Load cross-config references BEFORE expanding RGs so they appear in resource lists
+      await this.loadCrossConfigReferences();
+      await this.loadDiagnostics();
+
+      await this.openDefaultResourceGroup(resourceGroups);
+      this.recentlyViewedService.trackView({
+        id: config.id,
+        name: config.name,
+        type: 'config',
+      });
     } catch {
       this.loadError.set('CONFIG_DETAIL.ERROR.LOAD_FAILED');
     } finally {
@@ -352,22 +577,44 @@ export class ConfigDetailComponent implements OnInit {
     try {
       const resources = await this.resourceGroupService.getResources(rgId);
       this.rgResources.update((prev) => ({ ...prev, [rgId]: resources }));
-      // Auto-expand all parent resources by default
+      // Auto-expand all parent resources by default (local + cross-config virtual)
       const parentIds = resources
         .filter((r) => PARENT_CHILD_RESOURCE_TYPES[r.resourceType])
         .map((r) => r.id);
-      if (parentIds.length > 0) {
+      const crossConfigParentIds = this.crossConfigReferences()
+        .filter((ref) => PARENT_CHILD_RESOURCE_TYPES[ref.targetResourceType] && !parentIds.includes(ref.targetResourceId))
+        .map((ref) => ref.targetResourceId);
+      const allParentIds = [...parentIds, ...crossConfigParentIds];
+      if (allParentIds.length > 0) {
         this.expandedParentResources.update((prev) => {
           const next = new Set(prev);
-          parentIds.forEach((id) => next.add(id));
+          allParentIds.forEach((id) => next.add(id));
           return next;
         });
+      }
+      // Auto-load StorageAccount details for expanded parents
+      const storageIds = resources
+        .filter((r) => r.resourceType === 'StorageAccount')
+        .map((r) => r.id);
+      for (const id of storageIds) {
+        this.loadStorageAccountDetails(id);
       }
     } catch {
       this.rgResources.update((prev) => ({ ...prev, [rgId]: [] }));
     } finally {
       this.rgResourcesLoading.set(null);
     }
+  }
+
+  private async openDefaultResourceGroup(resourceGroups: ResourceGroupResponse[]): Promise<void> {
+    if (resourceGroups.length === 0) {
+      this.expandedRgId.set(null);
+      return;
+    }
+
+    const defaultResourceGroup = resourceGroups[0];
+    this.expandedRgId.set(defaultResourceGroup.id);
+    await this.loadRgResources(defaultResourceGroup.id);
   }
 
   /**
@@ -382,7 +629,7 @@ export class ConfigDetailComponent implements OnInit {
     const childrenByParent = new Map<string, AzureResourceResponse[]>();
     const standalone: AzureResourceResponse[] = [];
 
-    // Index parents
+    // Index local parents
     for (const res of resources) {
       if (PARENT_CHILD_RESOURCE_TYPES[res.resourceType]) {
         parentMap.set(res.id, res);
@@ -392,25 +639,69 @@ export class ConfigDetailComponent implements OnInit {
       }
     }
 
-    // Assign children to their parents; fallback to standalone
+    // Index cross-config references whose type is a parent type as virtual parents
+    const crossConfigParentRefs = new Map<string, CrossConfigReferenceResponse>();
+    for (const ref of this.crossConfigReferences()) {
+      if (PARENT_CHILD_RESOURCE_TYPES[ref.targetResourceType] && !parentMap.has(ref.targetResourceId)) {
+        crossConfigParentRefs.set(ref.targetResourceId, ref);
+        if (!childrenByParent.has(ref.targetResourceId)) {
+          childrenByParent.set(ref.targetResourceId, []);
+        }
+      }
+    }
+
+    // Assign children to their parents (local or cross-config); fallback to standalone
     for (const res of resources) {
-      if (parentMap.has(res.id)) continue; // skip parents themselves
-      if (CHILD_RESOURCE_TYPES.has(res.resourceType) && res.parentResourceId && parentMap.has(res.parentResourceId)) {
-        childrenByParent.get(res.parentResourceId)!.push(res);
+      if (parentMap.has(res.id)) continue; // skip local parents
+      if (CHILD_RESOURCE_TYPES.has(res.resourceType) && res.parentResourceId) {
+        if (parentMap.has(res.parentResourceId)) {
+          childrenByParent.get(res.parentResourceId)!.push(res);
+        } else if (crossConfigParentRefs.has(res.parentResourceId)) {
+          childrenByParent.get(res.parentResourceId)!.push(res);
+        } else {
+          standalone.push(res);
+        }
       } else {
         standalone.push(res);
       }
     }
 
+    // Build a map of incoming children per target resource (resources from OTHER configs that depend on THIS config's resources)
+    const incomingByTarget = new Map<string, IncomingCrossConfigReferenceResponse[]>();
+    for (const inc of this.incomingCrossConfigReferences()) {
+      const existing = incomingByTarget.get(inc.targetResourceId) ?? [];
+      existing.push(inc);
+      incomingByTarget.set(inc.targetResourceId, existing);
+    }
+
     const result: ResourceDisplayItem[] = [];
 
-    // Emit parents with their children
+    // Emit local parents with their children + incoming children
     for (const [parentId, parent] of parentMap) {
       result.push({
         resource: parent,
         children: childrenByParent.get(parentId) ?? [],
+        incomingChildren: incomingByTarget.get(parentId),
         isParent: true,
       });
+    }
+
+    // Emit cross-config parents that have local children
+    for (const [refResourceId, ref] of crossConfigParentRefs) {
+      const children = childrenByParent.get(refResourceId) ?? [];
+      if (children.length > 0) {
+        result.push({
+          resource: {
+            id: ref.targetResourceId,
+            name: ref.targetResourceName,
+            resourceType: ref.targetResourceType,
+            location: '',
+          },
+          children,
+          isParent: true,
+          crossConfigRef: ref,
+        });
+      }
     }
 
     // Emit standalone resources
@@ -419,6 +710,18 @@ export class ConfigDetailComponent implements OnInit {
     }
 
     return result;
+  }
+
+  /**
+   * Returns cross-config references that are NOT already used as parent groupings
+   * in the given resource group (to avoid duplication in the standalone section).
+   */
+  protected getUnparentedCrossConfigRefs(rgId: string): CrossConfigReferenceResponse[] {
+    const grouped = this.groupResourcesForRg(rgId);
+    const parentedRefIds = new Set(
+      grouped.filter((item) => item.crossConfigRef).map((item) => item.crossConfigRef!.referenceId),
+    );
+    return this.crossConfigReferences().filter((ref) => !parentedRefIds.has(ref.referenceId));
   }
 
   protected toggleParentExpand(parentId: string): void {
@@ -544,12 +847,13 @@ export class ConfigDetailComponent implements OnInit {
 
   protected openAddResourceDialog(rgId: string): void {
     const rg = this.resourceGroups().find((r) => r.id === rgId);
-    const envs = this.useProjectEnvironments()
-      ? this.projectSortedEnvironments()
-      : this.sortedEnvironments();
+    const envs = this.projectSortedEnvironments();
+    const currentConfig = this.config();
     const dialogRef = this.dialog.open(AddResourceDialogComponent, {
       data: {
         resourceGroupId: rgId,
+        configId: currentConfig!.id,
+        projectId: currentConfig!.projectId,
         location: rg?.location ?? '',
         environments: envs.map(e => ({ name: e.name })),
       } satisfies AddResourceDialogData,
@@ -564,6 +868,7 @@ export class ConfigDetailComponent implements OnInit {
           delete updated[rgId];
           return updated;
         });
+        await this.loadCrossConfigReferences();
         await this.loadRgResources(rgId);
       }
     });
@@ -571,12 +876,13 @@ export class ConfigDetailComponent implements OnInit {
 
   protected openAddChildResourceDialog(parentResource: AzureResourceResponse, rgId: string): void {
     const rg = this.resourceGroups().find((r) => r.id === rgId);
-    const envs = this.useProjectEnvironments()
-      ? this.projectSortedEnvironments()
-      : this.sortedEnvironments();
+    const envs = this.projectSortedEnvironments();
+    const currentConfig = this.config();
     const dialogRef = this.dialog.open(AddResourceDialogComponent, {
       data: {
         resourceGroupId: rgId,
+        configId: currentConfig!.id,
+        projectId: currentConfig!.projectId,
         location: rg?.location ?? '',
         environments: envs.map(e => ({ name: e.name })),
         parentResource: {
@@ -596,67 +902,10 @@ export class ConfigDetailComponent implements OnInit {
           delete updated[rgId];
           return updated;
         });
+        await this.loadCrossConfigReferences();
         await this.loadRgResources(rgId);
       }
     });
-  }
-
-  protected openAddEnvironmentDialog(existing?: EnvironmentDefinitionResponse): void {
-    const currentConfig = this.config();
-    if (!currentConfig) return;
-
-    const dialogRef = this.dialog.open(AddEnvironmentDialogComponent, {
-      data: {
-        configId: currentConfig.id,
-        existing,
-        allEnvironments: currentConfig.environmentDefinitions,
-      } satisfies AddEnvironmentDialogData,
-      width: '520px',
-      maxWidth: '95vw',
-    });
-
-    dialogRef.afterClosed().subscribe(async (result: InfrastructureConfigResponse | null) => {
-      if (result) {
-        const refreshed = await this.infraConfigService.getById(currentConfig.id);
-        this.config.set(refreshed);
-      }
-    });
-  }
-
-  protected openRemoveEnvironmentDialog(env: EnvironmentDefinitionResponse): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        titleKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_TITLE',
-        messageKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_MESSAGE',
-        messageParams: { name: env.name },
-        confirmKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_YES',
-        cancelKey: 'CONFIG_DETAIL.ENVIRONMENTS.REMOVE_CONFIRM_CANCEL',
-      } satisfies ConfirmDialogData,
-      width: '400px',
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
-      if (!confirmed) return;
-      await this.removeEnvironment(env);
-    });
-  }
-
-  private async removeEnvironment(env: EnvironmentDefinitionResponse): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId) return;
-
-    this.envActionId.set(env.id);
-    this.envErrorKey.set('');
-
-    try {
-      await this.infraConfigService.removeEnvironment(configId, env.id);
-      const refreshed = await this.infraConfigService.getById(configId);
-      this.config.set(refreshed);
-    } catch {
-      this.envErrorKey.set('CONFIG_DETAIL.ENVIRONMENTS.REMOVE_ERROR');
-    } finally {
-      this.envActionId.set(null);
-    }
   }
 
   protected isNamingActionActive(actionKey: string): boolean {
@@ -785,22 +1034,6 @@ export class ConfigDetailComponent implements OnInit {
     }
   }
 
-  protected async toggleInheritanceEnvironments(useProject: boolean): Promise<void> {
-    const configId = this.config()?.id;
-    if (!configId) return;
-
-    this.inheritanceLoading.set(true);
-    try {
-      await this.infraConfigService.setInheritance(configId, {
-        useProjectEnvironments: useProject,
-        useProjectNamingConventions: this.useProjectNamingConventions(),
-      });
-      await this.refreshConfig(configId);
-    } finally {
-      this.inheritanceLoading.set(false);
-    }
-  }
-
   protected async toggleInheritanceNaming(useProject: boolean): Promise<void> {
     const configId = this.config()?.id;
     if (!configId) return;
@@ -808,7 +1041,6 @@ export class ConfigDetailComponent implements OnInit {
     this.inheritanceLoading.set(true);
     try {
       await this.infraConfigService.setInheritance(configId, {
-        useProjectEnvironments: this.useProjectEnvironments(),
         useProjectNamingConventions: useProject,
       });
       await this.refreshConfig(configId);
@@ -820,6 +1052,38 @@ export class ConfigDetailComponent implements OnInit {
   private async refreshConfig(configId: string): Promise<void> {
     const refreshed = await this.infraConfigService.getById(configId);
     this.config.set(refreshed);
+  }
+
+  // ─── Delete Resource Group ───
+
+  protected openDeleteResourceGroupDialog(rg: ResourceGroupResponse): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE_CONFIRM_TITLE',
+        messageKey: 'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE_CONFIRM_MESSAGE',
+        messageParams: { name: rg.name },
+        confirmKey: 'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE_CONFIRM_YES',
+        cancelKey: 'CONFIG_DETAIL.RESOURCE_GROUPS.DELETE_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      try {
+        await this.resourceGroupService.delete(rg.id);
+        const currentConfig = this.config();
+        if (currentConfig) {
+          const resourceGroups = await this.infraConfigService.getResourceGroups(currentConfig.id);
+          this.resourceGroups.set(resourceGroups);
+          if (this.expandedRgId() === rg.id) {
+            this.expandedRgId.set(null);
+          }
+        }
+      } catch {
+        this.rgErrorKey.set('CONFIG_DETAIL.RESOURCE_GROUPS.DELETE_ERROR');
+      }
+    });
   }
 
   // ─── Delete Resource ───
@@ -938,6 +1202,12 @@ export class ConfigDetailComponent implements OnInit {
         case 'SqlDatabase':
           await this.sqlDatabaseService.delete(resource.id);
           break;
+        case 'ServiceBusNamespace':
+          await this.serviceBusNamespaceService.delete(resource.id);
+          break;
+        case 'ContainerRegistry':
+          await this.containerRegistryService.delete(resource.id);
+          break;
       }
       // Refresh resource list for this resource group
       this.rgResources.update((prev) => {
@@ -957,6 +1227,21 @@ export class ConfigDetailComponent implements OnInit {
     const configId = this.config()?.id;
     if (!configId || this.bicepLoading()) return;
 
+    this.validatingDiagnostics.set(true);
+    try {
+      const shouldContinue = await this.showDiagnosticsDialog();
+      if (!shouldContinue) return;
+    } finally {
+      this.validatingDiagnostics.set(false);
+    }
+
+    await this.doGenerateBicep();
+  }
+
+  private async doGenerateBicep(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.bicepLoading()) return;
+
     this.bicepLoading.set(true);
     this.bicepErrorKey.set('');
     this.bicepResult.set(null);
@@ -965,10 +1250,6 @@ export class ConfigDetailComponent implements OnInit {
     try {
       const result = await this.bicepService.generate({ infrastructureConfigId: configId });
       this.bicepResult.set(result);
-      const subfolderKeys = Object.keys(result.moduleUris ?? {})
-        .map(k => { const p = k.split('/'); return p.length >= 3 ? `modules/${p[1]}` : null; })
-        .filter((k): k is string => k !== null);
-      this.bicepExpandedFolders.set(new Set(['modules', ...subfolderKeys]));
     } catch (err: unknown) {
       const axios = await import('axios');
       if (axios.isAxiosError(err)) {
@@ -992,54 +1273,19 @@ export class ConfigDetailComponent implements OnInit {
     this.bicepPanelOpen.set(false);
     this.bicepResult.set(null);
     this.bicepErrorKey.set('');
-    this.bicepViewerFile.set(null);
-    this.bicepViewerContent.set(null);
   }
 
-  protected async openBicepFile(filePath: string): Promise<void> {
+  protected openPushToGitDialog(): void {
     const configId = this.config()?.id;
-    if (!configId || this.bicepViewerLoading()) return;
+    const projectId = this.config()?.projectId;
+    const gitConfig = this.project()?.gitRepositoryConfiguration;
+    if (!configId || !projectId || !gitConfig) return;
 
-    // Toggle off if already viewing this file
-    if (this.bicepViewerFile() === filePath) {
-      this.bicepViewerFile.set(null);
-      this.bicepViewerContent.set(null);
-      return;
-    }
-
-    this.bicepViewerFile.set(filePath);
-    this.bicepViewerContent.set(null);
-    this.bicepViewerLoading.set(true);
-    try {
-      const content = await this.bicepService.getFileContent(configId, filePath);
-      this.bicepViewerContent.set(content);
-    } catch {
-      this.bicepViewerContent.set(null);
-    } finally {
-      this.bicepViewerLoading.set(false);
-    }
+    const data: PushToGitDialogData = { configId, projectId, gitConfig };
+    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 
-  protected closeBicepViewer(): void {
-    this.bicepViewerFile.set(null);
-    this.bicepViewerContent.set(null);
-  }
 
-  protected toggleBicepFolder(folder: string): void {
-    this.bicepExpandedFolders.update(set => {
-      const next = new Set(set);
-      if (next.has(folder)) {
-        next.delete(folder);
-      } else {
-        next.add(folder);
-      }
-      return next;
-    });
-  }
-
-  protected isBicepFolderExpanded(folder: string): boolean {
-    return this.bicepExpandedFolders().has(folder);
-  }
 
   protected async downloadBicepFiles(): Promise<void> {
     const result = this.bicepResult();
@@ -1055,6 +1301,75 @@ export class ConfigDetailComponent implements OnInit {
       saveAs(blob, `${configName}-bicep.zip`);
     } finally {
       this.bicepDownloading.set(false);
+    }
+  }
+
+  // ─── Pipeline Generation ───
+
+  protected async generatePipeline(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.pipelineLoading()) return;
+
+    this.validatingDiagnostics.set(true);
+    try {
+      const shouldContinue = await this.showDiagnosticsDialog();
+      if (!shouldContinue) return;
+    } finally {
+      this.validatingDiagnostics.set(false);
+    }
+
+    await this.doGeneratePipeline();
+  }
+
+  private async doGeneratePipeline(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.pipelineLoading()) return;
+
+    this.pipelineLoading.set(true);
+    this.pipelineErrorKey.set('');
+    this.pipelineResult.set(null);
+    this.pipelinePanelOpen.set(true);
+
+    try {
+      const result = await this.pipelineService.generate({ infrastructureConfigId: configId });
+      this.pipelineResult.set(result);
+    } catch (err: unknown) {
+      const axios = await import('axios');
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        if (status === 401 || status === 403) {
+          this.pipelineErrorKey.set('CONFIG_DETAIL.PIPELINE.GENERATE_AUTH_ERROR');
+        } else {
+          this.pipelineErrorKey.set('CONFIG_DETAIL.PIPELINE.GENERATE_ERROR');
+        }
+      } else {
+        this.pipelineErrorKey.set('CONFIG_DETAIL.PIPELINE.GENERATE_ERROR');
+      }
+    } finally {
+      this.pipelineLoading.set(false);
+    }
+  }
+
+  protected closePipelinePanel(): void {
+    this.pipelinePanelOpen.set(false);
+    this.pipelineResult.set(null);
+    this.pipelineErrorKey.set('');
+  }
+
+  protected async downloadPipelineFiles(): Promise<void> {
+    const result = this.pipelineResult();
+    if (!result || this.pipelineDownloading()) return;
+
+    this.pipelineDownloading.set(true);
+    try {
+      const configId = this.config()?.id;
+      if (!configId) return;
+
+      const blob = await this.pipelineService.downloadZip(configId);
+      const configName = this.config()?.name ?? 'pipeline';
+      saveAs(blob, `${configName}-pipeline.zip`);
+    } finally {
+      this.pipelineDownloading.set(false);
     }
   }
 
@@ -1088,5 +1403,315 @@ export class ConfigDetailComponent implements OnInit {
         this.loadError.set('CONFIG_DETAIL.DELETE.ERROR');
       }
     });
+  }
+
+  // ─── Generation Diagnostics Dialog ───
+
+  private async showDiagnosticsDialog(): Promise<boolean> {
+    const currentDiagnostics = this.diagnostics();
+    const configId = this.config()?.id;
+    const configName = this.config()?.name ?? '';
+    if (!configId) return true;
+
+    // Ensure all RG resources are loaded
+    const rgs = this.resourceGroups();
+    const allResources = { ...this.rgResources() };
+    const rgIdsToLoad = rgs.filter(rg => allResources[rg.id] === undefined).map(rg => rg.id);
+    if (rgIdsToLoad.length > 0) {
+      const loaded = await Promise.all(
+        rgIdsToLoad.map(async (rgId) => {
+          try {
+            const resources = await this.resourceGroupService.getResources(rgId);
+            return { rgId, resources };
+          } catch {
+            return { rgId, resources: [] as AzureResourceResponse[] };
+          }
+        }),
+      );
+      for (const { rgId, resources } of loaded) {
+        allResources[rgId] = resources;
+      }
+      this.rgResources.set(allResources);
+    }
+
+    // Collect missing environment settings from loaded resources
+    const missingEnvResources: MissingEnvResource[] = [];
+    for (const resources of Object.values(allResources)) {
+      if (!resources) continue;
+      for (const resource of resources) {
+        const missing = this.getMissingEnvironments(resource);
+        if (missing.length > 0) {
+          missingEnvResources.push({
+            resourceId: resource.id,
+            resourceName: resource.name,
+            resourceType: resource.resourceType,
+            missingEnvironments: missing,
+          });
+        }
+      }
+    }
+
+    const hasDiagnostics = currentDiagnostics.length > 0;
+    const hasMissingEnvs = missingEnvResources.length > 0;
+
+    if (!hasDiagnostics && !hasMissingEnvs) return true;
+
+    const dialogData: GenerationDiagnosticsDialogData = {
+      configDiagnostics: hasDiagnostics ? [{
+        configId,
+        configName,
+        diagnostics: currentDiagnostics,
+      }] : [],
+      missingEnvConfigs: hasMissingEnvs ? [{
+        configId,
+        configName,
+        resources: missingEnvResources,
+      }] : undefined,
+    };
+    const dialogRef = this.dialog.open(GenerationDiagnosticsDialogComponent, {
+      data: dialogData,
+      width: '640px',
+      maxHeight: '80vh',
+    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    return result === true;
+  }
+
+  // ─── Configuration Diagnostics ───
+
+  private async loadDiagnostics(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+    this.diagnosticsLoading.set(true);
+    try {
+      const result = await this.infraConfigService.getDiagnostics(configId);
+      this.diagnostics.set(result.diagnostics);
+    } catch {
+      // Non-blocking — diagnostics are informational
+    } finally {
+      this.diagnosticsLoading.set(false);
+    }
+  }
+
+  // ─── Cross-Config References ───
+
+  protected async onTabChange(index: number): Promise<void> {
+    // Tab 3 (0-indexed) is cross-config references — lazy load on first visit
+    if (index === 3 && !this.crossConfigLoaded()) {
+      await this.loadCrossConfigReferences();
+    }
+    // Tab 4 is pipeline variable groups — lazy load on first visit
+    if (index === 4 && !this.vgLoaded()) {
+      await this.loadVariableGroups();
+    }
+  }
+
+  protected async loadCrossConfigReferences(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.crossConfigLoading.set(true);
+    this.crossConfigErrorKey.set('');
+    try {
+      const [refs, incomingRefs] = await Promise.all([
+        this.infraConfigService.getCrossConfigReferences(configId),
+        this.infraConfigService.getIncomingCrossConfigReferences(configId),
+      ]);
+      this.crossConfigReferences.set(refs);
+      this.incomingCrossConfigReferences.set(incomingRefs);
+      this.crossConfigLoaded.set(true);
+    } catch {
+      this.crossConfigErrorKey.set('CONFIG_DETAIL.CROSS_CONFIG_REFS.LOAD_ERROR');
+    } finally {
+      this.crossConfigLoading.set(false);
+    }
+  }
+
+
+
+  // ─── Git Configuration (multi-repo) ───
+
+  protected openGitConfigDialog(): void {
+    const proj = this.project();
+    if (!proj) return;
+
+    const data: GitConfigDialogData = {
+      projectId: proj.id,
+      existing: proj.gitRepositoryConfiguration,
+    };
+
+    const dialogRef = this.dialog.open(GitConfigDialogComponent, {
+      width: '520px',
+      data,
+    });
+
+    dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {
+      if (result) {
+        this.project.set(result);
+        this.gitTestResult.set(null);
+        this.gitActionError.set('');
+      }
+    });
+  }
+
+  protected async testGitConnection(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId) return;
+
+    this.gitTestLoading.set(true);
+    this.gitTestResult.set(null);
+    this.gitActionError.set('');
+
+    try {
+      const result = await this.projectService.testGitConnection(projectId);
+      this.gitTestResult.set(result);
+    } catch {
+      this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.TEST_FAILED');
+    } finally {
+      this.gitTestLoading.set(false);
+    }
+  }
+
+  protected openRemoveGitConfigDialog(): void {
+    const proj = this.project();
+    if (!proj) return;
+
+    const data: ConfirmDialogData = {
+      titleKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_TITLE',
+      messageKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_MESSAGE',
+      confirmKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_YES',
+      cancelKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_CANCEL',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+
+      this.gitActionError.set('');
+      try {
+        await this.projectService.removeGitConfig(proj.id);
+        this.project.update((p) => {
+          if (!p) return p;
+          return { ...p, gitRepositoryConfiguration: null };
+        });
+        this.gitTestResult.set(null);
+      } catch {
+        this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.REMOVE_ERROR');
+      }
+    });
+  }
+
+  // ─── Pipeline Variable Groups ───
+
+  private async loadVariableGroups(): Promise<void> {
+    const projectId = this.config()?.projectId;
+    if (!projectId) return;
+
+    this.vgLoading.set(true);
+    this.vgErrorKey.set('');
+    try {
+      const groups = await this.projectService.getPipelineVariableGroups(projectId);
+      this.variableGroups.set(groups.map(g => ({ ...g, variables: g.variables ?? [] })));
+      this.vgLoaded.set(true);
+    } catch {
+      this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
+    } finally {
+      this.vgLoading.set(false);
+    }
+  }
+
+  protected openAddVariableGroupDialog(): void {
+    const dialogRef = this.dialog.open(AddVariableGroupDialogComponent, {
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (groupName?: string) => {
+      if (!groupName) return;
+      const projectId = this.config()?.projectId;
+      if (!projectId) return;
+
+      this.vgErrorKey.set('');
+      try {
+        const newGroup = await this.projectService.addPipelineVariableGroup(projectId, { groupName });
+        this.variableGroups.update(groups => [...groups, { ...newGroup, variables: newGroup.variables ?? [] }]);
+      } catch {
+        this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_ADD_GROUP');
+      }
+    });
+  }
+
+  protected openRemoveVariableGroupDialog(group: ProjectPipelineVariableGroupResponse): void {
+    const data: ConfirmDialogData = {
+      titleKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP',
+      messageKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.CONFIRM_DELETE_GROUP',
+      confirmKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.REMOVE_GROUP',
+      cancelKey: 'CONFIG_DETAIL.PIPELINE_VARIABLES.DIALOG_CANCEL',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
+
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      const projectId = this.config()?.projectId;
+      if (!projectId) return;
+
+      this.vgErrorKey.set('');
+      try {
+        await this.projectService.removePipelineVariableGroup(projectId, group.id);
+        this.variableGroups.update(groups => groups.filter(g => g.id !== group.id));
+      } catch {
+        this.vgErrorKey.set('CONFIG_DETAIL.PIPELINE_VARIABLES.ERROR_REMOVE_GROUP');
+      }
+    });
+  }
+
+  // ─── Config Tags ───
+
+  protected startEditConfigTags(): void {
+    this.editingConfigTags.set(this.configTags().map(t => ({ name: t.name, value: t.value })));
+    this.configTagNameCtrl.reset();
+    this.configTagValueCtrl.reset();
+    this.configTagsErrorKey.set('');
+    this.isEditingConfigTags.set(true);
+  }
+
+  protected addConfigTag(): void {
+    const name = this.configTagNameCtrl.value.trim();
+    const value = this.configTagValueCtrl.value.trim();
+    if (!name) return;
+    this.editingConfigTags.update(tags => [
+      ...tags.filter(t => t.name !== name),
+      { name, value },
+    ]);
+    this.configTagNameCtrl.reset();
+    this.configTagValueCtrl.reset();
+  }
+
+  protected removeConfigTag(name: string): void {
+    this.editingConfigTags.update(tags => tags.filter(t => t.name !== name));
+  }
+
+  protected cancelConfigTagsEdit(): void {
+    this.isEditingConfigTags.set(false);
+    this.editingConfigTags.set([]);
+    this.configTagsErrorKey.set('');
+  }
+
+  protected async saveConfigTags(): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId || this.configTagsSaving()) return;
+    this.configTagsSaving.set(true);
+    this.configTagsErrorKey.set('');
+    try {
+      await this.infraConfigService.setTags(configId, { tags: this.editingConfigTags() });
+      this.config.update(c => c ? { ...c, tags: this.editingConfigTags() } : c);
+      this.isEditingConfigTags.set(false);
+      this.editingConfigTags.set([]);
+    } catch {
+      this.configTagsErrorKey.set('CONFIG_DETAIL.TAGS.SAVE_ERROR');
+    } finally {
+      this.configTagsSaving.set(false);
+    }
   }
 }

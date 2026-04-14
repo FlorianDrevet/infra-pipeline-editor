@@ -13,7 +13,7 @@ namespace InfraFlowSculptor.Domain.CosmosDbAggregate;
 /// </summary>
 public class CosmosDb : AzureResource
 {
-    private readonly List<CosmosDbEnvironmentSettings> _environmentSettings = new();
+    private readonly List<CosmosDbEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Cosmos DB account.</summary>
     public IReadOnlyCollection<CosmosDbEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();

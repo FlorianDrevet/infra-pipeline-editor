@@ -11,7 +11,7 @@ public class GetInfrastructureConfigQueryHandler(
     IInfraConfigAccessService accessService,
     IResourceGroupRepository resourceGroupRepository,
     IMapper mapper)
-    : IRequestHandler<GetInfrastructureConfigQuery, ErrorOr<GetInfrastructureConfigResult>>
+    : IQueryHandler<GetInfrastructureConfigQuery, GetInfrastructureConfigResult>
 {
     public async Task<ErrorOr<GetInfrastructureConfigResult>> Handle(
         GetInfrastructureConfigQuery command, CancellationToken cancellationToken)

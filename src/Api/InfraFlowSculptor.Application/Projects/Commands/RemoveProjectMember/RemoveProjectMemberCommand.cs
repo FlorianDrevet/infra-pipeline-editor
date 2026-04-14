@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
 
@@ -8,4 +8,4 @@ namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
 public record RemoveProjectMemberCommand(
     ProjectId ProjectId,
     Guid UserId)
-    : IRequest<ErrorOr<Unit>>;
+    : ICommand<Deleted>;

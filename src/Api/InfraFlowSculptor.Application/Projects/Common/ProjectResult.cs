@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
@@ -11,4 +12,8 @@ public record ProjectResult(
     IReadOnlyList<ProjectMemberResult> Members,
     IReadOnlyList<ProjectEnvironmentDefinitionResult> EnvironmentDefinitions,
     string? DefaultNamingTemplate,
-    IReadOnlyList<ProjectResourceNamingTemplateResult> ResourceNamingTemplates);
+    IReadOnlyList<ProjectResourceNamingTemplateResult> ResourceNamingTemplates,
+    GitRepositoryConfigurationResult? GitRepositoryConfiguration,
+    string RepositoryMode,
+    IReadOnlyList<TagResult> Tags,
+    string? AgentPoolName = null);

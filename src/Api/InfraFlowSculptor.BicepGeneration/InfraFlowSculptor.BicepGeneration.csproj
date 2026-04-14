@@ -7,4 +7,8 @@
         <RootNamespace>InfraFlowSculptor.BicepGeneration</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\InfraFlowSculptor.GenerationCore\InfraFlowSculptor.GenerationCore.csproj" />
+    </ItemGroup>
+
 </Project>

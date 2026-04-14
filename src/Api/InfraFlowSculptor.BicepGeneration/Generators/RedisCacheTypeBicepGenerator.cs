@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -6,17 +7,17 @@ public sealed class RedisCacheTypeBicepGenerator
     : IResourceTypeBicepGenerator
 {
     public string ResourceType
-        => "Microsoft.Cache/Redis";
+        => AzureResourceTypes.ArmTypes.RedisCache;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "RedisCache";
+    public string ResourceTypeName => AzureResourceTypes.RedisCache;
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
         return new GeneratedTypeModule
         {
             ModuleName = "redisCache",
-            ModuleFileName = "redisCache.bicep",
+            ModuleFileName = "redisCache",
             ModuleFolderName = "RedisCache",
             ModuleBicepContent = RedisCacheModuleTemplate,
             ModuleTypesBicepContent = RedisCacheTypesTemplate,
@@ -29,6 +30,8 @@ public sealed class RedisCacheTypeBicepGenerator
                 ["redisVersion"] = resource.Properties.GetValueOrDefault("redisVersion", "6"),
                 ["enableNonSslPort"] = resource.Properties.GetValueOrDefault("enableNonSslPort", "false") == "true",
                 ["minimumTlsVersion"] = resource.Properties.GetValueOrDefault("minimumTlsVersion", "1.2"),
+                ["disableAccessKeyAuthentication"] = resource.Properties.GetValueOrDefault("disableAccessKeyAuthentication", "false") == "true",
+                ["aadEnabled"] = resource.Properties.GetValueOrDefault("aadEnabled", "false") == "true",
             }
         };
     }
@@ -74,6 +77,12 @@ public sealed class RedisCacheTypeBicepGenerator
         @description('Minimum TLS version for client connections')
         param minimumTlsVersion TlsVersion = '1.2'
 
+        @description('Whether access key authentication is disabled')
+        param disableAccessKeyAuthentication bool = false
+
+        @description('Whether Microsoft Entra ID (AAD) authentication is enabled')
+        param aadEnabled bool = false
+
         resource redis 'Microsoft.Cache/Redis@2023-08-01' = {
           name: name
           location: location
@@ -86,7 +95,23 @@ public sealed class RedisCacheTypeBicepGenerator
             redisVersion: redisVersion
             enableNonSslPort: enableNonSslPort
             minimumTlsVersion: minimumTlsVersion
+            disableAccessKeyAuthentication: disableAccessKeyAuthentication
+            redisConfiguration: {
+              'aad-enabled': aadEnabled ? 'true' : 'false'
+            }
           }
         }
+
+        @description('The resource ID of the Redis Cache')
+        output id string = redis.id
+
+        @description('The host name of the Redis Cache')
+        output hostName string = redis.properties.hostName
+
+        @description('The SSL port of the Redis Cache')
+        output sslPort int = redis.properties.sslPort
+
+        @description('The non-SSL port of the Redis Cache')
+        output port int = redis.properties.port
         """;
 }

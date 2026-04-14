@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -10,10 +11,10 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.OperationalInsights/workspaces";
+        => AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "LogAnalyticsWorkspace";
+    public string ResourceTypeName => AzureResourceTypes.LogAnalyticsWorkspace;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
@@ -21,7 +22,7 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "logAnalyticsWorkspace",
-            ModuleFileName = "logAnalyticsWorkspace.bicep",
+            ModuleFileName = "logAnalyticsWorkspace",
             ModuleFolderName = "LogAnalyticsWorkspace",
             ModuleBicepContent = LogAnalyticsWorkspaceModuleTemplate,
             ModuleTypesBicepContent = LogAnalyticsWorkspaceTypesTemplate,
@@ -69,5 +70,8 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
         }
 
         output logAnalyticsWorkspaceId string = logAnalyticsWorkspace.id
+
+        @description('The customer ID (workspace ID) of the Log Analytics workspace')
+        output customerId string = logAnalyticsWorkspace.properties.customerId
         """;
 }

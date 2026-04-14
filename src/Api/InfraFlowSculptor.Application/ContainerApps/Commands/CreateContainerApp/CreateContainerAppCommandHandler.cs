@@ -17,7 +17,7 @@ public sealed class CreateContainerAppCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateContainerAppCommand, ErrorOr<ContainerAppResult>>
+    : ICommandHandler<CreateContainerAppCommand, ContainerAppResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ContainerAppResult>> Handle(
@@ -43,8 +43,14 @@ public sealed class CreateContainerAppCommandHandler(
             request.Name,
             request.Location,
             containerAppEnvironmentId,
+            request.ContainerRegistryId.HasValue
+                ? new AzureResourceId(request.ContainerRegistryId.Value)
+                : null,
+            request.DockerImageName,
+            request.DockerfilePath,
+            request.ApplicationName,
             request.EnvironmentSettings?
-                .Select(ec => (ec.EnvironmentName, ec.ContainerImage, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod))
+                .Select(ec => (ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod))
                 .ToList());
 
         var saved = await containerAppRepository.AddAsync(containerApp);

@@ -36,7 +36,9 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         // DefaultNamingTemplate
         // ========================
         builder.Property(x => x.DefaultNamingTemplate)
+#pragma warning disable CS8620 // Nullability mismatch — EF Core handles null conversion internally
             .HasConversion(new SingleValueConverter<NamingTemplate, string>())
+#pragma warning restore CS8620
             .IsRequired(false);
 
         // ========================
@@ -59,6 +61,53 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .WithOne(x => x.Project)
             .HasForeignKey(x => x.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ========================
+        // GitRepositoryConfiguration (Entity, 0..1)
+        // ========================
+        builder.HasOne(x => x.GitRepositoryConfiguration)
+            .WithOne()
+            .HasForeignKey<GitRepositoryConfiguration>(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ========================
+        // PipelineVariableGroups (Entity)
+        // ========================
+        builder.HasMany(x => x.PipelineVariableGroups)
+            .WithOne()
+            .HasForeignKey(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(x => x.PipelineVariableGroups)
+            .HasField("_projectPipelineVariableGroups")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        // ========================
+        // RepositoryMode
+        // ========================
+        builder.Property(x => x.RepositoryMode)
+            .HasConversion(new EnumValueConverter<RepositoryMode, RepositoryModeEnum>())
+            .HasDefaultValue(new RepositoryMode(RepositoryModeEnum.MultiRepo))
+            .IsRequired();
+
+        // ========================
+        // AgentPoolName
+        // ========================
+        builder.Property(x => x.AgentPoolName)
+            .HasMaxLength(200)
+            .IsRequired(false);
+
+        // ========================
+        // Tags (OWNED)
+        // ========================
+        builder.OwnsMany(p => p.Tags, tag =>
+        {
+            tag.ToTable("ProjectTags");
+            tag.WithOwner().HasForeignKey("ProjectId");
+            tag.HasKey("ProjectId", "Name");
+            tag.Property(t => t.Name).HasMaxLength(100);
+            tag.Property(t => t.Value).HasMaxLength(500);
+        });
+        builder.Navigation(p => p.Tags).HasField("_tags").UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 
     private static void ConfigureEnvironments(EntityTypeBuilder<Project> builder)
@@ -79,6 +128,9 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             env.Property(x => x.Name)
                 .HasConversion(new SingleValueConverter<Name, string>());
 
+            env.Property(x => x.ShortName)
+                .HasConversion(new SingleValueConverter<ShortName, string>());
+
             env.Property(x => x.Prefix)
                 .HasConversion(new SingleValueConverter<Prefix, string>());
 
@@ -87,9 +139,6 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
             env.Property(x => x.Location)
                 .HasConversion(new EnumValueConverter<Location, Location.LocationEnum>());
-
-            env.Property(x => x.TenantId)
-                .HasConversion(new SingleValueConverter<TenantId, Guid>());
 
             env.Property(x => x.SubscriptionId)
                 .HasConversion(new SingleValueConverter<SubscriptionId, Guid>());
@@ -100,6 +149,9 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             env.Property(x => x.RequiresApproval)
                 .HasConversion(new SingleValueConverter<RequiresApproval, bool>());
 
+            env.Property(x => x.AzureResourceManagerConnection)
+                .HasMaxLength(256);
+
             env.OwnsMany(x => x.Tags, tag =>
             {
                 tag.ToTable("ProjectEnvironmentTags");
@@ -109,6 +161,8 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
                 tag.Property(t => t.Name).HasMaxLength(100);
                 tag.Property(t => t.Value).HasMaxLength(500);
             });
+
+            env.Navigation(x => x.Tags).HasField("_tags").UsePropertyAccessMode(PropertyAccessMode.Field);
         });
     }
 }

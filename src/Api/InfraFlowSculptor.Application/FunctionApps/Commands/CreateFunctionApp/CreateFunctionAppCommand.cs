@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.FunctionApps.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp;
@@ -15,5 +15,12 @@ public record CreateFunctionAppCommand(
     string RuntimeStack,
     string RuntimeVersion,
     bool HttpsOnly,
+    string DeploymentMode,
+    Guid? ContainerRegistryId,
+    string? DockerImageName,
+    string? DockerfilePath = null,
+    string? SourceCodePath = null,
+    string? BuildCommand = null,
+    string? ApplicationName = null,
     IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<FunctionAppResult>>;
+) : ICommand<FunctionAppResult>;

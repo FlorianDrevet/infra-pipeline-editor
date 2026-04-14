@@ -161,6 +161,34 @@ mat-dialog-content {
   font-size: 0.82rem;
 }
 
+// ─── Tags Section ────
+
+.tags-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &__label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #103454;
+    margin: 0;
+  }
+}
+
+.tags-add-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tag-name-field,
+.tag-value-field {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+
 @media (max-width: 640px) {
   .form-row {
     flex-direction: column;

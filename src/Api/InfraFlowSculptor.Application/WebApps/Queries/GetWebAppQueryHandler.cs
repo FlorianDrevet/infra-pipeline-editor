@@ -14,7 +14,7 @@ public class GetWebAppQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetWebAppQuery, ErrorOr<WebAppResult>>
+    : IQueryHandler<GetWebAppQuery, WebAppResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<WebAppResult>> Handle(

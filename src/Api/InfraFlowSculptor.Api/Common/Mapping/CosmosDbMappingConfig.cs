@@ -10,7 +10,7 @@ using Mapster;
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
 /// <summary>Mapster mapping configuration for the Cosmos DB aggregate.</summary>
-public class CosmosDbMappingConfig : IRegister
+public sealed class CosmosDbMappingConfig : IRegister
 {
     /// <inheritdoc />
     public void Register(TypeAdapterConfig config)

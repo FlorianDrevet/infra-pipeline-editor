@@ -12,7 +12,7 @@ public class GetStorageAccountQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetStorageAccountQuery, ErrorOr<StorageAccountResult>>
+    : IQueryHandler<GetStorageAccountQuery, StorageAccountResult>
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(GetStorageAccountQuery query, CancellationToken cancellationToken)
     {

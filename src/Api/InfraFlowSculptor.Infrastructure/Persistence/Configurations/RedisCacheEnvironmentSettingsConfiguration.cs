@@ -31,24 +31,18 @@ public sealed class RedisCacheEnvironmentSettingsConfiguration
 
         builder.Property(x => x.Sku)
             .IsRequired(false)
+#pragma warning disable CS8620 // Nullability mismatch — EF Core handles null conversion internally
             .HasConversion(new EnumValueConverter<RedisCacheSku, RedisCacheSku.Sku>());
+#pragma warning restore CS8620
 
         builder.Property(x => x.Capacity)
             .IsRequired(false);
 
-        builder.Property(x => x.RedisVersion)
-            .IsRequired(false);
-
-        builder.Property(x => x.EnableNonSslPort)
-            .IsRequired(false);
-
-        builder.Property(x => x.MinimumTlsVersion)
-            .IsRequired(false)
-            .HasConversion(new EnumValueConverter<TlsVersion, TlsVersion.Version>());
-
         builder.Property(x => x.MaxMemoryPolicy)
             .IsRequired(false)
+#pragma warning disable CS8620 // Nullability mismatch — EF Core handles null conversion internally
             .HasConversion(new EnumValueConverter<MaxMemoryPolicy, MaxMemoryPolicy.Policy>());
+#pragma warning restore CS8620
 
         builder.HasIndex(x => new { x.RedisCacheId, x.EnvironmentName })
             .IsUnique();

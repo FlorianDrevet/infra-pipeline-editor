@@ -13,7 +13,7 @@ public sealed class DeleteContainerAppEnvironmentCommandHandler(
     IContainerAppEnvironmentRepository containerAppEnvironmentRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteContainerAppEnvironmentCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteContainerAppEnvironmentCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

@@ -14,4 +14,11 @@ public record FunctionAppResult(
     string RuntimeStack,
     string RuntimeVersion,
     bool HttpsOnly,
+    string DeploymentMode,
+    Guid? ContainerRegistryId,
+    string? DockerImageName,
+    string? DockerfilePath,
+    string? SourceCodePath,
+    string? BuildCommand,
+    string? ApplicationName,
     IReadOnlyList<FunctionAppEnvironmentConfigData> EnvironmentSettings);

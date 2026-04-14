@@ -32,7 +32,7 @@ builder.AddNpgsqlDbContext<ProjectDbContext>(connectionName: "infraDb");
 builder.Services
     .AddPresentation()
     .AddApplication()
-    .AddInfrastructure(builder.Configuration)
+    .AddInfrastructure(builder.Configuration, builder.Environment)
     .AddRateLimiting();
 
 if (builder.Environment.IsDevelopment())
@@ -65,7 +65,6 @@ app.UseAuthorization();
 //Controllers
 app.UseProjectController();
 app.UseInfrastructureConfigController();
-app.UseEnvironmentDefinitionController();
 app.UseNamingTemplateController();
 app.UseKeyVaultControllerController();
 app.UseResourceGroupController();
@@ -77,6 +76,7 @@ app.UseWebAppController();
 app.UseFunctionAppController();
 app.UseUserAssignedIdentityController();
 app.UseAppConfigurationController();
+app.UseAppConfigurationKeyController();
 app.UseContainerAppEnvironmentController();
 app.UseContainerAppController();
 app.UseLogAnalyticsWorkspaceController();
@@ -84,7 +84,12 @@ app.UseApplicationInsightsController();
 app.UseCosmosDbController();
 app.UseSqlServerController();
 app.UseSqlDatabaseController();
+app.UseServiceBusNamespaceController();
+app.UseContainerRegistryController();
+app.UseEventHubNamespaceController();
+app.UseAppSettingController();
 app.UseBicepGenerationController();
+app.UsePipelineGenerationController();
 app.MapDefaultEndpoints();
 
 await app.RunAsync();

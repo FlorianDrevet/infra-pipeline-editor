@@ -1,14 +1,22 @@
+using ErrorOr;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
+using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
 namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 
+/// <summary>
+/// Represents a single Azure infrastructure configuration within a project.
+/// Groups resource groups, parameter definitions, naming templates, and cross-config references.
+/// </summary>
 public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 {
+    /// <summary>Gets the display name of this configuration.</summary>
     public Name Name { get; private set; } = null!;
 
     /// <summary>Gets the identifier of the parent project.</summary>
@@ -22,31 +30,46 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     public NamingTemplate? DefaultNamingTemplate { get; private set; }
 
     /// <summary>
-    /// When <c>true</c>, this configuration inherits environments from the parent project.
-    /// When <c>false</c>, it uses its own environment definitions.
-    /// </summary>
-    public bool UseProjectEnvironments { get; private set; } = true;
-
-    /// <summary>
     /// When <c>true</c>, this configuration inherits naming conventions from the parent project.
     /// When <c>false</c>, it uses its own naming templates.
     /// </summary>
     public bool UseProjectNamingConventions { get; private set; } = true;
 
-    private readonly List<ResourceGroup> _resourceGroups = new();
+    /// <summary>Gets the application pipeline generation mode (isolated per resource or combined).</summary>
+    public AppPipelineMode AppPipelineMode { get; private set; } = AppPipelineMode.Isolated;
+
+    private readonly List<ResourceGroup> _resourceGroups = [];
+
+    /// <summary>Gets the resource groups owned by this configuration.</summary>
     public IReadOnlyList<ResourceGroup> ResourceGroups => _resourceGroups.AsReadOnly();
 
-    private readonly List<EnvironmentDefinition> _environmentDefinitions = new();
-    public IReadOnlyCollection<EnvironmentDefinition> EnvironmentDefinitions => _environmentDefinitions.AsReadOnly();
-    
-    private readonly List<ResourceNamingTemplate> _resourceNamingTemplates = new();
+    private readonly List<ResourceNamingTemplate> _resourceNamingTemplates = [];
+
+    /// <summary>Gets the per-resource-type naming template overrides for this configuration.</summary>
     public IReadOnlyCollection<ResourceNamingTemplate> ResourceNamingTemplates => _resourceNamingTemplates.AsReadOnly();
 
-    private readonly List<ParameterDefinition> _parameterDefinitions = new();
+    private readonly List<ParameterDefinition> _parameterDefinitions = [];
+
+    /// <summary>Gets the parameter definitions declared in this configuration.</summary>
     public IReadOnlyCollection<ParameterDefinition> ParameterDefinitions => _parameterDefinitions;
 
-    
-    private InfrastructureConfig(InfrastructureConfigId id, Name name, ProjectId projectId): base(id)
+    private readonly List<CrossConfigResourceReference> _crossConfigReferences = [];
+    /// <summary>Gets the cross-configuration resource references owned by this configuration.</summary>
+    public IReadOnlyCollection<CrossConfigResourceReference> CrossConfigReferences => _crossConfigReferences.AsReadOnly();
+
+    private readonly List<Tag> _tags = [];
+
+    /// <summary>Gets the configuration-level tags that extend or override project-level tags.</summary>
+    public IReadOnlyCollection<Tag> Tags => _tags;
+
+    /// <summary>Replaces all configuration-level tags with the provided collection.</summary>
+    public void SetTags(IEnumerable<Tag> tags)
+    {
+        _tags.Clear();
+        _tags.AddRange(tags);
+    }
+
+    private InfrastructureConfig(InfrastructureConfigId id, Name name, ProjectId projectId) : base(id)
     {
         Name = name;
         ProjectId = projectId;
@@ -60,10 +83,13 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return new InfrastructureConfig(InfrastructureConfigId.CreateUnique(), name, projectId);
     }
 
+    /// <summary>EF Core constructor.</summary>
     public InfrastructureConfig()
     {
     }
-    
+
+    /// <summary>Adds a resource group if one with the same name does not already exist.</summary>
+    /// <returns><c>true</c> if added; <c>false</c> if a duplicate name exists.</returns>
     public bool AddResourceGroup(ResourceGroup resourceGroup)
     {
         if (_resourceGroups.Any(rg => rg.Name == resourceGroup.Name))
@@ -73,113 +99,28 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return true;
     }
     
+    /// <summary>Removes a resource group from this configuration.</summary>
+    /// <returns><c>true</c> if removed; <c>false</c> if not found.</returns>
     public bool RemoveResourceGroup(ResourceGroup resourceGroup)
     {
         return _resourceGroups.Remove(resourceGroup);
     }
     
+    /// <summary>Renames this infrastructure configuration.</summary>
     public void Rename(Name name)
     {
         Name = name;
     }
 
-    // ─── Environment Definitions ────────────────────────────────────────────
-
-    public EnvironmentDefinition AddEnvironment(EnvironmentDefinitionData data)
-    {
-        ShiftOrdersUp(data.Order.Value);
-        var env = new EnvironmentDefinition(Id, data);
-        _environmentDefinitions.Add(env);
-        return env;
-    }
-
-    public EnvironmentDefinition? UpdateEnvironment(
-        EnvironmentDefinitionId envId,
-        EnvironmentDefinitionData data)
-    {
-        var env = _environmentDefinitions.FirstOrDefault(e => e.Id == envId);
-        if (env is null)
-            return null;
-
-        var oldOrder = env.Order.Value;
-        var newOrder = data.Order.Value;
-
-        if (oldOrder != newOrder)
-            ReorderEnvironments(envId, oldOrder, newOrder);
-
-        env.Name = data.Name;
-        env.Prefix = data.Prefix;
-        env.Suffix = data.Suffix;
-        env.Location = data.Location;
-        env.TenantId = data.TenantId;
-        env.SubscriptionId = data.SubscriptionId;
-        env.Order = data.Order;
-        env.RequiresApproval = data.RequiresApproval;
-        env.SetTags(data.Tags);
-        return env;
-    }
-
-    public bool RemoveEnvironment(EnvironmentDefinitionId envId)
-    {
-        var env = _environmentDefinitions.FirstOrDefault(e => e.Id == envId);
-        if (env is null)
-            return false;
-
-        var removedOrder = env.Order.Value;
-        _environmentDefinitions.Remove(env);
-        ShiftOrdersDown(removedOrder);
-        return true;
-    }
-
-    /// <summary>
-    /// Shifts all environments with order &gt;= <paramref name="fromOrder"/> up by one
-    /// to make room for a new environment at that position.
-    /// </summary>
-    private void ShiftOrdersUp(int fromOrder)
-    {
-        foreach (var env in _environmentDefinitions.Where(e => e.Order.Value >= fromOrder))
-            env.Order = new Order(env.Order.Value + 1);
-    }
-
-    /// <summary>
-    /// Shifts all environments with order &gt; <paramref name="removedOrder"/> down by one
-    /// to close the gap left after removal.
-    /// </summary>
-    private void ShiftOrdersDown(int removedOrder)
-    {
-        foreach (var env in _environmentDefinitions.Where(e => e.Order.Value > removedOrder))
-            env.Order = new Order(env.Order.Value - 1);
-    }
-
-    /// <summary>
-    /// Reorders sibling environments when an existing environment moves from
-    /// <paramref name="oldOrder"/> to <paramref name="newOrder"/>.
-    /// </summary>
-    private void ReorderEnvironments(EnvironmentDefinitionId movingId, int oldOrder, int newOrder)
-    {
-        if (newOrder < oldOrder)
-        {
-            // Moving up: shift environments in [newOrder, oldOrder) up by one
-            foreach (var e in _environmentDefinitions
-                         .Where(e => e.Id != movingId && e.Order.Value >= newOrder && e.Order.Value < oldOrder))
-                e.Order = new Order(e.Order.Value + 1);
-        }
-        else
-        {
-            // Moving down: shift environments in (oldOrder, newOrder] down by one
-            foreach (var e in _environmentDefinitions
-                         .Where(e => e.Id != movingId && e.Order.Value > oldOrder && e.Order.Value <= newOrder))
-                e.Order = new Order(e.Order.Value - 1);
-        }
-    }
-
     // ─── Naming Convention ───────────────────────────────────────────────────
 
+    /// <summary>Sets or clears the default naming template for this configuration.</summary>
     public void SetDefaultNamingTemplate(NamingTemplate? template)
     {
         DefaultNamingTemplate = template;
     }
 
+    /// <summary>Sets or updates a per-resource-type naming template. Creates a new entry if one does not exist.</summary>
     public ResourceNamingTemplate SetResourceNamingTemplate(string resourceType, NamingTemplate template)
     {
         var existing = _resourceNamingTemplates.FirstOrDefault(t => t.ResourceType == resourceType);
@@ -194,6 +135,8 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return entry;
     }
 
+    /// <summary>Removes a per-resource-type naming template.</summary>
+    /// <returns><c>true</c> if removed; <c>false</c> if not found.</returns>
     public bool RemoveResourceNamingTemplate(string resourceType)
     {
         var existing = _resourceNamingTemplates.FirstOrDefault(t => t.ResourceType == resourceType);
@@ -205,15 +148,52 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 
     // ─── Inheritance Toggles ────────────────────────────────────────────────
 
-    /// <summary>Sets whether this configuration inherits environments from the parent project.</summary>
-    public void SetUseProjectEnvironments(bool value)
-    {
-        UseProjectEnvironments = value;
-    }
-
     /// <summary>Sets whether this configuration inherits naming conventions from the parent project.</summary>
     public void SetUseProjectNamingConventions(bool value)
     {
         UseProjectNamingConventions = value;
     }
+
+    /// <summary>Updates the application pipeline generation mode.</summary>
+    /// <param name="mode">The new pipeline mode (Isolated or Combined).</param>
+    public void UpdateAppPipelineMode(AppPipelineMode mode) => AppPipelineMode = mode;
+
+    // ─── Cross-Config References ────────────────────────────────────────────
+
+    /// <summary>
+    /// Adds a reference to a resource belonging to another infrastructure configuration in the same project.
+    /// </summary>
+    /// <param name="targetConfigId">The target configuration that owns the resource.</param>
+    /// <param name="targetResourceId">The resource to reference.</param>
+    /// <returns>The created reference or an error if a duplicate exists.</returns>
+    public ErrorOr<CrossConfigResourceReference> AddCrossConfigReference(
+        InfrastructureConfigId targetConfigId,
+        AzureResourceId targetResourceId)
+    {
+        if (targetConfigId == Id)
+            return Domain.Common.Errors.Errors.InfrastructureConfig.CannotReferenceSameConfig();
+
+        if (_crossConfigReferences.Any(r => r.TargetResourceId == targetResourceId))
+            return Domain.Common.Errors.Errors.InfrastructureConfig.DuplicateCrossConfigReference(targetResourceId);
+
+        var reference = CrossConfigResourceReference.Create(Id, targetConfigId, targetResourceId);
+        _crossConfigReferences.Add(reference);
+        return reference;
+    }
+
+    /// <summary>
+    /// Removes a cross-configuration resource reference by its identifier.
+    /// </summary>
+    /// <param name="referenceId">The reference to remove.</param>
+    /// <returns><see cref="Result.Deleted"/> on success, or a not-found error.</returns>
+    public ErrorOr<Deleted> RemoveCrossConfigReference(CrossConfigResourceReferenceId referenceId)
+    {
+        var reference = _crossConfigReferences.FirstOrDefault(r => r.Id == referenceId);
+        if (reference is null)
+            return Domain.Common.Errors.Errors.InfrastructureConfig.CrossConfigReferenceNotFound(referenceId);
+
+        _crossConfigReferences.Remove(reference);
+        return Result.Deleted;
+    }
+
 }

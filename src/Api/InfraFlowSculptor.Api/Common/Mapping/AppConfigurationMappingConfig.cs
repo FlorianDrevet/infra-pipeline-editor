@@ -10,7 +10,7 @@ using Mapster;
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
 /// <summary>Mapster mapping configuration for the App Configuration aggregate.</summary>
-public class AppConfigurationMappingConfig : IRegister
+public sealed class AppConfigurationMappingConfig : IRegister
 {
     /// <inheritdoc />
     public void Register(TypeAdapterConfig config)

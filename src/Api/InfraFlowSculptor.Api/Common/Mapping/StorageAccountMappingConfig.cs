@@ -11,7 +11,7 @@ using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
-public class StorageAccountMappingConfig : IRegister
+public sealed class StorageAccountMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
@@ -20,35 +20,101 @@ public class StorageAccountMappingConfig : IRegister
                 src => src.EnvironmentSettings == null
                     ? null
                     : src.EnvironmentSettings.Select(ec => new StorageAccountEnvironmentConfigData(
-                        ec.EnvironmentName, ec.Sku, ec.Kind, ec.AccessTier,
-                        ec.AllowBlobPublicAccess, ec.EnableHttpsTrafficOnly, ec.MinimumTlsVersion)).ToList());
+                        ec.EnvironmentName, ec.Sku)).ToList())
+            .Map(dest => dest.CorsRules,
+                src => src.CorsRules == null
+                    ? null
+                    : src.CorsRules.Select(rule => new CorsRuleResult(
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds)).ToList())
+            .Map(dest => dest.TableCorsRules,
+                src => src.TableCorsRules == null
+                    ? null
+                    : src.TableCorsRules.Select(rule => new CorsRuleResult(
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds)).ToList())
+            .Map(dest => dest.LifecycleRules,
+                src => src.LifecycleRules == null
+                    ? null
+                    : src.LifecycleRules.Select(rule => new BlobLifecycleRuleResult(
+                        rule.RuleName,
+                        rule.ContainerNames,
+                        rule.TimeToLiveInDays)).ToList());
 
         config.NewConfig<(Guid Id, UpdateStorageAccountRequest Request), UpdateStorageAccountCommand>()
             .MapWith(src => new UpdateStorageAccountCommand(
                 src.Id.Adapt<AzureResourceId>(),
                 src.Request.Name.Adapt<Name>(),
                 src.Request.Location.Adapt<Location>(),
+                src.Request.Kind,
+                src.Request.AccessTier,
+                src.Request.AllowBlobPublicAccess,
+                src.Request.EnableHttpsTrafficOnly,
+                src.Request.MinimumTlsVersion,
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new StorageAccountEnvironmentConfigData(
-                        ec.EnvironmentName, ec.Sku, ec.Kind, ec.AccessTier,
-                        ec.AllowBlobPublicAccess, ec.EnableHttpsTrafficOnly, ec.MinimumTlsVersion)).ToList()));
+                        ec.EnvironmentName, ec.Sku)).ToList(),
+                src.Request.CorsRules == null
+                    ? null
+                    : src.Request.CorsRules.Select(rule => new CorsRuleResult(
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds)).ToList(),
+                src.Request.TableCorsRules == null
+                    ? null
+                    : src.Request.TableCorsRules.Select(rule => new CorsRuleResult(
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds)).ToList(),
+                src.Request.LifecycleRules == null
+                    ? null
+                    : src.Request.LifecycleRules.Select(rule => new BlobLifecycleRuleResult(
+                        rule.RuleName,
+                        rule.ContainerNames,
+                        rule.TimeToLiveInDays)).ToList()));
 
         config.NewConfig<StorageAccount, StorageAccountResult>()
+            .Map(dest => dest.Kind, src => src.Kind.Value.ToString())
+            .Map(dest => dest.AccessTier, src => src.AccessTier.Value.ToString())
+            .Map(dest => dest.MinimumTlsVersion, src => src.MinimumTlsVersion.Value.ToString())
+            .Map(dest => dest.CorsRules,
+                src => src.CorsRules.Select(rule => new CorsRuleResult(
+                    rule.AllowedOrigins,
+                    rule.AllowedMethods,
+                    rule.AllowedHeaders,
+                    rule.ExposedHeaders,
+                    rule.MaxAgeInSeconds)).ToList())
+            .Map(dest => dest.TableCorsRules,
+                src => src.TableCorsRules.Select(rule => new CorsRuleResult(
+                    rule.AllowedOrigins,
+                    rule.AllowedMethods,
+                    rule.AllowedHeaders,
+                    rule.ExposedHeaders,
+                    rule.MaxAgeInSeconds)).ToList())
             .Map(dest => dest.EnvironmentSettings,
                 src => src.EnvironmentSettings.Select(es => new StorageAccountEnvironmentConfigData(
                     es.EnvironmentName,
-                    es.Sku != null ? es.Sku.Value.ToString() : null,
-                    es.Kind != null ? es.Kind.Value.ToString() : null,
-                    es.AccessTier != null ? es.AccessTier.Value.ToString() : null,
-                    es.AllowBlobPublicAccess,
-                    es.EnableHttpsTrafficOnly,
-                    es.MinimumTlsVersion != null ? es.MinimumTlsVersion.Value.ToString() : null)).ToList());
+                    es.Sku != null ? es.Sku.Value.ToString() : null)).ToList())
+            .Map(dest => dest.LifecycleRules,
+                src => src.LifecycleRules.Select(rule => new BlobLifecycleRuleResult(
+                    rule.RuleName,
+                    rule.ContainerNames,
+                    rule.TimeToLiveInDays)).ToList());
 
         config.NewConfig<StorageAccountEnvironmentConfigData, StorageAccountEnvironmentConfigResponse>()
             .MapWith(src => new StorageAccountEnvironmentConfigResponse(
-                src.EnvironmentName, src.Sku, src.Kind, src.AccessTier,
-                src.AllowBlobPublicAccess, src.EnableHttpsTrafficOnly, src.MinimumTlsVersion));
+                src.EnvironmentName, src.Sku));
 
         config.NewConfig<StorageAccountSku, string>()
             .MapWith(src => src.Value.ToString());
@@ -84,10 +150,14 @@ public class StorageAccountMappingConfig : IRegister
             .Map(dest => dest.Id, src => src.Id.Value)
             .Map(dest => dest.PublicAccess, src => src.PublicAccess.Value.ToString());
 
+        config.NewConfig<CorsRuleResult, CorsRuleResponse>();
+
         config.NewConfig<StorageQueueResult, StorageQueueResponse>()
             .Map(dest => dest.Id, src => src.Id.Value);
 
         config.NewConfig<StorageTableResult, StorageTableResponse>()
             .Map(dest => dest.Id, src => src.Id.Value);
+
+        config.NewConfig<BlobLifecycleRuleResult, BlobLifecycleRuleResponse>();
     }
 }

@@ -2,7 +2,6 @@
 
 export interface ContainerAppEnvironmentConfigEntry {
   environmentName: string;
-  containerImage?: string | null;
   cpuCores?: string | null;
   memoryGi?: string | null;
   minReplicas?: number | null;
@@ -15,7 +14,6 @@ export interface ContainerAppEnvironmentConfigEntry {
 
 export interface ContainerAppEnvironmentConfigResponse {
   environmentName: string;
-  containerImage: string | null;
   cpuCores: string | null;
   memoryGi: string | null;
   minReplicas: number | null;
@@ -34,6 +32,10 @@ export interface ContainerAppResponse {
   name: string;
   location: string;
   containerAppEnvironmentId: string;
+  containerRegistryId: string | null;
+  dockerImageName: string | null;
+  dockerfilePath: string | null;
+  applicationName: string | null;
   environmentSettings: ContainerAppEnvironmentConfigResponse[];
 }
 
@@ -44,6 +46,10 @@ export interface CreateContainerAppRequest {
   name: string;
   location: string;
   containerAppEnvironmentId: string;
+  containerRegistryId?: string | null;
+  dockerImageName?: string | null;
+  dockerfilePath?: string | null;
+  applicationName?: string | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];
 }
 
@@ -51,5 +57,9 @@ export interface UpdateContainerAppRequest {
   name: string;
   location: string;
   containerAppEnvironmentId: string;
+  containerRegistryId?: string | null;
+  dockerImageName?: string | null;
+  dockerfilePath?: string | null;
+  applicationName?: string | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];
 }

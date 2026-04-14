@@ -14,7 +14,7 @@ public class GetSqlDatabaseQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetSqlDatabaseQuery, ErrorOr<SqlDatabaseResult>>
+    : IQueryHandler<GetSqlDatabaseQuery, SqlDatabaseResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<SqlDatabaseResult>> Handle(

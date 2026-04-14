@@ -14,7 +14,7 @@ public class GetAppServicePlanQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetAppServicePlanQuery, ErrorOr<AppServicePlanResult>>
+    : IQueryHandler<GetAppServicePlanQuery, AppServicePlanResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<AppServicePlanResult>> Handle(

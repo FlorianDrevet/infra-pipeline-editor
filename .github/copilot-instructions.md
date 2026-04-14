@@ -1,12 +1,16 @@
 # Copilot Instructions
 
+## Environnement de développement
+
+> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`). Utiliser `.\ ` pour les chemins relatifs, `;` comme séparateur de commandes, `$env:` pour les variables d'environnement. Ne jamais suggérer de commandes bash/sh.
+
 ## Build, run, and template commands
 
 - Use `.NET SDK 10.0.100` from `global.json`.
 - Build the full solution with `dotnet build .\InfraFlowSculptor.slnx`.
 - Run the full local stack with Aspire via `dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj`.
-- Run the infrastructure configuration API only with `dotnet run --project .\src\Api\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj`.
-- Run the Bicep generator API only with `dotnet run --project .\src\BicepGenerators\BicepGenerator.Api\BicepGenerator.Api.csproj`.
+- Build the infrastructure configuration API only with `dotnet build .\src\Api\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj`.
+- Build the Bicep generator API only with `dotnet build .\src\BicepGenerators\BicepGenerator.Api\BicepGenerator.Api.csproj`.
 - Frontend Angular commands run from `src\Front`:
   - `npm install`
   - `npm run start`
@@ -32,10 +36,12 @@
 
 ## Specialized agents
 
-- **Main entry point** — Use the `dev` agent (`.github/agents/dev.agent.md`) as the primary entry point for any task. It reads `MEMORY.md`, routes to the right specialist, loads relevant Skills, and updates `MEMORY.md` at the end.
+- **Main entry point** — Use the `dev` agent (`.github/agents/dev.agent.md`) as the primary entry point for any task. It reads `MEMORY.md` + thematic memory files in `.github/memory/`, routes to the right specialist, loads relevant Skills, and updates memory at the end.
+- **Architecture review & planning** — Use the `architect` agent (`.github/agents/architect.agent.md`) for any architecture analysis, feasibility check, implementation planning, or challenge of a feature request against the existing codebase. The architect never codes — it produces structured implementation plans for expert agents to follow.
 - **Backend C#/.NET** — Any C# code generation or modification MUST follow `.github/agents/dotnet-dev.agent.md` conventions (XML docs, no magic strings, SOLID, async/await, EF Core, FluentValidation, sealed, guard clauses, no code smells).
 - **Frontend Angular** — Any work in `src\Front` MUST use the `angular-front` agent (`.github/agents/angular-front.agent.md`).
 - **Aspire runtime debugging** — Any runtime/AppHost investigation (resource failures, logs/traces, startup issues) MUST use the `aspire-debug` agent (`.github/agents/aspire-debug.agent.md`).
+- **Memory consolidation (Dream)** — The `dream` agent (`.github/agents/dream.agent.md`) performs periodic memory consolidation (4 phases: Orient → Gather → Consolidate → Prune). Triggered automatically by `@dev` when time gate (≥24h) AND session gate (≥5 sessions) are both satisfied. Dream state tracked in `.github/memory/dream-state.md`.
 - **CQRS feature generation** — Load the `cqrs-feature` skill (`.github/skills/cqrs-feature/SKILL.md`) for any new aggregate or CQRS feature.
 - **UI/UX frontend design quality** — Load the `ui-ux-front-saas` skill (`.github/skills/ui-ux-front-saas/SKILL.md`) for any UI-facing frontend task (pages, components, layouts, styles, UX states).
 - **Pull Requests** — Use the `pr-manager` agent (`.github/agents/pr-manager.agent.md`) for PR title/description conventions.
@@ -53,6 +59,9 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 |-------|-------------|------|
 | `cqrs-feature` | Generating a new aggregate, new CQRS commands/queries/handlers, full feature scaffolding | `.github/skills/cqrs-feature/SKILL.md` |
 | `ui-ux-front-saas` | Any frontend UI/UX work: page design, component visuals, layout, styling, UX states, handoff specs | `.github/skills/ui-ux-front-saas/SKILL.md` |
+| `new-azure-resource` | Adding a new Azure resource type end-to-end (Domain→App→Infra→Contracts→API→Bicep→Frontend→i18n) | `.github/skills/new-azure-resource/SKILL.md` |
+| `gitnexus-workflow` | Code exploration via knowledge graph, impact analysis before modifications, post-change validation, safe refactoring | `.github/skills/gitnexus-workflow/SKILL.md` |
+| `draw-io-diagram-generator` | Creating or updating `.drawio` architecture, flow, sequence, ER, or UML diagrams for the project | `.github/skills/draw-io-diagram-generator/SKILL.md` |
 
 ---
 
@@ -70,6 +79,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 - Error handling uses `ErrorOr<T>` plus the shared API error extensions in `Shared.Api.Errors`; handlers return `ErrorOr` results rather than throwing for expected validation/domain failures.
 - Validation is implemented with FluentValidation and enforced through the MediatR `ValidationBehavior`.
 - Authentication uses Microsoft Entra ID / JWT bearer auth. The API projects set a fallback authenticated policy, expose an `IsAdmin` policy, and use `ICurrentUser`/`CurrentUser` for user context access.
+- Before any refactoring or modification of a shared symbol (interface, base class, cross-cutting service), run `gitnexus_impact()` via the `gitnexus-workflow` skill to assess blast radius. The repo is indexed as `infra-pipeline-editor` in GitNexus.
 - The GitHub prompt and agent files describe the product goal as storing infrastructure configuration in one API and generating Azure Bicep and Azure DevOps pipeline output in the second API. Keep that split in mind when deciding which project should own new behavior.
 - Frontend conventions:
   - **Any frontend work in `src\Front` MUST use the `angular-front` agent** (`.github/agents/angular-front.agent.md`). This agent owns all Angular 19 conventions, signals, standalone components, and project-specific patterns.

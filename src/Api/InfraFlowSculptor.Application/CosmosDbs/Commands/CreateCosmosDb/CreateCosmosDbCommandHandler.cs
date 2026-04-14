@@ -17,7 +17,7 @@ public class CreateCosmosDbCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateCosmosDbCommand, ErrorOr<CosmosDbResult>>
+    : ICommandHandler<CreateCosmosDbCommand, CosmosDbResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<CosmosDbResult>> Handle(

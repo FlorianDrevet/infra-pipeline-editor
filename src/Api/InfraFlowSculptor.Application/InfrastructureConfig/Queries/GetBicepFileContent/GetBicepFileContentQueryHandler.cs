@@ -1,11 +1,13 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetBicepFileContent;
 
 public sealed class GetBicepFileContentQueryHandler(IBlobService blobService)
-    : IRequestHandler<GetBicepFileContentQuery, ErrorOr<GetBicepFileContentResult>>
+    : IQueryHandler<GetBicepFileContentQuery, GetBicepFileContentResult>
 {
     public async Task<ErrorOr<GetBicepFileContentResult>> Handle(
         GetBicepFileContentQuery query,
@@ -15,9 +17,7 @@ public sealed class GetBicepFileContentQueryHandler(IBlobService blobService)
         var allBlobs = await blobService.ListBlobsAsync(prefix);
 
         if (allBlobs.Count == 0)
-            return Error.NotFound(
-                "BicepFile.NotFound",
-                $"No generated Bicep files found for configuration '{query.InfrastructureConfigId}'.");
+            return Errors.InfrastructureConfig.BicepFilesNotFoundError(query.InfrastructureConfigId);
 
         // Find the latest timestamp folder
         var latestPrefix = allBlobs
@@ -30,9 +30,7 @@ public sealed class GetBicepFileContentQueryHandler(IBlobService blobService)
         var content = await blobService.DownloadContentAsync(blobName);
 
         if (content is null)
-            return Error.NotFound(
-                "BicepFile.NotFound",
-                $"File '{query.FilePath}' was not found.");
+            return Errors.InfrastructureConfig.BicepFileNotFoundError(query.FilePath);
 
         return new GetBicepFileContentResult(content);
     }

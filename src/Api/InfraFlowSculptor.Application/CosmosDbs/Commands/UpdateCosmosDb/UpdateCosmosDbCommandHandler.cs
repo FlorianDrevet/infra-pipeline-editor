@@ -16,7 +16,7 @@ public class UpdateCosmosDbCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateCosmosDbCommand, ErrorOr<CosmosDbResult>>
+    : ICommandHandler<UpdateCosmosDbCommand, CosmosDbResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<CosmosDbResult>> Handle(

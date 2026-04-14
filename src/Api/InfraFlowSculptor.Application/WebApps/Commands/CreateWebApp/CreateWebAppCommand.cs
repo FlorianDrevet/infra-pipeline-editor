@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.WebApps.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
@@ -16,5 +16,12 @@ public record CreateWebAppCommand(
     string RuntimeVersion,
     bool AlwaysOn,
     bool HttpsOnly,
+    string DeploymentMode,
+    Guid? ContainerRegistryId,
+    string? DockerImageName,
+    string? DockerfilePath = null,
+    string? SourceCodePath = null,
+    string? BuildCommand = null,
+    string? ApplicationName = null,
     IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<WebAppResult>>;
+) : ICommand<WebAppResult>;

@@ -20,12 +20,25 @@ Tu es l'expert C#/.NET 10 de ce dépôt. Tu maîtrises :
 
 ---
 
+## Environnement de développement
+
+> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`). Utiliser `.\ ` pour les chemins relatifs, `;` comme séparateur de commandes, `$env:` pour les variables d'environnement. Ne jamais suggérer de commandes bash/sh.
+
+---
+
 ## Protocole obligatoire au démarrage
 
 1. Lire `MEMORY.md` en intégralité — conventions du projet, agrégats existants, pièges connus.
 2. Lire les fichiers proches du code à modifier pour comprendre le contexte exact.
 3. Vérifier que le build passe avant de commencer (`dotnet build .\InfraFlowSculptor.slnx`).
 4. Pour toute tâche frontend (`src/Front`), déléguer à l'agent `angular-front`.
+5. **Analyse d'impact GitNexus** — Avant de modifier un symbole partagé (interface, service, base class, handler
+   utilisé par plusieurs endpoints), exécuter `gitnexus_impact(target, "upstream")` :
+   - **d=1 (WILL BREAK)** → MUST mettre à jour ces fichiers dans la même tâche
+   - **d=2 (LIKELY AFFECTED)** → SHOULD tester ces chemins
+   - **Risque HIGH/CRITICAL** → alerter l'utilisateur avant de modifier
+   - Si besoin de comprendre un flux complet : `gitnexus_query("concept")` puis `gitnexus_context("Symbol")`
+   - Référence complète : charger le skill `gitnexus-workflow` (`.github/skills/gitnexus-workflow/SKILL.md`)
 
 ---
 
@@ -425,6 +438,22 @@ public KeyVaultRepository(ProjectDbContext context)
 
 // ❌ Ne jamais supprimer les warnings nullable avec des commentaires
 #pragma warning disable CS8600 // ← interdit sauf justification documentée
+```
+
+### Null-check sur ValueObject dans Mapster (expression trees)
+
+Les mappings Mapster compilent en **expression trees** → l'opérateur `is not null` est **interdit** (CS8122).
+Les opérateurs `==`/`!=` de `ValueObject` acceptent des paramètres **nullable** (`ValueObject?`), donc un simple `!= null` typé suffit :
+
+```csharp
+// ✅ Null-check typé — fonctionne dans les expression trees
+es.Sku != null ? es.Sku.Value.ToString() : null
+
+// ❌ Cast (object?) — perd le typage, inutile
+(object?)es.Sku != null ? es.Sku.Value.ToString() : null
+
+// ❌ Pattern matching — interdit dans expression trees (CS8122)
+es.Sku is not null ? es.Sku.Value.ToString() : null
 ```
 
 ---
@@ -918,6 +947,7 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 ## 22. Protocole de fin de tâche
 
 1. Exécuter `dotnet build .\InfraFlowSculptor.slnx` — corriger toutes les erreurs.
-2. Si un changement de modèle EF Core : `dotnet ef migrations add <DescriptiveName>`.
-3. Mettre à jour `MEMORY.md` avec les nouvelles conventions ou pièges découverts.
-4. Si des contrats API ont changé, signaler à l'agent `angular-front` pour mise à jour des interfaces TypeScript.
+2. Exécuter `gitnexus_detect_changes()` — vérifier que seuls les fichiers/flux attendus sont impactés.
+3. Si un changement de modèle EF Core : `dotnet ef migrations add <DescriptiveName>`.
+4. Mettre à jour `MEMORY.md` avec les nouvelles conventions ou pièges découverts.
+5. Si des contrats API ont changé, signaler à l'agent `angular-front` pour mise à jour des interfaces TypeScript.

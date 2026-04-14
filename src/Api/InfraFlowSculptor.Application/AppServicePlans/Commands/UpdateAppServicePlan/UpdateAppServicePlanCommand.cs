@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.AppServicePlans.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.AppServicePlans.Commands.UpdateAppServicePlan;
 
@@ -13,4 +13,4 @@ public record UpdateAppServicePlanCommand(
     Location Location,
     string OsType,
     IReadOnlyList<AppServicePlanEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<AppServicePlanResult>>;
+) : ICommand<AppServicePlanResult>;

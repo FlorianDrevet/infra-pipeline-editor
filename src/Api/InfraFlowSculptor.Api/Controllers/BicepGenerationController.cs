@@ -1,8 +1,10 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.DownloadBicep;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBicep;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushBicepToGit;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetBicepFileContent;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
+using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using InfraFlowSculptor.Api.Errors;
@@ -19,7 +21,7 @@ public static class BicepGenerationController
                 .WithTags("Generate Bicep");
 
             group.MapPost("",
-                    async (GenerateBicepRequest request, IMediator mediator) =>
+                    async (GenerateBicepRequest request, IMediator mediator, IMapper mapper) =>
                     {
                         var command = new GenerateBicepCommand(request.InfrastructureConfigId);
                         var result = await mediator.Send(command);
@@ -27,10 +29,7 @@ public static class BicepGenerationController
                         return result.Match(
                             value =>
                             {
-                                var response = new GenerateBicepResponse(
-                                    value.MainBicepUri,
-                                    value.ParameterFileUris,
-                                    value.ModuleUris);
+                                var response = mapper.Map<GenerateBicepResponse>(value);
                                 return Results.Created(value.MainBicepUri.ToString(), response);
                             },
                             errors => errors.Result()
@@ -73,6 +72,27 @@ public static class BicepGenerationController
                 .WithName("GetBicepFileContent")
                 .Produces(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound);
+
+            group.MapPost("/{configId:guid}/push-to-git",
+                    async ([FromRoute] Guid configId,
+                        [FromBody] PushBicepToGitRequest request,
+                        IMediator mediator,
+                        IMapper mapper) =>
+                    {
+                        var command = new PushBicepToGitCommand(configId, request.BranchName, request.CommitMessage);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.Ok(mapper.Map<PushBicepToGitResponse>(value)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("PushBicepToGit")
+                .WithSummary("Push generated Bicep files to Git")
+                .WithDescription("Pushes the latest generated Bicep files to the configured Git repository, creating or updating the specified branch.")
+                .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
 }

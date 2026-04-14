@@ -20,6 +20,22 @@ public sealed class ContainerAppConfiguration : IEntityTypeConfiguration<Contain
             .HasConversion(new IdValueConverter<AzureResourceId>())
             .IsRequired();
 
+        builder.Property(x => x.ContainerRegistryId)
+            .HasConversion(new IdValueConverter<AzureResourceId>())
+            .IsRequired(false);
+
+        builder.Property(x => x.DockerImageName)
+            .HasMaxLength(512)
+            .IsRequired(false);
+
+        builder.Property(x => x.DockerfilePath)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
+        builder.Property(x => x.ApplicationName)
+            .HasMaxLength(200)
+            .IsRequired(false);
+
         builder.HasMany(x => x.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.ContainerAppId)

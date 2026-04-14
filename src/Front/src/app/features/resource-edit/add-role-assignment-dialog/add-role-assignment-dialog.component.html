@@ -1,222 +1,371 @@
 <div class="role-dialog">
-  <!-- ─── Step 1: Select target resource ─── -->
-  @if (step() === 1) {
-    <h2 mat-dialog-title class="role-dialog__title">
-      <mat-icon>ads_click</mat-icon>
-      {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.TITLE_SELECT_TARGET' | translate }}
-    </h2>
+  @if (isFromUAI()) {
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- UAI MODE: 2 steps — Target → Role                                  -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
 
-    <mat-dialog-content class="role-dialog__content">
-      <p class="role-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SUBTITLE_SELECT' | translate }}</p>
+    <!-- ─── UAI Step 1: Select target resource (scope) ─── -->
+    @if (step() === 1) {
+      <h2 mat-dialog-title class="role-dialog__title">
+        <mat-icon>ads_click</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SELECT_TARGET_RESOURCE' | translate }}
+      </h2>
 
-      @if (targets().length === 0) {
-        <div class="role-dialog__empty">
-          <mat-icon>search_off</mat-icon>
-          <p>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_TARGETS' | translate }}</p>
-        </div>
-      } @else {
-        <div class="target-list">
-          @for (res of targets(); track res.id) {
-            <button
-              class="target-card"
-              [class.target-card--selected]="selectedTarget()?.id === res.id"
-              (click)="selectTarget(res)">
-              <mat-icon class="target-card__icon">{{ resourceTypeIcons[res.resourceType] || 'widgets' }}</mat-icon>
-              <div class="target-card__info">
-                <span class="target-card__name">{{ res.name }}</span>
-                <span class="target-card__meta">{{ res.resourceType }} · {{ res.location }}</span>
-              </div>
-              <mat-icon class="target-card__arrow">chevron_right</mat-icon>
-            </button>
-          }
-        </div>
-      }
-    </mat-dialog-content>
+      <mat-dialog-content class="role-dialog__content">
+        <p class="role-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SELECT_TARGET_RESOURCE_DESC' | translate }}</p>
 
-    <mat-dialog-actions class="role-dialog__actions" align="end">
-      <button mat-stroked-button (click)="onCancel()">
-        {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CANCEL' | translate }}
-      </button>
-    </mat-dialog-actions>
-  }
-
-  <!-- ─── Step 2: Configure assignment ─── -->
-  @if (step() === 2) {
-    <h2 mat-dialog-title class="role-dialog__title">
-      <mat-icon>admin_panel_settings</mat-icon>
-      {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.TITLE_CONFIGURE' | translate }}
-    </h2>
-
-    <mat-dialog-content class="role-dialog__content">
-      <p class="role-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SUBTITLE_CONFIGURE' | translate }}</p>
-
-      <!-- Selected target summary -->
-      @if (selectedTarget(); as target) {
-        <div class="selected-target-summary">
-          <mat-icon>{{ resourceTypeIcons[target.resourceType] || 'widgets' }}</mat-icon>
-          <span>{{ target.name }}</span>
-          <span class="selected-target-summary__type">{{ target.resourceType }}</span>
-        </div>
-      }
-
-      <!-- Identity type -->
-      <div class="config-section">
-        <label class="config-section__label">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.IDENTITY_TYPE_LABEL' | translate }}</label>
-        <mat-radio-group
-          class="identity-radio-group"
-          [value]="selectedIdentityType()"
-          (change)="onIdentityTypeChange($event.value)">
-          <mat-radio-button value="SystemAssigned">
-            {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED' | translate }}
-          </mat-radio-button>
-          <mat-radio-button value="UserAssigned">
-            {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.USER_ASSIGNED' | translate }}
-          </mat-radio-button>
-        </mat-radio-group>
-      </div>
-
-      <!-- User-Assigned Identity picker -->
-      @if (selectedIdentityType() === 'UserAssigned') {
-        <div class="config-section">
-          <label class="config-section__label">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.IDENTITY_PICKER_LABEL' | translate }}</label>
-
-          @if (availableIdentities().length === 0 && !showCreateIdentity()) {
-            <div class="identity-empty">
-              <mat-icon>fingerprint</mat-icon>
-              <p>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_IDENTITIES' | translate }}</p>
-              <button mat-stroked-button (click)="toggleCreateIdentity(true)">
-                <mat-icon>add</mat-icon>
-                {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY' | translate }}
-              </button>
-            </div>
-          } @else {
-            @if (availableIdentities().length > 0) {
-              <div class="identity-list">
-                @for (identity of availableIdentities(); track identity.id) {
-                  <button
-                    class="identity-card"
-                    [class.identity-card--selected]="selectedIdentityId() === identity.id"
-                    (click)="selectIdentity(identity.id)">
-                    <mat-icon class="identity-card__icon">fingerprint</mat-icon>
-                    <div class="identity-card__info">
-                      <span class="identity-card__name">{{ identity.name }}</span>
-                      <span class="identity-card__meta">{{ identity.location }}</span>
-                    </div>
-                    @if (selectedIdentityId() === identity.id) {
-                      <mat-icon class="identity-card__check">check_circle</mat-icon>
-                    }
-                  </button>
-                }
-              </div>
-            }
-
-            @if (!showCreateIdentity()) {
-              <button mat-stroked-button class="identity-create-btn" (click)="toggleCreateIdentity(true)">
-                <mat-icon>add</mat-icon>
-                {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY' | translate }}
-              </button>
-            }
-          }
-
-          @if (showCreateIdentity()) {
-            <div class="identity-create-inline">
-              <mat-form-field appearance="outline" class="identity-create-inline__field">
-                <mat-label>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NEW_IDENTITY_NAME' | translate }}</mat-label>
-                <input matInput [ngModel]="newIdentityName()" (ngModelChange)="newIdentityName.set($event)" />
-              </mat-form-field>
-              <div class="identity-create-inline__actions">
-                <button
-                  mat-flat-button
-                  color="primary"
-                  [disabled]="!newIdentityName().trim() || isCreatingIdentity()"
-                  (click)="createIdentity()">
-                  @if (isCreatingIdentity()) {
-                    <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
-                    {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATING_IDENTITY' | translate }}
-                  } @else {
-                    {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY_SUBMIT' | translate }}
-                  }
-                </button>
-                <button mat-stroked-button (click)="toggleCreateIdentity(false)" [disabled]="isCreatingIdentity()">
-                  {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CANCEL_CREATE' | translate }}
-                </button>
-              </div>
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Role selection -->
-      <div class="config-section">
-        <label class="config-section__label">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_LABEL' | translate }}</label>
-
-        @if (rolesLoading()) {
-          <div class="role-dialog__loading">
-            <mat-spinner diameter="24"></mat-spinner>
-            <span>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.LOADING_ROLES' | translate }}</span>
+        @if (uaiTargetCandidates().length === 0) {
+          <div class="role-dialog__empty">
+            <mat-icon>search_off</mat-icon>
+            <p>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_TARGETS' | translate }}</p>
           </div>
-        } @else if (availableRoles().length === 0) {
-          <p class="role-dialog__no-roles">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_ROLES' | translate }}</p>
         } @else {
-          <mat-form-field appearance="outline" class="role-select-field">
-            <mat-label>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_LABEL' | translate }}</mat-label>
-            <mat-select
-              [value]="selectedRoleId()"
-              (selectionChange)="selectedRoleId.set($event.value)">
-              @for (role of availableRoles(); track role.id) {
-                <mat-option [value]="role.id">
-                  {{ role.name }}
-                </mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+          <div class="target-list">
+            @for (res of uaiTargetCandidates(); track res.id) {
+              <button
+                class="target-card"
+                [class.target-card--selected]="selectedTarget()?.id === res.id"
+                (click)="selectTarget(res)">
+                <mat-icon class="target-card__icon">{{ resourceTypeIcons[res.resourceType] || 'widgets' }}</mat-icon>
+                <div class="target-card__info">
+                  <span class="target-card__name">{{ res.name }}</span>
+                  <span class="target-card__meta">{{ res.resourceType }} · {{ res.location }}</span>
+                </div>
+                <mat-icon class="target-card__arrow">chevron_right</mat-icon>
+              </button>
+            }
+          </div>
+        }
+      </mat-dialog-content>
 
-          <!-- Role description -->
-          @if (selectedRoleId(); as roleId) {
-            @for (role of availableRoles(); track role.id) {
-              @if (role.id === roleId) {
-                <div class="role-description-box">
-                  <strong>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_DESCRIPTION' | translate }}:</strong>
-                  <p>{{ role.description }}</p>
-                  @if (role.documentationUrl) {
-                    <a class="role-doc-link" [href]="role.documentationUrl" target="_blank" rel="noopener noreferrer">
-                      <mat-icon>open_in_new</mat-icon>
-                      {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DOCS_LINK' | translate }}
-                    </a>
+      <mat-dialog-actions class="role-dialog__actions" align="end">
+        <button mat-stroked-button (click)="onCancel()">
+          {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CANCEL' | translate }}
+        </button>
+      </mat-dialog-actions>
+    }
+
+    <!-- ─── UAI Step 2: Select role ─── -->
+    @if (step() === 2) {
+      <h2 mat-dialog-title class="role-dialog__title">
+        <mat-icon>admin_panel_settings</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SELECT_ROLE' | translate }}
+      </h2>
+
+      <mat-dialog-content class="role-dialog__content">
+        <!-- Selected target summary -->
+        @if (selectedTarget(); as target) {
+          <div class="selected-target-summary">
+            <mat-icon>{{ resourceTypeIcons[target.resourceType] || 'widgets' }}</mat-icon>
+            <span>{{ target.name }}</span>
+            <span class="selected-target-summary__type">{{ target.resourceType }}</span>
+          </div>
+        }
+
+        <!-- Role selection -->
+        <div class="config-section">
+          <label class="config-section__label">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_LABEL' | translate }}</label>
+
+          @if (rolesLoading()) {
+            <div class="role-dialog__loading">
+              <mat-spinner diameter="24"></mat-spinner>
+              <span>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.LOADING_ROLES' | translate }}</span>
+            </div>
+          } @else if (availableRoles().length === 0) {
+            <p class="role-dialog__no-roles">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_ROLES' | translate }}</p>
+          } @else {
+            <mat-form-field appearance="outline" class="role-select-field">
+              <mat-label>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_LABEL' | translate }}</mat-label>
+              <mat-select
+                [value]="selectedRoleId()"
+                (selectionChange)="selectedRoleId.set($event.value)">
+                @for (role of availableRoles(); track role.id) {
+                  <mat-option [value]="role.id">
+                    {{ role.name }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Role description -->
+            @if (selectedRoleId(); as roleId) {
+              @for (role of availableRoles(); track role.id) {
+                @if (role.id === roleId) {
+                  <div class="role-description-box">
+                    <strong>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_DESCRIPTION' | translate }}:</strong>
+                    <p>{{ role.description }}</p>
+                    @if (role.documentationUrl) {
+                      <a class="role-doc-link" [href]="role.documentationUrl" target="_blank" rel="noopener noreferrer">
+                        <mat-icon>open_in_new</mat-icon>
+                        {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DOCS_LINK' | translate }}
+                      </a>
+                    }
+                  </div>
+                }
+              }
+            }
+          }
+        </div>
+
+        <!-- Error -->
+        @if (errorKey()) {
+          <div class="role-dialog__error">
+            <mat-icon>error_outline</mat-icon>
+            {{ errorKey() | translate }}
+          </div>
+        }
+      </mat-dialog-content>
+
+      <mat-dialog-actions class="role-dialog__actions" align="end">
+        <button mat-stroked-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          [disabled]="!canSubmit()"
+          (click)="onSubmit()">
+          @if (isSubmitting()) {
+            <mat-spinner diameter="18" class="submit-spinner"></mat-spinner>
+            {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGNING' | translate }}
+          } @else {
+            {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGN' | translate }}
+          }
+        </button>
+      </mat-dialog-actions>
+    }
+
+  } @else {
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- NORMAL MODE: 2 steps — Target → Configure (identity + role)        -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+
+    <!-- ─── Step 1: Select target resource ─── -->
+    @if (step() === 1) {
+      <h2 mat-dialog-title class="role-dialog__title">
+        <mat-icon>ads_click</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.TITLE_SELECT_TARGET' | translate }}
+      </h2>
+
+      <mat-dialog-content class="role-dialog__content">
+        <p class="role-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SUBTITLE_SELECT' | translate }}</p>
+
+        @if (targets().length === 0) {
+          <div class="role-dialog__empty">
+            <mat-icon>search_off</mat-icon>
+            <p>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_TARGETS' | translate }}</p>
+          </div>
+        } @else {
+          <div class="target-list">
+            @for (res of targets(); track res.id) {
+              <button
+                class="target-card"
+                [class.target-card--selected]="selectedTarget()?.id === res.id"
+                (click)="selectTarget(res)">
+                <mat-icon class="target-card__icon">{{ resourceTypeIcons[res.resourceType] || 'widgets' }}</mat-icon>
+                <div class="target-card__info">
+                  <span class="target-card__name">{{ res.name }}</span>
+                  <span class="target-card__meta">{{ res.resourceType }} · {{ res.location }}</span>
+                </div>
+                <mat-icon class="target-card__arrow">chevron_right</mat-icon>
+              </button>
+            }
+          </div>
+        }
+      </mat-dialog-content>
+
+      <mat-dialog-actions class="role-dialog__actions" align="end">
+        <button mat-stroked-button (click)="onCancel()">
+          {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CANCEL' | translate }}
+        </button>
+      </mat-dialog-actions>
+    }
+
+    <!-- ─── Step 2: Configure assignment ─── -->
+    @if (step() === 2) {
+      <h2 mat-dialog-title class="role-dialog__title">
+        <mat-icon>admin_panel_settings</mat-icon>
+        {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.TITLE_CONFIGURE' | translate }}
+      </h2>
+
+      <mat-dialog-content class="role-dialog__content">
+        <p class="role-dialog__subtitle">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.SUBTITLE_CONFIGURE' | translate }}</p>
+
+        <!-- Selected target summary -->
+        @if (selectedTarget(); as target) {
+          <div class="selected-target-summary">
+            <mat-icon>{{ resourceTypeIcons[target.resourceType] || 'widgets' }}</mat-icon>
+            <span>{{ target.name }}</span>
+            <span class="selected-target-summary__type">{{ target.resourceType }}</span>
+          </div>
+        }
+
+        <!-- Identity type -->
+        <div class="config-section">
+          <label class="config-section__label">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.IDENTITY_TYPE_LABEL' | translate }}</label>
+          <mat-radio-group
+            class="identity-radio-group"
+            [value]="selectedIdentityType()"
+            (change)="onIdentityTypeChange($event.value)">
+            <mat-radio-button value="SystemAssigned" [disabled]="isAcrPullSelected()">
+              {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED' | translate }}
+            </mat-radio-button>
+            <mat-radio-button value="UserAssigned">
+              {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.USER_ASSIGNED' | translate }}
+            </mat-radio-button>
+          </mat-radio-group>
+          @if (isAcrPullSelected()) {
+            <p class="config-section__hint">
+              <mat-icon>info_outline</mat-icon>
+              {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ACR_PULL_USER_ASSIGNED_ONLY' | translate }}
+            </p>
+          }
+        </div>
+
+        <!-- User-Assigned Identity picker -->
+        @if (selectedIdentityType() === 'UserAssigned') {
+          <div class="config-section">
+            <label class="config-section__label">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.IDENTITY_PICKER_LABEL' | translate }}</label>
+
+            @if (availableIdentities().length === 0 && !showCreateIdentity()) {
+              <div class="identity-empty">
+                <mat-icon>fingerprint</mat-icon>
+                <p>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_IDENTITIES' | translate }}</p>
+                <button mat-stroked-button (click)="toggleCreateIdentity(true)">
+                  <mat-icon>add</mat-icon>
+                  {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY' | translate }}
+                </button>
+              </div>
+            } @else {
+              @if (availableIdentities().length > 0) {
+                <div class="identity-list">
+                  @for (identity of availableIdentities(); track identity.id) {
+                    <button
+                      class="identity-card"
+                      [class.identity-card--selected]="selectedIdentityId() === identity.id"
+                      (click)="selectIdentity(identity.id)">
+                      <mat-icon class="identity-card__icon">fingerprint</mat-icon>
+                      <div class="identity-card__info">
+                        <span class="identity-card__name">{{ identity.name }}</span>
+                        <span class="identity-card__meta">{{ identity.location }}</span>
+                      </div>
+                      @if (selectedIdentityId() === identity.id) {
+                        <mat-icon class="identity-card__check">check_circle</mat-icon>
+                      }
+                    </button>
                   }
                 </div>
               }
+
+              @if (!showCreateIdentity() && !hasAssignedUai()) {
+                <button mat-stroked-button class="identity-create-btn" (click)="toggleCreateIdentity(true)">
+                  <mat-icon>add</mat-icon>
+                  {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY' | translate }}
+                </button>
+              }
+            }
+
+            @if (showCreateIdentity() && !hasAssignedUai()) {
+              <div class="identity-create-inline">
+                <mat-form-field appearance="outline" class="identity-create-inline__field">
+                  <mat-label>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NEW_IDENTITY_NAME' | translate }}</mat-label>
+                  <input matInput [ngModel]="newIdentityName()" (ngModelChange)="newIdentityName.set($event)" />
+                </mat-form-field>
+                <div class="identity-create-inline__actions">
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    [disabled]="!newIdentityName().trim() || isCreatingIdentity()"
+                    (click)="createIdentity()">
+                    @if (isCreatingIdentity()) {
+                      <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
+                      {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATING_IDENTITY' | translate }}
+                    } @else {
+                      {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CREATE_IDENTITY_SUBMIT' | translate }}
+                    }
+                  </button>
+                  <button mat-stroked-button (click)="toggleCreateIdentity(false)" [disabled]="isCreatingIdentity()">
+                    {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.CANCEL_CREATE' | translate }}
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Role selection -->
+        <div class="config-section">
+          <label class="config-section__label">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_LABEL' | translate }}</label>
+
+          @if (rolesLoading()) {
+            <div class="role-dialog__loading">
+              <mat-spinner diameter="24"></mat-spinner>
+              <span>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.LOADING_ROLES' | translate }}</span>
+            </div>
+          } @else if (availableRoles().length === 0) {
+            <p class="role-dialog__no-roles">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_ROLES' | translate }}</p>
+          } @else {
+            <mat-form-field appearance="outline" class="role-select-field">
+              <mat-label>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_LABEL' | translate }}</mat-label>
+              <mat-select
+                [value]="selectedRoleId()"
+                (selectionChange)="onRoleChange($event.value)">
+                @for (role of availableRoles(); track role.id) {
+                  <mat-option [value]="role.id">
+                    {{ role.name }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Role description -->
+            @if (selectedRoleId(); as roleId) {
+              @for (role of availableRoles(); track role.id) {
+                @if (role.id === roleId) {
+                  <div class="role-description-box">
+                    <strong>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_DESCRIPTION' | translate }}:</strong>
+                    <p>{{ role.description }}</p>
+                    @if (role.documentationUrl) {
+                      <a class="role-doc-link" [href]="role.documentationUrl" target="_blank" rel="noopener noreferrer">
+                        <mat-icon>open_in_new</mat-icon>
+                        {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DOCS_LINK' | translate }}
+                      </a>
+                    }
+                  </div>
+                }
+              }
             }
           }
-        }
-      </div>
-
-      <!-- Error -->
-      @if (errorKey()) {
-        <div class="role-dialog__error">
-          <mat-icon>error_outline</mat-icon>
-          {{ errorKey() | translate }}
         </div>
-      }
-    </mat-dialog-content>
 
-    <mat-dialog-actions class="role-dialog__actions" align="end">
-      <button mat-stroked-button (click)="goBack()">
-        <mat-icon>arrow_back</mat-icon>
-        {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
-      </button>
-      <button
-        mat-flat-button
-        color="primary"
-        [disabled]="!canSubmit()"
-        (click)="onSubmit()">
-        @if (isSubmitting()) {
-          <mat-spinner diameter="18" class="submit-spinner"></mat-spinner>
-          {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGNING' | translate }}
-        } @else {
-          {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGN' | translate }}
+        <!-- Error -->
+        @if (errorKey()) {
+          <div class="role-dialog__error">
+            <mat-icon>error_outline</mat-icon>
+            {{ errorKey() | translate }}
+          </div>
         }
-      </button>
-    </mat-dialog-actions>
+      </mat-dialog-content>
+
+      <mat-dialog-actions class="role-dialog__actions" align="end">
+        <button mat-stroked-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          [disabled]="!canSubmit()"
+          (click)="onSubmit()">
+          @if (isSubmitting()) {
+            <mat-spinner diameter="18" class="submit-spinner"></mat-spinner>
+            {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGNING' | translate }}
+          } @else {
+            {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGN' | translate }}
+          }
+        </button>
+      </mat-dialog-actions>
+    }
   }
 </div>

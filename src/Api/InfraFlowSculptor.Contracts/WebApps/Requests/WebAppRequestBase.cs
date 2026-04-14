@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using InfraFlowSculptor.Contracts.ValidationAttributes;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.WebAppAggregate.ValueObjects;
+using static InfraFlowSculptor.Domain.Common.ValueObjects.DeploymentMode;
 
 namespace InfraFlowSculptor.Contracts.WebApps.Requests;
 
@@ -34,6 +35,33 @@ public abstract class WebAppRequestBase
     /// <summary>Whether the app requires HTTPS only.</summary>
     public bool HttpsOnly { get; init; } = true;
 
+    /// <summary>Deployment mode: "Code" or "Container".</summary>
+    [Required, EnumValidation(typeof(DeploymentMode.DeploymentModeType))]
+    public required string DeploymentMode { get; init; }
+
+    /// <summary>Optional Container Registry identifier for container deployments.</summary>
+    [GuidValidation]
+    public Guid? ContainerRegistryId { get; init; }
+
+    /// <summary>Docker image name for container deployments (e.g., "myapp/api").</summary>
+    public string? DockerImageName { get; init; }
+
+    /// <summary>Relative path to the Dockerfile in the repository for container pipeline generation.</summary>
+    [MaxLength(500)]
+    public string? DockerfilePath { get; init; }
+
+    /// <summary>Relative path to the source code folder for code pipeline generation.</summary>
+    [MaxLength(500)]
+    public string? SourceCodePath { get; init; }
+
+    /// <summary>Optional custom build command for pipeline generation.</summary>
+    [MaxLength(1000)]
+    public string? BuildCommand { get; init; }
+
+    /// <summary>User-friendly application name displayed in Azure DevOps pipeline runs.</summary>
+    [MaxLength(200)]
+    public string? ApplicationName { get; init; }
+
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<WebAppEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }
@@ -51,12 +79,8 @@ public class WebAppEnvironmentConfigEntry
     /// <summary>Optional HTTPS-only override.</summary>
     public bool? HttpsOnly { get; init; }
 
-    /// <summary>Optional runtime stack override.</summary>
-    [EnumValidation(typeof(WebAppRuntimeStack.WebAppRuntimeStackEnum))]
-    public string? RuntimeStack { get; init; }
-
-    /// <summary>Optional runtime version override.</summary>
-    public string? RuntimeVersion { get; init; }
+    /// <summary>Optional Docker image tag override for this environment (e.g., "latest", "v1.2.3").</summary>
+    public string? DockerImageTag { get; init; }
 }
 
 /// <summary>Response DTO for a typed per-environment Web App configuration.</summary>
@@ -64,5 +88,4 @@ public record WebAppEnvironmentConfigResponse(
     string EnvironmentName,
     bool? AlwaysOn,
     bool? HttpsOnly,
-    string? RuntimeStack,
-    string? RuntimeVersion);
+    string? DockerImageTag);

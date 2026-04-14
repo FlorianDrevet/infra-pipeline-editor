@@ -8,5 +8,21 @@
   @if (!isLoginPage()) {
     <app-footer></app-footer>
   }
+
+  @if (isAnnotationEnabled) {
+    <agent-ui-annotation #annotationRef theme="auto" output-level="standard"></agent-ui-annotation>
+  }
+
+  @if (isAnnotationEnabled && !isLoginPage()) {
+    <button
+      type="button"
+      class="annotation-trigger"
+      (click)="activateAnnotation()"
+      [attr.aria-label]="'ANNOTATION.ACTIVATE_ARIA' | translate"
+      [attr.title]="'ANNOTATION.ACTIVATE' | translate"
+    >
+      AI
+    </button>
+  }
 </div>
 

@@ -1,3 +1,6 @@
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using AzureKeyVaultEmulator.Aspire.Client;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Azure;
@@ -11,6 +14,9 @@ using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 using InfraFlowSculptor.Infrastructure.Services;
 using InfraFlowSculptor.Infrastructure.Services.BlobService;
+using InfraFlowSculptor.Infrastructure.Services.GitProviders;
+using InfraFlowSculptor.Infrastructure.Services.KeyVault;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
 
 namespace InfraFlowSculptor.Infrastructure;
@@ -19,13 +25,17 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        ConfigurationManager builderConfiguration)
+        ConfigurationManager builderConfiguration,
+        IHostEnvironment hostEnvironment)
     {
         services
             .AddAuth(builderConfiguration)
             .AddAzureServices(builderConfiguration)
             .AddBlob(builderConfiguration)
-            .AddRepositories();
+            .AddRepositories()
+            .AddGitProviders(builderConfiguration, hostEnvironment);
+
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         services.AddMigration<ProjectDbContext>();
 
@@ -60,6 +70,9 @@ public static class DependencyInjection
         services.AddScoped<ICosmosDbRepository, CosmosDbRepository>();
         services.AddScoped<ISqlServerRepository, SqlServerRepository>();
         services.AddScoped<ISqlDatabaseRepository, SqlDatabaseRepository>();
+        services.AddScoped<IServiceBusNamespaceRepository, ServiceBusNamespaceRepository>();
+        services.AddScoped<IContainerRegistryRepository, ContainerRegistryRepository>();
+        services.AddScoped<IEventHubNamespaceRepository, EventHubNamespaceRepository>();
         services.AddScoped<IInfrastructureConfigReadRepository, InfrastructureConfigReadRepository>();
 
         return services;
@@ -88,6 +101,7 @@ public static class DependencyInjection
         services.AddSingleton(Options.Create(blobSettings));
 
         services.AddSingleton<IBlobService, BlobService>();
+        services.AddSingleton<IGeneratedArtifactService, GeneratedArtifactService>();
 
         return services;
     }
@@ -99,6 +113,40 @@ public static class DependencyInjection
         services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builderConfiguration.GetSection("AzureAd"));
         
+        return services;
+    }
+
+    private static IServiceCollection AddGitProviders(
+        this IServiceCollection services,
+        ConfigurationManager builderConfiguration,
+        IHostEnvironment hostEnvironment)
+    {
+        if (hostEnvironment.IsDevelopment())
+        {
+            var vaultUri = builderConfiguration.GetConnectionString("keyvault")
+                           ?? throw new InvalidOperationException(
+                               "Connection string 'keyvault' is required. Configure it via Aspire or appsettings.");
+            services.AddAzureKeyVaultEmulator(vaultUri);
+        }
+        else
+        {
+            var credential = new DefaultAzureCredential();
+
+            services.AddSingleton(sp =>
+            {
+                var vaultUri = builderConfiguration.GetConnectionString("keyvault")
+                               ?? throw new InvalidOperationException(
+                                   "Connection string 'keyvault' is required. Configure it via Aspire or appsettings.");
+                return new SecretClient(new Uri(vaultUri), credential);
+            });
+        }
+
+        services.AddSingleton<IKeyVaultSecretClient, KeyVaultSecretClient>();
+        services.AddSingleton<GitHubGitProviderService>();
+        services.AddSingleton<AzureDevOpsGitProviderService>();
+        services.AddSingleton<IGitProviderFactory, GitProviderFactory>();
+        services.AddHttpClient();
+
         return services;
     }
 }

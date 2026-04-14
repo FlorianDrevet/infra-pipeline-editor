@@ -2,6 +2,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.GenerationCore;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.Common.Queries.GetDependentResources;
@@ -20,7 +21,7 @@ public sealed class GetDependentResourcesQueryHandler(
     ISqlDatabaseRepository sqlDatabaseRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<GetDependentResourcesQuery, ErrorOr<List<DependentResourceResult>>>
+    : IQueryHandler<GetDependentResourcesQuery, List<DependentResourceResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<List<DependentResourceResult>>> Handle(
@@ -29,18 +30,18 @@ public sealed class GetDependentResourcesQueryHandler(
     {
         // Try to find the parent resource and determine its type
         AzureResource? parent = await logAnalyticsWorkspaceRepository.GetByIdAsync(request.Id, cancellationToken);
-        var parentType = "LogAnalyticsWorkspace";
+        var parentType = AzureResourceTypes.LogAnalyticsWorkspace;
 
         if (parent is null)
         {
             parent = await appServicePlanRepository.GetByIdAsync(request.Id, cancellationToken);
-            parentType = "AppServicePlan";
+            parentType = AzureResourceTypes.AppServicePlan;
         }
 
         if (parent is null)
         {
             parent = await sqlServerRepository.GetByIdAsync(request.Id, cancellationToken);
-            parentType = "SqlServer";
+            parentType = AzureResourceTypes.SqlServer;
         }
 
         if (parent is null)
@@ -60,33 +61,33 @@ public sealed class GetDependentResourcesQueryHandler(
 
         switch (parentType)
         {
-            case "LogAnalyticsWorkspace":
+            case AzureResourceTypes.LogAnalyticsWorkspace:
             {
                 var appInsights = await applicationInsightsRepository
                     .GetByLogAnalyticsWorkspaceIdAsync(request.Id, cancellationToken);
                 dependents.AddRange(appInsights.Select(ai => new DependentResourceResult(
-                    ai.Id.Value, ai.Name.Value, "ApplicationInsights")));
+                    ai.Id.Value, ai.Name.Value, AzureResourceTypes.ApplicationInsights)));
                 break;
             }
-            case "AppServicePlan":
+            case AzureResourceTypes.AppServicePlan:
             {
                 var webApps = await webAppRepository
                     .GetByAppServicePlanIdAsync(request.Id, cancellationToken);
                 dependents.AddRange(webApps.Select(wa => new DependentResourceResult(
-                    wa.Id.Value, wa.Name.Value, "WebApp")));
+                    wa.Id.Value, wa.Name.Value, AzureResourceTypes.WebApp)));
 
                 var functionApps = await functionAppRepository
                     .GetByAppServicePlanIdAsync(request.Id, cancellationToken);
                 dependents.AddRange(functionApps.Select(fa => new DependentResourceResult(
-                    fa.Id.Value, fa.Name.Value, "FunctionApp")));
+                    fa.Id.Value, fa.Name.Value, AzureResourceTypes.FunctionApp)));
                 break;
             }
-            case "SqlServer":
+            case AzureResourceTypes.SqlServer:
             {
                 var sqlDatabases = await sqlDatabaseRepository
                     .GetBySqlServerIdAsync(request.Id, cancellationToken);
                 dependents.AddRange(sqlDatabases.Select(db => new DependentResourceResult(
-                    db.Id.Value, db.Name.Value, "SqlDatabase")));
+                    db.Id.Value, db.Name.Value, AzureResourceTypes.SqlDatabase)));
                 break;
             }
         }

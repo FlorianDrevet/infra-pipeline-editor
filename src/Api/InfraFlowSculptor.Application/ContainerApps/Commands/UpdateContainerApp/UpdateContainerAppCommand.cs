@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.ContainerApps.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ContainerApps.Commands.UpdateContainerApp;
 
@@ -12,5 +12,9 @@ public record UpdateContainerAppCommand(
     Name Name,
     Location Location,
     Guid ContainerAppEnvironmentId,
+    Guid? ContainerRegistryId,
+    string? DockerImageName = null,
+    string? DockerfilePath = null,
+    string? ApplicationName = null,
     IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<ContainerAppResult>>;
+) : ICommand<ContainerAppResult>;

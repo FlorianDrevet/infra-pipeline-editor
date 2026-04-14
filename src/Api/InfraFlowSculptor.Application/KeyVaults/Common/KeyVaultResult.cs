@@ -9,5 +9,11 @@ public record KeyVaultResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
+    bool EnableRbacAuthorization,
+    bool EnabledForDeployment,
+    bool EnabledForDiskEncryption,
+    bool EnabledForTemplateDeployment,
+    bool EnablePurgeProtection,
+    bool EnableSoftDelete,
     IReadOnlyList<KeyVaultEnvironmentConfigData> EnvironmentSettings
 );

@@ -12,7 +12,7 @@ namespace InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
 /// </summary>
 public class ApplicationInsights : AzureResource
 {
-    private readonly List<ApplicationInsightsEnvironmentSettings> _environmentSettings = new();
+    private readonly List<ApplicationInsightsEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Application Insights resource.</summary>
     public IReadOnlyCollection<ApplicationInsightsEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();

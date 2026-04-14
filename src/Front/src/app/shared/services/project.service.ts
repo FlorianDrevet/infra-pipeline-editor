@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import axios from 'axios';
 import { AxiosService } from './axios.service';
 import { MethodEnum } from '../enums/method.enum';
 import {
@@ -8,17 +9,32 @@ import {
   UpdateProjectMemberRoleRequest,
   RecentItemResponse,
   ValidateRecentItemsRequest,
+  SetGitConfigRequest,
+  TestGitConnectionResponse,
+  GitBranchResponse,
+  AddProjectEnvironmentRequest,
+  UpdateProjectEnvironmentRequest,
+  SetRepositoryModeRequest,
+  GenerateProjectBicepResponse,
+  GenerateProjectPipelineResponse,
+  ProjectPipelineVariableGroupResponse,
+  AddProjectPipelineVariableGroupRequest,
+  SetProjectTagsRequest,
+  SetAgentPoolRequest,
 } from '../interfaces/project.interface';
+import {
+  PushBicepToGitRequest,
+  PushBicepToGitResponse,
+} from '../interfaces/bicep-generator.interface';
 import {
   InfrastructureConfigResponse,
   UserResponse,
   EnvironmentDefinitionResponse,
   ResourceNamingTemplateResponse,
-  AddEnvironmentRequest,
-  UpdateEnvironmentRequest,
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
 } from '../interfaces/infra-config.interface';
+import { ProjectResourceResponse } from '../interfaces/cross-config-reference.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -92,7 +108,7 @@ export class ProjectService {
 
   addEnvironment(
     projectId: string,
-    request: AddEnvironmentRequest
+    request: AddProjectEnvironmentRequest
   ): Promise<EnvironmentDefinitionResponse> {
     return this.axios.request$<EnvironmentDefinitionResponse>(
       MethodEnum.POST,
@@ -104,7 +120,7 @@ export class ProjectService {
   updateEnvironment(
     projectId: string,
     envId: string,
-    request: UpdateEnvironmentRequest
+    request: UpdateProjectEnvironmentRequest
   ): Promise<EnvironmentDefinitionResponse> {
     return this.axios.request$<EnvironmentDefinitionResponse>(
       MethodEnum.PUT,
@@ -152,6 +168,171 @@ export class ProjectService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/projects/${projectId}/naming/resources/${resourceType}`
+    );
+  }
+
+  // ─── Git Configuration ───
+
+  setGitConfig(projectId: string, request: SetGitConfigRequest): Promise<ProjectResponse> {
+    return this.axios.request$<ProjectResponse>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/git-config`,
+      request
+    );
+  }
+
+  removeGitConfig(projectId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/git-config`
+    );
+  }
+
+  testGitConnection(projectId: string): Promise<TestGitConnectionResponse> {
+    return this.axios.request$<TestGitConnectionResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/git-config/test`
+    );
+  }
+
+  listBranches(projectId: string): Promise<GitBranchResponse[]> {
+    return this.axios.request$<GitBranchResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/git-config/branches`
+    );
+  }
+
+  // ─── Project Resources ───
+
+  getProjectResources(projectId: string): Promise<ProjectResourceResponse[]> {
+    return this.axios.request$<ProjectResourceResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/resources`
+    );
+  }
+
+  // ─── Repository Mode ───
+
+  setRepositoryMode(projectId: string, request: SetRepositoryModeRequest): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/repository-mode`,
+      request
+    );
+  }
+
+  generateProjectBicep(projectId: string): Promise<GenerateProjectBicepResponse> {
+    return this.axios.request$<GenerateProjectBicepResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/generate-bicep`
+    );
+  }
+
+  async downloadProjectZip(projectId: string): Promise<Blob> {
+    const response = await axios.get(
+      `/projects/${projectId}/generate-bicep/download`,
+      { responseType: 'blob' }
+    );
+    return response.data as Blob;
+  }
+
+  getProjectBicepFileContent(projectId: string, filePath: string): Promise<string> {
+    return this.axios.request$<{ content: string }>(
+      MethodEnum.GET,
+      `/projects/${projectId}/generate-bicep/files/${filePath}`
+    ).then(response => response.content);
+  }
+
+  pushProjectBicepToGit(
+    projectId: string,
+    request: PushBicepToGitRequest
+  ): Promise<PushBicepToGitResponse> {
+    return this.axios.request$<PushBicepToGitResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/push-to-git`,
+      request
+    );
+  }
+
+  // ─── Project Pipeline Generation (mono-repo) ───
+
+  generateProjectPipeline(projectId: string): Promise<GenerateProjectPipelineResponse> {
+    return this.axios.request$<GenerateProjectPipelineResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/generate-pipeline`
+    );
+  }
+
+  async downloadProjectPipelineZip(projectId: string): Promise<Blob> {
+    const response = await axios.get(
+      `/projects/${projectId}/generate-pipeline/download`,
+      { responseType: 'blob' }
+    );
+    return response.data as Blob;
+  }
+
+  getProjectPipelineFileContent(projectId: string, filePath: string): Promise<string> {
+    return this.axios.request$<{ content: string }>(
+      MethodEnum.GET,
+      `/projects/${projectId}/generate-pipeline/files/${filePath}`
+    ).then(response => response.content);
+  }
+
+  pushProjectPipelineToGit(
+    projectId: string,
+    request: PushBicepToGitRequest
+  ): Promise<PushBicepToGitResponse> {
+    return this.axios.request$<PushBicepToGitResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/push-pipeline-to-git`,
+      request
+    );
+  }
+
+  // ─── Pipeline Variable Groups ───
+
+  getPipelineVariableGroups(projectId: string): Promise<ProjectPipelineVariableGroupResponse[]> {
+    return this.axios.request$<ProjectPipelineVariableGroupResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/pipeline-variable-groups`
+    );
+  }
+
+  addPipelineVariableGroup(
+    projectId: string,
+    request: AddProjectPipelineVariableGroupRequest
+  ): Promise<ProjectPipelineVariableGroupResponse> {
+    return this.axios.request$<ProjectPipelineVariableGroupResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/pipeline-variable-groups`,
+      request
+    );
+  }
+
+  removePipelineVariableGroup(projectId: string, groupId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/pipeline-variable-groups/${groupId}`
+    );
+  }
+
+  // ─── Tags ───
+
+  setTags(projectId: string, request: SetProjectTagsRequest): Promise<ProjectResponse> {
+    return this.axios.request$<ProjectResponse>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/tags`,
+      request
+    );
+  }
+
+  // ─── Agent Pool ───
+
+  async setAgentPool(projectId: string, request: SetAgentPoolRequest): Promise<void> {
+    await this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/agent-pool`,
+      request
     );
   }
 }

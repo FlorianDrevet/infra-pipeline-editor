@@ -15,10 +15,13 @@ public class CreateStorageAccountCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateStorageAccountCommand, ErrorOr<StorageAccountResult>>
+    : ICommandHandler<CreateStorageAccountCommand, StorageAccountResult>
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(CreateStorageAccountCommand request, CancellationToken cancellationToken)
     {
+        var corsRules = CorsRuleSanitizer.Sanitize(request.CorsRules);
+        var tableCorsRules = CorsRuleSanitizer.Sanitize(request.TableCorsRules);
+
         var resourceGroup = await resourceGroupRepository.GetByIdAsync(request.ResourceGroupId, cancellationToken);
         if (resourceGroup is null)
             return Errors.ResourceGroup.NotFound(request.ResourceGroupId);
@@ -32,15 +35,37 @@ public class CreateStorageAccountCommandHandler(
             request.ResourceGroupId,
             request.Name,
             request.Location,
+            new StorageAccountKind(Enum.Parse<StorageAccountKind.Kind>(request.Kind)),
+            new StorageAccessTier(Enum.Parse<StorageAccessTier.Tier>(request.AccessTier)),
+            request.AllowBlobPublicAccess,
+            request.EnableHttpsTrafficOnly,
+            new StorageAccountTlsVersion(Enum.Parse<StorageAccountTlsVersion.Version>(request.MinimumTlsVersion)),
             request.EnvironmentSettings?
                 .Select(ec => (
                     ec.EnvironmentName,
-                    ec.Sku is not null ? new StorageAccountSku(Enum.Parse<StorageAccountSku.Sku>(ec.Sku)) : (StorageAccountSku?)null,
-                    ec.Kind is not null ? new StorageAccountKind(Enum.Parse<StorageAccountKind.Kind>(ec.Kind)) : (StorageAccountKind?)null,
-                    ec.AccessTier is not null ? new StorageAccessTier(Enum.Parse<StorageAccessTier.Tier>(ec.AccessTier)) : (StorageAccessTier?)null,
-                    ec.AllowBlobPublicAccess,
-                    ec.EnableHttpsTrafficOnly,
-                    ec.MinimumTlsVersion is not null ? new StorageAccountTlsVersion(Enum.Parse<StorageAccountTlsVersion.Version>(ec.MinimumTlsVersion)) : (StorageAccountTlsVersion?)null))
+                    ec.Sku is not null ? new StorageAccountSku(Enum.Parse<StorageAccountSku.Sku>(ec.Sku)) : (StorageAccountSku?)null))
+                .ToList(),
+            corsRules?
+                .Select(rule => (
+                    rule.AllowedOrigins,
+                    rule.AllowedMethods,
+                    rule.AllowedHeaders,
+                    rule.ExposedHeaders,
+                    rule.MaxAgeInSeconds))
+                .ToList(),
+            tableCorsRules?
+                .Select(rule => (
+                    rule.AllowedOrigins,
+                    rule.AllowedMethods,
+                    rule.AllowedHeaders,
+                    rule.ExposedHeaders,
+                    rule.MaxAgeInSeconds))
+                .ToList(),
+            request.LifecycleRules?
+                .Select(rule => (
+                    rule.RuleName,
+                    rule.ContainerNames,
+                    rule.TimeToLiveInDays))
                 .ToList());
 
         var saved = await storageAccountRepository.AddAsync(storageAccount);

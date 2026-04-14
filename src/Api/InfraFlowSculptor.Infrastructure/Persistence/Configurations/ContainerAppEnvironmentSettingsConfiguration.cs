@@ -30,10 +30,6 @@ public sealed class ContainerAppEnvironmentSettingsConfiguration
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(x => x.ContainerImage)
-            .IsRequired(false)
-            .HasMaxLength(500);
-
         builder.Property(x => x.CpuCores)
             .IsRequired(false)
             .HasMaxLength(10);

@@ -9,19 +9,43 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Domain.KeyVaultAggregate;
 
-public class KeyVault: AzureResource
+/// <summary>
+/// Represents an Azure Key Vault resource (<c>Microsoft.KeyVault/vaults</c>).
+/// Stores secrets, keys, and certificates with configurable RBAC and protection policies.
+/// </summary>
+public class KeyVault : AzureResource
 {
-    private readonly List<KeyVaultEnvironmentSettings> _environmentSettings = new();
+    private readonly List<KeyVaultEnvironmentSettings> _environmentSettings = [];
 
     /// <summary>Gets the typed per-environment configuration overrides for this Key Vault.</summary>
     public IReadOnlyCollection<KeyVaultEnvironmentSettings> EnvironmentSettings => _environmentSettings.AsReadOnly();
-    
+
+    /// <summary>Whether RBAC authorization is enabled for data-plane access.</summary>
+    public bool EnableRbacAuthorization { get; private set; }
+
+    /// <summary>Whether the vault is enabled for deployment (VM certificate retrieval).</summary>
+    public bool EnabledForDeployment { get; private set; }
+
+    /// <summary>Whether the vault is enabled for disk encryption.</summary>
+    public bool EnabledForDiskEncryption { get; private set; }
+
+    /// <summary>Whether the vault is enabled for ARM template deployment.</summary>
+    public bool EnabledForTemplateDeployment { get; private set; }
+
+    /// <summary>Whether purge protection is enabled (prevents permanent deletion during retention period).</summary>
+    public bool EnablePurgeProtection { get; private set; }
+
+    /// <summary>Whether soft delete is enabled.</summary>
+    public bool EnableSoftDelete { get; private set; }
+
     protected override IReadOnlyCollection<ParameterUsage> AllowedParameterUsages =>
         new[]
         {
             ParameterUsage.Secret
         };
 
+    /// <summary>Adds a secret parameter usage to this Key Vault.</summary>
+    /// <exception cref="InvalidOperationException">Thrown when the parameter is not flagged as secret.</exception>
     public void AddSecret(ParameterDefinition parameter)
     {
         if (!parameter.IsSecret)
@@ -34,10 +58,25 @@ public class KeyVault: AzureResource
     {
     }
     
-    public void Update(Name name, Location location)
+    /// <summary>Updates the resource-level properties of this Key Vault.</summary>
+    public void Update(
+        Name name,
+        Location location,
+        bool enableRbacAuthorization,
+        bool enabledForDeployment,
+        bool enabledForDiskEncryption,
+        bool enabledForTemplateDeployment,
+        bool enablePurgeProtection,
+        bool enableSoftDelete)
     {
         Name = name;
         Location = location;
+        EnableRbacAuthorization = enableRbacAuthorization;
+        EnabledForDeployment = enabledForDeployment;
+        EnabledForDiskEncryption = enabledForDiskEncryption;
+        EnabledForTemplateDeployment = enabledForTemplateDeployment;
+        EnablePurgeProtection = enablePurgeProtection;
+        EnableSoftDelete = enableSoftDelete;
     }
 
     /// <summary>
@@ -74,10 +113,17 @@ public class KeyVault: AzureResource
         }
     }
 
+    /// <summary>Creates a new <see cref="KeyVault"/> with a generated identifier and secure defaults.</summary>
     public static KeyVault Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
+        bool enableRbacAuthorization = true,
+        bool enabledForDeployment = false,
+        bool enabledForDiskEncryption = false,
+        bool enabledForTemplateDeployment = false,
+        bool enablePurgeProtection = true,
+        bool enableSoftDelete = true,
         IReadOnlyList<(string EnvironmentName, Sku? Sku)>? environmentSettings = null)
     {
         var keyVault = new KeyVault
@@ -85,7 +131,13 @@ public class KeyVault: AzureResource
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location
+            Location = location,
+            EnableRbacAuthorization = enableRbacAuthorization,
+            EnabledForDeployment = enabledForDeployment,
+            EnabledForDiskEncryption = enabledForDiskEncryption,
+            EnabledForTemplateDeployment = enabledForTemplateDeployment,
+            EnablePurgeProtection = enablePurgeProtection,
+            EnableSoftDelete = enableSoftDelete
         };
 
         if (environmentSettings is not null)

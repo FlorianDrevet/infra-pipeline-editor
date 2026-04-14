@@ -18,7 +18,7 @@ public sealed class CreateUserAssignedIdentityCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateUserAssignedIdentityCommand, ErrorOr<UserAssignedIdentityResult>>
+    : ICommandHandler<CreateUserAssignedIdentityCommand, UserAssignedIdentityResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<UserAssignedIdentityResult>> Handle(

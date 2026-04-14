@@ -16,6 +16,24 @@ public abstract class KeyVaultRequestBase
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
+    /// <summary>Whether RBAC authorization is enabled for data-plane access.</summary>
+    public bool EnableRbacAuthorization { get; init; } = true;
+
+    /// <summary>Whether the vault is enabled for deployment (VM certificate retrieval).</summary>
+    public bool EnabledForDeployment { get; init; }
+
+    /// <summary>Whether the vault is enabled for disk encryption.</summary>
+    public bool EnabledForDiskEncryption { get; init; }
+
+    /// <summary>Whether the vault is enabled for ARM template deployment.</summary>
+    public bool EnabledForTemplateDeployment { get; init; }
+
+    /// <summary>Whether purge protection is enabled.</summary>
+    public bool EnablePurgeProtection { get; init; } = true;
+
+    /// <summary>Whether soft delete is enabled.</summary>
+    public bool EnableSoftDelete { get; init; } = true;
+
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<KeyVaultEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }

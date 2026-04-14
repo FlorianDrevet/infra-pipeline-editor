@@ -1,0 +1,30 @@
+<div class="diagnostic-popover"
+     (mouseenter)="onMouseEnter()"
+     (mouseleave)="onMouseLeave()">
+
+  <span class="diagnostic-badge">
+    <mat-icon class="diagnostic-badge__icon">gpp_bad</mat-icon>
+    {{ diagnostics().length }}
+  </span>
+
+  @if (isOpen()) {
+    <div class="diagnostic-popover__panel"
+         [ngStyle]="panelStyle()">
+      <div class="diagnostic-popover__header">
+        <mat-icon class="diagnostic-popover__header-icon">gpp_bad</mat-icon>
+        <span class="diagnostic-popover__title">{{ 'CONFIG_DETAIL.DIAGNOSTICS.TITLE' | translate }}</span>
+        <span class="diagnostic-popover__count">{{ diagnostics().length }}</span>
+      </div>
+
+      <div class="diagnostic-popover__list">
+        @for (diag of diagnostics(); track diag.ruleCode + diag.targetResourceName) {
+          <div class="diagnostic-popover__row" [class]="'diagnostic-popover__row--' + getSeverityClass(diag.severity)">
+            <div class="diagnostic-popover__severity-bar"></div>
+            <mat-icon class="diagnostic-popover__row-icon">{{ getSeverityIcon(diag.severity) }}</mat-icon>
+            <span class="diagnostic-popover__message">{{ getTranslatedMessage(diag) }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

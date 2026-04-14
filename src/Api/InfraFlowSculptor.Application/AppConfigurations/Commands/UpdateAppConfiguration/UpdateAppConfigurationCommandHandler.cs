@@ -16,7 +16,7 @@ public class UpdateAppConfigurationCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateAppConfigurationCommand, ErrorOr<AppConfigurationResult>>
+    : ICommandHandler<UpdateAppConfigurationCommand, AppConfigurationResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<AppConfigurationResult>> Handle(

@@ -21,6 +21,11 @@ public interface IProjectRepository : IRepository<Project>
     Task<Project?> GetByIdWithAllAsync(ProjectId id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves a project by identifier, including its pipeline variable groups and their mappings.
+    /// </summary>
+    Task<Project?> GetByIdWithPipelineVariableGroupsAsync(ProjectId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Returns all projects the given user is a member of.
     /// </summary>
     Task<List<Project>> GetAllForUserAsync(UserId userId, CancellationToken cancellationToken = default);

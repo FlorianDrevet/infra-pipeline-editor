@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -10,10 +11,10 @@ public sealed class AppConfigurationTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.AppConfiguration/configurationStores";
+        => AzureResourceTypes.ArmTypes.AppConfiguration;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "AppConfiguration";
+    public string ResourceTypeName => AzureResourceTypes.AppConfiguration;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
@@ -21,7 +22,7 @@ public sealed class AppConfigurationTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "appConfiguration",
-            ModuleFileName = "appConfiguration.bicep",
+            ModuleFileName = "appConfiguration",
             ModuleFolderName = "AppConfiguration",
             ModuleBicepContent = AppConfigurationModuleTemplate,
             ModuleTypesBicepContent = AppConfigurationTypesTemplate,
@@ -80,5 +81,11 @@ public sealed class AppConfigurationTypeBicepGenerator
             publicNetworkAccess: publicNetworkAccess
           }
         }
+
+        @description('The resource ID of the App Configuration store')
+        output id string = appConfig.id
+
+        @description('The endpoint of the App Configuration store')
+        output endpoint string = appConfig.properties.endpoint
         """;
 }

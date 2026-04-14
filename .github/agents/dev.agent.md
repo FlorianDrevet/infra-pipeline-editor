@@ -10,18 +10,34 @@ description: 'Point d''entrée principal. Orchestre MEMORY.md, délègue aux age
 
 ---
 
+## Environnement de développement
+
+> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`). Utiliser `.\ ` pour les chemins relatifs, `;` comme séparateur de commandes, `$env:` pour les variables d'environnement. Ne jamais suggérer de commandes bash/sh.
+
+---
+
 ## Protocole obligatoire — Toujours exécuter dans cet ordre
 
-### 1. Lire MEMORY.md en entier
+### 1. Lire MEMORY.md + fichiers thématiques
 
 **C'est la toute première action, sans exception.**
-`MEMORY.md` est la mémoire partagée de tous les agents Copilot du projet. Elle contient :
-- La structure du dépôt, les agrégats existants, les pièges connus
-- Les décisions d'architecture prises
-- Les conventions spécifiques au projet (nommage, EF Core, EF pitfalls, etc.)
-- L'historique des changements par date
 
-Sans cette lecture, tu risques de générer du code incohérent avec l'existant.
+La mémoire projet est structurée en fichiers thématiques sous `.github/memory/` :
+- `MEMORY.md` (racine) est l'**index léger** (~80 lignes max) qui pointe vers les fichiers thématiques
+- `.github/memory/01-solution-overview.md` à `12-api-endpoints.md` contiennent le détail par domaine
+- `.github/memory/changelog.md` contient l'historique des changements récents
+
+**Lecture obligatoire :** `MEMORY.md` + les fichiers thématiques pertinents à la tâche en cours.
+
+### 1bis. Dream Gate Check
+
+Après lecture de `MEMORY.md`, lire `.github/memory/dream-state.md` et :
+1. **Incrémenter** `sessionsSinceLastDream` de 1 (écrire la nouvelle valeur)
+2. **Vérifier les gates :**
+   - Time gate : `lastDreamDate` date ≥ 24h dans le passé ?
+   - Session gate : `sessionsSinceLastDream` ≥ 5 ?
+3. **Si les deux gates sont satisfaites :** invoquer `@dream` via `runSubagent` **AVANT** de traiter la demande utilisateur.
+4. **Si non :** continuer normalement.
 
 ### 2. Analyser la demande et décider
 
@@ -29,6 +45,67 @@ Après lecture de `MEMORY.md`, identifier :
 - **Quel périmètre** → backend C# ? frontend Angular ? CQRS feature ? PR ? merge ?
 - **Quel(s) agent(s) spécialisé(s)** à invoquer → voir table de routage ci-dessous
 - **Quel(s) skill(s)** à charger → voir section Skills ci-dessous
+
+### 2bis. Phase Research — Explorer le codebase avant de déléguer
+
+**Pour les tâches complexes ou cross-cutting**, commencer par GitNexus puis compléter avec `@Explore`.
+
+**Étape 1 — GitNexus (structurel, rapide) :**
+- `gitnexus_query("concept lié à la tâche")` → identifier les flux d'exécution et symboles concernés
+- `gitnexus_context("SymboleCible")` → vue 360° (appelants, appelés, process)
+- `gitnexus_impact(target, "upstream")` → blast radius si modification prévue
+- Référence complète : charger le skill `gitnexus-workflow` (`.github/skills/gitnexus-workflow/SKILL.md`)
+
+**Étape 2 — @Explore (contenu, détail) :**
+`@Explore` reste utile pour la lecture brute de fichiers identifiés par GitNexus.
+`@Explore` est un sous-agent rapide, read-only, spécialisé dans l'exploration et le Q&A codebase.
+
+**Quand déclencher la phase Research :**
+- La tâche touche des fichiers dont tu n'es pas certain du chemin exact
+- La tâche implique plusieurs couches (Domain + Application + Infrastructure + Frontend)
+- Tu dois passer des conventions de code exactes à un agent spécialisé
+- La tâche modifie un agrégat ou service existant (vérifie d'abord son état actuel)
+
+**Ce que tu passes à `@Explore` :**
+- Le périmètre exact (`src/Api/`, `src/Front/src/app/features/`, etc.)
+- Ce que tu cherches (agrégat cible, interface existante, handler de référence, composant Angular)
+- Le niveau de profondeur : `quick` (structure), `medium` (patterns), `thorough` (code complet)
+
+**Ce que tu récupères et transmets à l'agent spécialisé :**
+- **Chemins de fichiers exacts** → les inclure dans le prompt de délégation
+- **Extraits de code de référence** → les inclure pour montrer le style attendu
+- **Conventions détectées** → les mentionner explicitement pour éviter les divergences
+
+**Exception — ne pas déclencher Research si :**
+- Tâche triviale ou purement conversationnelle
+- Fichiers cibles évidents et déjà connus en mémoire
+
+### 2ter. Session Scratchpad — Coordination inter-agents
+
+**Pour les tâches multi-agents complexes** (ex : feature complète Backend + Frontend), utiliser `/memories/session/` comme scratchpad partagé entre sous-agents.
+
+**Création :** En début de tâche multi-agent, créer `/memories/session/task-<nom-court>.md` avec :
+```markdown
+# Task: <nom>
+## Scope
+### IN scope
+- ...
+### OUT OF SCOPE — NE PAS TOUCHER
+- Domain model existant (sauf si explicitement planifié)
+- Migrations EF Core non planifiées
+- (compléter selon la tâche)
+## Plan
+- [ ] Étape 1 — agent: dotnet-dev — fichiers: ...
+- [ ] Étape 2 — agent: angular-front — fichiers: ...
+## Contrats modifiés
+(remplir après backend)
+## Résultats inter-agents
+(remplir au fur et à mesure)
+```
+
+**Utilisation :** Passer le chemin de ce fichier à chaque sous-agent pour qu'il lise les résultats des étapes précédentes. Mettre à jour le fichier après chaque étape terminée.
+
+**Nettoyage :** Supprimer le fichier de session en fin de tâche (les faits durables vont dans `.github/memory/`).
 
 ### 3. Charger les Skills applicables
 
@@ -41,11 +118,22 @@ Avant toute génération de code, si un skill est pertinent :
 
 Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâche dépasse ton périmètre de coordination.
 
-### 5. Mettre à jour MEMORY.md
+### 4bis. Vérifier l'exécution du plan
+
+**Obligatoire après toute tâche qui avait un plan défini** (session scratchpad ou plan `@architect`) :
+1. Relire chaque item du plan initial
+2. Confirmer que chaque item a été exécuté (cocher `[x]`)
+3. **Si un item est manquant ou partiel :** le compléter avant de passer à l'étape 5
+4. Signaler à l'utilisateur tout écart entre le plan et l'exécution réelle
+
+> Ne jamais clore une tâche planifiée sans avoir relu le plan item par item.
+
+### 5. Mettre à jour la mémoire projet
 
 **Obligatoire en fin de toute tâche non triviale :**
-- Ajouter les nouveaux agrégats, conventions, pièges découverts
-- Ajouter une ligne dans la section **Changelog** avec la date et la nature du changement
+- Ajouter les informations dans le **fichier thématique** approprié sous `.github/memory/`
+- Ajouter une ligne dans `.github/memory/changelog.md` avec la date et la nature du changement
+- Mettre à jour `MEMORY.md` (index) si un nouveau fichier thématique a été créé
 - Ne jamais supprimer d'informations existantes — compléter ou corriger seulement
 
 ---
@@ -53,16 +141,31 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 ## Table de routage — Quel agent pour quelle tâche ?
 
 | Tâche | Agent à utiliser | Fichier |
-|-------|-----------------|---------|
-| Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
+|-------|-----------------|---------|| Explorer le codebase (fichiers, patterns, conventions) avant délégation | **`Explore`** | sous-agent built-in, aucun fichier agent |
+| Analyse d'impact / exploration structurelle avant modification | Charger le skill **`gitnexus-workflow`** | `.github/skills/gitnexus-workflow/SKILL.md` |
+| Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` || Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
 | Modifier/créer du code C#/.NET | **`dotnet-dev`** | `.github/agents/dotnet-dev.agent.md` |
 | Modifier/créer du code Angular | **`angular-front`** + charger le skill `ui-ux-front-saas` si UI | `.github/agents/angular-front.agent.md` |
 | Debug runtime/AppHost Aspire | **`aspire-debug`** | `.github/agents/aspire-debug.agent.md` |
 | Créer ou soumettre une Pull Request | **`pr-manager`** | `.github/agents/pr-manager.agent.md` |
 | Fusionner la branche main sur la courante | **`merge-main`** | `.github/agents/merge-main.agent.md` |
+| Consolidation mémoire (dream) | **`dream`** | `.github/agents/dream.agent.md` |
 | Toute PR/commit → relire les conventions PR | **`pr-manager`** | `.github/agents/pr-manager.agent.md` |
 
 ### Règles de délégation
+
+> **RÈGLE ABSOLUE — Jamais de délégation vague.**
+> Chaque prompt de délégation transmis à un sous-agent DOIT contenir :
+> 1. La **liste des fichiers exacts** à créer ou modifier (issus de la phase Research)
+> 2. Les **conventions du projet** pertinentes à la tâche (issues de MEMORY.md / fichiers thématiques)
+> 3. Un **extrait de code existant** comme référence de style quand applicable
+> 4. Le **résultat attendu** décrit de façon non ambiguë
+> 5. Le **résultat de `gitnexus_impact()`** si la tâche modifie un symbole partagé (pour que le sous-agent connaisse le blast radius)
+>
+> Un prompt vague produit du code générique qui diverge des conventions du projet.
+
+- **Nouvelle feature, demande complexe, ou changement architectural significatif** :
+  Déléguer d'abord à `architect` pour obtenir un plan d'implémentation validé. L'architecte challenge la demande, vérifie la cohérence avec l'existant, et produit un plan étape par étape attribuant chaque action à l'agent expert approprié. Une fois le plan reçu, `dev` coordonne l'exécution en suivant le plan à la lettre.
 
 - **Feature CQRS complète** (Domain + Application + Infrastructure + Contracts + API + Migration + Frontend) :
   Charge le skill `cqrs-feature`, puis coordonne toi-même en appliquant les règles de `dotnet-dev` pour le code C# et en déléguant à `angular-front` pour le frontend.
@@ -81,6 +184,9 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 
 - **Incident runtime Aspire** (ressource KO, startup fail, logs/traces, dépendance indisponible) :
   Déléguer à `aspire-debug` pour le diagnostic MCP et la stratégie de recovery avant modification de code.
+
+- **Question d'architecture, challenge de faisabilité, analyse d'impact** :
+  Déléguer à `architect`. L'architecte ne code pas — il analyse, challenge, et produit un plan. Si le plan identifie du refactoring préalable, le faire avant d'implémenter la feature.
 
 ---
 
@@ -124,6 +230,26 @@ Un skill est **différent d'un agent** :
 - **Fichier :** `.github/skills/ui-ux-front-saas/SKILL.md`
 - **Contenu :** règles UI/UX SaaS B2B cloud, design system, accessibilité WCAG, responsive, outputs design/handoff, alignement visuel avec la page login existante
 
+#### `gitnexus-workflow`
+- **Quand le charger :** dès qu'une tâche nécessite de l'exploration structurelle (flux d'exécution, dépendances), de l'analyse d'impact avant modification, ou de la validation post-changement
+- **Fichier :** `.github/skills/gitnexus-workflow/SKILL.md`
+- **Contenu :** les commandes GitNexus par phase (exploration, impact, validation, refactoring), les conventions de nommage pour formuler des requêtes précises, l'intégration avec la mémoire projet
+
+---
+
+## Discipline de prompt — Static vs Dynamic
+
+> Inspiré de `SYSTEM_PROMPT_DYNAMIC_BOUNDARY` (Claude Code). Règle : ne jamais mélanger contenu stable et contenu volatile dans le même fichier.
+
+| Type | Où ça va | Exemples |
+|------|----------|----------|
+| **Stable** — conventions, patterns, exemples de code | `SKILL.md` ou `.github/memory/` | Style de code C#, règles Angular, patterns EF Core |
+| **Semi-stable** — conventions projet évolutives | `.github/memory/<topic>.md` (mis à jour par `@dream`) | Agrégats existants, endpoints, pièges connus |
+| **Volatile** — état courant de session | `/memories/session/task-*.md` (supprimé en fin de tâche) | Chemins de fichiers spécifiques, noms d'agrégat en cours, plan actif |
+| **Jamais dans les fichiers agents** | — | Chemins hardcodés, noms de feature spécifiques, état courant |
+
+**Règle pratique :** Si une information change à chaque tâche → scratchpad. Si elle change rarement mais évolue → fichier thématique. Si elle ne change jamais → skill.
+
 ---
 
 ## Ce que cet agent NE fait PAS
@@ -139,9 +265,12 @@ Son rôle est de **lire la mémoire, analyser, charger les bons outils de connai
 ## Protocole de fin de tâche
 
 ```
+[ ] Plan vérifié item par item (step 4bis) — tout item manquant complété avant de continuer
 [ ] Build vérifié : dotnet build .\InfraFlowSculptor.slnx (si code C# touché)
 [ ] Frontend vérifié : npm run typecheck + npm run build dans src/Front (si code Angular touché)
-[ ] MEMORY.md mis à jour (nouveaux agrégats, conventions, pièges)
-[ ] Changelog MEMORY.md : ligne ajoutée avec date et description
+[ ] GitNexus detect_changes vérifié (si code modifié) — seuls les fichiers/flux attendus sont impactés
+[ ] Fichier thématique mis à jour dans .github/memory/ (nouveaux agrégats, conventions, pièges)
+[ ] Changelog : ligne ajoutée dans .github/memory/changelog.md
+[ ] Session scratchpad supprimé si tâche multi-agent terminée (/memories/session/task-*.md)
 [ ] PR déléguée à pr-manager si poussée sur GitHub
 ```

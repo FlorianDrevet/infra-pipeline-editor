@@ -13,7 +13,7 @@ public sealed class ListProjectConfigsQueryHandler(
     IInfrastructureConfigRepository configRepository,
     IResourceGroupRepository resourceGroupRepository,
     IMapper mapper)
-    : IRequestHandler<ListProjectConfigsQuery, ErrorOr<List<GetInfrastructureConfigResult>>>
+    : IQueryHandler<ListProjectConfigsQuery, List<GetInfrastructureConfigResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<List<GetInfrastructureConfigResult>>> Handle(

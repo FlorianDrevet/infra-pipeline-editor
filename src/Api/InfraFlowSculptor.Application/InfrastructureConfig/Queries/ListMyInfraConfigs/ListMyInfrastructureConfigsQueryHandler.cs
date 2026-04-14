@@ -16,7 +16,7 @@ public sealed class ListMyInfrastructureConfigsQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     ICurrentUser currentUser,
     IMapper mapper)
-    : IRequestHandler<ListMyInfrastructureConfigsQuery, ErrorOr<List<GetInfrastructureConfigResult>>>
+    : IQueryHandler<ListMyInfrastructureConfigsQuery, List<GetInfrastructureConfigResult>>
 {
     public async Task<ErrorOr<List<GetInfrastructureConfigResult>>> Handle(
         ListMyInfrastructureConfigsQuery query, CancellationToken cancellationToken)

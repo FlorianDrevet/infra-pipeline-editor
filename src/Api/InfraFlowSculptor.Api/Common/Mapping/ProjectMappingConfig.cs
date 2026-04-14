@@ -1,11 +1,13 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
+using InfraFlowSculptor.Contracts.Projects.Requests;
 using InfraFlowSculptor.Contracts.Projects.Responses;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
+using InfraFlowSculptor.Application.Projects.Commands.SetProjectGitConfig;
 using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
@@ -50,13 +52,14 @@ public sealed class ProjectMappingConfig : IRegister
         config.NewConfig<ProjectEnvironmentDefinition, ProjectEnvironmentDefinitionResult>()
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Name, src => src.Name)
+            .Map(dest => dest.ShortName, src => src.ShortName.Value)
             .Map(dest => dest.Prefix, src => src.Prefix.Value)
             .Map(dest => dest.Suffix, src => src.Suffix.Value)
             .Map(dest => dest.Location, src => src.Location.Value.ToString())
-            .Map(dest => dest.TenantId, src => src.TenantId.Value)
             .Map(dest => dest.SubscriptionId, src => src.SubscriptionId.Value)
             .Map(dest => dest.Order, src => src.Order.Value)
             .Map(dest => dest.RequiresApproval, src => src.RequiresApproval.Value)
+            .Map(dest => dest.AzureResourceManagerConnection, src => src.AzureResourceManagerConnection)
             .Map(dest => dest.Tags, src => src.Tags);
 
         // ProjectEnvironmentDefinitionResult -> EnvironmentDefinitionResponse (reuses InfraConfig response)
@@ -89,8 +92,12 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.Members, src => src.Members)
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.DefaultNamingTemplate,
-                src => src.DefaultNamingTemplate == null ? null : src.DefaultNamingTemplate.Value)
-            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
+                src => src.DefaultNamingTemplate != null ? src.DefaultNamingTemplate.Value : null)
+            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.GitRepositoryConfiguration, src => src.GitRepositoryConfiguration)
+            .Map(dest => dest.RepositoryMode, src => src.RepositoryMode.Value.ToString())
+            .Map(dest => dest.Tags, src => src.Tags)
+            .Map(dest => dest.AgentPoolName, src => src.AgentPoolName);
 
         // ProjectResult -> ProjectResponse
         config.NewConfig<ProjectResult, ProjectResponse>()
@@ -100,6 +107,50 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.Members, src => src.Members)
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate)
-            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates);
+            .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.GitRepositoryConfiguration, src => src.GitRepositoryConfiguration)
+            .Map(dest => dest.RepositoryMode, src => src.RepositoryMode)
+            .Map(dest => dest.Tags, src => src.Tags)
+            .Map(dest => dest.AgentPoolName, src => src.AgentPoolName);
+
+        // ── Git Repository Configuration ────────────────────────────────
+
+        // GitRepositoryConfigurationId conversions
+        config.NewConfig<GitRepositoryConfigurationId, Guid>()
+            .MapWith(src => src.Value);
+
+        // GitRepositoryConfiguration entity -> GitRepositoryConfigurationResult
+        config.NewConfig<GitRepositoryConfiguration, GitRepositoryConfigurationResult>()
+            .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest.ProviderType, src => src.ProviderType.Value.ToString())
+            .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
+            .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
+            .Map(dest => dest.BasePath, src => src.BasePath)
+            .Map(dest => dest.PipelineBasePath, src => src.PipelineBasePath)
+            .Map(dest => dest.Owner, src => src.Owner)
+            .Map(dest => dest.RepositoryName, src => src.RepositoryName);
+
+        // GitRepositoryConfigurationResult -> GitConfigResponse
+        config.NewConfig<GitRepositoryConfigurationResult, GitConfigResponse>()
+            .Map(dest => dest.Id, src => src.Id.Value.ToString())
+            .Map(dest => dest.ProviderType, src => src.ProviderType)
+            .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
+            .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
+            .Map(dest => dest.BasePath, src => src.BasePath)
+            .Map(dest => dest.PipelineBasePath, src => src.PipelineBasePath)
+            .Map(dest => dest.Owner, src => src.Owner)
+            .Map(dest => dest.RepositoryName, src => src.RepositoryName);
+
+        // SetGitConfigRequest -> SetProjectGitConfigCommand (ProjectId set at endpoint)
+        config.NewConfig<SetGitConfigRequest, SetProjectGitConfigCommand>();
+
+        // TestGitConnectionResult -> TestGitConnectionResponse
+        config.NewConfig<TestGitConnectionResult, TestGitConnectionResponse>();
+
+        // GitBranchResult -> GitBranchResponse
+        config.NewConfig<GitBranchResult, GitBranchResponse>();
+
+        // PushBicepToGitResult -> PushBicepToGitResponse
+        config.NewConfig<PushBicepToGitResult, InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.PushBicepToGitResponse>();
     }
 }

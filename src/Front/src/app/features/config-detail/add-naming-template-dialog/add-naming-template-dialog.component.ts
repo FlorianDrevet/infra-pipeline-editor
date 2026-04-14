@@ -62,6 +62,7 @@ export class AddNamingTemplateDialogComponent {
     'prefix',
     'suffix',
     'env',
+    'envShort',
     'resourceType',
     'resourceAbbr',
     'location',

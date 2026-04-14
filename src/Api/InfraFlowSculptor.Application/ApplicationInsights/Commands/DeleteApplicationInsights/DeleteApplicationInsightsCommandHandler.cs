@@ -13,7 +13,7 @@ public sealed class DeleteApplicationInsightsCommandHandler(
     IApplicationInsightsRepository applicationInsightsRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteApplicationInsightsCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteApplicationInsightsCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

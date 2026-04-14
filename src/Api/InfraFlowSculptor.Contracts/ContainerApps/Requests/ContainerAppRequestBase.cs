@@ -19,6 +19,21 @@ public abstract class ContainerAppRequestBase
     [Required, GuidValidation]
     public required Guid ContainerAppEnvironmentId { get; init; }
 
+    /// <summary>Optional Container Registry identifier for authenticated image pulls.</summary>
+    [GuidValidation]
+    public Guid? ContainerRegistryId { get; init; }
+
+    /// <summary>Optional base Docker image name (e.g., "myregistry.azurecr.io/myapp/api") without the tag.</summary>
+    public string? DockerImageName { get; init; }
+
+    /// <summary>Relative path to the Dockerfile in the repository for pipeline generation.</summary>
+    [MaxLength(500)]
+    public string? DockerfilePath { get; init; }
+
+    /// <summary>User-friendly application name displayed in Azure DevOps pipeline runs.</summary>
+    [MaxLength(200)]
+    public string? ApplicationName { get; init; }
+
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<ContainerAppEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }
@@ -29,9 +44,6 @@ public class ContainerAppEnvironmentConfigEntry
     /// <summary>Name of the target environment (e.g., "dev", "staging", "prod").</summary>
     [Required]
     public required string EnvironmentName { get; init; }
-
-    /// <summary>Optional container image override.</summary>
-    public string? ContainerImage { get; init; }
 
     /// <summary>Optional CPU cores allocation (e.g., "0.25", "0.5", "1.0", "2.0").</summary>
     public string? CpuCores { get; init; }
@@ -61,7 +73,6 @@ public class ContainerAppEnvironmentConfigEntry
 /// <summary>Response DTO for a typed per-environment Container App configuration.</summary>
 public record ContainerAppEnvironmentConfigResponse(
     string EnvironmentName,
-    string? ContainerImage,
     string? CpuCores,
     string? MemoryGi,
     int? MinReplicas,

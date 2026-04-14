@@ -22,19 +22,6 @@
           {{ 'RESOURCE_EDIT.ACTIONS.BACK' | translate }}
         </a>
         <div class="resource-header__actions">
-          @if (canWrite()) {
-            <button
-              class="save-btn"
-              (click)="onSave()"
-              [disabled]="isSaving() || generalForm.invalid">
-              @if (isSaving()) {
-                <mat-spinner diameter="18" class="save-btn__spinner"></mat-spinner>
-              } @else {
-                <mat-icon class="save-btn__icon">save</mat-icon>
-              }
-              {{ (isSaving() ? 'RESOURCE_EDIT.ACTIONS.SAVING' : 'RESOURCE_EDIT.ACTIONS.SAVE') | translate }}
-            </button>
-          }
           @if (isOwner()) {
             <button class="delete-btn" (click)="openDeleteDialog()" [disabled]="isSaving()">
               <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
@@ -74,6 +61,9 @@
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">settings</mat-icon>
           <span>{{ 'RESOURCE_EDIT.TABS.GENERAL' | translate }}</span>
+          @if (generalTabHasWarning()) {
+            <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
+          }
         </ng-template>
         <div class="tab-content">
           <form [formGroup]="generalForm" class="general-form">
@@ -96,6 +86,45 @@
               </div>
             </div>
 
+            <!-- KeyVault-specific fields -->
+            @if (resourceType === 'KeyVault') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enableRbacAuthorization" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_RBAC_AUTHORIZATION' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enabledForDeployment" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLED_FOR_DEPLOYMENT' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enabledForDiskEncryption" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLED_FOR_DISK_ENCRYPTION' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enabledForTemplateDeployment" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLED_FOR_TEMPLATE_DEPLOYMENT' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enablePurgeProtection" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_PURGE_PROTECTION' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enableSoftDelete" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_SOFT_DELETE' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                </div>
+              </div>
+            }
+
             <!-- AppServicePlan-specific fields -->
             @if (resourceType === 'AppServicePlan') {
               <div class="form-section">
@@ -117,19 +146,32 @@
             @if (resourceType === 'WebApp') {
               <div class="form-section">
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
-                <div class="form-grid">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                    <mat-select formControlName="runtimeStack">
-                      @for (opt of runtimeStackOptions; track opt.value) {
-                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                    <input matInput formControlName="runtimeVersion" />
-                  </mat-form-field>
+                <app-deployment-config
+                  mode="code-or-container"
+                  [deploymentMode]="deploymentMode()"
+                  [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
+                  [dockerImageName]="generalForm.get('dockerImageName')?.value"
+                  [runtimeStack]="generalForm.get('runtimeStack')?.value"
+                  [runtimeVersion]="generalForm.get('runtimeVersion')?.value"
+                  [runtimeStackOptions]="runtimeStackOptions"
+                  [runtimeVersionOptions]="runtimeVersionOptions()"
+                  [availableContainerRegistries]="availableContainerRegistries()"
+                  [acrUaiState]="acrUaiState()"
+                  [acrAssignedUaiName]="acrAssignedUaiName()"
+                  [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [acrRoleAssigning]="acrRoleAssigning()"
+                  [uaiOptions]="uaiOptionsForSelect()"
+                  [canWrite]="canWrite()"
+                  (deploymentModeChange)="onDeploymentModeChange($event)"
+                  (runtimeStackChange)="onRuntimeStackChange($event)"
+                  (runtimeVersionChange)="generalForm.patchValue({ runtimeVersion: $event }); formsDirty.set(true)"
+                  (containerRegistryChange)="onContainerRegistryChange($event)"
+                  (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
+                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (addAcrPullRole)="addAcrPullRoleAssignment()"
+                  (createUai)="createNewUai()">
+                </app-deployment-config>
+                <div class="form-grid" style="margin-top: 1rem;">
                   <div class="form-field form-field--toggle">
                     <mat-slide-toggle formControlName="alwaysOn" color="primary">
                       {{ 'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate }}
@@ -148,19 +190,32 @@
             @if (resourceType === 'FunctionApp') {
               <div class="form-section">
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
-                <div class="form-grid">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                    <mat-select formControlName="runtimeStack">
-                      @for (opt of functionAppRuntimeStackOptions; track opt.value) {
-                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                    <input matInput formControlName="runtimeVersion" />
-                  </mat-form-field>
+                <app-deployment-config
+                  mode="code-or-container"
+                  [deploymentMode]="deploymentMode()"
+                  [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
+                  [dockerImageName]="generalForm.get('dockerImageName')?.value"
+                  [runtimeStack]="generalForm.get('runtimeStack')?.value"
+                  [runtimeVersion]="generalForm.get('runtimeVersion')?.value"
+                  [runtimeStackOptions]="functionAppRuntimeStackOptions"
+                  [runtimeVersionOptions]="runtimeVersionOptions()"
+                  [availableContainerRegistries]="availableContainerRegistries()"
+                  [acrUaiState]="acrUaiState()"
+                  [acrAssignedUaiName]="acrAssignedUaiName()"
+                  [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [acrRoleAssigning]="acrRoleAssigning()"
+                  [uaiOptions]="uaiOptionsForSelect()"
+                  [canWrite]="canWrite()"
+                  (deploymentModeChange)="onDeploymentModeChange($event)"
+                  (runtimeStackChange)="onRuntimeStackChange($event)"
+                  (runtimeVersionChange)="generalForm.patchValue({ runtimeVersion: $event }); formsDirty.set(true)"
+                  (containerRegistryChange)="onContainerRegistryChange($event)"
+                  (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
+                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (addAcrPullRole)="addAcrPullRoleAssignment()"
+                  (createUai)="createNewUai()">
+                </app-deployment-config>
+                <div class="form-grid" style="margin-top: 1rem;">
                   <div class="form-field form-field--toggle">
                     <mat-slide-toggle formControlName="httpsOnly" color="primary">
                       {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
@@ -170,16 +225,152 @@
               </div>
             }
 
+            <!-- ContainerApp ACR field -->
+            @if (resourceType === 'ContainerApp') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <app-deployment-config
+                  mode="container-only"
+                  [showDockerImageName]="true"
+                  [dockerImageName]="generalForm.get('dockerImageName')?.value"
+                  [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
+                  [availableContainerRegistries]="availableContainerRegistries()"
+                  [acrUaiState]="acrUaiState()"
+                  [acrAssignedUaiName]="acrAssignedUaiName()"
+                  [acrSelectedUaiId]="acrSelectedUaiId()"
+                  [acrRoleAssigning]="acrRoleAssigning()"
+                  [uaiOptions]="uaiOptionsForSelect()"
+                  [canWrite]="canWrite()"
+                  (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
+                  (containerRegistryChange)="onContainerRegistryChange($event)"
+                  (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
+                  (addAcrPullRole)="addAcrPullRoleAssignment()"
+                  (createUai)="createNewUai()">
+                </app-deployment-config>
+              </div>
+            }
+
+            <!-- RedisCache-specific fields -->
+            @if (resourceType === 'RedisCache') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.REDIS_VERSION' | translate }}</mat-label>
+                    <mat-select formControlName="redisVersion">
+                      @for (opt of redisVersionOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
+                    <mat-select formControlName="minimumTlsVersion">
+                      @for (opt of redisTlsOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enableNonSslPort" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_NON_SSL' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="disableAccessKeyAuthentication" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.DISABLE_ACCESS_KEY_AUTH' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enableAadAuth" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_AAD_AUTH' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  @if (redisAadWarning()) {
+                    <div class="feedback-banner feedback-banner--error" role="alert">
+                      <mat-icon>warning</mat-icon>
+                      {{ 'RESOURCE_EDIT.FIELDS.REDIS_AAD_WARNING' | translate }}
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- StorageAccount-specific fields -->
+            @if (resourceType === 'StorageAccount') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.KIND' | translate }}</mat-label>
+                    <mat-select formControlName="kind">
+                      @for (opt of storageKindOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACCESS_TIER' | translate }}</mat-label>
+                    <mat-select formControlName="accessTier">
+                      @for (opt of storageAccessTierOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
+                    <mat-select formControlName="minimumTlsVersion">
+                      @for (opt of storageTlsOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="allowBlobPublicAccess" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.ALLOW_BLOB_PUBLIC' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="form-field form-field--toggle">
+                    <mat-slide-toggle formControlName="enableHttpsTrafficOnly" color="primary">
+                      {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
+                    </mat-slide-toggle>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Log Analytics Workspace selector (ContainerAppEnvironment / ApplicationInsights) -->
+            @if (resourceType === 'ContainerAppEnvironment' || resourceType === 'ApplicationInsights') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.LOG_ANALYTICS_WORKSPACE' | translate }}</h3>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.LOG_ANALYTICS_WORKSPACE' | translate }}</mat-label>
+                    <mat-select formControlName="logAnalyticsWorkspaceId">
+                      <mat-option [value]="null">{{ 'RESOURCE_EDIT.GENERAL.NONE' | translate }}</mat-option>
+                      @for (law of availableLogAnalyticsWorkspaces(); track law.id) {
+                        <mat-option [value]="law.id">{{ law.name }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+            }
+
           </form>
         </div>
       </mat-tab>
 
-      <!-- Environment Configuration Tab -->
+      <!-- Environment Configuration Tab (hidden for UserAssignedIdentity) -->
+      @if (!isUserAssignedIdentity()) {
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">cloud_queue</mat-icon>
           <span>{{ 'RESOURCE_EDIT.TABS.ENVIRONMENTS' | translate }}</span>
           <span class="tab-count">{{ environments().length }}</span>
+          @if (environmentsTabHasWarning()) {
+            <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ENV_CONFIG' | translate">warning</mat-icon>
+          }
         </ng-template>
         <div class="tab-content">
           @if (environments().length === 0) {
@@ -246,24 +437,6 @@
                         <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
                       </mat-form-field>
                       <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.REDIS_VERSION' | translate }}</mat-label>
-                        <mat-select formControlName="redisVersion">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of redisVersionOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
-                        <mat-select formControlName="minimumTlsVersion">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of redisTlsOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
                         <mat-label>{{ 'RESOURCE_EDIT.FIELDS.EVICTION_POLICY' | translate }}</mat-label>
                         <mat-select formControlName="maxMemoryPolicy">
                           <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
@@ -272,11 +445,6 @@
                           }
                         </mat-select>
                       </mat-form-field>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="enableNonSslPort" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.ENABLE_NON_SSL' | translate }}
-                        </mat-slide-toggle>
-                      </div>
                     }
                     @case ('StorageAccount') {
                       <mat-form-field appearance="outline" class="form-field">
@@ -288,43 +456,6 @@
                           }
                         </mat-select>
                       </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.KIND' | translate }}</mat-label>
-                        <mat-select formControlName="kind">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of storageKindOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.ACCESS_TIER' | translate }}</mat-label>
-                        <mat-select formControlName="accessTier">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of storageAccessTierOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate }}</mat-label>
-                        <mat-select formControlName="minimumTlsVersion">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of storageTlsOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="allowBlobPublicAccess" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.ALLOW_BLOB_PUBLIC' | translate }}
-                        </mat-slide-toggle>
-                      </div>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="enableHttpsTrafficOnly" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
-                        </mat-slide-toggle>
-                      </div>
                     }
                     @case ('AppServicePlan') {
                       <mat-form-field appearance="outline" class="form-field">
@@ -343,20 +474,13 @@
                       </mat-form-field>
                     }
                     @case ('WebApp') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                        <mat-select formControlName="runtimeStack">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of runtimeStackOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                        <input matInput formControlName="runtimeVersion" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
+                      @if (isContainerMode()) {
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG' | translate }}</mat-label>
+                          <input matInput formControlName="dockerImageTag" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG_PLACEHOLDER' | translate" />
+                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                        </mat-form-field>
+                      }
                       <div class="form-field form-field--toggle">
                         <mat-slide-toggle formControlName="alwaysOn" color="primary">
                           {{ 'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate }}
@@ -369,25 +493,13 @@
                       </div>
                     }
                     @case ('FunctionApp') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-                        <mat-select formControlName="runtimeStack">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of functionAppRuntimeStackOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-                        <input matInput formControlName="runtimeVersion" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.FUNCTIONS_WORKER_RUNTIME' | translate }}</mat-label>
-                        <input matInput formControlName="functionsWorkerRuntime" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
+                      @if (isContainerMode()) {
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG' | translate }}</mat-label>
+                          <input matInput formControlName="dockerImageTag" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG_PLACEHOLDER' | translate" />
+                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                        </mat-form-field>
+                      }
                       <mat-form-field appearance="outline" class="form-field">
                         <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MAX_INSTANCE_COUNT' | translate }}</mat-label>
                         <input matInput type="number" formControlName="maxInstanceCount" />
@@ -453,11 +565,6 @@
                           }
                         </mat-select>
                       </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.LOG_ANALYTICS_WORKSPACE_ID' | translate }}</mat-label>
-                        <input matInput formControlName="logAnalyticsWorkspaceId" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
                       <div class="form-field form-field--toggle">
                         <mat-slide-toggle formControlName="internalLoadBalancerEnabled" color="primary">
                           {{ 'RESOURCE_EDIT.FIELDS.INTERNAL_LOAD_BALANCER' | translate }}
@@ -470,11 +577,6 @@
                       </div>
                     }
                     @case ('ContainerApp') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_IMAGE' | translate }}</mat-label>
-                        <input matInput formControlName="containerImage" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
                       <mat-form-field appearance="outline" class="form-field">
                         <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CPU_CORES' | translate }}</mat-label>
                         <mat-select formControlName="cpuCores">
@@ -638,6 +740,71 @@
                         </mat-slide-toggle>
                       </div>
                     }
+                    @case ('ServiceBusNamespace') {
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                        <mat-select formControlName="sku">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          <mat-option value="Basic">Basic</mat-option>
+                          <mat-option value="Standard">Standard</mat-option>
+                          <mat-option value="Premium">Premium</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CAPACITY' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="capacity" min="1" max="16" />
+                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MIN_TLS_VERSION' | translate }}</mat-label>
+                        <mat-select formControlName="minimumTlsVersion">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          <mat-option value="1.0">TLS 1.0</mat-option>
+                          <mat-option value="1.1">TLS 1.1</mat-option>
+                          <mat-option value="1.2">TLS 1.2</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="zoneRedundant" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANT' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                    }
+                    @case ('ContainerRegistry') {
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                        <mat-select formControlName="sku">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of acrSkuOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.PUBLIC_NETWORK_ACCESS' | translate }}</mat-label>
+                        <mat-select formControlName="publicNetworkAccess">
+                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                          @for (opt of acrPublicNetworkOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="adminUserEnabled" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.ADMIN_USER_ENABLED' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                      <div class="form-field form-field--toggle">
+                        <mat-slide-toggle formControlName="zoneRedundancy" color="primary">
+                          {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANCY' | translate }}
+                        </mat-slide-toggle>
+                      </div>
+                    }
                   }
                 </form>
               </div>
@@ -645,8 +812,10 @@
           }
         </div>
       </mat-tab>
+      }
 
-      <!-- Identity & Access Tab -->
+      <!-- Identity & Access Tab (hidden for UserAssignedIdentity) -->
+      @if (!isUserAssignedIdentity()) {
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">security</mat-icon>
@@ -662,13 +831,63 @@
             <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DESCRIPTION' | translate }}</p>
           </div>
 
-          <!-- Add button -->
+          <!-- Add buttons -->
           @if (canWrite()) {
             <div class="ra-actions">
               <button class="ra-add-btn" (click)="openAddRoleAssignmentDialog()">
                 <mat-icon>add</mat-icon>
                 {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ADD' | translate }}
               </button>
+              @if (assignedUai(); as uai) {
+                <!-- UAI already assigned → show current + switch / unassign buttons -->
+                <div class="ra-assigned-uai">
+                  <div class="ra-assigned-uai__current">
+                    <mat-icon class="ra-assigned-uai__icon">person</mat-icon>
+                    <span class="ra-assigned-uai__name">{{ uai.identityName }}</span>
+                  </div>
+                  @if (switchableIdentities().length > 0) {
+                    <button class="ra-add-btn ra-add-btn--switch" [matMenuTriggerFor]="assignUaiMenu"
+                            [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_UAI_TOOLTIP' | translate">
+                      <mat-icon>swap_horiz</mat-icon>
+                      {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_UAI' | translate }}
+                    </button>
+                    <mat-menu #assignUaiMenu="matMenu" class="ra-uai-assign-menu">
+                      @for (identity of switchableIdentities(); track identity.id) {
+                        <button mat-menu-item (click)="assignUaiToResource(identity.id)">
+                          <mat-icon>person</mat-icon>
+                          <div class="ra-uai-assign-menu__label">
+                            <span class="ra-uai-assign-menu__name">{{ identity.name }}</span>
+                            <span class="ra-uai-assign-menu__type">User Assigned Identity</span>
+                          </div>
+                        </button>
+                      }
+                    </mat-menu>
+                  }
+                  <button class="ra-add-btn ra-add-btn--unassign"
+                          (click)="openUnassignUaiDialog(uai)"
+                          [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI_TOOLTIP' | translate">
+                    <mat-icon>person_remove</mat-icon>
+                    {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UNASSIGN_UAI' | translate }}
+                  </button>
+                </div>
+              } @else if (availableUserAssignedIdentities().length > 0) {
+                <!-- No UAI assigned yet → show assign button -->
+                <button class="ra-add-btn ra-add-btn--uai" [matMenuTriggerFor]="assignUaiMenu">
+                  <mat-icon>person_add</mat-icon>
+                  {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_UAI' | translate }}
+                </button>
+                <mat-menu #assignUaiMenu="matMenu" class="ra-uai-assign-menu">
+                  @for (identity of availableUserAssignedIdentities(); track identity.id) {
+                    <button mat-menu-item (click)="assignUaiToResource(identity.id)">
+                      <mat-icon>person</mat-icon>
+                      <div class="ra-uai-assign-menu__label">
+                        <span class="ra-uai-assign-menu__name">{{ identity.name }}</span>
+                        <span class="ra-uai-assign-menu__type">User Assigned Identity</span>
+                      </div>
+                    </button>
+                  }
+                </mat-menu>
+              }
             </div>
           }
 
@@ -686,16 +905,107 @@
               <mat-spinner diameter="28"></mat-spinner>
               <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.LOADING' | translate }}</span>
             </div>
-          } @else if (roleAssignments().length === 0) {
+          } @else if (roleAssignments().length === 0 && !assignedUai()) {
             <!-- Empty state -->
             <div class="empty-state">
               <mat-icon class="empty-state__icon">admin_panel_settings</mat-icon>
               <p>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.EMPTY' | translate }}</p>
             </div>
           } @else {
-            <!-- Role assignment cards -->
             <div class="ra-list">
-              @for (ra of roleAssignments(); track ra.id) {
+              <!-- UAI groups (collapsible) -->
+              @for (group of groupedRoleAssignments().uaiGroups; track group.identityId) {
+                <div class="ra-uai-group" [class.ra-uai-group--expanded]="isUaiExpanded(group.identityId)">
+                  <button class="ra-uai-header" (click)="toggleUaiExpand(group.identityId)">
+                    <mat-icon class="ra-uai-header__chevron">expand_more</mat-icon>
+                    <mat-icon class="ra-uai-header__icon">person</mat-icon>
+                    <div class="ra-uai-header__info">
+                      <span class="ra-uai-header__name">{{ group.identityName }}</span>
+                      <span class="ra-uai-header__type">User Assigned Identity</span>
+                    </div>
+                    <span class="ra-uai-header__count">{{ group.assignments.length }}</span>
+                    <a class="ra-uai-header__nav"
+                       [routerLink]="['/config', configId, 'resource', 'UserAssignedIdentity', group.identityId]"
+                       [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.NAV_TO_UAI' | translate"
+                       (click)="$event.stopPropagation()">
+                      <mat-icon>open_in_new</mat-icon>
+                    </a>
+                  </button>
+                  @if (isUaiExpanded(group.identityId)) {
+                    <div class="ra-uai-children">
+                      @if (group.assignments.length === 0) {
+                        <div class="ra-uai-empty">
+                          <mat-icon>info_outline</mat-icon>
+                          <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.UAI_NO_ASSIGNMENTS' | translate }}</span>
+                        </div>
+                      }
+                      @for (ra of group.assignments; track ra.id) {
+                        <div class="ra-card ra-card--child">
+                          <div class="ra-card__main">
+                            <div class="ra-card__target">
+                              <mat-icon class="ra-card__target-icon">{{ resourceTypeIcons[resolveTargetType(ra.targetResourceId)] || 'widgets' }}</mat-icon>
+                              <div class="ra-card__target-info">
+                                <span class="ra-card__target-name">{{ resolveTargetName(ra.targetResourceId) }}</span>
+                                <span class="ra-card__target-type">{{ resolveTargetType(ra.targetResourceId) }}</span>
+                              </div>
+                            </div>
+                            <div class="ra-card__details">
+                              <span class="ra-card__role">
+                                <mat-icon>shield</mat-icon>
+                                {{ resolveRoleName(ra.roleDefinitionId) }}
+                              </span>
+                            </div>
+                          </div>
+                          <div class="ra-card__actions">
+                            @if (resolveRoleDocUrl(ra.roleDefinitionId)) {
+                              <a class="ra-card__doc-link"
+                                 [href]="resolveRoleDocUrl(ra.roleDefinitionId)"
+                                 target="_blank" rel="noopener noreferrer"
+                                 [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DOCS_LINK' | translate">
+                                <mat-icon>open_in_new</mat-icon>
+                              </a>
+                            }
+                            @if (canWrite()) {
+                              <button class="ra-card__action-btn ra-card__action-btn--switch"
+                                      [matMenuTriggerFor]="childIdentityMenu"
+                                      [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_IDENTITY' | translate">
+                                <mat-icon>swap_horiz</mat-icon>
+                              </button>
+                              <mat-menu #childIdentityMenu="matMenu" class="ra-identity-menu">
+                                <button mat-menu-item
+                                        [disabled]="ra.roleDefinitionId === acrPullRoleId"
+                                        (click)="switchToSystemAssigned(ra)">
+                                  <mat-icon>fingerprint</mat-icon>
+                                  <span>{{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SWITCH_TO_SYSTEM' | translate }}</span>
+                                </button>
+                                @for (identity of availableUserAssignedIdentities(); track identity.id) {
+                                  <button mat-menu-item
+                                          [disabled]="identity.id === ra.userAssignedIdentityId"
+                                          (click)="switchToUserAssignedIdentity(ra, identity.id)">
+                                    <mat-icon>person</mat-icon>
+                                    <span>{{ identity.name }}</span>
+                                    @if (identity.id === ra.userAssignedIdentityId) {
+                                      <mat-icon class="ra-identity-menu__current">check</mat-icon>
+                                    }
+                                  </button>
+                                }
+                              </mat-menu>
+                              <button class="ra-card__remove-btn"
+                                      (click)="openRemoveRoleAssignmentDialog(ra)"
+                                      [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate">
+                                <mat-icon>close</mat-icon>
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- System-assigned cards (flat) -->
+              @for (ra of groupedRoleAssignments().systemAssigned; track ra.id) {
                 <div class="ra-card">
                   <div class="ra-card__main">
                     <div class="ra-card__target">
@@ -710,28 +1020,40 @@
                         <mat-icon>shield</mat-icon>
                         {{ resolveRoleName(ra.roleDefinitionId) }}
                       </span>
-                      <span class="ra-card__identity-badge" [class.ra-card__identity-badge--system]="ra.managedIdentityType === 'SystemAssigned'">
-                        <mat-icon>{{ ra.managedIdentityType === 'SystemAssigned' ? 'fingerprint' : 'person' }}</mat-icon>
-                        {{ (ra.managedIdentityType === 'SystemAssigned' ? 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED' : 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.USER_ASSIGNED') | translate }}
+                      <span class="ra-card__identity-badge ra-card__identity-badge--system">
+                        <mat-icon>fingerprint</mat-icon>
+                        {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENTS.SYSTEM_ASSIGNED' | translate }}
                       </span>
                     </div>
                   </div>
                   <div class="ra-card__actions">
                     @if (resolveRoleDocUrl(ra.roleDefinitionId)) {
-                      <a
-                        class="ra-card__doc-link"
-                        [href]="resolveRoleDocUrl(ra.roleDefinitionId)"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DOCS_LINK' | translate">
+                      <a class="ra-card__doc-link"
+                         [href]="resolveRoleDocUrl(ra.roleDefinitionId)"
+                         target="_blank" rel="noopener noreferrer"
+                         [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.DOCS_LINK' | translate">
                         <mat-icon>open_in_new</mat-icon>
                       </a>
                     }
                     @if (canWrite()) {
-                      <button
-                        class="ra-card__remove-btn"
-                        (click)="openRemoveRoleAssignmentDialog(ra)"
-                        [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate">
+                      @if (availableUserAssignedIdentities().length > 0) {
+                        <button class="ra-card__action-btn ra-card__action-btn--assign"
+                                [matMenuTriggerFor]="sysAssignIdentityMenu"
+                                [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.ASSIGN_USER_IDENTITY' | translate">
+                          <mat-icon>person_add</mat-icon>
+                        </button>
+                        <mat-menu #sysAssignIdentityMenu="matMenu" class="ra-identity-menu">
+                          @for (identity of availableUserAssignedIdentities(); track identity.id) {
+                            <button mat-menu-item (click)="switchToUserAssignedIdentity(ra, identity.id)">
+                              <mat-icon>person</mat-icon>
+                              <span>{{ identity.name }}</span>
+                            </button>
+                          }
+                        </mat-menu>
+                      }
+                      <button class="ra-card__remove-btn"
+                              (click)="openRemoveRoleAssignmentDialog(ra)"
+                              [matTooltip]="'RESOURCE_EDIT.ROLE_ASSIGNMENTS.REMOVE' | translate">
                         <mat-icon>close</mat-icon>
                       </button>
                     }
@@ -742,6 +1064,7 @@
           }
         </div>
       </mat-tab>
+      }
 
       <!-- Storage Services Tab (StorageAccount only) / App Configuration Tab (others) -->
       @if (isStorageAccount()) {
@@ -843,6 +1166,276 @@
                       </button>
                     }
                   }
+                  <!-- ─── Blob CORS ─── -->
+                  <div class="cors-editor" style="margin-top: 1.5rem;">
+                    <div class="cors-editor__header">
+                      <div>
+                        <h4 class="cors-editor__title">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.TITLE' | translate }}</h4>
+                        <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.DESCRIPTION' | translate }}</p>
+                      </div>
+                      @if (canWrite()) {
+                        <button class="ghost-button cors-editor__add" type="button" (click)="addCorsRule()">
+                          <mat-icon>add</mat-icon>
+                          {{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_RULE' | translate }}
+                        </button>
+                      }
+                    </div>
+
+                    @if (storageCorsRules().length === 0) {
+                      <div class="cors-editor__empty">
+                        <mat-icon>shield</mat-icon>
+                        <p>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.EMPTY' | translate }}</p>
+                      </div>
+                    } @else {
+                      <div class="cors-rule-list">
+                        @for (rule of storageCorsRules(); track $index; let i = $index) {
+                          <div class="cors-rule-card">
+                            <div class="cors-rule-card__topbar">
+                              <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.RULE' | translate }} {{ i + 1 }}</span>
+                              @if (canWrite()) {
+                                <button class="cors-rule-card__remove" type="button" (click)="removeCorsRule(i)">
+                                  <mat-icon>close</mat-icon>
+                                </button>
+                              }
+                            </div>
+                            <div class="cors-rule-card__fields">
+                              <div class="cors-field">
+                                <div class="cors-field__head">
+                                  <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ALLOWED_ORIGINS' | translate }}</span>
+                                  <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ORIGINS_HINT' | translate }}</span>
+                                </div>
+                                <div class="cors-field__chips">
+                                  @for (origin of rule.allowedOrigins; track $index; let vi = $index) {
+                                    <span class="cors-field__chip">
+                                      {{ origin }}
+                                      @if (canWrite()) {
+                                        <button class="cors-field__chip-remove" type="button" (click)="removeCorsRuleValue(i, 'allowedOrigins', vi)">&times;</button>
+                                      }
+                                    </span>
+                                  }
+                                </div>
+                                @if (canWrite()) {
+                                  <div class="cors-field__input-row">
+                                    <input #blobOriginInput class="cors-field__input"
+                                      [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (keydown.enter)="addCorsRuleValue(i, 'allowedOrigins', blobOriginInput.value); blobOriginInput.value = ''; $event.preventDefault()" />
+                                    <button class="cors-field__add-btn" type="button"
+                                      (click)="addCorsRuleValue(i, 'allowedOrigins', blobOriginInput.value); blobOriginInput.value = ''">
+                                      <mat-icon>add</mat-icon>
+                                    </button>
+                                  </div>
+                                }
+                                @if (corsFieldError('blob', i, 'allowedOrigins')) {
+                                  <p class="cors-field__error">{{ corsFieldError('blob', i, 'allowedOrigins') | translate }}</p>
+                                }
+                              </div>
+
+                              <div class="cors-field cors-field--methods">
+                                <div class="cors-field__head">
+                                  <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ALLOWED_METHODS' | translate }}</span>
+                                  <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.METHODS_HINT' | translate }}</span>
+                                </div>
+                                <div class="cors-methods">
+                                  @for (method of corsMethodOptions; track corsMethodTrack(method)) {
+                                    <button type="button"
+                                      class="cors-methods__option"
+                                      [class.cors-methods__option--selected]="isCorsRuleMethodSelected(rule, method)"
+                                      [disabled]="!canWrite()"
+                                      (click)="toggleCorsRuleMethod(i, method)">
+                                      <span class="cors-methods__check">{{ isCorsRuleMethodSelected(rule, method) ? '✓' : '+' }}</span>
+                                      <span>{{ method }}</span>
+                                    </button>
+                                  }
+                                </div>
+                                @if (corsFieldError('blob', i, 'allowedMethods')) {
+                                  <p class="cors-field__error">{{ corsFieldError('blob', i, 'allowedMethods') | translate }}</p>
+                                }
+                              </div>
+
+                              <div class="cors-field">
+                                <div class="cors-field__head">
+                                  <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ALLOWED_HEADERS' | translate }}</span>
+                                  <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ALLOWED_HEADERS_HINT' | translate }}</span>
+                                </div>
+                                <div class="cors-field__suggestions">
+                                  @for (suggestion of corsHeaderSuggestions('allowedHeaders'); track suggestion) {
+                                    <button class="cors-field__suggestion" type="button" [disabled]="!canWrite()"
+                                      (click)="addCorsRuleValue(i, 'allowedHeaders', suggestion)">
+                                      {{ suggestion }}
+                                    </button>
+                                  }
+                                </div>
+                                <div class="cors-field__chips">
+                                  @for (header of rule.allowedHeaders; track $index; let vi = $index) {
+                                    <span class="cors-field__chip">
+                                      {{ header }}
+                                      @if (canWrite()) {
+                                        <button class="cors-field__chip-remove" type="button" (click)="removeCorsRuleValue(i, 'allowedHeaders', vi)">&times;</button>
+                                      }
+                                    </span>
+                                  }
+                                </div>
+                                @if (canWrite()) {
+                                  <div class="cors-field__input-row">
+                                    <input #blobAllowedHeaderInput class="cors-field__input"
+                                      [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (keydown.enter)="addCorsRuleValue(i, 'allowedHeaders', blobAllowedHeaderInput.value); blobAllowedHeaderInput.value = ''; $event.preventDefault()" />
+                                    <button class="cors-field__add-btn" type="button"
+                                      (click)="addCorsRuleValue(i, 'allowedHeaders', blobAllowedHeaderInput.value); blobAllowedHeaderInput.value = ''">
+                                      <mat-icon>add</mat-icon>
+                                    </button>
+                                  </div>
+                                }
+                                @if (corsFieldError('blob', i, 'allowedHeaders')) {
+                                  <p class="cors-field__error">{{ corsFieldError('blob', i, 'allowedHeaders') | translate }}</p>
+                                }
+                              </div>
+
+                              <div class="cors-field">
+                                <div class="cors-field__head">
+                                  <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.EXPOSED_HEADERS' | translate }}</span>
+                                  <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.EXPOSED_HEADERS_HINT' | translate }}</span>
+                                </div>
+                                <div class="cors-field__suggestions">
+                                  @for (suggestion of corsHeaderSuggestions('exposedHeaders'); track suggestion) {
+                                    <button class="cors-field__suggestion" type="button" [disabled]="!canWrite()"
+                                      (click)="addCorsRuleValue(i, 'exposedHeaders', suggestion)">
+                                      {{ suggestion }}
+                                    </button>
+                                  }
+                                </div>
+                                <div class="cors-field__chips">
+                                  @for (header of rule.exposedHeaders; track $index; let vi = $index) {
+                                    <span class="cors-field__chip">
+                                      {{ header }}
+                                      @if (canWrite()) {
+                                        <button class="cors-field__chip-remove" type="button" (click)="removeCorsRuleValue(i, 'exposedHeaders', vi)">&times;</button>
+                                      }
+                                    </span>
+                                  }
+                                </div>
+                                @if (canWrite()) {
+                                  <div class="cors-field__input-row">
+                                    <input #blobExposedHeaderInput class="cors-field__input"
+                                      [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (keydown.enter)="addCorsRuleValue(i, 'exposedHeaders', blobExposedHeaderInput.value); blobExposedHeaderInput.value = ''; $event.preventDefault()" />
+                                    <button class="cors-field__add-btn" type="button"
+                                      (click)="addCorsRuleValue(i, 'exposedHeaders', blobExposedHeaderInput.value); blobExposedHeaderInput.value = ''">
+                                      <mat-icon>add</mat-icon>
+                                    </button>
+                                  </div>
+                                }
+                                @if (corsFieldError('blob', i, 'exposedHeaders')) {
+                                  <p class="cors-field__error">{{ corsFieldError('blob', i, 'exposedHeaders') | translate }}</p>
+                                }
+                              </div>
+
+                              <div class="cors-field">
+                                <mat-form-field appearance="outline" class="form-field">
+                                  <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.BLOB_CORS.MAX_AGE_SECONDS' | translate }}</mat-label>
+                                  <input matInput type="number" min="0" [value]="rule.maxAgeInSeconds" [readonly]="!canWrite()"
+                                    (input)="updateCorsRuleMaxAge(i, $any($event.target).value)" />
+                                </mat-form-field>
+                                <div class="cors-presets">
+                                  @for (preset of corsMaxAgePresets; track preset) {
+                                    <button class="cors-presets__option" type="button" [disabled]="!canWrite()"
+                                      (click)="setCorsRuleMaxAgePreset(i, preset)">
+                                      {{ preset }}s
+                                    </button>
+                                  }
+                                </div>
+                                <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.MAX_AGE_HINT' | translate }}</span>
+                                @if (corsFieldError('blob', i, 'maxAgeInSeconds')) {
+                                  <p class="cors-field__error">{{ corsFieldError('blob', i, 'maxAgeInSeconds') | translate }}</p>
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- ─── Blob Lifecycle Rules ─── -->
+                  <div class="cors-editor" style="margin-top: 1.5rem;">
+                    <div class="cors-editor__header">
+                      <div>
+                        <h4 class="cors-editor__title">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.TITLE' | translate }}</h4>
+                        <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.DESCRIPTION' | translate }}</p>
+                      </div>
+                      @if (canWrite()) {
+                        <button class="ghost-button cors-editor__add" type="button" (click)="addLifecycleRule()">
+                          <mat-icon>add</mat-icon>
+                          {{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.ADD_RULE' | translate }}
+                        </button>
+                      }
+                    </div>
+
+                    @if (lifecycleRules().length === 0) {
+                      <div class="cors-editor__empty">
+                        <mat-icon>auto_delete</mat-icon>
+                        <p>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.EMPTY' | translate }}</p>
+                      </div>
+                    } @else {
+                      <div class="cors-rule-list">
+                        @for (rule of lifecycleRules(); track $index; let i = $index) {
+                          <div class="cors-rule-card">
+                            <div class="cors-rule-card__topbar">
+                              <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.RULE' | translate }} {{ i + 1 }}</span>
+                              @if (canWrite()) {
+                                <button class="cors-rule-card__remove" type="button" (click)="removeLifecycleRule(i)">
+                                  <mat-icon>close</mat-icon>
+                                </button>
+                              }
+                            </div>
+                            <div class="cors-rule-card__fields">
+                              <!-- RULE NAME -->
+                              <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.RULE_NAME' | translate }}</mat-label>
+                                <input matInput [value]="rule.ruleName" [readonly]="!canWrite()"
+                                  maxlength="256"
+                                  (input)="updateLifecycleRuleName(i, $any($event.target).value)" />
+                                <mat-hint>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.RULE_NAME_HINT' | translate }}</mat-hint>
+                              </mat-form-field>
+
+                              <!-- CONTAINER NAMES -->
+                              <div class="cors-field cors-field--methods">
+                                <div class="cors-field__head">
+                                  <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.CONTAINER_NAMES' | translate }}</span>
+                                  <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.CONTAINER_NAMES_HINT' | translate }}</span>
+                                </div>
+                                @if (storageBlobContainers().length > 0) {
+                                  <div class="cors-methods">
+                                    @for (container of storageBlobContainers(); track container.id) {
+                                      <button type="button"
+                                        class="cors-methods__option"
+                                        [class.cors-methods__option--selected]="isLifecycleContainerSelected(rule, container.name)"
+                                        [disabled]="!canWrite()"
+                                        (click)="toggleLifecycleRuleContainer(i, container.name)">
+                                        <span class="cors-methods__check">{{ isLifecycleContainerSelected(rule, container.name) ? '✓' : '+' }}</span>
+                                        <span>{{ container.name }}</span>
+                                      </button>
+                                    }
+                                  </div>
+                                } @else {
+                                  <p class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.NO_CONTAINERS_HINT' | translate }}</p>
+                                }
+                              </div>
+
+                              <!-- TIME TO LIVE -->
+                              <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.TTL_DAYS' | translate }}</mat-label>
+                                <input matInput type="number" [value]="rule.timeToLiveInDays" [readonly]="!canWrite()"
+                                  min="1" max="36500"
+                                  (input)="updateLifecycleRuleTtl(i, $any($event.target).value)" />
+                                <mat-hint>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.LIFECYCLE_RULES.TTL_HINT' | translate }}</mat-hint>
+                              </mat-form-field>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
                 </div>
               </mat-tab>
 
@@ -971,33 +1564,957 @@
                       </button>
                     }
                   }
+                  <!-- ─── Table CORS ─── -->
+                  <div class="cors-editor" style="margin-top: 1.5rem;">
+                    <div class="cors-editor__header">
+                      <div>
+                        <h4 class="cors-editor__title">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.TITLE' | translate }}</h4>
+                        <p class="cors-editor__description">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.DESCRIPTION' | translate }}</p>
+                      </div>
+                      @if (canWrite()) {
+                        <button class="ghost-button cors-editor__add" type="button" (click)="addTableCorsRule()">
+                          <mat-icon>add</mat-icon>
+                          {{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_RULE' | translate }}
+                        </button>
+                      }
+                    </div>
+
+                    @if (storageTableCorsRules().length === 0) {
+                      <div class="cors-editor__empty">
+                        <mat-icon>shield</mat-icon>
+                        <p>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.EMPTY' | translate }}</p>
+                      </div>
+                    } @else {
+                      <div class="cors-rule-list">
+                        @for (rule of storageTableCorsRules(); track $index; let i = $index) {
+                          <div class="cors-rule-card">
+                            <div class="cors-rule-card__topbar">
+                              <span class="cors-rule-card__badge">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.RULE' | translate }} {{ i + 1 }}</span>
+                              @if (canWrite()) {
+                                <button class="cors-rule-card__remove" type="button" (click)="removeTableCorsRule(i)">
+                                  <mat-icon>close</mat-icon>
+                                </button>
+                              }
+                            </div>
+                            <div class="cors-rule-card__fields">
+                              <div class="cors-field">
+                                <div class="cors-field__head">
+                                  <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ALLOWED_ORIGINS' | translate }}</span>
+                                  <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ORIGINS_HINT' | translate }}</span>
+                                </div>
+                                <div class="cors-field__chips">
+                                  @for (origin of rule.allowedOrigins; track $index; let vi = $index) {
+                                    <span class="cors-field__chip">
+                                      {{ origin }}
+                                      @if (canWrite()) {
+                                        <button class="cors-field__chip-remove" type="button" (click)="removeTableCorsRuleValue(i, 'allowedOrigins', vi)">&times;</button>
+                                      }
+                                    </span>
+                                  }
+                                </div>
+                                @if (canWrite()) {
+                                  <div class="cors-field__input-row">
+                                    <input #tableOriginInput class="cors-field__input"
+                                      [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (keydown.enter)="addTableCorsRuleValue(i, 'allowedOrigins', tableOriginInput.value); tableOriginInput.value = ''; $event.preventDefault()" />
+                                    <button class="cors-field__add-btn" type="button"
+                                      (click)="addTableCorsRuleValue(i, 'allowedOrigins', tableOriginInput.value); tableOriginInput.value = ''">
+                                      <mat-icon>add</mat-icon>
+                                    </button>
+                                  </div>
+                                }
+                                @if (corsFieldError('table', i, 'allowedOrigins')) {
+                                  <p class="cors-field__error">{{ corsFieldError('table', i, 'allowedOrigins') | translate }}</p>
+                                }
+                              </div>
+
+                              <div class="cors-field cors-field--methods">
+                                <div class="cors-field__head">
+                                  <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ALLOWED_METHODS' | translate }}</span>
+                                  <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.METHODS_HINT' | translate }}</span>
+                                </div>
+                                <div class="cors-methods">
+                                  @for (method of corsMethodOptions; track corsMethodTrack(method)) {
+                                    <button type="button"
+                                      class="cors-methods__option"
+                                      [class.cors-methods__option--selected]="isCorsRuleMethodSelected(rule, method)"
+                                      [disabled]="!canWrite()"
+                                      (click)="toggleTableCorsRuleMethod(i, method)">
+                                      <span class="cors-methods__check">{{ isCorsRuleMethodSelected(rule, method) ? '✓' : '+' }}</span>
+                                      <span>{{ method }}</span>
+                                    </button>
+                                  }
+                                </div>
+                                @if (corsFieldError('table', i, 'allowedMethods')) {
+                                  <p class="cors-field__error">{{ corsFieldError('table', i, 'allowedMethods') | translate }}</p>
+                                }
+                              </div>
+
+                              <div class="cors-field">
+                                <div class="cors-field__head">
+                                  <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ALLOWED_HEADERS' | translate }}</span>
+                                  <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ALLOWED_HEADERS_HINT' | translate }}</span>
+                                </div>
+                                <div class="cors-field__suggestions">
+                                  @for (suggestion of corsHeaderSuggestions('allowedHeaders'); track suggestion) {
+                                    <button class="cors-field__suggestion" type="button" [disabled]="!canWrite()"
+                                      (click)="addTableCorsRuleValue(i, 'allowedHeaders', suggestion)">
+                                      {{ suggestion }}
+                                    </button>
+                                  }
+                                </div>
+                                <div class="cors-field__chips">
+                                  @for (header of rule.allowedHeaders; track $index; let vi = $index) {
+                                    <span class="cors-field__chip">
+                                      {{ header }}
+                                      @if (canWrite()) {
+                                        <button class="cors-field__chip-remove" type="button" (click)="removeTableCorsRuleValue(i, 'allowedHeaders', vi)">&times;</button>
+                                      }
+                                    </span>
+                                  }
+                                </div>
+                                @if (canWrite()) {
+                                  <div class="cors-field__input-row">
+                                    <input #tableAllowedHeaderInput class="cors-field__input"
+                                      [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (keydown.enter)="addTableCorsRuleValue(i, 'allowedHeaders', tableAllowedHeaderInput.value); tableAllowedHeaderInput.value = ''; $event.preventDefault()" />
+                                    <button class="cors-field__add-btn" type="button"
+                                      (click)="addTableCorsRuleValue(i, 'allowedHeaders', tableAllowedHeaderInput.value); tableAllowedHeaderInput.value = ''">
+                                      <mat-icon>add</mat-icon>
+                                    </button>
+                                  </div>
+                                }
+                                @if (corsFieldError('table', i, 'allowedHeaders')) {
+                                  <p class="cors-field__error">{{ corsFieldError('table', i, 'allowedHeaders') | translate }}</p>
+                                }
+                              </div>
+
+                              <div class="cors-field">
+                                <div class="cors-field__head">
+                                  <span class="cors-field__label">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.EXPOSED_HEADERS' | translate }}</span>
+                                  <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.EXPOSED_HEADERS_HINT' | translate }}</span>
+                                </div>
+                                <div class="cors-field__suggestions">
+                                  @for (suggestion of corsHeaderSuggestions('exposedHeaders'); track suggestion) {
+                                    <button class="cors-field__suggestion" type="button" [disabled]="!canWrite()"
+                                      (click)="addTableCorsRuleValue(i, 'exposedHeaders', suggestion)">
+                                      {{ suggestion }}
+                                    </button>
+                                  }
+                                </div>
+                                <div class="cors-field__chips">
+                                  @for (header of rule.exposedHeaders; track $index; let vi = $index) {
+                                    <span class="cors-field__chip">
+                                      {{ header }}
+                                      @if (canWrite()) {
+                                        <button class="cors-field__chip-remove" type="button" (click)="removeTableCorsRuleValue(i, 'exposedHeaders', vi)">&times;</button>
+                                      }
+                                    </span>
+                                  }
+                                </div>
+                                @if (canWrite()) {
+                                  <div class="cors-field__input-row">
+                                    <input #tableExposedHeaderInput class="cors-field__input"
+                                      [placeholder]="'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.ADD_VALUE_PLACEHOLDER' | translate"
+                                      (keydown.enter)="addTableCorsRuleValue(i, 'exposedHeaders', tableExposedHeaderInput.value); tableExposedHeaderInput.value = ''; $event.preventDefault()" />
+                                    <button class="cors-field__add-btn" type="button"
+                                      (click)="addTableCorsRuleValue(i, 'exposedHeaders', tableExposedHeaderInput.value); tableExposedHeaderInput.value = ''">
+                                      <mat-icon>add</mat-icon>
+                                    </button>
+                                  </div>
+                                }
+                                @if (corsFieldError('table', i, 'exposedHeaders')) {
+                                  <p class="cors-field__error">{{ corsFieldError('table', i, 'exposedHeaders') | translate }}</p>
+                                }
+                              </div>
+
+                              <div class="cors-field">
+                                <mat-form-field appearance="outline" class="form-field">
+                                  <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.TABLE_CORS.MAX_AGE_SECONDS' | translate }}</mat-label>
+                                  <input matInput type="number" min="0" [value]="rule.maxAgeInSeconds" [readonly]="!canWrite()"
+                                    (input)="updateTableCorsRuleMaxAge(i, $any($event.target).value)" />
+                                </mat-form-field>
+                                <div class="cors-presets">
+                                  @for (preset of corsMaxAgePresets; track preset) {
+                                    <button class="cors-presets__option" type="button" [disabled]="!canWrite()"
+                                      (click)="setTableCorsRuleMaxAgePreset(i, preset)">
+                                      {{ preset }}s
+                                    </button>
+                                  }
+                                </div>
+                                <span class="cors-field__hint">{{ 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.MAX_AGE_HINT' | translate }}</span>
+                                @if (corsFieldError('table', i, 'maxAgeInSeconds')) {
+                                  <p class="cors-field__error">{{ corsFieldError('table', i, 'maxAgeInSeconds') | translate }}</p>
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
                 </div>
               </mat-tab>
             </mat-tab-group>
           </div>
         </mat-tab>
-      } @else {
-        <!-- App Configuration Tab (placeholder for non-StorageAccount) -->
-        <mat-tab [disabled]="true">
+      } @else if (supportsAppSettings()) {
+        <!-- App Settings Tab (WebApp / FunctionApp / ContainerApp) -->
+        <mat-tab>
           <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">tune</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.APP_CONFIG' | translate }}</span>
-            <span class="tab-badge tab-badge--soon">{{ 'RESOURCE_EDIT.TABS.COMING_SOON' | translate }}</span>
+            <mat-icon class="tab-icon">data_object</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.APP_SETTINGS' | translate }}</span>
+            @if (appSettings().length > 0) {
+              <span class="tab-count">{{ appSettings().length }}</span>
+            }
+            @if (appSettingsTabHasWarning()) {
+              <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
+            }
           </ng-template>
           <div class="tab-content">
-            <div class="coming-soon-panel">
-              <mat-icon class="coming-soon-panel__icon">settings_applications</mat-icon>
-              <h3>{{ 'RESOURCE_EDIT.COMING_SOON.CONFIG_TITLE' | translate }}</h3>
-              <p>{{ 'RESOURCE_EDIT.COMING_SOON.CONFIG_DESC' | translate }}</p>
-              <div class="coming-soon-panel__features">
-                <span class="feature-chip"><mat-icon>data_object</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.ENV_VARS' | translate }}</span>
-                <span class="feature-chip"><mat-icon>vpn_key</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.SECRETS' | translate }}</span>
-                <span class="feature-chip"><mat-icon>swap_horiz</mat-icon> {{ 'RESOURCE_EDIT.COMING_SOON.PER_ENV_OVERRIDE' | translate }}</span>
-              </div>
+            <!-- Description banner -->
+            <div class="env-description">
+              <mat-icon class="env-description__icon">data_object</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.APP_SETTINGS.DESCRIPTION' | translate }}</p>
             </div>
+
+            <!-- Add button -->
+            @if (canWrite()) {
+              <div class="ra-actions">
+                <button class="ra-add-btn" (click)="openAddAppSettingDialog()">
+                  <mat-icon>add</mat-icon>
+                  {{ 'RESOURCE_EDIT.APP_SETTINGS.ADD' | translate }}
+                </button>
+              </div>
+            }
+
+            <!-- Error banner -->
+            @if (appSettingsError()) {
+              <div class="feedback-banner feedback-banner--error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                {{ appSettingsError() | translate }}
+              </div>
+            }
+
+            <!-- Key Vault missing role warnings -->
+            @for (kvEntry of kvMissingRoleEntries(); track kvEntry.keyVaultResourceId) {
+              <div class="kv-access-card kv-access-card--warn">
+                <div class="kv-access-card__header">
+                  <mat-icon class="kv-access-card__header-icon">shield</mat-icon>
+                  <span class="kv-access-card__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_TITLE' | translate }}</span>
+                </div>
+                <p class="kv-access-card__message">
+                  {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_DESC' | translate: { kvName: resolveSourceName(kvEntry.keyVaultResourceId), role: kvEntry.missingRoleName, count: kvEntry.affectedSettingsCount } }}
+                </p>
+                @if (canWrite()) {
+                  <div class="kv-access-card__identity-section">
+                    <span class="kv-access-card__section-label">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ON' | translate }}</span>
+                    <div class="kv-access-card__identity-row">
+                      <mat-button-toggle-group
+                        [value]="kvEntry.selectedIdentityType"
+                        (change)="setKvEntryIdentityType(kvEntry.keyVaultResourceId, $event.value)"
+                        class="kv-access-card__toggle-group">
+                        <mat-button-toggle value="UserAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI' | translate }}</mat-button-toggle>
+                        <mat-button-toggle value="SystemAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_SAI' | translate }}</mat-button-toggle>
+                      </mat-button-toggle-group>
+                    </div>
+                    @if (kvEntry.selectedIdentityType === 'UserAssigned') {
+                      @if (assignedUai(); as uai) {
+                        <div class="kv-access-card__uai-chip">
+                          <mat-icon class="kv-access-card__uai-chip-icon">badge</mat-icon>
+                          <span class="kv-access-card__uai-chip-name">{{ uai.identityName }}</span>
+                        </div>
+                      } @else {
+                        <div class="kv-access-card__identity-row">
+                          <app-compact-select
+                            [options]="uaiOptionsForSelect()"
+                            [value]="kvEntry.selectedUaiId"
+                            [placeholder]="'RESOURCE_EDIT.APP_SETTINGS.KV_SELECT_UAI' | translate"
+                            [emptyText]="'RESOURCE_EDIT.APP_SETTINGS.KV_NO_UAI_AVAILABLE' | translate"
+                            (valueChange)="setKvEntryUaiId(kvEntry.keyVaultResourceId, $event)">
+                          </app-compact-select>
+                          <button class="kv-access-card__create-uai-btn" (click)="createNewUaiForKvEntry(kvEntry.keyVaultResourceId)">
+                            <mat-icon>add</mat-icon>
+                            {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_CREATE_UAI' | translate }}
+                          </button>
+                        </div>
+                      }
+                    }
+                  </div>
+                  <button class="kv-access-card__action-btn"
+                    [disabled]="kvEntry.assigning || (kvEntry.selectedIdentityType === 'UserAssigned' && !assignedUai() && !kvEntry.selectedUaiId)"
+                    (click)="assignKvRole(kvEntry)">
+                    @if (kvEntry.assigning) {
+                      <mat-spinner diameter="14"></mat-spinner>
+                    } @else {
+                      <mat-icon>add_circle_outline</mat-icon>
+                    }
+                    {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ROLE' | translate }}
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- Loading state -->
+            @if (appSettingsLoading()) {
+              <div class="ra-loading">
+                <mat-spinner diameter="28"></mat-spinner>
+                <span>{{ 'RESOURCE_EDIT.APP_SETTINGS.LOADING' | translate }}</span>
+              </div>
+            } @else if (appSettings().length === 0) {
+              <!-- Empty state -->
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">settings_applications</mat-icon>
+                <p>{{ 'RESOURCE_EDIT.APP_SETTINGS.EMPTY' | translate }}</p>
+              </div>
+            } @else {
+              <!-- ═══ SECTION: Pipeline Variable Groups — grouped by VG ═══ -->
+              @if (appSettingsGrouped().byVg.length > 0) {
+                <section class="as-section as-section--vg">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--vg">
+                        <mat-icon>account_tree</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_VG' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_VG_DESC' | translate }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  @for (vgGroup of appSettingsGrouped().byVg; track vgGroup.vgId) {
+                    <div class="as-group">
+                      <div class="as-group__header">
+                        <mat-icon class="as-group__icon as-group__icon--vg">library_books</mat-icon>
+                        <span class="as-group__name">{{ vgGroup.vgName }}</span>
+                        <span class="as-group__count">{{ vgGroup.settings.length }}</span>
+                      </div>
+                      <div class="as-group__items">
+                        @for (setting of vgGroup.settings; track setting.id) {
+                          <div class="as-row" [class.as-row--secret]="setting.isKeyVaultReference" [class.as-row--vg]="!setting.isKeyVaultReference">
+                            <div class="as-row__left">
+                              <span class="as-row__var-name">{{ setting.name }}</span>
+                              <span class="as-row__arrow">→</span>
+                              <span class="as-row__pipeline-var">$({{ setting.pipelineVariableName }})</span>
+                            </div>
+                            <div class="as-row__right">
+                              @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
+                                <span class="as-kv-tag">
+                                  <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                                  <span class="as-kv-tag__name">{{ resolveSourceName(setting.keyVaultResourceId) }}</span>
+                                  <span class="as-kv-tag__sep">/</span>
+                                  <span class="as-kv-tag__secret">{{ setting.secretName }}</span>
+                                </span>
+                              }
+                              @if (canWrite()) {
+                                <button class="as-row__delete" (click)="openRemoveAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
+                                  <mat-icon>close</mat-icon>
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </section>
+              }
+
+              <!-- ═══ SECTION: Resource Outputs ═══ -->
+              @if (appSettingsGrouped().outputs.length > 0) {
+                <section class="as-section as-section--output">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--output">
+                        <mat-icon>swap_horiz</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_OUTPUTS' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_OUTPUTS_DESC' | translate }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="as-group__items">
+                    @for (setting of appSettingsGrouped().outputs; track setting.id) {
+                      <div class="as-row" [class.as-row--secret]="setting.isKeyVaultReference" [class.as-row--output]="!setting.isKeyVaultReference">
+                        <div class="as-row__left">
+                          <span class="as-row__var-name">{{ setting.name }}</span>
+                          <span class="as-row__arrow">←</span>
+                          @if (setting.sourceResourceId) {
+                            <mat-icon class="as-row__source-icon">{{ resourceTypeIcons[resolveSourceType(setting.sourceResourceId)] || 'widgets' }}</mat-icon>
+                            <span class="as-row__source-name">{{ resolveSourceName(setting.sourceResourceId) }}</span>
+                            <span class="as-row__output-dot">·</span>
+                            <span class="as-row__output-name">{{ setting.sourceOutputName }}</span>
+                          }
+                        </div>
+                        <div class="as-row__right">
+                          @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
+                            <span class="as-kv-tag">
+                              <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                              <span class="as-kv-tag__name">{{ resolveSourceName(setting.keyVaultResourceId) }}</span>
+                              <span class="as-kv-tag__sep">/</span>
+                              <span class="as-kv-tag__secret">{{ setting.secretName }}</span>
+                            </span>
+                          }
+                          @if (canWrite()) {
+                            <button class="as-row__delete" (click)="openRemoveAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </section>
+              }
+
+              <!-- ═══ SECTION: Static Values ═══ -->
+              @if (appSettingsGrouped().statics.length > 0) {
+                <section class="as-section as-section--static">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--static">
+                        <mat-icon>edit_note</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_STATIC' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.APP_SETTINGS.SECTION_STATIC_DESC' | translate }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="as-group__items">
+                    @for (setting of appSettingsGrouped().statics; track setting.id) {
+                      <div class="as-row" [class.as-row--secret]="setting.isKeyVaultReference" [class.as-row--static]="!setting.isKeyVaultReference">
+                        <div class="as-row__left">
+                          <span class="as-row__var-name">{{ setting.name }}</span>
+                          @if (setting.isKeyVaultReference && setting.keyVaultResourceId) {
+                            <span class="as-row__arrow">→</span>
+                            <span class="as-kv-tag">
+                              <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                              <span class="as-kv-tag__name">{{ resolveSourceName(setting.keyVaultResourceId) }}</span>
+                              <span class="as-kv-tag__sep">/</span>
+                              <span class="as-kv-tag__secret">{{ setting.secretName }}</span>
+                            </span>
+                          } @else if (setting.environmentValues) {
+                            <div class="as-row__env-chips">
+                              @for (env of environments(); track env.name) {
+                                @if (setting.environmentValues![env.name]; as val) {
+                                  <span class="as-env-chip" [matTooltip]="env.name + ': ' + val">
+                                    <span class="as-env-chip__env">{{ env.name }}</span>
+                                    <span class="as-env-chip__val">{{ val }}</span>
+                                  </span>
+                                }
+                              }
+                            </div>
+                          }
+                        </div>
+                        <div class="as-row__right">
+                          @if (canWrite() && !setting.isKeyVaultReference) {
+                            <button class="as-row__edit" (click)="openEditStaticAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.EDIT' | translate">
+                              <mat-icon>edit</mat-icon>
+                            </button>
+                          }
+                          @if (canWrite()) {
+                            <button class="as-row__delete" (click)="openRemoveAppSettingDialog(setting)" [matTooltip]="'RESOURCE_EDIT.APP_SETTINGS.REMOVE' | translate">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </section>
+              }
+            }
+          </div>
+        </mat-tab>
+      } @else if (supportsConfigKeys()) {
+        <!-- Configuration Keys Tab (AppConfiguration only) -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">settings</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.CONFIG_KEYS' | translate }}</span>
+            @if (configKeys().length > 0) {
+              <span class="tab-count">{{ configKeys().length }}</span>
+            }
+            @if (configKeysTabHasWarning()) {
+              <mat-icon class="tab-warning-icon" [matTooltip]="'RESOURCE_EDIT.TABS.WARNING_MISSING_ROLE' | translate">warning</mat-icon>
+            }
+          </ng-template>
+          <div class="tab-content">
+            <!-- Description banner -->
+            <div class="env-description">
+              <mat-icon class="env-description__icon">settings</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.CONFIG_KEYS.DESCRIPTION' | translate }}</p>
+            </div>
+
+            <!-- Add button -->
+            @if (canWrite()) {
+              <div class="ra-actions">
+                <button class="ra-add-btn" (click)="openAddConfigKeyDialog()">
+                  <mat-icon>add</mat-icon>
+                  {{ 'RESOURCE_EDIT.CONFIG_KEYS.ADD' | translate }}
+                </button>
+              </div>
+            }
+
+            <!-- Error banner -->
+            @if (configKeysError()) {
+              <div class="feedback-banner feedback-banner--error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                {{ configKeysError() | translate }}
+              </div>
+            }
+
+            <!-- Key Vault missing role warnings (config keys) -->
+            @for (kvEntry of configKeyKvMissingRoleEntries(); track kvEntry.keyVaultResourceId) {
+              <div class="kv-access-card kv-access-card--warn">
+                <div class="kv-access-card__header">
+                  <mat-icon class="kv-access-card__header-icon">shield</mat-icon>
+                  <span class="kv-access-card__title">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_TITLE' | translate }}</span>
+                </div>
+                <p class="kv-access-card__message">
+                  {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_MISSING_ROLE_DESC' | translate: { kvName: resolveSourceName(kvEntry.keyVaultResourceId), role: kvEntry.missingRoleName, count: kvEntry.affectedSettingsCount } }}
+                </p>
+                @if (canWrite()) {
+                  <div class="kv-access-card__identity-section">
+                    <span class="kv-access-card__section-label">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ON' | translate }}</span>
+                    <div class="kv-access-card__identity-row">
+                      <mat-button-toggle-group
+                        [value]="kvEntry.selectedIdentityType"
+                        (change)="setConfigKeyKvEntryIdentityType(kvEntry.keyVaultResourceId, $event.value)"
+                        class="kv-access-card__toggle-group">
+                        <mat-button-toggle value="UserAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_UAI' | translate }}</mat-button-toggle>
+                        <mat-button-toggle value="SystemAssigned">{{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ON_SAI' | translate }}</mat-button-toggle>
+                      </mat-button-toggle-group>
+                    </div>
+                    @if (kvEntry.selectedIdentityType === 'UserAssigned') {
+                      @if (assignedUai(); as uai) {
+                        <div class="kv-access-card__uai-chip">
+                          <mat-icon class="kv-access-card__uai-chip-icon">badge</mat-icon>
+                          <span class="kv-access-card__uai-chip-name">{{ uai.identityName }}</span>
+                        </div>
+                      } @else {
+                        <div class="kv-access-card__identity-row">
+                          <app-compact-select
+                            [options]="uaiOptionsForSelect()"
+                            [value]="kvEntry.selectedUaiId"
+                            [placeholder]="'RESOURCE_EDIT.APP_SETTINGS.KV_SELECT_UAI' | translate"
+                            [emptyText]="'RESOURCE_EDIT.APP_SETTINGS.KV_NO_UAI_AVAILABLE' | translate"
+                            (valueChange)="setConfigKeyKvEntryUaiId(kvEntry.keyVaultResourceId, $event)">
+                          </app-compact-select>
+                          <button class="kv-access-card__create-uai-btn" (click)="createNewUaiForConfigKeyKvEntry(kvEntry.keyVaultResourceId)">
+                            <mat-icon>add</mat-icon>
+                            {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_CREATE_UAI' | translate }}
+                          </button>
+                        </div>
+                      }
+                    }
+                  </div>
+                  <button class="kv-access-card__action-btn"
+                    [disabled]="kvEntry.assigning || (kvEntry.selectedIdentityType === 'UserAssigned' && !assignedUai() && !kvEntry.selectedUaiId)"
+                    (click)="assignConfigKeyKvRole(kvEntry)">
+                    @if (kvEntry.assigning) {
+                      <mat-spinner diameter="14"></mat-spinner>
+                    } @else {
+                      <mat-icon>add_circle_outline</mat-icon>
+                    }
+                    {{ 'RESOURCE_EDIT.APP_SETTINGS.KV_ASSIGN_ROLE' | translate }}
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- Loading state -->
+            @if (configKeysLoading()) {
+              <div class="ra-loading">
+                <mat-spinner diameter="28"></mat-spinner>
+                <span>{{ 'RESOURCE_EDIT.CONFIG_KEYS.LOADING' | translate }}</span>
+              </div>
+            } @else if (configKeys().length === 0) {
+              <!-- Empty state -->
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">settings_applications</mat-icon>
+                <p>{{ 'RESOURCE_EDIT.CONFIG_KEYS.EMPTY' | translate }}</p>
+              </div>
+            } @else {
+              <!-- ═══ SECTION: Pipeline Variable Groups — grouped by VG ═══ -->
+              @if (configKeysGrouped().byVg.length > 0) {
+                <section class="as-section as-section--vg">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--vg">
+                        <mat-icon>account_tree</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_VG' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_VG_DESC' | translate }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  @for (vgGroup of configKeysGrouped().byVg; track vgGroup.vgId) {
+                    <div class="as-group">
+                      <div class="as-group__header">
+                        <mat-icon class="as-group__icon as-group__icon--vg">library_books</mat-icon>
+                        <span class="as-group__name">{{ vgGroup.vgName }}</span>
+                        <span class="as-group__count">{{ vgGroup.keys.length }}</span>
+                      </div>
+                      <div class="as-group__items">
+                        @for (configKey of vgGroup.keys; track configKey.id) {
+                          <div class="as-row" [class.as-row--secret]="configKey.isKeyVaultReference" [class.as-row--vg]="!configKey.isKeyVaultReference">
+                            <div class="as-row__left">
+                              <span class="as-row__var-name">{{ configKey.key }}</span>
+                              @if (configKey.label) {
+                                <span class="as-row__meta as-row__label">{{ configKey.label }}</span>
+                              }
+                              <span class="as-row__arrow">→</span>
+                              <span class="as-row__pipeline-var">$({{ configKey.pipelineVariableName }})</span>
+                            </div>
+                            <div class="as-row__right">
+                              @if (configKey.isKeyVaultReference && configKey.keyVaultResourceId) {
+                                <span class="as-kv-tag">
+                                  <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                                  <span class="as-kv-tag__name">{{ resolveSourceName(configKey.keyVaultResourceId) }}</span>
+                                  <span class="as-kv-tag__sep">/</span>
+                                  <span class="as-kv-tag__secret">{{ configKey.secretName }}</span>
+                                </span>
+                              }
+                              @if (canWrite()) {
+                                <button class="as-row__delete" (click)="openRemoveConfigKeyDialog(configKey)" [matTooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate">
+                                  <mat-icon>close</mat-icon>
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </section>
+              }
+
+              <!-- ═══ SECTION: Resource Outputs ═══ -->
+              @if (configKeysGrouped().outputs.length > 0) {
+                <section class="as-section as-section--output">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--output">
+                        <mat-icon>swap_horiz</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_OUTPUTS' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_OUTPUTS_DESC' | translate }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="as-group__items">
+                    @for (configKey of configKeysGrouped().outputs; track configKey.id) {
+                      <div class="as-row" [class.as-row--secret]="configKey.isKeyVaultReference" [class.as-row--output]="!configKey.isKeyVaultReference">
+                        <div class="as-row__left">
+                          <span class="as-row__var-name">{{ configKey.key }}</span>
+                          @if (configKey.label) {
+                            <span class="as-row__meta as-row__label">{{ configKey.label }}</span>
+                          }
+                          <span class="as-row__arrow">←</span>
+                          @if (configKey.sourceResourceId) {
+                            <mat-icon class="as-row__source-icon">{{ resourceTypeIcons[resolveSourceType(configKey.sourceResourceId)] || 'widgets' }}</mat-icon>
+                            <span class="as-row__source-name">{{ resolveSourceName(configKey.sourceResourceId) }}</span>
+                            <span class="as-row__output-dot">·</span>
+                            <span class="as-row__output-name">{{ configKey.sourceOutputName }}</span>
+                          }
+                        </div>
+                        <div class="as-row__right">
+                          @if (configKey.isKeyVaultReference && configKey.keyVaultResourceId) {
+                            <span class="as-kv-tag">
+                              <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                              <span class="as-kv-tag__name">{{ resolveSourceName(configKey.keyVaultResourceId) }}</span>
+                              <span class="as-kv-tag__sep">/</span>
+                              <span class="as-kv-tag__secret">{{ configKey.secretName }}</span>
+                            </span>
+                          }
+                          @if (canWrite()) {
+                            <button class="as-row__delete" (click)="openRemoveConfigKeyDialog(configKey)" [matTooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </section>
+              }
+
+              <!-- ═══ SECTION: Static Values ═══ -->
+              @if (configKeysGrouped().statics.length > 0) {
+                <section class="as-section as-section--static">
+                  <div class="as-section__header">
+                    <div class="as-section__header-left">
+                      <div class="as-section__icon-box as-section__icon-box--static">
+                        <mat-icon>edit_note</mat-icon>
+                      </div>
+                      <div class="as-section__header-text">
+                        <h4 class="as-section__title">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_STATIC' | translate }}</h4>
+                        <p class="as-section__subtitle">{{ 'RESOURCE_EDIT.CONFIG_KEYS.SECTION_STATIC_DESC' | translate }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="as-group__items">
+                    @for (configKey of configKeysGrouped().statics; track configKey.id) {
+                      <div class="as-row" [class.as-row--secret]="configKey.isKeyVaultReference" [class.as-row--static]="!configKey.isKeyVaultReference">
+                        <div class="as-row__left">
+                          <span class="as-row__var-name">{{ configKey.key }}</span>
+                          @if (configKey.label) {
+                            <span class="as-row__meta as-row__label">{{ configKey.label }}</span>
+                          }
+                          @if (configKey.isKeyVaultReference && configKey.keyVaultResourceId) {
+                            <span class="as-row__arrow">→</span>
+                            <span class="as-kv-tag">
+                              <mat-icon class="as-kv-tag__icon">vpn_key</mat-icon>
+                              <span class="as-kv-tag__name">{{ resolveSourceName(configKey.keyVaultResourceId) }}</span>
+                              <span class="as-kv-tag__sep">/</span>
+                              <span class="as-kv-tag__secret">{{ configKey.secretName }}</span>
+                            </span>
+                          } @else if (configKey.environmentValues) {
+                            <div class="as-row__env-chips">
+                              @for (env of environments(); track env.name) {
+                                @if (configKey.environmentValues![env.name]; as val) {
+                                  <span class="as-env-chip" [matTooltip]="env.name + ': ' + val">
+                                    <span class="as-env-chip__env">{{ env.name }}</span>
+                                    <span class="as-env-chip__val">{{ val }}</span>
+                                  </span>
+                                }
+                              }
+                            </div>
+                          }
+                        </div>
+                        <div class="as-row__right">
+                          @if (canWrite()) {
+                            <button class="as-row__delete" (click)="openRemoveConfigKeyDialog(configKey)" [matTooltip]="'RESOURCE_EDIT.CONFIG_KEYS.REMOVE' | translate">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </section>
+              }
+            }
+          </div>
+        </mat-tab>
+      } @else if (isUserAssignedIdentity()) {
+        <!-- Granted Rights Tab (UserAssignedIdentity only) -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">verified_user</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.GRANTED_RIGHTS' | translate }}</span>
+            @if (identityRoleAssignments().length > 0) {
+              <span class="tab-count">{{ identityRoleAssignments().length }}</span>
+            }
+          </ng-template>
+          <div class="tab-content">
+            <div class="env-description">
+              <mat-icon class="env-description__icon">verified_user</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.DESCRIPTION' | translate }}</p>
+            </div>
+
+            @if (canWrite()) {
+              <div class="ra-actions">
+                <button class="ra-add-btn" (click)="openAddRoleAssignmentDialog()">
+                  <mat-icon>add</mat-icon>
+                  {{ 'RESOURCE_EDIT.GRANTED_RIGHTS.ASSIGN_RIGHT' | translate }}
+                </button>
+              </div>
+            }
+
+            @if (identityRoleAssignmentsError()) {
+              <div class="feedback-banner feedback-banner--error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                {{ identityRoleAssignmentsError() | translate }}
+              </div>
+            }
+
+            @if (identityRoleAssignmentsLoading()) {
+              <div class="ra-loading">
+                <mat-spinner diameter="28"></mat-spinner>
+                <span>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.LOADING' | translate }}</span>
+              </div>
+            } @else if (identityRoleAssignments().length === 0) {
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">verified_user</mat-icon>
+                <p>{{ 'RESOURCE_EDIT.GRANTED_RIGHTS.EMPTY' | translate }}</p>
+              </div>
+            } @else {
+              <div class="uai-rights-list">
+                @for (ra of identityRoleAssignments(); track ra.id) {
+                  <div class="uai-right-row">
+                    <span class="uai-right-row__role">
+                      <mat-icon class="uai-right-row__role-icon">shield</mat-icon>
+                      {{ ra.roleName }}
+                    </span>
+                    <mat-icon class="uai-right-row__arrow">east</mat-icon>
+                    <span class="uai-right-row__target">
+                      <mat-icon class="uai-right-row__target-icon">{{ resourceTypeIcons[ra.targetResourceType] || 'widgets' }}</mat-icon>
+                      {{ ra.targetResourceName }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
+
+        <!-- Used By Tab (UserAssignedIdentity only) -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">device_hub</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.USED_BY' | translate }}</span>
+            @if (usedByResources().length > 0) {
+              <span class="tab-count">{{ usedByResources().length }}</span>
+            }
+          </ng-template>
+          <div class="tab-content">
+            <div class="env-description">
+              <mat-icon class="env-description__icon">device_hub</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.USED_BY.DESCRIPTION' | translate }}</p>
+            </div>
+
+            @if (identityRoleAssignmentsError()) {
+              <div class="feedback-banner feedback-banner--error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                {{ identityRoleAssignmentsError() | translate }}
+              </div>
+            }
+
+            @if (identityRoleAssignmentsLoading()) {
+              <div class="ra-loading">
+                <mat-spinner diameter="28"></mat-spinner>
+                <span>{{ 'RESOURCE_EDIT.USED_BY.LOADING' | translate }}</span>
+              </div>
+            } @else if (usedByResources().length === 0) {
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">device_hub</mat-icon>
+                <p>{{ 'RESOURCE_EDIT.USED_BY.EMPTY' | translate }}</p>
+              </div>
+            } @else {
+              <div class="uai-used-list">
+                @for (group of usedByResources(); track group.sourceResourceId) {
+                  <div class="uai-used-row">
+                    <div class="uai-used-row__resource">
+                      <mat-icon class="uai-used-row__icon">{{ resourceTypeIcons[group.sourceResourceType] || 'widgets' }}</mat-icon>
+                      <div class="uai-used-row__info">
+                        <span class="uai-used-row__name">{{ group.sourceResourceName }}</span>
+                        <span class="uai-used-row__type">{{ group.sourceResourceType }}</span>
+                      </div>
+                    </div>
+                    @if (canWrite()) {
+                      <button
+                        class="uai-used-row__unlink"
+                        (click)="openUnlinkResourceFromIdentityDialog(group)"
+                        [matTooltip]="'RESOURCE_EDIT.USED_BY.UNLINK' | translate">
+                        <mat-icon>link_off</mat-icon>
+                        <span>{{ 'RESOURCE_EDIT.USED_BY.UNLINK' | translate }}</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
+      }
+
+      <!-- App Pipeline Tab (WebApp / FunctionApp / ContainerApp only) -->
+      @if (supportsAppPipeline()) {
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">terminal</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.APP_PIPELINE' | translate }}</span>
+          </ng-template>
+
+          <div class="tab-content">
+            <!-- Description banner -->
+            <div class="env-description">
+              <mat-icon class="env-description__icon">terminal</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.APP_PIPELINE.DESCRIPTION' | translate }}</p>
+            </div>
+
+            <form [formGroup]="generalForm" class="general-form">
+              <!-- Application identity -->
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.APP_PIPELINE.SECTION_IDENTITY' | translate }}</h3>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.APPLICATION_NAME' | translate }}</mat-label>
+                    <input matInput formControlName="applicationName" [placeholder]="generalForm.get('name')?.value || ''" />
+                    <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.APPLICATION_NAME_HINT' | translate }}</mat-hint>
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <!-- Build configuration -->
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.APP_PIPELINE.SECTION_BUILD' | translate }}</h3>
+                <div class="form-grid">
+                  @if (resourceType === 'ContainerApp' || isContainerMode()) {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH' | translate }}</mat-label>
+                      <input matInput formControlName="dockerfilePath" placeholder="Dockerfile" />
+                      <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH_HINT' | translate }}</mat-hint>
+                    </mat-form-field>
+                  } @else {
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.SOURCE_CODE_PATH' | translate }}</mat-label>
+                      <input matInput formControlName="sourceCodePath" placeholder="src/MyApp" />
+                      <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.SOURCE_CODE_PATH_HINT' | translate }}</mat-hint>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>{{ 'RESOURCE_EDIT.APP_PIPELINE.BUILD_COMMAND' | translate }}</mat-label>
+                      <input matInput formControlName="buildCommand" placeholder="dotnet publish -c Release" />
+                      <mat-hint>{{ 'RESOURCE_EDIT.APP_PIPELINE.BUILD_COMMAND_HINT' | translate }}</mat-hint>
+                    </mat-form-field>
+                  }
+                </div>
+              </div>
+            </form>
           </div>
         </mat-tab>
       }
     </mat-tab-group>
+
+    <!-- ─── Floating Save Bar ─── -->
+    @if (showSaveBar()) {
+      <div class="save-bar">
+        <div class="save-bar__info">
+          <mat-icon class="save-bar__icon">edit_note</mat-icon>
+          <span>{{ 'RESOURCE_EDIT.ACTIONS.UNSAVED_CHANGES' | translate }}</span>
+          @if (isSaveBlockedByAcr()) {
+            <span class="save-bar__warning">{{ 'RESOURCE_EDIT.ACTIONS.ACR_SAVE_BLOCKED' | translate }}</span>
+          }
+        </div>
+        <div class="save-bar__actions">
+          <button class="save-bar__discard" (click)="discardChanges()">
+            {{ 'RESOURCE_EDIT.ACTIONS.DISCARD' | translate }}
+          </button>
+          <button
+            class="save-bar__save"
+            (click)="onSave()"
+            [disabled]="isSaving() || generalForm.invalid || isSaveBlockedByAcr()">
+            @if (isSaving()) {
+              <mat-spinner diameter="16" class="save-bar__spinner"></mat-spinner>
+            } @else {
+              <mat-icon class="save-bar__save-icon">save</mat-icon>
+            }
+            {{ (isSaving() ? 'RESOURCE_EDIT.ACTIONS.SAVING' : 'RESOURCE_EDIT.ACTIONS.SAVE') | translate }}
+          </button>
+        </div>
+      </div>
+    }
   }
 </div>

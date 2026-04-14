@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -6,17 +7,17 @@ public sealed class AppServicePlanTypeBicepGenerator
     : IResourceTypeBicepGenerator
 {
     public string ResourceType
-        => "Microsoft.Web/serverfarms";
+        => AzureResourceTypes.ArmTypes.AppServicePlan;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "AppServicePlan";
+    public string ResourceTypeName => AzureResourceTypes.AppServicePlan;
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
         return new GeneratedTypeModule
         {
             ModuleName = "appServicePlan",
-            ModuleFileName = "appServicePlan.bicep",
+            ModuleFileName = "appServicePlan",
             ModuleFolderName = "AppServicePlan",
             ModuleBicepContent = AppServicePlanModuleTemplate,
             ModuleTypesBicepContent = AppServicePlanTypesTemplate,

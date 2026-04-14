@@ -13,7 +13,7 @@ public class GetKeyVaultQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetKeyVaultQuery, ErrorOr<KeyVaultResult>>
+    : IQueryHandler<GetKeyVaultQuery, KeyVaultResult>
 {
     public async Task<ErrorOr<KeyVaultResult>> Handle(GetKeyVaultQuery query, CancellationToken cancellationToken)
     {

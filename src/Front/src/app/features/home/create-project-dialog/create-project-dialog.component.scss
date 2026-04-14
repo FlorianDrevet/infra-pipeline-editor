@@ -88,3 +88,35 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+.repo-mode-toggle {
+  width: 100%;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(113, 159, 204, 0.35);
+
+  ::ng-deep .mat-button-toggle {
+    flex: 1;
+  }
+
+  ::ng-deep .mat-button-toggle-label-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-right: 0.35rem;
+    vertical-align: middle;
+  }
+}
+
+.field-hint {
+  margin: 0;
+  color: #60758e;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}

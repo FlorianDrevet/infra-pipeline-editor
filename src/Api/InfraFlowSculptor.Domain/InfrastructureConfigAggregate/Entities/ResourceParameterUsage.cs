@@ -5,13 +5,21 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.Resour
 
 namespace InfraFlowSculptor.Domain.Common.Models;
 
+/// <summary>
+/// Tracks how a <see cref="InfrastructureConfigAggregate.Entities.ParameterDefinition"/>
+/// is consumed by a specific Azure resource (e.g. as a secret or app setting).
+/// </summary>
 public sealed class ResourceParameterUsage
     : Entity<ResourceParameterUsageId>
 {
-    public AzureResourceId ResourceId { get; private set; }
-    public ParameterDefinitionId ParameterId { get; private set; }
+    /// <summary>Gets the Azure resource that consumes this parameter.</summary>
+    public AzureResourceId ResourceId { get; private set; } = null!;
 
-    public ParameterUsage Purpose { get; private set; }
+    /// <summary>Gets the parameter definition being consumed.</summary>
+    public ParameterDefinitionId ParameterId { get; private set; } = null!;
+
+    /// <summary>Gets the purpose of this parameter usage (secret, appSetting, connectionString).</summary>
+    public ParameterUsage Purpose { get; private set; } = null!;
 
     private ResourceParameterUsage() { }
 

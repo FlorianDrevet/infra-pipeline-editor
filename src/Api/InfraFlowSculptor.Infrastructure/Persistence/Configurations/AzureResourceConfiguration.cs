@@ -37,6 +37,18 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
             .IsRequired(false)
             .HasMaxLength(260);
 
+        builder.Property(x => x.AssignedUserAssignedIdentityId)
+            .HasConversion(
+                v => v == null ? (Guid?)null : v.Value,
+                v => v.HasValue ? new AzureResourceId(v.Value) : null)
+            .IsRequired(false);
+
+        builder.HasOne<AzureResource>()
+            .WithMany()
+            .HasForeignKey(r => r.AssignedUserAssignedIdentityId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Configuration de la relation DependsOn
         builder.HasMany(r => r.DependsOn)
             .WithMany()
@@ -45,7 +57,7 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
                 j => j.HasOne<AzureResource>()
                     .WithMany()
                     .HasForeignKey("DependsOnId")
-                    .OnDelete(DeleteBehavior.Restrict),
+                    .OnDelete(DeleteBehavior.Cascade),
                 j => j.HasOne<AzureResource>()
                     .WithMany()
                     .HasForeignKey("ResourceId")
@@ -67,6 +79,15 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
 
         builder.Navigation(r => r.RoleAssignments)
             .HasField("_roleAssignments")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(r => r.AppSettings)
+            .WithOne()
+            .HasForeignKey(s => s.ResourceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(r => r.AppSettings)
+            .HasField("_appSettings")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

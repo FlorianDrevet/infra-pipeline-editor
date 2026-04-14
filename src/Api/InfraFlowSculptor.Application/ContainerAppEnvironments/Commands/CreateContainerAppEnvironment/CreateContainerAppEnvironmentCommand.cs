@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.ContainerAppEnvironments.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.CreateContainerAppEnvironment;
@@ -11,5 +11,6 @@ public record CreateContainerAppEnvironmentCommand(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
+    Guid? LogAnalyticsWorkspaceId = null,
     IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<ContainerAppEnvironmentResult>>;
+) : ICommand<ContainerAppEnvironmentResult>;

@@ -17,7 +17,7 @@ public sealed class UpdateBlobContainerPublicAccessCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateBlobContainerPublicAccessCommand, ErrorOr<StorageAccountResult>>
+    : ICommandHandler<UpdateBlobContainerPublicAccessCommand, StorageAccountResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<StorageAccountResult>> Handle(

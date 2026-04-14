@@ -20,7 +20,7 @@ public sealed class WebAppMappingConfig : IRegister
                 src => src.EnvironmentSettings == null
                     ? null
                     : src.EnvironmentSettings.Select(ec => new WebAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.AlwaysOn, ec.HttpsOnly, ec.RuntimeStack, ec.RuntimeVersion)).ToList());
+                        ec.EnvironmentName, ec.AlwaysOn, ec.HttpsOnly, ec.DockerImageTag)).ToList());
 
         config.NewConfig<(Guid Id, UpdateWebAppRequest Request), UpdateWebAppCommand>()
             .MapWith(src => new UpdateWebAppCommand(
@@ -32,10 +32,17 @@ public sealed class WebAppMappingConfig : IRegister
                 src.Request.RuntimeVersion,
                 src.Request.AlwaysOn,
                 src.Request.HttpsOnly,
+                src.Request.DeploymentMode,
+                src.Request.ContainerRegistryId,
+                src.Request.DockerImageName,
+                src.Request.DockerfilePath,
+                src.Request.SourceCodePath,
+                src.Request.BuildCommand,
+                src.Request.ApplicationName,
                 src.Request.EnvironmentSettings == null
                     ? null
                     : src.Request.EnvironmentSettings.Select(ec => new WebAppEnvironmentConfigData(
-                        ec.EnvironmentName, ec.AlwaysOn, ec.HttpsOnly, ec.RuntimeStack, ec.RuntimeVersion)).ToList()));
+                        ec.EnvironmentName, ec.AlwaysOn, ec.HttpsOnly, ec.DockerImageTag)).ToList()));
 
         config.NewConfig<WebApp, WebAppResult>()
             .Map(dest => dest.EnvironmentSettings,
@@ -43,13 +50,14 @@ public sealed class WebAppMappingConfig : IRegister
                     es.EnvironmentName,
                     es.AlwaysOn,
                     es.HttpsOnly,
-                    es.RuntimeStack != null ? es.RuntimeStack.Value.ToString() : null,
-                    es.RuntimeVersion)).ToList())
+                    es.DockerImageTag)).ToList())
             .Map(dest => dest.RuntimeStack, src => src.RuntimeStack.Value.ToString())
-            .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value);
+            .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value)
+            .Map(dest => dest.DeploymentMode, src => src.DeploymentMode.Value.ToString())
+            .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null);
 
         config.NewConfig<WebAppEnvironmentConfigData, WebAppEnvironmentConfigResponse>()
             .MapWith(src => new WebAppEnvironmentConfigResponse(
-                src.EnvironmentName, src.AlwaysOn, src.HttpsOnly, src.RuntimeStack, src.RuntimeVersion));
+                src.EnvironmentName, src.AlwaysOn, src.HttpsOnly, src.DockerImageTag));
     }
 }

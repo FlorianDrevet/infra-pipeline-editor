@@ -1,0 +1,86 @@
+{
+	"servers": {
+		"com.postman/postman-mcp-server": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"@postman/postman-mcp-server@2.8.4"
+			],
+			"env": {
+				"POSTMAN_API_KEY": "${input:POSTMAN_API_KEY}"
+			},
+			"gallery": "https://api.mcp.github.com",
+			"version": "2.8.4"
+		},
+		"aspire": {
+			"type": "stdio",
+			"command": "aspire",
+			"args": [
+				"mcp",
+				"start"
+			]
+		},
+		"io.github.github/github-mcp-server": {
+			"type": "stdio",
+			"command": "docker",
+			"args": [
+				"run",
+				"-i",
+				"--rm",
+				"-e",
+				"GITHUB_PERSONAL_ACCESS_TOKEN=${input:token}",
+				"ghcr.io/github/github-mcp-server:0.33.0"
+			],
+			"gallery": "https://api.mcp.github.com",
+			"version": "0.33.0"
+		},
+		"gitnexus": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"gitnexus@latest",
+				"mcp"
+			]
+		},
+		"microsoft/azure-devops-mcp": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"@azure-devops/mcp@latest",
+				"${input:ado_org}",
+				"-d",
+				"${input:ado_domain}"
+			],
+			"gallery": "https://api.mcp.github.com",
+			"version": "1.0.0"
+		}
+	},
+	"inputs": [
+		{
+			"id": "POSTMAN_API_KEY",
+			"type": "promptString",
+			"description": "A valid Postman API key.",
+			"password": true
+		},
+		{
+			"id": "token",
+			"type": "promptString",
+			"description": "",
+			"password": true
+		},
+		{
+			"id": "ado_org",
+			"type": "promptString",
+			"description": "Azure DevOps organization name (e.g., contoso).",
+			"password": false
+		},
+		{
+			"id": "ado_domain",
+			"type": "promptString",
+			"description": "Repeat to enable specific domains: core, work, work-items, search, test-plans, repositories, wiki, pipelines, advanced-security.",
+			"password": false
+		}
+	]
+}

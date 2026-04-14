@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -10,10 +11,10 @@ public sealed class CosmosDbTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.DocumentDB/databaseAccounts";
+        => AzureResourceTypes.ArmTypes.CosmosDb;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "CosmosDb";
+    public string ResourceTypeName => AzureResourceTypes.CosmosDb;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
@@ -21,7 +22,7 @@ public sealed class CosmosDbTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "cosmosDb",
-            ModuleFileName = "cosmosDb.bicep",
+            ModuleFileName = "cosmosDb",
             ModuleFolderName = "CosmosDb",
             ModuleBicepContent = CosmosDbModuleTemplate,
             ModuleTypesBicepContent = CosmosDbTypesTemplate,
@@ -107,5 +108,14 @@ public sealed class CosmosDbTypeBicepGenerator
             ]
           }
         }
+
+        @description('The resource ID of the Cosmos DB account')
+        output id string = cosmosDbAccount.id
+
+        @description('The document endpoint of the Cosmos DB account')
+        output documentEndpoint string = cosmosDbAccount.properties.documentEndpoint
+
+        @description('The name of the Cosmos DB account')
+        output name string = cosmosDbAccount.name
         """;
 }

@@ -2,7 +2,8 @@ using InfraFlowSculptor.Domain.Common.Models;
 
 namespace InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.ParameterDefinition;
 
-public sealed class IsSecret: SingleValueObject<bool>
+/// <summary>Indicates whether a parameter contains sensitive data that should be stored in Key Vault.</summary>
+public sealed class IsSecret : SingleValueObject<bool>
 {
     private IsSecret() { }
 

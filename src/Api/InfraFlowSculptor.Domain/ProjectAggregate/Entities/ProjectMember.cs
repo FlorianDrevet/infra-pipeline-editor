@@ -12,10 +12,10 @@ namespace InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 public sealed class ProjectMember : Entity<ProjectMemberId>
 {
     /// <summary>Gets the user identifier.</summary>
-    public UserId UserId { get; private set; }
+    public UserId UserId { get; private set; } = null!;
 
     /// <summary>Gets the role assigned to this member.</summary>
-    public Role Role { get; private set; }
+    public Role Role { get; private set; } = null!;
 
     /// <summary>Gets the parent project identifier.</summary>
     public ProjectId ProjectId { get; set; } = null!;

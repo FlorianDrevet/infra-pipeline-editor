@@ -11,7 +11,7 @@ public class RemoveBlobContainerCommandHandler(
     IStorageAccountRepository storageAccountRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<RemoveBlobContainerCommand, ErrorOr<Deleted>>
+    : ICommandHandler<RemoveBlobContainerCommand, Deleted>
 {
     public Task<ErrorOr<Deleted>> Handle(RemoveBlobContainerCommand request, CancellationToken cancellationToken)
     {

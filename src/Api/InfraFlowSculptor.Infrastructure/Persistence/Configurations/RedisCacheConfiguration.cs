@@ -14,6 +14,27 @@ public class RedisCacheConfiguration : IEntityTypeConfiguration<RedisCache>
         builder.HasBaseType<AzureResource>()
             .ToTable("RedisCaches");
 
+        builder.Property(rc => rc.RedisVersion)
+            .IsRequired(false);
+
+        builder.Property(rc => rc.EnableNonSslPort)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(rc => rc.MinimumTlsVersion)
+            .IsRequired(false)
+#pragma warning disable CS8620 // Nullability mismatch — EF Core handles null conversion internally
+            .HasConversion(new EnumValueConverter<TlsVersion, TlsVersion.Version>());
+#pragma warning restore CS8620
+
+        builder.Property(rc => rc.DisableAccessKeyAuthentication)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(rc => rc.EnableAadAuth)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.HasMany(rc => rc.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.RedisCacheId)

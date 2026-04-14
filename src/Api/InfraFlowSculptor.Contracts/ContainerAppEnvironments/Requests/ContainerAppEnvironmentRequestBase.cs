@@ -15,6 +15,10 @@ public abstract class ContainerAppEnvironmentRequestBase
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
 
+    /// <summary>Optional Log Analytics Workspace identifier for diagnostics.</summary>
+    [GuidValidation]
+    public Guid? LogAnalyticsWorkspaceId { get; init; }
+
     /// <summary>Per-environment typed configuration overrides.</summary>
     public List<ContainerAppEnvironmentEnvironmentConfigEntry>? EnvironmentSettings { get; init; }
 }
@@ -37,9 +41,6 @@ public class ContainerAppEnvironmentEnvironmentConfigEntry
 
     /// <summary>Optional flag to enable zone redundancy.</summary>
     public bool? ZoneRedundancyEnabled { get; init; }
-
-    /// <summary>Optional Log Analytics workspace ID for diagnostics.</summary>
-    public string? LogAnalyticsWorkspaceId { get; init; }
 }
 
 /// <summary>Response DTO for a typed per-environment Container App Environment configuration.</summary>
@@ -48,5 +49,4 @@ public record ContainerAppEnvironmentEnvironmentConfigResponse(
     string? Sku,
     string? WorkloadProfileType,
     bool? InternalLoadBalancerEnabled,
-    bool? ZoneRedundancyEnabled,
-    string? LogAnalyticsWorkspaceId);
+    bool? ZoneRedundancyEnabled);

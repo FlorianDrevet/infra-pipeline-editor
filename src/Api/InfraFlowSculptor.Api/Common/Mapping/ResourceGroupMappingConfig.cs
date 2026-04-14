@@ -6,7 +6,7 @@ using Mapster;
 
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
-public class ResourceGroupMappingConfig : IRegister
+public sealed class ResourceGroupMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
@@ -23,6 +23,7 @@ public class ResourceGroupMappingConfig : IRegister
             .Map(dest => dest.Id, src => src.Id.Value)
             .Map(dest => dest.Name, src => src.Name.Value)
             .Map(dest => dest.Location, src => src.Location.Value.ToString())
-            .Map(dest => dest.ParentResourceId, src => src.ParentResourceId != null ? src.ParentResourceId.Value : (Guid?)null);
+            .Map(dest => dest.ParentResourceId, src => src.ParentResourceId != null ? src.ParentResourceId.Value : (Guid?)null)
+            .Map(dest => dest.ConfiguredEnvironments, src => src.ConfiguredEnvironments);
     }
 }

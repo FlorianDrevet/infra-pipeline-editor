@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.CosmosDbs.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.CosmosDbs.Queries;
 
@@ -9,4 +9,4 @@ namespace InfraFlowSculptor.Application.CosmosDbs.Queries;
 /// <param name="Id">The Cosmos DB account identifier.</param>
 public record GetCosmosDbQuery(
     AzureResourceId Id
-) : IRequest<ErrorOr<CosmosDbResult>>;
+) : IQuery<CosmosDbResult>;

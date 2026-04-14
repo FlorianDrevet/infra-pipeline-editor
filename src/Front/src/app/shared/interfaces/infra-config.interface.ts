@@ -23,13 +23,14 @@ export interface UserResponse {
 export interface EnvironmentDefinitionResponse {
   id: string;
   name: string;
+  shortName: string;
   prefix: string;
   suffix: string;
   location: string;
-  tenantId: string;
   subscriptionId: string;
   order: number;
   requiresApproval: boolean;
+  azureResourceManagerConnection?: string | null;
   tags: TagResponse[];
 }
 
@@ -44,12 +45,13 @@ export interface InfrastructureConfigResponse {
   name: string;
   defaultNamingTemplate: string | null;
   projectId: string;
-  useProjectEnvironments: boolean;
   useProjectNamingConventions: boolean;
-  environmentDefinitions: EnvironmentDefinitionResponse[];
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
   resourceGroupCount: number;
   resourceCount: number;
+  crossConfigReferenceCount: number;
+  appPipelineMode: string;
+  tags: TagResponse[];
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -64,28 +66,8 @@ export interface TagRequest {
   value: string;
 }
 
-export interface AddEnvironmentRequest {
-  name: string;
-  prefix?: string;
-  suffix?: string;
-  location: string;
-  tenantId: string;
-  subscriptionId: string;
-  order?: number;
-  requiresApproval?: boolean;
-  tags?: TagRequest[];
-}
-
-export interface UpdateEnvironmentRequest {
-  name: string;
-  prefix?: string;
-  suffix?: string;
-  location: string;
-  tenantId: string;
-  subscriptionId: string;
-  order?: number;
-  requiresApproval?: boolean;
-  tags?: TagRequest[];
+export interface SetInfraConfigTagsRequest {
+  tags: TagRequest[];
 }
 
 export interface AddMemberRequest {
@@ -104,3 +86,5 @@ export interface SetDefaultNamingTemplateRequest {
 export interface SetResourceNamingTemplateRequest {
   template: string;
 }
+
+// ─── Pipeline Variable Groups (removed — now project-level only) ─────────────

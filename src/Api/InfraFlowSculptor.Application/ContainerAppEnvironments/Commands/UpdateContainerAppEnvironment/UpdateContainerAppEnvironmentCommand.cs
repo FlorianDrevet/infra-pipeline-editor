@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.ContainerAppEnvironments.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.UpdateContainerAppEnvironment;
 
@@ -11,5 +11,6 @@ public record UpdateContainerAppEnvironmentCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
+    Guid? LogAnalyticsWorkspaceId = null,
     IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<ContainerAppEnvironmentResult>>;
+) : ICommand<ContainerAppEnvironmentResult>;

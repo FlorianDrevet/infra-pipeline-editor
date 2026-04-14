@@ -2,6 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -33,6 +34,8 @@ import { ApplicationInsightsService } from '../../../shared/services/application
 import { CosmosDbService } from '../../../shared/services/cosmos-db.service';
 import { SqlServerService } from '../../../shared/services/sql-server.service';
 import { SqlDatabaseService } from '../../../shared/services/sql-database.service';
+import { ServiceBusNamespaceService } from '../../../shared/services/service-bus-namespace.service';
+import { ContainerRegistryService } from '../../../shared/services/container-registry.service';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
 import { KeyVaultEnvironmentConfigEntry } from '../../../shared/interfaces/key-vault.interface';
 import { RedisCacheEnvironmentConfigEntry } from '../../../shared/interfaces/redis-cache.interface';
@@ -48,10 +51,17 @@ import { ApplicationInsightsEnvironmentConfigEntry } from '../../../shared/inter
 import { CosmosDbEnvironmentConfigEntry } from '../../../shared/interfaces/cosmos-db.interface';
 import { SqlServerEnvironmentConfigEntry } from '../../../shared/interfaces/sql-server.interface';
 import { SqlDatabaseEnvironmentConfigEntry } from '../../../shared/interfaces/sql-database.interface';
+import { ServiceBusNamespaceEnvironmentConfigEntry } from '../../../shared/interfaces/service-bus-namespace.interface';
+import { ContainerRegistryEnvironmentConfigEntry } from '../../../shared/interfaces/container-registry.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
+import { InfraConfigService } from '../../../shared/services/infra-config.service';
+import { ProjectService } from '../../../shared/services/project.service';
+import { ProjectResourceResponse } from '../../../shared/interfaces/cross-config-reference.interface';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
+  configId: string;
+  projectId: string;
   location: string;
   environments: { name: string }[];
   parentResource?: { id: string; name: string; resourceType: string };
@@ -152,6 +162,33 @@ const CAE_SKU_OPTIONS = [
   { label: 'Premium', value: 'Premium' },
 ];
 
+const ACR_SKU_OPTIONS = [
+  { label: 'Basic', value: 'Basic' },
+  { label: 'Standard', value: 'Standard' },
+  { label: 'Premium', value: 'Premium' },
+];
+
+const ACR_PUBLIC_NETWORK_OPTIONS = [
+  { label: 'Enabled', value: 'Enabled' },
+  { label: 'Disabled', value: 'Disabled' },
+];
+
+const WEBAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
+  DotNet: ['10', '9', '8'],
+  Node: ['22-lts', '20-lts'],
+  Python: ['3.13', '3.12', '3.11', '3.10'],
+  Java: ['21', '17', '11'],
+  Php: ['8.4', '8.3', '8.2'],
+};
+
+const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
+  DotNet: ['10-isolated', '9-isolated', '8-isolated', '8-in-process'],
+  Node: ['22', '20'],
+  Python: ['3.12', '3.11', '3.10'],
+  Java: ['21', '17', '11'],
+  PowerShell: ['7.4', '7.2'],
+};
+
 const CAE_WORKLOAD_PROFILE_OPTIONS = [
   { label: 'Consumption', value: 'Consumption' },
   { label: 'D4', value: 'D4' },
@@ -222,6 +259,7 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
   standalone: true,
   imports: [
     MatButtonModule,
+    MatButtonToggleModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
@@ -255,7 +293,11 @@ export class AddResourceDialogComponent {
   private readonly cosmosDbService = inject(CosmosDbService);
   private readonly sqlServerService = inject(SqlServerService);
   private readonly sqlDatabaseService = inject(SqlDatabaseService);
+  private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
+  private readonly containerRegistryService = inject(ContainerRegistryService);
   private readonly resourceGroupService = inject(ResourceGroupService);
+  private readonly infraConfigService = inject(InfraConfigService);
+  private readonly projectService = inject(ProjectService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly step = signal<DialogStep>('type');
@@ -263,6 +305,11 @@ export class AddResourceDialogComponent {
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
   protected readonly envFormsValid = signal(true);
+
+  // ── Deployment Mode (WebApp / FunctionApp) ──
+  protected readonly deploymentMode = signal<'Code' | 'Container'>('Code');
+  protected readonly isContainerMode = computed(() => this.deploymentMode() === 'Container');
+  protected readonly availableContainerRegistries = signal<AzureResourceResponse[]>([]);
 
   // ── Parent resource pre-selection ──
   private readonly parentResource = this.data.parentResource;
@@ -273,6 +320,7 @@ export class AddResourceDialogComponent {
 
   // ── Plan selection state (WebApp flow) ──
   protected readonly existingPlans = signal<AzureResourceResponse[]>([]);
+  protected readonly crossConfigPlans = signal<ProjectResourceResponse[]>([]);
   protected readonly plansLoading = signal(false);
   protected readonly selectedPlanId = signal<string | null>(null);
   protected readonly selectedPlanName = signal<string | null>(null);
@@ -316,6 +364,7 @@ export class AddResourceDialogComponent {
   protected readonly aspSkuOptions = APP_SERVICE_PLAN_SKU_OPTIONS;
   protected readonly runtimeStackOptions = RUNTIME_STACK_OPTIONS;
   protected readonly functionAppRuntimeStackOptions = FUNCTION_APP_RUNTIME_STACK_OPTIONS;
+  protected readonly runtimeVersionOptions = signal<string[]>([]);
   protected readonly appConfigurationSkuOptions = APP_CONFIGURATION_SKU_OPTIONS;
   protected readonly appConfigurationPublicNetworkOptions = APP_CONFIGURATION_PUBLIC_NETWORK_OPTIONS;
   protected readonly caeSkuOptions = CAE_SKU_OPTIONS;
@@ -329,6 +378,8 @@ export class AddResourceDialogComponent {
   protected readonly cosmosApiTypeOptions = COSMOS_API_TYPE_OPTIONS;
   protected readonly cosmosConsistencyLevelOptions = COSMOS_CONSISTENCY_LEVEL_OPTIONS;
   protected readonly cosmosBackupPolicyOptions = COSMOS_BACKUP_POLICY_OPTIONS;
+  protected readonly acrSkuOptions = ACR_SKU_OPTIONS;
+  protected readonly acrPublicNetworkOptions = ACR_PUBLIC_NETWORK_OPTIONS;
 
   protected readonly ResourceTypeEnum = ResourceTypeEnum;
 
@@ -336,6 +387,7 @@ export class AddResourceDialogComponent {
     const type = this.selectedType();
     if (type === ResourceTypeEnum.ContainerApp) return 'CAE';
     if (type === ResourceTypeEnum.ApplicationInsights) return 'LAW';
+    if (type === ResourceTypeEnum.ContainerAppEnvironment) return 'LAW';
     if (type === ResourceTypeEnum.SqlDatabase) return 'SQL';
     return 'ASP';
   });
@@ -357,6 +409,9 @@ export class AddResourceDialogComponent {
     containerAppEnvironmentId: [''],
     logAnalyticsWorkspaceId: [''],
     sqlServerId: [''],
+    deploymentMode: ['Code'],
+    containerRegistryId: [null as string | null],
+    dockerImageName: [null as string | null],
     runtimeStack: [''],
     runtimeVersion: [''],
     alwaysOn: [true],
@@ -364,6 +419,23 @@ export class AddResourceDialogComponent {
     version: ['V12'],
     administratorLogin: [''],
     collation: ['SQL_Latin1_General_CP1_CI_AS'],
+    kind: ['StorageV2'],
+    accessTier: ['Hot'],
+    allowBlobPublicAccess: [false],
+    enableHttpsTrafficOnly: [true],
+    minimumTlsVersion: ['Tls12'],
+    redisVersion: [6 as number | null],
+    enableNonSslPort: [false],
+    disableAccessKeyAuthentication: [false],
+    enableAadAuth: [false],
+  });
+
+  protected readonly redisAadWarning = computed(() => {
+    const type = this.selectedType();
+    if (type !== ResourceTypeEnum.RedisCache) return false;
+    const disableKey = this.commonForm.get('disableAccessKeyAuthentication')?.value;
+    const aadEnabled = this.commonForm.get('enableAadAuth')?.value;
+    return disableKey === true && aadEnabled !== true;
   });
 
   // ── Create Plan form (inline ASP creation) ──
@@ -395,6 +467,9 @@ export class AddResourceDialogComponent {
         this.updateCommonFormValidators(childType);
         this.prefillParentFormField(childType);
         this.step.set('common');
+        if (childType === ResourceTypeEnum.WebApp || childType === ResourceTypeEnum.FunctionApp) {
+          this.loadAvailableContainerRegistries();
+        }
       }
     }
   }
@@ -403,7 +478,7 @@ export class AddResourceDialogComponent {
     if (!this.parentResource) return;
     if (type === ResourceTypeEnum.ContainerApp) {
       this.commonForm.patchValue({ containerAppEnvironmentId: this.parentResource.id });
-    } else if (type === ResourceTypeEnum.ApplicationInsights) {
+    } else if (type === ResourceTypeEnum.ApplicationInsights || type === ResourceTypeEnum.ContainerAppEnvironment) {
       this.commonForm.patchValue({ logAnalyticsWorkspaceId: this.parentResource.id });
     } else if (type === ResourceTypeEnum.SqlDatabase) {
       this.commonForm.patchValue({ sqlServerId: this.parentResource.id });
@@ -422,7 +497,10 @@ export class AddResourceDialogComponent {
     if (this.parentResource) {
       this.prefillParentFormField(type);
       this.step.set('common');
-    } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights || type === ResourceTypeEnum.SqlDatabase) {
+      if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp) {
+        this.loadAvailableContainerRegistries();
+      }
+    } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights || type === ResourceTypeEnum.ContainerAppEnvironment || type === ResourceTypeEnum.SqlDatabase) {
       this.step.set('plan-selection');
       this.loadExistingPlans();
     } else {
@@ -431,18 +509,63 @@ export class AddResourceDialogComponent {
   }
 
   // ── Plan selection (WebApp flow) ──
+  private async loadAvailableContainerRegistries(): Promise<void> {
+    try {
+      const resourceGroups = await this.infraConfigService.getResourceGroups(this.data.configId);
+      const allResourceArrays = await Promise.all(resourceGroups.map(rg => this.resourceGroupService.getResources(rg.id)));
+      const localResources = allResourceArrays.flat();
+      const localAcrs = localResources.filter(r => r.resourceType === 'ContainerRegistry');
+
+      // Also load cross-config ACRs from the same project
+      try {
+        const projectResources = await this.projectService.getProjectResources(this.data.projectId);
+        const localIds = new Set(localAcrs.map(r => r.id));
+        const crossConfigAcrs = projectResources
+          .filter(pr => pr.resourceType === 'ContainerRegistry' && pr.configId !== this.data.configId && !localIds.has(pr.resourceId))
+          .map(pr => ({ id: pr.resourceId, resourceType: pr.resourceType, name: `${pr.resourceName} (${pr.configName})`, location: '' } as AzureResourceResponse));
+        this.availableContainerRegistries.set([...localAcrs, ...crossConfigAcrs]);
+      } catch {
+        this.availableContainerRegistries.set(localAcrs);
+      }
+    } catch {
+      this.availableContainerRegistries.set([]);
+    }
+  }
+
   private async loadExistingPlans(): Promise<void> {
     this.plansLoading.set(true);
     try {
-      const resources = await this.resourceGroupService.getResources(this.data.resourceGroupId);
       const filterType = this.selectedType() === ResourceTypeEnum.ContainerApp ? 'ContainerAppEnvironment'
         : this.selectedType() === ResourceTypeEnum.ApplicationInsights ? 'LogAnalyticsWorkspace'
+        : this.selectedType() === ResourceTypeEnum.ContainerAppEnvironment ? 'LogAnalyticsWorkspace'
         : this.selectedType() === ResourceTypeEnum.SqlDatabase ? 'SqlServer'
         : 'AppServicePlan';
-      const plans = resources.filter(r => r.resourceType === filterType);
+
+      // Load from all resource groups in this config
+      const resourceGroups = await this.infraConfigService.getResourceGroups(this.data.configId);
+      const allResourcePromises = resourceGroups.map(rg => this.resourceGroupService.getResources(rg.id));
+      const allResourceArrays = await Promise.all(allResourcePromises);
+      const allResources = allResourceArrays.flat();
+      const plans = allResources.filter(r => r.resourceType === filterType);
       this.existingPlans.set(plans);
+      const localAcrs = allResources.filter(r => r.resourceType === 'ContainerRegistry');
+
+      // Load cross-config resources from other configs in the same project
+      const projectResources = await this.projectService.getProjectResources(this.data.projectId);
+      const crossConfigResources = projectResources.filter(
+        r => r.resourceType === filterType && r.configId !== this.data.configId
+      );
+      this.crossConfigPlans.set(crossConfigResources);
+
+      // Also include cross-config ACRs
+      const localAcrIds = new Set(localAcrs.map(r => r.id));
+      const crossConfigAcrs = projectResources
+        .filter(pr => pr.resourceType === 'ContainerRegistry' && pr.configId !== this.data.configId && !localAcrIds.has(pr.resourceId))
+        .map(pr => ({ id: pr.resourceId, resourceType: pr.resourceType, name: `${pr.resourceName} (${pr.configName})`, location: '' } as AzureResourceResponse));
+      this.availableContainerRegistries.set([...localAcrs, ...crossConfigAcrs]);
     } catch {
       this.existingPlans.set([]);
+      this.crossConfigPlans.set([]);
     } finally {
       this.plansLoading.set(false);
     }
@@ -453,12 +576,41 @@ export class AddResourceDialogComponent {
     this.selectedPlanName.set(plan.name);
     if (this.selectedType() === ResourceTypeEnum.ContainerApp) {
       this.commonForm.patchValue({ containerAppEnvironmentId: plan.id });
-    } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
+    } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights || this.selectedType() === ResourceTypeEnum.ContainerAppEnvironment) {
       this.commonForm.patchValue({ logAnalyticsWorkspaceId: plan.id });
     } else if (this.selectedType() === ResourceTypeEnum.SqlDatabase) {
       this.commonForm.patchValue({ sqlServerId: plan.id });
     } else {
       this.commonForm.patchValue({ appServicePlanId: plan.id });
+    }
+    this.step.set('common');
+  }
+
+  protected async onSelectCrossConfigPlan(plan: ProjectResourceResponse): Promise<void> {
+    // Auto-create cross-config reference if not already existing
+    try {
+      const refs = await this.infraConfigService.getCrossConfigReferences(this.data.configId);
+      const alreadyReferenced = refs.some(r => r.targetResourceId === plan.resourceId);
+      if (!alreadyReferenced) {
+        await this.infraConfigService.addCrossConfigReference(this.data.configId, {
+          targetResourceId: plan.resourceId,
+        });
+      }
+    } catch {
+      // Non-blocking — reference may already exist
+    }
+
+    // Treat it like a normal plan selection
+    this.selectedPlanId.set(plan.resourceId);
+    this.selectedPlanName.set(plan.resourceName);
+    if (this.selectedType() === ResourceTypeEnum.ContainerApp) {
+      this.commonForm.patchValue({ containerAppEnvironmentId: plan.resourceId });
+    } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights || this.selectedType() === ResourceTypeEnum.ContainerAppEnvironment) {
+      this.commonForm.patchValue({ logAnalyticsWorkspaceId: plan.resourceId });
+    } else if (this.selectedType() === ResourceTypeEnum.SqlDatabase) {
+      this.commonForm.patchValue({ sqlServerId: plan.resourceId });
+    } else {
+      this.commonForm.patchValue({ appServicePlanId: plan.resourceId });
     }
     this.step.set('common');
   }
@@ -489,6 +641,18 @@ export class AddResourceDialogComponent {
     { label: 'TLS 1.2', value: '1.2' },
   ];
 
+  protected readonly serviceBusSkuOptions = [
+    { label: 'Basic', value: 'Basic' },
+    { label: 'Standard', value: 'Standard' },
+    { label: 'Premium', value: 'Premium' },
+  ];
+
+  protected readonly serviceBusTlsOptions = [
+    { label: 'TLS 1.0', value: '1.0' },
+    { label: 'TLS 1.1', value: '1.1' },
+    { label: 'TLS 1.2', value: '1.2' },
+  ];
+
   protected onStartCreatePlan(): void {
     this.createPlanForm.patchValue({ location: this.data.location });
     const osCtrl = this.createPlanForm.get('osType')!;
@@ -508,6 +672,13 @@ export class AddResourceDialogComponent {
   protected onBackToPlanSelection(): void {
     this.step.set('plan-selection');
     this.errorKey.set('');
+  }
+
+  protected onSkipPlanSelection(): void {
+    this.selectedPlanId.set(null);
+    this.selectedPlanName.set(null);
+    this.commonForm.patchValue({ logAnalyticsWorkspaceId: '' });
+    this.step.set('common');
   }
 
   protected async onCreatePlanAndContinue(): Promise<void> {
@@ -530,7 +701,7 @@ export class AddResourceDialogComponent {
         this.selectedPlanId.set(created.id);
         this.selectedPlanName.set(created.name);
         this.commonForm.patchValue({ containerAppEnvironmentId: created.id });
-      } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights) {
+      } else if (this.selectedType() === ResourceTypeEnum.ApplicationInsights || this.selectedType() === ResourceTypeEnum.ContainerAppEnvironment) {
         const created = await this.logAnalyticsWorkspaceService.create({
           resourceGroupId: this.data.resourceGroupId,
           name: planData.name!,
@@ -592,6 +763,7 @@ export class AddResourceDialogComponent {
     this.selectedType.set(null);
     this.selectedPlanId.set(this.parentResource?.id ?? null);
     this.selectedPlanName.set(this.parentResource?.name ?? null);
+    this.deploymentMode.set('Code');
     this.step.set('type');
     this.errorKey.set('');
     this.clearExtraValidators();
@@ -600,6 +772,31 @@ export class AddResourceDialogComponent {
   protected onBackToCommon(): void {
     this.step.set('common');
     this.errorKey.set('');
+  }
+
+  protected onDeploymentModeChange(mode: 'Code' | 'Container'): void {
+    this.deploymentMode.set(mode);
+    this.commonForm.patchValue({ deploymentMode: mode });
+    if (mode === 'Code') {
+      this.commonForm.patchValue({ containerRegistryId: null, dockerImageName: null });
+      this.commonForm.controls.runtimeStack.setValidators([Validators.required]);
+      this.commonForm.controls.runtimeVersion.setValidators([Validators.required]);
+    } else {
+      this.commonForm.controls.runtimeStack.clearValidators();
+      this.commonForm.controls.runtimeVersion.clearValidators();
+    }
+    this.commonForm.controls.runtimeStack.updateValueAndValidity();
+    this.commonForm.controls.runtimeVersion.updateValueAndValidity();
+  }
+
+  protected onRuntimeStackChange(stack: string): void {
+    const type = this.selectedType();
+    const map = type === ResourceTypeEnum.FunctionApp
+      ? FUNCTIONAPP_RUNTIME_VERSION_MAP
+      : WEBAPP_RUNTIME_VERSION_MAP;
+    const versions = map[stack] ?? [];
+    this.runtimeVersionOptions.set(versions);
+    this.commonForm.patchValue({ runtimeVersion: versions[0] ?? '' });
   }
 
   protected onBackFromCommon(): void {
@@ -647,19 +844,11 @@ export class AddResourceDialogComponent {
         return this.fb.group({
           skuName: ['Standard', [Validators.required]],
           capacity: [1, [Validators.required, Validators.min(0)]],
-          redisVersion: [6, [Validators.required]],
-          enableNonSslPort: [false],
-          minimumTlsVersion: ['Tls12', [Validators.required]],
           maxMemoryPolicy: ['NoEviction', [Validators.required]],
         });
       case ResourceTypeEnum.StorageAccount:
         return this.fb.group({
           sku: ['Standard_LRS', [Validators.required]],
-          kind: ['StorageV2', [Validators.required]],
-          accessTier: ['Hot', [Validators.required]],
-          allowBlobPublicAccess: [false],
-          supportsHttpsTrafficOnly: [true],
-          minimumTlsVersion: ['Tls12', [Validators.required]],
         });
       case ResourceTypeEnum.AppServicePlan:
         return this.fb.group({
@@ -670,16 +859,11 @@ export class AddResourceDialogComponent {
         return this.fb.group({
           alwaysOn: [true],
           httpsOnly: [true],
-          runtimeStack: [''],
-          runtimeVersion: [''],
         });
       case ResourceTypeEnum.FunctionApp:
         return this.fb.group({
           httpsOnly: [true],
-          runtimeStack: [''],
-          runtimeVersion: [''],
           maxInstanceCount: [null as number | null],
-          functionsWorkerRuntime: [''],
         });
       case ResourceTypeEnum.UserAssignedIdentity:
         return this.fb.group({});
@@ -697,11 +881,9 @@ export class AddResourceDialogComponent {
           workloadProfileType: ['Consumption'],
           internalLoadBalancerEnabled: [false],
           zoneRedundancyEnabled: [false],
-          logAnalyticsWorkspaceId: [''],
         });
       case ResourceTypeEnum.ContainerApp:
         return this.fb.group({
-          containerImage: [''],
           cpuCores: ['0.25'],
           memoryGi: ['0.5Gi'],
           minReplicas: [0],
@@ -746,6 +928,23 @@ export class AddResourceDialogComponent {
           maxSizeGb: [null as number | null],
           zoneRedundant: [false],
         });
+      case ResourceTypeEnum.ServiceBusNamespace:
+        return this.fb.group({
+          sku: ['Standard', [Validators.required]],
+          capacity: [null as number | null],
+          zoneRedundant: [false],
+          disableLocalAuth: [false],
+          minimumTlsVersion: ['1.2'],
+        });
+      case ResourceTypeEnum.ContainerRegistry:
+        return this.fb.group({
+          sku: ['Standard', [Validators.required]],
+          adminUserEnabled: [false],
+          publicNetworkAccess: ['Enabled', [Validators.required]],
+          zoneRedundancy: [false],
+        });
+      default:
+        return this.fb.group({});
     }
   }
 
@@ -797,6 +996,11 @@ export class AddResourceDialogComponent {
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
             location: common.location!,
+            redisVersion: common.redisVersion ? Number(common.redisVersion) : null,
+            enableNonSslPort: common.enableNonSslPort ?? false,
+            minimumTlsVersion: common.minimumTlsVersion || null,
+            disableAccessKeyAuthentication: common.disableAccessKeyAuthentication ?? false,
+            enableAadAuth: common.enableAadAuth ?? false,
             environmentSettings: this.buildRedisCacheEnvironmentSettings(),
           });
           break;
@@ -806,6 +1010,11 @@ export class AddResourceDialogComponent {
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
             location: common.location!,
+            kind: common.kind!,
+            accessTier: common.accessTier!,
+            allowBlobPublicAccess: common.allowBlobPublicAccess ?? false,
+            enableHttpsTrafficOnly: common.enableHttpsTrafficOnly ?? true,
+            minimumTlsVersion: common.minimumTlsVersion!,
             environmentSettings: this.buildStorageAccountEnvironmentSettings(),
           });
           break;
@@ -826,6 +1035,9 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             appServicePlanId: common.appServicePlanId!,
+            deploymentMode: common.deploymentMode || 'Code',
+            containerRegistryId: common.deploymentMode === 'Container' ? (common.containerRegistryId || null) : null,
+            dockerImageName: common.deploymentMode === 'Container' ? (common.dockerImageName || null) : null,
             runtimeStack: common.runtimeStack!,
             runtimeVersion: common.runtimeVersion!,
             alwaysOn: common.alwaysOn!,
@@ -840,6 +1052,9 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             appServicePlanId: common.appServicePlanId!,
+            deploymentMode: common.deploymentMode || 'Code',
+            containerRegistryId: common.deploymentMode === 'Container' ? (common.containerRegistryId || null) : null,
+            dockerImageName: common.deploymentMode === 'Container' ? (common.dockerImageName || null) : null,
             runtimeStack: common.runtimeStack!,
             runtimeVersion: common.runtimeVersion!,
             httpsOnly: common.httpsOnly!,
@@ -869,6 +1084,7 @@ export class AddResourceDialogComponent {
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
             location: common.location!,
+            logAnalyticsWorkspaceId: common.logAnalyticsWorkspaceId || null,
             environmentSettings: this.buildContainerAppEnvironmentEnvironmentSettings(),
           });
           break;
@@ -879,6 +1095,7 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             containerAppEnvironmentId: common.containerAppEnvironmentId!,
+            containerRegistryId: common.containerRegistryId || null,
             environmentSettings: this.buildContainerAppEnvironmentSettings(),
           });
           break;
@@ -933,6 +1150,24 @@ export class AddResourceDialogComponent {
           });
           break;
         }
+        case ResourceTypeEnum.ServiceBusNamespace: {
+          await this.serviceBusNamespaceService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            environmentSettings: this.buildServiceBusNamespaceEnvironmentSettings(),
+          });
+          break;
+        }
+        case ResourceTypeEnum.ContainerRegistry: {
+          await this.containerRegistryService.create({
+            resourceGroupId: this.data.resourceGroupId,
+            name: common.name!,
+            location: common.location!,
+            environmentSettings: this.buildContainerRegistryEnvironmentSettings(),
+          });
+          break;
+        }
       }
       this.dialogRef.close(true);
     } catch {
@@ -959,9 +1194,6 @@ export class AddResourceDialogComponent {
         environmentName: env.name,
         sku: raw.skuName || null,
         capacity: raw.capacity ? Number(raw.capacity) : null,
-        redisVersion: raw.redisVersion ? Number(raw.redisVersion) : null,
-        enableNonSslPort: raw.enableNonSslPort ?? null,
-        minimumTlsVersion: raw.minimumTlsVersion || null,
         maxMemoryPolicy: raw.maxMemoryPolicy || null,
       };
     });
@@ -973,11 +1205,6 @@ export class AddResourceDialogComponent {
       return {
         environmentName: env.name,
         sku: raw.sku || null,
-        kind: raw.kind || null,
-        accessTier: raw.accessTier || null,
-        allowBlobPublicAccess: raw.allowBlobPublicAccess ?? null,
-        enableHttpsTrafficOnly: raw.supportsHttpsTrafficOnly ?? null,
-        minimumTlsVersion: raw.minimumTlsVersion || null,
       };
     });
   }
@@ -1000,8 +1227,7 @@ export class AddResourceDialogComponent {
         environmentName: env.name,
         alwaysOn: raw.alwaysOn ?? null,
         httpsOnly: raw.httpsOnly ?? null,
-        runtimeStack: raw.runtimeStack || null,
-        runtimeVersion: raw.runtimeVersion || null,
+        dockerImageTag: raw.dockerImageTag || null,
       };
     });
   }
@@ -1012,10 +1238,8 @@ export class AddResourceDialogComponent {
       return {
         environmentName: env.name,
         httpsOnly: raw.httpsOnly ?? null,
-        runtimeStack: raw.runtimeStack || null,
-        runtimeVersion: raw.runtimeVersion || null,
         maxInstanceCount: raw.maxInstanceCount != null ? Number(raw.maxInstanceCount) : null,
-        functionsWorkerRuntime: raw.functionsWorkerRuntime || null,
+        dockerImageTag: raw.dockerImageTag || null,
       };
     });
   }
@@ -1043,7 +1267,6 @@ export class AddResourceDialogComponent {
         workloadProfileType: raw.workloadProfileType || null,
         internalLoadBalancerEnabled: raw.internalLoadBalancerEnabled ?? null,
         zoneRedundancyEnabled: raw.zoneRedundancyEnabled ?? null,
-        logAnalyticsWorkspaceId: raw.logAnalyticsWorkspaceId || null,
       };
     });
   }
@@ -1053,7 +1276,6 @@ export class AddResourceDialogComponent {
       const raw = this.envFormArray.at(i).getRawValue();
       return {
         environmentName: env.name,
-        containerImage: raw.containerImage || null,
         cpuCores: raw.cpuCores || null,
         memoryGi: raw.memoryGi || null,
         minReplicas: raw.minReplicas != null ? Number(raw.minReplicas) : null,
@@ -1131,6 +1353,33 @@ export class AddResourceDialogComponent {
     });
   }
 
+  private buildServiceBusNamespaceEnvironmentSettings(): ServiceBusNamespaceEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        sku: raw.sku || null,
+        capacity: raw.capacity != null ? Number(raw.capacity) : null,
+        zoneRedundant: raw.zoneRedundant ?? null,
+        disableLocalAuth: raw.disableLocalAuth ?? null,
+        minimumTlsVersion: raw.minimumTlsVersion || null,
+      };
+    });
+  }
+
+  private buildContainerRegistryEnvironmentSettings(): ContainerRegistryEnvironmentConfigEntry[] {
+    return this.environments.map((env, i) => {
+      const raw = this.envFormArray.at(i).getRawValue();
+      return {
+        environmentName: env.name,
+        sku: raw.sku || null,
+        adminUserEnabled: raw.adminUserEnabled ?? null,
+        publicNetworkAccess: raw.publicNetworkAccess || null,
+        zoneRedundancy: raw.zoneRedundancy ?? null,
+      };
+    });
+  }
+
   private updateCommonFormValidators(type: ResourceTypeEnum): void {
     this.clearExtraValidators();
     if (type === ResourceTypeEnum.AppServicePlan) {
@@ -1142,12 +1391,19 @@ export class AddResourceDialogComponent {
       this.commonForm.controls.containerAppEnvironmentId.setValidators([Validators.required]);
     } else if (type === ResourceTypeEnum.ApplicationInsights) {
       this.commonForm.controls.logAnalyticsWorkspaceId.setValidators([Validators.required]);
+    } else if (type === ResourceTypeEnum.RedisCache) {
+      this.commonForm.controls.redisVersion.setValidators([Validators.required]);
+      this.commonForm.controls.minimumTlsVersion.setValidators([Validators.required]);
     } else if (type === ResourceTypeEnum.SqlServer) {
       this.commonForm.controls.version.setValidators([Validators.required]);
       this.commonForm.controls.administratorLogin.setValidators([Validators.required]);
     } else if (type === ResourceTypeEnum.SqlDatabase) {
       this.commonForm.controls.sqlServerId.setValidators([Validators.required]);
       this.commonForm.controls.collation.setValidators([Validators.required]);
+    } else if (type === ResourceTypeEnum.StorageAccount) {
+      this.commonForm.controls.kind.setValidators([Validators.required]);
+      this.commonForm.controls.accessTier.setValidators([Validators.required]);
+      this.commonForm.controls.minimumTlsVersion.setValidators([Validators.required]);
     }
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
@@ -1158,6 +1414,9 @@ export class AddResourceDialogComponent {
     this.commonForm.controls.version.updateValueAndValidity();
     this.commonForm.controls.administratorLogin.updateValueAndValidity();
     this.commonForm.controls.collation.updateValueAndValidity();
+    this.commonForm.controls.kind.updateValueAndValidity();
+    this.commonForm.controls.accessTier.updateValueAndValidity();
+    this.commonForm.controls.minimumTlsVersion.updateValueAndValidity();
   }
 
   private clearExtraValidators(): void {
@@ -1170,6 +1429,9 @@ export class AddResourceDialogComponent {
     this.commonForm.controls.version.clearValidators();
     this.commonForm.controls.administratorLogin.clearValidators();
     this.commonForm.controls.collation.clearValidators();
+    this.commonForm.controls.kind.clearValidators();
+    this.commonForm.controls.accessTier.clearValidators();
+    this.commonForm.controls.minimumTlsVersion.clearValidators();
     this.commonForm.controls.osType.updateValueAndValidity();
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
@@ -1179,5 +1441,8 @@ export class AddResourceDialogComponent {
     this.commonForm.controls.version.updateValueAndValidity();
     this.commonForm.controls.administratorLogin.updateValueAndValidity();
     this.commonForm.controls.collation.updateValueAndValidity();
+    this.commonForm.controls.kind.updateValueAndValidity();
+    this.commonForm.controls.accessTier.updateValueAndValidity();
+    this.commonForm.controls.minimumTlsVersion.updateValueAndValidity();
   }
 }

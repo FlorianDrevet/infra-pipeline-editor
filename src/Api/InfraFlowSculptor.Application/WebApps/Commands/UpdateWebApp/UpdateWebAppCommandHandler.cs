@@ -4,6 +4,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.WebApps.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.WebAppAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
@@ -17,7 +18,7 @@ public class UpdateWebAppCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateWebAppCommand, ErrorOr<WebAppResult>>
+    : ICommandHandler<UpdateWebAppCommand, WebAppResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<WebAppResult>> Handle(
@@ -45,7 +46,14 @@ public class UpdateWebAppCommandHandler(
         var runtimeStack = new WebAppRuntimeStack(
             Enum.Parse<WebAppRuntimeStack.WebAppRuntimeStackEnum>(request.RuntimeStack));
 
-        webApp.Update(request.Name, request.Location, appServicePlanId, runtimeStack, request.RuntimeVersion, request.AlwaysOn, request.HttpsOnly);
+        var deploymentMode = new DeploymentMode(
+            Enum.Parse<DeploymentMode.DeploymentModeType>(request.DeploymentMode));
+
+        var containerRegistryId = request.ContainerRegistryId.HasValue
+            ? new AzureResourceId(request.ContainerRegistryId.Value)
+            : (AzureResourceId?)null;
+
+        webApp.Update(request.Name, request.Location, appServicePlanId, runtimeStack, request.RuntimeVersion, request.AlwaysOn, request.HttpsOnly, deploymentMode, containerRegistryId, request.DockerImageName, request.DockerfilePath, request.SourceCodePath, request.BuildCommand, request.ApplicationName);
 
         if (request.EnvironmentSettings is not null)
             webApp.SetAllEnvironmentSettings(
@@ -53,10 +61,7 @@ public class UpdateWebAppCommandHandler(
                     .Select(ec => (ec.EnvironmentName,
                         ec.AlwaysOn,
                         ec.HttpsOnly,
-                        ec.RuntimeStack is not null
-                            ? new WebAppRuntimeStack(Enum.Parse<WebAppRuntimeStack.WebAppRuntimeStackEnum>(ec.RuntimeStack))
-                            : (WebAppRuntimeStack?)null,
-                        ec.RuntimeVersion))
+                        ec.DockerImageTag))
                     .ToList());
 
         var updated = await webAppRepository.UpdateAsync(webApp);

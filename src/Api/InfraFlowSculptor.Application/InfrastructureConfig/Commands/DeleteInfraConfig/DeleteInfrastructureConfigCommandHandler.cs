@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.Errors;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.DeleteInfraConfig;
 
@@ -10,10 +9,10 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.DeleteInfr
 public sealed class DeleteInfrastructureConfigCommandHandler(
     IInfrastructureConfigRepository configRepository,
     IProjectAccessService projectAccessService)
-    : IRequestHandler<DeleteInfrastructureConfigCommand, ErrorOr<Unit>>
+    : ICommandHandler<DeleteInfrastructureConfigCommand, Deleted>
 {
     /// <inheritdoc />
-    public async Task<ErrorOr<Unit>> Handle(
+    public async Task<ErrorOr<Deleted>> Handle(
         DeleteInfrastructureConfigCommand command,
         CancellationToken cancellationToken)
     {
@@ -28,6 +27,6 @@ public sealed class DeleteInfrastructureConfigCommandHandler(
 
         await configRepository.DeleteAsync(command.InfraConfigId);
 
-        return Unit.Value;
+        return Result.Deleted;
     }
 }

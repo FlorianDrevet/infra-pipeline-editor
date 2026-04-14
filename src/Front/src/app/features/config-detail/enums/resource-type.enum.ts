@@ -17,6 +17,9 @@ export enum ResourceTypeEnum {
   CosmosDb = 'CosmosDb',
   SqlServer = 'SqlServer',
   SqlDatabase = 'SqlDatabase',
+  ServiceBusNamespace = 'ServiceBusNamespace',
+  EventHubNamespace = 'EventHubNamespace',
+  ContainerRegistry = 'ContainerRegistry',
 }
 
 /**
@@ -46,6 +49,9 @@ export const RESOURCE_TYPE_ICONS: Record<string, string> = {
   CosmosDb: 'public',
   SqlServer: 'dns',
   SqlDatabase: 'table_chart',
+  ServiceBusNamespace: 'swap_horiz',
+  EventHubNamespace: 'swap_vert',
+  ContainerRegistry: 'inventory_2',
 };
 
 export interface ResourceTypeCategory {
@@ -78,6 +84,7 @@ export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
       ResourceTypeEnum.RedisCache,
       ResourceTypeEnum.SqlServer,
       ResourceTypeEnum.SqlDatabase,
+      ResourceTypeEnum.ContainerRegistry,
     ],
   },
   {
@@ -86,6 +93,14 @@ export const RESOURCE_TYPE_CATEGORIES: ResourceTypeCategory[] = [
     types: [
       ResourceTypeEnum.KeyVault,
       ResourceTypeEnum.UserAssignedIdentity,
+    ],
+  },
+  {
+    labelKey: 'CONFIG_DETAIL.RESOURCES.CATEGORY_MESSAGING',
+    icon: 'swap_horiz',
+    types: [
+      ResourceTypeEnum.ServiceBusNamespace,
+      ResourceTypeEnum.EventHubNamespace,
     ],
   },
   {
@@ -119,6 +134,9 @@ export const RESOURCE_TYPE_ABBREVIATIONS: Record<string, string> = {
   CosmosDb: 'cosmos',
   SqlServer: 'sql',
   SqlDatabase: 'sqldb',
+  ServiceBusNamespace: 'sb',
+  EventHubNamespace: 'evhns',
+  ContainerRegistry: 'acr',
 };
 
 /**

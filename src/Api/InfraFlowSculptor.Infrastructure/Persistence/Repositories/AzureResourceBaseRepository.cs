@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +25,26 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
+    public async Task<AzureResource?> GetByIdWithAppSettingsAsync(
+        AzureResourceId id,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.Set<AzureResource>()
+            .Include(r => r.AppSettings)
+                .ThenInclude(s => s.EnvironmentValues)
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+    }
+
+    public async Task<AzureResource?> GetByIdWithRoleAssignmentsAndAppSettingsAsync(
+        AzureResourceId id,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.Set<AzureResource>()
+            .Include(r => r.RoleAssignments)
+            .Include(r => r.AppSettings)
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+    }
+
     public async Task<bool> ExistsAsync(
         AzureResourceId id,
         CancellationToken cancellationToken = default)
@@ -32,9 +53,32 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
             .AnyAsync(r => r.Id == id, cancellationToken);
     }
 
-    public async Task<AzureResource> UpdateAsync(AzureResource resource, CancellationToken cancellationToken = default)
+    public Task<AzureResource> UpdateAsync(AzureResource resource, CancellationToken cancellationToken = default)
     {
-        await context.SaveChangesAsync(cancellationToken);
-        return resource;
+        return Task.FromResult(resource);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<RoleAssignment>> GetRoleAssignmentsByIdentityIdAsync(
+        AzureResourceId identityId,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.RoleAssignments
+            .Where(r => r.UserAssignedIdentityId == identityId)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> RevertRoleAssignmentsToSystemAssignedAsync(
+        AzureResourceId identityId,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.RoleAssignments
+            .Where(r => r.UserAssignedIdentityId == identityId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(r => r.ManagedIdentityType,
+                    new ManagedIdentityType(ManagedIdentityType.IdentityTypeEnum.SystemAssigned))
+                .SetProperty(r => r.UserAssignedIdentityId, (AzureResourceId?)null),
+                cancellationToken);
     }
 }

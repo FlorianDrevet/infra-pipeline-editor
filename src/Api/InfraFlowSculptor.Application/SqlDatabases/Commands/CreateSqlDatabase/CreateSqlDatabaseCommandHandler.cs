@@ -18,7 +18,7 @@ public class CreateSqlDatabaseCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateSqlDatabaseCommand, ErrorOr<SqlDatabaseResult>>
+    : ICommandHandler<CreateSqlDatabaseCommand, SqlDatabaseResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<SqlDatabaseResult>> Handle(

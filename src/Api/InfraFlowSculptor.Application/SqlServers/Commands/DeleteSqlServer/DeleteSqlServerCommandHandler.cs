@@ -15,7 +15,7 @@ public sealed class DeleteSqlServerCommandHandler(
     ISqlDatabaseRepository sqlDatabaseRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteSqlServerCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteSqlServerCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(

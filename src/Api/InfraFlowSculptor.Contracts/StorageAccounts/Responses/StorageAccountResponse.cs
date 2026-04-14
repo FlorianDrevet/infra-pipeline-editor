@@ -9,6 +9,14 @@ public record BlobContainerResponse(
     string PublicAccess
 );
 
+public record CorsRuleResponse(
+    IReadOnlyList<string> AllowedOrigins,
+    IReadOnlyList<string> AllowedMethods,
+    IReadOnlyList<string> AllowedHeaders,
+    IReadOnlyList<string> ExposedHeaders,
+    int MaxAgeInSeconds
+);
+
 /// <summary>Represents a Storage Queue inside a Storage Account.</summary>
 public record StorageQueueResponse(
     Guid Id,
@@ -21,14 +29,29 @@ public record StorageTableResponse(
     string Name
 );
 
+/// <summary>Represents a blob lifecycle management rule.</summary>
+public record BlobLifecycleRuleResponse(
+    string RuleName,
+    IReadOnlyList<string> ContainerNames,
+    int TimeToLiveInDays
+);
+
 /// <summary>Represents an Azure Storage Account resource with its sub-resources.</summary>
 public record StorageAccountResponse(
     Guid Id,
     Guid ResourceGroupId,
     string Name,
     string Location,
+    string Kind,
+    string AccessTier,
+    bool AllowBlobPublicAccess,
+    bool EnableHttpsTrafficOnly,
+    string MinimumTlsVersion,
+    IReadOnlyList<CorsRuleResponse> CorsRules,
+    IReadOnlyList<CorsRuleResponse> TableCorsRules,
     IReadOnlyList<BlobContainerResponse> BlobContainers,
     IReadOnlyList<StorageQueueResponse> Queues,
     IReadOnlyList<StorageTableResponse> Tables,
-    IReadOnlyList<StorageAccountEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<StorageAccountEnvironmentConfigResponse> EnvironmentSettings,
+    IReadOnlyList<BlobLifecycleRuleResponse> LifecycleRules
 );

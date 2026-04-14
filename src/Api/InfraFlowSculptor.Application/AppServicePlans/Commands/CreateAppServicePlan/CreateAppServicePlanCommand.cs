@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.AppServicePlans.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.AppServicePlans.Commands.CreateAppServicePlan;
@@ -13,4 +13,4 @@ public record CreateAppServicePlanCommand(
     Location Location,
     string OsType,
     IReadOnlyList<AppServicePlanEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<AppServicePlanResult>>;
+) : ICommand<AppServicePlanResult>;

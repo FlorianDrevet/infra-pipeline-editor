@@ -17,7 +17,7 @@ public class GetAppConfigurationQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetAppConfigurationQuery, ErrorOr<AppConfigurationResult>>
+    : IQueryHandler<GetAppConfigurationQuery, AppConfigurationResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<AppConfigurationResult>> Handle(

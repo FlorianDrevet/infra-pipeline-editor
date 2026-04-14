@@ -27,6 +27,14 @@ public sealed class ProjectRepository(ProjectDbContext context)
                 .ThenInclude(m => m.User!)
             .Include(p => p.EnvironmentDefinitions)
             .Include(p => p.ResourceNamingTemplates)
+            .Include(p => p.GitRepositoryConfiguration)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<Project?> GetByIdWithPipelineVariableGroupsAsync(
+        ProjectId id, CancellationToken cancellationToken = default)
+        => await Context.Projects
+            .Include(p => p.PipelineVariableGroups)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     /// <inheritdoc />

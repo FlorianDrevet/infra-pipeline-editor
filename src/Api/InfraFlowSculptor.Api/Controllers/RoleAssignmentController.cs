@@ -1,5 +1,9 @@
 using InfraFlowSculptor.Application.RoleAssignments.Commands.AddRoleAssignment;
+using InfraFlowSculptor.Application.RoleAssignments.Commands.AssignIdentityToResource;
 using InfraFlowSculptor.Application.RoleAssignments.Commands.RemoveRoleAssignment;
+using InfraFlowSculptor.Application.RoleAssignments.Commands.UnassignIdentityFromResource;
+using InfraFlowSculptor.Application.RoleAssignments.Commands.UpdateRoleAssignmentIdentity;
+using InfraFlowSculptor.Application.RoleAssignments.Queries.AnalyzeRoleAssignmentImpact;
 using InfraFlowSculptor.Application.RoleAssignments.Queries.ListAvailableRoleDefinitions;
 using InfraFlowSculptor.Application.RoleAssignments.Queries.ListRoleAssignments;
 using InfraFlowSculptor.Contracts.RoleAssignments.Requests;
@@ -28,11 +32,15 @@ public static class RoleAssignmentController
                         var result = await mediator.Send(query);
 
                         return result.Match(
-                            assignments =>
+                            data =>
                             {
-                                var response = assignments
+                                var roleAssignments = data.RoleAssignments
                                     .Select(a => mapper.Map<RoleAssignmentResponse>(a))
                                     .ToList();
+                                var response = new RoleAssignmentsWithIdentityResponse(
+                                    data.AssignedUserAssignedIdentityId,
+                                    data.AssignedUserAssignedIdentityName,
+                                    roleAssignments);
                                 return TypedResults.Ok(response);
                             },
                             errors => errors.Result()
@@ -132,6 +140,113 @@ public static class RoleAssignmentController
                         "Deletes the specified role assignment from the source resource. " +
                         "The caller must have write access (Owner or Contributor) on the infrastructure configuration " +
                         "that owns the resource. Returns 204 No Content on success.";
+                    return Task.CompletedTask;
+                });
+
+            group.MapGet("/{roleAssignmentId:guid}/impact-analysis",
+                    async ([FromRoute] Guid resourceId, [FromRoute] Guid roleAssignmentId,
+                        IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new AnalyzeRoleAssignmentImpactQuery(
+                            new AzureResourceId(resourceId),
+                            new RoleAssignmentId(roleAssignmentId));
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            impact =>
+                            {
+                                var response = mapper.Map<RoleAssignmentImpactResponse>(impact);
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("AnalyzeRoleAssignmentImpact")
+                .AddOpenApiOperationTransformer((operation, context, ct) =>
+                {
+                    operation.Summary = "Analyze the impact of removing a role assignment";
+                    operation.Description =
+                        "Returns the potential impact of removing the specified role assignment. " +
+                        "Checks for broken container image pulls (AcrPull), inaccessible Key Vault secrets, " +
+                        "and whether this is the last role to the target resource. " +
+                        "Call this endpoint before deleting a role assignment to warn the user about potential issues.";
+                    return Task.CompletedTask;
+                });
+
+            group.MapPut("/{roleAssignmentId:guid}/identity",
+                    async ([FromRoute] Guid resourceId, [FromRoute] Guid roleAssignmentId,
+                        [FromBody] UpdateRoleAssignmentIdentityRequest request,
+                        IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = mapper.Map<UpdateRoleAssignmentIdentityCommand>(
+                            (resourceId, roleAssignmentId, request));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            assignment =>
+                            {
+                                var response = mapper.Map<RoleAssignmentResponse>(assignment);
+                                return TypedResults.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("UpdateRoleAssignmentIdentity")
+                .AddOpenApiOperationTransformer((operation, context, ct) =>
+                {
+                    operation.Summary = "Update the managed identity on a role assignment";
+                    operation.Description =
+                        "Changes the managed identity type (SystemAssigned or UserAssigned) and optional User-Assigned Identity " +
+                        "on an existing role assignment. The caller must have write access (Owner or Contributor) on the infrastructure configuration.";
+                    return Task.CompletedTask;
+                });
+
+            // Assigned Identity endpoints
+            var identityGroup = endpoints.MapGroup("/azure-resources/{resourceId:guid}/assigned-identity")
+                .WithTags("AssignedIdentity");
+
+            identityGroup.MapPut("",
+                    async ([FromRoute] Guid resourceId, [FromBody] AssignIdentityToResourceRequest request,
+                        IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = mapper.Map<AssignIdentityToResourceCommand>((resourceId, request));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("AssignIdentityToResource")
+                .AddOpenApiOperationTransformer((operation, context, ct) =>
+                {
+                    operation.Summary = "Assign a User-Assigned Identity to a resource";
+                    operation.Description =
+                        "Attaches a User-Assigned Identity to the specified resource (ARM identity.userAssignedIdentities concept). " +
+                        "Any UserAssigned role assignments that duplicate a SystemAssigned role assignment (same target + same role) " +
+                        "are automatically removed. Returns 204 No Content on success.";
+                    return Task.CompletedTask;
+                });
+
+            identityGroup.MapDelete("",
+                    async ([FromRoute] Guid resourceId, IMediator mediator) =>
+                    {
+                        var command = new UnassignIdentityFromResourceCommand(new AzureResourceId(resourceId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("UnassignIdentityFromResource")
+                .AddOpenApiOperationTransformer((operation, context, ct) =>
+                {
+                    operation.Summary = "Remove the assigned User-Assigned Identity from a resource";
+                    operation.Description =
+                        "Detaches the User-Assigned Identity from the specified resource. " +
+                        "This does not remove any role assignments — it only clears the identity link. " +
+                        "Returns 204 No Content on success.";
                     return Task.CompletedTask;
                 });
         });

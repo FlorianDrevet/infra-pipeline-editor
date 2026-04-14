@@ -13,10 +13,13 @@ public class UpdateStorageAccountCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateStorageAccountCommand, ErrorOr<StorageAccountResult>>
+    : ICommandHandler<UpdateStorageAccountCommand, StorageAccountResult>
 {
     public async Task<ErrorOr<StorageAccountResult>> Handle(UpdateStorageAccountCommand request, CancellationToken cancellationToken)
     {
+        var corsRules = CorsRuleSanitizer.Sanitize(request.CorsRules);
+        var tableCorsRules = CorsRuleSanitizer.Sanitize(request.TableCorsRules);
+
         var ctx = new StorageAccountAccessContext(request.Id, storageAccountRepository, resourceGroupRepository, accessService);
         var saResult = await StorageAccountAccessHelper.GetWithWriteAccessAsync(ctx, cancellationToken);
 
@@ -25,19 +28,52 @@ public class UpdateStorageAccountCommandHandler(
 
         var storageAccount = saResult.Value;
 
-        storageAccount.Update(request.Name, request.Location);
+        storageAccount.Update(
+            request.Name,
+            request.Location,
+            new StorageAccountKind(Enum.Parse<StorageAccountKind.Kind>(request.Kind)),
+            new StorageAccessTier(Enum.Parse<StorageAccessTier.Tier>(request.AccessTier)),
+            request.AllowBlobPublicAccess,
+            request.EnableHttpsTrafficOnly,
+            new StorageAccountTlsVersion(Enum.Parse<StorageAccountTlsVersion.Version>(request.MinimumTlsVersion)));
 
         if (request.EnvironmentSettings is not null)
             storageAccount.SetAllEnvironmentSettings(
                 request.EnvironmentSettings
                     .Select(ec => (
                         ec.EnvironmentName,
-                        ec.Sku is not null ? new StorageAccountSku(Enum.Parse<StorageAccountSku.Sku>(ec.Sku)) : (StorageAccountSku?)null,
-                        ec.Kind is not null ? new StorageAccountKind(Enum.Parse<StorageAccountKind.Kind>(ec.Kind)) : (StorageAccountKind?)null,
-                        ec.AccessTier is not null ? new StorageAccessTier(Enum.Parse<StorageAccessTier.Tier>(ec.AccessTier)) : (StorageAccessTier?)null,
-                        ec.AllowBlobPublicAccess,
-                        ec.EnableHttpsTrafficOnly,
-                        ec.MinimumTlsVersion is not null ? new StorageAccountTlsVersion(Enum.Parse<StorageAccountTlsVersion.Version>(ec.MinimumTlsVersion)) : (StorageAccountTlsVersion?)null))
+                        ec.Sku is not null ? new StorageAccountSku(Enum.Parse<StorageAccountSku.Sku>(ec.Sku)) : (StorageAccountSku?)null))
+                    .ToList());
+
+        if (corsRules is not null)
+            storageAccount.SetCorsRules(
+                corsRules
+                    .Select(rule => (
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds))
+                    .ToList());
+
+        if (tableCorsRules is not null)
+            storageAccount.SetTableCorsRules(
+                tableCorsRules
+                    .Select(rule => (
+                        rule.AllowedOrigins,
+                        rule.AllowedMethods,
+                        rule.AllowedHeaders,
+                        rule.ExposedHeaders,
+                        rule.MaxAgeInSeconds))
+                    .ToList());
+
+        if (request.LifecycleRules is not null)
+            storageAccount.SetLifecycleRules(
+                request.LifecycleRules
+                    .Select(rule => (
+                        rule.RuleName,
+                        rule.ContainerNames,
+                        rule.TimeToLiveInDays))
                     .ToList());
 
         var updated = await storageAccountRepository.UpdateAsync(storageAccount);

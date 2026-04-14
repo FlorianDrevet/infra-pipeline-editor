@@ -17,7 +17,7 @@ public class GetCosmosDbQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<GetCosmosDbQuery, ErrorOr<CosmosDbResult>>
+    : IQueryHandler<GetCosmosDbQuery, CosmosDbResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<CosmosDbResult>> Handle(

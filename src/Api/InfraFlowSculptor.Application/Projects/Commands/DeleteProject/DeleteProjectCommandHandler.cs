@@ -1,7 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.DeleteProject;
 
@@ -9,10 +8,10 @@ namespace InfraFlowSculptor.Application.Projects.Commands.DeleteProject;
 public sealed class DeleteProjectCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository)
-    : IRequestHandler<DeleteProjectCommand, ErrorOr<Unit>>
+    : ICommandHandler<DeleteProjectCommand, Deleted>
 {
     /// <inheritdoc />
-    public async Task<ErrorOr<Unit>> Handle(
+    public async Task<ErrorOr<Deleted>> Handle(
         DeleteProjectCommand command,
         CancellationToken cancellationToken)
     {
@@ -22,6 +21,6 @@ public sealed class DeleteProjectCommandHandler(
 
         await projectRepository.DeleteAsync(command.ProjectId);
 
-        return Unit.Value;
+        return Result.Deleted;
     }
 }

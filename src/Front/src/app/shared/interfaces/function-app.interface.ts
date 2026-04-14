@@ -3,19 +3,15 @@
 export interface FunctionAppEnvironmentConfigEntry {
   environmentName: string;
   httpsOnly?: boolean | null;
-  runtimeStack?: string | null;
-  runtimeVersion?: string | null;
   maxInstanceCount?: number | null;
-  functionsWorkerRuntime?: string | null;
+  dockerImageTag?: string | null;
 }
 
 export interface FunctionAppEnvironmentConfigResponse {
   environmentName: string;
   httpsOnly: boolean | null;
-  runtimeStack: string | null;
-  runtimeVersion: string | null;
   maxInstanceCount: number | null;
-  functionsWorkerRuntime: string | null;
+  dockerImageTag: string | null;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -26,9 +22,16 @@ export interface FunctionAppResponse {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode: string;
+  containerRegistryId: string | null;
+  dockerImageName: string | null;
+  dockerfilePath: string | null;
+  sourceCodePath: string | null;
+  buildCommand: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;
+  applicationName: string | null;
   environmentSettings: FunctionAppEnvironmentConfigResponse[];
 }
 
@@ -39,9 +42,16 @@ export interface CreateFunctionAppRequest {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode?: string;
+  containerRegistryId?: string | null;
+  dockerImageName?: string | null;
+  dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
+  buildCommand?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;
+  applicationName?: string | null;
   environmentSettings?: FunctionAppEnvironmentConfigEntry[];
 }
 
@@ -49,8 +59,15 @@ export interface UpdateFunctionAppRequest {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode?: string;
+  containerRegistryId?: string | null;
+  dockerImageName?: string | null;
+  dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
+  buildCommand?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   httpsOnly: boolean;
+  applicationName?: string | null;
   environmentSettings?: FunctionAppEnvironmentConfigEntry[];
 }

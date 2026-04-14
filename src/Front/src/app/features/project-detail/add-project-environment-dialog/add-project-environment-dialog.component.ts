@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,8 +9,9 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatChipsModule } from '@angular/material/chips';
 import { TranslateModule } from '@ngx-translate/core';
-import { EnvironmentDefinitionResponse } from '../../../shared/interfaces/infra-config.interface';
+import { EnvironmentDefinitionResponse, TagRequest } from '../../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../../shared/services/project.service';
 import { LOCATION_OPTIONS } from '../../../shared/enums/location.enum';
 
@@ -25,6 +26,7 @@ export interface AddProjectEnvironmentDialogData {
   standalone: true,
   imports: [
     MatButtonModule,
+    MatChipsModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
@@ -49,6 +51,26 @@ export class AddProjectEnvironmentDialogComponent {
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
   protected readonly locationOptions = LOCATION_OPTIONS;
+
+  protected readonly localTags = signal<TagRequest[]>(
+    this.data.existing?.tags?.map(t => ({ name: t.name, value: t.value })) ?? []
+  );
+  protected readonly tagNameCtrl = new FormControl('', { nonNullable: true });
+  protected readonly tagValueCtrl = new FormControl('', { nonNullable: true });
+
+  protected addTag(): void {
+    const name = this.tagNameCtrl.value.trim();
+    const value = this.tagValueCtrl.value.trim();
+    if (!name || !value) return;
+    if (this.localTags().some(t => t.name === name)) return;
+    this.localTags.update(tags => [...tags, { name, value }]);
+    this.tagNameCtrl.reset();
+    this.tagValueCtrl.reset();
+  }
+
+  protected removeTag(name: string): void {
+    this.localTags.update(tags => tags.filter(t => t.name !== name));
+  }
 
   private readonly otherEnvironments = this.data.allEnvironments
     .filter((e) => e.id !== this.data.existing?.id)
@@ -92,8 +114,9 @@ export class AddProjectEnvironmentDialogComponent {
   protected readonly form = this.fb.group({
     name: [this.data.existing?.name ?? '', [Validators.required, Validators.minLength(1), Validators.maxLength(100)]],
     location: [this.data.existing?.location ?? '', [Validators.required]],
-    tenantId: [this.data.existing?.tenantId ?? '', [Validators.required]],
     subscriptionId: [this.data.existing?.subscriptionId ?? '', [Validators.required]],
+    azureResourceManagerConnection: [this.data.existing?.azureResourceManagerConnection ?? ''],
+    shortName: [this.data.existing?.shortName ?? ''],
     prefix: [this.data.existing?.prefix ?? ''],
     suffix: [this.data.existing?.suffix ?? ''],
     requiresApproval: [this.data.existing?.requiresApproval ?? false],
@@ -147,12 +170,14 @@ export class AddProjectEnvironmentDialogComponent {
     const payload = {
       name: values.name!,
       location: values.location!,
-      tenantId: values.tenantId!,
       subscriptionId: values.subscriptionId!,
+      shortName: values.shortName || undefined,
       prefix: values.prefix || undefined,
       suffix: values.suffix || undefined,
       order: this.computeTargetOrder(),
       requiresApproval: values.requiresApproval ?? false,
+      azureResourceManagerConnection: values.azureResourceManagerConnection || undefined,
+      tags: this.localTags(),
     };
 
     try {

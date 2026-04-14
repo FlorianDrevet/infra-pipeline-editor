@@ -1,7 +1,7 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.ApplicationInsights.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using MediatR;
 using ErrorOr;
 
 namespace InfraFlowSculptor.Application.ApplicationInsights.Commands.CreateApplicationInsights;
@@ -13,4 +13,4 @@ public record CreateApplicationInsightsCommand(
     Location Location,
     Guid LogAnalyticsWorkspaceId,
     IReadOnlyList<ApplicationInsightsEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<ApplicationInsightsResult>>;
+) : ICommand<ApplicationInsightsResult>;

@@ -15,6 +15,27 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
         builder.HasBaseType<AzureResource>()
             .ToTable("StorageAccounts");
 
+        builder.Ignore(s => s.CorsRules);
+        builder.Ignore(s => s.TableCorsRules);
+
+        builder.Property(s => s.Kind)
+            .IsRequired()
+            .HasConversion(new EnumValueConverter<StorageAccountKind, StorageAccountKind.Kind>());
+
+        builder.Property(s => s.AccessTier)
+            .IsRequired()
+            .HasConversion(new EnumValueConverter<StorageAccessTier, StorageAccessTier.Tier>());
+
+        builder.Property(s => s.AllowBlobPublicAccess)
+            .IsRequired();
+
+        builder.Property(s => s.EnableHttpsTrafficOnly)
+            .IsRequired();
+
+        builder.Property(s => s.MinimumTlsVersion)
+            .IsRequired()
+            .HasConversion(new EnumValueConverter<StorageAccountTlsVersion, StorageAccountTlsVersion.Version>());
+
         builder.HasMany(s => s.BlobContainers)
             .WithOne()
             .HasForeignKey(bc => bc.StorageAccountId)
@@ -42,6 +63,15 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
             .HasField("_tables")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
+        builder.HasMany(s => s.AllCorsRules)
+            .WithOne()
+            .HasForeignKey(cr => cr.StorageAccountId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(s => s.AllCorsRules)
+            .HasField("_corsRules")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasMany(sa => sa.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.StorageAccountId)
@@ -49,6 +79,15 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
 
         builder.Navigation(sa => sa.EnvironmentSettings)
             .HasField("_environmentSettings")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(s => s.LifecycleRules)
+            .WithOne()
+            .HasForeignKey(lr => lr.StorageAccountId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(s => s.LifecycleRules)
+            .HasField("_lifecycleRules")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

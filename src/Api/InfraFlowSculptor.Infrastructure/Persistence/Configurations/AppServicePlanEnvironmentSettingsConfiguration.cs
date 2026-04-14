@@ -30,7 +30,7 @@ public class AppServicePlanEnvironmentSettingsConfiguration
 
         builder.Property(x => x.Sku)
             .HasConversion(
-                v => v != null ? v.Value.ToString() : null,
+                v => (object?)v != null ? v.Value.ToString() : null,
                 v => v != null
                     ? new AppServicePlanSku(Enum.Parse<AppServicePlanSku.AppServicePlanSkuEnum>(v))
                     : null);

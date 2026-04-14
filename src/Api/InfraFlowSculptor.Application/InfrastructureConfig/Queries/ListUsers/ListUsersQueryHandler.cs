@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
@@ -13,7 +14,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListUsers;
 public sealed class ListUsersQueryHandler(
     IUserRepository userRepository,
     IMapper mapper)
-    : IRequestHandler<ListUsersQuery, ErrorOr<List<UserResult>>>
+    : IQueryHandler<ListUsersQuery, List<UserResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<List<UserResult>>> Handle(

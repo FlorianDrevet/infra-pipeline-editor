@@ -1,4 +1,5 @@
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
@@ -10,10 +11,10 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
 {
     /// <inheritdoc />
     public string ResourceType
-        => "Microsoft.App/managedEnvironments";
+        => AzureResourceTypes.ArmTypes.ContainerAppEnvironment;
 
     /// <inheritdoc />
-    public string ResourceTypeName => "ContainerAppEnvironment";
+    public string ResourceTypeName => AzureResourceTypes.ContainerAppEnvironment;
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
@@ -21,7 +22,7 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
         return new GeneratedTypeModule
         {
             ModuleName = "containerAppEnvironment",
-            ModuleFileName = "containerAppEnvironment.bicep",
+            ModuleFileName = "containerAppEnvironment",
             ModuleFolderName = "ContainerAppEnvironment",
             ModuleBicepContent = ContainerAppEnvironmentModuleTemplate,
             ModuleTypesBicepContent = ContainerAppEnvironmentTypesTemplate,
@@ -86,5 +87,14 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
             ]
           }
         }
+
+        @description('The resource ID of the Container App Environment')
+        output id string = containerAppEnv.id
+
+        @description('The default domain of the Container App Environment')
+        output defaultDomain string = containerAppEnv.properties.defaultDomain
+
+        @description('The static IP of the Container App Environment')
+        output staticIp string = containerAppEnv.properties.staticIp
         """;
 }

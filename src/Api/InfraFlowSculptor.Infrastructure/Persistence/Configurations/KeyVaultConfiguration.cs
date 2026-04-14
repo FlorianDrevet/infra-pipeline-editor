@@ -24,6 +24,24 @@ public class KeyVaultConfiguration : IEntityTypeConfiguration<KeyVault>
         builder.HasBaseType<AzureResource>()
             .ToTable("KeyVaults");
 
+        builder.Property(kv => kv.EnableRbacAuthorization)
+            .IsRequired();
+
+        builder.Property(kv => kv.EnabledForDeployment)
+            .IsRequired();
+
+        builder.Property(kv => kv.EnabledForDiskEncryption)
+            .IsRequired();
+
+        builder.Property(kv => kv.EnabledForTemplateDeployment)
+            .IsRequired();
+
+        builder.Property(kv => kv.EnablePurgeProtection)
+            .IsRequired();
+
+        builder.Property(kv => kv.EnableSoftDelete)
+            .IsRequired();
+
         builder.HasMany(kv => kv.EnvironmentSettings)
             .WithOne()
             .HasForeignKey(es => es.KeyVaultId)

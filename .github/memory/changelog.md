@@ -1,0 +1,18 @@
+# Changelog
+
+> Entries older than 60 days are pruned during dream consolidation.
+
+| Date | Author | Change |
+|------|--------|--------|
+| 2026-04-13 | copilot | Added the `draw-io-diagram-generator` skill and refreshed `docs/architecture/infraflowsculptor-architecture.drawio` as an Azure deployment diagram centered on deployed resources and their interactions. |
+| 2026-04-04 | copilot | Major consolidation: fixed Azure DevOps infra release validation/path/scope/service-connection/sparse-checkout issues, merged app pipeline generation into `POST /generate-pipeline`, moved `AgentPoolName` from `InfrastructureConfig` to `Project`, moved `ContainerAppEnvironment.LogAnalyticsWorkspaceId` to the aggregate root, added `DELETE /resource-group/{id}`, refactored `BicepAssembler`, improved generation UX with validating state, and corrected cross-resource FK cascade behavior for project deletion. |
+| 2026-04-03 | copilot | Added application pipeline generation end-to-end, integrated GitNexus workflow plus `13-code-graph.md`, audited memory counts/endpoints via GitNexus, and finalized ContainerApp pipeline/runtime fixes (`DockerImageName`, per-env bicep params, ACR/UAI reactivity). |
+| 2026-04-02 | copilot | Completed the Assign Identity refactor across domain, CQRS, Bicep, frontend, and diagnostics, with nullable FK support on `AzureResource` for assigned UAI. |
+| 2026-04-01 | copilot | Standardized Windows-first/build-only conventions, fixed impact dialog i18n, and moved runtime stack/version fields into general configuration. |
+| 2026-03-31 | copilot | Delivered the EventHubNamespace aggregate full-stack and redesigned the Configuration Keys tab. |
+| 2026-03-30 | copilot | Added UAI-based ACR role assignment, refactored pipeline variable groups, introduced the Unit of Work pattern, and tightened domain code-quality conventions. |
+| 2026-03-29 | copilot | Shipped the first real Azure DevOps pipeline YAML generation flow with `AzureResourceManagerConnection` support and tenant cleanup. |
+| 2026-03-28 | copilot | Unified generation UX, introduced mono-repo pipeline generation, added secret/static app settings handling, and introduced the `architect` agent. |
+| 2026-03-27 | copilot | Improved UAI grouping, fixed nullable value object handling, and moved StorageAccount CORS/lifecycle editing into the Storage tab. |
+| 2026-03-26 | copilot | Redesigned StorageAccount CORS management, added storage queue/table Bicep generation, and renamed generated modules. |
+| 2026-03-24 | copilot | Added LogAnalyticsWorkspace and ApplicationInsights end-to-end across the stack. |

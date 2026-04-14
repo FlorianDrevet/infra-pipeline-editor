@@ -6,17 +6,80 @@ namespace InfraFlowSculptor.Domain.Common.Errors;
 
 public static partial class Errors
 {
+    /// <summary>Domain errors related to the Infrastructure Configuration aggregate.</summary>
     public static class InfrastructureConfig
     {
+        /// <summary>Returned when an infrastructure configuration with the specified identifier does not exist.</summary>
         public static Error NotFoundError(InfrastructureConfigId id) => Error.NotFound(
             code: "InfrastructureConfig.NotFound",
             description: $"A InfrastructureConfig with the given id {id} does not exist.",
             metadata: new Dictionary<string, object> { { "Id", id.ToString() } }
         );
 
+        /// <summary>Returned when the caller lacks sufficient permissions on the configuration.</summary>
         public static Error ForbiddenError() => Error.Forbidden(
             code: "InfrastructureConfig.Forbidden",
             description: "You do not have sufficient permissions to perform this action on this configuration."
+        );
+
+        /// <summary>Returns an error when trying to add a duplicate cross-config reference.</summary>
+        public static Error DuplicateCrossConfigReference(AzureResourceId targetResourceId) => Error.Conflict(
+            code: "InfrastructureConfig.DuplicateCrossConfigReference",
+            description: $"A cross-config reference to resource '{targetResourceId}' already exists."
+        );
+
+        /// <summary>Returns an error when a cross-config reference is not found.</summary>
+        public static Error CrossConfigReferenceNotFound(CrossConfigResourceReferenceId referenceId) => Error.NotFound(
+            code: "InfrastructureConfig.CrossConfigReferenceNotFound",
+            description: $"Cross-config reference '{referenceId}' was not found."
+        );
+
+        /// <summary>Returns an error when trying to reference a resource in the same configuration.</summary>
+        public static Error CannotReferenceSameConfig() => Error.Validation(
+            code: "InfrastructureConfig.CannotReferenceSameConfig",
+            description: "Cannot add a cross-config reference to a resource in the same configuration."
+        );
+
+        /// <summary>Returns an error when the target resource does not exist.</summary>
+        public static Error TargetResourceNotFound(AzureResourceId targetResourceId) => Error.NotFound(
+            code: "InfrastructureConfig.TargetResourceNotFound",
+            description: $"Target resource '{targetResourceId}' was not found in the project."
+        );
+
+        /// <summary>Returns an error when the target resource belongs to a different project.</summary>
+        public static Error TargetResourceNotInSameProject() => Error.Validation(
+            code: "InfrastructureConfig.TargetResourceNotInSameProject",
+            description: "The target resource must belong to a configuration within the same project."
+        );
+
+        /// <summary>Returned when no generated Bicep files exist for the given configuration.</summary>
+        public static Error BicepFilesNotFoundError(Guid configId) => Error.NotFound(
+            code: "InfrastructureConfig.BicepFilesNotFound",
+            description: $"No generated Bicep files found for configuration '{configId}'."
+        );
+
+        /// <summary>Returned when a specific Bicep file is not found in the latest generation.</summary>
+        public static Error BicepFileNotFoundError(string filePath) => Error.NotFound(
+            code: "InfrastructureConfig.BicepFileNotFound",
+            description: $"File '{filePath}' was not found."
+        );
+
+        /// <summary>Returned when no generated pipeline files exist for the given configuration.</summary>
+        public static Error PipelineFilesNotFoundError(Guid configId) => Error.NotFound(
+            code: "InfrastructureConfig.PipelineFilesNotFound",
+            description: $"No generated pipeline files found for configuration '{configId}'."
+        );
+
+        /// <summary>Returned when a specific pipeline file is not found in the latest generation.</summary>
+        public static Error PipelineFileNotFoundError(string filePath) => Error.NotFound(
+            code: "InfrastructureConfig.PipelineFileNotFound",
+            description: $"File '{filePath}' was not found."
+        );
+
+        /// <summary>Returned when no naming template override exists for the given resource type.</summary>
+        public static Error ResourceNamingTemplateNotFoundError(string resourceType) => Error.NotFound(
+            code: "InfrastructureConfig.ResourceNamingTemplateNotFound",
+            description: $"No naming template override exists for resource type '{resourceType}'."
         );
     }
 }

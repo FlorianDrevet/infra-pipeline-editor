@@ -3,8 +3,8 @@ using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
@@ -18,7 +18,7 @@ public sealed class UpdateProjectEnvironmentCommandHandler(
     IProjectRepository projectRepository,
     IProjectAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateProjectEnvironmentCommand, ErrorOr<ProjectEnvironmentDefinitionResult>>
+    : ICommandHandler<UpdateProjectEnvironmentCommand, ProjectEnvironmentDefinitionResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ProjectEnvironmentDefinitionResult>> Handle(
@@ -36,13 +36,14 @@ public sealed class UpdateProjectEnvironmentCommandHandler(
 
         var data = new EnvironmentDefinitionData(
             new Name(command.Name),
+            new ShortName(command.ShortName),
             new Prefix(command.Prefix),
             new Suffix(command.Suffix),
             new Location(Enum.Parse<Location.LocationEnum>(command.Location, ignoreCase: true)),
-            new TenantId(command.TenantId),
             new SubscriptionId(command.SubscriptionId),
             new Order(command.Order),
             new RequiresApproval(command.RequiresApproval),
+            command.AzureResourceManagerConnection,
             tags);
 
         var env = project.UpdateEnvironment(command.EnvironmentId, data);

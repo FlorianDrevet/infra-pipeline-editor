@@ -15,7 +15,7 @@ public class CreateKeyVaultCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateKeyVaultCommand, ErrorOr<KeyVaultResult>>
+    : ICommandHandler<CreateKeyVaultCommand, KeyVaultResult>
 {
     public async Task<ErrorOr<KeyVaultResult>> Handle(CreateKeyVaultCommand request, CancellationToken cancellationToken)
     {
@@ -32,6 +32,12 @@ public class CreateKeyVaultCommandHandler(
             request.ResourceGroupId,
             request.Name,
             request.Location,
+            request.EnableRbacAuthorization,
+            request.EnabledForDeployment,
+            request.EnabledForDiskEncryption,
+            request.EnabledForTemplateDeployment,
+            request.EnablePurgeProtection,
+            request.EnableSoftDelete,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName,
                     ec.Sku is not null ? new Sku(Enum.Parse<Sku.SkuEnum>(ec.Sku)) : (Sku?)null))

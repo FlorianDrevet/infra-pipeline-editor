@@ -33,6 +33,12 @@ using InfraFlowSculptor.Domain.SqlServerAggregate;
 using InfraFlowSculptor.Domain.SqlServerAggregate.Entities;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 using InfraFlowSculptor.Domain.SqlDatabaseAggregate.Entities;
+using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
+using InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate.Entities;
+using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
+using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
+using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
+using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -48,6 +54,8 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<RedisCache> RedisCaches { get; set; } = null!;
     public DbSet<StorageAccount> StorageAccounts { get; set; } = null!;
     public DbSet<BlobContainer> BlobContainers { get; set; } = null!;
+    public DbSet<CorsRule> StorageAccountCorsRules { get; set; } = null!;
+    public DbSet<BlobLifecycleRule> BlobLifecycleRules { get; set; } = null!;
     public DbSet<StorageQueue> StorageQueues { get; set; } = null!;
     public DbSet<StorageTable> StorageTables { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
@@ -56,6 +64,8 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<InputOutputLink> InputOutputLinks { get; set; } = null!;
     public DbSet<ResourceNamingTemplate> ResourceNamingTemplates { get; set; } = null!;
     public DbSet<RoleAssignment> RoleAssignments { get; set; } = null!;
+    public DbSet<AppSetting> AppSettings { get; set; } = null!;
+    public DbSet<AppSettingEnvironmentValue> AppSettingEnvironmentValues { get; set; } = null!;
     public DbSet<KeyVaultEnvironmentSettings> KeyVaultEnvironmentSettings { get; set; } = null!;
     public DbSet<RedisCacheEnvironmentSettings> RedisCacheEnvironmentSettings { get; set; } = null!;
     public DbSet<StorageAccountEnvironmentSettings> StorageAccountEnvironmentSettings { get; set; } = null!;
@@ -68,6 +78,8 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<UserAssignedIdentity> UserAssignedIdentities { get; set; } = null!;
     public DbSet<AppConfiguration> AppConfigurations { get; set; } = null!;
     public DbSet<AppConfigurationEnvironmentSettings> AppConfigurationEnvironmentSettings { get; set; } = null!;
+    public DbSet<AppConfigurationKey> AppConfigurationKeys { get; set; } = null!;
+    public DbSet<AppConfigurationKeyEnvironmentValue> AppConfigurationKeyEnvironmentValues { get; set; } = null!;
     public DbSet<ContainerAppEnvironment> ContainerAppEnvironments { get; set; } = null!;
     public DbSet<ContainerAppEnvironmentEnvironmentSettings> ContainerAppEnvironmentEnvironmentSettings { get; set; } = null!;
     public DbSet<ContainerApp> ContainerApps { get; set; } = null!;
@@ -82,6 +94,19 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<SqlServerEnvironmentSettings> SqlServerEnvironmentSettings { get; set; } = null!;
     public DbSet<SqlDatabase> SqlDatabases { get; set; } = null!;
     public DbSet<SqlDatabaseEnvironmentSettings> SqlDatabaseEnvironmentSettings { get; set; } = null!;
+    public DbSet<ServiceBusNamespace> ServiceBusNamespaces { get; set; } = null!;
+    public DbSet<ServiceBusNamespaceEnvironmentSettings> ServiceBusNamespaceEnvironmentSettings { get; set; } = null!;
+    public DbSet<ServiceBusQueue> ServiceBusQueues { get; set; } = null!;
+    public DbSet<ServiceBusTopicSubscription> ServiceBusTopicSubscriptions { get; set; } = null!;
+    public DbSet<ContainerRegistry> ContainerRegistries { get; set; } = null!;
+    public DbSet<ContainerRegistryEnvironmentSettings> ContainerRegistryEnvironmentSettings { get; set; } = null!;
+    public DbSet<EventHubNamespace> EventHubNamespaces { get; set; } = null!;
+    public DbSet<EventHubNamespaceEnvironmentSettings> EventHubNamespaceEnvironmentSettings { get; set; } = null!;
+    public DbSet<Domain.EventHubNamespaceAggregate.Entities.EventHub> EventHubs { get; set; } = null!;
+    public DbSet<EventHubConsumerGroup> EventHubConsumerGroups { get; set; } = null!;
+    public DbSet<GitRepositoryConfiguration> GitRepositoryConfigurations { get; set; } = null!;
+    public DbSet<CrossConfigResourceReference> CrossConfigResourceReferences { get; set; } = null!;
+    public DbSet<ProjectPipelineVariableGroup> ProjectPipelineVariableGroups { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

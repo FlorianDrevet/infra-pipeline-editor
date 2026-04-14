@@ -13,8 +13,7 @@ public sealed class CreateInfrastructureConfigCommandHandler(
     IInfrastructureConfigRepository repository,
     IProjectAccessService projectAccessService,
     IMapper mapper)
-    : IRequestHandler<CreateInfrastructureConfigCommand,
-        ErrorOr<GetInfrastructureConfigResult>>
+    : ICommandHandler<CreateInfrastructureConfigCommand, GetInfrastructureConfigResult>
 {
     public async Task<ErrorOr<GetInfrastructureConfigResult>> Handle(
         CreateInfrastructureConfigCommand command, CancellationToken cancellationToken)

@@ -34,4 +34,8 @@ export class ResourceGroupService {
       request
     );
   }
+
+  delete(id: string): Promise<void> {
+    return this.axios.request$<void>(MethodEnum.DELETE, `/resource-group/${id}`);
+  }
 }

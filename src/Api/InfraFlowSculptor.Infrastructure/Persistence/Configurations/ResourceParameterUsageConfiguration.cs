@@ -42,7 +42,7 @@ public sealed class ResourceParameterUsageConfiguration
         builder.HasOne<ParameterDefinition>()
             .WithMany()
             .HasForeignKey(x => x.ParameterId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         // ===== ParameterUsage (VO) =====
         builder.Property(x => x.Purpose)

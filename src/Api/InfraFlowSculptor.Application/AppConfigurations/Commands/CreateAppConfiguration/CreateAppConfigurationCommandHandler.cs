@@ -17,7 +17,7 @@ public class CreateAppConfigurationCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateAppConfigurationCommand, ErrorOr<AppConfigurationResult>>
+    : ICommandHandler<CreateAppConfigurationCommand, AppConfigurationResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<AppConfigurationResult>> Handle(

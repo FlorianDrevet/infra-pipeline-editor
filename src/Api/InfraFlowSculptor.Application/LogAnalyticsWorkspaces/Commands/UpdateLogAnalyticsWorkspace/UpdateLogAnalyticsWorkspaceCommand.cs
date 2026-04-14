@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.UpdateLogAnalyticsWorkspace;
 
@@ -12,4 +12,4 @@ public record UpdateLogAnalyticsWorkspaceCommand(
     Name Name,
     Location Location,
     IReadOnlyList<LogAnalyticsWorkspaceEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<LogAnalyticsWorkspaceResult>>;
+) : ICommand<LogAnalyticsWorkspaceResult>;

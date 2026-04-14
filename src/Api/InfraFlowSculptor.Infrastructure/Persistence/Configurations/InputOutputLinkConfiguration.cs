@@ -32,7 +32,7 @@ public sealed class InputOutputLinkConfiguration
         builder.HasOne(x => x.SourceResource)
             .WithMany(r => r.Outputs)
             .HasForeignKey(x => x.SourceResourceId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Target resource
         builder.HasOne(x => x.TargetResource)

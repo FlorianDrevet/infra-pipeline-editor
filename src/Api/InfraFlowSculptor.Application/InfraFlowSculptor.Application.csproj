@@ -9,6 +9,8 @@
 
     <ItemGroup>
         <ProjectReference Include="..\InfraFlowSculptor.BicepGeneration\InfraFlowSculptor.BicepGeneration.csproj" />
+        <ProjectReference Include="..\InfraFlowSculptor.GenerationCore\InfraFlowSculptor.GenerationCore.csproj" />
+        <ProjectReference Include="..\InfraFlowSculptor.PipelineGeneration\InfraFlowSculptor.PipelineGeneration.csproj" />
         <ProjectReference Include="..\InfraFlowSculptor.Domain\InfraFlowSculptor.Domain.csproj" />
     </ItemGroup>
 

@@ -2,9 +2,15 @@ using System.Reflection;
 using FluentValidation;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
+using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics.Rules;
 using InfraFlowSculptor.Application.Projects.Common;
+using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.BicepGeneration.Generators;
+using InfraFlowSculptor.PipelineGeneration;
+using InfraFlowSculptor.PipelineGeneration.Generators;
+using InfraFlowSculptor.PipelineGeneration.Generators.App;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using InfraFlowSculptor.Application.Common.Behaviors;
@@ -19,8 +25,9 @@ public static class DependencyInjection
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssemblies(typeof(DependencyInjection).Assembly, Assembly.GetExecutingAssembly()));
 
-        // Behaviors
+        // Behaviors (order matters: Validation runs first, then UoW wraps the handler)
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
 
         // Validators
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
@@ -28,6 +35,9 @@ public static class DependencyInjection
         // Access control services
         services.AddScoped<IInfraConfigAccessService, InfraConfigAccessService>();
         services.AddScoped<IProjectAccessService, ProjectAccessService>();
+
+        // Impact analysis
+        services.AddScoped<IRoleAssignmentImpactAnalyzer, RoleAssignmentImpactAnalyzer>();
 
         // Bicep generation domain services
         services.AddSingleton<IResourceTypeBicepGenerator, StorageAccountTypeBicepGenerator>();
@@ -45,7 +55,25 @@ public static class DependencyInjection
         services.AddSingleton<IResourceTypeBicepGenerator, CosmosDbTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, SqlServerTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, SqlDatabaseTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, ServiceBusNamespaceTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepGenerator, ContainerRegistryTypeBicepGenerator>();
         services.AddSingleton<BicepGenerationEngine>();
+
+        // Pipeline generation engine
+        services.AddSingleton<PipelineGenerationEngine>();
+
+        // Application pipeline generation
+        services.AddSingleton<IAppPipelineGenerator, ContainerAppPipelineGenerator>();
+        services.AddSingleton<IAppPipelineGenerator, WebAppContainerPipelineGenerator>();
+        services.AddSingleton<IAppPipelineGenerator, WebAppCodePipelineGenerator>();
+        services.AddSingleton<IAppPipelineGenerator, FunctionAppContainerPipelineGenerator>();
+        services.AddSingleton<IAppPipelineGenerator, FunctionAppCodePipelineGenerator>();
+        services.AddSingleton<AppPipelineGenerationEngine>();
+
+        // Configuration diagnostics
+        services.AddScoped<IConfigDiagnosticService, ConfigDiagnosticService>();
+        services.AddScoped<IDiagnosticRule, AcrPullDiagnosticRule>();
+        services.AddScoped<IDiagnosticRule, KeyVaultAccessDiagnosticRule>();
 
         return services;
     }

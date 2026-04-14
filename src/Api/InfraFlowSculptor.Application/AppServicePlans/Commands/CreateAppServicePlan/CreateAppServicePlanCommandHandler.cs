@@ -16,7 +16,7 @@ public class CreateAppServicePlanCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateAppServicePlanCommand, ErrorOr<AppServicePlanResult>>
+    : ICommandHandler<CreateAppServicePlanCommand, AppServicePlanResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<AppServicePlanResult>> Handle(

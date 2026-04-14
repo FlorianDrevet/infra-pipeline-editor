@@ -9,12 +9,15 @@ namespace InfraFlowSculptor.Application.UserAssignedIdentities.Commands.DeleteUs
 /// <summary>
 /// Handles the <see cref="DeleteUserAssignedIdentityCommand"/> request
 /// and permanently deletes the specified user-assigned identity.
+/// Before deletion, all role assignments referencing this identity are
+/// reverted to system-assigned managed identity.
 /// </summary>
 public sealed class DeleteUserAssignedIdentityCommandHandler(
     IUserAssignedIdentityRepository userAssignedIdentityRepository,
     IResourceGroupRepository resourceGroupRepository,
+    IAzureResourceRepository azureResourceRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteUserAssignedIdentityCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteUserAssignedIdentityCommand, Deleted>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<Deleted>> Handle(
@@ -32,6 +35,8 @@ public sealed class DeleteUserAssignedIdentityCommandHandler(
         var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
             return authResult.Errors;
+
+        await azureResourceRepository.RevertRoleAssignmentsToSystemAssignedAsync(request.Id, cancellationToken);
 
         await userAssignedIdentityRepository.DeleteAsync(request.Id);
 

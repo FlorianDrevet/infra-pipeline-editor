@@ -13,7 +13,7 @@ public sealed class GetProjectQueryHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
     IMapper mapper)
-    : IRequestHandler<GetProjectQuery, ErrorOr<ProjectResult>>
+    : IQueryHandler<GetProjectQuery, ProjectResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ProjectResult>> Handle(

@@ -11,7 +11,7 @@ public sealed class ValidateRecentItemsQueryHandler(
     IProjectRepository projectRepository,
     IInfrastructureConfigRepository configRepository,
     ICurrentUser currentUser)
-    : IRequestHandler<ValidateRecentItemsQuery, ErrorOr<List<RecentItemResult>>>
+    : IQueryHandler<ValidateRecentItemsQuery, List<RecentItemResult>>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<List<RecentItemResult>>> Handle(

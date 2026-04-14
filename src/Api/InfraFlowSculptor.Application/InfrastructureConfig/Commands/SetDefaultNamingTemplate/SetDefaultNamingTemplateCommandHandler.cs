@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetDefault
 public class SetDefaultNamingTemplateCommandHandler(
     IInfrastructureConfigRepository repository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<SetDefaultNamingTemplateCommand, ErrorOr<Updated>>
+    : ICommandHandler<SetDefaultNamingTemplateCommand, Updated>
 {
     public async Task<ErrorOr<Updated>> Handle(
         SetDefaultNamingTemplateCommand command, CancellationToken cancellationToken)

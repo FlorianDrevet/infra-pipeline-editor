@@ -14,7 +14,7 @@ public sealed class SetProjectResourceNamingTemplateCommandHandler(
     IProjectRepository projectRepository,
     IProjectAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<SetProjectResourceNamingTemplateCommand, ErrorOr<ProjectResourceNamingTemplateResult>>
+    : ICommandHandler<SetProjectResourceNamingTemplateCommand, ProjectResourceNamingTemplateResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<ProjectResourceNamingTemplateResult>> Handle(

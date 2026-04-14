@@ -12,7 +12,7 @@ public class ListAvailableRoleDefinitionsQueryHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<ListAvailableRoleDefinitionsQuery, ErrorOr<List<AzureRoleDefinitionResult>>>
+    : IQueryHandler<ListAvailableRoleDefinitionsQuery, List<AzureRoleDefinitionResult>>
 {
     public async Task<ErrorOr<List<AzureRoleDefinitionResult>>> Handle(
         ListAvailableRoleDefinitionsQuery request,

@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
@@ -24,6 +23,9 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
     /// <summary>Gets the environment display name (e.g. "Development", "Staging", "Production").</summary>
     public required Name Name { get; set; }
 
+    /// <summary>Gets the short environment identifier without separators (e.g. "dev", "qa", "prod").</summary>
+    public required ShortName ShortName { get; set; }
+
     /// <summary>Gets the short prefix prepended to generated resource names.</summary>
     public required Prefix Prefix { get; set; }
 
@@ -33,19 +35,19 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
     /// <summary>Gets the default Azure region for this environment.</summary>
     public required Location Location { get; set; }
 
-    /// <summary>Gets the Azure AD tenant identifier.</summary>
-    public required TenantId TenantId { get; set; }
-
     /// <summary>Gets the Azure subscription identifier.</summary>
     public required SubscriptionId SubscriptionId { get; set; }
 
     /// <summary>Gets the deployment ordering index (lower = deployed first).</summary>
-    public Order Order { get; set; }
+    public Order Order { get; set; } = null!;
 
     /// <summary>Gets whether deployments to this environment require explicit approval.</summary>
-    public RequiresApproval RequiresApproval { get; set; }
+    public RequiresApproval RequiresApproval { get; set; } = null!;
 
-    private readonly List<Tag> _tags = new();
+    /// <summary>Gets the Azure DevOps service connection name used for ARM deployments in this environment.</summary>
+    public string? AzureResourceManagerConnection { get; set; }
+
+    private readonly List<Tag> _tags = [];
 
     /// <summary>Gets the Azure resource tags for this environment.</summary>
     public IReadOnlyCollection<Tag> Tags => _tags;
@@ -66,13 +68,14 @@ public sealed class ProjectEnvironmentDefinition : Entity<ProjectEnvironmentDefi
     {
         ProjectId = projectId;
         Name = data.Name;
+        ShortName = data.ShortName;
         Prefix = data.Prefix;
         Suffix = data.Suffix;
         Location = data.Location;
-        TenantId = data.TenantId;
         SubscriptionId = data.SubscriptionId;
         Order = data.Order;
         RequiresApproval = data.RequiresApproval;
+        AzureResourceManagerConnection = data.AzureResourceManagerConnection;
         _tags.AddRange(data.Tags);
     }
 }

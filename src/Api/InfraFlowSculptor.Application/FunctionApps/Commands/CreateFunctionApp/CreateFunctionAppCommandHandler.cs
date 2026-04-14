@@ -3,6 +3,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.FunctionApps.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.FunctionAppAggregate;
 using InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
 using MapsterMapper;
@@ -18,7 +19,7 @@ public sealed class CreateFunctionAppCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<CreateFunctionAppCommand, ErrorOr<FunctionAppResult>>
+    : ICommandHandler<CreateFunctionAppCommand, FunctionAppResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<FunctionAppResult>> Handle(
@@ -42,6 +43,13 @@ public sealed class CreateFunctionAppCommandHandler(
         var runtimeStack = new FunctionAppRuntimeStack(
             Enum.Parse<FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(request.RuntimeStack));
 
+        var deploymentMode = new DeploymentMode(
+            Enum.Parse<DeploymentMode.DeploymentModeType>(request.DeploymentMode));
+
+        var containerRegistryId = request.ContainerRegistryId.HasValue
+            ? new AzureResourceId(request.ContainerRegistryId.Value)
+            : (AzureResourceId?)null;
+
         var functionApp = FunctionApp.Create(
             request.ResourceGroupId,
             request.Name,
@@ -50,15 +58,18 @@ public sealed class CreateFunctionAppCommandHandler(
             runtimeStack,
             request.RuntimeVersion,
             request.HttpsOnly,
+            deploymentMode,
+            containerRegistryId,
+            request.DockerImageName,
+            request.DockerfilePath,
+            request.SourceCodePath,
+            request.BuildCommand,
+            request.ApplicationName,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName,
                     ec.HttpsOnly,
-                    ec.RuntimeStack is not null
-                        ? new FunctionAppRuntimeStack(Enum.Parse<FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(ec.RuntimeStack))
-                        : (FunctionAppRuntimeStack?)null,
-                    ec.RuntimeVersion,
                     ec.MaxInstanceCount,
-                    ec.FunctionsWorkerRuntime))
+                    ec.DockerImageTag))
                 .ToList());
 
         var saved = await functionAppRepository.AddAsync(functionApp);

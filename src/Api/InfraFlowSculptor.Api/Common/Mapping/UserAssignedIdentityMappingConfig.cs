@@ -13,7 +13,7 @@ namespace InfraFlowSculptor.Api.Common.Mapping;
 /// <summary>
 /// Mapster type adapter configuration for user-assigned identity request/command/result/response mappings.
 /// </summary>
-public class UserAssignedIdentityMappingConfig : IRegister
+public sealed class UserAssignedIdentityMappingConfig : IRegister
 {
     /// <inheritdoc />
     public void Register(TypeAdapterConfig config)

@@ -15,7 +15,7 @@ public class UpdateSqlServerCommandHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IMapper mapper)
-    : IRequestHandler<UpdateSqlServerCommand, ErrorOr<SqlServerResult>>
+    : ICommandHandler<UpdateSqlServerCommand, SqlServerResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<SqlServerResult>> Handle(

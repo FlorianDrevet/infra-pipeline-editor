@@ -9,11 +9,12 @@ namespace InfraFlowSculptor.Application.Projects.Common;
 public record ProjectEnvironmentDefinitionResult(
     ProjectEnvironmentDefinitionId Id,
     Name Name,
+    string ShortName,
     string Prefix,
     string Suffix,
     string Location,
-    Guid TenantId,
     Guid SubscriptionId,
     int Order,
     bool RequiresApproval,
+    string? AzureResourceManagerConnection,
     IReadOnlyList<TagResult> Tags);

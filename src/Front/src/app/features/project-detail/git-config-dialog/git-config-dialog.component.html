@@ -1,0 +1,93 @@
+<h2 mat-dialog-title>
+  {{ (isEditMode ? 'PROJECT_DETAIL.GIT_CONFIG.DIALOG_EDIT_TITLE' : 'PROJECT_DETAIL.GIT_CONFIG.DIALOG_TITLE') | translate }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="git-config-form" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.PROVIDER_TYPE' | translate }}</mat-label>
+      <mat-select formControlName="providerType">
+        @for (option of providerOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.REPOSITORY_URL' | translate }}</mat-label>
+      <input matInput formControlName="repositoryUrl"
+             [placeholder]="'PROJECT_DETAIL.GIT_CONFIG.FORM.REPOSITORY_URL_PLACEHOLDER' | translate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.DEFAULT_BRANCH' | translate }}</mat-label>
+      <input matInput formControlName="defaultBranch"
+             [placeholder]="'PROJECT_DETAIL.GIT_CONFIG.FORM.DEFAULT_BRANCH_PLACEHOLDER' | translate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.BASE_PATH' | translate }}</mat-label>
+      <input matInput formControlName="basePath"
+             [placeholder]="'PROJECT_DETAIL.GIT_CONFIG.FORM.BASE_PATH_PLACEHOLDER' | translate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.PIPELINE_BASE_PATH' | translate }}</mat-label>
+      <input matInput formControlName="pipelineBasePath"
+             [placeholder]="'PROJECT_DETAIL.GIT_CONFIG.FORM.PIPELINE_BASE_PATH_PLACEHOLDER' | translate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.PERSONAL_ACCESS_TOKEN' | translate }}</mat-label>
+      <input matInput formControlName="personalAccessToken"
+             [type]="showPat() ? 'text' : 'password'"
+             [placeholder]="'PROJECT_DETAIL.GIT_CONFIG.FORM.PERSONAL_ACCESS_TOKEN_PLACEHOLDER' | translate"
+             [autocomplete]="'off'" />
+      <button mat-icon-button matSuffix type="button" (click)="showPat.set(!showPat())">
+        <mat-icon>{{ showPat() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+    </mat-form-field>
+
+    @switch (selectedProvider()) {
+      @case ('GitHub') {
+        <div class="pat-help">
+          <mat-icon class="pat-help__icon">info_outline</mat-icon>
+          <span>
+            {{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.PAT_HELP_GITHUB' | translate }}
+            <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener noreferrer">
+              {{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.PAT_HELP_GITHUB_LINK' | translate }}
+            </a>
+          </span>
+        </div>
+      }
+      @case ('AzureDevOps') {
+        <div class="pat-help">
+          <mat-icon class="pat-help__icon">info_outline</mat-icon>
+          <span>
+            {{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.PAT_HELP_AZUREDEVOPS' | translate }}
+            <a href="https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate" target="_blank" rel="noopener noreferrer">
+              {{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.PAT_HELP_AZUREDEVOPS_LINK' | translate }}
+            </a>
+          </span>
+        </div>
+      }
+    }
+
+    @if (errorKey()) {
+      <p class="dialog-error">{{ errorKey() | translate }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+    {{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.CANCEL' | translate }}
+  </button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || isSubmitting()">
+    @if (isSubmitting()) {
+      <mat-spinner diameter="18"></mat-spinner>
+    } @else {
+      {{ 'PROJECT_DETAIL.GIT_CONFIG.FORM.SAVE' | translate }}
+    }
+  </button>
+</mat-dialog-actions>

@@ -10,7 +10,7 @@ public class DeleteRedisCacheCommandHandler(
     IRedisCacheRepository redisCacheRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteRedisCacheCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteRedisCacheCommand, Deleted>
 {
     public async Task<ErrorOr<Deleted>> Handle(DeleteRedisCacheCommand request, CancellationToken cancellationToken)
     {

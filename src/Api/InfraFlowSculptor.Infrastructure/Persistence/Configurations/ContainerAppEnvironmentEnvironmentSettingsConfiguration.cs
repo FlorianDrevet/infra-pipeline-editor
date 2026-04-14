@@ -44,10 +44,6 @@ public sealed class ContainerAppEnvironmentEnvironmentSettingsConfiguration
         builder.Property(x => x.ZoneRedundancyEnabled)
             .IsRequired(false);
 
-        builder.Property(x => x.LogAnalyticsWorkspaceId)
-            .IsRequired(false)
-            .HasMaxLength(500);
-
         builder.HasIndex(x => new { x.ContainerAppEnvironmentId, x.EnvironmentName })
             .IsUnique();
     }

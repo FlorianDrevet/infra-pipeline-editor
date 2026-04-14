@@ -9,7 +9,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveReso
 public class RemoveResourceNamingTemplateCommandHandler(
     IInfrastructureConfigRepository repository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<RemoveResourceNamingTemplateCommand, ErrorOr<Deleted>>
+    : ICommandHandler<RemoveResourceNamingTemplateCommand, Deleted>
 {
     public async Task<ErrorOr<Deleted>> Handle(
         RemoveResourceNamingTemplateCommand command, CancellationToken cancellationToken)
@@ -24,9 +24,7 @@ public class RemoveResourceNamingTemplateCommandHandler(
             return Errors.InfrastructureConfig.NotFoundError(command.InfraConfigId);
 
         if (!infraConfig.RemoveResourceNamingTemplate(command.ResourceType))
-            return Error.NotFound(
-                code: "ResourceNamingTemplate.NotFound",
-                description: $"No naming template override exists for resource type '{command.ResourceType}'.");
+            return Errors.InfrastructureConfig.ResourceNamingTemplateNotFoundError(command.ResourceType);
 
         await repository.UpdateAsync(infraConfig);
 

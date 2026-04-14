@@ -1,6 +1,6 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironment;
 
@@ -8,4 +8,4 @@ namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironme
 public record RemoveProjectEnvironmentCommand(
     ProjectId ProjectId,
     ProjectEnvironmentDefinitionId EnvironmentId
-) : IRequest<ErrorOr<Deleted>>;
+) : ICommand<Deleted>;

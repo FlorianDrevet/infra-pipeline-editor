@@ -10,7 +10,7 @@ public class DeleteKeyVaultCommandHandler(
     IKeyVaultRepository keyVaultRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<DeleteKeyVaultCommand, ErrorOr<Deleted>>
+    : ICommandHandler<DeleteKeyVaultCommand, Deleted>
 {
     public async Task<ErrorOr<Deleted>> Handle(DeleteKeyVaultCommand request, CancellationToken cancellationToken)
     {

@@ -17,7 +17,7 @@ public sealed class AddRoleAssignmentCommandHandler(
     IAzureResourceRepository azureResourceRepository,
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService)
-    : IRequestHandler<AddRoleAssignmentCommand, ErrorOr<RoleAssignmentResult>>
+    : ICommandHandler<AddRoleAssignmentCommand, RoleAssignmentResult>
 {
     /// <inheritdoc />
     public async Task<ErrorOr<RoleAssignmentResult>> Handle(

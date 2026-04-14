@@ -1,11 +1,11 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.DownloadBicep;
 
 public record DownloadBicepCommand(
     Guid InfrastructureConfigId
-) : IRequest<ErrorOr<DownloadBicepResult>>;
+) : ICommand<DownloadBicepResult>;
 
 public record DownloadBicepResult(
     byte[] ZipContent,

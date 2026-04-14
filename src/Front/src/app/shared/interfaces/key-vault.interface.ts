@@ -17,6 +17,12 @@ export interface KeyVaultResponse {
   resourceGroupId: string;
   name: string;
   location: string;
+  enableRbacAuthorization: boolean;
+  enabledForDeployment: boolean;
+  enabledForDiskEncryption: boolean;
+  enabledForTemplateDeployment: boolean;
+  enablePurgeProtection: boolean;
+  enableSoftDelete: boolean;
   environmentSettings: KeyVaultEnvironmentConfigResponse[];
 }
 
@@ -26,11 +32,23 @@ export interface CreateKeyVaultRequest {
   resourceGroupId: string;
   name: string;
   location: string;
+  enableRbacAuthorization?: boolean;
+  enabledForDeployment?: boolean;
+  enabledForDiskEncryption?: boolean;
+  enabledForTemplateDeployment?: boolean;
+  enablePurgeProtection?: boolean;
+  enableSoftDelete?: boolean;
   environmentSettings?: KeyVaultEnvironmentConfigEntry[];
 }
 
 export interface UpdateKeyVaultRequest {
   name: string;
   location: string;
+  enableRbacAuthorization?: boolean;
+  enabledForDeployment?: boolean;
+  enabledForDiskEncryption?: boolean;
+  enabledForTemplateDeployment?: boolean;
+  enablePurgeProtection?: boolean;
+  enableSoftDelete?: boolean;
   environmentSettings?: KeyVaultEnvironmentConfigEntry[];
 }

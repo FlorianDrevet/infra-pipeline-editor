@@ -1,8 +1,8 @@
+using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.WebApps.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
-using MediatR;
 
 namespace InfraFlowSculptor.Application.WebApps.Commands.UpdateWebApp;
 
@@ -16,5 +16,12 @@ public record UpdateWebAppCommand(
     string RuntimeVersion,
     bool AlwaysOn,
     bool HttpsOnly,
+    string DeploymentMode,
+    Guid? ContainerRegistryId,
+    string? DockerImageName,
+    string? DockerfilePath = null,
+    string? SourceCodePath = null,
+    string? BuildCommand = null,
+    string? ApplicationName = null,
     IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null
-) : IRequest<ErrorOr<WebAppResult>>;
+) : ICommand<WebAppResult>;

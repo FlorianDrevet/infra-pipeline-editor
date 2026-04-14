@@ -4,16 +4,14 @@ export interface WebAppEnvironmentConfigEntry {
   environmentName: string;
   alwaysOn?: boolean | null;
   httpsOnly?: boolean | null;
-  runtimeStack?: string | null;
-  runtimeVersion?: string | null;
+  dockerImageTag?: string | null;
 }
 
 export interface WebAppEnvironmentConfigResponse {
   environmentName: string;
   alwaysOn: boolean | null;
   httpsOnly: boolean | null;
-  runtimeStack: string | null;
-  runtimeVersion: string | null;
+  dockerImageTag: string | null;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -24,10 +22,17 @@ export interface WebAppResponse {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode: string;
+  containerRegistryId: string | null;
+  dockerImageName: string | null;
+  dockerfilePath: string | null;
+  sourceCodePath: string | null;
+  buildCommand: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   alwaysOn: boolean;
   httpsOnly: boolean;
+  applicationName: string | null;
   environmentSettings: WebAppEnvironmentConfigResponse[];
 }
 
@@ -38,10 +43,17 @@ export interface CreateWebAppRequest {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode?: string;
+  containerRegistryId?: string | null;
+  dockerImageName?: string | null;
+  dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
+  buildCommand?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   alwaysOn: boolean;
   httpsOnly: boolean;
+  applicationName?: string | null;
   environmentSettings?: WebAppEnvironmentConfigEntry[];
 }
 
@@ -49,9 +61,16 @@ export interface UpdateWebAppRequest {
   name: string;
   location: string;
   appServicePlanId: string;
+  deploymentMode?: string;
+  containerRegistryId?: string | null;
+  dockerImageName?: string | null;
+  dockerfilePath?: string | null;
+  sourceCodePath?: string | null;
+  buildCommand?: string | null;
   runtimeStack: string;
   runtimeVersion: string;
   alwaysOn: boolean;
   httpsOnly: boolean;
+  applicationName?: string | null;
   environmentSettings?: WebAppEnvironmentConfigEntry[];
 }

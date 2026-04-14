@@ -1,4 +1,6 @@
 using InfraFlowSculptor.Application.RoleAssignments.Commands.AddRoleAssignment;
+using InfraFlowSculptor.Application.RoleAssignments.Commands.AssignIdentityToResource;
+using InfraFlowSculptor.Application.RoleAssignments.Commands.UpdateRoleAssignmentIdentity;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.Contracts.RoleAssignments.Requests;
 using InfraFlowSculptor.Contracts.RoleAssignments.Responses;
@@ -8,7 +10,7 @@ using Mapster;
 namespace InfraFlowSculptor.Api.Common.Mapping;
 
 /// <summary>Mapster mapping configuration for role assignment request/response types.</summary>
-public class RoleAssignmentMappingConfig : IRegister
+public sealed class RoleAssignmentMappingConfig : IRegister
 {
     /// <inheritdoc />
     public void Register(TypeAdapterConfig config)
@@ -22,6 +24,20 @@ public class RoleAssignmentMappingConfig : IRegister
                 src.Request.UserAssignedIdentityId.HasValue
                     ? new AzureResourceId(src.Request.UserAssignedIdentityId.Value)
                     : null));
+
+        config.NewConfig<(Guid SourceResourceId, Guid RoleAssignmentId, UpdateRoleAssignmentIdentityRequest Request), UpdateRoleAssignmentIdentityCommand>()
+            .MapWith(src => new UpdateRoleAssignmentIdentityCommand(
+                new AzureResourceId(src.SourceResourceId),
+                new RoleAssignmentId(src.RoleAssignmentId),
+                src.Request.ManagedIdentityType,
+                src.Request.UserAssignedIdentityId.HasValue
+                    ? new AzureResourceId(src.Request.UserAssignedIdentityId.Value)
+                    : null));
+
+        config.NewConfig<(Guid ResourceId, AssignIdentityToResourceRequest Request), AssignIdentityToResourceCommand>()
+            .MapWith(src => new AssignIdentityToResourceCommand(
+                new AzureResourceId(src.ResourceId),
+                new AzureResourceId(src.Request.UserAssignedIdentityId)));
 
         config.NewConfig<ManagedIdentityType, string>()
             .MapWith(src => src.Value.ToString());
@@ -44,5 +60,45 @@ public class RoleAssignmentMappingConfig : IRegister
                 src.Name,
                 src.Description,
                 src.DocumentationUrl));
+
+        config.NewConfig<IdentityRoleAssignmentResult, IdentityRoleAssignmentResponse>()
+            .MapWith(src => new IdentityRoleAssignmentResponse(
+                src.Id.Value,
+                src.SourceResourceId.Value,
+                src.SourceResourceName,
+                src.SourceResourceType,
+                src.TargetResourceId.Value,
+                src.TargetResourceName,
+                src.TargetResourceType,
+                src.RoleDefinitionId,
+                src.RoleName));
+
+        config.NewConfig<RoleAssignmentImpactItem, RoleAssignmentImpactItemResponse>()
+            .MapWith(src => new RoleAssignmentImpactItemResponse(
+                src.AffectedResourceId,
+                src.AffectedResourceName,
+                src.AffectedResourceType,
+                src.TargetResourceId,
+                src.TargetResourceName,
+                src.TargetResourceType,
+                src.ImpactType,
+                src.Description,
+                src.Severity,
+                src.AffectedSettingsCount));
+
+        config.NewConfig<RoleAssignmentImpactResult, RoleAssignmentImpactResponse>()
+            .MapWith(src => new RoleAssignmentImpactResponse(
+                src.HasImpact,
+                src.Impacts.Select(i => new RoleAssignmentImpactItemResponse(
+                    i.AffectedResourceId,
+                    i.AffectedResourceName,
+                    i.AffectedResourceType,
+                    i.TargetResourceId,
+                    i.TargetResourceName,
+                    i.TargetResourceType,
+                    i.ImpactType,
+                    i.Description,
+                    i.Severity,
+                    i.AffectedSettingsCount)).ToList()));
     }
 }

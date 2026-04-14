@@ -1,4 +1,5 @@
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
+using ErrorOr;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -22,14 +23,14 @@ public sealed class Project : AggregateRoot<ProjectId>
 
     // ─── Members ────────────────────────────────────────────────────────────
 
-    private readonly List<ProjectMember> _members = new();
+    private readonly List<ProjectMember> _members = [];
 
     /// <summary>Gets the members of this project with their roles.</summary>
     public IReadOnlyCollection<ProjectMember> Members => _members.AsReadOnly();
 
     // ─── Environment Definitions ────────────────────────────────────────────
 
-    private readonly List<ProjectEnvironmentDefinition> _environmentDefinitions = new();
+    private readonly List<ProjectEnvironmentDefinition> _environmentDefinitions = [];
 
     /// <summary>Gets the project-level environment definitions.</summary>
     public IReadOnlyCollection<ProjectEnvironmentDefinition> EnvironmentDefinitions
@@ -44,11 +45,55 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// </summary>
     public NamingTemplate? DefaultNamingTemplate { get; private set; }
 
-    private readonly List<ProjectResourceNamingTemplate> _resourceNamingTemplates = new();
+    private readonly List<ProjectResourceNamingTemplate> _resourceNamingTemplates = [];
 
     /// <summary>Gets the project-level per-resource-type naming template overrides.</summary>
     public IReadOnlyCollection<ProjectResourceNamingTemplate> ResourceNamingTemplates
         => _resourceNamingTemplates.AsReadOnly();
+
+    // ─── Tags ───────────────────────────────────────────────────────────────
+
+    private readonly List<Tag> _tags = [];
+
+    /// <summary>Gets the project-level default tags applied to all resources.</summary>
+    public IReadOnlyCollection<Tag> Tags => _tags;
+
+    /// <summary>Replaces all project-level tags with the provided collection.</summary>
+    public void SetTags(IEnumerable<Tag> tags)
+    {
+        _tags.Clear();
+        _tags.AddRange(tags);
+    }
+
+    // ─── Pipeline Variable Groups ──────────────────────────────────────────
+
+    private readonly List<ProjectPipelineVariableGroup> _projectPipelineVariableGroups = [];
+
+    /// <summary>Gets the project-level pipeline variable groups (shared across all configurations).</summary>
+    public IReadOnlyCollection<ProjectPipelineVariableGroup> PipelineVariableGroups
+        => _projectPipelineVariableGroups.AsReadOnly();
+
+    // ─── Repository Mode ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Gets the repository mode for this project.
+    /// <see cref="RepositoryModeEnum.MultiRepo"/>: each configuration has its own repository/push.
+    /// <see cref="RepositoryModeEnum.MonoRepo"/>: all configurations share a single repository/push at project level.
+    /// </summary>
+    public RepositoryMode RepositoryMode { get; private set; } = new(RepositoryModeEnum.MultiRepo);
+
+    // ─── Git Repository Configuration ───────────────────────────────────────
+
+    /// <summary>Gets the optional Git repository configuration for pushing generated Bicep files.</summary>
+    public GitRepositoryConfiguration? GitRepositoryConfiguration { get; private set; }
+
+    // ─── Agent Pool ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Gets the name of the self-hosted agent pool to use in generated pipelines.
+    /// When <c>null</c>, pipelines use the Microsoft-hosted pool (<c>vmImage: ubuntu-latest</c>).
+    /// </summary>
+    public string? AgentPoolName { get; private set; }
 
     // ─── Constructor ────────────────────────────────────────────────────────
 
@@ -122,13 +167,14 @@ public sealed class Project : AggregateRoot<ProjectId>
             ReorderEnvironments(envId, oldOrder, newOrder);
 
         env.Name = data.Name;
+        env.ShortName = data.ShortName;
         env.Prefix = data.Prefix;
         env.Suffix = data.Suffix;
         env.Location = data.Location;
-        env.TenantId = data.TenantId;
         env.SubscriptionId = data.SubscriptionId;
         env.Order = data.Order;
         env.RequiresApproval = data.RequiresApproval;
+        env.AzureResourceManagerConnection = data.AzureResourceManagerConnection;
         env.SetTags(data.Tags);
         return env;
     }
@@ -205,5 +251,79 @@ public sealed class Project : AggregateRoot<ProjectId>
             return false;
         _resourceNamingTemplates.Remove(existing);
         return true;
+    }
+
+    // ─── Pipeline Variable Group Management ───────────────────────────────
+
+    /// <summary>Adds a new pipeline variable group to this project.</summary>
+    public ErrorOr<ProjectPipelineVariableGroup> AddPipelineVariableGroup(string groupName)
+    {
+        if (_projectPipelineVariableGroups.Any(g =>
+                string.Equals(g.GroupName, groupName, StringComparison.OrdinalIgnoreCase)))
+        {
+            return Domain.Common.Errors.Errors.Project.DuplicateVariableGroupError(groupName);
+        }
+
+        var group = ProjectPipelineVariableGroup.Create(Id, groupName);
+        _projectPipelineVariableGroups.Add(group);
+        return group;
+    }
+
+    /// <summary>Removes a pipeline variable group and all its mappings from this project.</summary>
+    public ErrorOr<Deleted> RemovePipelineVariableGroup(ProjectPipelineVariableGroupId groupId)
+    {
+        var group = _projectPipelineVariableGroups.FirstOrDefault(g => g.Id == groupId);
+        if (group is null)
+            return Domain.Common.Errors.Errors.Project.VariableGroupNotFoundError(groupId);
+
+        _projectPipelineVariableGroups.Remove(group);
+        return Result.Deleted;
+    }
+
+    // ─── Git Repository Configuration Management ────────────────────────────
+
+    /// <summary>Sets or updates the Git repository configuration for this project.</summary>
+    public GitRepositoryConfiguration SetGitRepositoryConfiguration(
+        GitProviderType providerType,
+        string repositoryUrl,
+        string defaultBranch,
+        string? basePath,
+        string? pipelineBasePath)
+    {
+        if (GitRepositoryConfiguration is not null)
+        {
+            GitRepositoryConfiguration.Update(providerType, repositoryUrl, defaultBranch, basePath, pipelineBasePath);
+            return GitRepositoryConfiguration;
+        }
+
+        GitRepositoryConfiguration = Entities.GitRepositoryConfiguration.Create(
+            providerType, repositoryUrl, defaultBranch, basePath, pipelineBasePath, Id);
+        return GitRepositoryConfiguration;
+    }
+
+    /// <summary>Removes the Git repository configuration from this project.</summary>
+    public ErrorOr<Deleted> RemoveGitRepositoryConfiguration()
+    {
+        if (GitRepositoryConfiguration is null)
+            return Domain.Common.Errors.Errors.GitRepository.NotConfigured();
+
+        GitRepositoryConfiguration = null;
+        return Result.Deleted;
+    }
+
+    // ─── Repository Mode Management ─────────────────────────────────────────
+
+    /// <summary>Sets the repository mode for this project.</summary>
+    public void SetRepositoryMode(RepositoryMode mode)
+    {
+        RepositoryMode = mode;
+    }
+
+    // ─── Agent Pool Management ──────────────────────────────────────────
+
+    /// <summary>Sets or clears the self-hosted agent pool name for pipeline generation.</summary>
+    public void SetAgentPoolName(string? poolName)
+    {
+        AgentPoolName = string.IsNullOrWhiteSpace(poolName) ? null : poolName.Trim();
     }
 }

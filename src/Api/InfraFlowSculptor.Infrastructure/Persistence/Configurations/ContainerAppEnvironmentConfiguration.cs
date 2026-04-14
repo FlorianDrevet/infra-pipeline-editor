@@ -1,5 +1,7 @@
 using InfraFlowSculptor.Domain.Common.BaseModels;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppEnvironmentAggregate;
+using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,6 +17,10 @@ public sealed class ContainerAppEnvironmentConfiguration : IEntityTypeConfigurat
     {
         builder.HasBaseType<AzureResource>()
             .ToTable("ContainerAppEnvironments");
+
+        builder.Property(x => x.LogAnalyticsWorkspaceId)
+            .HasConversion(new IdValueConverter<AzureResourceId>())
+            .IsRequired(false);
 
         builder.HasMany(x => x.EnvironmentSettings)
             .WithOne()
