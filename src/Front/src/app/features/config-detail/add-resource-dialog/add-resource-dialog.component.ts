@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, afterNextRender, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -468,7 +468,7 @@ export class AddResourceDialogComponent {
         this.prefillParentFormField(childType);
         this.step.set('common');
         if (childType === ResourceTypeEnum.WebApp || childType === ResourceTypeEnum.FunctionApp) {
-          this.loadAvailableContainerRegistries();
+          afterNextRender(() => this.loadAvailableContainerRegistries());
         }
       }
     }

@@ -36,10 +36,10 @@ public class StorageAccount : AzureResource
     public IReadOnlyList<CorsRule> AllCorsRules => _corsRules.AsReadOnly();
 
     /// <summary>Gets CORS rules applicable to the Blob service.</summary>
-    public IReadOnlyList<CorsRule> CorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Blob)).ToList();
+    public IReadOnlyList<CorsRule> GetCorsRules() => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Blob)).ToList();
 
     /// <summary>Gets CORS rules applicable to the Table service.</summary>
-    public IReadOnlyList<CorsRule> TableCorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Table)).ToList();
+    public IReadOnlyList<CorsRule> GetTableCorsRules() => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Table)).ToList();
 
     private readonly List<BlobLifecycleRule> _lifecycleRules = [];
 

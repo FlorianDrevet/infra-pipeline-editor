@@ -31,6 +31,7 @@ public static class AzureResourceTypes
     /// <summary>
     /// Azure ARM resource provider type strings (e.g. "Microsoft.KeyVault/vaults").
     /// </summary>
+#pragma warning disable S3218 // Inner class members intentionally mirror outer class names for API consistency
     public static class ArmTypes
     {
         public const string KeyVault = "Microsoft.KeyVault/vaults";
@@ -52,6 +53,7 @@ public static class AzureResourceTypes
         public const string ContainerRegistry = "Microsoft.ContainerRegistry/registries";
         public const string EventHubNamespace = "Microsoft.EventHub/namespaces";
     }
+#pragma warning restore S3218
 
     /// <summary>
     /// Maps Azure ARM resource type strings to their friendly type names.

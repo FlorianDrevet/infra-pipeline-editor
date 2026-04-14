@@ -71,7 +71,7 @@ export class AppComponent {
     this.annotationRef()?.nativeElement.activate();
   }
 
-  private readonly onAnnotationCreate = (event: Event): void => {
-    void event;
+  private readonly onAnnotationCreate = (_event: Event): void => {
+    // Event handler intentionally left empty — annotation creation is tracked externally.
   };
 }

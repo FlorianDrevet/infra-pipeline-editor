@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 
 /// <summary>
@@ -8,9 +10,11 @@ namespace InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 public static class AzureRoleDefinitionCatalog
 {
     /// <summary>Well-known role definition ID for "Key Vault Secrets User".</summary>
+    [SuppressMessage("SonarAnalyzer.CSharp", "S6418", Justification = "Not a secret — this is an Azure built-in RBAC role definition name.")]
     public const string KeyVaultSecretsUser = "4633458b-17de-408a-b874-0445c86b69e6";
 
     /// <summary>Well-known role definition ID for "Key Vault Secrets Officer".</summary>
+    [SuppressMessage("SonarAnalyzer.CSharp", "S6418", Justification = "Not a secret — this is an Azure built-in RBAC role definition name.")]
     public const string KeyVaultSecretsOfficer = "b86a8fe4-44ce-4948-aee5-eccb2c155cd7";
 
     /// <summary>Well-known role definition ID for "Key Vault Administrator".</summary>

@@ -89,14 +89,14 @@ public sealed class StorageAccountMappingConfig : IRegister
             .Map(dest => dest.AccessTier, src => src.AccessTier.Value.ToString())
             .Map(dest => dest.MinimumTlsVersion, src => src.MinimumTlsVersion.Value.ToString())
             .Map(dest => dest.CorsRules,
-                src => src.CorsRules.Select(rule => new CorsRuleResult(
+                src => src.GetCorsRules().Select(rule => new CorsRuleResult(
                     rule.AllowedOrigins,
                     rule.AllowedMethods,
                     rule.AllowedHeaders,
                     rule.ExposedHeaders,
                     rule.MaxAgeInSeconds)).ToList())
             .Map(dest => dest.TableCorsRules,
-                src => src.TableCorsRules.Select(rule => new CorsRuleResult(
+                src => src.GetTableCorsRules().Select(rule => new CorsRuleResult(
                     rule.AllowedOrigins,
                     rule.AllowedMethods,
                     rule.AllowedHeaders,

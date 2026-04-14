@@ -15,8 +15,7 @@ public class StorageAccountConfiguration : IEntityTypeConfiguration<StorageAccou
         builder.HasBaseType<AzureResource>()
             .ToTable("StorageAccounts");
 
-        builder.Ignore(s => s.CorsRules);
-        builder.Ignore(s => s.TableCorsRules);
+        // CorsRules/TableCorsRules are methods (not properties), so EF Core won't auto-discover them.
 
         builder.Property(s => s.Kind)
             .IsRequired()
