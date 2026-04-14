@@ -220,7 +220,7 @@ public static class InfrastructureConfigController
             config.MapPost("/{id:guid}/cross-config-references",
                     async ([FromRoute] Guid id, AddCrossConfigReferenceRequest request, IMediator mediator) =>
                     {
-                        var command = new AddCrossConfigReferenceCommand(id, Guid.Parse(request.TargetResourceId));
+                        var command = new AddCrossConfigReferenceCommand(id, request.TargetResourceId);
                         var result = await mediator.Send(command);
 
                         return result.Match(

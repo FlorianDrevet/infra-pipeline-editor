@@ -31,7 +31,7 @@ public sealed class SetProjectGitConfigCommandHandler(
             return Errors.Project.NotFoundError(command.ProjectId);
 
         if (!Enum.TryParse<GitProviderTypeEnum>(command.ProviderType, ignoreCase: true, out var providerTypeEnum))
-            return Errors.GitRepository.InvalidRepositoryUrl();
+            return Errors.GitRepository.InvalidProviderType(command.ProviderType);
 
         var providerType = new GitProviderType(providerTypeEnum);
 

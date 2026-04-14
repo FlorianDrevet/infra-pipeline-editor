@@ -8,7 +8,7 @@ namespace InfraFlowSculptor.Application.AppSettings.Commands.AddAppSetting;
 /// <summary>Command to add an app setting (environment variable) to a compute resource.</summary>
 /// <param name="ResourceId">Identifier of the compute resource (WebApp, FunctionApp, or ContainerApp).</param>
 /// <param name="Name">The environment variable name.</param>
-/// <param name="StaticValue">The static value (null when using a resource output reference).</param>
+/// <param name="EnvironmentValues">Static values for the setting per environment (null when using a resource output or Key Vault reference instead).</param>
 /// <param name="SourceResourceId">Identifier of the source resource for output reference (null for static values).</param>
 /// <param name="SourceOutputName">The output name on the source resource (null for static values).</param>
 /// <param name="KeyVaultResourceId">Identifier of the Key Vault resource for a KV reference (null for non-KV settings).</param>

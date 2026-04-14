@@ -31,24 +31,49 @@ public class UpdateRedisCacheCommandHandler(
         if (authResult.IsError)
             return authResult.Errors;
 
+        TlsVersion? tlsVersion = null;
+        if (request.MinimumTlsVersion is not null)
+        {
+            if (!Enum.TryParse<TlsVersion.Version>(request.MinimumTlsVersion, ignoreCase: true, out var parsedTls))
+                return Error.Validation(code: "RedisCache.InvalidMinimumTlsVersion", description: $"The minimum TLS version '{request.MinimumTlsVersion}' is not valid.");
+            tlsVersion = new TlsVersion(parsedTls);
+        }
+
         redisCache.Update(
             request.Name,
             request.Location,
             request.RedisVersion,
             request.EnableNonSslPort,
-            request.MinimumTlsVersion is not null ? new TlsVersion(Enum.Parse<TlsVersion.Version>(request.MinimumTlsVersion)) : null,
+            tlsVersion,
             request.DisableAccessKeyAuthentication,
             request.EnableAadAuth);
 
         if (request.EnvironmentSettings is not null)
-            redisCache.SetAllEnvironmentSettings(
-                request.EnvironmentSettings
-                    .Select(ec => (
-                        ec.EnvironmentName,
-                        ec.Sku is not null ? new RedisCacheSku(Enum.Parse<RedisCacheSku.Sku>(ec.Sku)) : (RedisCacheSku?)null,
-                        ec.Capacity,
-                        ec.MaxMemoryPolicy is not null ? new MaxMemoryPolicy(Enum.Parse<MaxMemoryPolicy.Policy>(ec.MaxMemoryPolicy)) : (MaxMemoryPolicy?)null))
-                    .ToList());
+        {
+            var parsedSettings = new List<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>();
+            foreach (var ec in request.EnvironmentSettings)
+            {
+                RedisCacheSku? sku = null;
+                if (ec.Sku is not null)
+                {
+                    if (!Enum.TryParse<RedisCacheSku.Sku>(ec.Sku, ignoreCase: true, out var parsedSku))
+                        return Error.Validation(code: "RedisCache.InvalidSku", description: $"The SKU '{ec.Sku}' is not valid.");
+                    sku = new RedisCacheSku(parsedSku);
+                }
+
+                MaxMemoryPolicy? maxMemoryPolicy = null;
+                if (ec.MaxMemoryPolicy is not null)
+                {
+                    if (!Enum.TryParse<MaxMemoryPolicy.Policy>(ec.MaxMemoryPolicy, ignoreCase: true, out var parsedPolicy))
+                        return Error.Validation(code: "RedisCache.InvalidMaxMemoryPolicy", description: $"The max memory policy '{ec.MaxMemoryPolicy}' is not valid.");
+                    maxMemoryPolicy = new MaxMemoryPolicy(parsedPolicy);
+                }
+
+                parsedSettings.Add((ec.EnvironmentName, sku, ec.Capacity, maxMemoryPolicy));
+            }
+
+            redisCache.SetAllEnvironmentSettings(parsedSettings);
+        }
 
         var updatedRedisCache = await redisCacheRepository.UpdateAsync(redisCache);
 
