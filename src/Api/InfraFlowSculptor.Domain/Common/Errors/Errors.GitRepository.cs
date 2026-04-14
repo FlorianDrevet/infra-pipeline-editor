@@ -11,6 +11,7 @@ public static partial class Errors
         private const string InvalidRepositoryUrlCode = "GitRepository.InvalidRepositoryUrl";
         private const string PushFailedCode = "GitRepository.PushFailed";
         private const string SecretRetrievalFailedCode = "GitRepository.SecretRetrievalFailed";
+        private const string InvalidProviderTypeCode = "GitRepository.InvalidProviderType";
         private const string ConnectionTestFailedCode = "GitRepository.ConnectionTestFailed";
         private const string ListBranchesFailedCode = "GitRepository.ListBranchesFailed";
 
@@ -21,6 +22,10 @@ public static partial class Errors
         /// <summary>Returns a validation error for an invalid repository URL.</summary>
         public static Error InvalidRepositoryUrl() =>
             Error.Validation(code: InvalidRepositoryUrlCode, description: "The repository URL format is invalid.");
+
+        /// <summary>Returns a validation error for an unrecognized Git provider type.</summary>
+        public static Error InvalidProviderType(string providerType) =>
+            Error.Validation(code: InvalidProviderTypeCode, description: $"The provider type '{providerType}' is not supported.");
 
         /// <summary>Returns a failure error when pushing files to Git fails.</summary>
         public static Error PushFailed(string reason) =>

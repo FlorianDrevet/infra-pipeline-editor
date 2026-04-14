@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using InfraFlowSculptor.Contracts.ValidationAttributes;
 
 namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 
@@ -7,6 +6,6 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 public class AddCrossConfigReferenceRequest
 {
     /// <summary>Identifier of the target Azure resource to reference.</summary>
-    [Required, GuidValidation]
-    public required string TargetResourceId { get; init; }
+    [Required]
+    public required Guid TargetResourceId { get; init; }
 }

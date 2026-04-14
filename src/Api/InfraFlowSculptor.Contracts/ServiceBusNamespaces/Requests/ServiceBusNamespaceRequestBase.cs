@@ -41,12 +41,3 @@ public class ServiceBusNamespaceEnvironmentConfigEntry
     /// <summary>Optional minimum TLS version (1.0, 1.1, 1.2).</summary>
     public string? MinimumTlsVersion { get; init; }
 }
-
-/// <summary>Response DTO for a typed per-environment Service Bus Namespace configuration.</summary>
-public record ServiceBusNamespaceEnvironmentConfigResponse(
-    string EnvironmentName,
-    string? Sku,
-    int? Capacity,
-    bool? ZoneRedundant,
-    bool? DisableLocalAuth,
-    string? MinimumTlsVersion);

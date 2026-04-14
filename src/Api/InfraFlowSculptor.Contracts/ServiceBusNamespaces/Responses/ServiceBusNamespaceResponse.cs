@@ -1,5 +1,3 @@
-using InfraFlowSculptor.Contracts.ServiceBusNamespaces.Requests;
-
 namespace InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses;
 
 /// <summary>Represents an Azure Service Bus Namespace resource.</summary>
@@ -25,3 +23,12 @@ public record ServiceBusQueueResponse(Guid Id, string Name);
 
 /// <summary>Response DTO for a Service Bus Topic Subscription.</summary>
 public record ServiceBusTopicSubscriptionResponse(Guid Id, string TopicName, string SubscriptionName);
+
+/// <summary>Response DTO for a typed per-environment Service Bus Namespace configuration.</summary>
+public record ServiceBusNamespaceEnvironmentConfigResponse(
+    string EnvironmentName,
+    string? Sku,
+    int? Capacity,
+    bool? ZoneRedundant,
+    bool? DisableLocalAuth,
+    string? MinimumTlsVersion);
