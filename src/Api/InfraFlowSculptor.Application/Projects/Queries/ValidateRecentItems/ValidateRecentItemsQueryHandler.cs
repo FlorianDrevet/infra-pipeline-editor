@@ -25,13 +25,14 @@ public sealed class ValidateRecentItemsQueryHandler(
 
         var userId = await currentUser.GetUserIdAsync(cancellationToken);
 
-        var accessibleProjects = await projectRepository.GetAllForUserAsync(userId, cancellationToken);
+        // Use lightweight projections — only Id/Name/Description are needed, not full aggregates with Members/Users.
+        var accessibleProjects = await projectRepository.GetProjectSummariesForUserAsync(userId, cancellationToken);
         var accessibleProjectIds = accessibleProjects
-            .ToDictionary(p => p.Id.Value, p => p);
+            .ToDictionary(p => p.Id, p => p);
 
-        var accessibleConfigs = await configRepository.GetAllForUserAsync(userId, cancellationToken);
+        var accessibleConfigs = await configRepository.GetConfigSummariesForUserAsync(userId, cancellationToken);
         var accessibleConfigIds = accessibleConfigs
-            .ToDictionary(c => c.Id.Value, c => c);
+            .ToDictionary(c => c.Id, c => c);
 
         var results = new List<RecentItemResult>();
 
@@ -41,16 +42,16 @@ public sealed class ValidateRecentItemsQueryHandler(
             {
                 case "project" when accessibleProjectIds.TryGetValue(item.Id, out var project):
                     results.Add(new RecentItemResult(
-                        project.Id.Value.ToString(),
-                        project.Name.Value,
+                        project.Id.ToString(),
+                        project.Name,
                         "project",
                         project.Description));
                     break;
 
                 case "config" when accessibleConfigIds.TryGetValue(item.Id, out var config):
                     results.Add(new RecentItemResult(
-                        config.Id.Value.ToString(),
-                        config.Name.Value,
+                        config.Id.ToString(),
+                        config.Name,
                         "config",
                         null));
                     break;
