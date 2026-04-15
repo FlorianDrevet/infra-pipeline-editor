@@ -38,6 +38,7 @@
 
 - **Main entry point** — Use the `dev` agent (`.github/agents/dev.agent.md`) as the primary entry point for any task. It reads `MEMORY.md` + thematic memory files in `.github/memory/`, routes to the right specialist, loads relevant Skills, and updates memory at the end.
 - **Architecture review & planning** — Use the `architect` agent (`.github/agents/architect.agent.md`) for any architecture analysis, feasibility check, implementation planning, or challenge of a feature request against the existing codebase. The architect never codes — it produces structured implementation plans for expert agents to follow.
+- **Expert code audits** — Use the `audit-expert` agent (`.github/agents/audit-expert.agent.md`) for repository audits that must produce a report in `audits/` and reconcile GitHub audit issues and labels on `FlorianDrevet/infra-pipeline-editor`.
 - **Backend C#/.NET** — Any C# code generation or modification MUST follow `.github/agents/dotnet-dev.agent.md` conventions (XML docs, no magic strings, SOLID, async/await, EF Core, FluentValidation, sealed, guard clauses, no code smells).
 - **Frontend Angular** — Any work in `src\Front` MUST use the `angular-front` agent (`.github/agents/angular-front.agent.md`).
 - **Aspire runtime debugging** — Any runtime/AppHost investigation (resource failures, logs/traces, startup issues) MUST use the `aspire-debug` agent (`.github/agents/aspire-debug.agent.md`).
@@ -62,6 +63,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 | `new-azure-resource` | Adding a new Azure resource type end-to-end (Domain→App→Infra→Contracts→API→Bicep→Frontend→i18n) | `.github/skills/new-azure-resource/SKILL.md` |
 | `gitnexus-workflow` | Code exploration via knowledge graph, impact analysis before modifications, post-change validation, safe refactoring | `.github/skills/gitnexus-workflow/SKILL.md` |
 | `draw-io-diagram-generator` | Creating or updating `.drawio` architecture, flow, sequence, ER, or UML diagrams for the project | `.github/skills/draw-io-diagram-generator/SKILL.md` |
+| `audit-workflow` | Running expert code audits, writing the report under `audits/`, and synchronizing audit findings with GitHub labels/issues | `.github/skills/audit-workflow/SKILL.md` |
 
 ---
 
@@ -84,6 +86,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 - Frontend conventions:
   - **Any frontend work in `src\Front` MUST use the `angular-front` agent** (`.github/agents/angular-front.agent.md`). This agent owns all Angular 19 conventions, signals, standalone components, and project-specific patterns.
   - **Any frontend UI task MUST load `ui-ux-front-saas` first** (`.github/skills/ui-ux-front-saas/SKILL.md`) to enforce SaaS B2B cloud UX rules and alignment with the existing login page visual baseline.
+  - **Any repository audit task that must generate a markdown audit and reconcile GitHub audit issues MUST use `audit-expert` and load `audit-workflow` first.**
   - Keep feature code under `src\Front\src\app` with clear split between `core`, `features`, and `shared`.
   - Keep API endpoint URLs centralized through `src\Front\src\environments\environment*.ts` and consumed via `AxiosService` (never hardcode base URLs in services or components).
   - Prefer standalone components and route-level lazy loading (`loadComponent`) for all new screens.
