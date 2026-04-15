@@ -9,7 +9,7 @@ using InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
 namespace InfraFlowSculptor.Domain.FunctionAppAggregate;
 
 /// <summary>Represents an Azure Function App resource.</summary>
-public class FunctionApp : AzureResource
+public sealed class FunctionApp : AzureResource
 {
     private readonly List<FunctionAppEnvironmentSettings> _environmentSettings = [];
 

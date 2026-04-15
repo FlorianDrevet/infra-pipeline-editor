@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
 /// <summary>
 /// Represents an Azure Application Insights resource aggregate root.
 /// </summary>
-public class ApplicationInsights : AzureResource
+public sealed class ApplicationInsights : AzureResource
 {
     private readonly List<ApplicationInsightsEnvironmentSettings> _environmentSettings = [];
 

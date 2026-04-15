@@ -13,7 +13,7 @@ namespace InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 /// Represents an Azure Event Hub Namespace resource aggregate root.
 /// Manages event hubs and consumer groups as sub-resources.
 /// </summary>
-public class EventHubNamespace : AzureResource
+public sealed class EventHubNamespace : AzureResource
 {
     private readonly List<EventHubNamespaceEnvironmentSettings> _environmentSettings = [];
     private readonly List<EventHub> _eventHubs = [];

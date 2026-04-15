@@ -9,7 +9,7 @@ using InfraFlowSculptor.Domain.WebAppAggregate.ValueObjects;
 namespace InfraFlowSculptor.Domain.WebAppAggregate;
 
 /// <summary>Represents an Azure Web App resource.</summary>
-public class WebApp : AzureResource
+public sealed class WebApp : AzureResource
 {
     private readonly List<WebAppEnvironmentSettings> _environmentSettings = [];
 

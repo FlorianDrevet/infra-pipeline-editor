@@ -13,7 +13,7 @@ namespace InfraFlowSculptor.Domain.StorageAccountAggregate;
 /// Represents an Azure Storage Account resource (<c>Microsoft.Storage/storageAccounts</c>).
 /// Manages blob containers, queues, tables, CORS rules, and blob lifecycle rules as sub-resources.
 /// </summary>
-public class StorageAccount : AzureResource
+public sealed class StorageAccount : AzureResource
 {
     private readonly List<BlobContainer> _blobContainers = [];
 

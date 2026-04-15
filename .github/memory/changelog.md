@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-15 | copilot | Sealed all concrete `AzureResource` aggregates in the domain model to enforce invariants and block uncontrolled inheritance (DDD-002). |
 | 2026-04-13 | copilot | Added the `draw-io-diagram-generator` skill and refreshed `docs/architecture/infraflowsculptor-architecture.drawio` as an Azure deployment diagram centered on deployed resources and their interactions. |
 | 2026-04-04 | copilot | Major consolidation: fixed Azure DevOps infra release validation/path/scope/service-connection/sparse-checkout issues, merged app pipeline generation into `POST /generate-pipeline`, moved `AgentPoolName` from `InfrastructureConfig` to `Project`, moved `ContainerAppEnvironment.LogAnalyticsWorkspaceId` to the aggregate root, added `DELETE /resource-group/{id}`, refactored `BicepAssembler`, improved generation UX with validating state, and corrected cross-resource FK cascade behavior for project deletion. |
 | 2026-04-03 | copilot | Added application pipeline generation end-to-end, integrated GitNexus workflow plus `13-code-graph.md`, audited memory counts/endpoints via GitNexus, and finalized ContainerApp pipeline/runtime fixes (`DockerImageName`, per-env bicep params, ACR/UAI reactivity). |

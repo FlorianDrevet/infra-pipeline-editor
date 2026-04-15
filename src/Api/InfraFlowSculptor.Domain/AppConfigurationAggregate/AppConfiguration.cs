@@ -13,7 +13,7 @@ namespace InfraFlowSculptor.Domain.AppConfigurationAggregate;
 /// <summary>
 /// Represents an Azure App Configuration resource aggregate root.
 /// </summary>
-public class AppConfiguration : AzureResource
+public sealed class AppConfiguration : AzureResource
 {
     private readonly List<AppConfigurationEnvironmentSettings> _environmentSettings = [];
     private readonly List<AppConfigurationKey> _configurationKeys = [];

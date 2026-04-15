@@ -13,7 +13,7 @@ namespace InfraFlowSculptor.Domain.KeyVaultAggregate;
 /// Represents an Azure Key Vault resource (<c>Microsoft.KeyVault/vaults</c>).
 /// Stores secrets, keys, and certificates with configurable RBAC and protection policies.
 /// </summary>
-public class KeyVault : AzureResource
+public sealed class KeyVault : AzureResource
 {
     private readonly List<KeyVaultEnvironmentSettings> _environmentSettings = [];
 

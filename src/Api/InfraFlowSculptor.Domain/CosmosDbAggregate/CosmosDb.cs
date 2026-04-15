@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Domain.CosmosDbAggregate;
 /// <summary>
 /// Represents an Azure Cosmos DB database account resource aggregate root.
 /// </summary>
-public class CosmosDb : AzureResource
+public sealed class CosmosDb : AzureResource
 {
     private readonly List<CosmosDbEnvironmentSettings> _environmentSettings = [];
 
