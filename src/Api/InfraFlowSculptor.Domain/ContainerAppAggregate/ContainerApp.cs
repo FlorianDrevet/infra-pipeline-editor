@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Domain.ContainerAppAggregate;
 /// <summary>
 /// Represents an Azure Container App resource aggregate root.
 /// </summary>
-public class ContainerApp : AzureResource
+public sealed class ContainerApp : AzureResource
 {
     private readonly List<ContainerAppEnvironmentSettings> _environmentSettings = [];
 

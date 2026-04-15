@@ -69,6 +69,7 @@ These reusable entity types are owned by multiple aggregates:
 ## Domain Code Quality Rules [2026-03-30]
 
 - All domain classes must have XML `<summary>` docs.
+- Concrete aggregates inheriting from `AzureResource` must be declared `sealed`.
 - Value object properties must use `private set`.
 - Error strings must be in English.
 - Collection initializers: prefer `= []` over `= new()`.

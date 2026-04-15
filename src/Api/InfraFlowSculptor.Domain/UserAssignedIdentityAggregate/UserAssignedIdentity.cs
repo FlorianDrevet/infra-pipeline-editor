@@ -9,7 +9,7 @@ namespace InfraFlowSculptor.Domain.UserAssignedIdentityAggregate;
 /// Represents a <c>Microsoft.ManagedIdentity/userAssignedIdentities</c> Azure resource.
 /// This resource has no per-environment settings.
 /// </summary>
-public class UserAssignedIdentity : AzureResource
+public sealed class UserAssignedIdentity : AzureResource
 {
     private UserAssignedIdentity() { }
 

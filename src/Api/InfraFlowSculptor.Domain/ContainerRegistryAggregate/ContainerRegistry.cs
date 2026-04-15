@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Domain.ContainerRegistryAggregate;
 /// <summary>
 /// Represents an Azure Container Registry resource aggregate root.
 /// </summary>
-public class ContainerRegistry : AzureResource
+public sealed class ContainerRegistry : AzureResource
 {
     private readonly List<ContainerRegistryEnvironmentSettings> _environmentSettings = [];
 

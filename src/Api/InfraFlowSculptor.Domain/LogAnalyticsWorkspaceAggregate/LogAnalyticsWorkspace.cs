@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate;
 /// <summary>
 /// Represents an Azure Log Analytics Workspace resource aggregate root.
 /// </summary>
-public class LogAnalyticsWorkspace : AzureResource
+public sealed class LogAnalyticsWorkspace : AzureResource
 {
     private readonly List<LogAnalyticsWorkspaceEnvironmentSettings> _environmentSettings = [];
 

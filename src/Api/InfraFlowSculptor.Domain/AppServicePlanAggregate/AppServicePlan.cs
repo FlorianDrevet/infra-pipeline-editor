@@ -9,7 +9,7 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 namespace InfraFlowSculptor.Domain.AppServicePlanAggregate;
 
 /// <summary>Represents an Azure App Service Plan resource.</summary>
-public class AppServicePlan : AzureResource
+public sealed class AppServicePlan : AzureResource
 {
     private readonly List<AppServicePlanEnvironmentSettings> _environmentSettings = [];
 

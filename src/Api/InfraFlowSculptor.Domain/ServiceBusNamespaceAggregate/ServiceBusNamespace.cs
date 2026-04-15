@@ -14,7 +14,7 @@ namespace InfraFlowSculptor.Domain.ServiceBusNamespaceAggregate;
 /// Represents an Azure Service Bus Namespace resource aggregate root.
 /// Manages queues and topic subscriptions as sub-resources.
 /// </summary>
-public class ServiceBusNamespace : AzureResource
+public sealed class ServiceBusNamespace : AzureResource
 {
     private readonly List<ServiceBusNamespaceEnvironmentSettings> _environmentSettings = [];
     private readonly List<ServiceBusQueue> _queues = [];

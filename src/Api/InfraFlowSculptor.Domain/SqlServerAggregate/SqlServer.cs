@@ -9,7 +9,7 @@ using InfraFlowSculptor.Domain.SqlServerAggregate.ValueObjects;
 namespace InfraFlowSculptor.Domain.SqlServerAggregate;
 
 /// <summary>Represents an Azure SQL Server resource.</summary>
-public class SqlServer : AzureResource
+public sealed class SqlServer : AzureResource
 {
     private readonly List<SqlServerEnvironmentSettings> _environmentSettings = [];
 

@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Domain.RedisCacheAggregate;
 /// Represents an Azure Cache for Redis resource (<c>Microsoft.Cache/Redis</c>).
 /// Supports per-environment SKU overrides, TLS configuration, and AAD authentication.
 /// </summary>
-public class RedisCache : AzureResource
+public sealed class RedisCache : AzureResource
 {
     private readonly List<RedisCacheEnvironmentSettings> _environmentSettings = [];
 
