@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.RegularExpressions;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
@@ -14,6 +15,21 @@ public sealed class BicepGenerationEngine
         "Microsoft.Web/sites/functionapp",
         "Microsoft.App/containerApps",
     };
+
+    // ── Compiled regex patterns for whitespace-tolerant Bicep template matching ──
+    private static readonly Regex ResourceSymbolPattern = new(@"resource\s+(\w+)\s+'", RegexOptions.Compiled);
+    private static readonly Regex IdentityBlockPattern = new(@"^\s+identity\s*:", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex PropertiesBlockPattern = new(@"^\s+properties\s*:", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex OutputPrincipalIdPattern = new(@"^output\s+principalId\b", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex ParamIdentityTypePattern = new(@"^param\s+identityType\b", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex ParamTagsPattern = new(@"^param\s+tags\b", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex ParamAppSettingsPattern = new(@"^param\s+appSettings\b", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex ParamEnvVarsPattern = new(@"^param\s+envVars\b", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex LocationPropertyPattern = new(@"^\s+location\s*:\s*location\b", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex AppSettingsArrayPattern = new(@"appSettings\s*:\s*\[", RegexOptions.Compiled);
+    private static readonly Regex SiteConfigPattern = new(@"\bsiteConfig\s*:", RegexOptions.Compiled);
+    private static readonly Regex EnvPropertyPattern = new(@"\benv\s*:", RegexOptions.Compiled);
+    private static readonly Regex MemoryPropertyPattern = new(@"\bmemory\s*:", RegexOptions.Compiled);
 
     private readonly IEnumerable<IResourceTypeBicepGenerator> _generators;
 
@@ -292,26 +308,26 @@ public sealed class BicepGenerationEngine
     private static string InjectSystemAssignedIdentity(string moduleBicep)
     {
         // Extract the resource symbol name from the template
-        var symbolMatch = Regex.Match(moduleBicep, @"resource\s+(\w+)\s+'");
+        var symbolMatch = ResourceSymbolPattern.Match(moduleBicep);
         if (!symbolMatch.Success) return moduleBicep;
 
         var symbol = symbolMatch.Groups[1].Value;
 
-        // Check if identity block already exists (match indented block, not param substrings)
-        if (moduleBicep.Contains("\n  identity:"))
+        // Check if identity block already exists (whitespace-tolerant regex)
+        if (IdentityBlockPattern.IsMatch(moduleBicep))
             return moduleBicep;
 
         // Check if principalId output already exists
-        if (moduleBicep.Contains("output principalId"))
+        if (OutputPrincipalIdPattern.IsMatch(moduleBicep))
             return moduleBicep;
 
         var identityBlock = "  identity: {\n    type: 'SystemAssigned'\n  }\n";
 
-        // Insert identity block before "properties:" line
-        var propertiesIdx = moduleBicep.IndexOf("  properties:", StringComparison.Ordinal);
-        if (propertiesIdx >= 0)
+        // Insert identity block before "properties:" line (whitespace-tolerant)
+        var propertiesMatch = PropertiesBlockPattern.Match(moduleBicep);
+        if (propertiesMatch.Success)
         {
-            moduleBicep = moduleBicep.Insert(propertiesIdx, identityBlock);
+            moduleBicep = InsertAt(moduleBicep, propertiesMatch.Index, identityBlock);
         }
         else
         {
@@ -321,32 +337,21 @@ public sealed class BicepGenerationEngine
             var resourceMatch = resourcePattern.Match(moduleBicep);
             if (resourceMatch.Success)
             {
-                // Find the matching closing brace for this resource
-                var braceStart = resourceMatch.Index + resourceMatch.Length;
-                var depth = 1;
-                var insertPos = -1;
-                for (var i = braceStart; i < moduleBicep.Length; i++)
-                {
-                    if (moduleBicep[i] == '{') depth++;
-                    else if (moduleBicep[i] == '}')
-                    {
-                        depth--;
-                        if (depth == 0) { insertPos = i; break; }
-                    }
-                }
-
+                var insertPos = FindClosingBrace(moduleBicep, resourceMatch.Index + resourceMatch.Length);
                 if (insertPos >= 0)
                 {
-                    moduleBicep = moduleBicep.Insert(insertPos, identityBlock);
+                    moduleBicep = InsertAt(moduleBicep, insertPos, identityBlock);
                 }
             }
         }
 
         // Append principalId output
-        moduleBicep = moduleBicep.TrimEnd() +
-            $"\n\noutput principalId string = {symbol}.identity.principalId\n";
-
-        return moduleBicep;
+        var sb = new StringBuilder(moduleBicep.TrimEnd());
+        sb.AppendLine();
+        sb.AppendLine();
+        sb.Append($"output principalId string = {symbol}.identity.principalId");
+        sb.AppendLine();
+        return sb.ToString();
     }
 
     /// <summary>
@@ -361,11 +366,11 @@ public sealed class BicepGenerationEngine
         bool alsoHasSystemAssigned)
     {
         // Build parameter declarations for each UAI resource ID
-        var paramDeclarations = new System.Text.StringBuilder();
+        var paramDeclarations = new StringBuilder();
         foreach (var uaiId in uaiIdentifiers)
         {
             var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-            if (moduleBicep.Contains($"param {paramName} "))
+            if (HasParam(moduleBicep, paramName))
                 continue;
             paramDeclarations.AppendLine($"@description('Resource ID of user-assigned identity: {uaiId}')");
             paramDeclarations.AppendLine($"param {paramName} string");
@@ -379,12 +384,12 @@ public sealed class BicepGenerationEngine
                 insertIdx = FindFirstLineIndex(moduleBicep, "resource ");
             if (insertIdx >= 0)
             {
-                moduleBicep = moduleBicep.Insert(insertIdx, paramDeclarations.ToString() + "\n");
+                moduleBicep = InsertAt(moduleBicep, insertIdx, paramDeclarations.ToString() + "\n");
             }
         }
 
         // Build the userAssignedIdentities object entries
-        var uaiEntries = new System.Text.StringBuilder();
+        var uaiEntries = new StringBuilder();
         foreach (var uaiId in uaiIdentifiers)
         {
             var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
@@ -396,7 +401,7 @@ public sealed class BicepGenerationEngine
             ? "SystemAssigned, UserAssigned"
             : "UserAssigned";
 
-        if (moduleBicep.Contains("\n  identity:"))
+        if (IdentityBlockPattern.IsMatch(moduleBicep))
         {
             // Identity block already exists (SystemAssigned was injected first).
             // Replace type and add userAssignedIdentities.
@@ -410,15 +415,15 @@ public sealed class BicepGenerationEngine
             var identityBlock =
                 $"  identity: {{\n    type: '{identityType}'\n    userAssignedIdentities: {{\n{uaiEntries}    }}\n  }}\n";
 
-            var propertiesIdx = moduleBicep.IndexOf("  properties:", StringComparison.Ordinal);
-            if (propertiesIdx >= 0)
+            var propertiesMatch = PropertiesBlockPattern.Match(moduleBicep);
+            if (propertiesMatch.Success)
             {
-                moduleBicep = moduleBicep.Insert(propertiesIdx, identityBlock);
+                moduleBicep = InsertAt(moduleBicep, propertiesMatch.Index, identityBlock);
             }
             else
             {
                 // For resources without properties block, insert before closing } of the resource
-                var symbolMatch = Regex.Match(moduleBicep, @"resource\s+(\w+)\s+'");
+                var symbolMatch = ResourceSymbolPattern.Match(moduleBicep);
                 if (symbolMatch.Success)
                 {
                     var symbol = symbolMatch.Groups[1].Value;
@@ -426,22 +431,10 @@ public sealed class BicepGenerationEngine
                     var resourceMatch = resourcePattern.Match(moduleBicep);
                     if (resourceMatch.Success)
                     {
-                        var braceStart = resourceMatch.Index + resourceMatch.Length;
-                        var depth = 1;
-                        var insertPos = -1;
-                        for (var i = braceStart; i < moduleBicep.Length; i++)
-                        {
-                            if (moduleBicep[i] == '{') depth++;
-                            else if (moduleBicep[i] == '}')
-                            {
-                                depth--;
-                                if (depth == 0) { insertPos = i; break; }
-                            }
-                        }
-
+                        var insertPos = FindClosingBrace(moduleBicep, resourceMatch.Index + resourceMatch.Length);
                         if (insertPos >= 0)
                         {
-                            moduleBicep = moduleBicep.Insert(insertPos, identityBlock);
+                            moduleBicep = InsertAt(moduleBicep, insertPos, identityBlock);
                         }
                     }
                 }
@@ -504,24 +497,24 @@ public sealed class BicepGenerationEngine
     /// </summary>
     private static string InjectParameterizedIdentity(string moduleBicep, List<string> allUaiIds)
     {
-        var symbolMatch = Regex.Match(moduleBicep, @"resource\s+(\w+)\s+'");
+        var symbolMatch = ResourceSymbolPattern.Match(moduleBicep);
         if (!symbolMatch.Success) return moduleBicep;
 
         var symbol = symbolMatch.Groups[1].Value;
 
-        // Check if we already injected parameterized identity
-        if (moduleBicep.Contains("param identityType "))
+        // Check if we already injected parameterized identity (whitespace-tolerant)
+        if (ParamIdentityTypePattern.IsMatch(moduleBicep))
             return moduleBicep;
 
         // Check if a hardcoded identity block exists (shouldn't in mixed case, but guard)
-        if (moduleBicep.Contains("\n  identity:"))
+        if (IdentityBlockPattern.IsMatch(moduleBicep))
             return moduleBicep;
 
         // Add ManagedIdentityType to the import line in the module template
         moduleBicep = AddTypeImport(moduleBicep, "ManagedIdentityType");
 
         // Build param declarations
-        var paramSb = new System.Text.StringBuilder();
+        var paramSb = new StringBuilder();
         paramSb.AppendLine("@description('Managed identity type for this resource')");
         paramSb.AppendLine("param identityType ManagedIdentityType = 'SystemAssigned'");
         paramSb.AppendLine();
@@ -529,7 +522,7 @@ public sealed class BicepGenerationEngine
         foreach (var uaiId in allUaiIds)
         {
             var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-            if (!moduleBicep.Contains($"param {paramName} "))
+            if (!HasParam(moduleBicep, paramName))
             {
                 paramSb.AppendLine($"@description('Resource ID of user-assigned identity: {uaiId} (empty when not applicable)')");
                 paramSb.AppendLine($"param {paramName} string = ''");
@@ -543,7 +536,7 @@ public sealed class BicepGenerationEngine
             insertIdx = FindFirstLineIndex(moduleBicep, "resource ");
         if (insertIdx >= 0)
         {
-            moduleBicep = moduleBicep.Insert(insertIdx, paramSb.ToString());
+            moduleBicep = InsertAt(moduleBicep, insertIdx, paramSb.ToString());
         }
 
         // Build: var userAssignedIdentities = { '${uai1Id}': {}, '${uai2Id}': {} }
@@ -551,7 +544,7 @@ public sealed class BicepGenerationEngine
         var hasUais = allUaiIds.Count > 0;
         if (hasUais)
         {
-            var varSb = new System.Text.StringBuilder();
+            var varSb = new StringBuilder();
             varSb.AppendLine("var userAssignedIdentityMap = {");
             foreach (var uaiId in allUaiIds)
             {
@@ -564,7 +557,7 @@ public sealed class BicepGenerationEngine
             var resourceIdx = FindFirstLineIndex(moduleBicep, "resource ");
             if (resourceIdx >= 0)
             {
-                moduleBicep = moduleBicep.Insert(resourceIdx, varSb.ToString());
+                moduleBicep = InsertAt(moduleBicep, resourceIdx, varSb.ToString());
             }
         }
 
@@ -590,18 +583,22 @@ public sealed class BicepGenerationEngine
             """;
         }
 
-        // Insert identity block before "properties:" line
-        var propertiesIdx = moduleBicep.IndexOf("  properties:", StringComparison.Ordinal);
-        if (propertiesIdx >= 0)
+        // Insert identity block before "properties:" line (whitespace-tolerant)
+        var propertiesMatch = PropertiesBlockPattern.Match(moduleBicep);
+        if (propertiesMatch.Success)
         {
-            moduleBicep = moduleBicep.Insert(propertiesIdx, identityBlock);
+            moduleBicep = InsertAt(moduleBicep, propertiesMatch.Index, identityBlock);
         }
 
         // Append principalId output (empty string when no SystemAssigned component)
-        if (!moduleBicep.Contains("output principalId"))
+        if (!OutputPrincipalIdPattern.IsMatch(moduleBicep))
         {
-            moduleBicep = moduleBicep.TrimEnd() +
-                $"\n\noutput principalId string = contains(identityType, 'SystemAssigned') ? {symbol}.identity.principalId : ''\n";
+            var sb = new StringBuilder(moduleBicep.TrimEnd());
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.Append($"output principalId string = contains(identityType, 'SystemAssigned') ? {symbol}.identity.principalId : ''");
+            sb.AppendLine();
+            moduleBicep = sb.ToString();
         }
 
         return moduleBicep;
@@ -656,8 +653,8 @@ public sealed class BicepGenerationEngine
 
         foreach (var (outputName, bicepExpression, isSecure) in outputs)
         {
-            // Skip if output already declared
-            if (moduleBicep.Contains($"output {outputName} "))
+            // Skip if output already declared (whitespace-tolerant)
+            if (HasOutput(moduleBicep, outputName))
                 continue;
 
             sb.AppendLine();
@@ -695,31 +692,32 @@ public sealed class BicepGenerationEngine
     /// </summary>
     private static string InjectTagsParam(string moduleBicep)
     {
-        if (moduleBicep.Contains("param tags "))
+        if (ParamTagsPattern.IsMatch(moduleBicep))
             return moduleBicep;
 
         // Add the tags param declaration after existing params
         var paramDecl = "\n@description('Resource tags')\nparam tags object = {}\n";
 
-        // Find place to insert: after the last param line
-        var lastParamIdx = moduleBicep.LastIndexOf("\nparam ", StringComparison.Ordinal);
-        if (lastParamIdx >= 0)
+        // Find place to insert: after the last param line (whitespace-tolerant)
+        var paramMatches = Regex.Matches(moduleBicep, @"\nparam\s+");
+        if (paramMatches.Count > 0)
         {
-            var endOfLine = moduleBicep.IndexOf('\n', lastParamIdx + 1);
+            var lastMatch = paramMatches[^1];
+            var endOfLine = moduleBicep.IndexOf('\n', lastMatch.Index + 1);
             if (endOfLine >= 0)
             {
-                moduleBicep = moduleBicep.Insert(endOfLine, paramDecl);
+                moduleBicep = InsertAt(moduleBicep, endOfLine, paramDecl);
             }
         }
 
-        // Add tags: tags to the resource declaration, after "location: location"
-        var locationIdx = moduleBicep.IndexOf("location: location", StringComparison.Ordinal);
-        if (locationIdx >= 0)
+        // Add tags: tags to the resource declaration, after "location: location" (whitespace-tolerant)
+        var locationMatch = LocationPropertyPattern.Match(moduleBicep);
+        if (locationMatch.Success)
         {
-            var endOfLocationLine = moduleBicep.IndexOf('\n', locationIdx);
+            var endOfLocationLine = moduleBicep.IndexOf('\n', locationMatch.Index + locationMatch.Length);
             if (endOfLocationLine >= 0)
             {
-                moduleBicep = moduleBicep.Insert(endOfLocationLine, "\n  tags: tags");
+                moduleBicep = InsertAt(moduleBicep, endOfLocationLine, "\n  tags: tags");
             }
         }
 
@@ -732,7 +730,7 @@ public sealed class BicepGenerationEngine
     /// </summary>
     private static string InjectWebFunctionAppSettings(string moduleBicep)
     {
-        if (moduleBicep.Contains("param appSettings "))
+        if (ParamAppSettingsPattern.IsMatch(moduleBicep))
             return moduleBicep;
 
         // Find the last param line to insert after it
@@ -745,47 +743,49 @@ public sealed class BicepGenerationEngine
         if (insertIdx < 0)
             return moduleBicep;
 
-        moduleBicep = moduleBicep.Insert(insertIdx, paramDecl + "\n");
+        moduleBicep = InsertAt(moduleBicep, insertIdx, paramDecl + "\n");
 
         // Wire into siteConfig: if appSettings already exists in siteConfig, concat; otherwise add
-        if (moduleBicep.Contains("appSettings: ["))
+        var appSettingsMatch = AppSettingsArrayPattern.Match(moduleBicep);
+        if (appSettingsMatch.Success)
         {
             // FunctionApp case: has existing appSettings array — wrap with concat
-            var appSettingsStart = moduleBicep.IndexOf("appSettings: [", StringComparison.Ordinal);
-            if (appSettingsStart >= 0)
-            {
-                // Find the matching ] for this appSettings array
-                var bracketStart = moduleBicep.IndexOf('[', appSettingsStart);
-                var depth = 0;
-                var bracketEnd = -1;
-                for (var i = bracketStart; i < moduleBicep.Length; i++)
-                {
-                    if (moduleBicep[i] == '[') depth++;
-                    else if (moduleBicep[i] == ']')
-                    {
-                        depth--;
-                        if (depth == 0) { bracketEnd = i; break; }
-                    }
-                }
+            var appSettingsStart = appSettingsMatch.Index;
 
-                if (bracketEnd >= 0)
+            // Find the matching ] for this appSettings array
+            var bracketStart = moduleBicep.IndexOf('[', appSettingsStart);
+            var depth = 0;
+            var bracketEnd = -1;
+            for (var i = bracketStart; i < moduleBicep.Length; i++)
+            {
+                if (moduleBicep[i] == '[') depth++;
+                else if (moduleBicep[i] == ']')
                 {
-                    // Replace "appSettings: [...]" with "appSettings: concat([...], appSettings)"
-                    var existingArray = moduleBicep.Substring(bracketStart, bracketEnd - bracketStart + 1);
-                    var original = moduleBicep.Substring(appSettingsStart, bracketEnd - appSettingsStart + 1);
-                    var replacement = $"appSettings: concat({existingArray}, appSettings)";
-                    moduleBicep = moduleBicep.Replace(original, replacement);
+                    depth--;
+                    if (depth == 0) { bracketEnd = i; break; }
                 }
             }
-        }
-        else if (moduleBicep.Contains("siteConfig:"))
-        {
-            // WebApp case: no existing appSettings in siteConfig — add it
-            var siteConfigIdx = moduleBicep.IndexOf("siteConfig:", StringComparison.Ordinal);
-            var braceIdx = moduleBicep.IndexOf('{', siteConfigIdx);
-            if (braceIdx >= 0)
+
+            if (bracketEnd >= 0)
             {
-                moduleBicep = moduleBicep.Insert(braceIdx + 1, "\n      appSettings: appSettings");
+                // Replace "appSettings: [...]" with "appSettings: concat([...], appSettings)"
+                var existingArray = moduleBicep.Substring(bracketStart, bracketEnd - bracketStart + 1);
+                var original = moduleBicep.Substring(appSettingsStart, bracketEnd - appSettingsStart + 1);
+                var replacement = $"appSettings: concat({existingArray}, appSettings)";
+                moduleBicep = moduleBicep.Replace(original, replacement);
+            }
+        }
+        else
+        {
+            // WebApp case: no existing appSettings in siteConfig — add it (whitespace-tolerant)
+            var siteConfigMatch = SiteConfigPattern.Match(moduleBicep);
+            if (siteConfigMatch.Success)
+            {
+                var braceIdx = moduleBicep.IndexOf('{', siteConfigMatch.Index);
+                if (braceIdx >= 0)
+                {
+                    moduleBicep = InsertAt(moduleBicep, braceIdx + 1, "\n      appSettings: appSettings");
+                }
             }
         }
 
@@ -798,7 +798,7 @@ public sealed class BicepGenerationEngine
     /// </summary>
     private static string InjectContainerAppEnvVars(string moduleBicep)
     {
-        if (moduleBicep.Contains("param envVars "))
+        if (ParamEnvVarsPattern.IsMatch(moduleBicep))
             return moduleBicep;
 
         var paramDecl = "\n@description('Environment variables for the container')\nparam envVars array = []\n";
@@ -807,19 +807,19 @@ public sealed class BicepGenerationEngine
         if (insertIdx < 0)
             return moduleBicep;
 
-        moduleBicep = moduleBicep.Insert(insertIdx, paramDecl + "\n");
+        moduleBicep = InsertAt(moduleBicep, insertIdx, paramDecl + "\n");
 
-        // Add env property to the container spec if not already present
-        if (!moduleBicep.Contains("env:"))
+        // Add env property to the container spec if not already present (whitespace-tolerant)
+        if (!EnvPropertyPattern.IsMatch(moduleBicep))
         {
             // Find "resources:" in the container spec — insert env after the "memory:" line
-            var memoryIdx = moduleBicep.IndexOf("memory:", StringComparison.Ordinal);
-            if (memoryIdx >= 0)
+            var memoryMatch = MemoryPropertyPattern.Match(moduleBicep);
+            if (memoryMatch.Success)
             {
-                var endOfLine = moduleBicep.IndexOf('\n', memoryIdx);
+                var endOfLine = moduleBicep.IndexOf('\n', memoryMatch.Index + memoryMatch.Length);
                 if (endOfLine >= 0)
                 {
-                    moduleBicep = moduleBicep.Insert(endOfLine + 1, "                  env: envVars\n");
+                    moduleBicep = InsertAt(moduleBicep, endOfLine + 1, "                  env: envVars\n");
                 }
             }
         }
@@ -829,20 +829,61 @@ public sealed class BicepGenerationEngine
 
     /// <summary>
     /// Finds the byte index of the first line in the template that starts with the given prefix
-    /// (after trimming whitespace). Returns -1 if not found.
+    /// (after trimming whitespace). Uses regex for whitespace-tolerant matching.
+    /// Returns -1 if not found.
     /// </summary>
     private static int FindFirstLineIndex(string content, string linePrefix)
     {
-        var lines = content.Split('\n');
-        var idx = 0;
-        foreach (var line in lines)
+        var match = Regex.Match(content, $@"^[ \t]*{Regex.Escape(linePrefix)}", RegexOptions.Multiline);
+        return match.Success ? match.Index : -1;
+    }
+
+    /// <summary>
+    /// Inserts <paramref name="content"/> into <paramref name="source"/> at the specified position
+    /// using <see cref="StringBuilder"/> to avoid O(n) string allocation per insert.
+    /// </summary>
+    private static string InsertAt(string source, int position, string content)
+    {
+        var sb = new StringBuilder(source.Length + content.Length);
+        sb.Append(source, 0, position);
+        sb.Append(content);
+        sb.Append(source, position, source.Length - position);
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Finds the position of the closing brace that matches the opening brace context.
+    /// Starts scanning from <paramref name="startIndex"/> with an initial depth of 1.
+    /// Returns -1 if no matching brace is found.
+    /// </summary>
+    private static int FindClosingBrace(string source, int startIndex)
+    {
+        var depth = 1;
+        for (var i = startIndex; i < source.Length; i++)
         {
-            if (line.TrimStart().StartsWith(linePrefix, StringComparison.Ordinal))
-                return idx;
-            idx += line.Length + 1; // +1 for the '\n'
+            if (source[i] == '{') depth++;
+            else if (source[i] == '}')
+            {
+                depth--;
+                if (depth == 0) return i;
+            }
         }
         return -1;
     }
+
+    /// <summary>
+    /// Returns true if a param with the given name exists in the Bicep template.
+    /// Uses whitespace-tolerant regex matching at line boundaries.
+    /// </summary>
+    private static bool HasParam(string bicep, string paramName) =>
+        Regex.IsMatch(bicep, $@"^param\s+{Regex.Escape(paramName)}\b", RegexOptions.Multiline);
+
+    /// <summary>
+    /// Returns true if an output with the given name exists in the Bicep template.
+    /// Uses whitespace-tolerant regex matching at line boundaries.
+    /// </summary>
+    private static bool HasOutput(string bicep, string outputName) =>
+        Regex.IsMatch(bicep, $@"^output\s+{Regex.Escape(outputName)}\b", RegexOptions.Multiline);
 
     // ────────────────────────────────────────────────────────────────────────
     // Module output pruning
