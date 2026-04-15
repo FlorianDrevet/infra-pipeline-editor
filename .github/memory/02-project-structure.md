@@ -31,3 +31,9 @@ src/
 
 - `docs/architecture/overview.md` provides the written architecture overview.
 - `docs/architecture/infraflowsculptor-architecture.drawio` provides a visual Azure deployment diagram centered on deployed resources and interactions, with separate frontend/backend Azure Container Apps and surrounding Azure services.
+
+## Automation Scripts
+
+- `scripts/create-audit-labels.ps1` is the Windows-first entry point for creating the GitHub audit labels via `gh`.
+- `scripts/create-audit-issues.ps1` is the Windows-first entry point for creating the GitHub audit issues via `gh`; it parses the existing shell definitions to avoid duplicating 62 issue bodies.
+- The audit PowerShell entry points are intentionally compatible with both Windows PowerShell 5.1 and PowerShell 7.x; do not add a `#Requires -Version 7.0` guard unless a real 7-only feature is introduced.

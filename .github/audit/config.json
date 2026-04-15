@@ -1,0 +1,86 @@
+{
+  "defaultRepository": "FlorianDrevet/infra-pipeline-editor",
+  "requiredLabels": [
+    {
+      "name": "audit",
+      "color": "0052CC",
+      "description": "Issue generated from automated code audits"
+    },
+    {
+      "name": "status: new",
+      "color": "1D76DB",
+      "description": "Finding introduced by the latest audit run"
+    }
+  ],
+  "areaLabelsByPrefix": {
+    "SEC": "area: security",
+    "DB": "area: database",
+    "DDD": "area: domain",
+    "APP": "area: application",
+    "API": "area: api",
+    "GEN": "area: generation",
+    "INFRA": "area: infrastructure",
+    "TEST": "area: testing"
+  },
+  "phaseLabelsByNumber": {
+    "0": "phase: 0-foundation",
+    "1": "phase: 1-security",
+    "2": "phase: 2-database",
+    "3": "phase: 3-domain",
+    "4": "phase: 4-application",
+    "5": "phase: 5-api",
+    "6": "phase: 6-generation",
+    "7": "phase: 7-quality"
+  },
+  "typeHeuristics": [
+    {
+      "label": "type: performance",
+      "patterns": [
+        "n\\+1",
+        "performance",
+        "table scans",
+        "asnotracking",
+        "hasindex",
+        "index manquant",
+        "indexes",
+        "sequentiel",
+        "o\\(",
+        "overhead",
+        "latence",
+        "scalab"
+      ]
+    },
+    {
+      "label": "type: refactor",
+      "patterns": [
+        "god-class",
+        "god class",
+        "duplication",
+        "refactor",
+        "incoh",
+        "immut",
+        "mutable",
+        "sealed",
+        "mainten"
+      ]
+    },
+    {
+      "label": "type: bug",
+      "patterns": [
+        "vuln",
+        "authorization",
+        "autoris",
+        "auth",
+        "path traversal",
+        "xss",
+        "headers",
+        "invalidoperationexception",
+        "first\\(",
+        "single\\(",
+        "crash"
+      ]
+    }
+  ],
+  "auditLabelColor": "BFD4F2",
+  "auditLabelDescriptionTemplate": "From code audit of {0}"
+}

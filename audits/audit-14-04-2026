@@ -1,0 +1,1369 @@
+# 🔍 Audit de Code Complet — InfraFlowSculptor
+
+ 
+
+**Date :** 14 avril 2026
+
+**Auditeur :** Expert .NET / Architecture DDD-CQRS
+
+**Périmètre :** Solution complète (Domain, Application, Infrastructure, API, Contracts, BicepGeneration, PipelineGeneration)
+
+**Version SDK :** .NET 10.0.100 | EF Core 10.0.5 | MediatR 14.1.0
+
+ 
+
+---
+
+ 
+
+## 📊 Résumé Exécutif
+
+ 
+
+| Catégorie | 🔴 Critique | 🟠 Haute | 🟡 Moyenne | 🟢 Basse | Total |
+
+|-----------|:-----------:|:--------:|:----------:|:--------:|:-----:|
+
+| Sécurité | 4 | 3 | 2 | 2 | **11** |
+
+| Base de données / EF Core | 3 | 6 | 5 | 3 | **17** |
+
+| Domain (DDD) | 2 | 5 | 6 | 5 | **18** |
+
+| Application (CQRS) | 3 | 6 | 5 | 5 | **19** |
+
+| API / Contracts | 2 | 4 | 4 | 4 | **14** |
+
+| Bicep / Pipeline Generation | 2 | 4 | 6 | 2 | **14** |
+
+| Architecture transversale | 1 | 3 | 3 | 2 | **9** |
+
+| **TOTAL** | **17** | **31** | **31** | **23** | **102** |
+
+ 
+
+**Couverture de tests : 0%** — Aucun projet de test n'existe dans le repository.
+
+ 
+
+---
+
+ 
+
+## 🏗️ Chiffres clés du codebase
+
+ 
+
+| Métrique | Valeur |
+
+|----------|--------|
+
+| Agrégats DDD | 22 |
+
+| Commands CQRS | 123 |
+
+| Queries CQRS | ~52 |
+
+| Handlers | 175 |
+
+| Validators FluentValidation | 53 / 123 commands (**43% de couverture**) |
+
+| Repositories | 26 |
+
+| Configurations EF Core | 30+ |
+
+| Migrations EF Core | 56 (112 fichiers .cs incluant designers) |
+
+| Endpoints API | 150+ |
+
+| Contrôleurs (minimal API groups) | 25 |
+
+ 
+
+---
+
+ 
+
+## 🔴 SECTION 1 — FINDINGS CRITIQUES (Priorité immédiate)
+
+ 
+
+### SEC-001 — Absence totale de tests unitaires et d'intégration
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Impact :** Toute la solution
+
+- **Constat :** Aucun projet `*Tests*` n'existe dans le repository. Zéro test unitaire, zéro test d'intégration, zéro test de non-régression.
+
+- **Risque :** Chaque modification de code est un risque de régression non détecté. Les refactorisations futures sont dangereuses.
+
+- **Recommandation :**
+
+  - Créer au minimum 4 projets de test : `Domain.UnitTests`, `Application.UnitTests`, `Infrastructure.IntegrationTests`, `Api.IntegrationTests`
+
+  - Priorité 1 : Tests des value objects et invariants de domaine
+
+  - Priorité 2 : Tests des handlers critiques (Bicep generation, authorization)
+
+  - Priorité 3 : Tests d'intégration EF Core avec PostgreSQL in-memory / Testcontainers
+
+  - Viser un minimum de 60% de couverture avant toute refactorisation majeure
+
+ 
+
+---
+
+ 
+
+### SEC-002 — Headers de sécurité HTTP manquants
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Api/Program.cs`
+
+- **Constat :** Aucun middleware de sécurité HTTP n'est configuré. Manquent :
+
+  - `X-Frame-Options: DENY`
+
+  - `X-Content-Type-Options: nosniff`
+
+  - `Strict-Transport-Security` (HSTS)
+
+  - `X-XSS-Protection: 1; mode=block`
+
+  - `Content-Security-Policy`
+
+  - `Referrer-Policy`
+
+- **Risque :** Vulnérabilité au clickjacking, MIME-type sniffing, attaques XSS.
+
+- **Recommandation :** Ajouter un middleware de sécurité HTTP dans `Program.cs` avant tout autre middleware.
+
+ 
+
+---
+
+ 
+
+### SEC-003 — Rate limiting incomplet — seulement sur login
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Api/RateLimiting/RateLimiting.cs`
+
+- **Constat :** Le rate limiting est configuré uniquement pour l'endpoint "Login" (3 requêtes / 10 secondes). Les 150+ endpoints CRUD n'ont aucun rate limiting.
+
+- **Risque :** Vulnérabilité DoS, épuisement des ressources serveur, abuse de l'API.
+
+- **Recommandation :**
+
+  - Ajouter un `FixedWindowLimiter` global pour les endpoints standards (100 req/min)
+
+  - Ajouter un `FixedWindowLimiter` "Expensive" pour les endpoints de génération Bicep/Pipeline (10 req/min)
+
+  - Appliquer avec `.RequireRateLimiting("policy")` sur chaque groupe d'endpoints
+
+ 
+
+---
+
+ 
+
+### SEC-004 — Vulnérabilité de path traversal sur les endpoints de fichiers
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Api/Controllers/ProjectController.cs`
+
+- **Constat :** Les endpoints `GET /{projectId}/generate-bicep/files/{*filePath}` et `GET /{projectId}/generate-pipeline/files/{*filePath}` acceptent un paramètre `{*filePath}` sans aucune validation.
+
+- **Risque :** Path traversal attack (`../../../etc/passwd`), accès à des fichiers non autorisés.
+
+- **Recommandation :** Valider que `filePath` ne contient pas `..`, ne commence pas par `/` ou `\`, et ne contient que des caractères autorisés.
+
+ 
+
+---
+
+ 
+
+### DB-001 — Absence de contraintes `HasMaxLength` sur 20+ configurations EF Core
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Fichiers :** 20+ configurations sans `HasMaxLength` :
+
+  - `BlobContainerConfiguration.cs` — `Name` sans limite (Azure limite : 63 chars)
+
+  - `StorageQueueConfiguration.cs` — `Name` sans limite (Azure limite : 63 chars)
+
+  - `StorageTableConfiguration.cs` — `Name` sans limite (Azure limite : 63 chars)
+
+  - `RoleAssignmentConfiguration.cs` — `RoleDefinitionId` sans limite
+
+  - `ParameterDefinitionConfiguration.cs` — `DefaultValue` sans limite
+
+  - `ProjectMemberConfiguration.cs` — propriétés string sans limites
+
+  - Et 15+ autres configurations
+
+- **Risque :** Stockage illimité en base, injection SQL potentielle, dégradation de performance sur les index.
+
+- **Recommandation :** Ajouter `HasMaxLength()` sur TOUTES les propriétés string dans TOUTES les configurations EF Core.
+
+ 
+
+---
+
+ 
+
+### DB-002 — Absence d'index sur 30+ configurations EF Core
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Fichiers :** 30+ configurations sans `HasIndex` (listées par grep ci-dessus)
+
+- **Colonnes critiques manquant d'index :**
+
+  - `AzureResource.ResourceGroupId` — utilisé dans toutes les requêtes de filtrage
+
+  - `AzureResource.Name` — utilisé dans les recherches
+
+  - `RoleAssignment.(SourceResourceId, TargetResourceId)` — utilisé dans les jointures
+
+  - `ResourceGroup.InfraConfigId` — utilisé dans les access checks
+
+  - `InfrastructureConfig.ProjectId` — filtrage principal
+
+- **Risque :** Table scans sur des datasets volumineux, temps de réponse dégradés, charge DB excessive.
+
+- **Recommandation :** Audit complet de toutes les requêtes Repository et ajout systématique d'index sur les colonnes filtrées.
+
+ 
+
+---
+
+ 
+
+### APP-001 — 70 commands sans validator (57% des commands)
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Constat :** Sur 123 commands, seules 53 ont un validator. 70 commands n'ont AUCUNE validation.
+
+- **Commands critiques sans validation :**
+
+  - Tous les `DeleteXxxCommand` (pas de validation que l'ID n'est pas vide)
+
+  - `CreateResourceGroupCommand`
+
+  - `CreateAppServicePlanCommand`
+
+  - `CreateFunctionAppCommand`
+
+  - `CreateCosmosDbCommand`
+
+  - `CreateAppConfigurationCommand`
+
+  - Et 60+ autres
+
+- **Risque :** Données invalides entrant dans le domaine, corruptions silencieuses, 500 au lieu de 400.
+
+- **Recommandation :** Créer un validator pour CHAQUE command. Au minimum : `NotEmpty` sur tous les IDs, `MaxLength` sur les noms, validation des enums.
+
+ 
+
+---
+
+ 
+
+### APP-002 — Autorisations manquantes sur des handlers sensibles
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Fichiers :**
+
+  - `GenerateBicepCommandHandler.cs` — génère du Bicep sans vérifier l'accès
+
+  - `GeneratePipelineCommandHandler.cs` — génère des pipelines sans vérifier l'accès
+
+  - `DownloadBicepCommandHandler.cs` — télécharge des fichiers sans vérifier l'accès
+
+  - `DownloadPipelineCommandHandler.cs` — télécharge des fichiers sans vérifier l'accès
+
+  - `CreateProjectCommandHandler.cs` — pas de restriction sur qui peut créer un projet
+
+- **Risque :** Accès non autorisé à des configurations d'infrastructure, fuite de données sensibles.
+
+- **Recommandation :** Injecter `IInfraConfigAccessService` et appeler `VerifyReadAccessAsync()` ou `VerifyWriteAccessAsync()` dans chaque handler.
+
+ 
+
+---
+
+ 
+
+### APP-003 — Pattern N+1 dans ListCrossConfigReferencesQueryHandler
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Application/InfrastructureConfig/Queries/ListCrossConfigReferences/ListCrossConfigReferencesQueryHandler.cs`
+
+- **Constat :** Le handler itère sur `config.CrossConfigReferences` et fait un appel `GetByIdAsync()` par référence (N requêtes DB dans une boucle).
+
+- **Risque :** Performance catastrophique avec de nombreuses références croisées. O(N) requêtes DB.
+
+- **Recommandation :** Créer une méthode `GetByIdsAsync()` dans les repositories pour charger en batch.
+
+ 
+
+---
+
+ 
+
+### DDD-001 — `SingleValueObject.Value` a un setter public — violation d'immutabilité
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Domain/Common/Models/SingleValueObject.cs:11`
+
+- **Constat :** `public T Value { get; set; } = default!;` — Le setter public permet de modifier n'importe quel value object après création.
+
+- **Impact :** Tous les value objects du domaine (Name, Location, ShortName, etc.) sont mutables.
+
+- **Recommandation :** Changer en `public T Value { get; private set; }` ou `init`.
+
+ 
+
+---
+
+ 
+
+### DDD-002 — 16 classes d'agrégats AzureResource non sealed
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Fichiers :** Tous les agrégats dérivant d'AzureResource (KeyVault, RedisCache, StorageAccount, etc.)
+
+- **Constat :** Toutes les classes concrètes sont déclarées `public class` au lieu de `public sealed class`.
+
+- **Risque :** Heritage non contrôlé, contournement des invariants de domaine.
+
+- **Recommandation :** Ajouter `sealed` sur toutes les classes concrètes d'agrégats.
+
+ 
+
+---
+
+ 
+
+### GEN-001 — `BicepGenerationEngine.GenerateCore()` — méthode de 950+ lignes
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.BicepGeneration/BicepGenerationEngine.cs`
+
+- **Constat :** Méthode unique de 950+ lignes avec 10+ responsabilités : calcul d'identité, résolution de parents, génération de modules, construction de dictionnaires, pruning d'outputs.
+
+- **Risque :** Impossible à tester, à maintenir, ou à débugger. Complexité cognitive extrême.
+
+- **Recommandation :** Décomposer en méthodes spécialisées : `ComputeIdentityNeeds()`, `ResolveParentReferences()`, `GenerateModules()`, etc.
+
+ 
+
+---
+
+ 
+
+### GEN-002 — Manipulation de chaînes non-sécurisée dans la génération Bicep
+
+- **Sévérité :** 🔴 CRITIQUE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.BicepGeneration/BicepGenerationEngine.cs`
+
+- **Constat :** Utilisation de `string.Insert()` en boucle (O(n²)) au lieu de StringBuilder. Recherches de sous-chaînes fragiles (`moduleBicep.Contains("\n  identity:")`) qui cassent si l'indentation change.
+
+- **Risque :** Performance dégradée, injections dans le Bicep généré, erreurs silencieuses.
+
+- **Recommandation :** Migrer vers StringBuilder, utiliser des regex avec détection de limites, ou un parseur Bicep AST.
+
+ 
+
+---
+
+ 
+
+## 🟠 SECTION 2 — FINDINGS HAUTS (Sprint 1)
+
+ 
+
+### SEC-005 — CORS trop permissif
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Api/Program.cs:16-24`
+
+- **Constat :** `AllowAnyHeader()` et `AllowAnyMethod()` configurés ensemble. Même limité à localhost:4200, cela autorise tous les méthodes et headers HTTP.
+
+- **Recommandation :** Spécifier explicitement les méthodes (`GET`, `POST`, `PUT`, `DELETE`) et headers (`Content-Type`, `Authorization`).
+
+ 
+
+---
+
+ 
+
+### SEC-006 — Limite de taille des requêtes non configurée
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Api/Program.cs`
+
+- **Constat :** Pas de configuration `MaxRequestBodySize` sur Kestrel. Les endpoints de génération peuvent recevoir des payloads arbitrairement grands.
+
+- **Recommandation :** Configurer `builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 52_428_800);` (50 MB).
+
+ 
+
+---
+
+ 
+
+### SEC-007 — Divulgation d'informations dans les erreurs
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Api/Errors/ErrorHandling.cs`
+
+- **Constat :** En mode développement, `UseDeveloperExceptionPage()` expose les stack traces complètes. Pas de filtrage garanti en production.
+
+- **Recommandation :** S'assurer que le mode production filtre strictement les erreurs. Ajouter du logging structuré sans exposition au client.
+
+ 
+
+---
+
+ 
+
+### DB-003 — `AsNoTracking()` manquant sur les queries read-only
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Infrastructure/Persistence/Repositories/BaseRepository.cs`
+
+- **Constat :** `GetAllAsync()` ne utilise pas `.AsNoTracking()`. Pour les lectures, cela cause un overhead de change tracking inutile.
+
+- **Recommandation :** Ajouter `.AsNoTracking()` sur toutes les requêtes de lecture. Créer un `ReadOnlyBaseRepository<T>` dédié.
+
+ 
+
+---
+
+ 
+
+### DB-004 — Requête avec 16 appels DB séquentiels dans ResourceGroupRepository
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Infrastructure/Persistence/Repositories/ResourceGroupRepository.cs:151-269`
+
+- **Constat :** `GetConfiguredEnvironmentsByResourceGroupAsync` fait 16 requêtes DB séparées (une par table d'environment settings).
+
+- **Risque :** Performance catastrophique pour les resource groups volumineux.
+
+- **Recommandation :** Utiliser une requête UNION ou un join unique, ou une stratégie de caching.
+
+ 
+
+---
+
+ 
+
+### DB-005 — Contrainte d'unicité manquante sur RoleAssignment
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Infrastructure/Persistence/Configurations/RoleAssignmentConfiguration.cs`
+
+- **Constat :** Pas de contrainte unique empêchant les doublons de role assignments pour la même combinaison source-target-identity-role.
+
+- **Recommandation :** Ajouter `builder.HasIndex(r => new { r.SourceResourceId, r.TargetResourceId, r.UserAssignedIdentityId, r.RoleDefinitionId }).IsUnique();`
+
+ 
+
+---
+
+ 
+
+### DB-006 — Cascade delete complexe et risquée sur AppSetting
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Infrastructure/Persistence/Configurations/AppSettingConfiguration.cs:63-73`
+
+- **Constat :** Deux FK vers `AzureResource` avec `DeleteBehavior.Cascade` (`SourceResourceId` et `KeyVaultResourceId`). La suppression d'une source ou d'un KeyVault cascade-delete tous les app settings.
+
+- **Recommandation :** Évaluer si `SetNull` est plus approprié pour les FK non primaires.
+
+ 
+
+---
+
+ 
+
+### DB-007 — Duplication de code dans StorageAccountRepository
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Infrastructure/Persistence/Repositories/StorageAccountRepository.cs:18-42`
+
+- **Constat :** `GetByIdAsync` et `GetByIdWithSubResourcesAsync` dupliquent les mêmes chaînes d'Include.
+
+- **Recommandation :** Consolider dans une méthode privée partagée.
+
+ 
+
+---
+
+ 
+
+### DB-008 — 56 migrations EF Core accumulées sans squash
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Infrastructure/Migrations/` — 112 fichiers
+
+- **Constat :** 56 migrations depuis mars 2026 sans consolidation. Impact sur le temps de démarrage, la lisibilité, et les risques de conflits.
+
+- **Recommandation :** Squasher les migrations en une migration initiale propre, ou regrouper par sprint.
+
+ 
+
+---
+
+ 
+
+### APP-004 — `dynamic` cast dans ValidationBehavior
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Application/Common/Behaviors/ValidationBehavior.cs:34`
+
+- **Constat :** `return (dynamic)errors;` — Contourne le système de types, peut causer des RuntimeBinderException.
+
+- **Recommandation :** Utiliser `ErrorOr.From()` ou une conversion typée correcte.
+
+ 
+
+---
+
+ 
+
+### APP-005 — Handlers god-class (400+ lignes)
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichiers :**
+
+  - `GenerateProjectPipelineCommandHandler.cs` — 402 lignes, 5+ responsabilités
+
+  - `GenerateProjectBicepCommandHandler.cs` — 271 lignes
+
+  - `GenerateBicepCommandHandler.cs` — 150+ lignes
+
+- **Constat :** Ces handlers font la génération + l'upload + le merge + la construction de requêtes dans un seul handler.
+
+- **Recommandation :** Extraire des domain services : `IBicepGenerationOrchestrator`, `IPipelineGenerationOrchestrator`, `IArtifactUploadService`.
+
+ 
+
+---
+
+ 
+
+### APP-006 — `.First()` sans vérification sur collections vides
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichiers :** 5+ handlers utilisant `.First()` sur des collections potentiellement vides
+
+  - `GetProjectBicepFileContentQueryHandler.cs:35`
+
+  - `GetProjectPipelineFileContentQueryHandler.cs:35`
+
+  - `GetBicepFileContentQueryHandler.cs:27`
+
+  - `GenerateBicepCommandHandler.cs:105`
+
+- **Recommandation :** Remplacer par `.FirstOrDefault()` + check null + retour d'erreur descriptive.
+
+ 
+
+---
+
+ 
+
+### APP-007 — Double chargement du même agrégat dans un handler
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `GenerateProjectPipelineCommandHandler.cs:53-56`
+
+- **Constat :** Le handler charge le même projet 2 fois avec 2 méthodes repository différentes.
+
+- **Recommandation :** Créer une méthode unique `GetByIdWithAllAndPipelineVariableGroupsAsync()`.
+
+ 
+
+---
+
+ 
+
+### DDD-003 — Collections mutables exposées (CorsRule)
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Domain/StorageAccountAggregate/Entities/CorsRule.cs:20-29`
+
+- **Constat :** `public List<string> AllowedOrigins { get; private set; } = [];` — Le private setter protège la référence, mais `.Add()/.Clear()/.Remove()` sont toujours accessibles.
+
+- **Recommandation :** Utiliser `IReadOnlyList<string>` avec backing field.
+
+ 
+
+---
+
+ 
+
+### DDD-004 — Propriétés navigation avec `= null!` (null-forgiving abuse)
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichiers :**
+
+  - `ProjectEnvironmentDefinition.cs:21` — `public Project Project { get; set; } = null!;`
+
+  - `AzureResource.cs:24` — `public ResourceGroup ResourceGroup { get; set; } = null!;`
+
+- **Constat :** Le `= null!` cache les warnings du compilateur mais ces propriétés seront `null` en runtime sans eager loading.
+
+- **Recommandation :** Utiliser `public Project? Project { get; set; }` (nullable explicite).
+
+ 
+
+---
+
+ 
+
+### DDD-005 — Aucun invariant de domaine dans AzureResource.AddDependency
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Domain/Common/BaseModels/AzureResource.cs:89-98`
+
+- **Constat :** Pas de détection de dépendances circulaires (A→B→C→A). Les duplicats sont silencieusement ignorés (return early).
+
+- **Recommandation :** Implémenter la détection de cycles au niveau du service applicatif (graphe de dépendances complet).
+
+ 
+
+---
+
+ 
+
+### GEN-003 — `.Single()` sans gestion d'erreur dans BicepGenerationEngine
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.BicepGeneration/BicepGenerationEngine.cs:151`
+
+- **Constat :** `_generators.Single(g => g.ResourceType == resource.Type)` — Lance une `InvalidOperationException` si aucun générateur n'existe.
+
+- **Recommandation :** Utiliser `FirstOrDefault()` + erreur descriptive avec nom/type de la ressource.
+
+ 
+
+---
+
+ 
+
+### GEN-004 — Injection YAML potentielle dans PipelineGenerationEngine
+
+- **Sévérité :** 🟠 HAUTE
+
+- **Fichier :** `src/Api/InfraFlowSculptor.PipelineGeneration/PipelineGenerationEngine.cs:192`
+
+- **Constat :** Interpolation directe de `GroupName` dans le YAML sans échappement. Si `GroupName` contient `${{ }}`, cela crée une injection YAML dans les pipelines Azure DevOps.
+
+- **Recommandation :** Implémenter une validation/sanitisation des noms de propriétés YAML.
+
+ 
+
+---
+
+ 
+
+## 🟡 SECTION 3 — FINDINGS MOYENS (Sprint 2-3)
+
+ 
+
+### DDD-006 — Aucune validation dans les constructeurs de value objects
+
+- **Fichiers :** `Name.cs`, `EntraId.cs`
+
+- **Constat :** `Name` ne valide pas les chaînes vides/null. `EntraId` accepte `Guid.Empty`.
+
+- **Recommandation :** Ajouter des guard clauses dans les constructeurs.
+
+ 
+
+---
+
+ 
+
+### DDD-007 — Aucun domain event émis
+
+- **Fichiers :** Tous les agrégats
+
+- **Constat :** Le pattern CQRS est utilisé sans domain events. Aucun événement n'est levé lors de la création/modification/suppression d'entités.
+
+- **Recommandation :** Implémenter une infrastructure de domain events dans `AggregateRoot`.
+
+ 
+
+---
+
+ 
+
+### DDD-008 — Duplication du pattern Update dans les agrégats
+
+- **Fichiers :** `StorageAccount.cs`, `WebApp.cs`, `FunctionApp.cs`, `AppServicePlan.cs`
+
+- **Constat :** Code quasi identique de mise à jour des propriétés communes (Name, Location) répété.
+
+- **Recommandation :** Extraire `UpdateBasic(Name, Location)` dans `AzureResource` base class.
+
+ 
+
+---
+
+ 
+
+### DDD-009 — Incohérence `IReadOnlyCollection` vs `IReadOnlyList`
+
+- **Fichiers :** `StorageAccount.cs`, `Project.cs`
+
+- **Constat :** Utilisation mixte des deux interfaces sans règle claire.
+
+- **Recommandation :** Standardiser sur `IReadOnlyCollection<T>` sauf besoin d'accès par index.
+
+ 
+
+---
+
+ 
+
+### DDD-010 — Allocation inutile dans les computed properties (CorsRules)
+
+- **Fichier :** `StorageAccount.cs:39,42`
+
+- **Constat :** `CorsRules =>  _corsRules.Where(...).ToList()` — Crée une nouvelle liste + un nouveau `CorsServiceType` à chaque accès.
+
+- **Recommandation :** Pré-calculer avec des constantes `static readonly`.
+
+ 
+
+---
+
+ 
+
+### DDD-011 — `sealed` manquant sur les enum value objects
+
+- **Fichiers :** `StorageAccessTier.cs`, `StorageAccountSku.cs`, `RedisCacheSku.cs`, `Location.cs`
+
+- **Recommandation :** Ajouter `sealed` sur toutes les classes `EnumValueObject`-derived.
+
+ 
+
+---
+
+ 
+
+### APP-008 — Masquage incohérent des erreurs d'autorisation
+
+- **Fichier :** `GetResourceGroupQueryHandler.cs:26` et autres
+
+- **Constat :** Certains handlers retournent `NotFound` quand l'autorisation échoue (masquage), d'autres retournent l'erreur d'auth directement.
+
+- **Recommandation :** Standardiser le pattern et documenter.
+
+ 
+
+---
+
+ 
+
+### APP-009 — `CancellationToken` manquant sur `IRepository.GetAllAsync()`
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Application/Common/Interfaces/IRepository.cs:9`
+
+- **Constat :** `GetAllAsync()` n'accepte pas de `CancellationToken`.
+
+- **Recommandation :** Ajouter le paramètre sur toutes les méthodes async de l'interface.
+
+ 
+
+---
+
+ 
+
+### APP-010 — ValidationBehavior s'applique aussi aux queries
+
+- **Fichier :** `ValidationBehavior.cs`
+
+- **Constat :** Le behavior est enregistré pour toutes les requêtes MediatR, pas seulement les commands.
+
+- **Recommandation :** Restreindre aux `ICommandBase` uniquement.
+
+ 
+
+---
+
+ 
+
+### APP-011 — Pas de domain services pour la logique métier cross-cutting
+
+- **Constat :** La logique de validation des role assignments, des types d'identité, etc. est dupliquée dans les handlers.
+
+- **Recommandation :** Créer des domain services dédiés.
+
+ 
+
+---
+
+ 
+
+### APP-012 — Repository interface ne standardise pas l'eager loading
+
+- **Fichier :** `IRepository.cs`
+
+- **Constat :** Chaque repository crée ses propres méthodes spécialisées (`GetByIdWithXAsync`). Pas de convention commune.
+
+- **Recommandation :** Standardiser avec une surcharge `GetByIdAsync(id, Func<IQueryable<T>, IQueryable<T>> includes)`.
+
+ 
+
+---
+
+ 
+
+### API-001 — Documentation 401 Unauthorized incohérente
+
+- **Fichiers :** 23+ controllers
+
+- **Constat :** Seulement 2 controllers documentent les réponses 401. Les autres manquent `.ProducesProblem(Status401Unauthorized)`.
+
+- **Recommandation :** Ajouter sur tous les endpoints protégés.
+
+ 
+
+---
+
+ 
+
+### API-002 — Incohérence des types d'ID (string vs Guid) dans les réponses
+
+- **Fichiers :** `ProjectResponse.cs` (string Id), `UserResponse.cs` (Guid Id), `RoleAssignmentResponse.cs` (Guid)
+
+- **Recommandation :** Standardiser tous les IDs en `string` dans les réponses (meilleur pour JSON/JavaScript).
+
+ 
+
+---
+
+ 
+
+### API-003 — `ErrorOrExtended` — Seule la première erreur est retournée
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Api/Errors/ErrorOrExtended.cs:30-52`
+
+- **Constat :** `errors.First().Result()` — Les erreurs suivantes sont silencieusement ignorées.
+
+- **Recommandation :** Retourner toutes les erreurs dans un `Results.BadRequest(new { Errors = ... })`.
+
+ 
+
+---
+
+ 
+
+### API-004 — `EnumValidation` est case-sensitive
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Contracts/ValidationAttributes/EnumValidation.cs`
+
+- **Constat :** `Enum.IsDefined()` est case-sensitive. `"systemassigned"` est rejeté bien que sémantiquement correct.
+
+- **Recommandation :** Utiliser `Enum.TryParse(type, value, ignoreCase: true, out _)`.
+
+ 
+
+---
+
+ 
+
+### API-005 — Tags Azure sans validation de limites
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Contracts/Common/Requests/TagRequest.cs`
+
+- **Constat :** `Name` et `Value` sont `[Required]` mais sans `[StringLength]`. Azure limite : clé 512 chars, valeur 256 chars, max 15 tags.
+
+- **Recommandation :** Ajouter `[StringLength(512)]` / `[StringLength(256)]`.
+
+ 
+
+---
+
+ 
+
+### GEN-005 — Magic strings dans les API versions Bicep
+
+- **Fichiers :** Multiples fichiers de générateurs
+
+- **Recommandation :** Extraire dans une classe `ResourceTypeConstants.cs` avec gestion des versions.
+
+ 
+
+---
+
+ 
+
+### GEN-006 — Gestion d'erreurs incohérente entre les engines
+
+- **Fichiers :** `BicepGenerationEngine.cs` (erreurs silencieuses), `AppPipelineGenerationEngine.cs` (throws), `PipelineGenerationEngine.cs` (aucune)
+
+- **Recommandation :** Créer une `GenerationException` commune.
+
+ 
+
+---
+
+ 
+
+### GEN-007 — Identifiers normalization incohérente
+
+- **Fichiers :** `BicepIdentifierHelper.cs` (camelCase) vs `BicepFormattingHelper.SanitizeBicepKey()` (snake_case)
+
+- **Recommandation :** Consolider en une seule stratégie de nommage documentée.
+
+ 
+
+---
+
+ 
+
+### GEN-008 — Code dupliqué : parsing des CorsRules
+
+- **Fichier :** `StorageAccountTypeBicepGenerator.cs:120-152`
+
+- **Constat :** `ParseCorsRules()` et `ParseTableCorsRules()` sont identiques sauf les noms de propriétés.
+
+- **Recommandation :** Consolider en une méthode paramétrée.
+
+ 
+
+---
+
+ 
+
+### INFRA-001 — `BlobService` et `GeneratedArtifactService` enregistrés en Singleton
+
+- **Fichier :** `DependencyInjection.cs:103-104`
+
+- **Constat :** Ces services accèdent à Azure Blob Storage et sont Singleton, mais `BlobServiceClient` est thread-safe. OK mais à surveiller si l'état mutable est ajouté.
+
+- **Recommandation :** Documenter la raison du Singleton et les contraintes de thread-safety.
+
+ 
+
+---
+
+ 
+
+### INFRA-002 — `GitHubGitProviderService` crée un `HttpClient` à chaque appel
+
+- **Fichier :** `src/Api/InfraFlowSculptor.Infrastructure/Services/GitProviders/GitHubGitProviderService.cs:164`
+
+- **Constat :** Nouveau `HttpClient` par appel au lieu de réutiliser via `IHttpClientFactory`.
+
+- **Risque :** Socket exhaustion en charge.
+
+- **Recommandation :** Utiliser `IHttpClientFactory` injecté.
+
+ 
+
+---
+
+ 
+
+## 🟢 SECTION 4 — FINDINGS BAS (Backlog)
+
+ 
+
+### DDD-012 — `ToString()` manquant sur `SingleValueObject`
+
+- **Fichier :** `SingleValueObject.cs`
+
+- **Recommandation :** Ajouter `public override string ToString() => Value?.ToString() ?? "null";`
+
+ 
+
+---
+
+ 
+
+### DDD-013 — Incohérence null check style (`== null` vs `is null`)
+
+- **Fichiers :** Multiples
+
+- **Recommandation :** Standardiser sur `is null` / `is not null`.
+
+ 
+
+---
+
+ 
+
+### DDD-014 — Raw strings où des value objects seraient plus type-safe
+
+- **Fichiers :** `StorageAccount.cs` (noms de containers/queues), `Project.cs` (resourceType), `AppServicePlan.cs` (OsType)
+
+- **Recommandation :** Créer `BlobContainerName`, `StorageQueueName`, `ResourceTypeName` value objects.
+
+ 
+
+---
+
+ 
+
+### DDD-015 — Duplication de XML doc sur `RemoveAppSetting`
+
+- **Fichier :** `AzureResource.cs:246-247`
+
+- **Constat :** Deux `<summary>` tags identiques.
+
+ 
+
+---
+
+ 
+
+### API-006 — Typo dans le nom : `KeyVaultControllerController`
+
+- **Fichier :** `Program.cs:69`
+
+- **Recommandation :** Renommer en `UseKeyVaultController()`.
+
+ 
+
+---
+
+ 
+
+### API-007 — Nommage incohérent : `UseXyzController` vs convention
+
+- **Recommandation :** Standardiser sur `MapXyzEndpoints()` (convention Minimal API).
+
+ 
+
+---
+
+ 
+
+### API-008 — `GuidValidation` accepte les chaînes vides (retourne true)
+
+- **Fichier :** `GuidValidation.cs:15-21`
+
+- **Recommandation :** Supprimer la gestion null/empty de `GuidValidation`. Utiliser `[Required]` pour ça.
+
+ 
+
+---
+
+ 
+
+### APP-013 — Duplication de logique de récupération blob latest
+
+- **Fichiers :** `GetProjectBicepFileContentQueryHandler.cs`, `GetBicepFileContentQueryHandler.cs`
+
+- **Recommandation :** Extraire dans un `BlobFileService` partagé.
+
+ 
+
+---
+
+ 
+
+### APP-014 — Naming incohérent des méthodes repository
+
+- **Constat :** `GetByResourceIdAsync` vs `GetByIdAsync` vs `GetByIdWithXAsync` — pas de convention.
+
+- **Recommandation :** Établir une convention de nommage documentée.
+
+ 
+
+---
+
+ 
+
+### GEN-009 — Regex peut matcher dans les commentaires/strings
+
+- **Fichier :** `BicepGenerationEngine.cs:927`
+
+- **Recommandation :** Utiliser une tokenisation Bicep au lieu de regex pour la détection des outputs.
+
+ 
+
+---
+
+ 
+
+### GEN-010 — Pas de validation des modes de déploiement dans AppPipelineGenerationEngine
+
+- **Fichier :** `AppPipelineGenerationEngine.cs:35-37`
+
+- **Recommandation :** Valider contre un enum avant le lookup.
+
+ 
+
+---
+
+ 
+
+### INFRA-003 — Projections et DTOs non optimisés dans les repositories
+
+- **Constat :** Les repos chargent des agrégats entiers quand seuls quelques champs sont nécessaires.
+
+- **Recommandation :** Créer des méthodes de projection pour les queries simples.
+
+ 
+
+---
+
+ 
+
+### INFRA-004 — Pas de `DbSet<AzureResource>` pour les requêtes base-type
+
+- **Fichier :** `ProjectDbContext.cs`
+
+- **Recommandation :** Ajouter pour faciliter les requêtes polymorphiques TPT.
+
+ 
+
+---
+
+ 
+
+## 📋 SECTION 5 — PLAN D'ACTION RECOMMANDÉ
+
+ 
+
+### Phase 0 — Fondations (avant toute refacto)
+
+| # | Action | Effort | Issues |
+
+|---|--------|--------|--------|
+
+| 0.1 | Créer les projets de test (Domain.UnitTests, Application.UnitTests, etc.) | 2j | SEC-001 |
+
+| 0.2 | Écrire les tests des value objects et invariants de domaine | 3j | SEC-001 |
+
+| 0.3 | Écrire les tests des handlers critiques (auth, generation) | 5j | SEC-001 |
+
+ 
+
+### Phase 1 — Sécurité critique (Sprint 1)
+
+| # | Action | Effort | Issues |
+
+|---|--------|--------|--------|
+
+| 1.1 | Ajouter les headers de sécurité HTTP | 0.5j | SEC-002 |
+
+| 1.2 | Configurer le rate limiting global | 1j | SEC-003 |
+
+| 1.3 | Valider les file paths (path traversal) | 0.5j | SEC-004 |
+
+| 1.4 | Configurer les limites de taille de requête | 0.5j | SEC-006 |
+
+| 1.5 | Restreindre les méthodes/headers CORS | 0.5j | SEC-005 |
+
+ 
+
+### Phase 2 — Base de données (Sprint 1-2)
+
+| # | Action | Effort | Issues |
+
+|---|--------|--------|--------|
+
+| 2.1 | Ajouter `HasMaxLength()` sur toutes les configs | 2j | DB-001 |
+
+| 2.2 | Ajouter les index manquants | 2j | DB-002 |
+
+| 2.3 | Fixer la contrainte unique RoleAssignment | 0.5j | DB-005 |
+
+| 2.4 | Auditer et fixer les cascade deletes | 1j | DB-006 |
+
+| 2.5 | Ajouter `AsNoTracking()` sur les queries read-only | 1j | DB-003 |
+
+| 2.6 | Squasher les migrations | 1j | DB-008 |
+
+ 
+
+### Phase 3 — Domain model (Sprint 2)
+
+| # | Action | Effort | Issues |
+
+|---|--------|--------|--------|
+
+| 3.1 | Fixer `SingleValueObject.Value` setter | 0.5j | DDD-001 |
+
+| 3.2 | Ajouter `sealed` sur tous les agrégats | 1j | DDD-002, DDD-011 |
+
+| 3.3 | Fixer les collections mutables (CorsRule) | 0.5j | DDD-003 |
+
+| 3.4 | Ajouter les validations dans les value objects | 1j | DDD-006 |
+
+| 3.5 | Fixer les navigation properties nullable | 1j | DDD-004 |
+
+ 
+
+### Phase 4 — Application layer (Sprint 2-3)
+
+| # | Action | Effort | Issues |
+
+|---|--------|--------|--------|
+
+| 4.1 | Créer les 70 validators manquants | 5j | APP-001 |
+
+| 4.2 | Ajouter les checks d'autorisation manquants | 2j | APP-002 |
+
+| 4.3 | Fixer le pattern N+1 (batch loading) | 2j | APP-003 |
+
+| 4.4 | Décomposer les handlers god-class | 3j | APP-005 |
+
+| 4.5 | Fixer le `dynamic` cast dans ValidationBehavior | 0.5j | APP-004 |
+
+| 4.6 | Remplacer `.First()` par `.FirstOrDefault()` + check | 1j | APP-006 |
+
+ 
+
+### Phase 5 — API & Contracts (Sprint 3)
+
+| # | Action | Effort | Issues |
+
+|---|--------|--------|--------|
+
+| 5.1 | Standardiser la documentation 401 sur tous les endpoints | 1j | API-001 |
+
+| 5.2 | Retourner toutes les erreurs (pas juste la première) | 0.5j | API-003 |
+
+| 5.3 | Fixer EnumValidation case-sensitivity | 0.5j | API-004 |
+
+| 5.4 | Ajouter les validations de tags Azure | 0.5j | API-005 |
+
+| 5.5 | Standardiser les types d'ID dans les réponses | 2j | API-002 |
+
+ 
+
+### Phase 6 — Bicep/Pipeline Generation (Sprint 3-4)
+
+| # | Action | Effort | Issues |
+
+|---|--------|--------|--------|
+
+| 6.1 | Décomposer `GenerateCore()` (950+ lignes) | 3j | GEN-001 |
+
+| 6.2 | Migrer vers StringBuilder + regex safe | 2j | GEN-002 |
+
+| 6.3 | Fixer `.Single()` → `.FirstOrDefault()` | 0.5j | GEN-003 |
+
+| 6.4 | Sanitiser les inputs YAML | 1j | GEN-004 |
+
+| 6.5 | Extraire les magic strings dans des constantes | 1j | GEN-005 |
+
+ 
+
+### Phase 7 — Qualité globale (Sprint 4+)
+
+| # | Action | Effort | Issues |
+
+|---|--------|--------|--------|
+
+| 7.1 | Implémenter les domain events | 5j | DDD-007 |
+
+| 7.2 | Créer les domain services cross-cutting | 3j | APP-011 |
+
+| 7.3 | Standardiser les conventions de nommage | 2j | API-006, API-007, APP-014 |
+
+| 7.4 | Optimiser les projections repository | 3j | INFRA-003 |
+
+| 7.5 | Ajouter le CSRF protection | 1j | (Medium) |
+
+ 
+
+---
+
+ 
+
+## 📈 Métriques cibles post-audit
+
+ 
+
+| Métrique | Actuel | Cible Phase 1 | Cible Phase 4 | Cible Phase 7 |
+
+|----------|--------|---------------|---------------|---------------|
+
+| Couverture de tests | 0% | 20% | 50% | 70% |
+
+| Commands avec validator | 43% | 50% | 100% | 100% |
+
+| Handlers avec auth check | 94% | 100% | 100% | 100% |
+
+| Configs EF avec MaxLength | ~40% | 100% | 100% | 100% |
+
+| Configs EF avec Index | ~10% | 60% | 90% | 100% |
+
+| Classes sealed (agrégats) | 0% | 100% | 100% | 100% |
+
+| Headers sécurité HTTP | 0/6 | 6/6 | 6/6 | 6/6 |
+
+ 
+
+---
+
+ 
+
+## 🔗 Références techniques
+
+ 
+
+- [EF Core Performance Best Practices](https://learn.microsoft.com/en-us/ef/core/performance/)
+
+- [ASP.NET Core Security Headers](https://learn.microsoft.com/en-us/aspnet/core/security/)
+
+- [DDD Aggregate Design](https://www.domainlanguage.com/ddd/reference/)
+
+- [OWASP API Security Top 10](https://owasp.org/www-project-api-security/)
+
+- [FluentValidation Best Practices](https://docs.fluentvalidation.net/)
+
+ 
+
+---
+
+ 
+
+*Document généré le 14 avril 2026 — Audit complet du repository InfraFlowSculptor*
+
+*Prochain audit recommandé : après la Phase 4 (Sprint 3)*
