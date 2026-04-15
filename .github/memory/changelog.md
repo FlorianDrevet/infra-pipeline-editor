@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-15 | copilot | Merged `origin/main` into `copilot/ddd-002-seal-azure-resource-classes`, resolved memory-file conflicts semantically, and preserved the DDD-002 sealed-aggregate work. |
 | 2026-04-15 | copilot | Sealed all concrete `AzureResource` aggregates in the domain model to enforce invariants and block uncontrolled inheritance (DDD-002). |
 | 2026-04-15 | copilot | Added the `audit-expert` agent, the `audit-workflow` skill, and `scripts/sync-audit-issues.ps1` with repo-backed label configuration in `.github/audit/config.json` to generate expert audits under `audits/` and reconcile GitHub audit issues across runs. |
 | 2026-04-15 | copilot | Recreated the 66 GitHub audit issues from `docs/AUDIT-2026-04-14.md`, normalized the `phase:*` and `severity:*` label descriptions to remove mojibake, and recorded `FlorianDrevet/infra-pipeline-editor` as the default GitHub repository for this project. |

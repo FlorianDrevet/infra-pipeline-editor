@@ -46,3 +46,12 @@
 - **After each task**, `@dev` updates the appropriate topic file + `changelog.md`
 - **`@dream`** runs when: >= 24h since last dream AND >= 5 sessions (gates in `dream-state.md`)
 - **Dream phases:** Orient -> Gather -> Consolidate -> Prune (keeps files < 150 lines, changelog < 60 days)
+
+---
+
+## Merge-main Notes
+
+- 2026-04-15: Merged `origin/main` into `copilot/ddd-002-seal-azure-resource-classes`.
+  - Conflicts: `.github/memory/changelog.md`, `.github/memory/dream-state.md`
+  - Resolution rule: kept both branch and `main` memory updates, preserved latest dream gate date from `main`.
+  - Post-merge adaptation: verified DDD-002 domain sealing remains intact for concrete `AzureResource` aggregates.
