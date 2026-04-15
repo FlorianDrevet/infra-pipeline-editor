@@ -143,6 +143,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Tâche | Agent à utiliser | Fichier |
 |-------|-----------------|---------|| Explorer le codebase (fichiers, patterns, conventions) avant délégation | **`Explore`** | sous-agent built-in, aucun fichier agent |
 | Analyse d'impact / exploration structurelle avant modification | Charger le skill **`gitnexus-workflow`** | `.github/skills/gitnexus-workflow/SKILL.md` |
+| Audit technique complet du dépôt avec synchronisation GitHub | **`audit-expert`** + charger le skill `audit-workflow` | `.github/agents/audit-expert.agent.md` |
 | Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` || Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
 | Modifier/créer du code C#/.NET | **`dotnet-dev`** | `.github/agents/dotnet-dev.agent.md` |
 | Modifier/créer du code Angular | **`angular-front`** + charger le skill `ui-ux-front-saas` si UI | `.github/agents/angular-front.agent.md` |
@@ -234,6 +235,11 @@ Un skill est **différent d'un agent** :
 - **Quand le charger :** dès qu'une tâche nécessite de l'exploration structurelle (flux d'exécution, dépendances), de l'analyse d'impact avant modification, ou de la validation post-changement
 - **Fichier :** `.github/skills/gitnexus-workflow/SKILL.md`
 - **Contenu :** les commandes GitNexus par phase (exploration, impact, validation, refactoring), les conventions de nommage pour formuler des requêtes précises, l'intégration avec la mémoire projet
+
+#### `audit-workflow`
+- **Quand le charger :** dès qu'une tâche consiste à produire un audit technique du dépôt, écrire le rapport dans `audits/`, ou réconcilier les issues GitHub d'audit avec les findings
+- **Fichier :** `.github/skills/audit-workflow/SKILL.md`
+- **Contenu :** la couverture d'audit, le format des findings, la stratégie de labels GitHub, et les règles de réconciliation entre audits successifs
 
 ---
 
