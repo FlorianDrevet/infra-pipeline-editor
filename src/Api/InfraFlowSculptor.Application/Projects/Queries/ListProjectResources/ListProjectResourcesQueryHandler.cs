@@ -33,17 +33,16 @@ public sealed class ListProjectResourcesQueryHandler(
 
         foreach (var config in configs)
         {
+            // GetByInfraConfigIdAsync already loads Resources via Include — use them directly
+            // instead of re-loading each resource group individually (N+1 elimination).
             var resourceGroups = await resourceGroupRepository.GetByInfraConfigIdAsync(
                 config.Id, cancellationToken);
 
             foreach (var rg in resourceGroups)
             {
-                var rgWithResources = await resourceGroupRepository.GetByIdWithResourcesAsync(
-                    rg.Id, cancellationToken);
+                if (rg.Resources is null) continue;
 
-                if (rgWithResources?.Resources is null) continue;
-
-                foreach (var resource in rgWithResources.Resources)
+                foreach (var resource in rg.Resources)
                 {
                     results.Add(new ProjectResourceResult(
                         ResourceId: resource.Id.Value,

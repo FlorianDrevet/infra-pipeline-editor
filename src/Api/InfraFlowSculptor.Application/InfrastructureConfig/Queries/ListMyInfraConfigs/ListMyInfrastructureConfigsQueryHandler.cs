@@ -22,12 +22,14 @@ public sealed class ListMyInfrastructureConfigsQueryHandler(
         ListMyInfrastructureConfigsQuery query, CancellationToken cancellationToken)
     {
         var userId = await currentUser.GetUserIdAsync(cancellationToken);
-        var projects = await projectRepository.GetAllForUserAsync(userId, cancellationToken);
+
+        // Use lightweight projection — only project IDs are needed, not full aggregates with Members/Users.
+        var projectIds = await projectRepository.GetProjectIdsForUserAsync(userId, cancellationToken);
 
         var allConfigs = new List<GetInfrastructureConfigResult>();
-        foreach (var project in projects)
+        foreach (var projectId in projectIds)
         {
-            var configs = await configRepository.GetByProjectIdAsync(project.Id, cancellationToken);
+            var configs = await configRepository.GetByProjectIdAsync(projectId, cancellationToken);
             allConfigs.AddRange(configs.Select(c => mapper.Map<GetInfrastructureConfigResult>(c)));
         }
 

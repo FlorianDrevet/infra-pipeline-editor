@@ -2,6 +2,7 @@ using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using InfraFlowSculptor.Application.Common.Interfaces;
+using InfraFlowSculptor.Application.Projects.Common;
 
 namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 
@@ -29,4 +30,16 @@ public interface IProjectRepository : IRepository<Project>
     /// Returns all projects the given user is a member of.
     /// </summary>
     Task<List<Project>> GetAllForUserAsync(UserId userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns only the project identifiers for projects the given user is a member of.
+    /// Use this projection when only IDs are needed, avoiding loading full aggregates.
+    /// </summary>
+    Task<List<ProjectId>> GetProjectIdsForUserAsync(UserId userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns lightweight summaries (Id, Name, Description) for projects the given user is a member of.
+    /// Use this projection when only summary fields are needed, avoiding loading full aggregates with navigation properties.
+    /// </summary>
+    Task<List<ProjectSummary>> GetProjectSummariesForUserAsync(UserId userId, CancellationToken cancellationToken = default);
 }

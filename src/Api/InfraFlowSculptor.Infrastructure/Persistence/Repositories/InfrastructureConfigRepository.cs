@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -44,6 +45,17 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
         return await Context.InfrastructureConfigs
             .AsNoTracking()
             .Where(c => c.ProjectId == projectId)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<InfraConfigSummary>> GetConfigSummariesForUserAsync(
+        UserId userId, CancellationToken cancellationToken = default)
+    {
+        return await Context.InfrastructureConfigs
+            .AsNoTracking()
+            .Where(c => Context.ProjectMembers.Any(pm => pm.ProjectId == c.ProjectId && pm.UserId == userId))
+            .Select(c => new InfraConfigSummary(c.Id.Value, c.Name.Value))
             .ToListAsync(cancellationToken);
     }
 }

@@ -3,6 +3,7 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using InfraFlowSculptor.Application.Common.Interfaces;
+using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 
 namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 
@@ -20,4 +21,10 @@ public interface IInfrastructureConfigRepository : IRepository<Domain.Infrastruc
     /// Returns all infrastructure configurations belonging to the given project.
     /// </summary>
     Task<List<Domain.InfrastructureConfigAggregate.InfrastructureConfig>> GetByProjectIdAsync(ProjectId projectId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns lightweight summaries (Id, Name) for configurations the given user has access to.
+    /// Use this projection when only summary fields are needed, avoiding loading full aggregates.
+    /// </summary>
+    Task<List<InfraConfigSummary>> GetConfigSummariesForUserAsync(UserId userId, CancellationToken cancellationToken = default);
 }

@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
@@ -45,5 +46,23 @@ public sealed class ProjectRepository(ProjectDbContext context)
             .Include(p => p.Members)
                 .ThenInclude(m => m.User!)
             .Where(p => p.Members.Any(m => m.UserId == userId))
+            .ToListAsync(cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<List<ProjectId>> GetProjectIdsForUserAsync(
+        UserId userId, CancellationToken cancellationToken = default)
+        => await Context.Projects
+            .AsNoTracking()
+            .Where(p => p.Members.Any(m => m.UserId == userId))
+            .Select(p => p.Id)
+            .ToListAsync(cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<List<ProjectSummary>> GetProjectSummariesForUserAsync(
+        UserId userId, CancellationToken cancellationToken = default)
+        => await Context.Projects
+            .AsNoTracking()
+            .Where(p => p.Members.Any(m => m.UserId == userId))
+            .Select(p => new ProjectSummary(p.Id.Value, p.Name.Value, p.Description))
             .ToListAsync(cancellationToken);
 }
