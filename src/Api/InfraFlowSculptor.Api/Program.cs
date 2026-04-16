@@ -60,7 +60,7 @@ app.UseAuthorization();
 app.UseProjectController();
 app.UseInfrastructureConfigController();
 app.UseNamingTemplateController();
-app.UseKeyVaultControllerController();
+app.UseKeyVaultController();
 app.UseResourceGroupController();
 app.UseRedisCacheController();
 app.UseRoleAssignmentController();
