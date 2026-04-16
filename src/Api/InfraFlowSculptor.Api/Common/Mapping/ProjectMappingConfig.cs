@@ -40,8 +40,8 @@ public sealed class ProjectMappingConfig : IRegister
         // ProjectMemberResult -> ProjectMemberResponse
         config.NewConfig<ProjectMemberResult, ProjectMemberResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
-            .Map(dest => dest.UserId, src => src.UserId.Value)
-            .Map(dest => dest.EntraId, src => src.EntraId)
+            .Map(dest => dest.UserId, src => src.UserId.Value.ToString())
+            .Map(dest => dest.EntraId, src => src.EntraId.ToString())
             .Map(dest => dest.Role, src => src.Role)
             .Map(dest => dest.FirstName, src => src.FirstName)
             .Map(dest => dest.LastName, src => src.LastName);
@@ -66,6 +66,7 @@ public sealed class ProjectMappingConfig : IRegister
         config.NewConfig<ProjectEnvironmentDefinitionResult, EnvironmentDefinitionResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
             .Map(dest => dest.Name, src => src.Name.Value)
+            .Map(dest => dest.SubscriptionId, src => src.SubscriptionId.ToString())
             .Map(dest => dest.Tags, src => src.Tags);
 
         // ── Project Resource Naming Templates ───────────────────────────

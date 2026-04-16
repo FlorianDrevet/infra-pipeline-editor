@@ -4,12 +4,12 @@ namespace InfraFlowSculptor.Contracts.ContainerApps.Responses;
 
 /// <summary>Represents an Azure Container App resource.</summary>
 public record ContainerAppResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location,
-    Guid ContainerAppEnvironmentId,
-    Guid? ContainerRegistryId,
+    string ContainerAppEnvironmentId,
+    string? ContainerRegistryId,
     string? DockerImageName,
     string? DockerfilePath,
     string? ApplicationName,

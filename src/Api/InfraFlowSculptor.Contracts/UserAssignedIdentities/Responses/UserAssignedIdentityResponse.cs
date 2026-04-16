@@ -4,8 +4,8 @@ namespace InfraFlowSculptor.Contracts.UserAssignedIdentities.Responses;
 /// API response for a user-assigned managed identity resource.
 /// </summary>
 public record UserAssignedIdentityResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location
 );

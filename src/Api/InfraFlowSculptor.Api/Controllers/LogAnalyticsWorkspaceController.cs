@@ -124,7 +124,7 @@ public static class LogAnalyticsWorkspaceController
 
                         return result.Match(
                             dependents => Results.Ok(dependents.Select(d =>
-                                new DependentResourceResponse(d.Id, d.Name, d.ResourceType)).ToList()),
+                                new DependentResourceResponse(d.Id.ToString(), d.Name, d.ResourceType)).ToList()),
                             errors => errors.Result()
                         );
                     })

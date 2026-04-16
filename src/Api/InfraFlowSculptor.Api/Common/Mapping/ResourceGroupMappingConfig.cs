@@ -12,6 +12,9 @@ public sealed class ResourceGroupMappingConfig : IRegister
     {
         config.NewConfig<ResourceGroupId, Guid>()
             .MapWith(src => src.Value);
+
+        config.NewConfig<ResourceGroupId, string>()
+            .MapWith(src => src.Value.ToString());
         
         config.NewConfig<Guid, ResourceGroupId>()
             .MapWith(src => ResourceGroupId.Create(src));
@@ -20,10 +23,10 @@ public sealed class ResourceGroupMappingConfig : IRegister
             .MapWith(src => src);
 
         config.NewConfig<AzureResourceResult, AzureResourceResponse>()
-            .Map(dest => dest.Id, src => src.Id.Value)
+            .Map(dest => dest.Id, src => src.Id.Value.ToString())
             .Map(dest => dest.Name, src => src.Name.Value)
             .Map(dest => dest.Location, src => src.Location.Value.ToString())
-            .Map(dest => dest.ParentResourceId, src => src.ParentResourceId != null ? src.ParentResourceId.Value : (Guid?)null)
+            .Map(dest => dest.ParentResourceId, src => src.ParentResourceId != null ? src.ParentResourceId.Value.ToString() : null)
             .Map(dest => dest.ConfiguredEnvironments, src => src.ConfiguredEnvironments);
     }
 }

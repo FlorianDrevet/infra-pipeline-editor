@@ -75,9 +75,9 @@ public sealed class EventHubNamespaceMappingConfig : IRegister
                 src.MaxThroughputUnits));
 
         config.NewConfig<EventHubResult, EventHubResponse>()
-            .MapWith(src => new EventHubResponse(src.Id, src.Name));
+            .MapWith(src => new EventHubResponse(src.Id.ToString(), src.Name));
 
         config.NewConfig<EventHubConsumerGroupResult, EventHubConsumerGroupResponse>()
-            .MapWith(src => new EventHubConsumerGroupResponse(src.Id, src.EventHubName, src.ConsumerGroupName));
+            .MapWith(src => new EventHubConsumerGroupResponse(src.Id.ToString(), src.EventHubName, src.ConsumerGroupName));
     }
 }

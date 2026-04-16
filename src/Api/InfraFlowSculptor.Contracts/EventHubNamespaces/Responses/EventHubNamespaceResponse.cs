@@ -4,8 +4,8 @@ namespace InfraFlowSculptor.Contracts.EventHubNamespaces.Responses;
 
 /// <summary>Represents an Azure Event Hub Namespace resource.</summary>
 public record EventHubNamespaceResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location,
     IReadOnlyList<EventHubNamespaceEnvironmentConfigResponse> EnvironmentSettings,
@@ -14,7 +14,7 @@ public record EventHubNamespaceResponse(
 );
 
 /// <summary>Response DTO for an Event Hub.</summary>
-public record EventHubResponse(Guid Id, string Name);
+public record EventHubResponse(string Id, string Name);
 
 /// <summary>Response DTO for an Event Hub Consumer Group.</summary>
-public record EventHubConsumerGroupResponse(Guid Id, string EventHubName, string ConsumerGroupName);
+public record EventHubConsumerGroupResponse(string Id, string EventHubName, string ConsumerGroupName);

@@ -9,8 +9,8 @@ namespace InfraFlowSculptor.Contracts.CosmosDbs.Responses;
 /// <param name="Location">Azure region where the Cosmos DB account is deployed.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
 public record CosmosDbResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location,
     IReadOnlyList<CosmosDbEnvironmentConfigResponse> EnvironmentSettings

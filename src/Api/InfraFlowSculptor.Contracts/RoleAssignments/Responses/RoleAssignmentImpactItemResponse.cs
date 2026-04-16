@@ -12,10 +12,10 @@ namespace InfraFlowSculptor.Contracts.RoleAssignments.Responses;
 /// <param name="Severity">Impact severity: <c>Critical</c> or <c>Warning</c>.</param>
 /// <param name="AffectedSettingsCount">Number of settings affected, or <c>null</c> if not applicable.</param>
 public record RoleAssignmentImpactItemResponse(
-    Guid AffectedResourceId,
+    string AffectedResourceId,
     string AffectedResourceName,
     string AffectedResourceType,
-    Guid TargetResourceId,
+    string TargetResourceId,
     string TargetResourceName,
     string TargetResourceType,
     string ImpactType,

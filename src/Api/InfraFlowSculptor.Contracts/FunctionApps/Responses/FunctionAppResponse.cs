@@ -19,16 +19,16 @@ namespace InfraFlowSculptor.Contracts.FunctionApps.Responses;
 /// <param name="BuildCommand">Optional custom build command.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
 public record FunctionAppResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location,
-    Guid AppServicePlanId,
+    string AppServicePlanId,
     string RuntimeStack,
     string RuntimeVersion,
     bool HttpsOnly,
     string DeploymentMode,
-    Guid? ContainerRegistryId,
+    string? ContainerRegistryId,
     string? DockerImageName,
     string? DockerfilePath,
     string? SourceCodePath,

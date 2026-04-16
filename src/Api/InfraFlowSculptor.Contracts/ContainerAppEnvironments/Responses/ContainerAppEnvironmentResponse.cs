@@ -4,10 +4,10 @@ namespace InfraFlowSculptor.Contracts.ContainerAppEnvironments.Responses;
 
 /// <summary>Represents an Azure Container App Environment resource.</summary>
 public record ContainerAppEnvironmentResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location,
-    Guid? LogAnalyticsWorkspaceId,
+    string? LogAnalyticsWorkspaceId,
     IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigResponse> EnvironmentSettings
 );
