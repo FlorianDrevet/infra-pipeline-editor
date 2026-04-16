@@ -155,7 +155,7 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
         var result = new Dictionary<Guid, List<string>>();
 
         // Get all resource IDs in this resource group as raw Guid values
-        var resourceIds = await Context.Set<AzureResource>()
+        var resourceIds = await Context.AzureResources
             .AsNoTracking()
             .Where(r => r.ResourceGroupId == resourceGroupId)
             .Select(r => r.Id.Value)
@@ -164,7 +164,7 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
         if (resourceIds.Count == 0) return result;
 
         // Build a subquery (not materialized) for use in server-side joins
-        var resourceIdsQuery = Context.Set<AzureResource>()
+        var resourceIdsQuery = Context.AzureResources
             .Where(r => r.ResourceGroupId == resourceGroupId)
             .Select(r => r.Id);
 
