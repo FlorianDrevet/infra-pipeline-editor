@@ -161,11 +161,23 @@ Fichier : src/Api/InfraFlowSculptor.Application/Common/Interfaces/IRepository.cs
 public interface IRepository<T>
 {
     Task<T?> GetByIdAsync(ValueObject id, CancellationToken cancellationToken = default);
+    Task<T?> GetByIdAsync(ValueObject id, Func<IQueryable<T>, IQueryable<T>> queryBuilder, CancellationToken cancellationToken = default);
     Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes);
     Task<T> AddAsync(T entity);
     Task<T> UpdateAsync(T entity);
     Task<bool> DeleteAsync(ValueObject id);
 }
+```
+
+La surcharge `GetByIdAsync(id, queryBuilder)` permet de personnaliser la requête (eager loading via `.Include()` / `.ThenInclude()`) de manière standardisée, sans créer de méthodes spécifiques par repository :
+
+```csharp
+// Exemple d'utilisation dans un handler
+var keyVault = await repository.GetByIdAsync(
+    id,
+    q => q.Include(kv => kv.EnvironmentSettings)
+          .Include(kv => kv.RoleAssignments),
+    cancellationToken);
 ```
 
 Chaque agrégat étend cette interface avec des méthodes spécialisées :
@@ -183,7 +195,8 @@ public interface IKeyVaultRepository : IRepository<KeyVault>
 | Patron | Signification | Exemples |
 |--------|--------------|---------|
 | `GetByIdAsync(id)` | Récupère l'agrégat par sa **propre clé primaire**, sans eager loading | `IRepository<T>.GetByIdAsync` |
-| `GetByIdWith{Navigation}Async(id)` | Récupère par clé primaire **avec** chargement eager des navigations spécifiées | `GetByIdWithRoleAssignmentsAsync`, `GetByIdWithMembersAsync`, `GetByIdWithAllAsync` |
+| `GetByIdAsync(id, queryBuilder)` | Récupère par clé primaire avec eager loading **standardisé** via un `Func<IQueryable<T>, IQueryable<T>>` | `repository.GetByIdAsync(id, q => q.Include(e => e.Nav))` |
+| `GetByIdWith{Navigation}Async(id)` | Récupère par clé primaire **avec** chargement eager des navigations spécifiées (méthodes spécialisées legacy) | `GetByIdWithRoleAssignmentsAsync`, `GetByIdWithMembersAsync`, `GetByIdWithAllAsync` |
 | `GetBy{EntityType}IdAsync(foreignId)` | Filtre par **clé étrangère** d'une entité liée | `GetByResourceGroupIdAsync`, `GetByProjectIdAsync`, `GetBySqlServerIdAsync` |
 | `GetByContained{EntityType}IdAsync(id)` | Trouve l'agrégat qui **contient** l'entité enfant indiquée | `GetByContainedResourceIdAsync` dans `IResourceGroupRepository` |
 | `GetAllForXAsync(x)` | Retourne tous les agrégats accessibles pour un contexte donné | `GetAllForUserAsync` |
@@ -207,6 +220,16 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
 
     public virtual async Task<T?> GetByIdAsync(ValueObject id, CancellationToken ct)
         => await Context.Set<TEntity>().FindAsync(ct, id);
+
+    public virtual async Task<TEntity?> GetByIdAsync(
+        ValueObject id,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
+        CancellationToken ct = default)
+    {
+        var query = queryBuilder(Context.Set<TEntity>());
+        // Builds a predicate from the EF Core model primary key metadata
+        return await query.FirstOrDefaultAsync(/* e => e.Id == id */, ct);
+    }
 
     public virtual Task<TEntity> AddAsync(TEntity entity)
     {
