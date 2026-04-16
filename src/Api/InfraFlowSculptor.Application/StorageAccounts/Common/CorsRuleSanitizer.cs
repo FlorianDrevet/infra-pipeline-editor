@@ -2,7 +2,7 @@ namespace InfraFlowSculptor.Application.StorageAccounts.Common;
 
 internal static class CorsRuleSanitizer
 {
-    internal static IReadOnlyList<CorsRuleResult>? Sanitize(IReadOnlyList<CorsRuleResult>? rules)
+    internal static IReadOnlyCollection<CorsRuleResult>? Sanitize(IReadOnlyCollection<CorsRuleResult>? rules)
     {
         if (rules is null)
         {
@@ -17,13 +17,13 @@ internal static class CorsRuleSanitizer
             NormalizeMaxAge(rule.MaxAgeInSeconds))).ToList();
     }
 
-    private static IReadOnlyList<string> NormalizeOrigins(IReadOnlyList<string> origins)
+    private static IReadOnlyCollection<string> NormalizeOrigins(IReadOnlyCollection<string> origins)
         => origins.Select(NormalizeOrigin).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
-    private static IReadOnlyList<string> NormalizeMethods(IReadOnlyList<string> methods)
+    private static IReadOnlyCollection<string> NormalizeMethods(IReadOnlyCollection<string> methods)
         => methods.Select(method => method.Trim().ToUpperInvariant()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
-    private static IReadOnlyList<string> NormalizeHeaders(IReadOnlyList<string> headers)
+    private static IReadOnlyCollection<string> NormalizeHeaders(IReadOnlyCollection<string> headers)
         => headers.Select(header => header.Trim().ToLowerInvariant()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
     private static string NormalizeOrigin(string origin)

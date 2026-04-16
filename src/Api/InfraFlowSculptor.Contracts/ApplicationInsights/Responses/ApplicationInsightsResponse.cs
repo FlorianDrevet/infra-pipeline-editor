@@ -9,5 +9,5 @@ public record ApplicationInsightsResponse(
     string Name,
     string Location,
     string LogAnalyticsWorkspaceId,
-    IReadOnlyList<ApplicationInsightsEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyCollection<ApplicationInsightsEnvironmentConfigResponse> EnvironmentSettings
 );

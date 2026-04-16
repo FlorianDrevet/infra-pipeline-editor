@@ -41,7 +41,7 @@ public class ListResourceGroupResourcesQueryHandler(
                     ? new AzureResourceId(pid)
                     : null;
                 var configuredEnvs = envMapping.TryGetValue(r.Id.Value, out var envs)
-                    ? (IReadOnlyList<string>)envs
+                    ? (IReadOnlyCollection<string>)envs
                     : Array.Empty<string>();
                 return new AzureResourceResult(r.Id, r.GetType().Name, r.Name, r.Location, parentId, configuredEnvs);
             })

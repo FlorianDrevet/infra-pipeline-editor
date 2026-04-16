@@ -77,7 +77,7 @@ public sealed class AppConfiguration : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? Sku, int? SoftDeleteRetentionInDays, bool? PurgeProtectionEnabled, bool? DisableLocalAuth, string? PublicNetworkAccess)> settings)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, int? SoftDeleteRetentionInDays, bool? PurgeProtectionEnabled, bool? DisableLocalAuth, string? PublicNetworkAccess)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, sku, softDeleteRetentionInDays, purgeProtectionEnabled, disableLocalAuth, publicNetworkAccess) in settings)
@@ -228,7 +228,7 @@ public sealed class AppConfiguration : AzureResource
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? Sku, int? SoftDeleteRetentionInDays, bool? PurgeProtectionEnabled, bool? DisableLocalAuth, string? PublicNetworkAccess)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, int? SoftDeleteRetentionInDays, bool? PurgeProtectionEnabled, bool? DisableLocalAuth, string? PublicNetworkAccess)>? environmentSettings = null)
     {
         var appConfiguration = new AppConfiguration
         {

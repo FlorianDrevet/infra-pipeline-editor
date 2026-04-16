@@ -11,4 +11,4 @@ public record GenerateBicepResponse(
     Uri? ConstantsBicepUri,
     IReadOnlyDictionary<string, Uri> ParameterFileUris,
     IReadOnlyDictionary<string, Uri> ModuleUris,
-    IReadOnlyList<ResourceDiagnosticResponse> Warnings);
+    IReadOnlyCollection<ResourceDiagnosticResponse> Warnings);

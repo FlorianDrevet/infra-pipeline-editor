@@ -38,7 +38,7 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     private readonly List<AzureResource> _dependsOn = [];
 
     /// <summary>Gets the resources this resource depends on.</summary>
-    public IReadOnlyList<AzureResource> DependsOn => _dependsOn.AsReadOnly();
+    public IReadOnlyCollection<AzureResource> DependsOn => _dependsOn.AsReadOnly();
 
     /// <summary>Gets the parameter usages allowed by this resource type. Override in derived classes to restrict.</summary>
     protected virtual IReadOnlyCollection<ParameterUsage> AllowedParameterUsages { get; } = [];

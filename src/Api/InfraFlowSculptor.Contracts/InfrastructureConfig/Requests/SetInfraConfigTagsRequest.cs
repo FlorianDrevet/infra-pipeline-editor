@@ -6,5 +6,5 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 public class SetInfraConfigTagsRequest
 {
     /// <summary>Gets the tags to apply to the configuration.</summary>
-    public IReadOnlyList<TagRequest> Tags { get; init; } = [];
+    public IReadOnlyCollection<TagRequest> Tags { get; init; } = [];
 }

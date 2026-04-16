@@ -10,8 +10,8 @@ public record GetInfrastructureConfigResult(
     ProjectId ProjectId,
     string? DefaultNamingTemplate,
     bool UseProjectNamingConventions,
-    IReadOnlyList<ResourceNamingTemplateResult> ResourceNamingTemplates,
-    IReadOnlyList<TagResult> Tags,
+    IReadOnlyCollection<ResourceNamingTemplateResult> ResourceNamingTemplates,
+    IReadOnlyCollection<TagResult> Tags,
     int ResourceGroupCount = 0,
     int ResourceCount = 0,
     int CrossConfigReferenceCount = 0);

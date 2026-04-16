@@ -71,7 +71,7 @@ public sealed class SqlDatabase : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, SqlDatabaseSku? Sku, int? MaxSizeGb, bool? ZoneRedundant)> settings)
+        IReadOnlyCollection<(string EnvironmentName, SqlDatabaseSku? Sku, int? MaxSizeGb, bool? ZoneRedundant)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, sku, maxSizeGb, zoneRedundant) in settings)
@@ -88,7 +88,7 @@ public sealed class SqlDatabase : AzureResource
         Location location,
         AzureResourceId sqlServerId,
         string collation,
-        IReadOnlyList<(string EnvironmentName, SqlDatabaseSku? Sku, int? MaxSizeGb, bool? ZoneRedundant)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, SqlDatabaseSku? Sku, int? MaxSizeGb, bool? ZoneRedundant)>? environmentSettings = null)
     {
         var database = new SqlDatabase
         {

@@ -13,4 +13,4 @@ public record AzureResourceResponse(
     string Name,
     string Location,
     string? ParentResourceId = null,
-    IReadOnlyList<string>? ConfiguredEnvironments = null);
+    IReadOnlyCollection<string>? ConfiguredEnvironments = null);

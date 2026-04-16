@@ -7,4 +7,4 @@ namespace InfraFlowSculptor.Application.AppConfigurations.Queries.ListAppConfigu
 /// <summary>Query to list all configuration keys on an App Configuration resource.</summary>
 /// <param name="AppConfigurationId">Identifier of the App Configuration resource.</param>
 public record ListAppConfigurationKeysQuery(AzureResourceId AppConfigurationId)
-    : IQuery<IReadOnlyList<AppConfigurationKeyResult>>;
+    : IQuery<IReadOnlyCollection<AppConfigurationKeyResult>>;

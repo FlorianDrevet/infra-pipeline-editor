@@ -24,7 +24,7 @@ public interface IResourceTypePipelineGenerator
 public sealed class PipelineResourceSteps
 {
     /// <summary>YAML step snippets for deploying this resource.</summary>
-    public IReadOnlyList<string> Steps { get; init; } = [];
+    public IReadOnlyCollection<string> Steps { get; init; } = [];
 
     /// <summary>Variables needed by the deployment steps.</summary>
     public IReadOnlyDictionary<string, string> Variables { get; init; } =

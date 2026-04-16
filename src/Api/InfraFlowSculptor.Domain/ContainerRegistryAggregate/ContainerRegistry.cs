@@ -66,7 +66,7 @@ public sealed class ContainerRegistry : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? Sku, bool? AdminUserEnabled, string? PublicNetworkAccess, bool? ZoneRedundancy)> settings)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, bool? AdminUserEnabled, string? PublicNetworkAccess, bool? ZoneRedundancy)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, sku, adminUserEnabled, publicNetworkAccess, zoneRedundancy) in settings)
@@ -89,7 +89,7 @@ public sealed class ContainerRegistry : AzureResource
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? Sku, bool? AdminUserEnabled, string? PublicNetworkAccess, bool? ZoneRedundancy)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, bool? AdminUserEnabled, string? PublicNetworkAccess, bool? ZoneRedundancy)>? environmentSettings = null)
     {
         var containerRegistry = new ContainerRegistry
         {

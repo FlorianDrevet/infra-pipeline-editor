@@ -95,7 +95,7 @@ public sealed class ContainerApp : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod)> settings)
+        IReadOnlyCollection<(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod)> settings)
     {
         _environmentSettings.Clear();
         foreach (var s in settings)
@@ -128,7 +128,7 @@ public sealed class ContainerApp : AzureResource
         string? dockerImageName = null,
         string? dockerfilePath = null,
         string? applicationName = null,
-        IReadOnlyList<(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, string? CpuCores, string? MemoryGi, int? MinReplicas, int? MaxReplicas, bool? IngressEnabled, int? IngressTargetPort, bool? IngressExternal, string? TransportMethod)>? environmentSettings = null)
     {
         var containerApp = new ContainerApp
         {

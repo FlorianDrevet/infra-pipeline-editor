@@ -14,10 +14,10 @@ public sealed class ListGitBranchesQueryHandler(
     IProjectAccessService accessService,
     IKeyVaultSecretClient keyVaultSecretClient,
     IGitProviderFactory gitProviderFactory)
-    : IQueryHandler<ListGitBranchesQuery, IReadOnlyList<GitBranchResult>>
+    : IQueryHandler<ListGitBranchesQuery, IReadOnlyCollection<GitBranchResult>>
 {
     /// <inheritdoc />
-    public async Task<ErrorOr<IReadOnlyList<GitBranchResult>>> Handle(
+    public async Task<ErrorOr<IReadOnlyCollection<GitBranchResult>>> Handle(
         ListGitBranchesQuery query, CancellationToken cancellationToken)
     {
         var authResult = await accessService.VerifyReadAccessAsync(query.ProjectId, cancellationToken);

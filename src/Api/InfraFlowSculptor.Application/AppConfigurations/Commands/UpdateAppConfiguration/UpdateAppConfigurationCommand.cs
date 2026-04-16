@@ -15,5 +15,5 @@ public record UpdateAppConfigurationCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
-    IReadOnlyList<AppConfigurationEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<AppConfigurationEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<AppConfigurationResult>;

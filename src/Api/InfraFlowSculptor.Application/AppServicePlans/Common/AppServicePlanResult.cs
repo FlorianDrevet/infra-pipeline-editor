@@ -12,4 +12,4 @@ public record AppServicePlanResult(
     Name Name,
     Location Location,
     string OsType,
-    IReadOnlyList<AppServicePlanEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyCollection<AppServicePlanEnvironmentConfigData> EnvironmentSettings);

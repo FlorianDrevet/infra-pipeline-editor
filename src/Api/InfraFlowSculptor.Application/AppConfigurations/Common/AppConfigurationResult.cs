@@ -12,5 +12,5 @@ public record AppConfigurationResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<AppConfigurationEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyCollection<AppConfigurationEnvironmentConfigData> EnvironmentSettings
 );

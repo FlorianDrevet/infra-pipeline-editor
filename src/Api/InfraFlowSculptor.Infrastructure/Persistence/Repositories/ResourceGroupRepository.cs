@@ -63,7 +63,7 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
 
     /// <inheritdoc />
     public async Task<Dictionary<Guid, (int ResourceGroupCount, int ResourceCount)>> GetResourceCountsByInfraConfigIdsAsync(
-        IReadOnlyList<InfrastructureConfigId> infraConfigIds,
+        IReadOnlyCollection<InfrastructureConfigId> infraConfigIds,
         CancellationToken cancellationToken = default)
     {
         if (infraConfigIds.Count == 0)

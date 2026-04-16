@@ -25,7 +25,7 @@ public static partial class NamingTemplateValidator
     /// Returns the names of any unknown placeholders found in <paramref name="template"/>.
     /// Empty if all placeholders are valid.
     /// </summary>
-    public static IReadOnlyList<string> GetUnknownPlaceholders(string template)
+    public static IReadOnlyCollection<string> GetUnknownPlaceholders(string template)
     {
         var unknown = new List<string>();
         foreach (Match match in PlaceholderRegex.Matches(template))

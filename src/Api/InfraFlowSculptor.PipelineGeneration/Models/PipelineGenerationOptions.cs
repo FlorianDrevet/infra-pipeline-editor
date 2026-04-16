@@ -10,5 +10,5 @@ public sealed class PipelineGenerationOptions
     public string AgentPool { get; init; } = "ubuntu-latest";
 
     /// <summary>Branch trigger patterns (e.g. ["main", "develop"]).</summary>
-    public IReadOnlyList<string> TriggerBranches { get; init; } = ["main"];
+    public IReadOnlyCollection<string> TriggerBranches { get; init; } = ["main"];
 }

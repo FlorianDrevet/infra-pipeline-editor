@@ -43,7 +43,7 @@ public class AppPipelineGenerationRequest
     public IReadOnlyList<EnvironmentDefinition> Environments { get; set; } = [];
 
     /// <summary>Pipeline variable groups to reference in the generated pipeline.</summary>
-    public IReadOnlyList<PipelineVariableGroupDefinition> PipelineVariableGroups { get; set; } = [];
+    public IReadOnlyCollection<PipelineVariableGroupDefinition> PipelineVariableGroups { get; set; } = [];
 
     /// <summary>Name of the infrastructure configuration this resource belongs to.</summary>
     public string ConfigName { get; set; } = string.Empty;

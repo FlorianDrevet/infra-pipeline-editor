@@ -12,5 +12,5 @@ public record UpdateAppServicePlanCommand(
     Name Name,
     Location Location,
     string OsType,
-    IReadOnlyList<AppServicePlanEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<AppServicePlanEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<AppServicePlanResult>;

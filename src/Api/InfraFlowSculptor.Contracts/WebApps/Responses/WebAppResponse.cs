@@ -36,5 +36,5 @@ public record WebAppResponse(
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
-    IReadOnlyList<WebAppEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyCollection<WebAppEnvironmentConfigResponse> EnvironmentSettings
 );

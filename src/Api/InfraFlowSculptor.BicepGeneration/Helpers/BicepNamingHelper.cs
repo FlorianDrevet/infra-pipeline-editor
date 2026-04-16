@@ -36,7 +36,7 @@ internal static class BicepNamingHelper
     internal static HashSet<string> BuildFunctionImportList(
         NamingContext namingContext,
         IReadOnlyCollection<GeneratedTypeModule> modules,
-        IReadOnlyList<ResourceGroupDefinition> resourceGroups)
+        IReadOnlyCollection<ResourceGroupDefinition> resourceGroups)
     {
         var imports = new HashSet<string>();
 

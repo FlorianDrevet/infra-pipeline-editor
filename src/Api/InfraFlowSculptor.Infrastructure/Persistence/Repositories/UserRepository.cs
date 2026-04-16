@@ -34,7 +34,7 @@ public class UserRepository : BaseRepository<User, ProjectDbContext>, IUserRepos
     }
 
     /// <inheritdoc />
-    public async Task<List<User>> GetByIdsAsync(IReadOnlyList<UserId> ids, CancellationToken cancellationToken = default)
+    public async Task<List<User>> GetByIdsAsync(IReadOnlyCollection<UserId> ids, CancellationToken cancellationToken = default)
     {
         return await Context.Users
             .AsNoTracking()

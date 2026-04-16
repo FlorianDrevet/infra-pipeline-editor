@@ -15,5 +15,5 @@ public record AppServicePlanResponse(
     string Name,
     string Location,
     string OsType,
-    IReadOnlyList<AppServicePlanEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyCollection<AppServicePlanEnvironmentConfigResponse> EnvironmentSettings
 );

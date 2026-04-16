@@ -121,7 +121,7 @@ public sealed class WebApp : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)> settings)
+        IReadOnlyCollection<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)> settings)
     {
         _environmentSettings.Clear();
         foreach (var s in settings)
@@ -148,7 +148,7 @@ public sealed class WebApp : AzureResource
         string? sourceCodePath = null,
         string? buildCommand = null,
         string? applicationName = null,
-        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)>? environmentSettings = null)
     {
         var webApp = new WebApp
         {

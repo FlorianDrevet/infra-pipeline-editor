@@ -79,7 +79,7 @@ public sealed class ServiceBusNamespace : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion)> settings)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, sku, capacity, zoneRedundant, disableLocalAuth, minimumTlsVersion) in settings)
@@ -165,7 +165,7 @@ public sealed class ServiceBusNamespace : AzureResource
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion)>? environmentSettings = null)
     {
         var sb = new ServiceBusNamespace
         {

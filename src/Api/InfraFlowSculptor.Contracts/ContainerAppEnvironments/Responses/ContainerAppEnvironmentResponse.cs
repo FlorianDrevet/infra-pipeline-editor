@@ -9,5 +9,5 @@ public record ContainerAppEnvironmentResponse(
     string Name,
     string Location,
     string? LogAnalyticsWorkspaceId,
-    IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyCollection<ContainerAppEnvironmentEnvironmentConfigResponse> EnvironmentSettings
 );

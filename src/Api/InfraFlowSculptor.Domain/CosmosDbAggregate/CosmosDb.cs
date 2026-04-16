@@ -71,7 +71,7 @@ public sealed class CosmosDb : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? DatabaseApiType, string? ConsistencyLevel, int? MaxStalenessPrefix, int? MaxIntervalInSeconds, bool? EnableAutomaticFailover, bool? EnableMultipleWriteLocations, string? BackupPolicyType, bool? EnableFreeTier)> settings)
+        IReadOnlyCollection<(string EnvironmentName, string? DatabaseApiType, string? ConsistencyLevel, int? MaxStalenessPrefix, int? MaxIntervalInSeconds, bool? EnableAutomaticFailover, bool? EnableMultipleWriteLocations, string? BackupPolicyType, bool? EnableFreeTier)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, databaseApiType, consistencyLevel, maxStalenessPrefix, maxIntervalInSeconds, enableAutomaticFailover, enableMultipleWriteLocations, backupPolicyType, enableFreeTier) in settings)
@@ -94,7 +94,7 @@ public sealed class CosmosDb : AzureResource
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? DatabaseApiType, string? ConsistencyLevel, int? MaxStalenessPrefix, int? MaxIntervalInSeconds, bool? EnableAutomaticFailover, bool? EnableMultipleWriteLocations, string? BackupPolicyType, bool? EnableFreeTier)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, string? DatabaseApiType, string? ConsistencyLevel, int? MaxStalenessPrefix, int? MaxIntervalInSeconds, bool? EnableAutomaticFailover, bool? EnableMultipleWriteLocations, string? BackupPolicyType, bool? EnableFreeTier)>? environmentSettings = null)
     {
         var cosmosDb = new CosmosDb
         {

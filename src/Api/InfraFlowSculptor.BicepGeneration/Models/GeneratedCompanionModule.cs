@@ -25,20 +25,20 @@ public sealed record GeneratedCompanionModule
     public string TypesBicepContent { get; init; } = string.Empty;
 
     /// <summary>Blob container names to provision (static configuration, not per-env).</summary>
-    public IReadOnlyList<string> BlobContainerNames { get; init; } = [];
+    public IReadOnlyCollection<string> BlobContainerNames { get; init; } = [];
 
     /// <summary>Storage queue names to provision (static configuration, not per-env).</summary>
-    public IReadOnlyList<string> QueueNames { get; init; } = [];
+    public IReadOnlyCollection<string> QueueNames { get; init; } = [];
 
     /// <summary>Storage table names to provision (static configuration, not per-env).</summary>
-    public IReadOnlyList<string> StorageTableNames { get; init; } = [];
+    public IReadOnlyCollection<string> StorageTableNames { get; init; } = [];
 
     /// <summary>CORS rules to apply to the blob service.</summary>
-    public IReadOnlyList<BlobCorsRuleData> CorsRules { get; init; } = [];
+    public IReadOnlyCollection<BlobCorsRuleData> CorsRules { get; init; } = [];
 
     /// <summary>CORS rules to apply to the table service.</summary>
-    public IReadOnlyList<BlobCorsRuleData> TableCorsRules { get; init; } = [];
+    public IReadOnlyCollection<BlobCorsRuleData> TableCorsRules { get; init; } = [];
 
     /// <summary>Blob lifecycle management rules for automatic deletion by TTL.</summary>
-    public IReadOnlyList<ContainerLifecycleRuleData> LifecycleRules { get; init; } = [];
+    public IReadOnlyCollection<ContainerLifecycleRuleData> LifecycleRules { get; init; } = [];
 }

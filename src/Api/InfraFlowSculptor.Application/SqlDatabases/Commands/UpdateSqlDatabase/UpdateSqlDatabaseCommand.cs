@@ -13,5 +13,5 @@ public record UpdateSqlDatabaseCommand(
     Location Location,
     Guid SqlServerId,
     string Collation,
-    IReadOnlyList<SqlDatabaseEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<SqlDatabaseEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<SqlDatabaseResult>;

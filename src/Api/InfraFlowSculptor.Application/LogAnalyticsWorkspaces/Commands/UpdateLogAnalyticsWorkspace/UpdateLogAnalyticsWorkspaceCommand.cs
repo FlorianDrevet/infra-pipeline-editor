@@ -11,5 +11,5 @@ public record UpdateLogAnalyticsWorkspaceCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
-    IReadOnlyList<LogAnalyticsWorkspaceEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<LogAnalyticsWorkspaceEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<LogAnalyticsWorkspaceResult>;

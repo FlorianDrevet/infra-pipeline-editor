@@ -13,8 +13,8 @@ public sealed class MonoRepoGenerationRequest
     public required NamingContext NamingContext { get; init; }
 
     /// <summary>Gets or sets the shared environment definitions from the project.</summary>
-    public required IReadOnlyList<EnvironmentDefinition> Environments { get; init; }
+    public required IReadOnlyCollection<EnvironmentDefinition> Environments { get; init; }
 
     /// <summary>Gets or sets the environment names from the project.</summary>
-    public required IReadOnlyList<string> EnvironmentNames { get; init; }
+    public required IReadOnlyCollection<string> EnvironmentNames { get; init; }
 }

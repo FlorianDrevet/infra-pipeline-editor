@@ -80,7 +80,7 @@ public sealed class EventHubNamespace : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion, bool? AutoInflateEnabled, int? MaxThroughputUnits)> settings)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion, bool? AutoInflateEnabled, int? MaxThroughputUnits)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, sku, capacity, zoneRedundant, disableLocalAuth, minimumTlsVersion, autoInflateEnabled, maxThroughputUnits) in settings)
@@ -161,7 +161,7 @@ public sealed class EventHubNamespace : AzureResource
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion, bool? AutoInflateEnabled, int? MaxThroughputUnits)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion, bool? AutoInflateEnabled, int? MaxThroughputUnits)>? environmentSettings = null)
     {
         var eh = new EventHubNamespace
         {

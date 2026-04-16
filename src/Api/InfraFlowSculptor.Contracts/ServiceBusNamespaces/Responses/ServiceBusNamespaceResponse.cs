@@ -13,9 +13,9 @@ public record ServiceBusNamespaceResponse(
     string ResourceGroupId,
     string Name,
     string Location,
-    IReadOnlyList<ServiceBusNamespaceEnvironmentConfigResponse> EnvironmentSettings,
-    IReadOnlyList<ServiceBusQueueResponse> Queues,
-    IReadOnlyList<ServiceBusTopicSubscriptionResponse> TopicSubscriptions
+    IReadOnlyCollection<ServiceBusNamespaceEnvironmentConfigResponse> EnvironmentSettings,
+    IReadOnlyCollection<ServiceBusQueueResponse> Queues,
+    IReadOnlyCollection<ServiceBusTopicSubscriptionResponse> TopicSubscriptions
 );
 
 /// <summary>Response DTO for a Service Bus Queue.</summary>

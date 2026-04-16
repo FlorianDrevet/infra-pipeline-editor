@@ -12,5 +12,5 @@ public record LogAnalyticsWorkspaceResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<LogAnalyticsWorkspaceEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyCollection<LogAnalyticsWorkspaceEnvironmentConfigData> EnvironmentSettings
 );

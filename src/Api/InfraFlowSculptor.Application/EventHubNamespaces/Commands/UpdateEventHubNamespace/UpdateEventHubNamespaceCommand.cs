@@ -10,5 +10,5 @@ public record UpdateEventHubNamespaceCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
-    IReadOnlyList<EventHubNamespaceEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<EventHubNamespaceEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<EventHubNamespaceResult>;

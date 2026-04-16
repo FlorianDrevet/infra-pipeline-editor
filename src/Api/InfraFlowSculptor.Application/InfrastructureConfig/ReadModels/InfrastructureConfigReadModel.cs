@@ -4,12 +4,12 @@ public record InfrastructureConfigReadModel(
     Guid Id,
     string Name,
     Guid ProjectId,
-    IReadOnlyList<ResourceGroupReadModel> ResourceGroups,
-    IReadOnlyList<EnvironmentDefinitionReadModel> Environments,
+    IReadOnlyCollection<ResourceGroupReadModel> ResourceGroups,
+    IReadOnlyCollection<EnvironmentDefinitionReadModel> Environments,
     NamingContextReadModel NamingContext,
-    IReadOnlyList<RoleAssignmentReadModel> RoleAssignments,
-    IReadOnlyList<AppSettingReadModel> AppSettings,
-    IReadOnlyList<CrossConfigReferenceReadModel> CrossConfigReferences,
+    IReadOnlyCollection<RoleAssignmentReadModel> RoleAssignments,
+    IReadOnlyCollection<AppSettingReadModel> AppSettings,
+    IReadOnlyCollection<CrossConfigReferenceReadModel> CrossConfigReferences,
     IReadOnlyDictionary<string, string> ProjectTags,
     IReadOnlyDictionary<string, string> ConfigTags,
     string AppPipelineMode = "Isolated");
@@ -18,7 +18,7 @@ public record ResourceGroupReadModel(
     Guid Id,
     string Name,
     string Location,
-    IReadOnlyList<AzureResourceReadModel> Resources);
+    IReadOnlyCollection<AzureResourceReadModel> Resources);
 
 public record AzureResourceReadModel(
     Guid Id,
@@ -26,7 +26,7 @@ public record AzureResourceReadModel(
     string Location,
     string ResourceType,
     IReadOnlyDictionary<string, string> Properties,
-    IReadOnlyList<ResourceEnvironmentConfigReadModel> EnvironmentConfigs,
+    IReadOnlyCollection<ResourceEnvironmentConfigReadModel> EnvironmentConfigs,
     string? AssignedUserAssignedIdentityName = null);
 
 public record ResourceEnvironmentConfigReadModel(

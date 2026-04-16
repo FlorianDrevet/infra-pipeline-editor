@@ -21,4 +21,4 @@ public record FunctionAppResult(
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
-    IReadOnlyList<FunctionAppEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyCollection<FunctionAppEnvironmentConfigData> EnvironmentSettings);

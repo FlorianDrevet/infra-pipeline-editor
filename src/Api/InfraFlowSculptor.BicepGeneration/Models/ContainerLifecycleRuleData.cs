@@ -5,5 +5,5 @@ namespace InfraFlowSculptor.BicepGeneration.Models;
 /// </summary>
 public sealed record ContainerLifecycleRuleData(
     string RuleName,
-    IReadOnlyList<string> ContainerNames,
+    IReadOnlyCollection<string> ContainerNames,
     int TimeToLiveInDays);

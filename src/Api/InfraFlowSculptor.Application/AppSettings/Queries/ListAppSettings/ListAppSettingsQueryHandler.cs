@@ -15,10 +15,10 @@ public sealed class ListAppSettingsQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IProjectRepository projectRepository)
-    : IQueryHandler<ListAppSettingsQuery, IReadOnlyList<AppSettingResult>>
+    : IQueryHandler<ListAppSettingsQuery, IReadOnlyCollection<AppSettingResult>>
 {
     /// <inheritdoc />
-    public async Task<ErrorOr<IReadOnlyList<AppSettingResult>>> Handle(
+    public async Task<ErrorOr<IReadOnlyCollection<AppSettingResult>>> Handle(
         ListAppSettingsQuery request,
         CancellationToken cancellationToken)
     {

@@ -33,7 +33,7 @@ public class BlobLifecycleRule : Entity<BlobLifecycleRuleId>
     /// <summary>Updates all properties of this lifecycle rule.</summary>
     public void Update(
         string ruleName,
-        IReadOnlyList<string> containerNames,
+        IReadOnlyCollection<string> containerNames,
         int timeToLiveInDays)
     {
         RuleName = ruleName;
@@ -45,7 +45,7 @@ public class BlobLifecycleRule : Entity<BlobLifecycleRuleId>
     public static BlobLifecycleRule Create(
         AzureResourceId storageAccountId,
         string ruleName,
-        IReadOnlyList<string> containerNames,
+        IReadOnlyCollection<string> containerNames,
         int timeToLiveInDays)
     {
         return new BlobLifecycleRule(BlobLifecycleRuleId.CreateUnique())

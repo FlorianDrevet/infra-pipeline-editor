@@ -18,7 +18,7 @@ public static class MonoRepoPipelineAssembler
     /// <returns>A <see cref="MonoRepoPipelineResult"/> with common and per-config files.</returns>
     public static MonoRepoPipelineResult Assemble(
         IReadOnlyDictionary<string, PipelineGenerationResult> perConfigResults,
-        IReadOnlyList<EnvironmentDefinition> environments,
+        IReadOnlyCollection<EnvironmentDefinition> environments,
         string? agentPoolName = null,
         string? bicepBasePath = null,
         string? pipelineBasePath = null)

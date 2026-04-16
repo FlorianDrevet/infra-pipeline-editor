@@ -13,5 +13,5 @@ public record AppConfigurationResponse(
     string ResourceGroupId,
     string Name,
     string Location,
-    IReadOnlyList<AppConfigurationEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyCollection<AppConfigurationEnvironmentConfigResponse> EnvironmentSettings
 );

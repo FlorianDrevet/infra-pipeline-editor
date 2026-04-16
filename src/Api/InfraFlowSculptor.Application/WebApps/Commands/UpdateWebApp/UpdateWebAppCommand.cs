@@ -23,5 +23,5 @@ public record UpdateWebAppCommand(
     string? SourceCodePath = null,
     string? BuildCommand = null,
     string? ApplicationName = null,
-    IReadOnlyList<WebAppEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<WebAppEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<WebAppResult>;

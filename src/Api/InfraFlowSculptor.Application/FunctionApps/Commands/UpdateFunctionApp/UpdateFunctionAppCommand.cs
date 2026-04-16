@@ -22,5 +22,5 @@ public record UpdateFunctionAppCommand(
     string? SourceCodePath = null,
     string? BuildCommand = null,
     string? ApplicationName = null,
-    IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<FunctionAppResult>;

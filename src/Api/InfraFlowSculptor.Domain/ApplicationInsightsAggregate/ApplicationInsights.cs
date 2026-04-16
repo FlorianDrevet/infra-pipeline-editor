@@ -72,7 +72,7 @@ public sealed class ApplicationInsights : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, decimal? SamplingPercentage, int? RetentionInDays, bool? DisableIpMasking, bool? DisableLocalAuth, string? IngestionMode)> settings)
+        IReadOnlyCollection<(string EnvironmentName, decimal? SamplingPercentage, int? RetentionInDays, bool? DisableIpMasking, bool? DisableLocalAuth, string? IngestionMode)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, samplingPercentage, retentionInDays, disableIpMasking, disableLocalAuth, ingestionMode) in settings)
@@ -97,7 +97,7 @@ public sealed class ApplicationInsights : AzureResource
         Name name,
         Location location,
         AzureResourceId logAnalyticsWorkspaceId,
-        IReadOnlyList<(string EnvironmentName, decimal? SamplingPercentage, int? RetentionInDays, bool? DisableIpMasking, bool? DisableLocalAuth, string? IngestionMode)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, decimal? SamplingPercentage, int? RetentionInDays, bool? DisableIpMasking, bool? DisableLocalAuth, string? IngestionMode)>? environmentSettings = null)
     {
         var applicationInsights = new ApplicationInsights
         {

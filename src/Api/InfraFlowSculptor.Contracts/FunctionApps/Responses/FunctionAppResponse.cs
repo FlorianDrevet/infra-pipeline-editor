@@ -34,5 +34,5 @@ public record FunctionAppResponse(
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
-    IReadOnlyList<FunctionAppEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyCollection<FunctionAppEnvironmentConfigResponse> EnvironmentSettings
 );

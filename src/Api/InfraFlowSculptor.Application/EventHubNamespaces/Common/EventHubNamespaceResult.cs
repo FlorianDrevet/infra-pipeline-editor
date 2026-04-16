@@ -10,9 +10,9 @@ public record EventHubNamespaceResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<EventHubNamespaceEnvironmentConfigData> EnvironmentSettings,
-    IReadOnlyList<EventHubResult> EventHubs,
-    IReadOnlyList<EventHubConsumerGroupResult> ConsumerGroups
+    IReadOnlyCollection<EventHubNamespaceEnvironmentConfigData> EnvironmentSettings,
+    IReadOnlyCollection<EventHubResult> EventHubs,
+    IReadOnlyCollection<EventHubConsumerGroupResult> ConsumerGroups
 );
 
 /// <summary>Application-layer result for an Event Hub.</summary>

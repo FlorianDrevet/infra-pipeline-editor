@@ -13,5 +13,5 @@ public record ContainerAppEnvironmentResult(
     Name Name,
     Location Location,
     Guid? LogAnalyticsWorkspaceId,
-    IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyCollection<ContainerAppEnvironmentEnvironmentConfigData> EnvironmentSettings
 );

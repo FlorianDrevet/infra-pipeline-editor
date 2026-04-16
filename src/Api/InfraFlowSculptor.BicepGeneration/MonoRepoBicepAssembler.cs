@@ -19,7 +19,7 @@ public static class MonoRepoBicepAssembler
     public static MonoRepoGenerationResult Assemble(
         IReadOnlyDictionary<string, GenerationResult> perConfigResults,
         NamingContext namingContext,
-        IReadOnlyList<EnvironmentDefinition> environments,
+        IReadOnlyCollection<EnvironmentDefinition> environments,
         bool hasAnyRoleAssignments)
     {
         var commonFiles = new Dictionary<string, string>();

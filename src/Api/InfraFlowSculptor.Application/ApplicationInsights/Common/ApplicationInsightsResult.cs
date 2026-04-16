@@ -13,4 +13,4 @@ public record ApplicationInsightsResult(
     Name Name,
     Location Location,
     Guid LogAnalyticsWorkspaceId,
-    IReadOnlyList<ApplicationInsightsEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyCollection<ApplicationInsightsEnvironmentConfigData> EnvironmentSettings);

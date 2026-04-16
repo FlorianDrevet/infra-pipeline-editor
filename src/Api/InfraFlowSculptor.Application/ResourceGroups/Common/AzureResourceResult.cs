@@ -16,4 +16,4 @@ public record AzureResourceResult(
     Name Name,
     Location Location,
     AzureResourceId? ParentResourceId = null,
-    IReadOnlyList<string>? ConfiguredEnvironments = null);
+    IReadOnlyCollection<string>? ConfiguredEnvironments = null);

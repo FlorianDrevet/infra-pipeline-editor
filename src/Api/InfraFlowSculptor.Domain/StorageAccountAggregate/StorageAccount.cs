@@ -18,33 +18,33 @@ public sealed class StorageAccount : AzureResource
     private readonly List<BlobContainer> _blobContainers = [];
 
     /// <summary>Gets the blob containers in this storage account.</summary>
-    public IReadOnlyList<BlobContainer> BlobContainers => _blobContainers.AsReadOnly();
+    public IReadOnlyCollection<BlobContainer> BlobContainers => _blobContainers.AsReadOnly();
 
     private readonly List<StorageQueue> _queues = [];
 
     /// <summary>Gets the queues in this storage account.</summary>
-    public IReadOnlyList<StorageQueue> Queues => _queues.AsReadOnly();
+    public IReadOnlyCollection<StorageQueue> Queues => _queues.AsReadOnly();
 
     private readonly List<StorageTable> _tables = [];
 
     /// <summary>Gets the tables in this storage account.</summary>
-    public IReadOnlyList<StorageTable> Tables => _tables.AsReadOnly();
+    public IReadOnlyCollection<StorageTable> Tables => _tables.AsReadOnly();
 
     private readonly List<CorsRule> _corsRules = [];
 
     /// <summary>Gets all CORS rules (both Blob and Table service types).</summary>
-    public IReadOnlyList<CorsRule> AllCorsRules => _corsRules.AsReadOnly();
+    public IReadOnlyCollection<CorsRule> AllCorsRules => _corsRules.AsReadOnly();
 
     /// <summary>Gets CORS rules applicable to the Blob service.</summary>
-    public IReadOnlyList<CorsRule> CorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Blob)).ToList();
+    public IReadOnlyCollection<CorsRule> CorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Blob)).ToList();
 
     /// <summary>Gets CORS rules applicable to the Table service.</summary>
-    public IReadOnlyList<CorsRule> TableCorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Table)).ToList();
+    public IReadOnlyCollection<CorsRule> TableCorsRules => _corsRules.Where(rule => rule.ServiceType == new CorsServiceType(CorsServiceType.Service.Table)).ToList();
 
     private readonly List<BlobLifecycleRule> _lifecycleRules = [];
 
     /// <summary>Gets the blob lifecycle management rules for this Storage Account.</summary>
-    public IReadOnlyList<BlobLifecycleRule> LifecycleRules => _lifecycleRules.AsReadOnly();
+    public IReadOnlyCollection<BlobLifecycleRule> LifecycleRules => _lifecycleRules.AsReadOnly();
 
     private readonly List<StorageAccountEnvironmentSettings> _environmentSettings = [];
 
@@ -174,7 +174,7 @@ public sealed class StorageAccount : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku)> settings)
+        IReadOnlyCollection<(string EnvironmentName, StorageAccountSku? Sku)> settings)
     {
         _environmentSettings.Clear();
         foreach (var s in settings)
@@ -186,21 +186,21 @@ public sealed class StorageAccount : AzureResource
 
     /// <summary>Replaces all Blob service CORS rules with the provided set.</summary>
     public void SetCorsRules(
-        IReadOnlyList<(
-            IReadOnlyList<string> AllowedOrigins,
-            IReadOnlyList<string> AllowedMethods,
-            IReadOnlyList<string> AllowedHeaders,
-            IReadOnlyList<string> ExposedHeaders,
+        IReadOnlyCollection<(
+            IReadOnlyCollection<string> AllowedOrigins,
+            IReadOnlyCollection<string> AllowedMethods,
+            IReadOnlyCollection<string> AllowedHeaders,
+            IReadOnlyCollection<string> ExposedHeaders,
             int MaxAgeInSeconds)> corsRules)
         => SetServiceCorsRules(new CorsServiceType(CorsServiceType.Service.Blob), corsRules);
 
     /// <summary>Replaces all Table service CORS rules with the provided set.</summary>
     public void SetTableCorsRules(
-        IReadOnlyList<(
-            IReadOnlyList<string> AllowedOrigins,
-            IReadOnlyList<string> AllowedMethods,
-            IReadOnlyList<string> AllowedHeaders,
-            IReadOnlyList<string> ExposedHeaders,
+        IReadOnlyCollection<(
+            IReadOnlyCollection<string> AllowedOrigins,
+            IReadOnlyCollection<string> AllowedMethods,
+            IReadOnlyCollection<string> AllowedHeaders,
+            IReadOnlyCollection<string> ExposedHeaders,
             int MaxAgeInSeconds)> corsRules)
         => SetServiceCorsRules(new CorsServiceType(CorsServiceType.Service.Table), corsRules);
 
@@ -208,7 +208,7 @@ public sealed class StorageAccount : AzureResource
     /// Replaces all blob lifecycle management rules with the provided set.
     /// </summary>
     public void SetLifecycleRules(
-        IReadOnlyList<(string RuleName, IReadOnlyList<string> ContainerNames, int TimeToLiveInDays)> lifecycleRules)
+        IReadOnlyCollection<(string RuleName, IReadOnlyCollection<string> ContainerNames, int TimeToLiveInDays)> lifecycleRules)
     {
         _lifecycleRules.Clear();
         foreach (var rule in lifecycleRules)
@@ -223,11 +223,11 @@ public sealed class StorageAccount : AzureResource
 
     private void SetServiceCorsRules(
         CorsServiceType serviceType,
-        IReadOnlyList<(
-            IReadOnlyList<string> AllowedOrigins,
-            IReadOnlyList<string> AllowedMethods,
-            IReadOnlyList<string> AllowedHeaders,
-            IReadOnlyList<string> ExposedHeaders,
+        IReadOnlyCollection<(
+            IReadOnlyCollection<string> AllowedOrigins,
+            IReadOnlyCollection<string> AllowedMethods,
+            IReadOnlyCollection<string> AllowedHeaders,
+            IReadOnlyCollection<string> ExposedHeaders,
             int MaxAgeInSeconds)> corsRules)
     {
         _corsRules.RemoveAll(rule => rule.ServiceType == serviceType);
@@ -255,20 +255,20 @@ public sealed class StorageAccount : AzureResource
         bool allowBlobPublicAccess,
         bool enableHttpsTrafficOnly,
         StorageAccountTlsVersion minimumTlsVersion,
-        IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku)>? environmentSettings = null,
-        IReadOnlyList<(
-            IReadOnlyList<string> AllowedOrigins,
-            IReadOnlyList<string> AllowedMethods,
-            IReadOnlyList<string> AllowedHeaders,
-            IReadOnlyList<string> ExposedHeaders,
+        IReadOnlyCollection<(string EnvironmentName, StorageAccountSku? Sku)>? environmentSettings = null,
+        IReadOnlyCollection<(
+            IReadOnlyCollection<string> AllowedOrigins,
+            IReadOnlyCollection<string> AllowedMethods,
+            IReadOnlyCollection<string> AllowedHeaders,
+            IReadOnlyCollection<string> ExposedHeaders,
             int MaxAgeInSeconds)>? corsRules = null,
-        IReadOnlyList<(
-            IReadOnlyList<string> AllowedOrigins,
-            IReadOnlyList<string> AllowedMethods,
-            IReadOnlyList<string> AllowedHeaders,
-            IReadOnlyList<string> ExposedHeaders,
+        IReadOnlyCollection<(
+            IReadOnlyCollection<string> AllowedOrigins,
+            IReadOnlyCollection<string> AllowedMethods,
+            IReadOnlyCollection<string> AllowedHeaders,
+            IReadOnlyCollection<string> ExposedHeaders,
             int MaxAgeInSeconds)>? tableCorsRules = null,
-        IReadOnlyList<(string RuleName, IReadOnlyList<string> ContainerNames, int TimeToLiveInDays)>? lifecycleRules = null)
+        IReadOnlyCollection<(string RuleName, IReadOnlyCollection<string> ContainerNames, int TimeToLiveInDays)>? lifecycleRules = null)
     {
         var storageAccount = new StorageAccount
         {

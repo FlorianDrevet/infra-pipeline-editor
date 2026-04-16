@@ -8,9 +8,9 @@ public record EventHubNamespaceResponse(
     string ResourceGroupId,
     string Name,
     string Location,
-    IReadOnlyList<EventHubNamespaceEnvironmentConfigResponse> EnvironmentSettings,
-    IReadOnlyList<EventHubResponse> EventHubs,
-    IReadOnlyList<EventHubConsumerGroupResponse> ConsumerGroups
+    IReadOnlyCollection<EventHubNamespaceEnvironmentConfigResponse> EnvironmentSettings,
+    IReadOnlyCollection<EventHubResponse> EventHubs,
+    IReadOnlyCollection<EventHubConsumerGroupResponse> ConsumerGroups
 );
 
 /// <summary>Response DTO for an Event Hub.</summary>

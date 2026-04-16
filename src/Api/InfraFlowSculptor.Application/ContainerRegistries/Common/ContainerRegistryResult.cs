@@ -12,5 +12,5 @@ public record ContainerRegistryResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<ContainerRegistryEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyCollection<ContainerRegistryEnvironmentConfigData> EnvironmentSettings
 );

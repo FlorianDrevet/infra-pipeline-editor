@@ -71,7 +71,7 @@ public sealed class ContainerAppEnvironment : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? Sku, string? WorkloadProfileType, bool? InternalLoadBalancerEnabled, bool? ZoneRedundancyEnabled)> settings)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, string? WorkloadProfileType, bool? InternalLoadBalancerEnabled, bool? ZoneRedundancyEnabled)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, sku, workloadProfileType, internalLoadBalancerEnabled, zoneRedundancyEnabled) in settings)
@@ -96,7 +96,7 @@ public sealed class ContainerAppEnvironment : AzureResource
         Name name,
         Location location,
         AzureResourceId? logAnalyticsWorkspaceId = null,
-        IReadOnlyList<(string EnvironmentName, string? Sku, string? WorkloadProfileType, bool? InternalLoadBalancerEnabled, bool? ZoneRedundancyEnabled)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, string? WorkloadProfileType, bool? InternalLoadBalancerEnabled, bool? ZoneRedundancyEnabled)>? environmentSettings = null)
     {
         var containerAppEnvironment = new ContainerAppEnvironment
         {

@@ -62,7 +62,7 @@ public sealed class AppServicePlan : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, AppServicePlanSku? Sku, int? Capacity)> settings)
+        IReadOnlyCollection<(string EnvironmentName, AppServicePlanSku? Sku, int? Capacity)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, sku, capacity) in settings)
@@ -78,7 +78,7 @@ public sealed class AppServicePlan : AzureResource
         Name name,
         Location location,
         AppServicePlanOsType osType,
-        IReadOnlyList<(string EnvironmentName, AppServicePlanSku? Sku, int? Capacity)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, AppServicePlanSku? Sku, int? Capacity)>? environmentSettings = null)
     {
         var plan = new AppServicePlan
         {

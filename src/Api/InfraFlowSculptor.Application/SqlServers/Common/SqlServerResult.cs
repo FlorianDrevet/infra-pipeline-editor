@@ -12,4 +12,4 @@ public record SqlServerResult(
     Location Location,
     string Version,
     string AdministratorLogin,
-    IReadOnlyList<SqlServerEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyCollection<SqlServerEnvironmentConfigData> EnvironmentSettings);

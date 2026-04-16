@@ -103,7 +103,7 @@ public sealed class KeyVault : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, Sku? Sku)> settings)
+        IReadOnlyCollection<(string EnvironmentName, Sku? Sku)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, sku) in settings)
@@ -124,7 +124,7 @@ public sealed class KeyVault : AzureResource
         bool enabledForTemplateDeployment = false,
         bool enablePurgeProtection = true,
         bool enableSoftDelete = true,
-        IReadOnlyList<(string EnvironmentName, Sku? Sku)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, Sku? Sku)>? environmentSettings = null)
     {
         var keyVault = new KeyVault
         {

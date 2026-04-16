@@ -17,4 +17,4 @@ public record ContainerAppResult(
     string? DockerImageName,
     string? DockerfilePath,
     string? ApplicationName,
-    IReadOnlyList<ContainerAppEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyCollection<ContainerAppEnvironmentConfigData> EnvironmentSettings);

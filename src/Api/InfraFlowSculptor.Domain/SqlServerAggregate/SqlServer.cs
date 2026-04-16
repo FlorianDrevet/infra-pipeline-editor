@@ -65,7 +65,7 @@ public sealed class SqlServer : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? MinimalTlsVersion)> settings)
+        IReadOnlyCollection<(string EnvironmentName, string? MinimalTlsVersion)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, minTls) in settings)
@@ -82,7 +82,7 @@ public sealed class SqlServer : AzureResource
         Location location,
         SqlServerVersion version,
         string administratorLogin,
-        IReadOnlyList<(string EnvironmentName, string? MinimalTlsVersion)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, string? MinimalTlsVersion)>? environmentSettings = null)
     {
         var server = new SqlServer
         {

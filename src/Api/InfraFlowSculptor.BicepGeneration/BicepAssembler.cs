@@ -19,14 +19,14 @@ public static class BicepAssembler
     /// </summary>
     public static GenerationResult Assemble(
         IReadOnlyCollection<GeneratedTypeModule> modules,
-        IReadOnlyList<ResourceGroupDefinition> resourceGroups,
-        IReadOnlyList<EnvironmentDefinition> environments,
-        IReadOnlyList<string> environmentNames,
+        IReadOnlyCollection<ResourceGroupDefinition> resourceGroups,
+        IReadOnlyCollection<EnvironmentDefinition> environments,
+        IReadOnlyCollection<string> environmentNames,
         IEnumerable<ResourceDefinition> resources,
         NamingContext namingContext,
-        IReadOnlyList<RoleAssignmentDefinition> roleAssignments,
-        IReadOnlyList<AppSettingDefinition> appSettings,
-        IReadOnlyList<ExistingResourceReference>? existingResourceReferences = null,
+        IReadOnlyCollection<RoleAssignmentDefinition> roleAssignments,
+        IReadOnlyCollection<AppSettingDefinition> appSettings,
+        IReadOnlyCollection<ExistingResourceReference>? existingResourceReferences = null,
         IReadOnlyDictionary<string, string>? projectTags = null,
         IReadOnlyDictionary<string, string>? configTags = null)
     {

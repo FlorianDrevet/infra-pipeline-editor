@@ -41,7 +41,7 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     private readonly List<ResourceGroup> _resourceGroups = [];
 
     /// <summary>Gets the resource groups owned by this configuration.</summary>
-    public IReadOnlyList<ResourceGroup> ResourceGroups => _resourceGroups.AsReadOnly();
+    public IReadOnlyCollection<ResourceGroup> ResourceGroups => _resourceGroups.AsReadOnly();
 
     private readonly List<ResourceNamingTemplate> _resourceNamingTemplates = [];
 

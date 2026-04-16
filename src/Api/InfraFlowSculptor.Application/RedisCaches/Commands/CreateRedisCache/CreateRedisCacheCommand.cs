@@ -15,5 +15,5 @@ public record CreateRedisCacheCommand(
     string? MinimumTlsVersion,
     bool DisableAccessKeyAuthentication,
     bool EnableAadAuth,
-    IReadOnlyList<RedisCacheEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<RedisCacheEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<RedisCacheResult>;

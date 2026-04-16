@@ -17,4 +17,4 @@ public record ProjectEnvironmentDefinitionResult(
     int Order,
     bool RequiresApproval,
     string? AzureResourceManagerConnection,
-    IReadOnlyList<TagResult> Tags);
+    IReadOnlyCollection<TagResult> Tags);

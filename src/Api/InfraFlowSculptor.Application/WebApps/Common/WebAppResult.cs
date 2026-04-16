@@ -22,4 +22,4 @@ public record WebAppResult(
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
-    IReadOnlyList<WebAppEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyCollection<WebAppEnvironmentConfigData> EnvironmentSettings);

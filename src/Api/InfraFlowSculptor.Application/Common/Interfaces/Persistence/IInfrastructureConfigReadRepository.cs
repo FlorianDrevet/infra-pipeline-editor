@@ -13,7 +13,7 @@ public interface IInfrastructureConfigReadRepository
     /// with resources, role assignments, app settings, and cross-config references.
     /// Used for mono-repo Bicep generation.
     /// </summary>
-    Task<IReadOnlyList<InfrastructureConfigReadModel>> GetAllByProjectIdWithResourcesAsync(
+    Task<IReadOnlyCollection<InfrastructureConfigReadModel>> GetAllByProjectIdWithResourcesAsync(
         Guid projectId,
         CancellationToken cancellationToken = default);
 }

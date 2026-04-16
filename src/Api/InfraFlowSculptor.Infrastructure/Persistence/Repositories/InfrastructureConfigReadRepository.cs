@@ -55,7 +55,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
     : IInfrastructureConfigReadRepository
 {
     /// <inheritdoc />
-    public async Task<IReadOnlyList<InfrastructureConfigReadModel>> GetAllByProjectIdWithResourcesAsync(
+    public async Task<IReadOnlyCollection<InfrastructureConfigReadModel>> GetAllByProjectIdWithResourcesAsync(
         Guid projectId,
         CancellationToken cancellationToken = default)
     {
@@ -501,28 +501,28 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
     /// </summary>
     private static AzureResourceReadModel? MapResource(
         AzureResource resource,
-        IReadOnlyList<KeyVaultEnvironmentSettings> kvSettings,
-        IReadOnlyList<RedisCacheEnvironmentSettings> rcSettings,
-        IReadOnlyList<StorageAccountEnvironmentSettings> saSettings,
-        IReadOnlyList<BlobContainer> blobContainers,
-        IReadOnlyList<StorageQueue> storageQueues,
-        IReadOnlyList<StorageTable> storageTables,
-        IReadOnlyList<CorsRule> storageCorsRules,
-        IReadOnlyList<BlobLifecycleRule> lifecycleRules,
-        IReadOnlyList<AppServicePlanEnvironmentSettings> aspSettings,
-        IReadOnlyList<WebAppEnvironmentSettings> waSettings,
-        IReadOnlyList<FunctionAppEnvironmentSettings> faSettings,
-        IReadOnlyList<AppConfigurationEnvironmentSettings> acSettings,
-        IReadOnlyList<ContainerAppEnvironmentEnvironmentSettings> caeSettings,
-        IReadOnlyList<ContainerAppEnvironmentSettings> caSettings,
-        IReadOnlyList<LogAnalyticsWorkspaceEnvironmentSettings> lawSettings,
-        IReadOnlyList<ApplicationInsightsEnvironmentSettings> aiSettings,
-        IReadOnlyList<CosmosDbEnvironmentSettings> cosmosSettings,
-        IReadOnlyList<SqlServerEnvironmentSettings> sqlServerSettings,
-        IReadOnlyList<SqlDatabaseEnvironmentSettings> sqlDbSettings,
-        IReadOnlyList<ServiceBusNamespaceEnvironmentSettings> sbSettings,
-        IReadOnlyList<ContainerRegistryEnvironmentSettings> crSettings,
-        IReadOnlyList<EventHubNamespaceEnvironmentSettings> ehSettings)
+        IReadOnlyCollection<KeyVaultEnvironmentSettings> kvSettings,
+        IReadOnlyCollection<RedisCacheEnvironmentSettings> rcSettings,
+        IReadOnlyCollection<StorageAccountEnvironmentSettings> saSettings,
+        IReadOnlyCollection<BlobContainer> blobContainers,
+        IReadOnlyCollection<StorageQueue> storageQueues,
+        IReadOnlyCollection<StorageTable> storageTables,
+        IReadOnlyCollection<CorsRule> storageCorsRules,
+        IReadOnlyCollection<BlobLifecycleRule> lifecycleRules,
+        IReadOnlyCollection<AppServicePlanEnvironmentSettings> aspSettings,
+        IReadOnlyCollection<WebAppEnvironmentSettings> waSettings,
+        IReadOnlyCollection<FunctionAppEnvironmentSettings> faSettings,
+        IReadOnlyCollection<AppConfigurationEnvironmentSettings> acSettings,
+        IReadOnlyCollection<ContainerAppEnvironmentEnvironmentSettings> caeSettings,
+        IReadOnlyCollection<ContainerAppEnvironmentSettings> caSettings,
+        IReadOnlyCollection<LogAnalyticsWorkspaceEnvironmentSettings> lawSettings,
+        IReadOnlyCollection<ApplicationInsightsEnvironmentSettings> aiSettings,
+        IReadOnlyCollection<CosmosDbEnvironmentSettings> cosmosSettings,
+        IReadOnlyCollection<SqlServerEnvironmentSettings> sqlServerSettings,
+        IReadOnlyCollection<SqlDatabaseEnvironmentSettings> sqlDbSettings,
+        IReadOnlyCollection<ServiceBusNamespaceEnvironmentSettings> sbSettings,
+        IReadOnlyCollection<ContainerRegistryEnvironmentSettings> crSettings,
+        IReadOnlyCollection<EventHubNamespaceEnvironmentSettings> ehSettings)
     {
         return resource switch
         {

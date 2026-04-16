@@ -15,5 +15,5 @@ public record CreateServiceBusNamespaceCommand(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<ServiceBusNamespaceEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<ServiceBusNamespaceEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<ServiceBusNamespaceResult>;

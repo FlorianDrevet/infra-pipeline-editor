@@ -13,7 +13,7 @@ internal static class ConstantsBicepAssembler
     /// <summary>
     /// Generates the <c>constants.bicep</c> content for the given role assignments.
     /// </summary>
-    internal static string Generate(IReadOnlyList<RoleAssignmentDefinition> roleAssignments)
+    internal static string Generate(IReadOnlyCollection<RoleAssignmentDefinition> roleAssignments)
     {
         var sb = new StringBuilder();
 

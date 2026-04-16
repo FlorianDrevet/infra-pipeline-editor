@@ -88,7 +88,7 @@ internal static class BicepFormattingHelper
         return sb.ToString();
     }
 
-    internal static string RenderBicepStringArray(IReadOnlyList<string> values)
+    internal static string RenderBicepStringArray(IReadOnlyCollection<string> values)
     {
         if (values.Count == 0)
         {

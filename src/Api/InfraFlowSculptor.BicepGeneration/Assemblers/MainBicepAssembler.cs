@@ -17,11 +17,11 @@ internal static class MainBicepAssembler
     /// </summary>
     internal static string Generate(
         IReadOnlyCollection<GeneratedTypeModule> modules,
-        IReadOnlyList<ResourceGroupDefinition> resourceGroups,
+        IReadOnlyCollection<ResourceGroupDefinition> resourceGroups,
         NamingContext namingContext,
-        IReadOnlyList<RoleAssignmentDefinition> roleAssignments,
-        IReadOnlyList<AppSettingDefinition> appSettings,
-        IReadOnlyList<ExistingResourceReference> existingResourceReferences,
+        IReadOnlyCollection<RoleAssignmentDefinition> roleAssignments,
+        IReadOnlyCollection<AppSettingDefinition> appSettings,
+        IReadOnlyCollection<ExistingResourceReference> existingResourceReferences,
         IReadOnlyDictionary<string, string>? projectTags = null,
         IReadOnlyDictionary<string, string>? configTags = null)
     {

@@ -15,8 +15,8 @@ public record UpdateStorageAccountCommand(
     bool AllowBlobPublicAccess,
     bool EnableHttpsTrafficOnly,
     string MinimumTlsVersion,
-    IReadOnlyList<StorageAccountEnvironmentConfigData>? EnvironmentSettings = null,
-    IReadOnlyList<CorsRuleResult>? CorsRules = null,
-    IReadOnlyList<CorsRuleResult>? TableCorsRules = null,
-    IReadOnlyList<BlobLifecycleRuleResult>? LifecycleRules = null
+    IReadOnlyCollection<StorageAccountEnvironmentConfigData>? EnvironmentSettings = null,
+    IReadOnlyCollection<CorsRuleResult>? CorsRules = null,
+    IReadOnlyCollection<CorsRuleResult>? TableCorsRules = null,
+    IReadOnlyCollection<BlobLifecycleRuleResult>? LifecycleRules = null
 ) : ICommand<StorageAccountResult>;

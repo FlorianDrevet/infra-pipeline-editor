@@ -13,5 +13,5 @@ public record CosmosDbResponse(
     string ResourceGroupId,
     string Name,
     string Location,
-    IReadOnlyList<CosmosDbEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyCollection<CosmosDbEnvironmentConfigResponse> EnvironmentSettings
 );

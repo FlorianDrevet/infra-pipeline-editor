@@ -21,8 +21,8 @@ public record InfrastructureConfigResponse(
     string ProjectId,
     string? DefaultNamingTemplate,
     bool UseProjectNamingConventions,
-    IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates,
-    IReadOnlyList<TagResponse> Tags,
+    IReadOnlyCollection<ResourceNamingTemplateResponse> ResourceNamingTemplates,
+    IReadOnlyCollection<TagResponse> Tags,
     int ResourceGroupCount,
     int ResourceCount,
     int CrossConfigReferenceCount);

@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.BicepGeneration.StorageAccount;
 /// </summary>
 internal static class StorageAccountCompanionHelper
 {
-    internal static IEnumerable<string> RenderCorsRules(IReadOnlyList<BlobCorsRuleData> corsRules, int indentLevel = 0)
+    internal static IEnumerable<string> RenderCorsRules(IReadOnlyCollection<BlobCorsRuleData> corsRules, int indentLevel = 0)
     {
         if (corsRules.Count == 0)
         {
@@ -42,7 +42,7 @@ internal static class StorageAccountCompanionHelper
         GeneratedCompanionModule companion) =>
         $"{module.ModuleName}{companion.ModuleSymbolSuffix}CorsRules";
 
-    internal static IEnumerable<(string Name, string Description, IReadOnlyList<BlobCorsRuleData> Value)> GetStorageAccountCorsParameters(
+    internal static IEnumerable<(string Name, string Description, IReadOnlyCollection<BlobCorsRuleData> Value)> GetStorageAccountCorsParameters(
         GeneratedTypeModule module)
     {
         foreach (var companion in module.CompanionModules)
@@ -68,7 +68,7 @@ internal static class StorageAccountCompanionHelper
     internal static void AppendCorsParameterAssignment(
         StringBuilder sb,
         string parameterName,
-        IReadOnlyList<BlobCorsRuleData> corsRules)
+        IReadOnlyCollection<BlobCorsRuleData> corsRules)
     {
         if (corsRules.Count == 0)
         {
@@ -88,7 +88,7 @@ internal static class StorageAccountCompanionHelper
         GeneratedCompanionModule companion) =>
         $"{module.ModuleName}{companion.ModuleSymbolSuffix}LifecycleRules";
 
-    internal static IEnumerable<(string Name, string Description, IReadOnlyList<ContainerLifecycleRuleData> Value)> GetStorageAccountLifecycleParameters(
+    internal static IEnumerable<(string Name, string Description, IReadOnlyCollection<ContainerLifecycleRuleData> Value)> GetStorageAccountLifecycleParameters(
         GeneratedTypeModule module)
     {
         foreach (var companion in module.CompanionModules)
@@ -103,7 +103,7 @@ internal static class StorageAccountCompanionHelper
         }
     }
 
-    internal static IEnumerable<string> RenderLifecycleRules(IReadOnlyList<ContainerLifecycleRuleData> rules, int indentLevel = 0)
+    internal static IEnumerable<string> RenderLifecycleRules(IReadOnlyCollection<ContainerLifecycleRuleData> rules, int indentLevel = 0)
     {
         if (rules.Count == 0)
         {
@@ -131,7 +131,7 @@ internal static class StorageAccountCompanionHelper
     internal static void AppendLifecycleParameterAssignment(
         StringBuilder sb,
         string parameterName,
-        IReadOnlyList<ContainerLifecycleRuleData> rules)
+        IReadOnlyCollection<ContainerLifecycleRuleData> rules)
     {
         if (rules.Count == 0)
         {

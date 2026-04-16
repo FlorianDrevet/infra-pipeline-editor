@@ -12,5 +12,5 @@ public record CreateContainerAppEnvironmentCommand(
     Name Name,
     Location Location,
     Guid? LogAnalyticsWorkspaceId = null,
-    IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<ContainerAppEnvironmentEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<ContainerAppEnvironmentResult>;

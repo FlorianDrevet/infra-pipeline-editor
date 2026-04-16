@@ -23,7 +23,7 @@ public record EnvironmentDefinitionResponse(
     int Order,
     bool RequiresApproval,
     string? AzureResourceManagerConnection,
-    IReadOnlyList<TagResponse> Tags);
+    IReadOnlyCollection<TagResponse> Tags);
 
 /// <summary>A key/value Azure resource tag.</summary>
 /// <param name="Name">Tag key.</param>

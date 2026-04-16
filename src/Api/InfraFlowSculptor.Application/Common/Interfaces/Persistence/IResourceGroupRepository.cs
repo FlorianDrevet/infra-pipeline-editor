@@ -16,7 +16,7 @@ public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggre
     /// Returns resource group count and total resource count per infrastructure config ID.
     /// </summary>
     Task<Dictionary<Guid, (int ResourceGroupCount, int ResourceCount)>> GetResourceCountsByInfraConfigIdsAsync(
-        IReadOnlyList<InfrastructureConfigId> infraConfigIds,
+        IReadOnlyCollection<InfrastructureConfigId> infraConfigIds,
         CancellationToken cancellationToken = default);
 
     /// <summary>

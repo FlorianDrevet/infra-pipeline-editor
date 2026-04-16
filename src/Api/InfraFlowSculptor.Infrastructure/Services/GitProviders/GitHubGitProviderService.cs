@@ -155,7 +155,7 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi) : IGi
         string owner,
         string repositoryName,
         string baseTreeSha,
-        IReadOnlyList<object> treeItems,
+        IReadOnlyCollection<object> treeItems,
         CancellationToken cancellationToken)
     {
         var response = await gitHubTreeApi.CreateTreeAsync(
@@ -172,7 +172,7 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi) : IGi
     }
 
     /// <inheritdoc />
-    public async Task<ErrorOr<IReadOnlyList<GitBranchResult>>> ListBranchesAsync(
+    public async Task<ErrorOr<IReadOnlyCollection<GitBranchResult>>> ListBranchesAsync(
         string token, string owner, string repositoryName, CancellationToken cancellationToken = default)
     {
         try

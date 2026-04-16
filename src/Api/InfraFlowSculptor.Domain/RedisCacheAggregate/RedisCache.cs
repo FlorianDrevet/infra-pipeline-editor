@@ -87,7 +87,7 @@ public sealed class RedisCache : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)> settings)
+        IReadOnlyCollection<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)> settings)
     {
         _environmentSettings.Clear();
         foreach (var s in settings)
@@ -107,7 +107,7 @@ public sealed class RedisCache : AzureResource
         TlsVersion? minimumTlsVersion,
         bool disableAccessKeyAuthentication,
         bool enableAadAuth,
-        IReadOnlyList<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>? environmentSettings = null)
     {
         var redisCache = new RedisCache
         {

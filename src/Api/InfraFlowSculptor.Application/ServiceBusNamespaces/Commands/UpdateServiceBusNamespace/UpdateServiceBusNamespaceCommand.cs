@@ -15,5 +15,5 @@ public record UpdateServiceBusNamespaceCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
-    IReadOnlyList<ServiceBusNamespaceEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<ServiceBusNamespaceEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<ServiceBusNamespaceResult>;

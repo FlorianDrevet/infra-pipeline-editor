@@ -12,4 +12,4 @@ public record SqlDatabaseResult(
     Location Location,
     Guid SqlServerId,
     string Collation,
-    IReadOnlyList<SqlDatabaseEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyCollection<SqlDatabaseEnvironmentConfigData> EnvironmentSettings);

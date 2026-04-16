@@ -66,7 +66,7 @@ public static class ResourceGroupController
                 .WithName("ListResourceGroupResources")
                 .WithSummary("List resources in a Resource Group")
                 .WithDescription("Returns a lightweight list of all Azure resources (Key Vaults, Storage Accounts, Redis Caches, etc.) that belong to the specified Resource Group.")
-                .Produces<IReadOnlyList<AzureResourceResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<AzureResourceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 

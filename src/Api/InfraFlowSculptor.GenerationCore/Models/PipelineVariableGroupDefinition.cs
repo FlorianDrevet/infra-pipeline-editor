@@ -10,5 +10,5 @@ public class PipelineVariableGroupDefinition
     public string GroupName { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the variable-to-Bicep-parameter mappings.</summary>
-    public IReadOnlyList<PipelineVariableMappingDefinition> Mappings { get; set; } = [];
+    public IReadOnlyCollection<PipelineVariableMappingDefinition> Mappings { get; set; } = [];
 }

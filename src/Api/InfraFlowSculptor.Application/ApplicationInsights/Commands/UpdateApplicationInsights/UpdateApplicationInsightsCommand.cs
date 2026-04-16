@@ -12,5 +12,5 @@ public record UpdateApplicationInsightsCommand(
     Name Name,
     Location Location,
     Guid LogAnalyticsWorkspaceId,
-    IReadOnlyList<ApplicationInsightsEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<ApplicationInsightsEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<ApplicationInsightsResult>;

@@ -16,5 +16,5 @@ public record UpdateContainerAppCommand(
     string? DockerImageName = null,
     string? DockerfilePath = null,
     string? ApplicationName = null,
-    IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<ContainerAppResult>;

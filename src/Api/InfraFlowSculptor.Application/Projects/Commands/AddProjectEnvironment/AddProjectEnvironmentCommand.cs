@@ -17,5 +17,5 @@ public record AddProjectEnvironmentCommand(
     int Order,
     bool RequiresApproval,
     string? AzureResourceManagerConnection,
-    IReadOnlyList<(string Name, string Value)> Tags
+    IReadOnlyCollection<(string Name, string Value)> Tags
 ) : ICommand<ProjectEnvironmentDefinitionResult>;

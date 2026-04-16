@@ -45,7 +45,7 @@ public static class AzureRoleDefinitionCatalog
     private const string WebAppDocsUrl =
         "https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> KeyVaultRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> KeyVaultRoles =
     [
         new("00482a5a-887f-4fb3-b363-3b7fe8e74483",
             "Key Vault Administrator",
@@ -98,7 +98,7 @@ public static class AzureRoleDefinitionCatalog
             KeyVaultDocsUrl),
     ];
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> RedisCacheRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> RedisCacheRoles =
     [
         new("e0f68234-74aa-48ed-b826-c38b57376e17",
             "Redis Cache Contributor",
@@ -116,7 +116,7 @@ public static class AzureRoleDefinitionCatalog
             RedisCacheDocsUrl),
     ];
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> StorageAccountRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> StorageAccountRoles =
     [
         new("ba92f5b4-2d11-453d-a403-e96b0029c9fe",
             "Storage Blob Data Contributor",
@@ -159,7 +159,7 @@ public static class AzureRoleDefinitionCatalog
             StorageAccountDocsUrl),
     ];
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> AppServicePlanRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> AppServicePlanRoles =
     [
         new("de139f84-1756-47ae-9be6-808fbbe84772",
             "Website Contributor",
@@ -180,7 +180,7 @@ public static class AzureRoleDefinitionCatalog
     private const string UserAssignedIdentityDocsUrl =
         "https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> UserAssignedIdentityRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> UserAssignedIdentityRoles =
     [
         new("f1a07417-d97a-45cb-824c-7a7467783830",
             "Managed Identity Operator",
@@ -192,7 +192,7 @@ public static class AzureRoleDefinitionCatalog
             UserAssignedIdentityDocsUrl),
     ];
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> WebAppRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> WebAppRoles =
     [
         new("de139f84-1756-47ae-9be6-808fbbe84772",
             "Website Contributor",
@@ -213,7 +213,7 @@ public static class AzureRoleDefinitionCatalog
     private const string FunctionAppDocsUrl =
         "https://learn.microsoft.com/en-us/azure/azure-functions/functions-identity-based-connections-tutorial";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> FunctionAppRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> FunctionAppRoles =
     [
         new("de139f84-1756-47ae-9be6-808fbbe84772",
             "Website Contributor",
@@ -234,7 +234,7 @@ public static class AzureRoleDefinitionCatalog
     private const string AppConfigurationDocsUrl =
         "https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> AppConfigurationRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> AppConfigurationRoles =
     [
         new("516239f1-63e1-4d78-a4de-a74fb236a071",
             "App Configuration Data Reader",
@@ -255,7 +255,7 @@ public static class AzureRoleDefinitionCatalog
     private const string ContainerAppEnvironmentDocsUrl =
         "https://learn.microsoft.com/en-us/azure/container-apps/managed-identity";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> ContainerAppEnvironmentRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> ContainerAppEnvironmentRoles =
     [
         new("12710879-3cda-4e3e-8c7c-bf6d0cae531e",
             "ContainerApp Environment Contributor",
@@ -276,7 +276,7 @@ public static class AzureRoleDefinitionCatalog
     private const string ContainerAppDocsUrl =
         "https://learn.microsoft.com/en-us/azure/container-apps/managed-identity";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> ContainerAppRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> ContainerAppRoles =
     [
         new("854e5e7e-28f7-4e24-bc87-eb5c2280195d",
             "ContainerApp Contributor",
@@ -297,7 +297,7 @@ public static class AzureRoleDefinitionCatalog
     private const string LogAnalyticsWorkspaceDocsUrl =
         "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/manage-access";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> LogAnalyticsWorkspaceRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> LogAnalyticsWorkspaceRoles =
     [
         new("92aaf0da-9dab-42b6-94a3-d43ce8d16293",
             "Log Analytics Contributor",
@@ -323,7 +323,7 @@ public static class AzureRoleDefinitionCatalog
     private const string CosmosDbDocsUrl =
         "https://learn.microsoft.com/en-us/azure/cosmos-db/role-based-access-control";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> CosmosDbRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> CosmosDbRoles =
     [
         new("fbdf93bf-df7d-467e-a4d2-9458aa1360c8",
             "Cosmos DB Account Reader Role",
@@ -354,7 +354,7 @@ public static class AzureRoleDefinitionCatalog
     private const string ApplicationInsightsDocsUrl =
         "https://learn.microsoft.com/en-us/azure/azure-monitor/app/resources-roles-access-control";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> ApplicationInsightsRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> ApplicationInsightsRoles =
     [
         new("ae349356-3a1b-4a5e-921d-050484c6347e",
             "Application Insights Component Contributor",
@@ -380,7 +380,7 @@ public static class AzureRoleDefinitionCatalog
     private const string SqlServerDocsUrl =
         "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> SqlServerRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> SqlServerRoles =
     [
         new("6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437",
             "SQL Server Contributor",
@@ -406,7 +406,7 @@ public static class AzureRoleDefinitionCatalog
     private const string ServiceBusNamespaceDocsUrl =
         "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-managed-service-identity";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> ServiceBusNamespaceRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> ServiceBusNamespaceRoles =
     [
         new("090c5cfd-751d-490a-894a-3ce6f1109419",
             "Azure Service Bus Data Owner",
@@ -440,7 +440,7 @@ public static class AzureRoleDefinitionCatalog
     private const string EventHubNamespaceDocsUrl =
         "https://learn.microsoft.com/en-us/azure/event-hubs/authorize-access-azure-active-directory";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> EventHubNamespaceRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> EventHubNamespaceRoles =
     [
         new("f526a384-b230-433a-b45c-95f59c4a2dec",
             "Azure Event Hubs Data Owner",
@@ -469,7 +469,7 @@ public static class AzureRoleDefinitionCatalog
     ];
 
     /// <summary>Azure RBAC role definitions for Container Registry.</summary>
-    private static readonly IReadOnlyList<AzureRoleDefinition> ContainerRegistryRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> ContainerRegistryRoles =
     [
         new("7f951dda-4ed3-4680-a7ca-43fe172d538d",
             "AcrPush",
@@ -495,7 +495,7 @@ public static class AzureRoleDefinitionCatalog
     private const string SqlDatabaseDocsUrl =
         "https://learn.microsoft.com/en-us/azure/azure-sql/database/security-overview";
 
-    private static readonly IReadOnlyList<AzureRoleDefinition> SqlDatabaseRoles =
+    private static readonly IReadOnlyCollection<AzureRoleDefinition> SqlDatabaseRoles =
     [
         new("9b7fa17d-e63e-47b0-bb0a-15c516ac86ec",
             "SQL DB Contributor",
@@ -518,7 +518,7 @@ public static class AzureRoleDefinitionCatalog
             SqlDatabaseDocsUrl),
     ];
 
-    private static readonly Dictionary<string, IReadOnlyList<AzureRoleDefinition>> Catalog = new()
+    private static readonly Dictionary<string, IReadOnlyCollection<AzureRoleDefinition>> Catalog = new()
     {
         { "KeyVault", KeyVaultRoles },
         { "RedisCache", RedisCacheRoles },
@@ -541,7 +541,7 @@ public static class AzureRoleDefinitionCatalog
     };
 
     /// <summary>Returns all available role definitions for the given resource type name.</summary>
-    public static IReadOnlyList<AzureRoleDefinition> GetForResourceType(string resourceType) =>
+    public static IReadOnlyCollection<AzureRoleDefinition> GetForResourceType(string resourceType) =>
         Catalog.TryGetValue(resourceType, out var roles) ? roles : Array.Empty<AzureRoleDefinition>();
 
     /// <summary>Returns true when <paramref name="roleDefinitionId"/> is in the catalog for the given resource type.</summary>

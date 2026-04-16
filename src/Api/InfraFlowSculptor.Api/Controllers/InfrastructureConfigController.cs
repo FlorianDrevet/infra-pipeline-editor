@@ -51,7 +51,7 @@ public static class InfrastructureConfigController
                 .WithName("ListMyInfrastructureConfigs")
                 .WithSummary("List my Infrastructure Configurations")
                 .WithDescription("Returns all Infrastructure Configurations the current user has access to via project membership.")
-                .Produces<IReadOnlyList<InfrastructureConfigResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<InfrastructureConfigResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             config.MapGet("/{id:guid}",
@@ -97,7 +97,7 @@ public static class InfrastructureConfigController
                 .WithName("ListResourceGroupsByConfig")
                 .WithSummary("List resource groups for a configuration")
                 .WithDescription("Returns all Resource Groups that belong to the specified Infrastructure Configuration.")
-                .Produces<IReadOnlyList<ResourceGroupResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<ResourceGroupResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
@@ -212,7 +212,7 @@ public static class InfrastructureConfigController
                 .WithName("ListCrossConfigReferences")
                 .WithSummary("List cross-config references")
                 .WithDescription("Returns all cross-configuration resource references for the specified infrastructure configuration, with resolved target metadata.")
-                .Produces<IReadOnlyList<CrossConfigReferenceResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<CrossConfigReferenceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
@@ -276,7 +276,7 @@ public static class InfrastructureConfigController
                 .WithName("ListIncomingCrossConfigReferences")
                 .WithSummary("List incoming cross-config references")
                 .WithDescription("Returns resources from other configurations in the same project that depend on resources in this configuration.")
-                .Produces<IReadOnlyList<IncomingCrossConfigReferenceResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<IncomingCrossConfigReferenceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 

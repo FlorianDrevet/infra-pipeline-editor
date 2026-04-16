@@ -17,9 +17,9 @@ internal static class ParameterFileAssembler
     /// </summary>
     internal static Dictionary<string, string> GenerateEnvironmentParameterFiles(
         IReadOnlyCollection<GeneratedTypeModule> modules,
-        IReadOnlyList<string> environmentNames,
+        IReadOnlyCollection<string> environmentNames,
         IEnumerable<ResourceDefinition> resources,
-        IReadOnlyList<AppSettingDefinition> appSettings)
+        IReadOnlyCollection<AppSettingDefinition> appSettings)
     {
         var resourceList = resources.ToList();
         var result = new Dictionary<string, string>();
@@ -41,7 +41,7 @@ internal static class ParameterFileAssembler
     private static IReadOnlyCollection<GeneratedTypeModule> ApplyEnvironmentOverrides(
         IReadOnlyCollection<GeneratedTypeModule> modules,
         string environmentName,
-        IReadOnlyList<ResourceDefinition> resources)
+        IReadOnlyCollection<ResourceDefinition> resources)
     {
         return modules.Select(module =>
         {
@@ -82,7 +82,7 @@ internal static class ParameterFileAssembler
     private static string GenerateMainParameters(
         IReadOnlyCollection<GeneratedTypeModule> modules,
         string environmentName,
-        IReadOnlyList<AppSettingDefinition> appSettings)
+        IReadOnlyCollection<AppSettingDefinition> appSettings)
     {
         var sb = new StringBuilder();
         var normalizedEnvironmentName = BicepFormattingHelper.SanitizeBicepKey(environmentName);

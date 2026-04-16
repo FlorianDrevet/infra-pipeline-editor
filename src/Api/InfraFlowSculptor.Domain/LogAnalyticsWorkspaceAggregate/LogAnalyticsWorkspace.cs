@@ -65,7 +65,7 @@ public sealed class LogAnalyticsWorkspace : AzureResource
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
     public void SetAllEnvironmentSettings(
-        IReadOnlyList<(string EnvironmentName, string? Sku, int? RetentionInDays, decimal? DailyQuotaGb)> settings)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, int? RetentionInDays, decimal? DailyQuotaGb)> settings)
     {
         _environmentSettings.Clear();
         foreach (var (envName, sku, retentionInDays, dailyQuotaGb) in settings)
@@ -88,7 +88,7 @@ public sealed class LogAnalyticsWorkspace : AzureResource
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? Sku, int? RetentionInDays, decimal? DailyQuotaGb)>? environmentSettings = null)
+        IReadOnlyCollection<(string EnvironmentName, string? Sku, int? RetentionInDays, decimal? DailyQuotaGb)>? environmentSettings = null)
     {
         var logAnalyticsWorkspace = new LogAnalyticsWorkspace
         {

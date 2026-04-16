@@ -40,5 +40,5 @@ public class AddProjectEnvironmentRequest
     public string? AzureResourceManagerConnection { get; init; }
 
     /// <summary>Optional list of Azure tags to apply to all resources deployed in this environment.</summary>
-    public IReadOnlyList<TagRequest> Tags { get; init; } = [];
+    public IReadOnlyCollection<TagRequest> Tags { get; init; } = [];
 }

@@ -17,7 +17,7 @@ public sealed record ResourceOutputDefinition(string Name, string Description, s
 /// </summary>
 public static class ResourceOutputCatalog
 {
-    private static readonly Dictionary<string, IReadOnlyList<ResourceOutputDefinition>> Outputs = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, IReadOnlyCollection<ResourceOutputDefinition>> Outputs = new(StringComparer.OrdinalIgnoreCase)
     {
         ["KeyVault"] =
         [
@@ -103,13 +103,13 @@ public static class ResourceOutputCatalog
     /// <summary>
     /// Returns the available outputs for the given resource type name.
     /// </summary>
-    public static IReadOnlyList<ResourceOutputDefinition> GetForResourceType(string resourceTypeName)
+    public static IReadOnlyCollection<ResourceOutputDefinition> GetForResourceType(string resourceTypeName)
         => Outputs.GetValueOrDefault(resourceTypeName) ?? [];
 
     /// <summary>
     /// Returns all resource types that have at least one output defined.
     /// </summary>
-    public static IReadOnlyDictionary<string, IReadOnlyList<ResourceOutputDefinition>> GetAll() => Outputs;
+    public static IReadOnlyDictionary<string, IReadOnlyCollection<ResourceOutputDefinition>> GetAll() => Outputs;
 
     /// <summary>
     /// Finds a specific output definition by resource type name and output name.

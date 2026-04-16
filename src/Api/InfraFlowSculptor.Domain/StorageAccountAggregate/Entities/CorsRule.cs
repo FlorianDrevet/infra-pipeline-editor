@@ -42,10 +42,10 @@ public class CorsRule : Entity<CorsRuleId>
     /// <summary>Updates all properties of this CORS rule.</summary>
     public void Update(
         CorsServiceType serviceType,
-        IReadOnlyList<string> allowedOrigins,
-        IReadOnlyList<string> allowedMethods,
-        IReadOnlyList<string> allowedHeaders,
-        IReadOnlyList<string> exposedHeaders,
+        IReadOnlyCollection<string> allowedOrigins,
+        IReadOnlyCollection<string> allowedMethods,
+        IReadOnlyCollection<string> allowedHeaders,
+        IReadOnlyCollection<string> exposedHeaders,
         int maxAgeInSeconds)
     {
         ServiceType = serviceType;
@@ -60,10 +60,10 @@ public class CorsRule : Entity<CorsRuleId>
     public static CorsRule Create(
         AzureResourceId storageAccountId,
         CorsServiceType serviceType,
-        IReadOnlyList<string> allowedOrigins,
-        IReadOnlyList<string> allowedMethods,
-        IReadOnlyList<string> allowedHeaders,
-        IReadOnlyList<string> exposedHeaders,
+        IReadOnlyCollection<string> allowedOrigins,
+        IReadOnlyCollection<string> allowedMethods,
+        IReadOnlyCollection<string> allowedHeaders,
+        IReadOnlyCollection<string> exposedHeaders,
         int maxAgeInSeconds)
     {
         return new CorsRule(CorsRuleId.CreateUnique())

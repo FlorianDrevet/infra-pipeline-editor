@@ -44,7 +44,7 @@ public sealed record GeneratedTypeModule
     /// Optional companion modules to deploy alongside this resource
     /// (e.g. blob and table services for a Storage Account).
     /// </summary>
-    public IReadOnlyList<GeneratedCompanionModule> CompanionModules { get; init; } = [];
+    public IReadOnlyCollection<GeneratedCompanionModule> CompanionModules { get; init; } = [];
 
     /// <summary>
     /// The identity kind for this specific resource instance.

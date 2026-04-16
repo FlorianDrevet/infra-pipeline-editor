@@ -8,5 +8,5 @@ public record ContainerRegistryResponse(
     string ResourceGroupId,
     string Name,
     string Location,
-    IReadOnlyList<ContainerRegistryEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyCollection<ContainerRegistryEnvironmentConfigResponse> EnvironmentSettings
 );

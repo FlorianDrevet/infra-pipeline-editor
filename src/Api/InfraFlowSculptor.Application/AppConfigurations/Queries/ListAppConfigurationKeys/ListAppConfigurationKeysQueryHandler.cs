@@ -14,10 +14,10 @@ public sealed class ListAppConfigurationKeysQueryHandler(
     IResourceGroupRepository resourceGroupRepository,
     IInfraConfigAccessService accessService,
     IProjectRepository projectRepository)
-    : IQueryHandler<ListAppConfigurationKeysQuery, IReadOnlyList<AppConfigurationKeyResult>>
+    : IQueryHandler<ListAppConfigurationKeysQuery, IReadOnlyCollection<AppConfigurationKeyResult>>
 {
     /// <inheritdoc />
-    public async Task<ErrorOr<IReadOnlyList<AppConfigurationKeyResult>>> Handle(
+    public async Task<ErrorOr<IReadOnlyCollection<AppConfigurationKeyResult>>> Handle(
         ListAppConfigurationKeysQuery request,
         CancellationToken cancellationToken)
     {

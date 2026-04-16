@@ -15,5 +15,5 @@ public record UpdateCosmosDbCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
-    IReadOnlyList<CosmosDbEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<CosmosDbEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<CosmosDbResult>;

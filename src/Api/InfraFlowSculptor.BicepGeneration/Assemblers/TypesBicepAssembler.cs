@@ -12,7 +12,7 @@ internal static class TypesBicepAssembler
     /// <summary>
     /// Generates the <c>types.bicep</c> content for the given environments and optional RBAC type.
     /// </summary>
-    internal static string Generate(IReadOnlyList<EnvironmentDefinition> environments, bool includeRbacType)
+    internal static string Generate(IReadOnlyCollection<EnvironmentDefinition> environments, bool includeRbacType)
     {
         var sb = new StringBuilder();
 

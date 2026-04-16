@@ -10,10 +10,10 @@ public record BlobContainerResponse(
 );
 
 public record CorsRuleResponse(
-    IReadOnlyList<string> AllowedOrigins,
-    IReadOnlyList<string> AllowedMethods,
-    IReadOnlyList<string> AllowedHeaders,
-    IReadOnlyList<string> ExposedHeaders,
+    IReadOnlyCollection<string> AllowedOrigins,
+    IReadOnlyCollection<string> AllowedMethods,
+    IReadOnlyCollection<string> AllowedHeaders,
+    IReadOnlyCollection<string> ExposedHeaders,
     int MaxAgeInSeconds
 );
 
@@ -32,7 +32,7 @@ public record StorageTableResponse(
 /// <summary>Represents a blob lifecycle management rule.</summary>
 public record BlobLifecycleRuleResponse(
     string RuleName,
-    IReadOnlyList<string> ContainerNames,
+    IReadOnlyCollection<string> ContainerNames,
     int TimeToLiveInDays
 );
 
@@ -47,11 +47,11 @@ public record StorageAccountResponse(
     bool AllowBlobPublicAccess,
     bool EnableHttpsTrafficOnly,
     string MinimumTlsVersion,
-    IReadOnlyList<CorsRuleResponse> CorsRules,
-    IReadOnlyList<CorsRuleResponse> TableCorsRules,
-    IReadOnlyList<BlobContainerResponse> BlobContainers,
-    IReadOnlyList<StorageQueueResponse> Queues,
-    IReadOnlyList<StorageTableResponse> Tables,
-    IReadOnlyList<StorageAccountEnvironmentConfigResponse> EnvironmentSettings,
-    IReadOnlyList<BlobLifecycleRuleResponse> LifecycleRules
+    IReadOnlyCollection<CorsRuleResponse> CorsRules,
+    IReadOnlyCollection<CorsRuleResponse> TableCorsRules,
+    IReadOnlyCollection<BlobContainerResponse> BlobContainers,
+    IReadOnlyCollection<StorageQueueResponse> Queues,
+    IReadOnlyCollection<StorageTableResponse> Tables,
+    IReadOnlyCollection<StorageAccountEnvironmentConfigResponse> EnvironmentSettings,
+    IReadOnlyCollection<BlobLifecycleRuleResponse> LifecycleRules
 );

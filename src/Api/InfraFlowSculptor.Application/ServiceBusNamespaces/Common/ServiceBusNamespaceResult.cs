@@ -12,9 +12,9 @@ public record ServiceBusNamespaceResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<ServiceBusNamespaceEnvironmentConfigData> EnvironmentSettings,
-    IReadOnlyList<ServiceBusQueueResult> Queues,
-    IReadOnlyList<ServiceBusTopicSubscriptionResult> TopicSubscriptions
+    IReadOnlyCollection<ServiceBusNamespaceEnvironmentConfigData> EnvironmentSettings,
+    IReadOnlyCollection<ServiceBusQueueResult> Queues,
+    IReadOnlyCollection<ServiceBusTopicSubscriptionResult> TopicSubscriptions
 );
 
 /// <summary>Application-layer result for a Service Bus Queue.</summary>

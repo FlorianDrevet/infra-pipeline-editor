@@ -25,7 +25,7 @@ public sealed class AcrPullDiagnosticRule : IDiagnosticRule
     };
 
     /// <inheritdoc />
-    public IReadOnlyList<ResourceDiagnosticItem> Evaluate(InfrastructureConfigReadModel config)
+    public IReadOnlyCollection<ResourceDiagnosticItem> Evaluate(InfrastructureConfigReadModel config)
     {
         var allResources = config.ResourceGroups
             .SelectMany(rg => rg.Resources)

@@ -12,7 +12,7 @@ namespace InfraFlowSculptor.PipelineGeneration;
 /// </summary>
 public sealed class AppPipelineGenerationEngine
 {
-    private readonly IReadOnlyList<IAppPipelineGenerator> _generators;
+    private readonly IReadOnlyCollection<IAppPipelineGenerator> _generators;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AppPipelineGenerationEngine"/> class.
@@ -66,7 +66,7 @@ public sealed class AppPipelineGenerationEngine
     /// <param name="configName">The infrastructure configuration name.</param>
     /// <returns>The merged pipeline generation result.</returns>
     public AppPipelineGenerationResult GenerateAll(
-        IReadOnlyList<AppPipelineGenerationRequest> requests,
+        IReadOnlyCollection<AppPipelineGenerationRequest> requests,
         AppPipelineMode mode,
         string configName)
     {
@@ -83,7 +83,7 @@ public sealed class AppPipelineGenerationEngine
     /// Generates isolated per-resource pipelines, each under apps/{appName}/.
     /// </summary>
     private AppPipelineGenerationResult GenerateIsolated(
-        IReadOnlyList<AppPipelineGenerationRequest> requests,
+        IReadOnlyCollection<AppPipelineGenerationRequest> requests,
         string configName)
     {
         var mergedFiles = new Dictionary<string, string>();
@@ -106,7 +106,7 @@ public sealed class AppPipelineGenerationEngine
     /// Generates a single combined CI + release pipeline with parallel jobs per resource.
     /// </summary>
     private AppPipelineGenerationResult GenerateCombined(
-        IReadOnlyList<AppPipelineGenerationRequest> requests,
+        IReadOnlyCollection<AppPipelineGenerationRequest> requests,
         string configName)
     {
         // For combined mode, generate per-resource then merge under a single directory

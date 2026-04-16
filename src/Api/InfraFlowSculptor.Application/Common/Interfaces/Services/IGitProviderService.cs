@@ -23,6 +23,6 @@ public interface IGitProviderService
     /// <summary>
     /// Lists all branches in the Git repository.
     /// </summary>
-    Task<ErrorOr<IReadOnlyList<GitBranchResult>>> ListBranchesAsync(
+    Task<ErrorOr<IReadOnlyCollection<GitBranchResult>>> ListBranchesAsync(
         string token, string owner, string repositoryName, CancellationToken cancellationToken = default);
 }

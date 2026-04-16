@@ -220,7 +220,7 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
     }
 
     /// <inheritdoc />
-    public async Task<ErrorOr<IReadOnlyList<GitBranchResult>>> ListBranchesAsync(
+    public async Task<ErrorOr<IReadOnlyCollection<GitBranchResult>>> ListBranchesAsync(
         string token, string owner, string repositoryName, CancellationToken cancellationToken = default)
     {
         try

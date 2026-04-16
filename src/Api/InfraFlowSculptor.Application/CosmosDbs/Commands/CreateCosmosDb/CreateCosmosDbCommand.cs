@@ -15,5 +15,5 @@ public record CreateCosmosDbCommand(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<CosmosDbEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<CosmosDbEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<CosmosDbResult>;

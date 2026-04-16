@@ -23,7 +23,7 @@ public interface IUserRepository : IRepository<User>
     /// <param name="ids">The list of user identifiers to look up.</param>
     /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
     /// <returns>A list of matching <see cref="User"/> entities.</returns>
-    Task<List<User>> GetByIdsAsync(IReadOnlyList<UserId> ids, CancellationToken cancellationToken = default);
+    Task<List<User>> GetByIdsAsync(IReadOnlyCollection<UserId> ids, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves all registered users.

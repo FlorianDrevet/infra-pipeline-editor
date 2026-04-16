@@ -9,4 +9,4 @@ public record GetConfigDiagnosticsQuery(Guid InfrastructureConfigId) : IQuery<Ge
 
 /// <summary>Result containing all diagnostic findings for the configuration.</summary>
 /// <param name="Diagnostics">The list of diagnostic findings.</param>
-public record GetConfigDiagnosticsResult(IReadOnlyList<ResourceDiagnosticItem> Diagnostics);
+public record GetConfigDiagnosticsResult(IReadOnlyCollection<ResourceDiagnosticItem> Diagnostics);

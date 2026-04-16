@@ -2,7 +2,7 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 
 /// <summary>Diagnostics report for an infrastructure configuration.</summary>
 /// <param name="Diagnostics">The list of diagnostic findings.</param>
-public record ConfigDiagnosticsResponse(IReadOnlyList<ResourceDiagnosticResponse> Diagnostics);
+public record ConfigDiagnosticsResponse(IReadOnlyCollection<ResourceDiagnosticResponse> Diagnostics);
 
 /// <summary>A single diagnostic finding for a specific resource.</summary>
 /// <param name="ResourceId">ID of the affected resource.</param>

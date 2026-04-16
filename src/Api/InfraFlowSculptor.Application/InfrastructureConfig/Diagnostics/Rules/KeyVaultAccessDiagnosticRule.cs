@@ -13,7 +13,7 @@ public sealed class KeyVaultAccessDiagnosticRule : IDiagnosticRule
     private const string RuleCode = "KEY_VAULT_ACCESS_MISSING";
 
     /// <inheritdoc />
-    public IReadOnlyList<ResourceDiagnosticItem> Evaluate(InfrastructureConfigReadModel config)
+    public IReadOnlyCollection<ResourceDiagnosticItem> Evaluate(InfrastructureConfigReadModel config)
     {
         var diagnostics = new List<ResourceDiagnosticItem>();
 

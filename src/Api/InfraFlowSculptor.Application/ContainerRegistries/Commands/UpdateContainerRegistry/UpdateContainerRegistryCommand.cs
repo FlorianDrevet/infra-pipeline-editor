@@ -10,5 +10,5 @@ public record UpdateContainerRegistryCommand(
     AzureResourceId Id,
     Name Name,
     Location Location,
-    IReadOnlyList<ContainerRegistryEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<ContainerRegistryEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<ContainerRegistryResult>;

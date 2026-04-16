@@ -10,5 +10,5 @@ public record CreateContainerRegistryCommand(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<ContainerRegistryEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<ContainerRegistryEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<ContainerRegistryResult>;

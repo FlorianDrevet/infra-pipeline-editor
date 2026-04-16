@@ -82,7 +82,7 @@ public static class AzureResourceTypes
     /// <summary>
     /// All known friendly type names.
     /// </summary>
-    public static readonly IReadOnlyList<string> All =
+    public static readonly IReadOnlyCollection<string> All =
     [
         KeyVault, RedisCache, StorageAccount, AppServicePlan,
         WebApp, FunctionApp, UserAssignedIdentity, AppConfiguration,

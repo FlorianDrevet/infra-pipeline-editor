@@ -6,5 +6,5 @@ namespace InfraFlowSculptor.Contracts.Projects.Requests;
 public class SetProjectTagsRequest
 {
     /// <summary>Gets the tags to apply to the project.</summary>
-    public IReadOnlyList<TagRequest> Tags { get; init; } = [];
+    public IReadOnlyCollection<TagRequest> Tags { get; init; } = [];
 }

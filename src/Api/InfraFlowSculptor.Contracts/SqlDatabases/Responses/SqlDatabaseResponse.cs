@@ -17,5 +17,5 @@ public record SqlDatabaseResponse(
     string Location,
     string SqlServerId,
     string Collation,
-    IReadOnlyList<SqlDatabaseEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyCollection<SqlDatabaseEnvironmentConfigResponse> EnvironmentSettings
 );

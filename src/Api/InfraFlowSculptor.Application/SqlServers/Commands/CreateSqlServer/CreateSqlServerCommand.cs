@@ -13,5 +13,5 @@ public record CreateSqlServerCommand(
     Location Location,
     string Version,
     string AdministratorLogin,
-    IReadOnlyList<SqlServerEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyCollection<SqlServerEnvironmentConfigData>? EnvironmentSettings = null
 ) : ICommand<SqlServerResult>;

@@ -78,7 +78,7 @@ public static class ProjectController
                 .WithName("ListMyProjects")
                 .WithSummary("List my Projects")
                 .WithDescription("Returns all Projects the current user is a member of.")
-                .Produces<IReadOnlyList<ProjectResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<ProjectResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapGet("/{id:guid}",
@@ -145,7 +145,7 @@ public static class ProjectController
                 .WithName("ListProjectConfigs")
                 .WithSummary("List configurations for a project")
                 .WithDescription("Returns all Infrastructure Configurations belonging to the specified Project.")
-                .Produces<IReadOnlyList<InfrastructureConfigResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<InfrastructureConfigResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
@@ -169,7 +169,7 @@ public static class ProjectController
                 .WithName("ListProjectUsers")
                 .WithSummary("List registered users")
                 .WithDescription("Returns all registered users available for project membership assignment.")
-                .Produces<IReadOnlyList<UserResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<UserResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             // ── Members ───────────────────────────────────────────────────
@@ -469,7 +469,7 @@ public static class ProjectController
                 .WithName("ValidateRecentItems")
                 .WithSummary("Validate recently viewed items")
                 .WithDescription("Filters a list of recently viewed items, returning only those the current user still has access to with fresh data.")
-                .Produces<IReadOnlyList<RecentItemResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<RecentItemResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             // ── Git Repository Configuration ─────────────────────────────
@@ -550,7 +550,7 @@ public static class ProjectController
                 .WithName("ListGitBranches")
                 .WithSummary("List Git repository branches")
                 .WithDescription("Lists all branches in the configured Git repository. Requires read access to the project.")
-                .Produces<IReadOnlyList<GitBranchResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<GitBranchResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
@@ -573,7 +573,7 @@ public static class ProjectController
                 .WithName("ListProjectResources")
                 .WithSummary("List all resources across configurations")
                 .WithDescription("Returns all Azure resources across all infrastructure configurations in the project. Used for cross-config resource reference selection.")
-                .Produces<IReadOnlyList<ProjectResourceResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<ProjectResourceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
@@ -828,7 +828,7 @@ public static class ProjectController
                 .WithName("ListProjectPipelineVariableGroups")
                 .WithSummary("List project-level pipeline variable groups")
                 .WithDescription("Returns all Azure DevOps Variable Groups (Libraries) configured at project level, shared across all configurations.")
-                .Produces<IReadOnlyList<ProjectPipelineVariableGroupResponse>>(StatusCodes.Status200OK)
+                .Produces<IReadOnlyCollection<ProjectPipelineVariableGroupResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 

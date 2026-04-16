@@ -10,7 +10,7 @@ namespace InfraFlowSculptor.Domain.Common.Catalogs;
 public static class RuntimeVersionCatalog
 {
     /// <summary>Gets the supported runtime versions for the specified Web App runtime stack.</summary>
-    public static IReadOnlyList<string> GetWebAppVersions(WebAppRuntimeStack.WebAppRuntimeStackEnum stack) => stack switch
+    public static IReadOnlyCollection<string> GetWebAppVersions(WebAppRuntimeStack.WebAppRuntimeStackEnum stack) => stack switch
     {
         WebAppRuntimeStack.WebAppRuntimeStackEnum.DotNet => ["10", "9", "8"],
         WebAppRuntimeStack.WebAppRuntimeStackEnum.Node => ["22-lts", "20-lts"],
@@ -21,7 +21,7 @@ public static class RuntimeVersionCatalog
     };
 
     /// <summary>Gets the supported runtime versions for the specified Function App runtime stack.</summary>
-    public static IReadOnlyList<string> GetFunctionAppVersions(FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum stack) => stack switch
+    public static IReadOnlyCollection<string> GetFunctionAppVersions(FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum stack) => stack switch
     {
         FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum.DotNet => ["10-isolated", "9-isolated", "8-isolated", "8-in-process"],
         FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum.Node => ["22", "20"],

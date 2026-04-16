@@ -17,5 +17,5 @@ public record SqlServerResponse(
     string Location,
     string Version,
     string AdministratorLogin,
-    IReadOnlyList<SqlServerEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyCollection<SqlServerEnvironmentConfigResponse> EnvironmentSettings
 );

@@ -19,4 +19,4 @@ public record GenerateBicepResult(
     Uri? ConstantsBicepUri,
     IReadOnlyDictionary<string, Uri> ParameterFileUris,
     IReadOnlyDictionary<string, Uri> ModuleUris,
-    IReadOnlyList<ResourceDiagnosticItem> Warnings);
+    IReadOnlyCollection<ResourceDiagnosticItem> Warnings);

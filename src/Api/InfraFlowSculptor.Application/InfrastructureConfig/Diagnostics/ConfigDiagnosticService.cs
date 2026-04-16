@@ -9,7 +9,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
 public sealed class ConfigDiagnosticService(IEnumerable<IDiagnosticRule> rules) : IConfigDiagnosticService
 {
     /// <inheritdoc />
-    public IReadOnlyList<ResourceDiagnosticItem> Evaluate(InfrastructureConfigReadModel config)
+    public IReadOnlyCollection<ResourceDiagnosticItem> Evaluate(InfrastructureConfigReadModel config)
     {
         return rules
             .SelectMany(rule => rule.Evaluate(config))

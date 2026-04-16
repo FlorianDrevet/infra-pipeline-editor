@@ -11,14 +11,14 @@ public class GenerationRequest
     /// <summary>
     /// All environment definitions with their name, location, prefix, and suffix.
     /// </summary>
-    public IReadOnlyList<EnvironmentDefinition> Environments { get; set; } = [];
+    public IReadOnlyCollection<EnvironmentDefinition> Environments { get; set; } = [];
 
-    public IReadOnlyList<ResourceGroupDefinition> ResourceGroups { get; set; } = [];
+    public IReadOnlyCollection<ResourceGroupDefinition> ResourceGroups { get; set; } = [];
 
     /// <summary>
     /// All environment names defined on the infrastructure configuration.
     /// </summary>
-    public IReadOnlyList<string> EnvironmentNames { get; set; } = [];
+    public IReadOnlyCollection<string> EnvironmentNames { get; set; } = [];
 
     /// <summary>
     /// Naming templates and resource abbreviations used to generate
@@ -29,23 +29,23 @@ public class GenerationRequest
     /// <summary>
     /// All role assignments configured between resources.
     /// </summary>
-    public IReadOnlyList<RoleAssignmentDefinition> RoleAssignments { get; set; } = [];
+    public IReadOnlyCollection<RoleAssignmentDefinition> RoleAssignments { get; set; } = [];
 
     /// <summary>
     /// All app settings (environment variables) configured on compute resources.
     /// </summary>
-    public IReadOnlyList<AppSettingDefinition> AppSettings { get; set; } = [];
+    public IReadOnlyCollection<AppSettingDefinition> AppSettings { get; set; } = [];
 
     /// <summary>
     /// Cross-configuration resource references.
     /// </summary>
-    public IReadOnlyList<ExistingResourceReference> ExistingResourceReferences { get; set; } = [];
+    public IReadOnlyCollection<ExistingResourceReference> ExistingResourceReferences { get; set; } = [];
 
     /// <summary>
     /// Azure DevOps Pipeline Variable Groups with their variable-to-Bicep-parameter mappings.
     /// Used by the pipeline generation engine to emit <c>- group:</c> references and <c>overrideParameters</c>.
     /// </summary>
-    public IReadOnlyList<PipelineVariableGroupDefinition> PipelineVariableGroups { get; set; } = [];
+    public IReadOnlyCollection<PipelineVariableGroupDefinition> PipelineVariableGroups { get; set; } = [];
 
     /// <summary>
     /// Project-level default tags applied to all resources.

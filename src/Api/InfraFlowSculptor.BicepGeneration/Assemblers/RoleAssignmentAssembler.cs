@@ -13,7 +13,7 @@ internal static class RoleAssignmentAssembler
     /// the assigned roles into a single entry for each group.
     /// </summary>
     internal static List<GroupedRoleAssignment> GroupRoleAssignments(
-        IReadOnlyList<RoleAssignmentDefinition> roleAssignments)
+        IReadOnlyCollection<RoleAssignmentDefinition> roleAssignments)
     {
         return roleAssignments
             .GroupBy(ra => (ra.SourceResourceName, ra.TargetResourceName, ra.ManagedIdentityType,
