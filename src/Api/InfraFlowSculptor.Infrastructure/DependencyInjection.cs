@@ -21,6 +21,9 @@ using InfraFlowSculptor.Infrastructure.Services.GitProviders;
 using InfraFlowSculptor.Infrastructure.Services.KeyVault;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
+using Refit;
+using System.Net.Http.Headers;
+using System.Text.Json;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -151,9 +154,22 @@ public static class DependencyInjection
         }
 
         services.AddSingleton<IKeyVaultSecretClient, KeyVaultSecretClient>();
-        services.AddSingleton<GitHubGitProviderService>();
-        services.AddSingleton<AzureDevOpsGitProviderService>();
-        services.AddSingleton<IGitProviderFactory, GitProviderFactory>();
+
+        services.AddRefitClient<IGitHubTreeApi>(new RefitSettings
+            {
+                ContentSerializer = new SystemTextJsonContentSerializer(
+                    new JsonSerializerOptions(JsonSerializerDefaults.Web)),
+            })
+            .ConfigureHttpClient(c =>
+            {
+                c.BaseAddress = new Uri("https://api.github.com");
+                c.DefaultRequestHeaders.UserAgent.Add(
+                    new ProductInfoHeaderValue("InfraFlowSculptor", "1.0"));
+            });
+
+        services.AddTransient<GitHubGitProviderService>();
+        services.AddTransient<AzureDevOpsGitProviderService>();
+        services.AddTransient<IGitProviderFactory, GitProviderFactory>();
         services.AddHttpClient();
 
         return services;
