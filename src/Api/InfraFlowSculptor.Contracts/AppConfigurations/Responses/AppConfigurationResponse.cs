@@ -9,8 +9,8 @@ namespace InfraFlowSculptor.Contracts.AppConfigurations.Responses;
 /// <param name="Location">Azure region where the App Configuration is deployed.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
 public record AppConfigurationResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location,
     IReadOnlyList<AppConfigurationEnvironmentConfigResponse> EnvironmentSettings

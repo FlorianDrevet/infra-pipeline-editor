@@ -11,8 +11,8 @@ namespace InfraFlowSculptor.Contracts.SqlServers.Responses;
 /// <param name="AdministratorLogin">Administrator login name.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
 public record SqlServerResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location,
     string Version,

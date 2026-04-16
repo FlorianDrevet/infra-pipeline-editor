@@ -67,9 +67,9 @@ public sealed class ServiceBusNamespaceMappingConfig : IRegister
                 src.MinimumTlsVersion));
 
         config.NewConfig<ServiceBusQueueResult, ServiceBusQueueResponse>()
-            .MapWith(src => new ServiceBusQueueResponse(src.Id, src.Name));
+            .MapWith(src => new ServiceBusQueueResponse(src.Id.ToString(), src.Name));
 
         config.NewConfig<ServiceBusTopicSubscriptionResult, ServiceBusTopicSubscriptionResponse>()
-            .MapWith(src => new ServiceBusTopicSubscriptionResponse(src.Id, src.TopicName, src.SubscriptionName));
+            .MapWith(src => new ServiceBusTopicSubscriptionResponse(src.Id.ToString(), src.TopicName, src.SubscriptionName));
     }
 }

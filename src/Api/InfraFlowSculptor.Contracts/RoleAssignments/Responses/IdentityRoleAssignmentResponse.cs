@@ -14,11 +14,11 @@ namespace InfraFlowSculptor.Contracts.RoleAssignments.Responses;
 /// <param name="RoleDefinitionId">Azure role definition ID that was granted.</param>
 /// <param name="RoleName">Human-readable name of the role.</param>
 public record IdentityRoleAssignmentResponse(
-    Guid Id,
-    Guid SourceResourceId,
+    string Id,
+    string SourceResourceId,
     string SourceResourceName,
     string SourceResourceType,
-    Guid TargetResourceId,
+    string TargetResourceId,
     string TargetResourceName,
     string TargetResourceType,
     string RoleDefinitionId,

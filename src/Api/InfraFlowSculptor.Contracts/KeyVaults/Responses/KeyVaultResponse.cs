@@ -15,8 +15,8 @@ namespace InfraFlowSculptor.Contracts.KeyVaults.Responses;
 /// <param name="EnableSoftDelete">Whether soft delete is enabled.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
 public record KeyVaultResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location,
     bool EnableRbacAuthorization,

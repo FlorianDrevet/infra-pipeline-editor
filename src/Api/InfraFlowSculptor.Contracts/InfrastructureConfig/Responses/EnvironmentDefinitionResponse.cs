@@ -19,7 +19,7 @@ public record EnvironmentDefinitionResponse(
     string Prefix,
     string Suffix,
     string Location,
-    Guid SubscriptionId,
+    string SubscriptionId,
     int Order,
     bool RequiresApproval,
     string? AzureResourceManagerConnection,
