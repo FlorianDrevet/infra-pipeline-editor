@@ -47,7 +47,10 @@ public static class ErrorOrExtended
         }
         else
         {
-            return errors.First().Result();
+            return Results.BadRequest(new
+            {
+                Errors = errors.Select(e => new { e.Code, e.Description }).ToArray()
+            });
         }
     }
 }

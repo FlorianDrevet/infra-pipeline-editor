@@ -212,6 +212,12 @@ result.Match(
 | `Error.Conflict` | 409 Conflict |
 | `Error.Unexpected` | 500 Internal Server Error |
 
+**Comportement multi-erreurs :**
+- Si **toutes** les erreurs sont de type `Validation` → `400 ValidationProblem` avec le dictionnaire complet des erreurs par champ.
+- Si **au moins une** erreur est non-Validation → `400 Bad Request` avec **toutes** les erreurs dans le corps : `{ "errors": [{ "code": "...", "description": "..." }, ...] }`.
+
+Cela garantit qu'aucune erreur n'est silencieusement ignorée.
+
 ### Middleware d'erreur global
 
 En complément, un middleware global (`UseErrorHandling()`) capture les exceptions non gérées et retourne un `ProblemDetails` standardisé.
