@@ -15,3 +15,7 @@
 - Central Package Management (`Directory.Packages.props`)
 
 **Solution file:** `InfraFlowSculptor.slnx`
+
+## Repository Positioning
+
+- The root `README.md` was upgraded on 2026-04-16 into a repository landing page focused on product value, architecture credibility, engineering quality, and onboarding links for GitHub visitors.
