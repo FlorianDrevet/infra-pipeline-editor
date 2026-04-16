@@ -30,7 +30,7 @@ public class GetEventHubNamespaceQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.EventHubNamespace.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<EventHubNamespaceResult>(eh);
     }

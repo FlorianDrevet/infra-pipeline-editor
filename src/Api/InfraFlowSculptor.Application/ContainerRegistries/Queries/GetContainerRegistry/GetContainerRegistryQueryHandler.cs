@@ -33,7 +33,7 @@ public sealed class GetContainerRegistryQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.ContainerRegistry.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<ContainerRegistryResult>(containerRegistry);
     }

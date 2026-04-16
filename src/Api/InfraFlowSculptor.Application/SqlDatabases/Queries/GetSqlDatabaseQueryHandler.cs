@@ -31,7 +31,7 @@ public class GetSqlDatabaseQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.SqlDatabase.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<SqlDatabaseResult>(database);
     }

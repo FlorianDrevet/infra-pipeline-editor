@@ -31,7 +31,7 @@ public class GetAppServicePlanQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.AppServicePlan.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<AppServicePlanResult>(plan);
     }

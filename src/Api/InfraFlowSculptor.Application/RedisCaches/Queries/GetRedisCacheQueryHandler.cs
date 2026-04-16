@@ -28,7 +28,7 @@ public class GetRedisCacheQueryHandler(
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
-            return Errors.RedisCache.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<RedisCacheResult>(redisCache);
     }

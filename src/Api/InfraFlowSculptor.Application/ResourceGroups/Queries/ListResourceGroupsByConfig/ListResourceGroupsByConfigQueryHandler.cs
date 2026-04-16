@@ -2,7 +2,6 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ResourceGroups.Common;
-using InfraFlowSculptor.Domain.Common.Errors;
 using MapsterMapper;
 using MediatR;
 
@@ -20,7 +19,7 @@ public class ListResourceGroupsByConfigQueryHandler(
         var authResult = await accessService.VerifyReadAccessAsync(query.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
-            return Errors.InfrastructureConfig.NotFoundError(query.InfraConfigId);
+            return authResult.Errors;
 
         var resourceGroups = await resourceGroupRepository.GetByInfraConfigIdAsync(
             query.InfraConfigId, cancellationToken);
