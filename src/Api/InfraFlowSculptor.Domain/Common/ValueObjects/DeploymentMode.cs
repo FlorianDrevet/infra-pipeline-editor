@@ -3,7 +3,7 @@ using InfraFlowSculptor.Domain.Common.Models;
 namespace InfraFlowSculptor.Domain.Common.ValueObjects;
 
 /// <summary>Specifies how a compute resource is deployed: as code or as a container image.</summary>
-public class DeploymentMode(DeploymentMode.DeploymentModeType value)
+public sealed class DeploymentMode(DeploymentMode.DeploymentModeType value)
     : EnumValueObject<DeploymentMode.DeploymentModeType>(value)
 {
     /// <summary>Available deployment modes.</summary>

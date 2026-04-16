@@ -3,7 +3,7 @@ using InfraFlowSculptor.Domain.Common.Models;
 namespace InfraFlowSculptor.Domain.AppServicePlanAggregate.ValueObjects;
 
 /// <summary>Pricing tier for an Azure App Service Plan.</summary>
-public class AppServicePlanSku(AppServicePlanSku.AppServicePlanSkuEnum value)
+public sealed class AppServicePlanSku(AppServicePlanSku.AppServicePlanSkuEnum value)
     : EnumValueObject<AppServicePlanSku.AppServicePlanSkuEnum>(value)
 {
     /// <summary>Available pricing tier values.</summary>
