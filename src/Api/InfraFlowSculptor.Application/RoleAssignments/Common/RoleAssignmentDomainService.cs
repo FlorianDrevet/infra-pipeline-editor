@@ -51,8 +51,10 @@ internal sealed class RoleAssignmentDomainService(
         AzureResourceId? userAssignedIdentityId,
         CancellationToken cancellationToken)
     {
-        var parsed = new ManagedIdentityType(
-            Enum.Parse<ManagedIdentityType.IdentityTypeEnum>(managedIdentityType, ignoreCase: true));
+        if (!Enum.TryParse<ManagedIdentityType.IdentityTypeEnum>(managedIdentityType, ignoreCase: true, out var identityEnum))
+            return Errors.RoleAssignment.InvalidManagedIdentityType(managedIdentityType);
+
+        var parsed = new ManagedIdentityType(identityEnum);
 
         if (parsed.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned
             && userAssignedIdentityId is null)
