@@ -2,6 +2,7 @@ using InfraFlowSculptor.Domain.AppConfigurationAggregate;
 using InfraFlowSculptor.Domain.AppConfigurationAggregate.Entities;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities;
+using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.Models;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
@@ -45,6 +46,7 @@ namespace InfraFlowSculptor.Infrastructure.Persistence;
 
 public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbContext(options)
 {
+    public DbSet<AzureResource> AzureResources { get; set; } = null!;
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<ProjectMember> ProjectMembers { get; set; } = null!;
     public DbSet<ProjectResourceNamingTemplate> ProjectResourceNamingTemplates { get; set; } = null!;
