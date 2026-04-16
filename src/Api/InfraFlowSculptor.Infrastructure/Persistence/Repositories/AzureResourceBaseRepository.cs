@@ -12,7 +12,7 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         AzureResourceId id,
         CancellationToken cancellationToken = default)
     {
-        return await context.Set<AzureResource>()
+        return await context.AzureResources
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
@@ -20,7 +20,7 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         AzureResourceId id,
         CancellationToken cancellationToken = default)
     {
-        return await context.Set<AzureResource>()
+        return await context.AzureResources
             .Include(r => r.RoleAssignments)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
@@ -29,7 +29,7 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         AzureResourceId id,
         CancellationToken cancellationToken = default)
     {
-        return await context.Set<AzureResource>()
+        return await context.AzureResources
             .Include(r => r.AppSettings)
                 .ThenInclude(s => s.EnvironmentValues)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
@@ -39,7 +39,7 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         AzureResourceId id,
         CancellationToken cancellationToken = default)
     {
-        return await context.Set<AzureResource>()
+        return await context.AzureResources
             .Include(r => r.RoleAssignments)
             .Include(r => r.AppSettings)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
@@ -49,7 +49,7 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
         AzureResourceId id,
         CancellationToken cancellationToken = default)
     {
-        return await context.Set<AzureResource>()
+        return await context.AzureResources
             .AnyAsync(r => r.Id == id, cancellationToken);
     }
 
