@@ -3,8 +3,6 @@ using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
 using Octokit;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 
 namespace InfraFlowSculptor.Infrastructure.Services.GitProviders;
 
@@ -12,9 +10,8 @@ namespace InfraFlowSculptor.Infrastructure.Services.GitProviders;
 /// Pushes files to a GitHub repository using the Octokit SDK.
 /// Supports creating new branches and updating existing ones.
 /// </summary>
-public sealed class GitHubGitProviderService : IGitProviderService
+public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi) : IGitProviderService
 {
-    private const string GitHubApiVersion = "2022-11-28";
 
     /// <inheritdoc />
     public async Task<ErrorOr<TestGitConnectionResult>> TestConnectionAsync(
@@ -153,7 +150,7 @@ public sealed class GitHubGitProviderService : IGitProviderService
         }
     }
 
-    private static async Task<string> CreateTreeAsync(
+    private async Task<string> CreateTreeAsync(
         string token,
         string owner,
         string repositoryName,
@@ -161,32 +158,17 @@ public sealed class GitHubGitProviderService : IGitProviderService
         IReadOnlyList<object> treeItems,
         CancellationToken cancellationToken)
     {
-        using var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("InfraFlowSculptor", "1.0"));
-        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        httpClient.DefaultRequestHeaders.Add("X-GitHub-Api-Version", GitHubApiVersion);
-
-        var response = await httpClient.PostAsJsonAsync(
-            $"https://api.github.com/repos/{owner}/{repositoryName}/git/trees",
-            new
-            {
-                base_tree = baseTreeSha,
-                tree = treeItems,
-            },
+        var response = await gitHubTreeApi.CreateTreeAsync(
+            owner,
+            repositoryName,
+            new { base_tree = baseTreeSha, tree = treeItems },
+            token,
             cancellationToken);
 
-        if (!response.IsSuccessStatusCode)
-        {
-            var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new InvalidOperationException($"GitHub API returned {response.StatusCode}: {body}");
-        }
-
-        var treeResponse = await response.Content.ReadFromJsonAsync<GitHubCreateTreeResponse>(cancellationToken);
-        if (string.IsNullOrWhiteSpace(treeResponse?.Sha))
+        if (string.IsNullOrWhiteSpace(response.Sha))
             throw new InvalidOperationException("GitHub API did not return the created tree SHA.");
 
-        return treeResponse.Sha;
+        return response.Sha;
     }
 
     /// <inheritdoc />
@@ -216,6 +198,4 @@ public sealed class GitHubGitProviderService : IGitProviderService
         client.Credentials = new Credentials(token);
         return client;
     }
-
-    private sealed record GitHubCreateTreeResponse(string Sha);
 }
