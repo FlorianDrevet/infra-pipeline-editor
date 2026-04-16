@@ -178,6 +178,18 @@ public interface IKeyVaultRepository : IRepository<KeyVault>
 }
 ```
 
+### Convention de nommage des méthodes repository
+
+| Patron | Signification | Exemples |
+|--------|--------------|---------|
+| `GetByIdAsync(id)` | Récupère l'agrégat par sa **propre clé primaire**, sans eager loading | `IRepository<T>.GetByIdAsync` |
+| `GetByIdWith{Navigation}Async(id)` | Récupère par clé primaire **avec** chargement eager des navigations spécifiées | `GetByIdWithRoleAssignmentsAsync`, `GetByIdWithMembersAsync`, `GetByIdWithAllAsync` |
+| `GetBy{EntityType}IdAsync(foreignId)` | Filtre par **clé étrangère** d'une entité liée | `GetByResourceGroupIdAsync`, `GetByProjectIdAsync`, `GetBySqlServerIdAsync` |
+| `GetByContained{EntityType}IdAsync(id)` | Trouve l'agrégat qui **contient** l'entité enfant indiquée | `GetByContainedResourceIdAsync` dans `IResourceGroupRepository` |
+| `GetAllForXAsync(x)` | Retourne tous les agrégats accessibles pour un contexte donné | `GetAllForUserAsync` |
+
+> **Règle d'or :** le nom du paramètre doit toujours refléter ce par quoi on filtre. Éviter les noms génériques comme `id` lorsque la méthode filtre sur une clé étrangère — préférer `resourceGroupId`, `projectId`, etc.
+
 ### Implémentation (couche Infrastructure)
 
 ```

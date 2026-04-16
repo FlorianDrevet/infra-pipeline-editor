@@ -31,7 +31,7 @@ public sealed class AddCrossConfigReferenceCommandHandler(
 
         // Find which resource group (and hence which config) the target resource belongs to
         var targetResourceId = new AzureResourceId(command.TargetResourceId);
-        var targetRg = await resourceGroupRepository.GetByResourceIdAsync(targetResourceId, cancellationToken);
+        var targetRg = await resourceGroupRepository.GetByContainedResourceIdAsync(targetResourceId, cancellationToken);
         if (targetRg is null)
             return Domain.Common.Errors.Errors.InfrastructureConfig.TargetResourceNotFound(targetResourceId);
 

@@ -33,7 +33,7 @@ public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggre
     /// <param name="resourceId">The Azure resource identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The resource group, or null if the resource was not found.</returns>
-    Task<Domain.ResourceGroupAggregate.ResourceGroup?> GetByResourceIdAsync(
+    Task<Domain.ResourceGroupAggregate.ResourceGroup?> GetByContainedResourceIdAsync(
         AzureResourceId resourceId,
         CancellationToken cancellationToken = default);
 
