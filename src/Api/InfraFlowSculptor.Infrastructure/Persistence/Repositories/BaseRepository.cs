@@ -49,11 +49,11 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
 
         var entityType = Context.Model.FindEntityType(typeof(TEntity))
             ?? throw new InvalidOperationException(
-                $"Entity type {typeof(TEntity).Name} is not part of the EF Core model.");
+                $"Entity type {typeof(TEntity).Name} is not part of the EF Core model. Ensure it is registered in the DbContext configuration.");
 
         var keyProperty = entityType.FindPrimaryKey()?.Properties.FirstOrDefault()
             ?? throw new InvalidOperationException(
-                $"Entity type {typeof(TEntity).Name} has no primary key configured.");
+                $"Entity type {typeof(TEntity).Name} has no primary key configured. Verify that the entity has a primary key defined via fluent configuration.");
 
         var parameter = Expression.Parameter(typeof(TEntity), "e");
         var property = Expression.Property(parameter, keyProperty.PropertyInfo!);
