@@ -44,7 +44,7 @@ public sealed class SqlServerTypeBicepGenerator
         type TlsVersion = '1.0' | '1.1' | '1.2'
         """;
 
-    private const string SqlServerModuleTemplate = """
+    private static readonly string SqlServerModuleTemplate = $$"""
         import { SqlServerVersion, TlsVersion } from './types.bicep'
 
         @description('Azure region for the SQL Server')
@@ -66,7 +66,7 @@ public sealed class SqlServerTypeBicepGenerator
         @description('Minimum TLS version for client connections')
         param minimalTlsVersion TlsVersion = '1.2'
 
-        resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {
+        resource sqlServer 'Microsoft.Sql/servers@{{AzureResourceTypes.ApiVersions.SqlServer}}' = {
           name: name
           location: location
           properties: {

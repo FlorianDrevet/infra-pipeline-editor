@@ -41,7 +41,7 @@ public sealed class AppServicePlanTypeBicepGenerator
         type OsType = 'Linux' | 'Windows'
         """;
 
-    private const string AppServicePlanModuleTemplate = """
+    private static readonly string AppServicePlanModuleTemplate = $$"""
         import { SkuName, OsType } from './types.bicep'
 
         @description('Azure region for the App Service Plan')
@@ -62,7 +62,7 @@ public sealed class AppServicePlanTypeBicepGenerator
         var isLinux = osType == 'Linux'
         var kind = isLinux ? 'linux' : 'app'
 
-        resource asp 'Microsoft.Web/serverfarms@2023-12-01' = {
+        resource asp 'Microsoft.Web/serverfarms@{{AzureResourceTypes.ApiVersions.AppServicePlan}}' = {
           name: name
           location: location
           kind: kind

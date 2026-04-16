@@ -41,7 +41,7 @@ public sealed class EventHubNamespaceTypeBicepGenerator
         type TlsVersion = '1.0' | '1.1' | '1.2'
         """;
 
-    private const string EventHubModuleTemplate = """
+    private static readonly string EventHubModuleTemplate = $$"""
         import { SkuName, TlsVersion } from './types.bicep'
 
         @description('Azure region for the Event Hub Namespace')
@@ -71,7 +71,7 @@ public sealed class EventHubNamespaceTypeBicepGenerator
         @description('Maximum throughput units when auto-inflate is enabled (0-40)')
         param maxThroughputUnits int = 0
 
-        resource eventHubNamespace 'Microsoft.EventHub/namespaces@2024-01-01' = {
+        resource eventHubNamespace 'Microsoft.EventHub/namespaces@{{AzureResourceTypes.ApiVersions.EventHubNamespace}}' = {
           name: name
           location: location
           sku: {

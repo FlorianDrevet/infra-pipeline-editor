@@ -68,7 +68,7 @@ public sealed class FunctionAppTypeBicepGenerator
         type DeploymentMode = 'Code' | 'Container'
         """;
 
-    private const string FunctionAppCodeModuleTemplate = """
+    private static readonly string FunctionAppCodeModuleTemplate = $$"""
         import { RuntimeStack, WorkerRuntime } from './types.bicep'
 
         @description('Azure region for the Function App')
@@ -97,7 +97,7 @@ public sealed class FunctionAppTypeBicepGenerator
           ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet')
           : toLower(runtimeStack)
 
-        resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
+        resource functionApp 'Microsoft.Web/sites@{{AzureResourceTypes.ApiVersions.FunctionApp}}' = {
           name: name
           location: location
           kind: 'functionapp'
@@ -132,7 +132,7 @@ public sealed class FunctionAppTypeBicepGenerator
         output principalId string = functionApp.identity.principalId
         """;
 
-    private const string FunctionAppContainerModuleTemplate = """
+    private static readonly string FunctionAppContainerModuleTemplate = $$"""
         import { RuntimeStack, WorkerRuntime } from './types.bicep'
 
         @description('Azure region for the Function App')
@@ -176,7 +176,7 @@ public sealed class FunctionAppTypeBicepGenerator
           ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet')
           : toLower(runtimeStack)
 
-        resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
+        resource functionApp 'Microsoft.Web/sites@{{AzureResourceTypes.ApiVersions.FunctionApp}}' = {
           name: name
           location: location
           kind: 'functionapp,linux,container'

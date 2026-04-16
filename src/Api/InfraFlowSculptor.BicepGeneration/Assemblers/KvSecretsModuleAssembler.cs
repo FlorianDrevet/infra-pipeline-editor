@@ -1,4 +1,5 @@
 using System.Text;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Assemblers;
 
@@ -25,11 +26,11 @@ internal static class KvSecretsModuleAssembler
         sb.AppendLine("@description('List of secrets to store: { name: string, value: string }[]')");
         sb.AppendLine("param secrets array");
         sb.AppendLine();
-        sb.AppendLine("resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {");
+        sb.AppendLine($"resource keyVault 'Microsoft.KeyVault/vaults@{AzureResourceTypes.ApiVersions.KeyVault}' existing = {{");
         sb.AppendLine("  name: keyVaultName");
         sb.AppendLine("}");
         sb.AppendLine();
-        sb.AppendLine("resource kvSecrets 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = [for secret in secrets: {");
+        sb.AppendLine($"resource kvSecrets 'Microsoft.KeyVault/vaults/secrets@{AzureResourceTypes.ApiVersions.KeyVault}' = [for secret in secrets: {{");
         sb.AppendLine("  parent: keyVault");
         sb.AppendLine("  name: secret.name");
         sb.AppendLine("  properties: {");

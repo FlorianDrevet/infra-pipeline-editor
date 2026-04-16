@@ -41,7 +41,7 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
         type WorkloadProfileType = 'Consumption' | 'D4' | 'D8' | 'D16' | 'D32' | 'E4' | 'E8' | 'E16' | 'E32'
         """;
 
-    private const string ContainerAppEnvironmentModuleTemplate = """
+    private static readonly string ContainerAppEnvironmentModuleTemplate = $$"""
         import { SkuName, WorkloadProfileType } from './types.bicep'
 
         @description('Azure region for the Container App Environment')
@@ -65,7 +65,7 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
         @description('Resource ID of the Log Analytics workspace (empty to skip)')
         param logAnalyticsWorkspaceId string = ''
 
-        resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
+        resource containerAppEnv 'Microsoft.App/managedEnvironments@{{AzureResourceTypes.ApiVersions.ContainerAppEnvironment}}' = {
           name: name
           location: location
           properties: {

@@ -37,7 +37,7 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
         type SkuName = 'Free' | 'Standalone' | 'PerNode' | 'PerGB2018' | 'Premium' | 'Standard' | 'CapacityReservation' | 'LACluster'
         """;
 
-    private const string LogAnalyticsWorkspaceModuleTemplate = """
+    private static readonly string LogAnalyticsWorkspaceModuleTemplate = $$"""
         import { SkuName } from './types.bicep'
 
         @description('Azure region for the Log Analytics workspace')
@@ -55,7 +55,7 @@ public sealed class LogAnalyticsWorkspaceTypeBicepGenerator
         @description('Daily ingestion quota in GB (-1 for unlimited)')
         param dailyQuotaGb int = -1
 
-        resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+        resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@{{AzureResourceTypes.ApiVersions.LogAnalyticsWorkspace}}' = {
           name: name
           location: location
           properties: {

@@ -58,7 +58,7 @@ public sealed class KeyVaultTypeBicepGenerator
             @description('SKU of the Key Vault')
             param sku SkuName = 'standard'
 
-            resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
+            resource kv 'Microsoft.KeyVault/vaults@{{AzureResourceTypes.ApiVersions.KeyVault}}' = {
               name: name
               location: location
               properties: {

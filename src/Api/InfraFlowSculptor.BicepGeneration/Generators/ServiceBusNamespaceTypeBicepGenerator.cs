@@ -41,7 +41,7 @@ public sealed class ServiceBusNamespaceTypeBicepGenerator
         type TlsVersion = '1.0' | '1.1' | '1.2'
         """;
 
-    private const string ServiceBusModuleTemplate = """
+    private static readonly string ServiceBusModuleTemplate = $$"""
         import { SkuName, TlsVersion } from './types.bicep'
 
         @description('Azure region for the Service Bus Namespace')
@@ -65,7 +65,7 @@ public sealed class ServiceBusNamespaceTypeBicepGenerator
         @description('Minimum TLS version')
         param minimumTlsVersion TlsVersion = '1.2'
 
-        resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' = {
+        resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@{{AzureResourceTypes.ApiVersions.ServiceBusNamespace}}' = {
           name: name
           location: location
           sku: {

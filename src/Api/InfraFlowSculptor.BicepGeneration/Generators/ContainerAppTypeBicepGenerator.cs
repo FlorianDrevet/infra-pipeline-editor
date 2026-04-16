@@ -65,7 +65,7 @@ public sealed class ContainerAppTypeBicepGenerator
         type TransportMethod = 'auto' | 'http' | 'http2' | 'tcp'
         """;
 
-    private const string ContainerAppModuleTemplate = """
+    private static readonly string ContainerAppModuleTemplate = $$"""
         import { TransportMethod } from './types.bicep'
 
         @description('Azure region for the Container App')
@@ -104,7 +104,7 @@ public sealed class ContainerAppTypeBicepGenerator
         @description('Transport method for ingress')
         param transportMethod TransportMethod = 'auto'
 
-        resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+        resource containerApp 'Microsoft.App/containerApps@{{AzureResourceTypes.ApiVersions.ContainerApp}}' = {
           name: name
           location: location
           properties: {
@@ -145,7 +145,7 @@ public sealed class ContainerAppTypeBicepGenerator
         output latestRevisionFqdn string = containerApp.properties.latestRevisionFqdn
         """;
 
-    private const string ContainerAppWithAcrModuleTemplate = """
+    private static readonly string ContainerAppWithAcrModuleTemplate = $$"""
         import { TransportMethod } from './types.bicep'
 
         @description('Azure region for the Container App')
@@ -190,7 +190,7 @@ public sealed class ContainerAppTypeBicepGenerator
         @description('Client ID of the managed identity for ACR pull')
         param acrManagedIdentityClientId string = ''
 
-        resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+        resource containerApp 'Microsoft.App/containerApps@{{AzureResourceTypes.ApiVersions.ContainerApp}}' = {
           name: name
           location: location
           properties: {

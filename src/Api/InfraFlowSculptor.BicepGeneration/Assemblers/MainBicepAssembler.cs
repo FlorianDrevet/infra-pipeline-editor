@@ -149,7 +149,7 @@ internal static class MainBicepAssembler
             var nameExpr = BicepNamingHelper.BuildNamingExpression(
                 rg.Name, rg.ResourceAbbreviation, "ResourceGroup", namingContext);
 
-            sb.AppendLine($"resource {rgSymbol} 'Microsoft.Resources/resourceGroups@2024-07-01' = {{");
+            sb.AppendLine($"resource {rgSymbol} 'Microsoft.Resources/resourceGroups@{AzureResourceTypes.ApiVersions.ResourceGroup}' = {{");
             sb.AppendLine($"  name: {nameExpr}");
             sb.AppendLine("  location: env.location");
             sb.AppendLine("  tags: tags");
@@ -172,7 +172,7 @@ internal static class MainBicepAssembler
                 var extRgSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRgName)}";
                 var nameExprRg = BicepNamingHelper.BuildNamingExpression(extRgName, "rg", "ResourceGroup", namingContext);
 
-                sb.AppendLine($"resource {extRgSymbol} 'Microsoft.Resources/resourceGroups@2024-07-01' existing = {{");
+                sb.AppendLine($"resource {extRgSymbol} 'Microsoft.Resources/resourceGroups@{AzureResourceTypes.ApiVersions.ResourceGroup}' existing = {{");
                 sb.AppendLine($"  name: {nameExprRg}");
                 sb.AppendLine("}");
                 sb.AppendLine();

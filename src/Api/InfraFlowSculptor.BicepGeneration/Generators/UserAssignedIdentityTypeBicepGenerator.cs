@@ -28,14 +28,14 @@ public sealed class UserAssignedIdentityTypeBicepGenerator : IResourceTypeBicepG
         };
     }
 
-    private const string UserAssignedIdentityModuleTemplate = """
+    private static readonly string UserAssignedIdentityModuleTemplate = $$"""
         @description('Azure region for the User Assigned Identity')
         param location string
 
         @description('Name of the User Assigned Identity')
         param name string
 
-        resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+        resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@{{AzureResourceTypes.ApiVersions.UserAssignedIdentity}}' = {
           name: name
           location: location
         }

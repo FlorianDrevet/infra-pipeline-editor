@@ -37,7 +37,7 @@ public sealed class ApplicationInsightsTypeBicepGenerator
         type IngestionMode = 'ApplicationInsights' | 'ApplicationInsightsWithDiagnosticSettings' | 'LogAnalytics'
         """;
 
-    private const string ApplicationInsightsModuleTemplate = """
+    private static readonly string ApplicationInsightsModuleTemplate = $$"""
         import { IngestionMode } from './types.bicep'
 
         @description('Azure region for the Application Insights resource')
@@ -64,7 +64,7 @@ public sealed class ApplicationInsightsTypeBicepGenerator
         @description('Ingestion mode for telemetry data')
         param ingestionMode IngestionMode = 'LogAnalytics'
 
-        resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+        resource applicationInsights 'Microsoft.Insights/components@{{AzureResourceTypes.ApiVersions.ApplicationInsights}}' = {
           name: name
           location: location
           kind: 'web'

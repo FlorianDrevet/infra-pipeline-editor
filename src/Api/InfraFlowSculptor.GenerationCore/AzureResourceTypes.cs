@@ -29,6 +29,56 @@ public static class AzureResourceTypes
     public const string ResourceGroup = "ResourceGroup";
 
     /// <summary>
+    /// Centralized ARM API version constants used in Bicep generation.
+    /// Updating a version here propagates to all generators, assemblers, and templates.
+    /// </summary>
+    public static class ApiVersions
+    {
+        public const string KeyVault = "2023-07-01";
+        public const string RedisCache = "2023-08-01";
+        public const string StorageAccount = "2025-06-01";
+        public const string AppServicePlan = "2023-12-01";
+        public const string WebApp = "2023-12-01";
+        public const string FunctionApp = "2023-12-01";
+        public const string UserAssignedIdentity = "2023-01-31";
+        public const string AppConfiguration = "2023-03-01";
+        public const string ContainerAppEnvironment = "2024-03-01";
+        public const string ContainerApp = "2024-03-01";
+        public const string LogAnalyticsWorkspace = "2023-09-01";
+        public const string ApplicationInsights = "2020-02-02";
+        public const string CosmosDb = "2024-05-15";
+        public const string SqlServer = "2023-08-01-preview";
+        public const string SqlDatabase = "2023-08-01-preview";
+        public const string ServiceBusNamespace = "2022-10-01-preview";
+        public const string ContainerRegistry = "2023-07-01";
+        public const string EventHubNamespace = "2024-01-01";
+        public const string ResourceGroup = "2024-07-01";
+        public const string RoleAssignment = "2022-04-01";
+
+        /// <summary>Default fallback version for unregistered resource types.</summary>
+        public const string Default = "2023-01-01";
+
+        /// <summary>
+        /// Overridden API versions for <c>existing</c> resource references
+        /// used in cross-configuration scenarios.
+        /// </summary>
+        public static class ExistingRef
+        {
+            public const string RedisCache = "2024-03-01";
+            public const string StorageAccount = "2023-05-01";
+        }
+
+        /// <summary>
+        /// Overridden API versions for <c>existing</c> resource references
+        /// used specifically in role assignment modules.
+        /// </summary>
+        public static class RoleAssignmentRef
+        {
+            public const string StorageAccount = "2023-01-01";
+        }
+    }
+
+    /// <summary>
     /// Azure ARM resource provider type strings (e.g. "Microsoft.KeyVault/vaults").
     /// </summary>
     public static class ArmTypes
