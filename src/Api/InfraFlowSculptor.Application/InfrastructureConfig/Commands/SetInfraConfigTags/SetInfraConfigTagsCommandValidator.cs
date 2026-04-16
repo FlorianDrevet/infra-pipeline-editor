@@ -11,14 +11,17 @@ public sealed class SetInfraConfigTagsCommandValidator : AbstractValidator<SetIn
         RuleFor(x => x.InfraConfigId)
             .NotEmpty().WithMessage("InfraConfigId is required.");
 
+        RuleFor(x => x.Tags)
+            .Must(t => t.Count <= 15).WithMessage("A maximum of 15 tags is allowed.");
+
         RuleForEach(x => x.Tags).ChildRules(tag =>
         {
             tag.RuleFor(t => t.Name)
                 .NotEmpty().WithMessage("Tag name is required.")
-                .MaximumLength(100).WithMessage("Tag name must not exceed 100 characters.");
+                .MaximumLength(512).WithMessage("Tag name must not exceed 512 characters.");
             tag.RuleFor(t => t.Value)
                 .NotEmpty().WithMessage("Tag value is required.")
-                .MaximumLength(500).WithMessage("Tag value must not exceed 500 characters.");
+                .MaximumLength(256).WithMessage("Tag value must not exceed 256 characters.");
         });
     }
 }
