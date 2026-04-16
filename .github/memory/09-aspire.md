@@ -1,5 +1,13 @@
 # Aspire Integration
 
+## Decoupling [2026-04-16]
+- The API project (`InfraFlowSculptor.Api`) has **no Aspire NuGet packages** and **no ServiceDefaults reference**.
+- DbContext is registered via standard `AddDbContext<ProjectDbContext>` with `UseNpgsql` in `Infrastructure.DependencyInjection.AddPersistence()`.
+- OTel is configured in `Infrastructure.DependencyInjection.AddObservability()` (conditionally exports via OTLP if `OTEL_EXPORTER_OTLP_ENDPOINT` is set).
+- Health checks (`/health`, `/alive`) are registered in `Infrastructure.DependencyInjection.AddDefaultHealthChecks()` and mapped in `Program.cs`.
+- Connection string key is `infraDb` (matches Aspire resource name → Aspire injects `ConnectionStrings__infraDb` as env var; standalone reads from `appsettings.json`).
+- The API can be deployed standalone (`dotnet run`) without the Aspire AppHost.
+
 ## AppHost Wiring
 - PostgreSQL (`postgres` container, image `postgres:17.6`), DbGate, main API, Angular frontend
 - Main API: `infraflowsculptor-api`, frontend: `angular-frontend`
