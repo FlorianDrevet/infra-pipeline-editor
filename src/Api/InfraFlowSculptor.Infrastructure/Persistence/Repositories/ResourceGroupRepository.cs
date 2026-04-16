@@ -138,7 +138,7 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
         return result;
     }
 
-    public async Task<ResourceGroup?> GetByResourceIdAsync(
+    public async Task<ResourceGroup?> GetByContainedResourceIdAsync(
         AzureResourceId resourceId,
         CancellationToken cancellationToken = default)
     {

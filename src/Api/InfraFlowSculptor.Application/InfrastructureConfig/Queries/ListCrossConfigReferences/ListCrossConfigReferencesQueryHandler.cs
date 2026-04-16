@@ -36,7 +36,7 @@ public sealed class ListCrossConfigReferencesQueryHandler(
             var targetConfig = await infraConfigRepository.GetByIdAsync(reference.TargetConfigId, cancellationToken);
             if (targetConfig is null) continue;
 
-            var targetRg = await resourceGroupRepository.GetByResourceIdAsync(
+            var targetRg = await resourceGroupRepository.GetByContainedResourceIdAsync(
                 reference.TargetResourceId, cancellationToken);
             if (targetRg is null) continue;
 

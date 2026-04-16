@@ -56,7 +56,7 @@ public sealed class ListIncomingCrossConfigReferencesQueryHandler(
             foreach (var ccRef in incomingRefs)
             {
                 // Resolve target resource in this config
-                var targetRg = await resourceGroupRepository.GetByResourceIdAsync(ccRef.TargetResourceId, cancellationToken);
+                var targetRg = await resourceGroupRepository.GetByContainedResourceIdAsync(ccRef.TargetResourceId, cancellationToken);
                 if (targetRg is null) continue;
 
                 var targetResource = targetRg.Resources.FirstOrDefault(r => r.Id == ccRef.TargetResourceId);
