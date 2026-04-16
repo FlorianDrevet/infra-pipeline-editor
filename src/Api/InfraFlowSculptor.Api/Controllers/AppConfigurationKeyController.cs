@@ -16,81 +16,79 @@ namespace InfraFlowSculptor.Api.Controllers;
 public static class AppConfigurationKeyController
 {
     /// <summary>Registers the App Configuration key endpoints.</summary>
-    public static IApplicationBuilder UseAppConfigurationKeyController(this IApplicationBuilder builder)
+    public static IEndpointRouteBuilder MapAppConfigurationKeyEndpoints(this IEndpointRouteBuilder app)
     {
-        return builder.UseEndpoints(endpoints =>
-        {
-            var group = endpoints.MapGroup("/azure-resources/{appConfigurationId:guid}/configuration-keys")
-                .WithTags("AppConfigurationKeys");
+        var group = app.MapGroup("/azure-resources/{appConfigurationId:guid}/configuration-keys")
+            .WithTags("AppConfigurationKeys");
 
-            group.MapGet("",
-                    async ([FromRoute] Guid appConfigurationId, IMediator mediator, IMapper mapper) =>
-                    {
-                        var query = new ListAppConfigurationKeysQuery(new AzureResourceId(appConfigurationId));
-                        var result = await mediator.Send(query);
+        group.MapGet("",
+                async ([FromRoute] Guid appConfigurationId, IMediator mediator, IMapper mapper) =>
+                {
+                    var query = new ListAppConfigurationKeysQuery(new AzureResourceId(appConfigurationId));
+                    var result = await mediator.Send(query);
 
-                        return result.Match(
-                            keys => Results.Ok(
-                                keys.Select(k => mapper.Map<AppConfigurationKeyResponse>(k)).ToList()),
-                            errors => errors.Result());
-                    })
-                .WithName("ListAppConfigurationKeys")
-                .ProducesProblem(StatusCodes.Status401Unauthorized);
+                    return result.Match(
+                        keys => Results.Ok(
+                            keys.Select(k => mapper.Map<AppConfigurationKeyResponse>(k)).ToList()),
+                        errors => errors.Result());
+                })
+            .WithName("ListAppConfigurationKeys")
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            group.MapPost("",
-                    async ([FromRoute] Guid appConfigurationId,
-                        [FromBody] AddAppConfigurationKeyRequest request,
-                        IMediator mediator,
-                        IMapper mapper) =>
-                    {
-                        var command = new AddAppConfigurationKeyCommand(
-                            new AzureResourceId(appConfigurationId),
-                            request.Key,
-                            request.Label,
-                            request.EnvironmentValues,
-                            request.SourceResourceId.HasValue
-                                ? new AzureResourceId(request.SourceResourceId.Value)
-                                : null,
-                            request.SourceOutputName,
-                            request.ExportToKeyVault,
-                            request.KeyVaultResourceId.HasValue
-                                ? new AzureResourceId(request.KeyVaultResourceId.Value)
-                                : null,
-                            request.SecretName,
-                            request.SecretValueAssignment is not null
-                                ? Enum.Parse<SecretValueAssignment>(request.SecretValueAssignment, true)
-                                : null,
-                            request.VariableGroupId,
-                            request.PipelineVariableName);
+        group.MapPost("",
+                async ([FromRoute] Guid appConfigurationId,
+                    [FromBody] AddAppConfigurationKeyRequest request,
+                    IMediator mediator,
+                    IMapper mapper) =>
+                {
+                    var command = new AddAppConfigurationKeyCommand(
+                        new AzureResourceId(appConfigurationId),
+                        request.Key,
+                        request.Label,
+                        request.EnvironmentValues,
+                        request.SourceResourceId.HasValue
+                            ? new AzureResourceId(request.SourceResourceId.Value)
+                            : null,
+                        request.SourceOutputName,
+                        request.ExportToKeyVault,
+                        request.KeyVaultResourceId.HasValue
+                            ? new AzureResourceId(request.KeyVaultResourceId.Value)
+                            : null,
+                        request.SecretName,
+                        request.SecretValueAssignment is not null
+                            ? Enum.Parse<SecretValueAssignment>(request.SecretValueAssignment, true)
+                            : null,
+                        request.VariableGroupId,
+                        request.PipelineVariableName);
 
-                        var result = await mediator.Send(command);
+                    var result = await mediator.Send(command);
 
-                        return result.Match(
-                            configKey => Results.Created(
-                                $"/azure-resources/{appConfigurationId}/configuration-keys/{configKey.Id.Value}",
-                                mapper.Map<AppConfigurationKeyResponse>(configKey)),
-                            errors => errors.Result());
-                    })
-                .WithName("AddAppConfigurationKey")
-                .ProducesProblem(StatusCodes.Status401Unauthorized);
+                    return result.Match(
+                        configKey => Results.Created(
+                            $"/azure-resources/{appConfigurationId}/configuration-keys/{configKey.Id.Value}",
+                            mapper.Map<AppConfigurationKeyResponse>(configKey)),
+                        errors => errors.Result());
+                })
+            .WithName("AddAppConfigurationKey")
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            group.MapDelete("/{configurationKeyId:guid}",
-                    async ([FromRoute] Guid appConfigurationId,
-                        [FromRoute] Guid configurationKeyId,
-                        IMediator mediator) =>
-                    {
-                        var command = new RemoveAppConfigurationKeyCommand(
-                            new AzureResourceId(appConfigurationId),
-                            new AppConfigurationKeyId(configurationKeyId));
+        group.MapDelete("/{configurationKeyId:guid}",
+                async ([FromRoute] Guid appConfigurationId,
+                    [FromRoute] Guid configurationKeyId,
+                    IMediator mediator) =>
+                {
+                    var command = new RemoveAppConfigurationKeyCommand(
+                        new AzureResourceId(appConfigurationId),
+                        new AppConfigurationKeyId(configurationKeyId));
 
-                        var result = await mediator.Send(command);
+                    var result = await mediator.Send(command);
 
-                        return result.Match(
-                            _ => Results.NoContent(),
-                            errors => errors.Result());
-                    })
-                .WithName("RemoveAppConfigurationKey")
-                .ProducesProblem(StatusCodes.Status401Unauthorized);
-        });
+                    return result.Match(
+                        _ => Results.NoContent(),
+                        errors => errors.Result());
+                })
+            .WithName("RemoveAppConfigurationKey")
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
+        return app;
     }
 }
