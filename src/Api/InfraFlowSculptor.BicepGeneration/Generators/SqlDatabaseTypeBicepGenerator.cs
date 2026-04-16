@@ -44,7 +44,7 @@ public sealed class SqlDatabaseTypeBicepGenerator
         type SkuName = 'Basic' | 'Standard' | 'Premium' | 'GeneralPurpose' | 'BusinessCritical' | 'Hyperscale'
         """;
 
-    private const string SqlDatabaseModuleTemplate = """
+    private static readonly string SqlDatabaseModuleTemplate = $$"""
         import { SkuName } from './types.bicep'
 
         @description('Azure region for the SQL Database')
@@ -68,11 +68,11 @@ public sealed class SqlDatabaseTypeBicepGenerator
         @description('Whether the database is zone redundant')
         param zoneRedundant bool
 
-        resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' existing = {
+        resource sqlServer 'Microsoft.Sql/servers@{{AzureResourceTypes.ApiVersions.SqlServer}}' existing = {
           name: sqlServerName
         }
 
-        resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
+        resource sqlDatabase 'Microsoft.Sql/servers/databases@{{AzureResourceTypes.ApiVersions.SqlDatabase}}' = {
           parent: sqlServer
           name: name
           location: location

@@ -44,7 +44,7 @@ public sealed class AppConfigurationTypeBicepGenerator
         type PublicNetworkAccess = 'Enabled' | 'Disabled'
         """;
 
-    private const string AppConfigurationModuleTemplate = """
+    private static readonly string AppConfigurationModuleTemplate = $$"""
         import { SkuName, PublicNetworkAccess } from './types.bicep'
 
         @description('Azure region for the App Configuration store')
@@ -68,7 +68,7 @@ public sealed class AppConfigurationTypeBicepGenerator
         @description('Public network access setting')
         param publicNetworkAccess PublicNetworkAccess = 'Enabled'
 
-        resource appConfig 'Microsoft.AppConfiguration/configurationStores@2023-03-01' = {
+        resource appConfig 'Microsoft.AppConfiguration/configurationStores@{{AzureResourceTypes.ApiVersions.AppConfiguration}}' = {
           name: name
           location: location
           sku: {

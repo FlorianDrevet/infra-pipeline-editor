@@ -64,7 +64,7 @@ public sealed class WebAppTypeBicepGenerator
         type DeploymentMode = 'Code' | 'Container'
         """;
 
-    private const string WebAppCodeModuleTemplate = """
+    private static readonly string WebAppCodeModuleTemplate = $$"""
         import { RuntimeStack } from './types.bicep'
 
         @description('Azure region for the Web App')
@@ -93,7 +93,7 @@ public sealed class WebAppTypeBicepGenerator
 
         var linuxFxVersion = '${toUpper(runtimeStack)}|${runtimeVersion}'
 
-        resource webApp 'Microsoft.Web/sites@2023-12-01' = {
+        resource webApp 'Microsoft.Web/sites@{{AzureResourceTypes.ApiVersions.WebApp}}' = {
           name: name
           location: location
           properties: {
@@ -118,7 +118,7 @@ public sealed class WebAppTypeBicepGenerator
         output principalId string = webApp.identity.principalId
         """;
 
-    private const string WebAppContainerModuleTemplate = """
+    private static readonly string WebAppContainerModuleTemplate = $$"""
         import { RuntimeStack } from './types.bicep'
 
         @description('Azure region for the Web App')
@@ -162,7 +162,7 @@ public sealed class WebAppTypeBicepGenerator
 
         var dockerImage = '${acrLoginServer}/${dockerImageName}:${dockerImageTag}'
 
-        resource webApp 'Microsoft.Web/sites@2023-12-01' = {
+        resource webApp 'Microsoft.Web/sites@{{AzureResourceTypes.ApiVersions.WebApp}}' = {
           name: name
           location: location
           kind: 'app,linux,container'

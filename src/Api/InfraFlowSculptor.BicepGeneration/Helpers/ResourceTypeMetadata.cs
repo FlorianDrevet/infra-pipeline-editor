@@ -85,23 +85,23 @@ internal static class ResourceTypeMetadata
     internal static string GetExistingResourceApiVersion(string armResourceType) =>
         armResourceType switch
         {
-            "Microsoft.KeyVault/vaults" => "2023-07-01",
-            "Microsoft.Cache/Redis" => "2024-03-01",
-            "Microsoft.Storage/storageAccounts" => "2023-05-01",
-            "Microsoft.Web/serverfarms" => "2023-12-01",
-            "Microsoft.Web/sites" => "2023-12-01",
-            "Microsoft.Web/sites/functionapp" => "2023-12-01",
-            "Microsoft.ManagedIdentity/userAssignedIdentities" => "2023-01-31",
-            "Microsoft.AppConfiguration/configurationStores" => "2023-03-01",
-            "Microsoft.App/managedEnvironments" => "2024-03-01",
-            "Microsoft.App/containerApps" => "2024-03-01",
-            "Microsoft.OperationalInsights/workspaces" => "2023-09-01",
-            "Microsoft.Insights/components" => "2020-02-02",
-            "Microsoft.DocumentDB/databaseAccounts" => "2024-05-15",
-            "Microsoft.Sql/servers" => "2023-08-01-preview",
-            "Microsoft.Sql/servers/databases" => "2023-08-01-preview",
-            "Microsoft.ServiceBus/namespaces" => "2022-10-01-preview",
-            _ => "2023-01-01"
+            AzureResourceTypes.ArmTypes.KeyVault => AzureResourceTypes.ApiVersions.KeyVault,
+            AzureResourceTypes.ArmTypes.RedisCache => AzureResourceTypes.ApiVersions.ExistingRef.RedisCache,
+            AzureResourceTypes.ArmTypes.StorageAccount => AzureResourceTypes.ApiVersions.ExistingRef.StorageAccount,
+            AzureResourceTypes.ArmTypes.AppServicePlan => AzureResourceTypes.ApiVersions.AppServicePlan,
+            AzureResourceTypes.ArmTypes.WebApp => AzureResourceTypes.ApiVersions.WebApp,
+            AzureResourceTypes.ArmTypes.FunctionApp => AzureResourceTypes.ApiVersions.FunctionApp,
+            AzureResourceTypes.ArmTypes.UserAssignedIdentity => AzureResourceTypes.ApiVersions.UserAssignedIdentity,
+            AzureResourceTypes.ArmTypes.AppConfiguration => AzureResourceTypes.ApiVersions.AppConfiguration,
+            AzureResourceTypes.ArmTypes.ContainerAppEnvironment => AzureResourceTypes.ApiVersions.ContainerAppEnvironment,
+            AzureResourceTypes.ArmTypes.ContainerApp => AzureResourceTypes.ApiVersions.ContainerApp,
+            AzureResourceTypes.ArmTypes.LogAnalyticsWorkspace => AzureResourceTypes.ApiVersions.LogAnalyticsWorkspace,
+            AzureResourceTypes.ArmTypes.ApplicationInsights => AzureResourceTypes.ApiVersions.ApplicationInsights,
+            AzureResourceTypes.ArmTypes.CosmosDb => AzureResourceTypes.ApiVersions.CosmosDb,
+            AzureResourceTypes.ArmTypes.SqlServer => AzureResourceTypes.ApiVersions.SqlServer,
+            AzureResourceTypes.ArmTypes.SqlDatabase => AzureResourceTypes.ApiVersions.SqlDatabase,
+            AzureResourceTypes.ArmTypes.ServiceBusNamespace => AzureResourceTypes.ApiVersions.ServiceBusNamespace,
+            _ => AzureResourceTypes.ApiVersions.Default
         };
 
     internal static string GetBaseModuleName(string resourceType)

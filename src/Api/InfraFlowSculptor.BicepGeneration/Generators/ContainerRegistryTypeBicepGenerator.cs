@@ -41,7 +41,7 @@ public sealed class ContainerRegistryTypeBicepGenerator
         type PublicNetworkAccess = 'Enabled' | 'Disabled'
         """;
 
-    private const string ContainerRegistryModuleTemplate = """
+    private static readonly string ContainerRegistryModuleTemplate = $$"""
         import { SkuName, PublicNetworkAccess } from './types.bicep'
 
         @description('Azure region for the Container Registry')
@@ -62,7 +62,7 @@ public sealed class ContainerRegistryTypeBicepGenerator
         @description('Whether zone redundancy is enabled (Premium only)')
         param zoneRedundancy bool = false
 
-        resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+        resource containerRegistry 'Microsoft.ContainerRegistry/registries@{{AzureResourceTypes.ApiVersions.ContainerRegistry}}' = {
           name: name
           location: location
           sku: {

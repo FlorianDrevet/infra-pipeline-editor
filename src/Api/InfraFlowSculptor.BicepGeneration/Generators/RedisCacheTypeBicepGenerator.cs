@@ -50,7 +50,7 @@ public sealed class RedisCacheTypeBicepGenerator
         type TlsVersion = '1.0' | '1.1' | '1.2'
         """;
 
-    private const string RedisCacheModuleTemplate = """
+    private static readonly string RedisCacheModuleTemplate = $$"""
         import { SkuName, SkuFamily, TlsVersion } from './types.bicep'
 
         @description('Azure region for the Redis Cache')
@@ -83,7 +83,7 @@ public sealed class RedisCacheTypeBicepGenerator
         @description('Whether Microsoft Entra ID (AAD) authentication is enabled')
         param aadEnabled bool = false
 
-        resource redis 'Microsoft.Cache/Redis@2023-08-01' = {
+        resource redis 'Microsoft.Cache/Redis@{{AzureResourceTypes.ApiVersions.RedisCache}}' = {
           name: name
           location: location
           properties: {

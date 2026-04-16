@@ -45,7 +45,7 @@ public sealed class CosmosDbTypeBicepGenerator
         type BackupPolicyType = 'Periodic' | 'Continuous'
         """;
 
-    private const string CosmosDbModuleTemplate = """
+    private static readonly string CosmosDbModuleTemplate = $$"""
         import { DatabaseKind, ConsistencyLevel, BackupPolicyType } from './types.bicep'
 
         @description('Azure region for the Cosmos DB account')
@@ -81,7 +81,7 @@ public sealed class CosmosDbTypeBicepGenerator
         @description('Additional capabilities (e.g. EnableServerless)')
         param capabilities array = []
 
-        resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
+        resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@{{AzureResourceTypes.ApiVersions.CosmosDb}}' = {
           name: name
           location: location
           kind: kind

@@ -197,7 +197,7 @@ public sealed class StorageAccountTypeBicepGenerator
         type TlsVersion = 'TLS1_0' | 'TLS1_1' | 'TLS1_2'
         """;
 
-    private const string StorageAccountModuleTemplate = """
+    private static readonly string StorageAccountModuleTemplate = $$"""
         import { SkuName, StorageKind, AccessTier, TlsVersion } from './types.bicep'
 
         @description('Azure region for the Storage Account')
@@ -224,7 +224,7 @@ public sealed class StorageAccountTypeBicepGenerator
         @description('Minimum TLS version for client connections')
         param minimumTlsVersion TlsVersion = 'TLS1_2'
 
-        resource storage 'Microsoft.Storage/storageAccounts@2025-06-01' = {
+        resource storage 'Microsoft.Storage/storageAccounts@{{AzureResourceTypes.ApiVersions.StorageAccount}}' = {
           name: name
           location: location
           kind: kind
@@ -289,7 +289,7 @@ public sealed class StorageAccountTypeBicepGenerator
         }
         """;
 
-    private const string BlobsModuleTemplate = """
+    private static readonly string BlobsModuleTemplate = $$"""
         import { CorsRuleDescription, ContainerLifecycleRule } from './types.bicep'
 
         @description('Storage account name')
@@ -304,11 +304,11 @@ public sealed class StorageAccountTypeBicepGenerator
         @description('Blob lifecycle management rules')
         param containerLifecycleRules ContainerLifecycleRule[] = []
 
-        resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
+        resource storageAccount 'Microsoft.Storage/storageAccounts@{{AzureResourceTypes.ApiVersions.StorageAccount}}' existing = {
           name: storageAccountName
         }
 
-        resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2025-06-01' = {
+        resource blobService 'Microsoft.Storage/storageAccounts/blobServices@{{AzureResourceTypes.ApiVersions.StorageAccount}}' = {
           name: 'default'
           parent: storageAccount
           properties: {
@@ -318,7 +318,7 @@ public sealed class StorageAccountTypeBicepGenerator
           }
         }
 
-        resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@2025-06-01' = [
+        resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@{{AzureResourceTypes.ApiVersions.StorageAccount}}' = [
           for blobContainerName in blobContainerNames: {
             name: blobContainerName
             parent: blobService
@@ -346,7 +346,7 @@ public sealed class StorageAccountTypeBicepGenerator
           }
         ]
 
-        resource managementPolicies 'Microsoft.Storage/storageAccounts/managementPolicies@2025-06-01' = if (!empty(containerLifecycleRules)) {
+        resource managementPolicies 'Microsoft.Storage/storageAccounts/managementPolicies@{{AzureResourceTypes.ApiVersions.StorageAccount}}' = if (!empty(containerLifecycleRules)) {
           name: 'default'
           parent: storageAccount
           properties: {
@@ -357,7 +357,7 @@ public sealed class StorageAccountTypeBicepGenerator
         }
         """;
 
-    private const string TablesModuleTemplate = """
+    private static readonly string TablesModuleTemplate = $$"""
         import { CorsRuleDescription } from './types.bicep'
 
         @description('Storage account name')
@@ -369,11 +369,11 @@ public sealed class StorageAccountTypeBicepGenerator
         @description('CORS rules')
         param corsRules CorsRuleDescription[] = []
 
-        resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
+        resource storageAccount 'Microsoft.Storage/storageAccounts@{{AzureResourceTypes.ApiVersions.StorageAccount}}' existing = {
           name: storageAccountName
         }
 
-        resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2025-06-01' = {
+        resource tableService 'Microsoft.Storage/storageAccounts/tableServices@{{AzureResourceTypes.ApiVersions.StorageAccount}}' = {
           name: 'default'
           parent: storageAccount
           properties: {
@@ -383,7 +383,7 @@ public sealed class StorageAccountTypeBicepGenerator
           }
         }
 
-        resource table 'Microsoft.Storage/storageAccounts/tableServices/tables@2025-06-01' = [
+        resource table 'Microsoft.Storage/storageAccounts/tableServices/tables@{{AzureResourceTypes.ApiVersions.StorageAccount}}' = [
           for tableName in tableNames: {
             name: tableName
             parent: tableService
@@ -391,23 +391,23 @@ public sealed class StorageAccountTypeBicepGenerator
         ]
         """;
 
-    private const string QueuesModuleTemplate = """
+    private static readonly string QueuesModuleTemplate = $$"""
         @description('Storage account name')
         param storageAccountName string
 
         @description('Queue names')
         param queueNames string[]
 
-        resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' existing = {
+        resource storageAccount 'Microsoft.Storage/storageAccounts@{{AzureResourceTypes.ApiVersions.StorageAccount}}' existing = {
           name: storageAccountName
         }
 
-        resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2025-06-01' = {
+        resource queueService 'Microsoft.Storage/storageAccounts/queueServices@{{AzureResourceTypes.ApiVersions.StorageAccount}}' = {
           name: 'default'
           parent: storageAccount
         }
 
-        resource queue 'Microsoft.Storage/storageAccounts/queueServices/queues@2025-06-01' = [
+        resource queue 'Microsoft.Storage/storageAccounts/queueServices/queues@{{AzureResourceTypes.ApiVersions.StorageAccount}}' = [
           for queueName in queueNames: {
             name: queueName
             parent: queueService
