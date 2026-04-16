@@ -147,6 +147,7 @@ public static class ProjectController
                 .WithDescription("Returns all Infrastructure Configurations belonging to the specified Project.")
                 .Produces<IReadOnlyList<InfrastructureConfigResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Users ──────────────────────────────────────────────────────
@@ -198,6 +199,7 @@ public static class ProjectController
                 .Produces<ProjectResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPut("/{id:guid}/members/{userId:guid}",
@@ -224,6 +226,7 @@ public static class ProjectController
                 .Produces<ProjectResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{id:guid}/members/{userId:guid}",
@@ -244,6 +247,7 @@ public static class ProjectController
                 .WithDescription("Removes a user from a Project. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Environments ──────────────────────────────────────────────
@@ -281,6 +285,7 @@ public static class ProjectController
                 .Produces<EnvironmentDefinitionResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPut("/{id:guid}/environments/{envId:guid}",
@@ -313,6 +318,7 @@ public static class ProjectController
                 .Produces<EnvironmentDefinitionResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{id:guid}/environments/{envId:guid}",
@@ -334,6 +340,7 @@ public static class ProjectController
                 .WithDescription("Removes a project-level environment definition. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Naming Templates ──────────────────────────────────────────
@@ -358,6 +365,7 @@ public static class ProjectController
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPut("/{id:guid}/naming/resources/{resourceType}",
@@ -381,6 +389,7 @@ public static class ProjectController
                 .Produces<ResourceNamingTemplateResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{id:guid}/naming/resources/{resourceType}",
@@ -402,6 +411,7 @@ public static class ProjectController
                 .WithDescription("Removes a per-resource-type naming template from the project. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Tags ──────────────────────────────────────────────────
@@ -425,6 +435,7 @@ public static class ProjectController
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Delete Project ────────────────────────────────────────────
@@ -445,6 +456,7 @@ public static class ProjectController
                 .WithDescription("Permanently deletes a project and all its data. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Recent items validation ──────────────────────────────────
@@ -494,6 +506,7 @@ public static class ProjectController
                 .WithDescription("Configures the Git repository where generated Bicep files can be pushed. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{projectId:guid}/git-config",
@@ -512,6 +525,7 @@ public static class ProjectController
                 .WithDescription("Removes the Git repository configuration from the project. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPost("/{projectId:guid}/git-config/test",
@@ -530,6 +544,7 @@ public static class ProjectController
                 .WithDescription("Tests the connection to the configured Git repository using the stored token. Requires Owner or Contributor access.")
                 .Produces<TestGitConnectionResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapGet("/{projectId:guid}/git-config/branches",
@@ -552,6 +567,7 @@ public static class ProjectController
                 .WithDescription("Lists all branches in the configured Git repository. Requires read access to the project.")
                 .Produces<IReadOnlyList<GitBranchResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // GET /{id:guid}/resources
@@ -575,6 +591,7 @@ public static class ProjectController
                 .WithDescription("Returns all Azure resources across all infrastructure configurations in the project. Used for cross-config resource reference selection.")
                 .Produces<IReadOnlyList<ProjectResourceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Repository Mode ─────────────────────────────────────────
@@ -599,6 +616,7 @@ public static class ProjectController
                 .WithDescription("Configures how generated Bicep files are organized: MultiRepo (per-config push) or MonoRepo (project-level push with shared Common folder). Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Agent Pool ──────────────────────────────────────────────
@@ -623,6 +641,7 @@ public static class ProjectController
                 .WithDescription("Sets the self-hosted agent pool name used in generated pipelines. Send null or empty to revert to the Microsoft-hosted pool (vmImage: ubuntu-latest). Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Project-level Bicep Generation (mono-repo) ──────────────
@@ -649,6 +668,7 @@ public static class ProjectController
                 .WithDescription("Generates Bicep files for all configurations in the project, organized as a mono-repo with a shared Common folder and per-config deployment folders.")
                 .Produces<GenerateProjectBicepResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapGet("/{projectId:guid}/generate-bicep/download",
@@ -670,6 +690,7 @@ public static class ProjectController
                 .WithDescription("Downloads the latest generated mono-repo Bicep files for the given project as a ZIP archive.")
                 .Produces(StatusCodes.Status200OK, contentType: "application/zip")
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapGet("/{projectId:guid}/generate-bicep/files/{*filePath}",
@@ -688,6 +709,7 @@ public static class ProjectController
                 .WithDescription("Reads the latest generated mono-repo Bicep file content for the given project and relative file path.")
                 .Produces(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Project-level Push to Git (mono-repo) ───────────────────
@@ -714,6 +736,7 @@ public static class ProjectController
                 .WithDescription("Pushes the latest project-level generated Bicep files to the configured Git repository. Used in MonoRepo mode.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Project-level Pipeline Generation (mono-repo) ──────────────
@@ -740,6 +763,7 @@ public static class ProjectController
                 .WithDescription("Generates Azure DevOps pipeline YAML files for all configurations in the project.")
                 .Produces<GenerateProjectPipelineResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapGet("/{projectId:guid}/generate-pipeline/download",
@@ -761,6 +785,7 @@ public static class ProjectController
                 .WithDescription("Downloads the latest generated mono-repo pipeline files for the given project as a ZIP archive.")
                 .Produces(StatusCodes.Status200OK, contentType: "application/zip")
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapGet("/{projectId:guid}/generate-pipeline/files/{*filePath}",
@@ -779,6 +804,7 @@ public static class ProjectController
                 .WithDescription("Reads the latest generated mono-repo pipeline file content for the given project and relative file path.")
                 .Produces(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Project-level Pipeline Push to Git (mono-repo) ───────────────────
@@ -805,6 +831,7 @@ public static class ProjectController
                 .WithDescription("Pushes the latest project-level generated pipeline files to the configured Git repository. Used in MonoRepo mode.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Pipeline Variable Groups (project-level) ────────────────
@@ -830,6 +857,7 @@ public static class ProjectController
                 .WithDescription("Returns all Azure DevOps Variable Groups (Libraries) configured at project level, shared across all configurations.")
                 .Produces<IReadOnlyList<ProjectPipelineVariableGroupResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // POST /{projectId:guid}/pipeline-variable-groups
@@ -854,6 +882,7 @@ public static class ProjectController
                 .Produces<ProjectPipelineVariableGroupResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // DELETE /{projectId:guid}/pipeline-variable-groups/{groupId:guid}
@@ -873,6 +902,7 @@ public static class ProjectController
                 .WithDescription("Removes a variable group from the project.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

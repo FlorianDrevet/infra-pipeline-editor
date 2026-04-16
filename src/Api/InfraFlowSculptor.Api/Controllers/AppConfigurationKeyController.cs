@@ -34,7 +34,8 @@ public static class AppConfigurationKeyController
                                 keys.Select(k => mapper.Map<AppConfigurationKeyResponse>(k)).ToList()),
                             errors => errors.Result());
                     })
-                .WithName("ListAppConfigurationKeys");
+                .WithName("ListAppConfigurationKeys")
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapPost("",
                     async ([FromRoute] Guid appConfigurationId,
@@ -70,7 +71,8 @@ public static class AppConfigurationKeyController
                                 mapper.Map<AppConfigurationKeyResponse>(configKey)),
                             errors => errors.Result());
                     })
-                .WithName("AddAppConfigurationKey");
+                .WithName("AddAppConfigurationKey")
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapDelete("/{configurationKeyId:guid}",
                     async ([FromRoute] Guid appConfigurationId,
@@ -87,7 +89,8 @@ public static class AppConfigurationKeyController
                             _ => Results.NoContent(),
                             errors => errors.Result());
                     })
-                .WithName("RemoveAppConfigurationKey");
+                .WithName("RemoveAppConfigurationKey")
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
         });
     }
 }

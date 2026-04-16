@@ -43,6 +43,7 @@ public static class KeyVaultControllerController
                 .WithDescription("Returns the full details of a single Azure Key Vault resource.")
                 .Produces<KeyVaultResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapPost("",
@@ -70,6 +71,7 @@ public static class KeyVaultControllerController
                 .Produces<KeyVaultResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapPut("/{id:guid}",
@@ -93,6 +95,7 @@ public static class KeyVaultControllerController
                 .Produces<KeyVaultResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapDelete("/{id:guid}",
@@ -111,6 +114,7 @@ public static class KeyVaultControllerController
                 .WithDescription("Permanently deletes an Azure Key Vault resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

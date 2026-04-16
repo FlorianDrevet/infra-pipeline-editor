@@ -50,6 +50,7 @@ public static class StorageAccountController
                 .WithDescription("Returns the full details of a single Azure Storage Account, including its Blob Containers, Queues, and Tables.")
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapPost("",
@@ -77,6 +78,7 @@ public static class StorageAccountController
                 .Produces<StorageAccountResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapPut("/{id:guid}",
@@ -100,6 +102,7 @@ public static class StorageAccountController
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapDelete("/{id:guid}",
@@ -118,6 +121,7 @@ public static class StorageAccountController
                 .WithDescription("Permanently deletes an Azure Storage Account resource and all its sub-resources (Blob Containers, Queues, Tables). Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // Blob Containers
@@ -145,6 +149,7 @@ public static class StorageAccountController
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapDelete("/{id:guid}/blob-containers/{containerId:guid}",
@@ -165,6 +170,7 @@ public static class StorageAccountController
                 .WithDescription("Removes a Blob Container from the specified Storage Account. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapPut("/{id:guid}/blob-containers/{containerId:guid}",
@@ -194,6 +200,7 @@ public static class StorageAccountController
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // Queues
@@ -218,6 +225,7 @@ public static class StorageAccountController
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapDelete("/{id:guid}/queues/{queueId:guid}",
@@ -238,6 +246,7 @@ public static class StorageAccountController
                 .WithDescription("Removes a Storage Queue from the specified Storage Account. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // Tables
@@ -262,6 +271,7 @@ public static class StorageAccountController
                 .Produces<StorageAccountResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             storageAccounts.MapDelete("/{id:guid}/tables/{tableId:guid}",
@@ -282,6 +292,7 @@ public static class StorageAccountController
                 .WithDescription("Removes a Storage Table from the specified Storage Account. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

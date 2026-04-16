@@ -51,6 +51,7 @@ public static class UserAssignedIdentityController
                 .WithDescription("Returns the full details of a single user-assigned managed identity resource.")
                 .Produces<UserAssignedIdentityResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPost("",
@@ -78,6 +79,7 @@ public static class UserAssignedIdentityController
                 .Produces<UserAssignedIdentityResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPut("/{id:guid}",
@@ -101,6 +103,7 @@ public static class UserAssignedIdentityController
                 .Produces<UserAssignedIdentityResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{id:guid}",
@@ -119,6 +122,7 @@ public static class UserAssignedIdentityController
                 .WithDescription("Permanently deletes a user-assigned managed identity resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapGet("/{id:guid}/granted-role-assignments",
@@ -143,6 +147,7 @@ public static class UserAssignedIdentityController
                 .WithDescription("Returns all RBAC role assignments across all resources that use this User-Assigned Identity. Requires read access.")
                 .Produces<List<IdentityRoleAssignmentResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPost("/{id:guid}/unlink-resource",
@@ -166,6 +171,7 @@ public static class UserAssignedIdentityController
                     "Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

@@ -45,6 +45,7 @@ public static class ContainerRegistryController
                 .WithDescription("Returns the full details of a single Azure Container Registry resource.")
                 .Produces<ContainerRegistryResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPost("",
@@ -72,6 +73,7 @@ public static class ContainerRegistryController
                 .Produces<ContainerRegistryResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPut("/{id:guid}",
@@ -95,6 +97,7 @@ public static class ContainerRegistryController
                 .Produces<ContainerRegistryResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{id:guid}",
@@ -113,6 +116,7 @@ public static class ContainerRegistryController
                 .WithDescription("Permanently deletes an Azure Container Registry resource.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // Endpoint to check whether a compute resource has AcrPull access on a Container Registry
@@ -137,6 +141,7 @@ public static class ContainerRegistryController
                 .WithDescription("Checks whether a compute resource has the AcrPull role assignment on the specified Container Registry.")
                 .Produces<CheckAcrPullAccessResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

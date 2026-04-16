@@ -38,6 +38,7 @@ public static class BicepGenerationController
                 .WithName("GenerateBicep")
                 .Produces<GenerateBicepResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status500InternalServerError);
 
             group.MapGet("/{configId:guid}/download",
@@ -56,6 +57,7 @@ public static class BicepGenerationController
                     })
                 .WithName("DownloadBicep")
                 .Produces(StatusCodes.Status200OK, contentType: "application/zip")
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
 
             group.MapGet("/{configId:guid}/files/{*filePath}",
@@ -71,6 +73,7 @@ public static class BicepGenerationController
                     })
                 .WithName("GetBicepFileContent")
                 .Produces(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
 
             group.MapPost("/{configId:guid}/push-to-git",
@@ -92,6 +95,7 @@ public static class BicepGenerationController
                 .WithDescription("Pushes the latest generated Bicep files to the configured Git repository, creating or updating the specified branch.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

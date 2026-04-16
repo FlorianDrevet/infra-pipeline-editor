@@ -46,6 +46,7 @@ public static class SqlServerController
                 .WithDescription("Returns the full details of a single Azure SQL Server resource.")
                 .Produces<SqlServerResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPost("",
@@ -73,6 +74,7 @@ public static class SqlServerController
                 .Produces<SqlServerResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPut("/{id:guid}",
@@ -96,6 +98,7 @@ public static class SqlServerController
                 .Produces<SqlServerResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{id:guid}",
@@ -114,6 +117,7 @@ public static class SqlServerController
                 .WithDescription("Permanently deletes an Azure SQL Server resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapGet("/{id:guid}/dependents",
@@ -132,6 +136,7 @@ public static class SqlServerController
                 .WithSummary("Get dependent resources")
                 .WithDescription("Returns all resources that depend on this SQL Server and would be deleted alongside it.")
                 .Produces<List<DependentResourceResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

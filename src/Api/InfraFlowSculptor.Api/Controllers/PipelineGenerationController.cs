@@ -38,6 +38,7 @@ public static class PipelineGenerationController
                 .WithName("GeneratePipeline")
                 .Produces<GeneratePipelineResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status500InternalServerError);
 
             group.MapGet("/{configId:guid}/download",
@@ -56,6 +57,7 @@ public static class PipelineGenerationController
                     })
                 .WithName("DownloadPipeline")
                 .Produces(StatusCodes.Status200OK, contentType: "application/zip")
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
 
             group.MapGet("/{configId:guid}/files/{*filePath}",
@@ -71,6 +73,7 @@ public static class PipelineGenerationController
                     })
                 .WithName("GetPipelineFileContent")
                 .Produces(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
 
             group.MapPost("/{configId:guid}/push-to-git",
@@ -92,6 +95,7 @@ public static class PipelineGenerationController
                 .WithDescription("Pushes the latest generated Azure DevOps pipeline files to the configured Git repository.")
                 .Produces<PushPipelineToGitResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
