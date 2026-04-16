@@ -12,8 +12,7 @@ namespace InfraFlowSculptor.Application.RoleAssignments.Commands.UpdateRoleAssig
 /// <summary>Handles the <see cref="UpdateRoleAssignmentIdentityCommand"/> request.</summary>
 public sealed class UpdateRoleAssignmentIdentityCommandHandler(
     IAzureResourceRepository azureResourceRepository,
-    IResourceGroupRepository resourceGroupRepository,
-    IInfraConfigAccessService accessService)
+    IRoleAssignmentDomainService roleAssignmentDomainService)
     : ICommandHandler<UpdateRoleAssignmentIdentityCommand, RoleAssignmentResult>
 {
     /// <inheritdoc />
@@ -21,25 +20,21 @@ public sealed class UpdateRoleAssignmentIdentityCommandHandler(
         UpdateRoleAssignmentIdentityCommand request,
         CancellationToken cancellationToken)
     {
-        var sourceResource = await azureResourceRepository.GetByIdWithRoleAssignmentsAsync(
-            request.SourceResourceId, cancellationToken);
+        var sourceResourceResult = await roleAssignmentDomainService.LoadResourceAndAuthorizeAsync(
+            request.SourceResourceId, includeRoleAssignments: true, cancellationToken);
 
-        if (sourceResource is null)
-            return Errors.RoleAssignment.SourceResourceNotFound(request.SourceResourceId);
+        if (sourceResourceResult.IsError)
+            return sourceResourceResult.Errors;
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(
-            sourceResource.ResourceGroupId, cancellationToken);
+        var sourceResource = sourceResourceResult.Value;
 
-        if (resourceGroup is null)
-            return Errors.ResourceGroup.NotFound(sourceResource.ResourceGroupId);
+        var identityTypeResult = await roleAssignmentDomainService.ValidateIdentityTypeAsync(
+            request.ManagedIdentityType, request.UserAssignedIdentityId, cancellationToken);
 
-        var authResult = await accessService.VerifyWriteAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
+        if (identityTypeResult.IsError)
+            return identityTypeResult.Errors;
 
-        if (authResult.IsError)
-            return authResult.Errors;
-
-        var managedIdentityType = new ManagedIdentityType(
-            Enum.Parse<ManagedIdentityType.IdentityTypeEnum>(request.ManagedIdentityType, ignoreCase: true));
+        var managedIdentityType = identityTypeResult.Value;
 
         var existingAssignment = sourceResource.RoleAssignments.FirstOrDefault(r => r.Id == request.RoleAssignmentId);
         if (existingAssignment is null)
@@ -48,19 +43,6 @@ public sealed class UpdateRoleAssignmentIdentityCommandHandler(
         if (existingAssignment.RoleDefinitionId == AzureRoleDefinitionCatalog.AcrPull
             && managedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.SystemAssigned)
             return Errors.RoleAssignment.AcrPullRequiresUserAssigned();
-
-        if (managedIdentityType.Value == ManagedIdentityType.IdentityTypeEnum.UserAssigned
-            && request.UserAssignedIdentityId is null)
-            return Errors.RoleAssignment.UserAssignedIdentityRequired();
-
-        if (request.UserAssignedIdentityId is not null)
-        {
-            var identityResource = await azureResourceRepository.GetByIdAsync(
-                request.UserAssignedIdentityId, cancellationToken);
-
-            if (identityResource is null)
-                return Errors.RoleAssignment.UserAssignedIdentityNotFound(request.UserAssignedIdentityId);
-        }
 
         var assignment = sourceResource.UpdateRoleAssignmentIdentity(
             request.RoleAssignmentId,

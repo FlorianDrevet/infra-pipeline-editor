@@ -1,6 +1,7 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 
@@ -13,8 +14,7 @@ namespace InfraFlowSculptor.Application.RoleAssignments.Commands.AssignIdentityT
 /// </summary>
 public sealed class AssignIdentityToResourceCommandHandler(
     IAzureResourceRepository azureResourceRepository,
-    IResourceGroupRepository resourceGroupRepository,
-    IInfraConfigAccessService accessService)
+    IRoleAssignmentDomainService roleAssignmentDomainService)
     : ICommandHandler<AssignIdentityToResourceCommand, Success>
 {
     /// <inheritdoc />
@@ -22,29 +22,19 @@ public sealed class AssignIdentityToResourceCommandHandler(
         AssignIdentityToResourceCommand request,
         CancellationToken cancellationToken)
     {
-        var resource = await azureResourceRepository.GetByIdWithRoleAssignmentsAsync(
-            request.ResourceId, cancellationToken);
+        var resourceResult = await roleAssignmentDomainService.LoadResourceAndAuthorizeAsync(
+            request.ResourceId, includeRoleAssignments: true, cancellationToken);
 
-        if (resource is null)
-            return Errors.RoleAssignment.SourceResourceNotFound(request.ResourceId);
+        if (resourceResult.IsError)
+            return resourceResult.Errors;
 
-        var resourceGroup = await resourceGroupRepository.GetByIdAsync(
-            resource.ResourceGroupId, cancellationToken);
+        var resource = resourceResult.Value;
 
-        if (resourceGroup is null)
-            return Errors.ResourceGroup.NotFound(resource.ResourceGroupId);
-
-        var authResult = await accessService.VerifyWriteAccessAsync(
-            resourceGroup.InfraConfigId, cancellationToken);
-
-        if (authResult.IsError)
-            return authResult.Errors;
-
-        var identityResource = await azureResourceRepository.GetByIdAsync(
+        var identityCheck = await roleAssignmentDomainService.ValidateIdentityResourceExistsAsync(
             request.UserAssignedIdentityId, cancellationToken);
 
-        if (identityResource is null)
-            return Errors.RoleAssignment.UserAssignedIdentityNotFound(request.UserAssignedIdentityId);
+        if (identityCheck.IsError)
+            return identityCheck.Errors;
 
         resource.AssignUserAssignedIdentity(request.UserAssignedIdentityId);
 
