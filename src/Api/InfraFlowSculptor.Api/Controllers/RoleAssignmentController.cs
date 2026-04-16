@@ -47,6 +47,7 @@ public static class RoleAssignmentController
                         );
                     })
                 .WithName("ListRoleAssignments")
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
                     operation.Summary = "List role assignments for a resource";
@@ -75,6 +76,7 @@ public static class RoleAssignmentController
                         );
                     })
                 .WithName("ListAvailableRoleDefinitions")
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
                     operation.Summary = "List available role definitions for a resource type";
@@ -107,6 +109,7 @@ public static class RoleAssignmentController
                         );
                     })
                 .WithName("AddRoleAssignment")
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
                     operation.Summary = "Add a role assignment to a resource";
@@ -133,6 +136,7 @@ public static class RoleAssignmentController
                         );
                     })
                 .WithName("RemoveRoleAssignment")
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
                     operation.Summary = "Remove a role assignment from a resource";
@@ -162,6 +166,7 @@ public static class RoleAssignmentController
                         );
                     })
                 .WithName("AnalyzeRoleAssignmentImpact")
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
                     operation.Summary = "Analyze the impact of removing a role assignment";
@@ -192,6 +197,7 @@ public static class RoleAssignmentController
                         );
                     })
                 .WithName("UpdateRoleAssignmentIdentity")
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
                     operation.Summary = "Update the managed identity on a role assignment";
@@ -218,6 +224,7 @@ public static class RoleAssignmentController
                         );
                     })
                 .WithName("AssignIdentityToResource")
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
                     operation.Summary = "Assign a User-Assigned Identity to a resource";
@@ -240,6 +247,7 @@ public static class RoleAssignmentController
                         );
                     })
                 .WithName("UnassignIdentityFromResource")
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .AddOpenApiOperationTransformer((operation, context, ct) =>
                 {
                     operation.Summary = "Remove the assigned User-Assigned Identity from a resource";

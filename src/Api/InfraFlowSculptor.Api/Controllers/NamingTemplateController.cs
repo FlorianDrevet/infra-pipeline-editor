@@ -44,6 +44,7 @@ public static class NamingTemplateController
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             naming.MapPut("/resources/{resourceType}",
@@ -71,6 +72,7 @@ public static class NamingTemplateController
                 .Produces<ResourceNamingTemplateResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             naming.MapDelete("/resources/{resourceType}",
@@ -92,6 +94,7 @@ public static class NamingTemplateController
                 .WithDescription("Removes the naming template override for a specific Azure resource type. The default naming template will be used instead. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

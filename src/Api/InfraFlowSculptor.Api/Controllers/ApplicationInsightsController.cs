@@ -44,6 +44,7 @@ public static class ApplicationInsightsController
                 .WithDescription("Returns the full details of a single Azure Application Insights resource.")
                 .Produces<ApplicationInsightsResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPost("",
@@ -71,6 +72,7 @@ public static class ApplicationInsightsController
                 .Produces<ApplicationInsightsResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPut("/{id:guid}",
@@ -94,6 +96,7 @@ public static class ApplicationInsightsController
                 .Produces<ApplicationInsightsResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{id:guid}",
@@ -112,6 +115,7 @@ public static class ApplicationInsightsController
                 .WithDescription("Permanently deletes an Azure Application Insights resource.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

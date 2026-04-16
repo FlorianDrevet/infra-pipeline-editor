@@ -44,6 +44,7 @@ public static class WebAppController
                 .WithDescription("Returns the full details of a single Azure Web App resource.")
                 .Produces<WebAppResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPost("",
@@ -71,6 +72,7 @@ public static class WebAppController
                 .Produces<WebAppResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPut("/{id:guid}",
@@ -94,6 +96,7 @@ public static class WebAppController
                 .Produces<WebAppResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{id:guid}",
@@ -112,6 +115,7 @@ public static class WebAppController
                 .WithDescription("Permanently deletes an Azure Web App resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

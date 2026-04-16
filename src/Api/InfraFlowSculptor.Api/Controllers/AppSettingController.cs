@@ -36,7 +36,8 @@ public static class AppSettingController
                                 settings.Select(s => mapper.Map<AppSettingResponse>(s)).ToList()),
                             errors => errors.Result());
                     })
-                .WithName("ListAppSettings");
+                .WithName("ListAppSettings")
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapPost("",
                     async ([FromRoute] Guid resourceId,
@@ -71,7 +72,8 @@ public static class AppSettingController
                                 mapper.Map<AppSettingResponse>(appSetting)),
                             errors => errors.Result());
                     })
-                .WithName("AddAppSetting");
+                .WithName("AddAppSetting")
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapDelete("/{appSettingId:guid}",
                     async ([FromRoute] Guid resourceId,
@@ -88,7 +90,8 @@ public static class AppSettingController
                             _ => Results.NoContent(),
                             errors => errors.Result());
                     })
-                .WithName("RemoveAppSetting");
+                .WithName("RemoveAppSetting")
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             group.MapPut("/{appSettingId:guid}",
                     async ([FromRoute] Guid resourceId,
@@ -109,7 +112,8 @@ public static class AppSettingController
                             appSetting => Results.Ok(mapper.Map<AppSettingResponse>(appSetting)),
                             errors => errors.Result());
                     })
-                .WithName("UpdateStaticAppSetting");
+                .WithName("UpdateStaticAppSetting")
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             // Endpoint to get available outputs from a resource (for building the UI picker)
             var outputsGroup = endpoints.MapGroup("/azure-resources/{resourceId:guid}/available-outputs")
@@ -125,7 +129,8 @@ public static class AppSettingController
                             outputs => Results.Ok(mapper.Map<AvailableOutputsResponse>(outputs)),
                             errors => errors.Result());
                     })
-                .WithName("GetAvailableOutputs");
+                .WithName("GetAvailableOutputs")
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
 
             // Endpoint to check whether a compute resource has Key Vault access
             var kvAccessGroup = endpoints.MapGroup("/azure-resources/{resourceId:guid}/check-keyvault-access")
@@ -144,7 +149,8 @@ public static class AppSettingController
                             access => Results.Ok(mapper.Map<CheckKeyVaultAccessResponse>(access)),
                             errors => errors.Result());
                     })
-                .WithName("CheckKeyVaultAccess");
+                .WithName("CheckKeyVaultAccess")
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
         });
     }
 }

@@ -48,6 +48,7 @@ public static class EventHubNamespaceController
                 .WithDescription("Returns the full details of a single Azure Event Hub Namespace resource.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPost("",
@@ -75,6 +76,7 @@ public static class EventHubNamespaceController
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPut("/{id:guid}",
@@ -98,6 +100,7 @@ public static class EventHubNamespaceController
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{id:guid}",
@@ -116,6 +119,7 @@ public static class EventHubNamespaceController
                 .WithDescription("Permanently deletes an Azure Event Hub Namespace resource.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // Event Hub sub-resource endpoints
@@ -135,6 +139,7 @@ public static class EventHubNamespaceController
                 .WithDescription("Adds a new event hub to the Event Hub Namespace.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status409Conflict);
 
             group.MapDelete("/{id:guid}/event-hubs/{eventHubId:guid}",
@@ -152,6 +157,7 @@ public static class EventHubNamespaceController
                 .WithSummary("Remove an event hub")
                 .WithDescription("Removes an event hub from the Event Hub Namespace.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
 
             // Consumer group sub-resource endpoints
@@ -171,6 +177,7 @@ public static class EventHubNamespaceController
                 .WithDescription("Adds a new consumer group to the Event Hub Namespace.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status409Conflict);
 
             group.MapDelete("/{id:guid}/consumer-groups/{consumerGroupId:guid}",
@@ -188,6 +195,7 @@ public static class EventHubNamespaceController
                 .WithSummary("Remove a consumer group")
                 .WithDescription("Removes a consumer group from the Event Hub Namespace.")
                 .Produces<EventHubNamespaceResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
         });
     }

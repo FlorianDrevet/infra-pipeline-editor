@@ -99,6 +99,7 @@ public static class InfrastructureConfigController
                 .WithDescription("Returns all Resource Groups that belong to the specified Infrastructure Configuration.")
                 .Produces<IReadOnlyList<ResourceGroupResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // POST ""
@@ -147,6 +148,7 @@ public static class InfrastructureConfigController
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // PUT /{id:guid}/tags
@@ -169,6 +171,7 @@ public static class InfrastructureConfigController
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // DELETE /{id:guid}
@@ -189,6 +192,7 @@ public static class InfrastructureConfigController
                 .WithDescription("Permanently deletes an infrastructure configuration. Requires Owner access on the parent project.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // ── Cross-Config References ──────────────────────────────────────
@@ -214,6 +218,7 @@ public static class InfrastructureConfigController
                 .WithDescription("Returns all cross-configuration resource references for the specified infrastructure configuration, with resolved target metadata.")
                 .Produces<IReadOnlyList<CrossConfigReferenceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // POST /{id:guid}/cross-config-references
@@ -236,6 +241,7 @@ public static class InfrastructureConfigController
                 .Produces<CrossConfigReferenceResult>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // DELETE /{id:guid}/cross-config-references/{refId:guid}
@@ -255,6 +261,7 @@ public static class InfrastructureConfigController
                 .WithDescription("Removes a cross-configuration resource reference from the infrastructure configuration.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // GET /{id:guid}/incoming-cross-config-references
@@ -278,6 +285,7 @@ public static class InfrastructureConfigController
                 .WithDescription("Returns resources from other configurations in the same project that depend on resources in this configuration.")
                 .Produces<IReadOnlyList<IncomingCrossConfigReferenceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // GET /{id:guid}/diagnostics

@@ -48,6 +48,7 @@ public static class ServiceBusNamespaceController
                 .WithDescription("Returns the full details of a single Azure Service Bus Namespace resource.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPost("",
@@ -75,6 +76,7 @@ public static class ServiceBusNamespaceController
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapPut("/{id:guid}",
@@ -98,6 +100,7 @@ public static class ServiceBusNamespaceController
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             group.MapDelete("/{id:guid}",
@@ -116,6 +119,7 @@ public static class ServiceBusNamespaceController
                 .WithDescription("Permanently deletes an Azure Service Bus Namespace resource.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             // Queue sub-resource endpoints
@@ -135,6 +139,7 @@ public static class ServiceBusNamespaceController
                 .WithDescription("Adds a new queue to the Service Bus Namespace.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status409Conflict);
 
             group.MapDelete("/{id:guid}/queues/{queueId:guid}",
@@ -152,6 +157,7 @@ public static class ServiceBusNamespaceController
                 .WithSummary("Remove a queue")
                 .WithDescription("Removes a queue from the Service Bus Namespace.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
 
             // Topic subscription sub-resource endpoints
@@ -171,6 +177,7 @@ public static class ServiceBusNamespaceController
                 .WithDescription("Adds a new topic subscription to the Service Bus Namespace.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status409Conflict);
 
             group.MapDelete("/{id:guid}/topic-subscriptions/{subscriptionId:guid}",
@@ -188,6 +195,7 @@ public static class ServiceBusNamespaceController
                 .WithSummary("Remove a topic subscription")
                 .WithDescription("Removes a topic subscription from the Service Bus Namespace.")
                 .Produces<ServiceBusNamespaceResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound);
         });
     }

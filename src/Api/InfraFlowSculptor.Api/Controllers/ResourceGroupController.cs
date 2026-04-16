@@ -46,6 +46,7 @@ public static class ResourceGroupController
                 .WithDescription("Returns the full details of a single Resource Group, including its Azure region.")
                 .Produces<ResourceGroupResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapGet("/{id:guid}/resources",
@@ -68,6 +69,7 @@ public static class ResourceGroupController
                 .WithDescription("Returns a lightweight list of all Azure resources (Key Vaults, Storage Accounts, Redis Caches, etc.) that belong to the specified Resource Group.")
                 .Produces<IReadOnlyList<AzureResourceResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapPost("",
@@ -95,6 +97,7 @@ public static class ResourceGroupController
                 .Produces<ResourceGroupResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapDelete("/{id:guid}",
@@ -113,6 +116,7 @@ public static class ResourceGroupController
                 .WithDescription("Permanently deletes a Resource Group and all its contained Azure resources. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }

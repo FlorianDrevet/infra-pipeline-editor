@@ -44,6 +44,7 @@ public static class AppConfigurationController
                 .WithDescription("Returns the full details of a single Azure App Configuration resource.")
                 .Produces<AppConfigurationResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapPost("",
@@ -71,6 +72,7 @@ public static class AppConfigurationController
                 .Produces<AppConfigurationResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapPut("/{id:guid}",
@@ -94,6 +96,7 @@ public static class AppConfigurationController
                 .Produces<AppConfigurationResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
             config.MapDelete("/{id:guid}",
@@ -112,6 +115,7 @@ public static class AppConfigurationController
                 .WithDescription("Permanently deletes an Azure App Configuration resource. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
         });
     }
