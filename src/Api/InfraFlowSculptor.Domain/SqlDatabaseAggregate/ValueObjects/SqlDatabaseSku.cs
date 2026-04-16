@@ -3,7 +3,7 @@ using InfraFlowSculptor.Domain.Common.Models;
 namespace InfraFlowSculptor.Domain.SqlDatabaseAggregate.ValueObjects;
 
 /// <summary>SKU tier for an Azure SQL Database.</summary>
-public class SqlDatabaseSku(SqlDatabaseSku.SqlDatabaseSkuEnum value)
+public sealed class SqlDatabaseSku(SqlDatabaseSku.SqlDatabaseSkuEnum value)
     : EnumValueObject<SqlDatabaseSku.SqlDatabaseSkuEnum>(value)
 {
     /// <summary>Available SQL Database SKU tiers.</summary>

@@ -3,7 +3,7 @@ using InfraFlowSculptor.Domain.Common.Models;
 namespace InfraFlowSculptor.Domain.FunctionAppAggregate.ValueObjects;
 
 /// <summary>Runtime stack for an Azure Function App.</summary>
-public class FunctionAppRuntimeStack(FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum value)
+public sealed class FunctionAppRuntimeStack(FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum value)
     : EnumValueObject<FunctionAppRuntimeStack.FunctionAppRuntimeStackEnum>(value)
 {
     /// <summary>Supported Function App runtime stacks.</summary>

@@ -3,7 +3,7 @@ using InfraFlowSculptor.Domain.Common.Models;
 namespace InfraFlowSculptor.Domain.StorageAccountAggregate.ValueObjects;
 
 /// <summary>Performance/replication tier for an Azure Storage Account.</summary>
-public class StorageAccountSku(StorageAccountSku.Sku value) : EnumValueObject<StorageAccountSku.Sku>(value)
+public sealed class StorageAccountSku(StorageAccountSku.Sku value) : EnumValueObject<StorageAccountSku.Sku>(value)
 {
     /// <summary>Available Storage Account SKU tiers.</summary>
     public enum Sku
