@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import axios, { AxiosHeaders } from 'axios';
 import { environment } from '../../../environments/environment';
 import { MethodEnum } from '../enums/method.enum';
@@ -9,6 +10,7 @@ import { MsalAuthService } from './msal-auth.service';
 })
 export class AxiosService {
   private readonly msalAuth = inject(MsalAuthService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   constructor() {
     const msalAuth = this.msalAuth;
@@ -36,9 +38,9 @@ export class AxiosService {
       },
       function (error) {
         if (error.response?.status === 401) {
-          // Redirect to login page instead of triggering a popup-based logout,
-          // which may be blocked when initiated from a network callback.
-          globalThis.location.href = '/login';
+          if (typeof globalThis.location !== 'undefined') {
+            globalThis.location.href = '/login';
+          }
         }
         return Promise.reject(error);
       }

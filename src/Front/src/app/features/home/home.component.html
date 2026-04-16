@@ -86,81 +86,105 @@
       }
     </section>
 
-    <!-- Recently viewed -->
-    <section class="dashboard-panel">
-      <div class="panel-header">
-        <mat-icon class="panel-header__icon">history</mat-icon>
-        <h2>{{ 'HOME.RECENT.TITLE' | translate }}</h2>
-      </div>
-
-      @if (recentItems().length === 0) {
-        <div class="state-inline state-inline--empty">
-          <mat-icon>schedule</mat-icon>
-          <div>
-            <strong>{{ 'HOME.RECENT.EMPTY_TITLE' | translate }}</strong>
-            <p>{{ 'HOME.RECENT.EMPTY_DESC' | translate }}</p>
-          </div>
+    <!-- Recently viewed — deferred for faster initial paint -->
+    @defer (on viewport) {
+      <section class="dashboard-panel">
+        <div class="panel-header">
+          <mat-icon class="panel-header__icon">history</mat-icon>
+          <h2>{{ 'HOME.RECENT.TITLE' | translate }}</h2>
         </div>
-      } @else {
-        <div class="card-list">
-          @for (item of recentItems(); track item.id + item.type) {
-            <a class="mini-card" [routerLink]="getRecentItemRoute(item)">
-              <div class="mini-card__icon-wrap">
-                <mat-icon>{{ getRecentItemIcon(item) }}</mat-icon>
+
+        @if (recentItems().length === 0) {
+          <div class="state-inline state-inline--empty">
+            <mat-icon>schedule</mat-icon>
+            <div>
+              <strong>{{ 'HOME.RECENT.EMPTY_TITLE' | translate }}</strong>
+              <p>{{ 'HOME.RECENT.EMPTY_DESC' | translate }}</p>
+            </div>
+          </div>
+        } @else {
+          <div class="card-list">
+            @for (item of recentItems(); track item.id + item.type) {
+              <a class="mini-card" [routerLink]="getRecentItemRoute(item)">
+                <div class="mini-card__icon-wrap">
+                  <mat-icon>{{ getRecentItemIcon(item) }}</mat-icon>
+                </div>
+                <div class="mini-card__info">
+                  <h3>{{ item.name }}</h3>
+                  <span class="mini-card__type">{{ 'HOME.RECENT.TYPE_' + item.type.toUpperCase() | translate }}</span>
+                </div>
+              </a>
+            }
+          </div>
+        }
+      </section>
+    } @placeholder {
+      <section class="dashboard-panel">
+        <div class="panel-header">
+          <mat-icon class="panel-header__icon">history</mat-icon>
+          <h2>{{ 'HOME.RECENT.TITLE' | translate }}</h2>
+        </div>
+        <div class="state-inline state-inline--loading">
+          <div class="pulse-dot"></div>
+        </div>
+      </section>
+    }
+  </div>
+
+  <!-- ── Recent projects list (quick glance) — deferred until idle ── -->
+  @if (!isLoading() && projects().length > 0) {
+    @defer (on idle) {
+      <section class="dashboard-panel dashboard-panel--full">
+        <div class="panel-header">
+          <mat-icon class="panel-header__icon">dashboard</mat-icon>
+          <h2>{{ 'HOME.OVERVIEW.TITLE' | translate }}</h2>
+          <a class="panel-header__link" routerLink="/projects">
+            {{ 'HOME.OVERVIEW.VIEW_ALL' | translate }}
+            <mat-icon>arrow_forward</mat-icon>
+          </a>
+        </div>
+
+        <div class="overview-grid">
+          @for (project of projects().slice(0, 6); track project.id) {
+            <a class="overview-card" [routerLink]="['/projects', project.id]">
+              <div class="overview-card__top">
+                <h3>{{ project.name }}</h3>
+                <button
+                  type="button"
+                  class="overview-card__fav"
+                  (click)="toggleFavorite($event, project.id)"
+                  [attr.aria-label]="'HOME.FAVORITES.TOGGLE' | translate">
+                  <mat-icon>{{ isFavorite(project.id) ? 'star' : 'star_border' }}</mat-icon>
+                </button>
               </div>
-              <div class="mini-card__info">
-                <h3>{{ item.name }}</h3>
-                <span class="mini-card__type">{{ 'HOME.RECENT.TYPE_' + item.type.toUpperCase() | translate }}</span>
+              @if (project.description) {
+                <p class="overview-card__desc">{{ project.description }}</p>
+              }
+              <div class="overview-card__meta">
+                <span class="mini-chip">
+                  <mat-icon>group</mat-icon>
+                  {{ project.members.length }}
+                </span>
+                <span class="mini-chip">
+                  <mat-icon>settings</mat-icon>
+                  {{ project.environmentDefinitions.length }}
+                </span>
               </div>
             </a>
           }
         </div>
-      }
-    </section>
-  </div>
-
-  <!-- ── Recent projects list (quick glance) ─────────────────── -->
-  @if (!isLoading() && projects().length > 0) {
-    <section class="dashboard-panel dashboard-panel--full">
-      <div class="panel-header">
-        <mat-icon class="panel-header__icon">dashboard</mat-icon>
-        <h2>{{ 'HOME.OVERVIEW.TITLE' | translate }}</h2>
-        <a class="panel-header__link" routerLink="/projects">
-          {{ 'HOME.OVERVIEW.VIEW_ALL' | translate }}
-          <mat-icon>arrow_forward</mat-icon>
-        </a>
-      </div>
-
-      <div class="overview-grid">
-        @for (project of projects().slice(0, 6); track project.id) {
-          <a class="overview-card" [routerLink]="['/projects', project.id]">
-            <div class="overview-card__top">
-              <h3>{{ project.name }}</h3>
-              <button
-                type="button"
-                class="overview-card__fav"
-                (click)="toggleFavorite($event, project.id)"
-                [attr.aria-label]="'HOME.FAVORITES.TOGGLE' | translate">
-                <mat-icon>{{ isFavorite(project.id) ? 'star' : 'star_border' }}</mat-icon>
-              </button>
-            </div>
-            @if (project.description) {
-              <p class="overview-card__desc">{{ project.description }}</p>
-            }
-            <div class="overview-card__meta">
-              <span class="mini-chip">
-                <mat-icon>group</mat-icon>
-                {{ project.members.length }}
-              </span>
-              <span class="mini-chip">
-                <mat-icon>settings</mat-icon>
-                {{ project.environmentDefinitions.length }}
-              </span>
-            </div>
-          </a>
-        }
-      </div>
-    </section>
+      </section>
+    } @placeholder {
+      <section class="dashboard-panel dashboard-panel--full">
+        <div class="panel-header">
+          <mat-icon class="panel-header__icon">dashboard</mat-icon>
+          <h2>{{ 'HOME.OVERVIEW.TITLE' | translate }}</h2>
+        </div>
+        <div class="state-inline state-inline--loading">
+          <div class="pulse-dot"></div>
+        </div>
+      </section>
+    }
   }
 
   @if (loadError()) {

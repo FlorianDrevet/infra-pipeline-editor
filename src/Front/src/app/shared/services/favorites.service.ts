@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 const STORAGE_KEY = 'ifs_favorite_projects';
 
@@ -6,6 +7,7 @@ const STORAGE_KEY = 'ifs_favorite_projects';
   providedIn: 'root',
 })
 export class FavoritesService {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly favoriteIds = signal<string[]>(this.loadFromStorage());
 
   readonly favorites = this.favoriteIds.asReadonly();
@@ -25,6 +27,7 @@ export class FavoritesService {
   }
 
   private loadFromStorage(): string[] {
+    if (!this.isBrowser) return [];
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return [];
@@ -36,6 +39,7 @@ export class FavoritesService {
   }
 
   private saveToStorage(): void {
+    if (!this.isBrowser) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.favoriteIds()));
   }
 }

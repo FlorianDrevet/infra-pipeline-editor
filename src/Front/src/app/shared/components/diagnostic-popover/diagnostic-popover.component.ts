@@ -1,5 +1,5 @@
-import { Component, ElementRef, input, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ElementRef, input, signal, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ResourceDiagnosticResponse } from '../../interfaces/bicep-generator.interface';
@@ -13,6 +13,7 @@ import { ResourceDiagnosticResponse } from '../../interfaces/bicep-generator.int
 })
 export class DiagnosticPopoverComponent {
   private readonly translate = inject(TranslateService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly elRef = inject(ElementRef);
 
   diagnostics = input.required<ResourceDiagnosticResponse[]>();
@@ -53,6 +54,8 @@ export class DiagnosticPopoverComponent {
   }
 
   private computePanelStyle(): void {
+    if (!this.isBrowser) return;
+
     const el = this.elRef.nativeElement as HTMLElement;
     const rect = el.getBoundingClientRect();
     const panelWidth = 360;

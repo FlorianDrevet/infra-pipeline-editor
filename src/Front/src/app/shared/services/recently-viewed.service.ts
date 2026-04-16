@@ -1,4 +1,5 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { ProjectService } from './project.service';
 
 const STORAGE_KEY = 'ifs_recently_viewed';
@@ -17,6 +18,7 @@ export interface RecentlyViewedItem {
 })
 export class RecentlyViewedService {
   private readonly projectService = inject(ProjectService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly items = signal<RecentlyViewedItem[]>(this.loadFromStorage());
 
   readonly recentItems = this.items.asReadonly();
@@ -65,6 +67,7 @@ export class RecentlyViewedService {
   }
 
   private loadFromStorage(): RecentlyViewedItem[] {
+    if (!this.isBrowser) return [];
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return [];
@@ -85,6 +88,7 @@ export class RecentlyViewedService {
   }
 
   private saveToStorage(): void {
+    if (!this.isBrowser) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items()));
   }
 }

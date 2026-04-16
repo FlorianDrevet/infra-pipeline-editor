@@ -77,37 +77,43 @@
         <strong>{{ 'PROJECTS.SEARCH.NO_RESULTS' | translate }}</strong>
       </div>
     } @else {
-      <div class="project-grid">
-        @for (project of filteredProjects(); track project.id) {
-          <a class="project-card" [routerLink]="['/projects', project.id]">
-            <div class="project-card__top">
-              <div class="project-card__info">
-                <h3>{{ project.name }}</h3>
-                @if (project.description) {
-                  <p class="project-card__desc">{{ project.description }}</p>
-                }
+      @defer (on idle) {
+        <div class="project-grid">
+          @for (project of filteredProjects(); track project.id) {
+            <a class="project-card" [routerLink]="['/projects', project.id]">
+              <div class="project-card__top">
+                <div class="project-card__info">
+                  <h3>{{ project.name }}</h3>
+                  @if (project.description) {
+                    <p class="project-card__desc">{{ project.description }}</p>
+                  }
+                </div>
+                <button
+                  type="button"
+                  class="project-card__fav"
+                  (click)="toggleFavorite($event, project.id)"
+                  [attr.aria-label]="'PROJECTS.ACTIONS.TOGGLE_FAVORITE' | translate">
+                  <mat-icon>{{ isFavorite(project.id) ? 'star' : 'star_border' }}</mat-icon>
+                </button>
               </div>
-              <button
-                type="button"
-                class="project-card__fav"
-                (click)="toggleFavorite($event, project.id)"
-                [attr.aria-label]="'PROJECTS.ACTIONS.TOGGLE_FAVORITE' | translate">
-                <mat-icon>{{ isFavorite(project.id) ? 'star' : 'star_border' }}</mat-icon>
-              </button>
-            </div>
-            <div class="project-card__meta">
-              <span class="project-card__chip">
-                <mat-icon>group</mat-icon>
-                {{ 'PROJECTS.CARD.MEMBERS' | translate: { count: project.members.length } }}
-              </span>
-              <span class="project-card__chip">
-                <mat-icon>settings</mat-icon>
-                {{ 'PROJECTS.CARD.ENVIRONMENTS' | translate: { count: project.environmentDefinitions.length } }}
-              </span>
-            </div>
-          </a>
-        }
-      </div>
+              <div class="project-card__meta">
+                <span class="project-card__chip">
+                  <mat-icon>group</mat-icon>
+                  {{ 'PROJECTS.CARD.MEMBERS' | translate: { count: project.members.length } }}
+                </span>
+                <span class="project-card__chip">
+                  <mat-icon>settings</mat-icon>
+                  {{ 'PROJECTS.CARD.ENVIRONMENTS' | translate: { count: project.environmentDefinitions.length } }}
+                </span>
+              </div>
+            </a>
+          }
+        </div>
+      } @placeholder {
+        <div class="state-card state-card--loading" aria-live="polite">
+          <div class="pulse-dot"></div>
+        </div>
+      }
     }
   }
 </div>
