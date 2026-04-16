@@ -23,64 +23,63 @@ Fichier : src/Api/InfraFlowSculptor.Api/Controllers/KeyVaultController.cs
 ```csharp
 public static class KeyVaultController
 {
-    public static IApplicationBuilder UseKeyVaultControllerController(
-        this IApplicationBuilder builder)
+    public static IEndpointRouteBuilder MapKeyVaultEndpoints(
+        this IEndpointRouteBuilder app)
     {
-        return builder.UseEndpoints(endpoints =>
+        var group = app.MapGroup("/keyvault")
+            .WithTags("KeyVaults");
+
+        // GET /keyvault/{id}
+        group.MapGet("/{id:guid}", async (
+            Guid id,
+            ISender sender,
+            IMapper mapper) =>
         {
-            var group = endpoints.MapGroup("/keyvault")
-                .WithTags("KeyVaults");
-
-            // GET /keyvault/{id}
-            group.MapGet("/{id:guid}", async (
-                Guid id,
-                ISender sender,
-                IMapper mapper) =>
-            {
-                var query = new GetKeyVaultQuery(AzureResourceId.Create(id));
-                var result = await sender.Send(query);
-                return result.Match(
-                    value => Results.Ok(mapper.Map<KeyVaultResponse>(value)),
-                    errors => errors.ToErrorResult());
-            });
-
-            // POST /keyvault
-            group.MapPost("", async (
-                [FromBody] CreateKeyVaultRequest request,
-                ISender sender,
-                IMapper mapper) =>
-            {
-                var command = mapper.Map<CreateKeyVaultCommand>(request);
-                var result = await sender.Send(command);
-                return result.Match(
-                    value => Results.Ok(mapper.Map<KeyVaultResponse>(value)),
-                    errors => errors.ToErrorResult());
-            });
-
-            // PUT /keyvault/{id}
-            group.MapPut("/{id:guid}", async (
-                Guid id,
-                [FromBody] UpdateKeyVaultRequest request,
-                ISender sender,
-                IMapper mapper) =>
-            {
-                var command = mapper.Map<UpdateKeyVaultCommand>((id, request));
-                var result = await sender.Send(command);
-                return result.Match(
-                    value => Results.Ok(mapper.Map<KeyVaultResponse>(value)),
-                    errors => errors.ToErrorResult());
-            });
+            var query = new GetKeyVaultQuery(AzureResourceId.Create(id));
+            var result = await sender.Send(query);
+            return result.Match(
+                value => Results.Ok(mapper.Map<KeyVaultResponse>(value)),
+                errors => errors.ToErrorResult());
         });
+
+        // POST /keyvault
+        group.MapPost("", async (
+            [FromBody] CreateKeyVaultRequest request,
+            ISender sender,
+            IMapper mapper) =>
+        {
+            var command = mapper.Map<CreateKeyVaultCommand>(request);
+            var result = await sender.Send(command);
+            return result.Match(
+                value => Results.Ok(mapper.Map<KeyVaultResponse>(value)),
+                errors => errors.ToErrorResult());
+        });
+
+        // PUT /keyvault/{id}
+        group.MapPut("/{id:guid}", async (
+            Guid id,
+            [FromBody] UpdateKeyVaultRequest request,
+            ISender sender,
+            IMapper mapper) =>
+        {
+            var command = mapper.Map<UpdateKeyVaultCommand>((id, request));
+            var result = await sender.Send(command);
+            return result.Match(
+                value => Results.Ok(mapper.Map<KeyVaultResponse>(value)),
+                errors => errors.ToErrorResult());
+        });
+
+        return app;
     }
 }
 ```
 
 Les endpoints sont ensuite enregistrés dans `Program.cs` :
 ```csharp
-app.UseKeyVaultControllerController();
-app.UseResourceGroupController();
-app.UseRedisCacheController();
-// ... un appel par contrôleur
+app.MapKeyVaultEndpoints();
+app.MapResourceGroupEndpoints();
+app.MapRedisCacheEndpoints();
+// ... un appel par feature
 ```
 
 ### Conventions
