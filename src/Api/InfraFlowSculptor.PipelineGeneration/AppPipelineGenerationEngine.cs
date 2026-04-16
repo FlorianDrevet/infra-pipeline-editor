@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Generators;
@@ -27,11 +28,21 @@ public sealed class AppPipelineGenerationEngine
     /// </summary>
     /// <param name="request">The application pipeline generation request.</param>
     /// <returns>Generated YAML files keyed by relative path.</returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="request"/> contains an unrecognised deployment mode.
+    /// </exception>
     /// <exception cref="InvalidOperationException">
     /// Thrown when no generator is registered for the resource type and deployment mode combination.
     /// </exception>
     public AppPipelineGenerationResult Generate(AppPipelineGenerationRequest request)
     {
+        if (!Enum.TryParse<DeploymentMode.DeploymentModeType>(request.DeploymentMode, ignoreCase: true, out _))
+        {
+            throw new ArgumentException(
+                $"Invalid deployment mode '{request.DeploymentMode}'. Valid values are: {string.Join(", ", Enum.GetNames<DeploymentMode.DeploymentModeType>())}.",
+                nameof(request.DeploymentMode));
+        }
+
         var generator = _generators.FirstOrDefault(g =>
             g.ResourceType == request.ResourceType &&
             string.Equals(g.DeploymentMode, request.DeploymentMode, StringComparison.OrdinalIgnoreCase));
