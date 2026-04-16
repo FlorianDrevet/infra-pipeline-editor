@@ -52,6 +52,12 @@ public static partial class Errors
             code: "RoleAssignment.UserAssignedIdentityNotFound",
             description: $"User-Assigned Identity '{id.Value}' was not found.");
 
+        /// <summary>Error returned when the managed identity type value is not recognized.</summary>
+        public static Error InvalidManagedIdentityType(string value) => Error.Validation(
+            code: "RoleAssignment.InvalidManagedIdentityType",
+            description: $"The managed identity type '{value}' is not valid. " +
+                         $"Allowed values: {string.Join(", ", Enum.GetNames<ManagedIdentityType.IdentityTypeEnum>())}.");
+
         /// <summary>Error returned when attempting to assign the AcrPull role with System Assigned identity.</summary>
         public static Error AcrPullRequiresUserAssigned() => Error.Validation(
             code: "RoleAssignment.AcrPullRequiresUserAssigned",
