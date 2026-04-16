@@ -3,9 +3,12 @@ using Azure.Security.KeyVault.Secrets;
 using AzureKeyVaultEmulator.Aspire.Client;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -21,6 +24,9 @@ using Microsoft.Identity.Web;
 using Refit;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 namespace InfraFlowSculptor.Infrastructure;
 
@@ -32,11 +38,14 @@ public static class DependencyInjection
         IHostEnvironment hostEnvironment)
     {
         services
+            .AddPersistence(builderConfiguration)
             .AddAuth(builderConfiguration)
             .AddAzureServices(builderConfiguration)
             .AddBlob(builderConfiguration)
             .AddRepositories()
-            .AddGitProviders(builderConfiguration, hostEnvironment);
+            .AddGitProviders(builderConfiguration, hostEnvironment)
+            .AddObservability(builderConfiguration, hostEnvironment)
+            .AddDefaultHealthChecks();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
@@ -162,6 +171,62 @@ public static class DependencyInjection
         services.AddTransient<AzureDevOpsGitProviderService>();
         services.AddTransient<IGitProviderFactory, GitProviderFactory>();
         services.AddHttpClient();
+
+        return services;
+    }
+
+    private static IServiceCollection AddPersistence(
+        this IServiceCollection services,
+        ConfigurationManager configuration)
+    {
+        services.AddDbContext<ProjectDbContext>(options =>
+            options.UseNpgsql(configuration.GetConnectionString("infraDb")));
+
+        return services;
+    }
+
+    private static IServiceCollection AddObservability(
+        this IServiceCollection services,
+        ConfigurationManager configuration,
+        IHostEnvironment environment)
+    {
+        services.AddLogging(logging =>
+            logging.AddOpenTelemetry(otel =>
+            {
+                otel.IncludeFormattedMessage = true;
+                otel.IncludeScopes = true;
+            }));
+
+        services.AddOpenTelemetry()
+            .WithMetrics(metrics =>
+            {
+                metrics.AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation();
+            })
+            .WithTracing(tracing =>
+            {
+                tracing.AddSource(environment.ApplicationName)
+                    .AddAspNetCoreInstrumentation(options =>
+                        options.Filter = context =>
+                            !context.Request.Path.StartsWithSegments("/health")
+                            && !context.Request.Path.StartsWithSegments("/alive"))
+                    .AddHttpClientInstrumentation();
+            });
+
+        var useOtlpExporter = !string.IsNullOrWhiteSpace(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+        if (useOtlpExporter)
+        {
+            services.AddOpenTelemetry().UseOtlpExporter();
+        }
+
+        return services;
+    }
+
+    private static IServiceCollection AddDefaultHealthChecks(this IServiceCollection services)
+    {
+        services.AddHealthChecks()
+            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
         return services;
     }

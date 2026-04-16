@@ -33,8 +33,8 @@ public sealed class UserAssignedIdentityMappingConfig : IRegister
             .Map(dest => dest.Location, src => src.Location);
 
         config.NewConfig<UserAssignedIdentityResult, UserAssignedIdentityResponse>()
-            .Map(dest => dest.Id, src => src.Id.Value)
-            .Map(dest => dest.ResourceGroupId, src => src.ResourceGroupId.Value)
+            .Map(dest => dest.Id, src => src.Id.Value.ToString())
+            .Map(dest => dest.ResourceGroupId, src => src.ResourceGroupId.Value.ToString())
             .Map(dest => dest.Name, src => src.Name.Value)
             .Map(dest => dest.Location, src => src.Location.Value.ToString());
     }

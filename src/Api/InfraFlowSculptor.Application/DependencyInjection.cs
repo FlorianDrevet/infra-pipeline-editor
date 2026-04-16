@@ -36,7 +36,8 @@ public static class DependencyInjection
         services.AddScoped<IInfraConfigAccessService, InfraConfigAccessService>();
         services.AddScoped<IProjectAccessService, ProjectAccessService>();
 
-        // Impact analysis
+        // Role assignment domain services
+        services.AddScoped<IRoleAssignmentDomainService, RoleAssignmentDomainService>();
         services.AddScoped<IRoleAssignmentImpactAnalyzer, RoleAssignmentImpactAnalyzer>();
 
         // Bicep generation domain services

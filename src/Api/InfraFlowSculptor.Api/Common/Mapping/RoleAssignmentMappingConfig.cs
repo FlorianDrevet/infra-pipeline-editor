@@ -45,14 +45,17 @@ public sealed class RoleAssignmentMappingConfig : IRegister
         config.NewConfig<RoleAssignmentId, Guid>()
             .MapWith(src => src.Value);
 
+        config.NewConfig<RoleAssignmentId, string>()
+            .MapWith(src => src.Value.ToString());
+
         config.NewConfig<RoleAssignmentResult, RoleAssignmentResponse>()
             .MapWith(src => new RoleAssignmentResponse(
-                src.Id.Value,
-                src.SourceResourceId.Value,
-                src.TargetResourceId.Value,
+                src.Id.Value.ToString(),
+                src.SourceResourceId.Value.ToString(),
+                src.TargetResourceId.Value.ToString(),
                 src.ManagedIdentityType.Value.ToString(),
                 src.RoleDefinitionId,
-                src.UserAssignedIdentityId != null ? src.UserAssignedIdentityId.Value : null));
+                src.UserAssignedIdentityId != null ? src.UserAssignedIdentityId.Value.ToString() : null));
 
         config.NewConfig<AzureRoleDefinitionResult, AzureRoleDefinitionResponse>()
             .MapWith(src => new AzureRoleDefinitionResponse(
@@ -63,11 +66,11 @@ public sealed class RoleAssignmentMappingConfig : IRegister
 
         config.NewConfig<IdentityRoleAssignmentResult, IdentityRoleAssignmentResponse>()
             .MapWith(src => new IdentityRoleAssignmentResponse(
-                src.Id.Value,
-                src.SourceResourceId.Value,
+                src.Id.Value.ToString(),
+                src.SourceResourceId.Value.ToString(),
                 src.SourceResourceName,
                 src.SourceResourceType,
-                src.TargetResourceId.Value,
+                src.TargetResourceId.Value.ToString(),
                 src.TargetResourceName,
                 src.TargetResourceType,
                 src.RoleDefinitionId,
@@ -75,10 +78,10 @@ public sealed class RoleAssignmentMappingConfig : IRegister
 
         config.NewConfig<RoleAssignmentImpactItem, RoleAssignmentImpactItemResponse>()
             .MapWith(src => new RoleAssignmentImpactItemResponse(
-                src.AffectedResourceId,
+                src.AffectedResourceId.ToString(),
                 src.AffectedResourceName,
                 src.AffectedResourceType,
-                src.TargetResourceId,
+                src.TargetResourceId.ToString(),
                 src.TargetResourceName,
                 src.TargetResourceType,
                 src.ImpactType,
@@ -90,10 +93,10 @@ public sealed class RoleAssignmentMappingConfig : IRegister
             .MapWith(src => new RoleAssignmentImpactResponse(
                 src.HasImpact,
                 src.Impacts.Select(i => new RoleAssignmentImpactItemResponse(
-                    i.AffectedResourceId,
+                    i.AffectedResourceId.ToString(),
                     i.AffectedResourceName,
                     i.AffectedResourceType,
-                    i.TargetResourceId,
+                    i.TargetResourceId.ToString(),
                     i.TargetResourceName,
                     i.TargetResourceType,
                     i.ImpactType,

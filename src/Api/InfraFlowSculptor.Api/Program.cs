@@ -2,12 +2,11 @@ using InfraFlowSculptor.Api;
 using InfraFlowSculptor.Api.Controllers;
 using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
-using InfraFlowSculptor.Infrastructure.Persistence;
-using InfraFlowSculptor.ServiceDefaults;
 using InfraFlowSculptor.Api.Configuration;
 using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Api.Options;
 using InfraFlowSculptor.Api.RateLimiting;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,9 +25,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("IsAdmin", policy => policy.RequireRole("Admin")); 
 
-builder.AddNpgsqlDataSource("infraDb");
-builder.AddNpgsqlDbContext<ProjectDbContext>(connectionName: "infraDb");
-
 builder.Services
     .AddPresentation()
     .AddApplication()
@@ -43,8 +39,6 @@ if (builder.Environment.IsDevelopment())
         .ValidateDataAnnotations()
         .ValidateOnStart();
 }
-
-builder.AddServiceDefaults();
 
 var app = builder.Build();
 
@@ -90,6 +84,12 @@ app.UseEventHubNamespaceController();
 app.UseAppSettingController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
-app.MapDefaultEndpoints();
+
+// Health checks
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/alive", new HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("live")
+});
 
 await app.RunAsync();

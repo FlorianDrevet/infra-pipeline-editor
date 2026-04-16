@@ -11,11 +11,11 @@ namespace InfraFlowSculptor.Contracts.SqlDatabases.Responses;
 /// <param name="Collation">Database collation.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
 public record SqlDatabaseResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location,
-    Guid SqlServerId,
+    string SqlServerId,
     string Collation,
     IReadOnlyList<SqlDatabaseEnvironmentConfigResponse> EnvironmentSettings
 );

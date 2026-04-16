@@ -5,6 +5,6 @@ namespace InfraFlowSculptor.Contracts.Common;
 /// <param name="Name">Display name of the dependent resource.</param>
 /// <param name="ResourceType">Type of the dependent resource (e.g. "ApplicationInsights", "WebApp").</param>
 public record DependentResourceResponse(
-    Guid Id,
+    string Id,
     string Name,
     string ResourceType);

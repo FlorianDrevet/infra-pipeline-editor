@@ -6,8 +6,8 @@ namespace InfraFlowSculptor.Contracts.ResourceGroups.Responses;
 /// <param name="Name">Display name of the Resource Group.</param>
 /// <param name="Location">Azure region where the Resource Group is deployed.</param>
 public record ResourceGroupResponse(
-    Guid Id,
-    Guid InfraConfigId,
+    string Id,
+    string InfraConfigId,
     string Name,
     string Location
 );

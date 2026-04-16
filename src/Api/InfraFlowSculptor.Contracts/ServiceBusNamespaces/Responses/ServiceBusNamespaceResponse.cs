@@ -9,8 +9,8 @@ namespace InfraFlowSculptor.Contracts.ServiceBusNamespaces.Responses;
 /// <param name="Queues">Queues defined in this Service Bus Namespace.</param>
 /// <param name="TopicSubscriptions">Topic subscriptions defined in this Service Bus Namespace.</param>
 public record ServiceBusNamespaceResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location,
     IReadOnlyList<ServiceBusNamespaceEnvironmentConfigResponse> EnvironmentSettings,
@@ -19,10 +19,10 @@ public record ServiceBusNamespaceResponse(
 );
 
 /// <summary>Response DTO for a Service Bus Queue.</summary>
-public record ServiceBusQueueResponse(Guid Id, string Name);
+public record ServiceBusQueueResponse(string Id, string Name);
 
 /// <summary>Response DTO for a Service Bus Topic Subscription.</summary>
-public record ServiceBusTopicSubscriptionResponse(Guid Id, string TopicName, string SubscriptionName);
+public record ServiceBusTopicSubscriptionResponse(string Id, string TopicName, string SubscriptionName);
 
 /// <summary>Response DTO for a typed per-environment Service Bus Namespace configuration.</summary>
 public record ServiceBusNamespaceEnvironmentConfigResponse(

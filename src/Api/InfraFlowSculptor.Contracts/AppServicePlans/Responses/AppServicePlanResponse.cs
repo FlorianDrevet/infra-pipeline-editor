@@ -10,8 +10,8 @@ namespace InfraFlowSculptor.Contracts.AppServicePlans.Responses;
 /// <param name="OsType">Operating system type (Windows or Linux).</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
 public record AppServicePlanResponse(
-    Guid Id,
-    Guid ResourceGroupId,
+    string Id,
+    string ResourceGroupId,
     string Name,
     string Location,
     string OsType,

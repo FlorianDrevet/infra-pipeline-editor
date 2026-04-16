@@ -22,14 +22,23 @@ public sealed class InfraConfigMappingConfig : IRegister
         config.NewConfig<InfrastructureConfigId, Guid>()
             .MapWith(src => src.Value);
 
+        config.NewConfig<InfrastructureConfigId, string>()
+            .MapWith(src => src.Value.ToString());
+
         config.NewConfig<Guid, InfrastructureConfigId>()
             .MapWith(src => InfrastructureConfigId.Create(src));
 
         config.NewConfig<UserId, Guid>()
             .MapWith(src => src.Value);
 
+        config.NewConfig<UserId, string>()
+            .MapWith(src => src.Value.ToString());
+
         config.NewConfig<ResourceNamingTemplateId, Guid>()
             .MapWith(src => src.Value);
+
+        config.NewConfig<ResourceNamingTemplateId, string>()
+            .MapWith(src => src.Value.ToString());
 
         // Tag -> TagResult
         config.NewConfig<Tag, TagResult>()
@@ -85,7 +94,7 @@ public sealed class InfraConfigMappingConfig : IRegister
 
         // UserResult -> UserResponse
         config.NewConfig<UserResult, UserResponse>()
-            .Map(dest => dest.Id, src => src.Id.Value)
+            .Map(dest => dest.Id, src => src.Id.Value.ToString())
             .Map(dest => dest.FirstName, src => src.FirstName)
             .Map(dest => dest.LastName, src => src.LastName);
 

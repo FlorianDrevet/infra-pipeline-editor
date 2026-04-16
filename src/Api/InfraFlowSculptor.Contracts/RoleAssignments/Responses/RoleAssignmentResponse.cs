@@ -8,10 +8,10 @@ namespace InfraFlowSculptor.Contracts.RoleAssignments.Responses;
 /// <param name="RoleDefinitionId">Azure role definition ID that was granted.</param>
 /// <param name="UserAssignedIdentityId">Identifier of the User-Assigned Identity resource, or <c>null</c> for system-assigned.</param>
 public record RoleAssignmentResponse(
-    Guid Id,
-    Guid SourceResourceId,
-    Guid TargetResourceId,
+    string Id,
+    string SourceResourceId,
+    string TargetResourceId,
     string ManagedIdentityType,
     string RoleDefinitionId,
-    Guid? UserAssignedIdentityId
+    string? UserAssignedIdentityId
 );

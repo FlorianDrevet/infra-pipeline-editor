@@ -8,9 +8,9 @@ namespace InfraFlowSculptor.Contracts.ResourceGroups.Responses;
 /// <param name="ParentResourceId">Optional identifier of the parent resource (e.g. AppServicePlan for a WebApp).</param>
 /// <param name="ConfiguredEnvironments">List of environment names that have typed per-environment settings configured for this resource.</param>
 public record AzureResourceResponse(
-    Guid Id,
+    string Id,
     string ResourceType,
     string Name,
     string Location,
-    Guid? ParentResourceId = null,
+    string? ParentResourceId = null,
     IReadOnlyList<string>? ConfiguredEnvironments = null);

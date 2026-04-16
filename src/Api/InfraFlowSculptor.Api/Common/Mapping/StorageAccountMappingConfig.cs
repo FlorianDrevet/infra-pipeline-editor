@@ -147,16 +147,16 @@ public sealed class StorageAccountMappingConfig : IRegister
             .MapWith(src => new BlobContainerPublicAccess(Enum.Parse<BlobContainerPublicAccess.AccessLevel>(src)));
 
         config.NewConfig<BlobContainerResult, BlobContainerResponse>()
-            .Map(dest => dest.Id, src => src.Id.Value)
+            .Map(dest => dest.Id, src => src.Id.Value.ToString())
             .Map(dest => dest.PublicAccess, src => src.PublicAccess.Value.ToString());
 
         config.NewConfig<CorsRuleResult, CorsRuleResponse>();
 
         config.NewConfig<StorageQueueResult, StorageQueueResponse>()
-            .Map(dest => dest.Id, src => src.Id.Value);
+            .Map(dest => dest.Id, src => src.Id.Value.ToString());
 
         config.NewConfig<StorageTableResult, StorageTableResponse>()
-            .Map(dest => dest.Id, src => src.Id.Value);
+            .Map(dest => dest.Id, src => src.Id.Value.ToString());
 
         config.NewConfig<BlobLifecycleRuleResult, BlobLifecycleRuleResponse>();
     }

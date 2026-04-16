@@ -10,6 +10,9 @@ public sealed class CommonMappingConfig : IRegister
     {
         config.NewConfig<AzureResourceId, Guid>()
             .MapWith(src => src.Value);
+
+        config.NewConfig<AzureResourceId, string>()
+            .MapWith(src => src.Value.ToString());
         
         config.NewConfig<Guid, AzureResourceId>()
             .MapWith(src => AzureResourceId.Create(src));

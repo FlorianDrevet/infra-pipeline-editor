@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-16 | copilot | Decoupled Aspire from the API project: removed `Aspire.Npgsql`, `Aspire.Npgsql.EntityFrameworkCore.PostgreSQL`, ServiceDefaults reference. Moved DbContext registration, OTel, and health checks into Infrastructure DI. API can now be deployed standalone without any Aspire dependency. |
 | 2026-04-15 | copilot | Merged `origin/main` into `copilot/ddd-002-seal-azure-resource-classes`, resolved memory-file conflicts semantically, and preserved the DDD-002 sealed-aggregate work. |
 | 2026-04-15 | copilot | Sealed all concrete `AzureResource` aggregates in the domain model to enforce invariants and block uncontrolled inheritance (DDD-002). |
 | 2026-04-15 | copilot | Added the `audit-expert` agent, the `audit-workflow` skill, and `scripts/sync-audit-issues.ps1` with repo-backed label configuration in `.github/audit/config.json` to generate expert audits under `audits/` and reconcile GitHub audit issues across runs. |
