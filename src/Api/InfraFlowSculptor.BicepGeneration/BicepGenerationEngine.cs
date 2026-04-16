@@ -164,7 +164,9 @@ public sealed class BicepGenerationEngine
         foreach (var resource in request.Resources)
         {
             var generator = _generators
-                .Single(g => g.ResourceType == resource.Type);
+                .SingleOrDefault(g => g.ResourceType == resource.Type)
+                ?? throw new NotSupportedException(
+                    $"No Bicep generator registered for resource '{resource.Name}' with resource type '{resource.Type}'.");
 
             var module = generator.Generate(resource);
 
