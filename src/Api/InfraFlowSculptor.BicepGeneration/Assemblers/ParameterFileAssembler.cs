@@ -14,21 +14,22 @@ internal static class ParameterFileAssembler
     /// <summary>
     /// Generates one <c>.bicepparam</c> file per environment.
     /// Each file sets <c>environmentName</c> and the resource-specific parameter overrides.
+    /// File names use <see cref="EnvironmentDefinition.ShortName"/> to match the pipeline convention.
     /// </summary>
     internal static Dictionary<string, string> GenerateEnvironmentParameterFiles(
         IReadOnlyCollection<GeneratedTypeModule> modules,
-        IReadOnlyList<string> environmentNames,
+        IReadOnlyList<EnvironmentDefinition> environments,
         IEnumerable<ResourceDefinition> resources,
         IReadOnlyList<AppSettingDefinition> appSettings)
     {
         var resourceList = resources.ToList();
         var result = new Dictionary<string, string>();
 
-        foreach (var envName in environmentNames)
+        foreach (var env in environments)
         {
-            var envModules = ApplyEnvironmentOverrides(modules, envName, resourceList);
-            var paramContent = GenerateMainParameters(envModules, envName, appSettings);
-            var fileName = $"main.{envName.ToLowerInvariant()}.bicepparam";
+            var envModules = ApplyEnvironmentOverrides(modules, env.Name, resourceList);
+            var paramContent = GenerateMainParameters(envModules, env.Name, appSettings);
+            var fileName = $"main.{env.ShortName.ToLowerInvariant()}.bicepparam";
             result[fileName] = paramContent;
         }
 

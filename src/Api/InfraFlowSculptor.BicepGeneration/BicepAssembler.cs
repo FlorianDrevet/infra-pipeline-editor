@@ -38,7 +38,7 @@ public static class BicepAssembler
         var main = MainBicepAssembler.Generate(modules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? [], projectTags, configTags);
 
         var environmentParameterFiles = ParameterFileAssembler.GenerateEnvironmentParameterFiles(
-            modules, environmentNames, resources, appSettings);
+            modules, environments, resources, appSettings);
 
         var moduleFiles = new Dictionary<string, string>();
 

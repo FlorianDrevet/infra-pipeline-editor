@@ -19,9 +19,14 @@ Refactored from monolith (~1680 lines) to thin orchestrator (~180 lines) + 14 sp
 - `types.bicep` — `EnvironmentName` union, `EnvironmentVariables` type, `environments` map
 - `functions.bicep` — naming functions from project naming templates
 - `main.bicep` — resource declarations, module imports
-- `main.{env}.bicepparam` — per-environment parameter files
+- `main.{shortName}.bicepparam` — per-environment parameter files (named by `EnvironmentDefinition.ShortName`, e.g. `main.dev.bicepparam`)
 - `modules/{FolderName}/{moduleType}.module.bicep` + `types.bicep` per resource type
 - `constants.bicep` — RBAC role constants (only when role assignments exist)
+
+## Bicepparam File Naming Convention [2026-04-17]
+- **File name** uses `EnvironmentDefinition.ShortName` (e.g. `main.dev.bicepparam`) to match the pipeline convention where `${{ environment }}` resolves to ShortName.
+- **Internal `param environmentName`** uses the full `EnvironmentDefinition.Name` sanitized (e.g. `param environmentName = 'development'`) for Bicep `EnvironmentName` union type matching.
+- Previous bug: file was named using full Name (`main.development.bicepparam`) causing pipeline `Could not find any file matching the template file pattern` error.
 
 ## Bicep Param Relative Path [2026-04-04]
 - Generated `.bicepparam` files are stored under `parameters/`, so they must declare `using '../main.bicep'`.
@@ -62,3 +67,15 @@ Engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
 - `NamingTemplateTranslator` converts placeholders to Bicep interpolation
 - Templates: `{name}`, `{prefix}`, `{suffix}`, `{env}`, `{envShort}`, `{resourceType}`, `{resourceAbbr}`, `{location}`
 - Convention: `envSuffix = '-dev'` (with hyphen), `envShortSuffix = 'dev'` (raw)
+
+## Infra Pipeline Generation — Artifact Flow [2026-04-20]
+
+- **CI artifact name**: stable `drop` (not version-dependent). Contains Bicep files copied from BicepBasePath.
+- **Release pipeline**: declares `resources.pipelines: - pipeline: ci, source: '<configName>-CI'` to reference the CI pipeline.
+- **Deploy job**: `checkout: none` + `download: ci, artifact: drop`. No Git checkout in release — all files come from artifact.
+- **Template paths in release**: use `$(Pipeline.Workspace)/ci/drop/<configName>/main.bicep` (artifact-relative), NOT `$(Build.SourcesDirectory)`.
+- **Artifact structure**: `Common/` (shared modules) + `<configName>/` (main.bicep, parameters/) — BicepBasePath is resolved at CI copy time, NOT present in artifact paths.
+- **Removed dead params**: `buildVersion`, `buildPipeline`, `artifactsPath` no longer generated in release/deploy job YAML.
+- **Deploy preflight**: generated deploy step now resolves `templateFile` / `templateParametersFile` with PowerShell before ARM deployment, prints directory contents when files are missing, and can fall back to a single legacy `main.*.bicepparam` found in the parameters folder.
+- **Compiled deploy inputs**: release preflight compiles `.bicep` to `.json` and `.bicepparam` to `.parameters.json` with Azure CLI before invoking `AzureResourceManagerTemplateDeployment@3`. ARM task receives concrete JSON files instead of source Bicep inputs.
+- **CI artifact validation**: shared CI template validates that `Common/`, `<project>/`, and `<project>/main.bicep` exist in `$(Build.ArtifactStagingDirectory)` before publishing artifact `drop`.
