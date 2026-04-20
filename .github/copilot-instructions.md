@@ -64,67 +64,25 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 | `gitnexus-workflow` | Code exploration via knowledge graph, impact analysis before modifications, post-change validation, safe refactoring | `.github/skills/gitnexus-workflow/SKILL.md` |
 | `draw-io-diagram-generator` | Creating or updating `.drawio` architecture, flow, sequence, ER, or UML diagrams for the project | `.github/skills/draw-io-diagram-generator/SKILL.md` |
 | `audit-workflow` | Running expert code audits, writing the report under `audits/`, and synchronizing audit findings with GitHub labels/issues | `.github/skills/audit-workflow/SKILL.md` |
+| `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |
+| `angular-patterns` | Any Angular 19 code: Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
 
 ---
 
-## Repository-specific conventions
+## Critical pitfalls (quick reference)
 
-- Treat the domain as strict DDD. When adding domain code, decide whether it belongs as an aggregate root, entity, value object, repository, or domain service before creating files. Shared base classes live in `src\Shared\Shared.Domain\Models`.
-- In the main API, domain types are organized by aggregate folders such as `src\Api\InfraFlowSculptor.Domain\InfrastructureConfigAggregate`, with nested `Entities` and `ValueObjects` folders.
-- Keep CQRS artifacts together by feature in the application layer. Commands, queries, handlers, validators, and result models live under feature folders like `src\Api\InfraFlowSculptor.Application\InfrastructureConfig\...` and `src\Api\InfraFlowSculptor.Application\ResourceGroups\...`.
-- API endpoints are defined as static endpoint-mapping extensions in `src\Api\InfraFlowSculptor.Api\Controllers`, not MVC controller classes. Follow the existing `MapGroup(...)`, `MapGet(...)`, and `MapPost(...)` style.
-- Contracts belong in `src\Api\InfraFlowSculptor.Contracts`, typically grouped by feature with `Requests` and `Responses` subfolders. The existing GitHub agent guidance assumes request/response models stay in the contracts project.
-- Use Mapster for request/command/response mapping. Mapping configuration lives in `src\Api\InfraFlowSculptor.Api\Common\Mapping` and is registered by scanning the API assembly in `AddPresentation()`.
-- Register application services, repositories, auth, and external clients through the layer-specific `DependencyInjection.cs` files instead of wiring dependencies ad hoc in `Program.cs`.
-- EF Core configuration belongs in `src\Api\InfraFlowSculptor.Infrastructure\Persistence\Configurations`. Existing mappings rely heavily on owned types and shared converters from `src\Shared\Shared.Infrastructure\Persistence\Configurations\Converters`.
-- Repositories are defined by interfaces in the application layer and implemented in infrastructure persistence/repository folders. Reuse that split instead of referencing EF Core directly from handlers.
-- Error handling uses `ErrorOr<T>` plus the shared API error extensions in `Shared.Api.Errors`; handlers return `ErrorOr` results rather than throwing for expected validation/domain failures.
-- Validation is implemented with FluentValidation and enforced through the MediatR `ValidationBehavior`.
-- Authentication uses Microsoft Entra ID / JWT bearer auth. The API projects set a fallback authenticated policy, expose an `IsAdmin` policy, and use `ICurrentUser`/`CurrentUser` for user context access.
-- Before any refactoring or modification of a shared symbol (interface, base class, cross-cutting service), run `gitnexus_impact()` via the `gitnexus-workflow` skill to assess blast radius. The repo is indexed as `infra-pipeline-editor` in GitNexus.
-- The GitHub prompt and agent files describe the product goal as storing infrastructure configuration in one API and generating Azure Bicep and Azure DevOps pipeline output in the second API. Keep that split in mind when deciding which project should own new behavior.
-- Frontend conventions:
-  - **Any frontend work in `src\Front` MUST use the `angular-front` agent** (`.github/agents/angular-front.agent.md`). This agent owns all Angular 19 conventions, signals, standalone components, and project-specific patterns.
-  - **Any frontend UI task MUST load `ui-ux-front-saas` first** (`.github/skills/ui-ux-front-saas/SKILL.md`) to enforce SaaS B2B cloud UX rules and alignment with the existing login page visual baseline.
-  - **Any repository audit task that must generate a markdown audit and reconcile GitHub audit issues MUST use `audit-expert` and load `audit-workflow` first.**
-  - Keep feature code under `src\Front\src\app` with clear split between `core`, `features`, and `shared`.
-  - Keep API endpoint URLs centralized through `src\Front\src\environments\environment*.ts` and consumed via `AxiosService` (never hardcode base URLs in services or components).
-  - Prefer standalone components and route-level lazy loading (`loadComponent`) for all new screens.
-  - Keep backend contracts aligned: if API request/response contracts change, update frontend interfaces and services in the same change.
-  - All Angular components use 3 separate files (`.ts`, `.html`, `.scss`) — never inline templates or styles.
-  - Use Signals exclusively for state management (`signal`, `computed`, `toSignal`). The project is zoneless (`provideExperimentalZonelessChangeDetection`).
-  - Use `inject()` for dependency injection — never constructor injection.
-  - Use the new Angular control flow syntax (`@if`, `@for`, `@switch`) — never `*ngIf`, `*ngFor`.
+1. **EF Core LINQ:** Never `x.Id.Value == id.Value` — always `x.Id == id`
+2. **Mapster nulls:** Use `x != null`, never `(object?)x`, never `is not null` (CS8122 in expression trees)
+3. **Repositories:** MUST NOT call `SaveChangesAsync()` — Unit of Work handles it
+4. **i18n dialog keys:** Use full nested path `RESOURCE_EDIT.DIALOG_NAME.*`
+5. **Magic strings:** Never hardcode Azure resource type identifiers — use `AzureResourceTypes.*`
+6. **Domain quality:** XML docs, `private set`, English errors, `= []` initializers, `sealed` on aggregates
+7. **FK cascade on delete:** Cross-resource FKs must be SetNull or Cascade, never Restrict
+8. **Response DTO IDs:** Always `string` (not `Guid`) — Mapster maps `Id.Value.ToString()`
+9. **OpenAPI 401:** All protected endpoints must include `.ProducesProblem(401)`
+10. **GitNexus:** Before modifying a shared symbol, run `gitnexus_impact()` to assess blast radius
 
 ## Pull Request conventions
 
-Every PR created by a Copilot agent **must** follow these rules. Full details are in `.github/agents/pr-manager.agent.md`.
-
-### PR title format
-
-```
-type(scope): short description of the main goal
-```
-
-- **type** (required): `feat` | `fix` | `refactor` | `perf` | `docs` | `test` | `chore` | `ci` | `style` | `revert`
-- **scope** (recommended): aggregate or component in kebab-case (e.g. `key-vault`, `role-assignment`, `bicep`)
-- **description**: short sentence in present tense, no leading capital, no trailing period
-
-The title must describe the **overall goal** of the PR, never the last task performed.
-
-**Correct examples:**
-- `feat(storage-account): add StorageAccount aggregate with full CRUD`
-- `fix(key-vault): correct EF Core LINQ translation for KeyVaultId comparison`
-- `refactor(member): extract MemberCommandHelper to reduce duplication`
-
-### PR description
-
-Use the template at `.github/PULL_REQUEST_TEMPLATE.md`. It must include:
-1. A one-sentence summary of the main goal.
-2. Type of change (checkboxes).
-3. Changes listed **per layer** (Domain, Application, Infrastructure, Contracts, API, BicepGenerators, Shared, Aspire/CI).
-4. EF Core migration name if applicable.
-5. Completed checklist before merge.
-
-Every created or modified file must appear in at least one section of the description.
+Full details in `.github/agents/pr-manager.agent.md`. Title format: `type(scope): description`. Use `.github/PULL_REQUEST_TEMPLATE.md` for description.
 

@@ -22,24 +22,23 @@
 		},
 		"io.github.github/github-mcp-server": {
 			"type": "stdio",
-			"command": "docker",
+			"command": "npx",
 			"args": [
-				"run",
-				"-i",
-				"--rm",
-				"-e",
-				"GITHUB_PERSONAL_ACCESS_TOKEN=${input:token}",
-				"ghcr.io/github/github-mcp-server:0.33.0"
+				"-y",
+				"@modelcontextprotocol/server-github"
 			],
+			"env": {
+				"GITHUB_PERSONAL_ACCESS_TOKEN": "${input:token}"
+			},
 			"gallery": "https://api.mcp.github.com",
 			"version": "0.33.0"
 		},
 		"gitnexus": {
 			"type": "stdio",
-			"command": "npx",
+			"command": "cmd",
 			"args": [
-				"-y",
-				"gitnexus@latest",
+				"/c",
+				"gitnexus",
 				"mcp"
 			]
 		},
@@ -55,6 +54,14 @@
 			],
 			"gallery": "https://api.mcp.github.com",
 			"version": "1.0.0"
+		},
+		"playwright": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"@playwright/mcp"
+			]
 		}
 	},
 	"inputs": [

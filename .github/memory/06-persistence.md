@@ -49,5 +49,15 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 - **Cascade** is safe for mandatory child relationships (e.g. `ResourceLinks.SourceResourceId`, `AzureResourceDependencies.DependsOnId`, `ResourceParameterUsages.ParameterId`, `RoleAssignment.TargetResourceId`).
 - EF Core ordering conflict: if a Cascade-delete on parent already orphans rows, a parallel SetNull on the same rows emits SQL after the rows are gone → FK error. Solution: make both paths Cascade.
 
+## Polymorphic TPT Queries [2026-04-16]
+
+- `ProjectDbContext` must include `DbSet<AzureResource> AzureResources` for polymorphic TPT queries that need to resolve any resource type by ID without knowing the concrete type.
+- Used by `AzureResourceBaseRepository` and `ResourceGroupRepository` for cross-type lookups.
+
+## Repository Naming Conventions [2026-04-16]
+
+- `GetByContainedResourceIdAsync` — finds a parent entity (e.g. ResourceGroup) by a child resource's ID. Renamed from the ambiguous `GetByResourceIdAsync`.
+- Convention: use `ByContainedXxx` prefix when the lookup navigates from child to parent.
+
 ## Migrations
 17+ migration files in `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`. Always add a new migration when changing domain model.

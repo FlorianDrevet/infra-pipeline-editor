@@ -32,6 +32,21 @@ result.Match(
 - Validation attributes: `[GuidValidation]`, `[EnumValidation(typeof(MyEnum))]`, `[RedisVersionValidation]`
 - JSON body GUID pitfall: prefer `string` + `[Required, GuidValidation]` over `Guid` for JSON bodies to avoid deserialization errors before validation
 
+## Endpoint Conventions [2026-04-16]
+
+- All protected endpoints must include `.ProducesProblem(401)` for accurate OpenAPI 401 documentation.
+- ErrorOr extension (`ToErrorResult()`) returns **all** errors in the non-validation branch, not just the first.
+
+## Response DTO Convention (API-002) [2026-04-16]
+
+- All response DTO ID fields use `string` (not `Guid`). Mapster config maps `Id.Value.ToString()`.
+- This applies to all 18 resource responses, project/member responses, infra-config responses, and sub-resource responses.
+
+## Tag Validation [2026-04-16]
+
+- Azure tag limits enforced: key max 512 chars, value max 256 chars, max 15 tags per entity.
+- Validated in `SetInfraConfigTagsCommandValidator` and `SetProjectTagsCommandValidator`.
+
 ## Mapster Mappings
 
 - Implement `IRegister`, live in `src/Api/InfraFlowSculptor.Api/Common/Mapping/`

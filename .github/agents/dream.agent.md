@@ -13,12 +13,6 @@ Il ne modifie **aucun code du projet** — il ne touche que les fichiers mémoir
 
 ---
 
-## Environnement de développement
-
-> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`).
-
----
-
 ## Déclenchement
 
 Cet agent est invoqué par `@dev` via `runSubagent` quand les deux gates sont satisfaites :

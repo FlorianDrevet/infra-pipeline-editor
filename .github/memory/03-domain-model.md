@@ -70,6 +70,7 @@ These reusable entity types are owned by multiple aggregates:
 
 - All domain classes must have XML `<summary>` docs.
 - Concrete aggregates inheriting from `AzureResource` must be declared `sealed`.
+- All `EnumValueObject<T>`-derived classes must be declared `sealed` [2026-04-16].
 - Value object properties must use `private set`.
 - Error strings must be in English.
 - Collection initializers: prefer `= []` over `= new()`.

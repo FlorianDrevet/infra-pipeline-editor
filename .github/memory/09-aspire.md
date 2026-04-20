@@ -44,3 +44,8 @@ builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
 2. `docker exec <id> sh -lc "printenv POSTGRES_PASSWORD"`
 3. `DROP DATABASE IF EXISTS "infraDb"; CREATE DATABASE "infraDb";`
 4. Terminate connections first: `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'infraDb' AND pid <> pg_backend_pid();`
+
+## MCP Detection Trap [2026-04-20]
+- Aspire MCP tooling in this environment explicitly reports that tools require `aspire run` from the AppHost project directory; a plain `dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj` can start the dashboard and AppHost process without becoming MCP-detectable.
+- Observed locally with Aspire CLI `13.1.3` and repo Aspire packages `13.2.0`: `aspire run` starts `InfraFlowSculptor.AppHost` and the dashboard, but MCP `list_apphosts` / `list_resources` may still report `No Aspire AppHost is currently running`.
+- When that happens, treat it as an environment/tooling compatibility issue first: verify the local Aspire CLI / VS Code Aspire MCP tooling version against the repo Aspire package version before changing application code.

@@ -35,8 +35,10 @@
 3. **Repositories:** MUST NOT call `SaveChangesAsync()` — Unit of Work handles it (see `04-cqrs-pattern.md`)
 4. **i18n dialog keys:** Use full nested path `RESOURCE_EDIT.DIALOG_NAME.*` (see `08-frontend.md`)
 5. **Magic strings:** Never hardcode Azure resource type identifiers — use `AzureResourceTypes.*` (see `07-bicep-generation.md`)
-6. **Domain quality:** XML docs, `private set`, English errors, `= []` initializers (see `03-domain-model.md`)
+6. **Domain quality:** XML docs, `private set`, English errors, `= []` initializers, `sealed` on aggregates and `EnumValueObject` subclasses (see `03-domain-model.md`)
 7. **FK cascade on delete:** Cross-resource FKs must be SetNull or Cascade, never Restrict — causes violations on parent cascade-delete (see `06-persistence.md`)
+8. **Response DTO IDs:** Always `string` (not `Guid`) — Mapster maps `Id.Value.ToString()` (see `05-api-layer.md`)
+9. **OpenAPI 401:** All protected endpoints must include `.ProducesProblem(401)` (see `05-api-layer.md`)
 
 ---
 

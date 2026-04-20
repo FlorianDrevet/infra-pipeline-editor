@@ -45,7 +45,19 @@ Each module folder contains: `{moduleType}.module.bicep` + `types.bicep` (with `
 ## ContainerApp Bicep Params [2026-04-03]
 All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, etc.) **must** be added to the generator's `Parameters` dictionary — not just ACR params. Missing entries cause env-specific values to be silently ignored in `.bicepparam` files.
 
+## Identifier Normalization [2026-04-16]
+
+- All Bicep identifiers use **camelCase** via `BicepIdentifierHelper` and `BicepFormattingHelper`.
+- `BicepGenerationEngine` gracefully skips resource types without a registered `IResourceTypeBicepGenerator` (logs warning, does not throw).
+
 ## Naming Integration [2026-03-23]
+
+### Azure Naming Constraints Catalog [2026-04-20]
+- `AzureNamingConstraints` static class in `InfrastructureConfig/Common/`: maps each `AzureResourceTypes.*` to an `AzureNamingConstraint` record (InvalidStaticCharsRegex, AllowedCharsDescription, MinLength, MaxLength, optional RecommendedTemplate).
+- 19 resource types covered: ContainerRegistry (alphanumeric only, 5-50), StorageAccount (lowercase alphanumeric, 3-24), KeyVault (alphanumeric+hyphens, 3-24), SqlServer (lowercase+hyphens, 1-63), etc.
+- `NamingTemplateValidator.HasValidStaticCharsForResourceType(template, resourceType)` validates template static chars against the resource type's specific constraints, falling back to the generic check for unknown types.
+- Both `SetResourceNamingTemplateCommandValidator` (InfraConfig) and `SetProjectResourceNamingTemplateCommandValidator` (Project) use the resource-type-aware validation. Error messages include the specific allowed chars description.
+- ContainerRegistry and StorageAccount have `RecommendedTemplate: "{name}{resourceAbbr}{envShort}"` (no separators).
 
 ## Application Pipeline Generation [2026-04-04]
 
@@ -79,3 +91,4 @@ Engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
 - **Deploy preflight**: generated deploy step now resolves `templateFile` / `templateParametersFile` with PowerShell before ARM deployment, prints directory contents when files are missing, and can fall back to a single legacy `main.*.bicepparam` found in the parameters folder.
 - **Compiled deploy inputs**: release preflight compiles `.bicep` to `.json` and `.bicepparam` to `.parameters.json` with Azure CLI before invoking `AzureResourceManagerTemplateDeployment@3`. ARM task receives concrete JSON files instead of source Bicep inputs.
 - **CI artifact validation**: shared CI template validates that `Common/`, `<project>/`, and `<project>/main.bicep` exist in `$(Build.ArtifactStagingDirectory)` before publishing artifact `drop`.
+- **Legacy params autofix**: if a legacy artifact still contains `main.development.bicepparam` with `using 'main.bicep'` inside the `parameters/` folder, the generated release preflight rewrites that line to `using '../main.bicep'` in a temporary `.autofix.bicepparam` before running `az bicep build-params`.

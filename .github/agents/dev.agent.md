@@ -10,11 +10,6 @@ description: 'Point d''entrée principal. Orchestre MEMORY.md, délègue aux age
 
 ---
 
-## Environnement de développement
-
-> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`). Utiliser `.\ ` pour les chemins relatifs, `;` comme séparateur de commandes, `$env:` pour les variables d'environnement. Ne jamais suggérer de commandes bash/sh.
-
----
 
 ## Protocole obligatoire — Toujours exécuter dans cet ordre
 
@@ -38,6 +33,13 @@ Après lecture de `MEMORY.md`, lire `.github/memory/dream-state.md` et :
    - Session gate : `sessionsSinceLastDream` ≥ 5 ?
 3. **Si les deux gates sont satisfaites :** invoquer `@dream` via `runSubagent` **AVANT** de traiter la demande utilisateur.
 4. **Si non :** continuer normalement.
+
+### 1ter. GitNexus Freshness Check
+
+Vérifier que l'index GitNexus est à jour :
+1. Exécuter `gitnexus_list_repos()` et lire la date `lastAnalyzed` du repo `infra-pipeline-editor`.
+2. Si `lastAnalyzed` > 7 jours : exécuter `npx gitnexus analyze` pour réindexer.
+3. Si la commande échoue ou le MCP n'est pas disponible : continuer sans bloquer, mais avertir l'utilisateur que l'index est potentiellement obsolète.
 
 ### 2. Analyser la demande et décider
 

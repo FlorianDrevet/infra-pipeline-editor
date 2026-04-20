@@ -50,3 +50,9 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - `IInfraConfigAccessService` (injectable): `VerifyReadAccessAsync`, `VerifyWriteAccessAsync`
 - `MemberCommandHelper` for owner-only member management
 - Access check: ResourceGroup has `InfraConfigId` directly; KeyVault/RedisCache have `ResourceGroupId` → load ResourceGroup → use `InfraConfigId`
+
+## Domain Services [2026-04-16]
+
+- `IRoleAssignmentDomainService` / `RoleAssignmentDomainService`: extracted cross-cutting role assignment logic shared by Add/Remove/Assign/Unassign/Update identity handlers.
+- Pattern: when 3+ handlers share identical domain logic (load resource, check access, validate, mutate), extract into a domain service interface + implementation registered in `Application/DependencyInjection.cs`.
+- Domain services live under `Application/{Feature}/Common/`.

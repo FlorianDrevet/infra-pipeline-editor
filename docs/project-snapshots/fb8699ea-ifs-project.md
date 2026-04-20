@@ -34,6 +34,7 @@
 |-------------|----------|
 | ResourceGroup | `{resourceAbbr}-{name}{suffix}` |
 | StorageAccount | `{name}{resourceAbbr}{envShort}` |
+| ContainerRegistry | `{name}{resourceAbbr}{envShort}` |
 
 ---
 
