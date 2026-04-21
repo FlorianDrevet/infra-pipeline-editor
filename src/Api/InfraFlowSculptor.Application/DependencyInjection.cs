@@ -80,6 +80,7 @@ public static class DependencyInjection
         services.AddScoped<IConfigDiagnosticService, ConfigDiagnosticService>();
         services.AddScoped<IDiagnosticRule, AcrPullDiagnosticRule>();
         services.AddScoped<IDiagnosticRule, KeyVaultAccessDiagnosticRule>();
+        services.AddScoped<IDiagnosticRule, NameAvailabilityDiagnosticRule>();
 
         return services;
     }

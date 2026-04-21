@@ -40,6 +40,7 @@ import { ApplicationInsightsResponse, ApplicationInsightsEnvironmentConfigEntry 
 import { CosmosDbResponse, CosmosDbEnvironmentConfigEntry } from '../../shared/interfaces/cosmos-db.interface';
 import { ServiceBusNamespaceResponse, ServiceBusNamespaceEnvironmentConfigEntry } from '../../shared/interfaces/service-bus-namespace.interface';
 import { ContainerRegistryResponse, ContainerRegistryEnvironmentConfigEntry } from '../../shared/interfaces/container-registry.interface';
+import { SqlServerResponse, SqlServerEnvironmentConfigEntry } from '../../shared/interfaces/sql-server.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
@@ -52,6 +53,7 @@ import { ApplicationInsightsService } from '../../shared/services/application-in
 import { CosmosDbService } from '../../shared/services/cosmos-db.service';
 import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
 import { ContainerRegistryService } from '../../shared/services/container-registry.service';
+import { SqlServerService } from '../../shared/services/sql-server.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { NameAvailabilityService } from '../../shared/services/name-availability.service';
 import { EnvironmentNameAvailabilityResponseItem } from '../../shared/interfaces/name-availability.interface';
@@ -92,7 +94,7 @@ interface KvMissingRoleEntry {
 }
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse | SqlServerResponse;
 
 type CorsServiceKey = 'blob' | 'table';
 type CorsListField = 'allowedOrigins' | 'allowedHeaders' | 'exposedHeaders';
@@ -274,6 +276,16 @@ const ACR_PUBLIC_NETWORK_OPTIONS = [
   { label: 'Disabled', value: 'Disabled' },
 ];
 
+const SQL_SERVER_VERSION_OPTIONS = [
+  { label: '12.0', value: 'V12' },
+];
+
+const SQL_MIN_TLS_OPTIONS = [
+  { label: 'TLS 1.0', value: '1.0' },
+  { label: 'TLS 1.1', value: '1.1' },
+  { label: 'TLS 1.2', value: '1.2' },
+];
+
 const WEBAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
   DotNet: ['10', '9', '8'],
   Node: ['22-lts', '20-lts'],
@@ -335,6 +347,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly cosmosDbService = inject(CosmosDbService);
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
   private readonly containerRegistryService = inject(ContainerRegistryService);
+  private readonly sqlServerService = inject(SqlServerService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -489,9 +502,23 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly nameAvailabilityResults = signal<EnvironmentNameAvailabilityResponseItem[]>([]);
   protected readonly nameAvailabilitySupported = signal<boolean | null>(null);
 
+  /** Resource types where backend can run the Azure ARM name availability check. */
+  private static readonly NAME_AVAILABILITY_TYPES = new Set([
+    'ContainerRegistry',
+    'StorageAccount',
+    'KeyVault',
+    'RedisCache',
+    'AppConfiguration',
+    'ServiceBusNamespace',
+    'EventHubNamespace',
+    'WebApp',
+    'FunctionApp',
+    'SqlServer',
+  ]);
+
   /** True only for resource types where backend may run the Azure ARM check. */
   protected readonly isNameAvailabilityCheckEnabled = computed(
-    () => this.resourceType === 'ContainerRegistry',
+    () => ResourceEditComponent.NAME_AVAILABILITY_TYPES.has(this.resourceType),
   );
 
   /** Aggregated badge state derived from per-env results. */
@@ -737,6 +764,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly cosmosBackupPolicyOptions = COSMOS_BACKUP_POLICY_OPTIONS;
   protected readonly acrSkuOptions = ACR_SKU_OPTIONS;
   protected readonly acrPublicNetworkOptions = ACR_PUBLIC_NETWORK_OPTIONS;
+  protected readonly sqlServerVersionOptions = SQL_SERVER_VERSION_OPTIONS;
+  protected readonly sqlMinTlsOptions = SQL_MIN_TLS_OPTIONS;
   protected readonly runtimeVersionOptions = signal<string[]>([]);
 
   // ─── Forms ───
@@ -888,6 +917,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return this.serviceBusNamespaceService.getById(this.resourceId);
       case 'ContainerRegistry':
         return this.containerRegistryService.getById(this.resourceId);
+      case 'SqlServer':
+        return this.sqlServerService.getById(this.resourceId);
       default:
         throw new Error(`Unknown resource type: ${this.resourceType}`);
     }
@@ -988,6 +1019,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['minimumTlsVersion'] = [rc.minimumTlsVersion, [Validators.required]];
       base['disableAccessKeyAuthentication'] = [rc.disableAccessKeyAuthentication];
       base['enableAadAuth'] = [rc.enableAadAuth];
+    } else if (this.resourceType === 'SqlServer') {
+      const sql = resource as SqlServerResponse;
+      base['version'] = [sql.version, [Validators.required]];
+      base['administratorLogin'] = [sql.administratorLogin, [Validators.required]];
     }
 
     this.generalForm = this.fb.group(base);
@@ -1157,6 +1192,13 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           adminUserEnabled: [settings?.adminUserEnabled ?? null],
           publicNetworkAccess: [settings?.publicNetworkAccess ?? null],
           zoneRedundancy: [settings?.zoneRedundancy ?? null],
+        });
+      }
+      case 'SqlServer': {
+        const sql = resource as SqlServerResponse;
+        const settings = sql.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          minimalTlsVersion: [settings?.minimalTlsVersion ?? null],
         });
       }
     }
@@ -1331,6 +1373,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             name: general.name,
             location: general.location,
             environmentSettings: this.buildContainerRegistryEnvSettings(),
+          });
+          break;
+        case 'SqlServer':
+          await this.sqlServerService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            version: general.version,
+            administratorLogin: general.administratorLogin,
+            environmentSettings: this.buildSqlServerEnvSettings(),
           });
           break;
       }
@@ -3158,6 +3209,16 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         adminUserEnabled: raw.adminUserEnabled ?? null,
         publicNetworkAccess: raw.publicNetworkAccess || null,
         zoneRedundancy: raw.zoneRedundancy ?? null,
+      };
+    });
+  }
+
+  private buildSqlServerEnvSettings(): SqlServerEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        minimalTlsVersion: raw.minimalTlsVersion || null,
       };
     });
   }

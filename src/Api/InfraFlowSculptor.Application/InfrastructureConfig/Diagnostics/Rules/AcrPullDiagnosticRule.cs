@@ -25,7 +25,9 @@ public sealed class AcrPullDiagnosticRule : IDiagnosticRule
     };
 
     /// <inheritdoc />
-    public IReadOnlyList<ResourceDiagnosticItem> Evaluate(InfrastructureConfigReadModel config)
+    public Task<IReadOnlyList<ResourceDiagnosticItem>> EvaluateAsync(
+        InfrastructureConfigReadModel config,
+        CancellationToken cancellationToken = default)
     {
         var allResources = config.ResourceGroups
             .SelectMany(rg => rg.Resources)
@@ -65,6 +67,6 @@ public sealed class AcrPullDiagnosticRule : IDiagnosticRule
                 targetAcrName));
         }
 
-        return diagnostics;
+        return Task.FromResult<IReadOnlyList<ResourceDiagnosticItem>>(diagnostics);
     }
 }

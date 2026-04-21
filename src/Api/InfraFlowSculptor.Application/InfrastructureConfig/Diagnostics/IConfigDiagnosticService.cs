@@ -7,6 +7,9 @@ public interface IConfigDiagnosticService
 {
     /// <summary>Runs all registered diagnostic rules and returns combined findings.</summary>
     /// <param name="config">The infrastructure configuration read model to evaluate.</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
     /// <returns>A consolidated list of all diagnostic findings across all rules.</returns>
-    IReadOnlyList<ResourceDiagnosticItem> Evaluate(InfrastructureConfigReadModel config);
+    Task<IReadOnlyList<ResourceDiagnosticItem>> EvaluateAsync(
+        InfrastructureConfigReadModel config,
+        CancellationToken cancellationToken = default);
 }

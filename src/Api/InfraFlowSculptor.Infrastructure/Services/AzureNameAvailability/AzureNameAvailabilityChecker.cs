@@ -33,7 +33,50 @@ public sealed class AzureNameAvailabilityChecker(
         [AzureResourceTypes.ContainerRegistry] = new(
             ApiVersion: "2023-07-01",
             ProviderPath: "Microsoft.ContainerRegistry",
-            ArmType: AzureResourceTypes.ArmTypes.ContainerRegistry)
+            ArmType: AzureResourceTypes.ArmTypes.ContainerRegistry),
+
+        [AzureResourceTypes.StorageAccount] = new(
+            ApiVersion: "2023-05-01",
+            ProviderPath: "Microsoft.Storage",
+            ArmType: AzureResourceTypes.ArmTypes.StorageAccount),
+
+        [AzureResourceTypes.KeyVault] = new(
+            ApiVersion: "2023-07-01",
+            ProviderPath: "Microsoft.KeyVault",
+            ArmType: AzureResourceTypes.ArmTypes.KeyVault),
+
+        [AzureResourceTypes.RedisCache] = new(
+            ApiVersion: "2023-08-01",
+            ProviderPath: "Microsoft.Cache",
+            ArmType: AzureResourceTypes.ArmTypes.RedisCache),
+
+        [AzureResourceTypes.AppConfiguration] = new(
+            ApiVersion: "2023-03-01",
+            ProviderPath: "Microsoft.AppConfiguration",
+            ArmType: AzureResourceTypes.ArmTypes.AppConfiguration),
+
+        [AzureResourceTypes.ServiceBusNamespace] = new(
+            ApiVersion: "2022-10-01-preview",
+            ProviderPath: "Microsoft.ServiceBus"),
+
+        [AzureResourceTypes.EventHubNamespace] = new(
+            ApiVersion: "2022-10-01-preview",
+            ProviderPath: "Microsoft.EventHub"),
+
+        [AzureResourceTypes.WebApp] = new(
+            ApiVersion: "2023-12-01",
+            ProviderPath: "Microsoft.Web",
+            ArmType: AzureResourceTypes.ArmTypes.WebApp),
+
+        [AzureResourceTypes.FunctionApp] = new(
+            ApiVersion: "2023-12-01",
+            ProviderPath: "Microsoft.Web",
+            ArmType: AzureResourceTypes.ArmTypes.WebApp),
+
+        [AzureResourceTypes.SqlServer] = new(
+            ApiVersion: "2023-08-01-preview",
+            ProviderPath: "Microsoft.Sql",
+            ArmType: AzureResourceTypes.ArmTypes.SqlServer),
     };
 
     /// <inheritdoc />
@@ -115,11 +158,11 @@ public sealed class AzureNameAvailabilityChecker(
         }
     }
 
-    private sealed record ResourceTypeArmInfo(string ApiVersion, string ProviderPath, string ArmType);
+    private sealed record ResourceTypeArmInfo(string ApiVersion, string ProviderPath, string? ArmType = null);
 
     private sealed record CheckNameAvailabilityRequestBody(
         [property: JsonPropertyName("name")] string Name,
-        [property: JsonPropertyName("type")] string Type);
+        [property: JsonPropertyName("type")] string? Type);
 
     private sealed record CheckNameAvailabilityResponseBody(
         [property: JsonPropertyName("nameAvailable")] bool NameAvailable,

@@ -563,7 +563,8 @@
       "TITLE": "Configuration issues",
       "UNKNOWN_RULE": "{{ruleCode}}: {{target}}",
       "ACR_PULL_MISSING": "Missing AcrPull role assignment on {{target}}",
-      "KEY_VAULT_ACCESS_MISSING": "Missing Key Vault Secrets User role on {{target}}"
+      "KEY_VAULT_ACCESS_MISSING": "Missing Key Vault Secrets User role on {{target}}",
+      "NAME_UNAVAILABLE": "Name already taken on Azure: {{target}}"
     },
     "GENERATION": {
       "TITLE": "Generation Results",
@@ -1155,7 +1156,10 @@
       "ENABLED_FOR_TEMPLATE_DEPLOYMENT": "Enable for ARM template deployment",
       "ENABLE_PURGE_PROTECTION": "Enable purge protection",
       "ENABLE_SOFT_DELETE": "Enable soft delete",
-      "ADMIN_USER_ENABLED": "Enable admin user"
+      "ADMIN_USER_ENABLED": "Enable admin user",
+      "SQL_SERVER_VERSION": "SQL Server version",
+      "ADMINISTRATOR_LOGIN": "Administrator login",
+      "ADMINISTRATOR_LOGIN_PLACEHOLDER": "e.g. sqladmin"
     },
     "ENVIRONMENTS": {
       "EMPTY": "No environments configured. Add environments in the project or configuration first.",

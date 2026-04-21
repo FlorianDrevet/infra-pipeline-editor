@@ -257,7 +257,7 @@ public sealed class GenerateBicepCommandHandler(
             moduleUris[path] = moduleUri;
         }
 
-        var warnings = diagnosticService.Evaluate(config);
+        var warnings = await diagnosticService.EvaluateAsync(config, cancellationToken).ConfigureAwait(false);
 
         return new GenerateBicepResult(mainBicepUri, constantsBicepUri, parameterUris, moduleUris, warnings);
     }

@@ -562,7 +562,8 @@
       "TITLE": "Problèmes de configuration",
       "UNKNOWN_RULE": "{{ruleCode}} : {{target}}",
       "ACR_PULL_MISSING": "Rôle AcrPull manquant sur {{target}}",
-      "KEY_VAULT_ACCESS_MISSING": "Rôle Key Vault Secrets User manquant sur {{target}}"
+      "KEY_VAULT_ACCESS_MISSING": "Rôle Key Vault Secrets User manquant sur {{target}}",
+      "NAME_UNAVAILABLE": "Nom déjà pris sur Azure : {{target}}"
     },
     "GENERATION": {
       "TITLE": "Résultats de génération",
@@ -1165,7 +1166,10 @@
       "ENABLED_FOR_TEMPLATE_DEPLOYMENT": "Activer pour le d\u00e9ploiement de mod\u00e8les ARM",
       "ENABLE_PURGE_PROTECTION": "Activer la protection contre la purge",
       "ENABLE_SOFT_DELETE": "Activer la suppression r\u00e9versible",
-      "ADMIN_USER_ENABLED": "Activer l'utilisateur administrateur"
+      "ADMIN_USER_ENABLED": "Activer l'utilisateur administrateur",
+      "SQL_SERVER_VERSION": "Version SQL Server",
+      "ADMINISTRATOR_LOGIN": "Login administrateur",
+      "ADMINISTRATOR_LOGIN_PLACEHOLDER": "ex. sqladmin"
     },
     "ENVIRONMENTS": {
       "EMPTY": "Aucun environnement configur\u00e9. Ajoutez des environnements dans le projet ou la configuration.",
