@@ -48,6 +48,12 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     /// <summary>Gets the per-resource-type naming template overrides for this configuration.</summary>
     public IReadOnlyCollection<ResourceNamingTemplate> ResourceNamingTemplates => _resourceNamingTemplates.AsReadOnly();
 
+    private readonly List<ResourceAbbreviationOverride> _resourceAbbreviationOverrides = [];
+
+    /// <summary>Gets the per-resource-type abbreviation overrides for this configuration.</summary>
+    public IReadOnlyCollection<ResourceAbbreviationOverride> ResourceAbbreviationOverrides
+        => _resourceAbbreviationOverrides.AsReadOnly();
+
     private readonly List<ParameterDefinition> _parameterDefinitions = [];
 
     /// <summary>Gets the parameter definitions declared in this configuration.</summary>
@@ -143,6 +149,34 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         if (existing is null)
             return false;
         _resourceNamingTemplates.Remove(existing);
+        return true;
+    }
+
+    // ─── Resource Abbreviation Overrides ─────────────────────────────────────
+
+    /// <summary>Sets or updates a per-resource-type abbreviation override for this configuration.</summary>
+    public ResourceAbbreviationOverride SetResourceAbbreviationOverride(string resourceType, string abbreviation)
+    {
+        var existing = _resourceAbbreviationOverrides.FirstOrDefault(a => a.ResourceType == resourceType);
+        if (existing is not null)
+        {
+            existing.Update(abbreviation);
+            return existing;
+        }
+
+        var entry = new ResourceAbbreviationOverride(Id, resourceType, abbreviation);
+        _resourceAbbreviationOverrides.Add(entry);
+        return entry;
+    }
+
+    /// <summary>Removes a per-resource-type abbreviation override.</summary>
+    /// <returns><c>true</c> if removed; <c>false</c> if not found.</returns>
+    public bool RemoveResourceAbbreviationOverride(string resourceType)
+    {
+        var existing = _resourceAbbreviationOverrides.FirstOrDefault(a => a.ResourceType == resourceType);
+        if (existing is null)
+            return false;
+        _resourceAbbreviationOverrides.Remove(existing);
         return true;
     }
 

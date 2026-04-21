@@ -51,6 +51,12 @@ public sealed class Project : AggregateRoot<ProjectId>
     public IReadOnlyCollection<ProjectResourceNamingTemplate> ResourceNamingTemplates
         => _resourceNamingTemplates.AsReadOnly();
 
+    private readonly List<ProjectResourceAbbreviation> _resourceAbbreviations = [];
+
+    /// <summary>Gets the project-level per-resource-type abbreviation overrides.</summary>
+    public IReadOnlyCollection<ProjectResourceAbbreviation> ResourceAbbreviations
+        => _resourceAbbreviations.AsReadOnly();
+
     // ─── Tags ───────────────────────────────────────────────────────────────
 
     private readonly List<Tag> _tags = [];
@@ -250,6 +256,33 @@ public sealed class Project : AggregateRoot<ProjectId>
         if (existing is null)
             return false;
         _resourceNamingTemplates.Remove(existing);
+        return true;
+    }
+
+    // ─── Resource Abbreviation Management ───────────────────────────────────
+
+    /// <summary>Sets or updates a per-resource-type abbreviation override.</summary>
+    public ProjectResourceAbbreviation SetResourceAbbreviation(string resourceType, string abbreviation)
+    {
+        var existing = _resourceAbbreviations.FirstOrDefault(a => a.ResourceType == resourceType);
+        if (existing is not null)
+        {
+            existing.Update(abbreviation);
+            return existing;
+        }
+
+        var entry = new ProjectResourceAbbreviation(Id, resourceType, abbreviation);
+        _resourceAbbreviations.Add(entry);
+        return entry;
+    }
+
+    /// <summary>Removes a per-resource-type abbreviation override.</summary>
+    public bool RemoveResourceAbbreviation(string resourceType)
+    {
+        var existing = _resourceAbbreviations.FirstOrDefault(a => a.ResourceType == resourceType);
+        if (existing is null)
+            return false;
+        _resourceAbbreviations.Remove(existing);
         return true;
     }
 

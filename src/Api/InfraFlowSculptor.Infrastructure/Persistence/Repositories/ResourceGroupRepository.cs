@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
@@ -12,6 +13,7 @@ using InfraFlowSculptor.Domain.SqlDatabaseAggregate;
 using InfraFlowSculptor.Domain.ApplicationInsightsAggregate;
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.KeyVaultAggregate.Entities;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.RedisCacheAggregate.Entities;
 using InfraFlowSculptor.Domain.StorageAccountAggregate.Entities;
 using InfraFlowSculptor.Domain.AppServicePlanAggregate.Entities;
@@ -292,4 +294,29 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
 
     /// <summary>Projection DTO for environment settings queries.</summary>
     private sealed record ResourceEnvironmentEntry(Guid ResourceId, string EnvironmentName);
+
+    /// <inheritdoc />
+    public async Task<List<string>> GetDistinctResourceTypesByProjectIdAsync(
+        ProjectId projectId,
+        CancellationToken cancellationToken = default)
+    {
+        var configIds = Context.Set<InfrastructureConfig>()
+            .Where(ic => ic.ProjectId == projectId)
+            .Select(ic => ic.Id);
+
+        var resourceGroupIds = Context.Set<ResourceGroup>()
+            .Where(rg => configIds.Contains(rg.InfraConfigId))
+            .Select(rg => rg.Id);
+
+        var resources = await Context.Set<AzureResource>()
+            .Where(r => resourceGroupIds.Contains(r.ResourceGroupId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        return resources
+            .Select(r => r.GetType().Name)
+            .Distinct()
+            .OrderBy(t => t)
+            .ToList();
+    }
 }

@@ -1,5 +1,7 @@
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveResourceAbbreviationOverride;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveResourceNamingTemplate;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetDefaultNamingTemplate;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetResourceAbbreviationOverride;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetResourceNamingTemplate;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.CheckResourceNameAvailability;
 using MediatR;
@@ -94,6 +96,57 @@ public static class NamingTemplateController
                 .WithName("RemoveResourceNamingTemplate")
                 .WithSummary("Remove a per-resource-type naming template")
                 .WithDescription("Removes the naming template override for a specific Azure resource type. The default naming template will be used instead. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Abbreviation Overrides ────────────────────────────────
+
+            naming.MapPut("/abbreviations/{resourceType}",
+                    async ([FromRoute] Guid id, [FromRoute] string resourceType, SetResourceAbbreviationOverrideRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new SetResourceAbbreviationOverrideCommand(
+                            new InfrastructureConfigId(id),
+                            resourceType,
+                            request.Abbreviation
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            abbr => Results.Ok(mapper.Map<ResourceAbbreviationOverrideResponse>(abbr)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetResourceAbbreviationOverride")
+                .WithSummary("Set a per-resource-type abbreviation override")
+                .WithDescription(
+                    "Creates or replaces the abbreviation for a specific Azure resource type (e.g. 'KeyVault' → 'kv'). " +
+                    "This override takes precedence over the catalog default. " +
+                    "Must be lowercase alphanumeric, max 10 characters. Requires Owner or Contributor access.")
+                .Produces<ResourceAbbreviationOverrideResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            naming.MapDelete("/abbreviations/{resourceType}",
+                    async ([FromRoute] Guid id, [FromRoute] string resourceType, IMediator mediator) =>
+                    {
+                        var command = new RemoveResourceAbbreviationOverrideCommand(
+                            new InfrastructureConfigId(id),
+                            resourceType
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveResourceAbbreviationOverride")
+                .WithSummary("Remove a per-resource-type abbreviation override")
+                .WithDescription("Removes the abbreviation override for a specific Azure resource type. The catalog default will be used instead. Requires Owner or Contributor access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)

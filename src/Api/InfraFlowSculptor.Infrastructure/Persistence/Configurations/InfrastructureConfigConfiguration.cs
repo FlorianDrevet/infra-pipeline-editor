@@ -80,6 +80,14 @@ public sealed class InfrastructureConfigConfiguration
             .OnDelete(DeleteBehavior.Cascade);
 
         // ========================
+        // ResourceAbbreviationOverrides (Entity)
+        // ========================
+        builder.HasMany(x => x.ResourceAbbreviationOverrides)
+            .WithOne(x => x.InfraConfig)
+            .HasForeignKey(x => x.InfraConfigId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ========================
         // CrossConfigResourceReferences (Entity)
         // ========================
         builder.HasMany(x => x.CrossConfigReferences)

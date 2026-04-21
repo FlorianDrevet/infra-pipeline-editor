@@ -50,7 +50,8 @@ public record EnvironmentDefinitionReadModel(
 /// </summary>
 public record NamingContextReadModel(
     string? DefaultTemplate,
-    IReadOnlyDictionary<string, string> ResourceTemplates);
+    IReadOnlyDictionary<string, string> ResourceTemplates,
+    IReadOnlyDictionary<string, string> ResourceAbbreviations);
 
 /// <summary>
 /// Read model for a role assignment between two Azure resources.

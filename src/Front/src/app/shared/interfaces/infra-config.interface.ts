@@ -40,6 +40,12 @@ export interface ResourceNamingTemplateResponse {
   template: string;
 }
 
+export interface ResourceAbbreviationOverrideResponse {
+  id: string;
+  resourceType: string;
+  abbreviation: string;
+}
+
 export interface InfrastructureConfigResponse {
   id: string;
   name: string;
@@ -47,6 +53,7 @@ export interface InfrastructureConfigResponse {
   projectId: string;
   useProjectNamingConventions: boolean;
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
+  resourceAbbreviationOverrides: ResourceAbbreviationOverrideResponse[];
   resourceGroupCount: number;
   resourceCount: number;
   crossConfigReferenceCount: number;
@@ -85,6 +92,10 @@ export interface SetDefaultNamingTemplateRequest {
 
 export interface SetResourceNamingTemplateRequest {
   template: string;
+}
+
+export interface SetResourceAbbreviationOverrideRequest {
+  abbreviation: string;
 }
 
 // ─── Pipeline Variable Groups (removed — now project-level only) ─────────────

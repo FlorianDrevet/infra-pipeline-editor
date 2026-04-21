@@ -38,6 +38,8 @@ public sealed class GeneratePipelineCommandHandler(
         if (config is null)
             return Errors.InfrastructureConfig.NotFoundError(new InfrastructureConfigId(command.InfrastructureConfigId));
 
+        var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
+
         // Load project-level pipeline variable groups
         var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
             new ProjectId(config.ProjectId), cancellationToken);
@@ -73,8 +75,7 @@ public sealed class GeneratePipelineCommandHandler(
                 ResourceGroupName = rg.Name,
                 Sku = r.Properties.GetValueOrDefault("sku", string.Empty),
                 Properties = r.Properties,
-                ResourceAbbreviation = ResourceAbbreviationCatalog.GetAbbreviation(
-                    GetResourceTypeName(r.ResourceType)),
+                ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType, mergedAbbreviations),
                 EnvironmentConfigs = r.EnvironmentConfigs
                     .ToDictionary(
                         ec => ec.EnvironmentName,
@@ -112,7 +113,7 @@ public sealed class GeneratePipelineCommandHandler(
         {
             DefaultTemplate = config.NamingContext.DefaultTemplate,
             ResourceTemplates = config.NamingContext.ResourceTemplates,
-            ResourceAbbreviations = ResourceAbbreviationCatalog.GetAll(),
+            ResourceAbbreviations = mergedAbbreviations,
         };
 
         var generationRequest = new GenerationRequest
@@ -310,4 +311,34 @@ public sealed class GeneratePipelineCommandHandler(
 
     private static string GetResourceTypeName(string azureResourceType) =>
         AzureResourceTypes.GetFriendlyName(azureResourceType);
+
+    /// <summary>
+    /// Resolves the resource abbreviation from the Azure resource type string,
+    /// preferring overrides from the merged abbreviation dictionary.
+    /// </summary>
+    private static string GetResourceAbbreviation(
+        string azureResourceType,
+        IReadOnlyDictionary<string, string> mergedAbbreviations)
+    {
+        var typeName = AzureResourceTypes.GetFriendlyName(azureResourceType);
+        return mergedAbbreviations.TryGetValue(typeName, out var abbr)
+            ? abbr
+            : ResourceAbbreviationCatalog.GetAbbreviation(typeName);
+    }
+
+    /// <summary>
+    /// Merges the catalog defaults with user overrides.
+    /// Overrides take precedence over catalog entries.
+    /// </summary>
+    private static IReadOnlyDictionary<string, string> MergeAbbreviations(
+        IReadOnlyDictionary<string, string> overrides)
+    {
+        var merged = new Dictionary<string, string>(ResourceAbbreviationCatalog.GetAll(), StringComparer.OrdinalIgnoreCase);
+        foreach (var (key, value) in overrides)
+        {
+            merged[key] = value;
+        }
+
+        return merged;
+    }
 }

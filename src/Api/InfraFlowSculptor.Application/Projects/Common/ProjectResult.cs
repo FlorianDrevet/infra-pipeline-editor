@@ -13,7 +13,9 @@ public record ProjectResult(
     IReadOnlyList<ProjectEnvironmentDefinitionResult> EnvironmentDefinitions,
     string? DefaultNamingTemplate,
     IReadOnlyList<ProjectResourceNamingTemplateResult> ResourceNamingTemplates,
+    IReadOnlyList<ProjectResourceAbbreviationResult> ResourceAbbreviations,
     GitRepositoryConfigurationResult? GitRepositoryConfiguration,
     string RepositoryMode,
     IReadOnlyList<TagResult> Tags,
-    string? AgentPoolName = null);
+    string? AgentPoolName = null,
+    IReadOnlyList<string>? UsedResourceTypes = null);

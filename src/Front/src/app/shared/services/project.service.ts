@@ -33,6 +33,8 @@ import {
   ResourceNamingTemplateResponse,
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
+  ResourceAbbreviationOverrideResponse,
+  SetResourceAbbreviationOverrideRequest,
 } from '../interfaces/infra-config.interface';
 import { ProjectResourceResponse } from '../interfaces/cross-config-reference.interface';
 
@@ -168,6 +170,30 @@ export class ProjectService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/projects/${projectId}/naming/resources/${resourceType}`
+    );
+  }
+
+  // ─── Abbreviation Overrides ───
+
+  setResourceAbbreviation(
+    projectId: string,
+    resourceType: string,
+    request: SetResourceAbbreviationOverrideRequest
+  ): Promise<ResourceAbbreviationOverrideResponse> {
+    return this.axios.request$<ResourceAbbreviationOverrideResponse>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/naming/abbreviations/${resourceType}`,
+      request
+    );
+  }
+
+  removeResourceAbbreviation(
+    projectId: string,
+    resourceType: string
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/naming/abbreviations/${resourceType}`
     );
   }
 

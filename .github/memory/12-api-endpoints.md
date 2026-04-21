@@ -69,6 +69,13 @@
 | `/infra-config/{id}/naming` | PUT | `/default` | `SetDefaultNamingTemplateCommand` |
 | `/infra-config/{id}/naming` | PUT | `/resources/{resourceType}` | `SetResourceNamingTemplateCommand` |
 | `/infra-config/{id}/naming` | DELETE | `/resources/{resourceType}` | `RemoveResourceNamingTemplateCommand` |
+| `/infra-config/{id}/naming` | PUT | `/abbreviations/{resourceType}` | `SetResourceAbbreviationOverrideCommand` |
+| `/infra-config/{id}/naming` | DELETE | `/abbreviations/{resourceType}` | `RemoveResourceAbbreviationOverrideCommand` |
+| `/projects/{id}/naming` | PUT | `/templates/default` | `SetProjectDefaultNamingTemplateCommand` |
+| `/projects/{id}/naming` | PUT | `/templates/{resourceType}` | `SetProjectResourceNamingTemplateCommand` |
+| `/projects/{id}/naming` | DELETE | `/templates/{resourceType}` | `RemoveProjectResourceNamingTemplateCommand` |
+| `/projects/{id}/naming` | PUT | `/abbreviations/{resourceType}` | `SetProjectResourceAbbreviationCommand` |
+| `/projects/{id}/naming` | DELETE | `/abbreviations/{resourceType}` | `RemoveProjectResourceAbbreviationCommand` |
 
 ## Generation Controllers
 

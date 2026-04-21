@@ -68,21 +68,23 @@ public sealed record GeneratedTypeModule
     public bool UsesParameterizedIdentity { get; init; }
 
     /// <summary>
-    /// Maps a Bicep parameter name in this module to the logical name of the parent resource
+    /// Maps a Bicep parameter name in this module to the logical name and resource type of the parent resource
     /// whose module <c>outputs.id</c> should be passed.
-    /// Example: <c>"appServicePlanId" → "my-asp"</c> generates
+    /// Example: <c>"appServicePlanId" → ("my-asp", "AppServicePlan")</c> generates
     /// <c>appServicePlanId: appServicePlanMyAspModule.outputs.id</c> in <c>main.bicep</c>.
+    /// The resource type name disambiguates when multiple resources share the same logical name.
     /// </summary>
-    public IReadOnlyDictionary<string, string> ParentModuleIdReferences { get; init; } =
-        new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, (string Name, string ResourceTypeName)> ParentModuleIdReferences { get; init; } =
+        new Dictionary<string, (string Name, string ResourceTypeName)>();
 
     /// <summary>
-    /// Maps a Bicep parameter name in this module to the logical name of the parent resource
+    /// Maps a Bicep parameter name in this module to the logical name and resource type of the parent resource
     /// whose computed naming expression should be passed.
     /// Used for child resources that need the parent's deployed name (e.g., SqlDatabase → sqlServerName).
+    /// The resource type name disambiguates when multiple resources share the same logical name.
     /// </summary>
-    public IReadOnlyDictionary<string, string> ParentModuleNameReferences { get; init; } =
-        new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, (string Name, string ResourceTypeName)> ParentModuleNameReferences { get; init; } =
+        new Dictionary<string, (string Name, string ResourceTypeName)>();
 
     /// <summary>
     /// Maps a Bicep parameter name in this module to the logical name of a cross-configuration

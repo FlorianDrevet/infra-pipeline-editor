@@ -106,6 +106,8 @@ public sealed class GenerateProjectBicepCommandHandler(
     private static GenerationRequest BuildGenerationRequest(
         InfrastructureConfig.ReadModels.InfrastructureConfigReadModel config)
     {
+        var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
+
         var resources = config.ResourceGroups
             .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
             {
@@ -115,7 +117,7 @@ public sealed class GenerateProjectBicepCommandHandler(
                 ResourceGroupName = rg.Name,
                 Sku = r.Properties.GetValueOrDefault("sku", string.Empty),
                 Properties = r.Properties,
-                ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType),
+                ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType, mergedAbbreviations),
                 EnvironmentConfigs = r.EnvironmentConfigs
                     .ToDictionary(
                         ec => ec.EnvironmentName,
@@ -153,7 +155,7 @@ public sealed class GenerateProjectBicepCommandHandler(
         {
             DefaultTemplate = config.NamingContext.DefaultTemplate,
             ResourceTemplates = config.NamingContext.ResourceTemplates,
-            ResourceAbbreviations = ResourceAbbreviationCatalog.GetAll(),
+            ResourceAbbreviations = mergedAbbreviations,
         };
 
         var roleAssignments = config.RoleAssignments
@@ -179,7 +181,7 @@ public sealed class GenerateProjectBicepCommandHandler(
                     RoleDefinitionDescription = roleDef?.Description ?? string.Empty,
                     ServiceCategory = RoleAssignmentModuleTemplates.GetServiceCategory(targetTypeName),
                     TargetResourceTypeName = targetTypeName,
-                    TargetResourceAbbreviation = GetResourceAbbreviation(ra.TargetResourceType),
+                    TargetResourceAbbreviation = GetResourceAbbreviation(ra.TargetResourceType, mergedAbbreviations),
                     UserAssignedIdentityName = ra.UserAssignedIdentityName,
                     UserAssignedIdentityResourceId = ra.UserAssignedIdentityResourceId,
                     UserAssignedIdentityResourceGroupName = ra.UserAssignedIdentityResourceGroupName,
@@ -260,10 +262,26 @@ public sealed class GenerateProjectBicepCommandHandler(
         };
     }
 
-    private static string GetResourceAbbreviation(string azureResourceType)
+    private static string GetResourceAbbreviation(
+        string azureResourceType,
+        IReadOnlyDictionary<string, string> mergedAbbreviations)
     {
         var typeName = AzureResourceTypes.GetFriendlyName(azureResourceType);
-        return ResourceAbbreviationCatalog.GetAbbreviation(typeName);
+        return mergedAbbreviations.TryGetValue(typeName, out var abbr)
+            ? abbr
+            : ResourceAbbreviationCatalog.GetAbbreviation(typeName);
+    }
+
+    private static IReadOnlyDictionary<string, string> MergeAbbreviations(
+        IReadOnlyDictionary<string, string> overrides)
+    {
+        var merged = new Dictionary<string, string>(ResourceAbbreviationCatalog.GetAll(), StringComparer.OrdinalIgnoreCase);
+        foreach (var (key, value) in overrides)
+        {
+            merged[key] = value;
+        }
+
+        return merged;
     }
 
     private static string GetResourceTypeName(string azureResourceType) =>

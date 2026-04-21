@@ -83,6 +83,20 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.ResourceType, src => src.ResourceType)
             .Map(dest => dest.Template, src => src.Template);
 
+        // ── Project Resource Abbreviations ──────────────────────────────
+
+        // ProjectResourceAbbreviation entity -> ProjectResourceAbbreviationResult
+        config.NewConfig<ProjectResourceAbbreviation, ProjectResourceAbbreviationResult>()
+            .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest.ResourceType, src => src.ResourceType)
+            .Map(dest => dest.Abbreviation, src => src.Abbreviation);
+
+        // ProjectResourceAbbreviationResult -> ResourceAbbreviationOverrideResponse (reuses InfraConfig response)
+        config.NewConfig<ProjectResourceAbbreviationResult, ResourceAbbreviationOverrideResponse>()
+            .Map(dest => dest.Id, src => src.Id.Value.ToString())
+            .Map(dest => dest.ResourceType, src => src.ResourceType)
+            .Map(dest => dest.Abbreviation, src => src.Abbreviation);
+
         // ── Project Aggregate ───────────────────────────────────────────
 
         // Project domain -> ProjectResult
@@ -95,6 +109,7 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.DefaultNamingTemplate,
                 src => src.DefaultNamingTemplate != null ? src.DefaultNamingTemplate.Value : null)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.ResourceAbbreviations, src => src.ResourceAbbreviations)
             .Map(dest => dest.GitRepositoryConfiguration, src => src.GitRepositoryConfiguration)
             .Map(dest => dest.RepositoryMode, src => src.RepositoryMode.Value.ToString())
             .Map(dest => dest.Tags, src => src.Tags)
@@ -109,10 +124,12 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.EnvironmentDefinitions, src => src.EnvironmentDefinitions)
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.ResourceAbbreviations, src => src.ResourceAbbreviations)
             .Map(dest => dest.GitRepositoryConfiguration, src => src.GitRepositoryConfiguration)
             .Map(dest => dest.RepositoryMode, src => src.RepositoryMode)
             .Map(dest => dest.Tags, src => src.Tags)
-            .Map(dest => dest.AgentPoolName, src => src.AgentPoolName);
+            .Map(dest => dest.AgentPoolName, src => src.AgentPoolName)
+            .Map(dest => dest.UsedResourceTypes, src => src.UsedResourceTypes);
 
         // ── Git Repository Configuration ────────────────────────────────
 

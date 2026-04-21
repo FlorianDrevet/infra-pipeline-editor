@@ -758,6 +758,32 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("ParameterDefinitions", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ResourceAbbreviationOverride", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Abbreviation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid>("InfraConfigId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ResourceType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InfraConfigId", "ResourceType")
+                        .IsUnique();
+
+                    b.ToTable("ResourceAbbreviationOverrides", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ResourceNamingTemplate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -966,6 +992,32 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ProjectPipelineVariableGroups", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectResourceAbbreviation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Abbreviation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ResourceType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "ResourceType")
+                        .IsUnique();
+
+                    b.ToTable("ProjectResourceAbbreviations", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectResourceNamingTemplate", b =>
@@ -2003,6 +2055,17 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ResourceAbbreviationOverride", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", "InfraConfig")
+                        .WithMany("ResourceAbbreviationOverrides")
+                        .HasForeignKey("InfraConfigId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InfraConfig");
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities.ResourceNamingTemplate", b =>
                 {
                     b.HasOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig", "InfraConfig")
@@ -2100,6 +2163,17 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectResourceAbbreviation", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Project", "Project")
+                        .WithMany("ResourceAbbreviations")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectResourceNamingTemplate", b =>
@@ -2538,6 +2612,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.Navigation("ParameterDefinitions");
 
+                    b.Navigation("ResourceAbbreviationOverrides");
+
                     b.Navigation("ResourceGroups");
 
                     b.Navigation("ResourceNamingTemplates");
@@ -2550,6 +2626,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("Members");
 
                     b.Navigation("PipelineVariableGroups");
+
+                    b.Navigation("ResourceAbbreviations");
 
                     b.Navigation("ResourceNamingTemplates");
                 });

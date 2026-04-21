@@ -28,6 +28,7 @@ public sealed class ProjectRepository(ProjectDbContext context)
                 .ThenInclude(m => m.User!)
             .Include(p => p.EnvironmentDefinitions)
             .Include(p => p.ResourceNamingTemplates)
+            .Include(p => p.ResourceAbbreviations)
             .Include(p => p.GitRepositoryConfiguration)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 

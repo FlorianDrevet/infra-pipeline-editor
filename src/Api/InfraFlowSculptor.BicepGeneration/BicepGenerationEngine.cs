@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration;
 
@@ -29,7 +30,7 @@ public sealed class BicepGenerationEngine
     private static readonly Regex AppSettingsArrayPattern = new(@"appSettings\s*:\s*\[", RegexOptions.Compiled);
     private static readonly Regex SiteConfigPattern = new(@"\bsiteConfig\s*:", RegexOptions.Compiled);
     private static readonly Regex EnvPropertyPattern = new(@"\benv\s*:", RegexOptions.Compiled);
-    private static readonly Regex MemoryPropertyPattern = new(@"\bmemory\s*:", RegexOptions.Compiled);
+    private static readonly Regex ContainerResourcesPattern = new(@"^\s+resources\s*:\s*\{", RegexOptions.Multiline | RegexOptions.Compiled);
 
     private readonly IEnumerable<IResourceTypeBicepGenerator> _generators;
 
@@ -156,10 +157,15 @@ public sealed class BicepGenerationEngine
             .Select(s => s.TargetResourceName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        // ── Build resource ID → logical name lookup for parent references ───
-        var resourceIdToName = request.Resources
+        // ── Build resource ID → (name, resource type name) lookup for parent references ──
+        var generatorByArmType = _generators.ToDictionary(g => g.ResourceType, g => g, StringComparer.OrdinalIgnoreCase);
+        var resourceIdToInfo = request.Resources
             .Where(r => r.ResourceId != Guid.Empty)
-            .ToDictionary(r => r.ResourceId, r => r.Name);
+            .ToDictionary(r => r.ResourceId, r =>
+            {
+                var typeName = generatorByArmType.TryGetValue(r.Type, out var gen) ? gen.ResourceTypeName : string.Empty;
+                return (Name: r.Name, ResourceTypeName: typeName);
+            });
 
         foreach (var resource in request.Resources)
         {
@@ -237,32 +243,32 @@ public sealed class BicepGenerationEngine
             moduleBicepContent = InjectTagsParam(moduleBicepContent);
 
             // ── Resolve parent module references (FK cross-resource links) ──
-            var parentModuleIdRefs = new Dictionary<string, string>();
-            var parentModuleNameRefs = new Dictionary<string, string>();
+            var parentModuleIdRefs = new Dictionary<string, (string Name, string ResourceTypeName)>();
+            var parentModuleNameRefs = new Dictionary<string, (string Name, string ResourceTypeName)>();
             var existingResourceIdRefs = new Dictionary<string, string>();
 
             // appServicePlanId: WebApp and FunctionApp → AppServicePlan module outputs.id
             if (resource.Properties.TryGetValue("appServicePlanId", out var aspIdStr)
                 && Guid.TryParse(aspIdStr, out var aspGuid)
-                && resourceIdToName.TryGetValue(aspGuid, out var aspName))
+                && resourceIdToInfo.TryGetValue(aspGuid, out var aspInfo))
             {
-                parentModuleIdRefs["appServicePlanId"] = aspName;
+                parentModuleIdRefs["appServicePlanId"] = aspInfo;
             }
 
             // containerAppEnvironmentId: ContainerApp → ContainerAppEnvironment module outputs.id
             if (resource.Properties.TryGetValue("containerAppEnvironmentId", out var caeIdStr)
                 && Guid.TryParse(caeIdStr, out var caeGuid)
-                && resourceIdToName.TryGetValue(caeGuid, out var caeName))
+                && resourceIdToInfo.TryGetValue(caeGuid, out var caeInfo))
             {
-                parentModuleIdRefs["containerAppEnvironmentId"] = caeName;
+                parentModuleIdRefs["containerAppEnvironmentId"] = caeInfo;
             }
 
             // logAnalyticsWorkspaceId: ApplicationInsights / ContainerAppEnvironment → LogAnalyticsWorkspace module outputs.id
             if (resource.Properties.TryGetValue("logAnalyticsWorkspaceId", out var lawIdStr)
                 && Guid.TryParse(lawIdStr, out var lawGuid)
-                && resourceIdToName.TryGetValue(lawGuid, out var lawName))
+                && resourceIdToInfo.TryGetValue(lawGuid, out var lawInfo))
             {
-                parentModuleIdRefs["logAnalyticsWorkspaceId"] = lawName;
+                parentModuleIdRefs["logAnalyticsWorkspaceId"] = lawInfo;
             }
             else if (resource.Type is "Microsoft.Insights/components" or "Microsoft.App/managedEnvironments"
                 && !parentModuleIdRefs.ContainsKey("logAnalyticsWorkspaceId"))
@@ -272,7 +278,7 @@ public sealed class BicepGenerationEngine
                     r.Type.Equals("Microsoft.OperationalInsights/workspaces", StringComparison.OrdinalIgnoreCase));
                 if (fallbackLaw is not null)
                 {
-                    parentModuleIdRefs["logAnalyticsWorkspaceId"] = fallbackLaw.Name;
+                    parentModuleIdRefs["logAnalyticsWorkspaceId"] = (fallbackLaw.Name, AzureResourceTypes.LogAnalyticsWorkspace);
                 }
                 else
                 {
@@ -289,9 +295,9 @@ public sealed class BicepGenerationEngine
             // sqlServerId: SqlDatabase → SqlServer module computed name expression
             if (resource.Properties.TryGetValue("sqlServerId", out var sqlIdStr)
                 && Guid.TryParse(sqlIdStr, out var sqlGuid)
-                && resourceIdToName.TryGetValue(sqlGuid, out var sqlName))
+                && resourceIdToInfo.TryGetValue(sqlGuid, out var sqlInfo))
             {
-                parentModuleNameRefs["sqlServerName"] = sqlName;
+                parentModuleNameRefs["sqlServerName"] = sqlInfo;
             }
 
             modules.Add(module with
@@ -883,15 +889,13 @@ public sealed class BicepGenerationEngine
         // Add env property to the container spec if not already present (whitespace-tolerant)
         if (!EnvPropertyPattern.IsMatch(moduleBicep))
         {
-            // Find "resources:" in the container spec — insert env after the "memory:" line
-            var memoryMatch = MemoryPropertyPattern.Match(moduleBicep);
-            if (memoryMatch.Success)
+            // Find "resources: {" in the container spec — insert env BEFORE it (at container level, not inside resources)
+            var resourcesMatch = ContainerResourcesPattern.Match(moduleBicep);
+            if (resourcesMatch.Success)
             {
-                var endOfLine = moduleBicep.IndexOf('\n', memoryMatch.Index + memoryMatch.Length);
-                if (endOfLine >= 0)
-                {
-                    moduleBicep = InsertAt(moduleBicep, endOfLine + 1, "                  env: envVars\n");
-                }
+                // Determine indentation from the matched line and insert env on the preceding line
+                var indent = resourcesMatch.Value[..resourcesMatch.Value.IndexOf('r')];
+                moduleBicep = InsertAt(moduleBicep, resourcesMatch.Index, $"{indent}env: envVars\n");
             }
         }
 

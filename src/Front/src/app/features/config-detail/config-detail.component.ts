@@ -14,12 +14,18 @@ import { TranslateModule } from '@ngx-translate/core';
 import {
   InfrastructureConfigResponse,
   ResourceNamingTemplateResponse,
+  ResourceAbbreviationOverrideResponse,
   SetInfraConfigTagsRequest,
   TagRequest,
 } from '../../shared/interfaces/infra-config.interface';
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  EditAbbreviationDialogComponent,
+  EditAbbreviationDialogData,
+  EditAbbreviationDialogResult,
+} from '../../shared/components/edit-abbreviation-dialog/edit-abbreviation-dialog.component';
 import { AddResourceGroupDialogComponent, AddResourceGroupDialogData } from './add-resource-group-dialog/add-resource-group-dialog.component';
 import { AddResourceDialogComponent, AddResourceDialogData } from './add-resource-dialog/add-resource-dialog.component';
 import {
@@ -442,6 +448,14 @@ export class ConfigDetailComponent implements OnInit {
     const template = resourceOverride?.template ?? defaultTemplate;
     if (!template) return null;
 
+    // Resolve abbreviation: config override → project override → catalog default
+    const configAbbrOverride = cfg.resourceAbbreviationOverrides?.find((o) => o.resourceType === resourceType);
+    const projectAbbrOverride = proj?.resourceAbbreviations?.find((o) => o.resourceType === resourceType);
+    const effectiveAbbr = configAbbrOverride?.abbreviation
+      ?? projectAbbrOverride?.abbreviation
+      ?? RESOURCE_TYPE_ABBREVIATIONS[resourceType]
+      ?? resourceType.toLowerCase();
+
     const replacements: Record<string, string> = {
       name: resourceName,
       prefix: env.prefix ?? '',
@@ -449,7 +463,7 @@ export class ConfigDetailComponent implements OnInit {
       env: env.name,
       envShort: env.shortName ?? '',
       resourceType,
-      resourceAbbr: RESOURCE_TYPE_ABBREVIATIONS[resourceType] ?? resourceType.toLowerCase(),
+      resourceAbbr: effectiveAbbr,
       location: env.location,
     };
 
@@ -1029,6 +1043,118 @@ export class ConfigDetailComponent implements OnInit {
       await this.refreshConfig(configId);
     } catch {
       this.namingErrorKey.set('CONFIG_DETAIL.NAMING_TEMPLATES.RESOURCE_REMOVE_ERROR');
+    } finally {
+      this.namingActionKey.set(null);
+    }
+  }
+
+  // ─── Abbreviation Overrides ───
+
+  protected readonly abbreviationDisplayItems = computed(() => {
+    const rgs = this.resourceGroups();
+    const resources = this.rgResources();
+    const overrides = this.config()?.resourceAbbreviationOverrides ?? [];
+
+    // Collect all resource types used in this config
+    const usedTypes = new Set<string>();
+    for (const rg of rgs) {
+      const rgRes = resources[rg.id];
+      if (rgRes) {
+        for (const r of rgRes) {
+          usedTypes.add(r.resourceType);
+        }
+      }
+    }
+    // Always include ResourceGroup itself
+    usedTypes.add('ResourceGroup');
+
+    const overrideMap = new Map(overrides.map((o) => [o.resourceType, o]));
+
+    return [...usedTypes].sort().map((resourceType) => {
+      const override = overrideMap.get(resourceType);
+      const defaultAbbr = RESOURCE_TYPE_ABBREVIATIONS[resourceType] ?? resourceType.toLowerCase();
+      return {
+        resourceType,
+        defaultAbbreviation: defaultAbbr,
+        customAbbreviation: override?.abbreviation ?? null,
+        effectiveAbbreviation: override?.abbreviation ?? defaultAbbr,
+        isCustomized: !!override,
+      };
+    });
+  });
+
+  protected isAbbreviationBusy(resourceType: string): boolean {
+    const actionKey = this.namingActionKey();
+    return actionKey === `abbr:${resourceType}` || actionKey === `abbr-remove:${resourceType}`;
+  }
+
+  protected openEditAbbreviationDialog(item: { resourceType: string; defaultAbbreviation: string; effectiveAbbreviation: string }): void {
+    if (!this.canWrite()) return;
+
+    const dialogRef = this.dialog.open(EditAbbreviationDialogComponent, {
+      data: {
+        resourceType: item.resourceType,
+        defaultAbbreviation: item.defaultAbbreviation,
+        currentAbbreviation: item.effectiveAbbreviation,
+      } satisfies EditAbbreviationDialogData,
+      width: '400px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: EditAbbreviationDialogResult | null) => {
+      if (!result) return;
+      await this.saveAbbreviationOverride(item.resourceType, result.abbreviation);
+    });
+  }
+
+  protected openResetAbbreviationDialog(item: { resourceType: string; defaultAbbreviation: string }): void {
+    if (!this.canWrite()) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'ABBREVIATIONS.RESET_CONFIRM_TITLE',
+        messageKey: 'ABBREVIATIONS.RESET_CONFIRM_MESSAGE',
+        messageParams: { resourceType: item.resourceType, defaultAbbr: item.defaultAbbreviation },
+        confirmKey: 'ABBREVIATIONS.RESET_CONFIRM_YES',
+        cancelKey: 'ABBREVIATIONS.RESET_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '400px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
+      if (!confirmed) return;
+      await this.removeAbbreviationOverride(item.resourceType);
+    });
+  }
+
+  private async saveAbbreviationOverride(resourceType: string, abbreviation: string): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.namingActionKey.set(`abbr:${resourceType}`);
+    this.namingErrorKey.set('');
+
+    try {
+      await this.infraConfigService.setResourceAbbreviationOverride(configId, resourceType, { abbreviation });
+      await this.refreshConfig(configId);
+    } catch {
+      this.namingErrorKey.set('ABBREVIATIONS.SAVE_ERROR');
+    } finally {
+      this.namingActionKey.set(null);
+    }
+  }
+
+  private async removeAbbreviationOverride(resourceType: string): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.namingActionKey.set(`abbr-remove:${resourceType}`);
+    this.namingErrorKey.set('');
+
+    try {
+      await this.infraConfigService.removeResourceAbbreviationOverride(configId, resourceType);
+      await this.refreshConfig(configId);
+    } catch {
+      this.namingErrorKey.set('ABBREVIATIONS.RESET_ERROR');
     } finally {
       this.namingActionKey.set(null);
     }

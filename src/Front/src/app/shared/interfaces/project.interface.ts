@@ -1,5 +1,6 @@
 import {
   EnvironmentDefinitionResponse,
+  ResourceAbbreviationOverrideResponse,
   ResourceNamingTemplateResponse,
   TagRequest,
   TagResponse,
@@ -25,9 +26,11 @@ export interface ProjectResponse {
   environmentDefinitions: EnvironmentDefinitionResponse[];
   defaultNamingTemplate: string | null;
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
+  resourceAbbreviations: ResourceAbbreviationOverrideResponse[];
   gitRepositoryConfiguration?: GitConfigResponse | null;
   tags: TagResponse[];
   agentPoolName: string | null;
+  usedResourceTypes?: string[];
 }
 
 export interface RecentItemResponse {

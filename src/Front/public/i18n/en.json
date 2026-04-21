@@ -1618,5 +1618,32 @@
     "RBAC_SECTION_TITLE": "Permission Issues",
     "MISSING_ENV_TITLE": "Missing Environment Settings",
     "MISSING_ENV_SUBTITLE": "The following resources have not been configured for all environments defined in the project."
+  },
+  "ABBREVIATIONS": {
+    "TITLE": "Resource abbreviations",
+    "SUBTITLE": "Customize the abbreviation used for each resource type in naming templates ({resourceAbbr} placeholder).",
+    "EMPTY": "No resource types are used in this configuration.",
+    "COLUMN_RESOURCE_TYPE": "Resource type",
+    "COLUMN_DEFAULT": "Default",
+    "COLUMN_CUSTOM": "Custom",
+    "COLUMN_EFFECTIVE": "Effective",
+    "EDIT": "Edit",
+    "RESET": "Reset to default",
+    "CUSTOMIZED": "Customized",
+    "DEFAULT_VALUE": "Default",
+    "EDIT_DIALOG_TITLE": "Edit resource abbreviation",
+    "EDIT_DIALOG_RESOURCE_TYPE": "Resource type",
+    "EDIT_DIALOG_DEFAULT": "Default abbreviation",
+    "EDIT_DIALOG_CUSTOM": "Custom abbreviation",
+    "EDIT_DIALOG_PLACEHOLDER": "e.g., kv",
+    "EDIT_DIALOG_HINT": "Lowercase alphanumeric, max 10 characters.",
+    "EDIT_DIALOG_CANCEL": "Cancel",
+    "EDIT_DIALOG_SAVE": "Save",
+    "SAVE_ERROR": "Unable to save the abbreviation override.",
+    "RESET_CONFIRM_TITLE": "Reset abbreviation",
+    "RESET_CONFIRM_MESSAGE": "Are you sure you want to reset the abbreviation for {{resourceType}} to its default value ({{defaultAbbr}})?",
+    "RESET_CONFIRM_YES": "Reset",
+    "RESET_CONFIRM_CANCEL": "Cancel",
+    "RESET_ERROR": "Unable to reset the abbreviation."
   }
 }

@@ -2049,3 +2049,137 @@ a.config-card {
   height: 1.1rem;
   color: #90a4ae;
 }
+
+// ─── Abbreviation Overrides ───
+
+.abbreviations-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.abbreviations-section__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin: 0 0 0.25rem;
+
+  mat-icon {
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    color: #90caf9;
+  }
+}
+
+.abbreviations-section__subtitle {
+  font-size: 0.82rem;
+  color: #90a4ae;
+  margin: 0 0 1rem;
+}
+
+.abbreviation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.abbreviation-list__header {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #90a4ae;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.abbreviation-list__col {
+  display: flex;
+  align-items: center;
+
+  &--type {
+    flex: 2;
+    gap: 0.4rem;
+  }
+
+  &--default {
+    flex: 1;
+  }
+
+  &--effective {
+    flex: 1;
+  }
+
+  &--status {
+    flex: 1;
+  }
+
+  &--actions {
+    flex: 0 0 auto;
+    gap: 0.25rem;
+    justify-content: flex-end;
+  }
+}
+
+.abbreviation-row {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  position: relative;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  &--busy {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.abbreviation-row__spinner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1;
+  border-radius: 4px;
+}
+
+.abbreviation-row__icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: #90a4ae;
+}
+
+.effective-abbr {
+  font-size: 0.85rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+
+  &--custom {
+    background: rgba(100, 181, 246, 0.15);
+    color: #90caf9;
+  }
+}
+
+.customized-chip {
+  font-size: 0.72rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  background: rgba(100, 181, 246, 0.12);
+  color: #90caf9;
+  font-weight: 500;
+}

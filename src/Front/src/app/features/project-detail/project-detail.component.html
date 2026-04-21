@@ -466,6 +466,90 @@
               <p>{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.EMPTY' | translate }}</p>
             </div>
           }
+
+          <!-- Abbreviation Overrides -->
+          <section class="abbreviations-section">
+            <h4 class="abbreviations-section__title">
+              <mat-icon>short_text</mat-icon>
+              {{ 'ABBREVIATIONS.TITLE' | translate }}
+            </h4>
+            <p class="abbreviations-section__subtitle">{{ 'ABBREVIATIONS.SUBTITLE' | translate }}</p>
+
+            @if (namingErrorKey(); as errKey) {
+              <p class="naming-error">{{ errKey | translate }}</p>
+            }
+
+            @if (abbreviationDisplayItems().length > 0) {
+              <div class="abbreviation-list">
+                <div class="abbreviation-list__header">
+                  <span class="abbreviation-list__col abbreviation-list__col--type">{{ 'ABBREVIATIONS.COLUMN_RESOURCE' | translate }}</span>
+                  <span class="abbreviation-list__col abbreviation-list__col--default">{{ 'ABBREVIATIONS.COLUMN_DEFAULT' | translate }}</span>
+                  <span class="abbreviation-list__col abbreviation-list__col--effective">{{ 'ABBREVIATIONS.COLUMN_EFFECTIVE' | translate }}</span>
+                  <span class="abbreviation-list__col abbreviation-list__col--status">{{ 'ABBREVIATIONS.COLUMN_STATUS' | translate }}</span>
+                  @if (canWrite()) {
+                    <span class="abbreviation-list__col abbreviation-list__col--actions"></span>
+                  }
+                </div>
+
+                @for (item of abbreviationDisplayItems(); track item.resourceType) {
+                  <article class="abbreviation-row" [class.abbreviation-row--busy]="isAbbreviationBusy(item.resourceType)">
+                    @if (isAbbreviationBusy(item.resourceType)) {
+                      <div class="abbreviation-row__spinner">
+                        <mat-spinner diameter="18"></mat-spinner>
+                      </div>
+                    }
+
+                    <span class="abbreviation-list__col abbreviation-list__col--type">
+                      <mat-icon class="abbreviation-row__icon">{{ item.icon }}</mat-icon>
+                      {{ item.resourceType }}
+                    </span>
+
+                    <span class="abbreviation-list__col abbreviation-list__col--default">
+                      <code>{{ item.defaultAbbreviation }}</code>
+                    </span>
+
+                    <span class="abbreviation-list__col abbreviation-list__col--effective">
+                      <span class="effective-abbr" [class.effective-abbr--custom]="item.isCustomized">
+                        {{ item.effectiveAbbreviation }}
+                      </span>
+                    </span>
+
+                    <span class="abbreviation-list__col abbreviation-list__col--status">
+                      @if (item.isCustomized) {
+                        <span class="customized-chip">{{ 'ABBREVIATIONS.CUSTOMIZED' | translate }}</span>
+                      }
+                    </span>
+
+                    @if (canWrite()) {
+                      <span class="abbreviation-list__col abbreviation-list__col--actions">
+                        <button
+                          class="template-action-btn template-action-btn--edit"
+                          [matTooltip]="'ABBREVIATIONS.EDIT' | translate"
+                          [disabled]="isAbbreviationBusy(item.resourceType) || namingActionKey() !== null"
+                          (click)="openEditAbbreviationDialog(item)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        @if (item.isCustomized) {
+                          <button
+                            class="template-action-btn template-action-btn--delete"
+                            [matTooltip]="'ABBREVIATIONS.RESET' | translate"
+                            [disabled]="isAbbreviationBusy(item.resourceType) || namingActionKey() !== null"
+                            (click)="openResetAbbreviationDialog(item)">
+                            <mat-icon>restart_alt</mat-icon>
+                          </button>
+                        }
+                      </span>
+                    }
+                  </article>
+                }
+              </div>
+            } @else {
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">short_text</mat-icon>
+                <p>{{ 'ABBREVIATIONS.EMPTY' | translate }}</p>
+              </div>
+            }
+          </section>
         </div>
       </mat-tab>
 

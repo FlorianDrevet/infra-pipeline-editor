@@ -66,9 +66,9 @@ internal static class ParameterFileAssembler
             var mergedParams = new Dictionary<string, object>(module.Parameters);
             foreach (var (key, value) in envOverrides)
             {
-                if (mergedParams.ContainsKey(key))
+                if (mergedParams.TryGetValue(key, out var existingValue))
                 {
-                    mergedParams[key] = value;
+                    mergedParams[key] = CoerceToOriginalType(value, existingValue);
                 }
             }
 
@@ -139,5 +139,22 @@ internal static class ParameterFileAssembler
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Converts a string override value to the C# type of the existing parameter default,
+    /// so that <see cref="BicepFormattingHelper.SerializeToBicep"/> emits the correct Bicep literal
+    /// (e.g. <c>false</c> instead of <c>'false'</c>).
+    /// </summary>
+    private static object CoerceToOriginalType(string value, object existingValue)
+    {
+        return existingValue switch
+        {
+            bool when bool.TryParse(value, out var b) => b,
+            int when int.TryParse(value, out var i) => i,
+            long when long.TryParse(value, out var l) => l,
+            double when double.TryParse(value, out var d) => d,
+            _ => value
+        };
     }
 }

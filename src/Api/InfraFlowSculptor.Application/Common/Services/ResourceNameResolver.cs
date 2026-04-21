@@ -51,7 +51,7 @@ public sealed class ResourceNameResolver(
         }
 
         var template = ResolveTemplate(project, infraConfig, resourceType);
-        var abbreviation = ResourceAbbreviationCatalog.GetAbbreviation(resourceType);
+        var abbreviation = ResolveAbbreviation(project, infraConfig, resourceType);
 
         var results = new List<ResolvedResourceName>(project.EnvironmentDefinitions.Count);
         foreach (var env in project.EnvironmentDefinitions)
@@ -99,6 +99,33 @@ public sealed class ResourceNameResolver(
             return project.DefaultNamingTemplate.Value;
 
         return "{name}";
+    }
+
+    /// <summary>
+    /// Resolves the abbreviation for a resource type following the override precedence:
+    /// Config override → Project override → Catalog default.
+    /// </summary>
+    private static string ResolveAbbreviation(
+        Project project,
+        Domain.InfrastructureConfigAggregate.InfrastructureConfig? infraConfig,
+        string resourceType)
+    {
+        var useConfigOverride = infraConfig is not null && !infraConfig.UseProjectNamingConventions;
+
+        if (useConfigOverride)
+        {
+            var configAbbr = infraConfig!.ResourceAbbreviationOverrides
+                .FirstOrDefault(a => string.Equals(a.ResourceType, resourceType, StringComparison.OrdinalIgnoreCase));
+            if (configAbbr is not null)
+                return configAbbr.Abbreviation;
+        }
+
+        var projectAbbr = project.ResourceAbbreviations
+            .FirstOrDefault(a => string.Equals(a.ResourceType, resourceType, StringComparison.OrdinalIgnoreCase));
+        if (projectAbbr is not null)
+            return projectAbbr.Abbreviation;
+
+        return ResourceAbbreviationCatalog.GetAbbreviation(resourceType);
     }
 
     /// <summary>

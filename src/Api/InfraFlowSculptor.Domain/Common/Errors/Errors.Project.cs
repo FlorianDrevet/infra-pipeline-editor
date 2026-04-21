@@ -71,5 +71,9 @@ public static partial class Errors
         /// <summary>Returned when a specific pipeline file is not found in the latest project generation.</summary>
         public static Error PipelineFileNotFoundError(string filePath) =>
             Error.NotFound(code: "Project.PipelineFileNotFound", description: $"File '{filePath}' was not found.");
+
+        /// <summary>Returned when no abbreviation override exists for the given resource type.</summary>
+        public static Error ResourceAbbreviationNotFoundError(string resourceType) =>
+            Error.NotFound(code: "Project.ResourceAbbreviationNotFound", description: $"No abbreviation override exists for resource type '{resourceType}'.");
     }
 }

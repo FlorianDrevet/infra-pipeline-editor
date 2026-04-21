@@ -63,6 +63,14 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .OnDelete(DeleteBehavior.Cascade);
 
         // ========================
+        // ResourceAbbreviations (Entity)
+        // ========================
+        builder.HasMany(x => x.ResourceAbbreviations)
+            .WithOne(x => x.Project)
+            .HasForeignKey(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ========================
         // GitRepositoryConfiguration (Entity, 0..1)
         // ========================
         builder.HasOne(x => x.GitRepositoryConfiguration)

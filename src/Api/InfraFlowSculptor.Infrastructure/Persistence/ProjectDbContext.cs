@@ -50,6 +50,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<ProjectMember> ProjectMembers { get; set; } = null!;
     public DbSet<ProjectResourceNamingTemplate> ProjectResourceNamingTemplates { get; set; } = null!;
+    public DbSet<ProjectResourceAbbreviation> ProjectResourceAbbreviations { get; set; } = null!;
     public DbSet<InfrastructureConfig> InfrastructureConfigs { get; set; } = null!;
     public DbSet<ResourceGroup> ResourceGroups { get; set; } = null!;
     public DbSet<KeyVault> KeyVaults { get; set; } = null!;
@@ -65,6 +66,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<ResourceParameterUsage> ResourceParameterUsage { get; set; } = null!;
     public DbSet<InputOutputLink> InputOutputLinks { get; set; } = null!;
     public DbSet<ResourceNamingTemplate> ResourceNamingTemplates { get; set; } = null!;
+    public DbSet<ResourceAbbreviationOverride> ResourceAbbreviationOverrides { get; set; } = null!;
     public DbSet<RoleAssignment> RoleAssignments { get; set; } = null!;
     public DbSet<AppSetting> AppSettings { get; set; } = null!;
     public DbSet<AppSettingEnvironmentValue> AppSettingEnvironmentValues { get; set; } = null!;

@@ -1,0 +1,42 @@
+<h2 mat-dialog-title>{{ 'ABBREVIATIONS.EDIT_DIALOG_TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'ABBREVIATIONS.EDIT_DIALOG_RESOURCE_TYPE' | translate }}</mat-label>
+      <input matInput [value]="resourceType" disabled />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'ABBREVIATIONS.EDIT_DIALOG_DEFAULT' | translate }}</mat-label>
+      <input matInput [value]="defaultAbbreviation" disabled />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'ABBREVIATIONS.EDIT_DIALOG_CUSTOM' | translate }}</mat-label>
+      <input
+        matInput
+        formControlName="abbreviation"
+        [placeholder]="'ABBREVIATIONS.EDIT_DIALOG_PLACEHOLDER' | translate" />
+      <mat-hint>{{ 'ABBREVIATIONS.EDIT_DIALOG_HINT' | translate }}</mat-hint>
+      @if (form.controls.abbreviation.hasError('required') && form.controls.abbreviation.touched) {
+        <mat-error>{{ 'ABBREVIATIONS.EDIT_DIALOG_CUSTOM' | translate }}</mat-error>
+      }
+      @if (form.controls.abbreviation.hasError('pattern')) {
+        <mat-error>{{ 'ABBREVIATIONS.EDIT_DIALOG_HINT' | translate }}</mat-error>
+      }
+      @if (form.controls.abbreviation.hasError('maxlength')) {
+        <mat-error>{{ 'ABBREVIATIONS.EDIT_DIALOG_HINT' | translate }}</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="onCancel()">
+    {{ 'ABBREVIATIONS.EDIT_DIALOG_CANCEL' | translate }}
+  </button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid">
+    {{ 'ABBREVIATIONS.EDIT_DIALOG_SAVE' | translate }}
+  </button>
+</mat-dialog-actions>

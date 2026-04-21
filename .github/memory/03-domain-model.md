@@ -4,8 +4,8 @@
 
 | Aggregate | Root | Key Entities | Notes |
 |---|---|---|---|
-| `Project` | `Project` | `ProjectMember`, `ProjectEnvironmentDefinition`, `ProjectResourceNamingTemplate`, `GitRepositoryConfiguration`, `ProjectPipelineVariableGroup` | Groups InfrastructureConfigs; owns membership/RBAC, default environments, naming conventions, optional Git push config, shared pipeline variable groups, `AgentPoolName` (self-hosted pool for pipelines) |
-| `InfrastructureConfig` | `InfrastructureConfig` | `ParameterDefinition`, `ResourceParameterUsage`, `ResourceNamingTemplate`, `CrossConfigResourceReference` | Has `ProjectId` FK to Project. Environments inherited from parent Project. |
+| `Project` | `Project` | `ProjectMember`, `ProjectEnvironmentDefinition`, `ProjectResourceNamingTemplate`, `ProjectResourceAbbreviation`, `GitRepositoryConfiguration`, `ProjectPipelineVariableGroup` | Groups InfrastructureConfigs; owns membership/RBAC, default environments, naming conventions, optional Git push config, shared pipeline variable groups, `AgentPoolName` (self-hosted pool for pipelines), project-level resource abbreviation overrides |
+| `InfrastructureConfig` | `InfrastructureConfig` | `ParameterDefinition`, `ResourceParameterUsage`, `ResourceNamingTemplate`, `ResourceAbbreviationOverride`, `CrossConfigResourceReference` | Has `ProjectId` FK to Project. Environments inherited from parent Project. Config-level resource abbreviation overrides. |
 | `ResourceGroup` | `ResourceGroup` | `AzureResource` (base) | Hosts Azure resources. No child entities — `ResourceEnvironmentConfig` was removed. |
 | `KeyVault` | extends `AzureResource` | `KeyVaultEnvironmentSettings` | TPT in EF Core |
 | `RedisCache` | extends `AzureResource` | `RedisCacheEnvironmentSettings` | TPT in EF Core |
@@ -73,6 +73,15 @@ These reusable entity types are owned by multiple aggregates:
 - All `EnumValueObject<T>`-derived classes must be declared `sealed` [2026-04-16].
 - Value object properties must use `private set`.
 - Error strings must be in English.
+
+## Resource Abbreviation Overrides [2026-04-22]
+
+Two-level abbreviation override system matching NamingTemplate precedence:
+- **`ProjectResourceAbbreviation`** (`Entity<ProjectResourceAbbreviationId>`): owned by `Project`, unique `(ProjectId, ResourceType)`, cascade delete. Aggregate methods: `SetResourceAbbreviation(type, abbr)`, `RemoveResourceAbbreviation(type)`.
+- **`ResourceAbbreviationOverride`** (`Entity<ResourceAbbreviationOverrideId>`): owned by `InfrastructureConfig`, unique `(InfraConfigId, ResourceType)`, cascade delete. Aggregate methods: `SetResourceAbbreviationOverride(type, abbr)`, `RemoveResourceAbbreviationOverride(type)`.
+- **Resolution precedence** in Bicep/Pipeline generation: Config override → Project override → `ResourceAbbreviationCatalog` default.
+- Validation: regex `^[a-z0-9]+$`, max 10 chars.
+- `NamingContextReadModel` includes `ResourceAbbreviations` dictionary (already merged at read time). All 4 generator handlers + `InfrastructureConfigReadRepository.BuildNamingContext` use `MergeAbbreviations()` helper.
 - Collection initializers: prefer `= []` over `= new()`.
 - `EnumValueObject` types: use primary constructor pattern.
 

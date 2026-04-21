@@ -249,10 +249,11 @@ internal static class MainBicepAssembler
             }
 
             // ── Parent module ID references ──
-            foreach (var (paramName, parentLogicalName) in module.ParentModuleIdReferences)
+            foreach (var (paramName, (parentLogicalName, parentResourceType)) in module.ParentModuleIdReferences)
             {
                 var parentModule = modules.FirstOrDefault(m =>
-                    m.LogicalResourceName.Equals(parentLogicalName, StringComparison.OrdinalIgnoreCase));
+                    m.LogicalResourceName.Equals(parentLogicalName, StringComparison.OrdinalIgnoreCase)
+                    && m.ResourceTypeName.Equals(parentResourceType, StringComparison.OrdinalIgnoreCase));
                 if (parentModule is not null)
                 {
                     sb.AppendLine($"    {paramName}: {parentModule.ModuleName}Module.outputs.id");
@@ -267,10 +268,11 @@ internal static class MainBicepAssembler
             }
 
             // ── Parent module name references ──
-            foreach (var (paramName, parentLogicalName) in module.ParentModuleNameReferences)
+            foreach (var (paramName, (parentLogicalName, parentResourceType)) in module.ParentModuleNameReferences)
             {
                 var parentModule = modules.FirstOrDefault(m =>
-                    m.LogicalResourceName.Equals(parentLogicalName, StringComparison.OrdinalIgnoreCase));
+                    m.LogicalResourceName.Equals(parentLogicalName, StringComparison.OrdinalIgnoreCase)
+                    && m.ResourceTypeName.Equals(parentResourceType, StringComparison.OrdinalIgnoreCase));
                 if (parentModule is not null)
                 {
                     var parentNameExpr = BicepNamingHelper.BuildNamingExpression(
@@ -358,7 +360,8 @@ internal static class MainBicepAssembler
                         else
                         {
                             var kvModule = modules.FirstOrDefault(m =>
-                                m.LogicalResourceName.Equals(setting.KeyVaultResourceName, StringComparison.OrdinalIgnoreCase));
+                                m.LogicalResourceName.Equals(setting.KeyVaultResourceName, StringComparison.OrdinalIgnoreCase)
+                                && m.ResourceTypeName.Equals(AzureResourceTypes.KeyVault, StringComparison.OrdinalIgnoreCase));
                             if (kvModule is not null)
                             {
                                 sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{BicepFormattingHelper.EscapeBicepString(setting.SecretName)})'");
@@ -377,7 +380,9 @@ internal static class MainBicepAssembler
                         else
                         {
                             var sourceModule = modules.FirstOrDefault(m =>
-                                m.LogicalResourceName.Equals(setting.SourceResourceName, StringComparison.OrdinalIgnoreCase));
+                                m.LogicalResourceName.Equals(setting.SourceResourceName, StringComparison.OrdinalIgnoreCase)
+                                && (setting.SourceResourceTypeName is null
+                                    || m.ResourceTypeName.Equals(setting.SourceResourceTypeName, StringComparison.OrdinalIgnoreCase)));
                             if (sourceModule is not null)
                             {
                                 sb.AppendLine($"        value: {sourceModule.ModuleName}Module.outputs.{setting.SourceOutputName}");
@@ -420,7 +425,9 @@ internal static class MainBicepAssembler
                 && s.SourceOutputBicepExpression is not null))
         {
             var sourceModule = modules.FirstOrDefault(m =>
-                m.LogicalResourceName.Equals(export.SourceResourceName!, StringComparison.OrdinalIgnoreCase));
+                m.LogicalResourceName.Equals(export.SourceResourceName!, StringComparison.OrdinalIgnoreCase)
+                && (export.SourceResourceTypeName is null
+                    || m.ResourceTypeName.Equals(export.SourceResourceTypeName, StringComparison.OrdinalIgnoreCase)));
             if (sourceModule is not null)
             {
                 allKvSecrets.Add((
@@ -452,7 +459,8 @@ internal static class MainBicepAssembler
             foreach (var kvGroup in secretsByKv)
             {
                 var kvModule = modules.FirstOrDefault(m =>
-                    m.LogicalResourceName.Equals(kvGroup.Key, StringComparison.OrdinalIgnoreCase));
+                    m.LogicalResourceName.Equals(kvGroup.Key, StringComparison.OrdinalIgnoreCase)
+                    && m.ResourceTypeName.Equals(AzureResourceTypes.KeyVault, StringComparison.OrdinalIgnoreCase));
                 if (kvModule is null) continue;
 
                 var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(kvGroup.Key);

@@ -1628,5 +1628,32 @@
     "RBAC_SECTION_TITLE": "Problèmes de droits",
     "MISSING_ENV_TITLE": "Paramètres d'environnement manquants",
     "MISSING_ENV_SUBTITLE": "Les ressources suivantes n'ont pas été configurées pour tous les environnements définis dans le projet."
+  },
+  "ABBREVIATIONS": {
+    "TITLE": "Abréviations des ressources",
+    "SUBTITLE": "Personnalisez l'abréviation utilisée pour chaque type de ressource dans les templates de nommage (placeholder {resourceAbbr}).",
+    "EMPTY": "Aucun type de ressource n'est utilisé dans cette configuration.",
+    "COLUMN_RESOURCE_TYPE": "Type de ressource",
+    "COLUMN_DEFAULT": "Par défaut",
+    "COLUMN_CUSTOM": "Personnalisée",
+    "COLUMN_EFFECTIVE": "Effective",
+    "EDIT": "Modifier",
+    "RESET": "Réinitialiser",
+    "CUSTOMIZED": "Personnalisée",
+    "DEFAULT_VALUE": "Par défaut",
+    "EDIT_DIALOG_TITLE": "Modifier l'abréviation de la ressource",
+    "EDIT_DIALOG_RESOURCE_TYPE": "Type de ressource",
+    "EDIT_DIALOG_DEFAULT": "Abréviation par défaut",
+    "EDIT_DIALOG_CUSTOM": "Abréviation personnalisée",
+    "EDIT_DIALOG_PLACEHOLDER": "ex : kv",
+    "EDIT_DIALOG_HINT": "Alphanumérique minuscule, 10 caractères max.",
+    "EDIT_DIALOG_CANCEL": "Annuler",
+    "EDIT_DIALOG_SAVE": "Enregistrer",
+    "SAVE_ERROR": "Impossible de sauvegarder l'abréviation.",
+    "RESET_CONFIRM_TITLE": "Réinitialiser l'abréviation",
+    "RESET_CONFIRM_MESSAGE": "Êtes-vous sûr de vouloir réinitialiser l'abréviation de {{resourceType}} à sa valeur par défaut ({{defaultAbbr}}) ?",
+    "RESET_CONFIRM_YES": "Réinitialiser",
+    "RESET_CONFIRM_CANCEL": "Annuler",
+    "RESET_ERROR": "Impossible de réinitialiser l'abréviation."
   }
 }

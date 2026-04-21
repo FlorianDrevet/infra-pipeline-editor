@@ -63,7 +63,13 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 
 ## LAW Auto-Detection Fallback [2026-04-21]
 - For `Microsoft.Insights/components` and `Microsoft.App/managedEnvironments`, if the property-based `logAnalyticsWorkspaceId` GUID lookup fails, the engine auto-detects the first `Microsoft.OperationalInsights/workspaces` resource in the same config as fallback.
+- **Second fallback**: if no local LAW exists either, checks `ExistingResourceReferences` for a cross-config LAW and stores it in `ExistingResourceIdReferences` (resolved as `existing_{symbol}.id` in main.bicep).
 - Resolves BCP035 errors where `logAnalyticsWorkspaceId` (required, no default) was not being passed from `main.bicep`.
+
+## Cross-Config Existing Resource ID References [2026-04-21]
+- `GeneratedTypeModule.ExistingResourceIdReferences` maps param names to cross-config existing resource logical names.
+- `MainBicepAssembler` resolves these as `existing_{BicepIdentifier}.id` (the `.id` property of the existing resource declaration).
+- Used when a parent resource (e.g. LAW) is not in the same config but referenced as an `existing` resource.
 
 ## Bicep Syntax Pitfalls [2026-04-21]
 - **BCP124**: `@secure()` decorator only works on `object` or `string` params, NOT on `array`.
@@ -130,3 +136,23 @@ Engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
 - Applied at engine entry points: `PipelineGenerationEngine.Generate()`, `PipelineGenerationEngine.GenerateSharedTemplates()`, `AppPipelineGenerationEngine.Generate()`, `MonoRepoBicepAssembler.Assemble()`, `MonoRepoPipelineAssembler.Assemble()`, `AppPipelineYamlHelper.AppendCiHeader()`.
 - Also applied in `GenerateProjectBicepCommandHandler` when building config request keys.
 - Effect: a config named `"My Config"` → folder `My-Config/`, pipeline source `My-Config-CI`, artifact paths `My-Config/main.bicep`.
+
+## Module Reference Disambiguation [2026-04-21]
+- Multiple resources can share the same `LogicalResourceName` (e.g., "ifs" for KeyVault, SqlDatabase, ContainerAppEnvironment, ApplicationInsights).
+- `ParentModuleIdReferences` and `ParentModuleNameReferences` in `GeneratedTypeModule` now store `(string Name, string ResourceTypeName)` tuples (not plain strings).
+- `BicepGenerationEngine` builds `resourceIdToInfo` (GUID → (Name, ResourceTypeName)) using the registered generators.
+- `MainBicepAssembler` matches modules by both `LogicalResourceName` AND `ResourceTypeName` in all 6 `FirstOrDefault` lookups: ParentModuleIdRefs, ParentModuleNameRefs, output reference source, KV module, KV secrets source, KV secrets batch.
+- For app settings, `SourceResourceTypeName` on `AppSettingDefinition` is used for disambiguation (null-safe fallback to name-only match).
+- **Pitfall:** never assume `LogicalResourceName` is unique within a config — always match by (Name, ResourceTypeName).
+
+## Bicepparam Type Coercion [2026-04-22]
+- `ResourceDefinition.EnvironmentConfigs` stores all values as `string` (from DB persistence).
+- `ParameterFileAssembler.CoerceToOriginalType()` converts env-override strings to the C# type of the generator's default parameter value (`bool`, `int`, `long`, `double`) so `SerializeToBicep()` emits correct Bicep literals.
+- **Pitfall:** without coercion, `'false'` / `'0'` appear as quoted strings in `.bicepparam` → BCP033 type mismatch errors.
+
+## ContainerApp Env Vars Injection [2026-04-22]
+- `InjectContainerAppEnvVars` inserts `env: envVars` BEFORE `resources: {` (at container level), NOT after `memory:` (which is inside `ContainerResources`).
+- `ContainerResources` type only allows `cpu` and `memory` — placing `env` there triggers BCP037.
+
+## ContainerAppEnvironment Module [2026-04-22]
+- Removed unused `sku` / `SkuName` parameter from module template (not part of ARM resource properties; plan determined by workload profiles).

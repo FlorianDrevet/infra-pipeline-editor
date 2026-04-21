@@ -44,4 +44,11 @@ public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggre
     Task<Dictionary<Guid, List<string>>> GetConfiguredEnvironmentsByResourceGroupAsync(
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns the distinct Azure resource type names used across all configurations of a project.
+    /// </summary>
+    Task<List<string>> GetDistinctResourceTypesByProjectIdAsync(
+        Domain.ProjectAggregate.ValueObjects.ProjectId projectId,
+        CancellationToken cancellationToken = default);
 }

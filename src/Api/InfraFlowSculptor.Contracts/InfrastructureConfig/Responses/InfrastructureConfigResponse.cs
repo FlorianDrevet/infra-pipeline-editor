@@ -11,6 +11,7 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// </param>
 /// <param name="UseProjectNamingConventions">Whether this config inherits naming conventions from the parent project.</param>
 /// <param name="ResourceNamingTemplates">Per-resource-type naming template overrides.</param>
+/// <param name="ResourceAbbreviationOverrides">Per-resource-type abbreviation overrides for the <c>{resourceAbbr}</c> placeholder.</param>
 /// <param name="Tags">Configuration-level tags.</param>
 /// <param name="ResourceGroupCount">Number of resource groups in this configuration.</param>
 /// <param name="ResourceCount">Total number of Azure resources across all resource groups.</param>
@@ -22,6 +23,7 @@ public record InfrastructureConfigResponse(
     string? DefaultNamingTemplate,
     bool UseProjectNamingConventions,
     IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates,
+    IReadOnlyList<ResourceAbbreviationOverrideResponse> ResourceAbbreviationOverrides,
     IReadOnlyList<TagResponse> Tags,
     int ResourceGroupCount,
     int ResourceCount,

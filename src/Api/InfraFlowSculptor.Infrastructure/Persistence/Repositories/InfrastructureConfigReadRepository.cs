@@ -88,6 +88,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .Include(c => c.ResourceGroups)
                 .ThenInclude(rg => rg.Resources)
             .Include(c => c.ResourceNamingTemplates)
+            .Include(c => c.ResourceAbbreviationOverrides)
             .Include(c => c.Tags)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == configId, cancellationToken);
@@ -296,6 +297,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         // ── Load parent project for environments and naming context ─────────
         var project = await dbContext.Projects
             .Include(p => p.ResourceNamingTemplates)
+            .Include(p => p.ResourceAbbreviations)
             .Include(p => p.Tags)
             .Include(p => p.EnvironmentDefinitions)
                 .ThenInclude(e => e.Tags)
@@ -388,7 +390,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
 
             var resourceTypeName = GetResourceTypeString(targetResource);
             var simpleTypeName = GetResourceTypeName(targetResource);
-            var abbreviation = ResourceAbbreviationCatalog.GetAbbreviation(simpleTypeName);
+            var abbreviation = namingContext.ResourceAbbreviations.TryGetValue(simpleTypeName, out var overrideAbbr)
+                ? overrideAbbr
+                : ResourceAbbreviationCatalog.GetAbbreviation(simpleTypeName);
 
             crossConfigRefReadModels.Add(new CrossConfigReferenceReadModel(
                 ReferenceId: ccRef.Id.Value,
@@ -484,7 +488,10 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 project.DefaultNamingTemplate?.Value,
                 project.ResourceNamingTemplates.ToDictionary(
                     t => t.ResourceType,
-                    t => t.Template.Value));
+                    t => t.Template.Value),
+                project.ResourceAbbreviations.ToDictionary(
+                    a => a.ResourceType,
+                    a => a.Abbreviation));
         }
 
         // Otherwise, read from the config itself (if overridden)
@@ -492,7 +499,10 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             config.DefaultNamingTemplate?.Value,
             config.ResourceNamingTemplates.ToDictionary(
                 t => t.ResourceType,
-                t => t.Template.Value));
+                t => t.Template.Value),
+            config.ResourceAbbreviationOverrides.ToDictionary(
+                a => a.ResourceType,
+                a => a.Abbreviation));
     }
 
     /// <summary>

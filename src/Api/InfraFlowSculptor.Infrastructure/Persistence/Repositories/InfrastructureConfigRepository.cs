@@ -36,6 +36,7 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     {
         return await Context.InfrastructureConfigs
             .Include(c => c.ResourceNamingTemplates)
+            .Include(c => c.ResourceAbbreviationOverrides)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 

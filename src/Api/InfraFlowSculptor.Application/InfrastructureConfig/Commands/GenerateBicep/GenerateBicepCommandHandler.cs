@@ -46,6 +46,8 @@ public sealed class GenerateBicepCommandHandler(
         if (config is null)
             return Errors.InfrastructureConfig.NotFoundError(new InfrastructureConfigId(command.InfrastructureConfigId));
 
+        var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
+
         var resources = config.ResourceGroups
             .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
             {
@@ -55,7 +57,7 @@ public sealed class GenerateBicepCommandHandler(
                 ResourceGroupName = rg.Name,
                 Sku = r.Properties.GetValueOrDefault("sku", string.Empty),
                 Properties = r.Properties,
-                ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType),
+                ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType, mergedAbbreviations),
                 EnvironmentConfigs = r.EnvironmentConfigs
                     .ToDictionary(
                         ec => ec.EnvironmentName,
@@ -93,7 +95,7 @@ public sealed class GenerateBicepCommandHandler(
         {
             DefaultTemplate = config.NamingContext.DefaultTemplate,
             ResourceTemplates = config.NamingContext.ResourceTemplates,
-            ResourceAbbreviations = ResourceAbbreviationCatalog.GetAll(),
+            ResourceAbbreviations = mergedAbbreviations,
         };
 
         var roleAssignments = config.RoleAssignments
@@ -119,7 +121,7 @@ public sealed class GenerateBicepCommandHandler(
                     RoleDefinitionDescription = roleDef?.Description ?? string.Empty,
                     ServiceCategory = RoleAssignmentModuleTemplates.GetServiceCategory(targetTypeName),
                     TargetResourceTypeName = targetTypeName,
-                    TargetResourceAbbreviation = GetResourceAbbreviation(ra.TargetResourceType),
+                    TargetResourceAbbreviation = GetResourceAbbreviation(ra.TargetResourceType, namingContext.ResourceAbbreviations),
                     UserAssignedIdentityName = ra.UserAssignedIdentityName,
                     UserAssignedIdentityResourceId = ra.UserAssignedIdentityResourceId,
                     UserAssignedIdentityResourceGroupName = ra.UserAssignedIdentityResourceGroupName,
@@ -274,12 +276,33 @@ public sealed class GenerateBicepCommandHandler(
             : $"{prefix}/{fileName}";
 
     /// <summary>
-    /// Resolves the resource abbreviation from the Azure resource type string.
+    /// Resolves the resource abbreviation from the Azure resource type string,
+    /// preferring overrides from the merged abbreviation dictionary.
     /// </summary>
-    private static string GetResourceAbbreviation(string azureResourceType)
+    private static string GetResourceAbbreviation(
+        string azureResourceType,
+        IReadOnlyDictionary<string, string> mergedAbbreviations)
     {
         var typeName = AzureResourceTypes.GetFriendlyName(azureResourceType);
-        return ResourceAbbreviationCatalog.GetAbbreviation(typeName);
+        return mergedAbbreviations.TryGetValue(typeName, out var abbr)
+            ? abbr
+            : ResourceAbbreviationCatalog.GetAbbreviation(typeName);
+    }
+
+    /// <summary>
+    /// Merges the catalog defaults with user overrides.
+    /// Overrides take precedence over catalog entries.
+    /// </summary>
+    private static IReadOnlyDictionary<string, string> MergeAbbreviations(
+        IReadOnlyDictionary<string, string> overrides)
+    {
+        var merged = new Dictionary<string, string>(ResourceAbbreviationCatalog.GetAll(), StringComparer.OrdinalIgnoreCase);
+        foreach (var (key, value) in overrides)
+        {
+            merged[key] = value;
+        }
+
+        return merged;
     }
 
     /// <summary>

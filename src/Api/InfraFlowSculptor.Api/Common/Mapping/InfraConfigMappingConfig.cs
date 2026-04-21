@@ -63,6 +63,18 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.ResourceType, src => src.ResourceType)
             .Map(dest => dest.Template, src => src.Template);
 
+        // ResourceAbbreviationOverride entity -> ResourceAbbreviationOverrideResult
+        config.NewConfig<ResourceAbbreviationOverride, ResourceAbbreviationOverrideResult>()
+            .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest.ResourceType, src => src.ResourceType)
+            .Map(dest => dest.Abbreviation, src => src.Abbreviation);
+
+        // ResourceAbbreviationOverrideResult -> ResourceAbbreviationOverrideResponse
+        config.NewConfig<ResourceAbbreviationOverrideResult, ResourceAbbreviationOverrideResponse>()
+            .Map(dest => dest.Id, src => src.Id.Value.ToString())
+            .Map(dest => dest.ResourceType, src => src.ResourceType)
+            .Map(dest => dest.Abbreviation, src => src.Abbreviation);
+
         // GetInfrastructureConfigResult -> InfrastructureConfigResponse
         config.NewConfig<GetInfrastructureConfigResult, InfrastructureConfigResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
@@ -71,6 +83,7 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate)
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.ResourceAbbreviationOverrides, src => src.ResourceAbbreviationOverrides)
             .Map(dest => dest.Tags, src => src.Tags)
             .Map(dest => dest.ResourceGroupCount, src => src.ResourceGroupCount)
             .Map(dest => dest.ResourceCount, src => src.ResourceCount)
@@ -84,6 +97,7 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate != null ? src.DefaultNamingTemplate.Value : null)
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.ResourceAbbreviationOverrides, src => src.ResourceAbbreviationOverrides)
             .Map(dest => dest.Tags, src => src.Tags)
             .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferences.Count);
 
