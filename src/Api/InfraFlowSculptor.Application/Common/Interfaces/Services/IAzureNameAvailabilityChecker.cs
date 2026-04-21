@@ -1,8 +1,8 @@
 namespace InfraFlowSculptor.Application.Common.Interfaces.Services;
 
 /// <summary>
-/// Calls the Azure ARM REST API to check if a resource name is globally available
-/// (DNS-unique resources such as ContainerRegistry, StorageAccount, KeyVault, etc.).
+/// Checks whether an Azure resource name is globally available.
+/// The default implementation probes DNS (no Azure authentication required).
 /// </summary>
 public interface IAzureNameAvailabilityChecker
 {
@@ -12,8 +12,8 @@ public interface IAzureNameAvailabilityChecker
     bool Supports(string resourceType);
 
     /// <summary>
-    /// Checks whether <paramref name="name"/> is available in the given <paramref name="subscriptionId"/>.
-    /// Returns <see cref="AzureNameAvailabilityStatus.Unknown"/> when the call fails (network, auth, throttling).
+    /// Checks whether <paramref name="name"/> is available for the given resource type.
+    /// Returns <see cref="AzureNameAvailabilityStatus.Unknown"/> when the check cannot be completed.
     /// </summary>
     Task<AzureNameAvailabilityResult> CheckAsync(
         string resourceType,

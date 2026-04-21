@@ -57,7 +57,7 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddHttpContextAccessor();
 
-        services.AddHttpClient<IAzureNameAvailabilityChecker, AzureNameAvailabilityChecker>();
+        services.AddSingleton<IAzureNameAvailabilityChecker, DnsNameAvailabilityChecker>();
 
         return services;
     }
