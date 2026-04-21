@@ -2269,6 +2269,33 @@
     font-size: 0.8rem;
     margin-left: 0.5rem;
   }
+
+  &__override {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1.5px solid rgba(245, 158, 11, 0.35);
+    background: rgba(245, 158, 11, 0.08);
+    color: #b45309;
+    cursor: pointer;
+    transition: all 0.18s ease;
+
+    &:hover {
+      border-color: rgba(245, 158, 11, 0.55);
+      background: rgba(245, 158, 11, 0.14);
+      color: #92400e;
+    }
+  }
+
+  &__override-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
 }
 
 @keyframes saveBarSlideUp {

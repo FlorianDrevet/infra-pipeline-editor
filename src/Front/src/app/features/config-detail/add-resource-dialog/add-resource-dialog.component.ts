@@ -1,6 +1,7 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, switchMap, tap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -57,6 +58,8 @@ import { AzureResourceResponse } from '../../../shared/interfaces/resource-group
 import { InfraConfigService } from '../../../shared/services/infra-config.service';
 import { ProjectService } from '../../../shared/services/project.service';
 import { ProjectResourceResponse } from '../../../shared/interfaces/cross-config-reference.interface';
+import { NameAvailabilityService } from '../../../shared/services/name-availability.service';
+import { EnvironmentNameAvailabilityResponseItem } from '../../../shared/interfaces/name-availability.interface';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
@@ -298,13 +301,56 @@ export class AddResourceDialogComponent {
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
+  private readonly nameAvailabilityService = inject(NameAvailabilityService);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly step = signal<DialogStep>('type');
   protected readonly selectedType = signal<ResourceTypeEnum | null>(null);
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
   protected readonly envFormsValid = signal(true);
+
+  // ── Name Availability (live DNS check) ──
+  protected readonly nameAvailabilityChecking = signal(false);
+  protected readonly nameAvailabilityResults = signal<EnvironmentNameAvailabilityResponseItem[]>([]);
+  protected readonly nameAvailabilityOverridden = signal(false);
+
+  private static readonly NAME_AVAILABILITY_TYPES = new Set<ResourceTypeEnum>([
+    ResourceTypeEnum.ContainerRegistry,
+    ResourceTypeEnum.StorageAccount,
+    ResourceTypeEnum.KeyVault,
+    ResourceTypeEnum.RedisCache,
+    ResourceTypeEnum.AppConfiguration,
+    ResourceTypeEnum.ServiceBusNamespace,
+    ResourceTypeEnum.EventHubNamespace,
+    ResourceTypeEnum.WebApp,
+    ResourceTypeEnum.FunctionApp,
+    ResourceTypeEnum.SqlServer,
+  ]);
+
+  protected readonly isNameAvailabilityCheckEnabled = computed(
+    () => AddResourceDialogComponent.NAME_AVAILABILITY_TYPES.has(this.selectedType()!),
+  );
+
+  protected readonly nameAvailabilityOverallState = computed<'idle' | 'checking' | 'all-ok' | 'has-unavailable' | 'has-invalid' | 'unknown'>(() => {
+    if (this.nameAvailabilityChecking()) return 'checking';
+    const items = this.nameAvailabilityResults();
+    if (items.length === 0) return 'idle';
+    if (items.some(i => i.status === 'invalid')) return 'has-invalid';
+    if (items.some(i => i.status === 'unavailable')) return 'has-unavailable';
+    if (items.every(i => i.status === 'available')) return 'all-ok';
+    return 'unknown';
+  });
+
+  protected readonly isSubmitBlockedByNameAvailability = computed(() => {
+    if (!this.isNameAvailabilityCheckEnabled()) return false;
+    const state = this.nameAvailabilityOverallState();
+    if (state === 'has-unavailable' || state === 'has-invalid') {
+      return !this.nameAvailabilityOverridden();
+    }
+    return state === 'checking';
+  });
 
   // ── Deployment Mode (WebApp / FunctionApp) ──
   protected readonly deploymentMode = signal<'Code' | 'Container'>('Code');
@@ -457,6 +503,8 @@ export class AddResourceDialogComponent {
   private readonly prefilled = new Set<number>();
 
   constructor() {
+    this.wireNameAvailabilityCheck();
+
     if (this.parentResource && this.allowedChildTypes) {
       this.selectedPlanId.set(this.parentResource.id);
       this.selectedPlanName.set(this.parentResource.name);
@@ -472,6 +520,52 @@ export class AddResourceDialogComponent {
         }
       }
     }
+  }
+
+  private wireNameAvailabilityCheck(): void {
+    const ctrl = this.commonForm.get('name');
+    if (!ctrl) return;
+
+    ctrl.valueChanges
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        debounceTime(500),
+        distinctUntilChanged(),
+        filter((v): v is string => typeof v === 'string' && v.trim().length > 0),
+        tap(() => {
+          this.nameAvailabilityChecking.set(true);
+          this.nameAvailabilityResults.set([]);
+          this.nameAvailabilityOverridden.set(false);
+        }),
+        switchMap(name => {
+          const type = this.selectedType();
+          if (!type || !AddResourceDialogComponent.NAME_AVAILABILITY_TYPES.has(type)) {
+            this.nameAvailabilityChecking.set(false);
+            return EMPTY;
+          }
+          return this.nameAvailabilityService
+            .check$(type, {
+              projectId: this.data.projectId,
+              configId: this.data.configId,
+              name: name.trim(),
+            })
+            .pipe(
+              catchError(() => {
+                this.nameAvailabilityChecking.set(false);
+                this.nameAvailabilityResults.set([]);
+                return EMPTY;
+              }),
+            );
+        }),
+      )
+      .subscribe(res => {
+        this.nameAvailabilityChecking.set(false);
+        this.nameAvailabilityResults.set(res.environments ?? []);
+      });
+  }
+
+  protected overrideNameAvailability(): void {
+    this.nameAvailabilityOverridden.set(true);
   }
 
   private prefillParentFormField(type: ResourceTypeEnum): void {
@@ -811,7 +905,7 @@ export class AddResourceDialogComponent {
   }
 
   protected onNextToEnvironments(): void {
-    if (this.commonForm.invalid) return;
+    if (this.commonForm.invalid || this.isSubmitBlockedByNameAvailability()) return;
     if (!this.needsEnvironmentSettings()) {
       this.onSubmit();
       return;
@@ -973,7 +1067,7 @@ export class AddResourceDialogComponent {
   // ── Submit ──
   protected async onSubmit(): Promise<void> {
     const type = this.selectedType();
-    if (!type || this.commonForm.invalid || !this.envFormsValid()) return;
+    if (!type || this.commonForm.invalid || !this.envFormsValid() || this.isSubmitBlockedByNameAvailability()) return;
 
     this.isSubmitting.set(true);
     this.errorKey.set('');

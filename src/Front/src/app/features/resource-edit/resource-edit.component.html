@@ -2569,15 +2569,30 @@
           @if (isSaveBlockedByAcr()) {
             <span class="save-bar__warning">{{ 'RESOURCE_EDIT.ACTIONS.ACR_SAVE_BLOCKED' | translate }}</span>
           }
+          @if (isSaveBlockedByNameAvailability()) {
+            <span class="save-bar__warning">
+              @if (nameAvailabilityOverallState() === 'checking') {
+                {{ 'RESOURCE_EDIT.ACTIONS.NAME_CHECKING' | translate }}
+              } @else {
+                {{ 'RESOURCE_EDIT.ACTIONS.NAME_SAVE_BLOCKED' | translate }}
+              }
+            </span>
+          }
         </div>
         <div class="save-bar__actions">
+          @if (isSaveBlockedByNameAvailability() && nameAvailabilityOverallState() !== 'checking') {
+            <button class="save-bar__override" (click)="overrideNameAvailability()">
+              <mat-icon class="save-bar__override-icon">verified_user</mat-icon>
+              {{ 'RESOURCE_EDIT.ACTIONS.NAME_OVERRIDE' | translate }}
+            </button>
+          }
           <button class="save-bar__discard" (click)="discardChanges()">
             {{ 'RESOURCE_EDIT.ACTIONS.DISCARD' | translate }}
           </button>
           <button
             class="save-bar__save"
             (click)="onSave()"
-            [disabled]="isSaving() || generalForm.invalid || isSaveBlockedByAcr()">
+            [disabled]="isSaving() || generalForm.invalid || isSaveBlockedByAcr() || isSaveBlockedByNameAvailability()">
             @if (isSaving()) {
               <mat-spinner diameter="16" class="save-bar__spinner"></mat-spinner>
             } @else {

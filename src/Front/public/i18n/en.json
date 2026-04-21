@@ -1027,6 +1027,10 @@
       "SAVING": "Saving...",
       "UNSAVED_CHANGES": "You have unsaved changes",
       "ACR_SAVE_BLOCKED": "Cannot save: missing ACR access. Grant the required role first.",
+      "NAME_SAVE_BLOCKED": "Name unavailable — saving is blocked.",
+      "NAME_CHECKING": "Checking name availability…",
+      "NAME_OVERRIDE": "It's my resource",
+      "NAME_OVERRIDE_HINT": "If this resource is already yours, you can override the check.",
       "DISCARD": "Discard"
     },
     "FEEDBACK": {

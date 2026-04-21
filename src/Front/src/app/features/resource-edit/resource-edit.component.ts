@@ -534,6 +534,19 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     return 'unknown';
   });
 
+  /** User explicitly confirmed that the unavailable name is theirs. Reset on every new check. */
+  protected readonly nameAvailabilityOverridden = signal(false);
+
+  /** True when name availability blocks saving (unavailable/invalid/checking and not overridden). */
+  protected readonly isSaveBlockedByNameAvailability = computed(() => {
+    if (!this.isNameAvailabilityCheckEnabled()) return false;
+    const state = this.nameAvailabilityOverallState();
+    if (state === 'has-unavailable' || state === 'has-invalid') {
+      return !this.nameAvailabilityOverridden();
+    }
+    return state === 'checking';
+  });
+
   /** UI state machine for ACR/UAI flow: idle | checking | ok | uai-missing-role | no-uai */
   protected readonly acrUaiState = computed(() => {
     if (this.acrAccessChecking()) return 'checking' as const;
@@ -556,7 +569,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   });
 
   // ─── Tab Warning Badges ───
-  protected readonly generalTabHasWarning = computed(() => this.isSaveBlockedByAcr());
+  protected readonly generalTabHasWarning = computed(() => this.isSaveBlockedByAcr() || this.isSaveBlockedByNameAvailability());
 
   protected readonly appSettingsTabHasWarning = computed(() => this.kvMissingRoleEntries().length > 0);
 
@@ -1206,8 +1219,13 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** User confirms the unavailable name is theirs and overrides the save block. */
+  protected overrideNameAvailability(): void {
+    this.nameAvailabilityOverridden.set(true);
+  }
+
   protected async onSave(): Promise<void> {
-    if (this.generalForm.invalid || this.isSaving() || this.isSaveBlockedByAcr()) return;
+    if (this.generalForm.invalid || this.isSaving() || this.isSaveBlockedByAcr() || this.isSaveBlockedByNameAvailability()) return;
 
     this.isSaving.set(true);
     this.saveError.set('');
@@ -1440,6 +1458,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         tap(() => {
           this.nameAvailabilityChecking.set(true);
           this.nameAvailabilityResults.set([]);
+          this.nameAvailabilityOverridden.set(false);
         }),
         switchMap(name => {
           const projectId = this.config()?.projectId;
