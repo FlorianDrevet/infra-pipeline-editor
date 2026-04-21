@@ -259,6 +259,13 @@ internal static class MainBicepAssembler
                 }
             }
 
+            // ── Cross-config existing resource ID references ──
+            foreach (var (paramName, existingResourceName) in module.ExistingResourceIdReferences)
+            {
+                var existingSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(existingResourceName)}";
+                sb.AppendLine($"    {paramName}: {existingSymbol}.id");
+            }
+
             // ── Parent module name references ──
             foreach (var (paramName, parentLogicalName) in module.ParentModuleNameReferences)
             {

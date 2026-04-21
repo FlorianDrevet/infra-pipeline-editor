@@ -84,6 +84,15 @@ public sealed record GeneratedTypeModule
     public IReadOnlyDictionary<string, string> ParentModuleNameReferences { get; init; } =
         new Dictionary<string, string>();
 
+    /// <summary>
+    /// Maps a Bicep parameter name in this module to the logical name of a cross-configuration
+    /// existing resource whose <c>.id</c> property should be passed.
+    /// Example: <c>"logAnalyticsWorkspaceId" → "ifs"</c> generates
+    /// <c>logAnalyticsWorkspaceId: existing_ifs.id</c> in <c>main.bicep</c>.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ExistingResourceIdReferences { get; init; } =
+        new Dictionary<string, string>();
+
     private static string NormalizePrimaryModuleFileName(string moduleFileName)
     {
         if (string.IsNullOrWhiteSpace(moduleFileName))

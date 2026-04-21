@@ -239,6 +239,7 @@ public sealed class BicepGenerationEngine
             // ── Resolve parent module references (FK cross-resource links) ──
             var parentModuleIdRefs = new Dictionary<string, string>();
             var parentModuleNameRefs = new Dictionary<string, string>();
+            var existingResourceIdRefs = new Dictionary<string, string>();
 
             // appServicePlanId: WebApp and FunctionApp → AppServicePlan module outputs.id
             if (resource.Properties.TryGetValue("appServicePlanId", out var aspIdStr)
@@ -273,6 +274,16 @@ public sealed class BicepGenerationEngine
                 {
                     parentModuleIdRefs["logAnalyticsWorkspaceId"] = fallbackLaw.Name;
                 }
+                else
+                {
+                    // Second fallback: cross-configuration existing LAW reference
+                    var existingLaw = request.ExistingResourceReferences.FirstOrDefault(r =>
+                        r.ResourceType.Equals("Microsoft.OperationalInsights/workspaces", StringComparison.OrdinalIgnoreCase));
+                    if (existingLaw is not null)
+                    {
+                        existingResourceIdRefs["logAnalyticsWorkspaceId"] = existingLaw.ResourceName;
+                    }
+                }
             }
 
             // sqlServerId: SqlDatabase → SqlServer module computed name expression
@@ -297,6 +308,7 @@ public sealed class BicepGenerationEngine
                     : module.ModuleTypesBicepContent,
                 ParentModuleIdReferences = parentModuleIdRefs,
                 ParentModuleNameReferences = parentModuleNameRefs,
+                ExistingResourceIdReferences = existingResourceIdRefs,
             });
         }
 
