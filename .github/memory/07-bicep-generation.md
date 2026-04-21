@@ -148,6 +148,10 @@ Engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
 ## Bicepparam Type Coercion [2026-04-22]
 - `ResourceDefinition.EnvironmentConfigs` stores all values as `string` (from DB persistence).
 - `ParameterFileAssembler.CoerceToOriginalType()` converts env-override strings to the C# type of the generator's default parameter value (`bool`, `int`, `long`, `double`) so `SerializeToBicep()` emits correct Bicep literals.
+
+## Storage Companion dependsOn [2026-04-21]
+- `StorageAccountCompanionHelper.AppendStorageAccountCompanionModule()` now emits `dependsOn: [ {moduleName}Module ]` on every companion module (blobs, queues, tables).
+- Prevents ARM deployment race condition where the companion module (e.g. blob containers) deploys before the parent Storage Account exists, causing `Microsoft.Storage/storageAccounts/{name} not found`.
 - **Pitfall:** without coercion, `'false'` / `'0'` appear as quoted strings in `.bicepparam` → BCP033 type mismatch errors.
 
 ## ContainerApp Env Vars Injection [2026-04-22]

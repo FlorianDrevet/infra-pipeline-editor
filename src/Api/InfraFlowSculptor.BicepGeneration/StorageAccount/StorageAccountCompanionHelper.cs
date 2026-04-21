@@ -193,6 +193,9 @@ internal static class StorageAccountCompanionHelper
         }
 
         sb.AppendLine("  }");
+        sb.AppendLine($"  dependsOn: [");
+        sb.AppendLine($"    {module.ModuleName}Module");
+        sb.AppendLine("  ]");
         sb.AppendLine("}");
         sb.AppendLine();
     }
