@@ -224,12 +224,31 @@ export class ProjectDetailComponent implements OnInit {
     for (const [configName, files] of Object.entries(result.configFileUris)) {
       nodes.push({ kind: 'folder', key: configName, name: `${configName}/`, folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
       for (const [fileName, uri] of Object.entries(files)) {
-        const type: BicepFileType =
-          fileName === 'main.bicep' ? 'entry-point'
-          : fileName.endsWith('.bicepparam') ? 'params'
-          : fileName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
-          : 'generic';
-        nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: fileName.split('/').at(-1)!, type, uri: `${configName}/${fileName}`, depth: 1, parentFolderKey: configName } satisfies BicepFileNode);
+        const parts = fileName.split('/');
+        if (parts.length > 1) {
+          // File is nested (e.g. "parameters/main.dev.bicepparam") — create intermediate folder nodes.
+          let parentKey = configName;
+          for (let i = 0; i < parts.length - 1; i++) {
+            const folderKey = `${configName}/${parts.slice(0, i + 1).join('/')}`;
+            if (!nodes.some(n => n.kind === 'folder' && n.key === folderKey)) {
+              nodes.push({ kind: 'folder', key: folderKey, name: `${parts[i]}/`, folderIcon: 'folder', depth: i + 1, parentFolderKey: parentKey } satisfies BicepFolderNode);
+            }
+            parentKey = folderKey;
+          }
+          const displayName = parts[parts.length - 1];
+          const type: BicepFileType =
+            displayName.endsWith('.bicepparam') ? 'params'
+            : displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
+            : 'generic';
+          nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName, type, uri: `${configName}/${fileName}`, depth: parts.length, parentFolderKey: parentKey } satisfies BicepFileNode);
+        } else {
+          const type: BicepFileType =
+            fileName === 'main.bicep' ? 'entry-point'
+            : fileName.endsWith('.bicepparam') ? 'params'
+            : fileName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
+            : 'generic';
+          nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: fileName, type, uri: `${configName}/${fileName}`, depth: 1, parentFolderKey: configName } satisfies BicepFileNode);
+        }
       }
     }
 
