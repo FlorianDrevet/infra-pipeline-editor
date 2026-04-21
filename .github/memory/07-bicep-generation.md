@@ -55,6 +55,7 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - `MainBicepAssembler`: emits `@secure()` + `param {moduleName}{Capitalize(secureParam)} string` in declarations, and passes them in module call blocks.
 - `ParameterFileAssembler`: emits placeholder `param {moduleName}{Capitalize(secureParam)} = ''` per env file.
 - Generators opt-in by adding to `SecureParameters` list in their `GeneratedTypeModule` return.
+- **Pipeline override [2026-04-21]**: `GenerationRequest.SecureParameterOverrides` carries the full Bicep param names (e.g. `sqlServerAdministratorLoginPassword`). `PipelineGenerationEngine.BuildOverrideParameters()` appends `-{paramName} $({paramName})` to the release pipeline's `overrideParameters`. Both `GeneratePipelineCommandHandler` and `GenerateProjectPipelineCommandHandler` derive them from registered `IResourceTypeBicepGenerator` instances. User must define matching secret pipeline variables in Azure DevOps.
 
 ## Output Injection Symbol Validation [2026-04-21]
 - `InjectOutputDeclarations` in `BicepGenerationEngine` now validates that the root resource symbol in a Bicep output expression actually exists in the target module before injection.

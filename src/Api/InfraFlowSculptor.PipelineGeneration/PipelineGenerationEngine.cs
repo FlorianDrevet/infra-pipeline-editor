@@ -209,8 +209,8 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine($"                  templateFile: $(Pipeline.Workspace)/ci/drop/{configName}/main.bicep");
         sb.AppendLine($"                  templateParametersFile: $(Pipeline.Workspace)/ci/drop/{configName}/parameters/main.${{{{environment}}}}.bicepparam");
 
-        // Emit overrideParameters from variable group mappings
-        var overrideParams = BuildOverrideParameters(request.PipelineVariableGroups);
+        // Emit overrideParameters from variable group mappings + secure parameters
+        var overrideParams = BuildOverrideParameters(request.PipelineVariableGroups, request.SecureParameterOverrides);
         if (!string.IsNullOrEmpty(overrideParams))
         {
             sb.AppendLine($"                  overrideParameters: {overrideParams}");
@@ -498,20 +498,25 @@ public sealed class PipelineGenerationEngine
     }
 
     /// <summary>
-    /// Builds the overrideParameters string from all variable group mappings.
-    /// Format: <c>-bicepParam $(PIPELINE_VAR) -bicepParam2 $(PIPELINE_VAR2)</c>
+    /// Builds the overrideParameters string from variable group mappings and secure parameter overrides.
+    /// Format: <c>-bicepParam $(PIPELINE_VAR) -secureParam $(secureParam)</c>
     /// </summary>
     private static string BuildOverrideParameters(
-        IReadOnlyList<GenerationCore.Models.PipelineVariableGroupDefinition> variableGroups)
+        IReadOnlyList<GenerationCore.Models.PipelineVariableGroupDefinition> variableGroups,
+        IReadOnlyList<string> secureParameterOverrides)
     {
-        var allMappings = variableGroups
-            .SelectMany(g => g.Mappings)
-            .ToList();
+        var parts = new List<string>();
 
-        if (allMappings.Count == 0)
-            return string.Empty;
+        parts.AddRange(
+            variableGroups
+                .SelectMany(g => g.Mappings)
+                .Select(m => $"-{m.BicepParameterName} $({m.PipelineVariableName})"));
 
-        return string.Join(" ", allMappings.Select(m => $"-{m.BicepParameterName} $({m.PipelineVariableName})"));
+        parts.AddRange(
+            secureParameterOverrides
+                .Select(p => $"-{p} $({p})"));
+
+        return parts.Count == 0 ? string.Empty : string.Join(" ", parts);
     }
 
     private static string GenerateSharedDeployJob(

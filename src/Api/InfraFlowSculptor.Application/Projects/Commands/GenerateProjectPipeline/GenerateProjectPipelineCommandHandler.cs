@@ -4,6 +4,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
+using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -23,6 +24,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
     IInfrastructureConfigReadRepository configReadRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     AppPipelineGenerationEngine appPipelineGenerationEngine,
+    IEnumerable<IResourceTypeBicepGenerator> bicepGenerators,
     IContainerAppRepository containerAppRepository,
     IWebAppRepository webAppRepository,
     IFunctionAppRepository functionAppRepository,
@@ -62,7 +64,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
 
         foreach (var config in configs)
         {
-            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, projectWithGit ?? project);
+            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, projectWithGit ?? project, bicepGenerators);
             var result = pipelineGenerationEngine.Generate(generationRequest, config.Name, isMonoRepo: true);
 
             // Generate app pipelines for compute resources in this config
@@ -139,7 +141,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
     private static GenerationRequest BuildGenerationRequest(
         InfrastructureConfigReadModel config,
         List<Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup> projectVariableGroups,
-        Domain.ProjectAggregate.Project? project)
+        Domain.ProjectAggregate.Project? project,
+        IEnumerable<IResourceTypeBicepGenerator> generators)
     {
         var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
 
@@ -225,6 +228,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             AppSettings = [],
             ExistingResourceReferences = [],
             PipelineVariableGroups = pipelineVariableGroups,
+            SecureParameterOverrides = DeriveSecureParameterOverrides(resources, generators),
             AgentPoolName = project?.AgentPoolName,
             BicepBasePath = project?.GitRepositoryConfiguration?.BasePath,
         };
@@ -250,6 +254,31 @@ public sealed class GenerateProjectPipelineCommandHandler(
         }
 
         return merged;
+    }
+
+    /// <summary>
+    /// Derives full Bicep parameter names for secure parameters across all resources,
+    /// so the release pipeline can override them from secret pipeline variables.
+    /// </summary>
+    private static List<string> DeriveSecureParameterOverrides(
+        IEnumerable<ResourceDefinition> resources,
+        IEnumerable<IResourceTypeBicepGenerator> generators)
+    {
+        var overrides = new List<string>();
+        foreach (var resource in resources)
+        {
+            var generator = generators.FirstOrDefault(g => g.ResourceType == resource.Type);
+            if (generator is null)
+                continue;
+
+            var module = generator.Generate(resource);
+            foreach (var secureParam in module.SecureParameters)
+            {
+                overrides.Add($"{module.ModuleName}{char.ToUpperInvariant(secureParam[0])}{secureParam[1..]}");
+            }
+        }
+
+        return overrides;
     }
 
     /// <summary>

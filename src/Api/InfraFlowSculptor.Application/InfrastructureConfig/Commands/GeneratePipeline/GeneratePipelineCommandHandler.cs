@@ -3,6 +3,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -21,6 +22,7 @@ public sealed class GeneratePipelineCommandHandler(
     IProjectRepository projectRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     AppPipelineGenerationEngine appPipelineGenerationEngine,
+    IEnumerable<IResourceTypeBicepGenerator> bicepGenerators,
     IContainerAppRepository containerAppRepository,
     IWebAppRepository webAppRepository,
     IFunctionAppRepository functionAppRepository,
@@ -127,6 +129,7 @@ public sealed class GeneratePipelineCommandHandler(
             AppSettings = [],
             ExistingResourceReferences = [],
             PipelineVariableGroups = projectVariableGroups,
+            SecureParameterOverrides = DeriveSecureParameterOverrides(resources, bicepGenerators),
             AgentPoolName = project?.AgentPoolName,
             BicepBasePath = projectWithGit?.GitRepositoryConfiguration?.BasePath,
         };
@@ -340,5 +343,30 @@ public sealed class GeneratePipelineCommandHandler(
         }
 
         return merged;
+    }
+
+    /// <summary>
+    /// Derives full Bicep parameter names for secure parameters across all resources,
+    /// so the release pipeline can override them from secret pipeline variables.
+    /// </summary>
+    private static List<string> DeriveSecureParameterOverrides(
+        IEnumerable<ResourceDefinition> resources,
+        IEnumerable<IResourceTypeBicepGenerator> generators)
+    {
+        var overrides = new List<string>();
+        foreach (var resource in resources)
+        {
+            var generator = generators.FirstOrDefault(g => g.ResourceType == resource.Type);
+            if (generator is null)
+                continue;
+
+            var module = generator.Generate(resource);
+            foreach (var secureParam in module.SecureParameters)
+            {
+                overrides.Add($"{module.ModuleName}{char.ToUpperInvariant(secureParam[0])}{secureParam[1..]}");
+            }
+        }
+
+        return overrides;
     }
 }
