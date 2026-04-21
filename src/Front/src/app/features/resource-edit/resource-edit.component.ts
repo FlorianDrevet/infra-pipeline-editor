@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { EMPTY, Subscription, catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -52,6 +53,8 @@ import { CosmosDbService } from '../../shared/services/cosmos-db.service';
 import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
 import { ContainerRegistryService } from '../../shared/services/container-registry.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
+import { NameAvailabilityService } from '../../shared/services/name-availability.service';
+import { EnvironmentNameAvailabilityResponseItem } from '../../shared/interfaces/name-availability.interface';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse, RoleAssignmentImpactResponse, ACR_PULL_ROLE_DEFINITION_ID } from '../../shared/interfaces/role-assignment.interface';
@@ -340,6 +343,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly appSettingService = inject(AppSettingService);
   private readonly configKeyService = inject(AppConfigurationKeyService);
+  private readonly nameAvailabilityService = inject(NameAvailabilityService);
+  private readonly destroyRef = inject(DestroyRef);
 
   // ─── Route params ───
   protected configId = '';
@@ -478,6 +483,27 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly acrAssignedUaiName = signal<string | null>(null);
   protected readonly acrHasUai = signal(false);
   protected readonly acrSelectedUaiId = signal<string | null>(null);
+
+  // ─── Name Availability (live Azure check) ───
+  protected readonly nameAvailabilityChecking = signal(false);
+  protected readonly nameAvailabilityResults = signal<EnvironmentNameAvailabilityResponseItem[]>([]);
+  protected readonly nameAvailabilitySupported = signal<boolean | null>(null);
+
+  /** True only for resource types where backend may run the Azure ARM check. */
+  protected readonly isNameAvailabilityCheckEnabled = computed(
+    () => this.resourceType === 'ContainerRegistry',
+  );
+
+  /** Aggregated badge state derived from per-env results. */
+  protected readonly nameAvailabilityOverallState = computed<'idle' | 'checking' | 'all-ok' | 'has-unavailable' | 'has-invalid' | 'unknown'>(() => {
+    if (this.nameAvailabilityChecking()) return 'checking';
+    const items = this.nameAvailabilityResults();
+    if (items.length === 0) return 'idle';
+    if (items.some(i => i.status === 'invalid')) return 'has-invalid';
+    if (items.some(i => i.status === 'unavailable')) return 'has-unavailable';
+    if (items.every(i => i.status === 'available')) return 'all-ok';
+    return 'unknown';
+  });
 
   /** UI state machine for ACR/UAI flow: idle | checking | ok | uai-missing-role | no-uai */
   protected readonly acrUaiState = computed(() => {
@@ -1337,6 +1363,57 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         ef.form.valueChanges.subscribe(() => this.formsDirty.set(true))
       );
     }
+
+    this.wireNameAvailabilityCheck();
+  }
+
+  private wireNameAvailabilityCheck(): void {
+    if (!this.isNameAvailabilityCheckEnabled()) return;
+
+    const ctrl = this.generalForm.get('name');
+    if (!ctrl) return;
+
+    // Reset previous state on rebuild
+    this.nameAvailabilityChecking.set(false);
+    this.nameAvailabilityResults.set([]);
+    this.nameAvailabilitySupported.set(null);
+
+    const sub = ctrl.valueChanges
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        debounceTime(500),
+        distinctUntilChanged(),
+        filter((v): v is string => typeof v === 'string' && v.trim().length > 0),
+        tap(() => {
+          this.nameAvailabilityChecking.set(true);
+          this.nameAvailabilityResults.set([]);
+        }),
+        switchMap(name => {
+          const projectId = this.config()?.projectId;
+          if (!projectId) return EMPTY;
+          return this.nameAvailabilityService
+            .check$(this.resourceType, {
+              projectId,
+              configId: this.configId,
+              name: name.trim(),
+            })
+            .pipe(
+              catchError(() => {
+                this.nameAvailabilityChecking.set(false);
+                this.nameAvailabilityResults.set([]);
+                this.nameAvailabilitySupported.set(null);
+                return EMPTY;
+              }),
+            );
+        }),
+      )
+      .subscribe(res => {
+        this.nameAvailabilityChecking.set(false);
+        this.nameAvailabilityResults.set(res.environments ?? []);
+        this.nameAvailabilitySupported.set(res.supported);
+      });
+
+    this.formSubscriptions.push(sub);
   }
 
   protected discardChanges(): void {

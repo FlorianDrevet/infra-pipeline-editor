@@ -59,6 +59,16 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - Both `SetResourceNamingTemplateCommandValidator` (InfraConfig) and `SetProjectResourceNamingTemplateCommandValidator` (Project) use the resource-type-aware validation. Error messages include the specific allowed chars description.
 - ContainerRegistry and StorageAccount have `RecommendedTemplate: "{name}{resourceAbbr}{envShort}"` (no separators).
 
+### Live Name Availability Check [2026-04-20]
+- Endpoint: `POST /naming/check-availability/{resourceType}` with body `{ projectId, configId?, name }` → response `{ resourceType, rawName, supported, environments[] }` where each env item has `{ environmentName, environmentShortName, subscriptionId, generatedName, appliedTemplate, status, reason?, message? }`. Status union: `available | unavailable | unknown | invalid`.
+- `IResourceNameResolver` (`Application/Common/Services/ResourceNameResolver.cs`): applies template precedence (config-resource-override > project-resource-override > config-default > project-default > literal `{name}`); config templates only used when `configId` is provided AND `UseProjectNamingConventions == false`. Substitutes placeholders with Regex (IgnoreCase + Compiled, 250 ms timeout).
+- `IAzureNameAvailabilityChecker` (`Infrastructure/Services/AzureNameAvailability/`): typed `HttpClient` + `DefaultAzureCredential` (scope `https://management.azure.com/.default`). Strategy dictionary keyed by resource type — currently only `ContainerRegistry` (api-version `2023-07-01`, ARM type `Microsoft.ContainerRegistry/registries`). Returns `Unknown` (does NOT throw) on auth/network/throttling failure.
+- Handler `CheckResourceNameAvailabilityQueryHandler`: verifies project read access, resolves names per env, validates each generated name against `AzureNamingConstraints.GetConstraint(resourceType)` (length + InvalidStaticCharsRegex) BEFORE the ARM call. Status `"invalid"` short-circuits ARM (no HTTP call).
+- DI: `services.AddScoped<IResourceNameResolver, ResourceNameResolver>()` (Application) + `services.AddHttpClient<IAzureNameAvailabilityChecker, AzureNameAvailabilityChecker>()` (Infrastructure).
+- Frontend: `NameAvailabilityService.check$()` + `resource-edit.component` debounced (500 ms) `switchMap` on `name` valueChanges, gated by `isNameAvailabilityCheckEnabled` (currently `resourceType === 'ContainerRegistry'`). Per-env panel reuses `.acr-inline-status` visual baseline + new `.name-availability-status` / `.name-availability-list` SCSS classes.
+- i18n keys: `RESOURCE_EDIT.NAME_AVAILABILITY.{CHECKING,ALL_AVAILABLE,SOME_UNAVAILABLE,SOME_INVALID,UNKNOWN}` (en + fr).
+- To add a new resource type: extend the strategy dictionary in `AzureNameAvailabilityChecker` AND broaden the frontend `isNameAvailabilityCheckEnabled` computed.
+
 ## Application Pipeline Generation [2026-04-04]
 
 Engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:

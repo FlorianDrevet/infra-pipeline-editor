@@ -688,7 +688,12 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("      deploymentOutputs: 'armOutputs'");
         sb.AppendLine();
         sb.AppendLine("  - pwsh: |");
-        sb.AppendLine("      $outputs = '$(armOutputs)' | ConvertFrom-Json");
+        sb.AppendLine("      $raw = '$(armOutputs)'");
+        sb.AppendLine("      if ([string]::IsNullOrWhiteSpace($raw) -or $raw -eq '$(armOutputs)') {");
+        sb.AppendLine("        Write-Host 'No ARM deployment outputs to parse — skipping.'");
+        sb.AppendLine("        return");
+        sb.AppendLine("      }");
+        sb.AppendLine("      $outputs = $raw | ConvertFrom-Json");
         sb.AppendLine("      foreach ($key in $outputs.PSObject.Properties.Name) {");
         sb.AppendLine("        $value = $outputs.$key.value");
         sb.AppendLine("        Write-Host \"##vso[task.setvariable variable=$key;isOutput=true]$value\"");

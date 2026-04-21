@@ -16,6 +16,7 @@ using InfraFlowSculptor.Infrastructure.Extensions;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 using InfraFlowSculptor.Infrastructure.Services;
+using InfraFlowSculptor.Infrastructure.Services.AzureNameAvailability;
 using InfraFlowSculptor.Infrastructure.Services.BlobService;
 using InfraFlowSculptor.Infrastructure.Services.GitProviders;
 using InfraFlowSculptor.Infrastructure.Services.KeyVault;
@@ -55,6 +56,8 @@ public static class DependencyInjection
         
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddHttpContextAccessor();
+
+        services.AddHttpClient<IAzureNameAvailabilityChecker, AzureNameAvailabilityChecker>();
 
         return services;
     }

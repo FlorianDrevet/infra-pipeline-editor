@@ -1,6 +1,8 @@
 using System.Reflection;
 using FluentValidation;
 using InfraFlowSculptor.Application.Common.Interfaces;
+using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Application.Common.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics.Rules;
@@ -35,6 +37,9 @@ public static class DependencyInjection
         // Access control services
         services.AddScoped<IInfraConfigAccessService, InfraConfigAccessService>();
         services.AddScoped<IProjectAccessService, ProjectAccessService>();
+
+        // Resource naming
+        services.AddScoped<IResourceNameResolver, ResourceNameResolver>();
 
         // Role assignment domain services
         services.AddScoped<IRoleAssignmentDomainService, RoleAssignmentDomainService>();

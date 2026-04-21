@@ -76,7 +76,7 @@ internal static class StorageAccountCompanionHelper
             return;
         }
 
-        sb.AppendLine($"param {parameterName} = ");
+        sb.Append($"param {parameterName} = ");
         foreach (var line in RenderCorsRules(corsRules))
         {
             sb.AppendLine(line);
@@ -139,7 +139,7 @@ internal static class StorageAccountCompanionHelper
             return;
         }
 
-        sb.AppendLine($"param {parameterName} = ");
+        sb.Append($"param {parameterName} = ");
         foreach (var line in RenderLifecycleRules(rules))
         {
             sb.AppendLine(line);

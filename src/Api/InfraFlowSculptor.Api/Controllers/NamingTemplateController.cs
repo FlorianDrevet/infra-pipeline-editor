@@ -1,10 +1,12 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveResourceNamingTemplate;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetDefaultNamingTemplate;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetResourceNamingTemplate;
+using InfraFlowSculptor.Application.InfrastructureConfig.Queries.CheckResourceNameAvailability;
 using MediatR;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -96,6 +98,48 @@ public static class NamingTemplateController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            var nameCheck = endpoints.MapGroup("/naming")
+                .WithTags("Naming Templates");
+
+            nameCheck.MapPost("/check-availability/{resourceType}",
+                    async ([FromRoute] string resourceType,
+                           CheckResourceNameAvailabilityRequest request,
+                           IMediator mediator,
+                           IMapper mapper) =>
+                    {
+                        if (!Guid.TryParse(request.ProjectId, out var projectGuid))
+                            return Results.BadRequest("Invalid ProjectId");
+
+                        InfrastructureConfigId? configId = null;
+                        if (!string.IsNullOrWhiteSpace(request.ConfigId))
+                        {
+                            if (!Guid.TryParse(request.ConfigId, out var configGuid))
+                                return Results.BadRequest("Invalid ConfigId");
+                            configId = new InfrastructureConfigId(configGuid);
+                        }
+
+                        var query = new CheckResourceNameAvailabilityQuery(
+                            new ProjectId(projectGuid),
+                            configId,
+                            resourceType,
+                            request.Name);
+
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            ok => Results.Ok(mapper.Map<CheckResourceNameAvailabilityResponse>(ok)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("CheckResourceNameAvailability")
+                .WithSummary("Check Azure resource name availability across all environments")
+                .WithDescription("Applies the project/config naming templates per environment, validates the generated names against Azure naming rules, and (for supported types like ContainerRegistry) calls Azure to check global DNS availability.")
+                .Produces<CheckResourceNameAvailabilityResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden)
+                .ProducesProblem(StatusCodes.Status404NotFound);
         });
     }
 }

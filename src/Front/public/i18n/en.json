@@ -1000,6 +1000,13 @@
     }
   },
   "RESOURCE_EDIT": {
+    "NAME_AVAILABILITY": {
+      "CHECKING": "Checking name availability on Azure\u2026",
+      "STATUS_AVAILABLE": "Available",
+      "STATUS_UNAVAILABLE": "Already in use",
+      "STATUS_INVALID": "Invalid name",
+      "STATUS_UNKNOWN": "Unable to verify"
+    },
     "STATE": {
       "LOADING_TITLE": "Loading resource...",
       "LOADING_DESCRIPTION": "Fetching resource details and configuration."

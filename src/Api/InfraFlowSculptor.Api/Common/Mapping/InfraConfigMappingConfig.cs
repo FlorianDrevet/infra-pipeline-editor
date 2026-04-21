@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBicep;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
+using InfraFlowSculptor.Application.InfrastructureConfig.Queries.CheckResourceNameAvailability;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetConfigDiagnostics;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossConfigReferences;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListIncomingCrossConfigReferences;
@@ -126,5 +127,9 @@ public sealed class InfraConfigMappingConfig : IRegister
 
         // GenerateBicepResult -> GenerateBicepResponse
         config.NewConfig<GenerateBicepResult, GenerateBicepResponse>();
+
+        // CheckResourceNameAvailability mappings
+        config.NewConfig<EnvironmentNameAvailabilityResult, EnvironmentNameAvailabilityResponseItem>();
+        config.NewConfig<CheckResourceNameAvailabilityResult, CheckResourceNameAvailabilityResponse>();
     }
 }

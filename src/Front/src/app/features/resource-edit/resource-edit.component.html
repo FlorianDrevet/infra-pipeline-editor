@@ -84,6 +84,43 @@
                   </mat-select>
                 </mat-form-field>
               </div>
+
+              @if (isNameAvailabilityCheckEnabled()) {
+                @if (nameAvailabilityOverallState() === 'checking') {
+                  <div class="name-availability-inline name-availability-inline--checking">
+                    <mat-spinner diameter="14"></mat-spinner>
+                    <span>{{ 'RESOURCE_EDIT.NAME_AVAILABILITY.CHECKING' | translate }}</span>
+                  </div>
+                }
+
+                @if (nameAvailabilityResults().length > 0) {
+                  <div class="name-availability-panel">
+                    @for (env of nameAvailabilityResults(); track env.environmentShortName) {
+                      <div class="name-availability-env name-availability-env--{{ env.status }}">
+                        <mat-icon class="name-availability-env__icon">
+                          @switch (env.status) {
+                            @case ('available') { check_circle }
+                            @case ('unavailable') { error }
+                            @case ('invalid') { warning }
+                            @default { help }
+                          }
+                        </mat-icon>
+                        <span class="name-availability-env__name">{{ env.environmentName }}</span>
+                        <span class="name-availability-env__chip">{{ env.environmentShortName }}</span>
+                        <code class="name-availability-env__generated">{{ env.generatedName }}</code>
+                        <span class="name-availability-env__message">
+                          @switch (env.status) {
+                            @case ('available') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_AVAILABLE' | translate }} }
+                            @case ('unavailable') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_UNAVAILABLE' | translate }} }
+                            @case ('invalid') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_INVALID' | translate }} }
+                            @default { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_UNKNOWN' | translate }} }
+                          }
+                        </span>
+                      </div>
+                    }
+                  </div>
+                }
+              }
             </div>
 
             <!-- KeyVault-specific fields -->
