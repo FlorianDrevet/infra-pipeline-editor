@@ -2859,6 +2859,7 @@
     height: 1rem;
 
     .name-availability-env--available & { color: #2e7d32; }
+    .name-availability-env--current & { color: #1565c0; }
     .name-availability-env--unavailable & { color: #c62828; }
     .name-availability-env--invalid & { color: #b8770a; }
     .name-availability-env--unknown & { color: rgba(16, 52, 84, 0.5); }

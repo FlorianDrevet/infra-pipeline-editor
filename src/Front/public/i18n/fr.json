@@ -1017,6 +1017,7 @@
       "CHECKING": "V\u00e9rification de la disponibilit\u00e9 du nom sur Azure\u2026",
       "STATUS_AVAILABLE": "Disponible",
       "STATUS_UNAVAILABLE": "D\u00e9j\u00e0 utilis\u00e9",
+      "STATUS_CURRENT": "D\u00e9j\u00e0 configur\u00e9",
       "STATUS_INVALID": "Nom invalide",
       "STATUS_UNKNOWN": "V\u00e9rification impossible"
     },

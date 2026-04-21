@@ -522,13 +522,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   );
 
   /** Aggregated badge state derived from per-env results. */
-  protected readonly nameAvailabilityOverallState = computed<'idle' | 'checking' | 'all-ok' | 'has-unavailable' | 'has-invalid' | 'unknown'>(() => {
+  protected readonly nameAvailabilityOverallState = computed<'idle' | 'checking' | 'all-ok' | 'has-unavailable' | 'has-invalid' | 'all-current' | 'unknown'>(() => {
     if (this.nameAvailabilityChecking()) return 'checking';
     const items = this.nameAvailabilityResults();
     if (items.length === 0) return 'idle';
     if (items.some(i => i.status === 'invalid')) return 'has-invalid';
     if (items.some(i => i.status === 'unavailable')) return 'has-unavailable';
-    if (items.every(i => i.status === 'available')) return 'all-ok';
+    if (items.every(i => i.status === 'available' || i.status === 'current')) {
+      return items.every(i => i.status === 'current') ? 'all-current' : 'all-ok';
+    }
     return 'unknown';
   });
 
@@ -1447,6 +1449,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
               projectId,
               configId: this.configId,
               name: name.trim(),
+              currentPersistedName: this.resource()?.name ?? null,
             })
             .pipe(
               catchError(() => {

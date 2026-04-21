@@ -176,7 +176,8 @@ public static class NamingTemplateController
                             new ProjectId(projectGuid),
                             configId,
                             resourceType,
-                            request.Name);
+                            request.Name,
+                            request.CurrentPersistedName);
 
                         var result = await mediator.Send(query);
 

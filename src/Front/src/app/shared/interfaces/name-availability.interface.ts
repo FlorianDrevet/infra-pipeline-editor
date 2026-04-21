@@ -1,4 +1,4 @@
-export type NameAvailabilityStatus = 'available' | 'unavailable' | 'unknown' | 'invalid';
+export type NameAvailabilityStatus = 'available' | 'unavailable' | 'unknown' | 'invalid' | 'current';
 
 export interface EnvironmentNameAvailabilityResponseItem {
   environmentName: string;
@@ -22,4 +22,5 @@ export interface CheckResourceNameAvailabilityRequest {
   projectId: string;
   configId?: string | null;
   name: string;
+  currentPersistedName?: string | null;
 }

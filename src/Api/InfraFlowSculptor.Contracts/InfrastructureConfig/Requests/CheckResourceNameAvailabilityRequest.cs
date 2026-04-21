@@ -15,4 +15,11 @@ public sealed class CheckResourceNameAvailabilityRequest
     /// <summary>The user-entered raw name.</summary>
     [Required]
     public required string Name { get; init; }
+
+    /// <summary>
+    /// Optional currently-persisted resource name. When supplied, the handler skips the DNS
+    /// check for environments whose generated name matches the persisted one (avoids false
+    /// positives on resources the user already owns).
+    /// </summary>
+    public string? CurrentPersistedName { get; init; }
 }

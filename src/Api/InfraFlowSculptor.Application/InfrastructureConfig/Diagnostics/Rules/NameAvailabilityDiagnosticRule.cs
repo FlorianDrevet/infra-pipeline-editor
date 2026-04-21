@@ -7,13 +7,16 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics.Rules;
 
 /// <summary>
 /// Checks that resource names are available on Azure for each environment
-/// by calling the ARM name-availability API via <see cref="IAzureNameAvailabilityChecker"/>.
+/// by probing DNS via <see cref="IAzureNameAvailabilityChecker"/>. Because this rule always
+/// evaluates the <em>currently-persisted</em> name, a DNS hit is expected after deployment.
+/// Such findings are emitted as <see cref="DiagnosticSeverity.Information"/> with an
+/// explanatory message instead of a warning.
 /// </summary>
 public sealed class NameAvailabilityDiagnosticRule(
     IAzureNameAvailabilityChecker nameAvailabilityChecker,
     IResourceNameResolver resourceNameResolver) : IDiagnosticRule
 {
-    /// <summary>Stable diagnostic code emitted when a resource name is already taken on Azure.</summary>
+    /// <summary>Stable diagnostic code emitted when a resource name resolves on Azure DNS.</summary>
     private const string RuleCode = "NAME_UNAVAILABLE";
 
     /// <inheritdoc />
@@ -93,9 +96,9 @@ public sealed class NameAvailabilityDiagnosticRule(
                 resource.Id,
                 resource.Name,
                 resource.ResourceType,
-                DiagnosticSeverity.Warning,
+                DiagnosticSeverity.Info,
                 RuleCode,
-                $"{resolvedName.GeneratedName} ({resolvedName.EnvironmentName})"));
+                $"{resolvedName.GeneratedName} ({resolvedName.EnvironmentName}) — name resolves on Azure DNS. Expected if this configuration has already been deployed."));
         }
 
         return diagnostics;

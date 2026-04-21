@@ -21,6 +21,7 @@ public sealed class CheckResourceNameAvailabilityQueryHandler(
     private const string StatusUnavailable = "unavailable";
     private const string StatusUnknown = "unknown";
     private const string StatusInvalid = "invalid";
+    private const string StatusCurrent = "current";
 
     /// <inheritdoc />
     public async Task<ErrorOr<CheckResourceNameAvailabilityResult>> Handle(
@@ -41,12 +42,40 @@ public sealed class CheckResourceNameAvailabilityQueryHandler(
         if (resolveResult.IsError)
             return resolveResult.Errors;
 
+        // When the submitted name equals the persisted one, every environment is "current" by definition.
+        var nameUnchanged = string.Equals(request.Name, request.CurrentPersistedName, StringComparison.OrdinalIgnoreCase);
+
+        // Resolve the persisted name (post-template) only when names differ but a persisted name was provided.
+        Dictionary<string, string>? persistedGeneratedNames = null;
+        if (!nameUnchanged && !string.IsNullOrWhiteSpace(request.CurrentPersistedName))
+        {
+            var persistedResolve = await resolver.ResolveAsync(
+                request.ProjectId,
+                request.ConfigId,
+                request.ResourceType,
+                request.CurrentPersistedName,
+                cancellationToken);
+
+            if (!persistedResolve.IsError)
+            {
+                persistedGeneratedNames = persistedResolve.Value
+                    .ToDictionary(r => r.EnvironmentName, r => r.GeneratedName, StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
         var supported = checker.Supports(request.ResourceType);
         var constraint = AzureNamingConstraints.GetConstraint(request.ResourceType);
 
         var environments = new List<EnvironmentNameAvailabilityResult>(resolveResult.Value.Count);
         foreach (var resolved in resolveResult.Value)
         {
+            // Short-circuit: the generated name matches the currently persisted name → "current".
+            if (nameUnchanged || IsCurrentName(resolved, persistedGeneratedNames))
+            {
+                environments.Add(BuildItem(resolved, StatusCurrent, reason: null, message: null));
+                continue;
+            }
+
             var validationError = ValidateGeneratedName(resolved.GeneratedName, constraint);
             if (validationError is not null)
             {
@@ -120,5 +149,20 @@ public sealed class CheckResourceNameAvailabilityQueryHandler(
             return $"Generated name '{generatedName}' contains invalid characters. Allowed: {constraint.AllowedCharsDescription}.";
 
         return null;
+    }
+
+    /// <summary>
+    /// Returns <c>true</c> when the generated name for this environment matches the
+    /// previously-persisted generated name (case-insensitive, as Azure DNS is case-insensitive).
+    /// </summary>
+    private static bool IsCurrentName(
+        ResolvedResourceName resolved,
+        Dictionary<string, string>? persistedGeneratedNames)
+    {
+        if (persistedGeneratedNames is null)
+            return false;
+
+        return persistedGeneratedNames.TryGetValue(resolved.EnvironmentName, out var persistedName)
+               && string.Equals(resolved.GeneratedName, persistedName, StringComparison.OrdinalIgnoreCase);
     }
 }

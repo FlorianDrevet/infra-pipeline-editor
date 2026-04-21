@@ -12,8 +12,10 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.CheckResour
 /// <param name="ConfigId">Optional infrastructure config whose templates may override the project templates.</param>
 /// <param name="ResourceType">Friendly resource type (e.g. <c>"ContainerRegistry"</c>).</param>
 /// <param name="Name">User-entered raw resource name.</param>
+/// <param name="CurrentPersistedName">Optional currently-persisted name used to detect unchanged names (avoids false-positive DNS results).</param>
 public sealed record CheckResourceNameAvailabilityQuery(
     ProjectId ProjectId,
     InfrastructureConfigId? ConfigId,
     string ResourceType,
-    string Name) : IQuery<CheckResourceNameAvailabilityResult>;
+    string Name,
+    string? CurrentPersistedName = null) : IQuery<CheckResourceNameAvailabilityResult>;

@@ -100,6 +100,7 @@
                         <mat-icon class="name-availability-env__icon">
                           @switch (env.status) {
                             @case ('available') { check_circle }
+                            @case ('current') { check_circle }
                             @case ('unavailable') { error }
                             @case ('invalid') { warning }
                             @default { help }
@@ -111,6 +112,7 @@
                         <span class="name-availability-env__message">
                           @switch (env.status) {
                             @case ('available') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_AVAILABLE' | translate }} }
+                            @case ('current') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_CURRENT' | translate }} }
                             @case ('unavailable') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_UNAVAILABLE' | translate }} }
                             @case ('invalid') { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_INVALID' | translate }} }
                             @default { {{ 'RESOURCE_EDIT.NAME_AVAILABILITY.STATUS_UNKNOWN' | translate }} }
