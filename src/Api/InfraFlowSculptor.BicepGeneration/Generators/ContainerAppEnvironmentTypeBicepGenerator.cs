@@ -58,6 +58,11 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
         @description('Resource ID of the Log Analytics workspace (empty to skip)')
         param logAnalyticsWorkspaceId string = ''
 
+        resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = if (logAnalyticsWorkspaceId != '') {
+          name: last(split(logAnalyticsWorkspaceId, '/'))
+          scope: resourceGroup(split(logAnalyticsWorkspaceId, '/')[4])
+        }
+
         resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
           name: name
           location: location
@@ -66,12 +71,13 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
             vnetConfiguration: {
               internal: internalLoadBalancerEnabled
             }
-            appLogsConfiguration: {
+            appLogsConfiguration: logAnalyticsWorkspaceId != '' ? {
               destination: 'log-analytics'
-              logAnalyticsConfiguration: logAnalyticsWorkspaceId != '' ? {
-                customerId: logAnalyticsWorkspaceId
-              } : null
-            }
+              logAnalyticsConfiguration: {
+                customerId: logAnalyticsWorkspace.properties.customerId
+                sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
+              }
+            } : null
             workloadProfiles: [
               {
                 name: workloadProfileType
