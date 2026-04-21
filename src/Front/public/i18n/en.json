@@ -848,6 +848,8 @@
       }
     },
     "NAMING_TEMPLATES": {
+      "SECTION_TITLE": "Naming templates",
+      "SECTION_SUBTITLE": "Define the naming patterns used to generate Azure resource names ({name}, {env}, {resourceAbbr}…).",
       "DEFAULT": "Default template",
       "DEFAULT_EMPTY": "No default template has been configured yet.",
       "EMPTY": "No naming templates defined.",
@@ -1624,9 +1626,11 @@
     "SUBTITLE": "Customize the abbreviation used for each resource type in naming templates ({resourceAbbr} placeholder).",
     "EMPTY": "No resource types are used in this configuration.",
     "COLUMN_RESOURCE_TYPE": "Resource type",
+    "COLUMN_RESOURCE": "Resource type",
     "COLUMN_DEFAULT": "Default",
     "COLUMN_CUSTOM": "Custom",
     "COLUMN_EFFECTIVE": "Effective",
+    "COLUMN_STATUS": "Status",
     "EDIT": "Edit",
     "RESET": "Reset to default",
     "CUSTOMIZED": "Customized",

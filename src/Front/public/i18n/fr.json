@@ -856,6 +856,8 @@
       }
     },
     "NAMING_TEMPLATES": {
+      "SECTION_TITLE": "Templates de nommage",
+      "SECTION_SUBTITLE": "Definissez les patterns utilises pour generer les noms des ressources Azure ({name}, {env}, {resourceAbbr}…).",
       "DEFAULT": "Template par defaut",
       "DEFAULT_EMPTY": "Aucun template par defaut configure pour le moment.",
       "EMPTY": "Aucun template de nommage defini.",
@@ -1634,9 +1636,11 @@
     "SUBTITLE": "Personnalisez l'abréviation utilisée pour chaque type de ressource dans les templates de nommage (placeholder {resourceAbbr}).",
     "EMPTY": "Aucun type de ressource n'est utilisé dans cette configuration.",
     "COLUMN_RESOURCE_TYPE": "Type de ressource",
+    "COLUMN_RESOURCE": "Type de ressource",
     "COLUMN_DEFAULT": "Par défaut",
     "COLUMN_CUSTOM": "Personnalisée",
     "COLUMN_EFFECTIVE": "Effective",
+    "COLUMN_STATUS": "Statut",
     "EDIT": "Modifier",
     "RESET": "Réinitialiser",
     "CUSTOMIZED": "Personnalisée",

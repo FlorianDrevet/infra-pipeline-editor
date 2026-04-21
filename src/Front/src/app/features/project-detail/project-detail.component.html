@@ -393,6 +393,15 @@
             }
           </div>
 
+          <!-- Naming Templates Section Header -->
+          <section class="naming-section-header">
+            <h4 class="naming-section-header__title">
+              <mat-icon>label</mat-icon>
+              {{ 'PROJECT_DETAIL.NAMING_TEMPLATES.SECTION_TITLE' | translate }}
+            </h4>
+            <p class="naming-section-header__subtitle">{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.SECTION_SUBTITLE' | translate }}</p>
+          </section>
+
           @if (namingErrorKey()) {
             <p class="action-error">{{ namingErrorKey() | translate }}</p>
           }
@@ -485,7 +494,6 @@
                   <span class="abbreviation-list__col abbreviation-list__col--type">{{ 'ABBREVIATIONS.COLUMN_RESOURCE' | translate }}</span>
                   <span class="abbreviation-list__col abbreviation-list__col--default">{{ 'ABBREVIATIONS.COLUMN_DEFAULT' | translate }}</span>
                   <span class="abbreviation-list__col abbreviation-list__col--effective">{{ 'ABBREVIATIONS.COLUMN_EFFECTIVE' | translate }}</span>
-                  <span class="abbreviation-list__col abbreviation-list__col--status">{{ 'ABBREVIATIONS.COLUMN_STATUS' | translate }}</span>
                   @if (canWrite()) {
                     <span class="abbreviation-list__col abbreviation-list__col--actions"></span>
                   }
@@ -512,12 +520,6 @@
                       <span class="effective-abbr" [class.effective-abbr--custom]="item.isCustomized">
                         {{ item.effectiveAbbreviation }}
                       </span>
-                    </span>
-
-                    <span class="abbreviation-list__col abbreviation-list__col--status">
-                      @if (item.isCustomized) {
-                        <span class="customized-chip">{{ 'ABBREVIATIONS.CUSTOMIZED' | translate }}</span>
-                      }
                     </span>
 
                     @if (canWrite()) {
