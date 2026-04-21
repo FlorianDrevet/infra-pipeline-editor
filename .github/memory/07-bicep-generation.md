@@ -156,3 +156,7 @@ Engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
 
 ## ContainerAppEnvironment Module [2026-04-22]
 - Removed unused `sku` / `SkuName` parameter from module template (not part of ARM resource properties; plan determined by workload profiles).
+
+## Domain Enum → ARM Value Normalization [2026-04-22]
+- **Pitfall:** Domain `EnumValueObject` member names (e.g. `V12`) may not match ARM-accepted values (e.g. `12.0`). Generators must normalize via mapping switch.
+- `SqlServerTypeBicepGenerator.NormalizeSqlServerVersion()`: `V12` → `12.0`.

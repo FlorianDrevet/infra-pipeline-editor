@@ -17,6 +17,9 @@ public sealed class SqlServerTypeBicepGenerator
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
+        var rawVersion = resource.Properties.GetValueOrDefault("version", "12.0");
+        var version = NormalizeSqlServerVersion(rawVersion);
+
         return new GeneratedTypeModule
         {
             ModuleName = "sqlServer",
@@ -27,13 +30,22 @@ public sealed class SqlServerTypeBicepGenerator
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
-                ["version"] = resource.Properties.GetValueOrDefault("version", "12.0"),
+                ["version"] = version,
                 ["administratorLogin"] = resource.Properties.GetValueOrDefault("administratorLogin", "sqladmin"),
                 ["minimalTlsVersion"] = resource.Properties.GetValueOrDefault("minimalTlsVersion", "1.2"),
             },
             SecureParameters = ["administratorLoginPassword"]
         };
     }
+
+    /// <summary>
+    /// Normalizes legacy SQL Server version identifiers (e.g. <c>V12</c>) to the ARM-accepted format (<c>12.0</c>).
+    /// </summary>
+    private static string NormalizeSqlServerVersion(string version) => version.ToUpperInvariant() switch
+    {
+        "V12" => "12.0",
+        _ => version
+    };
 
     private const string SqlServerTypesTemplate = """
         @export()
