@@ -1,3 +1,4 @@
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Models;
 
@@ -37,7 +38,7 @@ public static class MonoRepoPipelineAssembler
 
         foreach (var (configName, result) in perConfigResults)
         {
-            configFiles[configName] = result.Files;
+            configFiles[PathSanitizer.Sanitize(configName)] = result.Files;
         }
 
         return new MonoRepoPipelineResult

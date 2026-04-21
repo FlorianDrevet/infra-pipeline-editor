@@ -102,3 +102,10 @@ Engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
 - **Compiled deploy inputs**: release preflight compiles `.bicep` to `.json` and `.bicepparam` to `.parameters.json` with Azure CLI before invoking `AzureResourceManagerTemplateDeployment@3`. ARM task receives concrete JSON files instead of source Bicep inputs.
 - **CI artifact validation**: shared CI template validates that `Common/`, `<project>/`, and `<project>/main.bicep` exist in `$(Build.ArtifactStagingDirectory)` before publishing artifact `drop`.
 - **Legacy params autofix**: if a legacy artifact still contains `main.development.bicepparam` with `using 'main.bicep'` inside the `parameters/` folder, the generated release preflight rewrites that line to `using '../main.bicep'` in a temporary `.autofix.bicepparam` before running `az bicep build-params`.
+
+## Path Sanitization [2026-04-21]
+
+- `PathSanitizer.Sanitize()` in `GenerationCore`: replaces spaces/underscores with dashes, strips invalid path chars (`[^\w\-.]`), collapses consecutive dashes, trims leading/trailing dashes.
+- Applied at engine entry points: `PipelineGenerationEngine.Generate()`, `PipelineGenerationEngine.GenerateSharedTemplates()`, `AppPipelineGenerationEngine.Generate()`, `MonoRepoBicepAssembler.Assemble()`, `MonoRepoPipelineAssembler.Assemble()`, `AppPipelineYamlHelper.AppendCiHeader()`.
+- Also applied in `GenerateProjectBicepCommandHandler` when building config request keys.
+- Effect: a config named `"My Config"` → folder `My-Config/`, pipeline source `My-Config-CI`, artifact paths `My-Config/main.bicep`.

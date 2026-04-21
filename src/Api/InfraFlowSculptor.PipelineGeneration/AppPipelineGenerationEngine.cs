@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Generators;
 
@@ -36,6 +37,12 @@ public sealed class AppPipelineGenerationEngine
     /// </exception>
     public AppPipelineGenerationResult Generate(AppPipelineGenerationRequest request)
     {
+        // Sanitize names that become path segments or YAML references
+        request.ResourceName = PathSanitizer.Sanitize(request.ResourceName);
+        request.ConfigName = PathSanitizer.Sanitize(request.ConfigName);
+        if (request.ApplicationName is not null)
+            request.ApplicationName = PathSanitizer.Sanitize(request.ApplicationName);
+
         if (!Enum.TryParse<DeploymentMode.DeploymentModeType>(request.DeploymentMode, ignoreCase: true, out _))
         {
             throw new ArgumentException(
@@ -91,7 +98,7 @@ public sealed class AppPipelineGenerationEngine
         foreach (var request in requests)
         {
             var result = Generate(request);
-            var appName = request.ApplicationName ?? request.ResourceName;
+            var appName = PathSanitizer.Sanitize(request.ApplicationName ?? request.ResourceName);
 
             foreach (var (path, content) in result.Files)
             {
@@ -109,13 +116,15 @@ public sealed class AppPipelineGenerationEngine
         IReadOnlyList<AppPipelineGenerationRequest> requests,
         string configName)
     {
+        configName = PathSanitizer.Sanitize(configName);
+
         // For combined mode, generate per-resource then merge under a single directory
         var mergedFiles = new Dictionary<string, string>();
 
         foreach (var request in requests)
         {
             var result = Generate(request);
-            var appName = request.ApplicationName ?? request.ResourceName;
+            var appName = PathSanitizer.Sanitize(request.ApplicationName ?? request.ResourceName);
 
             foreach (var (path, content) in result.Files)
             {

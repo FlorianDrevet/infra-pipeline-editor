@@ -1,4 +1,5 @@
 using System.Text;
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Models;
 
@@ -37,6 +38,8 @@ public sealed class PipelineGenerationEngine
     /// <returns>The generated per-config pipeline files.</returns>
     public PipelineGenerationResult Generate(GenerationRequest request, string configName, bool isMonoRepo = false)
     {
+        configName = PathSanitizer.Sanitize(configName);
+
         var files = new Dictionary<string, string>
         {
             ["ci.pipeline.yml"] = GenerateConfigCiPipeline(configName),
@@ -72,6 +75,7 @@ public sealed class PipelineGenerationEngine
         string? bicepBasePath = null,
         string? pipelineBasePath = null)
     {
+        configNames = configNames.Select(PathSanitizer.Sanitize).ToList();
         var environmentNames = environments.Select(e => e.ShortName.ToLowerInvariant()).ToList();
 
         var files = new Dictionary<string, string>

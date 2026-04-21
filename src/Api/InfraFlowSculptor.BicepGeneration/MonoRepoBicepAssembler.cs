@@ -3,6 +3,7 @@ using InfraFlowSculptor.BicepGeneration.Assemblers;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration;
 
@@ -62,6 +63,7 @@ public static class MonoRepoBicepAssembler
         // ── Per-config folders ──────────────────────────────────────────────
         foreach (var (configName, result) in perConfigResults)
         {
+            var sanitizedName = PathSanitizer.Sanitize(configName);
             var files = new Dictionary<string, string>();
 
             // Rewrite main.bicep to reference Common modules via relative path
@@ -74,7 +76,7 @@ public static class MonoRepoBicepAssembler
                 files[$"parameters/{paramFileName}"] = paramContent;
             }
 
-            configFiles[configName] = files;
+            configFiles[sanitizedName] = files;
         }
 
         return new MonoRepoGenerationResult

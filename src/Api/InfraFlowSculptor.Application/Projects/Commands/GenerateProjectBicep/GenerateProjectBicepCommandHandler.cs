@@ -54,7 +54,7 @@ public sealed class GenerateProjectBicepCommandHandler(
         foreach (var config in configs)
         {
             var generationRequest = BuildGenerationRequest(config);
-            configRequests[config.Name] = generationRequest;
+            configRequests[PathSanitizer.Sanitize(config.Name)] = generationRequest;
 
             // Use the first config's naming context and environments as shared (they come from the project)
             if (sharedNamingContext is null)
