@@ -30,7 +30,8 @@ public sealed class SqlServerTypeBicepGenerator
                 ["version"] = resource.Properties.GetValueOrDefault("version", "12.0"),
                 ["administratorLogin"] = resource.Properties.GetValueOrDefault("administratorLogin", "sqladmin"),
                 ["minimalTlsVersion"] = resource.Properties.GetValueOrDefault("minimalTlsVersion", "1.2"),
-            }
+            },
+            SecureParameters = ["administratorLoginPassword"]
         };
     }
 

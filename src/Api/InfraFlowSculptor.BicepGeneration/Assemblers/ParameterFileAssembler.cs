@@ -100,6 +100,12 @@ internal static class ParameterFileAssembler
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} = {BicepFormattingHelper.SerializeToBicep(value)}");
             }
 
+            // Secure parameters — placeholder values to be replaced at deployment time
+            foreach (var secureParam in module.SecureParameters)
+            {
+                sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)} = ''");
+            }
+
             foreach (var (name, _, value) in StorageAccountCompanionHelper.GetStorageAccountCorsParameters(module))
             {
                 StorageAccountCompanionHelper.AppendCorsParameterAssignment(sb, name, value);

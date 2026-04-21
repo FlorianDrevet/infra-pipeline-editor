@@ -256,12 +256,23 @@ public sealed class BicepGenerationEngine
                 parentModuleIdRefs["containerAppEnvironmentId"] = caeName;
             }
 
-            // logAnalyticsWorkspaceId: ApplicationInsights → LogAnalyticsWorkspace module outputs.id
+            // logAnalyticsWorkspaceId: ApplicationInsights / ContainerAppEnvironment → LogAnalyticsWorkspace module outputs.id
             if (resource.Properties.TryGetValue("logAnalyticsWorkspaceId", out var lawIdStr)
                 && Guid.TryParse(lawIdStr, out var lawGuid)
                 && resourceIdToName.TryGetValue(lawGuid, out var lawName))
             {
                 parentModuleIdRefs["logAnalyticsWorkspaceId"] = lawName;
+            }
+            else if (resource.Type is "Microsoft.Insights/components" or "Microsoft.App/managedEnvironments"
+                && !parentModuleIdRefs.ContainsKey("logAnalyticsWorkspaceId"))
+            {
+                // Fallback: auto-detect LAW in the same config when the FK property isn't set.
+                var fallbackLaw = request.Resources.FirstOrDefault(r =>
+                    r.Type.Equals("Microsoft.OperationalInsights/workspaces", StringComparison.OrdinalIgnoreCase));
+                if (fallbackLaw is not null)
+                {
+                    parentModuleIdRefs["logAnalyticsWorkspaceId"] = fallbackLaw.Name;
+                }
             }
 
             // sqlServerId: SqlDatabase → SqlServer module computed name expression
@@ -651,12 +662,25 @@ public sealed class BicepGenerationEngine
         string moduleBicep,
         List<(string OutputName, string BicepExpression, bool IsSecure)> outputs)
     {
+        // Collect all resource symbol names declared in the module (e.g. "sqlDatabase", "kv").
+        var declaredSymbols = new HashSet<string>(StringComparer.Ordinal);
+        foreach (Match match in ResourceSymbolPattern.Matches(moduleBicep))
+        {
+            declaredSymbols.Add(match.Groups[1].Value);
+        }
+
         var sb = new System.Text.StringBuilder(moduleBicep.TrimEnd());
 
         foreach (var (outputName, bicepExpression, isSecure) in outputs)
         {
             // Skip if output already declared (whitespace-tolerant)
             if (HasOutput(moduleBicep, outputName))
+                continue;
+
+            // Validate: the root symbol in the expression must exist in this module.
+            // Expression examples: "kv.properties.vaultUri", "'Server=tcp:${sqlServer.properties...}'"
+            var rootSymbol = ExtractRootSymbol(bicepExpression);
+            if (rootSymbol is not null && !declaredSymbols.Contains(rootSymbol))
                 continue;
 
             sb.AppendLine();
@@ -675,6 +699,39 @@ public sealed class BicepGenerationEngine
 
         sb.AppendLine();
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Extracts the root resource symbol from a Bicep expression.
+    /// For <c>"kv.properties.vaultUri"</c> returns <c>"kv"</c>.
+    /// For interpolated strings like <c>"'${sqlServer.properties.fqdn}'"</c> returns <c>"sqlServer"</c>.
+    /// Returns <c>null</c> when the expression is a literal or cannot be parsed.
+    /// </summary>
+    private static string? ExtractRootSymbol(string bicepExpression)
+    {
+        var expr = bicepExpression.Trim();
+
+        // Try direct identifier: "symbol.property..."
+        if (char.IsLetter(expr[0]) || expr[0] == '_')
+        {
+            var dotIndex = expr.IndexOf('.');
+            return dotIndex > 0 ? expr[..dotIndex] : null;
+        }
+
+        // Try interpolated string: "'...${symbol.property}...'"
+        var interpIdx = expr.IndexOf("${", StringComparison.Ordinal);
+        if (interpIdx >= 0)
+        {
+            var start = interpIdx + 2;
+            var rest = expr.AsSpan(start);
+            var dotPos = rest.IndexOf('.');
+            if (dotPos > 0)
+            {
+                return rest[..dotPos].ToString();
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

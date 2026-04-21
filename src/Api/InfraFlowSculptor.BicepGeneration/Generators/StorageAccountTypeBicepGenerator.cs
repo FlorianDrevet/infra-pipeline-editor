@@ -340,7 +340,7 @@ public sealed class StorageAccountTypeBicepGenerator
               }
               filters: {
                 blobTypes: ['blockBlob']
-                prefixMatch: [for cn in rule.containerNames: '${cn}/']
+                prefixMatch: map(rule.containerNames, cn => '${cn}/')
               }
             }
           }

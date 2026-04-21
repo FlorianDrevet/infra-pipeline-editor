@@ -62,6 +62,14 @@ internal static class MainBicepAssembler
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} {bicepType}");
             }
 
+            // Secure parameters (e.g. passwords) — @secure() string with no default
+            foreach (var secureParam in module.SecureParameters)
+            {
+                sb.AppendLine();
+                sb.AppendLine("@secure()");
+                sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)} string");
+            }
+
             foreach (var (name, description, _) in StorageAccountCompanionHelper.GetStorageAccountCorsParameters(module))
             {
                 sb.AppendLine($"@description('{BicepFormattingHelper.EscapeBicepString(description)}')");
@@ -232,6 +240,12 @@ internal static class MainBicepAssembler
             foreach (var paramKey in module.Parameters.Keys)
             {
                 sb.AppendLine($"    {paramKey}: {module.ModuleName}{BicepFormattingHelper.Capitalize(paramKey)}");
+            }
+
+            // ── Secure parameters (passwords, secrets) ──
+            foreach (var secureParam in module.SecureParameters)
+            {
+                sb.AppendLine($"    {secureParam}: {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)}");
             }
 
             // ── Parent module ID references ──

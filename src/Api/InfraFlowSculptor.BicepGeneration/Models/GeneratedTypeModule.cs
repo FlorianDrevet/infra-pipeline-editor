@@ -41,6 +41,13 @@ public sealed record GeneratedTypeModule
         new Dictionary<string, object>();
 
     /// <summary>
+    /// Names of module parameters that require <c>@secure()</c> decoration and have no default value.
+    /// These are declared as <c>@secure() param {moduleName}{ParamName} string</c> in <c>main.bicep</c>
+    /// and passed through to the module call.
+    /// </summary>
+    public IReadOnlyList<string> SecureParameters { get; init; } = [];
+
+    /// <summary>
     /// Optional companion modules to deploy alongside this resource
     /// (e.g. blob and table services for a Storage Account).
     /// </summary>

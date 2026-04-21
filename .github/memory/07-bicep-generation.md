@@ -50,6 +50,27 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - All Bicep identifiers use **camelCase** via `BicepIdentifierHelper` and `BicepFormattingHelper`.
 - `BicepGenerationEngine` gracefully skips resource types without a registered `IResourceTypeBicepGenerator` (logs warning, does not throw).
 
+## SecureParameters Pattern [2026-04-21]
+- `GeneratedTypeModule.SecureParameters` (`IReadOnlyList<string>`) holds param names requiring `@secure()` with no default value (e.g. `administratorLoginPassword` for SqlServer).
+- `MainBicepAssembler`: emits `@secure()` + `param {moduleName}{Capitalize(secureParam)} string` in declarations, and passes them in module call blocks.
+- `ParameterFileAssembler`: emits placeholder `param {moduleName}{Capitalize(secureParam)} = ''` per env file.
+- Generators opt-in by adding to `SecureParameters` list in their `GeneratedTypeModule` return.
+
+## Output Injection Symbol Validation [2026-04-21]
+- `InjectOutputDeclarations` in `BicepGenerationEngine` now validates that the root resource symbol in a Bicep output expression actually exists in the target module before injection.
+- `ExtractRootSymbol()` handles direct identifiers (`kv.properties.vaultUri` → `kv`) and interpolated strings (`'${sqlServer.properties.fqdn}'` → `sqlServer`).
+- Prevents BCP057 errors when `ResourceOutputCatalog` expressions reference symbols from a different module type (e.g. `applicationInsights` expression injected into sqlDatabase module due to data integrity issues in SourceResourceName).
+
+## LAW Auto-Detection Fallback [2026-04-21]
+- For `Microsoft.Insights/components` and `Microsoft.App/managedEnvironments`, if the property-based `logAnalyticsWorkspaceId` GUID lookup fails, the engine auto-detects the first `Microsoft.OperationalInsights/workspaces` resource in the same config as fallback.
+- Resolves BCP035 errors where `logAnalyticsWorkspaceId` (required, no default) was not being passed from `main.bicep`.
+
+## Bicep Syntax Pitfalls [2026-04-21]
+- **BCP124**: `@secure()` decorator only works on `object` or `string` params, NOT on `array`.
+- **BCP247**: Lambda variables (e.g. `i` from `range()`) cannot index resource collections. Use `toObject(resourceCollection, kv => ...)` instead.
+- **BCP138**: Nested for-expressions not allowed in variable declarations. Use `map()` function instead.
+- **BCP057**: Output expressions with resource symbols injected into wrong modules. Validate symbol existence before injection.
+
 ## Naming Integration [2026-03-23]
 
 ### Azure Naming Constraints Catalog [2026-04-20]
