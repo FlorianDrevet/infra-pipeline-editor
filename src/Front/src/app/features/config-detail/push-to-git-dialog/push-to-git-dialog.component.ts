@@ -161,16 +161,7 @@ export class PushToGitDialogComponent implements OnInit {
   private async pushCombinedProjectArtifactsToGit(
     request: { branchName: string; commitMessage: string },
   ): Promise<PushToGitResultSummary> {
-    const bicepResult = await this.projectService.pushProjectBicepToGit(this.data.projectId, request);
-    const pipelineResult = await this.projectService.pushProjectPipelineToGit(this.data.projectId, request);
-    const bootstrapResult = await this.projectService.pushProjectBootstrapPipelineToGit(this.data.projectId, request);
-
-    return {
-      branchName: bootstrapResult.branchName,
-      branchUrl: bootstrapResult.branchUrl,
-      commitSha: bootstrapResult.commitSha,
-      fileCount: bicepResult.fileCount + pipelineResult.fileCount + bootstrapResult.fileCount,
-    };
+    return this.projectService.pushProjectGeneratedArtifactsToGit(this.data.projectId, request);
   }
 
   protected onRetry(): void {

@@ -281,6 +281,17 @@ export class ProjectService {
     );
   }
 
+  pushProjectGeneratedArtifactsToGit(
+    projectId: string,
+    request: PushBicepToGitRequest
+  ): Promise<PushBicepToGitResponse> {
+    return this.axios.request$<PushBicepToGitResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/push-generated-artifacts-to-git`,
+      request
+    );
+  }
+
   // ─── Project Pipeline Generation (mono-repo) ───
 
   generateProjectPipeline(projectId: string): Promise<GenerateProjectPipelineResponse> {
