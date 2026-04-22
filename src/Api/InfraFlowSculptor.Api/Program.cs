@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Api;
+using InfraFlowSculptor.Api.Common;
 using InfraFlowSculptor.Api.Controllers;
 using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
@@ -55,6 +56,7 @@ app.UseRateLimiter(); //After UseRouting
 app.UseStatusCodePages();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<UserProvisioningMiddleware>();
 
 //Controllers
 app.UseProjectController();

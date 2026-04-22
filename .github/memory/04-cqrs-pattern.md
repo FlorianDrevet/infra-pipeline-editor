@@ -45,6 +45,16 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - `DependencyInjection.cs` (Application) registers MediatR, ValidationBehavior, UnitOfWorkBehavior, validators by assembly scan.
 - `DependencyInjection.cs` (Infrastructure) registers `IUnitOfWork`.
 
+## User Provisioning [2026-04-22]
+
+- User auto-provisioning is handled by `UserProvisioningMiddleware` (ASP.NET Core middleware, `Api/Common/`).
+- Runs after `UseAuthorization()`, before endpoint execution.
+- On authenticated request: checks if user exists by EntraId, creates + saves immediately if not.
+- Stores `UserId` in `HttpContext.Items["ProvisionedUserId"]`.
+- `ICurrentUser.GetUserIdAsync()` reads from `HttpContext.Items` (synchronous, no DB call).
+- `IUserRepository` is read-only: `GetByEntraIdAsync` (no create method). No `SaveChangesAsync` in repos.
+- **Key design:** middleware owns its own persistence (outside MediatR UoW scope), repos stay pure reads.
+
 ## Shared Authorization Service
 
 - `IInfraConfigAccessService` (injectable): `VerifyReadAccessAsync`, `VerifyWriteAccessAsync`
