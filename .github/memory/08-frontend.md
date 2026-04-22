@@ -64,7 +64,8 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 ## Mono-repo Git Push UX [2026-04-22]
 - `project-detail` now exposes a single mono-repo push CTA instead of separate Bicep/Pipeline/Bootstrap push buttons.
 - The CTA is enabled only when all three project-level generation results exist.
-- `PushToGitDialogComponent` supports `isCombinedProjectPush` and sequentially calls the three existing project push endpoints on the same branch; this is a frontend orchestration, not a backend atomic push.
+- `PushToGitDialogComponent` supports `isCombinedProjectPush` and now calls the dedicated backend endpoint `POST /projects/{projectId}/push-generated-artifacts-to-git`.
+- The mono-repo combined push now produces a single Git commit for Bicep + Pipeline + Bootstrap together; the frontend no longer orchestrates three separate project push calls.
 
 ## PITFALL — ACR reactivity [2026-04-03]
 - `onContainerRegistryChange` must patch `generalForm.containerRegistryId` so `DeploymentConfigComponent` gets updated input.

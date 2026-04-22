@@ -129,7 +129,7 @@ public sealed class BootstrapPipelineGenerationEngine
 
             sb.AppendLine($"{StepIndent}- powershell: |");
             sb.AppendLine($"{StepBodyIndent}$ErrorActionPreference = 'Stop'");
-            sb.AppendLine($"{StepBodyIndent}$existing = az pipelines show --name '{sanitizedName}' --folder-path '{sanitizedFolder}' --query 'id' -o tsv --detect false 2>$null");
+            sb.AppendLine($"{StepBodyIndent}$existing = az pipelines list --folder-path '{sanitizedFolder}' --query \"[?name=='{sanitizedName}'].id | [0]\" -o tsv --detect false");
             sb.AppendLine($"{StepBodyIndent}if ([string]::IsNullOrWhiteSpace($existing)) {{");
             sb.AppendLine($"{StepBodyIndent}  $null = az pipelines create --name '{sanitizedName}' --repository \"$(repositoryName)\" --repository-type tfsgit --branch \"$(defaultBranch)\" --yml-path '{sanitizedPath}' --folder-path '{sanitizedFolder}' --skip-first-run true --detect false");
             sb.AppendLine($"{StepBodyIndent}  Write-Host 'Created pipeline: {sanitizedName}'");
