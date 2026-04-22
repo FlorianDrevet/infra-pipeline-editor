@@ -131,8 +131,11 @@ public sealed class BootstrapPipelineGenerationEngine
             sb.AppendLine($"{StepBodyIndent}$ErrorActionPreference = 'Stop'");
             sb.AppendLine($"{StepBodyIndent}$existing = az pipelines list --folder-path '{sanitizedFolder}' --query \"[?name=='{sanitizedName}'].id | [0]\" -o tsv --detect false");
             sb.AppendLine($"{StepBodyIndent}if ([string]::IsNullOrWhiteSpace($existing)) {{");
-            sb.AppendLine($"{StepBodyIndent}  $null = az pipelines create --name '{sanitizedName}' --repository \"$(repositoryName)\" --repository-type tfsgit --branch \"$(defaultBranch)\" --yml-path '{sanitizedPath}' --folder-path '{sanitizedFolder}' --skip-first-run true --detect false");
-            sb.AppendLine($"{StepBodyIndent}  Write-Host 'Created pipeline: {sanitizedName}'");
+            sb.AppendLine($"{StepBodyIndent}  $createdId = az pipelines create --name '{sanitizedName}' --repository \"$(repositoryName)\" --repository-type tfsgit --branch \"$(defaultBranch)\" --yml-path '{sanitizedPath}' --folder-path '{sanitizedFolder}' --skip-first-run true --query 'id' -o tsv --detect false");
+            sb.AppendLine($"{StepBodyIndent}  if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($createdId)) {{");
+            sb.AppendLine($"{StepBodyIndent}    throw 'Failed to create pipeline {sanitizedName}. Ensure the Azure DevOps identity used by System.AccessToken has the Create build pipeline permission on path {sanitizedFolder}.'");
+            sb.AppendLine($"{StepBodyIndent}  }}");
+            sb.AppendLine($"{StepBodyIndent}  Write-Host ('Created pipeline: {sanitizedName} (ID: ' + $createdId + ')')");
             sb.AppendLine($"{StepBodyIndent}}}");
             sb.AppendLine($"{StepBodyIndent}else {{");
             sb.AppendLine($"{StepBodyIndent}  Write-Host ('Pipeline already exists: {sanitizedName} (ID: ' + $existing + ')')");

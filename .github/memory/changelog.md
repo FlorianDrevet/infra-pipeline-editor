@@ -1,4 +1,5 @@
 - 2026-04-22 — Bootstrap Azure DevOps generation now emits ASCII-safe pipeline names (` - ` separator) and uses `az pipelines list` for idempotent pipeline existence checks before creation on Windows self-hosted agents.
+- 2026-04-22 — Bootstrap Azure DevOps pipeline creation now stops immediately when `az pipelines create` fails and documents the required Azure DevOps `Create build pipeline` permission on the target folder path for the Build Service identity.
 # Changelog
 
 > Entries older than 60 days are pruned during dream consolidation.
