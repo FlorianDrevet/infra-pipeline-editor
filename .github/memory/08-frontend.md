@@ -39,6 +39,10 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 // CTA: linear-gradient(135deg, #0288d1, #00bcd4)
 ```
 
+## Branding Assets [2026-04-22]
+- Browser tab icon uses `public/favicon.svg`, referenced from `src/index.html`, with `favicon.ico` kept as legacy fallback.
+- The favicon follows the login page visual DNA: deep blue to cyan gradient + four-tile infra grid motif.
+
 ## Shared Components
 - `DeploymentConfigComponent` [2026-04-02] — extracted container/code deployment mode toggle + ACR selector + UAI flow
 - `ConfirmDialogComponent` — reusable confirm dialog with i18n

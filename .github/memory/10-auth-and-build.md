@@ -33,7 +33,14 @@ npm install; npm run start; npm run build; npm run typecheck
 ## Infrastructure Services
 
 - **GitHub Git Provider**: uses Refit (`IGitHubTreeApi`) instead of raw `HttpClient` for GitHub API calls [2026-04-16]. Registered in `Infrastructure/DependencyInjection.cs`.
-- **Azure DevOps integration boundary [2026-04-22]**: `AzureDevOpsGitProviderService` currently covers Git repository operations only (test connection, list branches, push files). The codebase does **not** yet provision Azure DevOps pipelines or variable groups via REST. For future production-grade Azure DevOps automation, prefer Microsoft Entra OAuth for interactive web apps and service principals / managed identities for background services; reserve PATs for personal or ad hoc scripts.
+- **Azure DevOps integration boundary [2026-04-22]**: `AzureDevOpsGitProviderService` still covers Git repository operations only (test connection, list branches, push files), but project bootstrap now provisions Azure DevOps pipeline definitions, variable groups, and variable-group pipeline authorizations through generated YAML executed inside Azure DevOps with Azure CLI and REST calls. Pipeline and Library security ACL assignment is still a separate concern: it can be automated only through Azure DevOps Security ACL APIs with an identity that already has admin rights. The current bootstrap runs under `$(System.AccessToken)` and therefore cannot reliably self-grant the missing rights it needs on first run. Treat pipeline `Manage security` and library `Security` assignments for the Build Service identity as one-time manual prerequisites.
+- **Manual Azure DevOps bootstrap security procedure [2026-04-22]**:
+	1. Run the bootstrap pipeline once so the Build Service identity exists in Azure DevOps if the project uses project-scoped job authorization.
+	2. Determine the identity to grant: `{Project Name} Build Service ({Org})` for project-scoped tokens, or `Project Collection Build Service ({Org})` for collection-scoped tokens.
+	3. In `Pipelines` -> `Pipelines` -> `...` -> `Manage security`, add that Build Service identity and allow at minimum `Create build pipeline` on the target folder path used by bootstrap (for example `\Core`, or the root if you want inheritance for all generated folders).
+	4. In `Pipelines` -> `Library` -> `Security`, add the same Build Service identity.
+	5. Minimum role for creating new variable groups is `Creator`; recommended role for the current bootstrap flow is `Administrator`, especially if reruns must update existing groups or manage their permissions.
+	6. If self-hosted pools or service connections are used, grant the Build Service identity the required `Use`/`User` permissions on those resources as separate setup steps.
 - **DNS Name Availability**: `DnsNameAvailabilityChecker` [2026-04-22] — resolves `{name}.{azureSuffix}` via DNS, no Azure auth required. Replaced previous ARM-based `AzureNameAvailabilityChecker`.
 - **Diagnostic Rules**: `IDiagnosticRule.EvaluateAsync()` [2026-04-22] — async interface with `Task.WhenAll` parallelization. Rules: `AcrPullDiagnosticRule`, `KeyVaultAccessDiagnosticRule`, `NameAvailabilityDiagnosticRule`.
 
