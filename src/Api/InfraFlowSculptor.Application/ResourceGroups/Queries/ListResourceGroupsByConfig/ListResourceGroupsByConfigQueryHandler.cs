@@ -22,7 +22,7 @@ public class ListResourceGroupsByConfigQueryHandler(
         if (authResult.IsError)
             return Errors.InfrastructureConfig.NotFoundError(query.InfraConfigId);
 
-        var resourceGroups = await resourceGroupRepository.GetByInfraConfigIdAsync(
+        var resourceGroups = await resourceGroupRepository.GetLightweightByInfraConfigIdAsync(
             query.InfraConfigId, cancellationToken);
 
         return resourceGroups.Select(rg => mapper.Map<ResourceGroupResult>(rg)).ToList();

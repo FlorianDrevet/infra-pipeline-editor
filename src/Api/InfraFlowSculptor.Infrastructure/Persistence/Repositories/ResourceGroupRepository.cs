@@ -58,6 +58,17 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task<List<ResourceGroup>> GetLightweightByInfraConfigIdAsync(
+        InfrastructureConfigId infraConfigId,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<ResourceGroup>()
+            .Where(r => r.InfraConfigId == infraConfigId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<ResourceGroup?> GetByIdWithResourcesAsync(ResourceGroupId id, CancellationToken ct = default)
     {
         return await Context.Set<ResourceGroup>()
@@ -102,44 +113,12 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default)
     {
-        var result = new Dictionary<Guid, Guid>();
-
-        var webApps = await Context.Set<WebApp>()
-            .Where(r => r.ResourceGroupId == resourceGroupId)
-            .Select(r => new { ChildId = r.Id.Value, ParentId = r.AppServicePlanId.Value })
+        var links = await Context.ChildToParentLinkViews
+            .Where(l => l.ResourceGroupId == resourceGroupId.Value)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
-        foreach (var item in webApps) result[item.ChildId] = item.ParentId;
 
-        var functionApps = await Context.Set<FunctionApp>()
-            .Where(r => r.ResourceGroupId == resourceGroupId)
-            .Select(r => new { ChildId = r.Id.Value, ParentId = r.AppServicePlanId.Value })
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-        foreach (var item in functionApps) result[item.ChildId] = item.ParentId;
-
-        var containerApps = await Context.Set<ContainerApp>()
-            .Where(r => r.ResourceGroupId == resourceGroupId)
-            .Select(r => new { ChildId = r.Id.Value, ParentId = r.ContainerAppEnvironmentId.Value })
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-        foreach (var item in containerApps) result[item.ChildId] = item.ParentId;
-
-        var sqlDatabases = await Context.Set<SqlDatabase>()
-            .Where(r => r.ResourceGroupId == resourceGroupId)
-            .Select(r => new { ChildId = r.Id.Value, ParentId = r.SqlServerId.Value })
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-        foreach (var item in sqlDatabases) result[item.ChildId] = item.ParentId;
-
-        var appInsights = await Context.Set<ApplicationInsights>()
-            .Where(r => r.ResourceGroupId == resourceGroupId)
-            .Select(r => new { ChildId = r.Id.Value, ParentId = r.LogAnalyticsWorkspaceId.Value })
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-        foreach (var item in appInsights) result[item.ChildId] = item.ParentId;
-
-        return result;
+        return links.ToDictionary(l => l.ChildResourceId, l => l.ParentResourceId);
     }
 
     public async Task<ResourceGroup?> GetByContainedResourceIdAsync(
@@ -204,6 +183,31 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
             .Select(r => r.ResourceType)
             .Distinct()
             .OrderBy(t => t)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<ResourceMetadata>> GetResourceMetadataBatchAsync(
+        IReadOnlyList<AzureResourceId> resourceIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (resourceIds.Count == 0)
+            return [];
+
+        var ids = resourceIds.ToList();
+
+        return await Context.AzureResources
+            .Where(r => ids.Contains(r.Id))
+            .Join(
+                Context.Set<ResourceGroup>(),
+                r => r.ResourceGroupId,
+                rg => rg.Id,
+                (r, rg) => new ResourceMetadata(
+                    r.Id.Value,
+                    r.Name.Value,
+                    r.ResourceType,
+                    rg.Name.Value))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
     }

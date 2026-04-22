@@ -27,6 +27,7 @@ public sealed class ResourceGroupMappingConfig : IRegister
             .Map(dest => dest.Name, src => src.Name.Value)
             .Map(dest => dest.Location, src => src.Location.Value.ToString())
             .Map(dest => dest.ParentResourceId, src => src.ParentResourceId != null ? src.ParentResourceId.Value.ToString() : null)
-            .Map(dest => dest.ConfiguredEnvironments, src => src.ConfiguredEnvironments);
+            .Map(dest => dest.ConfiguredEnvironments, src => src.ConfiguredEnvironments)
+            .Map(dest => dest.IsExisting, src => src.IsExisting);
     }
 }

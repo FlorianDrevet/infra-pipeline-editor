@@ -14,6 +14,14 @@ public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggre
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns resource groups for the given infrastructure config without loading resources.
+    /// Use this lightweight projection when only resource-group-level fields are needed.
+    /// </summary>
+    Task<List<Domain.ResourceGroupAggregate.ResourceGroup>> GetLightweightByInfraConfigIdAsync(
+        InfrastructureConfigId infraConfigId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Returns resource group count and total resource count per infrastructure config ID.
     /// </summary>
     Task<Dictionary<Guid, (int ResourceGroupCount, int ResourceCount)>> GetResourceCountsByInfraConfigIdsAsync(
@@ -58,5 +66,13 @@ public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggre
     /// </summary>
     Task<List<string>> GetDistinctResourceTypesByProjectIdAsync(
         Domain.ProjectAggregate.ValueObjects.ProjectId projectId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns lightweight resource metadata (name, type, resource group name) for multiple resource IDs in a single query.
+    /// Used to batch-resolve cross-config reference targets without N+1 queries.
+    /// </summary>
+    Task<List<ResourceMetadata>> GetResourceMetadataBatchAsync(
+        IReadOnlyList<AzureResourceId> resourceIds,
         CancellationToken cancellationToken = default);
 }

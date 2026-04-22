@@ -116,11 +116,31 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                   FROM "EventHubNamespaceEnvironmentSettings" es
                   INNER JOIN "AzureResource" r ON r."Id" = es."EventHubNamespaceId";
                 """);
+
+            // ── Create the vw_ChildToParentLinks view ───────────────────────
+            migrationBuilder.Sql("""
+                CREATE OR REPLACE VIEW "vw_ChildToParentLinks" AS
+                SELECT w."Id" AS "ChildResourceId", w."AppServicePlanId" AS "ParentResourceId", r."ResourceGroupId"
+                  FROM "WebApps" w INNER JOIN "AzureResource" r ON r."Id" = w."Id"
+                UNION ALL
+                SELECT f."Id", f."AppServicePlanId", r."ResourceGroupId"
+                  FROM "FunctionApps" f INNER JOIN "AzureResource" r ON r."Id" = f."Id"
+                UNION ALL
+                SELECT ca."Id", ca."ContainerAppEnvironmentId", r."ResourceGroupId"
+                  FROM "ContainerApps" ca INNER JOIN "AzureResource" r ON r."Id" = ca."Id"
+                UNION ALL
+                SELECT sd."Id", sd."SqlServerId", r."ResourceGroupId"
+                  FROM "SqlDatabases" sd INNER JOIN "AzureResource" r ON r."Id" = sd."Id"
+                UNION ALL
+                SELECT ai."Id", ai."LogAnalyticsWorkspaceId", r."ResourceGroupId"
+                  FROM "ApplicationInsights" ai INNER JOIN "AzureResource" r ON r."Id" = ai."Id";
+                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("""DROP VIEW IF EXISTS "vw_ChildToParentLinks";""");
             migrationBuilder.Sql("""DROP VIEW IF EXISTS "vw_ResourceEnvironmentEntries";""");
 
             migrationBuilder.DropIndex(

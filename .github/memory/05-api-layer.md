@@ -52,3 +52,4 @@ result.Match(
 - Implement `IRegister`, live in `src/Api/InfraFlowSculptor.Api/Common/Mapping/`
 - Value objects → primitives: `.MapWith(src => src.Value)`
 - **Nullable null checks:** use `x != null` directly — never `(object?)x`, never `is not null` (CS8122 in expression trees)
+- Lightweight resource-group mappings must explicitly carry `IsExisting` on `AzureResourceResult -> AzureResourceResponse`; if omitted, Angular list badges and generation preflight diagnostics misclassify existing resources as missing environment configuration.

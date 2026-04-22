@@ -102,6 +102,11 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .Select(r => r.Id)
             .ToList();
 
+        // NOTE: These queries are sequential because EF Core's DbContext is not thread-safe.
+        // Parallelization would require IDbContextFactory. Since Phase 1.3 moved diagnostics
+        // out of the critical path (fire-and-forget), these sequential queries no longer block
+        // the page rendering.
+
         var kvSettings = await dbContext.KeyVaultEnvironmentSettings
             .Where(es => allResourceIds.Contains(es.KeyVaultId))
             .AsNoTracking()

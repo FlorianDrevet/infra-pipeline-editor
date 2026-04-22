@@ -1137,6 +1137,7 @@ export class ProjectDetailComponent implements OnInit {
           const missingEnvResources: MissingEnvResource[] = [];
           for (const resources of rgResources) {
             for (const resource of resources) {
+              if (resource.isExisting) continue;
               if (ENV_SETTINGS_EXCLUDED_TYPES.has(resource.resourceType)) continue;
               const configured = new Set(resource.configuredEnvironments ?? []);
               const missing = allEnvNames.filter(name => !configured.has(name));

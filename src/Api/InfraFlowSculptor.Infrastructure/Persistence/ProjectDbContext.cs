@@ -117,6 +117,9 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     /// <summary>Keyless entity mapped to the <c>vw_ResourceEnvironmentEntries</c> PostgreSQL view.</summary>
     public DbSet<ResourceEnvironmentEntryView> ResourceEnvironmentEntryViews { get; set; } = null!;
 
+    /// <summary>Keyless entity mapped to the <c>vw_ChildToParentLinks</c> PostgreSQL view.</summary>
+    public DbSet<ChildToParentLinkView> ChildToParentLinkViews { get; set; } = null!;
+
     /// <inheritdoc />
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -141,6 +144,12 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
         {
             entity.HasNoKey();
             entity.ToView("vw_ResourceEnvironmentEntries");
+        });
+
+        modelBuilder.Entity<ChildToParentLinkView>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_ChildToParentLinks");
         });
 
         base.OnModelCreating(modelBuilder);
