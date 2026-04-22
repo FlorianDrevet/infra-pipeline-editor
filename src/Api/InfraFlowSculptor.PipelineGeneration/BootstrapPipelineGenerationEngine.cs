@@ -78,7 +78,7 @@ public sealed class BootstrapPipelineGenerationEngine
         sb.AppendLine("      if ($LASTEXITCODE -ne 0) {");
         sb.AppendLine("        $null = az extension add --name azure-devops --yes");
         sb.AppendLine("      }");
-        sb.AppendLine("      $null = az devops configure --defaults organization=\"$(organizationUrl)\" project=\"$(projectName)\" --detect false");
+        sb.AppendLine("      $null = az devops configure --defaults organization=\"$(organizationUrl)\" project=\"$(projectName)\"");
         sb.AppendLine("    displayName: 'Configure Azure DevOps CLI'");
         sb.AppendLine("    env:");
         sb.AppendLine("      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)");

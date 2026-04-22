@@ -14,7 +14,8 @@ namespace InfraFlowSculptor.Infrastructure.Services.GitProviders;
 /// Pushes files to an Azure DevOps Git repository using the REST API.
 /// Owner format: "{organization}/{project}".
 /// </summary>
-public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientFactory) : IGitProviderService
+public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientFactory)
+    : IGitProviderService, IGitMultiScopePushProviderService
 {
     private const string ApiVersion = "7.1";
 
@@ -43,15 +44,45 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
     }
 
     /// <inheritdoc />
-    public async Task<ErrorOr<PushBicepToGitResult>> PushFilesAsync(
-        GitPushRequest request, CancellationToken cancellationToken = default)
+    public Task<ErrorOr<PushBicepToGitResult>> PushFilesAsync(
+        GitPushRequest request,
+        CancellationToken cancellationToken = default) =>
+        PushScopedFilesAsync(
+            new MultiScopeGitPushRequest
+            {
+                Token = request.Token,
+                Owner = request.Owner,
+                RepositoryName = request.RepositoryName,
+                BaseBranch = request.BaseBranch,
+                TargetBranchName = request.TargetBranchName,
+                CommitMessage = request.CommitMessage,
+                Scopes =
+                [
+                    new MultiScopeGitPushRequest.GitPushScope
+                    {
+                        BasePath = request.BasePath,
+                        Files = request.Files,
+                    },
+                ],
+            },
+            cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<ErrorOr<PushBicepToGitResult>> PushScopedFilesAsync(
+        MultiScopeGitPushRequest request,
+        CancellationToken cancellationToken = default)
     {
         try
         {
+            var preparedPush = PrepareScopedPush(request);
+            if (preparedPush.IsError)
+                return preparedPush.Errors;
+
+            var pushData = preparedPush.Value;
+
             using var client = CreateClient(request.Token);
             var (org, project) = ParseOwner(request.Owner);
 
-            // 1. Get the base branch SHA
             var refsUrl = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}/refs?filter=heads/{request.BaseBranch}&api-version={ApiVersion}";
             var refsResponse = await client.GetFromJsonAsync<AdoRefList>(refsUrl, cancellationToken);
             var baseSha = refsResponse?.Value?.FirstOrDefault()?.ObjectId;
@@ -59,7 +90,6 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
             if (string.IsNullOrEmpty(baseSha))
                 return Errors.GitRepository.PushFailed($"Base branch '{request.BaseBranch}' not found.");
 
-            // 2. Check if target branch exists and determine the parent SHA
             string? targetSha = null;
             if (request.TargetBranchName != request.BaseBranch)
             {
@@ -72,103 +102,72 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
                 targetSha = baseSha;
             }
 
-            // When target branch exists, determine which files already exist on it
-            // so we can use "edit" changeType instead of "add" for existing files.
-            // Also list ALL files in the target directory to delete stale ones.
-            var existingFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var allExistingFilesInTargetDir = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var branchToInspect = targetSha is not null ? request.TargetBranchName : request.BaseBranch;
-            var hasBasePath = !string.IsNullOrEmpty(request.BasePath);
+            var existingFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var allExistingFilesInCleanupRoots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            // List all existing files in the target directory recursively.
-            // Only do this when a BasePath is configured; without BasePath the
-            // scope would be the entire repo and we'd delete unrelated files.
-            if (hasBasePath)
+            foreach (var cleanupRoot in pushData.CleanupRoots)
             {
-                var targetDirPath = $"/{request.BasePath}";
+                var targetDirPath = $"/{cleanupRoot}";
                 var itemsUrl = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}/items?scopePath={targetDirPath}&recursionLevel=full&versionDescriptor.version={branchToInspect}&api-version={ApiVersion}";
                 var itemsResponse = await client.GetAsync(itemsUrl, cancellationToken);
-                if (itemsResponse.IsSuccessStatusCode)
+                if (!itemsResponse.IsSuccessStatusCode)
+                    continue;
+
+                var itemsList = await itemsResponse.Content.ReadFromJsonAsync<AdoItemList>(cancellationToken: cancellationToken);
+                if (itemsList?.Value is null)
+                    continue;
+
+                foreach (var item in itemsList.Value)
                 {
-                    var itemsList = await itemsResponse.Content.ReadFromJsonAsync<AdoItemList>(cancellationToken: cancellationToken);
-                    if (itemsList?.Value is not null)
-                    {
-                        foreach (var item in itemsList.Value)
-                        {
-                            if (item is { IsFolder: false, Path: not null })
-                            {
-                                // Remove leading '/' for consistent comparison
-                                var normalizedPath = item.Path.TrimStart('/');
-                                allExistingFilesInTargetDir.Add(normalizedPath);
-                            }
-                        }
-                    }
-                }
-            }
-            else if (targetSha is not null)
-            {
-                // No BasePath — check file-by-file for edit vs add
-                foreach (var (relativePath, _) in request.Files)
-                {
-                    var itemUrl = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}/items?path=/{relativePath}&versionDescriptor.version={branchToInspect}&api-version={ApiVersion}";
-                    var itemResponse = await client.GetAsync(itemUrl, cancellationToken);
-                    if (itemResponse.IsSuccessStatusCode)
-                        allExistingFilesInTargetDir.Add(relativePath);
+                    if (item is { IsFolder: false, Path: not null })
+                        allExistingFilesInCleanupRoots.Add(item.Path.TrimStart('/'));
                 }
             }
 
-            // Determine which new files already exist (for edit vs add)
-            foreach (var (relativePath, _) in request.Files)
+            foreach (var filePath in pushData.FilesByPath.Keys)
             {
-                var filePath = hasBasePath
-                    ? $"{request.BasePath}/{relativePath}"
-                    : relativePath;
+                if (allExistingFilesInCleanupRoots.Contains(filePath))
+                {
+                    existingFilePaths.Add(filePath);
+                    continue;
+                }
 
-                if (allExistingFilesInTargetDir.Contains(filePath))
+                if (IsWithinCleanupRoots(filePath, pushData.CleanupRoots))
+                    continue;
+
+                var itemUrl = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}/items?path=/{filePath}&versionDescriptor.version={branchToInspect}&api-version={ApiVersion}";
+                var itemResponse = await client.GetAsync(itemUrl, cancellationToken);
+                if (itemResponse.IsSuccessStatusCode)
                     existingFilePaths.Add(filePath);
             }
 
-            // 3. Build the push payload
-            var newFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var changes = new List<object>();
-            foreach (var (relativePath, content) in request.Files)
+            foreach (var (filePath, content) in pushData.FilesByPath)
             {
-                var filePath = string.IsNullOrEmpty(request.BasePath)
-                    ? relativePath
-                    : $"{request.BasePath}/{relativePath}";
-
-                newFilePaths.Add(filePath);
-                var changeType = existingFilePaths.Contains(filePath) ? "edit" : "add";
-
                 changes.Add(new
                 {
-                    changeType,
+                    changeType = existingFilePaths.Contains(filePath) ? "edit" : "add",
                     item = new { path = $"/{filePath}" },
                     newContent = new { content, contentType = "rawtext" },
                 });
             }
 
-            // 4. Delete stale files that exist in the target directory but are not in the new generation.
-            //    Only when a BasePath is configured — without it we cannot safely determine the scope.
-            if (hasBasePath)
+            foreach (var existingFile in allExistingFilesInCleanupRoots)
             {
-                foreach (var existingFile in allExistingFilesInTargetDir)
+                if (pushData.FilesByPath.ContainsKey(existingFile))
+                    continue;
+
+                changes.Add(new
                 {
-                    if (!newFilePaths.Contains(existingFile))
-                    {
-                        changes.Add(new
-                        {
-                            changeType = "delete",
-                            item = new { path = $"/{existingFile}" },
-                        });
-                    }
-                }
+                    changeType = "delete",
+                    item = new { path = $"/{existingFile}" },
+                });
             }
 
             var refUpdates = new List<object>();
             if (targetSha is not null)
             {
-                // Branch exists — update
                 refUpdates.Add(new
                 {
                     name = $"refs/heads/{request.TargetBranchName}",
@@ -177,7 +176,6 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
             }
             else
             {
-                // Branch does not exist — create from base
                 refUpdates.Add(new
                 {
                     name = $"refs/heads/{request.TargetBranchName}",
@@ -211,7 +209,11 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
             var commitSha = pushResult?.Commits?.FirstOrDefault()?.CommitId ?? "unknown";
 
             var branchUrl = $"https://dev.azure.com/{org}/{project}/_git/{request.RepositoryName}?version=GB{request.TargetBranchName}";
-            return new PushBicepToGitResult(request.TargetBranchName, branchUrl, commitSha, request.Files.Count);
+            return new PushBicepToGitResult(
+                request.TargetBranchName,
+                branchUrl,
+                commitSha,
+                pushData.FilesByPath.Count);
         }
         catch (Exception ex)
         {
@@ -264,6 +266,61 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
             ? (parts[0], parts[1])
             : (parts[0], parts[0]);
     }
+
+    private static ErrorOr<PreparedAzureDevOpsPush> PrepareScopedPush(MultiScopeGitPushRequest request)
+    {
+        var filesByPath = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var cleanupRoots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var scope in request.Scopes)
+        {
+            var normalizedBasePath = NormalizeBasePath(scope.BasePath);
+            if (!string.IsNullOrEmpty(normalizedBasePath))
+                cleanupRoots.Add(normalizedBasePath);
+
+            foreach (var (relativePath, content) in scope.Files)
+            {
+                var fullPath = CombinePath(normalizedBasePath, relativePath);
+                if (filesByPath.TryGetValue(fullPath, out var existingContent)
+                    && !string.Equals(existingContent, content, StringComparison.Ordinal))
+                {
+                    return Errors.GitRepository.PushFailed(
+                        $"Generated file collision detected for path '{fullPath}'.");
+                }
+
+                filesByPath[fullPath] = content;
+            }
+        }
+
+        return filesByPath.Count == 0
+            ? Errors.GitRepository.PushFailed("No generated files were provided for the Git push.")
+            : new PreparedAzureDevOpsPush(filesByPath, cleanupRoots);
+    }
+
+    private static bool IsWithinCleanupRoots(string path, IReadOnlySet<string> cleanupRoots)
+    {
+        foreach (var cleanupRoot in cleanupRoots)
+        {
+            if (path.StartsWith($"{cleanupRoot}/", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static string NormalizeBasePath(string? basePath) =>
+        string.IsNullOrWhiteSpace(basePath)
+            ? string.Empty
+            : basePath.Trim('/');
+
+    private static string CombinePath(string basePath, string relativePath) =>
+        string.IsNullOrEmpty(basePath)
+            ? relativePath.TrimStart('/')
+            : $"{basePath}/{relativePath.TrimStart('/')}";
+
+    private sealed record PreparedAzureDevOpsPush(
+        IReadOnlyDictionary<string, string> FilesByPath,
+        IReadOnlySet<string> CleanupRoots);
 
     // ─── ADO API response models ────────────────────────────────────────────
 

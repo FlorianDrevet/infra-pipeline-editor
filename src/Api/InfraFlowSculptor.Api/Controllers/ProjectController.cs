@@ -9,6 +9,7 @@ using InfraFlowSculptor.Application.Projects.Commands.DownloadProjectPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectBicepToGit;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectGeneratedArtifactsToGit;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectPipelineToGit;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectGitConfig;
@@ -976,6 +977,31 @@ public static class ProjectController
                 .WithName("PushProjectBootstrapPipelineToGit")
                 .WithSummary("Push the bootstrap pipeline file to Git (Azure DevOps)")
                 .WithDescription("Pushes the latest generated bootstrap.pipeline.yml to the configured Git repository.")
+                .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPost("/{projectId:guid}/push-generated-artifacts-to-git",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] PushBicepToGitRequest request,
+                        IMediator mediator,
+                        IMapper mapper) =>
+                    {
+                        var command = new PushProjectGeneratedArtifactsToGitCommand(
+                            new ProjectId(projectId),
+                            request.BranchName,
+                            request.CommitMessage);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.Ok(mapper.Map<PushBicepToGitResponse>(value)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("PushProjectGeneratedArtifactsToGit")
+                .WithSummary("Push generated project artifacts to Git in a single commit (mono-repo)")
+                .WithDescription("Pushes the latest project-level generated Bicep, pipeline, and bootstrap pipeline files to the configured Git repository in one provider call and one commit.")
                 .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
