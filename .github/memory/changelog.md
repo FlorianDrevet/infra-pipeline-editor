@@ -3,6 +3,7 @@
 - 2026-04-22 — Release pipeline artifact sources now align with bootstrap-created CI pipeline names (`<ConfigName> - CI`), and bootstrap variable group provisioning now reuses full project variable usages so reruns add missing library variables for app settings, app configuration keys, and secure parameter mappings.
 - 2026-04-22 — Bootstrap variable-group provisioning now keeps the placeholder variable until at least one real variable exists, avoiding Azure DevOps failures when creating secret-only or temporarily empty libraries.
 - 2026-04-22 — Documented Azure DevOps bootstrap security prerequisites: current bootstrap can provision pipelines, variable groups, and pipeline authorizations, but initial `Pipelines -> Manage security` and `Library -> Security` grants for the Build Service identity remain one-time manual steps unless a higher-privilege identity drives Azure DevOps Security ACL APIs.
+- 2026-04-22 — Removed the generated `Authorize Variable Groups on All Pipelines` bootstrap step. Bootstrap now provisions only pipeline definitions and variable groups; authorization/security remains an external manual or admin-driven ACL concern.
 # Changelog
 
 > Entries older than 60 days are pruned during dream consolidation.
