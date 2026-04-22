@@ -1218,7 +1218,7 @@ export class ProjectDetailComponent implements OnInit {
 
 
 
-  protected openProjectPushToGitDialog(): void {
+  protected openProjectPushAllToGitDialog(): void {
     const project = this.project();
     const gitConfig = project?.gitRepositoryConfiguration;
     if (!project || !gitConfig) return;
@@ -1253,21 +1253,6 @@ export class ProjectDetailComponent implements OnInit {
     } finally {
       this.projectPipelineDownloading.set(false);
     }
-  }
-
-  protected openProjectPipelinePushToGitDialog(): void {
-    const project = this.project();
-    const gitConfig = project?.gitRepositoryConfiguration;
-    if (!project || !gitConfig) return;
-
-    const data: PushToGitDialogData = {
-      configId: '',
-      projectId: project.id,
-      gitConfig,
-      isProjectLevel: true,
-      isPipeline: true,
-    };
-    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 
   // ─── Project Bootstrap Pipeline Generation (Azure DevOps) ───
@@ -1317,21 +1302,6 @@ export class ProjectDetailComponent implements OnInit {
     } finally {
       this.projectBootstrapDownloading.set(false);
     }
-  }
-
-  protected openProjectBootstrapPushToGitDialog(): void {
-    const project = this.project();
-    const gitConfig = project?.gitRepositoryConfiguration;
-    if (!project || !gitConfig) return;
-
-    const data: PushToGitDialogData = {
-      configId: '',
-      projectId: project.id,
-      gitConfig,
-      isProjectLevel: true,
-      isBootstrap: true,
-    };
-    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 
   // ─── Git Configuration ───

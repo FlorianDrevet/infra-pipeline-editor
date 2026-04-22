@@ -46,6 +46,22 @@ internal static class MainBicepAssembler
             sb.AppendLine("import { RbacRoles } from 'constants.bicep'");
         }
 
+        // Module-level type imports (for structured parameter types)
+        var moduleTypeImports = modules
+            .Where(m => m.ParameterTypeOverrides.Count > 0)
+            .GroupBy(m => m.ModuleFolderName)
+            .ToList();
+        foreach (var group in moduleTypeImports)
+        {
+            var typeNames = group
+                .SelectMany(m => m.ParameterTypeOverrides.Values)
+                .Distinct()
+                .OrderBy(t => t);
+            sb.Append("import { ");
+            sb.AppendJoin(", ", typeNames);
+            sb.AppendLine($" }} from './modules/{group.Key}/types.bicep'");
+        }
+
         sb.AppendLine();
 
         // ── Parameters ──────────────────────────────────────────────────────
@@ -58,7 +74,9 @@ internal static class MainBicepAssembler
         {
             foreach (var (key, value) in module.Parameters)
             {
-                var bicepType = BicepFormattingHelper.InferBicepType(value);
+                var bicepType = module.ParameterTypeOverrides.TryGetValue(key, out var customType)
+                    ? customType
+                    : BicepFormattingHelper.InferBicepType(value);
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} {bicepType}");
             }
 

@@ -66,6 +66,7 @@ internal static class BicepFormattingHelper
             string s => $"'{s}'",
             bool b => b ? "true" : "false",
             int or long or double => value.ToString()!,
+            IDictionary<string, object> dict => SerializeDictionary(dict),
             _ => SerializeObject(value)
         };
     }
@@ -82,6 +83,21 @@ internal static class BicepFormattingHelper
             var propValue = p.GetValue(obj);
             if (propValue is not null)
                 sb.AppendLine($"  {p.Name}: {SerializeToBicep(propValue)}");
+        }
+
+        sb.Append('}');
+        return sb.ToString();
+    }
+
+    private static string SerializeDictionary(IDictionary<string, object> dict)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("{");
+
+        foreach (var (key, value) in dict)
+        {
+            if (value is not null)
+                sb.AppendLine($"  {key}: {SerializeToBicep(value)}");
         }
 
         sb.Append('}');

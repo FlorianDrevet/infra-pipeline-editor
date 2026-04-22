@@ -66,7 +66,16 @@ internal static class ParameterFileAssembler
             var mergedParams = new Dictionary<string, object>(module.Parameters);
             foreach (var (key, value) in envOverrides)
             {
-                if (mergedParams.TryGetValue(key, out var existingValue))
+                // Check if this flat key maps to a property inside a structured parameter group
+                if (module.ParameterGroupMappings.TryGetValue(key, out var mapping))
+                {
+                    if (mergedParams.TryGetValue(mapping.GroupKey, out var groupObj))
+                    {
+                        mergedParams[mapping.GroupKey] = MergePropertyIntoObject(
+                            groupObj, mapping.PropertyName, value);
+                    }
+                }
+                else if (mergedParams.TryGetValue(key, out var existingValue))
                 {
                     mergedParams[key] = CoerceToOriginalType(value, existingValue);
                 }
@@ -156,5 +165,44 @@ internal static class ParameterFileAssembler
             double when double.TryParse(value, out var d) => d,
             _ => value
         };
+    }
+
+    /// <summary>
+    /// Creates a shallow copy of an anonymous/POCO object with one property value replaced,
+    /// preserving all other properties. Used when a flat environment override targets a property
+    /// inside a structured parameter group.
+    /// </summary>
+    private static object MergePropertyIntoObject(object source, string propertyName, string newValue)
+    {
+        var dict = new Dictionary<string, object>();
+
+        if (source is IDictionary<string, object> existingDict)
+        {
+            foreach (var (k, v) in existingDict)
+            {
+                dict[k] = k.Equals(propertyName, StringComparison.OrdinalIgnoreCase)
+                    ? (v is not null ? CoerceToOriginalType(newValue, v) : newValue)
+                    : v;
+            }
+        }
+        else
+        {
+            var props = source.GetType().GetProperties(
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            foreach (var prop in props)
+            {
+                var val = prop.GetValue(source);
+                if (string.Equals(prop.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                {
+                    dict[prop.Name] = val is not null ? CoerceToOriginalType(newValue, val) : newValue;
+                }
+                else
+                {
+                    dict[prop.Name] = val!;
+                }
+            }
+        }
+
+        return dict;
     }
 }

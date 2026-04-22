@@ -54,7 +54,7 @@
                 {{ (validatingDiagnostics() ? 'PROJECT_DETAIL.GENERATE_ALL.VALIDATING' : 'PROJECT_DETAIL.GENERATE_ALL.BUTTON') | translate }}
               </button>
               @if (project()!.gitRepositoryConfiguration) {
-                <button class="push-btn" (click)="openProjectPushToGitDialog()" [disabled]="!canPushAllProjectArtifacts()">
+                <button class="push-btn" (click)="openProjectPushAllToGitDialog()" [disabled]="!canPushAllProjectArtifacts()">
                   <mat-icon class="push-btn__icon">rocket_launch</mat-icon>
                   {{ 'PROJECT_DETAIL.GENERATE_ALL.PUSH_TO_GIT' | translate }}
                 </button>

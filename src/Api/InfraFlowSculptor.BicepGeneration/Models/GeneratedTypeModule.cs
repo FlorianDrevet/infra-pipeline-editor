@@ -41,6 +41,24 @@ public sealed record GeneratedTypeModule
         new Dictionary<string, object>();
 
     /// <summary>
+    /// Maps a parameter key to a custom Bicep type name instead of the inferred primitive type.
+    /// When a key appears here, <c>main.bicep</c> declares <c>param {name} {CustomType}</c>
+    /// instead of <c>param {name} object</c>. The type must be <c>@export()</c>-ed from the
+    /// module's <c>types.bicep</c>.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ParameterTypeOverrides { get; init; } =
+        new Dictionary<string, string>();
+
+    /// <summary>
+    /// Maps a flat environment-override key (from domain <c>ToDictionary()</c>) to the structured
+    /// parameter group it belongs to. The tuple is <c>(groupParameterKey, propertyName)</c>.
+    /// Example: <c>"cpuCores" → ("containerRuntime", "cpuCores")</c> tells the parameter assembler
+    /// to merge the override value into the <c>containerRuntime</c> object's <c>cpuCores</c> property.
+    /// </summary>
+    public IReadOnlyDictionary<string, (string GroupKey, string PropertyName)> ParameterGroupMappings { get; init; } =
+        new Dictionary<string, (string, string)>();
+
+    /// <summary>
     /// Names of module parameters that require <c>@secure()</c> decoration and have no default value.
     /// These are declared as <c>@secure() param {moduleName}{ParamName} string</c> in <c>main.bicep</c>
     /// and passed through to the module call.

@@ -61,6 +61,11 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 ## Project-Detail Abbreviation Filter [2026-04-22]
 - Abbreviation list shows only resource types actually used in the project (`usedResourceTypes` from backend `GetDistinctResourceTypesByProjectIdAsync`).
 
+## Mono-repo Git Push UX [2026-04-22]
+- `project-detail` now exposes a single mono-repo push CTA instead of separate Bicep/Pipeline/Bootstrap push buttons.
+- The CTA is enabled only when all three project-level generation results exist.
+- `PushToGitDialogComponent` supports `isCombinedProjectPush` and sequentially calls the three existing project push endpoints on the same branch; this is a frontend orchestration, not a backend atomic push.
+
 ## PITFALL — ACR reactivity [2026-04-03]
 - `onContainerRegistryChange` must patch `generalForm.containerRegistryId` so `DeploymentConfigComponent` gets updated input.
 - `onDeploymentModeChange` must trigger `checkAcrPullAccess()` when switching to Container mode with ACR already selected.

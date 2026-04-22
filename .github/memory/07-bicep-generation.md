@@ -46,6 +46,20 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - Bicep templates use `union()` to conditionally build the `probes` array — each probe type only emitted when both path is non-empty and port > 0
 - V1: HTTP probes only (no TCP/gRPC). Path must start with `/`, port 1-65535.
 
+## ContainerApp User-Defined Types (Parameter Grouping) [2026-05-14]
+- 16 flat Container App params refactored into 4 Bicep user-defined types:
+  - `ContainerRuntimeConfig` (image, cpuCores, memoryGi)
+  - `ScalingConfig` (minReplicas, maxReplicas)
+  - `IngressConfig` (enabled, targetPort, external, transportMethod)
+  - `HealthProbeConfig` (readinessPath/Port, livenessPath/Port, startupPath/Port)
+- All types are `@export()` from ContainerApp `types.bicep`
+- `GeneratedTypeModule` extended with:
+  - `ParameterTypeOverrides`: key → Bicep type name (used by `MainBicepAssembler` for `param` declarations and module-level type imports)
+  - `ParameterGroupMappings`: flat domain key → (groupKey, propertyName) (used by `ParameterFileAssembler.ApplyEnvironmentOverrides` to merge flat env overrides into structured objects)
+- `BicepFormattingHelper.SerializeToBicep` now handles `IDictionary<string, object>` for merged parameter groups
+- Domain `ToDictionary()` remains unchanged — mapping from flat keys to structured groups is handled by `ParameterGroupMappings`
+- ACR params (`acrLoginServer`, `acrManagedIdentityClientId`) remain flat (conditional, not grouped)
+
 ## Identifier & Value Normalization [2026-04-22]
 - All Bicep identifiers use **camelCase** via `BicepIdentifierHelper` and `BicepFormattingHelper`.
 - `BicepGenerationEngine` gracefully skips resource types without a registered generator (logs warning, does not throw).

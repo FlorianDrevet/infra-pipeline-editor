@@ -30,21 +30,15 @@ public sealed class ContainerAppTypeBicepGenerator
 
         var parameters = new Dictionary<string, object>
         {
-            ["containerImage"] = containerImage,
-            ["cpuCores"] = "0.25",
-            ["memoryGi"] = "0.5Gi",
-            ["minReplicas"] = 0,
-            ["maxReplicas"] = 1,
-            ["ingressEnabled"] = true,
-            ["ingressTargetPort"] = 80,
-            ["ingressExternal"] = true,
-            ["transportMethod"] = "auto",
-            ["readinessProbePath"] = "",
-            ["readinessProbePort"] = 0,
-            ["livenessProbePath"] = "",
-            ["livenessProbePort"] = 0,
-            ["startupProbePath"] = "",
-            ["startupProbePort"] = 0
+            ["containerRuntime"] = new { image = containerImage, cpuCores = "0.25", memoryGi = "0.5Gi" },
+            ["scaling"] = new { minReplicas = 0, maxReplicas = 1 },
+            ["ingress"] = new { enabled = true, targetPort = 80, external = true, transportMethod = "auto" },
+            ["healthProbes"] = new
+            {
+                readinessPath = "", readinessPort = 0,
+                livenessPath = "", livenessPort = 0,
+                startupPath = "", startupPort = 0
+            }
         };
 
         if (hasAcr)
@@ -61,7 +55,31 @@ public sealed class ContainerAppTypeBicepGenerator
             ModuleBicepContent = hasAcr ? ContainerAppWithAcrModuleTemplate : ContainerAppModuleTemplate,
             ModuleTypesBicepContent = ContainerAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
-            Parameters = parameters
+            Parameters = parameters,
+            ParameterTypeOverrides = new Dictionary<string, string>
+            {
+                ["containerRuntime"] = "ContainerRuntimeConfig",
+                ["scaling"] = "ScalingConfig",
+                ["ingress"] = "IngressConfig",
+                ["healthProbes"] = "HealthProbeConfig"
+            },
+            ParameterGroupMappings = new Dictionary<string, (string, string)>
+            {
+                ["cpuCores"] = ("containerRuntime", "cpuCores"),
+                ["memoryGi"] = ("containerRuntime", "memoryGi"),
+                ["minReplicas"] = ("scaling", "minReplicas"),
+                ["maxReplicas"] = ("scaling", "maxReplicas"),
+                ["ingressEnabled"] = ("ingress", "enabled"),
+                ["ingressTargetPort"] = ("ingress", "targetPort"),
+                ["ingressExternal"] = ("ingress", "external"),
+                ["transportMethod"] = ("ingress", "transportMethod"),
+                ["readinessProbePath"] = ("healthProbes", "readinessPath"),
+                ["readinessProbePort"] = ("healthProbes", "readinessPort"),
+                ["livenessProbePath"] = ("healthProbes", "livenessPath"),
+                ["livenessProbePort"] = ("healthProbes", "livenessPort"),
+                ["startupProbePath"] = ("healthProbes", "startupPath"),
+                ["startupProbePort"] = ("healthProbes", "startupPort")
+            }
         };
     }
 
@@ -69,10 +87,60 @@ public sealed class ContainerAppTypeBicepGenerator
         @export()
         @description('Ingress transport method for the Container App')
         type TransportMethod = 'auto' | 'http' | 'http2' | 'tcp'
+
+        @export()
+        @description('Container runtime configuration (image, CPU, memory)')
+        type ContainerRuntimeConfig = {
+          @description('Container image to deploy')
+          image: string
+          @description('CPU cores allocated to the container')
+          cpuCores: string
+          @description('Memory allocated to the container (e.g. 0.5Gi)')
+          memoryGi: string
+        }
+
+        @export()
+        @description('Scaling configuration for the Container App')
+        type ScalingConfig = {
+          @description('Minimum number of replicas')
+          minReplicas: int
+          @description('Maximum number of replicas')
+          maxReplicas: int
+        }
+
+        @export()
+        @description('Ingress configuration for the Container App')
+        type IngressConfig = {
+          @description('Whether ingress is enabled')
+          enabled: bool
+          @description('Target port for ingress traffic')
+          targetPort: int
+          @description('Whether ingress is externally accessible')
+          external: bool
+          @description('Transport method for ingress')
+          transportMethod: TransportMethod
+        }
+
+        @export()
+        @description('Health probe configuration for the Container App')
+        type HealthProbeConfig = {
+          @description('HTTP path for the readiness probe (empty to disable)')
+          readinessPath: string
+          @description('Port for the readiness probe (0 to disable)')
+          readinessPort: int
+          @description('HTTP path for the liveness probe (empty to disable)')
+          livenessPath: string
+          @description('Port for the liveness probe (0 to disable)')
+          livenessPort: int
+          @description('HTTP path for the startup probe (empty to disable)')
+          startupPath: string
+          @description('Port for the startup probe (0 to disable)')
+          startupPort: int
+        }
         """;
 
     private const string ContainerAppModuleTemplate = """
-        import { TransportMethod } from './types.bicep'
+        import { TransportMethod, ContainerRuntimeConfig, ScalingConfig, IngressConfig, HealthProbeConfig } from './types.bicep'
 
         @description('Azure region for the Container App')
         param location string
@@ -83,50 +151,17 @@ public sealed class ContainerAppTypeBicepGenerator
         @description('Resource ID of the Container App Environment')
         param containerAppEnvironmentId string
 
-        @description('Container image to deploy')
-        param containerImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+        @description('Container runtime configuration')
+        param containerRuntime ContainerRuntimeConfig
 
-        @description('CPU cores allocated to the container')
-        param cpuCores string = '0.25'
+        @description('Scaling configuration')
+        param scaling ScalingConfig
 
-        @description('Memory allocated to the container (e.g. 0.5Gi)')
-        param memoryGi string = '0.5Gi'
+        @description('Ingress configuration')
+        param ingress IngressConfig
 
-        @description('Minimum number of replicas')
-        param minReplicas int = 0
-
-        @description('Maximum number of replicas')
-        param maxReplicas int = 1
-
-        @description('Whether ingress is enabled')
-        param ingressEnabled bool = true
-
-        @description('Target port for ingress traffic')
-        param ingressTargetPort int = 80
-
-        @description('Whether ingress is externally accessible')
-        param ingressExternal bool = true
-
-        @description('Transport method for ingress')
-        param transportMethod TransportMethod = 'auto'
-
-        @description('HTTP path for the readiness probe (empty to disable)')
-        param readinessProbePath string = ''
-
-        @description('Port for the readiness probe (0 to disable)')
-        param readinessProbePort int = 0
-
-        @description('HTTP path for the liveness probe (empty to disable)')
-        param livenessProbePath string = ''
-
-        @description('Port for the liveness probe (0 to disable)')
-        param livenessProbePort int = 0
-
-        @description('HTTP path for the startup probe (empty to disable)')
-        param startupProbePath string = ''
-
-        @description('Port for the startup probe (0 to disable)')
-        param startupProbePort int = 0
+        @description('Health probe configuration')
+        param healthProbes HealthProbeConfig
 
         resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           name: name
@@ -134,49 +169,49 @@ public sealed class ContainerAppTypeBicepGenerator
           properties: {
             managedEnvironmentId: containerAppEnvironmentId
             configuration: {
-              ingress: ingressEnabled ? {
-                external: ingressExternal
-                targetPort: ingressTargetPort
-                transport: transportMethod
+              ingress: ingress.enabled ? {
+                external: ingress.external
+                targetPort: ingress.targetPort
+                transport: ingress.transportMethod
               } : null
             }
             template: {
               containers: [
                 {
                   name: name
-                  image: containerImage
+                  image: containerRuntime.image
                   resources: {
-                    cpu: json(cpuCores)
-                    memory: memoryGi
+                    cpu: json(containerRuntime.cpuCores)
+                    memory: containerRuntime.memoryGi
                   }
                   probes: union(
-                    !empty(readinessProbePath) && readinessProbePort > 0 ? [{
+                    !empty(healthProbes.readinessPath) && healthProbes.readinessPort > 0 ? [{
                       type: 'Readiness'
                       httpGet: {
-                        path: readinessProbePath
-                        port: readinessProbePort
+                        path: healthProbes.readinessPath
+                        port: healthProbes.readinessPort
                       }
                     }] : [],
-                    !empty(livenessProbePath) && livenessProbePort > 0 ? [{
+                    !empty(healthProbes.livenessPath) && healthProbes.livenessPort > 0 ? [{
                       type: 'Liveness'
                       httpGet: {
-                        path: livenessProbePath
-                        port: livenessProbePort
+                        path: healthProbes.livenessPath
+                        port: healthProbes.livenessPort
                       }
                     }] : [],
-                    !empty(startupProbePath) && startupProbePort > 0 ? [{
+                    !empty(healthProbes.startupPath) && healthProbes.startupPort > 0 ? [{
                       type: 'Startup'
                       httpGet: {
-                        path: startupProbePath
-                        port: startupProbePort
+                        path: healthProbes.startupPath
+                        port: healthProbes.startupPort
                       }
                     }] : []
                   )
                 }
               ]
               scale: {
-                minReplicas: minReplicas
-                maxReplicas: maxReplicas
+                minReplicas: scaling.minReplicas
+                maxReplicas: scaling.maxReplicas
               }
             }
           }
@@ -193,7 +228,7 @@ public sealed class ContainerAppTypeBicepGenerator
         """;
 
     private const string ContainerAppWithAcrModuleTemplate = """
-        import { TransportMethod } from './types.bicep'
+        import { TransportMethod, ContainerRuntimeConfig, ScalingConfig, IngressConfig, HealthProbeConfig } from './types.bicep'
 
         @description('Azure region for the Container App')
         param location string
@@ -204,50 +239,17 @@ public sealed class ContainerAppTypeBicepGenerator
         @description('Resource ID of the Container App Environment')
         param containerAppEnvironmentId string
 
-        @description('Container image to deploy')
-        param containerImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+        @description('Container runtime configuration')
+        param containerRuntime ContainerRuntimeConfig
 
-        @description('CPU cores allocated to the container')
-        param cpuCores string = '0.25'
+        @description('Scaling configuration')
+        param scaling ScalingConfig
 
-        @description('Memory allocated to the container (e.g. 0.5Gi)')
-        param memoryGi string = '0.5Gi'
+        @description('Ingress configuration')
+        param ingress IngressConfig
 
-        @description('Minimum number of replicas')
-        param minReplicas int = 0
-
-        @description('Maximum number of replicas')
-        param maxReplicas int = 1
-
-        @description('Whether ingress is enabled')
-        param ingressEnabled bool = true
-
-        @description('Target port for ingress traffic')
-        param ingressTargetPort int = 80
-
-        @description('Whether ingress is externally accessible')
-        param ingressExternal bool = true
-
-        @description('Transport method for ingress')
-        param transportMethod TransportMethod = 'auto'
-
-        @description('HTTP path for the readiness probe (empty to disable)')
-        param readinessProbePath string = ''
-
-        @description('Port for the readiness probe (0 to disable)')
-        param readinessProbePort int = 0
-
-        @description('HTTP path for the liveness probe (empty to disable)')
-        param livenessProbePath string = ''
-
-        @description('Port for the liveness probe (0 to disable)')
-        param livenessProbePort int = 0
-
-        @description('HTTP path for the startup probe (empty to disable)')
-        param startupProbePath string = ''
-
-        @description('Port for the startup probe (0 to disable)')
-        param startupProbePort int = 0
+        @description('Health probe configuration')
+        param healthProbes HealthProbeConfig
 
         @description('ACR login server (e.g. myregistry.azurecr.io)')
         param acrLoginServer string
@@ -267,49 +269,49 @@ public sealed class ContainerAppTypeBicepGenerator
                   identity: !empty(acrManagedIdentityClientId) ? acrManagedIdentityClientId : 'system'
                 }
               ]
-              ingress: ingressEnabled ? {
-                external: ingressExternal
-                targetPort: ingressTargetPort
-                transport: transportMethod
+              ingress: ingress.enabled ? {
+                external: ingress.external
+                targetPort: ingress.targetPort
+                transport: ingress.transportMethod
               } : null
             }
             template: {
               containers: [
                 {
                   name: name
-                  image: containerImage
+                  image: containerRuntime.image
                   resources: {
-                    cpu: json(cpuCores)
-                    memory: memoryGi
+                    cpu: json(containerRuntime.cpuCores)
+                    memory: containerRuntime.memoryGi
                   }
                   probes: union(
-                    !empty(readinessProbePath) && readinessProbePort > 0 ? [{
+                    !empty(healthProbes.readinessPath) && healthProbes.readinessPort > 0 ? [{
                       type: 'Readiness'
                       httpGet: {
-                        path: readinessProbePath
-                        port: readinessProbePort
+                        path: healthProbes.readinessPath
+                        port: healthProbes.readinessPort
                       }
                     }] : [],
-                    !empty(livenessProbePath) && livenessProbePort > 0 ? [{
+                    !empty(healthProbes.livenessPath) && healthProbes.livenessPort > 0 ? [{
                       type: 'Liveness'
                       httpGet: {
-                        path: livenessProbePath
-                        port: livenessProbePort
+                        path: healthProbes.livenessPath
+                        port: healthProbes.livenessPort
                       }
                     }] : [],
-                    !empty(startupProbePath) && startupProbePort > 0 ? [{
+                    !empty(healthProbes.startupPath) && healthProbes.startupPort > 0 ? [{
                       type: 'Startup'
                       httpGet: {
-                        path: startupProbePath
-                        port: startupProbePort
+                        path: healthProbes.startupPath
+                        port: healthProbes.startupPort
                       }
                     }] : []
                   )
                 }
               ]
               scale: {
-                minReplicas: minReplicas
-                maxReplicas: maxReplicas
+                minReplicas: scaling.minReplicas
+                maxReplicas: scaling.maxReplicas
               }
             }
           }
