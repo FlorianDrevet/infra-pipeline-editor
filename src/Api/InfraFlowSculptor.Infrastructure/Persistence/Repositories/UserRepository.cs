@@ -29,6 +29,7 @@ public class UserRepository : BaseRepository<User, ProjectDbContext>, IUserRepos
         user = User.Create(entreId, new Name(firstName, lastName));
 
         await Context.Users.AddAsync(user, cancellationToken);
+        await Context.SaveChangesAsync(cancellationToken);
 
         return user;
     }
