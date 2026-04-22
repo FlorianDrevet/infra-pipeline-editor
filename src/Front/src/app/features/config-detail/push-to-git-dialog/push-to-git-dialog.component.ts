@@ -10,7 +10,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import axios from 'axios';
 import { GitConfigResponse } from '../../../shared/interfaces/project.interface';
-import { PushBicepToGitResponse } from '../../../shared/interfaces/bicep-generator.interface';
 import { BicepGeneratorService } from '../../../shared/services/bicep-generator.service';
 import { PipelineGeneratorService } from '../../../shared/services/pipeline-generator.service';
 import { ProjectService } from '../../../shared/services/project.service';
@@ -20,11 +19,19 @@ export interface PushToGitDialogData {
   projectId: string;
   gitConfig: GitConfigResponse;
   isProjectLevel?: boolean;
+  isCombinedProjectPush?: boolean;
   isPipeline?: boolean;
   isBootstrap?: boolean;
 }
 
 type DialogState = 'form' | 'pushing' | 'success' | 'error';
+
+interface PushToGitResultSummary {
+  branchName: string;
+  branchUrl: string;
+  commitSha: string;
+  fileCount: number;
+}
 
 @Component({
   selector: 'app-push-to-git-dialog',
@@ -52,11 +59,27 @@ export class PushToGitDialogComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   protected readonly isProjectLevel = this.data.isProjectLevel ?? false;
+  protected readonly isCombinedProjectPush = this.data.isCombinedProjectPush ?? false;
   protected readonly isPipeline = this.data.isPipeline ?? false;
   protected readonly isBootstrap = this.data.isBootstrap ?? false;
+  protected readonly dialogTitleKey = this.isCombinedProjectPush
+    ? 'CONFIG_DETAIL.PUSH_TO_GIT.DIALOG_TITLE_COMBINED'
+    : 'CONFIG_DETAIL.PUSH_TO_GIT.DIALOG_TITLE';
+  protected readonly pushingMessageKey = this.isCombinedProjectPush
+    ? 'CONFIG_DETAIL.PUSH_TO_GIT.PUSHING_COMBINED'
+    : 'CONFIG_DETAIL.PUSH_TO_GIT.PUSHING';
+  protected readonly successTitleKey = this.isCombinedProjectPush
+    ? 'CONFIG_DETAIL.PUSH_TO_GIT.SUCCESS_TITLE_COMBINED'
+    : 'CONFIG_DETAIL.PUSH_TO_GIT.SUCCESS_TITLE';
+  protected readonly commitLabelKey = this.isCombinedProjectPush
+    ? 'CONFIG_DETAIL.PUSH_TO_GIT.LAST_COMMIT_SHA'
+    : 'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_SHA';
+  protected readonly combinedSuccessDetailKey = this.isCombinedProjectPush
+    ? 'CONFIG_DETAIL.PUSH_TO_GIT.COMBINED_SUCCESS_DETAIL'
+    : '';
 
   protected readonly state = signal<DialogState>('form');
-  protected readonly result = signal<PushBicepToGitResponse | null>(null);
+  protected readonly result = signal<PushToGitResultSummary | null>(null);
   protected readonly errorKey = signal('');
   protected readonly errorDetail = signal('');
   protected readonly allBranches = signal<string[]>([]);
@@ -110,7 +133,9 @@ export class PushToGitDialogComponent implements OnInit {
         branchName: value.branchName!,
         commitMessage: value.commitMessage || '',
       };
-      const response = this.isProjectLevel
+      const response = this.isCombinedProjectPush
+        ? await this.pushCombinedProjectArtifactsToGit(request)
+        : this.isProjectLevel
         ? (this.isBootstrap
           ? await this.projectService.pushProjectBootstrapPipelineToGit(this.data.projectId, request)
           : this.isPipeline
@@ -131,6 +156,21 @@ export class PushToGitDialogComponent implements OnInit {
       this.errorKey.set('CONFIG_DETAIL.PUSH_TO_GIT.ERROR');
       this.state.set('error');
     }
+  }
+
+  private async pushCombinedProjectArtifactsToGit(
+    request: { branchName: string; commitMessage: string },
+  ): Promise<PushToGitResultSummary> {
+    const bicepResult = await this.projectService.pushProjectBicepToGit(this.data.projectId, request);
+    const pipelineResult = await this.projectService.pushProjectPipelineToGit(this.data.projectId, request);
+    const bootstrapResult = await this.projectService.pushProjectBootstrapPipelineToGit(this.data.projectId, request);
+
+    return {
+      branchName: bootstrapResult.branchName,
+      branchUrl: bootstrapResult.branchUrl,
+      commitSha: bootstrapResult.commitSha,
+      fileCount: bicepResult.fileCount + pipelineResult.fileCount + bootstrapResult.fileCount,
+    };
   }
 
   protected onRetry(): void {

@@ -620,17 +620,22 @@
     "PUSH_TO_GIT": {
       "BUTTON": "Pousser vers Git",
       "DIALOG_TITLE": "Pousser le Bicep vers Git",
+      "DIALOG_TITLE_COMBINED": "Pousser les artefacts generes vers Git",
       "BRANCH_NAME": "Nom de la branche",
       "BRANCH_NAME_PLACEHOLDER": "bicep/auto-generated",
       "COMMIT_MESSAGE": "Message de commit (optionnel)",
       "COMMIT_MESSAGE_PLACEHOLDER": "Resultat de la generation Bicep",
       "PUSH": "Pousser",
       "PUSHING": "Envoi vers Git...",
+      "PUSHING_COMBINED": "Envoi de Bicep, Pipeline et Bootstrap vers Git...",
       "LOADING_BRANCHES": "Chargement des branches...",
       "NO_BRANCHES": "Aucune branche correspondante",
       "SUCCESS_TITLE": "Fichiers pousses avec succes !",
+      "SUCCESS_TITLE_COMBINED": "Artefacts pousses avec succes !",
+      "COMBINED_SUCCESS_DETAIL": "Bicep, Pipeline et Bootstrap ont ete pousses sequentiellement sur la meme branche.",
       "BRANCH_URL": "Voir la branche",
       "COMMIT_SHA": "Commit",
+      "LAST_COMMIT_SHA": "Dernier commit",
       "FILE_COUNT": "{{count}} fichier(s) pousse(s)",
       "ERROR": "Impossible de pousser les fichiers vers Git.",
       "RETRY": "Reessayer",
@@ -742,7 +747,8 @@
     },
     "GENERATE_ALL": {
       "BUTTON": "Générer",
-      "VALIDATING": "Vérification en cours..."
+      "VALIDATING": "Vérification en cours...",
+      "PUSH_TO_GIT": "Tout pousser vers Git"
     },
     "GENERATION": {
       "TITLE": "Résultats de génération",

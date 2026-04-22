@@ -179,6 +179,11 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectBootstrapDownloading = signal(false);
   protected readonly projectBootstrapErrorKey = signal('');
   protected readonly projectBootstrapPanelOpen = signal(false);
+  protected readonly canPushAllProjectArtifacts = computed(
+    () => this.projectBicepResult() !== null
+      && this.projectPipelineResult() !== null
+      && this.projectBootstrapResult() !== null,
+  );
 
   // ─── Pipeline Variable Groups ───
   protected readonly variableGroups = signal<ProjectPipelineVariableGroupResponse[]>([]);
@@ -1223,6 +1228,7 @@ export class ProjectDetailComponent implements OnInit {
       projectId: project.id,
       gitConfig,
       isProjectLevel: true,
+      isCombinedProjectPush: true,
     };
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }

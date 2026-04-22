@@ -601,17 +601,22 @@
     "PUSH_TO_GIT": {
       "BUTTON": "Push to Git",
       "DIALOG_TITLE": "Push Bicep to Git",
+      "DIALOG_TITLE_COMBINED": "Push generated artifacts to Git",
       "BRANCH_NAME": "Branch name",
       "BRANCH_NAME_PLACEHOLDER": "bicep/auto-generated",
       "COMMIT_MESSAGE": "Commit message (optional)",
       "COMMIT_MESSAGE_PLACEHOLDER": "Bicep generation output",
       "PUSH": "Push",
       "PUSHING": "Pushing to Git...",
+      "PUSHING_COMBINED": "Pushing Bicep, Pipeline, and Bootstrap to Git...",
       "LOADING_BRANCHES": "Loading branches...",
       "NO_BRANCHES": "No matching branches",
       "SUCCESS_TITLE": "Files pushed successfully!",
+      "SUCCESS_TITLE_COMBINED": "Artifacts pushed successfully!",
+      "COMBINED_SUCCESS_DETAIL": "Bicep, Pipeline, and Bootstrap were pushed sequentially to the same branch.",
       "BRANCH_URL": "View branch",
       "COMMIT_SHA": "Commit",
+      "LAST_COMMIT_SHA": "Last commit",
       "FILE_COUNT": "{{count}} file(s) pushed",
       "ERROR": "Unable to push files to Git.",
       "RETRY": "Retry",
@@ -723,7 +728,8 @@
     },
     "GENERATE_ALL": {
       "BUTTON": "Generate",
-      "VALIDATING": "Validating configuration..."
+      "VALIDATING": "Validating configuration...",
+      "PUSH_TO_GIT": "Push all to Git"
     },
     "GENERATION": {
       "TITLE": "Generation Results",

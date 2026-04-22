@@ -47,8 +47,8 @@ public sealed class BootstrapPipelineGenerationEngine
         sb.AppendLine("# All scripts are idempotent — re-running skips already-existing resources.");
         sb.AppendLine("#");
         sb.AppendLine("# Prerequisites:");
-        sb.AppendLine("#   - PAT configured in Key Vault with scopes:");
-        sb.AppendLine("#       vso.code_write, vso.build_execute, vso.variablegroups_manage");
+        sb.AppendLine("#   - The pipeline/job must expose $(System.AccessToken) to scripts");
+        sb.AppendLine("#   - The build service identity must be allowed to manage pipelines and variable groups");
         sb.AppendLine("#   - Service connections configured per environment in Azure DevOps");
         sb.AppendLine("#   - Azure CLI with azure-devops extension available on agent");
         sb.AppendLine();
@@ -70,30 +70,37 @@ public sealed class BootstrapPipelineGenerationEngine
     private static void GenerateConfigureStep(StringBuilder sb, BootstrapGenerationRequest request)
     {
         sb.AppendLine("  # ── Step 1: Configure Azure DevOps CLI ──────────────────────────────────");
-        sb.AppendLine("  - script: |");
-        sb.AppendLine("      az extension add --name azure-devops --yes 2>/dev/null || true");
-        sb.AppendLine("      az devops configure \\");
-        sb.AppendLine("        --defaults organization=$(organizationUrl) project=$(projectName) \\");
-        sb.AppendLine("        --detect false");
+        sb.AppendLine("  - powershell: |");
+        sb.AppendLine("      $ErrorActionPreference = 'Stop'");
+        sb.AppendLine("      $null = az config set extension.use_dynamic_install=yes_without_prompt");
+        sb.AppendLine("      $null = az config set extension.dynamic_install_allow_preview=false");
+        sb.AppendLine("      $null = az extension show --name azure-devops 2>$null");
+        sb.AppendLine("      if ($LASTEXITCODE -ne 0) {");
+        sb.AppendLine("        $null = az extension add --name azure-devops --yes");
+        sb.AppendLine("      }");
+        sb.AppendLine("      $null = az devops configure --defaults organization=\"$(organizationUrl)\" project=\"$(projectName)\" --detect false");
         sb.AppendLine("    displayName: 'Configure Azure DevOps CLI'");
         sb.AppendLine("    env:");
         sb.AppendLine("      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)");
+        sb.AppendLine("      SYSTEM_ACCESSTOKEN: $(System.AccessToken)");
         sb.AppendLine();
     }
 
     private static void GenerateGetRepoIdStep(StringBuilder sb, BootstrapGenerationRequest request)
     {
         sb.AppendLine("  # ── Step 2: Resolve repository ID ───────────────────────────────────────");
-        sb.AppendLine("  - script: |");
-        sb.AppendLine("      REPO_ID=$(az repos show \\");
-        sb.AppendLine("        --repository \"$(repositoryName)\" \\");
-        sb.AppendLine("        --query \"id\" -o tsv \\");
-        sb.AppendLine("        --detect false)");
-        sb.AppendLine("      echo \"##vso[task.setvariable variable=repoId]$REPO_ID\"");
-        sb.AppendLine("      echo \"Repository ID: $REPO_ID\"");
+        sb.AppendLine("  - powershell: |");
+        sb.AppendLine("      $ErrorActionPreference = 'Stop'");
+        sb.AppendLine("      $repoId = az repos show --repository \"$(repositoryName)\" --query \"id\" -o tsv --detect false");
+        sb.AppendLine("      if ([string]::IsNullOrWhiteSpace($repoId)) {");
+        sb.AppendLine("        throw 'Unable to resolve the Azure DevOps repository identifier.'");
+        sb.AppendLine("      }");
+        sb.AppendLine("      Write-Host \"##vso[task.setvariable variable=repoId]$repoId\"");
+        sb.AppendLine("      Write-Host ('Repository ID: ' + $repoId)");
         sb.AppendLine("    displayName: 'Resolve Repository ID'");
         sb.AppendLine("    env:");
         sb.AppendLine("      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)");
+        sb.AppendLine("      SYSTEM_ACCESSTOKEN: $(System.AccessToken)");
         sb.AppendLine();
     }
 
@@ -110,29 +117,20 @@ public sealed class BootstrapPipelineGenerationEngine
             var sanitizedPath = EscapeSingleQuotes(pipeline.YamlPath);
             var sanitizedFolder = EscapeSingleQuotes(pipeline.Folder);
 
-            sb.AppendLine($"  - script: |");
-            sb.AppendLine($"      EXISTING=$(az pipelines show \\");
-            sb.AppendLine($"        --name '{sanitizedName}' \\");
-            sb.AppendLine($"        --folder-path '{sanitizedFolder}' \\");
-            sb.AppendLine($"        --query 'id' -o tsv \\");
-            sb.AppendLine($"        --detect false 2>/dev/null || echo '')");
-            sb.AppendLine($"      if [ -z \"$EXISTING\" ]; then");
-            sb.AppendLine($"        az pipelines create \\");
-            sb.AppendLine($"          --name '{sanitizedName}' \\");
-            sb.AppendLine($"          --repository \"$(repositoryName)\" \\");
-            sb.AppendLine($"          --repository-type tfsgit \\");
-            sb.AppendLine($"          --branch \"$(defaultBranch)\" \\");
-            sb.AppendLine($"          --yml-path '{sanitizedPath}' \\");
-            sb.AppendLine($"          --folder-path '{sanitizedFolder}' \\");
-            sb.AppendLine($"          --skip-first-run true \\");
-            sb.AppendLine($"          --detect false");
-            sb.AppendLine($"        echo \"Created pipeline: {sanitizedName}\"");
-            sb.AppendLine($"      else");
-            sb.AppendLine($"        echo \"Pipeline already exists: {sanitizedName} (ID: $EXISTING)\"");
-            sb.AppendLine($"      fi");
+            sb.AppendLine($"  - powershell: |");
+            sb.AppendLine("      $ErrorActionPreference = 'Stop'");
+            sb.AppendLine($"      $existing = az pipelines show --name '{sanitizedName}' --folder-path '{sanitizedFolder}' --query 'id' -o tsv --detect false 2>$null");
+            sb.AppendLine("      if ([string]::IsNullOrWhiteSpace($existing)) {");
+            sb.AppendLine($"        $null = az pipelines create --name '{sanitizedName}' --repository \"$(repositoryName)\" --repository-type tfsgit --branch \"$(defaultBranch)\" --yml-path '{sanitizedPath}' --folder-path '{sanitizedFolder}' --skip-first-run true --detect false");
+            sb.AppendLine($"        Write-Host 'Created pipeline: {sanitizedName}'");
+            sb.AppendLine("      }");
+            sb.AppendLine("      else {");
+            sb.AppendLine($"        Write-Host ('Pipeline already exists: {sanitizedName} (ID: ' + $existing + ')')");
+            sb.AppendLine("      }");
             sb.AppendLine($"    displayName: 'Create Pipeline: {sanitizedName}'");
             sb.AppendLine($"    env:");
             sb.AppendLine($"      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)");
+            sb.AppendLine($"      SYSTEM_ACCESSTOKEN: $(System.AccessToken)");
             sb.AppendLine();
         }
     }
@@ -148,62 +146,50 @@ public sealed class BootstrapPipelineGenerationEngine
         {
             var sanitizedGroupName = EscapeSingleQuotes(group.GroupName);
 
-            // Build the --variables argument for plain-text vars only (az CLI doesn't support --secret on create)
             var plainVars = group.Variables.Where(v => !v.IsSecret).ToList();
-            var varsArg = plainVars.Count > 0
-                ? string.Join(" ", plainVars.Select(v => $"{EscapeShellArg(v.Name)}={EscapeShellArg(v.Value)}"))
-                : "PLACEHOLDER=bootstrap";  // az CLI requires at least one variable on create
+            var variableTokens = plainVars.Count > 0
+                ? plainVars.Select(v => $"{v.Name}={v.Value}").ToList()
+                : ["PLACEHOLDER=bootstrap"];
 
-            sb.AppendLine($"  - script: |");
-            sb.AppendLine($"      EXISTING_ID=$(az pipelines variable-group list \\");
-            sb.AppendLine($"        --query \"[?name=='{sanitizedGroupName}'].id | [0]\" \\");
-            sb.AppendLine($"        -o tsv \\");
-            sb.AppendLine($"        --detect false 2>/dev/null || echo '')");
-            sb.AppendLine($"      if [ -z \"$EXISTING_ID\" ]; then");
-            sb.AppendLine($"        az pipelines variable-group create \\");
-            sb.AppendLine($"          --name '{sanitizedGroupName}' \\");
-            sb.AppendLine($"          --variables {varsArg} \\");
-            sb.AppendLine($"          --detect false");
+            sb.AppendLine($"  - powershell: |");
+            sb.AppendLine("      $ErrorActionPreference = 'Stop'");
+            sb.AppendLine($"      $existingId = az pipelines variable-group list --query \"[?name=='{sanitizedGroupName}'].id | [0]\" -o tsv --detect false 2>$null");
+            sb.AppendLine("      if ([string]::IsNullOrWhiteSpace($existingId)) {");
+            sb.Append($"        $null = az pipelines variable-group create --name '{sanitizedGroupName}' --variables");
+            foreach (var token in variableTokens)
+            {
+                sb.Append($" '{EscapeSingleQuotes(token)}'");
+            }
+            sb.AppendLine(" --detect false");
+            sb.AppendLine($"        $vgId = az pipelines variable-group list --query \"[?name=='{sanitizedGroupName}'].id | [0]\" -o tsv --detect false");
+            sb.AppendLine("        if ([string]::IsNullOrWhiteSpace($vgId)) {");
+            sb.AppendLine($"          throw 'Unable to resolve variable group id after creation: {sanitizedGroupName}'");
+            sb.AppendLine("        }");
 
-            // Remove placeholder if it was added artificially
             if (plainVars.Count == 0)
             {
-                sb.AppendLine($"        VG_ID=$(az pipelines variable-group list \\");
-                sb.AppendLine($"          --query \"[?name=='{sanitizedGroupName}'].id | [0]\" \\");
-                sb.AppendLine($"          -o tsv --detect false)");
-                sb.AppendLine($"        az pipelines variable-group variable delete \\");
-                sb.AppendLine($"          --group-id $VG_ID \\");
-                sb.AppendLine($"          --name PLACEHOLDER \\");
-                sb.AppendLine($"          --yes --detect false 2>/dev/null || true");
+                sb.AppendLine("        $null = az pipelines variable-group variable delete --group-id $vgId --name PLACEHOLDER --yes --detect false 2>$null");
             }
 
-            // Add secret variables (must be done after creation via variable update)
             var secretVars = group.Variables.Where(v => v.IsSecret).ToList();
             if (secretVars.Count > 0)
             {
-                sb.AppendLine($"        VG_ID=$(az pipelines variable-group list \\");
-                sb.AppendLine($"          --query \"[?name=='{sanitizedGroupName}'].id | [0]\" \\");
-                sb.AppendLine($"          -o tsv --detect false)");
-
                 foreach (var secretVar in secretVars)
                 {
                     var sanitizedVarName = EscapeSingleQuotes(secretVar.Name);
-                    sb.AppendLine($"        az pipelines variable-group variable create \\");
-                    sb.AppendLine($"          --group-id $VG_ID \\");
-                    sb.AppendLine($"          --name '{sanitizedVarName}' \\");
-                    sb.AppendLine($"          --value ' ' \\");
-                    sb.AppendLine($"          --secret true \\");
-                    sb.AppendLine($"          --detect false");
+                    sb.AppendLine($"        $null = az pipelines variable-group variable create --group-id $vgId --name '{sanitizedVarName}' --value ' ' --secret true --detect false");
                 }
             }
 
-            sb.AppendLine($"        echo \"Created variable group: {sanitizedGroupName}\"");
-            sb.AppendLine($"      else");
-            sb.AppendLine($"        echo \"Variable group already exists: {sanitizedGroupName} (ID: $EXISTING_ID)\"");
-            sb.AppendLine($"      fi");
+            sb.AppendLine($"        Write-Host 'Created variable group: {sanitizedGroupName}'");
+            sb.AppendLine("      }");
+            sb.AppendLine("      else {");
+            sb.AppendLine($"        Write-Host ('Variable group already exists: {sanitizedGroupName} (ID: ' + $existingId + ')')");
+            sb.AppendLine("      }");
             sb.AppendLine($"    displayName: 'Create Variable Group: {sanitizedGroupName}'");
             sb.AppendLine($"    env:");
             sb.AppendLine($"      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)");
+            sb.AppendLine($"      SYSTEM_ACCESSTOKEN: $(System.AccessToken)");
             sb.AppendLine();
         }
     }
@@ -215,45 +201,35 @@ public sealed class BootstrapPipelineGenerationEngine
 
         sb.AppendLine("  # ── Step 5: Authorize variable groups on all pipelines ───────────────────");
         sb.AppendLine("  # Uses the Azure DevOps REST API directly (az CLI does not expose this endpoint).");
-        sb.AppendLine("  - script: |");
-        sb.AppendLine("      BASE_URL=\"$(organizationUrl)/$(projectName)/_apis/pipelines/pipelinepermissions\"");
-        sb.AppendLine("      AUTH_HEADER=\"Authorization: Bearer $(System.AccessToken)\"");
-        sb.AppendLine("      CONTENT_HEADER=\"Content-Type: application/json\"");
+        sb.AppendLine("  - powershell: |");
+        sb.AppendLine("      $ErrorActionPreference = 'Stop'");
+        sb.AppendLine("      $baseUrl = \"$(organizationUrl)/$(projectName)/_apis/pipelines/pipelinepermissions\"");
+        sb.AppendLine("      $headers = @{ Authorization = \"Bearer $(System.AccessToken)\" }");
+        sb.AppendLine("      $body = '{\"allPipelines\":{\"authorized\":true}}'");
         sb.AppendLine();
 
         foreach (var group in request.VariableGroups)
         {
             var sanitizedGroupName = EscapeSingleQuotes(group.GroupName);
             sb.AppendLine($"      # Authorize '{sanitizedGroupName}' on all pipelines");
-            sb.AppendLine($"      VG_ID=$(az pipelines variable-group list \\");
-            sb.AppendLine($"        --query \"[?name=='{sanitizedGroupName}'].id | [0]\" \\");
-            sb.AppendLine($"        -o tsv --detect false)");
-            sb.AppendLine($"      if [ -n \"$VG_ID\" ]; then");
-            sb.AppendLine($"        curl -s -X PATCH \\");
-            sb.AppendLine($"          \"$BASE_URL/variablegroup/$VG_ID?api-version=7.1\" \\");
-            sb.AppendLine($"          -H \"$AUTH_HEADER\" \\");
-            sb.AppendLine($"          -H \"$CONTENT_HEADER\" \\");
-            sb.AppendLine($"          -d '{{\"allPipelines\":{{\"authorized\":true}}}}' > /dev/null");
-            sb.AppendLine($"        echo \"Authorized variable group '{sanitizedGroupName}' (ID: $VG_ID) on all pipelines\"");
-            sb.AppendLine($"      else");
-            sb.AppendLine($"        echo \"WARNING: Variable group '{sanitizedGroupName}' not found — skipping authorization\"");
-            sb.AppendLine($"      fi");
+            sb.AppendLine($"      $vgId = az pipelines variable-group list --query \"[?name=='{sanitizedGroupName}'].id | [0]\" -o tsv --detect false");
+            sb.AppendLine("      if (-not [string]::IsNullOrWhiteSpace($vgId)) {");
+            sb.AppendLine("        $uri = \"$baseUrl/variablegroup/$vgId?api-version=7.1\"");
+            sb.AppendLine("        $null = Invoke-RestMethod -Method Patch -Uri $uri -Headers $headers -ContentType 'application/json' -Body $body");
+            sb.AppendLine($"        Write-Host ('Authorized variable group ''{sanitizedGroupName}'' (ID: ' + $vgId + ') on all pipelines')");
+            sb.AppendLine("      }");
+            sb.AppendLine("      else {");
+            sb.AppendLine($"        Write-Host 'WARNING: Variable group ''{sanitizedGroupName}'' not found — skipping authorization'");
+            sb.AppendLine("      }");
             sb.AppendLine();
         }
 
         sb.AppendLine("    displayName: 'Authorize Variable Groups on All Pipelines'");
         sb.AppendLine("    env:");
         sb.AppendLine("      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)");
+        sb.AppendLine("      SYSTEM_ACCESSTOKEN: $(System.AccessToken)");
     }
 
     private static string EscapeSingleQuotes(string value) =>
-        value.Replace("'", "'\\''");
-
-    private static string EscapeShellArg(string value)
-    {
-        // For --variables key=value, quote if contains spaces or special chars
-        if (value.Contains(' ') || value.Contains('"') || value.Contains('\'') || value.Length == 0)
-            return $"\"{value.Replace("\"", "\\\"")}\"";
-        return value;
-    }
+        value.Replace("'", "''");
 }
