@@ -1,3 +1,4 @@
+- 2026-04-22 — **Custom Domains V1 — Full implementation** — Domain entity (`CustomDomain` on `AzureResource` base), CQRS (Add/Remove/List), EF Core persistence, API endpoints, Bicep generation (ContainerApp ingress customDomains, WebApp/FunctionApp hostNameBindings), ParameterFileAssembler per-env injection, frontend tab with dialog + DNS guide, i18n FR/EN. ~15 files created, ~18 modified.
 - 2026-04-22 — **Custom Domains V1 — Architecture plan** — Comprehensive plan for adding custom domain support to ContainerApp, WebApp, FunctionApp. Shared `CustomDomain` entity on `AzureResource` base (pattern: AppSetting), CQRS CRUD, per-resource-type Bicep (no mutualization at Bicep level), new "Custom Domains" tab in resource-edit with DNS guidance stepper, i18n FR/EN. ~23 files to create, ~14 to modify. Plan archived in session memory.
 - 2026-04-22 — Bootstrap Azure DevOps generation now emits ASCII-safe pipeline names (` - ` separator) and uses `az pipelines list` for idempotent pipeline existence checks before creation on Windows self-hosted agents.
 - 2026-04-22 — Bootstrap Azure DevOps pipeline creation now stops immediately when `az pipelines create` fails and documents the required Azure DevOps `Create build pipeline` permission on the target folder path for the Build Service identity.
@@ -6,6 +7,7 @@
 - 2026-04-22 — Documented Azure DevOps bootstrap security prerequisites: current bootstrap can provision pipelines, variable groups, and pipeline authorizations, but initial `Pipelines -> Manage security` and `Library -> Security` grants for the Build Service identity remain one-time manual steps unless a higher-privilege identity drives Azure DevOps Security ACL APIs.
 - 2026-04-22 — Removed the generated `Authorize Variable Groups on All Pipelines` bootstrap step. Bootstrap now provisions only pipeline definitions and variable groups; authorization/security remains an external manual or admin-driven ACL concern.
 - 2026-04-22 — Rewrote the frontend Bootstrap ADO tab as a beginner-friendly first-run guide with numbered steps for generate, push, create/run the Azure DevOps pipeline, then resolve security access and fill secret variable-group values.
+- 2026-04-22 — Restructured Bootstrap ADO into a single unified 10-step guide (4 sections: Prepare, Run, Permissions, Finalize) with explicit Build Service identity names and Azure DevOps menu paths. Removed orphan CONFIG_DETAIL.BOOTSTRAP i18n keys.
 # Changelog
 
 > Entries older than 60 days are pruned during dream consolidation.

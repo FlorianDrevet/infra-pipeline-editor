@@ -72,6 +72,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<AppSetting> AppSettings { get; set; } = null!;
     public DbSet<AppSettingEnvironmentValue> AppSettingEnvironmentValues { get; set; } = null!;
     public DbSet<SecureParameterMapping> SecureParameterMappings { get; set; } = null!;
+    public DbSet<CustomDomain> CustomDomains { get; set; } = null!;
     public DbSet<KeyVaultEnvironmentSettings> KeyVaultEnvironmentSettings { get; set; } = null!;
     public DbSet<RedisCacheEnvironmentSettings> RedisCacheEnvironmentSettings { get; set; } = null!;
     public DbSet<StorageAccountEnvironmentSettings> StorageAccountEnvironmentSettings { get; set; } = null!;

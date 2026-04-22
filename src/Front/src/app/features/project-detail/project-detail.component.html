@@ -229,45 +229,7 @@
                       }
                     </div>
 
-                    <!-- Bootstrap guide -->
-                    <div class="bootstrap-prerequisites">
-                      <div class="bootstrap-prerequisites__header">
-                        <div>
-                          <h4 class="bootstrap-prerequisites__title">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQUISITES_TITLE' | translate }}</h4>
-                          <p class="bootstrap-prerequisites__intro">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQUISITES_INTRO' | translate }}</p>
-                        </div>
-
-                        <div
-                          class="bootstrap-prerequisites__status"
-                          [class.bootstrap-prerequisites__status--ready]="!!project()?.gitRepositoryConfiguration"
-                          [class.bootstrap-prerequisites__status--missing]="!project()?.gitRepositoryConfiguration">
-                          <mat-icon>{{ project()?.gitRepositoryConfiguration ? 'check_circle' : 'error_outline' }}</mat-icon>
-                          <span>
-                            {{ (project()?.gitRepositoryConfiguration ? 'PROJECT_DETAIL.BOOTSTRAP.PREREQUISITES_STATUS_READY' : 'PROJECT_DETAIL.BOOTSTRAP.PREREQUISITES_STATUS_MISSING') | translate }}
-                          </span>
-                        </div>
-                      </div>
-
-                      <ol class="bootstrap-guide">
-                        <li class="bootstrap-guide__step">
-                          <span class="bootstrap-guide__step-number">1</span>
-                          <p class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_GIT_CONFIG' | translate }}</p>
-                        </li>
-                        <li class="bootstrap-guide__step">
-                          <span class="bootstrap-guide__step-number">2</span>
-                          <p class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_PAT_SCOPES' | translate }}</p>
-                        </li>
-                        <li class="bootstrap-guide__step">
-                          <span class="bootstrap-guide__step-number">3</span>
-                          <p class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_SERVICE_CONNECTION' | translate }}</p>
-                        </li>
-                        <li class="bootstrap-guide__step">
-                          <span class="bootstrap-guide__step-number">4</span>
-                          <p class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_VARIABLE_GROUPS' | translate }}</p>
-                        </li>
-                      </ol>
-                    </div>
-
+                    <!-- Generation feedback -->
                     @if (projectBootstrapLoading()) {
                       <div class="bicep-panel__loading">
                         <div class="bicep-terminal">
@@ -307,31 +269,80 @@
                         [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
                         [loadFile]="loadProjectBootstrapFile">
                       </app-bicep-file-panel>
-
-                      <!-- What Next section -->
-                      <div class="bootstrap-what-next">
-                        <h4 class="bootstrap-what-next__title">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_TITLE' | translate }}</h4>
-                        <p class="bootstrap-what-next__intro">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_INTRO' | translate }}</p>
-                        <ol class="bootstrap-what-next__steps">
-                          <li class="bootstrap-what-next__step">
-                            <span class="bootstrap-what-next__step-number">1</span>
-                            <p class="bootstrap-what-next__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP1' | translate }}</p>
-                          </li>
-                          <li class="bootstrap-what-next__step">
-                            <span class="bootstrap-what-next__step-number">2</span>
-                            <p class="bootstrap-what-next__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP2' | translate }}</p>
-                          </li>
-                          <li class="bootstrap-what-next__step">
-                            <span class="bootstrap-what-next__step-number">3</span>
-                            <p class="bootstrap-what-next__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP3' | translate }}</p>
-                          </li>
-                          <li class="bootstrap-what-next__step">
-                            <span class="bootstrap-what-next__step-number">4</span>
-                            <p class="bootstrap-what-next__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP4' | translate }}</p>
-                          </li>
-                        </ol>
-                      </div>
                     }
+
+                    <!-- Unified step-by-step guide -->
+                    <div class="bootstrap-guide-card">
+                      <h4 class="bootstrap-guide-card__title">{{ 'PROJECT_DETAIL.BOOTSTRAP.GUIDE_TITLE' | translate }}</h4>
+                      <p class="bootstrap-guide-card__intro">{{ 'PROJECT_DETAIL.BOOTSTRAP.GUIDE_INTRO' | translate }}</p>
+
+                      <!-- Section A: Prepare -->
+                      <h5 class="bootstrap-guide-card__section-title">{{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_PREPARE' | translate }}</h5>
+                      <ol class="bootstrap-guide">
+                        <li class="bootstrap-guide__step">
+                          <span class="bootstrap-guide__step-number">1</span>
+                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_1' | translate }}</div>
+                        </li>
+                        <li class="bootstrap-guide__step">
+                          <span class="bootstrap-guide__step-number">2</span>
+                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_2' | translate }}</div>
+                        </li>
+                        <li class="bootstrap-guide__step">
+                          <span class="bootstrap-guide__step-number">3</span>
+                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_3' | translate }}</div>
+                        </li>
+                      </ol>
+
+                      <!-- Section B: Run -->
+                      <h5 class="bootstrap-guide-card__section-title">{{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_RUN' | translate }}</h5>
+                      <ol class="bootstrap-guide" start="4">
+                        <li class="bootstrap-guide__step">
+                          <span class="bootstrap-guide__step-number">4</span>
+                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_4' | translate }}</div>
+                        </li>
+                        <li class="bootstrap-guide__step">
+                          <span class="bootstrap-guide__step-number">5</span>
+                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_5' | translate }}</div>
+                        </li>
+                      </ol>
+
+                      <!-- Section C: Permissions -->
+                      <h5 class="bootstrap-guide-card__section-title bootstrap-guide-card__section-title--warning">
+                        <mat-icon class="bootstrap-guide-card__section-icon">shield</mat-icon>
+                        {{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_PERMISSIONS' | translate }}
+                      </h5>
+                      <p class="bootstrap-guide-card__section-hint">{{ 'PROJECT_DETAIL.BOOTSTRAP.PERMISSIONS_HINT' | translate }}</p>
+                      <ol class="bootstrap-guide" start="6">
+                        <li class="bootstrap-guide__step bootstrap-guide__step--permission">
+                          <span class="bootstrap-guide__step-number bootstrap-guide__step-number--permission">6</span>
+                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_6' | translate }}</div>
+                        </li>
+                        <li class="bootstrap-guide__step bootstrap-guide__step--permission">
+                          <span class="bootstrap-guide__step-number bootstrap-guide__step-number--permission">7</span>
+                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_7' | translate }}</div>
+                        </li>
+                        <li class="bootstrap-guide__step bootstrap-guide__step--permission">
+                          <span class="bootstrap-guide__step-number bootstrap-guide__step-number--permission">8</span>
+                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_8' | translate }}</div>
+                        </li>
+                      </ol>
+
+                      <!-- Section D: Finalize -->
+                      <h5 class="bootstrap-guide-card__section-title bootstrap-guide-card__section-title--success">
+                        <mat-icon class="bootstrap-guide-card__section-icon">check_circle</mat-icon>
+                        {{ 'PROJECT_DETAIL.BOOTSTRAP.SECTION_FINALIZE' | translate }}
+                      </h5>
+                      <ol class="bootstrap-guide" start="9">
+                        <li class="bootstrap-guide__step bootstrap-guide__step--success">
+                          <span class="bootstrap-guide__step-number bootstrap-guide__step-number--success">9</span>
+                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_9' | translate }}</div>
+                        </li>
+                        <li class="bootstrap-guide__step bootstrap-guide__step--success">
+                          <span class="bootstrap-guide__step-number bootstrap-guide__step-number--success">10</span>
+                          <div class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.STEP_10' | translate }}</div>
+                        </li>
+                      </ol>
+                    </div>
                   </div>
                 </mat-tab>
               </mat-tab-group>

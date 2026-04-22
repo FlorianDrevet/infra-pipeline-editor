@@ -33,4 +33,10 @@ public class ResourceDefinition
     /// When set, the resource's identity block must include 'UserAssigned' even without UA role assignments.
     /// </summary>
     public string? AssignedUserAssignedIdentityName { get; set; }
+
+    /// <summary>
+    /// Custom domain bindings configured on this resource across all environments.
+    /// Only applicable to compute resources (ContainerApp, WebApp, FunctionApp).
+    /// </summary>
+    public IReadOnlyList<CustomDomainDefinition> CustomDomains { get; set; } = [];
 }

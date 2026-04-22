@@ -80,6 +80,9 @@ import { AppConfigurationKeyResponse } from './models/app-configuration-key.inte
 import { AddAppConfigKeyDialogComponent, AddAppConfigKeyDialogData } from './add-app-config-key-dialog/add-app-config-key-dialog.component';
 import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } from './role-assignment-impact-dialog/role-assignment-impact-dialog.component';
 import { CreateUaiDialogComponent, CreateUaiDialogData } from './create-uai-dialog/create-uai-dialog.component';
+import { CustomDomainService } from '../../shared/services/custom-domain.service';
+import { CustomDomainResponse, AddCustomDomainRequest } from '../../shared/interfaces/custom-domain.interface';
+import { AddCustomDomainDialogComponent, AddCustomDomainDialogData } from './add-custom-domain-dialog/add-custom-domain-dialog.component';
 import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
@@ -365,6 +368,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly secureParamMappingService = inject(SecureParameterMappingService);
   private readonly configKeyService = inject(AppConfigurationKeyService);
   private readonly nameAvailabilityService = inject(NameAvailabilityService);
+  private readonly customDomainService = inject(CustomDomainService);
   private readonly destroyRef = inject(DestroyRef);
 
   // ─── Route params ───
@@ -681,6 +685,27 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     ['WebApp', 'FunctionApp', 'ContainerApp'].includes(this.resourceType)
   );
 
+  // ─── Custom Domains ───
+  protected readonly customDomains = signal<CustomDomainResponse[]>([]);
+  protected readonly customDomainsLoading = signal(false);
+  protected readonly customDomainsError = signal('');
+  protected readonly supportsCustomDomains = computed(() =>
+    ['WebApp', 'FunctionApp', 'ContainerApp'].includes(this.resourceType)
+  );
+  protected readonly customDomainsGroupedByEnv = computed(() => {
+    const domains = this.customDomains();
+    const grouped = new Map<string, CustomDomainResponse[]>();
+    for (const d of domains) {
+      const existing = grouped.get(d.environmentName);
+      if (existing) {
+        existing.push(d);
+      } else {
+        grouped.set(d.environmentName, [d]);
+      }
+    }
+    return [...grouped.entries()].map(([env, items]) => ({ env, items }));
+  });
+
   /** App settings grouped by category for sectioned display */
   protected readonly appSettingsGrouped = computed(() => {
     const all = this.appSettings();
@@ -933,6 +958,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       this.loadAllResources();
       if (this.supportsAppSettings()) {
         this.loadAppSettings();
+      }
+      if (this.supportsCustomDomains()) {
+        this.loadCustomDomains();
       }
       if (this.supportsConfigKeys()) {
         this.loadConfigKeys();
@@ -3414,6 +3442,71 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     } finally {
       this.passwordSaving.set(false);
     }
+  }
+
+  // ─── Custom Domains ───
+
+  private async loadCustomDomains(): Promise<void> {
+    this.customDomainsLoading.set(true);
+    this.customDomainsError.set('');
+    try {
+      const domains = await this.customDomainService.getByResourceId(this.resourceId);
+      this.customDomains.set(domains);
+    } catch {
+      this.customDomainsError.set('RESOURCE_EDIT.CUSTOM_DOMAINS.LOAD_ERROR');
+    } finally {
+      this.customDomainsLoading.set(false);
+    }
+  }
+
+  protected openAddCustomDomainDialog(): void {
+    const environments = this.environments();
+    const data: AddCustomDomainDialogData = {
+      environments,
+      existingDomains: this.customDomains(),
+    };
+    const dialogRef = this.dialog.open(AddCustomDomainDialogComponent, {
+      width: '520px',
+      data,
+    });
+    dialogRef.afterClosed().subscribe(async (result: AddCustomDomainRequest | null) => {
+      if (!result) return;
+      this.customDomainsLoading.set(true);
+      this.customDomainsError.set('');
+      try {
+        await this.customDomainService.add(this.resourceId, result);
+        await this.loadCustomDomains();
+      } catch {
+        this.customDomainsError.set('RESOURCE_EDIT.CUSTOM_DOMAINS.ADD_ERROR');
+      } finally {
+        this.customDomainsLoading.set(false);
+      }
+    });
+  }
+
+  protected removeCustomDomain(domain: CustomDomainResponse): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_CONFIRM_TITLE',
+        messageKey: 'RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_CONFIRM_MESSAGE',
+        messageParams: { domain: domain.domainName },
+        confirmKey: 'COMMON.DELETE',
+        cancelKey: 'COMMON.CANCEL',
+      } as ConfirmDialogData,
+    });
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      this.customDomainsLoading.set(true);
+      this.customDomainsError.set('');
+      try {
+        await this.customDomainService.remove(this.resourceId, domain.id);
+        this.customDomains.update(list => list.filter(d => d.id !== domain.id));
+      } catch {
+        this.customDomainsError.set('RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_ERROR');
+      } finally {
+        this.customDomainsLoading.set(false);
+      }
+    });
   }
 
 }

@@ -108,5 +108,14 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
         builder.Navigation(r => r.SecureParameterMappings)
             .HasField("_secureParameterMappings")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(r => r.CustomDomains)
+            .WithOne()
+            .HasForeignKey(cd => cd.ResourceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(r => r.CustomDomains)
+            .HasField("_customDomains")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

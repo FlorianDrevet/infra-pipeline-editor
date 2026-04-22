@@ -85,6 +85,7 @@ app.UseContainerRegistryController();
 app.UseEventHubNamespaceController();
 app.UseAppSettingController();
 app.UseSecureParameterMappingController();
+app.UseCustomDomainController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
 

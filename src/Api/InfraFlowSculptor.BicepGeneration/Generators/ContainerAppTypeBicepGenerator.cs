@@ -22,6 +22,7 @@ public sealed class ContainerAppTypeBicepGenerator
     {
         var containerRegistryId = resource.Properties.GetValueOrDefault("containerRegistryId", "");
         var hasAcr = !string.IsNullOrEmpty(containerRegistryId);
+        var hasCustomDomains = resource.CustomDomains.Count > 0;
 
         var dockerImageName = resource.Properties.GetValueOrDefault("dockerImageName", "");
         var containerImage = !string.IsNullOrEmpty(dockerImageName)
@@ -45,6 +46,11 @@ public sealed class ContainerAppTypeBicepGenerator
         {
             parameters["acrLoginServer"] = "";
             parameters["acrManagedIdentityClientId"] = "";
+        }
+
+        if (hasCustomDomains)
+        {
+            parameters["customDomains"] = new List<object>();
         }
 
         return new GeneratedTypeModule
@@ -166,17 +172,25 @@ public sealed class ContainerAppTypeBicepGenerator
         @description('Health probe configuration')
         param healthProbes HealthProbeConfig
 
+        @description('Custom domain bindings for this Container App')
+        param customDomains array = []
+
         resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           name: name
           location: location
           properties: {
             managedEnvironmentId: containerAppEnvironmentId
             configuration: {
-              ingress: ingress.enabled ? {
+              ingress: ingress.enabled ? union({
                 external: ingress.external
                 targetPort: ingress.targetPort
                 transport: ingress.transportMethod
-              } : null
+              }, !empty(customDomains) ? {
+                customDomains: [for domain in customDomains: {
+                  name: domain.domainName
+                  bindingType: domain.bindingType
+                }]
+              } : {}) : null
             }
             template: {
               containers: [
@@ -260,6 +274,9 @@ public sealed class ContainerAppTypeBicepGenerator
         @description('Client ID of the managed identity for ACR pull')
         param acrManagedIdentityClientId string = ''
 
+        @description('Custom domain bindings for this Container App')
+        param customDomains array = []
+
         resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           name: name
           location: location
@@ -272,11 +289,16 @@ public sealed class ContainerAppTypeBicepGenerator
                   identity: !empty(acrManagedIdentityClientId) ? acrManagedIdentityClientId : 'system'
                 }
               ]
-              ingress: ingress.enabled ? {
+              ingress: ingress.enabled ? union({
                 external: ingress.external
                 targetPort: ingress.targetPort
                 transport: ingress.transportMethod
-              } : null
+              }, !empty(customDomains) ? {
+                customDomains: [for domain in customDomains: {
+                  name: domain.domainName
+                  bindingType: domain.bindingType
+                }]
+              } : {}) : null
             }
             template: {
               containers: [

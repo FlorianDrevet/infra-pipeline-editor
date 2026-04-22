@@ -217,6 +217,12 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        // ── Load custom domains for all resources in this config ────────────
+        var customDomains = await dbContext.CustomDomains
+            .Where(cd => allResourceIds.Contains(cd.ResourceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         // ── Load role assignments for all resources in this config ───────────
         var roleAssignments = await dbContext.RoleAssignments
             .Where(ra => allResourceIds.Contains(ra.SourceResourceId))
@@ -293,7 +299,18 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                         assignedUaiName = uaiEntry.Resource.Name.Value;
                     }
 
-                    return readModel with { AssignedUserAssignedIdentityName = assignedUaiName, IsExisting = r.IsExisting };
+                    // Map custom domains for this resource
+                    var resourceCustomDomains = customDomains
+                        .Where(cd => cd.ResourceId == r.Id)
+                        .Select(cd => new CustomDomainReadModel(cd.EnvironmentName, cd.DomainName, cd.BindingType))
+                        .ToList();
+
+                    return readModel with
+                    {
+                        AssignedUserAssignedIdentityName = assignedUaiName,
+                        IsExisting = r.IsExisting,
+                        CustomDomains = resourceCustomDomains
+                    };
                 })
                 .OfType<AzureResourceReadModel>()
                 .ToList();

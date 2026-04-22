@@ -85,6 +85,11 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// <summary>Gets the secure parameter mappings for this resource.</summary>
     public IReadOnlyCollection<SecureParameterMapping> SecureParameterMappings => _secureParameterMappings.AsReadOnly();
 
+    private readonly List<CustomDomain> _customDomains = [];
+
+    /// <summary>Gets the custom domain bindings configured on this resource.</summary>
+    public IReadOnlyCollection<CustomDomain> CustomDomains => _customDomains.AsReadOnly();
+
     /// <summary>Gets the optional User-Assigned Identity explicitly attached to this resource.</summary>
     public AzureResourceId? AssignedUserAssignedIdentityId { get; private set; }
 
@@ -300,6 +305,43 @@ public class AzureResource : AggregateRoot<AzureResourceId>
 
         _parameterUsages.Add(
             new ResourceParameterUsage(Id, parameter.Id, usage));
+    }
+
+    /// <summary>
+    /// Adds a custom domain binding to this resource for a specific environment.
+    /// Duplicates (same environment + domain name) are rejected.
+    /// </summary>
+    /// <param name="environmentName">The deployment environment name.</param>
+    /// <param name="domainName">The fully qualified domain name.</param>
+    /// <param name="bindingType">The SSL binding type (default: "SniEnabled").</param>
+    /// <returns>The created <see cref="CustomDomain"/>, or an error if duplicate.</returns>
+    public ErrorOr<CustomDomain> AddCustomDomain(
+        string environmentName,
+        string domainName,
+        string bindingType = "SniEnabled")
+    {
+        if (IsExisting)
+            return Errors.Errors.CustomDomain.NotSupportedForExistingResource();
+
+        var normalizedDomain = domainName.ToLowerInvariant().Trim();
+
+        if (_customDomains.Any(cd =>
+                cd.EnvironmentName == environmentName &&
+                cd.DomainName == normalizedDomain))
+            return Errors.Errors.CustomDomain.DuplicateDomain(environmentName, normalizedDomain);
+
+        var customDomain = CustomDomain.Create(Id, environmentName, normalizedDomain, bindingType);
+        _customDomains.Add(customDomain);
+        return customDomain;
+    }
+
+    /// <summary>Removes a custom domain binding by its identifier. No-op if not found.</summary>
+    /// <param name="customDomainId">Identifier of the custom domain to remove.</param>
+    public void RemoveCustomDomain(CustomDomainId customDomainId)
+    {
+        var domain = _customDomains.FirstOrDefault(cd => cd.Id == customDomainId);
+        if (domain is not null)
+            _customDomains.Remove(domain);
     }
 
     /// <summary>

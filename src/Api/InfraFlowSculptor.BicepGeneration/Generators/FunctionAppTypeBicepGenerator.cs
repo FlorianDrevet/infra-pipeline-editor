@@ -31,6 +31,7 @@ public sealed class FunctionAppTypeBicepGenerator
             ["runtimeVersion"] = runtimeVersion,
             ["httpsOnly"] = httpsOnly,
             ["deploymentMode"] = deploymentMode,
+            ["customDomains"] = new List<object>(),
         };
 
         if (isContainer)
@@ -92,6 +93,9 @@ public sealed class FunctionAppTypeBicepGenerator
         @description('Deployment mode')
         param deploymentMode string = 'Code'
 
+        @description('Custom domain bindings for this Function App')
+        param customDomains array = []
+
         var linuxFxVersion = '${toUpper(runtimeStack)}|${runtimeVersion}'
         var workerRuntime = toUpper(runtimeStack) == 'DOTNET'
           ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet')
@@ -122,6 +126,16 @@ public sealed class FunctionAppTypeBicepGenerator
           }
         }
 
+        resource hostNameBindings 'Microsoft.Web/sites/hostNameBindings@2023-12-01' = [for domain in customDomains: {
+          parent: functionApp
+          name: domain.domainName
+          properties: {
+            siteName: functionApp.name
+            hostNameType: 'Verified'
+            sslState: domain.bindingType == 'SniEnabled' ? 'SniEnabled' : 'Disabled'
+          }
+        }]
+
         @description('The resource ID of the Function App')
         output id string = functionApp.id
 
@@ -130,6 +144,9 @@ public sealed class FunctionAppTypeBicepGenerator
 
         @description('The principal ID of the system-assigned managed identity')
         output principalId string = functionApp.identity.principalId
+
+        @description('The custom domain verification ID')
+        output customDomainVerificationId string = functionApp.properties.customDomainVerificationId
         """;
 
     private const string FunctionAppContainerModuleTemplate = """
@@ -171,6 +188,9 @@ public sealed class FunctionAppTypeBicepGenerator
         @description('Client ID of the user-assigned managed identity for ACR pull')
         param acrUserManagedIdentityId string = ''
 
+        @description('Custom domain bindings for this Function App')
+        param customDomains array = []
+
         var dockerImage = '${acrLoginServer}/${dockerImageName}:${dockerImageTag}'
         var workerRuntime = toUpper(runtimeStack) == 'DOTNET'
           ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet')
@@ -203,6 +223,16 @@ public sealed class FunctionAppTypeBicepGenerator
           }
         }
 
+        resource hostNameBindings 'Microsoft.Web/sites/hostNameBindings@2023-12-01' = [for domain in customDomains: {
+          parent: functionApp
+          name: domain.domainName
+          properties: {
+            siteName: functionApp.name
+            hostNameType: 'Verified'
+            sslState: domain.bindingType == 'SniEnabled' ? 'SniEnabled' : 'Disabled'
+          }
+        }]
+
         @description('The resource ID of the Function App')
         output id string = functionApp.id
 
@@ -211,5 +241,8 @@ public sealed class FunctionAppTypeBicepGenerator
 
         @description('The principal ID of the system-assigned managed identity')
         output principalId string = functionApp.identity.principalId
+
+        @description('The custom domain verification ID')
+        output customDomainVerificationId string = functionApp.properties.customDomainVerificationId
         """;
 }

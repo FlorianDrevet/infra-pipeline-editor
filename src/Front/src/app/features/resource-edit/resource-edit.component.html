@@ -2690,6 +2690,91 @@
         </mat-tab>
       }
 
+      <!-- Custom Domains Tab (WebApp / FunctionApp / ContainerApp, not existing resources) -->
+      @if (supportsCustomDomains() && !isExistingResource()) {
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">language</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.TABS.CUSTOM_DOMAINS' | translate }}</span>
+            @if (customDomains().length > 0) {
+              <span class="tab-count">{{ customDomains().length }}</span>
+            }
+          </ng-template>
+
+          <div class="tab-content">
+            <!-- Description banner -->
+            <div class="env-description">
+              <mat-icon class="env-description__icon">language</mat-icon>
+              <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DESCRIPTION' | translate }}</p>
+            </div>
+
+            @if (customDomainsError()) {
+              <div class="feedback-banner feedback-banner--error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                {{ customDomainsError() | translate }}
+              </div>
+            }
+
+            <!-- Add button -->
+            <div class="section-actions">
+              <button mat-raised-button color="primary" (click)="openAddCustomDomainDialog()">
+                <mat-icon>add</mat-icon>
+                {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.ADD' | translate }}
+              </button>
+            </div>
+
+            @if (customDomainsLoading()) {
+              <div class="ra-loading">
+                <mat-spinner diameter="28"></mat-spinner>
+                <span>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.LOADING' | translate }}</span>
+              </div>
+            } @else if (customDomains().length === 0) {
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">language</mat-icon>
+                <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.EMPTY' | translate }}</p>
+              </div>
+            } @else {
+              <!-- Grouped by environment -->
+              @for (group of customDomainsGroupedByEnv(); track group.env) {
+                <div class="form-section">
+                  <h3 class="form-section__title">{{ group.env }}</h3>
+                  <div class="cd-domain-list">
+                    @for (domain of group.items; track domain.id) {
+                      <div class="cd-domain-row">
+                        <div class="cd-domain-row__info">
+                          <mat-icon class="cd-domain-row__icon">dns</mat-icon>
+                          <span class="cd-domain-row__name">{{ domain.domainName }}</span>
+                          <span class="cd-domain-chip" [class.cd-domain-chip--sni]="domain.bindingType === 'SniEnabled'" [class.cd-domain-chip--disabled]="domain.bindingType === 'Disabled'">
+                            @if (domain.bindingType === 'SniEnabled') {
+                              {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_SNI' | translate }}
+                            } @else {
+                              {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_DISABLED' | translate }}
+                            }
+                          </span>
+                        </div>
+                        <button mat-icon-button color="warn" (click)="removeCustomDomain(domain)" [matTooltip]="'COMMON.DELETE' | translate">
+                          <mat-icon>delete_outline</mat-icon>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- DNS guide -->
+              <div class="cd-dns-guide">
+                <mat-icon class="cd-dns-guide__icon">info</mat-icon>
+                <div class="cd-dns-guide__content">
+                  <strong>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_GUIDE' | translate }}</strong>
+                  <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_GUIDE_CNAME' | translate }}</p>
+                  <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_GUIDE_TXT' | translate }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </mat-tab>
+      }
+
       <!-- App Pipeline Tab (WebApp / FunctionApp / ContainerApp only, hidden for existing resources) -->
       @if (supportsAppPipeline() && !isExistingResource()) {
         <mat-tab>

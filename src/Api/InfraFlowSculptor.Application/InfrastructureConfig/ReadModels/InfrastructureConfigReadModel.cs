@@ -29,7 +29,16 @@ public record AzureResourceReadModel(
     IReadOnlyDictionary<string, string> Properties,
     IReadOnlyList<ResourceEnvironmentConfigReadModel> EnvironmentConfigs,
     string? AssignedUserAssignedIdentityName = null,
-    bool IsExisting = false);
+    bool IsExisting = false,
+    IReadOnlyList<CustomDomainReadModel>? CustomDomains = null);
+
+/// <summary>
+/// Read model for a custom domain binding on an Azure resource.
+/// </summary>
+public record CustomDomainReadModel(
+    string EnvironmentName,
+    string DomainName,
+    string BindingType);
 
 public record ResourceEnvironmentConfigReadModel(
     string EnvironmentName,

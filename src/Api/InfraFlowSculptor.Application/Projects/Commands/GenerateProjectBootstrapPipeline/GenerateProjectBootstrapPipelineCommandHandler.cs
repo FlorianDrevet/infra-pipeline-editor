@@ -116,17 +116,17 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
             var sanitizedName = PathSanitizer.Sanitize(config.Name);
 
             pipelines.Add(new BootstrapPipelineDefinition(
-                Name: $"{config.Name} - CI",
+                Name: $"{sanitizedName} - CI",
                 YamlPath: $"/{basePrefix}{sanitizedName}/ci.pipeline.yml",
                 Folder: $"\\{sanitizedName}"));
 
             pipelines.Add(new BootstrapPipelineDefinition(
-                Name: $"{config.Name} - PR",
+                Name: $"{sanitizedName} - PR",
                 YamlPath: $"/{basePrefix}{sanitizedName}/pr.pipeline.yml",
                 Folder: $"\\{sanitizedName}"));
 
             pipelines.Add(new BootstrapPipelineDefinition(
-                Name: $"{config.Name} - Release",
+                Name: $"{sanitizedName} - Release",
                 YamlPath: $"/{basePrefix}{sanitizedName}/release.pipeline.yml",
                 Folder: $"\\{sanitizedName}"));
         }

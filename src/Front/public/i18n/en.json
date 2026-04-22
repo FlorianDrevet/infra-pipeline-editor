@@ -786,23 +786,31 @@
       "TERMINAL_DONE": "Generation complete \u2014 bootstrap.pipeline.yml ready",
       "GENERATE_ERROR": "Unable to generate the bootstrap. Make sure your project has an Azure DevOps Git configuration.",
       "RETRY": "Retry",
-      "PREREQUISITES_TITLE": "First Azure DevOps setup",
-      "PREREQUISITES_INTRO": "Follow these steps in order the first time. The goal is simply to get Azure DevOps ready for this project.",
-      "PREREQUISITES_STATUS_READY": "The Azure DevOps Git configuration already exists on this project. You can continue with the setup.",
-      "PREREQUISITES_STATUS_MISSING": "The Azure DevOps Git configuration is missing on this project. Finish step 1 before generating the bootstrap.",
-      "PREREQ_GIT_CONFIG": "Open the project's Azure DevOps Git configuration and make sure a repository is linked. If you do not see a repository here yet, finish that setup first.",
-      "PREREQ_PAT_SCOPES": "Come back to this tab and click Generate Bootstrap. This creates the bootstrap.pipeline.yml file that prepares Azure DevOps for the project.",
-      "PREREQ_SERVICE_CONNECTION": "Push bootstrap.pipeline.yml to the Git repository linked to the project. Azure DevOps must see this file in Git before it can create a pipeline from it.",
-      "PREREQ_VARIABLE_GROUPS": "In Azure DevOps, open Pipelines, create a new pipeline from an existing YAML file, choose bootstrap.pipeline.yml, then run it once.",
       "FILE_LOADING": "Loading file...",
       "FILE_ERROR": "Unable to load file content.",
       "PUSH_SUCCESS": "bootstrap.pipeline.yml pushed successfully!",
-      "WHAT_NEXT_TITLE": "After the first Azure DevOps run",
-      "WHAT_NEXT_INTRO": "The first run mostly creates the shared containers. Finish these last actions before using the day-to-day pipelines.",
-      "WHAT_NEXT_STEP1": "If the run is blocked by missing permissions, open Pipelines > Manage security and grant the pipeline, service account, or service connection the access it asks for.",
-      "WHAT_NEXT_STEP2": "If Azure DevOps mentions Library or variable groups, open Pipelines > Library > Security and grant access there as well.",
-      "WHAT_NEXT_STEP3": "After the first run finishes, open the variable groups created by the bootstrap and fill in the secret values manually.",
-      "WHAT_NEXT_STEP4": "Once the secrets are in place, use the generated CI, PR, and Release pipelines for the normal project workflow."
+
+      "GUIDE_TITLE": "Full procedure — Azure DevOps first-time setup",
+      "GUIDE_INTRO": "Follow these 10 steps in order, once per project. At the end, your CI, PR and Release pipelines will be ready to use.",
+
+      "SECTION_PREPARE": "A — Prepare the bootstrap file",
+      "STEP_1": "Go to the 'Git' tab of this project and make sure an Azure DevOps repository is linked. If not, set it up first (repository URL, default branch).",
+      "STEP_2": "Come back to this 'Bootstrap ADO' tab and click the Generate Bootstrap button above. This creates the bootstrap.pipeline.yml file.",
+      "STEP_3": "Then click 'Push to Git' to send bootstrap.pipeline.yml to the linked Azure DevOps repository. Azure DevOps must see this file in Git before it can create a pipeline from it.",
+
+      "SECTION_RUN": "B — Create and run the pipeline in Azure DevOps",
+      "STEP_4": "Open Azure DevOps in your browser. Go to Pipelines > Pipelines, then click New pipeline. Choose Azure Repos Git, select your repository, then choose Existing Azure Pipelines YAML file. Select the branch and the path bootstrap.pipeline.yml, then click Run.",
+      "STEP_5": "Wait for the run to complete. If the pipeline fails with permission errors (missing rights), that is normal the first time — continue to the next section.",
+
+      "SECTION_PERMISSIONS": "C — Grant permissions to the Build Service (if needed)",
+      "PERMISSIONS_HINT": "The account to authorize is called '{Project Name} Build Service ({Organization Name})'. For example: 'Infra Flow Sculptor Build Service (floriandrevet0332)'. If your project uses collection scope, the name will be 'Project Collection Build Service ({Organization Name})' instead.",
+      "STEP_6": "Open Pipelines > Pipelines in Azure DevOps. Click the three dots '⋯' at the top-right of the pipelines page, then click Manage security. Search for and add '{Project Name} Build Service ({Organization Name})'. Grant at least Create build pipeline. If your pipelines are generated in folders (e.g. \\Core), make sure the permission applies to the target folder, or set it at the root for all subfolders to inherit.",
+      "STEP_7": "Open Pipelines > Library in Azure DevOps. Click Security at the top of the page. Add the same Build Service account. If the bootstrap only needs to create new variable groups, the minimum role is Creator. If it also needs to modify existing groups or manage their variables, give it Administrator instead. If some variable groups existed before the bootstrap, make sure it has rights on those too.",
+      "STEP_8": "Once the permissions are granted, re-run the bootstrap pipeline. This time it should succeed fully and create the CI, PR, Release pipelines as well as the variable groups.",
+
+      "SECTION_FINALIZE": "D — Finalize and use the pipelines",
+      "STEP_9": "Open Pipelines > Library in Azure DevOps. Open each variable group created by the bootstrap and fill in the secret values manually (passwords, keys, connection strings). These values are empty by default because they must not be stored in the YAML file.",
+      "STEP_10": "You're done! Your CI, PR and Release pipelines are ready in the folders created by the bootstrap. You can trigger them from Azure DevOps for the normal project workflow."
     },
     "STATE": {
       "LOADING_TITLE": "Loading project",
@@ -1101,6 +1109,7 @@
       "GRANTED_RIGHTS": "Granted Rights",
       "USED_BY": "Used By",
       "CONFIG_KEYS": "Configuration Keys",
+      "CUSTOM_DOMAINS": "Custom Domains",
       "APP_PIPELINE": "Application Pipeline",
       "WARNING_MISSING_ROLE": "A required role assignment is missing",
       "WARNING_MISSING_ENV_CONFIG": "Some environments have no configuration"
@@ -1349,6 +1358,28 @@
       "UNLINK_YES": "Unlink",
       "UNLINK_CANCEL": "Cancel",
       "UNLINK_ERROR": "Unable to unlink the resource. Please try again."
+    },
+    "CUSTOM_DOMAINS": {
+      "DESCRIPTION": "Configure custom domain bindings for this resource. Each domain must have a CNAME record pointing to the resource's default hostname.",
+      "ADD": "Add Domain",
+      "ADD_TITLE": "Add Custom Domain",
+      "DOMAIN_NAME": "Domain Name",
+      "DOMAIN_NAME_HINT": "Fully qualified domain name (e.g., api.example.com)",
+      "ENVIRONMENT": "Environment",
+      "BINDING_TYPE": "TLS Binding",
+      "BINDING_SNI": "SNI SSL",
+      "BINDING_DISABLED": "No SSL",
+      "EMPTY": "No custom domains configured.",
+      "LOADING": "Loading custom domains...",
+      "LOAD_ERROR": "Unable to load custom domains. Please try again.",
+      "ADD_ERROR": "Unable to add the custom domain. Please try again.",
+      "REMOVE_ERROR": "Unable to remove the custom domain. Please try again.",
+      "DUPLICATE": "This domain is already configured for this environment.",
+      "REMOVE_CONFIRM_TITLE": "Remove Custom Domain",
+      "REMOVE_CONFIRM_MESSAGE": "Are you sure you want to remove the domain {{domain}}?",
+      "DNS_GUIDE": "DNS Configuration Guide",
+      "DNS_GUIDE_CNAME": "Create a CNAME record pointing your domain to the resource's default hostname.",
+      "DNS_GUIDE_TXT": "Create a TXT record for domain verification: asuid.{{domain}} → <verification-id>"
     },
     "APP_SETTINGS": {
       "DESCRIPTION": "Configure environment variables for this compute resource. Reference outputs from other resources or set static values.",

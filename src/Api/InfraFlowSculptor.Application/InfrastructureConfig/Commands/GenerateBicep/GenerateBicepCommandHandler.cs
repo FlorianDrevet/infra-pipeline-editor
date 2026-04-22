@@ -65,6 +65,14 @@ public sealed class GenerateBicepCommandHandler(
                         ec => ec.EnvironmentName,
                         ec => (IReadOnlyDictionary<string, string>)ec.Properties),
                 AssignedUserAssignedIdentityName = r.AssignedUserAssignedIdentityName,
+                CustomDomains = (r.CustomDomains ?? [])
+                    .Select(cd => new CustomDomainDefinition
+                    {
+                        EnvironmentName = cd.EnvironmentName,
+                        DomainName = cd.DomainName,
+                        BindingType = cd.BindingType,
+                    })
+                    .ToList(),
             }))
             .ToList();
 

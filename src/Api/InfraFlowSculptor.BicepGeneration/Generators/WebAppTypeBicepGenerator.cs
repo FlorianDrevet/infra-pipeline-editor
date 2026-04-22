@@ -31,6 +31,7 @@ public sealed class WebAppTypeBicepGenerator
             ["alwaysOn"] = alwaysOn,
             ["httpsOnly"] = httpsOnly,
             ["deploymentMode"] = deploymentMode,
+            ["customDomains"] = new List<object>(),
         };
 
         if (isContainer)
@@ -91,6 +92,9 @@ public sealed class WebAppTypeBicepGenerator
         @description('Deployment mode')
         param deploymentMode string = 'Code'
 
+        @description('Custom domain bindings for this Web App')
+        param customDomains array = []
+
         var linuxFxVersion = '${toUpper(runtimeStack)}|${runtimeVersion}'
 
         resource webApp 'Microsoft.Web/sites@2023-12-01' = {
@@ -108,6 +112,16 @@ public sealed class WebAppTypeBicepGenerator
           }
         }
 
+        resource hostNameBindings 'Microsoft.Web/sites/hostNameBindings@2023-12-01' = [for domain in customDomains: {
+          parent: webApp
+          name: domain.domainName
+          properties: {
+            siteName: webApp.name
+            hostNameType: 'Verified'
+            sslState: domain.bindingType == 'SniEnabled' ? 'SniEnabled' : 'Disabled'
+          }
+        }]
+
         @description('The resource ID of the Web App')
         output id string = webApp.id
 
@@ -116,6 +130,9 @@ public sealed class WebAppTypeBicepGenerator
 
         @description('The principal ID of the system-assigned managed identity')
         output principalId string = webApp.identity.principalId
+
+        @description('The custom domain verification ID')
+        output customDomainVerificationId string = webApp.properties.customDomainVerificationId
         """;
 
     private const string WebAppContainerModuleTemplate = """
@@ -160,6 +177,9 @@ public sealed class WebAppTypeBicepGenerator
         @description('Client ID of the user-assigned managed identity for ACR pull')
         param acrUserManagedIdentityId string = ''
 
+        @description('Custom domain bindings for this Web App')
+        param customDomains array = []
+
         var dockerImage = '${acrLoginServer}/${dockerImageName}:${dockerImageTag}'
 
         resource webApp 'Microsoft.Web/sites@2023-12-01' = {
@@ -180,6 +200,16 @@ public sealed class WebAppTypeBicepGenerator
           }
         }
 
+        resource hostNameBindings 'Microsoft.Web/sites/hostNameBindings@2023-12-01' = [for domain in customDomains: {
+          parent: webApp
+          name: domain.domainName
+          properties: {
+            siteName: webApp.name
+            hostNameType: 'Verified'
+            sslState: domain.bindingType == 'SniEnabled' ? 'SniEnabled' : 'Disabled'
+          }
+        }]
+
         @description('The resource ID of the Web App')
         output id string = webApp.id
 
@@ -188,5 +218,8 @@ public sealed class WebAppTypeBicepGenerator
 
         @description('The principal ID of the system-assigned managed identity')
         output principalId string = webApp.identity.principalId
+
+        @description('The custom domain verification ID')
+        output customDomainVerificationId string = webApp.properties.customDomainVerificationId
         """;
 }

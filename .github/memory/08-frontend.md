@@ -72,9 +72,11 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - The mono-repo combined push now produces a single Git commit for Bicep + Pipeline + Bootstrap together; the frontend no longer orchestrates three separate project push calls.
 
 ## Bootstrap ADO Onboarding UX [2026-04-22]
-- In `project-detail`, the Bootstrap ADO tab should guide first-time users with a numbered beginner flow instead of a technical prerequisite list.
-- The preferred sequence is: verify Git config exists, generate `bootstrap.pipeline.yml`, push it to Git, create and run the Azure DevOps pipeline from that YAML, then resolve missing security permissions and fill secret variable-group values.
-- Keep this guidance visible in the tab itself, with short plain-language sentences and numbered step blocks that remain readable for non-DevOps users.
+- In `project-detail`, the Bootstrap ADO tab displays a single unified guide card with 10 numbered steps organized in 4 sections: A — Prepare (steps 1-3), B — Run (steps 4-5), C — Permissions (steps 6-8), D — Finalize (steps 9-10).
+- The guide appears below the generation terminal/file preview (not split around it).
+- Permission steps explicitly name the Build Service identity: `{Project Name} Build Service ({Organization Name})` and explain the exact Azure DevOps menu paths (Pipelines > Pipelines > ⋯ > Manage security, Pipelines > Library > Security).
+- Steps use color-coded number badges: blue for normal, amber for permissions, green for finalization.
+- Orphan `CONFIG_DETAIL.BOOTSTRAP` keys were removed from fr.json (they were leftovers from the first implementation).
 
 ## PITFALL — ACR reactivity [2026-04-03]
 - `onContainerRegistryChange` must patch `generalForm.containerRegistryId` so `DeploymentConfigComponent` gets updated input.

@@ -56,29 +56,50 @@ internal static class ParameterFileAssembler
                 return module.ModuleName == expectedModuleName;
             });
 
-            if (matchingResource is null ||
-                !matchingResource.EnvironmentConfigs.TryGetValue(environmentName, out var envOverrides) ||
-                envOverrides.Count == 0)
-            {
+            if (matchingResource is null)
                 return module;
-            }
+
+            var hasEnvOverrides = matchingResource.EnvironmentConfigs.TryGetValue(environmentName, out var envOverrides)
+                && envOverrides.Count > 0;
+
+            var envCustomDomains = matchingResource.CustomDomains
+                .Where(cd => cd.EnvironmentName.Equals(environmentName, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (!hasEnvOverrides && envCustomDomains.Count == 0)
+                return module;
 
             var mergedParams = new Dictionary<string, object>(module.Parameters);
-            foreach (var (key, value) in envOverrides)
+
+            if (hasEnvOverrides)
             {
-                // Check if this flat key maps to a property inside a structured parameter group
-                if (module.ParameterGroupMappings.TryGetValue(key, out var mapping))
+                foreach (var (key, value) in envOverrides!)
                 {
-                    if (mergedParams.TryGetValue(mapping.GroupKey, out var groupObj))
+                    // Check if this flat key maps to a property inside a structured parameter group
+                    if (module.ParameterGroupMappings.TryGetValue(key, out var mapping))
                     {
-                        mergedParams[mapping.GroupKey] = MergePropertyIntoObject(
-                            groupObj, mapping.PropertyName, value);
+                        if (mergedParams.TryGetValue(mapping.GroupKey, out var groupObj))
+                        {
+                            mergedParams[mapping.GroupKey] = MergePropertyIntoObject(
+                                groupObj, mapping.PropertyName, value);
+                        }
+                    }
+                    else if (mergedParams.TryGetValue(key, out var existingValue))
+                    {
+                        mergedParams[key] = CoerceToOriginalType(value, existingValue);
                     }
                 }
-                else if (mergedParams.TryGetValue(key, out var existingValue))
-                {
-                    mergedParams[key] = CoerceToOriginalType(value, existingValue);
-                }
+            }
+
+            if (envCustomDomains.Count > 0 && mergedParams.ContainsKey("customDomains"))
+            {
+                mergedParams["customDomains"] = envCustomDomains
+                    .Select(cd => (object)new Dictionary<string, object>
+                    {
+                        ["domainName"] = cd.DomainName,
+                        ["bindingType"] = cd.BindingType
+                    })
+                    .ToList<object>();
             }
 
             return module with { Parameters = mergedParams };
