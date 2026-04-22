@@ -71,6 +71,11 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - `PushToGitDialogComponent` supports `isCombinedProjectPush` and now calls the dedicated backend endpoint `POST /projects/{projectId}/push-generated-artifacts-to-git`.
 - The mono-repo combined push now produces a single Git commit for Bicep + Pipeline + Bootstrap together; the frontend no longer orchestrates three separate project push calls.
 
+## Bootstrap ADO Onboarding UX [2026-04-22]
+- In `project-detail`, the Bootstrap ADO tab should guide first-time users with a numbered beginner flow instead of a technical prerequisite list.
+- The preferred sequence is: verify Git config exists, generate `bootstrap.pipeline.yml`, push it to Git, create and run the Azure DevOps pipeline from that YAML, then resolve missing security permissions and fill secret variable-group values.
+- Keep this guidance visible in the tab itself, with short plain-language sentences and numbered step blocks that remain readable for non-DevOps users.
+
 ## PITFALL — ACR reactivity [2026-04-03]
 - `onContainerRegistryChange` must patch `generalForm.containerRegistryId` so `DeploymentConfigComponent` gets updated input.
 - `onDeploymentModeChange` must trigger `checkAcrPullAccess()` when switching to Container mode with ACR already selected.

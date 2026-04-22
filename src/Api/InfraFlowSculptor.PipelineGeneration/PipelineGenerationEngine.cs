@@ -343,7 +343,7 @@ public sealed class PipelineGenerationEngine
             sb.AppendLine($"                - {directory}");
         }
         sb.AppendLine();
-        sb.AppendLine("          - pwsh: |");
+        sb.AppendLine("          - powershell: |");
         sb.AppendLine($"              $configPath = \"{BuildSourcesDirectoryPath(BuildRepoRelativePath(bicepBasePath, "bicepconfig.json"))}\"");
         sb.AppendLine("              if (Test-Path $configPath) {");
         sb.AppendLine("                $config = Get-Content -Path $configPath | ConvertFrom-Json");
@@ -441,7 +441,7 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("                **/*.json");
         sb.AppendLine("              TargetFolder: '$(Build.ArtifactStagingDirectory)'");
         sb.AppendLine();
-        sb.AppendLine("          - pwsh: |");
+        sb.AppendLine("          - powershell: |");
         sb.AppendLine("              $artifactRoot = '$(Build.ArtifactStagingDirectory)'");
         sb.AppendLine("              $commonPath = Join-Path $artifactRoot 'Common'");
         sb.AppendLine("              $projectPath = Join-Path $artifactRoot '${{ parameters.projectName }}'");
@@ -595,7 +595,7 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("    default: ''");
         sb.AppendLine();
         sb.AppendLine("steps:");
-        sb.AppendLine("  - pwsh: |");
+        sb.AppendLine("  - powershell: |");
         sb.AppendLine("      $templateFile = '${{ parameters.templateFile }}'");
         sb.AppendLine("      $parametersFile = '${{ parameters.templateParametersFile }}'");
         sb.AppendLine();
@@ -696,7 +696,7 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("      deploymentMode: 'Incremental'");
         sb.AppendLine("      deploymentOutputs: 'armOutputs'");
         sb.AppendLine();
-        sb.AppendLine("  - pwsh: |");
+        sb.AppendLine("  - powershell: |");
         sb.AppendLine("      $raw = '$(armOutputs)'");
         sb.AppendLine("      if ([string]::IsNullOrWhiteSpace($raw) -or $raw -eq '$(armOutputs)') {");
         sb.AppendLine("        Write-Host 'No ARM deployment outputs to parse — skipping.'");

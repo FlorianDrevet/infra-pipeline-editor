@@ -229,27 +229,43 @@
                       }
                     </div>
 
-                    <!-- Prerequisites checklist -->
+                    <!-- Bootstrap guide -->
                     <div class="bootstrap-prerequisites">
-                      <h4 class="bootstrap-prerequisites__title">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQUISITES_TITLE' | translate }}</h4>
-                      <ul class="prerequisites-list">
-                        <li [class.check-ok]="!!project()?.gitRepositoryConfiguration" [class.check-missing]="!project()?.gitRepositoryConfiguration">
-                          <mat-icon>{{ project()?.gitRepositoryConfiguration ? 'check_circle' : 'cancel' }}</mat-icon>
-                          {{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_GIT_CONFIG' | translate }}
+                      <div class="bootstrap-prerequisites__header">
+                        <div>
+                          <h4 class="bootstrap-prerequisites__title">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQUISITES_TITLE' | translate }}</h4>
+                          <p class="bootstrap-prerequisites__intro">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQUISITES_INTRO' | translate }}</p>
+                        </div>
+
+                        <div
+                          class="bootstrap-prerequisites__status"
+                          [class.bootstrap-prerequisites__status--ready]="!!project()?.gitRepositoryConfiguration"
+                          [class.bootstrap-prerequisites__status--missing]="!project()?.gitRepositoryConfiguration">
+                          <mat-icon>{{ project()?.gitRepositoryConfiguration ? 'check_circle' : 'error_outline' }}</mat-icon>
+                          <span>
+                            {{ (project()?.gitRepositoryConfiguration ? 'PROJECT_DETAIL.BOOTSTRAP.PREREQUISITES_STATUS_READY' : 'PROJECT_DETAIL.BOOTSTRAP.PREREQUISITES_STATUS_MISSING') | translate }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <ol class="bootstrap-guide">
+                        <li class="bootstrap-guide__step">
+                          <span class="bootstrap-guide__step-number">1</span>
+                          <p class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_GIT_CONFIG' | translate }}</p>
                         </li>
-                        <li class="check-info">
-                          <mat-icon>info</mat-icon>
-                          {{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_PAT_SCOPES' | translate }}
+                        <li class="bootstrap-guide__step">
+                          <span class="bootstrap-guide__step-number">2</span>
+                          <p class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_PAT_SCOPES' | translate }}</p>
                         </li>
-                        <li class="check-warning">
-                          <mat-icon>warning</mat-icon>
-                          {{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_SERVICE_CONNECTION' | translate }}
+                        <li class="bootstrap-guide__step">
+                          <span class="bootstrap-guide__step-number">3</span>
+                          <p class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_SERVICE_CONNECTION' | translate }}</p>
                         </li>
-                        <li class="check-info">
-                          <mat-icon>info</mat-icon>
-                          {{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_VARIABLE_GROUPS' | translate }}
+                        <li class="bootstrap-guide__step">
+                          <span class="bootstrap-guide__step-number">4</span>
+                          <p class="bootstrap-guide__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_VARIABLE_GROUPS' | translate }}</p>
                         </li>
-                      </ul>
+                      </ol>
                     </div>
 
                     @if (projectBootstrapLoading()) {
@@ -295,11 +311,24 @@
                       <!-- What Next section -->
                       <div class="bootstrap-what-next">
                         <h4 class="bootstrap-what-next__title">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_TITLE' | translate }}</h4>
+                        <p class="bootstrap-what-next__intro">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_INTRO' | translate }}</p>
                         <ol class="bootstrap-what-next__steps">
-                          <li>{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP1' | translate }}</li>
-                          <li>{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP2' | translate }}</li>
-                          <li>{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP3' | translate }}</li>
-                          <li>{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP4' | translate }}</li>
+                          <li class="bootstrap-what-next__step">
+                            <span class="bootstrap-what-next__step-number">1</span>
+                            <p class="bootstrap-what-next__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP1' | translate }}</p>
+                          </li>
+                          <li class="bootstrap-what-next__step">
+                            <span class="bootstrap-what-next__step-number">2</span>
+                            <p class="bootstrap-what-next__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP2' | translate }}</p>
+                          </li>
+                          <li class="bootstrap-what-next__step">
+                            <span class="bootstrap-what-next__step-number">3</span>
+                            <p class="bootstrap-what-next__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP3' | translate }}</p>
+                          </li>
+                          <li class="bootstrap-what-next__step">
+                            <span class="bootstrap-what-next__step-number">4</span>
+                            <p class="bootstrap-what-next__step-text">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP4' | translate }}</p>
+                          </li>
                         </ol>
                       </div>
                     }

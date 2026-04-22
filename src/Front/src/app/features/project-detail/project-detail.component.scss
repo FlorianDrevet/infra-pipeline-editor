@@ -1595,83 +1595,184 @@ a.config-card {
 
 .bootstrap-prerequisites {
   margin: 1rem 0;
-  padding: 1rem 1.25rem;
-  border-radius: 0.85rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1rem 1.25rem 1.25rem;
+  border-radius: 1rem;
+  background: linear-gradient(160deg, rgba(10, 42, 78, 0.92) 0%, rgba(5, 28, 56, 0.94) 100%);
+  border: 1px solid rgba(0, 188, 212, 0.22);
+  box-shadow: 0 16px 36px rgba(3, 18, 37, 0.18);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
 
   &__title {
     margin: 0 0 0.75rem;
     font-size: 0.88rem;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(214, 242, 255, 0.9);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-}
 
-.prerequisites-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  &__intro {
+    margin: 0;
+    max-width: 40rem;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+  }
 
-  li {
+  &__status {
     display: flex;
     align-items: flex-start;
-    gap: 0.5rem;
-    font-size: 0.85rem;
+    gap: 0.7rem;
+    flex: 1 1 18rem;
+    max-width: 24rem;
+    padding: 0.85rem 1rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 0.82rem;
     line-height: 1.5;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.88);
 
     mat-icon {
-      font-size: 1.1rem;
-      width: 1.1rem;
-      height: 1.1rem;
+      font-size: 1.15rem;
+      width: 1.15rem;
+      height: 1.15rem;
       flex-shrink: 0;
-      margin-top: 0.1rem;
+      margin-top: 0.05rem;
     }
   }
 
-  &.check-ok li mat-icon,
-  li.check-ok mat-icon  { color: #50fa7b; }
-  li.check-missing mat-icon { color: #ff5555; }
-  li.check-warning mat-icon { color: #ffbd2e; }
-  li.check-info mat-icon    { color: #8be9fd; }
+  &__status--ready {
+    border-color: rgba(80, 250, 123, 0.35);
+    background: rgba(80, 250, 123, 0.08);
+
+    mat-icon {
+      color: #50fa7b;
+    }
+  }
+
+  &__status--missing {
+    border-color: rgba(255, 85, 85, 0.35);
+    background: rgba(255, 85, 85, 0.08);
+
+    mat-icon {
+      color: #ff8a80;
+    }
+  }
+}
+
+.bootstrap-guide,
+.bootstrap-what-next__steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bootstrap-guide__step,
+.bootstrap-what-next__step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bootstrap-guide__step-number,
+.bootstrap-what-next__step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.bootstrap-guide__step-number {
+  background: linear-gradient(135deg, #0288d1 0%, #00bcd4 100%);
+  box-shadow: 0 10px 18px rgba(0, 188, 212, 0.22);
+}
+
+.bootstrap-what-next__step-number {
+  background: linear-gradient(135deg, #0ea5e9 0%, #34d399 100%);
+  box-shadow: 0 10px 18px rgba(52, 211, 153, 0.18);
+}
+
+.bootstrap-guide__step-text,
+.bootstrap-what-next__step-text {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.84);
 }
 
 // ─── Bootstrap What Next ────
 
 .bootstrap-what-next {
   margin: 1.5rem 0 0;
-  padding: 1rem 1.25rem;
-  border-radius: 0.85rem;
-  background: rgba(80, 250, 123, 0.04);
-  border: 1px solid rgba(80, 250, 123, 0.15);
+  padding: 1rem 1.25rem 1.25rem;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(7, 39, 63, 0.9) 0%, rgba(4, 22, 40, 0.94) 100%);
+  border: 1px solid rgba(80, 250, 123, 0.18);
 
   &__title {
     margin: 0 0 0.75rem;
     font-size: 0.88rem;
     font-weight: 700;
-    color: #50fa7b;
+    color: #7ce8ff;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
+  &__intro {
+    margin: 0 0 1rem;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
   &__steps {
     margin: 0;
-    padding-left: 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
+    padding: 0;
+  }
 
-    li {
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.8);
-      line-height: 1.5;
-    }
+  &__step {
+    background: rgba(80, 250, 123, 0.05);
+    border-color: rgba(80, 250, 123, 0.14);
+  }
+}
+
+@media (max-width: 640px) {
+  .bootstrap-prerequisites,
+  .bootstrap-what-next {
+    padding: 1rem;
+  }
+
+  .bootstrap-guide__step,
+  .bootstrap-what-next__step {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .bootstrap-guide__step-number,
+  .bootstrap-what-next__step-number {
+    width: 1.85rem;
+    height: 1.85rem;
+    font-size: 0.85rem;
   }
 }
 // ─── Git Config ────
