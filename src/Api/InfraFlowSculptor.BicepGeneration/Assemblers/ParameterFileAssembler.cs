@@ -168,21 +168,33 @@ internal static class ParameterFileAssembler
     }
 
     /// <summary>
-    /// Creates a shallow copy of an anonymous/POCO object with one property value replaced,
-    /// preserving all other properties. Used when a flat environment override targets a property
-    /// inside a structured parameter group.
+    /// Creates a deep copy of an anonymous/POCO object with one property value replaced,
+    /// preserving all other properties. Supports dot-separated <paramref name="propertyPath"/>
+    /// for nested objects (e.g. <c>"readiness.path"</c> navigates into the <c>readiness</c>
+    /// sub-object and replaces its <c>path</c> property).
     /// </summary>
-    private static object MergePropertyIntoObject(object source, string propertyName, string newValue)
+    private static object MergePropertyIntoObject(object source, string propertyPath, string newValue)
     {
+        var dotIndex = propertyPath.IndexOf('.');
+        var head = dotIndex >= 0 ? propertyPath[..dotIndex] : propertyPath;
+        var tail = dotIndex >= 0 ? propertyPath[(dotIndex + 1)..] : null;
+
         var dict = new Dictionary<string, object>();
 
         if (source is IDictionary<string, object> existingDict)
         {
             foreach (var (k, v) in existingDict)
             {
-                dict[k] = k.Equals(propertyName, StringComparison.OrdinalIgnoreCase)
-                    ? (v is not null ? CoerceToOriginalType(newValue, v) : newValue)
-                    : v;
+                if (k.Equals(head, StringComparison.OrdinalIgnoreCase))
+                {
+                    dict[k] = tail is not null
+                        ? MergePropertyIntoObject(v, tail, newValue)
+                        : (v is not null ? CoerceToOriginalType(newValue, v) : newValue);
+                }
+                else
+                {
+                    dict[k] = v;
+                }
             }
         }
         else
@@ -192,9 +204,11 @@ internal static class ParameterFileAssembler
             foreach (var prop in props)
             {
                 var val = prop.GetValue(source);
-                if (string.Equals(prop.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                if (prop.Name.Equals(head, StringComparison.OrdinalIgnoreCase))
                 {
-                    dict[prop.Name] = val is not null ? CoerceToOriginalType(newValue, val) : newValue;
+                    dict[prop.Name] = tail is not null
+                        ? MergePropertyIntoObject(val!, tail, newValue)
+                        : (val is not null ? CoerceToOriginalType(newValue, val) : newValue);
                 }
                 else
                 {

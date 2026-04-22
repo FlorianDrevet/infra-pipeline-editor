@@ -35,9 +35,9 @@ public sealed class ContainerAppTypeBicepGenerator
             ["ingress"] = new { enabled = true, targetPort = 80, external = true, transportMethod = "auto" },
             ["healthProbes"] = new
             {
-                readinessPath = "", readinessPort = 0,
-                livenessPath = "", livenessPort = 0,
-                startupPath = "", startupPort = 0
+                readiness = new { path = "", port = 0 },
+                liveness = new { path = "", port = 0 },
+                startup = new { path = "", port = 0 }
             }
         };
 
@@ -73,12 +73,12 @@ public sealed class ContainerAppTypeBicepGenerator
                 ["ingressTargetPort"] = ("ingress", "targetPort"),
                 ["ingressExternal"] = ("ingress", "external"),
                 ["transportMethod"] = ("ingress", "transportMethod"),
-                ["readinessProbePath"] = ("healthProbes", "readinessPath"),
-                ["readinessProbePort"] = ("healthProbes", "readinessPort"),
-                ["livenessProbePath"] = ("healthProbes", "livenessPath"),
-                ["livenessProbePort"] = ("healthProbes", "livenessPort"),
-                ["startupProbePath"] = ("healthProbes", "startupPath"),
-                ["startupProbePort"] = ("healthProbes", "startupPort")
+                ["readinessProbePath"] = ("healthProbes", "readiness.path"),
+                ["readinessProbePort"] = ("healthProbes", "readiness.port"),
+                ["livenessProbePath"] = ("healthProbes", "liveness.path"),
+                ["livenessProbePort"] = ("healthProbes", "liveness.port"),
+                ["startupProbePath"] = ("healthProbes", "startup.path"),
+                ["startupProbePort"] = ("healthProbes", "startup.port")
             }
         };
     }
@@ -122,20 +122,23 @@ public sealed class ContainerAppTypeBicepGenerator
         }
 
         @export()
+        @description('Configuration for a single HTTP health probe')
+        type ProbeConfig = {
+          @description('HTTP path for the probe (empty to disable)')
+          path: string
+          @description('Port for the probe (0 to disable)')
+          port: int
+        }
+
+        @export()
         @description('Health probe configuration for the Container App')
         type HealthProbeConfig = {
-          @description('HTTP path for the readiness probe (empty to disable)')
-          readinessPath: string
-          @description('Port for the readiness probe (0 to disable)')
-          readinessPort: int
-          @description('HTTP path for the liveness probe (empty to disable)')
-          livenessPath: string
-          @description('Port for the liveness probe (0 to disable)')
-          livenessPort: int
-          @description('HTTP path for the startup probe (empty to disable)')
-          startupPath: string
-          @description('Port for the startup probe (0 to disable)')
-          startupPort: int
+          @description('Readiness probe configuration')
+          readiness: ProbeConfig
+          @description('Liveness probe configuration')
+          liveness: ProbeConfig
+          @description('Startup probe configuration')
+          startup: ProbeConfig
         }
         """;
 
@@ -185,25 +188,25 @@ public sealed class ContainerAppTypeBicepGenerator
                     memory: containerRuntime.memoryGi
                   }
                   probes: union(
-                    !empty(healthProbes.readinessPath) && healthProbes.readinessPort > 0 ? [{
+                    !empty(healthProbes.readiness.path) && healthProbes.readiness.port > 0 ? [{
                       type: 'Readiness'
                       httpGet: {
-                        path: healthProbes.readinessPath
-                        port: healthProbes.readinessPort
+                        path: healthProbes.readiness.path
+                        port: healthProbes.readiness.port
                       }
                     }] : [],
-                    !empty(healthProbes.livenessPath) && healthProbes.livenessPort > 0 ? [{
+                    !empty(healthProbes.liveness.path) && healthProbes.liveness.port > 0 ? [{
                       type: 'Liveness'
                       httpGet: {
-                        path: healthProbes.livenessPath
-                        port: healthProbes.livenessPort
+                        path: healthProbes.liveness.path
+                        port: healthProbes.liveness.port
                       }
                     }] : [],
-                    !empty(healthProbes.startupPath) && healthProbes.startupPort > 0 ? [{
+                    !empty(healthProbes.startup.path) && healthProbes.startup.port > 0 ? [{
                       type: 'Startup'
                       httpGet: {
-                        path: healthProbes.startupPath
-                        port: healthProbes.startupPort
+                        path: healthProbes.startup.path
+                        port: healthProbes.startup.port
                       }
                     }] : []
                   )
@@ -285,25 +288,25 @@ public sealed class ContainerAppTypeBicepGenerator
                     memory: containerRuntime.memoryGi
                   }
                   probes: union(
-                    !empty(healthProbes.readinessPath) && healthProbes.readinessPort > 0 ? [{
+                    !empty(healthProbes.readiness.path) && healthProbes.readiness.port > 0 ? [{
                       type: 'Readiness'
                       httpGet: {
-                        path: healthProbes.readinessPath
-                        port: healthProbes.readinessPort
+                        path: healthProbes.readiness.path
+                        port: healthProbes.readiness.port
                       }
                     }] : [],
-                    !empty(healthProbes.livenessPath) && healthProbes.livenessPort > 0 ? [{
+                    !empty(healthProbes.liveness.path) && healthProbes.liveness.port > 0 ? [{
                       type: 'Liveness'
                       httpGet: {
-                        path: healthProbes.livenessPath
-                        port: healthProbes.livenessPort
+                        path: healthProbes.liveness.path
+                        port: healthProbes.liveness.port
                       }
                     }] : [],
-                    !empty(healthProbes.startupPath) && healthProbes.startupPort > 0 ? [{
+                    !empty(healthProbes.startup.path) && healthProbes.startup.port > 0 ? [{
                       type: 'Startup'
                       httpGet: {
-                        path: healthProbes.startupPath
-                        port: healthProbes.startupPort
+                        path: healthProbes.startup.path
+                        port: healthProbes.startup.port
                       }
                     }] : []
                   )
