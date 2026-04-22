@@ -560,9 +560,10 @@ export class ConfigDetailComponent implements OnInit {
         this.openDefaultResourceGroup(resourceGroups),
       ]);
 
-      // Non-blocking: fire-and-forget secondary data (diagnostics, variable groups)
+      // Non-blocking: fire-and-forget secondary data (diagnostics, variable groups, cross-config refs)
       this.loadDiagnostics().catch(() => {});
       this.loadVariableGroups().catch(() => {});
+      this.loadCrossConfigReferences().catch(() => {});
 
       this.recentlyViewedService.trackView({
         id: config.id,
@@ -629,7 +630,13 @@ export class ConfigDetailComponent implements OnInit {
           return next;
         });
       }
-      // StorageAccount details are loaded on-demand when the user expands the parent node
+      // Auto-load StorageAccount details for expanded storage parents
+      const storageParentIds = resources
+        .filter((r) => r.resourceType === 'StorageAccount')
+        .map((r) => r.id);
+      for (const storageId of storageParentIds) {
+        this.loadStorageAccountDetails(storageId).catch(() => {});
+      }
     } catch {
       this.rgResources.update((prev) => ({ ...prev, [rgId]: [] }));
     } finally {
@@ -1649,7 +1656,7 @@ export class ConfigDetailComponent implements OnInit {
 
   protected async loadCrossConfigReferences(): Promise<void> {
     const configId = this.config()?.id;
-    if (!configId) return;
+    if (!configId || this.crossConfigLoading()) return;
 
     this.crossConfigLoading.set(true);
     this.crossConfigErrorKey.set('');

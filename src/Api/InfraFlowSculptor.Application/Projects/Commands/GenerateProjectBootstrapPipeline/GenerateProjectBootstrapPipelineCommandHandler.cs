@@ -1,3 +1,4 @@
+using System.Net;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
@@ -52,8 +53,8 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         // 5. Parse Azure DevOps organization and project name from Owner (format: "org/project")
         var gitConfig = project.GitRepositoryConfiguration;
         var ownerParts = gitConfig.Owner.Split('/', 2);
-        var organizationName = ownerParts[0];
-        var adoProjectName = ownerParts.Length > 1 ? ownerParts[1] : ownerParts[0];
+        var organizationName = DecodeUrlSegment(ownerParts[0]);
+        var adoProjectName = DecodeUrlSegment(ownerParts.Length > 1 ? ownerParts[1] : ownerParts[0]);
 
         // 6. Build the list of pipeline definitions (one CI + one Release per infra config)
         var pipelineBasePath = gitConfig.PipelineBasePath;
@@ -78,7 +79,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         {
             OrganizationName = organizationName,
             ProjectName = adoProjectName,
-            RepositoryName = gitConfig.RepositoryName,
+            RepositoryName = DecodeUrlSegment(gitConfig.RepositoryName),
             DefaultBranch = gitConfig.DefaultBranch,
             AgentPoolName = project.AgentPoolName,
             Pipelines = pipelines,
@@ -203,4 +204,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
             .Select(e => groupName.Replace("{env}", e.ShortName, StringComparison.OrdinalIgnoreCase))
             .Distinct(StringComparer.OrdinalIgnoreCase);
     }
+
+    private static string DecodeUrlSegment(string value) =>
+        WebUtility.UrlDecode(value);
 }

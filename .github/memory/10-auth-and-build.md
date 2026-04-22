@@ -24,6 +24,7 @@ npm install; npm run start; npm run build; npm run typecheck
 - Audit PowerShell scripts under `scripts/` must read their `.sh` source files with `Get-Content -Encoding UTF8` to avoid mojibake such as `SÃ©vÃ©ritÃ©` when launched from `cmd` via `powershell.exe` 5.1.
 - Keep console progress messages ASCII-only when possible; `cmd` cannot have its parent code page changed reliably from inside the script.
 - Bootstrap Azure DevOps generation must emit `powershell` steps, not `script`/Bash syntax. Self-hosted Windows agents execute `script` via `cmd.exe`, which breaks constructs like `|| true`, backslash continuations, `$(...)`, and `if [ ... ]`. Bootstrap runtime auth relies on `$(System.AccessToken)` exposed to scripts, not on a PAT inside the generated YAML. `az devops configure` itself must not receive `--detect false`.
+- Bootstrap Azure DevOps must decode URL-encoded Azure DevOps URL segments (`%20`, etc.) before injecting organization/project/repository names into CLI defaults. Otherwise `az devops configure` can fail with interpolation/parsing errors on project names containing spaces. The generated YAML now also declares explicit stage/job names for clearer Azure DevOps run UI.
 
 ## Infrastructure Services
 
