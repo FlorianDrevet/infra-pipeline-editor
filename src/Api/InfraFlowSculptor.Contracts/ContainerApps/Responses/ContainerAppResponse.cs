@@ -13,5 +13,8 @@ public record ContainerAppResponse(
     string? DockerImageName,
     string? DockerfilePath,
     string? ApplicationName,
-    IReadOnlyList<ContainerAppEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<ContainerAppEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

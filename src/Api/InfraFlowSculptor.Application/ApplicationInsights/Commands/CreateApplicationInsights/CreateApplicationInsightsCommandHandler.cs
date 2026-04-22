@@ -44,7 +44,8 @@ public sealed class CreateApplicationInsightsCommandHandler(
             logAnalyticsWorkspaceId,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName, ec.SamplingPercentage, ec.RetentionInDays, ec.DisableIpMasking, ec.DisableLocalAuth, ec.IngestionMode))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await applicationInsightsRepository.AddAsync(applicationInsights);
 

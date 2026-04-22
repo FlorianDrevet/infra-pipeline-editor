@@ -16,6 +16,7 @@ export interface ServiceBusNamespaceEnvironmentConfigResponse {
   zoneRedundant: boolean | null;
   disableLocalAuth: boolean | null;
   minimumTlsVersion: string | null;
+  isExisting?: boolean;
 }
 
 // ─── Sub-resource Responses ──────────────────────────────────────────────────
@@ -23,12 +24,14 @@ export interface ServiceBusNamespaceEnvironmentConfigResponse {
 export interface ServiceBusQueueResponse {
   id: string;
   name: string;
+  isExisting?: boolean;
 }
 
 export interface ServiceBusTopicSubscriptionResponse {
   id: string;
   topicName: string;
   subscriptionName: string;
+  isExisting?: boolean;
 }
 
 // ─── Response ────────────────────────────────────────────────────────────────
@@ -41,6 +44,7 @@ export interface ServiceBusNamespaceResponse {
   queues: ServiceBusQueueResponse[];
   topicSubscriptions: ServiceBusTopicSubscriptionResponse[];
   environmentSettings: ServiceBusNamespaceEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -50,6 +54,7 @@ export interface CreateServiceBusNamespaceRequest {
   name: string;
   location: string;
   environmentSettings?: ServiceBusNamespaceEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateServiceBusNamespaceRequest {

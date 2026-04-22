@@ -30,18 +30,21 @@ public sealed class UserAssignedIdentity : AzureResource
     /// <param name="resourceGroupId">The parent resource group identifier.</param>
     /// <param name="name">The resource name.</param>
     /// <param name="location">The Azure location.</param>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     /// <returns>A new <see cref="UserAssignedIdentity"/> instance.</returns>
     public static UserAssignedIdentity Create(
         ResourceGroupId resourceGroupId,
         Name name,
-        Location location)
+        Location location,
+        bool isExisting = false)
     {
         return new UserAssignedIdentity
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location
+            Location = location,
+            IsExisting = isExisting
         };
     }
 }

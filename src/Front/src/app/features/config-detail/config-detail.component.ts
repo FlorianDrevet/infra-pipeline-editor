@@ -311,6 +311,17 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly vgErrorKey = signal('');
   protected readonly vgLoaded = signal(false);
 
+  protected readonly configVariableGroups = computed(() => {
+    const configName = this.config()?.name ?? '';
+    if (!configName) return this.variableGroups();
+    return this.variableGroups()
+      .map(g => ({
+        ...g,
+        variables: g.variables.filter(v => v.configName === configName),
+      }))
+      .filter(g => g.variables.length > 0);
+  });
+
   // ─── Config Tags ───
   protected readonly isEditingConfigTags = signal(false);
   protected readonly editingConfigTags = signal<TagRequest[]>([]);
@@ -374,6 +385,7 @@ export class ConfigDetailComponent implements OnInit {
    * the resource type has no environment settings or if all environments are configured.
    */
   protected getMissingEnvironments(resource: AzureResourceResponse): string[] {
+    if (resource.isExisting) return [];
     if (this.ENV_SETTINGS_EXCLUDED_TYPES.has(resource.resourceType)) return [];
     const allEnvNames = this.projectSortedEnvironments().map(e => e.name);
     if (allEnvNames.length === 0) return [];
@@ -385,6 +397,7 @@ export class ConfigDetailComponent implements OnInit {
    * Returns true if the resource has at least one missing environment configuration.
    */
   protected hasMissingEnvironments(resource: AzureResourceResponse): boolean {
+    if (resource.isExisting) return false;
     return this.getMissingEnvironments(resource).length > 0;
   }
 
@@ -505,6 +518,10 @@ export class ConfigDetailComponent implements OnInit {
     this.previewEnvId.set(null);
     this.diagnostics.set([]);
     this.loadError.set('');
+    this.variableGroups.set([]);
+    this.vgLoading.set(false);
+    this.vgErrorKey.set('');
+    this.vgLoaded.set(false);
   }
 
   private async loadConfig(id: string): Promise<void> {
@@ -512,6 +529,7 @@ export class ConfigDetailComponent implements OnInit {
     this.loadError.set('');
 
     try {
+      // Phase 1 — critical data (blocks rendering)
       const [config, resourceGroups] = await Promise.all([
         this.infraConfigService.getById(id),
         this.infraConfigService.getResourceGroups(id),
@@ -519,28 +537,33 @@ export class ConfigDetailComponent implements OnInit {
       this.config.set(config);
       this.resourceGroups.set(resourceGroups);
 
-      // Load the parent project for inheritance data
-      if (config.projectId) {
-        try {
-          const project = await this.projectService.getProject(config.projectId);
-          this.project.set(project);
-        } catch {
-          // Non-blocking — project data used only for inheritance display
-        }
-      }
+      // Phase 2 — secondary data + auto-expand first RG (all independent, fire in parallel)
+      const projectPromise = config.projectId
+        ? this.projectService
+            .getProject(config.projectId)
+            .then((project) => {
+              this.project.set(project);
+              // Pre-select the first effective environment for the naming preview
+              const effectiveEnvs = project?.environmentDefinitions ?? [];
+              const firstEnv = [...effectiveEnvs].sort((a, b) => a.order - b.order)[0];
+              if (firstEnv) {
+                this.previewEnvId.set(firstEnv.id);
+              }
+            })
+            .catch(() => {
+              /* Non-blocking — project data used only for inheritance display */
+            })
+        : Promise.resolve();
 
-      // Pre-select the first effective environment (by order) for the naming preview
-      const effectiveEnvs = this.project()?.environmentDefinitions ?? [];
-      const firstEnv = [...effectiveEnvs].sort((a, b) => a.order - b.order)[0];
-      if (firstEnv) {
-        this.previewEnvId.set(firstEnv.id);
-      }
+      await Promise.all([
+        projectPromise,
+        this.openDefaultResourceGroup(resourceGroups),
+      ]);
 
-      // Load cross-config references BEFORE expanding RGs so they appear in resource lists
-      await this.loadCrossConfigReferences();
-      await this.loadDiagnostics();
+      // Non-blocking: fire-and-forget secondary data (diagnostics, variable groups)
+      this.loadDiagnostics().catch(() => {});
+      this.loadVariableGroups().catch(() => {});
 
-      await this.openDefaultResourceGroup(resourceGroups);
       this.recentlyViewedService.trackView({
         id: config.id,
         name: config.name,
@@ -606,13 +629,7 @@ export class ConfigDetailComponent implements OnInit {
           return next;
         });
       }
-      // Auto-load StorageAccount details for expanded parents
-      const storageIds = resources
-        .filter((r) => r.resourceType === 'StorageAccount')
-        .map((r) => r.id);
-      for (const id of storageIds) {
-        this.loadStorageAccountDetails(id);
-      }
+      // StorageAccount details are loaded on-demand when the user expands the parent node
     } catch {
       this.rgResources.update((prev) => ({ ...prev, [rgId]: [] }));
     } finally {
@@ -763,6 +780,7 @@ export class ConfigDetailComponent implements OnInit {
   }
 
   protected async loadStorageAccountDetails(storageId: string): Promise<void> {
+    if (this.storageAccountDetails()[storageId]) return; // already cached
     if (this.storageDetailsLoading() === storageId) return;
     this.storageDetailsLoading.set(storageId);
     try {
@@ -1626,10 +1644,7 @@ export class ConfigDetailComponent implements OnInit {
     if (index === 3 && !this.crossConfigLoaded()) {
       await this.loadCrossConfigReferences();
     }
-    // Tab 4 is pipeline variable groups — lazy load on first visit
-    if (index === 4 && !this.vgLoaded()) {
-      await this.loadVariableGroups();
-    }
+    // Variable groups are now loaded eagerly in loadConfig()
   }
 
   protected async loadCrossConfigReferences(): Promise<void> {

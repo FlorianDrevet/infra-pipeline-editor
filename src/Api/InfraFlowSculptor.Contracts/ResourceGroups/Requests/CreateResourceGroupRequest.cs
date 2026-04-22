@@ -17,4 +17,9 @@ public class CreateResourceGroupRequest
     /// <summary>Azure region where the Resource Group will be created (e.g. "westeurope").</summary>
     [Required, EnumValidation(typeof(Location.LocationEnum))]
     public required string Location { get; init; }
+
+    /// <summary>Whether this resource already exists in Azure and is not managed by this project.</summary>
+
+    public bool IsExisting { get; init; } = false;
+
 }

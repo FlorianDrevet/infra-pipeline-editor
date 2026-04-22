@@ -50,8 +50,9 @@ public sealed class CreateContainerAppCommandHandler(
             request.DockerfilePath,
             request.ApplicationName,
             request.EnvironmentSettings?
-                .Select(ec => (ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod))
-                .ToList());
+                .Select(ec => (ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort))
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await containerAppRepository.AddAsync(containerApp);
 

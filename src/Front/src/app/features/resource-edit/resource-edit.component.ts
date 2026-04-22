@@ -1,9 +1,10 @@
 import { Component, DestroyRef, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { EMPTY, Subscription, catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -58,7 +59,7 @@ import { UserAssignedIdentityService } from '../../shared/services/user-assigned
 import { NameAvailabilityService } from '../../shared/services/name-availability.service';
 import { EnvironmentNameAvailabilityResponseItem } from '../../shared/interfaces/name-availability.interface';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
-import { ProjectResponse } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
 import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse, RoleAssignmentImpactResponse, ACR_PULL_ROLE_DEFINITION_ID } from '../../shared/interfaces/role-assignment.interface';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
@@ -71,6 +72,8 @@ import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData, AddRoleA
 import { AddAppSettingDialogComponent, AddAppSettingDialogData } from './add-app-setting-dialog/add-app-setting-dialog.component';
 import { EditStaticAppSettingDialogComponent, EditStaticAppSettingDialogData } from './edit-static-app-setting-dialog/edit-static-app-setting-dialog.component';
 import { AppSettingService } from '../../shared/services/app-setting.service';
+import { SecureParameterMappingService } from '../../shared/services/secure-parameter-mapping.service';
+import { SecureParameterMappingResponse } from '../../shared/interfaces/secure-parameter-mapping.interface';
 import { AppSettingResponse } from '../../shared/interfaces/app-setting.interface';
 import { AppConfigurationKeyService } from './services/app-configuration-key.service';
 import { AppConfigurationKeyResponse } from './models/app-configuration-key.interface';
@@ -79,6 +82,7 @@ import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } f
 import { CreateUaiDialogComponent, CreateUaiDialogData } from './create-uai-dialog/create-uai-dialog.component';
 import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
+import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
 
 /** Key Vault missing role entry for the KV access warning banner */
 interface KvMissingRoleEntry {
@@ -308,6 +312,7 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
   imports: [
     TranslateModule,
     RouterLink,
+    FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatDialogModule,
@@ -316,6 +321,7 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     MatInputModule,
     MatOptionModule,
     MatProgressSpinnerModule,
+    MatRadioModule,
     MatSelectModule,
     MatSlideToggleModule,
     MatTabsModule,
@@ -324,6 +330,7 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     MatButtonToggleModule,
     CompactSelectComponent,
     DeploymentConfigComponent,
+    ToggleSectionCardComponent,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
@@ -355,6 +362,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly roleAssignmentService = inject(RoleAssignmentService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly appSettingService = inject(AppSettingService);
+  private readonly secureParamMappingService = inject(SecureParameterMappingService);
   private readonly configKeyService = inject(AppConfigurationKeyService);
   private readonly nameAvailabilityService = inject(NameAvailabilityService);
   private readonly destroyRef = inject(DestroyRef);
@@ -390,6 +398,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
   protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
+  protected readonly isExistingResource = computed(() => (this.resource() as { isExisting?: boolean } | null)?.isExisting === true);
 
   // ─── App Pipeline ───
 
@@ -518,7 +527,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   /** True only for resource types where backend may run the Azure ARM check. */
   protected readonly isNameAvailabilityCheckEnabled = computed(
-    () => ResourceEditComponent.NAME_AVAILABILITY_TYPES.has(this.resourceType),
+    () => ResourceEditComponent.NAME_AVAILABILITY_TYPES.has(this.resourceType) && !this.isExistingResource(),
   );
 
   /** Aggregated badge state derived from per-env results. */
@@ -783,6 +792,44 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly sqlMinTlsOptions = SQL_MIN_TLS_OPTIONS;
   protected readonly runtimeVersionOptions = signal<string[]>([]);
 
+  // ─── Secure Parameter Mappings (SqlServer password config) ───
+  protected readonly secureParamMappings = signal<SecureParameterMappingResponse[]>([]);
+  protected readonly passwordMode = signal<'random' | 'variableGroup'>('random');
+  protected readonly passwordVgOptions = signal<ProjectPipelineVariableGroupResponse[]>([]);
+  protected readonly passwordVgLoading = signal(false);
+  protected readonly passwordSelectedVgId = signal<string | null>(null);
+  protected readonly passwordNewGroupName = signal('');
+  protected readonly passwordIsCreatingNewGroup = signal(false);
+  protected readonly passwordNewGroupScope = signal<'project' | 'configuration'>('project');
+  protected readonly passwordPipelineVariableName = signal('');
+  protected readonly passwordSaving = signal(false);
+  protected readonly passwordSaveSuccess = signal(false);
+
+  /** Snapshot of the last saved (or loaded) state, used to detect unsaved changes. */
+  private readonly passwordSavedState = signal<{ mode: 'random' | 'variableGroup'; variableGroupId: string | null; pipelineVariableName: string | null }>({
+    mode: 'random', variableGroupId: null, pipelineVariableName: null,
+  });
+
+  protected readonly hasPasswordConfigChanged = computed(() => {
+    const saved = this.passwordSavedState();
+    if (this.passwordMode() !== saved.mode) return true;
+    if (this.passwordMode() === 'variableGroup') {
+      if (this.passwordIsCreatingNewGroup()) return true;
+      if (this.passwordSelectedVgId() !== saved.variableGroupId) return true;
+      if (this.passwordPipelineVariableName() !== (saved.pipelineVariableName ?? '')) return true;
+    }
+    return false;
+  });
+
+  protected readonly canSavePasswordConfig = computed(() => {
+    if (this.passwordSaving()) return false;
+    if (this.passwordMode() === 'random') return true;
+    const hasVg = this.passwordIsCreatingNewGroup()
+      ? this.passwordNewGroupName().trim().length > 0
+      : !!this.passwordSelectedVgId();
+    return hasVg && this.passwordPipelineVariableName().trim().length > 0;
+  });
+
   // ─── Forms ───
   protected generalForm!: FormGroup;
   protected envForms = signal<{ envName: string; form: FormGroup }[]>([]);
@@ -892,6 +939,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       }
       if (this.isUserAssignedIdentity()) {
         this.loadIdentityRoleAssignments();
+      }
+      if (this.resourceType === 'SqlServer') {
+        this.loadSecureParamMappings();
       }
     } catch {
       this.loadError.set('RESOURCE_EDIT.ERROR.LOAD_FAILED');
@@ -1066,6 +1116,22 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.envForms.set(forms);
   }
 
+  protected onProbeToggle(envIndex: number, probeType: 'readiness' | 'liveness' | 'startup', enabled: boolean): void {
+    const envForm = this.envForms()[envIndex]?.form;
+    if (!envForm) return;
+    const defaults: Record<string, { path: string; port: number }> = {
+      readiness: { path: '/healthz/ready', port: 8080 },
+      liveness: { path: '/healthz/live', port: 8080 },
+      startup: { path: '/healthz/startup', port: 8080 },
+    };
+
+    envForm.patchValue({
+      [`${probeType}ProbeEnabled`]: enabled,
+      [`${probeType}ProbePath`]: enabled ? defaults[probeType].path : null,
+      [`${probeType}ProbePort`]: enabled ? defaults[probeType].port : null,
+    });
+  }
+
   private buildSingleEnvForm(resource: ResourceData, envName: string): FormGroup {
     switch (this.resourceType) {
       case 'KeyVault': {
@@ -1152,6 +1218,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           ingressTargetPort: [settings?.ingressTargetPort ?? null],
           ingressExternal: [settings?.ingressExternal ?? null],
           transportMethod: [settings?.transportMethod ?? null],
+          readinessProbeEnabled: [!!(settings?.readinessProbePath)],
+          readinessProbePath: [settings?.readinessProbePath ?? null],
+          readinessProbePort: [settings?.readinessProbePort ?? null],
+          livenessProbeEnabled: [!!(settings?.livenessProbePath)],
+          livenessProbePath: [settings?.livenessProbePath ?? null],
+          livenessProbePort: [settings?.livenessProbePort ?? null],
+          startupProbeEnabled: [!!(settings?.startupProbePath)],
+          startupProbePath: [settings?.startupProbePath ?? null],
+          startupProbePort: [settings?.startupProbePort ?? null],
         });
       }
       case 'LogAnalyticsWorkspace': {
@@ -3161,6 +3236,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         ingressTargetPort: raw.ingressTargetPort != null ? Number(raw.ingressTargetPort) : null,
         ingressExternal: raw.ingressExternal ?? null,
         transportMethod: raw.transportMethod || null,
+        readinessProbePath: raw.readinessProbePath || null,
+        readinessProbePort: raw.readinessProbePort != null ? Number(raw.readinessProbePort) : null,
+        livenessProbePath: raw.livenessProbePath || null,
+        livenessProbePort: raw.livenessProbePort != null ? Number(raw.livenessProbePort) : null,
+        startupProbePath: raw.startupProbePath || null,
+        startupProbePort: raw.startupProbePort != null ? Number(raw.startupProbePort) : null,
       };
     });
   }
@@ -3243,6 +3324,96 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         minimalTlsVersion: raw.minimalTlsVersion || null,
       };
     });
+  }
+
+  // ─── Secure Parameter Mappings (SqlServer password config) ───
+
+  private async loadSecureParamMappings(): Promise<void> {
+    try {
+      const mappings = await this.secureParamMappingService.getByResourceId(this.resourceId);
+      this.secureParamMappings.set(mappings);
+      const pwdMapping = mappings.find(m => m.secureParameterName === 'administratorLoginPassword');
+      if (pwdMapping?.variableGroupId) {
+        this.passwordMode.set('variableGroup');
+        this.passwordSelectedVgId.set(pwdMapping.variableGroupId);
+        this.passwordPipelineVariableName.set(pwdMapping.pipelineVariableName ?? '');
+        this.passwordSavedState.set({ mode: 'variableGroup', variableGroupId: pwdMapping.variableGroupId, pipelineVariableName: pwdMapping.pipelineVariableName ?? null });
+      } else {
+        this.passwordMode.set('random');
+        this.passwordSavedState.set({ mode: 'random', variableGroupId: null, pipelineVariableName: null });
+      }
+      await this.loadPasswordVgOptions();
+    } catch {
+      // Non-blocking
+    }
+  }
+
+  private async loadPasswordVgOptions(): Promise<void> {
+    const projectId = this.config()?.projectId;
+    if (!projectId) return;
+    this.passwordVgLoading.set(true);
+    try {
+      const groups = await this.projectService.getPipelineVariableGroups(projectId);
+      this.passwordVgOptions.set(groups);
+    } catch {
+      this.passwordVgOptions.set([]);
+    } finally {
+      this.passwordVgLoading.set(false);
+    }
+  }
+
+  protected onPasswordVgSelectionChange(value: string): void {
+    if (value === '__create_new__') {
+      this.passwordIsCreatingNewGroup.set(true);
+      this.passwordSelectedVgId.set(null);
+      this.passwordNewGroupScope.set('project');
+    } else {
+      this.passwordIsCreatingNewGroup.set(false);
+      this.passwordSelectedVgId.set(value);
+      this.passwordNewGroupName.set('');
+    }
+  }
+
+  protected async savePasswordConfig(): Promise<void> {
+    this.passwordSaving.set(true);
+    this.passwordSaveSuccess.set(false);
+    try {
+      let variableGroupId: string | null = null;
+
+      if (this.passwordMode() === 'variableGroup') {
+        if (this.passwordIsCreatingNewGroup()) {
+          const projectId = this.config()?.projectId;
+          if (!projectId) return;
+          const newGroup = await this.projectService.addPipelineVariableGroup(
+            projectId, { groupName: this.passwordNewGroupName() });
+          variableGroupId = newGroup.id;
+          this.passwordVgOptions.update(groups => [...groups, newGroup]);
+          this.passwordSelectedVgId.set(newGroup.id);
+          this.passwordIsCreatingNewGroup.set(false);
+        } else {
+          variableGroupId = this.passwordSelectedVgId();
+        }
+      }
+
+      await this.secureParamMappingService.set(this.resourceId, {
+        secureParameterName: 'administratorLoginPassword',
+        variableGroupId: this.passwordMode() === 'variableGroup' ? variableGroupId : null,
+        pipelineVariableName: this.passwordMode() === 'variableGroup'
+          ? this.passwordPipelineVariableName()
+          : null,
+      });
+      this.passwordSavedState.set({
+        mode: this.passwordMode(),
+        variableGroupId: this.passwordMode() === 'variableGroup' ? (variableGroupId ?? this.passwordSelectedVgId()) : null,
+        pipelineVariableName: this.passwordMode() === 'variableGroup' ? this.passwordPipelineVariableName() : null,
+      });
+      this.passwordSaveSuccess.set(true);
+      setTimeout(() => this.passwordSaveSuccess.set(false), 3000);
+    } catch {
+      // Error handled silently
+    } finally {
+      this.passwordSaving.set(false);
+    }
   }
 
 }

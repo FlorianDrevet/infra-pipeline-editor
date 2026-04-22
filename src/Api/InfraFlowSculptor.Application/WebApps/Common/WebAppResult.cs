@@ -22,4 +22,6 @@ public record WebAppResult(
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
-    IReadOnlyList<WebAppEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyList<WebAppEnvironmentConfigData> EnvironmentSettings,
+    bool IsExisting = false
+);

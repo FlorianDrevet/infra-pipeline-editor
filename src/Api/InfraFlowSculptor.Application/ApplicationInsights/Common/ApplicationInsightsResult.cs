@@ -13,4 +13,6 @@ public record ApplicationInsightsResult(
     Name Name,
     Location Location,
     Guid LogAnalyticsWorkspaceId,
-    IReadOnlyList<ApplicationInsightsEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyList<ApplicationInsightsEnvironmentConfigData> EnvironmentSettings,
+    bool IsExisting = false
+);

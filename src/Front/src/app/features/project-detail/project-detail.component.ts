@@ -15,7 +15,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse, ProjectPipelineVariableGroupResponse, SetProjectTagsRequest } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse, GenerateProjectBootstrapPipelineResponse, ProjectPipelineVariableGroupResponse, SetProjectTagsRequest } from '../../shared/interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
   EnvironmentDefinitionResponse,
@@ -172,6 +172,13 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectPipelineErrorKey = signal('');
   protected readonly projectPipelinePanelOpen = signal(false);
   protected readonly projectPipelinePanelCollapsed = signal(false);
+
+  // ─── Project Bootstrap Pipeline Generation (Azure DevOps) ───
+  protected readonly projectBootstrapLoading = signal(false);
+  protected readonly projectBootstrapResult = signal<GenerateProjectBootstrapPipelineResponse | null>(null);
+  protected readonly projectBootstrapDownloading = signal(false);
+  protected readonly projectBootstrapErrorKey = signal('');
+  protected readonly projectBootstrapPanelOpen = signal(false);
 
   // ─── Pipeline Variable Groups ───
   protected readonly variableGroups = signal<ProjectPipelineVariableGroupResponse[]>([]);
@@ -346,6 +353,29 @@ export class ProjectDetailComponent implements OnInit {
     return this.projectService.getProjectPipelineFileContent(projectId, filePath);
   };
 
+  protected readonly projectBootstrapNodes = computed<BicepTreeNode[]>(() => {
+    const result = this.projectBootstrapResult();
+    if (!result) return [];
+    const nodes: BicepTreeNode[] = [];
+    for (const [fileName] of Object.entries(result.fileUris)) {
+      nodes.push({
+        kind: 'file',
+        path: fileName,
+        displayName: fileName,
+        type: 'generic',
+        uri: fileName,
+        depth: 0,
+        parentFolderKey: '',
+      } satisfies BicepFileNode);
+    }
+    return nodes;
+  });
+
+  protected readonly loadProjectBootstrapFile = (filePath: string): Promise<string> => {
+    const projectId = this.project()?.id ?? '';
+    return this.projectService.getProjectBootstrapPipelineFileContent(projectId, filePath);
+  };
+
   // ─── Git Config ───
   protected readonly gitTestLoading = signal(false);
   protected readonly gitTestResult = signal<TestGitConnectionResponse | null>(null);
@@ -418,6 +448,9 @@ export class ProjectDetailComponent implements OnInit {
         type: 'project',
         description: project.description,
       });
+
+      // Non-blocking: eagerly load pipeline variable groups for badge count
+      this.loadVariableGroups().catch(() => {});
     } catch {
       this.loadError.set('PROJECT_DETAIL.ERROR.LOAD_FAILED');
     } finally {
@@ -1043,11 +1076,11 @@ export class ProjectDetailComponent implements OnInit {
   // ─── Unified Generate All (mono-repo) ───
 
   protected readonly projectGenerateAllLoading = computed(
-    () => this.validatingDiagnostics() || this.projectBicepLoading() || this.projectPipelineLoading(),
+    () => this.validatingDiagnostics() || this.projectBicepLoading() || this.projectPipelineLoading() || this.projectBootstrapLoading(),
   );
 
   protected readonly projectGenerationPanelOpen = computed(
-    () => this.projectBicepPanelOpen() || this.projectPipelinePanelOpen() || this.projectBicepLoading() || this.projectPipelineLoading(),
+    () => this.projectBicepPanelOpen() || this.projectPipelinePanelOpen() || this.projectBootstrapPanelOpen() || this.projectBicepLoading() || this.projectPipelineLoading() || this.projectBootstrapLoading(),
   );
 
   protected async generateAll(): Promise<void> {
@@ -1062,16 +1095,18 @@ export class ProjectDetailComponent implements OnInit {
       this.validatingDiagnostics.set(false);
     }
 
-    // Launch both generations in parallel
+    // Launch all generations in parallel
     await Promise.all([
       this.doGenerateProjectBicep(),
       this.doGenerateProjectPipeline(),
+      this.doGenerateProjectBootstrap(),
     ]);
   }
 
   protected closeProjectGenerationPanel(): void {
     this.closeProjectBicepPanel();
     this.closeProjectPipelinePanel();
+    this.closeProjectBootstrapPanel();
   }
 
   // ─── Generation Diagnostics Dialog ───
@@ -1228,6 +1263,70 @@ export class ProjectDetailComponent implements OnInit {
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 
+  // ─── Project Bootstrap Pipeline Generation (Azure DevOps) ───
+
+  protected async generateProjectBootstrap(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId || this.projectBootstrapLoading()) return;
+    await this.doGenerateProjectBootstrap();
+  }
+
+  private async doGenerateProjectBootstrap(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId || this.projectBootstrapLoading()) return;
+
+    this.projectBootstrapLoading.set(true);
+    this.projectBootstrapErrorKey.set('');
+    this.projectBootstrapResult.set(null);
+    this.projectBootstrapPanelOpen.set(true);
+
+    try {
+      const result = await this.projectService.generateProjectBootstrapPipeline(projectId);
+      this.projectBootstrapResult.set(result);
+    } catch {
+      this.projectBootstrapErrorKey.set('PROJECT_DETAIL.BOOTSTRAP.GENERATE_ERROR');
+    } finally {
+      this.projectBootstrapLoading.set(false);
+    }
+  }
+
+  protected closeProjectBootstrapPanel(): void {
+    this.projectBootstrapPanelOpen.set(false);
+    this.projectBootstrapResult.set(null);
+    this.projectBootstrapErrorKey.set('');
+  }
+
+  protected async downloadProjectBootstrapFiles(): Promise<void> {
+    const project = this.project();
+    const result = this.projectBootstrapResult();
+
+    if (!project?.id || !result || this.projectBootstrapDownloading()) return;
+
+    this.projectBootstrapDownloading.set(true);
+    try {
+      const blob = await this.projectService.downloadProjectBootstrapPipelineZip(project.id);
+      const projectName = project.name ?? 'project';
+      saveAs(blob, `${projectName}-bootstrap.zip`);
+    } finally {
+      this.projectBootstrapDownloading.set(false);
+    }
+  }
+
+  protected openProjectBootstrapPushToGitDialog(): void {
+    const project = this.project();
+    const gitConfig = project?.gitRepositoryConfiguration;
+    if (!project || !gitConfig) return;
+
+    const data: PushToGitDialogData = {
+      configId: '',
+      projectId: project.id,
+      gitConfig,
+      isProjectLevel: true,
+      isBootstrap: true,
+    };
+    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
+  }
+
   // ─── Git Configuration ───
 
   protected openGitConfigDialog(): void {
@@ -1303,11 +1402,8 @@ export class ProjectDetailComponent implements OnInit {
 
   // ─── Pipeline Variable Groups ───
 
-  protected async onTabChange(index: number): Promise<void> {
-    // Tab 4 is pipeline variable groups — lazy load on first visit
-    if (index === 4 && !this.vgLoaded()) {
-      await this.loadVariableGroups();
-    }
+  protected onTabChange(_index: number): void {
+    // Variable groups are now loaded eagerly in loadProject()
   }
 
   protected async loadVariableGroups(): Promise<void> {

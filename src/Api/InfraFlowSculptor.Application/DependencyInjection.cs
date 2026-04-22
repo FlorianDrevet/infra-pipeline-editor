@@ -67,6 +67,7 @@ public static class DependencyInjection
 
         // Pipeline generation engine
         services.AddSingleton<PipelineGenerationEngine>();
+        services.AddSingleton<BootstrapPipelineGenerationEngine>();
 
         // Application pipeline generation
         services.AddSingleton<IAppPipelineGenerator, ContainerAppPipelineGenerator>();

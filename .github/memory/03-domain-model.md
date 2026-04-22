@@ -16,7 +16,7 @@
 | `UserAssignedIdentity` | extends `AzureResource` | — | TPT; simplest resource type |
 | `AppConfiguration` | extends `AzureResource` | `AppConfigurationEnvironmentSettings`, `AppConfigurationKey`, `AppConfigurationKeyEnvironmentValue` | TPT; configuration keys with 5 modes |
 | `ContainerAppEnvironment` | extends `AzureResource` | `ContainerAppEnvironmentEnvironmentSettings` | TPT; abbreviation `cae`; `LogAnalyticsWorkspaceId` (AzureResourceId?) on aggregate root (moved from per-env [2026-04-04]) |
-| `ContainerApp` | extends `AzureResource` | `ContainerAppEnvironmentSettings` | TPT; FK to ContainerAppEnvironment |
+| `ContainerApp` | extends `AzureResource` | `ContainerAppEnvironmentSettings` | TPT; FK to ContainerAppEnvironment; per-env health probes (readiness/liveness/startup, HTTP path+port) |
 | `LogAnalyticsWorkspace` | extends `AzureResource` | `LogAnalyticsWorkspaceEnvironmentSettings` | TPT; abbreviation `law` |
 | `ApplicationInsights` | extends `AzureResource` | `ApplicationInsightsEnvironmentSettings` | TPT; FK to LogAnalyticsWorkspace |
 | `CosmosDb` | extends `AzureResource` | `CosmosDbEnvironmentSettings` | TPT; abbreviation `cosmos` |
@@ -73,6 +73,15 @@ These reusable entity types are owned by multiple aggregates:
 - All `EnumValueObject<T>`-derived classes must be declared `sealed` [2026-04-16].
 - Value object properties must use `private set`.
 - Error strings must be in English.
+
+## IsExisting Resources [2026-04-23]
+
+All 18 concrete `AzureResource` aggregates support `IsExisting` (bool, `protected set`, default `false`):
+- Added as last param in `Create()` factory with default `bool isExisting = false`
+- `Update()` and `SetEnvironmentSettings()`/`SetAllEnvironmentSettings()` guard: `if (IsExisting) return;` (no-op, no exception)
+- EF Core: `HasDefaultValue(false)` in `AzureResourceConfiguration`, migration `AddIsExistingToAzureResource`
+- Existing resources: excluded from Bicep deploy modules + pipeline stages, added as `ExistingResourceReference` (with `SourceConfigName = string.Empty`) for cross-config lookup
+- Frontend guard: tabs "Environments" and "App Pipeline" hidden; amber info banner shown; add-resource-dialog skips environment step
 
 ## Resource Abbreviation Overrides [2026-04-22]
 

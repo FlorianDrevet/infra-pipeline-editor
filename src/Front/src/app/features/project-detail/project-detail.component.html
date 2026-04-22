@@ -62,6 +62,10 @@
                   <mat-icon class="push-btn__icon">rocket_launch</mat-icon>
                   {{ 'PROJECT_DETAIL.PIPELINE.PUSH_TO_GIT' | translate }}
                 </button>
+                <button class="push-btn" (click)="openProjectBootstrapPushToGitDialog()" [disabled]="!projectBootstrapResult()">
+                  <mat-icon class="push-btn__icon">rocket_launch</mat-icon>
+                  {{ 'PROJECT_DETAIL.BOOTSTRAP.PUSH_TO_GIT' | translate }}
+                </button>
               }
             }
 
@@ -209,6 +213,103 @@
                         [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
                         [loadFile]="loadProjectPipelineFile">
                       </app-bicep-file-panel>
+                    }
+                  </div>
+                </mat-tab>
+
+                <!-- Bootstrap Tab -->
+                <mat-tab>
+                  <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">rocket_launch</mat-icon>
+                    <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP' | translate }}</span>
+                  </ng-template>
+                  <div class="generation-tab-content">
+                    <div class="generation-tab-content__toolbar">
+                      @if (projectBootstrapResult()) {
+                        <button class="bicep-download-btn" (click)="downloadProjectBootstrapFiles()" [disabled]="projectBootstrapDownloading()">
+                          @if (projectBootstrapDownloading()) {
+                            <mat-spinner diameter="16" class="bicep-download-btn__spinner"></mat-spinner>
+                          } @else {
+                            <mat-icon>download</mat-icon>
+                          }
+                          {{ (projectBootstrapDownloading() ? 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' : 'PROJECT_DETAIL.BOOTSTRAP.DOWNLOAD') | translate }}
+                        </button>
+                      }
+                    </div>
+
+                    <!-- Prerequisites checklist -->
+                    <div class="bootstrap-prerequisites">
+                      <h4 class="bootstrap-prerequisites__title">{{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQUISITES_TITLE' | translate }}</h4>
+                      <ul class="prerequisites-list">
+                        <li [class.check-ok]="!!project()?.gitRepositoryConfiguration" [class.check-missing]="!project()?.gitRepositoryConfiguration">
+                          <mat-icon>{{ project()?.gitRepositoryConfiguration ? 'check_circle' : 'cancel' }}</mat-icon>
+                          {{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_GIT_CONFIG' | translate }}
+                        </li>
+                        <li class="check-info">
+                          <mat-icon>info</mat-icon>
+                          {{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_PAT_SCOPES' | translate }}
+                        </li>
+                        <li class="check-warning">
+                          <mat-icon>warning</mat-icon>
+                          {{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_SERVICE_CONNECTION' | translate }}
+                        </li>
+                        <li class="check-info">
+                          <mat-icon>info</mat-icon>
+                          {{ 'PROJECT_DETAIL.BOOTSTRAP.PREREQ_VARIABLE_GROUPS' | translate }}
+                        </li>
+                      </ul>
+                    </div>
+
+                    @if (projectBootstrapLoading()) {
+                      <div class="bicep-panel__loading">
+                        <div class="bicep-terminal">
+                          <div class="bicep-terminal__bar">
+                            <span class="bicep-terminal__dot bicep-terminal__dot--red"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--yellow"></span>
+                            <span class="bicep-terminal__dot bicep-terminal__dot--green"></span>
+                            <span class="bicep-terminal__bar-title">bootstrap-generator</span>
+                          </div>
+                          <div class="bicep-terminal__body">
+                            <p class="bicep-terminal__line bicep-terminal__line--active">
+                              <span class="bicep-terminal__prompt">$</span>
+                              {{ 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' | translate }}
+                              <span class="bicep-terminal__cursor"></span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                    @if (projectBootstrapErrorKey()) {
+                      <div class="bicep-panel__error-body">
+                        <p>{{ projectBootstrapErrorKey() | translate }}</p>
+                        <button class="bicep-retry-btn" (click)="generateProjectBootstrap()">
+                          <mat-icon>refresh</mat-icon>
+                          {{ 'PROJECT_DETAIL.BOOTSTRAP.RETRY' | translate }}
+                        </button>
+                      </div>
+                    }
+
+                    @if (projectBootstrapNodes().length > 0) {
+                      <app-bicep-file-panel
+                        [nodes]="projectBootstrapNodes()"
+                        [barTitle]="'bootstrap-generator \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
+                        [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
+                        [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
+                        [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
+                        [loadFile]="loadProjectBootstrapFile">
+                      </app-bicep-file-panel>
+
+                      <!-- What Next section -->
+                      <div class="bootstrap-what-next">
+                        <h4 class="bootstrap-what-next__title">{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_TITLE' | translate }}</h4>
+                        <ol class="bootstrap-what-next__steps">
+                          <li>{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP1' | translate }}</li>
+                          <li>{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP2' | translate }}</li>
+                          <li>{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP3' | translate }}</li>
+                          <li>{{ 'PROJECT_DETAIL.BOOTSTRAP.WHAT_NEXT_STEP4' | translate }}</li>
+                        </ol>
+                      </div>
                     }
                   </div>
                 </mat-tab>
@@ -644,9 +745,9 @@
           }
 
           <!-- Derived hint -->
-          <div class="env-description" style="margin-bottom: 1rem;">
-            <mat-icon class="env-description__icon">info_outline</mat-icon>
-            <p>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.DERIVED_HINT' | translate }}</p>
+          <div class="settings-info-banner" style="margin-bottom: 1rem;">
+            <mat-icon class="settings-info-banner__icon">info_outline</mat-icon>
+            <span>{{ 'PROJECT_DETAIL.PIPELINE_VARIABLES.DERIVED_HINT' | translate }}</span>
           </div>
 
           @if (canWrite()) {

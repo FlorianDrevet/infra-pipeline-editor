@@ -109,7 +109,9 @@ public sealed class GenerateProjectBicepCommandHandler(
         var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
 
         var resources = config.ResourceGroups
-            .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
+            .SelectMany(rg => rg.Resources
+                .Where(r => !r.IsExisting)
+                .Select(r => new ResourceDefinition
             {
                 ResourceId = r.Id,
                 Name = r.Name,
@@ -246,6 +248,26 @@ public sealed class GenerateProjectBicepCommandHandler(
                 };
             })
             .ToList();
+
+        var localExistingRefs = config.ResourceGroups
+            .SelectMany(rg => rg.Resources
+                .Where(r => r.IsExisting)
+                .Select(r =>
+                {
+                    var typeName = GetResourceTypeName(r.ResourceType);
+                    return new ExistingResourceReference
+                    {
+                        ResourceName = r.Name,
+                        ResourceTypeName = typeName,
+                        ResourceType = r.ResourceType,
+                        ResourceGroupName = rg.Name,
+                        ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType, mergedAbbreviations),
+                        SourceConfigName = string.Empty,
+                    };
+                }))
+            .ToList();
+
+        existingResourceReferences.AddRange(localExistingRefs);
 
         return new GenerationRequest
         {

@@ -37,6 +37,16 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
             .IsRequired(false)
             .HasMaxLength(260);
 
+        builder.Property(x => x.IsExisting)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(x => x.ResourceType)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder.HasIndex(x => x.ResourceType);
+
         builder.Property(x => x.AssignedUserAssignedIdentityId)
             .HasConversion(
                 v => v == null ? (Guid?)null : v.Value,
@@ -88,6 +98,15 @@ public class AzureResourceConfiguration : IEntityTypeConfiguration<AzureResource
 
         builder.Navigation(r => r.AppSettings)
             .HasField("_appSettings")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(r => r.SecureParameterMappings)
+            .WithOne()
+            .HasForeignKey(m => m.ResourceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(r => r.SecureParameterMappings)
+            .HasField("_secureParameterMappings")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

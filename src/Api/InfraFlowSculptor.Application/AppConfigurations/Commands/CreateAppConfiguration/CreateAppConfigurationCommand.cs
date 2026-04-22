@@ -15,5 +15,6 @@ public record CreateAppConfigurationCommand(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<AppConfigurationEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<AppConfigurationEnvironmentConfigData>? EnvironmentSettings = null,
+    bool IsExisting = false
 ) : ICommand<AppConfigurationResult>;

@@ -418,6 +418,17 @@
         "INGRESS_TARGET_PORT": "Ingress target port",
         "INGRESS_EXTERNAL": "External ingress",
         "TRANSPORT_METHOD": "Transport method",
+        "HEALTH_PROBES": "Health Probes",
+        "HEALTH_PROBES_SECTION": "Health Probes",
+        "HEALTH_PROBES_DESC": "Configure HTTP probes to monitor your application health",
+        "READINESS_PROBE": "Readiness Probe",
+        "READINESS_PROBE_DESC": "Checks if the application is ready to receive traffic",
+        "LIVENESS_PROBE": "Liveness Probe",
+        "LIVENESS_PROBE_DESC": "Checks if the application is still running",
+        "STARTUP_PROBE": "Startup Probe",
+        "STARTUP_PROBE_DESC": "Checks if the application has started correctly",
+        "PROBE_PATH": "Probe path",
+        "PROBE_PORT": "Probe port",
         "RETENTION_IN_DAYS": "Retention (days)",
         "DAILY_QUOTA_GB": "Daily quota (GB)",
         "DAILY_QUOTA_GB_HINT": "-1 for unlimited",
@@ -686,6 +697,12 @@
       "SAVE_ERROR": "Unable to save tags."
     }
   },
+  "ADD_RESOURCE_DIALOG": {
+    "IS_EXISTING": "Existing resource (already deployed in Azure)"
+  },
+  "RESOURCE_LIST": {
+    "EXISTING_BADGE": "Existing"
+  },
   "PROJECT_DETAIL": {
     "HEADER": {
       "OVERLINE": "Project detail"
@@ -711,7 +728,8 @@
     "GENERATION": {
       "TITLE": "Generation Results",
       "TAB_BICEP": "Bicep",
-      "TAB_PIPELINE": "Pipeline"
+      "TAB_PIPELINE": "Pipeline",
+      "TAB_BOOTSTRAP": "Bootstrap ADO"
     },
     "BICEP": {
       "GENERATE": "Generate Bicep",
@@ -750,6 +768,31 @@
       "FILE_LOADING": "Loading file content...",
       "FILE_ERROR": "Unable to load file content.",
       "CLOSE": "Close panel"
+    },
+    "BOOTSTRAP": {
+      "TAB": "Bootstrap ADO",
+      "GENERATE": "Generate Bootstrap",
+      "GENERATING": "Generating...",
+      "DOWNLOAD": "Download Bootstrap",
+      "PUSH_TO_GIT": "Push bootstrap.pipeline.yml to Git",
+      "NO_FILES": "No bootstrap file generated yet",
+      "ARTIFACTS": "output",
+      "TERMINAL_DONE": "Generation complete \u2014 bootstrap.pipeline.yml ready",
+      "GENERATE_ERROR": "Unable to generate the bootstrap. Make sure your project has an Azure DevOps Git configuration.",
+      "RETRY": "Retry",
+      "PREREQUISITES_TITLE": "Prerequisites before running the bootstrap",
+      "PREREQ_GIT_CONFIG": "Azure DevOps Git configuration set on the project",
+      "PREREQ_PAT_SCOPES": "Azure DevOps PAT with scopes: Code (Read & Write), Build (Read & Execute), Variable Groups (Read, create & manage)",
+      "PREREQ_SERVICE_CONNECTION": "Azure Resource Manager service connection configured in Azure DevOps",
+      "PREREQ_VARIABLE_GROUPS": "Variable groups listed below \u2014 secret values must be filled manually after the bootstrap runs",
+      "FILE_LOADING": "Loading file...",
+      "FILE_ERROR": "Unable to load file content.",
+      "PUSH_SUCCESS": "bootstrap.pipeline.yml pushed successfully!",
+      "WHAT_NEXT_TITLE": "What's next?",
+      "WHAT_NEXT_STEP1": "Fill in the secret values in the Azure DevOps variable groups created by the bootstrap.",
+      "WHAT_NEXT_STEP2": "Make sure your Azure Resource Manager service connection is configured and authorized.",
+      "WHAT_NEXT_STEP3": "Trigger the deployment pipelines from Azure DevOps.",
+      "WHAT_NEXT_STEP4": "CI/PR/Release pipelines are ready in the folders created by the bootstrap."
     },
     "STATE": {
       "LOADING_TITLE": "Loading project",
@@ -1003,6 +1046,7 @@
     }
   },
   "RESOURCE_EDIT": {
+    "EXISTING_RESOURCE_INFO": "This resource is marked as existing. It is already deployed in Azure and will not be managed by this project in generated Bicep or deployment pipelines.",
     "NAME_AVAILABILITY": {
       "CHECKING": "Checking name availability on Azure\u2026",
       "STATUS_AVAILABLE": "Available",
@@ -1110,6 +1154,17 @@
       "INGRESS_TARGET_PORT": "Ingress target port",
       "INGRESS_EXTERNAL": "External ingress",
       "TRANSPORT_METHOD": "Transport method",
+      "HEALTH_PROBES": "Health Probes",
+      "HEALTH_PROBES_SECTION": "Health Probes",
+      "HEALTH_PROBES_DESC": "Configure HTTP probes to monitor your application health",
+      "READINESS_PROBE": "Readiness Probe",
+      "READINESS_PROBE_DESC": "Checks if the application is ready to receive traffic",
+      "LIVENESS_PROBE": "Liveness Probe",
+      "LIVENESS_PROBE_DESC": "Checks if the application is still running",
+      "STARTUP_PROBE": "Startup Probe",
+      "STARTUP_PROBE_DESC": "Checks if the application has started correctly",
+      "PROBE_PATH": "Probe path",
+      "PROBE_PORT": "Probe port",
       "RETENTION_IN_DAYS": "Retention (days)",
       "DAILY_QUOTA_GB": "Daily quota (GB)",
       "DAILY_QUOTA_GB_HINT": "-1 for unlimited",
@@ -1165,6 +1220,27 @@
       "SQL_SERVER_VERSION": "SQL Server version",
       "ADMINISTRATOR_LOGIN": "Administrator login",
       "ADMINISTRATOR_LOGIN_PLACEHOLDER": "e.g. sqladmin"
+    },
+    "SECURE_PARAM": {
+      "TITLE": "Password Configuration",
+      "DESCRIPTION": "Configure how the administrator password is provided at deployment time.",
+      "RANDOM": "Generate randomly",
+      "RANDOM_HINT": "A secure random password will be generated automatically during deployment.",
+      "FROM_VARIABLE_GROUP": "From a Pipeline Library",
+      "FROM_VARIABLE_GROUP_HINT": "Use a variable stored in an Azure DevOps Pipeline Library (Variable Group).",
+      "SELECT_VARIABLE_GROUP": "Pipeline Library",
+      "CREATE_NEW_GROUP": "Create new library...",
+      "NEW_GROUP_NAME": "Library name",
+      "NEW_GROUP_NAME_PLACEHOLDER": "e.g. MyProject-Secrets",
+      "SCOPE_LABEL": "Library scope",
+      "SCOPE_PROJECT": "Project",
+      "SCOPE_CONFIGURATION": "Configuration",
+      "SCOPE_PROJECT_HINT": "Shared across all configurations of this project.",
+      "SCOPE_CONFIGURATION_HINT": "Used only for this infrastructure configuration.",
+      "PIPELINE_VARIABLE_NAME": "Variable name",
+      "PIPELINE_VARIABLE_NAME_HINT": "The variable name in the library (e.g. SQL_ADMIN_PASSWORD)",
+      "SAVE": "Save password configuration",
+      "SAVED": "Saved"
     },
     "ENVIRONMENTS": {
       "EMPTY": "No environments configured. Add environments in the project or configuration first.",

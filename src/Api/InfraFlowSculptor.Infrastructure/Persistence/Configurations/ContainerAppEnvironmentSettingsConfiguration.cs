@@ -57,6 +57,27 @@ public sealed class ContainerAppEnvironmentSettingsConfiguration
             .IsRequired(false)
             .HasMaxLength(20);
 
+        builder.Property(x => x.ReadinessProbePath)
+            .IsRequired(false)
+            .HasMaxLength(500);
+
+        builder.Property(x => x.ReadinessProbePort)
+            .IsRequired(false);
+
+        builder.Property(x => x.LivenessProbePath)
+            .IsRequired(false)
+            .HasMaxLength(500);
+
+        builder.Property(x => x.LivenessProbePort)
+            .IsRequired(false);
+
+        builder.Property(x => x.StartupProbePath)
+            .IsRequired(false)
+            .HasMaxLength(500);
+
+        builder.Property(x => x.StartupProbePort)
+            .IsRequired(false);
+
         builder.HasIndex(x => new { x.ContainerAppId, x.EnvironmentName })
             .IsUnique();
     }

@@ -55,13 +55,8 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
         @description('Whether zone redundancy is enabled')
         param zoneRedundancyEnabled bool = false
 
-        @description('Resource ID of the Log Analytics workspace (empty to skip)')
+        @description('Resource ID of the Log Analytics workspace. When provided, logs are routed to this workspace via Azure Monitor — no shared key required.')
         param logAnalyticsWorkspaceId string = ''
-
-        resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = if (logAnalyticsWorkspaceId != '') {
-          name: last(split(logAnalyticsWorkspaceId, '/'))
-          scope: resourceGroup(split(logAnalyticsWorkspaceId, '/')[4])
-        }
 
         resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
           name: name
@@ -72,16 +67,26 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
               internal: internalLoadBalancerEnabled
             }
             appLogsConfiguration: logAnalyticsWorkspaceId != '' ? {
-              destination: 'log-analytics'
-              logAnalyticsConfiguration: {
-                customerId: logAnalyticsWorkspace.properties.customerId
-                sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
-              }
+              destination: 'azure-monitor'
             } : null
             workloadProfiles: [
               {
                 name: workloadProfileType
                 workloadProfileType: workloadProfileType
+              }
+            ]
+          }
+        }
+
+        resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (logAnalyticsWorkspaceId != '') {
+          name: 'containerAppEnvLogs'
+          scope: containerAppEnv
+          properties: {
+            workspaceId: logAnalyticsWorkspaceId
+            logs: [
+              {
+                categoryGroup: 'allLogs'
+                enabled: true
               }
             ]
           }

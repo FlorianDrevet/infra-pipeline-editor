@@ -50,6 +50,7 @@ public sealed class AppConfiguration : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         string? sku,
@@ -58,6 +59,8 @@ public sealed class AppConfiguration : AzureResource
         bool? disableLocalAuth,
         string? publicNetworkAccess)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -76,9 +79,13 @@ public sealed class AppConfiguration : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, string? Sku, int? SoftDeleteRetentionInDays, bool? PurgeProtectionEnabled, bool? DisableLocalAuth, string? PublicNetworkAccess)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var (envName, sku, softDeleteRetentionInDays, purgeProtectionEnabled, disableLocalAuth, publicNetworkAccess) in settings)
         {
@@ -223,22 +230,25 @@ public sealed class AppConfiguration : AzureResource
     /// <param name="name">The display name.</param>
     /// <param name="location">The Azure region.</param>
     /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     /// <returns>A new <see cref="AppConfiguration"/> aggregate root.</returns>
     public static AppConfiguration Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? Sku, int? SoftDeleteRetentionInDays, bool? PurgeProtectionEnabled, bool? DisableLocalAuth, string? PublicNetworkAccess)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, string? Sku, int? SoftDeleteRetentionInDays, bool? PurgeProtectionEnabled, bool? DisableLocalAuth, string? PublicNetworkAccess)>? environmentSettings = null,
+        bool isExisting = false)
     {
         var appConfiguration = new AppConfiguration
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location
+            Location = location,
+            IsExisting = isExisting
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             appConfiguration.SetAllEnvironmentSettings(environmentSettings);
 
         return appConfiguration;

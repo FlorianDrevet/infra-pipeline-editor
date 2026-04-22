@@ -10,6 +10,12 @@ export interface ContainerAppEnvironmentConfigEntry {
   ingressTargetPort?: number | null;
   ingressExternal?: boolean | null;
   transportMethod?: string | null;
+  readinessProbePath?: string | null;
+  readinessProbePort?: number | null;
+  livenessProbePath?: string | null;
+  livenessProbePort?: number | null;
+  startupProbePath?: string | null;
+  startupProbePort?: number | null;
 }
 
 export interface ContainerAppEnvironmentConfigResponse {
@@ -22,6 +28,13 @@ export interface ContainerAppEnvironmentConfigResponse {
   ingressTargetPort: number | null;
   ingressExternal: boolean | null;
   transportMethod: string | null;
+  readinessProbePath: string | null;
+  readinessProbePort: number | null;
+  livenessProbePath: string | null;
+  livenessProbePort: number | null;
+  startupProbePath: string | null;
+  startupProbePort: number | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -37,6 +50,7 @@ export interface ContainerAppResponse {
   dockerfilePath: string | null;
   applicationName: string | null;
   environmentSettings: ContainerAppEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -51,6 +65,7 @@ export interface CreateContainerAppRequest {
   dockerfilePath?: string | null;
   applicationName?: string | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateContainerAppRequest {

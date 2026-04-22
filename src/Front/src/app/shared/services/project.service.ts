@@ -17,6 +17,7 @@ import {
   SetRepositoryModeRequest,
   GenerateProjectBicepResponse,
   GenerateProjectPipelineResponse,
+  GenerateProjectBootstrapPipelineResponse,
   ProjectPipelineVariableGroupResponse,
   AddProjectPipelineVariableGroupRequest,
   SetProjectTagsRequest,
@@ -311,6 +312,41 @@ export class ProjectService {
     return this.axios.request$<PushBicepToGitResponse>(
       MethodEnum.POST,
       `/projects/${projectId}/push-pipeline-to-git`,
+      request
+    );
+  }
+
+  // ─── Project Bootstrap Pipeline Generation (Azure DevOps) ───
+
+  generateProjectBootstrapPipeline(projectId: string): Promise<GenerateProjectBootstrapPipelineResponse> {
+    return this.axios.request$<GenerateProjectBootstrapPipelineResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/generate-bootstrap-pipeline`
+    );
+  }
+
+  async downloadProjectBootstrapPipelineZip(projectId: string): Promise<Blob> {
+    const response = await axios.get(
+      `/projects/${projectId}/generate-bootstrap-pipeline/download`,
+      { responseType: 'blob' }
+    );
+    return response.data as Blob;
+  }
+
+  getProjectBootstrapPipelineFileContent(projectId: string, filePath: string): Promise<string> {
+    return this.axios.request$<{ content: string }>(
+      MethodEnum.GET,
+      `/projects/${projectId}/generate-bootstrap-pipeline/files/${filePath}`
+    ).then(response => response.content);
+  }
+
+  pushProjectBootstrapPipelineToGit(
+    projectId: string,
+    request: PushBicepToGitRequest
+  ): Promise<PushBicepToGitResponse> {
+    return this.axios.request$<PushBicepToGitResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/push-bootstrap-pipeline-to-git`,
       request
     );
   }

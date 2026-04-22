@@ -35,6 +35,10 @@ public sealed class SqlServer : AzureResource
     {
         Name = name;
         Location = location;
+
+        if (IsExisting)
+            return;
+
         Version = version;
         AdministratorLogin = administratorLogin;
     }
@@ -43,10 +47,13 @@ public sealed class SqlServer : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         string? minimalTlsVersion)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -64,9 +71,13 @@ public sealed class SqlServer : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, string? MinimalTlsVersion)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var (envName, minTls) in settings)
         {
@@ -76,13 +87,15 @@ public sealed class SqlServer : AzureResource
     }
 
     /// <summary>Creates a new SQL Server with a generated identifier.</summary>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     public static SqlServer Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
         SqlServerVersion version,
         string administratorLogin,
-        IReadOnlyList<(string EnvironmentName, string? MinimalTlsVersion)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, string? MinimalTlsVersion)>? environmentSettings = null,
+        bool isExisting = false)
     {
         var server = new SqlServer
         {
@@ -90,11 +103,12 @@ public sealed class SqlServer : AzureResource
             ResourceGroupId = resourceGroupId,
             Name = name,
             Location = location,
+            IsExisting = isExisting,
             Version = version,
             AdministratorLogin = administratorLogin
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             server.SetAllEnvironmentSettings(environmentSettings);
 
         return server;

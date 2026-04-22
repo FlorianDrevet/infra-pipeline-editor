@@ -727,6 +727,22 @@
   }
 }
 
+.existing-resource-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.5rem;
+  border-radius: 0.35rem;
+  background: rgba(255, 160, 0, 0.15);
+  color: #b45309;
+  border: 1px dashed rgba(180, 83, 9, 0.4);
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 
 
 .bicep-warnings-banner {
@@ -2367,6 +2383,28 @@
     background: rgba(76, 175, 80, 0.06);
     border-color: rgba(76, 175, 80, 0.2);
   }
+}
+
+.settings-info-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  background: rgba(2, 136, 209, 0.06);
+  border: 1px solid rgba(2, 136, 209, 0.15);
+  color: #0f4372;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.settings-info-banner__icon {
+  color: #0288d1;
+  font-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
 }
 
 .inheritance-banner__info {

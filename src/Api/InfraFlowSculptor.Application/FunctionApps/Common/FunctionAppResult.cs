@@ -21,4 +21,6 @@ public record FunctionAppResult(
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
-    IReadOnlyList<FunctionAppEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyList<FunctionAppEnvironmentConfigData> EnvironmentSettings,
+    bool IsExisting = false
+);

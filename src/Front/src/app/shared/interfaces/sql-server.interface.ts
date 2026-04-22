@@ -6,11 +6,13 @@ export interface SqlServerResponse {
   version: string;
   administratorLogin: string;
   environmentSettings: SqlServerEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 export interface SqlServerEnvironmentConfigResponse {
   environmentName: string;
   minimalTlsVersion: string | null;
+  isExisting?: boolean;
 }
 
 export interface CreateSqlServerRequest {
@@ -20,6 +22,7 @@ export interface CreateSqlServerRequest {
   version: string;
   administratorLogin: string;
   environmentSettings?: SqlServerEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateSqlServerRequest {

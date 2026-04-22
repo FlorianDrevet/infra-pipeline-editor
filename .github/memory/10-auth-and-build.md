@@ -27,6 +27,9 @@ npm install; npm run start; npm run build; npm run typecheck
 ## Infrastructure Services
 
 - **GitHub Git Provider**: uses Refit (`IGitHubTreeApi`) instead of raw `HttpClient` for GitHub API calls [2026-04-16]. Registered in `Infrastructure/DependencyInjection.cs`.
+- **Azure DevOps integration boundary [2026-04-22]**: `AzureDevOpsGitProviderService` currently covers Git repository operations only (test connection, list branches, push files). The codebase does **not** yet provision Azure DevOps pipelines or variable groups via REST. For future production-grade Azure DevOps automation, prefer Microsoft Entra OAuth for interactive web apps and service principals / managed identities for background services; reserve PATs for personal or ad hoc scripts.
+- **DNS Name Availability**: `DnsNameAvailabilityChecker` [2026-04-22] — resolves `{name}.{azureSuffix}` via DNS, no Azure auth required. Replaced previous ARM-based `AzureNameAvailabilityChecker`.
+- **Diagnostic Rules**: `IDiagnosticRule.EvaluateAsync()` [2026-04-22] — async interface with `Task.WhenAll` parallelization. Rules: `AcrPullDiagnosticRule`, `KeyVaultAccessDiagnosticRule`, `NameAvailabilityDiagnosticRule`.
 
 ## Sonar Quality Rules
 - **S1192** — Duplicate strings in migrations (accepted)

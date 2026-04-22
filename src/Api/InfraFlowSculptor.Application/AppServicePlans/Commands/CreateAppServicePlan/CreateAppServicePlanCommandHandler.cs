@@ -45,7 +45,8 @@ public class CreateAppServicePlanCommandHandler(
                         ? new AppServicePlanSku(Enum.Parse<AppServicePlanSku.AppServicePlanSkuEnum>(ec.Sku))
                         : (AppServicePlanSku?)null,
                     ec.Capacity))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await appServicePlanRepository.AddAsync(plan);
 

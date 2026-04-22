@@ -6,6 +6,7 @@ export interface SqlDatabaseResponse {
   sqlServerId: string;
   collation: string;
   environmentSettings: SqlDatabaseEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 export interface SqlDatabaseEnvironmentConfigResponse {
@@ -13,6 +14,7 @@ export interface SqlDatabaseEnvironmentConfigResponse {
   sku: string | null;
   maxSizeGb: number | null;
   zoneRedundant: boolean | null;
+  isExisting?: boolean;
 }
 
 export interface CreateSqlDatabaseRequest {
@@ -22,6 +24,7 @@ export interface CreateSqlDatabaseRequest {
   sqlServerId: string;
   collation: string;
   environmentSettings?: SqlDatabaseEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateSqlDatabaseRequest {

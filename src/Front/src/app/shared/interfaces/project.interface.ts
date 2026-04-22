@@ -50,6 +50,7 @@ export interface CreateProjectRequest {
   name: string;
   description?: string;
   repositoryMode?: string;
+  isExisting?: boolean;
 }
 
 export interface SetProjectTagsRequest {
@@ -146,6 +147,10 @@ export interface GenerateProjectBicepResponse {
 export interface GenerateProjectPipelineResponse {
   commonFileUris: Record<string, string>;
   configFileUris: Record<string, Record<string, string>>;
+}
+
+export interface GenerateProjectBootstrapPipelineResponse {
+  fileUris: Record<string, string>;
 }
 
 // ─── Project Pipeline Variable Groups ────────────────────────────────────────

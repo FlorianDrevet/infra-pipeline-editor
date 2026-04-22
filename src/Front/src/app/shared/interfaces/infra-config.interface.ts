@@ -66,6 +66,7 @@ export interface InfrastructureConfigResponse {
 export interface CreateInfrastructureConfigRequest {
   name: string;
   projectId: string;
+  isExisting?: boolean;
 }
 
 export interface TagRequest {

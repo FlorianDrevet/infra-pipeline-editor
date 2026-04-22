@@ -12,5 +12,6 @@ public record CreateAppServicePlanCommand(
     Name Name,
     Location Location,
     string OsType,
-    IReadOnlyList<AppServicePlanEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<AppServicePlanEnvironmentConfigData>? EnvironmentSettings = null,
+    bool IsExisting = false
 ) : ICommand<AppServicePlanResult>;

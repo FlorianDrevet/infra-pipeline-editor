@@ -39,7 +39,8 @@ public class CreateCosmosDbCommandHandler(
             request.Location,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName, ec.DatabaseApiType, ec.ConsistencyLevel, ec.MaxStalenessPrefix, ec.MaxIntervalInSeconds, ec.EnableAutomaticFailover, ec.EnableMultipleWriteLocations, ec.BackupPolicyType, ec.EnableFreeTier))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var savedCosmosDb = await cosmosDbRepository.AddAsync(cosmosDb);
 

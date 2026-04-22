@@ -12,5 +12,6 @@ public record CreateApplicationInsightsCommand(
     Name Name,
     Location Location,
     Guid LogAnalyticsWorkspaceId,
-    IReadOnlyList<ApplicationInsightsEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<ApplicationInsightsEnvironmentConfigData>? EnvironmentSettings = null,
+    bool IsExisting = false
 ) : ICommand<ApplicationInsightsResult>;

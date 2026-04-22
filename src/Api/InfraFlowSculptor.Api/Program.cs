@@ -84,6 +84,7 @@ app.UseServiceBusNamespaceController();
 app.UseContainerRegistryController();
 app.UseEventHubNamespaceController();
 app.UseAppSettingController();
+app.UseSecureParameterMappingController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
 

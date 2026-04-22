@@ -12,5 +12,8 @@ public record CosmosDbResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<CosmosDbEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyList<CosmosDbEnvironmentConfigData> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

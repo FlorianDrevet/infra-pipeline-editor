@@ -21,6 +21,7 @@ export interface PushToGitDialogData {
   gitConfig: GitConfigResponse;
   isProjectLevel?: boolean;
   isPipeline?: boolean;
+  isBootstrap?: boolean;
 }
 
 type DialogState = 'form' | 'pushing' | 'success' | 'error';
@@ -52,6 +53,7 @@ export class PushToGitDialogComponent implements OnInit {
 
   protected readonly isProjectLevel = this.data.isProjectLevel ?? false;
   protected readonly isPipeline = this.data.isPipeline ?? false;
+  protected readonly isBootstrap = this.data.isBootstrap ?? false;
 
   protected readonly state = signal<DialogState>('form');
   protected readonly result = signal<PushBicepToGitResponse | null>(null);
@@ -109,7 +111,9 @@ export class PushToGitDialogComponent implements OnInit {
         commitMessage: value.commitMessage || '',
       };
       const response = this.isProjectLevel
-        ? (this.isPipeline
+        ? (this.isBootstrap
+          ? await this.projectService.pushProjectBootstrapPipelineToGit(this.data.projectId, request)
+          : this.isPipeline
           ? await this.projectService.pushProjectPipelineToGit(this.data.projectId, request)
           : await this.projectService.pushProjectBicepToGit(this.data.projectId, request))
         : (this.isPipeline

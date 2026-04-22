@@ -22,5 +22,6 @@ public record CreateFunctionAppCommand(
     string? SourceCodePath = null,
     string? BuildCommand = null,
     string? ApplicationName = null,
-    IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null,
+    bool IsExisting = false
 ) : ICommand<FunctionAppResult>;

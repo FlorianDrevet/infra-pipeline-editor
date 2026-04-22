@@ -17,5 +17,8 @@ public record SqlDatabaseResponse(
     string Location,
     string SqlServerId,
     string Collation,
-    IReadOnlyList<SqlDatabaseEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<SqlDatabaseEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

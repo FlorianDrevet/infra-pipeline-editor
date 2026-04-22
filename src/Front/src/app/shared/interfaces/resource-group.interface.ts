@@ -14,6 +14,7 @@ export interface AzureResourceResponse {
   location: string;
   parentResourceId?: string;
   configuredEnvironments?: string[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -22,4 +23,5 @@ export interface CreateResourceGroupRequest {
   infraConfigId: string;
   name: string;
   location: string;
+  isExisting?: boolean;
 }

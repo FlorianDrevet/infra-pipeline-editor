@@ -34,5 +34,8 @@ public record FunctionAppResponse(
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
-    IReadOnlyList<FunctionAppEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<FunctionAppEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

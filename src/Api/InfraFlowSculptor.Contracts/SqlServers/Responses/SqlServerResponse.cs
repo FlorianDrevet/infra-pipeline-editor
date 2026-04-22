@@ -17,5 +17,8 @@ public record SqlServerResponse(
     string Location,
     string Version,
     string AdministratorLogin,
-    IReadOnlyList<SqlServerEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<SqlServerEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

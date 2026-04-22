@@ -54,7 +54,7 @@ public sealed class UpdateContainerAppCommandHandler(
         if (request.EnvironmentSettings is not null)
             containerApp.SetAllEnvironmentSettings(
                 request.EnvironmentSettings
-                    .Select(ec => (ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod))
+                    .Select(ec => (ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort))
                     .ToList());
 
         var updated = await containerAppRepository.UpdateAsync(containerApp);

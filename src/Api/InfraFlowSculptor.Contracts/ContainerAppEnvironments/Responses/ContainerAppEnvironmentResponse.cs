@@ -9,5 +9,8 @@ public record ContainerAppEnvironmentResponse(
     string Name,
     string Location,
     string? LogAnalyticsWorkspaceId,
-    IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

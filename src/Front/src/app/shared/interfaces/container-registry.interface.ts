@@ -14,6 +14,7 @@ export interface ContainerRegistryEnvironmentConfigResponse {
   adminUserEnabled: boolean | null;
   publicNetworkAccess: string | null;
   zoneRedundancy: boolean | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -24,6 +25,7 @@ export interface ContainerRegistryResponse {
   name: string;
   location: string;
   environmentSettings: ContainerRegistryEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -33,6 +35,7 @@ export interface CreateContainerRegistryRequest {
   name: string;
   location: string;
   environmentSettings?: ContainerRegistryEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateContainerRegistryRequest {
@@ -50,4 +53,5 @@ export interface CheckAcrPullAccessResponse {
   assignedUserAssignedIdentityId?: string;
   assignedUserAssignedIdentityName?: string;
   hasUserAssignedIdentity: boolean;
+  isExisting?: boolean;
 }

@@ -12,5 +12,6 @@ namespace InfraFlowSculptor.Application.UserAssignedIdentities.Commands.CreateUs
 public record CreateUserAssignedIdentityCommand(
     ResourceGroupId ResourceGroupId,
     Name Name,
-    Location Location
+    Location Location,
+    bool IsExisting = false
 ) : ICommand<UserAssignedIdentityResult>;

@@ -232,6 +232,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasMaxLength(260)
                         .HasColumnType("character varying(260)");
 
+                    b.Property<bool>("IsExisting")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("text");
@@ -243,11 +248,18 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<Guid>("ResourceGroupId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ResourceType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AssignedUserAssignedIdentityId");
 
                     b.HasIndex("ResourceGroupId");
+
+                    b.HasIndex("ResourceType");
 
                     b.ToTable("AzureResource", (string)null);
 
@@ -392,6 +404,36 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("RoleAssignments", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.SecureParameterMapping", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PipelineVariableName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("ResourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SecureParameterName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("VariableGroupId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VariableGroupId");
+
+                    b.HasIndex("ResourceId", "SecureParameterName")
+                        .IsUnique();
+
+                    b.ToTable("SecureParameterMappings", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.Models.ResourceParameterUsage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -448,6 +490,13 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Property<int?>("IngressTargetPort")
                         .HasColumnType("integer");
 
+                    b.Property<string>("LivenessProbePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("LivenessProbePort")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("MaxReplicas")
                         .HasColumnType("integer");
 
@@ -456,6 +505,20 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasColumnType("character varying(10)");
 
                     b.Property<int?>("MinReplicas")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ReadinessProbePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("ReadinessProbePort")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StartupProbePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("StartupProbePort")
                         .HasColumnType("integer");
 
                     b.Property<string>("TransportMethod")
@@ -1472,6 +1535,23 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("WebAppEnvironmentSettings", (string)null);
                 });
 
+            modelBuilder.Entity("InfraFlowSculptor.Infrastructure.Persistence.Views.ResourceEnvironmentEntryView", b =>
+                {
+                    b.Property<string>("EnvironmentName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ResourceGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ResourceId")
+                        .HasColumnType("uuid");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_ResourceEnvironmentEntries", (string)null);
+                });
+
             modelBuilder.Entity("InfraFlowSculptor.Domain.AppConfigurationAggregate.AppConfiguration", b =>
                 {
                     b.HasBaseType("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource");
@@ -1943,6 +2023,20 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany()
                         .HasForeignKey("UserAssignedIdentityId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.SecureParameterMapping", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
+                        .WithMany("SecureParameterMappings")
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup", null)
+                        .WithMany()
+                        .HasForeignKey("VariableGroupId")
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 
@@ -2599,6 +2693,8 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.Navigation("ParameterUsages");
 
                     b.Navigation("RoleAssignments");
+
+                    b.Navigation("SecureParameterMappings");
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.Common.BaseModels.Entites.AppSetting", b =>

@@ -71,7 +71,8 @@ public class CreateWebAppCommandHandler(
                     ec.AlwaysOn,
                     ec.HttpsOnly,
                     ec.DockerImageTag))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await webAppRepository.AddAsync(webApp);
 

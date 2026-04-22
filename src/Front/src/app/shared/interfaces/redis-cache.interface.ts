@@ -12,6 +12,7 @@ export interface RedisCacheEnvironmentConfigResponse {
   sku: string | null;
   capacity: number | null;
   maxMemoryPolicy: string | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -27,6 +28,7 @@ export interface RedisCacheResponse {
   disableAccessKeyAuthentication: boolean;
   enableAadAuth: boolean;
   environmentSettings: RedisCacheEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -41,6 +43,7 @@ export interface CreateRedisCacheRequest {
   disableAccessKeyAuthentication: boolean;
   enableAadAuth: boolean;
   environmentSettings?: RedisCacheEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateRedisCacheRequest {

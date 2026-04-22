@@ -12,6 +12,7 @@ export interface WebAppEnvironmentConfigResponse {
   alwaysOn: boolean | null;
   httpsOnly: boolean | null;
   dockerImageTag: string | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -34,6 +35,7 @@ export interface WebAppResponse {
   httpsOnly: boolean;
   applicationName: string | null;
   environmentSettings: WebAppEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -55,6 +57,7 @@ export interface CreateWebAppRequest {
   httpsOnly: boolean;
   applicationName?: string | null;
   environmentSettings?: WebAppEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateWebAppRequest {

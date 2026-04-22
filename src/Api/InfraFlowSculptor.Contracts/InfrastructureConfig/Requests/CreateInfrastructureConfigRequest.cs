@@ -13,4 +13,9 @@ public class CreateInfrastructureConfigRequest
     /// <summary>Identifier of the parent project.</summary>
     [Required, GuidValidation]
     public required string ProjectId { get; init; }
+
+    /// <summary>Whether this resource already exists in Azure and is not managed by this project.</summary>
+
+    public bool IsExisting { get; init; } = false;
+
 }

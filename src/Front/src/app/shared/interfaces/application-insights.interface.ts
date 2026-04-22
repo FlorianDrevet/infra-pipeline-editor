@@ -16,6 +16,7 @@ export interface ApplicationInsightsEnvironmentConfigResponse {
   disableIpMasking: boolean | null;
   disableLocalAuth: boolean | null;
   ingestionMode: string | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -27,6 +28,7 @@ export interface ApplicationInsightsResponse {
   location: string;
   logAnalyticsWorkspaceId: string;
   environmentSettings: ApplicationInsightsEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -37,6 +39,7 @@ export interface CreateApplicationInsightsRequest {
   location: string;
   logAnalyticsWorkspaceId: string;
   environmentSettings?: ApplicationInsightsEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateApplicationInsightsRequest {

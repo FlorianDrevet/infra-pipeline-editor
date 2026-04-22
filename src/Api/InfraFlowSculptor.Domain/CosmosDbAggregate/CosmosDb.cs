@@ -41,6 +41,7 @@ public sealed class CosmosDb : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         string? databaseApiType,
@@ -52,6 +53,8 @@ public sealed class CosmosDb : AzureResource
         string? backupPolicyType,
         bool? enableFreeTier)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -70,9 +73,13 @@ public sealed class CosmosDb : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, string? DatabaseApiType, string? ConsistencyLevel, int? MaxStalenessPrefix, int? MaxIntervalInSeconds, bool? EnableAutomaticFailover, bool? EnableMultipleWriteLocations, string? BackupPolicyType, bool? EnableFreeTier)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var (envName, databaseApiType, consistencyLevel, maxStalenessPrefix, maxIntervalInSeconds, enableAutomaticFailover, enableMultipleWriteLocations, backupPolicyType, enableFreeTier) in settings)
         {
@@ -89,22 +96,25 @@ public sealed class CosmosDb : AzureResource
     /// <param name="name">The display name.</param>
     /// <param name="location">The Azure region.</param>
     /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     /// <returns>A new <see cref="CosmosDb"/> aggregate root.</returns>
     public static CosmosDb Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? DatabaseApiType, string? ConsistencyLevel, int? MaxStalenessPrefix, int? MaxIntervalInSeconds, bool? EnableAutomaticFailover, bool? EnableMultipleWriteLocations, string? BackupPolicyType, bool? EnableFreeTier)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, string? DatabaseApiType, string? ConsistencyLevel, int? MaxStalenessPrefix, int? MaxIntervalInSeconds, bool? EnableAutomaticFailover, bool? EnableMultipleWriteLocations, string? BackupPolicyType, bool? EnableFreeTier)>? environmentSettings = null,
+        bool isExisting = false)
     {
         var cosmosDb = new CosmosDb
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location
+            Location = location,
+            IsExisting = isExisting
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             cosmosDb.SetAllEnvironmentSettings(environmentSettings);
 
         return cosmosDb;

@@ -10,5 +10,6 @@ public record CreateEventHubNamespaceCommand(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<EventHubNamespaceEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<EventHubNamespaceEnvironmentConfigData>? EnvironmentSettings = null,
+    bool IsExisting = false
 ) : ICommand<EventHubNamespaceResult>;

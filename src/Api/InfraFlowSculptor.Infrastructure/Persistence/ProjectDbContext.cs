@@ -40,6 +40,7 @@ using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
+using InfraFlowSculptor.Infrastructure.Persistence.Views;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -70,6 +71,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<RoleAssignment> RoleAssignments { get; set; } = null!;
     public DbSet<AppSetting> AppSettings { get; set; } = null!;
     public DbSet<AppSettingEnvironmentValue> AppSettingEnvironmentValues { get; set; } = null!;
+    public DbSet<SecureParameterMapping> SecureParameterMappings { get; set; } = null!;
     public DbSet<KeyVaultEnvironmentSettings> KeyVaultEnvironmentSettings { get; set; } = null!;
     public DbSet<RedisCacheEnvironmentSettings> RedisCacheEnvironmentSettings { get; set; } = null!;
     public DbSet<StorageAccountEnvironmentSettings> StorageAccountEnvironmentSettings { get; set; } = null!;
@@ -112,12 +114,35 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<CrossConfigResourceReference> CrossConfigResourceReferences { get; set; } = null!;
     public DbSet<ProjectPipelineVariableGroup> ProjectPipelineVariableGroups { get; set; } = null!;
 
+    /// <summary>Keyless entity mapped to the <c>vw_ResourceEnvironmentEntries</c> PostgreSQL view.</summary>
+    public DbSet<ResourceEnvironmentEntryView> ResourceEnvironmentEntryViews { get; set; } = null!;
+
+    /// <inheritdoc />
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<AzureResource>())
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Property(nameof(AzureResource.ResourceType)).CurrentValue =
+                    entry.Entity.GetType().Name;
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
             .ApplyConfigurationsFromAssembly(typeof(ProjectDbContext).Assembly);
-        
+
+        modelBuilder.Entity<ResourceEnvironmentEntryView>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_ResourceEnvironmentEntries");
+        });
+
         base.OnModelCreating(modelBuilder);
     }
 }

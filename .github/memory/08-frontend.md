@@ -42,6 +42,20 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 ## Shared Components
 - `DeploymentConfigComponent` [2026-04-02] — extracted container/code deployment mode toggle + ACR selector + UAI flow
 - `ConfirmDialogComponent` — reusable confirm dialog with i18n
+- `EditAbbreviationDialogComponent` [2026-04-22] — reusable abbreviation override editor (config-detail + project-detail naming tabs)
+- `ToggleSectionCardComponent` [2026-04-22] — generic reusable toggle card (icon + title + subtitle + slide toggle + content projection). Visual identity: blue accent border, rounded card, shadow, fade animation. Used for health probe config in ContainerApp (add-resource-dialog + resource-edit). Reusable for any section needing enable/disable toggle with collapsible content.
+
+## Name Availability UX [2026-04-22]
+- `NameAvailabilityService.check$()` + debounced 500 ms `switchMap` on `name` field in `resource-edit` and `add-resource-dialog`.
+- 10 resource types supported via `NAME_AVAILABILITY_TYPES` Set (ContainerRegistry, StorageAccount, KeyVault, RedisCache, AppConfiguration, ServiceBusNamespace, EventHubNamespace, WebApp, FunctionApp, SqlServer).
+- Save/submit blocking (`isSaveBlockedByNameAvailability`) with bypass override button ("It's my resource"). `"current"` status shows blue check icon for already-deployed names.
+- `add-resource-dialog`: inline results panel with per-env status icons, submit/next blocked when names unavailable.
+
+## SqlServer Resource Edit [2026-04-22]
+- Full CRUD support in `resource-edit.component`: version/administratorLogin general fields, per-env TLS dropdown.
+
+## Project-Detail Abbreviation Filter [2026-04-22]
+- Abbreviation list shows only resource types actually used in the project (`usedResourceTypes` from backend `GetDistinctResourceTypesByProjectIdAsync`).
 
 ## PITFALL — ACR reactivity [2026-04-03]
 - `onContainerRegistryChange` must patch `generalForm.containerRegistryId` so `DeploymentConfigComponent` gets updated input.

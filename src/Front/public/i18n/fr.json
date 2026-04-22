@@ -417,6 +417,12 @@
         "INGRESS_TARGET_PORT": "Port cible de l'ingress",
         "INGRESS_EXTERNAL": "Ingress externe",
         "TRANSPORT_METHOD": "M\u00e9thode de transport",
+        "HEALTH_PROBES": "Sondes de sant\u00e9",
+        "READINESS_PROBE": "Sonde de disponibilit\u00e9",
+        "LIVENESS_PROBE": "Sonde de vivacit\u00e9",
+        "STARTUP_PROBE": "Sonde de d\u00e9marrage",
+        "PROBE_PATH": "Chemin de la sonde",
+        "PROBE_PORT": "Port de la sonde",
         "RETENTION_IN_DAYS": "R\u00e9tention (jours)",
         "DAILY_QUOTA_GB": "Quota quotidien (Go)",
         "DAILY_QUOTA_GB_HINT": "-1 pour illimit\u00e9",
@@ -586,6 +592,31 @@
       "GENERATE_ERROR": "Impossible de generer les fichiers pipeline. Verifiez que votre configuration contient au moins un groupe de ressources avec des ressources.",
       "GENERATE_AUTH_ERROR": "Echec de l'authentification aupres de l'API de generation pipeline. Veuillez vous deconnecter puis vous reconnecter, et reessayez."
     },
+    "BOOTSTRAP": {
+      "TAB": "Bootstrap ADO",
+      "GENERATE": "Générer Bootstrap",
+      "GENERATING": "Génération en cours...",
+      "DOWNLOAD": "Télécharger Bootstrap",
+      "PUSH_TO_GIT": "Pousser bootstrap.pipeline.yml vers Git",
+      "NO_FILES": "Aucun fichier bootstrap généré",
+      "ARTIFACTS": "sortie",
+      "TERMINAL_DONE": "Génération terminée — bootstrap.pipeline.yml prêt",
+      "GENERATE_ERROR": "Impossible de générer le bootstrap. Vérifiez que votre projet a une configuration Git Azure DevOps.",
+      "RETRY": "Réessayer",
+      "PREREQUISITES_TITLE": "Prérequis avant d'exécuter le bootstrap",
+      "PREREQ_GIT_CONFIG": "Configuration Git Azure DevOps définie sur le projet",
+      "PREREQ_PAT_SCOPES": "PAT Azure DevOps avec les scopes : Code (Read & Write), Build (Read & Execute), Variable Groups (Read, create & manage)",
+      "PREREQ_SERVICE_CONNECTION": "Connexion de service Azure Resource Manager configurée dans Azure DevOps",
+      "PREREQ_VARIABLE_GROUPS": "Groupes de variables listés ci-dessous — les valeurs secrètes sont à renseigner manuellement après exécution",
+      "FILE_LOADING": "Chargement du fichier...",
+      "FILE_ERROR": "Impossible de charger le contenu du fichier.",
+      "PUSH_SUCCESS": "bootstrap.pipeline.yml poussé avec succès !",
+      "WHAT_NEXT_TITLE": "Et ensuite ?",
+      "WHAT_NEXT_STEP1": "Renseignez les valeurs secrètes dans les groupes de variables Azure DevOps créés par le bootstrap.",
+      "WHAT_NEXT_STEP2": "Vérifiez que la connexion de service Azure Resource Manager est configurée et autorisée.",
+      "WHAT_NEXT_STEP3": "Lancez les pipelines de déploiement via Azure DevOps.",
+      "WHAT_NEXT_STEP4": "Les pipelines CI/PR/Release sont prêts dans les dossiers créés par le bootstrap."
+    },
     "PUSH_TO_GIT": {
       "BUTTON": "Pousser vers Git",
       "DIALOG_TITLE": "Pousser le Bicep vers Git",
@@ -685,6 +716,12 @@
       "SAVE_ERROR": "Impossible d'enregistrer les tags."
     }
   },
+  "ADD_RESOURCE_DIALOG": {
+    "IS_EXISTING": "Ressource existante (déjà déployée dans Azure)"
+  },
+  "RESOURCE_LIST": {
+    "EXISTING_BADGE": "Existant"
+  },
   "PROJECT_DETAIL": {
     "HEADER": {
       "OVERLINE": "Detail du projet"
@@ -710,7 +747,8 @@
     "GENERATION": {
       "TITLE": "Résultats de génération",
       "TAB_BICEP": "Bicep",
-      "TAB_PIPELINE": "Pipeline"
+      "TAB_PIPELINE": "Pipeline",
+      "TAB_BOOTSTRAP": "Bootstrap ADO"
     },
     "BICEP": {
       "GENERATE": "Generer Bicep",
@@ -749,6 +787,31 @@
       "FILE_LOADING": "Chargement du contenu du fichier...",
       "FILE_ERROR": "Impossible de charger le contenu du fichier.",
       "CLOSE": "Fermer le panneau"
+    },
+    "BOOTSTRAP": {
+      "TAB": "Bootstrap ADO",
+      "GENERATE": "Générer Bootstrap",
+      "GENERATING": "Génération en cours...",
+      "DOWNLOAD": "Télécharger Bootstrap",
+      "PUSH_TO_GIT": "Pousser bootstrap.pipeline.yml vers Git",
+      "NO_FILES": "Aucun fichier bootstrap généré",
+      "ARTIFACTS": "sortie",
+      "TERMINAL_DONE": "Génération terminée — bootstrap.pipeline.yml prêt",
+      "GENERATE_ERROR": "Impossible de générer le bootstrap. Vérifiez que votre projet a une configuration Git Azure DevOps.",
+      "RETRY": "Réessayer",
+      "PREREQUISITES_TITLE": "Prérequis avant d'exécuter le bootstrap",
+      "PREREQ_GIT_CONFIG": "Configuration Git Azure DevOps définie sur le projet",
+      "PREREQ_PAT_SCOPES": "PAT Azure DevOps avec les scopes : Code (Read & Write), Build (Read & Execute), Variable Groups (Read, create & manage)",
+      "PREREQ_SERVICE_CONNECTION": "Connexion de service Azure Resource Manager configurée dans Azure DevOps",
+      "PREREQ_VARIABLE_GROUPS": "Groupes de variables listés ci-dessous — les valeurs secrètes sont à renseigner manuellement après exécution",
+      "FILE_LOADING": "Chargement du fichier...",
+      "FILE_ERROR": "Impossible de charger le contenu du fichier.",
+      "PUSH_SUCCESS": "bootstrap.pipeline.yml poussé avec succès !",
+      "WHAT_NEXT_TITLE": "Et ensuite ?",
+      "WHAT_NEXT_STEP1": "Renseignez les valeurs secrètes dans les groupes de variables Azure DevOps créés par le bootstrap.",
+      "WHAT_NEXT_STEP2": "Vérifiez que la connexion de service Azure Resource Manager est configurée et autorisée.",
+      "WHAT_NEXT_STEP3": "Lancez les pipelines de déploiement via Azure DevOps.",
+      "WHAT_NEXT_STEP4": "Les pipelines CI/PR/Release sont prêts dans les dossiers créés par le bootstrap."
     },
     "STATE": {
       "LOADING_TITLE": "Chargement du projet",
@@ -1013,6 +1076,7 @@
     }
   },
   "RESOURCE_EDIT": {
+    "EXISTING_RESOURCE_INFO": "Cette ressource est marquée comme existante. Elle est déjà déployée dans Azure et ne sera pas gérée par ce projet dans le Bicep généré ni dans les pipelines de déploiement.",
     "NAME_AVAILABILITY": {
       "CHECKING": "V\u00e9rification de la disponibilit\u00e9 du nom sur Azure\u2026",
       "STATUS_AVAILABLE": "Disponible",
@@ -1120,6 +1184,17 @@
       "INGRESS_TARGET_PORT": "Port cible de l'ingress",
       "INGRESS_EXTERNAL": "Ingress externe",
       "TRANSPORT_METHOD": "M\u00e9thode de transport",
+      "HEALTH_PROBES": "Sondes de sant\u00e9",
+      "HEALTH_PROBES_SECTION": "Sondes de sant\u00e9",
+      "HEALTH_PROBES_DESC": "Configurez les sondes HTTP pour surveiller l'\u00e9tat de votre application",
+      "READINESS_PROBE": "Sonde de disponibilit\u00e9",
+      "READINESS_PROBE_DESC": "V\u00e9rifie si l'application est pr\u00eate \u00e0 recevoir du trafic",
+      "LIVENESS_PROBE": "Sonde de vivacit\u00e9",
+      "LIVENESS_PROBE_DESC": "V\u00e9rifie si l'application est toujours en cours d'ex\u00e9cution",
+      "STARTUP_PROBE": "Sonde de d\u00e9marrage",
+      "STARTUP_PROBE_DESC": "V\u00e9rifie si l'application a d\u00e9marr\u00e9 correctement",
+      "PROBE_PATH": "Chemin de la sonde",
+      "PROBE_PORT": "Port de la sonde",
       "RETENTION_IN_DAYS": "R\u00e9tention (jours)",
       "DAILY_QUOTA_GB": "Quota quotidien (Go)",
       "DAILY_QUOTA_GB_HINT": "-1 pour illimit\u00e9",
@@ -1175,6 +1250,27 @@
       "SQL_SERVER_VERSION": "Version SQL Server",
       "ADMINISTRATOR_LOGIN": "Login administrateur",
       "ADMINISTRATOR_LOGIN_PLACEHOLDER": "ex. sqladmin"
+    },
+    "SECURE_PARAM": {
+      "TITLE": "Configuration du mot de passe",
+      "DESCRIPTION": "Configurez comment le mot de passe administrateur est fourni lors du déploiement.",
+      "RANDOM": "Générer aléatoirement",
+      "RANDOM_HINT": "Un mot de passe sécurisé sera généré automatiquement lors du déploiement.",
+      "FROM_VARIABLE_GROUP": "Depuis une Library de pipeline",
+      "FROM_VARIABLE_GROUP_HINT": "Utilisez une variable stockée dans une Library Azure DevOps (Variable Group).",
+      "SELECT_VARIABLE_GROUP": "Library de pipeline",
+      "CREATE_NEW_GROUP": "Créer une nouvelle library...",
+      "NEW_GROUP_NAME": "Nom de la library",
+      "NEW_GROUP_NAME_PLACEHOLDER": "ex. MonProjet-Secrets",
+      "SCOPE_LABEL": "Portée de la library",
+      "SCOPE_PROJECT": "Projet",
+      "SCOPE_CONFIGURATION": "Configuration",
+      "SCOPE_PROJECT_HINT": "Partagée entre toutes les configurations de ce projet.",
+      "SCOPE_CONFIGURATION_HINT": "Utilisée uniquement pour cette configuration d\u2019infrastructure.",
+      "PIPELINE_VARIABLE_NAME": "Nom de la variable",
+      "PIPELINE_VARIABLE_NAME_HINT": "Le nom de la variable dans la library (ex. SQL_ADMIN_PASSWORD)",
+      "SAVE": "Enregistrer la configuration du mot de passe",
+      "SAVED": "Enregistré"
     },
     "ENVIRONMENTS": {
       "EMPTY": "Aucun environnement configur\u00e9. Ajoutez des environnements dans le projet ou la configuration.",

@@ -319,6 +319,9 @@
                                         @if (hasResourceDiagnostics(item.resource.id)) {
                                           <app-diagnostic-popover [diagnostics]="getResourceDiagnostics(item.resource.id)" />
                                         }
+                                        @if (item.resource.isExisting) {
+                                          <span class="existing-resource-badge">{{ 'RESOURCE_LIST.EXISTING_BADGE' | translate }}</span>
+                                        }
                                       </div>
                                       <span class="resource-item__type">{{ item.resource.resourceType }}</span>
                                     </div>
@@ -458,6 +461,9 @@
                                           @if (hasResourceDiagnostics(item.resource.id)) {
                                             <app-diagnostic-popover [diagnostics]="getResourceDiagnostics(item.resource.id)" />
                                           }
+                                          @if (item.resource.isExisting) {
+                                            <span class="existing-resource-badge">{{ 'RESOURCE_LIST.EXISTING_BADGE' | translate }}</span>
+                                          }
                                         }
                                       </div>
                                       <span class="resource-item__type">
@@ -593,6 +599,9 @@
                                       }
                                       @if (hasResourceDiagnostics(item.resource.id)) {
                                         <app-diagnostic-popover [diagnostics]="getResourceDiagnostics(item.resource.id)" />
+                                      }
+                                      @if (item.resource.isExisting) {
+                                        <span class="existing-resource-badge">{{ 'RESOURCE_LIST.EXISTING_BADGE' | translate }}</span>
                                       }
                                     </div>
                                     <span class="resource-item__type">{{ item.resource.resourceType }}</span>
@@ -1086,7 +1095,7 @@
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">library_books</mat-icon>
           <span>{{ 'CONFIG_DETAIL.TABS.PIPELINE_VARIABLES' | translate }}</span>
-          <span class="tab-count">{{ variableGroups().length }}</span>
+          <span class="tab-count">{{ configVariableGroups().length }}</span>
         </ng-template>
         <div class="tab-content">
           @if (vgErrorKey()) {
@@ -1094,9 +1103,9 @@
           }
 
           <!-- Derived hint -->
-          <div class="env-description" style="margin-bottom: 1rem;">
-            <mat-icon class="env-description__icon">info_outline</mat-icon>
-            <p>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.DERIVED_HINT' | translate }}</p>
+          <div class="settings-info-banner" style="margin-bottom: 1rem;">
+            <mat-icon class="settings-info-banner__icon">info_outline</mat-icon>
+            <span>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.DERIVED_HINT' | translate }}</span>
           </div>
 
           @if (canWrite()) {
@@ -1112,9 +1121,9 @@
             <div class="empty-state">
               <mat-spinner diameter="32"></mat-spinner>
             </div>
-          } @else if (variableGroups().length > 0) {
+          } @else if (configVariableGroups().length > 0) {
             <div class="vg-list">
-              @for (group of variableGroups(); track group.id) {
+              @for (group of configVariableGroups(); track group.id) {
                 <article class="vg-card">
                   <div class="vg-card__header">
                     <div class="vg-card__title-row">

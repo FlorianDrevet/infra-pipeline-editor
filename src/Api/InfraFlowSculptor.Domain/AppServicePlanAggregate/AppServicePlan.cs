@@ -32,6 +32,10 @@ public sealed class AppServicePlan : AzureResource
     {
         Name = name;
         Location = location;
+
+        if (IsExisting)
+            return;
+
         OsType = osType;
     }
 
@@ -39,11 +43,14 @@ public sealed class AppServicePlan : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         AppServicePlanSku? sku,
         int? capacity)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -61,9 +68,13 @@ public sealed class AppServicePlan : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, AppServicePlanSku? Sku, int? Capacity)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var (envName, sku, capacity) in settings)
         {
@@ -73,12 +84,14 @@ public sealed class AppServicePlan : AzureResource
     }
 
     /// <summary>Creates a new App Service Plan with a generated identifier.</summary>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     public static AppServicePlan Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
         AppServicePlanOsType osType,
-        IReadOnlyList<(string EnvironmentName, AppServicePlanSku? Sku, int? Capacity)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, AppServicePlanSku? Sku, int? Capacity)>? environmentSettings = null,
+        bool isExisting = false)
     {
         var plan = new AppServicePlan
         {
@@ -86,10 +99,11 @@ public sealed class AppServicePlan : AzureResource
             ResourceGroupId = resourceGroupId,
             Name = name,
             Location = location,
+            IsExisting = isExisting,
             OsType = osType
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             plan.SetAllEnvironmentSettings(environmentSettings);
 
         return plan;

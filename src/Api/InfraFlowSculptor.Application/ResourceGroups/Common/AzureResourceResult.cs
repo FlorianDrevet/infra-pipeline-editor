@@ -16,4 +16,5 @@ public record AzureResourceResult(
     Name Name,
     Location Location,
     AzureResourceId? ParentResourceId = null,
-    IReadOnlyList<string>? ConfiguredEnvironments = null);
+    IReadOnlyList<string>? ConfiguredEnvironments = null,
+    bool IsExisting = false);

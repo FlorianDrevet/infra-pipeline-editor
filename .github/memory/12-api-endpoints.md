@@ -81,6 +81,7 @@
 
 | Group | Method | Route | Command/Query |
 |---|---|---|---|
+| `/naming` | POST | `/check-availability/{resourceType}` | `CheckResourceNameAvailabilityQuery` |
 | `/generate-bicep` | POST | `` | `GenerateBicepCommand` |
 | `/generate-bicep` | GET | `/{configId}/download` | `DownloadBicepCommand` |
 | `/generate-bicep` | GET | `/{configId}/files/{*filePath}` | `GetBicepFileContentQuery` |

@@ -20,6 +20,7 @@ export interface CosmosDbEnvironmentConfigResponse {
   enableMultipleWriteLocations: boolean | null;
   backupPolicyType: string | null;
   enableFreeTier: boolean | null;
+  isExisting?: boolean;
 }
 
 export interface CosmosDbResponse {
@@ -28,6 +29,7 @@ export interface CosmosDbResponse {
   name: string;
   location: string;
   environmentSettings: CosmosDbEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 export interface CreateCosmosDbRequest {
@@ -35,6 +37,7 @@ export interface CreateCosmosDbRequest {
   name: string;
   location: string;
   environmentSettings?: CosmosDbEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateCosmosDbRequest {

@@ -28,7 +28,11 @@ using InfraFlowSculptor.Application.Projects.Commands.AddProjectPipelineVariable
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectPipelineVariableGroup;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectTags;
 using InfraFlowSculptor.Application.Projects.Queries.GetProject;
+using InfraFlowSculptor.Application.Projects.Commands.DownloadProjectBootstrapPipeline;
+using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstrapPipeline;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectBootstrapPipelineToGit;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectBicepFileContent;
+using InfraFlowSculptor.Application.Projects.Queries.GetProjectBootstrapPipelineFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectPipelineFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.ListGitBranches;
 using InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
@@ -884,6 +888,99 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
+            // ── Project-level Bootstrap Pipeline (Azure DevOps) ──────────────────────────────
+
+            group.MapPost("/{projectId:guid}/generate-bootstrap-pipeline",
+                    async ([FromRoute] Guid projectId,
+                        IMediator mediator) =>
+                    {
+                        var command = new GenerateProjectBootstrapPipelineCommand(new ProjectId(projectId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.Created(
+                                $"/projects/{projectId}/generate-bootstrap-pipeline/files/bootstrap.pipeline.yml",
+                                new GenerateProjectBootstrapPipelineResponse(value.FileUris)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GenerateProjectBootstrapPipeline")
+                .WithSummary("Generate the Azure DevOps bootstrap pipeline for a project")
+                .WithDescription("Generates bootstrap.pipeline.yml — an idempotent Azure DevOps pipeline that provisions pipeline definitions, variable groups and authorizations via az devops CLI.")
+                .Produces<GenerateProjectBootstrapPipelineResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{projectId:guid}/generate-bootstrap-pipeline/download",
+                    async ([FromRoute] Guid projectId,
+                        IMediator mediator) =>
+                    {
+                        var command = new DownloadProjectBootstrapPipelineCommand(new ProjectId(projectId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.File(
+                                value.ZipContent,
+                                "application/zip",
+                                value.FileName),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("DownloadProjectBootstrapPipeline")
+                .WithSummary("Download the latest bootstrap pipeline as a ZIP archive")
+                .WithDescription("Returns a ZIP archive containing the latest generated bootstrap.pipeline.yml for the given project.")
+                .Produces<FileContentResult>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{projectId:guid}/generate-bootstrap-pipeline/files/{*filePath}",
+                    async ([FromRoute] Guid projectId,
+                        [FromRoute] string filePath,
+                        IMediator mediator) =>
+                    {
+                        var query = new GetProjectBootstrapPipelineFileContentQuery(projectId, filePath);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            value => Results.Ok(new { content = value.Content }),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GetProjectBootstrapPipelineFileContent")
+                .WithSummary("Get generated bootstrap pipeline file content for a project")
+                .WithDescription("Reads the latest generated bootstrap pipeline file content for the given project and relative file path.")
+                .Produces(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPost("/{projectId:guid}/push-bootstrap-pipeline-to-git",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] PushBicepToGitRequest request,
+                        IMediator mediator,
+                        IMapper mapper) =>
+                    {
+                        var command = new PushProjectBootstrapPipelineToGitCommand(
+                            new ProjectId(projectId),
+                            request.BranchName,
+                            request.CommitMessage);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.Ok(mapper.Map<PushBicepToGitResponse>(value)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("PushProjectBootstrapPipelineToGit")
+                .WithSummary("Push the bootstrap pipeline file to Git (Azure DevOps)")
+                .WithDescription("Pushes the latest generated bootstrap.pipeline.yml to the configured Git repository.")
+                .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
             // ── Pipeline Variable Groups (project-level) ────────────────
 
             // GET /{projectId:guid}/pipeline-variable-groups
@@ -922,7 +1019,8 @@ public static class ProjectController
                                 $"/projects/{projectId}/pipeline-variable-groups/{g.GroupId}",
                                 new ProjectPipelineVariableGroupResponse(
                                     g.GroupId.ToString(),
-                                    g.GroupName)),
+                                    g.GroupName,
+                                    [])),
                             errors => errors.Result()
                         );
                     })

@@ -38,7 +38,13 @@ public sealed class ContainerAppTypeBicepGenerator
             ["ingressEnabled"] = true,
             ["ingressTargetPort"] = 80,
             ["ingressExternal"] = true,
-            ["transportMethod"] = "auto"
+            ["transportMethod"] = "auto",
+            ["readinessProbePath"] = "",
+            ["readinessProbePort"] = 0,
+            ["livenessProbePath"] = "",
+            ["livenessProbePort"] = 0,
+            ["startupProbePath"] = "",
+            ["startupProbePort"] = 0
         };
 
         if (hasAcr)
@@ -104,6 +110,24 @@ public sealed class ContainerAppTypeBicepGenerator
         @description('Transport method for ingress')
         param transportMethod TransportMethod = 'auto'
 
+        @description('HTTP path for the readiness probe (empty to disable)')
+        param readinessProbePath string = ''
+
+        @description('Port for the readiness probe (0 to disable)')
+        param readinessProbePort int = 0
+
+        @description('HTTP path for the liveness probe (empty to disable)')
+        param livenessProbePath string = ''
+
+        @description('Port for the liveness probe (0 to disable)')
+        param livenessProbePort int = 0
+
+        @description('HTTP path for the startup probe (empty to disable)')
+        param startupProbePath string = ''
+
+        @description('Port for the startup probe (0 to disable)')
+        param startupProbePort int = 0
+
         resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           name: name
           location: location
@@ -125,6 +149,29 @@ public sealed class ContainerAppTypeBicepGenerator
                     cpu: json(cpuCores)
                     memory: memoryGi
                   }
+                  probes: union(
+                    !empty(readinessProbePath) && readinessProbePort > 0 ? [{
+                      type: 'Readiness'
+                      httpGet: {
+                        path: readinessProbePath
+                        port: readinessProbePort
+                      }
+                    }] : [],
+                    !empty(livenessProbePath) && livenessProbePort > 0 ? [{
+                      type: 'Liveness'
+                      httpGet: {
+                        path: livenessProbePath
+                        port: livenessProbePort
+                      }
+                    }] : [],
+                    !empty(startupProbePath) && startupProbePort > 0 ? [{
+                      type: 'Startup'
+                      httpGet: {
+                        path: startupProbePath
+                        port: startupProbePort
+                      }
+                    }] : []
+                  )
                 }
               ]
               scale: {
@@ -184,6 +231,24 @@ public sealed class ContainerAppTypeBicepGenerator
         @description('Transport method for ingress')
         param transportMethod TransportMethod = 'auto'
 
+        @description('HTTP path for the readiness probe (empty to disable)')
+        param readinessProbePath string = ''
+
+        @description('Port for the readiness probe (0 to disable)')
+        param readinessProbePort int = 0
+
+        @description('HTTP path for the liveness probe (empty to disable)')
+        param livenessProbePath string = ''
+
+        @description('Port for the liveness probe (0 to disable)')
+        param livenessProbePort int = 0
+
+        @description('HTTP path for the startup probe (empty to disable)')
+        param startupProbePath string = ''
+
+        @description('Port for the startup probe (0 to disable)')
+        param startupProbePort int = 0
+
         @description('ACR login server (e.g. myregistry.azurecr.io)')
         param acrLoginServer string
 
@@ -217,6 +282,29 @@ public sealed class ContainerAppTypeBicepGenerator
                     cpu: json(cpuCores)
                     memory: memoryGi
                   }
+                  probes: union(
+                    !empty(readinessProbePath) && readinessProbePort > 0 ? [{
+                      type: 'Readiness'
+                      httpGet: {
+                        path: readinessProbePath
+                        port: readinessProbePort
+                      }
+                    }] : [],
+                    !empty(livenessProbePath) && livenessProbePort > 0 ? [{
+                      type: 'Liveness'
+                      httpGet: {
+                        path: livenessProbePath
+                        port: livenessProbePort
+                      }
+                    }] : [],
+                    !empty(startupProbePath) && startupProbePort > 0 ? [{
+                      type: 'Startup'
+                      httpGet: {
+                        path: startupProbePath
+                        port: startupProbePort
+                      }
+                    }] : []
+                  )
                 }
               ]
               scale: {

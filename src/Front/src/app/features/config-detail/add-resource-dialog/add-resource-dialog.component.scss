@@ -150,6 +150,11 @@ mat-slide-toggle {
   margin-bottom: 0.5rem;
 }
 
+.form-separator {
+  margin: 0.75rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
 .dialog-error {
   margin: 0.5rem 0 0;
   padding: 0.6rem 0.8rem;
@@ -503,4 +508,57 @@ mat-slide-toggle {
     width: 1rem;
     height: 1rem;
   }
+}
+
+// ── Health Probes Section ──
+.health-probes-section {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  width: 100%;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  &__icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #1565c0;
+  }
+
+  &__title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #103454;
+  }
+
+  &__desc {
+    font-size: 0.78rem;
+    color: #78909c;
+    margin: 0 0 0.75rem;
+    line-height: 1.4;
+  }
+}
+
+.health-probes-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  width: 100%;
+  align-items: start;
+}
+
+.probe-fields {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0.75rem;
+}
+
+.probe-field {
+  width: 100%;
 }

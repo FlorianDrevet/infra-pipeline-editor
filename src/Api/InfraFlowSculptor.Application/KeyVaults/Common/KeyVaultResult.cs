@@ -15,5 +15,8 @@ public record KeyVaultResult(
     bool EnabledForTemplateDeployment,
     bool EnablePurgeProtection,
     bool EnableSoftDelete,
-    IReadOnlyList<KeyVaultEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyList<KeyVaultEnvironmentConfigData> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

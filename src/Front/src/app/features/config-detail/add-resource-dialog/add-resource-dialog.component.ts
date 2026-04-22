@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, Observable, switchMap, tap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -60,6 +60,7 @@ import { ProjectService } from '../../../shared/services/project.service';
 import { ProjectResourceResponse } from '../../../shared/interfaces/cross-config-reference.interface';
 import { NameAvailabilityService } from '../../../shared/services/name-availability.service';
 import { EnvironmentNameAvailabilityResponseItem } from '../../../shared/interfaces/name-availability.interface';
+import { ToggleSectionCardComponent } from '../../../shared/components/toggle-section-card/toggle-section-card.component';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
@@ -274,6 +275,7 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
     MatTabsModule,
     ReactiveFormsModule,
     TranslateModule,
+    ToggleSectionCardComponent,
   ],
   templateUrl: './add-resource-dialog.component.html',
   styleUrl: './add-resource-dialog.component.scss',
@@ -330,7 +332,7 @@ export class AddResourceDialogComponent {
   ]);
 
   protected readonly isNameAvailabilityCheckEnabled = computed(
-    () => AddResourceDialogComponent.NAME_AVAILABILITY_TYPES.has(this.selectedType()!),
+    () => AddResourceDialogComponent.NAME_AVAILABILITY_TYPES.has(this.selectedType()!) && !this.isExistingResource(),
   );
 
   protected readonly nameAvailabilityOverallState = computed<'idle' | 'checking' | 'all-ok' | 'has-unavailable' | 'has-invalid' | 'unknown'>(() => {
@@ -385,6 +387,8 @@ export class AddResourceDialogComponent {
     const type = this.selectedType();
     return type !== null && type !== ResourceTypeEnum.UserAssignedIdentity;
   });
+
+
 
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
@@ -474,6 +478,7 @@ export class AddResourceDialogComponent {
     enableNonSslPort: [false],
     disableAccessKeyAuthentication: [false],
     enableAadAuth: [false],
+    isExisting: [false],
   });
 
   protected readonly redisAadWarning = computed(() => {
@@ -490,6 +495,11 @@ export class AddResourceDialogComponent {
   protected readonly envFormArray = new FormArray<FormGroup>([]);
 
   private readonly commonFormStatus = toSignal(this.commonForm.statusChanges, { initialValue: 'INVALID' as const });
+  private readonly isExistingValue = toSignal(
+    this.commonForm.get('isExisting')!.valueChanges as Observable<boolean>,
+    { initialValue: false }
+  );
+  protected readonly isExistingResource = computed(() => this.isExistingValue() === true);
 
   protected readonly isCommonValid = computed(() => {
     this.commonFormStatus();
@@ -906,7 +916,7 @@ export class AddResourceDialogComponent {
 
   protected onNextToEnvironments(): void {
     if (this.commonForm.invalid || this.isSubmitBlockedByNameAvailability()) return;
-    if (!this.needsEnvironmentSettings()) {
+    if (!this.needsEnvironmentSettings() || this.isExistingResource()) {
       this.onSubmit();
       return;
     }
@@ -986,6 +996,15 @@ export class AddResourceDialogComponent {
           ingressTargetPort: [80],
           ingressExternal: [true],
           transportMethod: ['auto'],
+          readinessProbeEnabled: [false],
+          readinessProbePath: [null as string | null],
+          readinessProbePort: [null as number | null],
+          livenessProbeEnabled: [false],
+          livenessProbePath: [null as string | null],
+          livenessProbePort: [null as number | null],
+          startupProbeEnabled: [false],
+          startupProbePath: [null as string | null],
+          startupProbePort: [null as number | null],
         });
       case ResourceTypeEnum.LogAnalyticsWorkspace:
         return this.fb.group({
@@ -1046,6 +1065,21 @@ export class AddResourceDialogComponent {
     return this.envFormArray.at(index);
   }
 
+  protected onProbeToggle(envIndex: number, probeType: 'readiness' | 'liveness' | 'startup', enabled: boolean): void {
+    const envGroup = this.envFormArray.at(envIndex);
+    const defaults: Record<string, { path: string; port: number }> = {
+      readiness: { path: '/healthz/ready', port: 8080 },
+      liveness: { path: '/healthz/live', port: 8080 },
+      startup: { path: '/healthz/startup', port: 8080 },
+    };
+
+    envGroup.patchValue({
+      [`${probeType}ProbeEnabled`]: enabled,
+      [`${probeType}ProbePath`]: enabled ? defaults[probeType].path : null,
+      [`${probeType}ProbePort`]: enabled ? defaults[probeType].port : null,
+    });
+  }
+
   protected onTabChange(index: number): void {
     if (index > 0 && !this.prefilled.has(index) && this.envFormArray.length > 1) {
       const firstGroup = this.envFormArray.at(0);
@@ -1082,7 +1116,8 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             environmentSettings: this.buildKeyVaultEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.RedisCache: {
@@ -1096,7 +1131,8 @@ export class AddResourceDialogComponent {
             disableAccessKeyAuthentication: common.disableAccessKeyAuthentication ?? false,
             enableAadAuth: common.enableAadAuth ?? false,
             environmentSettings: this.buildRedisCacheEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.StorageAccount: {
@@ -1110,7 +1146,8 @@ export class AddResourceDialogComponent {
             enableHttpsTrafficOnly: common.enableHttpsTrafficOnly ?? true,
             minimumTlsVersion: common.minimumTlsVersion!,
             environmentSettings: this.buildStorageAccountEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.AppServicePlan: {
@@ -1120,7 +1157,8 @@ export class AddResourceDialogComponent {
             location: common.location!,
             osType: common.osType!,
             environmentSettings: this.buildAppServicePlanEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.WebApp: {
@@ -1137,7 +1175,8 @@ export class AddResourceDialogComponent {
             alwaysOn: common.alwaysOn!,
             httpsOnly: common.httpsOnly!,
             environmentSettings: this.buildWebAppEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.FunctionApp: {
@@ -1153,7 +1192,8 @@ export class AddResourceDialogComponent {
             runtimeVersion: common.runtimeVersion!,
             httpsOnly: common.httpsOnly!,
             environmentSettings: this.buildFunctionAppEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.UserAssignedIdentity: {
@@ -1161,6 +1201,7 @@ export class AddResourceDialogComponent {
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
             location: common.location!,
+            isExisting: common.isExisting ?? false,
           });
           break;
         }
@@ -1170,7 +1211,8 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             environmentSettings: this.buildAppConfigurationEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.ContainerAppEnvironment: {
@@ -1180,7 +1222,8 @@ export class AddResourceDialogComponent {
             location: common.location!,
             logAnalyticsWorkspaceId: common.logAnalyticsWorkspaceId || null,
             environmentSettings: this.buildContainerAppEnvironmentEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.ContainerApp: {
@@ -1191,7 +1234,8 @@ export class AddResourceDialogComponent {
             containerAppEnvironmentId: common.containerAppEnvironmentId!,
             containerRegistryId: common.containerRegistryId || null,
             environmentSettings: this.buildContainerAppEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.LogAnalyticsWorkspace: {
@@ -1200,7 +1244,8 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             environmentSettings: this.buildLogAnalyticsWorkspaceEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.ApplicationInsights: {
@@ -1210,7 +1255,8 @@ export class AddResourceDialogComponent {
             location: common.location!,
             logAnalyticsWorkspaceId: common.logAnalyticsWorkspaceId!,
             environmentSettings: this.buildApplicationInsightsEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.CosmosDb: {
@@ -1219,7 +1265,8 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             environmentSettings: this.buildCosmosDbEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.SqlServer: {
@@ -1230,7 +1277,8 @@ export class AddResourceDialogComponent {
             version: common.version!,
             administratorLogin: common.administratorLogin!,
             environmentSettings: this.buildSqlServerEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.SqlDatabase: {
@@ -1241,7 +1289,8 @@ export class AddResourceDialogComponent {
             sqlServerId: common.sqlServerId!,
             collation: common.collation!,
             environmentSettings: this.buildSqlDatabaseEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.ServiceBusNamespace: {
@@ -1250,7 +1299,8 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             environmentSettings: this.buildServiceBusNamespaceEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
         case ResourceTypeEnum.ContainerRegistry: {
@@ -1259,7 +1309,8 @@ export class AddResourceDialogComponent {
             name: common.name!,
             location: common.location!,
             environmentSettings: this.buildContainerRegistryEnvironmentSettings(),
-          });
+            isExisting: common.isExisting ?? false,
+            });
           break;
         }
       }
@@ -1378,6 +1429,12 @@ export class AddResourceDialogComponent {
         ingressTargetPort: raw.ingressTargetPort != null ? Number(raw.ingressTargetPort) : null,
         ingressExternal: raw.ingressExternal ?? null,
         transportMethod: raw.transportMethod || null,
+        readinessProbePath: raw.readinessProbePath || null,
+        readinessProbePort: raw.readinessProbePort != null ? Number(raw.readinessProbePort) : null,
+        livenessProbePath: raw.livenessProbePath || null,
+        livenessProbePort: raw.livenessProbePort != null ? Number(raw.livenessProbePort) : null,
+        startupProbePath: raw.startupProbePath || null,
+        startupProbePort: raw.startupProbePort != null ? Number(raw.startupProbePort) : null,
       };
     });
   }

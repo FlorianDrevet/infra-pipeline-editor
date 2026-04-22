@@ -40,6 +40,7 @@ public sealed class ContainerRegistry : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         string? sku,
@@ -47,6 +48,8 @@ public sealed class ContainerRegistry : AzureResource
         string? publicNetworkAccess,
         bool? zoneRedundancy)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -65,9 +68,13 @@ public sealed class ContainerRegistry : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, string? Sku, bool? AdminUserEnabled, string? PublicNetworkAccess, bool? ZoneRedundancy)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var (envName, sku, adminUserEnabled, publicNetworkAccess, zoneRedundancy) in settings)
         {
@@ -84,22 +91,25 @@ public sealed class ContainerRegistry : AzureResource
     /// <param name="name">The display name.</param>
     /// <param name="location">The Azure region.</param>
     /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     /// <returns>A new <see cref="ContainerRegistry"/> aggregate root.</returns>
     public static ContainerRegistry Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? Sku, bool? AdminUserEnabled, string? PublicNetworkAccess, bool? ZoneRedundancy)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, string? Sku, bool? AdminUserEnabled, string? PublicNetworkAccess, bool? ZoneRedundancy)>? environmentSettings = null,
+        bool isExisting = false)
     {
         var containerRegistry = new ContainerRegistry
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location
+            Location = location,
+            IsExisting = isExisting
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             containerRegistry.SetAllEnvironmentSettings(environmentSettings);
 
         return containerRegistry;

@@ -23,14 +23,10 @@ Refactored from monolith (~1680 lines) to thin orchestrator (~180 lines) + 14 sp
 - `modules/{FolderName}/{moduleType}.module.bicep` + `types.bicep` per resource type
 - `constants.bicep` — RBAC role constants (only when role assignments exist)
 
-## Bicepparam File Naming Convention [2026-04-17]
-- **File name** uses `EnvironmentDefinition.ShortName` (e.g. `main.dev.bicepparam`) to match the pipeline convention where `${{ environment }}` resolves to ShortName.
-- **Internal `param environmentName`** uses the full `EnvironmentDefinition.Name` sanitized (e.g. `param environmentName = 'development'`) for Bicep `EnvironmentName` union type matching.
-- Previous bug: file was named using full Name (`main.development.bicepparam`) causing pipeline `Could not find any file matching the template file pattern` error.
-
-## Bicep Param Relative Path [2026-04-04]
-- Generated `.bicepparam` files are stored under `parameters/`, so they must declare `using '../main.bicep'`.
-- `using 'main.bicep'` is invalid from that folder and breaks Azure DevOps ARM deployments after the task compiles `main.bicep`, typically surfacing as `Could not find any file matching the template file pattern`.
+## Bicepparam Conventions [2026-04-17]
+- **File name** uses `EnvironmentDefinition.ShortName` (e.g. `main.dev.bicepparam`); pipeline `${{ environment }}` resolves to ShortName.
+- **Internal `param environmentName`** uses the full `EnvironmentDefinition.Name` sanitized for Bicep `EnvironmentName` union type matching.
+- **Relative path**: `.bicepparam` files live under `parameters/` → must declare `using '../main.bicep'` (not `using 'main.bicep'`).
 
 ## Module Folder Structure [2026-03-24]
 Each module folder contains: `{moduleType}.module.bicep` + `types.bicep` (with `@export()` union types).
@@ -45,10 +41,15 @@ Each module folder contains: `{moduleType}.module.bicep` + `types.bicep` (with `
 ## ContainerApp Bicep Params [2026-04-03]
 All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, etc.) **must** be added to the generator's `Parameters` dictionary — not just ACR params. Missing entries cause env-specific values to be silently ignored in `.bicepparam` files.
 
-## Identifier Normalization [2026-04-16]
+## ContainerApp Health Probes [2026-04-22]
+- 6 new per-env fields: `readinessProbePath`, `readinessProbePort`, `livenessProbePath`, `livenessProbePort`, `startupProbePath`, `startupProbePort`
+- Bicep templates use `union()` to conditionally build the `probes` array — each probe type only emitted when both path is non-empty and port > 0
+- V1: HTTP probes only (no TCP/gRPC). Path must start with `/`, port 1-65535.
 
+## Identifier & Value Normalization [2026-04-22]
 - All Bicep identifiers use **camelCase** via `BicepIdentifierHelper` and `BicepFormattingHelper`.
-- `BicepGenerationEngine` gracefully skips resource types without a registered `IResourceTypeBicepGenerator` (logs warning, does not throw).
+- `BicepGenerationEngine` gracefully skips resource types without a registered generator (logs warning, does not throw).
+- **Domain enum → ARM pitfall:** `EnumValueObject` member names (e.g. `V12`) may not match ARM values (e.g. `12.0`). Generators must normalize via mapping switch.
 
 ## SecureParameters Pattern [2026-04-21]
 - `GeneratedTypeModule.SecureParameters` (`IReadOnlyList<string>`) holds param names requiring `@secure()` with no default value (e.g. `administratorLoginPassword` for SqlServer).
@@ -62,6 +63,13 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - `ExtractRootSymbol()` handles direct identifiers (`kv.properties.vaultUri` → `kv`) and interpolated strings (`'${sqlServer.properties.fqdn}'` → `sqlServer`).
 - Prevents BCP057 errors when `ResourceOutputCatalog` expressions reference symbols from a different module type (e.g. `applicationInsights` expression injected into sqlDatabase module due to data integrity issues in SourceResourceName).
 
+## ContainerAppEnvironment — Secure LAW Integration [2026-04-22]
+- **BREAKING security fix:** `ContainerAppEnvironmentTypeBicepGenerator` no longer calls `listKeys()` inside the module.
+- Old pattern: `destination: 'log-analytics'` + `existing` LAW resource + `listKeys().primarySharedKey` → key exposed in ARM deployment history.
+- **New pattern:** `destination: 'azure-monitor'` (no key) + `Microsoft.Insights/diagnosticSettings@2021-05-01-preview` scoped to the CAE resource, with `workspaceId` = LAW resource ID passed as a plain `string` param.
+- The `logAnalyticsWorkspaceId` param (full resource ID injected by `BicepGenerationEngine`) is passed directly as `diagnosticSettings.properties.workspaceId` — no `listKeys()` anywhere.
+- Diagnostic category: `categoryGroup: 'allLogs'`.
+
 ## LAW Auto-Detection Fallback [2026-04-21]
 - For `Microsoft.Insights/components` and `Microsoft.App/managedEnvironments`, if the property-based `logAnalyticsWorkspaceId` GUID lookup fails, the engine auto-detects the first `Microsoft.OperationalInsights/workspaces` resource in the same config as fallback.
 - **Second fallback**: if no local LAW exists either, checks `ExistingResourceReferences` for a cross-config LAW and stores it in `ExistingResourceIdReferences` (resolved as `existing_{symbol}.id` in main.bicep).
@@ -73,10 +81,9 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - Used when a parent resource (e.g. LAW) is not in the same config but referenced as an `existing` resource.
 
 ## Bicep Syntax Pitfalls [2026-04-21]
-- **BCP124**: `@secure()` decorator only works on `object` or `string` params, NOT on `array`.
-- **BCP247**: Lambda variables (e.g. `i` from `range()`) cannot index resource collections. Use `toObject(resourceCollection, kv => ...)` instead.
-- **BCP138**: Nested for-expressions not allowed in variable declarations. Use `map()` function instead.
-- **BCP057**: Output expressions with resource symbols injected into wrong modules. Validate symbol existence before injection.
+- **BCP124**: `@secure()` only works on `object` or `string` params, NOT `array`.
+- **BCP247**: Lambda variables cannot index resource collections. Use `toObject(resourceCollection, kv => ...)`.
+- **BCP138**: Nested for-expressions not allowed in variable declarations. Use `map()` function.
 
 ## Naming Integration [2026-03-23]
 
@@ -87,15 +94,12 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - Both `SetResourceNamingTemplateCommandValidator` (InfraConfig) and `SetProjectResourceNamingTemplateCommandValidator` (Project) use the resource-type-aware validation. Error messages include the specific allowed chars description.
 - ContainerRegistry and StorageAccount have `RecommendedTemplate: "{name}{resourceAbbr}{envShort}"` (no separators).
 
-### Live Name Availability Check [2026-04-20]
-- Endpoint: `POST /naming/check-availability/{resourceType}` with body `{ projectId, configId?, name }` → response `{ resourceType, rawName, supported, environments[] }` where each env item has `{ environmentName, environmentShortName, subscriptionId, generatedName, appliedTemplate, status, reason?, message? }`. Status union: `available | unavailable | unknown | invalid`.
-- `IResourceNameResolver` (`Application/Common/Services/ResourceNameResolver.cs`): applies template precedence (config-resource-override > project-resource-override > config-default > project-default > literal `{name}`); config templates only used when `configId` is provided AND `UseProjectNamingConventions == false`. Substitutes placeholders with Regex (IgnoreCase + Compiled, 250 ms timeout).
-- `IAzureNameAvailabilityChecker` (`Infrastructure/Services/AzureNameAvailability/`): typed `HttpClient` + `DefaultAzureCredential` (scope `https://management.azure.com/.default`). Strategy dictionary keyed by resource type — currently only `ContainerRegistry` (api-version `2023-07-01`, ARM type `Microsoft.ContainerRegistry/registries`). Returns `Unknown` (does NOT throw) on auth/network/throttling failure.
-- Handler `CheckResourceNameAvailabilityQueryHandler`: verifies project read access, resolves names per env, validates each generated name against `AzureNamingConstraints.GetConstraint(resourceType)` (length + InvalidStaticCharsRegex) BEFORE the ARM call. Status `"invalid"` short-circuits ARM (no HTTP call).
-- DI: `services.AddScoped<IResourceNameResolver, ResourceNameResolver>()` (Application) + `services.AddHttpClient<IAzureNameAvailabilityChecker, AzureNameAvailabilityChecker>()` (Infrastructure).
-- Frontend: `NameAvailabilityService.check$()` + `resource-edit.component` debounced (500 ms) `switchMap` on `name` valueChanges, gated by `isNameAvailabilityCheckEnabled` (currently `resourceType === 'ContainerRegistry'`). Per-env panel reuses `.acr-inline-status` visual baseline + new `.name-availability-status` / `.name-availability-list` SCSS classes.
-- i18n keys: `RESOURCE_EDIT.NAME_AVAILABILITY.{CHECKING,ALL_AVAILABLE,SOME_UNAVAILABLE,SOME_INVALID,UNKNOWN}` (en + fr).
-- To add a new resource type: extend the strategy dictionary in `AzureNameAvailabilityChecker` AND broaden the frontend `isNameAvailabilityCheckEnabled` computed.
+### Live Name Availability Check [2026-04-22]
+- Endpoint: `POST /naming/check-availability/{resourceType}` → per-env status: `available | unavailable | unknown | invalid | current`.
+- **DNS-based** (`DnsNameAvailabilityChecker`): resolves `{name}.{azureSuffix}` — no Azure auth required. 10 resource types supported (CR, SA, KV, Redis, AppConfig, SBus, EventHub, WebApp, FunctionApp, SqlServer).
+- `IResourceNameResolver`: template precedence (config-resource-override → project-override → config-default → project-default → literal). Validates against `AzureNamingConstraints` before DNS call; `"invalid"` short-circuits.
+- `"current"` status: compares generated name with `CurrentPersistedName` — avoids false-positive "unavailable" on user's own deployed resources.
+- Frontend: debounced 500 ms `switchMap` on name changes, save blocking when unavailable/invalid, bypass override button. i18n: `RESOURCE_EDIT.NAME_AVAILABILITY.*`.
 
 ## Application Pipeline Generation [2026-04-04]
 
@@ -128,15 +132,11 @@ Engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
 - **Removed dead params**: `buildVersion`, `buildPipeline`, `artifactsPath` no longer generated in release/deploy job YAML.
 - **Deploy preflight**: generated deploy step now resolves `templateFile` / `templateParametersFile` with PowerShell before ARM deployment, prints directory contents when files are missing, and can fall back to a single legacy `main.*.bicepparam` found in the parameters folder.
 - **Compiled deploy inputs**: release preflight compiles `.bicep` to `.json` and `.bicepparam` to `.parameters.json` with Azure CLI before invoking `AzureResourceManagerTemplateDeployment@3`. ARM task receives concrete JSON files instead of source Bicep inputs.
-- **CI artifact validation**: shared CI template validates that `Common/`, `<project>/`, and `<project>/main.bicep` exist in `$(Build.ArtifactStagingDirectory)` before publishing artifact `drop`.
-- **Legacy params autofix**: if a legacy artifact still contains `main.development.bicepparam` with `using 'main.bicep'` inside the `parameters/` folder, the generated release preflight rewrites that line to `using '../main.bicep'` in a temporary `.autofix.bicepparam` before running `az bicep build-params`.
+- **CI artifact validation**: shared CI template validates `Common/`, `<project>/`, and `<project>/main.bicep` exist before publishing `drop`.
 
 ## Path Sanitization [2026-04-21]
-
-- `PathSanitizer.Sanitize()` in `GenerationCore`: replaces spaces/underscores with dashes, strips invalid path chars (`[^\w\-.]`), collapses consecutive dashes, trims leading/trailing dashes.
-- Applied at engine entry points: `PipelineGenerationEngine.Generate()`, `PipelineGenerationEngine.GenerateSharedTemplates()`, `AppPipelineGenerationEngine.Generate()`, `MonoRepoBicepAssembler.Assemble()`, `MonoRepoPipelineAssembler.Assemble()`, `AppPipelineYamlHelper.AppendCiHeader()`.
-- Also applied in `GenerateProjectBicepCommandHandler` when building config request keys.
-- Effect: a config named `"My Config"` → folder `My-Config/`, pipeline source `My-Config-CI`, artifact paths `My-Config/main.bicep`.
+- `PathSanitizer.Sanitize()` in `GenerationCore`: spaces/underscores → dashes, strips invalid chars, collapses dashes. Applied at all generation engine entry points.
+- Effect: `"My Config"` → `My-Config/` in folders, pipeline sources, and artifact paths.
 
 ## Module Reference Disambiguation [2026-04-21]
 - Multiple resources can share the same `LogicalResourceName` (e.g., "ifs" for KeyVault, SqlDatabase, ContainerAppEnvironment, ApplicationInsights).
@@ -151,17 +151,10 @@ Engine `AppPipelineGenerationEngine` in `PipelineGeneration` project:
 - `ParameterFileAssembler.CoerceToOriginalType()` converts env-override strings to the C# type of the generator's default parameter value (`bool`, `int`, `long`, `double`) so `SerializeToBicep()` emits correct Bicep literals.
 
 ## Storage Companion dependsOn [2026-04-21]
-- `StorageAccountCompanionHelper.AppendStorageAccountCompanionModule()` now emits `dependsOn: [ {moduleName}Module ]` on every companion module (blobs, queues, tables).
-- Prevents ARM deployment race condition where the companion module (e.g. blob containers) deploys before the parent Storage Account exists, causing `Microsoft.Storage/storageAccounts/{name} not found`.
-- **Pitfall:** without coercion, `'false'` / `'0'` appear as quoted strings in `.bicepparam` → BCP033 type mismatch errors.
+- Companion modules (blobs, queues, tables) emit `dependsOn: [ {moduleName}Module ]` to prevent ARM race condition.
 
-## ContainerApp Env Vars Injection [2026-04-22]
-- `InjectContainerAppEnvVars` inserts `env: envVars` BEFORE `resources: {` (at container level), NOT after `memory:` (which is inside `ContainerResources`).
-- `ContainerResources` type only allows `cpu` and `memory` — placing `env` there triggers BCP037.
+## ContainerApp / CAE Pitfalls [2026-04-22]
+- `InjectContainerAppEnvVars`: insert `env: envVars` BEFORE `resources: {` (container level); `ContainerResources` only allows `cpu`/`memory` → BCP037.
+- CAE module: removed unused `sku`/`SkuName` param (plan determined by workload profiles, not a resource property).
 
-## ContainerAppEnvironment Module [2026-04-22]
-- Removed unused `sku` / `SkuName` parameter from module template (not part of ARM resource properties; plan determined by workload profiles).
-
-## Domain Enum → ARM Value Normalization [2026-04-22]
-- **Pitfall:** Domain `EnumValueObject` member names (e.g. `V12`) may not match ARM-accepted values (e.g. `12.0`). Generators must normalize via mapping switch.
-- `SqlServerTypeBicepGenerator.NormalizeSqlServerVersion()`: `V12` → `12.0`.
+## Bicepparam Type Coercion [2026-04-22]

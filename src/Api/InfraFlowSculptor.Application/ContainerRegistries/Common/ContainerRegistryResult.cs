@@ -12,5 +12,8 @@ public record ContainerRegistryResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<ContainerRegistryEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyList<ContainerRegistryEnvironmentConfigData> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

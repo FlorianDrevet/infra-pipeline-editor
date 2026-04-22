@@ -8,8 +8,8 @@
 ## Index status
 
 - **Repo indexé :** `infra-pipeline-editor`
-- **Dernière indexation connue :** 2026-04-03
-- **Stats :** 9 569 nœuds, 41 834 edges, 667 clusters, 300 flows
+- **Dernière indexation connue :** 2026-04-03 (⚠️ stale — abbreviation overrides, name availability, seed script, etc. added since)
+- **Stats :** 9 569 nœuds, 41 834 edges, 667 clusters, 300 flows (likely higher now)
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)
 
@@ -51,4 +51,4 @@
 
 ---
 
-*Dernière mise à jour : 2026-04-20 — Dream consolidation (dream cycle)*
+*Dernière mise à jour : 2026-04-22 — Dream consolidation (dream cycle)*

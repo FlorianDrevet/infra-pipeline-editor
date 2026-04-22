@@ -12,7 +12,8 @@ public record InfrastructureConfigReadModel(
     IReadOnlyList<CrossConfigReferenceReadModel> CrossConfigReferences,
     IReadOnlyDictionary<string, string> ProjectTags,
     IReadOnlyDictionary<string, string> ConfigTags,
-    string AppPipelineMode = "Isolated");
+    string AppPipelineMode = "Isolated",
+    IReadOnlyList<SecureParameterMappingReadModel>? SecureParameterMappings = null);
 
 public record ResourceGroupReadModel(
     Guid Id,
@@ -27,7 +28,8 @@ public record AzureResourceReadModel(
     string ResourceType,
     IReadOnlyDictionary<string, string> Properties,
     IReadOnlyList<ResourceEnvironmentConfigReadModel> EnvironmentConfigs,
-    string? AssignedUserAssignedIdentityName = null);
+    string? AssignedUserAssignedIdentityName = null,
+    bool IsExisting = false);
 
 public record ResourceEnvironmentConfigReadModel(
     string EnvironmentName,
@@ -111,3 +113,15 @@ public record CrossConfigReferenceReadModel(
     string TargetResourceType,
     string TargetResourceGroupName,
     string TargetResourceAbbreviation);
+
+/// <summary>
+/// Read model for a secure parameter mapping configured on an Azure resource.
+/// </summary>
+public record SecureParameterMappingReadModel(
+    Guid Id,
+    Guid ResourceId,
+    string ResourceName,
+    string SecureParameterName,
+    Guid? VariableGroupId,
+    string? VariableGroupName,
+    string? PipelineVariableName);

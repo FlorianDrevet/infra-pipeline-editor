@@ -168,6 +168,28 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+.existing-resource-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1.15rem;
+  margin-bottom: 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  background: rgba(255, 160, 0, 0.08);
+  border: 1px solid rgba(180, 83, 9, 0.22);
+  color: #92400e;
+
+  &__icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+  }
+}
+
 // ─── Tabs ────
 
 .resource-tabs {
@@ -2922,4 +2944,213 @@
     color: rgba(16, 52, 84, 0.6);
     font-style: italic;
   }
+}
+
+// ─── Secure Parameter Mapping (Password Config) ─────────────────────────────
+
+.secure-param-section {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #f8fbff 0%, #f0f6ff 100%);
+  border: 1px solid rgba(13, 101, 192, 0.12);
+}
+
+.form-section__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.form-section__icon {
+  color: #0d65c0;
+  font-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.form-section__description {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 1.25rem;
+  line-height: 1.5;
+}
+
+.password-mode-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.password-mode-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.password-mode-label {
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.password-mode-hint {
+  font-size: 0.85rem;
+  color: #888;
+  line-height: 1.4;
+}
+
+.vg-config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(13, 101, 192, 0.08);
+  margin-bottom: 1rem;
+}
+
+.vg-config-loading {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.vg-config-field {
+  width: 100%;
+}
+
+.vg-new-group-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.vg-scope-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.vg-scope-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #444;
+}
+
+.vg-scope-toggle {
+  ::ng-deep .mat-button-toggle-label-content {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+  }
+
+  ::ng-deep .mat-button-toggle {
+    mat-icon {
+      font-size: 1rem;
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}
+
+.vg-scope-hint {
+  font-size: 0.8rem;
+  color: #888;
+  font-style: italic;
+}
+
+.secure-param-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.save-password-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-spinner {
+  display: inline-flex;
+}
+
+.save-success-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #2e7d32;
+  font-size: 0.9rem;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in;
+
+  mat-icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+// ── Health Probes Section ──
+.health-probes-section {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  width: 100%;
+  grid-column: 1 / -1;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  &__icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #1565c0;
+  }
+
+  &__title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #103454;
+  }
+
+  &__desc {
+    font-size: 0.78rem;
+    color: #78909c;
+    margin: 0 0 0.75rem;
+    line-height: 1.4;
+  }
+}
+
+.health-probes-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  width: 100%;
+  align-items: start;
+}
+
+.probe-fields {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0.75rem;
+}
+
+.probe-field {
+  width: 100%;
 }

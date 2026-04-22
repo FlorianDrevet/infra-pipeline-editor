@@ -2,6 +2,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.Application.Common.Interfaces;
+using InfraFlowSculptor.Application.ResourceGroups.Common;
 
 namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 
@@ -39,9 +40,16 @@ public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggre
 
     /// <summary>
     /// Returns a mapping of resource IDs to their configured environment names,
-    /// by querying all typed environment settings TPT tables for resources in the given resource group.
+    /// by querying the <c>vw_ResourceEnvironmentEntries</c> view for resources in the given resource group.
     /// </summary>
     Task<Dictionary<Guid, List<string>>> GetConfiguredEnvironmentsByResourceGroupAsync(
+        ResourceGroupId resourceGroupId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns lightweight resource summaries (no TPT resolution) for all resources in the given resource group.
+    /// </summary>
+    Task<List<ResourceSummary>> GetResourceSummariesByGroupIdAsync(
         ResourceGroupId resourceGroupId,
         CancellationToken cancellationToken = default);
 

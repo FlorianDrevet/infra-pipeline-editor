@@ -12,4 +12,6 @@ public record SqlServerResult(
     Location Location,
     string Version,
     string AdministratorLogin,
-    IReadOnlyList<SqlServerEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyList<SqlServerEnvironmentConfigData> EnvironmentSettings,
+    bool IsExisting = false
+);

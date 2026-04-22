@@ -38,7 +38,8 @@ public sealed class CreateLogAnalyticsWorkspaceCommandHandler(
             request.Location,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName, ec.Sku, ec.RetentionInDays, ec.DailyQuotaGb))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await logAnalyticsWorkspaceRepository.AddAsync(logAnalyticsWorkspace);
 

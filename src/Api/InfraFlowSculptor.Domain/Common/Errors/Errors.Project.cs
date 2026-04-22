@@ -75,5 +75,13 @@ public static partial class Errors
         /// <summary>Returned when no abbreviation override exists for the given resource type.</summary>
         public static Error ResourceAbbreviationNotFoundError(string resourceType) =>
             Error.NotFound(code: "Project.ResourceAbbreviationNotFound", description: $"No abbreviation override exists for resource type '{resourceType}'.");
+
+        /// <summary>Returned when no generated bootstrap pipeline files exist for the given project.</summary>
+        public static Error BootstrapFilesNotFoundError(Guid projectId) =>
+            Error.NotFound(code: "Project.BootstrapFilesNotFound", description: $"No generated bootstrap pipeline files found for project '{projectId}'.");
+
+        /// <summary>Returned when a specific bootstrap pipeline file is not found in the latest generation.</summary>
+        public static Error BootstrapFileNotFoundError(string filePath) =>
+            Error.NotFound(code: "Project.BootstrapFileNotFound", description: $"Bootstrap file '{filePath}' was not found.");
     }
 }

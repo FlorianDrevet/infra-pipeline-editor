@@ -55,6 +55,12 @@
     }
 
     <!-- ─── Main Content Tabs ─── -->
+    @if (isExistingResource()) {
+      <div class="existing-resource-banner">
+        <mat-icon class="existing-resource-banner__icon">inventory</mat-icon>
+        <span>{{ 'RESOURCE_EDIT.EXISTING_RESOURCE_INFO' | translate }}</span>
+      </div>
+    }
     <mat-tab-group class="resource-tabs" animationDuration="200ms" [selectedIndex]="mainTabIndex()" (selectedIndexChange)="mainTabIndex.set($event)">
       <!-- General Tab -->
       <mat-tab>
@@ -75,14 +81,16 @@
                   <mat-label>{{ 'RESOURCE_EDIT.GENERAL.NAME' | translate }}</mat-label>
                   <input matInput formControlName="name" />
                 </mat-form-field>
-                <mat-form-field appearance="outline" class="form-field">
-                  <mat-label>{{ 'RESOURCE_EDIT.GENERAL.LOCATION' | translate }}</mat-label>
-                  <mat-select formControlName="location">
-                    @for (loc of locationOptions; track loc.value) {
-                      <mat-option [value]="loc.value">{{ loc.label }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
+                @if (!isExistingResource()) {
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.GENERAL.LOCATION' | translate }}</mat-label>
+                    <mat-select formControlName="location">
+                      @for (loc of locationOptions; track loc.value) {
+                        <mat-option [value]="loc.value">{{ loc.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                }
               </div>
 
               @if (isNameAvailabilityCheckEnabled()) {
@@ -125,6 +133,7 @@
               }
             </div>
 
+            @if (!isExistingResource()) {
             <!-- KeyVault-specific fields -->
             @if (resourceType === 'KeyVault') {
               <div class="form-section">
@@ -357,6 +366,116 @@
               </div>
             }
 
+            <!-- SqlServer Password Pipeline Configuration -->
+            @if (resourceType === 'SqlServer') {
+              <div class="form-section secure-param-section">
+                <div class="form-section__header">
+                  <mat-icon class="form-section__icon">lock</mat-icon>
+                  <h3 class="form-section__title">{{ 'RESOURCE_EDIT.SECURE_PARAM.TITLE' | translate }}</h3>
+                </div>
+                <p class="form-section__description">{{ 'RESOURCE_EDIT.SECURE_PARAM.DESCRIPTION' | translate }}</p>
+
+                <mat-radio-group [ngModel]="passwordMode()" (ngModelChange)="passwordMode.set($event)" [ngModelOptions]="{standalone: true}" class="password-mode-group">
+                  <mat-radio-button value="random" class="password-mode-option">
+                    <div class="password-mode-content">
+                      <span class="password-mode-label">{{ 'RESOURCE_EDIT.SECURE_PARAM.RANDOM' | translate }}</span>
+                      <span class="password-mode-hint">{{ 'RESOURCE_EDIT.SECURE_PARAM.RANDOM_HINT' | translate }}</span>
+                    </div>
+                  </mat-radio-button>
+                  <mat-radio-button value="variableGroup" class="password-mode-option">
+                    <div class="password-mode-content">
+                      <span class="password-mode-label">{{ 'RESOURCE_EDIT.SECURE_PARAM.FROM_VARIABLE_GROUP' | translate }}</span>
+                      <span class="password-mode-hint">{{ 'RESOURCE_EDIT.SECURE_PARAM.FROM_VARIABLE_GROUP_HINT' | translate }}</span>
+                    </div>
+                  </mat-radio-button>
+                </mat-radio-group>
+
+                @if (passwordMode() === 'variableGroup') {
+                  <div class="vg-config-section">
+                    @if (passwordVgLoading()) {
+                      <div class="vg-config-loading">
+                        <mat-spinner diameter="20"></mat-spinner>
+                      </div>
+                    } @else {
+                      <mat-form-field appearance="outline" class="vg-config-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.SECURE_PARAM.SELECT_VARIABLE_GROUP' | translate }}</mat-label>
+                        <mat-select [ngModel]="passwordSelectedVgId() ?? (passwordIsCreatingNewGroup() ? '__create_new__' : '')"
+                                    (ngModelChange)="onPasswordVgSelectionChange($event)"
+                                    [ngModelOptions]="{standalone: true}">
+                          @for (vg of passwordVgOptions(); track vg.id) {
+                            <mat-option [value]="vg.id">{{ vg.groupName }}</mat-option>
+                          }
+                          <mat-option value="__create_new__">
+                            <mat-icon>add</mat-icon>
+                            {{ 'RESOURCE_EDIT.SECURE_PARAM.CREATE_NEW_GROUP' | translate }}
+                          </mat-option>
+                        </mat-select>
+                      </mat-form-field>
+
+                      @if (passwordIsCreatingNewGroup()) {
+                        <div class="vg-new-group-fields">
+                          <mat-form-field appearance="outline" class="vg-config-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.SECURE_PARAM.NEW_GROUP_NAME' | translate }}</mat-label>
+                            <input matInput [ngModel]="passwordNewGroupName()" (ngModelChange)="passwordNewGroupName.set($event)"
+                                   [ngModelOptions]="{standalone: true}"
+                                   [placeholder]="'RESOURCE_EDIT.SECURE_PARAM.NEW_GROUP_NAME_PLACEHOLDER' | translate" />
+                          </mat-form-field>
+                          <div class="vg-scope-selector">
+                            <span class="vg-scope-label">{{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_LABEL' | translate }}</span>
+                            <mat-button-toggle-group [ngModel]="passwordNewGroupScope()" (ngModelChange)="passwordNewGroupScope.set($event)"
+                                                     [ngModelOptions]="{standalone: true}" class="vg-scope-toggle">
+                              <mat-button-toggle value="project">
+                                <mat-icon>folder_shared</mat-icon>
+                                {{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_PROJECT' | translate }}
+                              </mat-button-toggle>
+                              <mat-button-toggle value="configuration">
+                                <mat-icon>settings</mat-icon>
+                                {{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_CONFIGURATION' | translate }}
+                              </mat-button-toggle>
+                            </mat-button-toggle-group>
+                            <span class="vg-scope-hint">
+                              @if (passwordNewGroupScope() === 'project') {
+                                {{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_PROJECT_HINT' | translate }}
+                              } @else {
+                                {{ 'RESOURCE_EDIT.SECURE_PARAM.SCOPE_CONFIGURATION_HINT' | translate }}
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      }
+
+                      <mat-form-field appearance="outline" class="vg-config-field">
+                        <mat-label>{{ 'RESOURCE_EDIT.SECURE_PARAM.PIPELINE_VARIABLE_NAME' | translate }}</mat-label>
+                        <input matInput [ngModel]="passwordPipelineVariableName()" (ngModelChange)="passwordPipelineVariableName.set($event)"
+                               [ngModelOptions]="{standalone: true}"
+                               placeholder="SQL_ADMIN_PASSWORD" />
+                        <mat-hint>{{ 'RESOURCE_EDIT.SECURE_PARAM.PIPELINE_VARIABLE_NAME_HINT' | translate }}</mat-hint>
+                      </mat-form-field>
+                    }
+                  </div>
+                }
+
+                <div class="secure-param-actions">
+                  @if (hasPasswordConfigChanged()) {
+                    <button mat-flat-button color="primary" class="save-password-btn"
+                            [disabled]="!canSavePasswordConfig()"
+                            (click)="savePasswordConfig()">
+                      @if (passwordSaving()) {
+                        <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                      }
+                      {{ 'RESOURCE_EDIT.SECURE_PARAM.SAVE' | translate }}
+                    </button>
+                  }
+                  @if (passwordSaveSuccess()) {
+                    <span class="save-success-indicator">
+                      <mat-icon>check_circle</mat-icon>
+                      {{ 'RESOURCE_EDIT.SECURE_PARAM.SAVED' | translate }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
             <!-- StorageAccount-specific fields -->
             @if (resourceType === 'StorageAccount') {
               <div class="form-section">
@@ -417,13 +536,14 @@
                 </div>
               </div>
             }
+            }
 
           </form>
         </div>
       </mat-tab>
 
-      <!-- Environment Configuration Tab (hidden for UserAssignedIdentity) -->
-      @if (!isUserAssignedIdentity()) {
+      <!-- Environment Configuration Tab (hidden for UserAssignedIdentity and existing resources) -->
+      @if (!isUserAssignedIdentity() && !isExistingResource()) {
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">cloud_queue</mat-icon>
@@ -689,6 +809,74 @@
                         <mat-slide-toggle formControlName="ingressExternal" color="primary">
                           {{ 'RESOURCE_EDIT.FIELDS.INGRESS_EXTERNAL' | translate }}
                         </mat-slide-toggle>
+                      </div>
+
+                      <!-- Health Probes -->
+                      <div class="health-probes-section">
+                        <div class="health-probes-section__header">
+                          <mat-icon class="health-probes-section__icon">monitor_heart</mat-icon>
+                          <span class="health-probes-section__title">{{ 'RESOURCE_EDIT.FIELDS.HEALTH_PROBES_SECTION' | translate }}</span>
+                        </div>
+                        <p class="health-probes-section__desc">{{ 'RESOURCE_EDIT.FIELDS.HEALTH_PROBES_DESC' | translate }}</p>
+
+                        <div class="health-probes-cards">
+                          <app-toggle-section-card
+                            icon="check_circle"
+                            [title]="'RESOURCE_EDIT.FIELDS.READINESS_PROBE' | translate"
+                            [subtitle]="'RESOURCE_EDIT.FIELDS.READINESS_PROBE_DESC' | translate"
+                            [enabled]="!!currentEnv.form.get('readinessProbeEnabled')?.value"
+                            accentColor="#0288d1"
+                            (enabledChange)="onProbeToggle(selectedEnvIndex(), 'readiness', $event)">
+                            <div class="probe-fields">
+                              <mat-form-field appearance="outline" class="probe-field">
+                                <mat-label>{{ 'RESOURCE_EDIT.FIELDS.PROBE_PATH' | translate }}</mat-label>
+                                <input matInput formControlName="readinessProbePath" placeholder="/healthz/ready" />
+                              </mat-form-field>
+                              <mat-form-field appearance="outline" class="probe-field">
+                                <mat-label>{{ 'RESOURCE_EDIT.FIELDS.PROBE_PORT' | translate }}</mat-label>
+                                <input matInput type="number" formControlName="readinessProbePort" placeholder="8080" />
+                              </mat-form-field>
+                            </div>
+                          </app-toggle-section-card>
+
+                          <app-toggle-section-card
+                            icon="favorite"
+                            [title]="'RESOURCE_EDIT.FIELDS.LIVENESS_PROBE' | translate"
+                            [subtitle]="'RESOURCE_EDIT.FIELDS.LIVENESS_PROBE_DESC' | translate"
+                            [enabled]="!!currentEnv.form.get('livenessProbeEnabled')?.value"
+                            accentColor="#00acc1"
+                            (enabledChange)="onProbeToggle(selectedEnvIndex(), 'liveness', $event)">
+                            <div class="probe-fields">
+                              <mat-form-field appearance="outline" class="probe-field">
+                                <mat-label>{{ 'RESOURCE_EDIT.FIELDS.PROBE_PATH' | translate }}</mat-label>
+                                <input matInput formControlName="livenessProbePath" placeholder="/healthz/live" />
+                              </mat-form-field>
+                              <mat-form-field appearance="outline" class="probe-field">
+                                <mat-label>{{ 'RESOURCE_EDIT.FIELDS.PROBE_PORT' | translate }}</mat-label>
+                                <input matInput type="number" formControlName="livenessProbePort" placeholder="8080" />
+                              </mat-form-field>
+                            </div>
+                          </app-toggle-section-card>
+
+                          <app-toggle-section-card
+                            icon="rocket_launch"
+                            [title]="'RESOURCE_EDIT.FIELDS.STARTUP_PROBE' | translate"
+                            [subtitle]="'RESOURCE_EDIT.FIELDS.STARTUP_PROBE_DESC' | translate"
+                            [enabled]="!!currentEnv.form.get('startupProbeEnabled')?.value"
+                            accentColor="#1565c0"
+                            (enabledChange)="onProbeToggle(selectedEnvIndex(), 'startup', $event)">
+                            <div class="probe-fields">
+                              <mat-form-field appearance="outline" class="probe-field">
+                                <mat-label>{{ 'RESOURCE_EDIT.FIELDS.PROBE_PATH' | translate }}</mat-label>
+                                <input matInput formControlName="startupProbePath" placeholder="/healthz/startup" />
+                              </mat-form-field>
+                              <mat-form-field appearance="outline" class="probe-field">
+                                <mat-label>{{ 'RESOURCE_EDIT.FIELDS.PROBE_PORT' | translate }}</mat-label>
+                                <input matInput type="number" formControlName="startupProbePort" placeholder="8080" />
+                              </mat-form-field>
+                            </div>
+                          </app-toggle-section-card>
+                        </div>
                       </div>
                     }
                     @case ('LogAnalyticsWorkspace') {
@@ -2502,8 +2690,8 @@
         </mat-tab>
       }
 
-      <!-- App Pipeline Tab (WebApp / FunctionApp / ContainerApp only) -->
-      @if (supportsAppPipeline()) {
+      <!-- App Pipeline Tab (WebApp / FunctionApp / ContainerApp only, hidden for existing resources) -->
+      @if (supportsAppPipeline() && !isExistingResource()) {
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon class="tab-icon">terminal</mat-icon>

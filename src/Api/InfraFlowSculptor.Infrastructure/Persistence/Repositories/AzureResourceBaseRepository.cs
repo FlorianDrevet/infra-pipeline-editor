@@ -45,6 +45,16 @@ public class AzureResourceBaseRepository(ProjectDbContext context) : IAzureResou
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task<AzureResource?> GetByIdWithSecureParameterMappingsAsync(
+        AzureResourceId id,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.AzureResources
+            .Include(r => r.SecureParameterMappings)
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+    }
+
     public async Task<bool> ExistsAsync(
         AzureResourceId id,
         CancellationToken cancellationToken = default)

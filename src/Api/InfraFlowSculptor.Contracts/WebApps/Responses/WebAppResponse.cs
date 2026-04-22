@@ -36,5 +36,8 @@ public record WebAppResponse(
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
-    IReadOnlyList<WebAppEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<WebAppEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

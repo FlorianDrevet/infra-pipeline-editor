@@ -70,7 +70,8 @@ public sealed class CreateFunctionAppCommandHandler(
                     ec.HttpsOnly,
                     ec.MaxInstanceCount,
                     ec.DockerImageTag))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await functionAppRepository.AddAsync(functionApp);
 

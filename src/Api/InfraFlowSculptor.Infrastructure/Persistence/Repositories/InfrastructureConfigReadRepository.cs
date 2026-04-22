@@ -225,6 +225,12 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        // ── Load secure parameter mappings for all resources in this config ─
+        var secureParameterMappings = await dbContext.SecureParameterMappings
+            .Where(m => allResourceIds.Contains(m.ResourceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         // Build a flat lookup of all resources by ID across all resource groups
         var allResources = config.ResourceGroups
             .SelectMany(rg => rg.Resources.Select(r => (Resource: r, ResourceGroup: rg)))
@@ -282,7 +288,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                         assignedUaiName = uaiEntry.Resource.Name.Value;
                     }
 
-                    return readModel with { AssignedUserAssignedIdentityName = assignedUaiName };
+                    return readModel with { AssignedUserAssignedIdentityName = assignedUaiName, IsExisting = r.IsExisting };
                 })
                 .OfType<AzureResourceReadModel>()
                 .ToList();
@@ -434,6 +440,29 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var configTags = config.Tags
             .ToDictionary(t => t.Name, t => t.Value);
 
+        var secureParamReadModels = secureParameterMappings
+            .Select(m =>
+            {
+                if (!allResources.TryGetValue(m.ResourceId, out var owner))
+                    return null;
+
+                string? vgName = m.VariableGroupId is not null
+                    && varGroupLookup.TryGetValue(m.VariableGroupId, out var name)
+                        ? name
+                        : null;
+
+                return new SecureParameterMappingReadModel(
+                    Id: m.Id.Value,
+                    ResourceId: m.ResourceId.Value,
+                    ResourceName: owner.Resource.Name.Value,
+                    SecureParameterName: m.SecureParameterName,
+                    VariableGroupId: m.VariableGroupId?.Value,
+                    VariableGroupName: vgName,
+                    PipelineVariableName: m.PipelineVariableName);
+            })
+            .OfType<SecureParameterMappingReadModel>()
+            .ToList();
+
         return new InfrastructureConfigReadModel(
             config.Id.Value,
             config.Name.Value,
@@ -446,7 +475,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             crossConfigRefReadModels,
             projectTags,
             configTags,
-            config.AppPipelineMode.ToString());
+            config.AppPipelineMode.ToString(),
+            secureParamReadModels);
     }
 
     /// <summary>
