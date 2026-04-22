@@ -1,6 +1,7 @@
 - 2026-04-22 — Bootstrap Azure DevOps generation now emits ASCII-safe pipeline names (` - ` separator) and uses `az pipelines list` for idempotent pipeline existence checks before creation on Windows self-hosted agents.
 - 2026-04-22 — Bootstrap Azure DevOps pipeline creation now stops immediately when `az pipelines create` fails and documents the required Azure DevOps `Create build pipeline` permission on the target folder path for the Build Service identity.
 - 2026-04-22 — Release pipeline artifact sources now align with bootstrap-created CI pipeline names (`<ConfigName> - CI`), and bootstrap variable group provisioning now reuses full project variable usages so reruns add missing library variables for app settings, app configuration keys, and secure parameter mappings.
+- 2026-04-22 — Bootstrap variable-group provisioning now keeps the placeholder variable until at least one real variable exists, avoiding Azure DevOps failures when creating secret-only or temporarily empty libraries.
 # Changelog
 
 > Entries older than 60 days are pruned during dream consolidation.

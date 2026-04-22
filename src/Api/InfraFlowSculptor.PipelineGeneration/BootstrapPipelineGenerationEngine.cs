@@ -181,11 +181,6 @@ public sealed class BootstrapPipelineGenerationEngine
             sb.AppendLine($"{StepBodyIndent}    throw 'Unable to resolve variable group id after creation: {sanitizedGroupName}'");
             sb.AppendLine($"{StepBodyIndent}  }}");
             sb.AppendLine($"{StepBodyIndent}  $groupCreated = $true");
-
-            if (plainVars.Count == 0)
-            {
-                sb.AppendLine($"{StepBodyIndent}  $null = az pipelines variable-group variable delete --group-id $vgId --name PLACEHOLDER --yes --detect false 2>$null");
-            }
             sb.AppendLine($"{StepBodyIndent}}}");
             sb.AppendLine($"{StepBodyIndent}else {{");
             sb.AppendLine($"{StepBodyIndent}  $vgId = $existingId");
@@ -215,6 +210,11 @@ public sealed class BootstrapPipelineGenerationEngine
                 sb.AppendLine($"{StepBodyIndent}  $existingVariableNames += '{sanitizedVarName}'");
                 sb.AppendLine($"{StepBodyIndent}}}");
             }
+
+            sb.AppendLine($"{StepBodyIndent}if (($existingVariableNames -contains 'PLACEHOLDER') -and $existingVariableNames.Count -gt 1) {{");
+            sb.AppendLine($"{StepBodyIndent}  $null = az pipelines variable-group variable delete --group-id $vgId --name PLACEHOLDER --yes --detect false");
+            sb.AppendLine($"{StepBodyIndent}  $existingVariableNames = @($existingVariableNames | Where-Object {{ $_ -ne 'PLACEHOLDER' }})");
+            sb.AppendLine($"{StepBodyIndent}}}");
 
             sb.AppendLine($"{StepBodyIndent}if ($groupCreated) {{");
             sb.AppendLine($"{StepBodyIndent}  Write-Host ('Created variable group: {sanitizedGroupName} (ID: ' + $vgId + ')')");
