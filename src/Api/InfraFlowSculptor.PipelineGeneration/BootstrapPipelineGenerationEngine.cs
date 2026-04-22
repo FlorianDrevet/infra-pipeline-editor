@@ -163,10 +163,12 @@ public sealed class BootstrapPipelineGenerationEngine
             var variableTokens = plainVars.Count > 0
                 ? plainVars.Select(v => $"{v.Name}={v.Value}").ToList()
                 : ["PLACEHOLDER=bootstrap"];
+            var secretVars = group.Variables.Where(v => v.IsSecret).ToList();
 
             sb.AppendLine($"{StepIndent}- powershell: |");
             sb.AppendLine($"{StepBodyIndent}$ErrorActionPreference = 'Stop'");
             sb.AppendLine($"{StepBodyIndent}$existingId = az pipelines variable-group list --query \"[?name=='{sanitizedGroupName}'].id | [0]\" -o tsv --detect false 2>$null");
+            sb.AppendLine($"{StepBodyIndent}$groupCreated = $false");
             sb.AppendLine($"{StepBodyIndent}if ([string]::IsNullOrWhiteSpace($existingId)) {{");
             sb.Append($"{StepBodyIndent}  $null = az pipelines variable-group create --name '{sanitizedGroupName}' --variables");
             foreach (var token in variableTokens)
@@ -178,27 +180,49 @@ public sealed class BootstrapPipelineGenerationEngine
             sb.AppendLine($"{StepBodyIndent}  if ([string]::IsNullOrWhiteSpace($vgId)) {{");
             sb.AppendLine($"{StepBodyIndent}    throw 'Unable to resolve variable group id after creation: {sanitizedGroupName}'");
             sb.AppendLine($"{StepBodyIndent}  }}");
+            sb.AppendLine($"{StepBodyIndent}  $groupCreated = $true");
 
             if (plainVars.Count == 0)
             {
                 sb.AppendLine($"{StepBodyIndent}  $null = az pipelines variable-group variable delete --group-id $vgId --name PLACEHOLDER --yes --detect false 2>$null");
             }
-
-            var secretVars = group.Variables.Where(v => v.IsSecret).ToList();
-            if (secretVars.Count > 0)
-            {
-                foreach (var secretVar in secretVars)
-                {
-                    var sanitizedVarName = EscapeSingleQuotes(secretVar.Name);
-                    sb.AppendLine($"{StepBodyIndent}  $null = az pipelines variable-group variable create --group-id $vgId --name '{sanitizedVarName}' --value ' ' --secret true --detect false");
-                }
-            }
-
-            sb.AppendLine($"{StepBodyIndent}  Write-Host 'Created variable group: {sanitizedGroupName}'");
             sb.AppendLine($"{StepBodyIndent}}}");
             sb.AppendLine($"{StepBodyIndent}else {{");
-            sb.AppendLine($"{StepBodyIndent}  Write-Host ('Variable group already exists: {sanitizedGroupName} (ID: ' + $existingId + ')')");
+            sb.AppendLine($"{StepBodyIndent}  $vgId = $existingId");
             sb.AppendLine($"{StepBodyIndent}}}");
+            sb.AppendLine($"{StepBodyIndent}$existingVariablesJson = az pipelines variable-group variable list --group-id $vgId -o json --detect false");
+            sb.AppendLine($"{StepBodyIndent}$existingVariableNames = @()");
+            sb.AppendLine($"{StepBodyIndent}if (-not [string]::IsNullOrWhiteSpace($existingVariablesJson) -and $existingVariablesJson -ne '{{}}') {{");
+            sb.AppendLine($"{StepBodyIndent}  $existingVariables = $existingVariablesJson | ConvertFrom-Json");
+            sb.AppendLine($"{StepBodyIndent}  $existingVariableNames = @($existingVariables.PSObject.Properties.Name)");
+            sb.AppendLine($"{StepBodyIndent}}}");
+
+            foreach (var plainVar in plainVars)
+            {
+                var sanitizedVarName = EscapeSingleQuotes(plainVar.Name);
+                var sanitizedVarValue = EscapeSingleQuotes(plainVar.Value);
+                sb.AppendLine($"{StepBodyIndent}if (-not ($existingVariableNames -contains '{sanitizedVarName}')) {{");
+                sb.AppendLine($"{StepBodyIndent}  $null = az pipelines variable-group variable create --group-id $vgId --name '{sanitizedVarName}' --value '{sanitizedVarValue}' --detect false");
+                sb.AppendLine($"{StepBodyIndent}  $existingVariableNames += '{sanitizedVarName}'");
+                sb.AppendLine($"{StepBodyIndent}}}");
+            }
+
+            foreach (var secretVar in secretVars)
+            {
+                var sanitizedVarName = EscapeSingleQuotes(secretVar.Name);
+                sb.AppendLine($"{StepBodyIndent}if (-not ($existingVariableNames -contains '{sanitizedVarName}')) {{");
+                sb.AppendLine($"{StepBodyIndent}  $null = az pipelines variable-group variable create --group-id $vgId --name '{sanitizedVarName}' --value ' ' --secret true --detect false");
+                sb.AppendLine($"{StepBodyIndent}  $existingVariableNames += '{sanitizedVarName}'");
+                sb.AppendLine($"{StepBodyIndent}}}");
+            }
+
+            sb.AppendLine($"{StepBodyIndent}if ($groupCreated) {{");
+            sb.AppendLine($"{StepBodyIndent}  Write-Host ('Created variable group: {sanitizedGroupName} (ID: ' + $vgId + ')')");
+            sb.AppendLine($"{StepBodyIndent}}}");
+            sb.AppendLine($"{StepBodyIndent}else {{");
+            sb.AppendLine($"{StepBodyIndent}  Write-Host ('Variable group already exists: {sanitizedGroupName} (ID: ' + $vgId + ')')");
+            sb.AppendLine($"{StepBodyIndent}}}");
+            sb.AppendLine($"{StepBodyIndent}Write-Host ('Ensured variables for group {sanitizedGroupName}: ' + $existingVariableNames.Count)");
             sb.AppendLine($"{StepPropertyIndent}displayName: 'Create Variable Group: {sanitizedGroupName}'");
             sb.AppendLine($"{StepPropertyIndent}env:");
             sb.AppendLine($"{StepBodyIndent}AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)");

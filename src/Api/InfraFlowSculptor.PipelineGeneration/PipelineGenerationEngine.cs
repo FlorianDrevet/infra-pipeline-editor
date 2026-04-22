@@ -158,7 +158,7 @@ public sealed class PipelineGenerationEngine
         sb.AppendLine("resources:");
         sb.AppendLine("  pipelines:");
         sb.AppendLine("    - pipeline: ci");
-        sb.AppendLine($"      source: '{configName}-CI'");
+        sb.AppendLine($"      source: '{configName} - CI'");
         sb.AppendLine("      trigger: none");
         sb.AppendLine();
 
