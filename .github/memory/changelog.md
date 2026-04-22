@@ -9,6 +9,7 @@
 > Entries older than 60 days are pruned during dream consolidation.
 
 | Date | Author | Change |
+| 2026-04-22 | copilot | **Frontend favicon cache-busting** — Chrome kept showing the old Angular tab icon, so the frontend now references versioned assets (`ifs-favicon.svg`, `ifs-favicon.png`) from `src/Front/src/index.html`, and the legacy `src/Front/public/favicon.ico` was regenerated with the InfraFlowSculptor brand motif to cover implicit browser favicon requests. |
 | 2026-04-22 | copilot | **Frontend branded favicon** — Replaced the default Angular browser-tab icon with `src/Front/public/favicon.svg`, aligned with the login page blue/cyan gradient and infra-grid brand motif. `src/Front/src/index.html` now prefers the SVG favicon and keeps `favicon.ico` as fallback. |
 | 2026-04-22 | copilot | **Bootstrap Azure DevOps decode + naming fix** — `GenerateProjectBootstrapPipelineCommandHandler` now URL-decodes Azure DevOps organization/project/repository segments before passing them to the bootstrap generator, fixing CLI failures on project names containing spaces (`%20`). `BootstrapPipelineGenerationEngine` now emits explicit `stages/jobs` with readable display names and a clearer run name (`bootstrap-...`) for Azure DevOps UI. |
 | 2026-04-22 | copilot | **Bootstrap Azure DevOps configure fix** — removed unsupported `--detect false` from generated `az devops configure` in `BootstrapPipelineGenerationEngine`. The bootstrap keeps `--detect false` only on Azure DevOps CLI commands that support it (`az repos`, `az pipelines`, variable group commands). |

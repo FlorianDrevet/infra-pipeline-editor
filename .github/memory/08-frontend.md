@@ -40,7 +40,7 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 ```
 
 ## Branding Assets [2026-04-22]
-- Browser tab icon uses `public/favicon.svg`, referenced from `src/index.html`, with `favicon.ico` kept as legacy fallback.
+- Browser tab icon now uses versioned assets in `src/index.html` to break Chrome favicon cache: `public/ifs-favicon.svg` + `public/ifs-favicon.png`, with `public/favicon.ico` regenerated as legacy fallback.
 - The favicon follows the login page visual DNA: deep blue to cyan gradient + four-tile infra grid motif.
 
 ## Shared Components
