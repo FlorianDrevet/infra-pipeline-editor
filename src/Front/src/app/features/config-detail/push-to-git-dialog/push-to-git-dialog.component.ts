@@ -86,7 +86,12 @@ export class PushToGitDialogComponent implements OnInit {
   protected readonly filteredBranches = signal<string[]>([]);
   protected readonly branchesLoading = signal(true);
 
-  protected readonly branchControl = new FormControl(this.data.gitConfig.defaultBranch, Validators.required);
+  private readonly lastBranchKey = `ifs-push-branch-${this.data.projectId}`;
+
+  protected readonly branchControl = new FormControl(
+    localStorage.getItem(this.lastBranchKey) ?? this.data.gitConfig.defaultBranch,
+    Validators.required,
+  );
 
   protected readonly form = this.fb.group({
     branchName: this.branchControl,
@@ -144,6 +149,7 @@ export class PushToGitDialogComponent implements OnInit {
         : (this.isPipeline
           ? await this.pipelineService.pushToGit(this.data.configId, request)
           : await this.bicepService.pushToGit(this.data.configId, request));
+      localStorage.setItem(this.lastBranchKey, request.branchName);
       this.result.set(response);
       this.state.set('success');
     } catch (err: unknown) {
