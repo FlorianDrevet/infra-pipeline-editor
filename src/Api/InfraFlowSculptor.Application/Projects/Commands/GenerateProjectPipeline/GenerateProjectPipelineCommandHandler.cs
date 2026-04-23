@@ -222,7 +222,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
                     .Select(s => new PipelineVariableMappingDefinition
                     {
                         PipelineVariableName = s.PipelineVariableName!,
-                        BicepParameterName = s.Name,
+                        BicepParameterName = AppSettingPipelineParameterNameHelper.ResolveBicepParameterName(s),
                     })
                     .ToList();
 

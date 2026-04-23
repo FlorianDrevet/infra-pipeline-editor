@@ -59,7 +59,7 @@ public sealed class GeneratePipelineCommandHandler(
                     .Select(s => new PipelineVariableMappingDefinition
                     {
                         PipelineVariableName = s.PipelineVariableName!,
-                        BicepParameterName = s.Name,
+                        BicepParameterName = AppSettingPipelineParameterNameHelper.ResolveBicepParameterName(s),
                     })
                     .ToList();
 

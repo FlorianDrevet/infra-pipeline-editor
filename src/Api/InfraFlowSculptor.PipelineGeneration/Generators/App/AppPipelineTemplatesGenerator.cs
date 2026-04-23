@@ -664,7 +664,7 @@ internal static class AppPipelineTemplatesGenerator
         jobs:
           - deployment: Deploy_${{ parameters.envShortName }}
             displayName: 'Deploy ${{ parameters.resourceName }} to ${{ parameters.envName }}'
-            environment: ${{ parameters.envName }}
+            environment: ${{ parameters.envShortName }}
             strategy:
               runOnce:
                 deploy:
@@ -701,7 +701,7 @@ internal static class AppPipelineTemplatesGenerator
         jobs:
           - deployment: Deploy_${{ parameters.envShortName }}
             displayName: 'Deploy ${{ parameters.resourceName }} to ${{ parameters.envName }}'
-            environment: ${{ parameters.envName }}
+            environment: ${{ parameters.envShortName }}
             strategy:
               runOnce:
                 deploy:
