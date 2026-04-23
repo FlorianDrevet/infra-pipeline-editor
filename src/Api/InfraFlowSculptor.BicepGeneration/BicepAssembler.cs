@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using InfraFlowSculptor.BicepGeneration.Assemblers;
 using InfraFlowSculptor.BicepGeneration.Generators;
@@ -31,18 +32,19 @@ public static class BicepAssembler
         IReadOnlyDictionary<string, string>? configTags = null)
     {
         var hasRoleAssignments = roleAssignments.Count > 0;
+        var normalizedModules = NormalizePrimaryModuleFileNames(modules);
 
         var typesBicep = TypesBicepAssembler.Generate(environments, hasRoleAssignments);
         var functionsBicep = FunctionsBicepAssembler.Generate(namingContext);
         var constantsBicep = hasRoleAssignments ? ConstantsBicepAssembler.Generate(roleAssignments) : string.Empty;
-        var main = MainBicepAssembler.Generate(modules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? [], projectTags, configTags);
+        var main = MainBicepAssembler.Generate(normalizedModules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? [], projectTags, configTags);
 
         var environmentParameterFiles = ParameterFileAssembler.GenerateEnvironmentParameterFiles(
-            modules, environments, resources, appSettings);
+            normalizedModules, environments, resources, appSettings);
 
         var moduleFiles = new Dictionary<string, string>();
 
-        foreach (var module in modules.DistinctBy(m => m.ModuleFileName))
+        foreach (var module in normalizedModules.DistinctBy(m => $"{m.ModuleFolderName}/{m.ModuleFileName}", StringComparer.OrdinalIgnoreCase))
         {
             var folder = module.ModuleFolderName;
             var bicepContentWithHeader = ModuleHeaderHelper.AddModuleHeader(
@@ -54,7 +56,10 @@ public static class BicepAssembler
 
             if (!string.IsNullOrEmpty(module.ModuleTypesBicepContent))
             {
-                moduleFiles[$"modules/{folder}/types.bicep"] = module.ModuleTypesBicepContent;
+                var typesPath = $"modules/{folder}/types.bicep";
+                moduleFiles[typesPath] = moduleFiles.TryGetValue(typesPath, out var existingTypes)
+                    ? ModuleHeaderHelper.MergeTypesContent(existingTypes, module.ModuleTypesBicepContent)
+                    : module.ModuleTypesBicepContent;
             }
 
             foreach (var companion in module.CompanionModules)
@@ -110,6 +115,58 @@ public static class BicepAssembler
             EnvironmentParameterFiles = environmentParameterFiles,
             ModuleFiles = moduleFiles
         };
+    }
+
+    /// <summary>
+    /// Disambiguates primary module file names when multiple resources would otherwise emit
+    /// different Bicep content to the same module path.
+    /// </summary>
+    private static IReadOnlyCollection<GeneratedTypeModule> NormalizePrimaryModuleFileNames(
+        IReadOnlyCollection<GeneratedTypeModule> modules)
+    {
+        var normalizedModules = new List<GeneratedTypeModule>(modules.Count);
+
+        foreach (var group in modules.GroupBy(m => $"{m.ModuleFolderName}/{m.ModuleFileName}", StringComparer.OrdinalIgnoreCase))
+        {
+            var groupedModules = group.ToList();
+            var distinctContents = groupedModules
+                .Select(m => m.ModuleBicepContent)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            if (distinctContents.Count <= 1)
+            {
+                normalizedModules.AddRange(groupedModules);
+                continue;
+            }
+
+            var representativeModule = groupedModules[0];
+            var fileNameByContent = distinctContents.ToDictionary(
+                content => content,
+                content => AppendContentHash(representativeModule.ModuleFileName, content),
+                StringComparer.Ordinal);
+
+            normalizedModules.AddRange(groupedModules.Select(module => module with
+            {
+                ModuleFileName = fileNameByContent[module.ModuleBicepContent]
+            }));
+        }
+
+        return normalizedModules;
+    }
+
+    private static string AppendContentHash(string moduleFileName, string content)
+    {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(content));
+        var hash = Convert.ToHexString(hashBytes)[..8].ToLowerInvariant();
+        const string suffix = ".module.bicep";
+
+        if (moduleFileName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+        {
+            return $"{moduleFileName[..^suffix.Length]}.{hash}{suffix}";
+        }
+
+        return $"{moduleFileName}.{hash}";
     }
 
     /// <summary>

@@ -1,4 +1,6 @@
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using InfraFlowSculptor.BicepGeneration.Assemblers;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
@@ -14,6 +16,8 @@ namespace InfraFlowSculptor.BicepGeneration;
 /// </summary>
 public static class MonoRepoBicepAssembler
 {
+    private static readonly Regex ModulePathPattern = new("'\\./(?<path>modules/[^']+)'", RegexOptions.Compiled);
+
     /// <summary>
     /// Assembles the complete mono-repo Bicep output from per-config generation results.
     /// </summary>
@@ -25,14 +29,22 @@ public static class MonoRepoBicepAssembler
     {
         var commonFiles = new Dictionary<string, string>();
         var configFiles = new Dictionary<string, IReadOnlyDictionary<string, string>>();
+        var commonModulePathMaps = BuildCommonModulePathMaps(perConfigResults);
 
         // ── Collect all unique modules into Common ──────────────────────────
-        foreach (var (_, result) in perConfigResults)
+        foreach (var (configName, result) in perConfigResults)
         {
             foreach (var (path, content) in result.ModuleFiles)
             {
-                // Deduplicate: same module path = same content across configs
-                commonFiles.TryAdd(path, content);
+                var normalizedPath = commonModulePathMaps[configName][path];
+
+                // Deduplicate identical module paths and merge folder-level types when configs contribute extras.
+                if (!commonFiles.TryAdd(normalizedPath, content)
+                    && normalizedPath.EndsWith("/types.bicep", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(commonFiles[normalizedPath], content, StringComparison.Ordinal))
+                {
+                    commonFiles[normalizedPath] = ModuleHeaderHelper.MergeTypesContent(commonFiles[normalizedPath], content);
+                }
             }
         }
 
@@ -67,7 +79,7 @@ public static class MonoRepoBicepAssembler
             var files = new Dictionary<string, string>();
 
             // Rewrite main.bicep to reference Common modules via relative path
-            var rewrittenMain = RewriteMainBicepForMonoRepo(result.MainBicep);
+            var rewrittenMain = RewriteMainBicepForMonoRepo(result.MainBicep, commonModulePathMaps[configName]);
             files["main.bicep"] = rewrittenMain;
 
             // Parameter files go under parameters/
@@ -90,7 +102,9 @@ public static class MonoRepoBicepAssembler
     /// Rewrites <c>main.bicep</c> module references from <c>./modules/...</c> to <c>../Common/modules/...</c>
     /// and shared file imports from <c>types.bicep</c> etc. to <c>../Common/types.bicep</c> etc.
     /// </summary>
-    private static string RewriteMainBicepForMonoRepo(string mainBicep)
+    private static string RewriteMainBicepForMonoRepo(
+        string mainBicep,
+        IReadOnlyDictionary<string, string> commonModulePathMap)
     {
         var sb = new StringBuilder(mainBicep.Length);
 
@@ -98,10 +112,17 @@ public static class MonoRepoBicepAssembler
         {
             var trimmed = line.TrimEnd('\r');
 
-            // Rewrite module path references:  './modules/...' → '../Common/modules/...'
-            if (trimmed.Contains("'./modules/"))
+            // Rewrite module path references: './modules/...' → '../Common/modules/...',
+            // disambiguating per-config paths when Common contains hashed variants.
+            var modulePathMatch = ModulePathPattern.Match(trimmed);
+            if (modulePathMatch.Success)
             {
-                trimmed = trimmed.Replace("'./modules/", "'../Common/modules/");
+                var originalPath = modulePathMatch.Groups["path"].Value;
+                var commonPath = commonModulePathMap.TryGetValue(originalPath, out var normalizedPath)
+                    ? normalizedPath
+                    : originalPath;
+
+                trimmed = trimmed.Replace($"'./{originalPath}'", $"'../Common/{commonPath}'");
             }
 
             // Rewrite import references:
@@ -125,5 +146,80 @@ public static class MonoRepoBicepAssembler
         }
 
         return sb.ToString();
+    }
+
+    private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> BuildCommonModulePathMaps(
+        IReadOnlyDictionary<string, GenerationResult> perConfigResults)
+    {
+        var commonPathMaps = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+        var moduleEntries = perConfigResults
+            .SelectMany(kv => kv.Value.ModuleFiles.Select(module => new
+            {
+                ConfigName = kv.Key,
+                Path = module.Key,
+                Content = module.Value,
+            }))
+            .ToList();
+
+        foreach (var configName in perConfigResults.Keys)
+        {
+            commonPathMaps[configName] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        foreach (var group in moduleEntries.GroupBy(entry => entry.Path, StringComparer.OrdinalIgnoreCase))
+        {
+            var groupedEntries = group.ToList();
+
+            if (group.Key.EndsWith("/types.bicep", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (var entry in groupedEntries)
+                {
+                    ((Dictionary<string, string>)commonPathMaps[entry.ConfigName])[entry.Path] = entry.Path;
+                }
+
+                continue;
+            }
+
+            var distinctContents = groupedEntries
+                .Select(entry => entry.Content)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            if (distinctContents.Count <= 1)
+            {
+                foreach (var entry in groupedEntries)
+                {
+                    ((Dictionary<string, string>)commonPathMaps[entry.ConfigName])[entry.Path] = entry.Path;
+                }
+
+                continue;
+            }
+
+            var normalizedPathByContent = distinctContents.ToDictionary(
+                content => content,
+                content => AppendContentHashToPath(group.Key, content),
+                StringComparer.Ordinal);
+
+            foreach (var entry in groupedEntries)
+            {
+                ((Dictionary<string, string>)commonPathMaps[entry.ConfigName])[entry.Path] = normalizedPathByContent[entry.Content];
+            }
+        }
+
+        return commonPathMaps;
+    }
+
+    private static string AppendContentHashToPath(string modulePath, string content)
+    {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(content));
+        var hash = Convert.ToHexString(hashBytes)[..8].ToLowerInvariant();
+        const string suffix = ".module.bicep";
+
+        if (modulePath.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+        {
+            return $"{modulePath[..^suffix.Length]}.{hash}{suffix}";
+        }
+
+        return $"{modulePath}.{hash}";
     }
 }

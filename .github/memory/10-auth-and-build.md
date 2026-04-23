@@ -19,6 +19,18 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 npm install; npm run start; npm run build; npm run typecheck
 ```
 
+## App Pipeline Shared Templates
+
+- App pipelines now use **shared YAML templates** (`extends:` pattern) like infra pipelines
+- Shared templates are generated under `apps/.templates/pipelines/` by `AppPipelineSharedTemplateGenerator`
+- 4 templates: `app-ci-container`, `app-ci-code`, `app-release-container`, `app-release-code`
+- Per-resource files are thin wrappers (~30 lines) with `extends: template:` + parameters
+- Template parameters handle all variation: resourceType, acrAuthMode, enableSecurityScans, runtimeStack, etc.
+- Conditional logic uses Azure DevOps `${{ if }}` expressions inside templates
+- The `environments` parameter is an object array with `shortName`, `name`, `variablesPath`, `variableGroups` per env
+- Both `GenerateIsolated` and `GenerateCombined` modes emit shared templates alongside per-resource wrappers
+- Dead code: `AppPipelineBuilderCommon` retains unused inline YAML methods (AppendCiHeader, AppendSdkSetupStep, etc.) — safe to clean up
+
 ## Windows PowerShell Notes
 
 - Audit PowerShell scripts under `scripts/` must read their `.sh` source files with `Get-Content -Encoding UTF8` to avoid mojibake such as `SÃ©vÃ©ritÃ©` when launched from `cmd` via `powershell.exe` 5.1.
@@ -30,6 +42,8 @@ npm install; npm run start; npm run build; npm run typecheck
 - Bootstrap Azure DevOps pipeline creation via `$(System.AccessToken)` also depends on Azure DevOps folder security: the project Build Service identity needs the `Create build pipeline` permission on the target path (for example `\Core`). The generated bootstrap YAML now fails fast if `az pipelines create` returns a non-zero exit code, instead of logging a false `Created pipeline` success message.
 - Release pipelines now resolve their CI artifact source with the same display-name format as bootstrap-created definitions (`<ConfigName> - CI`). The bootstrap generator also derives variable-group entries from full project variable usages (app settings, secure parameter mappings, app configuration keys) and ensures missing variables are added even when the Azure DevOps library already exists.
 - When bootstrap must create a variable group without any plain variables, it seeds the group with `PLACEHOLDER=bootstrap`, adds real plain/secret variables afterward, and only deletes `PLACEHOLDER` if another variable now exists. Deleting the placeholder too early causes Azure DevOps to reject the library with `Variable group must have at least one variable defined.`
+- Project bootstrap now also creates Azure DevOps environments matching the project environment `shortName` values used by generated deployment jobs. The generated environment description keeps the human-readable environment name plus the app-side `RequiresApproval` flag, but Azure DevOps approval checks still need explicit users or groups, so approvers must be assigned manually after bootstrap.
+- Creating those environments requires the bootstrap Build Service identity to have Azure DevOps Environments `Creator` rights at project level, either directly or inherited from broader roles such as Build Administrators / Project Administrators. Operators who add or edit Approval checks afterward need an environment role that can manage checks.
 - App pipeline file generators must return filenames relative to the application folder only (`ci.app-pipeline.yml`, `release.app-pipeline.yml`). `AppPipelineGenerationEngine.GenerateAll()` is the single owner of the `apps/{appName}/...` prefix; otherwise isolated generation produces duplicated paths such as `apps/ifs-api/ifs-api/...`.
 - Generated app delivery pipelines now follow a strict CI/release split: `ci.app-pipeline.yml` builds once and publishes immutable metadata, while `release.app-pipeline.yml` consumes the CI definition through `resources.pipelines`, deploys sequential `deployment` jobs per environment, and never rebuilds artifacts.
 - Container delivery now uses immutable tags derived from build number plus short SHA, publishes an `app-metadata` artifact, and promotes images across per-environment ACRs with `az acr import` by default (`AppPipelinePromotionStrategy.AcrImport`). The generator no longer emits `latest` tags.

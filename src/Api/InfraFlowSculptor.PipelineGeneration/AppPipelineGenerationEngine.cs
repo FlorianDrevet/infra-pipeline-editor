@@ -3,6 +3,7 @@ using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Generators;
+using InfraFlowSculptor.PipelineGeneration.Generators.App;
 
 namespace InfraFlowSculptor.PipelineGeneration;
 
@@ -88,12 +89,19 @@ public sealed class AppPipelineGenerationEngine
 
     /// <summary>
     /// Generates isolated per-resource pipelines, each under apps/{appName}/.
+    /// Includes shared pipeline templates under apps/.templates/.
     /// </summary>
     private AppPipelineGenerationResult GenerateIsolated(
         IReadOnlyList<AppPipelineGenerationRequest> requests,
         string configName)
     {
         var mergedFiles = new Dictionary<string, string>();
+
+        // Generate shared templates (once, shared by all resources)
+        foreach (var (path, content) in AppPipelineSharedTemplateGenerator.GenerateAll())
+        {
+            mergedFiles[$"apps/.templates/{path}"] = content;
+        }
 
         foreach (var request in requests)
         {
@@ -111,6 +119,7 @@ public sealed class AppPipelineGenerationEngine
 
     /// <summary>
     /// Generates a single combined CI + release pipeline with parallel jobs per resource.
+    /// Includes shared pipeline templates under apps/.templates/.
     /// </summary>
     private AppPipelineGenerationResult GenerateCombined(
         IReadOnlyList<AppPipelineGenerationRequest> requests,
@@ -118,8 +127,13 @@ public sealed class AppPipelineGenerationEngine
     {
         configName = PathSanitizer.Sanitize(configName);
 
-        // For combined mode, generate per-resource then merge under a single directory
         var mergedFiles = new Dictionary<string, string>();
+
+        // Generate shared templates (once, shared by all resources)
+        foreach (var (path, content) in AppPipelineSharedTemplateGenerator.GenerateAll())
+        {
+            mergedFiles[$"apps/.templates/{path}"] = content;
+        }
 
         foreach (var request in requests)
         {

@@ -75,6 +75,14 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
  - `ContainerApp`, `WebApp`, and `FunctionApp` variants with incompatible parameter surfaces must use distinct `GeneratedTypeModule.ModuleFileName` values (for example base vs ACR-managed-identity vs ACR-admin-credentials). `BicepAssembler` deduplicates emitted module files by file name, so sharing one file name across variants can make `main.bicep` pass params that the surviving module file does not declare, leading to BCP037.
  - `MainBicepAssembler` must import naming functions referenced only by cross-config existing resources or role-assignment targets, and must declare `existing_{resourceGroup}` scopes for cross-config role assignments even when no `ExistingResourceReference` directly targets that resource group. This prevents BCP057 on missing symbols such as `BuildContainerRegistryName` or undeclared RG identifiers.
 
+## Module Content Disambiguation [2026-04-23]
+- `BicepAssembler` must disambiguate module file names by final `ModuleBicepContent`, not just by logical variant file name. Resource-specific injections like managed identity, app settings, or exported outputs can change the final parameter surface even when `ModuleFileName` starts identical.
+- `MonoRepoBicepAssembler` must perform the same content-based disambiguation across configurations when populating `Common/modules/...`, and rewrite each config `main.bicep` to the normalized Common path. Otherwise one config can reuse another config's incompatible module file and trigger BCP037 on params such as `identityType` or `userAssignedIdentityFrontendId`.
+- Folder-level `modules/{ResourceType}/types.bicep` must be merged, not first-wins or last-wins, because identity parameterization can append exported types like `ManagedIdentityType` only for some configs.
+
+## Resource-Level Identity Injection [2026-04-23]
+- `BicepGenerationEngine` identity injection must detect only the resource-root `identity:` block. Nested properties such as Container App ACR registry entries also use an `identity:` field; treating those as an existing resource identity prevents injection of the actual managed-identity block and causes mixed-identity modules to miss `identityType` / UAI params.
+
 ## Output Injection Symbol Validation [2026-04-21]
 - `InjectOutputDeclarations` validates that the root symbol referenced by an output exists in the target module before injection.
 - `ExtractRootSymbol()` handles both direct identifiers and interpolated strings, preventing BCP057 errors when the catalog points at the wrong module type.

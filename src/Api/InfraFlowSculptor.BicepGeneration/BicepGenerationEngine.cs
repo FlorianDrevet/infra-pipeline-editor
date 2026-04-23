@@ -19,8 +19,8 @@ public sealed class BicepGenerationEngine
 
     // ── Compiled regex patterns for whitespace-tolerant Bicep template matching ──
     private static readonly Regex ResourceSymbolPattern = new(@"resource\s+(\w+)\s+'", RegexOptions.Compiled);
-    private static readonly Regex IdentityBlockPattern = new(@"^\s+identity\s*:", RegexOptions.Multiline | RegexOptions.Compiled);
-    private static readonly Regex PropertiesBlockPattern = new(@"^\s+properties\s*:", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex IdentityBlockPattern = new(@"^  identity\s*:", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex PropertiesBlockPattern = new(@"^  properties\s*:", RegexOptions.Multiline | RegexOptions.Compiled);
     private static readonly Regex OutputPrincipalIdPattern = new(@"^output\s+principalId\b", RegexOptions.Multiline | RegexOptions.Compiled);
     private static readonly Regex ParamIdentityTypePattern = new(@"^param\s+identityType\b", RegexOptions.Multiline | RegexOptions.Compiled);
     private static readonly Regex ParamTagsPattern = new(@"^param\s+tags\b", RegexOptions.Multiline | RegexOptions.Compiled);
