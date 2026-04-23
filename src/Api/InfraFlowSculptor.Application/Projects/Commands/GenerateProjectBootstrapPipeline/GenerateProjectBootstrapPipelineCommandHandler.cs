@@ -150,15 +150,15 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         return
         [
             new BootstrapPipelineDefinition(
-                Name: $"{configName} - CI",
+                Name: $"{sanitizedConfigName} - CI",
                 YamlPath: $"/{basePrefix}{sanitizedConfigName}/ci.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
             new BootstrapPipelineDefinition(
-                Name: $"{configName} - PR",
+                Name: $"{sanitizedConfigName} - PR",
                 YamlPath: $"/{basePrefix}{sanitizedConfigName}/pr.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
             new BootstrapPipelineDefinition(
-                Name: $"{configName} - Release",
+                Name: $"{sanitizedConfigName} - Release",
                 YamlPath: $"/{basePrefix}{sanitizedConfigName}/release.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
         ];
