@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -61,7 +62,7 @@ public sealed class PushPipelineToGitCommandHandler(
             TargetBranchName = command.BranchName,
             CommitMessage = command.CommitMessage,
             BasePath = gitConfig.PipelineBasePath,
-            Files = files,
+            Files = GeneratedPipelinePathNormalizer.Normalize(files),
         }, cancellationToken);
     }
 }

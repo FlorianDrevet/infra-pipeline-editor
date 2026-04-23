@@ -43,6 +43,7 @@ import { CosmosDbResponse, CosmosDbEnvironmentConfigEntry } from '../../shared/i
 import { ServiceBusNamespaceResponse, ServiceBusNamespaceEnvironmentConfigEntry } from '../../shared/interfaces/service-bus-namespace.interface';
 import { AcrAuthMode, ContainerRegistryResponse, ContainerRegistryEnvironmentConfigEntry } from '../../shared/interfaces/container-registry.interface';
 import { SqlServerResponse, SqlServerEnvironmentConfigEntry } from '../../shared/interfaces/sql-server.interface';
+import { SqlDatabaseResponse, SqlDatabaseEnvironmentConfigEntry } from '../../shared/interfaces/sql-database.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
@@ -56,6 +57,7 @@ import { CosmosDbService } from '../../shared/services/cosmos-db.service';
 import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
 import { ContainerRegistryService } from '../../shared/services/container-registry.service';
 import { SqlServerService } from '../../shared/services/sql-server.service';
+import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
 import { NameAvailabilityService } from '../../shared/services/name-availability.service';
 import { EnvironmentNameAvailabilityResponseItem } from '../../shared/interfaces/name-availability.interface';
@@ -102,7 +104,7 @@ interface KvMissingRoleEntry {
 }
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse | SqlServerResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse | SqlServerResponse | SqlDatabaseResponse;
 
 type CorsServiceKey = 'blob' | 'table';
 type CorsListField = 'allowedOrigins' | 'allowedHeaders' | 'exposedHeaders';
@@ -360,6 +362,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
   private readonly containerRegistryService = inject(ContainerRegistryService);
   private readonly sqlServerService = inject(SqlServerService);
+  private readonly sqlDatabaseService = inject(SqlDatabaseService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -1005,6 +1008,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return this.containerRegistryService.getById(this.resourceId);
       case 'SqlServer':
         return this.sqlServerService.getById(this.resourceId);
+      case 'SqlDatabase':
+        return this.sqlDatabaseService.getById(this.resourceId);
       default:
         throw new Error(`Unknown resource type: ${this.resourceType}`);
     }
@@ -1123,6 +1128,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       const sql = resource as SqlServerResponse;
       base['version'] = [sql.version, [Validators.required]];
       base['administratorLogin'] = [sql.administratorLogin, [Validators.required]];
+    } else if (this.resourceType === 'SqlDatabase') {
+      const db = resource as SqlDatabaseResponse;
+      base['sqlServerId'] = [db.sqlServerId, [Validators.required]];
+      base['collation'] = [db.collation];
     }
 
     this.generalForm = this.fb.group(base);
@@ -1324,6 +1333,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         const settings = sql.environmentSettings?.find(s => s.environmentName === envName);
         return this.fb.group({
           minimalTlsVersion: [settings?.minimalTlsVersion ?? null],
+        });
+      }
+      case 'SqlDatabase': {
+        const db = resource as SqlDatabaseResponse;
+        const settings = db.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          sku: [settings?.sku ?? null],
+          maxSizeGb: [settings?.maxSizeGb ?? null],
+          zoneRedundant: [settings?.zoneRedundant ?? null],
         });
       }
     }
@@ -1555,6 +1573,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             version: general.version,
             administratorLogin: general.administratorLogin,
             environmentSettings: this.buildSqlServerEnvSettings(),
+          });
+          break;
+        case 'SqlDatabase':
+          await this.sqlDatabaseService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            sqlServerId: general.sqlServerId,
+            collation: general.collation ?? 'SQL_Latin1_General_CP1_CI_AS',
+            environmentSettings: this.buildSqlDatabaseEnvSettings(),
           });
           break;
       }
@@ -1858,6 +1885,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           break;
         case 'ServiceBusNamespace':
           await this.serviceBusNamespaceService.delete(this.resourceId);
+          break;
+        case 'ContainerRegistry':
+          await this.containerRegistryService.delete(this.resourceId);
+          break;
+        case 'SqlServer':
+          await this.sqlServerService.delete(this.resourceId);
+          break;
+        case 'SqlDatabase':
+          await this.sqlDatabaseService.delete(this.resourceId);
           break;
       }
       this.router.navigate(['/config', this.configId]);
@@ -3420,6 +3456,18 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       return {
         environmentName: ef.envName,
         minimalTlsVersion: raw.minimalTlsVersion || null,
+      };
+    });
+  }
+
+  private buildSqlDatabaseEnvSettings(): SqlDatabaseEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        sku: raw.sku || null,
+        maxSizeGb: raw.maxSizeGb != null ? Number(raw.maxSizeGb) : null,
+        zoneRedundant: raw.zoneRedundant ?? null,
       };
     });
   }

@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -97,6 +98,6 @@ public sealed class PushProjectPipelineToGitCommandHandler(
         if (files.Count == 0)
             return Errors.Project.PipelineFilesNotFoundError(projectId);
 
-        return files;
+        return GeneratedPipelinePathNormalizer.Normalize(files);
     }
 }

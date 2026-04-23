@@ -21,8 +21,8 @@ public sealed class WebAppCodePipelineGenerator : IAppPipelineGenerator
     {
         var files = new Dictionary<string, string>
         {
-            [$"{request.ResourceName}/ci.app-pipeline.yml"] = GenerateCiPipeline(request),
-            [$"{request.ResourceName}/release.app-pipeline.yml"] = GenerateReleasePipeline(request),
+            ["ci.app-pipeline.yml"] = GenerateCiPipeline(request),
+            ["release.app-pipeline.yml"] = GenerateReleasePipeline(request),
         };
 
         return new AppPipelineGenerationResult { Files = files };

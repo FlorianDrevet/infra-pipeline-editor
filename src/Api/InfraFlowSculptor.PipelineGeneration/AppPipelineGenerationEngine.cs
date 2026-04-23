@@ -102,7 +102,7 @@ public sealed class AppPipelineGenerationEngine
 
             foreach (var (path, content) in result.Files)
             {
-                mergedFiles[$"apps/{appName}/{path}"] = content;
+                mergedFiles[BuildIsolatedOutputPath(appName, path)] = content;
             }
         }
 
@@ -128,10 +128,38 @@ public sealed class AppPipelineGenerationEngine
 
             foreach (var (path, content) in result.Files)
             {
-                mergedFiles[$"apps/{configName}/{appName}-{path}"] = content;
+                mergedFiles[BuildCombinedOutputPath(configName, appName, path)] = content;
             }
         }
 
         return new AppPipelineGenerationResult { Files = mergedFiles };
+    }
+
+    private static string BuildIsolatedOutputPath(string appName, string generatedPath)
+    {
+        var appRelativePath = TrimRedundantAppSegment(appName, generatedPath);
+        return $"apps/{appName}/{appRelativePath}";
+    }
+
+    private static string BuildCombinedOutputPath(string configName, string appName, string generatedPath)
+    {
+        var appRelativePath = TrimRedundantAppSegment(appName, generatedPath)
+            .Replace('/', '-');
+
+        return $"apps/{configName}/{appName}-{appRelativePath}";
+    }
+
+    private static string TrimRedundantAppSegment(string appName, string generatedPath)
+    {
+        var normalizedPath = generatedPath.TrimStart('/');
+        var separatorIndex = normalizedPath.IndexOf('/');
+        if (separatorIndex < 0)
+            return normalizedPath;
+
+        var firstSegment = normalizedPath[..separatorIndex];
+        if (!string.Equals(firstSegment, appName, StringComparison.OrdinalIgnoreCase))
+            return normalizedPath;
+
+        return normalizedPath[(separatorIndex + 1)..];
     }
 }

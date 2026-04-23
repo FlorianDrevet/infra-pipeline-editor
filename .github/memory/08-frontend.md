@@ -28,6 +28,7 @@
 - `LanguageService`: signal-based, localStorage persistence, fallback: persisted → navigator.language → 'fr'
 - Every component imports `TranslateModule`, uses `| translate` pipe
 - **PITFALL [2026-04-02]:** Dialog components under `resource-edit` use keys nested inside `RESOURCE_EDIT` — always use full path.
+- **PITFALL [2026-04-23]:** `DeploymentConfigComponent` resolves all ACR labels through `RESOURCE_EDIT.FIELDS.*`; if the `RESOURCE_EDIT` namespace is missing the `ACR_AUTH_MODE*` keys in one language file, the shared ACR assignment/auth UI renders raw translation keys.
 
 ## Auth (MSAL) [2026-03-17]
 - `@azure/msal-browser@^5` (no `@azure/msal-angular`)

@@ -482,6 +482,30 @@
               </div>
             }
 
+            <!-- SqlDatabase-specific fields -->
+            @if (resourceType === 'SqlDatabase') {
+              <div class="form-section">
+                <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SQL_SERVER' | translate }}</mat-label>
+                    <mat-select formControlName="sqlServerId">
+                      @for (res of allResources(); track res.id) {
+                        @if (res.resourceType === 'SqlServer') {
+                          <mat-option [value]="res.id">{{ res.name }}</mat-option>
+                        }
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>{{ 'RESOURCE_EDIT.FIELDS.COLLATION' | translate }}</mat-label>
+                    <input matInput formControlName="collation"
+                           placeholder="SQL_Latin1_General_CP1_CI_AS">
+                  </mat-form-field>
+                </div>
+              </div>
+            }
+
             <!-- StorageAccount-specific fields -->
             @if (resourceType === 'StorageAccount') {
               <div class="form-section">
@@ -1256,6 +1280,32 @@
                               }
                             </mat-select>
                           </mat-form-field>
+                        </div>
+                      </div>
+                    }
+                    @case ('SqlDatabase') {
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">storage</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.SQL_DATABASE_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.SQL_DATABASE_SECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                            <input matInput formControlName="sku"
+                                   [placeholder]="'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate">
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MAX_SIZE_GB' | translate }}</mat-label>
+                            <input matInput type="number" formControlName="maxSizeGb"
+                                   [placeholder]="'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate">
+                          </mat-form-field>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="zoneRedundant" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANT' | translate }}
+                            </mat-slide-toggle>
+                          </div>
                         </div>
                       </div>
                     }

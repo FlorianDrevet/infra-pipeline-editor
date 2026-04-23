@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -122,7 +123,12 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
             files[relativePath] = content;
         }
 
-        return files.Count == 0 ? notFoundErrorFactory(projectId) : files;
+        if (files.Count == 0)
+            return notFoundErrorFactory(projectId);
+
+        return string.Equals(artifactType, "pipeline", StringComparison.Ordinal)
+            ? GeneratedPipelinePathNormalizer.Normalize(files)
+            : files;
     }
 
     private static ErrorOr<MultiScopeGitPushRequest> BuildPushRequest(
