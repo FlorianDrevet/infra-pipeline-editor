@@ -3118,6 +3118,12 @@
   width: 100%;
   grid-column: 1 / -1;
 
+  &--first {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
   &__header {
     display: flex;
     align-items: center;

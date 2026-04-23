@@ -16,6 +16,7 @@ public record FunctionAppResult(
     bool HttpsOnly,
     string DeploymentMode,
     Guid? ContainerRegistryId,
+    string? AcrAuthMode,
     string? DockerImageName,
     string? DockerfilePath,
     string? SourceCodePath,

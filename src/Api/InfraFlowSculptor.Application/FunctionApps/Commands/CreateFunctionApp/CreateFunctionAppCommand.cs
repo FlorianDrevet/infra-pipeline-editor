@@ -17,6 +17,7 @@ public record CreateFunctionAppCommand(
     bool HttpsOnly,
     string DeploymentMode,
     Guid? ContainerRegistryId,
+    string? AcrAuthMode,
     string? DockerImageName,
     string? DockerfilePath = null,
     string? SourceCodePath = null,

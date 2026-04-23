@@ -750,6 +750,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["appServicePlanId"] = wa.AppServicePlanId.Value.ToString(),
                     ["deploymentMode"] = wa.DeploymentMode.Value.ToString(),
                     ["containerRegistryId"] = wa.ContainerRegistryId?.Value.ToString() ?? "",
+                    ["acrAuthMode"] = wa.AcrAuthMode?.Value.ToString() ?? "",
                     ["dockerImageName"] = wa.DockerImageName ?? ""
                 },
                 waSettings
@@ -769,6 +770,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["appServicePlanId"] = fa.AppServicePlanId.Value.ToString(),
                     ["deploymentMode"] = fa.DeploymentMode.Value.ToString(),
                     ["containerRegistryId"] = fa.ContainerRegistryId?.Value.ToString() ?? "",
+                    ["acrAuthMode"] = fa.AcrAuthMode?.Value.ToString() ?? "",
                     ["dockerImageName"] = fa.DockerImageName ?? ""
                 },
                 faSettings
@@ -813,6 +815,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 {
                     ["containerAppEnvironmentId"] = ca.ContainerAppEnvironmentId.Value.ToString(),
                     ["containerRegistryId"] = ca.ContainerRegistryId?.Value.ToString() ?? "",
+                    ["acrAuthMode"] = ca.AcrAuthMode?.Value.ToString() ?? "",
                     ["dockerImageName"] = ca.DockerImageName ?? ""
                 },
                 caSettings

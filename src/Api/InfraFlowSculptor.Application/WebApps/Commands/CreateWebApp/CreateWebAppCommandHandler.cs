@@ -61,6 +61,9 @@ public class CreateWebAppCommandHandler(
             request.HttpsOnly,
             deploymentMode,
             containerRegistryId,
+            !string.IsNullOrWhiteSpace(request.AcrAuthMode)
+                ? new AcrAuthMode(Enum.Parse<AcrAuthMode.AcrAuthModeType>(request.AcrAuthMode))
+                : null,
             request.DockerImageName,
             request.DockerfilePath,
             request.SourceCodePath,

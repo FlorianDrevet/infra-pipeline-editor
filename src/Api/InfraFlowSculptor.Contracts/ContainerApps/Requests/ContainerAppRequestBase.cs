@@ -23,6 +23,10 @@ public abstract class ContainerAppRequestBase
     [GuidValidation]
     public Guid? ContainerRegistryId { get; init; }
 
+    /// <summary>Optional authentication mode used to pull images from Azure Container Registry.</summary>
+    [EnumValidation(typeof(AcrAuthMode.AcrAuthModeType))]
+    public string? AcrAuthMode { get; init; }
+
     /// <summary>Optional base Docker image name (e.g., "myregistry.azurecr.io/myapp/api") without the tag.</summary>
     public string? DockerImageName { get; init; }
 

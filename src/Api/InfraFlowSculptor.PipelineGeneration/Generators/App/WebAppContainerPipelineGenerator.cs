@@ -33,12 +33,7 @@ public sealed class WebAppContainerPipelineGenerator : IAppPipelineGenerator
         var sb = new StringBuilder();
 
         AppPipelineYamlHelper.AppendCiHeader(sb, request.ResourceName, request.ConfigName, request.AgentPoolName);
-        AppPipelineYamlHelper.AppendContainerBuildStage(
-            sb,
-            request.ResourceName,
-            request.DockerfilePath,
-            request.DockerImageName,
-            request.ContainerRegistryName);
+        AppPipelineYamlHelper.AppendContainerBuildStage(sb, request);
 
         return sb.ToString();
     }
@@ -48,12 +43,7 @@ public sealed class WebAppContainerPipelineGenerator : IAppPipelineGenerator
         var sb = new StringBuilder();
 
         AppPipelineYamlHelper.AppendReleaseHeader(sb, request.ResourceName, request.AgentPoolName);
-        AppPipelineYamlHelper.AppendContainerBuildStage(
-            sb,
-            request.ResourceName,
-            request.DockerfilePath,
-            request.DockerImageName,
-            request.ContainerRegistryName);
+        AppPipelineYamlHelper.AppendContainerBuildStage(sb, request);
 
         AppPipelineYamlHelper.AppendWebAppContainerDeployStages(sb, request);
 

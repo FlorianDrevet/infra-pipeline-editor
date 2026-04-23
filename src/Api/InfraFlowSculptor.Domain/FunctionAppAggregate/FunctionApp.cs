@@ -35,6 +35,9 @@ public sealed class FunctionApp : AzureResource
     /// <summary>Gets the optional Container Registry identifier for container deployments.</summary>
     public AzureResourceId? ContainerRegistryId { get; private set; }
 
+    /// <summary>Gets the optional authentication mode used to pull images from Azure Container Registry.</summary>
+    public AcrAuthMode? AcrAuthMode { get; private set; }
+
     /// <summary>Gets the Docker image name for container deployments (e.g., "myapp/func").</summary>
     public string? DockerImageName { get; private set; }
 
@@ -68,6 +71,7 @@ public sealed class FunctionApp : AzureResource
         bool httpsOnly,
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
+        AcrAuthMode? acrAuthMode,
         string? dockerImageName,
         string? dockerfilePath,
         string? sourceCodePath,
@@ -86,6 +90,7 @@ public sealed class FunctionApp : AzureResource
         HttpsOnly = httpsOnly;
         DeploymentMode = deploymentMode;
         ContainerRegistryId = containerRegistryId;
+        AcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
         DockerImageName = dockerImageName;
         DockerfilePath = dockerfilePath;
         SourceCodePath = sourceCodePath;
@@ -150,6 +155,7 @@ public sealed class FunctionApp : AzureResource
         bool httpsOnly,
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
+        AcrAuthMode? acrAuthMode,
         string? dockerImageName,
         string? dockerfilePath = null,
         string? sourceCodePath = null,
@@ -171,6 +177,7 @@ public sealed class FunctionApp : AzureResource
             HttpsOnly = httpsOnly,
             DeploymentMode = deploymentMode,
             ContainerRegistryId = containerRegistryId,
+            AcrAuthMode = containerRegistryId is null ? null : acrAuthMode,
             DockerImageName = dockerImageName,
             DockerfilePath = dockerfilePath,
             SourceCodePath = sourceCodePath,

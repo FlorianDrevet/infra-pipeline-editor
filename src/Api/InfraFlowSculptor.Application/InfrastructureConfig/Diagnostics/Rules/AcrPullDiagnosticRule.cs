@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics.Rules;
@@ -15,6 +16,9 @@ public sealed class AcrPullDiagnosticRule : IDiagnosticRule
 
     /// <summary>The property key in <see cref="AzureResourceReadModel.Properties"/> that holds the container registry reference.</summary>
     private const string ContainerRegistryIdProperty = "containerRegistryId";
+
+    /// <summary>The property key in <see cref="AzureResourceReadModel.Properties"/> that holds the ACR authentication mode.</summary>
+    private const string AcrAuthModeProperty = "acrAuthMode";
 
     /// <summary>ARM resource types considered as container-capable compute resources.</summary>
     private static readonly HashSet<string> ContainerComputeTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -43,6 +47,15 @@ public sealed class AcrPullDiagnosticRule : IDiagnosticRule
             if (!resource.Properties.TryGetValue(ContainerRegistryIdProperty, out var acrIdString)
                 || string.IsNullOrWhiteSpace(acrIdString))
                 continue;
+
+            if (resource.Properties.TryGetValue(AcrAuthModeProperty, out var acrAuthMode)
+                && string.Equals(
+                    acrAuthMode,
+                    AcrAuthMode.AcrAuthModeType.AdminCredentials.ToString(),
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
 
             if (!Guid.TryParse(acrIdString, out var acrId))
                 continue;

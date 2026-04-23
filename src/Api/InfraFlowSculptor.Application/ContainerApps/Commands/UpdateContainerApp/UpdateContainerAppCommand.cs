@@ -13,6 +13,7 @@ public record UpdateContainerAppCommand(
     Location Location,
     Guid ContainerAppEnvironmentId,
     Guid? ContainerRegistryId,
+    string? AcrAuthMode = null,
     string? DockerImageName = null,
     string? DockerfilePath = null,
     string? ApplicationName = null,

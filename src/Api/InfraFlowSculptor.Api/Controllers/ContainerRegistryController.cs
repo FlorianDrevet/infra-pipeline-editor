@@ -124,12 +124,13 @@ public static class ContainerRegistryController
                 .WithTags("Container Registries");
 
             acrAccessGroup.MapGet("/{containerRegistryId:guid}",
-                    async ([FromRoute] Guid resourceId, [FromRoute] Guid containerRegistryId,
+                    async ([FromRoute] Guid resourceId, [FromRoute] Guid containerRegistryId, [FromQuery] string? acrAuthMode,
                         IMediator mediator, IMapper mapper) =>
                     {
                         var query = new CheckAcrPullAccessQuery(
                             new AzureResourceId(resourceId),
-                            new AzureResourceId(containerRegistryId));
+                            new AzureResourceId(containerRegistryId),
+                            acrAuthMode);
                         var result = await mediator.Send(query);
 
                         return result.Match(

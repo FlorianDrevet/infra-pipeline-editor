@@ -23,6 +23,9 @@ public sealed class ContainerApp : AzureResource
     /// <summary>Gets the optional Container Registry identifier for authenticated image pulls.</summary>
     public AzureResourceId? ContainerRegistryId { get; private set; }
 
+    /// <summary>Gets the optional authentication mode used to pull images from Azure Container Registry.</summary>
+    public AcrAuthMode? AcrAuthMode { get; private set; }
+
     /// <summary>Gets the optional base Docker image name (e.g., "myregistry.azurecr.io/myapp/api") without the tag.</summary>
     public string? DockerImageName { get; private set; }
 
@@ -47,10 +50,11 @@ public sealed class ContainerApp : AzureResource
     /// <param name="location">The new Azure region.</param>
     /// <param name="containerAppEnvironmentId">The identifier of the hosting Container App Environment.</param>
     /// <param name="containerRegistryId">The optional Container Registry identifier for authenticated image pulls.</param>
+    /// <param name="acrAuthMode">The optional authentication mode used to pull images from Azure Container Registry.</param>
     /// <param name="dockerImageName">The optional base Docker image name without the tag.</param>
     /// <param name="dockerfilePath">The optional relative path to the Dockerfile in the repository.</param>
     /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
-    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, string? dockerImageName, string? dockerfilePath, string? applicationName)
+    public void Update(Name name, Location location, AzureResourceId containerAppEnvironmentId, AzureResourceId? containerRegistryId, AcrAuthMode? acrAuthMode, string? dockerImageName, string? dockerfilePath, string? applicationName)
     {
         Name = name;
         Location = location;
@@ -60,6 +64,7 @@ public sealed class ContainerApp : AzureResource
 
         ContainerAppEnvironmentId = containerAppEnvironmentId;
         ContainerRegistryId = containerRegistryId;
+    AcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
         DockerImageName = dockerImageName;
         DockerfilePath = dockerfilePath;
         ApplicationName = applicationName;
@@ -131,17 +136,7 @@ public sealed class ContainerApp : AzureResource
     /// <param name="location">The Azure region.</param>
     /// <param name="containerAppEnvironmentId">The identifier of the hosting Container App Environment.</param>
     /// <param name="containerRegistryId">The optional Container Registry identifier for authenticated image pulls.</param>
-    /// <param name="dockerImageName">The optional base Docker image name without the tag.</param>
-    /// <param name="dockerfilePath">The optional relative path to the Dockerfile in the repository.</param>
-    /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
-    /// <summary>
-    /// Creates a new <see cref="ContainerApp"/> instance with a generated identifier.
-    /// </summary>
-    /// <param name="resourceGroupId">The parent resource group identifier.</param>
-    /// <param name="name">The display name.</param>
-    /// <param name="location">The Azure region.</param>
-    /// <param name="containerAppEnvironmentId">The identifier of the hosting Container App Environment.</param>
-    /// <param name="containerRegistryId">The optional Container Registry identifier for authenticated image pulls.</param>
+    /// <param name="acrAuthMode">The optional authentication mode used to pull images from Azure Container Registry.</param>
     /// <param name="dockerImageName">The optional base Docker image name without the tag.</param>
     /// <param name="dockerfilePath">The optional relative path to the Dockerfile in the repository.</param>
     /// <param name="applicationName">The optional user-friendly application name for pipeline display.</param>
@@ -153,6 +148,7 @@ public sealed class ContainerApp : AzureResource
         Location location,
         AzureResourceId containerAppEnvironmentId,
         AzureResourceId? containerRegistryId,
+        AcrAuthMode? acrAuthMode,
         string? dockerImageName = null,
         string? dockerfilePath = null,
         string? applicationName = null,
@@ -168,6 +164,7 @@ public sealed class ContainerApp : AzureResource
             IsExisting = isExisting,
             ContainerAppEnvironmentId = containerAppEnvironmentId,
             ContainerRegistryId = containerRegistryId,
+            AcrAuthMode = containerRegistryId is null ? null : acrAuthMode,
             DockerImageName = dockerImageName,
             DockerfilePath = dockerfilePath,
             ApplicationName = applicationName

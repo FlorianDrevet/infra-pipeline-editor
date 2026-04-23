@@ -4,6 +4,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ContainerApps.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using MapsterMapper;
 using MediatR;
 
@@ -46,6 +47,9 @@ public sealed class UpdateContainerAppCommandHandler(
         containerApp.Update(request.Name, request.Location, containerAppEnvironmentId,
             request.ContainerRegistryId.HasValue
                 ? new AzureResourceId(request.ContainerRegistryId.Value)
+                : null,
+            !string.IsNullOrWhiteSpace(request.AcrAuthMode)
+                ? new AcrAuthMode(Enum.Parse<AcrAuthMode.AcrAuthModeType>(request.AcrAuthMode))
                 : null,
             request.DockerImageName,
             request.DockerfilePath,

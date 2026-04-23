@@ -5,11 +5,14 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 
 /// <summary>
 /// Generates a Bicep module for Azure Container App (<c>Microsoft.App/containerApps</c>).
-/// Supports optional ACR integration with managed identity-based image pulling.
+/// Supports optional ACR integration with managed identity or admin credentials-based image pulling.
 /// </summary>
 public sealed class ContainerAppTypeBicepGenerator
     : IResourceTypeBicepGenerator
 {
+  private const string ManagedIdentityAcrAuthMode = "ManagedIdentity";
+  private const string AdminCredentialsAcrAuthMode = "AdminCredentials";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.ContainerApp;
@@ -22,6 +25,9 @@ public sealed class ContainerAppTypeBicepGenerator
     {
         var containerRegistryId = resource.Properties.GetValueOrDefault("containerRegistryId", "");
         var hasAcr = !string.IsNullOrEmpty(containerRegistryId);
+      var acrAuthMode = GetAcrAuthMode(resource.Properties);
+      var useAdminCredentials = hasAcr
+        && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
         var hasCustomDomains = resource.CustomDomains.Count > 0;
 
         var dockerImageName = resource.Properties.GetValueOrDefault("dockerImageName", "");
@@ -45,7 +51,10 @@ public sealed class ContainerAppTypeBicepGenerator
         if (hasAcr)
         {
             parameters["acrLoginServer"] = "";
+          if (!useAdminCredentials)
+          {
             parameters["acrManagedIdentityClientId"] = "";
+          }
         }
 
         if (hasCustomDomains)
@@ -58,10 +67,15 @@ public sealed class ContainerAppTypeBicepGenerator
             ModuleName = "containerApp",
             ModuleFileName = "containerApp",
             ModuleFolderName = "ContainerApp",
-            ModuleBicepContent = hasAcr ? ContainerAppWithAcrModuleTemplate : ContainerAppModuleTemplate,
+          ModuleBicepContent = hasAcr
+            ? useAdminCredentials
+              ? ContainerAppWithAcrAdminCredentialsModuleTemplate
+              : ContainerAppWithAcrManagedIdentityModuleTemplate
+            : ContainerAppModuleTemplate,
             ModuleTypesBicepContent = ContainerAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = parameters,
+          SecureParameters = useAdminCredentials ? ["acrPassword"] : [],
             ParameterTypeOverrides = new Dictionary<string, string>
             {
                 ["containerRuntime"] = "ContainerRuntimeConfig",
@@ -88,6 +102,14 @@ public sealed class ContainerAppTypeBicepGenerator
             }
         };
     }
+
+          private static string GetAcrAuthMode(IReadOnlyDictionary<string, string> properties)
+          {
+            var acrAuthMode = properties.GetValueOrDefault("acrAuthMode", string.Empty);
+            return string.IsNullOrWhiteSpace(acrAuthMode)
+              ? ManagedIdentityAcrAuthMode
+              : acrAuthMode;
+          }
 
     private const string ContainerAppTypesTemplate = """
         @export()
@@ -245,7 +267,7 @@ public sealed class ContainerAppTypeBicepGenerator
         output latestRevisionFqdn string = containerApp.properties.latestRevisionFqdn
         """;
 
-    private const string ContainerAppWithAcrModuleTemplate = """
+    private const string ContainerAppWithAcrManagedIdentityModuleTemplate = """
         import { ContainerRuntimeConfig, ScalingConfig, IngressConfig, HealthProbeConfig } from './types.bicep'
 
         @description('Azure region for the Container App')
@@ -293,6 +315,125 @@ public sealed class ContainerAppTypeBicepGenerator
                 {
                   server: acrLoginServer
                   identity: !empty(acrManagedIdentityClientId) ? acrManagedIdentityClientId : 'system'
+                }
+              ]
+              ingress: ingress.enabled ? {
+                external: ingress.external
+                targetPort: ingress.targetPort
+                transport: ingress.transportMethod
+                customDomains: !empty(customDomains) ? customDomainBindings : null
+              } : null
+            }
+            template: {
+              containers: [
+                {
+                  name: name
+                  image: containerRuntime.image
+                  resources: {
+                    cpu: json(containerRuntime.cpuCores)
+                    memory: containerRuntime.memoryGi
+                  }
+                  probes: union(
+                    !empty(healthProbes.readiness.path) && healthProbes.readiness.port > 0 ? [{
+                      type: 'Readiness'
+                      httpGet: {
+                        path: healthProbes.readiness.path
+                        port: healthProbes.readiness.port
+                      }
+                    }] : [],
+                    !empty(healthProbes.liveness.path) && healthProbes.liveness.port > 0 ? [{
+                      type: 'Liveness'
+                      httpGet: {
+                        path: healthProbes.liveness.path
+                        port: healthProbes.liveness.port
+                      }
+                    }] : [],
+                    !empty(healthProbes.startup.path) && healthProbes.startup.port > 0 ? [{
+                      type: 'Startup'
+                      httpGet: {
+                        path: healthProbes.startup.path
+                        port: healthProbes.startup.port
+                      }
+                    }] : []
+                  )
+                }
+              ]
+              scale: {
+                minReplicas: scaling.minReplicas
+                maxReplicas: scaling.maxReplicas
+              }
+            }
+          }
+        }
+
+        @description('The resource ID of the Container App')
+        output id string = containerApp.id
+
+        @description('The FQDN of the Container App')
+        output fqdn string = containerApp.properties.configuration.ingress != null ? containerApp.properties.configuration.ingress.fqdn : ''
+
+        @description('The latest revision FQDN of the Container App')
+        output latestRevisionFqdn string = containerApp.properties.latestRevisionFqdn
+        """;
+
+    private const string ContainerAppWithAcrAdminCredentialsModuleTemplate = """
+        import { ContainerRuntimeConfig, ScalingConfig, IngressConfig, HealthProbeConfig } from './types.bicep'
+
+        @description('Azure region for the Container App')
+        param location string
+
+        @description('Name of the Container App')
+        param name string
+
+        @description('Resource ID of the Container App Environment')
+        param containerAppEnvironmentId string
+
+        @description('Container runtime configuration')
+        param containerRuntime ContainerRuntimeConfig
+
+        @description('Scaling configuration')
+        param scaling ScalingConfig
+
+        @description('Ingress configuration')
+        param ingress IngressConfig
+
+        @description('Health probe configuration')
+        param healthProbes HealthProbeConfig
+
+        @description('ACR login server (e.g. myregistry.azurecr.io)')
+        param acrLoginServer string
+
+        @secure()
+        @description('Admin password for the Container Registry')
+        param acrPassword string
+
+        @description('Custom domain bindings for this Container App')
+        param customDomains array = []
+
+        var customDomainBindings = [for domain in customDomains: {
+          name: domain.domainName
+          bindingType: domain.bindingType
+        }]
+        var acrUsername = split(acrLoginServer, '.')[0]
+        var acrPasswordSecretName = 'acr-password'
+
+        resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+          name: name
+          location: location
+          properties: {
+            managedEnvironmentId: containerAppEnvironmentId
+            configuration: {
+              secrets: [
+                {
+                  name: acrPasswordSecretName
+                  value: acrPassword
+                }
+              ]
+              registries: [
+                {
+                  server: acrLoginServer
+                  username: acrUsername
+                  passwordSecretRef: acrPasswordSecretName
                 }
               ]
               ingress: ingress.enabled ? {

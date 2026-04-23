@@ -7,4 +7,5 @@ public record CheckAcrPullAccessResponse(
     string? MissingRoleName,
     string? AssignedUserAssignedIdentityId,
     string? AssignedUserAssignedIdentityName,
-    bool HasUserAssignedIdentity);
+    bool HasUserAssignedIdentity,
+    string? AcrAuthMode);

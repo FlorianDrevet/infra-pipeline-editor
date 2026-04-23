@@ -10,6 +10,7 @@ public record ContainerAppResponse(
     string Location,
     string ContainerAppEnvironmentId,
     string? ContainerRegistryId,
+    string? AcrAuthMode,
     string? DockerImageName,
     string? DockerfilePath,
     string? ApplicationName,

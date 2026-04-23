@@ -29,6 +29,7 @@ public sealed class ContainerAppMappingConfig : IRegister
                 src.Request.Location.Adapt<Location>(),
                 src.Request.ContainerAppEnvironmentId,
                 src.Request.ContainerRegistryId,
+                src.Request.AcrAuthMode,
                 src.Request.DockerImageName,
                 src.Request.DockerfilePath,
                 src.Request.ApplicationName,
@@ -56,7 +57,8 @@ public sealed class ContainerAppMappingConfig : IRegister
                     es.StartupProbePath,
                     es.StartupProbePort)).ToList())
             .Map(dest => dest.ContainerAppEnvironmentId, src => src.ContainerAppEnvironmentId.Value)
-            .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null);
+                    .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null)
+                    .Map(dest => dest.AcrAuthMode, src => src.AcrAuthMode != null ? src.AcrAuthMode.Value.ToString() : null);
 
         config.NewConfig<ContainerAppEnvironmentConfigData, ContainerAppEnvironmentConfigResponse>()
             .MapWith(src => new ContainerAppEnvironmentConfigResponse(

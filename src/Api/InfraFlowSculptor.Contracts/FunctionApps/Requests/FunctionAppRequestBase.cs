@@ -40,6 +40,10 @@ public abstract class FunctionAppRequestBase
     [GuidValidation]
     public Guid? ContainerRegistryId { get; init; }
 
+    /// <summary>Optional authentication mode used to pull images from Azure Container Registry.</summary>
+    [EnumValidation(typeof(AcrAuthMode.AcrAuthModeType))]
+    public string? AcrAuthMode { get; init; }
+
     /// <summary>Docker image name for container deployments (e.g., "myapp/func").</summary>
     public string? DockerImageName { get; init; }
 

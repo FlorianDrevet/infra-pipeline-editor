@@ -33,6 +33,9 @@ public class AppPipelineGenerationRequest
     /// <summary>Name of the ACR resource (e.g., "myregistry").</summary>
     public string? ContainerRegistryName { get; set; }
 
+    /// <summary>Authentication mode used for Azure Container Registry access.</summary>
+    public string? AcrAuthMode { get; set; }
+
     /// <summary>Runtime stack identifier (e.g., "DOTNETCORE", "NODE").</summary>
     public string? RuntimeStack { get; set; }
 

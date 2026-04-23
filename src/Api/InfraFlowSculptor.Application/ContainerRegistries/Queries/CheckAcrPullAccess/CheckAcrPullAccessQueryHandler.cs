@@ -4,6 +4,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.Common.AzureRoleDefinitions;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 
 namespace InfraFlowSculptor.Application.ContainerRegistries.Queries.CheckAcrPullAccess;
 
@@ -17,6 +18,18 @@ public sealed class CheckAcrPullAccessQueryHandler(
         CheckAcrPullAccessQuery request,
         CancellationToken cancellationToken)
     {
+        if (string.Equals(request.AcrAuthMode, AcrAuthMode.AcrAuthModeType.AdminCredentials.ToString(), StringComparison.OrdinalIgnoreCase))
+        {
+            return new CheckAcrPullAccessResult(
+                HasAccess: true,
+                MissingRoleDefinitionId: null,
+                MissingRoleName: null,
+                AssignedUserAssignedIdentityId: null,
+                AssignedUserAssignedIdentityName: null,
+                HasUserAssignedIdentity: false,
+                AcrAuthMode: AcrAuthMode.AcrAuthModeType.AdminCredentials.ToString());
+        }
+
         var resource = await azureResourceRepository.GetByIdWithRoleAssignmentsAsync(
             request.ResourceId, cancellationToken);
 
@@ -41,7 +54,8 @@ public sealed class CheckAcrPullAccessQueryHandler(
                 MissingRoleName: null,
                 AssignedUserAssignedIdentityId: uaiAcrPull.UserAssignedIdentityId!.Value.ToString(),
                 AssignedUserAssignedIdentityName: uaiResource?.Name.Value,
-                HasUserAssignedIdentity: true);
+                HasUserAssignedIdentity: true,
+                AcrAuthMode: request.AcrAuthMode);
         }
 
         // Look for any UAI-based role assignment targeting this container registry (but not AcrPull)
@@ -85,6 +99,7 @@ public sealed class CheckAcrPullAccessQueryHandler(
             MissingRoleName: "AcrPull",
             AssignedUserAssignedIdentityId: assignedUaiId,
             AssignedUserAssignedIdentityName: assignedUaiName,
-            HasUserAssignedIdentity: hasUai);
+            HasUserAssignedIdentity: hasUai,
+            AcrAuthMode: request.AcrAuthMode);
     }
 }

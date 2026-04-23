@@ -33,6 +33,7 @@ public sealed class FunctionAppMappingConfig : IRegister
                 src.Request.HttpsOnly,
                 src.Request.DeploymentMode,
                 src.Request.ContainerRegistryId,
+                src.Request.AcrAuthMode,
                 src.Request.DockerImageName,
                 src.Request.DockerfilePath,
                 src.Request.SourceCodePath,
@@ -53,7 +54,8 @@ public sealed class FunctionAppMappingConfig : IRegister
             .Map(dest => dest.RuntimeStack, src => src.RuntimeStack.Value.ToString())
             .Map(dest => dest.AppServicePlanId, src => src.AppServicePlanId.Value)
             .Map(dest => dest.DeploymentMode, src => src.DeploymentMode.Value.ToString())
-            .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null);
+                    .Map(dest => dest.ContainerRegistryId, src => src.ContainerRegistryId != null ? src.ContainerRegistryId.Value : (Guid?)null)
+                    .Map(dest => dest.AcrAuthMode, src => src.AcrAuthMode != null ? src.AcrAuthMode.Value.ToString() : null);
 
         config.NewConfig<FunctionAppEnvironmentConfigData, FunctionAppEnvironmentConfigResponse>()
             .MapWith(src => new FunctionAppEnvironmentConfigResponse(

@@ -292,6 +292,23 @@ Les migrations sont appliquées automatiquement au démarrage de l'application.
 
 ---
 
+## Read Models SQL Et Views Keyless
+
+Les lectures transverses sur les ressources Azure ne reposent plus uniquement sur des `Include()` TPT ou des unions reconstruites dans les handlers.
+
+- `ProjectDbContext` mappe maintenant deux surfaces de lecture keyless avec `HasNoKey()` + `ToView(...)` :
+    - `ResourceEnvironmentEntryView` -> `vw_ResourceEnvironmentEntries`
+    - `ChildToParentLinkView` -> `vw_ChildToParentLinks`
+- `ResourceGroupRepository` utilise ces views pour resoudre :
+    - les environnements configures par ressource ;
+    - les relations parent-enfant entre types de ressources ;
+    - des lectures legeres reutilisables sans dupliquer la logique TPT dans Application.
+- La liste plate des ressources d'un projet (`GET /projects/{id}/resources`) reste orchestree par `ListProjectResourcesQueryHandler`, mais s'inscrit dans cette meme strategie de separation entre orchestration applicative et read models de persistance.
+
+Voir [Lecture des ressources projet et views SQL](project-resource-queries.md) pour le detail complet du flux, des consumers et des points d'extension.
+
+---
+
 ## Pages connexes
 
 - [Unit of Work](unit-of-work.md) — Persistance atomique via le pipeline MediatR

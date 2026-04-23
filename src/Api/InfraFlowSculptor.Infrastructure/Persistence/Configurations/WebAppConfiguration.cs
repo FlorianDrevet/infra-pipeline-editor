@@ -52,6 +52,15 @@ public class WebAppConfiguration : IEntityTypeConfiguration<WebApp>
             .HasConversion(new IdValueConverter<AzureResourceId>())
             .IsRequired(false);
 
+        builder.Property(x => x.AcrAuthMode)
+            .HasConversion(
+                v => v == null ? null : v.Value.ToString(),
+                v => string.IsNullOrWhiteSpace(v)
+                    ? null
+                    : new AcrAuthMode(
+                        Enum.Parse<AcrAuthMode.AcrAuthModeType>(v)))
+            .IsRequired(false);
+
         builder.Property(x => x.DockerImageName)
             .IsRequired(false);
 

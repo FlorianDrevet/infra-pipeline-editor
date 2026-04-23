@@ -157,6 +157,10 @@ export class PushToGitDialogComponent implements OnInit {
       if (axios.isAxiosError(err) && err.response?.data) {
         const data = err.response.data as Record<string, unknown>;
         detail = (data['detail'] as string | undefined) ?? '';
+        if (!detail && Array.isArray(data['errors'])) {
+          const first = data['errors'][0] as Record<string, unknown> | undefined;
+          detail = (first?.['description'] as string | undefined) ?? '';
+        }
       }
       this.errorDetail.set(detail);
       this.errorKey.set('CONFIG_DETAIL.PUSH_TO_GIT.ERROR');

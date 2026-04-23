@@ -7,6 +7,7 @@ using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
+using Microsoft.Extensions.Logging;
 
 namespace InfraFlowSculptor.Infrastructure.Services.GitProviders;
 
@@ -14,7 +15,9 @@ namespace InfraFlowSculptor.Infrastructure.Services.GitProviders;
 /// Pushes files to an Azure DevOps Git repository using the REST API.
 /// Owner format: "{organization}/{project}".
 /// </summary>
-public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientFactory)
+public sealed class AzureDevOpsGitProviderService(
+    IHttpClientFactory httpClientFactory,
+    ILogger<AzureDevOpsGitProviderService> logger)
     : IGitProviderService, IGitMultiScopePushProviderService
 {
     private const string ApiVersion = "7.1";
@@ -202,6 +205,13 @@ public sealed class AzureDevOpsGitProviderService(IHttpClientFactory httpClientF
             if (!pushResponse.IsSuccessStatusCode)
             {
                 var body = await pushResponse.Content.ReadAsStringAsync(cancellationToken);
+                logger.LogWarning(
+                    "Azure DevOps push failed with {StatusCode}. Total changes: {ChangeCount}, files: {FileCount}, cleanup roots: [{CleanupRoots}]. Response: {Body}",
+                    pushResponse.StatusCode,
+                    changes.Count,
+                    pushData.FilesByPath.Count,
+                    string.Join(", ", pushData.CleanupRoots),
+                    body);
                 return Errors.GitRepository.PushFailed($"ADO API returned {pushResponse.StatusCode}: {body}");
             }
 
