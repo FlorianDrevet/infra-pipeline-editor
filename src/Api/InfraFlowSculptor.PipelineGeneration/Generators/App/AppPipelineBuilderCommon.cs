@@ -18,11 +18,18 @@ internal static class AppPipelineBuilderCommon
 
     private const string DefaultImageTagPattern = "{buildNumber}-{shortSha}";
 
+    /// <summary>
+    /// Resolves the path to environment variable files for use inside an app pipeline template.
+    /// Returned path is relative to the template file location (<c>.azuredevops/pipelines/</c>).
+    /// </summary>
+    /// <param name="envKey">The environment short name (lowercase).</param>
+    /// <param name="isMonoRepo">When <c>true</c>, env vars are at <c>.azuredevops/variables/</c>.
+    /// When <c>false</c>, env vars are at the standalone artifact root <c>variables/</c>.</param>
     internal static string GetEnvironmentVariablesPath(string envKey, bool isMonoRepo)
     {
         return isMonoRepo
-            ? $"../.azuredevops/variables/{envKey}.variables.yml"
-            : $"variables/{envKey}.yml";
+            ? $"../variables/{envKey}.variables.yml"
+            : $"../../variables/{envKey}.yml";
     }
 
     internal static EnvironmentDefinition? GetBuildSourceEnvironment(AppPipelineGenerationRequest request)

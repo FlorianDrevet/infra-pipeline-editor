@@ -8,11 +8,12 @@ using static PipelineGenerationEngine;
 
 /// <summary>
 /// Builds thin CI pipeline wrapper YAML files that reference shared templates via <c>extends:</c>.
+/// Wrappers live under <c>apps/{appName}/</c> and reference templates under <c>.azuredevops/pipelines/</c>.
 /// </summary>
 internal static class AppCiPipelineBuilder
 {
-    private const string ContainerTemplatePath = "../.templates/pipelines/app-ci-container.pipeline.yml";
-    private const string CodeTemplatePath = "../.templates/pipelines/app-ci-code.pipeline.yml";
+    private const string ContainerTemplatePath = "../../.azuredevops/pipelines/app-ci-container.pipeline.yml";
+    private const string CodeTemplatePath = "../../.azuredevops/pipelines/app-ci-code.pipeline.yml";
 
     internal static string BuildContainerPipeline(AppPipelineGenerationRequest request)
     {
@@ -24,7 +25,7 @@ internal static class AppCiPipelineBuilder
         var dockerfilePath = request.DockerfilePath ?? "Dockerfile";
         var buildContext = request.SourceCodePath ?? ".";
         var acrAuthMode = request.AcrAuthMode ?? "ServiceConnection";
-        var envVariablesPath = string.IsNullOrWhiteSpace(buildSourceEnvKey)
+        var buildSourceEnvVariablesPath = string.IsNullOrWhiteSpace(buildSourceEnvKey)
             ? string.Empty
             : AppPipelineBuilderCommon.GetEnvironmentVariablesPath(buildSourceEnvKey, request.IsMonoRepo);
 
@@ -35,6 +36,7 @@ internal static class AppCiPipelineBuilder
         sb.AppendLine("  parameters:");
         sb.AppendLine($"    resourceName: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.ResourceName)}'");
         sb.AppendLine($"    configName: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.ConfigName)}'");
+        sb.AppendLine($"    resourceType: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.ResourceType)}'");
         sb.AppendLine($"    imageRepository: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(imageRepository)}'");
         sb.AppendLine($"    imageTagPattern: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(imageTagPattern)}'");
         sb.AppendLine($"    dockerfilePath: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(dockerfilePath)}'");
@@ -43,9 +45,7 @@ internal static class AppCiPipelineBuilder
         sb.AppendLine($"    acrAuthMode: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(acrAuthMode)}'");
         sb.AppendLine($"    enableSecurityScans: {(request.EnableSecurityScans ? "true" : "false")}");
         sb.AppendLine($"    promotionStrategy: '{request.PromotionStrategy}'");
-        sb.AppendLine($"    resourceType: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.ResourceType)}'");
-        sb.AppendLine($"    buildSourceEnvKey: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(buildSourceEnvKey)}'");
-        sb.AppendLine($"    envVariablesPath: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(envVariablesPath)}'");
+        sb.AppendLine($"    buildSourceEnvVariablesPath: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(buildSourceEnvVariablesPath)}'");
         AppendVariableGroupsParameter(sb, buildSourceEnvKey, request);
         AppendAgentPoolParameter(sb, request.AgentPoolName);
 

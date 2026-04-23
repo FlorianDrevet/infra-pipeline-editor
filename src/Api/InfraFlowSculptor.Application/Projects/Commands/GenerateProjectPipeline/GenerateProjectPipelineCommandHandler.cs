@@ -123,6 +123,20 @@ public sealed class GenerateProjectPipelineCommandHandler(
             commonFileUris[$".azuredevops/{path}"] = uri;
         }
 
+        // Upload shared application pipeline templates (paths already include .azuredevops/ prefix)
+        var hasAppPipelines = assembled.ConfigFiles.Values
+            .Any(files => files.Keys.Any(p => p.StartsWith("apps/", StringComparison.Ordinal)));
+
+        if (hasAppPipelines)
+        {
+            foreach (var (path, content) in AppPipelineGenerationEngine.GenerateSharedTemplates())
+            {
+                var uri = await blobService.UploadContentAsync(
+                    $"{prefix}/{path}", content, "text/plain");
+                commonFileUris[path] = uri;
+            }
+        }
+
         var configFileUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>();
         foreach (var (configName, files) in assembled.ConfigFiles)
         {

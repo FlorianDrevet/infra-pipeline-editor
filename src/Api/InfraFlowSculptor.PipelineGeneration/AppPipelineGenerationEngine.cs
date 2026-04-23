@@ -88,20 +88,24 @@ public sealed class AppPipelineGenerationEngine
     }
 
     /// <summary>
-    /// Generates isolated per-resource pipelines, each under apps/{appName}/.
-    /// Includes shared pipeline templates under apps/.templates/.
+    /// Generates the shared application pipeline templates under <c>.azuredevops/{pipelines,jobs,steps}/</c>.
+    /// These templates are referenced by per-resource wrapper pipelines via <c>extends:</c>.
+    /// </summary>
+    /// <returns>Dictionary keyed by repository-relative path → YAML content.</returns>
+    public static IReadOnlyDictionary<string, string> GenerateSharedTemplates()
+    {
+        return AppPipelineTemplatesGenerator.GenerateAll();
+    }
+
+    /// <summary>
+    /// Generates isolated per-resource pipeline wrappers, each under apps/{appName}/.
+    /// Shared templates are emitted separately via <see cref="GenerateSharedTemplates"/>.
     /// </summary>
     private AppPipelineGenerationResult GenerateIsolated(
         IReadOnlyList<AppPipelineGenerationRequest> requests,
         string configName)
     {
         var mergedFiles = new Dictionary<string, string>();
-
-        // Generate shared templates (once, shared by all resources)
-        foreach (var (path, content) in AppPipelineSharedTemplateGenerator.GenerateAll())
-        {
-            mergedFiles[$"apps/.templates/{path}"] = content;
-        }
 
         foreach (var request in requests)
         {
@@ -118,8 +122,8 @@ public sealed class AppPipelineGenerationEngine
     }
 
     /// <summary>
-    /// Generates a single combined CI + release pipeline with parallel jobs per resource.
-    /// Includes shared pipeline templates under apps/.templates/.
+    /// Generates combined per-config pipeline wrappers under apps/{configName}/.
+    /// Shared templates are emitted separately via <see cref="GenerateSharedTemplates"/>.
     /// </summary>
     private AppPipelineGenerationResult GenerateCombined(
         IReadOnlyList<AppPipelineGenerationRequest> requests,
@@ -128,12 +132,6 @@ public sealed class AppPipelineGenerationEngine
         configName = PathSanitizer.Sanitize(configName);
 
         var mergedFiles = new Dictionary<string, string>();
-
-        // Generate shared templates (once, shared by all resources)
-        foreach (var (path, content) in AppPipelineSharedTemplateGenerator.GenerateAll())
-        {
-            mergedFiles[$"apps/.templates/{path}"] = content;
-        }
 
         foreach (var request in requests)
         {

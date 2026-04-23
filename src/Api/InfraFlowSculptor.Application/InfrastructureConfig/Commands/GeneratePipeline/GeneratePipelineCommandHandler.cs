@@ -196,6 +196,17 @@ public sealed class GeneratePipelineCommandHandler(
             fileUris[path] = uri;
         }
 
+        // Upload shared app pipeline templates (only when there are app pipelines to reference them)
+        if (appResult.Files.Count > 0)
+        {
+            foreach (var (path, content) in AppPipelineGenerationEngine.GenerateSharedTemplates())
+            {
+                var uri = await artifactService.UploadArtifactAsync(
+                    "pipeline", command.InfrastructureConfigId, timestamp, path, content);
+                fileUris[path] = uri;
+            }
+        }
+
         return new GeneratePipelineResult(fileUris);
     }
 
