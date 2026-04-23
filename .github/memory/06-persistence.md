@@ -60,6 +60,12 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 - `ResourceGroupRepository` uses these views through `GetConfiguredEnvironmentsByResourceGroupAsync()` and `GetChildToParentMappingAsync()` so Application handlers do not need to know all typed environment-setting tables or child-resource TPT tables.
 - `ListProjectResourcesQueryHandler` still lists project resources via `GetByInfraConfigIdAsync()` with `Include(r => r.Resources)`; the views support adjacent resource-read scenarios like `ListResourceGroupResources` and incoming cross-config reference resolution.
 
+## Resource Group Storage List Optimization [2026-04-23]
+
+- `ListResourceGroupResourcesQueryHandler` enriches Storage Accounts with lightweight child collections through `IResourceGroupRepository.GetStorageSubResourcesByStorageAccountIdsAsync()`.
+- `ResourceGroupRepository` intentionally uses 3 narrow batch queries over `BlobContainers`, `StorageQueues`, and `StorageTables` filtered by Storage Account IDs, instead of loading full StorageAccount aggregates or adding a new SQL view/migration.
+- This keeps the first Resource Group list to a single HTTP payload while avoiding the previous frontend N+1 pattern (`GET /storage-accounts/{id}` per account).
+
 ## Repository Naming Conventions [2026-04-16]
 
 - `GetByContainedResourceIdAsync` — finds a parent entity (e.g. ResourceGroup) by a child resource's ID. Renamed from the ambiguous `GetByResourceIdAsync`.

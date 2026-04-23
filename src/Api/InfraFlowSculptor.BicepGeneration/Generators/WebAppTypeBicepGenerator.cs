@@ -53,10 +53,16 @@ public sealed class WebAppTypeBicepGenerator
           }
         }
 
+        var moduleFileName = isContainer
+          ? useAdminCredentials
+            ? "webAppContainerAdminCredentials"
+            : "webAppContainerManagedIdentity"
+          : "webApp";
+
         return new GeneratedTypeModule
         {
             ModuleName = "webApp",
-            ModuleFileName = "webApp",
+          ModuleFileName = moduleFileName,
             ModuleFolderName = "WebApp",
           ModuleBicepContent = isContainer
             ? useAdminCredentials

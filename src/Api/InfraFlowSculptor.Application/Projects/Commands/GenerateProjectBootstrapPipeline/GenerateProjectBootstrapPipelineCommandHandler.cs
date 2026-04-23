@@ -78,6 +78,8 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
             configs,
             environments);
 
+        var bootstrapEnvironments = BuildEnvironmentDefinitions(project.EnvironmentDefinitions, configs);
+
         var bootstrapRequest = new BootstrapGenerationRequest
         {
             OrganizationName = organizationName,
@@ -86,6 +88,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
             DefaultBranch = gitConfig.DefaultBranch,
             AgentPoolName = project.AgentPoolName,
             Pipelines = pipelines,
+            Environments = bootstrapEnvironments,
             VariableGroups = variableGroups,
         };
 
@@ -173,6 +176,35 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         }
 
         return result;
+    }
+
+    private static IReadOnlyList<BootstrapEnvironmentDefinition> BuildEnvironmentDefinitions(
+        IReadOnlyCollection<ProjectEnvironmentDefinition> projectEnvironments,
+        IReadOnlyList<InfrastructureConfigReadModel> configs)
+    {
+        if (projectEnvironments.Count > 0)
+        {
+            return projectEnvironments
+                .OrderBy(environment => environment.Order.Value)
+                .GroupBy(environment => environment.ShortName.Value, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.First())
+                .Select(environment => new BootstrapEnvironmentDefinition(
+                    Name: environment.ShortName.Value.ToLowerInvariant(),
+                    DisplayName: environment.Name.Value,
+                    RequiresApproval: environment.RequiresApproval.Value))
+                .ToList();
+        }
+
+        return configs
+            .SelectMany(config => config.Environments)
+            .GroupBy(environment => environment.ShortName, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .OrderBy(environment => environment.ShortName, StringComparer.OrdinalIgnoreCase)
+            .Select(environment => new BootstrapEnvironmentDefinition(
+                Name: environment.ShortName.ToLowerInvariant(),
+                DisplayName: environment.Name,
+                RequiresApproval: false))
+            .ToList();
     }
 
     /// <summary>

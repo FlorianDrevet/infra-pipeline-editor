@@ -5,6 +5,7 @@ using InfraFlowSculptor.Application.ResourceGroups.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.GenerationCore;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.ResourceGroups.Queries.ListResourceGroupResources;
@@ -36,6 +37,15 @@ public class ListResourceGroupResourcesQueryHandler(
         // Lightweight projection from AzureResource base table — no TPT JOINs.
         var summaries = await resourceGroupRepository.GetResourceSummariesByGroupIdAsync(query.Id, cancellationToken);
 
+        var storageAccountIds = summaries
+            .Where(resource => resource.ResourceType == AzureResourceTypes.StorageAccount)
+            .Select(resource => new AzureResourceId(resource.Id))
+            .ToList();
+
+        var storageSubResourcesByStorageId = await resourceGroupRepository.GetStorageSubResourcesByStorageAccountIdsAsync(
+            storageAccountIds,
+            cancellationToken);
+
         return summaries
             .Select(r =>
             {
@@ -45,6 +55,9 @@ public class ListResourceGroupResourcesQueryHandler(
                 var configuredEnvs = envMapping.TryGetValue(r.Id, out var envs)
                     ? (IReadOnlyList<string>)envs
                     : Array.Empty<string>();
+                var storageSubResources = storageSubResourcesByStorageId.TryGetValue(r.Id, out var storageChildren)
+                    ? storageChildren
+                    : null;
                 return new AzureResourceResult(
                     new AzureResourceId(r.Id),
                     r.ResourceType,
@@ -52,7 +65,8 @@ public class ListResourceGroupResourcesQueryHandler(
                     new Location(Enum.Parse<Location.LocationEnum>(r.Location)),
                     parentId,
                     configuredEnvs,
-                    r.IsExisting);
+                    r.IsExisting,
+                    storageSubResources);
             })
             .ToList();
     }

@@ -33,6 +33,17 @@ public class AppPipelineGenerationRequest
     /// <summary>Name of the ACR resource (e.g., "myregistry").</summary>
     public string? ContainerRegistryName { get; set; }
 
+    /// <summary>
+    /// Immutable tag pattern used by CI metadata generation.
+    /// Supported tokens are <c>{buildNumber}</c>, <c>{shortSha}</c>, and <c>{branch}</c>.
+    /// </summary>
+    public string? ImageTagPattern { get; set; } = "{buildNumber}-{shortSha}";
+
+    /// <summary>
+    /// Strategy used to promote container images between environments.
+    /// </summary>
+    public AppPipelinePromotionStrategy PromotionStrategy { get; set; } = AppPipelinePromotionStrategy.AcrImport;
+
     /// <summary>Authentication mode used for Azure Container Registry access.</summary>
     public string? AcrAuthMode { get; set; }
 
@@ -41,6 +52,12 @@ public class AppPipelineGenerationRequest
 
     /// <summary>Runtime version (e.g., "8.0", "20").</summary>
     public string? RuntimeVersion { get; set; }
+
+    /// <summary>Optional explicit test command executed before packaging code-based deployments.</summary>
+    public string? TestCommand { get; set; }
+
+    /// <summary>Indicates whether Trivy and SBOM generation steps are emitted for container CI pipelines.</summary>
+    public bool EnableSecurityScans { get; set; } = true;
 
     /// <summary>Environment definitions with service connections and subscription IDs.</summary>
     public IReadOnlyList<EnvironmentDefinition> Environments { get; set; } = [];

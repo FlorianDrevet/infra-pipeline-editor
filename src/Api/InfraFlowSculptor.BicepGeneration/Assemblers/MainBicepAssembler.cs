@@ -26,6 +26,9 @@ internal static class MainBicepAssembler
         IReadOnlyDictionary<string, string>? configTags = null)
     {
         var sb = new StringBuilder();
+        var localResourceGroupSymbols = resourceGroups
+            .Select(rg => BicepIdentifierHelper.ToBicepIdentifier(rg.Name))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         sb.AppendLine("targetScope = 'subscription'");
         sb.AppendLine();
@@ -34,6 +37,16 @@ internal static class MainBicepAssembler
         sb.AppendLine("import { EnvironmentName, environments } from 'types.bicep'");
 
         var functionImports = BicepNamingHelper.BuildFunctionImportList(namingContext, modules, resourceGroups);
+        foreach (var existingReference in existingResourceReferences)
+        {
+            AddNamingImport(existingReference.ResourceTypeName);
+        }
+
+        foreach (var roleAssignment in roleAssignments)
+        {
+            AddNamingImport(roleAssignment.TargetResourceTypeName);
+        }
+
         if (functionImports.Count > 0)
         {
             sb.Append("import { ");
@@ -184,14 +197,17 @@ internal static class MainBicepAssembler
         }
 
         // ── Existing resource declarations (cross-config references) ────────
-        if (existingResourceReferences.Count > 0)
-        {
-            // Deduplicate external resource groups (multiple resources may share the same RG)
-            var externalRgs = existingResourceReferences
-                .Select(r => r.ResourceGroupName)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+        var externalRgs = existingResourceReferences
+            .Select(r => r.ResourceGroupName)
+            .Concat(roleAssignments
+                .Where(ra => ra.IsTargetCrossConfig
+                    || !localResourceGroupSymbols.Contains(BicepIdentifierHelper.ToBicepIdentifier(ra.TargetResourceGroupName)))
+                .Select(ra => ra.TargetResourceGroupName))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
+        if (externalRgs.Count > 0)
+        {
             sb.AppendLine("// ── Cross-configuration existing resource groups ──────────────────");
             foreach (var extRgName in externalRgs)
             {
@@ -204,22 +220,25 @@ internal static class MainBicepAssembler
                 sb.AppendLine();
             }
 
-            sb.AppendLine("// ── Cross-configuration existing resources ──────────────────────");
-            foreach (var extRef in existingResourceReferences)
+            if (existingResourceReferences.Count > 0)
             {
-                var extSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceName)}";
-                var extRgSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceGroupName)}";
-                var nameExprRes = BicepNamingHelper.BuildNamingExpression(
-                    extRef.ResourceName, extRef.ResourceAbbreviation,
-                    extRef.ResourceTypeName, namingContext);
+                sb.AppendLine("// ── Cross-configuration existing resources ──────────────────────");
+                foreach (var extRef in existingResourceReferences)
+                {
+                    var extSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceName)}";
+                    var extRgSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceGroupName)}";
+                    var nameExprRes = BicepNamingHelper.BuildNamingExpression(
+                        extRef.ResourceName, extRef.ResourceAbbreviation,
+                        extRef.ResourceTypeName, namingContext);
 
-                var apiVersion = ResourceTypeMetadata.GetExistingResourceApiVersion(extRef.ResourceType);
+                    var apiVersion = ResourceTypeMetadata.GetExistingResourceApiVersion(extRef.ResourceType);
 
-                sb.AppendLine($"resource {extSymbol} '{extRef.ResourceType}@{apiVersion}' existing = {{");
-                sb.AppendLine($"  name: {nameExprRes}");
-                sb.AppendLine($"  scope: {extRgSymbol}");
-                sb.AppendLine("}");
-                sb.AppendLine();
+                    sb.AppendLine($"resource {extSymbol} '{extRef.ResourceType}@{apiVersion}' existing = {{");
+                    sb.AppendLine($"  name: {nameExprRes}");
+                    sb.AppendLine($"  scope: {extRgSymbol}");
+                    sb.AppendLine("}");
+                    sb.AppendLine();
+                }
             }
         }
 
@@ -523,9 +542,12 @@ internal static class MainBicepAssembler
                 var targetFolder = ResourceTypeMetadata.GetModuleFolderName(group.TargetResourceTypeName);
                 var moduleFileName = RoleAssignmentModuleTemplates.GetModuleFileName(group.TargetResourceTypeName);
 
-                var targetRgSymbol = group.IsTargetCrossConfig
-                    ? $"existing_{BicepIdentifierHelper.ToBicepIdentifier(group.TargetResourceGroupName)}"
-                    : BicepIdentifierHelper.ToBicepIdentifier(group.TargetResourceGroupName);
+                var targetRgIdentifier = BicepIdentifierHelper.ToBicepIdentifier(group.TargetResourceGroupName);
+                var usesExistingTargetScope = group.IsTargetCrossConfig
+                    || !localResourceGroupSymbols.Contains(targetRgIdentifier);
+                var targetRgSymbol = usesExistingTargetScope
+                    ? $"existing_{targetRgIdentifier}"
+                    : targetRgIdentifier;
 
                 var targetNameExpr = BicepNamingHelper.BuildNamingExpression(
                     group.TargetResourceName, group.TargetResourceAbbreviation,
@@ -554,5 +576,24 @@ internal static class MainBicepAssembler
         }
 
         return sb.ToString();
+
+        void AddNamingImport(string resourceTypeName)
+        {
+            if (string.IsNullOrWhiteSpace(resourceTypeName))
+            {
+                return;
+            }
+
+            if (namingContext.ResourceTemplates.ContainsKey(resourceTypeName))
+            {
+                functionImports.Add(NamingTemplateTranslator.GetFunctionName(resourceTypeName));
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(namingContext.DefaultTemplate))
+            {
+                functionImports.Add("BuildResourceName");
+            }
+        }
     }
 }

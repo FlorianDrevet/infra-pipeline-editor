@@ -3,7 +3,7 @@ namespace InfraFlowSculptor.PipelineGeneration.Models;
 /// <summary>
 /// Aggregated request for the bootstrap pipeline generation engine.
 /// Contains all data needed to emit a self-contained <c>bootstrap.pipeline.yml</c> that
-/// provisions Azure DevOps pipeline definitions, variable groups, and their authorizations.
+/// provisions Azure DevOps pipeline definitions, environments, and variable groups.
 /// </summary>
 public sealed record BootstrapGenerationRequest
 {
@@ -27,6 +27,9 @@ public sealed record BootstrapGenerationRequest
 
     /// <summary>Gets the list of Azure DevOps pipeline definitions to be created by the bootstrap pipeline.</summary>
     public IReadOnlyList<BootstrapPipelineDefinition> Pipelines { get; init; } = [];
+
+    /// <summary>Gets the list of Azure DevOps environments to be created by the bootstrap pipeline.</summary>
+    public IReadOnlyList<BootstrapEnvironmentDefinition> Environments { get; init; } = [];
 
     /// <summary>Gets the list of Azure DevOps variable groups to be created by the bootstrap pipeline.</summary>
     public IReadOnlyList<BootstrapVariableGroupDefinition> VariableGroups { get; init; } = [];

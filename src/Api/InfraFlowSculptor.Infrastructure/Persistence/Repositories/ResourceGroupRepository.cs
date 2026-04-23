@@ -32,6 +32,7 @@ using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 using InfraFlowSculptor.Infrastructure.Persistence.Views;
 using InfraFlowSculptor.Application.ResourceGroups.Common;
+using InfraFlowSculptor.Application.StorageAccounts.Common;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence.Repositories;
 
@@ -163,6 +164,74 @@ public class ResourceGroupRepository: BaseRepository<ResourceGroup, ProjectDbCon
                 r.CustomNameOverride))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<Dictionary<Guid, StorageAccountSubResourcesResult>> GetStorageSubResourcesByStorageAccountIdsAsync(
+        IReadOnlyList<AzureResourceId> storageAccountIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (storageAccountIds.Count == 0)
+            return [];
+
+        var distinctStorageAccountIds = storageAccountIds
+            .Distinct()
+            .ToList();
+
+        var blobContainers = await Context.Set<BlobContainer>()
+            .Where(container => distinctStorageAccountIds.Contains(container.StorageAccountId))
+            .AsNoTracking()
+            .Select(container => new
+            {
+                StorageAccountId = container.StorageAccountId.Value,
+                BlobContainer = new BlobContainerResult(container.Id, container.Name, container.PublicAccess),
+            })
+            .ToListAsync(cancellationToken);
+
+        var queues = await Context.Set<StorageQueue>()
+            .Where(queue => distinctStorageAccountIds.Contains(queue.StorageAccountId))
+            .AsNoTracking()
+            .Select(queue => new
+            {
+                StorageAccountId = queue.StorageAccountId.Value,
+                Queue = new StorageQueueResult(queue.Id, queue.Name),
+            })
+            .ToListAsync(cancellationToken);
+
+        var tables = await Context.Set<StorageTable>()
+            .Where(table => distinctStorageAccountIds.Contains(table.StorageAccountId))
+            .AsNoTracking()
+            .Select(table => new
+            {
+                StorageAccountId = table.StorageAccountId.Value,
+                Table = new StorageTableResult(table.Id, table.Name),
+            })
+            .ToListAsync(cancellationToken);
+
+        var blobContainersByStorageId = blobContainers
+            .GroupBy(item => item.StorageAccountId)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyList<BlobContainerResult>)group.Select(item => item.BlobContainer).ToList());
+
+        var queuesByStorageId = queues
+            .GroupBy(item => item.StorageAccountId)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyList<StorageQueueResult>)group.Select(item => item.Queue).ToList());
+
+        var tablesByStorageId = tables
+            .GroupBy(item => item.StorageAccountId)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyList<StorageTableResult>)group.Select(item => item.Table).ToList());
+
+        return distinctStorageAccountIds.ToDictionary(
+            storageAccountId => storageAccountId.Value,
+            storageAccountId => new StorageAccountSubResourcesResult(
+                blobContainersByStorageId.GetValueOrDefault(storageAccountId.Value) ?? [],
+                queuesByStorageId.GetValueOrDefault(storageAccountId.Value) ?? [],
+                tablesByStorageId.GetValueOrDefault(storageAccountId.Value) ?? []));
     }
 
     /// <inheritdoc />

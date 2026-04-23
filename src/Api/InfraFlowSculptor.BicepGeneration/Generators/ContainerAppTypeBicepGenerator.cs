@@ -62,10 +62,16 @@ public sealed class ContainerAppTypeBicepGenerator
             parameters["customDomains"] = new List<object>();
         }
 
+        var moduleFileName = hasAcr
+          ? useAdminCredentials
+            ? "containerAppAcrAdminCredentials"
+            : "containerAppAcrManagedIdentity"
+          : "containerApp";
+
         return new GeneratedTypeModule
         {
             ModuleName = "containerApp",
-            ModuleFileName = "containerApp",
+          ModuleFileName = moduleFileName,
             ModuleFolderName = "ContainerApp",
           ModuleBicepContent = hasAcr
             ? useAdminCredentials

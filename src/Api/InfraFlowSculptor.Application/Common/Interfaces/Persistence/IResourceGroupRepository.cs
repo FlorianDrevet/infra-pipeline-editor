@@ -62,6 +62,17 @@ public interface IResourceGroupRepository: IRepository<Domain.ResourceGroupAggre
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns lightweight Storage Account child resources for the provided Storage Account identifiers.
+    /// Uses narrow child-table projections to avoid loading full Storage Account aggregates.
+    /// </summary>
+    /// <param name="storageAccountIds">Identifiers of the Storage Accounts to enrich.</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
+    /// <returns>A mapping of Storage Account identifier to its lightweight child resources.</returns>
+    Task<Dictionary<Guid, StorageAccountSubResourcesResult>> GetStorageSubResourcesByStorageAccountIdsAsync(
+        IReadOnlyList<AzureResourceId> storageAccountIds,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Returns the distinct Azure resource type names used across all configurations of a project.
     /// </summary>
     Task<List<string>> GetDistinctResourceTypesByProjectIdAsync(

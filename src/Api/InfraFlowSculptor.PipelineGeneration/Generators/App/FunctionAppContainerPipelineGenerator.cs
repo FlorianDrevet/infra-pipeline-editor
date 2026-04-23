@@ -1,4 +1,3 @@
-using System.Text;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 
@@ -21,32 +20,10 @@ public sealed class FunctionAppContainerPipelineGenerator : IAppPipelineGenerato
     {
         var files = new Dictionary<string, string>
         {
-            ["ci.app-pipeline.yml"] = GenerateCiPipeline(request),
-            ["release.app-pipeline.yml"] = GenerateReleasePipeline(request),
+            ["ci.app-pipeline.yml"] = AppCiPipelineBuilder.BuildContainerPipeline(request),
+            ["release.app-pipeline.yml"] = AppReleasePipelineBuilder.BuildContainerPipeline(request),
         };
 
         return new AppPipelineGenerationResult { Files = files };
-    }
-
-    private static string GenerateCiPipeline(AppPipelineGenerationRequest request)
-    {
-        var sb = new StringBuilder();
-
-        AppPipelineYamlHelper.AppendCiHeader(sb, request.ResourceName, request.ConfigName, request.AgentPoolName);
-        AppPipelineYamlHelper.AppendContainerBuildStage(sb, request);
-
-        return sb.ToString();
-    }
-
-    private static string GenerateReleasePipeline(AppPipelineGenerationRequest request)
-    {
-        var sb = new StringBuilder();
-
-        AppPipelineYamlHelper.AppendReleaseHeader(sb, request.ResourceName, request.AgentPoolName);
-        AppPipelineYamlHelper.AppendContainerBuildStage(sb, request);
-
-        AppPipelineYamlHelper.AppendFunctionAppContainerDeployStages(sb, request);
-
-        return sb.ToString();
     }
 }

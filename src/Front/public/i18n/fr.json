@@ -345,6 +345,7 @@
         "ADMINISTRATOR_LOGIN_PLACEHOLDER": "ex : sqladmin",
         "COLLATION": "Classement (Collation)",
         "COLLATION_PLACEHOLDER": "ex : SQL_Latin1_General_CP1_CI_AS",
+        "SQL_SERVER": "SQL Server parent",
         "MIN_TLS_VERSION": "Version TLS minimale",
         "MAX_SIZE_GB": "Taille maximale (Go)",
         "ZONE_REDUNDANT": "R\u00e9dundance de zone",        "OS_TYPE": "Type d'OS",
@@ -791,7 +792,7 @@
       "PUSH_SUCCESS": "bootstrap.pipeline.yml poussé avec succès !",
 
       "GUIDE_TITLE": "Procédure complète — Mise en route Azure DevOps",
-      "GUIDE_INTRO": "Suivez ces 10 étapes dans l'ordre, une seule fois par projet. À la fin, vos pipelines CI, PR et Release seront prêtes à fonctionner.",
+      "GUIDE_INTRO": "Suivez ces 10 étapes dans l'ordre, une seule fois par projet. À la fin, vos pipelines CI, PR, Release et vos environnements Azure DevOps seront prêts à être utilisés.",
 
       "SECTION_PREPARE": "A — Préparer le fichier bootstrap",
       "STEP_1": "Allez dans l'onglet « Git » de ce projet et vérifiez qu'un dépôt Azure DevOps est bien lié. Si ce n'est pas encore fait, configurez-le d'abord (URL du dépôt, branche par défaut).",
@@ -800,17 +801,17 @@
 
       "SECTION_RUN": "B — Créer et lancer la pipeline dans Azure DevOps",
       "STEP_4": "Ouvrez Azure DevOps dans votre navigateur. Allez dans Pipelines > Pipelines, puis cliquez sur New pipeline. Choisissez Azure Repos Git, sélectionnez votre dépôt, puis choisissez Existing Azure Pipelines YAML file. Sélectionnez la branche et le chemin bootstrap.pipeline.yml, puis cliquez sur Run.",
-      "STEP_5": "Attendez la fin de l'exécution. Si la pipeline échoue avec des erreurs de permissions (droits manquants), c'est normal la première fois — passez à la section suivante.",
+      "STEP_5": "Attendez la fin de l'exécution. Si la pipeline échoue avec des erreurs de permissions sur les pipelines, la Library ou les Environments, c'est normal la première fois — passez à la section suivante.",
 
       "SECTION_PERMISSIONS": "C — Donner les droits au Build Service (si nécessaire)",
       "PERMISSIONS_HINT": "Le compte à autoriser s'appelle « {Nom du Projet} Build Service ({Nom de l'Organisation}) ». Par exemple : « Infra Flow Sculptor Build Service (floriandrevet0332) ». Si votre projet utilise le scope collection, le nom sera plutôt « Project Collection Build Service ({Nom de l'Organisation}) ».",
       "STEP_6": "Ouvrez Pipelines > Pipelines dans Azure DevOps. Cliquez sur les trois petits points « ⋯ » en haut à droite de la page, puis cliquez sur Manage security. Cherchez et ajoutez le compte « {Nom du Projet} Build Service ({Nom de l'Organisation}) ». Autorisez au minimum le droit Create build pipeline. Si vos pipelines sont générées dans des dossiers (ex : \\Core), assurez-vous que le droit s'applique aussi au dossier concerné, ou placez-le à la racine pour que tous les sous-dossiers en héritent.",
       "STEP_7": "Ouvrez Pipelines > Library dans Azure DevOps. Cliquez sur Security en haut de la page. Ajoutez le même compte Build Service. Si le bootstrap doit uniquement créer de nouveaux variable groups, le rôle minimum est Creator. Si le bootstrap doit aussi modifier des variable groups existants ou gérer leurs variables, donnez-lui plutôt le rôle Administrator. Si certains variable groups existaient avant le bootstrap, assurez-vous qu'il a aussi les droits dessus.",
-      "STEP_8": "Une fois les droits accordés, relancez la pipeline bootstrap. Cette fois-ci, elle devrait réussir entièrement et créer les pipelines CI, PR, Release ainsi que les variable groups.",
+      "STEP_8": "Ouvrez Pipelines > Environments dans Azure DevOps. Depuis la sécurité du hub Environments, donnez au même compte Build Service le rôle Creator s'il n'hérite pas déjà de ce droit via Build Administrators ou Project Administrators. Relancez ensuite la pipeline bootstrap. Elle créera les pipelines CI, PR, Release, les variable groups et les environnements Azure DevOps correspondant aux shortName de vos environnements projet.",
 
       "SECTION_FINALIZE": "D — Finaliser et utiliser les pipelines",
       "STEP_9": "Ouvrez Pipelines > Library dans Azure DevOps. Ouvrez chaque variable group créé par le bootstrap et renseignez manuellement les valeurs secrètes (mots de passe, clés, chaînes de connexion). Ces valeurs sont vides par défaut car elles ne doivent pas transiter dans le fichier YAML.",
-      "STEP_10": "C'est terminé ! Vos pipelines CI, PR et Release sont prêtes dans les dossiers créés par le bootstrap. Vous pouvez les lancer depuis Azure DevOps pour le fonctionnement normal du projet."
+      "STEP_10": "Ouvrez Pipelines > Environments. Pour chaque environnement marqué comme nécessitant une approbation dans InfraFlowSculptor, ajoutez manuellement les utilisateurs ou groupes voulus dans Approvals and checks. Le bootstrap crée bien l'environnement automatiquement, mais il ne peut pas encore déduire les identités des approbateurs depuis l'app. Une fois cela fait, vos pipelines sont prêtes à être utilisées normalement."
     },
     "STATE": {
       "LOADING_TITLE": "Chargement du projet",
@@ -1248,6 +1249,8 @@
       "SERVICE_BUS_SECURITY_DESC": "Configurez la version TLS, la redondance de zone et l'authentification locale.",
       "SQL_SERVER_SECTION": "S\u00e9curit\u00e9 de connexion",
       "SQL_SERVER_SECTION_DESC": "D\u00e9finissez la version TLS minimale accept\u00e9e pour les connexions.",
+      "SQL_DATABASE_SECTION": "Configuration de la base de donn\u00e9es",
+      "SQL_DATABASE_SECTION_DESC": "D\u00e9finissez le SKU, la taille maximale et la redondance de zone par environnement.",
       "DEPLOYMENT_MODE": "Mode de d\u00e9ploiement",
       "DEPLOYMENT_MODE_CODE": "Code",
       "DEPLOYMENT_MODE_CONTAINER": "Conteneur",
@@ -1294,7 +1297,11 @@
       "ADMIN_USER_ENABLED": "Activer l'utilisateur administrateur",
       "SQL_SERVER_VERSION": "Version SQL Server",
       "ADMINISTRATOR_LOGIN": "Login administrateur",
-      "ADMINISTRATOR_LOGIN_PLACEHOLDER": "ex. sqladmin"
+        "ADMINISTRATOR_LOGIN_PLACEHOLDER": "ex. sqladmin",
+        "COLLATION": "Classement (Collation)",
+        "COLLATION_PLACEHOLDER": "ex : SQL_Latin1_General_CP1_CI_AS",
+        "SQL_SERVER": "SQL Server parent",
+        "MAX_SIZE_GB": "Taille maximale (Go)"
     },
     "SECURE_PARAM": {
       "TITLE": "Configuration du mot de passe",

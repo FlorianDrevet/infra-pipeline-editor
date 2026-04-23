@@ -10,6 +10,7 @@ namespace InfraFlowSculptor.Application.ResourceGroups.Common;
 /// <param name="Location">Azure region.</param>
 /// <param name="ParentResourceId">Optional identifier of the parent resource (e.g. AppServicePlan for a WebApp).</param>
 /// <param name="ConfiguredEnvironments">List of environment names that have typed per-environment settings configured.</param>
+/// <param name="StorageSubResources">Optional lightweight Storage Account child resources used by list views.</param>
 public record AzureResourceResult(
     AzureResourceId Id,
     string ResourceType,
@@ -17,4 +18,5 @@ public record AzureResourceResult(
     Location Location,
     AzureResourceId? ParentResourceId = null,
     IReadOnlyList<string>? ConfiguredEnvironments = null,
-    bool IsExisting = false);
+    bool IsExisting = false,
+    StorageAccountSubResourcesResult? StorageSubResources = null);

@@ -89,6 +89,11 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - `config-detail` and `project-detail` generation preflight checks must skip existing resources when building “missing environment configuration” warnings.
 - These guards depend on `resource.isExisting` from `/resource-group/{id}/resources`; if the backend mapping omits that flag, both the warning badge in lists and the generation verification dialog become incorrect.
 
+## Config Detail Storage Sub-Resources [2026-04-23]
+- `config-detail` no longer fire-and-forgets `GET /storage-accounts/{id}` during Resource Group expansion just to populate blob/queue/table children.
+- The component seeds `storageAccountDetails` directly from the optional `resource.storageSubResources` payload returned by `/resource-group/{id}/resources`, so Storage Account children are visible on first display without a second interaction.
+- Manual full `StorageAccountService.getById()` calls remain only for on-demand refreshes such as edit/remove flows.
+
 ## SqlServer Resource Edit [2026-04-22]
 - Full CRUD support in `resource-edit.component`: version/administratorLogin general fields, per-env TLS dropdown.
 

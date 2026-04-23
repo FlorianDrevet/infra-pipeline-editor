@@ -41,6 +41,7 @@ result.Match(
 
 - All response DTO ID fields use `string` (not `Guid`). Mapster config maps `Id.Value.ToString()`.
 - This applies to all 18 resource responses, project/member responses, infra-config responses, and sub-resource responses.
+- `GET /resource-group/{id}/resources` may now enrich `AzureResourceResponse` with optional `StorageSubResources` (blob containers, queues, tables) so `config-detail` can render Storage Account children on the first list payload without calling `GET /storage-accounts/{id}` for each account.
 
 ## Tag Validation [2026-04-16]
 

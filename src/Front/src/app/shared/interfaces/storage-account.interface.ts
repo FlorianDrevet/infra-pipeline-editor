@@ -62,7 +62,13 @@ export interface StorageTableResponse {
   isExisting?: boolean;
 }
 
-export interface StorageAccountResponse {
+export interface StorageAccountSubResourcesResponse {
+  blobContainers: BlobContainerResponse[];
+  queues: StorageQueueResponse[];
+  tables: StorageTableResponse[];
+}
+
+export interface StorageAccountResponse extends StorageAccountSubResourcesResponse {
   id: string;
   resourceGroupId: string;
   name: string;
@@ -75,9 +81,6 @@ export interface StorageAccountResponse {
   corsRules: CorsRuleResponse[];
   tableCorsRules: CorsRuleResponse[];
   lifecycleRules: BlobLifecycleRuleResponse[];
-  blobContainers: BlobContainerResponse[];
-  queues: StorageQueueResponse[];
-  tables: StorageTableResponse[];
   environmentSettings: StorageAccountEnvironmentConfigResponse[];
   isExisting?: boolean;
 }

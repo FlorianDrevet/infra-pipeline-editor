@@ -1,3 +1,5 @@
+import { StorageAccountSubResourcesResponse } from './storage-account.interface';
+
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface ResourceGroupResponse {
@@ -15,6 +17,7 @@ export interface AzureResourceResponse {
   parentResourceId?: string;
   configuredEnvironments?: string[];
   isExisting?: boolean;
+  storageSubResources?: StorageAccountSubResourcesResponse;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────

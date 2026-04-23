@@ -71,6 +71,10 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - Container App admin mode emits `configuration.secrets` plus `registries.username/passwordSecretRef`; Web App and Function App admin mode emit `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME`, and secure `DOCKER_REGISTRY_SERVER_PASSWORD` app settings.
 - App pipeline generation mirrors the same mode: managed identity keeps the `Docker@2` service-connection flow, admin credentials switch to explicit `docker login` and build/push script steps.
 
+## Compute Module Variant Files [2026-04-23]
+ - `ContainerApp`, `WebApp`, and `FunctionApp` variants with incompatible parameter surfaces must use distinct `GeneratedTypeModule.ModuleFileName` values (for example base vs ACR-managed-identity vs ACR-admin-credentials). `BicepAssembler` deduplicates emitted module files by file name, so sharing one file name across variants can make `main.bicep` pass params that the surviving module file does not declare, leading to BCP037.
+ - `MainBicepAssembler` must import naming functions referenced only by cross-config existing resources or role-assignment targets, and must declare `existing_{resourceGroup}` scopes for cross-config role assignments even when no `ExistingResourceReference` directly targets that resource group. This prevents BCP057 on missing symbols such as `BuildContainerRegistryName` or undeclared RG identifiers.
+
 ## Output Injection Symbol Validation [2026-04-21]
 - `InjectOutputDeclarations` validates that the root symbol referenced by an output exists in the target module before injection.
 - `ExtractRootSymbol()` handles both direct identifiers and interpolated strings, preventing BCP057 errors when the catalog points at the wrong module type.

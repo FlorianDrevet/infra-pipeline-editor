@@ -53,10 +53,16 @@ public sealed class FunctionAppTypeBicepGenerator
           }
         }
 
+        var moduleFileName = isContainer
+          ? useAdminCredentials
+            ? "functionAppContainerAdminCredentials"
+            : "functionAppContainerManagedIdentity"
+          : "functionApp";
+
         return new GeneratedTypeModule
         {
             ModuleName = "functionApp",
-            ModuleFileName = "functionApp",
+          ModuleFileName = moduleFileName,
             ModuleFolderName = "FunctionApp",
           ModuleBicepContent = isContainer
             ? useAdminCredentials

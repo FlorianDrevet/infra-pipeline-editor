@@ -358,6 +358,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
             DockerImageName = containerApp.DockerImageName,
             ContainerRegistryName = acrName,
             AcrAuthMode = containerApp.AcrAuthMode?.Value.ToString(),
+            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
+            EnableSecurityScans = true,
         };
     }
 
@@ -386,6 +388,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
             AcrAuthMode = webApp.AcrAuthMode?.Value.ToString(),
             RuntimeStack = webApp.RuntimeStack.Value.ToString(),
             RuntimeVersion = webApp.RuntimeVersion,
+            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
+            EnableSecurityScans = true,
         };
     }
 
@@ -414,6 +418,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
             AcrAuthMode = functionApp.AcrAuthMode?.Value.ToString(),
             RuntimeStack = functionApp.RuntimeStack.Value.ToString(),
             RuntimeVersion = functionApp.RuntimeVersion,
+            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
+            EnableSecurityScans = true,
         };
     }
 

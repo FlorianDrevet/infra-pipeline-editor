@@ -345,6 +345,7 @@
         "ADMINISTRATOR_LOGIN_PLACEHOLDER": "e.g. sqladmin",
         "COLLATION": "Collation",
         "COLLATION_PLACEHOLDER": "e.g. SQL_Latin1_General_CP1_CI_AS",
+        "SQL_SERVER": "Parent SQL Server",
         "MIN_TLS_VERSION": "Minimum TLS version",
         "MAX_SIZE_GB": "Maximum size (GB)",
         "ZONE_REDUNDANT": "Zone redundant",
@@ -797,7 +798,7 @@
       "PUSH_SUCCESS": "bootstrap.pipeline.yml pushed successfully!",
 
       "GUIDE_TITLE": "Full procedure — Azure DevOps first-time setup",
-      "GUIDE_INTRO": "Follow these 10 steps in order, once per project. At the end, your CI, PR and Release pipelines will be ready to use.",
+      "GUIDE_INTRO": "Follow these 10 steps in order, once per project. At the end, your CI, PR, Release pipelines and Azure DevOps environments will be ready to use.",
 
       "SECTION_PREPARE": "A — Prepare the bootstrap file",
       "STEP_1": "Go to the 'Git' tab of this project and make sure an Azure DevOps repository is linked. If not, set it up first (repository URL, default branch).",
@@ -806,17 +807,17 @@
 
       "SECTION_RUN": "B — Create and run the pipeline in Azure DevOps",
       "STEP_4": "Open Azure DevOps in your browser. Go to Pipelines > Pipelines, then click New pipeline. Choose Azure Repos Git, select your repository, then choose Existing Azure Pipelines YAML file. Select the branch and the path bootstrap.pipeline.yml, then click Run.",
-      "STEP_5": "Wait for the run to complete. If the pipeline fails with permission errors (missing rights), that is normal the first time — continue to the next section.",
+      "STEP_5": "Wait for the run to complete. If the pipeline fails with permission errors on pipelines, Library, or Environments, that is normal the first time — continue to the next section.",
 
       "SECTION_PERMISSIONS": "C — Grant permissions to the Build Service (if needed)",
       "PERMISSIONS_HINT": "The account to authorize is called '{Project Name} Build Service ({Organization Name})'. For example: 'Infra Flow Sculptor Build Service (floriandrevet0332)'. If your project uses collection scope, the name will be 'Project Collection Build Service ({Organization Name})' instead.",
       "STEP_6": "Open Pipelines > Pipelines in Azure DevOps. Click the three dots '⋯' at the top-right of the pipelines page, then click Manage security. Search for and add '{Project Name} Build Service ({Organization Name})'. Grant at least Create build pipeline. If your pipelines are generated in folders (e.g. \\Core), make sure the permission applies to the target folder, or set it at the root for all subfolders to inherit.",
       "STEP_7": "Open Pipelines > Library in Azure DevOps. Click Security at the top of the page. Add the same Build Service account. If the bootstrap only needs to create new variable groups, the minimum role is Creator. If it also needs to modify existing groups or manage their variables, give it Administrator instead. If some variable groups existed before the bootstrap, make sure it has rights on those too.",
-      "STEP_8": "Once the permissions are granted, re-run the bootstrap pipeline. This time it should succeed fully and create the CI, PR, Release pipelines as well as the variable groups.",
+      "STEP_8": "Open Pipelines > Environments in Azure DevOps. From the Environments hub security settings, grant the same Build Service account the Creator role if it does not already inherit that right through Build Administrators or Project Administrators. Then re-run the bootstrap pipeline. It will create the CI, PR, Release pipelines, the variable groups, and the Azure DevOps environments matching your project environment short names.",
 
       "SECTION_FINALIZE": "D — Finalize and use the pipelines",
       "STEP_9": "Open Pipelines > Library in Azure DevOps. Open each variable group created by the bootstrap and fill in the secret values manually (passwords, keys, connection strings). These values are empty by default because they must not be stored in the YAML file.",
-      "STEP_10": "You're done! Your CI, PR and Release pipelines are ready in the folders created by the bootstrap. You can trigger them from Azure DevOps for the normal project workflow."
+      "STEP_10": "Open Pipelines > Environments. For each environment marked as requiring approval in InfraFlowSculptor, manually add the intended users or groups in Approvals and checks. The bootstrap now creates the environment automatically, but it still cannot infer approver identities from the app. Once that is done, your pipelines are ready for the normal project workflow."
     },
     "STATE": {
       "LOADING_TITLE": "Loading project",
@@ -1243,6 +1244,8 @@
       "SERVICE_BUS_SECURITY_DESC": "Configure TLS version, zone redundancy, and local authentication.",
       "SQL_SERVER_SECTION": "Connection security",
       "SQL_SERVER_SECTION_DESC": "Define the minimum TLS version accepted for connections.",
+      "SQL_DATABASE_SECTION": "Database configuration",
+      "SQL_DATABASE_SECTION_DESC": "Set the SKU, maximum size, and zone redundancy per environment.",
       "DEPLOYMENT_MODE": "Deployment mode",
       "DEPLOYMENT_MODE_CODE": "Code",
       "DEPLOYMENT_MODE_CONTAINER": "Container",
@@ -1289,7 +1292,11 @@
       "ADMIN_USER_ENABLED": "Enable admin user",
       "SQL_SERVER_VERSION": "SQL Server version",
       "ADMINISTRATOR_LOGIN": "Administrator login",
-      "ADMINISTRATOR_LOGIN_PLACEHOLDER": "e.g. sqladmin"
+        "ADMINISTRATOR_LOGIN_PLACEHOLDER": "e.g. sqladmin",
+        "COLLATION": "Collation",
+        "COLLATION_PLACEHOLDER": "e.g. SQL_Latin1_General_CP1_CI_AS",
+        "SQL_SERVER": "Parent SQL Server",
+        "MAX_SIZE_GB": "Maximum size (GB)"
     },
     "SECURE_PARAM": {
       "TITLE": "Password Configuration",

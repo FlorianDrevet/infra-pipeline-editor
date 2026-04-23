@@ -8,6 +8,7 @@ namespace InfraFlowSculptor.Contracts.ResourceGroups.Responses;
 /// <param name="ParentResourceId">Optional identifier of the parent resource (e.g. AppServicePlan for a WebApp).</param>
 /// <param name="ConfiguredEnvironments">List of environment names that have typed per-environment settings configured for this resource.</param>
 /// <param name="IsExisting">Whether this resource already exists in Azure and is only referenced, not deployed.</param>
+/// <param name="StorageSubResources">Optional lightweight Storage Account child resources for first-render list display.</param>
 public record AzureResourceResponse(
     string Id,
     string ResourceType,
@@ -15,4 +16,5 @@ public record AzureResourceResponse(
     string Location,
     string? ParentResourceId = null,
     IReadOnlyList<string>? ConfiguredEnvironments = null,
-    bool IsExisting = false);
+    bool IsExisting = false,
+    StorageAccountSubResourcesResponse? StorageSubResources = null);

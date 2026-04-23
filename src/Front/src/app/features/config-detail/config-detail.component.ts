@@ -67,7 +67,7 @@ import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
-import { StorageAccountResponse } from '../../shared/interfaces/storage-account.interface';
+import { StorageAccountResponse, StorageAccountSubResourcesResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
 import { GitConfigDialogComponent, GitConfigDialogData } from '../project-detail/git-config-dialog/git-config-dialog.component';
@@ -167,7 +167,7 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly expandedParentResources = signal<Set<string>>(new Set<string>());
 
   // ─── Storage Account sub-resources ───
-  protected readonly storageAccountDetails = signal<Record<string, StorageAccountResponse | undefined>>({});
+  protected readonly storageAccountDetails = signal<Record<string, StorageAccountSubResourcesResponse | undefined>>({});
   protected readonly storageDetailsLoading = signal<string | null>(null);
 
   // ─── Diagnostics Validation ───
@@ -614,6 +614,7 @@ export class ConfigDetailComponent implements OnInit {
     this.rgResourcesLoading.set(rgId);
     try {
       const resources = await this.resourceGroupService.getResources(rgId);
+      this.cacheStorageSubResources(resources);
       this.rgResources.update((prev) => ({ ...prev, [rgId]: resources }));
       // Auto-expand all parent resources by default (local + cross-config virtual)
       const parentIds = resources
@@ -630,18 +631,32 @@ export class ConfigDetailComponent implements OnInit {
           return next;
         });
       }
-      // Auto-load StorageAccount details for expanded storage parents
-      const storageParentIds = resources
-        .filter((r) => r.resourceType === 'StorageAccount')
-        .map((r) => r.id);
-      for (const storageId of storageParentIds) {
-        this.loadStorageAccountDetails(storageId).catch(() => {});
-      }
     } catch {
       this.rgResources.update((prev) => ({ ...prev, [rgId]: [] }));
     } finally {
       this.rgResourcesLoading.set(null);
     }
+  }
+
+  private cacheStorageSubResources(resources: AzureResourceResponse[]): void {
+    const storageSubResourcesById: Record<string, StorageAccountSubResourcesResponse> = {};
+
+    for (const resource of resources) {
+      if (resource.resourceType !== 'StorageAccount' || !resource.storageSubResources) {
+        continue;
+      }
+
+      storageSubResourcesById[resource.id] = resource.storageSubResources;
+    }
+
+    if (Object.keys(storageSubResourcesById).length === 0) {
+      return;
+    }
+
+    this.storageAccountDetails.update((prev) => ({
+      ...prev,
+      ...storageSubResourcesById,
+    }));
   }
 
   private async openDefaultResourceGroup(resourceGroups: ResourceGroupResponse[]): Promise<void> {

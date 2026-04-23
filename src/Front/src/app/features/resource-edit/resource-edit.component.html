@@ -500,7 +500,7 @@
                   <mat-form-field appearance="outline" class="form-field">
                     <mat-label>{{ 'RESOURCE_EDIT.FIELDS.COLLATION' | translate }}</mat-label>
                     <input matInput formControlName="collation"
-                           placeholder="SQL_Latin1_General_CP1_CI_AS">
+                             [placeholder]="'RESOURCE_EDIT.FIELDS.COLLATION_PLACEHOLDER' | translate">
                   </mat-form-field>
                 </div>
               </div>
