@@ -30,6 +30,8 @@
 - **PITFALL [2026-04-02]:** Dialog components under `resource-edit` use keys nested inside `RESOURCE_EDIT` — always use full path.
 - **PITFALL [2026-04-23]:** `DeploymentConfigComponent` resolves all ACR labels through `RESOURCE_EDIT.FIELDS.*`; if the `RESOURCE_EDIT` namespace is missing the `ACR_AUTH_MODE*` keys in one language file, the shared ACR assignment/auth UI renders raw translation keys.
 - **PITFALL [2026-04-23]:** `project-detail` multi-repo screens consume `PROJECT_DETAIL.LAYOUT.*`; if that namespace exists in `en.json` but not in `fr.json`, the entire Layout & Repositories section renders raw i18n keys in French.
+- **PITFALL [2026-04-23]:** `GenerationBoardComponent` resolves its labels from `PROJECT_DETAIL.BOARD.*`, not `CONFIG_DETAIL.BOARD.*`; putting the texts under the wrong namespace leaves the project-detail board rendering raw keys even though the strings exist elsewhere in the file.
+- **VALIDATION [2026-04-23]:** The PowerShell source-vs-dictionary i18n scan will still report `_`-suffixed pseudo-keys such as `HOME.RECENT.TYPE_`, `PROJECT_DETAIL.MEMBERS.ROLE_`, and `CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_*_`; these are dynamic prefixes concatenated at runtime, not real missing translation leaves.
 
 ## Auth (MSAL) [2026-03-17]
 - `@azure/msal-browser@^5` (no `@azure/msal-angular`)

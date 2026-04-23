@@ -113,6 +113,7 @@ Two-level abbreviation override system matching NamingTemplate precedence:
 
 ## Multi-Repo Topology V2 [2026-04-23]
 
+- `Project.SetLayoutPreset(LayoutPreset)` now mirrors `InfrastructureConfig.SetLayoutMode`: changing the preset auto-clears `Project.Repositories` so the user can reconfigure the target slots after switching between `AllInOne`, `SplitInfraCode`, and `MultiRepo`. Re-selecting the current preset is a no-op.
 - `Project.CanGenerateAllFromProjectLevel(IReadOnlyCollection<InfrastructureConfig> configs) : bool` — retourne `false` si les configs résolvent vers ≥2 aliases distincts (binding?.Alias ?? `"default"`). Utilisée par `GenerateProjectBicepCommandHandler` et `GenerateProjectPipelineCommandHandler` comme garde avant génération. Retourne `Errors.GitRouting.AmbiguousProjectLevelGeneration` si false.
 - Le domaine accepte maintenant des références cross-aggregate **en lecture seulement** pour l'inspection de règles métier (pattern domain-service-like sur l'aggregate root). `Project` importe `InfraFlowSculptor.Domain.InfrastructureConfigAggregate`.
 

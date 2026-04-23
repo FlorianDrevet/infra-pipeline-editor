@@ -82,5 +82,15 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 - 1 seule migration consolidée `AddMultiRepoTopologyV1` (timestamp 20260423151014) — décision pragmatique car EF auto-gen produit toujours 1 diff entre snapshot et état Domain.
 - `GitRepositoryConfigurations` table **dropped en V3** (migration `RemoveLegacyGitRepositoryConfiguration` du 2026-04-23). Rollback possible via `Down()` (recrée la table avec FK cascade vers `Projects`).
 
+## Legacy Repository Topology Repair [2026-04-23]
+
+- After the V3 removal of `RepositoryContentKindsEnum.Pipelines`, old rows persisted as `Infrastructure,Pipelines` or `ApplicationCode,Pipelines` can no longer be materialized safely by `RepositoryContentKindsConverter`; they must be normalized in the database first.
+- Reusable repair script: `scripts/fix-legacy-repository-topology.ps1`.
+- The script is idempotent and currently performs three repairs on PostgreSQL:
+    - removes the legacy `Pipelines` token from both `ProjectRepositories.ContentKinds` and `InfraConfigRepositories.ContentKinds`;
+    - upgrades a single-repository `AllInOne` project to `Infrastructure,ApplicationCode` when its lone repo was still infra-only or app-only after normalization;
+    - upgrades an `AllInOne` project to `SplitInfraCode` when the persisted topology is actually two repos (one infra, one app code).
+- It auto-detects the local Aspire `postgres:17.6` container, reads `POSTGRES_PASSWORD`, and patches `infraDb` through `psql`.
+
 ## Migrations
 17+ migration files in `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`. Always add a new migration when changing domain model.

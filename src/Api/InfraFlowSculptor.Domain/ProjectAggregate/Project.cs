@@ -385,29 +385,17 @@ public sealed class Project : AggregateRoot<ProjectId>
 
     /// <summary>
     /// Sets the layout preset for this project.
-    /// Switching to <see cref="LayoutPresetEnum.MultiRepo"/> auto-clears project-level repositories.
-    /// Switching to AllInOne / SplitInfraCode is strict: current repositories must already match the new cardinality.
+    /// Switching to a different preset auto-clears project-level repositories so the user can reconfigure them.
+    /// Switching to the current preset is a no-op.
     /// </summary>
     public ErrorOr<Success> SetLayoutPreset(LayoutPreset preset)
     {
         ArgumentNullException.ThrowIfNull(preset);
 
-        switch (preset.Value)
-        {
-            case LayoutPresetEnum.MultiRepo:
-                _repositories.Clear();
-                break;
+        if (LayoutPreset.Value == preset.Value)
+            return Result.Success;
 
-            case LayoutPresetEnum.AllInOne:
-                if (!IsValidAllInOne(_repositories))
-                    return Domain.Common.Errors.Errors.Project.AllInOneRequiresExactlyOneRepository();
-                break;
-
-            case LayoutPresetEnum.SplitInfraCode:
-                if (!IsValidSplitInfraCode(_repositories))
-                    return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
-                break;
-        }
+        _repositories.Clear();
 
         LayoutPreset = preset;
         return Result.Success;

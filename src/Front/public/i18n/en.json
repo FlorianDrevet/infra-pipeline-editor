@@ -141,6 +141,11 @@
       "ENVIRONMENTS": "{{count}} env(s)"
     }
   },
+  "COMMON": {
+    "CANCEL": "Cancel",
+    "CLOSE": "Close",
+    "DELETE": "Delete"
+  },
   "CONFIG_DETAIL": {
     "HEADER": {
       "OVERLINE": "Configuration detail"
@@ -157,6 +162,40 @@
     "GIT_CONFIG": {
       "EMPTY": "No Git repository configured for this configuration.",
       "DESCRIPTION": "Configure the Git repository for this configuration's Bicep output."
+    },
+    "REPOSITORIES": {
+      "TITLE": "Configuration repositories",
+      "HELP": "In a Multi-repo project, each configuration defines its own repository topology.",
+      "MODE_LABEL": "Repository mode",
+      "MODE_ALL_IN_ONE": "All-in-one",
+      "MODE_SPLIT": "Split infra / code",
+      "MODE_EMPTY": "Choose a repository mode to configure this infrastructure configuration.",
+      "EDIT": "Edit",
+      "DELETE": "Delete",
+      "ADD_ALL_IN_ONE": "Add the all-in-one repository",
+      "ADD_SLOT": "Add repository",
+      "DELETE_ERROR": "Unable to delete the repository.",
+      "LAYOUT_MODE_SAVE_ERROR": "Unable to save the configuration repository mode.",
+      "SLOT_INFRASTRUCTURE": "Repository for infrastructure",
+      "SLOT_APPLICATION_CODE": "Repository for application code",
+      "DIALOG": {
+        "TITLE_CREATE": "Add a repository",
+        "TITLE_EDIT": "Edit the repository",
+        "ALIAS": "Alias",
+        "ALIAS_PLACEHOLDER": "e.g. infra-app or app-code",
+        "ALIAS_HINT": "Lowercase letters, digits and dashes only.",
+        "ALIAS_PATTERN_ERROR": "Only lowercase letters, digits and dashes are allowed.",
+        "PROVIDER": "Provider",
+        "REPO_URL": "Repository URL",
+        "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
+        "DEFAULT_BRANCH": "Default branch",
+        "CONTENT_KINDS": "Content kinds",
+        "CONTENT_KIND_LOCKED": "Required by the selected slot",
+        "CONTENT_KINDS_REQUIRED": "At least one content kind is required.",
+        "CANCEL": "Cancel",
+        "SAVE": "Save",
+        "SAVE_ERROR": "Unable to save the repository."
+      }
     },
     "STATE": {
       "LOADING_TITLE": "Loading configuration",
@@ -748,6 +787,20 @@
       "VALIDATING": "Validating configuration...",
       "PUSH_TO_GIT": "Push all to Git"
     },
+    "BOARD": {
+      "LOADING": "Loading repository topology...",
+      "EMPTY_TITLE": "No repositories configured",
+      "EMPTY_DESC": "Configure project-level repositories first to generate artifacts by repository.",
+      "MIXED_WARNING_TITLE": "Generation is split across multiple repositories",
+      "MIXED_WARNING_DESC": "This project spans multiple target repositories. Open a configuration to generate or push artifacts repository by repository.",
+      "DEFAULT_REPO_LABEL": "Default repository",
+      "LEGACY_BADGE": "Legacy",
+      "CONFIG_GENERATE": "Open configuration",
+      "GENERATE_ALL_CONFIGS": "Generate all configurations",
+      "NO_GIT_CONFIG": "No project-level repository is configured.",
+      "LOAD_ERROR": "Unable to load repository topology.",
+      "PUSH_AMBIGUOUS_DESC": "This push cannot be done at project level because the generated artifacts target multiple repositories."
+    },
     "GENERATION": {
       "TITLE": "Generation Results",
       "TAB_BICEP": "Bicep",
@@ -902,6 +955,8 @@
       "REMOVE_CONFIRM_CANCEL": "Cancel",
       "REMOVE_ERROR": "Unable to delete the environment.",
       "FORM": {
+        "DIALOG_TITLE_ADD": "Add an environment",
+        "DIALOG_TITLE_EDIT": "Edit environment",
         "NAME": "Environment name",
         "NAME_PLACEHOLDER": "Example: Production, Staging, Dev",
         "LOCATION": "Azure location",
@@ -1099,6 +1154,14 @@
       "STRATEGY_ERROR": "Unable to update the commons strategy.",
       "REPOSITORIES": "Repositories",
       "REPOSITORIES_HELP": "Declare the Git repositories used by this project. Each configuration can bind to one of them.",
+      "SLOT_ALL_IN_ONE": "All-in-one repository",
+      "SLOT_ALL_IN_ONE_HELP": "One repository contains both infrastructure and application code for the project.",
+      "SLOT_ADD_ALL_IN_ONE": "Add the all-in-one repository",
+      "SLOT_ADD_HINT": "Add the repository required for this slot.",
+      "SLOT_INFRASTRUCTURE": "Repository for infrastructure",
+      "SLOT_APPLICATION_CODE": "Repository for application code",
+      "SLOTS_SPLIT_TITLE": "Split infra / code repositories",
+      "SLOTS_SPLIT_HELP": "Configure one repository for infrastructure and one repository for application code.",
       "ADD_REPO": "Add repository",
       "EDIT_REPO": "Edit repository",
       "EDIT": "Edit",
@@ -1130,6 +1193,7 @@
         "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
         "DEFAULT_BRANCH": "Default branch",
         "CONTENT_KINDS": "Content kinds",
+        "CONTENT_KIND_LOCKED": "Required by the selected layout slot",
         "CONTENT_KINDS_REQUIRED": "At least one content kind is required.",
         "CANCEL": "Cancel",
         "SAVE": "Save"
@@ -1905,6 +1969,7 @@
     "SAVE_ERROR": "Unable to save the abbreviation override.",
     "RESET_CONFIRM_TITLE": "Reset abbreviation",
     "RESET_CONFIRM_MESSAGE": "Are you sure you want to reset the abbreviation for {{resourceType}} to its default value ({{defaultAbbr}})?",
+    "RESET_CONFIRM_ACTION": "Reset",
     "RESET_CONFIRM_YES": "Reset",
     "RESET_CONFIRM_CANCEL": "Cancel",
     "RESET_ERROR": "Unable to reset the abbreviation."

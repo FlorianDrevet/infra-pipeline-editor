@@ -141,6 +141,11 @@
       "ENVIRONMENTS": "{{count}} env(s)"
     }
   },
+  "COMMON": {
+    "CANCEL": "Annuler",
+    "CLOSE": "Fermer",
+    "DELETE": "Supprimer"
+  },
   "CONFIG_DETAIL": {
     "HEADER": {
       "OVERLINE": "Detail de la configuration"
@@ -157,6 +162,40 @@
     "GIT_CONFIG": {
       "EMPTY": "Aucun depot Git configure pour cette configuration.",
       "DESCRIPTION": "Configurez le depot Git pour la sortie Bicep de cette configuration."
+    },
+    "REPOSITORIES": {
+      "TITLE": "Dépôts de la configuration",
+      "HELP": "Dans un projet Multi-repo, chaque configuration définit sa propre topologie de dépôts.",
+      "MODE_LABEL": "Mode de dépôt",
+      "MODE_ALL_IN_ONE": "Tout-en-un",
+      "MODE_SPLIT": "Infra / code séparés",
+      "MODE_EMPTY": "Choisissez un mode de dépôt pour configurer cette configuration d'infrastructure.",
+      "EDIT": "Modifier",
+      "DELETE": "Supprimer",
+      "ADD_ALL_IN_ONE": "Ajouter le dépôt tout-en-un",
+      "ADD_SLOT": "Ajouter le dépôt",
+      "DELETE_ERROR": "Impossible de supprimer le dépôt.",
+      "LAYOUT_MODE_SAVE_ERROR": "Impossible d'enregistrer le mode de dépôt de la configuration.",
+      "SLOT_INFRASTRUCTURE": "Dépôt pour l'infrastructure",
+      "SLOT_APPLICATION_CODE": "Dépôt pour le code applicatif",
+      "DIALOG": {
+        "TITLE_CREATE": "Ajouter un dépôt",
+        "TITLE_EDIT": "Modifier le dépôt",
+        "ALIAS": "Alias",
+        "ALIAS_PLACEHOLDER": "ex : infra-app ou app-code",
+        "ALIAS_HINT": "Lettres minuscules, chiffres et tirets uniquement.",
+        "ALIAS_PATTERN_ERROR": "Seules les lettres minuscules, les chiffres et les tirets sont autorisés.",
+        "PROVIDER": "Fournisseur",
+        "REPO_URL": "URL du dépôt",
+        "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
+        "DEFAULT_BRANCH": "Branche par défaut",
+        "CONTENT_KINDS": "Types de contenu",
+        "CONTENT_KIND_LOCKED": "Imposé par le slot sélectionné",
+        "CONTENT_KINDS_REQUIRED": "Au moins un type de contenu est requis.",
+        "CANCEL": "Annuler",
+        "SAVE": "Enregistrer",
+        "SAVE_ERROR": "Impossible d'enregistrer le dépôt."
+      }
     },
     "STATE": {
       "LOADING_TITLE": "Chargement de la configuration",
@@ -417,9 +456,14 @@
         "INGRESS_EXTERNAL": "Ingress externe",
         "TRANSPORT_METHOD": "M\u00e9thode de transport",
         "HEALTH_PROBES": "Sondes de sant\u00e9",
+        "HEALTH_PROBES_SECTION": "Sondes de sant\u00e9",
+        "HEALTH_PROBES_DESC": "Configurez les sondes HTTP pour surveiller l'\u00e9tat de votre application",
         "READINESS_PROBE": "Sonde de disponibilit\u00e9",
+        "READINESS_PROBE_DESC": "V\u00e9rifie si l'application est pr\u00eate \u00e0 recevoir du trafic",
         "LIVENESS_PROBE": "Sonde de vivacit\u00e9",
+        "LIVENESS_PROBE_DESC": "V\u00e9rifie si l'application est toujours en cours d'ex\u00e9cution",
         "STARTUP_PROBE": "Sonde de d\u00e9marrage",
+        "STARTUP_PROBE_DESC": "V\u00e9rifie si l'application a d\u00e9marr\u00e9 correctement",
         "PROBE_PATH": "Chemin de la sonde",
         "PROBE_PORT": "Port de la sonde",
         "RETENTION_IN_DAYS": "R\u00e9tention (jours)",
@@ -724,6 +768,20 @@
       "BUTTON": "Générer",
       "VALIDATING": "Vérification en cours...",
       "PUSH_TO_GIT": "Tout pousser vers Git"
+    },
+    "BOARD": {
+      "LOADING": "Chargement de la topologie des dépôts...",
+      "EMPTY_TITLE": "Aucun dépôt configuré",
+      "EMPTY_DESC": "Configurez d'abord les dépôts au niveau projet pour générer les artefacts par dépôt.",
+      "MIXED_WARNING_TITLE": "La génération est répartie sur plusieurs dépôts",
+      "MIXED_WARNING_DESC": "Ce projet cible plusieurs dépôts. Ouvrez une configuration pour générer ou pousser les artefacts dépôt par dépôt.",
+      "DEFAULT_REPO_LABEL": "Dépôt par défaut",
+      "LEGACY_BADGE": "Hérité",
+      "CONFIG_GENERATE": "Ouvrir la configuration",
+      "GENERATE_ALL_CONFIGS": "Générer toutes les configurations",
+      "NO_GIT_CONFIG": "Aucun dépôt au niveau projet n'est configuré.",
+      "LOAD_ERROR": "Impossible de charger la topologie des dépôts.",
+      "PUSH_AMBIGUOUS_DESC": "Ce push ne peut pas être lancé au niveau projet car les artefacts générés ciblent plusieurs dépôts."
     },
     "GENERATION": {
       "TITLE": "Résultats de génération",
@@ -1087,6 +1145,14 @@
       "STRATEGY_ERROR": "Impossible de mettre à jour la stratégie des commons.",
       "REPOSITORIES": "Dépôts",
       "REPOSITORIES_HELP": "Déclarez les dépôts Git utilisés par ce projet. Chaque configuration peut être liée à l'un d'eux.",
+      "SLOT_ALL_IN_ONE": "Dépôt tout-en-un",
+      "SLOT_ALL_IN_ONE_HELP": "Un seul dépôt contient à la fois l'infrastructure et le code applicatif du projet.",
+      "SLOT_ADD_ALL_IN_ONE": "Ajouter le dépôt tout-en-un",
+      "SLOT_ADD_HINT": "Ajoutez le dépôt attendu pour ce slot.",
+      "SLOT_INFRASTRUCTURE": "Dépôt pour l'infrastructure",
+      "SLOT_APPLICATION_CODE": "Dépôt pour le code applicatif",
+      "SLOTS_SPLIT_TITLE": "Dépôts infra / code séparés",
+      "SLOTS_SPLIT_HELP": "Configurez un dépôt pour l'infrastructure et un dépôt pour le code applicatif.",
       "ADD_REPO": "Ajouter un dépôt",
       "EDIT_REPO": "Modifier le dépôt",
       "EDIT": "Modifier",
@@ -1118,6 +1184,7 @@
         "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
         "DEFAULT_BRANCH": "Branche par défaut",
         "CONTENT_KINDS": "Types de contenu",
+        "CONTENT_KIND_LOCKED": "Imposé par le slot de layout sélectionné",
         "CONTENT_KINDS_REQUIRED": "Au moins un type de contenu est requis.",
         "CANCEL": "Annuler",
         "SAVE": "Enregistrer"
@@ -1893,6 +1960,7 @@
     "SAVE_ERROR": "Impossible de sauvegarder l'abréviation.",
     "RESET_CONFIRM_TITLE": "Réinitialiser l'abréviation",
     "RESET_CONFIRM_MESSAGE": "Êtes-vous sûr de vouloir réinitialiser l'abréviation de {{resourceType}} à sa valeur par défaut ({{defaultAbbr}}) ?",
+    "RESET_CONFIRM_ACTION": "Réinitialiser",
     "RESET_CONFIRM_YES": "Réinitialiser",
     "RESET_CONFIRM_CANCEL": "Annuler",
     "RESET_ERROR": "Impossible de réinitialiser l'abréviation."
