@@ -6,7 +6,9 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectPipelineVariableGroups;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.PipelineGeneration;
@@ -19,6 +21,9 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
     IInfrastructureConfigReadRepository configReadRepository,
+    IContainerAppRepository containerAppRepository,
+    IWebAppRepository webAppRepository,
+    IFunctionAppRepository functionAppRepository,
     BootstrapPipelineGenerationEngine bootstrapEngine,
     IBlobService blobService)
     : ICommandHandler<GenerateProjectBootstrapPipelineCommand, GenerateProjectBootstrapPipelineResult>
@@ -59,7 +64,11 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         var adoProjectName = DecodeUrlSegment(ownerParts.Length > 1 ? ownerParts[1] : ownerParts[0]);
 
         var pipelineBasePath = gitConfig.PipelineBasePath;
-        var pipelines = BuildPipelineDefinitions(configs, pipelineBasePath);
+        var pipelines = await BuildPipelineDefinitionsAsync(
+                configs,
+                pipelineBasePath,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         var projectVariableGroups = projectWithVariableGroups.PipelineVariableGroups.ToList();
         var variableGroupUsages = await projectRepository.GetPipelineVariableUsagesAsync(
@@ -105,9 +114,10 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         return new GenerateProjectBootstrapPipelineResult(fileUris);
     }
 
-    private static IReadOnlyList<BootstrapPipelineDefinition> BuildPipelineDefinitions(
+    private async Task<IReadOnlyList<BootstrapPipelineDefinition>> BuildPipelineDefinitionsAsync(
         IReadOnlyList<InfrastructureConfigReadModel> configs,
-        string? pipelineBasePath)
+        string? pipelineBasePath,
+        CancellationToken cancellationToken)
     {
         var pipelines = new List<BootstrapPipelineDefinition>();
         var basePrefix = string.IsNullOrEmpty(pipelineBasePath)
@@ -116,25 +126,105 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
 
         foreach (var config in configs)
         {
-            var sanitizedName = PathSanitizer.Sanitize(config.Name);
+            var sanitizedConfigName = PathSanitizer.Sanitize(config.Name);
+
+            pipelines.AddRange(BuildInfrastructurePipelineDefinitions(config.Name, sanitizedConfigName, basePrefix));
+            pipelines.AddRange(await BuildApplicationPipelineDefinitionsAsync(
+                    config,
+                    sanitizedConfigName,
+                    basePrefix,
+                    cancellationToken)
+                .ConfigureAwait(false));
+        }
+
+        return pipelines
+            .DistinctBy(pipeline => new { pipeline.Name, pipeline.YamlPath, pipeline.Folder })
+            .ToList();
+    }
+
+    private static IReadOnlyList<BootstrapPipelineDefinition> BuildInfrastructurePipelineDefinitions(
+        string configName,
+        string sanitizedConfigName,
+        string basePrefix)
+    {
+        return
+        [
+            new BootstrapPipelineDefinition(
+                Name: $"{configName} - CI",
+                YamlPath: $"/{basePrefix}{sanitizedConfigName}/ci.pipeline.yml",
+                Folder: $"\\{sanitizedConfigName}"),
+            new BootstrapPipelineDefinition(
+                Name: $"{configName} - PR",
+                YamlPath: $"/{basePrefix}{sanitizedConfigName}/pr.pipeline.yml",
+                Folder: $"\\{sanitizedConfigName}"),
+            new BootstrapPipelineDefinition(
+                Name: $"{configName} - Release",
+                YamlPath: $"/{basePrefix}{sanitizedConfigName}/release.pipeline.yml",
+                Folder: $"\\{sanitizedConfigName}"),
+        ];
+    }
+
+    private async Task<IReadOnlyList<BootstrapPipelineDefinition>> BuildApplicationPipelineDefinitionsAsync(
+        InfrastructureConfigReadModel config,
+        string sanitizedConfigName,
+        string basePrefix,
+        CancellationToken cancellationToken)
+    {
+        var pipelines = new List<BootstrapPipelineDefinition>();
+
+        var computeResources = config.ResourceGroups
+            .SelectMany(resourceGroup => resourceGroup.Resources)
+            .Where(resource => !resource.IsExisting && IsApplicationPipelineResource(resource.ResourceType))
+            .ToList();
+
+        foreach (var resource in computeResources)
+        {
+            var appFolderName = await ResolveApplicationFolderNameAsync(resource, cancellationToken)
+                .ConfigureAwait(false);
+            var sanitizedAppName = PathSanitizer.Sanitize(appFolderName);
+            var yamlBasePath = $"/{basePrefix}{sanitizedConfigName}/apps/{sanitizedAppName}";
+            var folder = $"\\{sanitizedConfigName}\\Applications\\{sanitizedAppName}";
 
             pipelines.Add(new BootstrapPipelineDefinition(
-                Name: $"{sanitizedName} - CI",
-                YamlPath: $"/{basePrefix}{sanitizedName}/ci.pipeline.yml",
-                Folder: $"\\{sanitizedName}"));
+                Name: $"{config.Name} - {resource.Name} - CI",
+                YamlPath: $"{yamlBasePath}/ci.app-pipeline.yml",
+                Folder: folder));
 
             pipelines.Add(new BootstrapPipelineDefinition(
-                Name: $"{sanitizedName} - PR",
-                YamlPath: $"/{basePrefix}{sanitizedName}/pr.pipeline.yml",
-                Folder: $"\\{sanitizedName}"));
-
-            pipelines.Add(new BootstrapPipelineDefinition(
-                Name: $"{sanitizedName} - Release",
-                YamlPath: $"/{basePrefix}{sanitizedName}/release.pipeline.yml",
-                Folder: $"\\{sanitizedName}"));
+                Name: $"{config.Name} - {resource.Name} - Release",
+                YamlPath: $"{yamlBasePath}/release.app-pipeline.yml",
+                Folder: folder));
         }
 
         return pipelines;
+    }
+
+    private static bool IsApplicationPipelineResource(string resourceType)
+    {
+        return resourceType is AzureResourceTypes.ArmTypes.ContainerApp
+            or AzureResourceTypes.ArmTypes.WebApp
+            or AzureResourceTypes.ArmTypes.FunctionApp;
+    }
+
+    private async Task<string> ResolveApplicationFolderNameAsync(
+        AzureResourceReadModel resource,
+        CancellationToken cancellationToken)
+    {
+        var resourceId = new AzureResourceId(resource.Id);
+
+        return resource.ResourceType switch
+        {
+            AzureResourceTypes.ArmTypes.ContainerApp =>
+                (await containerAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
+                ?? resource.Name,
+            AzureResourceTypes.ArmTypes.WebApp =>
+                (await webAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
+                ?? resource.Name,
+            AzureResourceTypes.ArmTypes.FunctionApp =>
+                (await functionAppRepository.GetByIdAsync(resourceId, cancellationToken).ConfigureAwait(false))?.ApplicationName
+                ?? resource.Name,
+            _ => resource.Name,
+        };
     }
 
     private static IReadOnlyList<BootstrapVariableGroupDefinition> BuildVariableGroupDefinitions(

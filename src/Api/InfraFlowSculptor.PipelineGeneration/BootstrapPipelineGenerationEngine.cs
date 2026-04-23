@@ -28,11 +28,31 @@ public sealed class BootstrapPipelineGenerationEngine
         var sb = new StringBuilder();
 
         GenerateHeader(sb, request);
-        GenerateConfigureStep(sb, request);
-        GenerateGetRepoIdStep(sb, request);
-        GeneratePipelineCreationSteps(sb, request);
-        GenerateEnvironmentCreationSteps(sb, request);
-        GenerateVariableGroupCreationSteps(sb, request);
+
+        var hasProvisioningJob = false;
+
+        if (request.Pipelines.Count > 0)
+        {
+            GeneratePipelineProvisionJob(sb, request);
+            hasProvisioningJob = true;
+        }
+
+        if (request.Environments.Count > 0)
+        {
+            GenerateEnvironmentProvisionJob(sb, request);
+            hasProvisioningJob = true;
+        }
+
+        if (request.VariableGroups.Count > 0)
+        {
+            GenerateVariableGroupProvisionJob(sb, request);
+            hasProvisioningJob = true;
+        }
+
+        if (!hasProvisioningJob)
+        {
+            GenerateNoOpJob(sb, request);
+        }
 
         var files = new Dictionary<string, string>
         {
@@ -72,15 +92,52 @@ public sealed class BootstrapPipelineGenerationEngine
         sb.AppendLine("- stage: BootstrapAzureDevOps");
         sb.AppendLine("  displayName: 'Bootstrap Azure DevOps'");
         sb.AppendLine("  jobs:");
-        sb.AppendLine("    - job: ProvisionBootstrapAssets");
-        sb.AppendLine("      displayName: 'Provision Pipelines and Variable Groups'");
-        PipelineGenerationEngine.AppendPool(sb, request.AgentPoolName, indent: "      ");
+    }
+
+    private static void GeneratePipelineProvisionJob(StringBuilder sb, BootstrapGenerationRequest request)
+    {
+        AppendJobHeader(sb, "ProvisionPipelineDefinitions", "Provision Pipeline Definitions", request.AgentPoolName);
+        GenerateConfigureStep(sb);
+        GeneratePipelineCreationSteps(sb, request);
+    }
+
+    private static void GenerateEnvironmentProvisionJob(StringBuilder sb, BootstrapGenerationRequest request)
+    {
+        AppendJobHeader(sb, "ProvisionEnvironments", "Provision Environments", request.AgentPoolName);
+        GenerateEnvironmentCreationSteps(sb, request);
+    }
+
+    private static void GenerateVariableGroupProvisionJob(StringBuilder sb, BootstrapGenerationRequest request)
+    {
+        AppendJobHeader(sb, "ProvisionVariableGroups", "Provision Variable Groups", request.AgentPoolName);
+        GenerateConfigureStep(sb);
+        GenerateVariableGroupCreationSteps(sb, request);
+    }
+
+    private static void GenerateNoOpJob(StringBuilder sb, BootstrapGenerationRequest request)
+    {
+        AppendJobHeader(sb, "NothingToProvision", "Nothing to Provision", request.AgentPoolName);
+        sb.AppendLine($"{StepIndent}- powershell: |");
+        sb.AppendLine($"{StepBodyIndent}Write-Host 'No pipelines, environments, or variable groups were requested for bootstrap.'");
+        sb.AppendLine($"{StepPropertyIndent}displayName: 'No-op'");
+        sb.AppendLine();
+    }
+
+    private static void AppendJobHeader(
+        StringBuilder sb,
+        string jobName,
+        string displayName,
+        string? agentPoolName)
+    {
+        sb.AppendLine($"    - job: {jobName}");
+        sb.AppendLine($"      displayName: '{displayName}'");
+        PipelineGenerationEngine.AppendPool(sb, agentPoolName, indent: "      ");
         sb.AppendLine("      steps:");
     }
 
-    private static void GenerateConfigureStep(StringBuilder sb, BootstrapGenerationRequest request)
+    private static void GenerateConfigureStep(StringBuilder sb)
     {
-        sb.AppendLine($"{StepIndent}# ── Step 1: Configure Azure DevOps CLI ──────────────────────────────────");
+        sb.AppendLine($"{StepIndent}# ── Configure Azure DevOps CLI ─────────────────────────────────────────");
         sb.AppendLine($"{StepIndent}- powershell: |");
         sb.AppendLine($"{StepBodyIndent}$ErrorActionPreference = 'Stop'");
         sb.AppendLine($"{StepBodyIndent}$null = az config set extension.use_dynamic_install=yes_without_prompt");
@@ -97,30 +154,12 @@ public sealed class BootstrapPipelineGenerationEngine
         sb.AppendLine();
     }
 
-    private static void GenerateGetRepoIdStep(StringBuilder sb, BootstrapGenerationRequest request)
-    {
-        sb.AppendLine($"{StepIndent}# ── Step 2: Resolve repository ID ───────────────────────────────────────");
-        sb.AppendLine($"{StepIndent}- powershell: |");
-        sb.AppendLine($"{StepBodyIndent}$ErrorActionPreference = 'Stop'");
-        sb.AppendLine($"{StepBodyIndent}$repoId = az repos show --repository \"$(repositoryName)\" --query \"id\" -o tsv --detect false");
-        sb.AppendLine($"{StepBodyIndent}if ([string]::IsNullOrWhiteSpace($repoId)) {{");
-        sb.AppendLine($"{StepBodyIndent}  throw 'Unable to resolve the Azure DevOps repository identifier.'");
-        sb.AppendLine($"{StepBodyIndent}}}");
-        sb.AppendLine($"{StepBodyIndent}Write-Host \"##vso[task.setvariable variable=repoId]$repoId\"");
-        sb.AppendLine($"{StepBodyIndent}Write-Host ('Repository ID: ' + $repoId)");
-        sb.AppendLine($"{StepPropertyIndent}displayName: 'Resolve Repository ID'");
-        sb.AppendLine($"{StepPropertyIndent}env:");
-        sb.AppendLine($"{StepBodyIndent}AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)");
-        sb.AppendLine($"{StepBodyIndent}SYSTEM_ACCESSTOKEN: $(System.AccessToken)");
-        sb.AppendLine();
-    }
-
     private static void GeneratePipelineCreationSteps(StringBuilder sb, BootstrapGenerationRequest request)
     {
         if (request.Pipelines.Count == 0)
             return;
 
-        sb.AppendLine("  # ── Step 3: Create pipeline definitions ─────────────────────────────────");
+        sb.AppendLine("  # ── Create pipeline definitions ─────────────────────────────────────────");
 
         foreach (var pipeline in request.Pipelines)
         {
@@ -154,7 +193,7 @@ public sealed class BootstrapPipelineGenerationEngine
         if (request.Environments.Count == 0)
             return;
 
-        sb.AppendLine("  # ── Step 4: Create Azure DevOps environments ───────────────────────────");
+        sb.AppendLine("  # ── Create Azure DevOps environments ───────────────────────────────────");
 
         foreach (var environment in request.Environments)
         {
@@ -197,7 +236,7 @@ public sealed class BootstrapPipelineGenerationEngine
         if (request.VariableGroups.Count == 0)
             return;
 
-        sb.AppendLine("  # ── Step 5: Create variable groups ──────────────────────────────────────");
+        sb.AppendLine("  # ── Create variable groups ──────────────────────────────────────────────");
 
         foreach (var group in request.VariableGroups)
         {
