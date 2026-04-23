@@ -71,14 +71,6 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .OnDelete(DeleteBehavior.Cascade);
 
         // ========================
-        // GitRepositoryConfiguration (Entity, 0..1)
-        // ========================
-        builder.HasOne(x => x.GitRepositoryConfiguration)
-            .WithOne()
-            .HasForeignKey<GitRepositoryConfiguration>(x => x.ProjectId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // ========================
         // PipelineVariableGroups (Entity)
         // ========================
         builder.HasMany(x => x.PipelineVariableGroups)
@@ -90,11 +82,30 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         // ========================
-        // RepositoryMode
+        // Repositories (Entity, V1 multi-repo)
         // ========================
-        builder.Property(x => x.RepositoryMode)
-            .HasConversion(new EnumValueConverter<RepositoryMode, RepositoryModeEnum>())
-            .HasDefaultValue(new RepositoryMode(RepositoryModeEnum.MultiRepo))
+        builder.HasMany(x => x.Repositories)
+            .WithOne()
+            .HasForeignKey(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(x => x.Repositories)
+            .HasField("_repositories")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        // ========================
+        // LayoutPreset
+        // ========================
+        builder.Property(x => x.LayoutPreset)
+            .HasConversion(new EnumValueConverter<LayoutPreset, LayoutPresetEnum>())
+            .HasDefaultValue(new LayoutPreset(LayoutPresetEnum.MultiRepo))
+            .IsRequired();
+
+        // ========================
+        // CommonsStrategy
+        // ========================
+        builder.Property(x => x.CommonsStrategy)
+            .HasConversion(new EnumValueConverter<CommonsStrategy, CommonsStrategyEnum>())
+            .HasDefaultValue(new CommonsStrategy(CommonsStrategyEnum.DuplicatePerRepo))
             .IsRequired();
 
         // ========================

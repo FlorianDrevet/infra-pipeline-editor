@@ -4,8 +4,8 @@
 
 | Aggregate | Root | Key Entities | Notes |
 |---|---|---|---|
-| `Project` | `Project` | `ProjectMember`, `ProjectEnvironmentDefinition`, `ProjectResourceNamingTemplate`, `ProjectResourceAbbreviation`, `GitRepositoryConfiguration`, `ProjectPipelineVariableGroup` | Groups InfrastructureConfigs; owns membership/RBAC, default environments, naming conventions, optional Git push config, shared pipeline variable groups, `AgentPoolName` (self-hosted pool for pipelines), project-level resource abbreviation overrides |
-| `InfrastructureConfig` | `InfrastructureConfig` | `ParameterDefinition`, `ResourceParameterUsage`, `ResourceNamingTemplate`, `ResourceAbbreviationOverride`, `CrossConfigResourceReference` | Has `ProjectId` FK to Project. Environments inherited from parent Project. Config-level resource abbreviation overrides. |
+| `Project` | `Project` | `ProjectMember`, `ProjectEnvironmentDefinition`, `ProjectResourceNamingTemplate`, `ProjectResourceAbbreviation`, `ProjectRepository`, `ProjectPipelineVariableGroup` | Groups InfrastructureConfigs; owns membership/RBAC, default environments, naming conventions, N `ProjectRepository` (V2 multi-repo), `LayoutPreset` (AllInOne/SplitInfraCode/MultiRepo/Custom), `CommonsStrategy` (V2: DuplicatePerRepo only), shared pipeline variable groups, `AgentPoolName`, project-level resource abbreviation overrides |
+| `InfrastructureConfig` | `InfrastructureConfig` | `ParameterDefinition`, `ResourceParameterUsage`, `ResourceNamingTemplate`, `ResourceAbbreviationOverride`, `CrossConfigResourceReference` | Has `ProjectId` FK to Project. Environments inherited from parent Project. Config-level resource abbreviation overrides. Optional owned `RepositoryBinding` (V1 multi-repo: Alias, Branch?, InfraPath?, PipelinePath?). |
 | `ResourceGroup` | `ResourceGroup` | `AzureResource` (base) | Hosts Azure resources. No child entities — `ResourceEnvironmentConfig` was removed. |
 | `KeyVault` | extends `AzureResource` | `KeyVaultEnvironmentSettings` | TPT in EF Core |
 | `RedisCache` | extends `AzureResource` | `RedisCacheEnvironmentSettings` | TPT in EF Core |
@@ -111,6 +111,22 @@ Two-level abbreviation override system matching NamingTemplate precedence:
 - Collection initializers: prefer `= []` over `= new()`.
 - `EnumValueObject` types: use primary constructor pattern.
 
+## Multi-Repo Topology V2 [2026-04-23]
+
+- `Project.CanGenerateAllFromProjectLevel(IReadOnlyCollection<InfrastructureConfig> configs) : bool` — retourne `false` si les configs résolvent vers ≥2 aliases distincts (binding?.Alias ?? `"default"`). Utilisée par `GenerateProjectBicepCommandHandler` et `GenerateProjectPipelineCommandHandler` comme garde avant génération. Retourne `Errors.GitRouting.AmbiguousProjectLevelGeneration` si false.
+- Le domaine accepte maintenant des références cross-aggregate **en lecture seulement** pour l'inspection de règles métier (pattern domain-service-like sur l'aggregate root). `Project` importe `InfraFlowSculptor.Domain.InfrastructureConfigAggregate`.
+
+## Multi-Repo Topology V1 [2026-04-23]
+
+- `ProjectRepository` (`Entity<ProjectRepositoryId>`, owned by `Project`): `Alias` (slug `^[a-z0-9-]+$`, unique per project), `ProviderType` (`GitProviderType`), `RepositoryUrl/Owner/RepositoryName/DefaultBranch`, `ContentKinds` (custom flags VO: `Infrastructure | ApplicationCode | Pipelines`, persisted as CSV string).
+- `RepositoryBinding` (sealed VO, owned on `InfrastructureConfig`): `Alias` (FK logique vers ProjectRepository.Alias, validé applicativement, **pas FK SQL**), `Branch?`, `InfraPath?`, `PipelinePath?`. Persisté inline (4 colonnes `RepositoryBinding_*`).
+- `LayoutPreset` (`EnumValueObject<LayoutPresetEnum>`): `AllInOne | SplitInfraCode | MultiRepo | Custom`. Purement informatif, ne pilote pas la génération en V1.
+- `CommonsStrategy` (`EnumValueObject<CommonsStrategyEnum>`): `DuplicatePerRepo | DedicatedCommonsRepo | AzdoRepoResource`. **V1 rejette tout sauf `DuplicatePerRepo`** dans `Project.SetCommonsStrategy`.
+- `Project.RepositoryMode` (legacy) **supprimé** en V3. La topologie multi-repo s'exprime via `LayoutPreset` (AllInOne/SplitInfraCode/MultiRepo/Custom) + `Project.Repositories` (collection `ProjectRepository`).
+- `Project.GitRepositoryConfiguration` (entité legacy) **supprimé** en V3. Le routage Git passe désormais exclusivement par `IRepositoryTargetResolver` qui combine `RepositoryBinding` (par config) et `ProjectRepository` (par alias).
+- `RepositoryUrlHelper` (internal static, `ProjectAggregate/Common/`): logique de parsing URL/normalisation paths extraite à l'origine de `GitRepositoryConfiguration` et réutilisée par `ProjectRepository`.
+- Les engines Bicep/Pipelines **ne lisent pas encore** les `RepositoryBinding` en V1 — refactor reporté en V2. La rétrocompat est garantie par le miroir.
+
 ## Error Definitions
 
-Errors live in `src/Api/InfraFlowSculptor.Domain/Common/Errors/Errors.*.cs` as partial static classes. When adding a new aggregate, add `Errors.AggregateName.cs`. Convention: no inline `Error.*()` calls in handlers — always use `Errors.AggregateName.MethodName()`.
+Errors live in `src/Api/InfraFlowSculptor.Domain/Common/Errors/Errors.*.cs` as partial static classes. When adding a new aggregate, add `Errors.AggregateName.cs`. Convention: no inline `Error.*()` calls in handlers — always use `Errors.AggregateName.MethodName()`. New in V1: `Errors.ProjectRepository.cs` (`InvalidAlias`, `DuplicateAlias`, `NotFound(id|alias)`, `NoContentKind`, `UnsupportedCommonsStrategy`, `RepositoryInUse`); extensions `Errors.Project.InvalidLayoutPreset`, `Errors.Project.InvalidCommonsStrategy`.

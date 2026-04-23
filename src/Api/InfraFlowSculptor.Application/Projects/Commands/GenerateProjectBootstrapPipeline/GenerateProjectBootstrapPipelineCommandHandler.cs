@@ -1,5 +1,6 @@
 using System.Net;
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
@@ -25,7 +26,8 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
     IWebAppRepository webAppRepository,
     IFunctionAppRepository functionAppRepository,
     BootstrapPipelineGenerationEngine bootstrapEngine,
-    IBlobService blobService)
+    IBlobService blobService,
+    IRepositoryTargetResolver targetResolver)
     : ICommandHandler<GenerateProjectBootstrapPipelineCommand, GenerateProjectBootstrapPipelineResult>
 {
     /// <inheritdoc />
@@ -41,8 +43,12 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        if (project.GitRepositoryConfiguration is null)
-            return Errors.GitRepository.NotConfigured();
+        // Resolve the project-level target (alias "default") for bootstrap artifacts.
+        var targetResult = targetResolver.Resolve(project, config: null, ArtifactKind.Bootstrap);
+        if (targetResult.IsError)
+            return targetResult.Errors;
+
+        var target = targetResult.Value;
 
         var configs = await configReadRepository.GetAllByProjectIdWithResourcesAsync(
             command.ProjectId.Value,
@@ -58,12 +64,11 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         if (projectWithVariableGroups is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        var gitConfig = project.GitRepositoryConfiguration;
-        var ownerParts = gitConfig.Owner.Split('/', 2);
+        var ownerParts = target.Owner.Split('/', 2);
         var organizationName = DecodeUrlSegment(ownerParts[0]);
         var adoProjectName = DecodeUrlSegment(ownerParts.Length > 1 ? ownerParts[1] : ownerParts[0]);
 
-        var pipelineBasePath = gitConfig.PipelineBasePath;
+        var pipelineBasePath = target.PipelineBasePath;
         var pipelines = await BuildPipelineDefinitionsAsync(
                 configs,
                 pipelineBasePath,
@@ -93,8 +98,8 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         {
             OrganizationName = organizationName,
             ProjectName = adoProjectName,
-            RepositoryName = DecodeUrlSegment(gitConfig.RepositoryName),
-            DefaultBranch = gitConfig.DefaultBranch,
+            RepositoryName = DecodeUrlSegment(target.RepositoryName),
+            DefaultBranch = target.Branch,
             AgentPoolName = project.AgentPoolName,
             Pipelines = pipelines,
             Environments = bootstrapEnvironments,

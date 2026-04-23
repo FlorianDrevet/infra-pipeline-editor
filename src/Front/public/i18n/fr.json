@@ -95,9 +95,7 @@
       "DESCRIPTION_PLACEHOLDER": "Breve description du projet",
       "ERROR_REQUIRED": "Le nom du projet est requis.",
       "ERROR_MIN_LENGTH": "Utilisez au moins 3 caracteres pour un nom pertinent.",
-      "ERROR_MAX_LENGTH": "Le nom doit rester sous 80 caracteres.",
-      "REPO_MODE_LABEL": "Mode de depot",
-      "REPO_MODE_HINT": "Multi-repo : un depot Git par configuration. Mono-repo : un seul depot Git partage pour tout le projet."
+      "ERROR_MAX_LENGTH": "Le nom doit rester sous 80 caracteres."
     },
     "FEEDBACK": {
       "LOAD_ERROR_FALLBACK": "Impossible de charger vos projets. Actualisez la page ou reessayez."
@@ -722,11 +720,6 @@
       "GIT": "Git",
       "SETTINGS": "Parametres"
     },
-    "REPO_MODE": {
-      "MULTI": "Multi-repo",
-      "MONO": "Mono-repo",
-      "ERROR": "Impossible de changer le mode de depot."
-    },
     "GENERATE_ALL": {
       "BUTTON": "Générer",
       "VALIDATING": "Vérification en cours...",
@@ -1030,10 +1023,6 @@
       }
     },
     "SETTINGS": {
-      "REPO_MODE_TITLE": "Mode de depot",
-      "REPO_MODE_DESCRIPTION": "Choisissez comment la sortie Bicep est organisee dans les depots Git.",
-      "GIT_MONO_DESCRIPTION": "En mode mono-repo, un seul depot Git stocke la sortie Bicep de toutes les configurations.",
-      "GIT_MULTI_INFO": "En mode multi-repo, chaque configuration possede son propre depot Git. Configurez Git dans l'onglet Git de chaque configuration.",
       "AGENT_POOL": {
         "TITLE": "Pool d'agents",
         "DESCRIPTION": "Configurez le pool d'agents self-hosted pour la génération de pipelines. Par défaut, les pipelines utilisent le pool Microsoft hébergé (vmImage: ubuntu-latest).",
@@ -1073,6 +1062,64 @@
       "TAG_NAME": "Clé",
       "TAG_VALUE": "Valeur",
       "SAVE_ERROR": "Impossible d'enregistrer les tags."
+    },
+    "LAYOUT": {
+      "TAB_TITLE": "Layout & dépôts",
+      "PRESET": "Preset de layout",
+      "PRESET_HELP": "Choisissez comment le code d'infrastructure, le code applicatif et les pipelines sont répartis entre les dépôts Git.",
+      "PRESET_ALL_IN_ONE": "Tout-en-un (mono-repo)",
+      "PRESET_ALL_IN_ONE_DESC": "Un seul dépôt héberge le code d'infrastructure, le code applicatif et les pipelines.",
+      "PRESET_SPLIT_INFRA_CODE": "Infra / code séparés",
+      "PRESET_SPLIT_INFRA_CODE_DESC": "Un dépôt pour l'infrastructure, un dépôt pour le code applicatif.",
+      "PRESET_MULTI_REPO": "Multi-repo",
+      "PRESET_MULTI_REPO_DESC": "Des dépôts séparés pour l'infrastructure, le code applicatif et les pipelines.",
+      "PRESET_CUSTOM": "Personnalisé",
+      "PRESET_CUSTOM_DESC": "Topologie libre : associez chaque configuration à n'importe quel dépôt.",
+      "PRESET_ERROR": "Impossible de mettre à jour le preset de layout.",
+      "COMMONS_STRATEGY": "Stratégie des commons",
+      "COMMONS_STRATEGY_HELP": "Définit comment les commons (modules Bicep partagés) sont répartis entre les dépôts.",
+      "COMMONS_DUPLICATE": "Dupliquer par dépôt",
+      "COMMONS_DEDICATED": "Dépôt commons dédié (V3+)",
+      "COMMONS_AZDO": "Ressource de dépôt Azure DevOps (V3+)",
+      "COMMONS_V3_TOOLTIP": "Disponible en V3+",
+      "STRATEGY_ERROR": "Impossible de mettre à jour la stratégie des commons.",
+      "REPOSITORIES": "Dépôts",
+      "REPOSITORIES_HELP": "Déclarez les dépôts Git utilisés par ce projet. Chaque configuration peut être liée à l'un d'eux.",
+      "ADD_REPO": "Ajouter un dépôt",
+      "EDIT_REPO": "Modifier le dépôt",
+      "EDIT": "Modifier",
+      "DELETE": "Supprimer",
+      "URL": "URL",
+      "BRANCH": "Branche par défaut",
+      "NO_REPOS": "Aucun dépôt déclaré pour le moment. Cliquez sur 'Ajouter un dépôt' pour commencer.",
+      "REPO_DELETE_IN_USE": "Suppression impossible : ce dépôt est lié à une ou plusieurs configurations.",
+      "DELETE_ERROR": "Impossible de supprimer le dépôt.",
+      "DELETE_CONFIRM_TITLE": "Supprimer le dépôt",
+      "DELETE_CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer le dépôt \"{{alias}}\" ?",
+      "DELETE_CONFIRM_YES": "Supprimer",
+      "DELETE_CONFIRM_CANCEL": "Annuler",
+      "LOAD_ERROR": "Impossible de charger les données du projet.",
+      "INVALID_VALUE": "Valeur invalide.",
+      "DIALOG_ERROR": "Impossible d'enregistrer le dépôt.",
+      "CONTENT_KIND": {
+        "Infrastructure": "Infrastructure",
+        "ApplicationCode": "Code applicatif",
+        "Pipelines": "Pipelines"
+      },
+      "FORM": {
+        "ALIAS": "Alias",
+        "ALIAS_PLACEHOLDER": "ex : infra, app, pipelines",
+        "ALIAS_HINT": "Lettres minuscules, chiffres et tirets uniquement. Ne peut pas être modifié après la création.",
+        "ALIAS_PATTERN_ERROR": "Seules les lettres minuscules, les chiffres et les tirets sont autorisés.",
+        "PROVIDER": "Fournisseur",
+        "REPO_URL": "URL du dépôt",
+        "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
+        "DEFAULT_BRANCH": "Branche par défaut",
+        "CONTENT_KINDS": "Types de contenu",
+        "CONTENT_KINDS_REQUIRED": "Au moins un type de contenu est requis.",
+        "CANCEL": "Annuler",
+        "SAVE": "Enregistrer"
+      }
     }
   },
   "RESOURCE_EDIT": {

@@ -71,5 +71,16 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 - `GetByContainedResourceIdAsync` — finds a parent entity (e.g. ResourceGroup) by a child resource's ID. Renamed from the ambiguous `GetByResourceIdAsync`.
 - Convention: use `ByContainedXxx` prefix when the lookup navigates from child to parent.
 
+## Multi-Repo Topology V1 — EF [2026-04-23]
+
+- Nouvelle table `ProjectRepositories` (Id, ProjectId FK Cascade, Alias, ProviderType, RepositoryUrl, Owner, RepositoryName, DefaultBranch, ContentKinds CSV string).
+- Index unique `(ProjectId, Alias)` pour empêcher doublons d'alias dans un projet.
+- `RepositoryAliasConverter` et `RepositoryContentKindsConverter` (custom car `RepositoryAlias` ctor privé et `RepositoryContentKinds` est un VO Flags non `SingleValueObject`).
+- `InfrastructureConfigs` étendu avec 4 colonnes inline owned : `RepositoryBinding_Alias`, `_Branch`, `_InfraPath`, `_PipelinePath` (toutes nullable). Configuré via `OwnsOne(RepositoryBinding) + Navigation.IsRequired(false)`.
+- Colonne `Projects.RepositoryMode` **renommée** `LayoutPreset` (1 migration, pas une suppression). Backfill `'MonoRepo' → 'AllInOne'`, autre → `'MultiRepo'`. Nouvelle colonne `CommonsStrategy` (default `'DuplicatePerRepo'`).
+- Backfill SQL automatique : pour chaque `GitRepositoryConfigurations` existant, INSERT 1 row dans `ProjectRepositories` avec `Alias='default'`, `ContentKinds='Infrastructure,Pipelines'` ; UPDATE InfraConfigs pour binder leur `RepositoryBinding_Alias='default'`.
+- 1 seule migration consolidée `AddMultiRepoTopologyV1` (timestamp 20260423151014) — décision pragmatique car EF auto-gen produit toujours 1 diff entre snapshot et état Domain.
+- `GitRepositoryConfigurations` table **dropped en V3** (migration `RemoveLegacyGitRepositoryConfiguration` du 2026-04-23). Rollback possible via `Down()` (recrée la table avec FK cascade vers `Projects`).
+
 ## Migrations
 17+ migration files in `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`. Always add a new migration when changing domain model.

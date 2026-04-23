@@ -87,7 +87,15 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.Tags, src => src.Tags)
             .Map(dest => dest.ResourceGroupCount, src => src.ResourceGroupCount)
             .Map(dest => dest.ResourceCount, src => src.ResourceCount)
-            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferenceCount);
+            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferenceCount)
+            .Map(dest => dest.RepositoryBinding,
+                src => src.RepositoryBinding != null
+                    ? new RepositoryBindingResponse(
+                        src.RepositoryBinding.Alias,
+                        src.RepositoryBinding.Branch,
+                        src.RepositoryBinding.InfraPath,
+                        src.RepositoryBinding.PipelinePath)
+                    : null);
 
         // InfrastructureConfig domain -> GetInfrastructureConfigResult
         config.NewConfig<Domain.InfrastructureConfigAggregate.InfrastructureConfig, GetInfrastructureConfigResult>()
@@ -99,7 +107,15 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
             .Map(dest => dest.ResourceAbbreviationOverrides, src => src.ResourceAbbreviationOverrides)
             .Map(dest => dest.Tags, src => src.Tags)
-            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferences.Count);
+            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferences.Count)
+            .Map(dest => dest.RepositoryBinding,
+                src => src.RepositoryBinding != null
+                    ? new RepositoryBindingResult(
+                        src.RepositoryBinding.Alias.Value,
+                        src.RepositoryBinding.Branch,
+                        src.RepositoryBinding.InfraPath,
+                        src.RepositoryBinding.PipelinePath)
+                    : null);
 
         // User entity -> UserResult
         config.NewConfig<User, UserResult>()

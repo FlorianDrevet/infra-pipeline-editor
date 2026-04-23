@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
@@ -22,6 +23,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipelin
 public sealed class GenerateProjectPipelineCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
+    IInfrastructureConfigRepository configRepository,
     IInfrastructureConfigReadRepository configReadRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     AppPipelineGenerationEngine appPipelineGenerationEngine,
@@ -30,7 +32,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
     IWebAppRepository webAppRepository,
     IFunctionAppRepository functionAppRepository,
     IContainerRegistryRepository containerRegistryRepository,
-    IBlobService blobService)
+    IBlobService blobService,
+    IRepositoryTargetResolver targetResolver)
     : ICommandHandler<GenerateProjectPipelineCommand, GenerateProjectPipelineResult>
 {
 
@@ -52,6 +55,16 @@ public sealed class GenerateProjectPipelineCommandHandler(
         if (configs.Count == 0)
             return Errors.Project.NoConfigurationsError();
 
+        // 2.bis Ambiguity gate: reject project-level generate-all for heterogeneous multi-repo topologies.
+        // Uses domain aggregates to access RepositoryBinding (not exposed by the read model).
+        var projectForGate = await projectRepository.GetByIdAsync(command.ProjectId, cancellationToken);
+        if (projectForGate is null)
+            return Errors.Project.NotFoundError(command.ProjectId);
+
+        var domainConfigs = await configRepository.GetByProjectIdAsync(command.ProjectId, cancellationToken);
+        if (!projectForGate.CanGenerateAllFromProjectLevel(domainConfigs))
+            return Errors.GitRouting.AmbiguousProjectLevelGeneration;
+
         // 3. Load project-level pipeline variable groups
         var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
             command.ProjectId, cancellationToken);
@@ -60,12 +73,27 @@ public sealed class GenerateProjectPipelineCommandHandler(
 
         var projectVariableGroups = project?.PipelineVariableGroups.ToList() ?? [];
 
+        // Resolve the project-level target (alias "default") to determine base paths within the repo.
+        // Heterogeneous multi-repo projects will simply fall back to null paths here — the per-config
+        // push handlers are responsible for enforcing the routing at push time.
+        string? bicepBasePath = null;
+        string? pipelineBasePath = null;
+        if (projectWithGit is not null)
+        {
+            var targetResult = targetResolver.Resolve(projectWithGit, config: null, ArtifactKind.Pipeline);
+            if (!targetResult.IsError)
+            {
+                bicepBasePath = targetResult.Value.BasePath;
+                pipelineBasePath = targetResult.Value.PipelineBasePath;
+            }
+        }
+
         // 4. Generate pipeline YAML per config (mono-repo mode: no per-config variables)
         var perConfigResults = new Dictionary<string, PipelineGenerationResult>();
 
         foreach (var config in configs)
         {
-            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, projectWithGit ?? project, bicepGenerators);
+            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, projectWithGit ?? project, bicepGenerators, bicepBasePath);
             var result = pipelineGenerationEngine.Generate(generationRequest, config.Name, isMonoRepo: true);
 
             // Generate app pipelines for compute resources in this config
@@ -109,8 +137,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
             perConfigResults,
             environments,
             agentPoolName,
-            projectWithGit?.GitRepositoryConfiguration?.BasePath,
-            projectWithGit?.GitRepositoryConfiguration?.PipelineBasePath);
+            bicepBasePath,
+            pipelineBasePath);
 
         // 7. Upload to blob storage
         var prefix = $"pipeline/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
@@ -157,7 +185,8 @@ public sealed class GenerateProjectPipelineCommandHandler(
         InfrastructureConfigReadModel config,
         List<Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup> projectVariableGroups,
         Domain.ProjectAggregate.Project? project,
-        IEnumerable<IResourceTypeBicepGenerator> generators)
+        IEnumerable<IResourceTypeBicepGenerator> generators,
+        string? bicepBasePath)
     {
         var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
 
@@ -248,7 +277,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
             SecureParameterOverrides = SecureParameterOverrideHelper.DeriveSecureParameterOverrides(
                 resources, generators, config.SecureParameterMappings, pipelineVariableGroups),
             AgentPoolName = project?.AgentPoolName,
-            BicepBasePath = project?.GitRepositoryConfiguration?.BasePath,
+            BicepBasePath = bicepBasePath,
         };
     }
 

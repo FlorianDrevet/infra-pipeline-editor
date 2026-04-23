@@ -68,6 +68,12 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     /// <summary>Gets the configuration-level tags that extend or override project-level tags.</summary>
     public IReadOnlyCollection<Tag> Tags => _tags;
 
+    /// <summary>
+    /// Gets the optional repository binding linking this configuration to a project-level
+    /// <see cref="ProjectAggregate.Entities.ProjectRepository"/>. <c>null</c> when no binding is set.
+    /// </summary>
+    public RepositoryBinding? RepositoryBinding { get; private set; }
+
     /// <summary>Replaces all configuration-level tags with the provided collection.</summary>
     public void SetTags(IEnumerable<Tag> tags)
     {
@@ -228,6 +234,20 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
 
         _crossConfigReferences.Remove(reference);
         return Result.Deleted;
+    }
+
+    // ─── Repository Binding ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Sets or clears the repository binding for this configuration.
+    /// Pass <c>null</c> to clear the binding.
+    /// </summary>
+    /// <param name="binding">The new binding, or <c>null</c> to clear.</param>
+    /// <returns><see cref="Result.Updated"/> on success.</returns>
+    public ErrorOr<Updated> SetRepositoryBinding(RepositoryBinding? binding)
+    {
+        RepositoryBinding = binding;
+        return Result.Updated;
     }
 
 }

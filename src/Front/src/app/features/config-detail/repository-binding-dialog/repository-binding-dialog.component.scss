@@ -1,0 +1,27 @@
+:host {
+  display: block;
+}
+
+.binding-loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.binding-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 24rem;
+  padding-top: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.binding-error {
+  margin: 0.25rem 0 0;
+  color: #c62828;
+  font-size: 0.85rem;
+}

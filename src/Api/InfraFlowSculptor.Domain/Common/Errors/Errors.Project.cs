@@ -52,6 +52,14 @@ public static partial class Errors
         public static Error InvalidRepositoryModeError(string mode) =>
             Error.Validation(code: "Project.InvalidRepositoryMode", description: $"Invalid repository mode '{mode}'. Valid values: MultiRepo, MonoRepo.");
 
+        /// <summary>Returned when a layout preset string cannot be parsed into a valid <see cref="LayoutPresetEnum"/> value.</summary>
+        public static Error InvalidLayoutPreset(string raw) =>
+            Error.Validation(code: "Project.InvalidLayoutPreset", description: $"Invalid layout preset '{raw}'. Valid values: AllInOne, SplitInfraCode, MultiRepo, Custom.");
+
+        /// <summary>Returned when a commons strategy string cannot be parsed into a valid <see cref="CommonsStrategyEnum"/> value.</summary>
+        public static Error InvalidCommonsStrategy(string raw) =>
+            Error.Validation(code: "Project.InvalidCommonsStrategy", description: $"Invalid commons strategy '{raw}'. Valid values: DuplicatePerRepo, DedicatedCommonsRepo, AzdoRepoResource.");
+
         /// <summary>Returned when a project has no infrastructure configurations for generation.</summary>
         public static Error NoConfigurationsError() =>
             Error.NotFound(code: "Project.NoConfigurations", description: "No infrastructure configurations found for this project.");

@@ -5,6 +5,7 @@ import {
   TagRequest,
   TagResponse,
 } from './infra-config.interface';
+import { ProjectRepositoryResponse } from './project-repository.interface';
 
 // ─── Responses ───────────────────────────────────────────────────────────────
 
@@ -21,16 +22,17 @@ export interface ProjectResponse {
   id: string;
   name: string;
   description?: string;
-  repositoryMode: string;
   members: ProjectMemberResponse[];
   environmentDefinitions: EnvironmentDefinitionResponse[];
   defaultNamingTemplate: string | null;
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
   resourceAbbreviations: ResourceAbbreviationOverrideResponse[];
-  gitRepositoryConfiguration?: GitConfigResponse | null;
   tags: TagResponse[];
   agentPoolName: string | null;
   usedResourceTypes?: string[];
+  repositories?: ProjectRepositoryResponse[];
+  layoutPreset?: string;
+  commonsStrategy?: string;
 }
 
 export interface RecentItemResponse {
@@ -49,7 +51,6 @@ export interface ValidateRecentItemsRequest {
 export interface CreateProjectRequest {
   name: string;
   description?: string;
-  repositoryMode?: string;
   isExisting?: boolean;
 }
 
@@ -98,28 +99,8 @@ export interface UpdateProjectEnvironmentRequest {
   tags?: TagRequest[];
 }
 
-// ─── Git Configuration ──────────────────────────────────────────────────────
+// ─── Git Operations ──────────────────────────────────────────────────────
 
-
-export interface GitConfigResponse {
-  id: string;
-  providerType: string;
-  repositoryUrl: string;
-  defaultBranch: string;
-  basePath?: string | null;
-  pipelineBasePath?: string | null;
-  owner: string;
-  repositoryName: string;
-}
-
-export interface SetGitConfigRequest {
-  providerType: string;
-  repositoryUrl: string;
-  defaultBranch: string;
-  basePath?: string | null;
-  pipelineBasePath?: string | null;
-  personalAccessToken: string;
-}
 
 export interface TestGitConnectionResponse {
   success: boolean;
@@ -131,12 +112,6 @@ export interface TestGitConnectionResponse {
 export interface GitBranchResponse {
   name: string;
   isProtected: boolean;
-}
-
-// ─── Repository Mode ────────────────────────────────────────────────────────
-
-export interface SetRepositoryModeRequest {
-  repositoryMode: string;
 }
 
 export interface GenerateProjectBicepResponse {

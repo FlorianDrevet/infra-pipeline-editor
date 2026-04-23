@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
@@ -10,14 +11,21 @@ using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushPipelineToGit;
 
-/// <summary>Handles the <see cref="PushPipelineToGitCommand"/>.</summary>
+/// <summary>
+/// Handles the <see cref="PushPipelineToGitCommand"/>.
+/// Uses <see cref="IRepositoryTargetResolver"/> (V2 routing) with <see cref="ArtifactKind.Pipeline"/>
+/// to resolve the target repository from the configuration's <c>RepositoryBinding</c>,
+/// falling back to the legacy project-level <c>GitRepositoryConfiguration</c> via the resolver's
+/// built-in compatibility path.
+/// </summary>
 public sealed class PushPipelineToGitCommandHandler(
     IInfraConfigAccessService accessService,
     IInfrastructureConfigRepository infraConfigRepo,
     IProjectRepository projectRepo,
     IKeyVaultSecretClient keyVaultClient,
     IGitProviderFactory gitProviderFactory,
-    IGeneratedArtifactService artifactService)
+    IGeneratedArtifactService artifactService,
+    IRepositoryTargetResolver targetResolver)
     : ICommandHandler<PushPipelineToGitCommand, PushBicepToGitResult>
 {
     public async Task<ErrorOr<PushBicepToGitResult>> Handle(
@@ -36,10 +44,11 @@ public sealed class PushPipelineToGitCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(config.ProjectId);
 
-        if (project.GitRepositoryConfiguration is null)
-            return Errors.GitRepository.NotConfigured();
+        var targetResult = targetResolver.Resolve(project, config, ArtifactKind.Pipeline);
+        if (targetResult.IsError)
+            return targetResult.Errors;
 
-        var gitConfig = project.GitRepositoryConfiguration;
+        var target = targetResult.Value;
 
         var secretResult = await keyVaultClient.GetSecretAsync(
             $"git-pat-{project.Id.Value}", cancellationToken);
@@ -52,16 +61,16 @@ public sealed class PushPipelineToGitCommandHandler(
         if (files is null || files.Count == 0)
             return Errors.InfrastructureConfig.PipelineFilesNotFoundError(command.InfrastructureConfigId);
 
-        var gitProvider = gitProviderFactory.Create(gitConfig.ProviderType);
+        var gitProvider = gitProviderFactory.Create(target.ProviderType);
         return await gitProvider.PushFilesAsync(new GitPushRequest
         {
             Token = secretResult.Value,
-            Owner = gitConfig.Owner,
-            RepositoryName = gitConfig.RepositoryName,
-            BaseBranch = gitConfig.DefaultBranch,
+            Owner = target.Owner,
+            RepositoryName = target.RepositoryName,
+            BaseBranch = target.Branch,
             TargetBranchName = command.BranchName,
             CommitMessage = command.CommitMessage,
-            BasePath = gitConfig.PipelineBasePath,
+            BasePath = target.PipelineBasePath,
             Files = GeneratedPipelinePathNormalizer.Normalize(files),
         }, cancellationToken);
     }

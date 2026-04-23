@@ -1,0 +1,122 @@
+<div class="layout-repos">
+  @if (isLoading()) {
+    <div class="layout-repos__loading">
+      <mat-spinner diameter="32"></mat-spinner>
+    </div>
+  } @else if (project()) {
+    @let proj = project()!;
+    <section class="layout-repos__section">
+      <header class="layout-repos__section-header">
+        <h3>{{ 'PROJECT_DETAIL.LAYOUT.PRESET' | translate }}</h3>
+        <p class="layout-repos__section-help">
+          {{ 'PROJECT_DETAIL.LAYOUT.PRESET_HELP' | translate }}
+        </p>
+      </header>
+
+      <div class="preset-grid">
+        @for (option of layoutPresets; track option.value) {
+          <button
+            type="button"
+            class="preset-card"
+            [class.preset-card--active]="(proj.layoutPreset ?? 'AllInOne') === option.value"
+            [disabled]="presetSaving()"
+            (click)="onPresetChange(option.value)">
+            <span class="preset-card__title">{{ option.labelKey | translate }}</span>
+            <span class="preset-card__desc">{{ option.descriptionKey | translate }}</span>
+          </button>
+        }
+      </div>
+    </section>
+
+    <section class="layout-repos__section">
+      <header class="layout-repos__section-header">
+        <h3>{{ 'PROJECT_DETAIL.LAYOUT.COMMONS_STRATEGY' | translate }}</h3>
+        <p class="layout-repos__section-help">
+          {{ 'PROJECT_DETAIL.LAYOUT.COMMONS_STRATEGY_HELP' | translate }}
+        </p>
+      </header>
+
+      <mat-form-field appearance="outline" class="strategy-select">
+        <mat-label>{{ 'PROJECT_DETAIL.LAYOUT.COMMONS_STRATEGY' | translate }}</mat-label>
+        <mat-select
+          [value]="proj.commonsStrategy ?? 'DuplicatePerRepo'"
+          [disabled]="strategySaving()"
+          (selectionChange)="onStrategyChange($event.value)">
+          @for (option of commonsStrategies; track option.value) {
+            <mat-option
+              [value]="option.value"
+              [disabled]="option.disabled"
+              [matTooltip]="option.disabled ? ('PROJECT_DETAIL.LAYOUT.COMMONS_V3_TOOLTIP' | translate) : ''">
+              {{ option.labelKey | translate }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </section>
+
+    <section class="layout-repos__section">
+      <header class="layout-repos__section-header layout-repos__section-header--row">
+        <div>
+          <h3>{{ 'PROJECT_DETAIL.LAYOUT.REPOSITORIES' | translate }}</h3>
+          <p class="layout-repos__section-help">
+            {{ 'PROJECT_DETAIL.LAYOUT.REPOSITORIES_HELP' | translate }}
+          </p>
+        </div>
+        <button mat-flat-button color="primary" (click)="openAddRepoDialog()">
+          <mat-icon>add</mat-icon>
+          {{ 'PROJECT_DETAIL.LAYOUT.ADD_REPO' | translate }}
+        </button>
+      </header>
+
+      @if (repositories.length > 0) {
+        <div class="repo-grid">
+          @for (repo of repositories; track repo.id) {
+            <mat-card class="repo-card" [class.repo-card--busy]="repoActionId() === repo.id">
+              <mat-card-header>
+                <mat-card-title class="repo-card__title">
+                  <mat-icon class="repo-card__icon">folder_open</mat-icon>
+                  <span>{{ repo.alias }}</span>
+                </mat-card-title>
+                <mat-card-subtitle>{{ repo.providerType }}</mat-card-subtitle>
+              </mat-card-header>
+
+              <mat-card-content class="repo-card__content">
+                <div class="repo-card__row">
+                  <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
+                  <a class="repo-card__link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
+                    {{ repo.owner }}/{{ repo.repositoryName }}
+                  </a>
+                </div>
+                <div class="repo-card__row">
+                  <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
+                  <strong>{{ repo.defaultBranch }}</strong>
+                </div>
+                <div class="repo-card__chips">
+                  @for (kind of repo.contentKinds; track kind) {
+                    <mat-chip disableRipple>{{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}</mat-chip>
+                  }
+                </div>
+              </mat-card-content>
+
+              <mat-card-actions align="end">
+                <button mat-stroked-button (click)="openEditRepoDialog(repo)" [disabled]="repoActionId() === repo.id">
+                  <mat-icon>edit</mat-icon>
+                  {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
+                </button>
+                <button mat-stroked-button color="warn" (click)="openRemoveRepoDialog(repo)" [disabled]="repoActionId() === repo.id">
+                  <mat-icon>delete_outline</mat-icon>
+                  {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <mat-icon class="empty-state__icon">folder_off</mat-icon>
+          <p>{{ 'PROJECT_DETAIL.LAYOUT.NO_REPOS' | translate }}</p>
+        </div>
+      }
+    </section>
+  }
+</div>

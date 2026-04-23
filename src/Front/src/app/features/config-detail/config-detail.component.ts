@@ -70,7 +70,11 @@ import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepTreeNode 
 import { StorageAccountResponse, StorageAccountSubResourcesResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
-import { GitConfigDialogComponent, GitConfigDialogData } from '../project-detail/git-config-dialog/git-config-dialog.component';
+import {
+  RepositoryBindingDialogComponent,
+  RepositoryBindingDialogData,
+  RepositoryBindingDialogResult,
+} from './repository-binding-dialog/repository-binding-dialog.component';
 import {
   CrossConfigReferenceResponse,
   IncomingCrossConfigReferenceResponse,
@@ -331,7 +335,7 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly configTagValueCtrl = new FormControl('', { nonNullable: true });
   protected readonly configTags = computed(() => this.config()?.tags ?? []);
 
-  protected readonly isMultiRepo = computed(() => this.project()?.repositoryMode === 'MultiRepo');
+  protected readonly isMultiRepo = computed(() => this.project()?.layoutPreset !== 'AllInOne');
 
   // ─── Unified generation (multi-repo) ───
   protected readonly generateAllLoading = computed(
@@ -1444,10 +1448,9 @@ export class ConfigDetailComponent implements OnInit {
   protected openPushToGitDialog(): void {
     const configId = this.config()?.id;
     const projectId = this.config()?.projectId;
-    const gitConfig = this.project()?.gitRepositoryConfiguration;
-    if (!configId || !projectId || !gitConfig) return;
+    if (!configId || !projectId) return;
 
-    const data: PushToGitDialogData = { configId, projectId, gitConfig };
+    const data: PushToGitDialogData = { configId, projectId };
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 
@@ -1692,27 +1695,28 @@ export class ConfigDetailComponent implements OnInit {
 
 
 
-  // ─── Git Configuration (multi-repo) ───
+  // ─── Repository Binding ───
 
-  protected openGitConfigDialog(): void {
-    const proj = this.project();
-    if (!proj) return;
+  protected openRepositoryBindingDialog(): void {
+    const cfg = this.config();
+    if (!cfg) return;
 
-    const data: GitConfigDialogData = {
-      projectId: proj.id,
-      existing: proj.gitRepositoryConfiguration,
+    const data: RepositoryBindingDialogData = {
+      projectId: cfg.projectId,
+      configId: cfg.id,
+      currentBinding: cfg.repositoryBinding ?? null,
     };
 
-    const dialogRef = this.dialog.open(GitConfigDialogComponent, {
-      width: '520px',
-      data,
-    });
+    const ref = this.dialog.open<
+      RepositoryBindingDialogComponent,
+      RepositoryBindingDialogData,
+      RepositoryBindingDialogResult
+    >(RepositoryBindingDialogComponent, { width: '520px', data });
 
-    dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {
-      if (result) {
-        this.project.set(result);
-        this.gitTestResult.set(null);
-        this.gitActionError.set('');
+    ref.afterClosed().subscribe(async (result) => {
+      if (result?.updated) {
+        const updated = await this.infraConfigService.getById(cfg.id);
+        this.config.set(updated);
       }
     });
   }
@@ -1733,36 +1737,6 @@ export class ConfigDetailComponent implements OnInit {
     } finally {
       this.gitTestLoading.set(false);
     }
-  }
-
-  protected openRemoveGitConfigDialog(): void {
-    const proj = this.project();
-    if (!proj) return;
-
-    const data: ConfirmDialogData = {
-      titleKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_TITLE',
-      messageKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_MESSAGE',
-      confirmKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_YES',
-      cancelKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_CANCEL',
-    };
-
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-
-      this.gitActionError.set('');
-      try {
-        await this.projectService.removeGitConfig(proj.id);
-        this.project.update((p) => {
-          if (!p) return p;
-          return { ...p, gitRepositoryConfiguration: null };
-        });
-        this.gitTestResult.set(null);
-      } catch {
-        this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.REMOVE_ERROR');
-      }
-    });
   }
 
   // ─── Pipeline Variable Groups ───

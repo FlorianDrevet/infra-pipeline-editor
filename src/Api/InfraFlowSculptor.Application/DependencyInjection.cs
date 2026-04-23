@@ -1,5 +1,6 @@
 using System.Reflection;
 using FluentValidation;
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Common.Services;
@@ -40,6 +41,9 @@ public static class DependencyInjection
 
         // Resource naming
         services.AddScoped<IResourceNameResolver, ResourceNameResolver>();
+
+        // V2 multi-repo Git routing
+        services.AddScoped<IRepositoryTargetResolver, RepositoryTargetResolver>();
 
         // Role assignment domain services
         services.AddScoped<IRoleAssignmentDomainService, RoleAssignmentDomainService>();

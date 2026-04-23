@@ -14,8 +14,9 @@ public record ProjectResult(
     string? DefaultNamingTemplate,
     IReadOnlyList<ProjectResourceNamingTemplateResult> ResourceNamingTemplates,
     IReadOnlyList<ProjectResourceAbbreviationResult> ResourceAbbreviations,
-    GitRepositoryConfigurationResult? GitRepositoryConfiguration,
-    string RepositoryMode,
     IReadOnlyList<TagResult> Tags,
     string? AgentPoolName = null,
-    IReadOnlyList<string>? UsedResourceTypes = null);
+    IReadOnlyList<string>? UsedResourceTypes = null,
+    IReadOnlyList<ProjectRepositoryResult>? Repositories = null,
+    string LayoutPreset = "MultiRepo",
+    string CommonsStrategy = "DuplicatePerRepo");

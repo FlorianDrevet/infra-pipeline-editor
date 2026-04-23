@@ -1,0 +1,115 @@
+<div class="board">
+  @if (isLoading()) {
+    <div class="board__loading">
+      <mat-spinner diameter="32"></mat-spinner>
+      <p>{{ 'PROJECT_DETAIL.BOARD.LOADING' | translate }}</p>
+    </div>
+  } @else if (topology() === 'empty') {
+    <div class="empty-state">
+      <mat-icon class="empty-state__icon">folder_off</mat-icon>
+      <h3>{{ 'PROJECT_DETAIL.BOARD.EMPTY_TITLE' | translate }}</h3>
+      <p>{{ 'PROJECT_DETAIL.BOARD.EMPTY_DESC' | translate }}</p>
+    </div>
+  } @else {
+    @if (topology() === 'mixed') {
+      <mat-card class="mixed-banner">
+        <mat-card-content class="mixed-banner__content">
+          <mat-icon class="mixed-banner__icon">warning_amber</mat-icon>
+          <div>
+            <h4 class="mixed-banner__title">
+              {{ 'PROJECT_DETAIL.BOARD.MIXED_WARNING_TITLE' | translate }}
+            </h4>
+            <p class="mixed-banner__desc">
+              {{ 'PROJECT_DETAIL.BOARD.MIXED_WARNING_DESC' | translate }}
+            </p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <div class="repo-grid">
+      @for (group of groupedByAlias(); track group.alias) {
+        <mat-card class="repo-card">
+          <mat-card-header class="repo-card__header">
+            <mat-card-title class="repo-card__title">
+              <mat-icon class="repo-card__title-icon">folder_open</mat-icon>
+              @if (group.repo) {
+                <span>{{ group.repo.alias }}</span>
+              } @else {
+                <span>{{ 'PROJECT_DETAIL.BOARD.DEFAULT_REPO_LABEL' | translate }}</span>
+                <mat-chip class="repo-card__legacy-chip" disableRipple>
+                  {{ 'PROJECT_DETAIL.BOARD.LEGACY_BADGE' | translate }}
+                </mat-chip>
+              }
+            </mat-card-title>
+            @if (group.repo) {
+              <mat-card-subtitle>{{ group.repo.providerType }}</mat-card-subtitle>
+            }
+          </mat-card-header>
+
+          <mat-card-content class="repo-card__content">
+            @if (group.repo) {
+              <div class="repo-card__row">
+                <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
+                <a
+                  class="repo-card__link"
+                  [href]="group.repo.repositoryUrl"
+                  target="_blank"
+                  rel="noopener">
+                  {{ group.repo.owner }}/{{ group.repo.repositoryName }}
+                </a>
+              </div>
+              <div class="repo-card__row">
+                <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
+                <strong>{{ group.repo.defaultBranch }}</strong>
+              </div>
+              @if (group.repo.contentKinds.length > 0) {
+                <div class="repo-card__chips">
+                  @for (kind of group.repo.contentKinds; track kind) {
+                    <mat-chip disableRipple>
+                      {{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}
+                    </mat-chip>
+                  }
+                </div>
+              }
+            }
+
+            <div class="config-list">
+              @for (config of group.configs; track config.id) {
+                <div class="config-row">
+                  <div class="config-row__info">
+                    <mat-icon class="config-row__icon">settings</mat-icon>
+                    <span class="config-row__name">{{ config.name }}</span>
+                  </div>
+                  <a
+                    mat-stroked-button
+                    color="primary"
+                    [routerLink]="['/config', config.id]">
+                    <mat-icon>play_arrow</mat-icon>
+                    {{ 'PROJECT_DETAIL.BOARD.CONFIG_GENERATE' | translate }}
+                  </a>
+                </div>
+              }
+            </div>
+          </mat-card-content>
+
+          @if (topology() === 'single' && canGenerateAll()) {
+            <mat-card-actions align="end" class="repo-card__actions">
+              <button
+                mat-flat-button
+                color="primary"
+                (click)="onGenerateAll()"
+                [disabled]="!project()?.repositories?.length"
+                [matTooltip]="!project()?.repositories?.length
+                  ? ('PROJECT_DETAIL.BOARD.NO_GIT_CONFIG' | translate)
+                  : ''">
+                <mat-icon>rocket_launch</mat-icon>
+                {{ 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS' | translate }}
+              </button>
+            </mat-card-actions>
+          }
+        </mat-card>
+      }
+    </div>
+  }
+</div>

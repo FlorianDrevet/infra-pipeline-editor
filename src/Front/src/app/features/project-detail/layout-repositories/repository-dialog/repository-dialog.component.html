@@ -1,0 +1,68 @@
+<h2 mat-dialog-title>
+  {{ (isEditMode ? 'PROJECT_DETAIL.LAYOUT.EDIT_REPO' : 'PROJECT_DETAIL.LAYOUT.ADD_REPO') | translate }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="repo-form" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.LAYOUT.FORM.ALIAS' | translate }}</mat-label>
+      <input matInput formControlName="alias"
+             [placeholder]="'PROJECT_DETAIL.LAYOUT.FORM.ALIAS_PLACEHOLDER' | translate" />
+      <mat-hint>{{ 'PROJECT_DETAIL.LAYOUT.FORM.ALIAS_HINT' | translate }}</mat-hint>
+      @if (form.controls.alias.hasError('pattern') && form.controls.alias.touched) {
+        <mat-error>{{ 'PROJECT_DETAIL.LAYOUT.FORM.ALIAS_PATTERN_ERROR' | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.LAYOUT.FORM.PROVIDER' | translate }}</mat-label>
+      <mat-select formControlName="providerType">
+        @for (option of providerOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.LAYOUT.FORM.REPO_URL' | translate }}</mat-label>
+      <input matInput formControlName="repositoryUrl"
+             [placeholder]="'PROJECT_DETAIL.LAYOUT.FORM.REPO_URL_PLACEHOLDER' | translate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PROJECT_DETAIL.LAYOUT.FORM.DEFAULT_BRANCH' | translate }}</mat-label>
+      <input matInput formControlName="defaultBranch" placeholder="main" />
+    </mat-form-field>
+
+    <div class="content-kinds">
+      <span class="content-kinds__label">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS' | translate }}</span>
+      <div class="content-kinds__list" formArrayName="contentKinds">
+        @for (kind of contentKinds; track kind; let i = $index) {
+          <mat-checkbox [formControlName]="i">
+            {{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}
+          </mat-checkbox>
+        }
+      </div>
+      @if (contentKindsArray.hasError('required') && contentKindsArray.touched) {
+        <p class="content-kinds__error">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS_REQUIRED' | translate }}</p>
+      }
+    </div>
+
+    @if (errorKey()) {
+      <p class="dialog-error">{{ errorKey() | translate }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+    {{ 'PROJECT_DETAIL.LAYOUT.FORM.CANCEL' | translate }}
+  </button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || isSubmitting()">
+    @if (isSubmitting()) {
+      <mat-spinner diameter="18"></mat-spinner>
+    } @else {
+      {{ 'PROJECT_DETAIL.LAYOUT.FORM.SAVE' | translate }}
+    }
+  </button>
+</mat-dialog-actions>

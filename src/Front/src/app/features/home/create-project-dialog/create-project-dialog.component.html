@@ -36,21 +36,6 @@
         rows="3"
         [placeholder]="'HOME.FORM.DESCRIPTION_PLACEHOLDER' | translate"></textarea>
     </label>
-
-    <div class="field">
-      <span>{{ 'HOME.FORM.REPO_MODE_LABEL' | translate }}</span>
-      <mat-button-toggle-group class="repo-mode-toggle" formControlName="repositoryMode">
-        <mat-button-toggle value="MultiRepo">
-          <mat-icon class="repo-mode-toggle__icon">call_split</mat-icon>
-          {{ 'PROJECT_DETAIL.REPO_MODE.MULTI' | translate }}
-        </mat-button-toggle>
-        <mat-button-toggle value="MonoRepo">
-          <mat-icon class="repo-mode-toggle__icon">folder_shared</mat-icon>
-          {{ 'PROJECT_DETAIL.REPO_MODE.MONO' | translate }}
-        </mat-button-toggle>
-      </mat-button-toggle-group>
-      <p class="field-hint">{{ 'HOME.FORM.REPO_MODE_HINT' | translate }}</p>
-    </div>
   </form>
 </mat-dialog-content>
 

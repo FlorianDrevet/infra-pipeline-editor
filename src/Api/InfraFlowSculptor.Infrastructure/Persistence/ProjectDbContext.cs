@@ -111,7 +111,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<EventHubNamespaceEnvironmentSettings> EventHubNamespaceEnvironmentSettings { get; set; } = null!;
     public DbSet<Domain.EventHubNamespaceAggregate.Entities.EventHub> EventHubs { get; set; } = null!;
     public DbSet<EventHubConsumerGroup> EventHubConsumerGroups { get; set; } = null!;
-    public DbSet<GitRepositoryConfiguration> GitRepositoryConfigurations { get; set; } = null!;
+    public DbSet<ProjectRepository> ProjectRepositories { get; set; } = null!;
     public DbSet<CrossConfigResourceReference> CrossConfigResourceReferences { get; set; } = null!;
     public DbSet<ProjectPipelineVariableGroup> ProjectPipelineVariableGroups { get; set; } = null!;
 

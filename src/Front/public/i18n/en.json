@@ -95,9 +95,7 @@
       "DESCRIPTION_PLACEHOLDER": "Brief description of this project",
       "ERROR_REQUIRED": "A project name is required.",
       "ERROR_MIN_LENGTH": "Use at least 3 characters for a meaningful name.",
-      "ERROR_MAX_LENGTH": "Keep the name under 80 characters.",
-      "REPO_MODE_LABEL": "Repository mode",
-      "REPO_MODE_HINT": "Multi-repo: one Git repository per configuration. Mono-repo: one shared Git repository for the entire project."
+      "ERROR_MAX_LENGTH": "Keep the name under 80 characters."
     },
     "FEEDBACK": {
       "LOAD_ERROR_FALLBACK": "Unable to load your projects. Refresh the page or retry."
@@ -707,6 +705,23 @@
       "TAG_NAME": "Key",
       "TAG_VALUE": "Value",
       "SAVE_ERROR": "Unable to save tags."
+    },
+    "BINDING": {
+      "TITLE": "Repository binding",
+      "HELP": "Bind this configuration to one of the project repositories. Leave empty to use the default repository.",
+      "EDIT": "Edit binding",
+      "EMPTY": "No binding — this configuration uses the default project repository.",
+      "ALIAS": "Repository",
+      "ALIAS_HINT": "Select a project repository or leave empty to use the default one.",
+      "NONE_OPTION": "— Use default repository —",
+      "BRANCH_OVERRIDE": "Branch override (optional)",
+      "INFRA_PATH_OVERRIDE": "Infra path override (optional)",
+      "PIPELINE_PATH_OVERRIDE": "Pipeline path override (optional)",
+      "OVERRIDE_HINT": "Leave empty to use repository default.",
+      "SAVE": "Save",
+      "CANCEL": "Cancel",
+      "SAVE_ERROR": "Unable to save the repository binding.",
+      "LOAD_ERROR": "Unable to load project repositories."
     }
   },
   "ADD_RESOURCE_DIALOG": {
@@ -727,11 +742,6 @@
       "PIPELINE_VARIABLES": "Pipeline Variables",
       "GIT": "Git",
       "SETTINGS": "Settings"
-    },
-    "REPO_MODE": {
-      "MULTI": "Multi-repo",
-      "MONO": "Mono-repo",
-      "ERROR": "Unable to change repository mode."
     },
     "GENERATE_ALL": {
       "BUTTON": "Generate",
@@ -1025,10 +1035,6 @@
       }
     },
     "SETTINGS": {
-      "REPO_MODE_TITLE": "Repository mode",
-      "REPO_MODE_DESCRIPTION": "Choose how Bicep output is organized in Git repositories.",
-      "GIT_MONO_DESCRIPTION": "In mono-repo mode, a single Git repository stores all configurations' Bicep output.",
-      "GIT_MULTI_INFO": "In multi-repo mode, each configuration has its own Git repository. Configure Git in each configuration's Git tab.",
       "AGENT_POOL": {
         "TITLE": "Agent Pool",
         "DESCRIPTION": "Configure the self-hosted agent pool for pipeline generation. By default, pipelines use the Microsoft-hosted pool (vmImage: ubuntu-latest).",
@@ -1068,6 +1074,64 @@
       "TAG_NAME": "Key",
       "TAG_VALUE": "Value",
       "SAVE_ERROR": "Unable to save tags."
+    },
+    "LAYOUT": {
+      "TAB_TITLE": "Layout & Repositories",
+      "PRESET": "Layout Preset",
+      "PRESET_HELP": "Choose how infrastructure code, application code and pipelines are distributed across Git repositories.",
+      "PRESET_ALL_IN_ONE": "All-in-one (mono-repo)",
+      "PRESET_ALL_IN_ONE_DESC": "A single repository hosts infrastructure, application code and pipelines.",
+      "PRESET_SPLIT_INFRA_CODE": "Split infra / code",
+      "PRESET_SPLIT_INFRA_CODE_DESC": "One repository for infrastructure, one for application code.",
+      "PRESET_MULTI_REPO": "Multi-repo",
+      "PRESET_MULTI_REPO_DESC": "Separate repositories for infrastructure, application code and pipelines.",
+      "PRESET_CUSTOM": "Custom",
+      "PRESET_CUSTOM_DESC": "Free-form topology — bind each configuration to any repository.",
+      "PRESET_ERROR": "Unable to update the layout preset.",
+      "COMMONS_STRATEGY": "Commons Strategy",
+      "COMMONS_STRATEGY_HELP": "How commons (shared Bicep modules) are distributed across repositories.",
+      "COMMONS_DUPLICATE": "Duplicate per repo",
+      "COMMONS_DEDICATED": "Dedicated commons repo (V3+)",
+      "COMMONS_AZDO": "Azure DevOps repo resource (V3+)",
+      "COMMONS_V3_TOOLTIP": "Available in V3+",
+      "STRATEGY_ERROR": "Unable to update the commons strategy.",
+      "REPOSITORIES": "Repositories",
+      "REPOSITORIES_HELP": "Declare the Git repositories used by this project. Each configuration can bind to one of them.",
+      "ADD_REPO": "Add repository",
+      "EDIT_REPO": "Edit repository",
+      "EDIT": "Edit",
+      "DELETE": "Delete",
+      "URL": "URL",
+      "BRANCH": "Default branch",
+      "NO_REPOS": "No repositories declared yet. Click 'Add repository' to start.",
+      "REPO_DELETE_IN_USE": "Cannot delete: this repository is bound to one or more configurations.",
+      "DELETE_ERROR": "Unable to delete the repository.",
+      "DELETE_CONFIRM_TITLE": "Delete repository",
+      "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete the repository \"{{alias}}\"?",
+      "DELETE_CONFIRM_YES": "Delete",
+      "DELETE_CONFIRM_CANCEL": "Cancel",
+      "LOAD_ERROR": "Unable to load project data.",
+      "INVALID_VALUE": "Invalid value.",
+      "DIALOG_ERROR": "Unable to save the repository.",
+      "CONTENT_KIND": {
+        "Infrastructure": "Infrastructure",
+        "ApplicationCode": "Application code",
+        "Pipelines": "Pipelines"
+      },
+      "FORM": {
+        "ALIAS": "Alias",
+        "ALIAS_PLACEHOLDER": "e.g. infra, app, pipelines",
+        "ALIAS_HINT": "Lowercase, digits and dashes only. Cannot be changed after creation.",
+        "ALIAS_PATTERN_ERROR": "Only lowercase letters, digits and dashes are allowed.",
+        "PROVIDER": "Provider",
+        "REPO_URL": "Repository URL",
+        "REPO_URL_PLACEHOLDER": "https://github.com/org/repo",
+        "DEFAULT_BRANCH": "Default branch",
+        "CONTENT_KINDS": "Content kinds",
+        "CONTENT_KINDS_REQUIRED": "At least one content kind is required.",
+        "CANCEL": "Cancel",
+        "SAVE": "Save"
+      }
     }
   },
   "RESOURCE_EDIT": {

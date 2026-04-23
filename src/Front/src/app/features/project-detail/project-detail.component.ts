@@ -46,13 +46,13 @@ import {
   AddProjectNamingTemplateDialogData,
   AddProjectNamingTemplateDialogResult,
 } from './add-project-naming-template-dialog/add-project-naming-template-dialog.component';
-import { GitConfigDialogComponent, GitConfigDialogData } from './git-config-dialog/git-config-dialog.component';
+import { LayoutRepositoriesComponent } from './layout-repositories/layout-repositories.component';
+import { GenerationBoardComponent } from './generation-board/generation-board.component';
 import {
   PushToGitDialogComponent,
   PushToGitDialogData,
 } from '../config-detail/push-to-git-dialog/push-to-git-dialog.component';
 import { RESOURCE_TYPE_OPTIONS, RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
-import { TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
 import { AddVariableGroupDialogComponent } from '../config-detail/add-variable-group-dialog/add-variable-group-dialog.component';
 import { saveAs } from 'file-saver';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -82,6 +82,8 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     FormsModule,
     ReactiveFormsModule,
     BicepFilePanelComponent,
+    LayoutRepositoriesComponent,
+    GenerationBoardComponent,
     MatButtonModule,
     MatButtonToggleModule,
     MatChipsModule,
@@ -133,10 +135,6 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly roles = ROLES;
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
 
-  // ─── Repository Mode ───
-  protected readonly repoModeSaving = signal(false);
-  protected readonly repoModeError = signal('');
-
   // ─── Project Tags ───
   protected readonly isEditingProjectTags = signal(false);
   protected readonly editingTags = signal<TagRequest[]>([]);
@@ -146,8 +144,6 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly tagValueCtrl = new FormControl('', { nonNullable: true });
 
   protected readonly projectTags = computed(() => this.project()?.tags ?? []);
-
-  protected readonly isMonoRepo = computed(() => this.project()?.repositoryMode === 'MonoRepo');
 
   // ─── Agent Pool ───
   protected readonly agentPoolLoading = signal(false);
@@ -380,11 +376,6 @@ export class ProjectDetailComponent implements OnInit {
     const projectId = this.project()?.id ?? '';
     return this.projectService.getProjectBootstrapPipelineFileContent(projectId, filePath);
   };
-
-  // ─── Git Config ───
-  protected readonly gitTestLoading = signal(false);
-  protected readonly gitTestResult = signal<TestGitConnectionResponse | null>(null);
-  protected readonly gitActionError = signal('');
 
   protected readonly sortedEnvironments = computed(() => {
     const envs = this.project()?.environmentDefinitions ?? [];
@@ -945,30 +936,6 @@ export class ProjectDetailComponent implements OnInit {
     });
   }
 
-  // ─── Repository Mode ───
-
-  protected async onRepositoryModeChange(newMode: string): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId) return;
-
-    this.repoModeSaving.set(true);
-    this.repoModeError.set('');
-
-    try {
-      await this.projectService.setRepositoryMode(projectId, { repositoryMode: newMode });
-      this.project.update((p) => (p ? { ...p, repositoryMode: newMode } : p));
-      // Close bicep and pipeline panels when switching modes
-      this.projectBicepPanelOpen.set(false);
-      this.projectBicepResult.set(null);
-      this.projectPipelinePanelOpen.set(false);
-      this.projectPipelineResult.set(null);
-    } catch {
-      this.repoModeError.set('PROJECT_DETAIL.REPO_MODE.ERROR');
-    } finally {
-      this.repoModeSaving.set(false);
-    }
-  }
-
   // ─── Project Tags ───
 
   protected startEditProjectTags(): void {
@@ -1220,13 +1187,11 @@ export class ProjectDetailComponent implements OnInit {
 
   protected openProjectPushAllToGitDialog(): void {
     const project = this.project();
-    const gitConfig = project?.gitRepositoryConfiguration;
-    if (!project || !gitConfig) return;
+    if (!project || !(project.repositories?.length)) return;
 
     const data: PushToGitDialogData = {
       configId: '', // Not used for project push
       projectId: project.id,
-      gitConfig,
       isProjectLevel: true,
       isCombinedProjectPush: true,
     };
@@ -1302,79 +1267,6 @@ export class ProjectDetailComponent implements OnInit {
     } finally {
       this.projectBootstrapDownloading.set(false);
     }
-  }
-
-  // ─── Git Configuration ───
-
-  protected openGitConfigDialog(): void {
-    const project = this.project();
-    if (!project) return;
-
-    const data: GitConfigDialogData = {
-      projectId: project.id,
-      existing: project.gitRepositoryConfiguration,
-    };
-
-    const dialogRef = this.dialog.open(GitConfigDialogComponent, {
-      width: '520px',
-      data,
-    });
-
-    dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {
-      if (result) {
-        this.project.set(result);
-        this.gitTestResult.set(null);
-        this.gitActionError.set('');
-      }
-    });
-  }
-
-  protected async testGitConnection(): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId) return;
-
-    this.gitTestLoading.set(true);
-    this.gitTestResult.set(null);
-    this.gitActionError.set('');
-
-    try {
-      const result = await this.projectService.testGitConnection(projectId);
-      this.gitTestResult.set(result);
-    } catch {
-      this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.TEST_FAILED');
-    } finally {
-      this.gitTestLoading.set(false);
-    }
-  }
-
-  protected openRemoveGitConfigDialog(): void {
-    const project = this.project();
-    if (!project) return;
-
-    const data: ConfirmDialogData = {
-      titleKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_TITLE',
-      messageKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_MESSAGE',
-      confirmKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_YES',
-      cancelKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_CANCEL',
-    };
-
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-
-      this.gitActionError.set('');
-      try {
-        await this.projectService.removeGitConfig(project.id);
-        this.project.update((p) => {
-          if (!p) return p;
-          return { ...p, gitRepositoryConfiguration: null };
-        });
-        this.gitTestResult.set(null);
-      } catch {
-        this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.REMOVE_ERROR');
-      }
-    });
   }
 
   // ─── Pipeline Variable Groups ───

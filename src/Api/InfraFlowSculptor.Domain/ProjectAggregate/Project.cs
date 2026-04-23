@@ -1,5 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -82,16 +83,22 @@ public sealed class Project : AggregateRoot<ProjectId>
     // ─── Repository Mode ────────────────────────────────────────────────────
 
     /// <summary>
-    /// Gets the repository mode for this project.
-    /// <see cref="RepositoryModeEnum.MultiRepo"/>: each configuration has its own repository/push.
-    /// <see cref="RepositoryModeEnum.MonoRepo"/>: all configurations share a single repository/push at project level.
+    /// Gets the layout preset of this project (V1 multi-repo topology).
     /// </summary>
-    public RepositoryMode RepositoryMode { get; private set; } = new(RepositoryModeEnum.MultiRepo);
+    public LayoutPreset LayoutPreset { get; private set; } = new(LayoutPresetEnum.MultiRepo);
 
-    // ─── Git Repository Configuration ───────────────────────────────────────
+    /// <summary>
+    /// Gets the strategy used to share common Bicep modules across repositories.
+    /// In V1 only <see cref="CommonsStrategyEnum.DuplicatePerRepo"/> is supported.
+    /// </summary>
+    public CommonsStrategy CommonsStrategy { get; private set; } = new(CommonsStrategyEnum.DuplicatePerRepo);
 
-    /// <summary>Gets the optional Git repository configuration for pushing generated Bicep files.</summary>
-    public GitRepositoryConfiguration? GitRepositoryConfiguration { get; private set; }
+    // ─── Project Repositories (V1 multi-repo) ───────────────────────────────
+
+    private readonly List<ProjectRepository> _repositories = [];
+
+    /// <summary>Gets the Git repositories declared at project level.</summary>
+    public IReadOnlyCollection<ProjectRepository> Repositories => _repositories.AsReadOnly();
 
     // ─── Agent Pool ─────────────────────────────────────────────────────
 
@@ -313,43 +320,110 @@ public sealed class Project : AggregateRoot<ProjectId>
         return Result.Deleted;
     }
 
-    // ─── Git Repository Configuration Management ────────────────────────────
+    // ─── Project Repositories Management ────────────────────────────────────
 
-    /// <summary>Sets or updates the Git repository configuration for this project.</summary>
-    public GitRepositoryConfiguration SetGitRepositoryConfiguration(
+    /// <summary>
+    /// Adds a new <see cref="ProjectRepository"/> to this project.
+    /// The alias must be unique within the project.
+    /// </summary>
+    public ErrorOr<ProjectRepository> AddRepository(
+        RepositoryAlias alias,
         GitProviderType providerType,
         string repositoryUrl,
         string defaultBranch,
-        string? basePath,
-        string? pipelineBasePath)
+        RepositoryContentKinds contentKinds)
     {
-        if (GitRepositoryConfiguration is not null)
-        {
-            GitRepositoryConfiguration.Update(providerType, repositoryUrl, defaultBranch, basePath, pipelineBasePath);
-            return GitRepositoryConfiguration;
-        }
+        if (_repositories.Any(r => r.Alias == alias))
+            return Domain.Common.Errors.Errors.ProjectRepository.DuplicateAlias(alias);
 
-        GitRepositoryConfiguration = Entities.GitRepositoryConfiguration.Create(
-            providerType, repositoryUrl, defaultBranch, basePath, pipelineBasePath, Id);
-        return GitRepositoryConfiguration;
+        var created = ProjectRepository.Create(Id, alias, providerType, repositoryUrl, defaultBranch, contentKinds);
+        if (created.IsError)
+            return created.Errors;
+
+        _repositories.Add(created.Value);
+        return created.Value;
     }
 
-    /// <summary>Removes the Git repository configuration from this project.</summary>
-    public ErrorOr<Deleted> RemoveGitRepositoryConfiguration()
+    /// <summary>Updates an existing <see cref="ProjectRepository"/> by id.</summary>
+    public ErrorOr<ProjectRepository> UpdateRepository(
+        ProjectRepositoryId id,
+        GitProviderType providerType,
+        string repositoryUrl,
+        string defaultBranch,
+        RepositoryContentKinds contentKinds)
     {
-        if (GitRepositoryConfiguration is null)
-            return Domain.Common.Errors.Errors.GitRepository.NotConfigured();
+        var existing = _repositories.FirstOrDefault(r => r.Id == id);
+        if (existing is null)
+            return Domain.Common.Errors.Errors.ProjectRepository.NotFound(id);
 
-        GitRepositoryConfiguration = null;
+        var updated = existing.Update(providerType, repositoryUrl, defaultBranch, contentKinds);
+        if (updated.IsError)
+            return updated.Errors;
+
+        return existing;
+    }
+
+    /// <summary>Removes a <see cref="ProjectRepository"/> by id.</summary>
+    public ErrorOr<Deleted> RemoveRepository(ProjectRepositoryId id)
+    {
+        var existing = _repositories.FirstOrDefault(r => r.Id == id);
+        if (existing is null)
+            return Domain.Common.Errors.Errors.ProjectRepository.NotFound(id);
+
+        _repositories.Remove(existing);
         return Result.Deleted;
     }
 
+    /// <summary>Returns the repository matching the given alias, or <c>null</c> if none exists.</summary>
+    public ProjectRepository? GetRepositoryByAlias(RepositoryAlias alias)
+        => _repositories.FirstOrDefault(r => r.Alias == alias);
+
     // ─── Repository Mode Management ─────────────────────────────────────────
 
-    /// <summary>Sets the repository mode for this project.</summary>
-    public void SetRepositoryMode(RepositoryMode mode)
+    /// <summary>Sets the layout preset for this project.</summary>
+    public ErrorOr<Success> SetLayoutPreset(LayoutPreset preset)
     {
-        RepositoryMode = mode;
+        ArgumentNullException.ThrowIfNull(preset);
+        LayoutPreset = preset;
+        return Result.Success;
+    }
+
+    /// <summary>
+    /// Sets the commons strategy for this project.
+    /// In V1 only <see cref="CommonsStrategyEnum.DuplicatePerRepo"/> is accepted.
+    /// </summary>
+    public ErrorOr<Success> SetCommonsStrategy(CommonsStrategy strategy)
+    {
+        ArgumentNullException.ThrowIfNull(strategy);
+
+        if (strategy.Value != CommonsStrategyEnum.DuplicatePerRepo)
+            return Domain.Common.Errors.Errors.ProjectRepository.UnsupportedCommonsStrategy(strategy.Value);
+
+        CommonsStrategy = strategy;
+        return Result.Success;
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when a single project-level "generate all" operation is unambiguous,
+    /// i.e. all infrastructure configurations resolve to the same repository alias (or the project has zero configs).
+    /// Returns <see langword="false"/> for heterogeneous multi-repo topologies where each configuration
+    /// targets a different repository alias — callers must generate config-by-config in that case.
+    /// </summary>
+    /// <param name="configs">
+    /// The infrastructure configurations to evaluate. The caller is responsible for filtering to this project's configs.
+    /// </param>
+    /// <returns><see langword="true"/> when all configs resolve to the same alias; otherwise <see langword="false"/>.</returns>
+    public bool CanGenerateAllFromProjectLevel(IReadOnlyCollection<InfrastructureConfig> configs)
+    {
+        ArgumentNullException.ThrowIfNull(configs);
+        if (configs.Count == 0)
+            return true;
+
+        var aliases = configs
+            .Select(c => c.RepositoryBinding?.Alias.Value ?? "default")
+            .Distinct(StringComparer.Ordinal);
+
+        return aliases.Take(2).Count() <= 1;
     }
 
     // ─── Agent Pool Management ──────────────────────────────────────────

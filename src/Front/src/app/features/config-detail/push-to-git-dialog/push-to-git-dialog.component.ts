@@ -9,7 +9,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import axios from 'axios';
-import { GitConfigResponse } from '../../../shared/interfaces/project.interface';
 import { BicepGeneratorService } from '../../../shared/services/bicep-generator.service';
 import { PipelineGeneratorService } from '../../../shared/services/pipeline-generator.service';
 import { ProjectService } from '../../../shared/services/project.service';
@@ -17,7 +16,6 @@ import { ProjectService } from '../../../shared/services/project.service';
 export interface PushToGitDialogData {
   configId: string;
   projectId: string;
-  gitConfig: GitConfigResponse;
   isProjectLevel?: boolean;
   isCombinedProjectPush?: boolean;
   isPipeline?: boolean;
@@ -25,6 +23,8 @@ export interface PushToGitDialogData {
 }
 
 type DialogState = 'form' | 'pushing' | 'success' | 'error';
+
+const AMBIGUOUS_PROJECT_LEVEL_GENERATION_CODE = 'GitRouting.AmbiguousProjectLevelGeneration';
 
 interface PushToGitResultSummary {
   branchName: string;
@@ -89,7 +89,7 @@ export class PushToGitDialogComponent implements OnInit {
   private readonly lastBranchKey = `ifs-push-branch-${this.data.projectId}`;
 
   protected readonly branchControl = new FormControl(
-    localStorage.getItem(this.lastBranchKey) ?? this.data.gitConfig.defaultBranch,
+    localStorage.getItem(this.lastBranchKey) ?? 'main',
     Validators.required,
   );
 
@@ -154,17 +154,43 @@ export class PushToGitDialogComponent implements OnInit {
       this.state.set('success');
     } catch (err: unknown) {
       let detail = '';
+      let isAmbiguous = false;
       if (axios.isAxiosError(err) && err.response?.data) {
         const data = err.response.data as Record<string, unknown>;
-        detail = (data['detail'] as string | undefined) ?? '';
-        if (!detail && Array.isArray(data['errors'])) {
-          const first = data['errors'][0] as Record<string, unknown> | undefined;
+        const errorsField = data['errors'];
+
+        // ValidationProblem shape: { errors: { "GitRouting.AmbiguousProjectLevelGeneration": ["..."] } }
+        if (errorsField && typeof errorsField === 'object' && !Array.isArray(errorsField)) {
+          const keys = Object.keys(errorsField as Record<string, unknown>);
+          if (keys.includes(AMBIGUOUS_PROJECT_LEVEL_GENERATION_CODE)) {
+            isAmbiguous = true;
+          }
+        } else if (Array.isArray(errorsField)) {
+          const first = errorsField[0] as Record<string, unknown> | undefined;
           detail = (first?.['description'] as string | undefined) ?? '';
+          if ((first?.['code'] as string | undefined) === AMBIGUOUS_PROJECT_LEVEL_GENERATION_CODE) {
+            isAmbiguous = true;
+          }
+        }
+
+        if (!detail) {
+          detail = (data['detail'] as string | undefined) ?? '';
+        }
+        // BadRequest ErrorOr shape may expose `code` at top-level too.
+        if (!isAmbiguous && (data['code'] as string | undefined) === AMBIGUOUS_PROJECT_LEVEL_GENERATION_CODE) {
+          isAmbiguous = true;
         }
       }
-      this.errorDetail.set(detail);
-      this.errorKey.set('CONFIG_DETAIL.PUSH_TO_GIT.ERROR');
-      this.state.set('error');
+
+      if (isAmbiguous) {
+        this.errorDetail.set('');
+        this.errorKey.set('PROJECT_DETAIL.BOARD.PUSH_AMBIGUOUS_DESC');
+        this.state.set('error');
+      } else {
+        this.errorDetail.set(detail);
+        this.errorKey.set('CONFIG_DETAIL.PUSH_TO_GIT.ERROR');
+        this.state.set('error');
+      }
     }
   }
 

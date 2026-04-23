@@ -1,5 +1,16 @@
 # Bicep Generation
 
+## V2 Multi-repo Git routing [2026-04-23]
+
+**Decision:** engines (`BicepGenerationEngine`, `MonoRepoBicepAssembler`, `PipelineGenerationEngine`) remain **repo-agnostic**. They produce an abstract tree (`IReadOnlyDictionary<string,string>` path→content). Repo routing lives **only in Application-layer handlers** via `IRepositoryTargetResolver`.
+
+- `IRepositoryTargetResolver.Resolve(project, config, kind)` returns `ResolvedRepositoryTarget` with `Alias`, `RepositoryUrl`, `Owner`, `RepositoryName`, `Branch`, `BasePath?`, `PipelineBasePath?`, `PatSecretName?`.
+- Resolution priority: (1) `config.RepositoryBinding.Alias` → lookup in `project.Repositories`; (2) else alias `"default"` → lookup. Legacy fallback `project.GitRepositoryConfiguration` removed in V3 (table dropped).
+- `ArtifactKind.{Infrastructure|Pipeline|Bootstrap}` selects which path fields are populated.
+- 9 handlers bascules in V2 A3 (PushBicepToGit, PushPipelineToGit, GeneratePipeline, PushProjectBicepToGit, PushProjectPipelineToGit, PushProjectBootstrapPipelineToGit, PushProjectGeneratedArtifactsToGit V2-lite, GenerateProjectPipeline, GenerateProjectBootstrapPipeline).
+- `GenerateProjectBicep` + `GenerateProjectPipeline` gate via `Project.CanGenerateAllFromProjectLevel(configs)` → `Errors.GitRouting.AmbiguousProjectLevelGeneration` if heterogeneous.
+- **Parity harness** `tests/InfraFlowSculptor.GenerationParity.Tests/` (xUnit, 35 goldens byte-à-byte). Regenerate: `dotnet test -p:DefineConstants=REGENERATE_GOLDENS`.
+
 ## Architecture
 - Pure engine in `InfraFlowSculptor.BicepGeneration` (no domain dependency)
 - Strategy pattern: `IResourceTypeBicepGenerator` per resource type
@@ -88,6 +99,10 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 ## Role Reference ServiceCategory per Role [2026-04-23]
 - `RoleRef` must carry its own `ServiceCategory` (not inherit from the group). `MainBicepAssembler` must emit `RbacRoles.{role.ServiceCategory}['{role.RoleDefinitionName}']`, not `RbacRoles.{group.ServiceCategory}[...]`.
 - When a single (source, target) group contains roles from different Azure services (e.g. AcrPull → containerregistry + Key Vault Secrets User → keyvault), using `group.ServiceCategory` (which takes the first role's category) produces BCP053 because `constants.bicep` indexes roles by their actual service category.
+
+## Role Assignment Grouping Key [2026-04-23]
+- `RoleAssignmentAssembler.GroupRoleAssignments()` must include the target resource type, target resource group, and cross-config flag in its grouping key, not just source name + target name + identity.
+- Otherwise distinct targets that share the same logical name (for example Key Vault `ifs` and Container Registry `ifs`) are merged into one role-assignment module, which can emit `Key Vault Secrets User` on the Container Registry module or collapse scopes incorrectly.
 
 ## Resource-Level Identity Injection [2026-04-23]
 - `BicepGenerationEngine` identity injection must detect only the resource-root `identity:` block. Nested properties such as Container App ACR registry entries also use an `identity:` field; treating those as an existing resource identity prevents injection of the actual managed-identity block and causes mixed-identity modules to miss `identityType` / UAI params.

@@ -2202,6 +2202,48 @@
 
 // ─── Git Config Card ────
 
+.repo-binding-card {
+  margin-bottom: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 1rem;
+  background: #fff;
+  border: 1px solid rgba(146, 191, 235, 0.2);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    h3 {
+      margin: 0 0 0.25rem 0;
+      color: #103454;
+      font-size: 0.98rem;
+    }
+  }
+
+  &__help {
+    margin: 0;
+    font-size: 0.82rem;
+    color: rgba(16, 52, 86, 0.65);
+  }
+
+  &__body {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  &__empty {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    color: rgba(16, 52, 86, 0.55);
+    font-style: italic;
+  }
+}
+
 .git-config-card {
   padding: 1.2rem;
   border-radius: 1.2rem;

@@ -30,7 +30,7 @@ public sealed class ProjectRepository(ProjectDbContext context)
             .Include(p => p.EnvironmentDefinitions)
             .Include(p => p.ResourceNamingTemplates)
             .Include(p => p.ResourceAbbreviations)
-            .Include(p => p.GitRepositoryConfiguration)
+            .Include(p => p.Repositories)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     /// <inheritdoc />

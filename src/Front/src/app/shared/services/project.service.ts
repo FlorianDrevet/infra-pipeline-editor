@@ -9,12 +9,10 @@ import {
   UpdateProjectMemberRoleRequest,
   RecentItemResponse,
   ValidateRecentItemsRequest,
-  SetGitConfigRequest,
   TestGitConnectionResponse,
   GitBranchResponse,
   AddProjectEnvironmentRequest,
   UpdateProjectEnvironmentRequest,
-  SetRepositoryModeRequest,
   GenerateProjectBicepResponse,
   GenerateProjectPipelineResponse,
   GenerateProjectBootstrapPipelineResponse,
@@ -38,6 +36,14 @@ import {
   SetResourceAbbreviationOverrideRequest,
 } from '../interfaces/infra-config.interface';
 import { ProjectResourceResponse } from '../interfaces/cross-config-reference.interface';
+import {
+  ProjectRepositoryResponse,
+  AddProjectRepositoryRequest,
+  UpdateProjectRepositoryRequest,
+  ProjectLayoutPreset,
+  ProjectCommonsStrategy,
+} from '../interfaces/project-repository.interface';
+import { SetInfraConfigRepositoryBindingRequest } from '../interfaces/repository-binding.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -198,22 +204,7 @@ export class ProjectService {
     );
   }
 
-  // ─── Git Configuration ───
-
-  setGitConfig(projectId: string, request: SetGitConfigRequest): Promise<ProjectResponse> {
-    return this.axios.request$<ProjectResponse>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/git-config`,
-      request
-    );
-  }
-
-  removeGitConfig(projectId: string): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.DELETE,
-      `/projects/${projectId}/git-config`
-    );
-  }
+  // ─── Git Operations (test connection + list branches) ───
 
   testGitConnection(projectId: string): Promise<TestGitConnectionResponse> {
     return this.axios.request$<TestGitConnectionResponse>(
@@ -235,16 +226,6 @@ export class ProjectService {
     return this.axios.request$<ProjectResourceResponse[]>(
       MethodEnum.GET,
       `/projects/${projectId}/resources`
-    );
-  }
-
-  // ─── Repository Mode ───
-
-  setRepositoryMode(projectId: string, request: SetRepositoryModeRequest): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/repository-mode`,
-      request
     );
   }
 
@@ -405,6 +386,74 @@ export class ProjectService {
     await this.axios.request$<void>(
       MethodEnum.PUT,
       `/projects/${projectId}/agent-pool`,
+      request
+    );
+  }
+
+  // ─── V2 Multi-Repo Topology ───
+
+  async listRepositories(projectId: string): Promise<ProjectRepositoryResponse[]> {
+    const project = await this.getProject(projectId);
+    return project.repositories ?? [];
+  }
+
+  addRepository(
+    projectId: string,
+    request: AddProjectRepositoryRequest
+  ): Promise<{ id: string }> {
+    return this.axios.request$<{ id: string }>(
+      MethodEnum.POST,
+      `/projects/${projectId}/repositories`,
+      request
+    );
+  }
+
+  updateRepository(
+    projectId: string,
+    repoId: string,
+    request: UpdateProjectRepositoryRequest
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/repositories/${repoId}`,
+      request
+    );
+  }
+
+  removeRepository(projectId: string, repoId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/repositories/${repoId}`
+    );
+  }
+
+  setLayoutPreset(projectId: string, preset: ProjectLayoutPreset): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/layout-preset`,
+      { preset }
+    );
+  }
+
+  setCommonsStrategy(
+    projectId: string,
+    strategy: ProjectCommonsStrategy
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/commons-strategy`,
+      { strategy }
+    );
+  }
+
+  setConfigRepositoryBinding(
+    projectId: string,
+    configId: string,
+    request: SetInfraConfigRepositoryBindingRequest
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/configs/${configId}/repository-binding`,
       request
     );
   }

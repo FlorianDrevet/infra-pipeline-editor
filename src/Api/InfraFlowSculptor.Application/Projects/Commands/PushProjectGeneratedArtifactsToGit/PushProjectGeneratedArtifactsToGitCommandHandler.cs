@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
@@ -8,13 +9,24 @@ using InfraFlowSculptor.Domain.Common.Errors;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectGeneratedArtifactsToGit;
 
-/// <summary>Handles the <see cref="PushProjectGeneratedArtifactsToGitCommand"/>.</summary>
+/// <summary>
+/// Handles the <see cref="PushProjectGeneratedArtifactsToGitCommand"/>.
+/// V2 routing via <see cref="IRepositoryTargetResolver"/>:
+/// <list type="bullet">
+/// <item><description>Resolves Infrastructure and Pipeline targets at the project level (alias <c>"default"</c>).</description></item>
+/// <item><description>If the project declares a heterogeneous multi-repo topology (more than one
+/// <c>ProjectRepository</c>), this single-commit mono-repo operation is rejected with
+/// <see cref="Errors.GitRouting.AmbiguousProjectLevelGeneration"/>. Consumers must fall back to
+/// the per-config push endpoints for such projects (V2-lite).</description></item>
+/// </list>
+/// </summary>
 public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
     IKeyVaultSecretClient keyVaultSecretClient,
     IGitProviderFactory gitProviderFactory,
-    IBlobService blobService)
+    IBlobService blobService,
+    IRepositoryTargetResolver targetResolver)
     : ICommandHandler<PushProjectGeneratedArtifactsToGitCommand, PushBicepToGitResult>
 {
     /// <inheritdoc />
@@ -30,10 +42,19 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        if (project.GitRepositoryConfiguration is null)
-            return Errors.GitRepository.NotConfigured();
+        // V2-lite ambiguity gate: mono-repo single-commit push is only defined for a single target repository.
+        // A project declaring multiple ProjectRepository aliases is a heterogeneous multi-repo topology and
+        // must use the per-config push endpoints (Bicep/Pipeline/Bootstrap) instead.
+        if (project.Repositories.Count > 1)
+            return Errors.GitRouting.AmbiguousProjectLevelGeneration;
 
-        var gitConfiguration = project.GitRepositoryConfiguration;
+        // Resolve the project-level target (alias "default") for the pipeline kind — this populates both
+        // BasePath (used by the Bicep scope) and PipelineBasePath (used by pipeline + bootstrap scopes).
+        var targetResult = targetResolver.Resolve(project, config: null, ArtifactKind.Pipeline);
+        if (targetResult.IsError)
+            return targetResult.Errors;
+
+        var target = targetResult.Value;
 
         var secretResult = await keyVaultSecretClient.GetSecretAsync(
             $"git-pat-{project.Id.Value}",
@@ -67,20 +88,20 @@ public sealed class PushProjectGeneratedArtifactsToGitCommandHandler(
 
         var multiScopePushRequest = BuildPushRequest(
             secretResult.Value,
-            gitConfiguration.Owner,
-            gitConfiguration.RepositoryName,
-            gitConfiguration.DefaultBranch,
+            target.Owner,
+            target.RepositoryName,
+            target.Branch,
             command.BranchName,
             command.CommitMessage,
-            gitConfiguration.BasePath,
+            target.BasePath,
             bicepFilesResult.Value,
-            gitConfiguration.PipelineBasePath,
+            target.PipelineBasePath,
             pipelineFilesResult.Value,
             bootstrapFilesResult.Value);
         if (multiScopePushRequest.IsError)
             return multiScopePushRequest.Errors;
 
-        var gitProvider = gitProviderFactory.Create(gitConfiguration.ProviderType);
+        var gitProvider = gitProviderFactory.Create(target.ProviderType);
         if (gitProvider is not IGitMultiScopePushProviderService multiScopeGitProvider)
         {
             return Errors.GitRepository.PushFailed(

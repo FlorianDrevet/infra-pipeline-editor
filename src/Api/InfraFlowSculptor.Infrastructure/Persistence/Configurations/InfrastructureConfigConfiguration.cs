@@ -96,6 +96,30 @@ public sealed class InfrastructureConfigConfiguration
             .OnDelete(DeleteBehavior.Cascade);
 
         // ========================
+        // RepositoryBinding (OWNED, optional)
+        // ========================
+        builder.OwnsOne(x => x.RepositoryBinding, binding =>
+        {
+            binding.Property(b => b.Alias)
+                .HasConversion(new RepositoryAliasConverter())
+                .HasColumnName("RepositoryBinding_Alias")
+                .HasMaxLength(50);
+
+            binding.Property(b => b.Branch)
+                .HasColumnName("RepositoryBinding_Branch")
+                .HasMaxLength(200);
+
+            binding.Property(b => b.InfraPath)
+                .HasColumnName("RepositoryBinding_InfraPath")
+                .HasMaxLength(500);
+
+            binding.Property(b => b.PipelinePath)
+                .HasColumnName("RepositoryBinding_PipelinePath")
+                .HasMaxLength(500);
+        });
+        builder.Navigation(x => x.RepositoryBinding).IsRequired(false);
+
+        // ========================
         // Tags (OWNED)
         // ========================
         builder.OwnsMany(c => c.Tags, tag =>

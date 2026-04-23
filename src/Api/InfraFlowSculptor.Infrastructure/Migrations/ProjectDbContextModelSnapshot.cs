@@ -994,56 +994,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.ToTable("LogAnalyticsWorkspaceEnvironmentSettings", (string)null);
                 });
 
-            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.GitRepositoryConfiguration", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("BasePath")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("DefaultBranch")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasDefaultValue("main");
-
-                    b.Property<string>("Owner")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("PipelineBasePath")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ProviderType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("RepositoryName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("RepositoryUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId")
-                        .IsUnique();
-
-                    b.ToTable("GitRepositoryConfigurations", (string)null);
-                });
-
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectMember", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1088,6 +1038,58 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ProjectPipelineVariableGroups", (string)null);
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectRepository", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Alias")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ContentKinds")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("DefaultBranch")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasDefaultValue("main");
+
+                    b.Property<string>("Owner")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProviderType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RepositoryName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("RepositoryUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "Alias")
+                        .IsUnique();
+
+                    b.ToTable("ProjectRepositories", (string)null);
                 });
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectResourceAbbreviation", b =>
@@ -1150,6 +1152,12 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("CommonsStrategy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("DuplicatePerRepo");
+
                     b.Property<string>("DefaultNamingTemplate")
                         .HasColumnType("text");
 
@@ -1157,15 +1165,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("RepositoryMode")
+                    b.Property<string>("LayoutPreset")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text")
                         .HasDefaultValue("MultiRepo");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -2268,6 +2276,42 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                                 .HasForeignKey("InfrastructureConfigId");
                         });
 
+                    b.OwnsOne("InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.RepositoryBinding", "RepositoryBinding", b1 =>
+                        {
+                            b1.Property<Guid>("InfrastructureConfigId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Alias")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("RepositoryBinding_Alias");
+
+                            b1.Property<string>("Branch")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("RepositoryBinding_Branch");
+
+                            b1.Property<string>("InfraPath")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)")
+                                .HasColumnName("RepositoryBinding_InfraPath");
+
+                            b1.Property<string>("PipelinePath")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)")
+                                .HasColumnName("RepositoryBinding_PipelinePath");
+
+                            b1.HasKey("InfrastructureConfigId");
+
+                            b1.ToTable("InfrastructureConfigs");
+
+                            b1.WithOwner()
+                                .HasForeignKey("InfrastructureConfigId");
+                        });
+
+                    b.Navigation("RepositoryBinding");
+
                     b.Navigation("Tags");
                 });
 
@@ -2285,15 +2329,6 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.LogAnalyticsWorkspaceAggregate.LogAnalyticsWorkspace", null)
                         .WithMany("EnvironmentSettings")
                         .HasForeignKey("LogAnalyticsWorkspaceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.GitRepositoryConfiguration", b =>
-                {
-                    b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Project", null)
-                        .WithOne("GitRepositoryConfiguration")
-                        .HasForeignKey("InfraFlowSculptor.Domain.ProjectAggregate.Entities.GitRepositoryConfiguration", "ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -2321,6 +2356,15 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                 {
                     b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Project", null)
                         .WithMany("PipelineVariableGroups")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Entities.ProjectRepository", b =>
+                {
+                    b.HasOne("InfraFlowSculptor.Domain.ProjectAggregate.Project", null)
+                        .WithMany("Repositories")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2786,11 +2830,11 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
             modelBuilder.Entity("InfraFlowSculptor.Domain.ProjectAggregate.Project", b =>
                 {
-                    b.Navigation("GitRepositoryConfiguration");
-
                     b.Navigation("Members");
 
                     b.Navigation("PipelineVariableGroups");
+
+                    b.Navigation("Repositories");
 
                     b.Navigation("ResourceAbbreviations");
 

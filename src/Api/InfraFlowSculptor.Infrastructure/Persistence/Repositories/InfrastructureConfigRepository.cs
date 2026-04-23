@@ -59,4 +59,19 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
             .Select(c => new InfraConfigSummary(c.Id.Value, c.Name.Value))
             .ToListAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<bool> AnyBoundToRepositoryAliasAsync(
+        ProjectId projectId,
+        RepositoryAlias alias,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.InfrastructureConfigs
+            .AsNoTracking()
+            .AnyAsync(
+                c => c.ProjectId == projectId
+                  && c.RepositoryBinding != null
+                  && c.RepositoryBinding.Alias == alias,
+                cancellationToken);
+    }
 }

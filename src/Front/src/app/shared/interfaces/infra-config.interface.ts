@@ -1,3 +1,5 @@
+import { RepositoryBindingResponse } from './repository-binding.interface';
+
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface TagResponse {
@@ -59,6 +61,7 @@ export interface InfrastructureConfigResponse {
   crossConfigReferenceCount: number;
   appPipelineMode: string;
   tags: TagResponse[];
+  repositoryBinding?: RepositoryBindingResponse | null;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────

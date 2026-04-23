@@ -17,9 +17,8 @@
 | `/projects` | DELETE | `/{id:guid}` | `DeleteProjectCommand` |
 | `/projects` | PUT | `/{id:guid}/agent-pool` | `SetAgentPoolCommand` (moved from /infra-configs) [2026-04-04] |
 | `/projects` | POST | `/validate-recent` | `ValidateRecentItemsQuery` |
-| `/projects` | PUT/DELETE | `/{id:guid}/git-config` | Git config CRUD |
-| `/projects` | POST | `/{id:guid}/git-config/test` | `TestGitConnectionCommand` |
-| `/projects` | GET | `/{id:guid}/git-config/branches` | `ListGitBranchesQuery` |
+| `/projects` | POST | `/{id:guid}/git-config/test` | `TestGitConnectionCommand` (resolver-backed, V3) |
+| `/projects` | GET | `/{id:guid}/git-config/branches` | `ListGitBranchesQuery` (resolver-backed, V3) |
 | `/projects` | GET | `/{id:guid}/generate-bicep/download` | `DownloadProjectBicepCommand` |
 | `/projects` | POST | `/{id:guid}/generate-pipeline` | `GenerateProjectPipelineCommand` |
 | `/projects` | GET | `/{id:guid}/generate-pipeline/download` | `DownloadProjectPipelineCommand` |

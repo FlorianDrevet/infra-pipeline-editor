@@ -16,6 +16,7 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// <param name="ResourceGroupCount">Number of resource groups in this configuration.</param>
 /// <param name="ResourceCount">Total number of Azure resources across all resource groups.</param>
 /// <param name="CrossConfigReferenceCount">Number of cross-configuration resource references.</param>
+/// <param name="RepositoryBinding">Optional V2 multi-repo binding (alias + overrides) selecting the repository that hosts this configuration's artifacts.</param>
 public record InfrastructureConfigResponse(
     string Id,
     string Name,
@@ -27,4 +28,5 @@ public record InfrastructureConfigResponse(
     IReadOnlyList<TagResponse> Tags,
     int ResourceGroupCount,
     int ResourceCount,
-    int CrossConfigReferenceCount);
+    int CrossConfigReferenceCount,
+    RepositoryBindingResponse? RepositoryBinding = null);

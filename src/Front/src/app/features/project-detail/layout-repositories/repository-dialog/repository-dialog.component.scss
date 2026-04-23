@@ -1,0 +1,47 @@
+:host {
+  display: block;
+}
+
+.repo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 24rem;
+  padding-top: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.content-kinds {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+
+  &__label {
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.65);
+    font-weight: 500;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-left: 0.25rem;
+  }
+
+  &__error {
+    margin: 0;
+    color: #c62828;
+    font-size: 0.8rem;
+  }
+}
+
+.dialog-error {
+  margin: 0.5rem 0 0;
+  color: #c62828;
+  font-size: 0.85rem;
+}

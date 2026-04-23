@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import {
@@ -14,7 +13,7 @@ import { LanguageService } from '../../../shared/services/language.service';
 @Component({
   selector: 'app-create-project-dialog',
   standalone: true,
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonToggleModule, MatIconModule, TranslateModule],
+  imports: [ReactiveFormsModule, MatDialogModule, MatIconModule, TranslateModule],
   templateUrl: './create-project-dialog.component.html',
   styleUrl: './create-project-dialog.component.scss',
 })
@@ -30,7 +29,6 @@ export class CreateProjectDialogComponent {
   protected readonly createForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(80)]],
     description: [''],
-    repositoryMode: ['MultiRepo'],
   });
 
   protected get nameControl() {
@@ -62,11 +60,6 @@ export class CreateProjectDialogComponent {
         description: this.createForm.controls.description.getRawValue().trim() || undefined,
       };
       const created = await this.projectService.createProject(request);
-      const selectedMode = this.createForm.controls.repositoryMode.getRawValue();
-      if (selectedMode !== 'MultiRepo') {
-        await this.projectService.setRepositoryMode(created.id, { repositoryMode: selectedMode });
-        created.repositoryMode = selectedMode;
-      }
       this.dialogRef.close(created);
     } catch (error) {
       this.createError.set(

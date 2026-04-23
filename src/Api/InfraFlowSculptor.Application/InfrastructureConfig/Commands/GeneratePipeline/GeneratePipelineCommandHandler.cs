@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
@@ -28,7 +29,9 @@ public sealed class GeneratePipelineCommandHandler(
     IWebAppRepository webAppRepository,
     IFunctionAppRepository functionAppRepository,
     IContainerRegistryRepository containerRegistryRepository,
-    IGeneratedArtifactService artifactService)
+    IGeneratedArtifactService artifactService,
+    IRepositoryTargetResolver targetResolver,
+    IInfrastructureConfigRepository infraConfigRepository)
     : ICommandHandler<GeneratePipelineCommand, GeneratePipelineResult>
 {
     public async Task<ErrorOr<GeneratePipelineResult>> Handle(
@@ -46,8 +49,26 @@ public sealed class GeneratePipelineCommandHandler(
         // Load project-level pipeline variable groups
         var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
             new ProjectId(config.ProjectId), cancellationToken);
+        // Load project (with Repositories + legacy GitRepositoryConfiguration) for V2 routing.
         var projectWithGit = await projectRepository.GetByIdWithAllAsync(
             new ProjectId(config.ProjectId), cancellationToken);
+
+        // Load the domain InfrastructureConfig entity so the resolver can honor its RepositoryBinding.
+        var domainConfig = await infraConfigRepository.GetByIdAsync(
+            new InfrastructureConfigId(command.InfrastructureConfigId), cancellationToken);
+
+        // Resolve the pipeline-kind target to derive the BicepBasePath used by release pipeline YAML
+        // (infra path inside the target repo). A missing repository is tolerated here: BicepBasePath
+        // simply becomes null, matching the previous behavior when no Git configuration existed.
+        string? bicepBasePath = null;
+        if (projectWithGit is not null && domainConfig is not null)
+        {
+            var targetResult = targetResolver.Resolve(projectWithGit, domainConfig, ArtifactKind.Pipeline);
+            if (!targetResult.IsError)
+            {
+                bicepBasePath = targetResult.Value.BasePath;
+            }
+        }
 
         var projectVariableGroups = project?.PipelineVariableGroups
             .Select(g =>
@@ -135,7 +156,7 @@ public sealed class GeneratePipelineCommandHandler(
             SecureParameterOverrides = SecureParameterOverrideHelper.DeriveSecureParameterOverrides(
                 resources, bicepGenerators, config.SecureParameterMappings, projectVariableGroups),
             AgentPoolName = project?.AgentPoolName,
-            BicepBasePath = projectWithGit?.GitRepositoryConfiguration?.BasePath,
+            BicepBasePath = bicepBasePath,
         };
 
         var result = pipelineGenerationEngine.Generate(generationRequest, config.Name);

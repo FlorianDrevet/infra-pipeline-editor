@@ -26,7 +26,7 @@
               }
               {{ (validatingDiagnostics() ? 'CONFIG_DETAIL.GENERATE_ALL.VALIDATING' : generateAllLoading() ? 'CONFIG_DETAIL.GENERATE_ALL.GENERATING' : 'CONFIG_DETAIL.GENERATE_ALL.BUTTON') | translate }}
             </button>
-            @if (project()?.gitRepositoryConfiguration) {
+            @if ((project()?.repositories?.length ?? 0) > 0) {
               <button class="bicep-cta bicep-cta--git" (click)="openPushToGitDialog()">
                 <mat-icon class="bicep-cta__icon">rocket_launch</mat-icon>
                 {{ 'CONFIG_DETAIL.PUSH_TO_GIT.BUTTON' | translate }}
@@ -1193,101 +1193,52 @@
               <p class="rg-error">{{ gitActionError() | translate }}</p>
             }
 
-            @if (project()?.gitRepositoryConfiguration; as gitConfig) {
-              <article class="git-config-card">
-                <div class="git-config-card__header">
-                  <div class="git-config-card__provider">
-                    <mat-icon class="git-config-card__provider-icon">
-                      @if (gitConfig.providerType === 'GitHub') { hub } @else { cloud_queue }
-                    </mat-icon>
-                    <h3>{{ gitConfig.providerType }}</h3>
-                  </div>
-                  @if (canWrite()) {
-                    <div class="git-config-card__actions">
-                      <button class="add-rg-btn" (click)="testGitConnection()" [disabled]="gitTestLoading()">
-                        @if (gitTestLoading()) {
-                          <mat-spinner diameter="16"></mat-spinner>
-                        } @else {
-                          <mat-icon class="add-rg-btn__icon">sync</mat-icon>
-                        }
-                        {{ (gitTestLoading() ? 'PROJECT_DETAIL.GIT_CONFIG.TESTING' : 'PROJECT_DETAIL.GIT_CONFIG.TEST_CONNECTION') | translate }}
-                      </button>
-                      <button class="add-rg-btn" (click)="openGitConfigDialog()">
-                        <mat-icon class="add-rg-btn__icon">edit</mat-icon>
-                        {{ 'PROJECT_DETAIL.GIT_CONFIG.EDIT' | translate }}
-                      </button>
-                      <button class="delete-btn" (click)="openRemoveGitConfigDialog()">
-                        <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
-                        {{ 'PROJECT_DETAIL.GIT_CONFIG.REMOVE' | translate }}
-                      </button>
-                    </div>
-                  }
+            <!-- V2 Repository binding (multi-repo topology) -->
+            <section class="repo-binding-card">
+              <div class="repo-binding-card__header">
+                <div>
+                  <h3>{{ 'CONFIG_DETAIL.BINDING.TITLE' | translate }}</h3>
+                  <p class="repo-binding-card__help">
+                    {{ 'CONFIG_DETAIL.BINDING.HELP' | translate }}
+                  </p>
                 </div>
-
-                <div class="git-config-card__details">
-                  <div class="detail-row">
-                    <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.REPOSITORY_URL' | translate }}</span>
-                    <a class="detail-link" [href]="gitConfig.repositoryUrl" target="_blank" rel="noopener">
-                      {{ gitConfig.repositoryUrl }}
-                      <mat-icon class="detail-link__icon">open_in_new</mat-icon>
-                    </a>
-                  </div>
-                  <div class="detail-row">
-                    <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.DEFAULT_BRANCH' | translate }}</span>
-                    <strong>{{ gitConfig.defaultBranch }}</strong>
-                  </div>
-                  @if (gitConfig.basePath) {
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.BASE_PATH' | translate }}</span>
-                      <strong>{{ gitConfig.basePath }}</strong>
-                    </div>
-                  }
-                  <div class="detail-row">
-                    <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.OWNER' | translate }}</span>
-                    <strong>{{ gitConfig.owner }}</strong>
-                  </div>
-                  <div class="detail-row">
-                    <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.REPOSITORY_NAME' | translate }}</span>
-                    <strong>{{ gitConfig.repositoryName }}</strong>
-                  </div>
-                </div>
-
-                <!-- Test Connection Result -->
-                @if (gitTestResult(); as testResult) {
-                  <div class="git-test-result" [class.git-test-result--success]="testResult.success" [class.git-test-result--error]="!testResult.success">
-                    @if (testResult.success) {
-                      <mat-icon class="git-test-result__icon">check_circle</mat-icon>
-                      <div class="git-test-result__content">
-                        <strong>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_SUCCESS' | translate }}</strong>
-                        <div class="git-test-result__details">
-                          <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_REPO_NAME' | translate }}: {{ testResult.repositoryFullName }}</span>
-                          <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_BRANCH' | translate }}: {{ testResult.defaultBranch }}</span>
-                        </div>
-                      </div>
-                    } @else {
-                      <mat-icon class="git-test-result__icon">error_outline</mat-icon>
-                      <div class="git-test-result__content">
-                        <strong>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_FAILED' | translate }}</strong>
-                        @if (testResult.errorMessage) {
-                          <p>{{ testResult.errorMessage }}</p>
-                        }
-                      </div>
-                    }
-                  </div>
-                }
-              </article>
-            } @else {
-              <div class="empty-state">
-                <mat-icon class="empty-state__icon">code</mat-icon>
-                <p>{{ 'CONFIG_DETAIL.GIT_CONFIG.EMPTY' | translate }}</p>
                 @if (canWrite()) {
-                  <button class="add-rg-btn" (click)="openGitConfigDialog()">
-                    <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
-                    {{ 'PROJECT_DETAIL.GIT_CONFIG.CONFIGURE' | translate }}
+                  <button class="add-rg-btn" (click)="openRepositoryBindingDialog()">
+                    <mat-icon class="add-rg-btn__icon">link</mat-icon>
+                    {{ 'CONFIG_DETAIL.BINDING.EDIT' | translate }}
                   </button>
                 }
               </div>
-            }
+              @if (config()?.repositoryBinding; as binding) {
+                <div class="repo-binding-card__body">
+                  <div class="detail-row">
+                    <span>{{ 'CONFIG_DETAIL.BINDING.ALIAS' | translate }}</span>
+                    <strong>{{ binding.alias }}</strong>
+                  </div>
+                  @if (binding.branch) {
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.BINDING.BRANCH_OVERRIDE' | translate }}</span>
+                      <strong>{{ binding.branch }}</strong>
+                    </div>
+                  }
+                  @if (binding.infraPath) {
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.BINDING.INFRA_PATH_OVERRIDE' | translate }}</span>
+                      <strong>{{ binding.infraPath }}</strong>
+                    </div>
+                  }
+                  @if (binding.pipelinePath) {
+                    <div class="detail-row">
+                      <span>{{ 'CONFIG_DETAIL.BINDING.PIPELINE_PATH_OVERRIDE' | translate }}</span>
+                      <strong>{{ binding.pipelinePath }}</strong>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="repo-binding-card__empty">{{ 'CONFIG_DETAIL.BINDING.EMPTY' | translate }}</p>
+              }
+            </section>
+
           </div>
         </mat-tab>
       }

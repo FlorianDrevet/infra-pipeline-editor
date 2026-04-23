@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -8,13 +9,20 @@ using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectBootstrapPipelineToGit;
 
-/// <summary>Handles the <see cref="PushProjectBootstrapPipelineToGitCommand"/>.</summary>
+/// <summary>
+/// Handles the <see cref="PushProjectBootstrapPipelineToGitCommand"/>.
+/// Uses <see cref="IRepositoryTargetResolver"/> with <c>config: null</c> and
+/// <see cref="ArtifactKind.Bootstrap"/>, resolving to the project's default alias
+/// (<c>"default"</c>). Projects with a heterogeneous multi-repo topology must instead use
+/// <c>PushProjectGeneratedArtifactsToGit</c>.
+/// </summary>
 public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepo,
     IKeyVaultSecretClient keyVaultClient,
     IGitProviderFactory gitProviderFactory,
-    IBlobService blobService)
+    IBlobService blobService,
+    IRepositoryTargetResolver targetResolver)
     : ICommandHandler<PushProjectBootstrapPipelineToGitCommand, PushBicepToGitResult>
 {
     /// <inheritdoc />
@@ -31,11 +39,12 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        // 3. Check Git config exists
-        if (project.GitRepositoryConfiguration is null)
-            return Errors.GitRepository.NotConfigured();
+        // 3. Resolve the target repository via V2 routing (project-level, default alias).
+        var targetResult = targetResolver.Resolve(project, config: null, ArtifactKind.Bootstrap);
+        if (targetResult.IsError)
+            return targetResult.Errors;
 
-        var gitConfig = project.GitRepositoryConfiguration;
+        var target = targetResult.Value;
 
         // 4. Retrieve the PAT from the centralized Key Vault
         var secretResult = await keyVaultClient.GetSecretAsync(
@@ -49,16 +58,16 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
             return filesResult.Errors;
 
         // 6. Push to Git (bootstrap.pipeline.yml lives at the pipeline base path root, not inside a config sub-folder)
-        var gitProvider = gitProviderFactory.Create(gitConfig.ProviderType);
+        var gitProvider = gitProviderFactory.Create(target.ProviderType);
         return await gitProvider.PushFilesAsync(new GitPushRequest
         {
             Token = secretResult.Value,
-            Owner = gitConfig.Owner,
-            RepositoryName = gitConfig.RepositoryName,
-            BaseBranch = gitConfig.DefaultBranch,
+            Owner = target.Owner,
+            RepositoryName = target.RepositoryName,
+            BaseBranch = target.Branch,
             TargetBranchName = command.BranchName,
             CommitMessage = command.CommitMessage,
-            BasePath = gitConfig.PipelineBasePath,
+            BasePath = target.PipelineBasePath,
             Files = filesResult.Value,
         }, cancellationToken);
     }
