@@ -17,6 +17,7 @@ using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectBicepToGit;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectGeneratedArtifactsToGit;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsToMultiRepo;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectPipelineToGit;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
@@ -947,7 +948,11 @@ public static class ProjectController
                             {
                                 var response = new GenerateProjectPipelineResponse(
                                     value.CommonFileUris,
-                                    value.ConfigFileUris);
+                                    value.ConfigFileUris,
+                                    value.InfraCommonFileUris,
+                                    value.AppCommonFileUris,
+                                    value.InfraConfigFileUris,
+                                    value.AppConfigFileUris);
                                 return Results.Created($"/projects/{projectId}/generate-pipeline", response);
                             },
                             errors => errors.Result()
@@ -1146,6 +1151,52 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPost("/{projectId:guid}/push-multi-repo-artifacts-to-git",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] PushMultiRepoArtifactsRequest request,
+                        IMediator mediator) =>
+                    {
+                        var command = new PushProjectArtifactsToMultiRepoCommand(
+                            new ProjectId(projectId),
+                            new RepoPushTarget(
+                                request.Infra.Alias,
+                                request.Infra.BranchName,
+                                request.Infra.CommitMessage),
+                            new RepoPushTarget(
+                                request.Code.Alias,
+                                request.Code.BranchName,
+                                request.Code.CommitMessage));
+
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value =>
+                            {
+                                var response = new PushMultiRepoArtifactsResponse(
+                                    value.Results
+                                        .Select(r => new RepoPushResultResponse(
+                                            r.Alias,
+                                            r.Success,
+                                            r.BranchUrl,
+                                            r.CommitSha,
+                                            r.FileCount,
+                                            r.ErrorCode,
+                                            r.ErrorDescription))
+                                        .ToList());
+                                return Results.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("PushProjectArtifactsToMultiRepo")
+                .WithSummary("Push project artifacts to two repositories (SplitInfraCode dual push)")
+                .WithDescription("Pushes the latest project-level generated artifacts to both the infrastructure-flagged repository (Bicep + infra pipeline + bootstrap) and the application-code-flagged repository (app pipeline files) in two independent commits. Per-repo errors are reported in the response, not as HTTP errors.")
+                .Produces<PushMultiRepoArtifactsResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden)
+                .ProducesProblem(StatusCodes.Status404NotFound);
 
             // ── Pipeline Variable Groups (project-level) ────────────────
 

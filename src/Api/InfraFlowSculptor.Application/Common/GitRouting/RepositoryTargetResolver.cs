@@ -15,9 +15,12 @@ public sealed class RepositoryTargetResolver : IRepositoryTargetResolver
     {
         ArgumentNullException.ThrowIfNull(project);
 
-        // Today every artifact (Bicep, infra pipeline, bootstrap pipeline) routes to the
-        // Infrastructure-flagged repository. ApplicationCode-only routing is reserved for future use.
-        var role = RepositoryContentKindsEnum.Infrastructure;
+        // Routing role:
+        //  - ApplicationPipeline → ApplicationCode-flagged repository (SplitInfraCode dual push).
+        //  - Everything else (Bicep, infra pipeline, bootstrap) → Infrastructure-flagged repository.
+        var role = kind == ArtifactKind.ApplicationPipeline
+            ? RepositoryContentKindsEnum.ApplicationCode
+            : RepositoryContentKindsEnum.Infrastructure;
 
         if (project.LayoutPreset.Value == LayoutPresetEnum.MultiRepo)
         {

@@ -16,4 +16,7 @@ public enum ArtifactKind
 
     /// <summary>Project-level bootstrap pipeline artifacts.</summary>
     Bootstrap,
+
+    /// <summary>Application CI/CD pipeline artifacts (per-resource wrappers + shared app templates) that target the application-code repository.</summary>
+    ApplicationPipeline,
 }

@@ -25,8 +25,12 @@ import {
   PushToGitDialogComponent,
   PushToGitDialogData,
 } from '../../config-detail/push-to-git-dialog/push-to-git-dialog.component';
+import {
+  MultiRepoPushDialogComponent,
+  MultiRepoPushDialogData,
+} from '../multi-repo-push-dialog/multi-repo-push-dialog.component';
 
-type BoardTopology = 'single' | 'split' | 'mixed' | 'empty';
+type BoardTopology = 'single' | 'split' | 'mixed' | 'empty' | 'split-infra-code';
 
 interface AliasGroup {
   readonly alias: string;
@@ -101,15 +105,18 @@ export class GenerationBoardComponent implements OnInit {
   });
 
   protected readonly topology = computed<BoardTopology>(() => {
+    const project = this.project();
+    if (project?.layoutPreset === 'SplitInfraCode') return 'split-infra-code';
     const groups = this.groupedByAlias();
     if (groups.length === 0) return 'empty';
     if (groups.length === 1) return 'single';
     return groups.every((g) => g.configs.length === 1) ? 'split' : 'mixed';
   });
 
-  protected readonly canGenerateAll = computed(
-    () => this.topology() === 'single' || this.topology() === 'empty',
-  );
+  protected readonly canGenerateAll = computed(() => {
+    const t = this.topology();
+    return t === 'single' || t === 'empty' || t === 'split-infra-code';
+  });
 
   async ngOnInit(): Promise<void> {
     await this.load();
@@ -136,6 +143,23 @@ export class GenerationBoardComponent implements OnInit {
     const hasRepositories = (project?.repositories?.length ?? 0) > 0;
     if (!project || !hasRepositories) {
       this.showError('PROJECT_DETAIL.BOARD.NO_GIT_CONFIG');
+      return;
+    }
+
+    if (project.layoutPreset === 'SplitInfraCode') {
+      const repos = project.repositories ?? [];
+      const infraRepo = repos.find((r) => r.contentKinds?.includes('Infrastructure'));
+      const codeRepo = repos.find((r) => r.contentKinds?.includes('ApplicationCode'));
+      if (!infraRepo || !codeRepo) {
+        this.showError('PROJECT_DETAIL.MULTI_REPO_PUSH.MISSING_SLOTS');
+        return;
+      }
+      const data: MultiRepoPushDialogData = {
+        projectId: project.id,
+        infraAlias: infraRepo.alias,
+        codeAlias: codeRepo.alias,
+      };
+      this.dialog.open(MultiRepoPushDialogComponent, { width: 'min(720px, 92vw)', data });
       return;
     }
 

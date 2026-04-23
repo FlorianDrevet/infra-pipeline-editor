@@ -11,6 +11,7 @@ public static partial class Errors
         private const string AliasNotFoundCode = "GitRouting.AliasNotFound";
         private const string NoRepositoryConfiguredCode = "GitRouting.NoRepositoryConfigured";
         private const string AmbiguousProjectLevelGenerationCode = "GitRouting.AmbiguousProjectLevelGeneration";
+        private const string LayoutNotSupportedForMultiRepoPushCode = "GitRouting.LayoutNotSupportedForMultiRepoPush";
 
         /// <summary>
         /// Returned when an <c>InfrastructureConfig.RepositoryBinding</c> or a fallback alias
@@ -40,5 +41,15 @@ public static partial class Errors
             Error.Validation(
                 code: AmbiguousProjectLevelGenerationCode,
                 description: "Project-level generate-all is disabled for heterogeneous multi-repo topologies.");
+
+        /// <summary>
+        /// Returned when a SplitInfraCode dual-push is requested on a project whose layout preset
+        /// does not match (AllInOne or MultiRepo). Consumers must use the layout-specific push
+        /// endpoints instead.
+        /// </summary>
+        public static Error LayoutNotSupportedForMultiRepoPush =>
+            Error.Validation(
+                code: LayoutNotSupportedForMultiRepoPushCode,
+                description: "Multi-repo dual push is only supported for projects with the SplitInfraCode layout preset.");
     }
 }

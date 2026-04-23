@@ -47,6 +47,10 @@ import {
   ConfigLayoutMode,
   UpdateInfraConfigRepositoryRequest,
 } from '../interfaces/infra-config-repository.interface';
+import {
+  MultiRepoPushRequest,
+  MultiRepoPushResponse,
+} from '../interfaces/multi-repo-push.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -272,6 +276,17 @@ export class ProjectService {
     return this.axios.request$<PushBicepToGitResponse>(
       MethodEnum.POST,
       `/projects/${projectId}/push-generated-artifacts-to-git`,
+      request
+    );
+  }
+
+  pushProjectArtifactsToMultiRepo(
+    projectId: string,
+    request: MultiRepoPushRequest
+  ): Promise<MultiRepoPushResponse> {
+    return this.axios.request$<MultiRepoPushResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/push-multi-repo-artifacts-to-git`,
       request
     );
   }

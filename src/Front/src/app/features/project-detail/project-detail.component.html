@@ -82,6 +82,25 @@
                   <mat-icon>close</mat-icon>
                 </button>
               </div>
+              @if (project()?.layoutPreset === 'SplitInfraCode') {
+                <app-split-generation-switcher
+                  [bicepResult]="projectBicepResult()"
+                  [pipelineResult]="projectPipelineResult()"
+                  [bootstrapResult]="projectBootstrapResult()"
+                  [isGeneratingBicep]="projectBicepLoading()"
+                  [isGeneratingPipeline]="projectPipelineLoading()"
+                  [isGeneratingBootstrap]="projectBootstrapLoading()"
+                  [bicepGenerationError]="projectBicepErrorKey()"
+                  [pipelineGenerationError]="projectPipelineErrorKey()"
+                  [bootstrapGenerationError]="projectBootstrapErrorKey()"
+                  [loadBicepFile]="loadProjectBicepFile"
+                  [loadPipelineFile]="loadProjectPipelineFile"
+                  [loadBootstrapFile]="loadProjectBootstrapFile"
+                  (retryBicep)="generateProjectBicep()"
+                  (retryPipeline)="generateProjectPipeline()"
+                  (retryBootstrap)="generateProjectBootstrap()">
+                </app-split-generation-switcher>
+              } @else {
               <mat-tab-group class="generation-tabs" animationDuration="200ms">
                 <!-- Bicep Tab -->
                 <mat-tab>
@@ -346,6 +365,7 @@
                   </div>
                 </mat-tab>
               </mat-tab-group>
+              }
             </section>
           }
 

@@ -29,6 +29,16 @@ public static class GeneratedPipelinePathNormalizer
         var normalizedPath = path.TrimStart('/');
         var segments = normalizedPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
+        // Strip leading routing-bucket segment introduced by the project-level pipeline upload layout
+        // ({prefix}/infra/... and {prefix}/app/...). Legacy push handlers read all files merged.
+        if (segments.Length >= 2
+            && (string.Equals(segments[0], "infra", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(segments[0], "app", StringComparison.OrdinalIgnoreCase)))
+        {
+            segments = segments.Skip(1).ToArray();
+            normalizedPath = string.Join('/', segments);
+        }
+
         if (segments.Length >= 3
             && string.Equals(segments[0], "apps", StringComparison.OrdinalIgnoreCase)
             && string.Equals(segments[1], segments[2], StringComparison.OrdinalIgnoreCase))

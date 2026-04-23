@@ -107,6 +107,8 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - `project-detail` now exposes a single mono-repo push CTA instead of separate Bicep/Pipeline/Bootstrap push buttons.
 - The CTA is enabled only when all three project-level generation results exist.
 - `PushToGitDialogComponent` supports `isCombinedProjectPush` and now calls the dedicated backend endpoint `POST /projects/{projectId}/push-generated-artifacts-to-git`.
+- For projects with `LayoutPreset === 'SplitInfraCode'`, `GenerationBoardComponent.onGenerateAll()` opens `MultiRepoPushDialogComponent` instead (dual push: 2 cards Infra/Code with branch+commit forms, states `form|pushing|success|partial|error`, calls `POST /projects/{id}/push-multi-repo-artifacts-to-git`, HTTP always 200 — inspect `results[i].success`). Aliases auto-resolved from `project.repositories` filtered by `contentKinds.includes('Infrastructure'|'ApplicationCode')`. localStorage key `ifs-push-branch-multi-{projectId}-{alias}`.
+- For `SplitInfraCode` projects, the project-detail generation tabs (`mat-tab-group.generation-tabs`) are replaced by `SplitGenerationSwitcherComponent` (outer 2 tabs Infra/Code with file-count chips, inner Bicep/Pipeline/Bootstrap for Infra and Pipeline-only for Code — Bootstrap stays infra-only). Reads new `pipelineResult.{infra,app}{Common,Config}FileUris` fields from `GenerateProjectPipelineResponse`.
 - The mono-repo combined push now produces a single Git commit for Bicep + Pipeline + Bootstrap together; the frontend no longer orchestrates three separate project push calls.
 
 ## Bootstrap ADO Onboarding UX [2026-04-22]

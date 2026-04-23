@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Generation;
 using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
@@ -140,18 +141,25 @@ public sealed class GenerateProjectPipelineCommandHandler(
             bicepBasePath,
             pipelineBasePath);
 
-        // 7. Upload to blob storage
+        // 7. Upload to blob storage.
+        // Layout (since SplitInfraCode dual-push):
+        //   {prefix}/infra/.azuredevops/...   \u2192 infra shared templates
+        //   {prefix}/app/.azuredevops/...     \u2192 app shared templates (when any app pipeline exists)
+        //   {prefix}/infra/{configName}/...   \u2192 infra per-config files
+        //   {prefix}/app/{configName}/...     \u2192 app per-config files (apps/ wrappers)
         var prefix = $"pipeline/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
 
-        var commonFileUris = new Dictionary<string, Uri>();
+        var infraCommonUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
+        var appCommonUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
         foreach (var (path, content) in assembled.CommonFiles)
         {
+            // assembled.CommonFiles is the infra shared template tree (.azuredevops/ relative).
             var uri = await blobService.UploadContentAsync(
-                $"{prefix}/.azuredevops/{path}", content, "text/plain");
-            commonFileUris[$".azuredevops/{path}"] = uri;
+                $"{prefix}/infra/.azuredevops/{path}", content, "text/plain");
+            infraCommonUris[$".azuredevops/{path}"] = uri;
         }
 
-        // Upload shared application pipeline templates (paths already include .azuredevops/ prefix)
+        // Upload shared application pipeline templates whenever any per-config bucket emitted apps/ wrappers.
         var hasAppPipelines = assembled.ConfigFiles.Values
             .Any(files => files.Keys.Any(p => p.StartsWith("apps/", StringComparison.Ordinal)));
 
@@ -159,26 +167,58 @@ public sealed class GenerateProjectPipelineCommandHandler(
         {
             foreach (var (path, content) in AppPipelineGenerationEngine.GenerateSharedTemplates())
             {
+                // path already includes the .azuredevops/ prefix.
                 var uri = await blobService.UploadContentAsync(
-                    $"{prefix}/{path}", content, "text/plain");
-                commonFileUris[path] = uri;
+                    $"{prefix}/app/{path}", content, "text/plain");
+                appCommonUris[path] = uri;
             }
         }
 
-        var configFileUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>();
+        var infraConfigUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>(StringComparer.Ordinal);
+        var appConfigUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>(StringComparer.Ordinal);
+        var unionConfigUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>(StringComparer.Ordinal);
+
         foreach (var (configName, files) in assembled.ConfigFiles)
         {
-            var uris = new Dictionary<string, Uri>();
-            foreach (var (path, content) in files)
+            var (infraFiles, appFiles) = AppPipelineFileClassifier.Split(files);
+
+            var infraUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
+            foreach (var (path, content) in infraFiles)
             {
                 var uri = await blobService.UploadContentAsync(
-                    $"{prefix}/{configName}/{path}", content, "text/plain");
-                uris[path] = uri;
+                    $"{prefix}/infra/{configName}/{path}", content, "text/plain");
+                infraUris[path] = uri;
             }
-            configFileUris[configName] = uris;
+
+            var appUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
+            foreach (var (path, content) in appFiles)
+            {
+                var uri = await blobService.UploadContentAsync(
+                    $"{prefix}/app/{configName}/{path}", content, "text/plain");
+                appUris[path] = uri;
+            }
+
+            infraConfigUris[configName] = infraUris;
+            appConfigUris[configName] = appUris;
+
+            // Union view (legacy CommonFileUris/ConfigFileUris consumers expect a flat per-config map).
+            var union = new Dictionary<string, Uri>(infraUris, StringComparer.Ordinal);
+            foreach (var (path, uri) in appUris)
+                union[path] = uri;
+            unionConfigUris[configName] = union;
         }
 
-        return new GenerateProjectPipelineResult(commonFileUris, configFileUris);
+        var unionCommonUris = new Dictionary<string, Uri>(infraCommonUris, StringComparer.Ordinal);
+        foreach (var (path, uri) in appCommonUris)
+            unionCommonUris[path] = uri;
+
+        return new GenerateProjectPipelineResult(
+            CommonFileUris: unionCommonUris,
+            ConfigFileUris: unionConfigUris,
+            InfraCommonFileUris: infraCommonUris,
+            AppCommonFileUris: appCommonUris,
+            InfraConfigFileUris: infraConfigUris,
+            AppConfigFileUris: appConfigUris);
     }
 
     private static GenerationRequest BuildGenerationRequest(

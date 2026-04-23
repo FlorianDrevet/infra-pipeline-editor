@@ -121,6 +121,10 @@ export interface GenerateProjectBicepResponse {
 export interface GenerateProjectPipelineResponse {
   commonFileUris: Record<string, string>;
   configFileUris: Record<string, Record<string, string>>;
+  infraCommonFileUris: Record<string, string>;
+  appCommonFileUris: Record<string, string>;
+  infraConfigFileUris: Record<string, Record<string, string>>;
+  appConfigFileUris: Record<string, Record<string, string>>;
 }
 
 export interface GenerateProjectBootstrapPipelineResponse {
