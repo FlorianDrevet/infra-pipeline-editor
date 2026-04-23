@@ -1109,7 +1109,6 @@
       "GRANTED_RIGHTS": "Granted Rights",
       "USED_BY": "Used By",
       "CONFIG_KEYS": "Configuration Keys",
-      "CUSTOM_DOMAINS": "Custom Domains",
       "APP_PIPELINE": "Application Pipeline",
       "WARNING_MISSING_ROLE": "A required role assignment is missing",
       "WARNING_MISSING_ENV_CONFIG": "Some environments have no configuration"
@@ -1360,7 +1359,8 @@
       "UNLINK_ERROR": "Unable to unlink the resource. Please try again."
     },
     "CUSTOM_DOMAINS": {
-      "DESCRIPTION": "Configure custom domain bindings for this resource. Each domain must have a CNAME record pointing to the resource's default hostname.",
+      "SECTION_TITLE": "Custom Domains",
+      "SECTION_SUBTITLE": "Configure custom domain bindings for this environment.",
       "ADD": "Add Domain",
       "ADD_TITLE": "Add Custom Domain",
       "DOMAIN_NAME": "Domain Name",
@@ -1369,7 +1369,7 @@
       "BINDING_TYPE": "TLS Binding",
       "BINDING_SNI": "SNI SSL",
       "BINDING_DISABLED": "No SSL",
-      "EMPTY": "No custom domains configured.",
+      "EMPTY": "No custom domains configured for this environment.",
       "LOADING": "Loading custom domains...",
       "LOAD_ERROR": "Unable to load custom domains. Please try again.",
       "ADD_ERROR": "Unable to add the custom domain. Please try again.",
@@ -1377,9 +1377,17 @@
       "DUPLICATE": "This domain is already configured for this environment.",
       "REMOVE_CONFIRM_TITLE": "Remove Custom Domain",
       "REMOVE_CONFIRM_MESSAGE": "Are you sure you want to remove the domain {{domain}}?",
-      "DNS_GUIDE": "DNS Configuration Guide",
-      "DNS_GUIDE_CNAME": "Create a CNAME record pointing your domain to the resource's default hostname.",
-      "DNS_GUIDE_TXT": "Create a TXT record for domain verification: asuid.{{domain}} → <verification-id>"
+      "DNS_TUTORIAL_TITLE": "How to configure your DNS — Step by step guide",
+      "DNS_STEP1_TITLE": "Find your resource's default hostname",
+      "DNS_STEP1_DESC": "Open the Azure Portal → navigate to your resource (App Service, Container App, or Function App) → on the Overview page, copy the \"Default domain\" (e.g., myapp.azurewebsites.net or myapp.happyocean-abc123.westeurope.azurecontainerapps.io).",
+      "DNS_STEP2_TITLE": "Get the Custom Domain Verification ID",
+      "DNS_STEP2_DESC": "In your resource's left menu, go to \"Custom domains\" → copy the \"Custom Domain Verification ID\" shown at the top of the page. This is a unique identifier used to prove ownership of the domain.",
+      "DNS_STEP3_TITLE": "Create a CNAME record in your DNS provider",
+      "DNS_STEP3_DESC": "In your DNS provider's management console, create a CNAME record: Host = your subdomain (e.g., \"api\" for api.example.com) → Value = the default hostname copied in step 1. This redirects traffic to your Azure resource.",
+      "DNS_STEP4_TITLE": "Create a TXT verification record",
+      "DNS_STEP4_DESC": "In your DNS provider, create a TXT record: Host = \"asuid.\" followed by your subdomain (e.g., \"asuid.api\" for api.example.com) → Value = the Custom Domain Verification ID copied in step 2. This proves you own the domain.",
+      "DNS_STEP5_TITLE": "Add your domain here and wait for validation",
+      "DNS_STEP5_DESC": "Once the DNS records have propagated (this can take a few minutes to 48 hours), come back here and add your domain using the button above. Azure will automatically verify the DNS records and provision a managed TLS certificate."
     },
     "APP_SETTINGS": {
       "DESCRIPTION": "Configure environment variables for this compute resource. Reference outputs from other resources or set static values.",

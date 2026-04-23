@@ -149,7 +149,7 @@ public sealed class ContainerAppTypeBicepGenerator
         """;
 
     private const string ContainerAppModuleTemplate = """
-        import { TransportMethod, ContainerRuntimeConfig, ScalingConfig, IngressConfig, HealthProbeConfig } from './types.bicep'
+        import { ContainerRuntimeConfig, ScalingConfig, IngressConfig, HealthProbeConfig } from './types.bicep'
 
         @description('Azure region for the Container App')
         param location string
@@ -175,22 +175,23 @@ public sealed class ContainerAppTypeBicepGenerator
         @description('Custom domain bindings for this Container App')
         param customDomains array = []
 
+        var customDomainBindings = [for domain in customDomains: {
+          name: domain.domainName
+          bindingType: domain.bindingType
+        }]
+
         resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           name: name
           location: location
           properties: {
             managedEnvironmentId: containerAppEnvironmentId
             configuration: {
-              ingress: ingress.enabled ? union({
+              ingress: ingress.enabled ? {
                 external: ingress.external
                 targetPort: ingress.targetPort
                 transport: ingress.transportMethod
-              }, !empty(customDomains) ? {
-                customDomains: [for domain in customDomains: {
-                  name: domain.domainName
-                  bindingType: domain.bindingType
-                }]
-              } : {}) : null
+                customDomains: !empty(customDomains) ? customDomainBindings : null
+              } : null
             }
             template: {
               containers: [
@@ -245,7 +246,7 @@ public sealed class ContainerAppTypeBicepGenerator
         """;
 
     private const string ContainerAppWithAcrModuleTemplate = """
-        import { TransportMethod, ContainerRuntimeConfig, ScalingConfig, IngressConfig, HealthProbeConfig } from './types.bicep'
+        import { ContainerRuntimeConfig, ScalingConfig, IngressConfig, HealthProbeConfig } from './types.bicep'
 
         @description('Azure region for the Container App')
         param location string
@@ -277,6 +278,11 @@ public sealed class ContainerAppTypeBicepGenerator
         @description('Custom domain bindings for this Container App')
         param customDomains array = []
 
+        var customDomainBindings = [for domain in customDomains: {
+          name: domain.domainName
+          bindingType: domain.bindingType
+        }]
+
         resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           name: name
           location: location
@@ -289,16 +295,12 @@ public sealed class ContainerAppTypeBicepGenerator
                   identity: !empty(acrManagedIdentityClientId) ? acrManagedIdentityClientId : 'system'
                 }
               ]
-              ingress: ingress.enabled ? union({
+              ingress: ingress.enabled ? {
                 external: ingress.external
                 targetPort: ingress.targetPort
                 transport: ingress.transportMethod
-              }, !empty(customDomains) ? {
-                customDomains: [for domain in customDomains: {
-                  name: domain.domainName
-                  bindingType: domain.bindingType
-                }]
-              } : {}) : null
+                customDomains: !empty(customDomains) ? customDomainBindings : null
+              } : null
             }
             template: {
               containers: [

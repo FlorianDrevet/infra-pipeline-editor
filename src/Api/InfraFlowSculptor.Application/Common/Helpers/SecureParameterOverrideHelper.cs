@@ -38,9 +38,12 @@ public static class SecureParameterOverrideHelper
                 continue;
 
             var module = generator.Generate(resource);
+            var resourceIdentifier = ToBicepIdentifier(resource.Name);
+            var qualifiedModuleName = $"{module.ModuleName}{Capitalize(resourceIdentifier)}";
+
             foreach (var secureParam in module.SecureParameters)
             {
-                var fullBicepParamName = $"{module.ModuleName}{char.ToUpperInvariant(secureParam[0])}{secureParam[1..]}";
+                var fullBicepParamName = $"{qualifiedModuleName}{Capitalize(secureParam)}";
 
                 // Check if the user configured a custom mapping for this param
                 // Resource ID lookup: we need to match by resource name since ResourceDefinition doesn't carry the GUID
@@ -91,4 +94,24 @@ public static class SecureParameterOverrideHelper
 
         return autoDerived;
     }
+
+    /// <summary>
+    /// Replicates <c>BicepIdentifierHelper.ToBicepIdentifier</c> logic (camelCase from hyphens/underscores/spaces).
+    /// </summary>
+    private static string ToBicepIdentifier(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return "resource";
+        var parts = name.Split(['-', '_', ' '], StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "resource";
+        var sb = new System.Text.StringBuilder(parts[0].ToLowerInvariant());
+        foreach (var part in parts.Skip(1))
+        {
+            if (part.Length > 0)
+                sb.Append(char.ToUpperInvariant(part[0])).Append(part[1..].ToLowerInvariant());
+        }
+        return sb.ToString();
+    }
+
+    private static string Capitalize(string s) =>
+        s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 }

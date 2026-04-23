@@ -14,6 +14,7 @@ import { CustomDomainResponse, AddCustomDomainRequest } from '../../../shared/in
 export interface AddCustomDomainDialogData {
   environments: EnvironmentDefinitionResponse[];
   existingDomains: CustomDomainResponse[];
+  preselectedEnvironment?: string;
 }
 
 @Component({
@@ -37,7 +38,7 @@ export class AddCustomDomainDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<AddCustomDomainDialogComponent>);
   protected readonly data: AddCustomDomainDialogData = inject(MAT_DIALOG_DATA);
 
-  protected readonly environmentName = signal('');
+  protected readonly environmentName = signal(this.data.preselectedEnvironment ?? '');
   protected readonly domainName = signal('');
   protected readonly bindingType = signal('SniEnabled');
 

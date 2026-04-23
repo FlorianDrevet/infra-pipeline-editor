@@ -812,12 +812,12 @@
                       </div>
 
                       <!-- Health Probes -->
-                      <div class="health-probes-section">
-                        <div class="health-probes-section__header">
-                          <mat-icon class="health-probes-section__icon">monitor_heart</mat-icon>
-                          <span class="health-probes-section__title">{{ 'RESOURCE_EDIT.FIELDS.HEALTH_PROBES_SECTION' | translate }}</span>
+                      <div class="env-extra-section">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">monitor_heart</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.HEALTH_PROBES_SECTION' | translate }}</span>
                         </div>
-                        <p class="health-probes-section__desc">{{ 'RESOURCE_EDIT.FIELDS.HEALTH_PROBES_DESC' | translate }}</p>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.HEALTH_PROBES_DESC' | translate }}</p>
 
                         <div class="health-probes-cards">
                           <app-toggle-section-card
@@ -1067,6 +1067,113 @@
                     }
                   }
                 </form>
+
+                <!-- Custom Domains Section (per environment) -->
+                @if (supportsCustomDomains() && !isExistingResource()) {
+                  <div class="env-extra-section custom-domains-section">
+                    <div class="env-extra-section__header">
+                      <span class="custom-domains-section__header-left">
+                        <mat-icon class="env-extra-section__icon">language</mat-icon>
+                        <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.SECTION_TITLE' | translate }}</span>
+                      </span>
+                      <button class="ra-add-btn custom-domains-section__add-btn" (click)="openAddCustomDomainDialog(currentEnv.envName)">
+                        <mat-icon>add</mat-icon>
+                        {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.ADD' | translate }}
+                      </button>
+                    </div>
+                    <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.SECTION_SUBTITLE' | translate }}</p>
+
+                    @if (customDomainsError()) {
+                      <div class="feedback-banner feedback-banner--error" role="alert">
+                        <mat-icon>error_outline</mat-icon>
+                        {{ customDomainsError() | translate }}
+                      </div>
+                    }
+
+                    @if (customDomainsLoading()) {
+                      <div class="ra-loading">
+                        <mat-spinner diameter="24"></mat-spinner>
+                        <span>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.LOADING' | translate }}</span>
+                      </div>
+                    } @else {
+                      @let envDomains = customDomainsForEnv(currentEnv.envName);
+                      @if (envDomains.length === 0) {
+                        <div class="custom-domains-section__empty">
+                          <mat-icon>dns</mat-icon>
+                          <span>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.EMPTY' | translate }}</span>
+                        </div>
+                      } @else {
+                        <div class="cd-domain-list">
+                          @for (domain of envDomains; track domain.id) {
+                            <div class="cd-domain-row">
+                              <div class="cd-domain-row__info">
+                                <mat-icon class="cd-domain-row__icon">dns</mat-icon>
+                                <span class="cd-domain-row__name">{{ domain.domainName }}</span>
+                                <span class="cd-domain-chip" [class.cd-domain-chip--sni]="domain.bindingType === 'SniEnabled'" [class.cd-domain-chip--disabled]="domain.bindingType === 'Disabled'">
+                                  @if (domain.bindingType === 'SniEnabled') {
+                                    {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_SNI' | translate }}
+                                  } @else {
+                                    {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_DISABLED' | translate }}
+                                  }
+                                </span>
+                              </div>
+                              <button mat-icon-button color="warn" (click)="removeCustomDomain(domain)" [matTooltip]="'COMMON.DELETE' | translate">
+                                <mat-icon>delete_outline</mat-icon>
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      }
+
+                      <!-- Step-by-step DNS Tutorial -->
+                      <mat-expansion-panel class="cd-dns-tutorial">
+                        <mat-expansion-panel-header>
+                          <mat-panel-title>
+                            <mat-icon>school</mat-icon>
+                            {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_TUTORIAL_TITLE' | translate }}
+                          </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <div class="cd-dns-tutorial__steps">
+                          <div class="cd-dns-tutorial__step">
+                            <div class="cd-dns-tutorial__step-number">1</div>
+                            <div class="cd-dns-tutorial__step-content">
+                              <strong>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_STEP1_TITLE' | translate }}</strong>
+                              <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_STEP1_DESC' | translate }}</p>
+                            </div>
+                          </div>
+                          <div class="cd-dns-tutorial__step">
+                            <div class="cd-dns-tutorial__step-number">2</div>
+                            <div class="cd-dns-tutorial__step-content">
+                              <strong>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_STEP2_TITLE' | translate }}</strong>
+                              <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_STEP2_DESC' | translate }}</p>
+                            </div>
+                          </div>
+                          <div class="cd-dns-tutorial__step">
+                            <div class="cd-dns-tutorial__step-number">3</div>
+                            <div class="cd-dns-tutorial__step-content">
+                              <strong>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_STEP3_TITLE' | translate }}</strong>
+                              <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_STEP3_DESC' | translate }}</p>
+                            </div>
+                          </div>
+                          <div class="cd-dns-tutorial__step">
+                            <div class="cd-dns-tutorial__step-number">4</div>
+                            <div class="cd-dns-tutorial__step-content">
+                              <strong>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_STEP4_TITLE' | translate }}</strong>
+                              <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_STEP4_DESC' | translate }}</p>
+                            </div>
+                          </div>
+                          <div class="cd-dns-tutorial__step">
+                            <div class="cd-dns-tutorial__step-number">5</div>
+                            <div class="cd-dns-tutorial__step-content">
+                              <strong>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_STEP5_TITLE' | translate }}</strong>
+                              <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_STEP5_DESC' | translate }}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </mat-expansion-panel>
+                    }
+                  </div>
+                }
               </div>
             }
           }
@@ -2684,91 +2791,6 @@
                     }
                   </div>
                 }
-              </div>
-            }
-          </div>
-        </mat-tab>
-      }
-
-      <!-- Custom Domains Tab (WebApp / FunctionApp / ContainerApp, not existing resources) -->
-      @if (supportsCustomDomains() && !isExistingResource()) {
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon">language</mat-icon>
-            <span>{{ 'RESOURCE_EDIT.TABS.CUSTOM_DOMAINS' | translate }}</span>
-            @if (customDomains().length > 0) {
-              <span class="tab-count">{{ customDomains().length }}</span>
-            }
-          </ng-template>
-
-          <div class="tab-content">
-            <!-- Description banner -->
-            <div class="env-description">
-              <mat-icon class="env-description__icon">language</mat-icon>
-              <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DESCRIPTION' | translate }}</p>
-            </div>
-
-            @if (customDomainsError()) {
-              <div class="feedback-banner feedback-banner--error" role="alert">
-                <mat-icon>error_outline</mat-icon>
-                {{ customDomainsError() | translate }}
-              </div>
-            }
-
-            <!-- Add button -->
-            <div class="section-actions">
-              <button mat-raised-button color="primary" (click)="openAddCustomDomainDialog()">
-                <mat-icon>add</mat-icon>
-                {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.ADD' | translate }}
-              </button>
-            </div>
-
-            @if (customDomainsLoading()) {
-              <div class="ra-loading">
-                <mat-spinner diameter="28"></mat-spinner>
-                <span>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.LOADING' | translate }}</span>
-              </div>
-            } @else if (customDomains().length === 0) {
-              <div class="empty-state">
-                <mat-icon class="empty-state__icon">language</mat-icon>
-                <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.EMPTY' | translate }}</p>
-              </div>
-            } @else {
-              <!-- Grouped by environment -->
-              @for (group of customDomainsGroupedByEnv(); track group.env) {
-                <div class="form-section">
-                  <h3 class="form-section__title">{{ group.env }}</h3>
-                  <div class="cd-domain-list">
-                    @for (domain of group.items; track domain.id) {
-                      <div class="cd-domain-row">
-                        <div class="cd-domain-row__info">
-                          <mat-icon class="cd-domain-row__icon">dns</mat-icon>
-                          <span class="cd-domain-row__name">{{ domain.domainName }}</span>
-                          <span class="cd-domain-chip" [class.cd-domain-chip--sni]="domain.bindingType === 'SniEnabled'" [class.cd-domain-chip--disabled]="domain.bindingType === 'Disabled'">
-                            @if (domain.bindingType === 'SniEnabled') {
-                              {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_SNI' | translate }}
-                            } @else {
-                              {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_DISABLED' | translate }}
-                            }
-                          </span>
-                        </div>
-                        <button mat-icon-button color="warn" (click)="removeCustomDomain(domain)" [matTooltip]="'COMMON.DELETE' | translate">
-                          <mat-icon>delete_outline</mat-icon>
-                        </button>
-                      </div>
-                    }
-                  </div>
-                </div>
-              }
-
-              <!-- DNS guide -->
-              <div class="cd-dns-guide">
-                <mat-icon class="cd-dns-guide__icon">info</mat-icon>
-                <div class="cd-dns-guide__content">
-                  <strong>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_GUIDE' | translate }}</strong>
-                  <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_GUIDE_CNAME' | translate }}</p>
-                  <p>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DNS_GUIDE_TXT' | translate }}</p>
-                </div>
               </div>
             }
           </div>

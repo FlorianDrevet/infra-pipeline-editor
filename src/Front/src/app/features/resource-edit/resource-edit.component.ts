@@ -17,6 +17,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { TranslateModule } from '@ngx-translate/core';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { KeyVaultService } from '../../shared/services/key-vault.service';
@@ -331,6 +332,7 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     MatTooltipModule,
     MatMenuModule,
     MatButtonToggleModule,
+    MatExpansionModule,
     CompactSelectComponent,
     DeploymentConfigComponent,
     ToggleSectionCardComponent,
@@ -692,19 +694,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly supportsCustomDomains = computed(() =>
     ['WebApp', 'FunctionApp', 'ContainerApp'].includes(this.resourceType)
   );
-  protected readonly customDomainsGroupedByEnv = computed(() => {
-    const domains = this.customDomains();
-    const grouped = new Map<string, CustomDomainResponse[]>();
-    for (const d of domains) {
-      const existing = grouped.get(d.environmentName);
-      if (existing) {
-        existing.push(d);
-      } else {
-        grouped.set(d.environmentName, [d]);
-      }
-    }
-    return [...grouped.entries()].map(([env, items]) => ({ env, items }));
-  });
+  protected customDomainsForEnv(envName: string): CustomDomainResponse[] {
+    return this.customDomains().filter(d => d.environmentName === envName);
+  }
 
   /** App settings grouped by category for sectioned display */
   protected readonly appSettingsGrouped = computed(() => {
@@ -3459,11 +3451,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected openAddCustomDomainDialog(): void {
+  protected openAddCustomDomainDialog(preselectedEnv?: string): void {
     const environments = this.environments();
     const data: AddCustomDomainDialogData = {
       environments,
       existingDomains: this.customDomains(),
+      preselectedEnvironment: preselectedEnv,
     };
     const dialogRef = this.dialog.open(AddCustomDomainDialogComponent, {
       width: '520px',

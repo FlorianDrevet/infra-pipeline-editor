@@ -1114,7 +1114,6 @@
       "GRANTED_RIGHTS": "Droits accord\u00e9s",
       "USED_BY": "Utilis\u00e9e par",
       "CONFIG_KEYS": "Clés de configuration",
-      "CUSTOM_DOMAINS": "Domaines personnalisés",
       "APP_PIPELINE": "Pipeline applicative",
       "WARNING_MISSING_ROLE": "Un r\u00f4le requis n'est pas attribu\u00e9",
       "WARNING_MISSING_ENV_CONFIG": "Certains environnements ne sont pas configur\u00e9s"
@@ -1365,7 +1364,8 @@
       "UNLINK_ERROR": "Impossible de d\u00e9lier la ressource. Veuillez r\u00e9essayer."
     },
     "CUSTOM_DOMAINS": {
-      "DESCRIPTION": "Configurez les liaisons de domaines personnalisés pour cette ressource. Chaque domaine doit avoir un enregistrement CNAME pointant vers le nom d'hôte par défaut de la ressource.",
+      "SECTION_TITLE": "Domaines personnalisés",
+      "SECTION_SUBTITLE": "Configurez les liaisons de domaines personnalisés pour cet environnement.",
       "ADD": "Ajouter un domaine",
       "ADD_TITLE": "Ajouter un domaine personnalisé",
       "DOMAIN_NAME": "Nom de domaine",
@@ -1374,7 +1374,7 @@
       "BINDING_TYPE": "Liaison TLS",
       "BINDING_SNI": "SNI SSL",
       "BINDING_DISABLED": "Sans SSL",
-      "EMPTY": "Aucun domaine personnalisé configuré.",
+      "EMPTY": "Aucun domaine personnalisé configuré pour cet environnement.",
       "LOADING": "Chargement des domaines personnalisés…",
       "LOAD_ERROR": "Impossible de charger les domaines personnalisés. Veuillez réessayer.",
       "ADD_ERROR": "Impossible d'ajouter le domaine personnalisé. Veuillez réessayer.",
@@ -1382,9 +1382,17 @@
       "DUPLICATE": "Ce domaine est déjà configuré pour cet environnement.",
       "REMOVE_CONFIRM_TITLE": "Supprimer le domaine personnalisé",
       "REMOVE_CONFIRM_MESSAGE": "Êtes-vous sûr de vouloir supprimer le domaine {{domain}} ?",
-      "DNS_GUIDE": "Guide de configuration DNS",
-      "DNS_GUIDE_CNAME": "Créez un enregistrement CNAME pointant votre domaine vers le nom d'hôte par défaut de la ressource.",
-      "DNS_GUIDE_TXT": "Créez un enregistrement TXT pour la vérification du domaine : asuid.{{domain}} → <verification-id>"
+      "DNS_TUTORIAL_TITLE": "Comment configurer votre DNS — Guide étape par étape",
+      "DNS_STEP1_TITLE": "Trouver le nom d'hôte par défaut de votre ressource",
+      "DNS_STEP1_DESC": "Ouvrez le portail Azure → accédez à votre ressource (App Service, Container App ou Function App) → sur la page Vue d'ensemble, copiez le « Domaine par défaut » (ex : myapp.azurewebsites.net ou myapp.happyocean-abc123.westeurope.azurecontainerapps.io).",
+      "DNS_STEP2_TITLE": "Récupérer l'ID de vérification du domaine personnalisé",
+      "DNS_STEP2_DESC": "Dans le menu gauche de votre ressource, allez dans « Domaines personnalisés » → copiez l'« ID de vérification du domaine personnalisé » affiché en haut de la page. C'est un identifiant unique servant à prouver la propriété du domaine.",
+      "DNS_STEP3_TITLE": "Créer un enregistrement CNAME chez votre fournisseur DNS",
+      "DNS_STEP3_DESC": "Dans la console d'administration de votre fournisseur DNS, créez un enregistrement CNAME : Hôte = votre sous-domaine (ex : « api » pour api.example.com) → Valeur = le nom d'hôte par défaut copié à l'étape 1. Cela redirige le trafic vers votre ressource Azure.",
+      "DNS_STEP4_TITLE": "Créer un enregistrement TXT de vérification",
+      "DNS_STEP4_DESC": "Chez votre fournisseur DNS, créez un enregistrement TXT : Hôte = « asuid. » suivi de votre sous-domaine (ex : « asuid.api » pour api.example.com) → Valeur = l'ID de vérification copié à l'étape 2. Cela prouve que vous êtes propriétaire du domaine.",
+      "DNS_STEP5_TITLE": "Ajoutez votre domaine ici et attendez la validation",
+      "DNS_STEP5_DESC": "Une fois les enregistrements DNS propagés (cela peut prendre quelques minutes à 48 heures), revenez ici et ajoutez votre domaine avec le bouton ci-dessus. Azure vérifiera automatiquement les enregistrements DNS et provisionnera un certificat TLS géré."
     },
     "APP_SETTINGS": {
       "DESCRIPTION": "Configurez les variables d'environnement pour cette ressource de calcul. Référencez les sorties d'autres ressources ou définissez des valeurs statiques.",

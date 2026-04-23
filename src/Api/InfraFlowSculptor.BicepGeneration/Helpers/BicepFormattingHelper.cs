@@ -55,6 +55,7 @@ internal static class BicepFormattingHelper
             string => "string",
             int or long or double => "int",
             bool => "bool",
+            System.Collections.IList => "array",
             _ => "object"
         };
     }
