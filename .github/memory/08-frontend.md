@@ -55,6 +55,11 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - Save/submit blocking (`isSaveBlockedByNameAvailability`) with bypass override button ("It's my resource"). `"current"` status shows blue check icon for already-deployed names.
 - `add-resource-dialog`: inline results panel with per-env status icons, submit/next blocked when names unavailable.
 
+## Custom Domains UX [2026-04-23]
+- `resource-edit` now manages custom domains inside each environment panel instead of through a dedicated tab.
+- `customDomainsForEnv(envName)` replaced grouped state, and the add-domain dialog preselects the active environment.
+- The page includes an inline 5-step Azure DNS tutorial inside a `mat-expansion-panel` under the custom-domain section.
+
 ## Existing Resource Diagnostics [2026-04-22]
 - `config-detail` and `project-detail` generation preflight checks must skip existing resources when building “missing environment configuration” warnings.
 - These guards depend on `resource.isExisting` from `/resource-group/{id}/resources`; if the backend mapping omits that flag, both the warning badge in lists and the generation verification dialog become incorrect.

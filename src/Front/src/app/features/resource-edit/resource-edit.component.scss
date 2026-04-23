@@ -3242,21 +3242,37 @@
   padding-right: 1.25rem;
   padding-bottom: 1.25rem;
 
+  &__intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 1rem;
+    row-gap: 0;
+    align-items: start;
+    margin-bottom: 0.75rem;
+  }
+
+  &__heading {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  &__desc {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
   .env-extra-section__header {
-    // No space-between; title takes remaining space, button stays right
+    margin-bottom: 0.25rem;
   }
 
-  .env-extra-section__title {
-    flex: 1;
-  }
-
-  .cd-domain-list,
-  .custom-domains-section__empty,
-  .ra-loading {
-    margin-top: 0.75rem;
+  .env-extra-section__desc {
+    margin: 0;
   }
 
   &__add-btn {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
     flex-shrink: 0;
   }
 

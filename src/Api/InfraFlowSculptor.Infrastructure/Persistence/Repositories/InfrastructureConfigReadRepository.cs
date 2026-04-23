@@ -247,14 +247,40 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .SelectMany(rg => rg.Resources.Select(r => (Resource: r, ResourceGroup: rg)))
             .ToDictionary(x => x.Resource.Id);
 
+        // Pre-load external target resources (cross-config) that are not in allResources
+        var externalTargetIds = roleAssignments
+            .Select(ra => ra.TargetResourceId)
+            .Where(id => !allResources.ContainsKey(id))
+            .Distinct()
+            .ToList();
+
+        var externalTargets = new Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)>();
+        if (externalTargetIds.Count > 0)
+        {
+            var externalRgs = await dbContext.Set<Domain.ResourceGroupAggregate.ResourceGroup>()
+                .Include(rg => rg.Resources)
+                .Where(rg => rg.Resources.Any(r => externalTargetIds.Contains(r.Id)))
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            foreach (var rg in externalRgs)
+            {
+                foreach (var r in rg.Resources.Where(r => externalTargetIds.Contains(r.Id)))
+                {
+                    externalTargets[r.Id] = (r, rg);
+                }
+            }
+        }
+
         var roleAssignmentReadModels = roleAssignments
             .Select(ra =>
             {
                 if (!allResources.TryGetValue(ra.SourceResourceId, out var source))
                     return null;
 
-                // Target resource might be in a different resource group, look it up too
-                var hasTarget = allResources.TryGetValue(ra.TargetResourceId, out var target);
+                // Target resource might be in a different config, check both local and external
+                var hasTarget = allResources.TryGetValue(ra.TargetResourceId, out var target)
+                    || externalTargets.TryGetValue(ra.TargetResourceId, out target);
 
                 string? uaiName = null;
                 string? uaiRgName = null;

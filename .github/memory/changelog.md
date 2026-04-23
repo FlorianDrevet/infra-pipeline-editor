@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-23 | copilot | **3 Bicep generation fixes** — (1) Cross-config role assignments: `InfrastructureConfigReadRepository` now pre-loads external target resources so `TargetResourceType`/`TargetResourceName` are never empty for cross-config targets. (2) `SecureParameterOverrideHelper`: param names now include the resource identifier suffix (e.g. `sqlServerIfsAdministratorLoginPassword` instead of `sqlServerAdministratorLoginPassword`). (3) ContainerApp module: extracted `customDomains` for-expression into a variable (BCP138 fix), replaced `union()` with flat object + nullable `customDomains` property (BCP036 fix), removed unused `TransportMethod` import. (4) `BicepFormattingHelper.InferBicepType` now returns `array` for `IList` types. |
 | 2026-04-23 | copilot | **Custom Domains V1 — Frontend UX redesign** — Moved custom domains from a dedicated tab to a section within the Environments panel, preselecting the active environment in the dialog and adding an Azure DNS tutorial in the editor flow. |
 | 2026-04-23 | copilot | **Bootstrap Azure DevOps — Implementation complete** — Added project-level bootstrap pipeline generation, download, file-content, and push-to-git flows across PipelineGeneration, CQRS, API, contracts, and `project-detail`. |
 | 2026-04-23 | copilot | **IsExisting resources** — Added `IsExisting` to `AzureResource`, all 18 concrete resources, generation filters, and corresponding frontend guards/badges. |

@@ -1071,15 +1071,17 @@
                 <!-- Custom Domains Section (per environment) -->
                 @if (supportsCustomDomains() && !isExistingResource()) {
                   <div class="env-extra-section custom-domains-section">
-                    <div class="env-extra-section__header">
-                      <mat-icon class="env-extra-section__icon">language</mat-icon>
-                      <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.SECTION_TITLE' | translate }}</span>
+                    <div class="custom-domains-section__intro">
+                      <div class="env-extra-section__header custom-domains-section__heading">
+                        <mat-icon class="env-extra-section__icon">language</mat-icon>
+                        <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.SECTION_TITLE' | translate }}</span>
+                      </div>
+                      <p class="env-extra-section__desc custom-domains-section__desc">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.SECTION_SUBTITLE' | translate }}</p>
                       <button class="ra-add-btn custom-domains-section__add-btn" (click)="openAddCustomDomainDialog(currentEnv.envName)">
                         <mat-icon>add</mat-icon>
                         {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.ADD' | translate }}
                       </button>
                     </div>
-                    <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.SECTION_SUBTITLE' | translate }}</p>
 
                     @if (customDomainsError()) {
                       <div class="feedback-banner feedback-banner--error" role="alert">

@@ -31,6 +31,7 @@
 | Génération Bicep (config) | `BicepGenerationController` → `GenerateBicepCommandHandler` → `BicepGenerationEngine` → `BicepAssembler` (→ sub-assemblers) |
 | Génération Bicep (projet) | `BicepGenerationController` → `GenerateProjectBicepCommandHandler` → `BicepGenerationEngine` → `MonoRepoBicepAssembler` |
 | Génération Pipeline (infra+app) | `PipelineGenerationController` → `GeneratePipelineCommandHandler` → `MonoRepoPipelineAssembler` + `AppPipelineGenerationEngine` |
+| Génération Bootstrap ADO (projet) | `ProjectController` → `GenerateProjectBootstrapPipelineCommandHandler` → `BootstrapPipelineGenerationEngine` |
 | CRUD Resource (pattern) | `{Resource}Controller` → MediatR → `{Action}{Resource}CommandHandler` → `I{Resource}Repository` → EF Core |
 
 ## Counts — Verified by Cypher [2026-04-03]
@@ -40,7 +41,7 @@
 | AzureResource children | 18 | `(c)-[:EXTENDS]->(AzureResource)` |
 | AggregateRoot classes | 5 (Project, InfrastructureConfig, ResourceGroup, AzureResource, User) | `(c)-[:EXTENDS]->(AggregateRoot)` |
 | Total Entity/AggregateRoot | 46 | Includes all EnvironmentSettings, sub-entities, base entities |
-| Controllers | 27 | Files in `Controllers/` ending `.cs` |
+| Controllers | 29 | Files in `Controllers/` ending `.cs` (verified in repo on 2026-04-23) |
 | TypeBicepGenerators | 18 | Classes ending `BicepGenerator` |
 | AzureResourceTypes.All | 18 entries | In `GenerationCore/AzureResourceTypes.cs` |
 | Commands | ~110 | Files ending `Command.cs` in Application layer |
@@ -52,4 +53,4 @@
 
 ---
 
-*Dernière mise à jour : 2026-04-22 — Dream consolidation (dream cycle)*
+*Dernière mise à jour : 2026-04-23 — Dream consolidation (dream cycle)*

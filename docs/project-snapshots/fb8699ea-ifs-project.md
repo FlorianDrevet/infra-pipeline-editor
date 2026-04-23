@@ -1,7 +1,7 @@
 # Project Snapshot — Infra Flow Sculptor
 
 > **Project ID:** `fb8699ea-f568-4afb-864b-e82d2efd0905`
-> **Generated:** 2026-04-20
+> **Generated:** 2026-04-23
 > **Purpose:** Reference file for Copilot context — load this instead of querying the database.
 
 ---
@@ -126,6 +126,7 @@
 | ifs | ContainerAppEnvironment | `37cfd530-1f07-442a-849c-4c030bb147a4` | FranceCentral | — |
 | ifs-api | ContainerApp | `4615c4e9-1584-472d-b158-bdb41c49e4ed` | FranceCentral | — |
 | ifs-frontend | ContainerApp | `dda2e846-de85-4739-ba0c-ec15f63e48c7` | FranceCentral | — |
+| frontend | UserAssignedIdentity | `90097d4d-74a6-4d23-b94a-0392c57f7d14` | FranceCentral | — |
 
 ##### KeyVault — `ifs` (`fc210d60`)
 
@@ -204,6 +205,10 @@
 |-----|-----|---------------------|------------|----------------|
 | Development | Consumption | Consumption | false | false |
 
+##### UserAssignedIdentity — `frontend` (`90097d4d`)
+
+*No extra properties.*
+
 ##### ContainerApp — `ifs-api` (`4615c4e9`)
 
 | Property | Value |
@@ -223,14 +228,21 @@
 | Property | Value |
 |----------|-------|
 | ContainerAppEnvironmentId | `37cfd530` (ifs CAE) |
-| ContainerRegistryId | *(null)* |
+| ContainerRegistryId | `36ba74cb` (ifs CR in Core config) |
 | DockerImageName | *(null)* |
 | DockerfilePath | *(null)* |
 | ApplicationName | *(null)* |
+| AssignedUserAssignedIdentityId | `90097d4d` (frontend UAI) |
 
 | Env | CpuCores | MemoryGi | MinReplicas | MaxReplicas | IngressEnabled | IngressPort | External | Transport |
 |-----|----------|----------|-------------|-------------|----------------|-------------|----------|-----------|
 | Development | 0.25 | 0.5Gi | 0 | 1 | true | 80 | true | auto |
+
+**Custom Domains:**
+
+| Env | DomainName | BindingType |
+|-----|------------|-------------|
+| Development | infraflowsculptor.fr | SniEnabled |
 
 ---
 
@@ -246,9 +258,10 @@
 
 ## Role Assignments
 
-| Source Resource | → Target Resource | Role | ManagedIdentityType |
-|-----------------|-------------------|------|---------------------|
-| ifs-api (ContainerApp `4615c4e9`) | ifs (KeyVault `fc210d60`) | `4633458b-17de-408a-b874-0445c86b69e6` (Key Vault Secrets User) | SystemAssigned |
+| Source Resource | → Target Resource | Role | ManagedIdentityType | UAI |
+|-----------------|-------------------|------|---------------------|-----|
+| ifs-api (ContainerApp `4615c4e9`) | ifs (KeyVault `fc210d60`) | `4633458b-17de-408a-b874-0445c86b69e6` (Key Vault Secrets User) | SystemAssigned | — |
+| ifs-frontend (ContainerApp `dda2e846`) | ifs (ContainerRegistry `36ba74cb`, **cross-config: Core**) | `7f951dda-4ed3-4680-a7ca-43fe172d538e` (AcrPull) | UserAssigned | frontend (`90097d4d`) |
 
 ---
 
