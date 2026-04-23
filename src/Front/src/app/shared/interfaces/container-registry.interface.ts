@@ -1,3 +1,5 @@
+export type AcrAuthMode = 'ManagedIdentity' | 'AdminCredentials';
+
 // ─── Environment Settings ────────────────────────────────────────────────────
 
 export interface ContainerRegistryEnvironmentConfigEntry {
@@ -48,6 +50,7 @@ export interface UpdateContainerRegistryRequest {
 
 export interface CheckAcrPullAccessResponse {
   hasAccess: boolean;
+  acrAuthMode?: AcrAuthMode | null;
   missingRoleDefinitionId?: string;
   missingRoleName?: string;
   assignedUserAssignedIdentityId?: string;

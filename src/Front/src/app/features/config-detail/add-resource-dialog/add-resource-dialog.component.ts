@@ -53,7 +53,7 @@ import { CosmosDbEnvironmentConfigEntry } from '../../../shared/interfaces/cosmo
 import { SqlServerEnvironmentConfigEntry } from '../../../shared/interfaces/sql-server.interface';
 import { SqlDatabaseEnvironmentConfigEntry } from '../../../shared/interfaces/sql-database.interface';
 import { ServiceBusNamespaceEnvironmentConfigEntry } from '../../../shared/interfaces/service-bus-namespace.interface';
-import { ContainerRegistryEnvironmentConfigEntry } from '../../../shared/interfaces/container-registry.interface';
+import { AcrAuthMode, ContainerRegistryEnvironmentConfigEntry } from '../../../shared/interfaces/container-registry.interface';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../../shared/services/infra-config.service';
 import { ProjectService } from '../../../shared/services/project.service';
@@ -61,6 +61,7 @@ import { ProjectResourceResponse } from '../../../shared/interfaces/cross-config
 import { NameAvailabilityService } from '../../../shared/services/name-availability.service';
 import { EnvironmentNameAvailabilityResponseItem } from '../../../shared/interfaces/name-availability.interface';
 import { ToggleSectionCardComponent } from '../../../shared/components/toggle-section-card/toggle-section-card.component';
+import { DeploymentConfigComponent } from '../../../shared/components/deployment-config/deployment-config.component';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
@@ -276,6 +277,7 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
     ReactiveFormsModule,
     TranslateModule,
     ToggleSectionCardComponent,
+    DeploymentConfigComponent,
   ],
   templateUrl: './add-resource-dialog.component.html',
   styleUrl: './add-resource-dialog.component.scss',
@@ -357,6 +359,8 @@ export class AddResourceDialogComponent {
   // ── Deployment Mode (WebApp / FunctionApp) ──
   protected readonly deploymentMode = signal<'Code' | 'Container'>('Code');
   protected readonly isContainerMode = computed(() => this.deploymentMode() === 'Container');
+  protected readonly selectedContainerRegistryId = signal<string | null>(null);
+  protected readonly acrAuthMode = signal<AcrAuthMode | null>(null);
   protected readonly availableContainerRegistries = signal<AzureResourceResponse[]>([]);
 
   // ── Parent resource pre-selection ──
@@ -461,6 +465,7 @@ export class AddResourceDialogComponent {
     sqlServerId: [''],
     deploymentMode: ['Code'],
     containerRegistryId: [null as string | null],
+    acrAuthMode: [null as AcrAuthMode | null],
     dockerImageName: [null as string | null],
     runtimeStack: [''],
     runtimeVersion: [''],
@@ -525,7 +530,7 @@ export class AddResourceDialogComponent {
         this.updateCommonFormValidators(childType);
         this.prefillParentFormField(childType);
         this.step.set('common');
-        if (childType === ResourceTypeEnum.WebApp || childType === ResourceTypeEnum.FunctionApp) {
+        if (childType === ResourceTypeEnum.WebApp || childType === ResourceTypeEnum.FunctionApp || childType === ResourceTypeEnum.ContainerApp) {
           this.loadAvailableContainerRegistries();
         }
       }
@@ -601,7 +606,7 @@ export class AddResourceDialogComponent {
     if (this.parentResource) {
       this.prefillParentFormField(type);
       this.step.set('common');
-      if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp) {
+      if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp) {
         this.loadAvailableContainerRegistries();
       }
     } else if (type === ResourceTypeEnum.WebApp || type === ResourceTypeEnum.FunctionApp || type === ResourceTypeEnum.ContainerApp || type === ResourceTypeEnum.ApplicationInsights || type === ResourceTypeEnum.ContainerAppEnvironment || type === ResourceTypeEnum.SqlDatabase) {
@@ -868,6 +873,14 @@ export class AddResourceDialogComponent {
     this.selectedPlanId.set(this.parentResource?.id ?? null);
     this.selectedPlanName.set(this.parentResource?.name ?? null);
     this.deploymentMode.set('Code');
+    this.selectedContainerRegistryId.set(null);
+    this.acrAuthMode.set(null);
+    this.commonForm.patchValue({
+      deploymentMode: 'Code',
+      containerRegistryId: null,
+      acrAuthMode: null,
+      dockerImageName: null,
+    });
     this.step.set('type');
     this.errorKey.set('');
     this.clearExtraValidators();
@@ -878,19 +891,48 @@ export class AddResourceDialogComponent {
     this.errorKey.set('');
   }
 
+  private resolveAcrAuthMode(containerRegistryId: string | null | undefined, acrAuthMode: AcrAuthMode | null | undefined): AcrAuthMode | null {
+    if (!containerRegistryId) {
+      return null;
+    }
+
+    return acrAuthMode ?? 'ManagedIdentity';
+  }
+
   protected onDeploymentModeChange(mode: 'Code' | 'Container'): void {
     this.deploymentMode.set(mode);
     this.commonForm.patchValue({ deploymentMode: mode });
     if (mode === 'Code') {
-      this.commonForm.patchValue({ containerRegistryId: null, dockerImageName: null });
+      this.selectedContainerRegistryId.set(null);
+      this.acrAuthMode.set(null);
+      this.commonForm.patchValue({ containerRegistryId: null, acrAuthMode: null, dockerImageName: null });
       this.commonForm.controls.runtimeStack.setValidators([Validators.required]);
       this.commonForm.controls.runtimeVersion.setValidators([Validators.required]);
     } else {
+      const nextAcrAuthMode = this.resolveAcrAuthMode(this.selectedContainerRegistryId(), this.acrAuthMode());
+      this.acrAuthMode.set(nextAcrAuthMode);
+      this.commonForm.patchValue({ acrAuthMode: nextAcrAuthMode });
       this.commonForm.controls.runtimeStack.clearValidators();
       this.commonForm.controls.runtimeVersion.clearValidators();
     }
     this.commonForm.controls.runtimeStack.updateValueAndValidity();
     this.commonForm.controls.runtimeVersion.updateValueAndValidity();
+  }
+
+  protected onContainerRegistryChange(acrId: string | null): void {
+    const nextAcrAuthMode = this.resolveAcrAuthMode(acrId, this.acrAuthMode());
+    this.selectedContainerRegistryId.set(acrId);
+    this.acrAuthMode.set(nextAcrAuthMode);
+    this.commonForm.patchValue({
+      containerRegistryId: acrId,
+      acrAuthMode: nextAcrAuthMode,
+    });
+  }
+
+  protected onAcrAuthModeChange(mode: AcrAuthMode): void {
+    const nextAcrAuthMode = this.resolveAcrAuthMode(this.selectedContainerRegistryId(), mode);
+    this.acrAuthMode.set(nextAcrAuthMode);
+    this.commonForm.patchValue({ acrAuthMode: nextAcrAuthMode });
   }
 
   protected onRuntimeStackChange(stack: string): void {
@@ -1162,6 +1204,10 @@ export class AddResourceDialogComponent {
           break;
         }
         case ResourceTypeEnum.WebApp: {
+          const acrAuthMode = common.deploymentMode === 'Container'
+            ? this.resolveAcrAuthMode(common.containerRegistryId || null, common.acrAuthMode as AcrAuthMode | null | undefined)
+            : null;
+
           await this.webAppService.create({
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
@@ -1169,6 +1215,7 @@ export class AddResourceDialogComponent {
             appServicePlanId: common.appServicePlanId!,
             deploymentMode: common.deploymentMode || 'Code',
             containerRegistryId: common.deploymentMode === 'Container' ? (common.containerRegistryId || null) : null,
+            acrAuthMode,
             dockerImageName: common.deploymentMode === 'Container' ? (common.dockerImageName || null) : null,
             runtimeStack: common.runtimeStack!,
             runtimeVersion: common.runtimeVersion!,
@@ -1180,6 +1227,10 @@ export class AddResourceDialogComponent {
           break;
         }
         case ResourceTypeEnum.FunctionApp: {
+          const acrAuthMode = common.deploymentMode === 'Container'
+            ? this.resolveAcrAuthMode(common.containerRegistryId || null, common.acrAuthMode as AcrAuthMode | null | undefined)
+            : null;
+
           await this.functionAppService.create({
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
@@ -1187,6 +1238,7 @@ export class AddResourceDialogComponent {
             appServicePlanId: common.appServicePlanId!,
             deploymentMode: common.deploymentMode || 'Code',
             containerRegistryId: common.deploymentMode === 'Container' ? (common.containerRegistryId || null) : null,
+            acrAuthMode,
             dockerImageName: common.deploymentMode === 'Container' ? (common.dockerImageName || null) : null,
             runtimeStack: common.runtimeStack!,
             runtimeVersion: common.runtimeVersion!,
@@ -1227,12 +1279,16 @@ export class AddResourceDialogComponent {
           break;
         }
         case ResourceTypeEnum.ContainerApp: {
+          const acrAuthMode = this.resolveAcrAuthMode(common.containerRegistryId || null, common.acrAuthMode as AcrAuthMode | null | undefined);
+
           await this.containerAppService.create({
             resourceGroupId: this.data.resourceGroupId,
             name: common.name!,
             location: common.location!,
             containerAppEnvironmentId: common.containerAppEnvironmentId!,
             containerRegistryId: common.containerRegistryId || null,
+            acrAuthMode,
+            dockerImageName: common.dockerImageName || null,
             environmentSettings: this.buildContainerAppEnvironmentSettings(),
             isExisting: common.isExisting ?? false,
             });

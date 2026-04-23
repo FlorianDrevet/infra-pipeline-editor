@@ -1,3 +1,5 @@
+import { AcrAuthMode } from './container-registry.interface';
+
 // ─── Environment Settings ────────────────────────────────────────────────────
 
 export interface WebAppEnvironmentConfigEntry {
@@ -25,6 +27,7 @@ export interface WebAppResponse {
   appServicePlanId: string;
   deploymentMode: string;
   containerRegistryId: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName: string | null;
   dockerfilePath: string | null;
   sourceCodePath: string | null;
@@ -47,6 +50,7 @@ export interface CreateWebAppRequest {
   appServicePlanId: string;
   deploymentMode?: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   sourceCodePath?: string | null;
@@ -66,6 +70,7 @@ export interface UpdateWebAppRequest {
   appServicePlanId: string;
   deploymentMode?: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   sourceCodePath?: string | null;

@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { AxiosService } from './axios.service';
 import { MethodEnum } from '../enums/method.enum';
 import {
+  AcrAuthMode,
   ContainerRegistryResponse,
   CreateContainerRegistryRequest,
   UpdateContainerRegistryRequest,
@@ -41,10 +42,11 @@ export class ContainerRegistryService {
     return this.axios.request$<void>(MethodEnum.DELETE, `/container-registry/${id}`);
   }
 
-  checkAcrPullAccess(resourceId: string, containerRegistryId: string): Promise<CheckAcrPullAccessResponse> {
+  checkAcrPullAccess(resourceId: string, containerRegistryId: string, acrAuthMode?: AcrAuthMode | null): Promise<CheckAcrPullAccessResponse> {
     return this.axios.request$<CheckAcrPullAccessResponse>(
       MethodEnum.GET,
-      `/azure-resources/${resourceId}/check-acr-pull-access/${containerRegistryId}`
+      `/azure-resources/${resourceId}/check-acr-pull-access/${containerRegistryId}`,
+      acrAuthMode ? { acrAuthMode } : undefined,
     );
   }
 }

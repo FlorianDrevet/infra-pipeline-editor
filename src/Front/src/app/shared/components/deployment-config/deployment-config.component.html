@@ -66,8 +66,43 @@
       }
     </div>
 
-    <!-- ACR Pull access check banner (UAI flow) -->
     @if (hasContainerRegistrySelected) {
+      <div class="acr-auth-mode">
+        <div class="acr-auth-mode__header">
+          <span class="acr-auth-mode__label">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE' | translate }}</span>
+          <span class="acr-auth-mode__hint">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_HINT' | translate }}</span>
+        </div>
+        <div class="acr-auth-mode__toggle" role="group" [attr.aria-label]="'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE' | translate">
+          <button
+            type="button"
+            class="acr-auth-mode__option"
+            [class.acr-auth-mode__option--active]="isManagedIdentityAcrMode"
+            [disabled]="!canWrite() || disabled()"
+            (click)="acrAuthModeChange.emit('ManagedIdentity')">
+            <span class="acr-auth-mode__option-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_MANAGED_IDENTITY' | translate }}</span>
+            <span class="acr-auth-mode__badge">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_RECOMMENDED' | translate }}</span>
+          </button>
+          <button
+            type="button"
+            class="acr-auth-mode__option"
+            [class.acr-auth-mode__option--active]="isAdminCredentialsAcrMode"
+            [disabled]="!canWrite() || disabled()"
+            (click)="acrAuthModeChange.emit('AdminCredentials')">
+            <span class="acr-auth-mode__option-label">{{ 'RESOURCE_EDIT.FIELDS.ACR_AUTH_MODE_ADMIN_CREDENTIALS' | translate }}</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- ACR Pull access check banner (UAI flow) -->
+    @if (hasContainerRegistrySelected && isAdminCredentialsAcrMode) {
+      <div class="acr-inline-status acr-inline-status--info">
+        <mat-icon>vpn_key</mat-icon>
+        <span>{{ 'RESOURCE_EDIT.FIELDS.ACR_ADMIN_CREDENTIALS_INFO' | translate }}</span>
+      </div>
+    }
+
+    @if (hasContainerRegistrySelected && isManagedIdentityAcrMode) {
       @switch (acrUaiState()) {
         @case ('checking') {
           <div class="acr-inline-status acr-inline-status--checking">

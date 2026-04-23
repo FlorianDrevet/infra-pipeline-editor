@@ -70,6 +70,14 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - `Capacity and scaling` groups CPU, memory, and replica limits; `Ingress and network exposure` groups transport, target port, and ingress toggles.
 - The final visual pattern reuses the same divider-based `env-extra-section` language as Health Probes (no boxed card background), while keeping the inner controls in small responsive grids.
 
+## Environment Editor Categorization [2026-04-23]
+- ALL 13 resource types in the Environments tab now use `env-extra-section` sections with icon, title, and description.
+- Single-section resources (`env-extra-section--first` only): KeyVault, RedisCache, StorageAccount, AppServicePlan, WebApp, FunctionApp, LogAnalyticsWorkspace, SqlServer.
+- Two-section resources (first `--first`, second normal): AppConfiguration (Plan & retention / Access & protection), ContainerAppEnvironment (Capacity / Network & resilience), ApplicationInsights (Collection & retention / Privacy & access), CosmosDb (API & consistency / Resilience & backup), ServiceBusNamespace (Capacity & plan / Security & resilience).
+- ContainerApp (3 sections) was already done. ContainerRegistry and EventHubNamespace not categorized (not in architect plan scope).
+- Fields are wrapped in `form-grid env-category-grid` inside each section for consistent sub-layout.
+- 38 new i18n keys added under `RESOURCE_EDIT.FIELDS.*` in both `en.json` and `fr.json`.
+
 ## Existing Resource Diagnostics [2026-04-22]
 - `config-detail` and `project-detail` generation preflight checks must skip existing resources when building “missing environment configuration” warnings.
 - These guards depend on `resource.isExisting` from `/resource-group/{id}/resources`; if the backend mapping omits that flag, both the warning badge in lists and the generation verification dialog become incorrect.

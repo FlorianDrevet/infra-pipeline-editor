@@ -1,3 +1,5 @@
+import { AcrAuthMode } from './container-registry.interface';
+
 // ─── Environment Settings ────────────────────────────────────────────────────
 
 export interface ContainerAppEnvironmentConfigEntry {
@@ -46,6 +48,7 @@ export interface ContainerAppResponse {
   location: string;
   containerAppEnvironmentId: string;
   containerRegistryId: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName: string | null;
   dockerfilePath: string | null;
   applicationName: string | null;
@@ -61,6 +64,7 @@ export interface CreateContainerAppRequest {
   location: string;
   containerAppEnvironmentId: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   applicationName?: string | null;
@@ -73,6 +77,7 @@ export interface UpdateContainerAppRequest {
   location: string;
   containerAppEnvironmentId: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   applicationName?: string | null;

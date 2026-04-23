@@ -198,6 +198,7 @@
                   mode="code-or-container"
                   [deploymentMode]="deploymentMode()"
                   [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
+                  [acrAuthMode]="acrAuthMode()"
                   [dockerImageName]="generalForm.get('dockerImageName')?.value"
                   [runtimeStack]="generalForm.get('runtimeStack')?.value"
                   [runtimeVersion]="generalForm.get('runtimeVersion')?.value"
@@ -214,6 +215,7 @@
                   (runtimeStackChange)="onRuntimeStackChange($event)"
                   (runtimeVersionChange)="generalForm.patchValue({ runtimeVersion: $event }); formsDirty.set(true)"
                   (containerRegistryChange)="onContainerRegistryChange($event)"
+                  (acrAuthModeChange)="onAcrAuthModeChange($event)"
                   (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
                   (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
                   (addAcrPullRole)="addAcrPullRoleAssignment()"
@@ -242,6 +244,7 @@
                   mode="code-or-container"
                   [deploymentMode]="deploymentMode()"
                   [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
+                  [acrAuthMode]="acrAuthMode()"
                   [dockerImageName]="generalForm.get('dockerImageName')?.value"
                   [runtimeStack]="generalForm.get('runtimeStack')?.value"
                   [runtimeVersion]="generalForm.get('runtimeVersion')?.value"
@@ -258,6 +261,7 @@
                   (runtimeStackChange)="onRuntimeStackChange($event)"
                   (runtimeVersionChange)="generalForm.patchValue({ runtimeVersion: $event }); formsDirty.set(true)"
                   (containerRegistryChange)="onContainerRegistryChange($event)"
+                  (acrAuthModeChange)="onAcrAuthModeChange($event)"
                   (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
                   (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
                   (addAcrPullRole)="addAcrPullRoleAssignment()"
@@ -282,6 +286,7 @@
                   [showDockerImageName]="true"
                   [dockerImageName]="generalForm.get('dockerImageName')?.value"
                   [containerRegistryId]="generalForm.get('containerRegistryId')?.value"
+                  [acrAuthMode]="acrAuthMode()"
                   [availableContainerRegistries]="availableContainerRegistries()"
                   [acrUaiState]="acrUaiState()"
                   [acrAssignedUaiName]="acrAssignedUaiName()"
@@ -291,6 +296,7 @@
                   [canWrite]="canWrite()"
                   (dockerImageNameChange)="generalForm.patchValue({ dockerImageName: $event }); formsDirty.set(true)"
                   (containerRegistryChange)="onContainerRegistryChange($event)"
+                  (acrAuthModeChange)="onAcrAuthModeChange($event)"
                   (acrSelectedUaiIdChange)="acrSelectedUaiId.set($event)"
                   (addAcrPullRole)="addAcrPullRoleAssignment()"
                   (createUai)="createNewUai()">
@@ -592,169 +598,261 @@
                 <form [formGroup]="currentEnv.form" class="env-form-grid">
                   @switch (resourceType) {
                     @case ('KeyVault') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
-                        <mat-select formControlName="sku">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of keyVaultSkuOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">vpn_key</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.KEY_VAULT_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.KEY_VAULT_SECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                            <mat-select formControlName="sku">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of keyVaultSkuOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                        </div>
+                      </div>
                     }
                     @case ('RedisCache') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
-                        <mat-select formControlName="sku">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of redisSkuOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CAPACITY' | translate }}</mat-label>
-                        <input matInput type="number" formControlName="capacity" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.EVICTION_POLICY' | translate }}</mat-label>
-                        <mat-select formControlName="maxMemoryPolicy">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of redisEvictionOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">memory</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.REDIS_CACHE_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.REDIS_CACHE_SECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                            <mat-select formControlName="sku">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of redisSkuOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CAPACITY' | translate }}</mat-label>
+                            <input matInput type="number" formControlName="capacity" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.EVICTION_POLICY' | translate }}</mat-label>
+                            <mat-select formControlName="maxMemoryPolicy">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of redisEvictionOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                        </div>
+                      </div>
                     }
                     @case ('StorageAccount') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
-                        <mat-select formControlName="sku">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of storageSkuOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">cloud_upload</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.STORAGE_ACCOUNT_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.STORAGE_ACCOUNT_SECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                            <mat-select formControlName="sku">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of storageSkuOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                        </div>
+                      </div>
                     }
                     @case ('AppServicePlan') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
-                        <mat-select formControlName="sku">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of aspSkuOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CAPACITY' | translate }}</mat-label>
-                        <input matInput type="number" formControlName="capacity" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">dns</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.APP_SERVICE_PLAN_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.APP_SERVICE_PLAN_SECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                            <mat-select formControlName="sku">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of aspSkuOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CAPACITY' | translate }}</mat-label>
+                            <input matInput type="number" formControlName="capacity" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+                        </div>
+                      </div>
                     }
                     @case ('WebApp') {
-                      @if (isContainerMode()) {
-                        <mat-form-field appearance="outline" class="form-field">
-                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG' | translate }}</mat-label>
-                          <input matInput formControlName="dockerImageTag" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG_PLACEHOLDER' | translate" />
-                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                        </mat-form-field>
-                      }
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="alwaysOn" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate }}
-                        </mat-slide-toggle>
-                      </div>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="httpsOnly" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
-                        </mat-slide-toggle>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">language</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.WEB_APP_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.WEB_APP_SECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          @if (isContainerMode()) {
+                            <mat-form-field appearance="outline" class="form-field">
+                              <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG' | translate }}</mat-label>
+                              <input matInput formControlName="dockerImageTag" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG_PLACEHOLDER' | translate" />
+                              <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                            </mat-form-field>
+                          }
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="alwaysOn" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="httpsOnly" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                        </div>
                       </div>
                     }
                     @case ('FunctionApp') {
-                      @if (isContainerMode()) {
-                        <mat-form-field appearance="outline" class="form-field">
-                          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG' | translate }}</mat-label>
-                          <input matInput formControlName="dockerImageTag" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG_PLACEHOLDER' | translate" />
-                          <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                        </mat-form-field>
-                      }
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MAX_INSTANCE_COUNT' | translate }}</mat-label>
-                        <input matInput type="number" formControlName="maxInstanceCount" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="httpsOnly" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
-                        </mat-slide-toggle>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">bolt</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.FUNCTION_APP_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.FUNCTION_APP_SECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          @if (isContainerMode()) {
+                            <mat-form-field appearance="outline" class="form-field">
+                              <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG' | translate }}</mat-label>
+                              <input matInput formControlName="dockerImageTag" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_TAG_PLACEHOLDER' | translate" />
+                              <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                            </mat-form-field>
+                          }
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MAX_INSTANCE_COUNT' | translate }}</mat-label>
+                            <input matInput type="number" formControlName="maxInstanceCount" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="httpsOnly" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                        </div>
                       </div>
                     }
                     @case ('AppConfiguration') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
-                        <mat-select formControlName="sku">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of appConfigurationSkuOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SOFT_DELETE_RETENTION' | translate }}</mat-label>
-                        <input matInput type="number" formControlName="softDeleteRetentionInDays" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.PUBLIC_NETWORK_ACCESS' | translate }}</mat-label>
-                        <mat-select formControlName="publicNetworkAccess">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of appConfigurationPublicNetworkOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="purgeProtectionEnabled" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.PURGE_PROTECTION' | translate }}
-                        </mat-slide-toggle>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">tune</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.APP_CONFIGURATION_PLAN_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.APP_CONFIGURATION_PLAN_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                            <mat-select formControlName="sku">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of appConfigurationSkuOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SOFT_DELETE_RETENTION' | translate }}</mat-label>
+                            <input matInput type="number" formControlName="softDeleteRetentionInDays" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+                        </div>
                       </div>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate }}
-                        </mat-slide-toggle>
+
+                      <div class="env-extra-section">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">security</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.APP_CONFIGURATION_ACCESS_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.APP_CONFIGURATION_ACCESS_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.PUBLIC_NETWORK_ACCESS' | translate }}</mat-label>
+                            <mat-select formControlName="publicNetworkAccess">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of appConfigurationPublicNetworkOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="purgeProtectionEnabled" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.PURGE_PROTECTION' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                        </div>
                       </div>
                     }
                     @case ('ContainerAppEnvironment') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
-                        <mat-select formControlName="sku">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of caeSkuOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.WORKLOAD_PROFILE' | translate }}</mat-label>
-                        <mat-select formControlName="workloadProfileType">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of caeWorkloadProfileOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="internalLoadBalancerEnabled" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.INTERNAL_LOAD_BALANCER' | translate }}
-                        </mat-slide-toggle>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">memory</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_APP_ENV_CAPACITY_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_APP_ENV_CAPACITY_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                            <mat-select formControlName="sku">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of caeSkuOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.WORKLOAD_PROFILE' | translate }}</mat-label>
+                            <mat-select formControlName="workloadProfileType">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of caeWorkloadProfileOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                        </div>
                       </div>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="zoneRedundancyEnabled" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANCY' | translate }}
-                        </mat-slide-toggle>
+
+                      <div class="env-extra-section">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">lan</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_APP_ENV_NETWORK_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_APP_ENV_NETWORK_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="internalLoadBalancerEnabled" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.INTERNAL_LOAD_BALANCER' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="zoneRedundancyEnabled" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANCY' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                        </div>
                       </div>
                     }
                     @case ('ContainerApp') {
@@ -901,148 +999,214 @@
                       </div>
                     }
                     @case ('LogAnalyticsWorkspace') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
-                        <mat-select formControlName="sku">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of lawSkuOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RETENTION_IN_DAYS' | translate }}</mat-label>
-                        <input matInput type="number" formControlName="retentionInDays" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DAILY_QUOTA_GB' | translate }}</mat-label>
-                        <input matInput type="number" formControlName="dailyQuotaGb" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.DAILY_QUOTA_GB_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">analytics</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.LOG_ANALYTICS_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.LOG_ANALYTICS_SECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                            <mat-select formControlName="sku">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of lawSkuOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RETENTION_IN_DAYS' | translate }}</mat-label>
+                            <input matInput type="number" formControlName="retentionInDays" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DAILY_QUOTA_GB' | translate }}</mat-label>
+                            <input matInput type="number" formControlName="dailyQuotaGb" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.DAILY_QUOTA_GB_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+                        </div>
+                      </div>
                     }
                     @case ('ApplicationInsights') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SAMPLING_PERCENTAGE' | translate }}</mat-label>
-                        <input matInput type="number" formControlName="samplingPercentage" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RETENTION_IN_DAYS' | translate }}</mat-label>
-                        <mat-select formControlName="retentionInDays">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of aiRetentionOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.INGESTION_MODE' | translate }}</mat-label>
-                        <mat-select formControlName="ingestionMode">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of aiIngestionModeOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="disableIpMasking" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.DISABLE_IP_MASKING' | translate }}
-                        </mat-slide-toggle>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">analytics</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.APP_INSIGHTS_COLLECTION_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.APP_INSIGHTS_COLLECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SAMPLING_PERCENTAGE' | translate }}</mat-label>
+                            <input matInput type="number" formControlName="samplingPercentage" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RETENTION_IN_DAYS' | translate }}</mat-label>
+                            <mat-select formControlName="retentionInDays">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of aiRetentionOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.INGESTION_MODE' | translate }}</mat-label>
+                            <mat-select formControlName="ingestionMode">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of aiIngestionModeOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                        </div>
                       </div>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate }}
-                        </mat-slide-toggle>
+
+                      <div class="env-extra-section">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">shield</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.APP_INSIGHTS_PRIVACY_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.APP_INSIGHTS_PRIVACY_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="disableIpMasking" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.DISABLE_IP_MASKING' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                        </div>
                       </div>
                     }
                     @case ('CosmosDb') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DATABASE_API_TYPE' | translate }}</mat-label>
-                        <mat-select formControlName="databaseApiType">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of cosmosApiTypeOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONSISTENCY_LEVEL' | translate }}</mat-label>
-                        <mat-select formControlName="consistencyLevel">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of cosmosConsistencyLevelOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MAX_STALENESS_PREFIX' | translate }}</mat-label>
-                        <input matInput type="number" formControlName="maxStalenessPrefix" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MAX_INTERVAL_SECONDS' | translate }}</mat-label>
-                        <input matInput type="number" formControlName="maxIntervalInSeconds" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.BACKUP_POLICY' | translate }}</mat-label>
-                        <mat-select formControlName="backupPolicyType">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of cosmosBackupPolicyOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="enableAutomaticFailover" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.AUTOMATIC_FAILOVER' | translate }}
-                        </mat-slide-toggle>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">database</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.COSMOS_DB_API_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.COSMOS_DB_API_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DATABASE_API_TYPE' | translate }}</mat-label>
+                            <mat-select formControlName="databaseApiType">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of cosmosApiTypeOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONSISTENCY_LEVEL' | translate }}</mat-label>
+                            <mat-select formControlName="consistencyLevel">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of cosmosConsistencyLevelOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MAX_STALENESS_PREFIX' | translate }}</mat-label>
+                            <input matInput type="number" formControlName="maxStalenessPrefix" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MAX_INTERVAL_SECONDS' | translate }}</mat-label>
+                            <input matInput type="number" formControlName="maxIntervalInSeconds" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+                        </div>
                       </div>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="enableMultipleWriteLocations" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.MULTI_REGION_WRITES' | translate }}
-                        </mat-slide-toggle>
-                      </div>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="enableFreeTier" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.FREE_TIER' | translate }}
-                        </mat-slide-toggle>
+
+                      <div class="env-extra-section">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">backup</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.COSMOS_DB_RESILIENCE_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.COSMOS_DB_RESILIENCE_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.BACKUP_POLICY' | translate }}</mat-label>
+                            <mat-select formControlName="backupPolicyType">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of cosmosBackupPolicyOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="enableAutomaticFailover" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.AUTOMATIC_FAILOVER' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="enableMultipleWriteLocations" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.MULTI_REGION_WRITES' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="enableFreeTier" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.FREE_TIER' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                        </div>
                       </div>
                     }
                     @case ('ServiceBusNamespace') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
-                        <mat-select formControlName="sku">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          <mat-option value="Basic">Basic</mat-option>
-                          <mat-option value="Standard">Standard</mat-option>
-                          <mat-option value="Premium">Premium</mat-option>
-                        </mat-select>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CAPACITY' | translate }}</mat-label>
-                        <input matInput type="number" formControlName="capacity" min="1" max="16" />
-                        <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MIN_TLS_VERSION' | translate }}</mat-label>
-                        <mat-select formControlName="minimumTlsVersion">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          <mat-option value="1.0">TLS 1.0</mat-option>
-                          <mat-option value="1.1">TLS 1.1</mat-option>
-                          <mat-option value="1.2">TLS 1.2</mat-option>
-                        </mat-select>
-                      </mat-form-field>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="zoneRedundant" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANT' | translate }}
-                        </mat-slide-toggle>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">hub</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.SERVICE_BUS_CAPACITY_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.SERVICE_BUS_CAPACITY_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.SKU' | translate }}</mat-label>
+                            <mat-select formControlName="sku">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              <mat-option value="Basic">Basic</mat-option>
+                              <mat-option value="Standard">Standard</mat-option>
+                              <mat-option value="Premium">Premium</mat-option>
+                            </mat-select>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CAPACITY' | translate }}</mat-label>
+                            <input matInput type="number" formControlName="capacity" min="1" max="16" />
+                            <mat-hint>{{ 'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate }}</mat-hint>
+                          </mat-form-field>
+                        </div>
                       </div>
-                      <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate }}
-                        </mat-slide-toggle>
+
+                      <div class="env-extra-section">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">security</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.SERVICE_BUS_SECURITY_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.SERVICE_BUS_SECURITY_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MIN_TLS_VERSION' | translate }}</mat-label>
+                            <mat-select formControlName="minimumTlsVersion">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              <mat-option value="1.0">TLS 1.0</mat-option>
+                              <mat-option value="1.1">TLS 1.1</mat-option>
+                              <mat-option value="1.2">TLS 1.2</mat-option>
+                            </mat-select>
+                          </mat-form-field>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="zoneRedundant" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANT' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                          <div class="form-field form-field--toggle">
+                            <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
+                              {{ 'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate }}
+                            </mat-slide-toggle>
+                          </div>
+                        </div>
                       </div>
                     }
                     @case ('ContainerRegistry') {
@@ -1076,15 +1240,24 @@
                       </div>
                     }
                     @case ('SqlServer') {
-                      <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MIN_TLS_VERSION' | translate }}</mat-label>
-                        <mat-select formControlName="minimalTlsVersion">
-                          <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
-                          @for (opt of sqlMinTlsOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
+                      <div class="env-extra-section env-extra-section--first">
+                        <div class="env-extra-section__header">
+                          <mat-icon class="env-extra-section__icon">lock</mat-icon>
+                          <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.FIELDS.SQL_SERVER_SECTION' | translate }}</span>
+                        </div>
+                        <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.SQL_SERVER_SECTION_DESC' | translate }}</p>
+                        <div class="form-grid env-category-grid">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>{{ 'RESOURCE_EDIT.FIELDS.MIN_TLS_VERSION' | translate }}</mat-label>
+                            <mat-select formControlName="minimalTlsVersion">
+                              <mat-option [value]="null">{{ 'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate }}</mat-option>
+                              @for (opt of sqlMinTlsOptions; track opt.value) {
+                                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                        </div>
+                      </div>
                     }
                   }
                 </form>

@@ -94,15 +94,18 @@ public sealed class AzureDevOpsGitProviderService(
                 return Errors.GitRepository.PushFailed($"Base branch '{request.BaseBranch}' not found.");
 
             string? targetSha = null;
+            var targetBranchExists = false;
             if (request.TargetBranchName != request.BaseBranch)
             {
                 var targetRefsUrl = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{request.RepositoryName}/refs?filter=heads/{request.TargetBranchName}&api-version={ApiVersion}";
                 var targetRefsResponse = await client.GetFromJsonAsync<AdoRefList>(targetRefsUrl, cancellationToken);
                 targetSha = targetRefsResponse?.Value?.FirstOrDefault()?.ObjectId;
+                targetBranchExists = !string.IsNullOrEmpty(targetSha);
             }
             else
             {
                 targetSha = baseSha;
+                targetBranchExists = true;
             }
 
             var branchToInspect = targetSha is not null ? request.TargetBranchName : request.BaseBranch;
@@ -168,23 +171,16 @@ public sealed class AzureDevOpsGitProviderService(
                 });
             }
 
-            var refUpdates = new List<object>();
-            if (targetSha is not null)
+            var refUpdates = new List<object>
             {
-                refUpdates.Add(new
+                new
                 {
                     name = $"refs/heads/{request.TargetBranchName}",
-                    oldObjectId = targetSha,
-                });
-            }
-            else
-            {
-                refUpdates.Add(new
-                {
-                    name = $"refs/heads/{request.TargetBranchName}",
-                    oldObjectId = "0000000000000000000000000000000000000000",
-                });
-            }
+                    // ADO expects a new branch push with edit/delete changes to be anchored on the base commit,
+                    // not on the empty-tree sentinel object id.
+                    oldObjectId = targetBranchExists ? targetSha : baseSha,
+                },
+            };
 
             var pushPayload = new
             {

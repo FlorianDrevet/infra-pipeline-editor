@@ -41,7 +41,7 @@ import { LogAnalyticsWorkspaceResponse, LogAnalyticsWorkspaceEnvironmentConfigEn
 import { ApplicationInsightsResponse, ApplicationInsightsEnvironmentConfigEntry } from '../../shared/interfaces/application-insights.interface';
 import { CosmosDbResponse, CosmosDbEnvironmentConfigEntry } from '../../shared/interfaces/cosmos-db.interface';
 import { ServiceBusNamespaceResponse, ServiceBusNamespaceEnvironmentConfigEntry } from '../../shared/interfaces/service-bus-namespace.interface';
-import { ContainerRegistryResponse, ContainerRegistryEnvironmentConfigEntry } from '../../shared/interfaces/container-registry.interface';
+import { AcrAuthMode, ContainerRegistryResponse, ContainerRegistryEnvironmentConfigEntry } from '../../shared/interfaces/container-registry.interface';
 import { SqlServerResponse, SqlServerEnvironmentConfigEntry } from '../../shared/interfaces/sql-server.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
@@ -505,6 +505,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly acrRoleAssigning = signal(false);
 
   protected readonly selectedContainerRegistryId = signal<string | null>(null);
+  protected readonly acrAuthMode = signal<AcrAuthMode | null>(null);
 
   // UAI state for ACR flow
   protected readonly acrAssignedUaiId = signal<string | null>(null);
@@ -579,7 +580,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   );
 
   protected readonly isSaveBlockedByAcr = computed(() => {
-    if (!this.isAcrEnabled()) return false;
+    if (!this.isAcrEnabled() || this.acrAuthMode() !== 'ManagedIdentity') return false;
     return this.acrAccessChecking() || this.acrHasAccess() === false;
   });
 
@@ -1015,6 +1016,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       location: [resource.location, [Validators.required]],
     };
 
+    this.acrAccessChecking.set(false);
+    this.resetAcrPullAccessState();
+    this.selectedContainerRegistryId.set(null);
+    this.acrAuthMode.set(null);
+
     if (this.resourceType === 'KeyVault') {
       const kv = resource as KeyVaultResponse;
       base['enableRbacAuthorization'] = [kv.enableRbacAuthorization];
@@ -1028,9 +1034,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['osType'] = [asp.osType, [Validators.required]];
     } else if (this.resourceType === 'WebApp') {
       const wa = resource as WebAppResponse;
+      const resolvedAcrAuthMode = this.resolveAcrAuthMode(wa.containerRegistryId ?? null, wa.acrAuthMode ?? null);
       base['appServicePlanId'] = [wa.appServicePlanId];
       base['deploymentMode'] = [wa.deploymentMode || 'Code'];
       base['containerRegistryId'] = [wa.containerRegistryId ?? null];
+      base['acrAuthMode'] = [resolvedAcrAuthMode];
       base['dockerImageName'] = [wa.dockerImageName ?? null];
       base['runtimeStack'] = [wa.runtimeStack, [Validators.required]];
       base['runtimeVersion'] = [wa.runtimeVersion];
@@ -1042,11 +1050,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['applicationName'] = [wa.applicationName ?? ''];
       this.deploymentMode.set((wa.deploymentMode as 'Code' | 'Container') || 'Code');
       this.selectedContainerRegistryId.set(wa.containerRegistryId ?? null);
+      this.acrAuthMode.set(resolvedAcrAuthMode);
     } else if (this.resourceType === 'FunctionApp') {
       const fa = resource as FunctionAppResponse;
+      const resolvedAcrAuthMode = this.resolveAcrAuthMode(fa.containerRegistryId ?? null, fa.acrAuthMode ?? null);
       base['appServicePlanId'] = [fa.appServicePlanId];
       base['deploymentMode'] = [fa.deploymentMode || 'Code'];
       base['containerRegistryId'] = [fa.containerRegistryId ?? null];
+      base['acrAuthMode'] = [resolvedAcrAuthMode];
       base['dockerImageName'] = [fa.dockerImageName ?? null];
       base['runtimeStack'] = [fa.runtimeStack, [Validators.required]];
       base['runtimeVersion'] = [fa.runtimeVersion];
@@ -1057,6 +1068,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['applicationName'] = [fa.applicationName ?? ''];
       this.deploymentMode.set((fa.deploymentMode as 'Code' | 'Container') || 'Code');
       this.selectedContainerRegistryId.set(fa.containerRegistryId ?? null);
+      this.acrAuthMode.set(resolvedAcrAuthMode);
     } else if (this.resourceType === 'StorageAccount') {
       const sa = resource as StorageAccountResponse;
       base['kind'] = [sa.kind, [Validators.required]];
@@ -1085,12 +1097,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       })));
     } else if (this.resourceType === 'ContainerApp') {
       const ca = resource as ContainerAppResponse;
+      const resolvedAcrAuthMode = this.resolveAcrAuthMode(ca.containerRegistryId ?? null, ca.acrAuthMode ?? null);
       base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
       base['containerRegistryId'] = [ca.containerRegistryId ?? null];
+      base['acrAuthMode'] = [resolvedAcrAuthMode];
       base['dockerImageName'] = [ca.dockerImageName ?? null];
       base['dockerfilePath'] = [ca.dockerfilePath ?? ''];
       base['applicationName'] = [ca.applicationName ?? ''];
       this.selectedContainerRegistryId.set(ca.containerRegistryId ?? null);
+      this.acrAuthMode.set(resolvedAcrAuthMode);
     } else if (this.resourceType === 'ContainerAppEnvironment') {
       const cae = resource as ContainerAppEnvironmentResponse;
       base['logAnalyticsWorkspaceId'] = [cae.logAnalyticsWorkspaceId ?? null];
@@ -1319,6 +1334,33 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     this.nameAvailabilityOverridden.set(true);
   }
 
+  private resolveAcrAuthMode(containerRegistryId: string | null | undefined, acrAuthMode: AcrAuthMode | null | undefined): AcrAuthMode | null {
+    if (!containerRegistryId) {
+      return null;
+    }
+
+    return acrAuthMode ?? 'ManagedIdentity';
+  }
+
+  private setAcrAuthMode(acrAuthMode: AcrAuthMode | null, emitEvent = false): void {
+    this.acrAuthMode.set(acrAuthMode);
+
+    const acrAuthModeControl = this.generalForm.get('acrAuthMode');
+    if (acrAuthModeControl) {
+      acrAuthModeControl.setValue(acrAuthMode, { emitEvent });
+    }
+  }
+
+  private resetAcrPullAccessState(): void {
+    this.acrHasAccess.set(null);
+    this.acrMissingRoleName.set(null);
+    this.acrMissingRoleDefinitionId.set(null);
+    this.acrAssignedUaiId.set(null);
+    this.acrAssignedUaiName.set(null);
+    this.acrHasUai.set(false);
+    this.acrSelectedUaiId.set(null);
+  }
+
   protected async onSave(): Promise<void> {
     if (this.generalForm.invalid || this.isSaving() || this.isSaveBlockedByAcr() || this.isSaveBlockedByNameAvailability()) return;
 
@@ -1384,13 +1426,18 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: this.buildAppServicePlanEnvSettings(),
           });
           break;
-        case 'WebApp':
+        case 'WebApp': {
+          const acrAuthMode = general.deploymentMode === 'Container'
+            ? this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined)
+            : null;
+
           await this.webAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             appServicePlanId: general.appServicePlanId,
             deploymentMode: general.deploymentMode || 'Code',
             containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
+            acrAuthMode,
             dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
             dockerfilePath: general.dockerfilePath || null,
             sourceCodePath: general.sourceCodePath || null,
@@ -1403,13 +1450,19 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: this.buildWebAppEnvSettings(),
           });
           break;
-        case 'FunctionApp':
+        }
+        case 'FunctionApp': {
+          const acrAuthMode = general.deploymentMode === 'Container'
+            ? this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined)
+            : null;
+
           await this.functionAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             appServicePlanId: general.appServicePlanId,
             deploymentMode: general.deploymentMode || 'Code',
             containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
+            acrAuthMode,
             dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
             dockerfilePath: general.dockerfilePath || null,
             sourceCodePath: general.sourceCodePath || null,
@@ -1421,6 +1474,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: this.buildFunctionAppEnvSettings(),
           });
           break;
+        }
         case 'UserAssignedIdentity':
           await this.userAssignedIdentityService.update(this.resourceId, {
             name: general.name,
@@ -1442,18 +1496,22 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: this.buildContainerAppEnvironmentEnvSettings(),
           });
           break;
-        case 'ContainerApp':
+        case 'ContainerApp': {
+          const acrAuthMode = this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined);
+
           await this.containerAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             containerAppEnvironmentId: general.containerAppEnvironmentId,
             containerRegistryId: general.containerRegistryId || null,
+            acrAuthMode,
             dockerImageName: general.dockerImageName || null,
             dockerfilePath: general.dockerfilePath || null,
             applicationName: general.applicationName || null,
             environmentSettings: this.buildContainerAppEnvSettings(),
           });
           break;
+        }
         case 'LogAnalyticsWorkspace':
           await this.logAnalyticsWorkspaceService.update(this.resourceId, {
             name: general.name,
@@ -1601,12 +1659,18 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected async onDeploymentModeChange(mode: 'Code' | 'Container'): Promise<void> {
     this.deploymentMode.set(mode);
     this.generalForm.patchValue({ deploymentMode: mode });
+    const currentRegistryId = this.selectedContainerRegistryId() ?? this.generalForm.get('containerRegistryId')?.value ?? null;
+    const nextAcrAuthMode = mode === 'Container'
+      ? this.resolveAcrAuthMode(currentRegistryId, this.acrAuthMode() ?? (this.generalForm.get('acrAuthMode')?.value as AcrAuthMode | null | undefined))
+      : null;
+
+    this.acrAccessChecking.set(false);
+    this.resetAcrPullAccessState();
+    this.setAcrAuthMode(nextAcrAuthMode, true);
     this.formsDirty.set(true);
 
-    if (mode === 'Container' && this.selectedContainerRegistryId()) {
-      await this.checkAcrPullAccess();
-    } else if (mode === 'Code') {
-      this.acrHasAccess.set(null);
+    if (mode === 'Container' && currentRegistryId && nextAcrAuthMode === 'ManagedIdentity') {
+      await this.checkAcrPullAccess(currentRegistryId, nextAcrAuthMode);
     }
   }
 
@@ -1623,39 +1687,53 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected async onContainerRegistryChange(acrId: string | null): Promise<void> {
+    const nextAcrAuthMode = this.resolveAcrAuthMode(acrId, this.acrAuthMode() ?? (this.generalForm.get('acrAuthMode')?.value as AcrAuthMode | null | undefined));
+
     this.selectedContainerRegistryId.set(acrId);
     this.generalForm.patchValue({ containerRegistryId: acrId });
-    this.acrHasAccess.set(null);
-    this.acrMissingRoleName.set(null);
-    this.acrMissingRoleDefinitionId.set(null);
-    this.acrAssignedUaiId.set(null);
-    this.acrAssignedUaiName.set(null);
-    this.acrHasUai.set(false);
-    this.acrSelectedUaiId.set(null);
-    if (!acrId) return;
-    await this.checkAcrPullAccess(acrId);
+    this.acrAccessChecking.set(false);
+    this.resetAcrPullAccessState();
+    this.setAcrAuthMode(nextAcrAuthMode, true);
+    if (!acrId || nextAcrAuthMode !== 'ManagedIdentity') return;
+    await this.checkAcrPullAccess(acrId, nextAcrAuthMode);
   }
 
-  protected async checkAcrPullAccess(acrId?: string): Promise<void> {
-    const registryId = acrId ?? this.generalForm.get('containerRegistryId')?.value;
-    if (!registryId) return;
+  protected async onAcrAuthModeChange(mode: AcrAuthMode): Promise<void> {
+    const currentRegistryId = this.selectedContainerRegistryId() ?? this.generalForm.get('containerRegistryId')?.value ?? null;
+    const nextAcrAuthMode = this.resolveAcrAuthMode(currentRegistryId, mode);
 
+    this.acrAccessChecking.set(false);
+    this.resetAcrPullAccessState();
+    this.setAcrAuthMode(nextAcrAuthMode, true);
+    if (!currentRegistryId || nextAcrAuthMode !== 'ManagedIdentity') return;
+    await this.checkAcrPullAccess(currentRegistryId, nextAcrAuthMode);
+  }
+
+  protected async checkAcrPullAccess(acrId?: string, acrAuthMode?: AcrAuthMode | null): Promise<void> {
+    const registryId = acrId ?? this.generalForm.get('containerRegistryId')?.value;
+    const requestedAcrAuthMode = this.resolveAcrAuthMode(registryId, acrAuthMode ?? this.acrAuthMode());
+    if (!registryId || requestedAcrAuthMode !== 'ManagedIdentity') {
+      this.resetAcrPullAccessState();
+      return;
+    }
+
+    this.acrAuthMode.set(requestedAcrAuthMode);
     this.acrAccessChecking.set(true);
-    this.acrHasAccess.set(null);
-    this.acrMissingRoleName.set(null);
-    this.acrMissingRoleDefinitionId.set(null);
-    this.acrAssignedUaiId.set(null);
-    this.acrAssignedUaiName.set(null);
-    this.acrHasUai.set(false);
+    this.resetAcrPullAccessState();
 
     try {
-      const result = await this.containerRegistryService.checkAcrPullAccess(this.resourceId, registryId);
+      const result = await this.containerRegistryService.checkAcrPullAccess(this.resourceId, registryId, requestedAcrAuthMode);
+      if (this.selectedContainerRegistryId() !== registryId || this.acrAuthMode() !== requestedAcrAuthMode) {
+        return;
+      }
+
       this.acrHasAccess.set(result.hasAccess);
       this.acrMissingRoleName.set(result.missingRoleName ?? null);
       this.acrMissingRoleDefinitionId.set(result.missingRoleDefinitionId ?? null);
       this.acrAssignedUaiId.set(result.assignedUserAssignedIdentityId ?? null);
       this.acrAssignedUaiName.set(result.assignedUserAssignedIdentityName ?? null);
       this.acrHasUai.set(result.hasUserAssignedIdentity);
+      this.acrAuthMode.set(this.resolveAcrAuthMode(registryId, result.acrAuthMode ?? requestedAcrAuthMode));
       // Pre-select the assigned UAI if one exists
       if (result.assignedUserAssignedIdentityId) {
         this.acrSelectedUaiId.set(result.assignedUserAssignedIdentityId);

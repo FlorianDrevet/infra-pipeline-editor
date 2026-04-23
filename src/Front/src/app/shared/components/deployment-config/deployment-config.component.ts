@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslateModule } from '@ngx-translate/core';
 import { CompactSelectComponent, CompactSelectOption } from '../compact-select/compact-select.component';
+import { AcrAuthMode } from '../../interfaces/container-registry.interface';
 
 export type DeploymentConfigMode = 'code-or-container' | 'container-only';
 export type DeploymentModeValue = 'Code' | 'Container';
@@ -35,6 +36,7 @@ export class DeploymentConfigComponent {
   readonly mode = input<DeploymentConfigMode>('code-or-container');
   readonly deploymentMode = input<DeploymentModeValue>('Code');
   readonly containerRegistryId = input<string | null>(null);
+  readonly acrAuthMode = input<AcrAuthMode | null>(null);
   readonly dockerImageName = input<string | null>(null);
   readonly showDockerImageName = input(true);
   readonly runtimeStack = input('');
@@ -55,6 +57,7 @@ export class DeploymentConfigComponent {
   readonly runtimeStackChange = output<string>();
   readonly runtimeVersionChange = output<string>();
   readonly containerRegistryChange = output<string | null>();
+  readonly acrAuthModeChange = output<AcrAuthMode>();
   readonly dockerImageNameChange = output<string>();
   readonly acrSelectedUaiIdChange = output<string | null>();
   readonly addAcrPullRole = output<void>();
@@ -66,6 +69,18 @@ export class DeploymentConfigComponent {
 
   protected get hasContainerRegistrySelected(): boolean {
     return !!this.containerRegistryId();
+  }
+
+  protected get resolvedAcrAuthMode(): AcrAuthMode {
+    return this.acrAuthMode() ?? 'ManagedIdentity';
+  }
+
+  protected get isManagedIdentityAcrMode(): boolean {
+    return this.resolvedAcrAuthMode === 'ManagedIdentity';
+  }
+
+  protected get isAdminCredentialsAcrMode(): boolean {
+    return this.resolvedAcrAuthMode === 'AdminCredentials';
   }
 
   protected showWhyUai = false;

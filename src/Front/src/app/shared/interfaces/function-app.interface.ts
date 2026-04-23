@@ -1,3 +1,5 @@
+import { AcrAuthMode } from './container-registry.interface';
+
 // ─── Environment Settings ────────────────────────────────────────────────────
 
 export interface FunctionAppEnvironmentConfigEntry {
@@ -25,6 +27,7 @@ export interface FunctionAppResponse {
   appServicePlanId: string;
   deploymentMode: string;
   containerRegistryId: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName: string | null;
   dockerfilePath: string | null;
   sourceCodePath: string | null;
@@ -46,6 +49,7 @@ export interface CreateFunctionAppRequest {
   appServicePlanId: string;
   deploymentMode?: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   sourceCodePath?: string | null;
@@ -64,6 +68,7 @@ export interface UpdateFunctionAppRequest {
   appServicePlanId: string;
   deploymentMode?: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   sourceCodePath?: string | null;

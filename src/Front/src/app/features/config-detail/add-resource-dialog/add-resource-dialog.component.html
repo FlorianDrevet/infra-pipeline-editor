@@ -259,63 +259,32 @@
                 </button>
               }
             </div>
-            <div class="form-field" style="margin-bottom: 1rem;">
-              <label class="form-field__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE' | translate }}</label>
-              <mat-button-toggle-group class="deployment-toggle"
-                [value]="deploymentMode()"
-                (change)="onDeploymentModeChange($event.value)">
-                <mat-button-toggle value="Code">
-                  <mat-icon>code</mat-icon>
-                  {{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE_CODE' | translate }}
-                </mat-button-toggle>
-                <mat-button-toggle value="Container">
-                  <mat-icon>inventory_2</mat-icon>
-                  {{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE_CONTAINER' | translate }}
-                </mat-button-toggle>
-              </mat-button-toggle-group>
+            <app-deployment-config
+              mode="code-or-container"
+              [deploymentMode]="deploymentMode()"
+              [containerRegistryId]="selectedContainerRegistryId()"
+              [acrAuthMode]="acrAuthMode()"
+              [dockerImageName]="commonForm.get('dockerImageName')?.value ?? null"
+              [runtimeStack]="commonForm.get('runtimeStack')?.value ?? ''"
+              [runtimeVersion]="commonForm.get('runtimeVersion')?.value ?? ''"
+              [runtimeStackOptions]="runtimeStackOptions"
+              [runtimeVersionOptions]="runtimeVersionOptions()"
+              [availableContainerRegistries]="availableContainerRegistries()"
+              (deploymentModeChange)="onDeploymentModeChange($event)"
+              (runtimeStackChange)="commonForm.patchValue({ runtimeStack: $event }); onRuntimeStackChange($event)"
+              (runtimeVersionChange)="commonForm.patchValue({ runtimeVersion: $event })"
+              (containerRegistryChange)="onContainerRegistryChange($event)"
+              (acrAuthModeChange)="onAcrAuthModeChange($event)"
+              (dockerImageNameChange)="commonForm.patchValue({ dockerImageName: $event })">
+            </app-deployment-config>
+            <div style="margin-top: 1rem;">
+              <mat-slide-toggle formControlName="alwaysOn" color="primary">
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALWAYS_ON' | translate }}
+              </mat-slide-toggle>
+              <mat-slide-toggle formControlName="httpsOnly" color="primary">
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
+              </mat-slide-toggle>
             </div>
-            @if (!isContainerMode()) {
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="half-width">
-                  <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
-                  <mat-select formControlName="runtimeStack" (selectionChange)="onRuntimeStackChange($event.value)">
-                    @for (option of runtimeStackOptions; track option.value) {
-                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="half-width">
-                  <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
-                  <mat-select formControlName="runtimeVersion">
-                    @for (ver of runtimeVersionOptions(); track ver) {
-                      <mat-option [value]="ver">{{ ver }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-              </div>
-            }
-            @if (isContainerMode()) {
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CONTAINER_REGISTRY' | translate }}</mat-label>
-                <mat-select formControlName="containerRegistryId">
-                  <mat-option [value]="null">{{ 'CONFIG_DETAIL.RESOURCES.FORM.ACR_NONE' | translate }}</mat-option>
-                  @for (acr of availableContainerRegistries(); track acr.id) {
-                    <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.DOCKER_IMAGE_NAME' | translate }}</mat-label>
-                <input matInput formControlName="dockerImageName"
-                  [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
-              </mat-form-field>
-            }
-            <mat-slide-toggle formControlName="alwaysOn" color="primary">
-              {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALWAYS_ON' | translate }}
-            </mat-slide-toggle>
-            <mat-slide-toggle formControlName="httpsOnly" color="primary">
-              {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
-            </mat-slide-toggle>
           }
 
           @if (selectedType() === ResourceTypeEnum.FunctionApp) {
@@ -331,60 +300,54 @@
                 </button>
               }
             </div>
-            <div class="form-field" style="margin-bottom: 1rem;">
-              <label class="form-field__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE' | translate }}</label>
-              <mat-button-toggle-group class="deployment-toggle"
-                [value]="deploymentMode()"
-                (change)="onDeploymentModeChange($event.value)">
-                <mat-button-toggle value="Code">
-                  <mat-icon>code</mat-icon>
-                  {{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE_CODE' | translate }}
-                </mat-button-toggle>
-                <mat-button-toggle value="Container">
-                  <mat-icon>inventory_2</mat-icon>
-                  {{ 'CONFIG_DETAIL.RESOURCES.FORM.DEPLOYMENT_MODE_CONTAINER' | translate }}
-                </mat-button-toggle>
-              </mat-button-toggle-group>
+            <app-deployment-config
+              mode="code-or-container"
+              [deploymentMode]="deploymentMode()"
+              [containerRegistryId]="selectedContainerRegistryId()"
+              [acrAuthMode]="acrAuthMode()"
+              [dockerImageName]="commonForm.get('dockerImageName')?.value ?? null"
+              [runtimeStack]="commonForm.get('runtimeStack')?.value ?? ''"
+              [runtimeVersion]="commonForm.get('runtimeVersion')?.value ?? ''"
+              [runtimeStackOptions]="functionAppRuntimeStackOptions"
+              [runtimeVersionOptions]="runtimeVersionOptions()"
+              [availableContainerRegistries]="availableContainerRegistries()"
+              (deploymentModeChange)="onDeploymentModeChange($event)"
+              (runtimeStackChange)="commonForm.patchValue({ runtimeStack: $event }); onRuntimeStackChange($event)"
+              (runtimeVersionChange)="commonForm.patchValue({ runtimeVersion: $event })"
+              (containerRegistryChange)="onContainerRegistryChange($event)"
+              (acrAuthModeChange)="onAcrAuthModeChange($event)"
+              (dockerImageNameChange)="commonForm.patchValue({ dockerImageName: $event })">
+            </app-deployment-config>
+            <div style="margin-top: 1rem;">
+              <mat-slide-toggle formControlName="httpsOnly" color="primary">
+                {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
+              </mat-slide-toggle>
             </div>
-            @if (!isContainerMode()) {
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="half-width">
-                  <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_STACK' | translate }}</mat-label>
-                  <mat-select formControlName="runtimeStack" (selectionChange)="onRuntimeStackChange($event.value)">
-                    @for (option of functionAppRuntimeStackOptions; track option.value) {
-                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="half-width">
-                  <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.RUNTIME_VERSION' | translate }}</mat-label>
-                  <mat-select formControlName="runtimeVersion">
-                    @for (ver of runtimeVersionOptions(); track ver) {
-                      <mat-option [value]="ver">{{ ver }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
+          }
+
+          @if (selectedType() === ResourceTypeEnum.ContainerApp) {
+            <div class="plan-indicator">
+              <mat-icon class="plan-indicator__icon">cloud_queue</mat-icon>
+              <div class="plan-indicator__info">
+                <span class="plan-indicator__label">{{ 'CONFIG_DETAIL.RESOURCES.FORM.SELECTED_PLAN_CAE' | translate }}</span>
+                <span class="plan-indicator__name">{{ selectedPlanName() }}</span>
               </div>
-            }
-            @if (isContainerMode()) {
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.CONTAINER_REGISTRY' | translate }}</mat-label>
-                <mat-select formControlName="containerRegistryId">
-                  <mat-option [value]="null">{{ 'CONFIG_DETAIL.RESOURCES.FORM.ACR_NONE' | translate }}</mat-option>
-                  @for (acr of availableContainerRegistries(); track acr.id) {
-                    <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'CONFIG_DETAIL.RESOURCES.FORM.DOCKER_IMAGE_NAME' | translate }}</mat-label>
-                <input matInput formControlName="dockerImageName"
-                  [placeholder]="'CONFIG_DETAIL.RESOURCES.FORM.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" />
-              </mat-form-field>
-            }
-            <mat-slide-toggle formControlName="httpsOnly" color="primary">
-              {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
-            </mat-slide-toggle>
+              @if (!hasParentResource) {
+                <button class="plan-indicator__change" (click)="onBackFromCommon()">
+                  {{ 'CONFIG_DETAIL.RESOURCES.FORM.CHANGE_PLAN' | translate }}
+                </button>
+              }
+            </div>
+            <app-deployment-config
+              mode="container-only"
+              [containerRegistryId]="selectedContainerRegistryId()"
+              [acrAuthMode]="acrAuthMode()"
+              [dockerImageName]="commonForm.get('dockerImageName')?.value ?? null"
+              [availableContainerRegistries]="availableContainerRegistries()"
+              (containerRegistryChange)="onContainerRegistryChange($event)"
+              (acrAuthModeChange)="onAcrAuthModeChange($event)"
+              (dockerImageNameChange)="commonForm.patchValue({ dockerImageName: $event })">
+            </app-deployment-config>
           }
 
           @if (selectedType() === ResourceTypeEnum.ApplicationInsights) {
