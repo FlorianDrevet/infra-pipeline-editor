@@ -63,6 +63,14 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - Generators opt in through `GeneratedTypeModule.SecureParameters`.
 - `GenerationRequest.SecureParameterOverrides` still feeds `PipelineGenerationEngine.BuildOverrideParameters()`, but only for secure params not redirected through `SecureParameterMappings`.
 
+## ACR Auth Modes [2026-04-23]
+- `InfrastructureConfigReadRepository` projects `acrAuthMode` into `ResourceDefinition.Properties` for `ContainerApp`, `WebApp`, and `FunctionApp`.
+- `ContainerAppTypeBicepGenerator`, `WebAppTypeBicepGenerator`, and `FunctionAppTypeBicepGenerator` branch between `ManagedIdentity` and `AdminCredentials`.
+- Missing / `null` `acrAuthMode` stays backward-compatible and is treated as managed identity.
+- Admin-credentials mode uses `GeneratedTypeModule.SecureParameters = ["acrPassword"]` so the secret flows through the existing secure-parameter / pipeline-variable-group path.
+- Container App admin mode emits `configuration.secrets` plus `registries.username/passwordSecretRef`; Web App and Function App admin mode emit `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME`, and secure `DOCKER_REGISTRY_SERVER_PASSWORD` app settings.
+- App pipeline generation mirrors the same mode: managed identity keeps the `Docker@2` service-connection flow, admin credentials switch to explicit `docker login` and build/push script steps.
+
 ## Output Injection Symbol Validation [2026-04-21]
 - `InjectOutputDeclarations` validates that the root symbol referenced by an output exists in the target module before injection.
 - `ExtractRootSymbol()` handles both direct identifiers and interpolated strings, preventing BCP057 errors when the catalog points at the wrong module type.

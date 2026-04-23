@@ -54,6 +54,12 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - `EditAbbreviationDialogComponent` [2026-04-22] — reusable abbreviation override editor (config-detail + project-detail naming tabs)
 - `ToggleSectionCardComponent` [2026-04-22] — generic reusable toggle card (icon + title + subtitle + slide toggle + content projection). Visual identity: blue accent border, rounded card, shadow, fade animation. Used for health probe config in ContainerApp (add-resource-dialog + resource-edit). Reusable for any section needing enable/disable toggle with collapsible content.
 
+## ACR Auth Mode UX [2026-04-23]
+- `DeploymentConfigComponent` now owns the shared ACR auth-mode selector with `ManagedIdentity` and `AdminCredentials`, defaulting to managed identity whenever an ACR is selected without a stored mode.
+- `resource-edit` and `add-resource-dialog` both persist `acrAuthMode` for `ContainerApp`, `WebApp`, and `FunctionApp` payloads and clear it when the selected ACR is cleared.
+- The managed-identity path keeps the existing UAI/AcrPull diagnostics UX; the admin-credentials path hides that flow and shows an informational banner about pipeline or secure-variable injection instead.
+- `ContainerRegistryService.checkAcrPullAccess(...)` now forwards optional `acrAuthMode` so the backend can bypass UAI diagnostics for admin credentials.
+
 ## Name Availability UX [2026-04-22]
 - `NameAvailabilityService.check$()` + debounced 500 ms `switchMap` on `name` field in `resource-edit` and `add-resource-dialog`.
 - 10 resource types supported via `NAME_AVAILABILITY_TYPES` Set (ContainerRegistry, StorageAccount, KeyVault, RedisCache, AppConfiguration, ServiceBusNamespace, EventHubNamespace, WebApp, FunctionApp, SqlServer).

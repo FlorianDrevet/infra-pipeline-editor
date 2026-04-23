@@ -19,7 +19,9 @@ namespace InfraFlowSculptor.Contracts.WebApps.Responses;
 /// <param name="DockerfilePath">Relative path to the Dockerfile in the repository.</param>
 /// <param name="SourceCodePath">Relative path to the source code folder.</param>
 /// <param name="BuildCommand">Optional custom build command.</param>
+/// <param name="ApplicationName">Optional user-friendly application name used in generated pipelines.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
+/// <param name="IsExisting">Whether the resource references an already-existing Azure resource.</param>
 public record WebAppResponse(
     string Id,
     string ResourceGroupId,
@@ -39,7 +41,5 @@ public record WebAppResponse(
     string? BuildCommand,
     string? ApplicationName,
     IReadOnlyList<WebAppEnvironmentConfigResponse> EnvironmentSettings,
-
     bool IsExisting = false
-
 );

@@ -58,6 +58,13 @@ These reusable entity types are owned by multiple aggregates:
 - `Project` has `AgentPoolName` (string?) — when set, pipeline YAML uses `pool: name: '<value>'` (self-hosted); when null, `pool: vmImage: ubuntu-latest` (Microsoft-hosted). Endpoint: `PUT /projects/{id}/agent-pool`
 - Resource-specific pipeline properties are persisted in compute-resource TPT tables and exposed in Create/Update commands and contracts. `Project.AgentPoolName` is persisted on the Project aggregate and consumed by both config-level and project-level pipeline generation.
 
+## ACR Authentication Mode [2026-04-23]
+
+- `ContainerApp`, `WebApp`, and `FunctionApp` now persist nullable `AcrAuthMode` alongside `ContainerRegistryId`.
+- `AcrAuthMode` is a shared `EnumValueObject` with values `ManagedIdentity` and `AdminCredentials`.
+- `AcrAuthMode` is cleared automatically when `ContainerRegistryId` is removed; `null` remains backward-compatible and is treated as managed identity by generators and diagnostics.
+- The mode lives on the 3 compute aggregates only; `AzureResource` was intentionally left unchanged to avoid widening the blast radius of a compute-specific concern.
+
 ## Cross-Config References
 
 `InfrastructureConfig` owns `_crossConfigReferences` collection of `CrossConfigResourceReference` entities. Each reference points to a `TargetResourceId` in another config of the same project, with an `Alias` and optional `Purpose`. The Bicep generator emits `existing` resource group + `existing` resource declarations for each referenced resource.
