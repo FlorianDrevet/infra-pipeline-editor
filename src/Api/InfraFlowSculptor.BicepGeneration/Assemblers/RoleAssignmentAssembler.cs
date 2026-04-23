@@ -16,7 +16,13 @@ internal static class RoleAssignmentAssembler
         IReadOnlyList<RoleAssignmentDefinition> roleAssignments)
     {
         return roleAssignments
-            .GroupBy(ra => (ra.SourceResourceName, ra.TargetResourceName, ra.ManagedIdentityType,
+            .GroupBy(ra => (
+                ra.SourceResourceName,
+                ra.TargetResourceName,
+                ra.TargetResourceType,
+                ra.TargetResourceGroupName,
+                ra.IsTargetCrossConfig,
+                ra.ManagedIdentityType,
                 ra.UserAssignedIdentityResourceId))
             .Select(g =>
             {

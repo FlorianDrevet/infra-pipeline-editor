@@ -295,6 +295,7 @@ public sealed class PipelineGenerationEngine
         var checkoutDirectories = new[]
         {
             BuildRepoRelativePath(pipelineBasePath, ".azuredevops"),
+            BuildRepoRelativePath(bicepBasePath, "Common"),
             BuildRepoRelativePath(bicepBasePath, "${{ parameters.projectName }}"),
         }.Distinct().ToList();
 
