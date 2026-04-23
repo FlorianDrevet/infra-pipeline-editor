@@ -37,6 +37,8 @@ These reusable entity types are owned by multiple aggregates:
 | `AppSettingEnvironmentValue` | Per-environment overrides for app settings |
 | `InputOutputLink` | Links between resource outputs and other resource inputs |
 | `RoleAssignment` | RBAC role assignment on any AzureResource |
+| `CustomDomain` | Per-environment custom domain binding for ContainerApp, WebApp, FunctionApp |
+| `SecureParameterMapping` | Maps secure Bicep params to project pipeline variable groups |
 
 ## AzureResource.AssignedUserAssignedIdentityId [2026-04-02]
 
@@ -59,6 +61,14 @@ These reusable entity types are owned by multiple aggregates:
 ## Cross-Config References
 
 `InfrastructureConfig` owns `_crossConfigReferences` collection of `CrossConfigResourceReference` entities. Each reference points to a `TargetResourceId` in another config of the same project, with an `Alias` and optional `Purpose`. The Bicep generator emits `existing` resource group + `existing` resource declarations for each referenced resource.
+
+## Custom Domains & Secure Parameter Mappings [2026-04-23]
+
+- `AzureResource` now owns `_customDomains` and `_secureParameterMappings` backing collections on the base class.
+- `CustomDomain` stores `EnvironmentName`, normalized `DomainName`, and `BindingType` (`SniEnabled` or `Disabled`). Duplicate `(EnvironmentName, DomainName)` pairs are rejected.
+- Custom domains are supported for compute resources only (ContainerApp, WebApp, FunctionApp) and are blocked on `IsExisting` resources.
+- `SecureParameterMapping` stores `SecureParameterName`, optional `VariableGroupId`, and `PipelineVariableName` so a secure Bicep param can be injected from an Azure DevOps variable group.
+- `AzureResource.SetSecureParameterMapping(...)` acts as upsert/clear: `null` group clears an existing mapping, inconsistent half-filled mappings are rejected.
 
 ## Domain Invariants
 

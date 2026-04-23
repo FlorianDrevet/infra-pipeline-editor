@@ -1072,10 +1072,8 @@
                 @if (supportsCustomDomains() && !isExistingResource()) {
                   <div class="env-extra-section custom-domains-section">
                     <div class="env-extra-section__header">
-                      <span class="custom-domains-section__header-left">
-                        <mat-icon class="env-extra-section__icon">language</mat-icon>
-                        <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.SECTION_TITLE' | translate }}</span>
-                      </span>
+                      <mat-icon class="env-extra-section__icon">language</mat-icon>
+                      <span class="env-extra-section__title">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.SECTION_TITLE' | translate }}</span>
                       <button class="ra-add-btn custom-domains-section__add-btn" (click)="openAddCustomDomainDialog(currentEnv.envName)">
                         <mat-icon>add</mat-icon>
                         {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.ADD' | translate }}

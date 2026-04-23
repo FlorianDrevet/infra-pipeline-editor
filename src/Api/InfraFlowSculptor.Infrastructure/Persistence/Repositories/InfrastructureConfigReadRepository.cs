@@ -438,13 +438,28 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .Select(r => r.TargetResourceId)
             .ToHashSet();
 
+        var crossConfigRefLookup = crossConfigRefReadModels
+            .ToDictionary(r => r.TargetResourceId);
+
         var enrichedRoleAssignments = roleAssignmentReadModels
-            .Select(ra => ra with { IsTargetCrossConfig = crossConfigResourceIds.Contains(new AzureResourceId(ra.TargetResourceId)) })
+            .Select(ra =>
+            {
+                var isCrossConfig = crossConfigResourceIds.Contains(new AzureResourceId(ra.TargetResourceId));
+                if (isCrossConfig && crossConfigRefLookup.TryGetValue(ra.TargetResourceId, out var ccRef))
+                {
+                    return ra with
+                    {
+                        IsTargetCrossConfig = true,
+                        TargetResourceName = string.IsNullOrEmpty(ra.TargetResourceName) ? ccRef.TargetResourceName : ra.TargetResourceName,
+                        TargetResourceType = string.IsNullOrEmpty(ra.TargetResourceType) ? ccRef.TargetResourceType : ra.TargetResourceType,
+                        TargetResourceGroupName = string.IsNullOrEmpty(ra.TargetResourceGroupName) ? ccRef.TargetResourceGroupName : ra.TargetResourceGroupName,
+                    };
+                }
+                return ra with { IsTargetCrossConfig = isCrossConfig };
+            })
             .ToList();
 
         // ── Enrich app settings with cross-config info ──────────────────────
-        var crossConfigRefLookup = crossConfigRefReadModels
-            .ToDictionary(r => r.TargetResourceId);
 
         var enrichedAppSettings = appSettingReadModels
             .Select(s =>

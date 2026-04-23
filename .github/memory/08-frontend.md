@@ -78,6 +78,16 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - Steps use color-coded number badges: blue for normal, amber for permissions, green for finalization.
 - Orphan `CONFIG_DETAIL.BOOTSTRAP` keys were removed from fr.json (they were leftovers from the first implementation).
 
+## Secure Parameter Mapping UX [2026-04-23]
+- `resource-edit` loads secure parameter mappings through `SecureParameterMappingService` and currently exposes SQL Server password mapping for `administratorLoginPassword`.
+- Password mode is either auto-generated (`random`) or variable-group-backed (`variableGroup`).
+- In variable-group mode, the UI can reuse an existing project pipeline variable group or create a new one inline before saving the mapping.
+
+## Custom Domains UX [2026-04-23]
+- `resource-edit` supports custom domains for ContainerApp, WebApp, and FunctionApp only.
+- The feature moved out of a dedicated tab: custom domains now live inside each environment panel, and the add dialog preselects the current environment.
+- The UI groups domains per environment via `customDomainsForEnv(envName)` and includes a step-by-step Azure DNS tutorial in the editor flow.
+
 ## PITFALL — ACR reactivity [2026-04-03]
 - `onContainerRegistryChange` must patch `generalForm.containerRegistryId` so `DeploymentConfigComponent` gets updated input.
 - `onDeploymentModeChange` must trigger `checkAcrPullAccess()` when switching to Container mode with ACR already selected.

@@ -3243,13 +3243,17 @@
   padding-bottom: 1.25rem;
 
   .env-extra-section__header {
-    justify-content: space-between;
+    // No space-between; title takes remaining space, button stays right
   }
 
-  &__header-left {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  .env-extra-section__title {
+    flex: 1;
+  }
+
+  .cd-domain-list,
+  .custom-domains-section__empty,
+  .ra-loading {
+    margin-top: 0.75rem;
   }
 
   &__add-btn {

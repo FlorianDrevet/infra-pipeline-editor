@@ -46,7 +46,7 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - Bicep templates use `union()` to conditionally build the `probes` array — each probe type only emitted when both path is non-empty and port > 0
 - V1: HTTP probes only (no TCP/gRPC). Path must start with `/`, port 1-65535.
 
-## ContainerApp User-Defined Types (Parameter Grouping) [2026-05-14]
+## ContainerApp User-Defined Types (Parameter Grouping) [2026-04-22]
 - 16 flat Container App params refactored into 4 Bicep user-defined types:
   - `ContainerRuntimeConfig` (image, cpuCores, memoryGi)
   - `ScalingConfig` (minReplicas, maxReplicas)
@@ -59,6 +59,12 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - `BicepFormattingHelper.SerializeToBicep` now handles `IDictionary<string, object>` for merged parameter groups
 - Domain `ToDictionary()` remains unchanged — mapping from flat keys to structured groups is handled by `ParameterGroupMappings`
 - ACR params (`acrLoginServer`, `acrManagedIdentityClientId`) remain flat (conditional, not grouped)
+
+## Custom Domains & Secure Parameter Mapping Integration [2026-04-23]
+
+- `ResourceDefinition.CustomDomains` carries per-environment domain bindings into generation; `ParameterFileAssembler` emits `customDomains` arrays with `domainName` and `bindingType` entries.
+- Custom domains are rendered only for compute resources that support them: `ContainerAppTypeBicepGenerator`, `WebAppTypeBicepGenerator`, and `FunctionAppTypeBicepGenerator`.
+- `SecureParameterOverrideHelper` merges user-configured `SecureParameterMappings` into `PipelineVariableGroupDefinition.Mappings` and only auto-derives `overrideParameters` entries for secure params that are not mapped to a variable group.
 
 ## Identifier & Value Normalization [2026-04-22]
 - All Bicep identifiers use **camelCase** via `BicepIdentifierHelper` and `BicepFormattingHelper`.

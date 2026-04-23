@@ -9,6 +9,7 @@
 
 - **Repo indexé :** `infra-pipeline-editor`
 - **Dernière indexation connue :** 2026-04-03 (⚠️ stale — abbreviation overrides, name availability, seed script, etc. added since)
+- **Spot-check [2026-04-23] :** `gitnexus_context()` ne résout pas encore des symboles récents comme `CustomDomain` ou `BootstrapPipelineGenerationEngine`; traiter le graphe comme incomplet pour les features ajoutées après 2026-04-03 jusqu'à ré-indexation.
 - **Stats :** 9 569 nœuds, 41 834 edges, 667 clusters, 300 flows (likely higher now)
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)

@@ -1,6 +1,6 @@
 # API Endpoints Reference
 
-> 27 controllers — 18 Azure resource types + InfrastructureConfig + Project + ResourceGroup + BicepGeneration + PipelineGeneration + NamingTemplate + AppConfigurationKey + AppSetting + RoleAssignment
+> 29 controllers — 18 Azure resource types + InfrastructureConfig + Project + ResourceGroup + BicepGeneration + PipelineGeneration + NamingTemplate + AppConfigurationKey + AppSetting + RoleAssignment + SecureParameterMapping + CustomDomain
 
 ## Core Aggregates
 
@@ -25,6 +25,10 @@
 | `/projects` | GET | `/{id:guid}/generate-pipeline/download` | `DownloadProjectPipelineCommand` |
 | `/projects` | GET | `/{id:guid}/generate-pipeline/files/{*filePath}` | `GetProjectPipelineFileContentQuery` |
 | `/projects` | POST | `/{id:guid}/push-pipeline-to-git` | `PushProjectPipelineToGitCommand` |
+| `/projects` | POST | `/{id:guid}/generate-bootstrap-pipeline` | `GenerateProjectBootstrapPipelineCommand` |
+| `/projects` | GET | `/{id:guid}/generate-bootstrap-pipeline/download` | `DownloadProjectBootstrapPipelineCommand` |
+| `/projects` | GET | `/{id:guid}/generate-bootstrap-pipeline/files/{*filePath}` | `GetProjectBootstrapPipelineFileContentQuery` |
+| `/projects` | POST | `/{id:guid}/push-bootstrap-pipeline-to-git` | `PushProjectBootstrapPipelineToGitCommand` |
 | `/projects` | POST | `/{id:guid}/push-generated-artifacts-to-git` | `PushProjectGeneratedArtifactsToGitCommand` |
 | `/resource-group` | GET/POST/PUT/DELETE | `/{id:guid}` | ResourceGroup CRUD (DELETE added [2026-04-04]) |
 
@@ -61,6 +65,11 @@
 | `/azure-resources/{resourceId}/role-assignments` | DELETE | `/{roleAssignmentId}` | `RemoveRoleAssignmentCommand` |
 | `/azure-resources/{resourceId}/role-assignments` | GET | `/{roleAssignmentId}/impact-analysis` | `AnalyzeRoleAssignmentImpactQuery` |
 | `/azure-resources/{resourceId}/role-assignments` | PUT | `/{roleAssignmentId}/identity` | `UpdateRoleAssignmentIdentityCommand` |
+| `/azure-resources/{resourceId}/secure-parameter-mappings` | GET | `` | `GetSecureParameterMappingsQuery` |
+| `/azure-resources/{resourceId}/secure-parameter-mappings` | PUT | `` | `SetSecureParameterMappingCommand` |
+| `/azure-resources/{resourceId}/custom-domains` | GET | `` | `ListCustomDomainsQuery` |
+| `/azure-resources/{resourceId}/custom-domains` | POST | `` | `AddCustomDomainCommand` |
+| `/azure-resources/{resourceId}/custom-domains` | DELETE | `/{customDomainId}` | `RemoveCustomDomainCommand` |
 | `/azure-resources/{resourceId}/app-settings` | GET/POST/PUT/DELETE | various | AppSetting CRUD |
 | `/azure-resources/{resourceId}/available-outputs` | GET | `` | `GetAvailableOutputsQuery` |
 | `/azure-resources/{resourceId}/check-keyvault-access` | GET | `/{keyVaultId}` | `CheckKeyVaultAccessQuery` |
