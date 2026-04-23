@@ -1,73 +1,67 @@
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
-using RepositoryBinding = global::InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects.RepositoryBinding;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 
 namespace InfraFlowSculptor.Application.Common.GitRouting;
 
 /// <inheritdoc cref="IRepositoryTargetResolver"/>
 public sealed class RepositoryTargetResolver : IRepositoryTargetResolver
 {
-    private const string DefaultAlias = "default";
-
     /// <inheritdoc />
     public ErrorOr<ResolvedRepositoryTarget> Resolve(Project project, global::InfraFlowSculptor.Domain.InfrastructureConfigAggregate.InfrastructureConfig? config, ArtifactKind kind)
     {
         ArgumentNullException.ThrowIfNull(project);
 
-        // 1. Determine the alias to look up: binding (if any) wins, otherwise "default".
-        var binding = config?.RepositoryBinding;
-        var alias = binding?.Alias.Value ?? DefaultAlias;
+        // Today every artifact (Bicep, infra pipeline, bootstrap pipeline) routes to the
+        // Infrastructure-flagged repository. ApplicationCode-only routing is reserved for future use.
+        var role = RepositoryContentKindsEnum.Infrastructure;
 
-        // 2. Locate the matching ProjectRepository (sole source of truth).
-        var projectRepo = project.Repositories.FirstOrDefault(r => r.Alias.Value == alias);
-
-        if (projectRepo is not null)
+        if (project.LayoutPreset.Value == LayoutPresetEnum.MultiRepo)
         {
-            return BuildFromProjectRepository(projectRepo, binding, kind);
+            if (config is null || config.Repositories.Count == 0)
+                return Errors.GitRouting.NoRepositoryConfigured(project.Id);
+
+            var configRepo = config.Repositories.FirstOrDefault(r => r.ContentKinds.Has(role));
+            if (configRepo is null)
+                return Errors.GitRouting.AliasNotFound(role.ToString());
+
+            return BuildFromConfigRepository(configRepo);
         }
 
-        // 3. No match.
         if (project.Repositories.Count == 0)
-        {
             return Errors.GitRouting.NoRepositoryConfigured(project.Id);
-        }
 
-        return Errors.GitRouting.AliasNotFound(alias);
+        var projectRepo = project.Repositories.FirstOrDefault(r => r.ContentKinds.Has(role));
+        if (projectRepo is null)
+            return Errors.GitRouting.AliasNotFound(role.ToString());
+
+        return BuildFromProjectRepository(projectRepo);
     }
 
-    private static ResolvedRepositoryTarget BuildFromProjectRepository(
-        ProjectRepository repo,
-        RepositoryBinding? binding,
-        ArtifactKind kind)
-    {
-        var branch = binding?.Branch ?? repo.DefaultBranch;
-        var (basePath, pipelineBasePath) = ResolvePaths(binding?.InfraPath, binding?.PipelinePath, kind);
-
-        return new ResolvedRepositoryTarget(
+    private static ResolvedRepositoryTarget BuildFromProjectRepository(ProjectRepository repo) =>
+        new(
             Alias: repo.Alias.Value,
             ProviderType: repo.ProviderType,
             RepositoryUrl: repo.RepositoryUrl,
             Owner: repo.Owner,
             RepositoryName: repo.RepositoryName,
-            Branch: branch,
-            BasePath: basePath,
-            PipelineBasePath: pipelineBasePath,
-            // ProjectRepository does not yet expose a PAT secret name — deferred.
+            Branch: repo.DefaultBranch,
+            BasePath: null,
+            PipelineBasePath: null,
             PatSecretName: null);
-    }
 
-    private static (string? BasePath, string? PipelineBasePath) ResolvePaths(
-        string? bindingInfraPath,
-        string? bindingPipelinePath,
-        ArtifactKind kind)
-    {
-        return kind switch
-        {
-            ArtifactKind.Infrastructure => (bindingInfraPath, null),
-            ArtifactKind.Pipeline or ArtifactKind.Bootstrap => (bindingInfraPath, bindingPipelinePath),
-            _ => (bindingInfraPath, bindingPipelinePath),
-        };
-    }
+    private static ResolvedRepositoryTarget BuildFromConfigRepository(InfraConfigRepository repo) =>
+        new(
+            Alias: repo.Alias.Value,
+            ProviderType: repo.ProviderType,
+            RepositoryUrl: repo.RepositoryUrl,
+            Owner: repo.Owner,
+            RepositoryName: repo.RepositoryName,
+            Branch: repo.DefaultBranch,
+            BasePath: null,
+            PipelineBasePath: null,
+            PatSecretName: null);
 }

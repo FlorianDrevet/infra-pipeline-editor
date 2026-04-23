@@ -96,28 +96,23 @@ public sealed class InfrastructureConfigConfiguration
             .OnDelete(DeleteBehavior.Cascade);
 
         // ========================
-        // RepositoryBinding (OWNED, optional)
+        // LayoutMode (per-config sub-mode for MultiRepo)
         // ========================
-        builder.OwnsOne(x => x.RepositoryBinding, binding =>
-        {
-            binding.Property(b => b.Alias)
-                .HasConversion(new RepositoryAliasConverter())
-                .HasColumnName("RepositoryBinding_Alias")
-                .HasMaxLength(50);
+        builder.Property(x => x.LayoutMode)
+            .HasConversion(new EnumValueConverter<ConfigLayoutMode, ConfigLayoutModeEnum>())
+            .HasMaxLength(30)
+            .IsRequired(false);
 
-            binding.Property(b => b.Branch)
-                .HasColumnName("RepositoryBinding_Branch")
-                .HasMaxLength(200);
-
-            binding.Property(b => b.InfraPath)
-                .HasColumnName("RepositoryBinding_InfraPath")
-                .HasMaxLength(500);
-
-            binding.Property(b => b.PipelinePath)
-                .HasColumnName("RepositoryBinding_PipelinePath")
-                .HasMaxLength(500);
-        });
-        builder.Navigation(x => x.RepositoryBinding).IsRequired(false);
+        // ========================
+        // Repositories (Entity, MultiRepo only)
+        // ========================
+        builder.HasMany(x => x.Repositories)
+            .WithOne()
+            .HasForeignKey(r => r.InfrastructureConfigId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(x => x.Repositories)
+            .HasField("_repositories")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         // ========================
         // Tags (OWNED)

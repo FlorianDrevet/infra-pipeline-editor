@@ -126,7 +126,6 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
             .Map(dest => dest.ResourceAbbreviations, src => src.ResourceAbbreviations)
             .Map(dest => dest.LayoutPreset, src => src.LayoutPreset.Value.ToString())
-            .Map(dest => dest.CommonsStrategy, src => src.CommonsStrategy.Value.ToString())
             .Map(dest => dest.Repositories, src => src.Repositories)
             .Map(dest => dest.Tags, src => src.Tags)
             .Map(dest => dest.AgentPoolName, src => src.AgentPoolName);
@@ -145,8 +144,7 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.AgentPoolName, src => src.AgentPoolName)
             .Map(dest => dest.UsedResourceTypes, src => src.UsedResourceTypes)
             .Map(dest => dest.Repositories, src => src.Repositories)
-            .Map(dest => dest.LayoutPreset, src => src.LayoutPreset)
-            .Map(dest => dest.CommonsStrategy, src => src.CommonsStrategy);
+            .Map(dest => dest.LayoutPreset, src => src.LayoutPreset);
 
         // ProjectRepositoryResult -> ProjectRepositoryResponse
         config.NewConfig<ProjectRepositoryResult, ProjectRepositoryResponse>()

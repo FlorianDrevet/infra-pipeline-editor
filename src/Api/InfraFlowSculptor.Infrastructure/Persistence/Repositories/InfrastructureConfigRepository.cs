@@ -16,6 +16,18 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     {
     }
 
+    /// <summary>Override to eagerly load the per-config Repositories collection (MultiRepo layout).</summary>
+    public override async Task<InfrastructureConfig?> GetByIdAsync(
+        Domain.Common.Models.ValueObject id, CancellationToken cancellationToken = default)
+    {
+        if (id is not InfrastructureConfigId typedId)
+            return await base.GetByIdAsync(id, cancellationToken);
+
+        return await Context.InfrastructureConfigs
+            .Include(c => c.Repositories)
+            .FirstOrDefaultAsync(c => c.Id == typedId, cancellationToken);
+    }
+
     public async Task<InfrastructureConfig?> GetByIdWithMembersAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default)
     {
         return await Context.InfrastructureConfigs
@@ -58,20 +70,5 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
             .Where(c => Context.ProjectMembers.Any(pm => pm.ProjectId == c.ProjectId && pm.UserId == userId))
             .Select(c => new InfraConfigSummary(c.Id.Value, c.Name.Value))
             .ToListAsync(cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<bool> AnyBoundToRepositoryAliasAsync(
-        ProjectId projectId,
-        RepositoryAlias alias,
-        CancellationToken cancellationToken = default)
-    {
-        return await Context.InfrastructureConfigs
-            .AsNoTracking()
-            .AnyAsync(
-                c => c.ProjectId == projectId
-                  && c.RepositoryBinding != null
-                  && c.RepositoryBinding.Alias == alias,
-                cancellationToken);
     }
 }

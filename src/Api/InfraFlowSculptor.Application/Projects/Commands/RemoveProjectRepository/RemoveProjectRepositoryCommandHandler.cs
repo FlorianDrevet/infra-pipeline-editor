@@ -8,7 +8,6 @@ namespace InfraFlowSculptor.Application.Projects.Commands.RemoveProjectRepositor
 /// <summary>Handles the <see cref="RemoveProjectRepositoryCommand"/>.</summary>
 public sealed class RemoveProjectRepositoryCommandHandler(
     IProjectRepository projectRepository,
-    IInfrastructureConfigRepository infraConfigRepository,
     IProjectAccessService accessService)
     : ICommandHandler<RemoveProjectRepositoryCommand, Deleted>
 {
@@ -27,15 +26,6 @@ public sealed class RemoveProjectRepositoryCommandHandler(
         var existing = project.Repositories.FirstOrDefault(r => r.Id == command.RepositoryId);
         if (existing is null)
             return Errors.ProjectRepository.NotFound(command.RepositoryId);
-
-        var alias = existing.Alias;
-
-        // Refuse the deletion if at least one infrastructure configuration is still bound
-        // to this repository alias to avoid orphan bindings.
-        var inUse = await infraConfigRepository.AnyBoundToRepositoryAliasAsync(
-            command.ProjectId, alias, cancellationToken);
-        if (inUse)
-            return Errors.ProjectRepository.RepositoryInUse(alias.Value);
 
         var removeResult = project.RemoveRepository(command.RepositoryId);
         if (removeResult.IsError)

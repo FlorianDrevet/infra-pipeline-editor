@@ -18,5 +18,4 @@ public record ProjectResult(
     string? AgentPoolName = null,
     IReadOnlyList<string>? UsedResourceTypes = null,
     IReadOnlyList<ProjectRepositoryResult>? Repositories = null,
-    string LayoutPreset = "MultiRepo",
-    string CommonsStrategy = "DuplicatePerRepo");
+    string LayoutPreset = "MultiRepo");

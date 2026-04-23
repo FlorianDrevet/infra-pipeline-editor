@@ -27,18 +27,4 @@ public interface IInfrastructureConfigRepository : IRepository<Domain.Infrastruc
     /// Use this projection when only summary fields are needed, avoiding loading full aggregates.
     /// </summary>
     Task<List<InfraConfigSummary>> GetConfigSummariesForUserAsync(UserId userId, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Returns <c>true</c> if at least one configuration of the given project is bound to the
-    /// project-level repository identified by <paramref name="alias"/>.
-    /// Used to forbid deletion of a <c>ProjectRepository</c> that is still referenced.
-    /// </summary>
-    /// <param name="projectId">The parent project identifier.</param>
-    /// <param name="alias">The repository alias to test.</param>
-    /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
-    /// <returns><c>true</c> when at least one binding exists; otherwise <c>false</c>.</returns>
-    Task<bool> AnyBoundToRepositoryAliasAsync(
-        ProjectId projectId,
-        RepositoryAlias alias,
-        CancellationToken cancellationToken = default);
 }

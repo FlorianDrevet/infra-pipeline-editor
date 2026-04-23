@@ -19,22 +19,20 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslateModule } from '@ngx-translate/core';
+import { RepositoryContentKind } from '../../../shared/interfaces/project-repository.interface';
 import {
-  AddProjectRepositoryRequest,
-  ProjectRepositoryResponse,
-  RepositoryContentKind,
-  UpdateProjectRepositoryRequest,
-} from '../../../../shared/interfaces/project-repository.interface';
-import { ProjectService } from '../../../../shared/services/project.service';
+  AddInfraConfigRepositoryRequest,
+  InfraConfigRepositoryResponse,
+  UpdateInfraConfigRepositoryRequest,
+} from '../../../shared/interfaces/infra-config-repository.interface';
+import { ProjectService } from '../../../shared/services/project.service';
 
-export interface RepositoryDialogData {
+export interface InfraConfigRepositoryDialogData {
   projectId: string;
+  configId: string;
   mode: 'create' | 'edit';
-  existing?: ProjectRepositoryResponse;
-  /**
-   * When set, the listed content kinds are pre-selected and the toggles are locked.
-   * Used for slotted layouts (AllInOne / SplitInfraCode) so the user cannot mismatch the slot.
-   */
+  existing?: InfraConfigRepositoryResponse;
+  /** Pre-selected and locked content kinds for slotted layouts. */
   lockedKinds?: RepositoryContentKind[];
 }
 
@@ -51,7 +49,7 @@ const CONTENT_KINDS: ReadonlyArray<RepositoryContentKind> = [
 ];
 
 @Component({
-  selector: 'app-repository-dialog',
+  selector: 'app-infra-config-repository-dialog',
   standalone: true,
   imports: [
     MatDialogModule,
@@ -64,13 +62,13 @@ const CONTENT_KINDS: ReadonlyArray<RepositoryContentKind> = [
     ReactiveFormsModule,
     TranslateModule,
   ],
-  templateUrl: './repository-dialog.component.html',
-  styleUrl: './repository-dialog.component.scss',
+  templateUrl: './infra-config-repository-dialog.component.html',
+  styleUrl: './infra-config-repository-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RepositoryDialogComponent {
-  private readonly dialogRef = inject(MatDialogRef<RepositoryDialogComponent>);
-  private readonly data: RepositoryDialogData = inject(MAT_DIALOG_DATA);
+export class InfraConfigRepositoryDialogComponent {
+  private readonly dialogRef = inject(MatDialogRef<InfraConfigRepositoryDialogComponent>);
+  private readonly data: InfraConfigRepositoryDialogData = inject(MAT_DIALOG_DATA);
   private readonly projectService = inject(ProjectService);
   private readonly fb = inject(FormBuilder);
 
@@ -137,34 +135,36 @@ export class RepositoryDialogComponent {
 
     try {
       if (this.isEditMode && this.data.existing) {
-        const req: UpdateProjectRepositoryRequest = {
+        const req: UpdateInfraConfigRepositoryRequest = {
           providerType: raw.providerType,
           repositoryUrl: raw.repositoryUrl,
           defaultBranch: raw.defaultBranch,
           contentKinds: selectedKinds,
         };
-        await this.projectService.updateRepository(
+        await this.projectService.updateConfigRepository(
           this.data.projectId,
+          this.data.configId,
           this.data.existing.id,
           req
         );
         this.dialogRef.close({ updated: true });
       } else {
-        const req: AddProjectRepositoryRequest = {
+        const req: AddInfraConfigRepositoryRequest = {
           alias: raw.alias,
           providerType: raw.providerType,
           repositoryUrl: raw.repositoryUrl,
           defaultBranch: raw.defaultBranch,
           contentKinds: selectedKinds,
         };
-        const result = await this.projectService.addRepository(
+        const result = await this.projectService.addConfigRepository(
           this.data.projectId,
+          this.data.configId,
           req
         );
         this.dialogRef.close({ created: true, id: result.id });
       }
     } catch {
-      this.errorKey.set('PROJECT_DETAIL.LAYOUT.DIALOG_ERROR');
+      this.errorKey.set('CONFIG_DETAIL.REPOSITORIES.DIALOG.SAVE_ERROR');
     } finally {
       this.isSubmitting.set(false);
     }

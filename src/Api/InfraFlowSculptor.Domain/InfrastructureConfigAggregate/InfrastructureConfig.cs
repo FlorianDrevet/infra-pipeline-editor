@@ -69,10 +69,15 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
     public IReadOnlyCollection<Tag> Tags => _tags;
 
     /// <summary>
-    /// Gets the optional repository binding linking this configuration to a project-level
-    /// <see cref="ProjectAggregate.Entities.ProjectRepository"/>. <c>null</c> when no binding is set.
+    /// Gets the optional configuration-level layout mode used when the parent project layout is
+    /// <see cref="ProjectAggregate.ValueObjects.LayoutPresetEnum.MultiRepo"/>. <c>null</c> otherwise.
     /// </summary>
-    public RepositoryBinding? RepositoryBinding { get; private set; }
+    public ConfigLayoutMode? LayoutMode { get; private set; }
+
+    private readonly List<Entities.InfraConfigRepository> _repositories = [];
+
+    /// <summary>Gets the Git repositories declared at this configuration level (only used when project layout is MultiRepo).</summary>
+    public IReadOnlyCollection<Entities.InfraConfigRepository> Repositories => _repositories.AsReadOnly();
 
     /// <summary>Replaces all configuration-level tags with the provided collection.</summary>
     public void SetTags(IEnumerable<Tag> tags)
@@ -236,18 +241,114 @@ public sealed class InfrastructureConfig : AggregateRoot<InfrastructureConfigId>
         return Result.Deleted;
     }
 
-    // ─── Repository Binding ─────────────────────────────────────────────────
+    // ─── Configuration-level Repositories (MultiRepo project layout only) ──────────────────
 
     /// <summary>
-    /// Sets or clears the repository binding for this configuration.
-    /// Pass <c>null</c> to clear the binding.
+    /// Sets or clears the per-configuration <see cref="ConfigLayoutMode"/>.
+    /// Switching mode auto-clears existing config-level repositories so the user can reconfigure.
     /// </summary>
-    /// <param name="binding">The new binding, or <c>null</c> to clear.</param>
-    /// <returns><see cref="Result.Updated"/> on success.</returns>
-    public ErrorOr<Updated> SetRepositoryBinding(RepositoryBinding? binding)
+    public void SetLayoutMode(ConfigLayoutMode? mode)
     {
-        RepositoryBinding = binding;
-        return Result.Updated;
+        // Auto-clear repos whenever the mode changes (including to null).
+        if (LayoutMode?.Value != mode?.Value)
+        {
+            _repositories.Clear();
+        }
+        LayoutMode = mode;
+    }
+
+    /// <summary>Adds a new <see cref="Entities.InfraConfigRepository"/> to this configuration.</summary>
+    public ErrorOr<Entities.InfraConfigRepository> AddRepository(
+        ProjectAggregate.ValueObjects.RepositoryAlias alias,
+        ProjectAggregate.ValueObjects.GitProviderType providerType,
+        string repositoryUrl,
+        string defaultBranch,
+        ProjectAggregate.ValueObjects.RepositoryContentKinds contentKinds)
+    {
+        if (LayoutMode is null)
+            return Domain.Common.Errors.Errors.InfraConfigRepository.LayoutModeRequired();
+
+        var allowed = EnsureRepositoryAllowedByLayout(contentKinds, expectedCountAfterAdd: _repositories.Count + 1);
+        if (allowed.IsError) return allowed.Errors;
+
+        if (_repositories.Any(r => r.Alias == alias))
+            return Domain.Common.Errors.Errors.InfraConfigRepository.DuplicateAlias(alias.Value);
+
+        var created = Entities.InfraConfigRepository.Create(Id, alias, providerType, repositoryUrl, defaultBranch, contentKinds);
+        if (created.IsError) return created.Errors;
+
+        _repositories.Add(created.Value);
+        return created.Value;
+    }
+
+    /// <summary>Updates an existing <see cref="Entities.InfraConfigRepository"/> by id.</summary>
+    public ErrorOr<Entities.InfraConfigRepository> UpdateRepository(
+        ValueObjects.InfraConfigRepositoryId id,
+        ProjectAggregate.ValueObjects.GitProviderType providerType,
+        string repositoryUrl,
+        string defaultBranch,
+        ProjectAggregate.ValueObjects.RepositoryContentKinds contentKinds)
+    {
+        var existing = _repositories.FirstOrDefault(r => r.Id == id);
+        if (existing is null)
+            return Domain.Common.Errors.Errors.InfraConfigRepository.NotFound(id);
+
+        var allowed = EnsureRepositoryAllowedByLayout(contentKinds, expectedCountAfterAdd: _repositories.Count, ignoredId: id);
+        if (allowed.IsError) return allowed.Errors;
+
+        var updated = existing.Update(providerType, repositoryUrl, defaultBranch, contentKinds);
+        if (updated.IsError) return updated.Errors;
+
+        return existing;
+    }
+
+    /// <summary>Removes an <see cref="Entities.InfraConfigRepository"/> by id.</summary>
+    public ErrorOr<Deleted> RemoveRepository(ValueObjects.InfraConfigRepositoryId id)
+    {
+        var existing = _repositories.FirstOrDefault(r => r.Id == id);
+        if (existing is null)
+            return Domain.Common.Errors.Errors.InfraConfigRepository.NotFound(id);
+
+        _repositories.Remove(existing);
+        return Result.Deleted;
+    }
+
+    private ErrorOr<Success> EnsureRepositoryAllowedByLayout(
+        ProjectAggregate.ValueObjects.RepositoryContentKinds candidate,
+        int expectedCountAfterAdd,
+        ValueObjects.InfraConfigRepositoryId? ignoredId = null)
+    {
+        var others = ignoredId is null
+            ? _repositories
+            : _repositories.Where(r => r.Id != ignoredId).ToList();
+
+        switch (LayoutMode!.Value)
+        {
+            case ValueObjects.ConfigLayoutModeEnum.AllInOne:
+                if (expectedCountAfterAdd > 1)
+                    return Domain.Common.Errors.Errors.InfraConfigRepository.AllInOneRequiresOneRepository();
+                if (!candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.Infrastructure)
+                    || !candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.ApplicationCode))
+                    return Domain.Common.Errors.Errors.InfraConfigRepository.AllInOneRequiresOneRepository();
+                return Result.Success;
+
+            case ValueObjects.ConfigLayoutModeEnum.SplitInfraCode:
+                if (expectedCountAfterAdd > 2)
+                    return Domain.Common.Errors.Errors.InfraConfigRepository.SplitInfraCodeRequiresInfraAndApp();
+                var isInfraOnly = candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.Infrastructure)
+                                  && !candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.ApplicationCode);
+                var isAppOnly = candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.ApplicationCode)
+                                && !candidate.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.Infrastructure);
+                if (!isInfraOnly && !isAppOnly)
+                    return Domain.Common.Errors.Errors.InfraConfigRepository.SplitInfraCodeRequiresInfraAndApp();
+                var conflict = others.Any(r =>
+                    (isInfraOnly && r.ContentKinds.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.Infrastructure))
+                    || (isAppOnly && r.ContentKinds.Has(ProjectAggregate.ValueObjects.RepositoryContentKindsEnum.ApplicationCode)));
+                if (conflict)
+                    return Domain.Common.Errors.Errors.InfraConfigRepository.SplitInfraCodeRequiresInfraAndApp();
+                return Result.Success;
+        }
+        return Result.Success;
     }
 
 }

@@ -71,10 +71,15 @@ export class GenerationBoardComponent implements OnInit {
     const project = this.project();
     const repos = project?.repositories ?? [];
     const repoByAlias = new Map(repos.map((r) => [r.alias, r]));
+    const isMultiRepo = project?.layoutPreset === 'MultiRepo';
 
     const byAlias = new Map<string, InfrastructureConfigResponse[]>();
     for (const config of configs) {
-      const alias = config.repositoryBinding?.alias ?? DEFAULT_ALIAS;
+      // MultiRepo: bucket by the first config-level repo alias (or fallback to config name).
+      // Mono-repo layouts: all configs share project-level repos, bucket by first project repo alias.
+      const alias = isMultiRepo
+        ? (config.repositories?.[0]?.alias ?? config.name ?? DEFAULT_ALIAS)
+        : (repos[0]?.alias ?? DEFAULT_ALIAS);
       const bucket = byAlias.get(alias);
       if (bucket) {
         bucket.push(config);
@@ -86,7 +91,10 @@ export class GenerationBoardComponent implements OnInit {
     return Array.from(byAlias.entries())
       .map<AliasGroup>(([alias, items]) => ({
         alias,
-        repo: repoByAlias.get(alias) ?? null,
+        repo: repoByAlias.get(alias)
+          ?? (isMultiRepo
+            ? (items[0]?.repositories?.find((r) => r.alias === alias) ?? null)
+            : null),
         configs: items,
       }))
       .sort((a, b) => a.alias.localeCompare(b.alias));

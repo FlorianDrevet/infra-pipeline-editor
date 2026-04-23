@@ -12,7 +12,6 @@ public static partial class Errors
         private const string DuplicateAliasCode = "ProjectRepository.DuplicateAlias";
         private const string NotFoundCode = "ProjectRepository.NotFound";
         private const string NoContentKindCode = "ProjectRepository.NoContentKind";
-        private const string UnsupportedCommonsStrategyCode = "ProjectRepository.UnsupportedCommonsStrategy";
         private const string InvalidUrlCode = "ProjectRepository.InvalidUrl";
         private const string RepositoryInUseCode = "ProjectRepository.RepositoryInUse";
 
@@ -39,10 +38,6 @@ public static partial class Errors
         /// <summary>Returns a validation error when no content kind is selected.</summary>
         public static Error NoContentKind() =>
             Error.Validation(code: NoContentKindCode, description: "At least one repository content kind must be selected.");
-
-        /// <summary>Returns a validation error when the requested commons strategy is not supported in the current version.</summary>
-        public static Error UnsupportedCommonsStrategy(CommonsStrategyEnum strategy) =>
-            Error.Validation(code: UnsupportedCommonsStrategyCode, description: $"The commons strategy '{strategy}' is not supported in this version. Only 'DuplicatePerRepo' is allowed.");
 
         /// <summary>Returns a validation error when the repository URL cannot be parsed.</summary>
         public static Error InvalidUrl(string url) =>

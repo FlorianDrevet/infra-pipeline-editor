@@ -5,17 +5,14 @@ namespace InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 /// <summary>Defines the high-level repository layout strategy of a project.</summary>
 public enum LayoutPresetEnum
 {
-    /// <summary>One single repository contains infrastructure, application code, and pipelines.</summary>
+    /// <summary>One single repository contains infrastructure, application code and all pipelines.</summary>
     AllInOne,
 
-    /// <summary>Two repositories: one for infrastructure, one for application code.</summary>
+    /// <summary>Two repositories: one for infrastructure (with infra pipelines), one for application code (with app pipelines).</summary>
     SplitInfraCode,
 
-    /// <summary>N repositories, typically one per infrastructure configuration.</summary>
+    /// <summary>Repositories are declared per infrastructure configuration. The project itself owns no repository.</summary>
     MultiRepo,
-
-    /// <summary>Custom mix of repositories defined manually by the user.</summary>
-    Custom,
 }
 
 /// <summary>Value object wrapping <see cref="LayoutPresetEnum"/>.</summary>

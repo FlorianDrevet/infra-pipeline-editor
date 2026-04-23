@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  computed,
   inject,
   input,
   signal,
@@ -20,9 +21,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AxiosError } from 'axios';
 import { ProjectResponse } from '../../../shared/interfaces/project.interface';
 import {
-  ProjectCommonsStrategy,
   ProjectLayoutPreset,
   ProjectRepositoryResponse,
+  RepositoryContentKind,
 } from '../../../shared/interfaces/project-repository.interface';
 import { ProjectService } from '../../../shared/services/project.service';
 import {
@@ -40,10 +41,10 @@ interface PresetOption {
   descriptionKey: string;
 }
 
-interface CommonsStrategyOption {
-  value: ProjectCommonsStrategy;
-  labelKey: string;
-  disabled: boolean;
+interface RepoSlot {
+  readonly kind: RepositoryContentKind;
+  readonly labelKey: string;
+  readonly repo: ProjectRepositoryResponse | null;
 }
 
 const LAYOUT_PRESETS: ReadonlyArray<PresetOption> = [
@@ -62,17 +63,6 @@ const LAYOUT_PRESETS: ReadonlyArray<PresetOption> = [
     labelKey: 'PROJECT_DETAIL.LAYOUT.PRESET_MULTI_REPO',
     descriptionKey: 'PROJECT_DETAIL.LAYOUT.PRESET_MULTI_REPO_DESC',
   },
-  {
-    value: 'Custom',
-    labelKey: 'PROJECT_DETAIL.LAYOUT.PRESET_CUSTOM',
-    descriptionKey: 'PROJECT_DETAIL.LAYOUT.PRESET_CUSTOM_DESC',
-  },
-];
-
-const COMMONS_STRATEGIES: ReadonlyArray<CommonsStrategyOption> = [
-  { value: 'DuplicatePerRepo', labelKey: 'PROJECT_DETAIL.LAYOUT.COMMONS_DUPLICATE', disabled: false },
-  { value: 'DedicatedCommonsRepo', labelKey: 'PROJECT_DETAIL.LAYOUT.COMMONS_DEDICATED', disabled: true },
-  { value: 'AzdoRepoResource', labelKey: 'PROJECT_DETAIL.LAYOUT.COMMONS_AZDO', disabled: true },
 ];
 
 @Component({
@@ -105,11 +95,41 @@ export class LayoutRepositoriesComponent implements OnInit {
   protected readonly project = signal<ProjectResponse | null>(null);
   protected readonly isLoading = signal(false);
   protected readonly presetSaving = signal(false);
-  protected readonly strategySaving = signal(false);
   protected readonly repoActionId = signal<string | null>(null);
 
   protected readonly layoutPresets = LAYOUT_PRESETS;
-  protected readonly commonsStrategies = COMMONS_STRATEGIES;
+
+  protected readonly currentPreset = computed<ProjectLayoutPreset>(() => {
+    const preset = this.project()?.layoutPreset;
+    if (preset === 'SplitInfraCode' || preset === 'MultiRepo') return preset;
+    return 'AllInOne';
+  });
+
+  protected readonly repositories = computed<ProjectRepositoryResponse[]>(
+    () => this.project()?.repositories ?? [],
+  );
+
+  /** Repo currently filling the AllInOne slot (must hold both kinds). */
+  protected readonly allInOneRepo = computed<ProjectRepositoryResponse | null>(() => {
+    return this.repositories()[0] ?? null;
+  });
+
+  /** Slots for the SplitInfraCode preset. */
+  protected readonly splitSlots = computed<RepoSlot[]>(() => {
+    const repos = this.repositories();
+    return [
+      {
+        kind: 'Infrastructure',
+        labelKey: 'PROJECT_DETAIL.LAYOUT.SLOT_INFRASTRUCTURE',
+        repo: repos.find((r) => r.contentKinds.includes('Infrastructure')) ?? null,
+      },
+      {
+        kind: 'ApplicationCode',
+        labelKey: 'PROJECT_DETAIL.LAYOUT.SLOT_APPLICATION_CODE',
+        repo: repos.find((r) => r.contentKinds.includes('ApplicationCode')) ?? null,
+      },
+    ];
+  });
 
   async ngOnInit(): Promise<void> {
     await this.load();
@@ -127,11 +147,8 @@ export class LayoutRepositoriesComponent implements OnInit {
     }
   }
 
-  protected get repositories(): ProjectRepositoryResponse[] {
-    return this.project()?.repositories ?? [];
-  }
-
   protected async onPresetChange(preset: ProjectLayoutPreset): Promise<void> {
+    if (preset === this.currentPreset()) return;
     this.presetSaving.set(true);
     try {
       await this.projectService.setLayoutPreset(this.projectId(), preset);
@@ -143,31 +160,26 @@ export class LayoutRepositoriesComponent implements OnInit {
     }
   }
 
-  protected async onStrategyChange(strategy: ProjectCommonsStrategy): Promise<void> {
-    this.strategySaving.set(true);
-    try {
-      await this.projectService.setCommonsStrategy(this.projectId(), strategy);
-      await this.load();
-    } catch (error) {
-      this.showError(this.mapError(error, 'PROJECT_DETAIL.LAYOUT.STRATEGY_ERROR'));
-    } finally {
-      this.strategySaving.set(false);
-    }
-  }
-
-  protected openAddRepoDialog(): void {
-    const data: RepositoryDialogData = { projectId: this.projectId(), mode: 'create' };
+  protected openAllInOneDialog(): void {
+    const existing = this.allInOneRepo();
+    const data: RepositoryDialogData = {
+      projectId: this.projectId(),
+      mode: existing ? 'edit' : 'create',
+      existing: existing ?? undefined,
+      lockedKinds: ['Infrastructure', 'ApplicationCode'],
+    };
     const ref = this.dialog.open(RepositoryDialogComponent, { data, width: '560px' });
     ref.afterClosed().subscribe(async (result) => {
       if (result) await this.load();
     });
   }
 
-  protected openEditRepoDialog(repo: ProjectRepositoryResponse): void {
+  protected openSlotDialog(slot: RepoSlot): void {
     const data: RepositoryDialogData = {
       projectId: this.projectId(),
-      mode: 'edit',
-      existing: repo,
+      mode: slot.repo ? 'edit' : 'create',
+      existing: slot.repo ?? undefined,
+      lockedKinds: [slot.kind],
     };
     const ref = this.dialog.open(RepositoryDialogComponent, { data, width: '560px' });
     ref.afterClosed().subscribe(async (result) => {

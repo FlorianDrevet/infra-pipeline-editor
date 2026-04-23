@@ -16,7 +16,8 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// <param name="ResourceGroupCount">Number of resource groups in this configuration.</param>
 /// <param name="ResourceCount">Total number of Azure resources across all resource groups.</param>
 /// <param name="CrossConfigReferenceCount">Number of cross-configuration resource references.</param>
-/// <param name="RepositoryBinding">Optional V2 multi-repo binding (alias + overrides) selecting the repository that hosts this configuration's artifacts.</param>
+/// <param name="LayoutMode">When the parent project is in MultiRepo mode, the per-config layout (AllInOne or SplitInfraCode); <c>null</c> otherwise.</param>
+/// <param name="Repositories">When the parent project is in MultiRepo mode, the Git repositories declared on this configuration.</param>
 public record InfrastructureConfigResponse(
     string Id,
     string Name,
@@ -29,4 +30,5 @@ public record InfrastructureConfigResponse(
     int ResourceGroupCount,
     int ResourceCount,
     int CrossConfigReferenceCount,
-    RepositoryBindingResponse? RepositoryBinding = null);
+    string? LayoutMode = null,
+    IReadOnlyList<InfraConfigRepositoryResponse>? Repositories = null);

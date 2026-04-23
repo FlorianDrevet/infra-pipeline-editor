@@ -54,11 +54,23 @@ public static partial class Errors
 
         /// <summary>Returned when a layout preset string cannot be parsed into a valid <see cref="LayoutPresetEnum"/> value.</summary>
         public static Error InvalidLayoutPreset(string raw) =>
-            Error.Validation(code: "Project.InvalidLayoutPreset", description: $"Invalid layout preset '{raw}'. Valid values: AllInOne, SplitInfraCode, MultiRepo, Custom.");
+            Error.Validation(code: "Project.InvalidLayoutPreset", description: $"Invalid layout preset '{raw}'. Valid values: AllInOne, SplitInfraCode, MultiRepo.");
 
-        /// <summary>Returned when a commons strategy string cannot be parsed into a valid <see cref="CommonsStrategyEnum"/> value.</summary>
-        public static Error InvalidCommonsStrategy(string raw) =>
-            Error.Validation(code: "Project.InvalidCommonsStrategy", description: $"Invalid commons strategy '{raw}'. Valid values: DuplicatePerRepo, DedicatedCommonsRepo, AzdoRepoResource.");
+        /// <summary>Returned when current project repositories do not match the requested layout cardinality.</summary>
+        public static Error LayoutPresetMismatch(LayoutPresetEnum target, string detail) =>
+            Error.Conflict(code: "Project.LayoutPresetMismatch", description: $"Current project repositories do not match layout '{target}': {detail}");
+
+        /// <summary>Returned when AllInOne layout is requested but the project does not have exactly one repository hosting both Infrastructure and ApplicationCode.</summary>
+        public static Error AllInOneRequiresExactlyOneRepository() =>
+            Error.Conflict(code: "Project.AllInOneRequiresExactlyOneRepository", description: "AllInOne layout requires exactly one project repository declaring both Infrastructure and ApplicationCode content kinds.");
+
+        /// <summary>Returned when SplitInfraCode layout is requested but the project does not have exactly two repositories (one Infrastructure, one ApplicationCode).</summary>
+        public static Error SplitInfraCodeRequiresInfraAndAppRepositories() =>
+            Error.Conflict(code: "Project.SplitInfraCodeRequiresInfraAndAppRepositories", description: "SplitInfraCode layout requires exactly two project repositories: one with Infrastructure only, one with ApplicationCode only.");
+
+        /// <summary>Returned when a project repository is added but its content kinds violate the current layout preset.</summary>
+        public static Error RepositoryNotAllowedByLayout(LayoutPresetEnum preset, string detail) =>
+            Error.Conflict(code: "Project.RepositoryNotAllowedByLayout", description: $"Repository operation is not allowed by layout '{preset}': {detail}");
 
         /// <summary>Returned when a project has no infrastructure configurations for generation.</summary>
         public static Error NoConfigurationsError() =>

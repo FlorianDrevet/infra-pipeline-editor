@@ -1,8 +1,8 @@
-export type RepositoryContentKind = 'Infrastructure' | 'ApplicationCode';
+import { RepositoryContentKind } from './project-repository.interface';
 
-export type ProjectLayoutPreset = 'AllInOne' | 'SplitInfraCode' | 'MultiRepo';
+export type ConfigLayoutMode = 'AllInOne' | 'SplitInfraCode';
 
-export interface ProjectRepositoryResponse {
+export interface InfraConfigRepositoryResponse {
   id: string;
   alias: string;
   providerType: string;
@@ -13,7 +13,7 @@ export interface ProjectRepositoryResponse {
   contentKinds: RepositoryContentKind[];
 }
 
-export interface AddProjectRepositoryRequest {
+export interface AddInfraConfigRepositoryRequest {
   alias: string;
   providerType: string;
   repositoryUrl: string;
@@ -21,13 +21,13 @@ export interface AddProjectRepositoryRequest {
   contentKinds: RepositoryContentKind[];
 }
 
-export interface UpdateProjectRepositoryRequest {
+export interface UpdateInfraConfigRepositoryRequest {
   providerType: string;
   repositoryUrl: string;
   defaultBranch: string;
   contentKinds: RepositoryContentKind[];
 }
 
-export interface SetProjectLayoutPresetRequest {
-  preset: ProjectLayoutPreset;
+export interface SetInfraConfigLayoutModeRequest {
+  mode: ConfigLayoutMode | null;
 }

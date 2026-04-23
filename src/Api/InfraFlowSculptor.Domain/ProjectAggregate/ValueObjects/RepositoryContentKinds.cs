@@ -11,14 +11,11 @@ public enum RepositoryContentKindsEnum
     /// <summary>No content kind selected. Invalid as a persisted value.</summary>
     None = 0,
 
-    /// <summary>Infrastructure-as-Code content (Bicep modules and parameter files).</summary>
+    /// <summary>Infrastructure-as-Code content (Bicep modules, parameter files and infra deploy pipelines).</summary>
     Infrastructure = 1,
 
-    /// <summary>Application source code.</summary>
+    /// <summary>Application source code (and its build/release pipelines).</summary>
     ApplicationCode = 2,
-
-    /// <summary>CI/CD pipeline definitions (YAML).</summary>
-    Pipelines = 4,
 }
 
 /// <summary>
@@ -88,13 +85,11 @@ public sealed class RepositoryContentKinds : ValueObject
     /// <inheritdoc />
     public override string ToString()
     {
-        var parts = new List<string>(3);
+        var parts = new List<string>(2);
         if (Has(RepositoryContentKindsEnum.Infrastructure))
             parts.Add(nameof(RepositoryContentKindsEnum.Infrastructure));
         if (Has(RepositoryContentKindsEnum.ApplicationCode))
             parts.Add(nameof(RepositoryContentKindsEnum.ApplicationCode));
-        if (Has(RepositoryContentKindsEnum.Pipelines))
-            parts.Add(nameof(RepositoryContentKindsEnum.Pipelines));
 
         return string.Join(Separator, parts);
     }

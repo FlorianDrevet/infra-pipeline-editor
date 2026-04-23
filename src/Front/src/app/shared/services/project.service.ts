@@ -41,9 +41,12 @@ import {
   AddProjectRepositoryRequest,
   UpdateProjectRepositoryRequest,
   ProjectLayoutPreset,
-  ProjectCommonsStrategy,
 } from '../interfaces/project-repository.interface';
-import { SetInfraConfigRepositoryBindingRequest } from '../interfaces/repository-binding.interface';
+import {
+  AddInfraConfigRepositoryRequest,
+  ConfigLayoutMode,
+  UpdateInfraConfigRepositoryRequest,
+} from '../interfaces/infra-config-repository.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -435,26 +438,53 @@ export class ProjectService {
     );
   }
 
-  setCommonsStrategy(
+  // ─── Per-config repositories (MultiRepo project layout) ───
+
+  setConfigLayoutMode(
     projectId: string,
-    strategy: ProjectCommonsStrategy
+    configId: string,
+    mode: ConfigLayoutMode | null
   ): Promise<void> {
     return this.axios.request$<void>(
       MethodEnum.PUT,
-      `/projects/${projectId}/commons-strategy`,
-      { strategy }
+      `/projects/${projectId}/configs/${configId}/layout-mode`,
+      { mode }
     );
   }
 
-  setConfigRepositoryBinding(
+  addConfigRepository(
     projectId: string,
     configId: string,
-    request: SetInfraConfigRepositoryBindingRequest
+    request: AddInfraConfigRepositoryRequest
+  ): Promise<{ id: string }> {
+    return this.axios.request$<{ id: string }>(
+      MethodEnum.POST,
+      `/projects/${projectId}/configs/${configId}/repositories`,
+      request
+    );
+  }
+
+  updateConfigRepository(
+    projectId: string,
+    configId: string,
+    repoId: string,
+    request: UpdateInfraConfigRepositoryRequest
   ): Promise<void> {
     return this.axios.request$<void>(
       MethodEnum.PUT,
-      `/projects/${projectId}/configs/${configId}/repository-binding`,
+      `/projects/${projectId}/configs/${configId}/repositories/${repoId}`,
       request
+    );
+  }
+
+  removeConfigRepository(
+    projectId: string,
+    configId: string,
+    repoId: string
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/configs/${configId}/repositories/${repoId}`
     );
   }
 }

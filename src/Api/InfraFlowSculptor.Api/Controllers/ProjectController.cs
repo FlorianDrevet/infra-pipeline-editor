@@ -1,5 +1,10 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
-using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInfraConfigRepositoryBinding;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInfraConfigLayoutMode;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddInfraConfigRepository;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateInfraConfigRepository;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveInfraConfigRepository;
+using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListUsers;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectRepository;
@@ -18,7 +23,6 @@ using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectRepository;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectResourceAbbreviation;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectResourceNamingTemplate;
-using InfraFlowSculptor.Application.Projects.Commands.SetProjectCommonsStrategy;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectDefaultNamingTemplate;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectLayoutPreset;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectResourceAbbreviation;
@@ -738,62 +742,98 @@ public static class ProjectController
                     })
                 .WithName("SetProjectLayoutPreset")
                 .WithSummary("Set the project layout preset")
-                .WithDescription("Updates the project layout preset (informative only in V1). Valid values: AllInOne, SplitInfraCode, MultiRepo, Custom. Requires Owner access.")
+                .WithDescription("Updates the project layout preset. Valid values: AllInOne, SplitInfraCode, MultiRepo. Switching to MultiRepo auto-clears project repositories. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
-            group.MapPut("/{projectId:guid}/commons-strategy",
-                    async ([FromRoute] Guid projectId,
-                        [FromBody] SetProjectCommonsStrategyRequest request,
-                        IMediator mediator) =>
-                    {
-                        var command = new SetProjectCommonsStrategyCommand(
-                            new ProjectId(projectId),
-                            request.Strategy);
-                        var result = await mediator.Send(command);
 
-                        return result.Match(
-                            _ => Results.NoContent(),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("SetProjectCommonsStrategy")
-                .WithSummary("Set the project commons strategy")
-                .WithDescription("Updates the project commons strategy. V1 only accepts DuplicatePerRepo; other values return 400. Requires Owner access.")
-                .Produces(StatusCodes.Status204NoContent)
-                .ProducesProblem(StatusCodes.Status400BadRequest)
-                .ProducesProblem(StatusCodes.Status401Unauthorized)
-                .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
+            // ── InfraConfig Repositories (MultiRepo project layout only) ──────────────
 
-            group.MapPut("/{projectId:guid}/configs/{configId:guid}/repository-binding",
-                    async ([FromRoute] Guid projectId,
-                        [FromRoute] Guid configId,
-                        [FromBody] SetInfraConfigRepositoryBindingRequest request,
-                        IMediator mediator) =>
+            group.MapPut("/{projectId:guid}/configs/{configId:guid}/layout-mode",
+                    async ([FromRoute] Guid projectId, [FromRoute] Guid configId,
+                        [FromBody] SetInfraConfigLayoutModeRequest request, IMediator mediator) =>
                     {
-                        var command = new SetInfraConfigRepositoryBindingCommand(
+                        var command = new SetInfraConfigLayoutModeCommand(
                             new ProjectId(projectId),
                             new InfrastructureConfigId(configId),
-                            request.RepositoryAlias,
-                            request.Branch,
-                            request.InfraPath,
-                            request.PipelinePath);
+                            request.Mode);
                         var result = await mediator.Send(command);
-
-                        return result.Match(
-                            _ => Results.NoContent(),
-                            errors => errors.Result()
-                        );
+                        return result.Match(_ => Results.NoContent(), errors => errors.Result());
                     })
-                .WithName("SetInfraConfigRepositoryBinding")
-                .WithSummary("Set or clear an infrastructure configuration repository binding")
-                .WithDescription("Binds an infrastructure configuration to a project repository (by alias) with optional branch/path overrides. Send a null or empty alias to clear the binding. Requires Owner access.")
+                .WithName("SetInfraConfigLayoutMode")
+                .WithSummary("Set or clear the per-configuration layout mode")
+                .WithDescription("Sets the layout mode (AllInOne or SplitInfraCode) for the configuration. Only meaningful when the parent project layout is MultiRepo. Switching mode clears existing config-level repositories. Requires Owner access.")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPost("/{projectId:guid}/configs/{configId:guid}/repositories",
+                    async ([FromRoute] Guid projectId, [FromRoute] Guid configId,
+                        [FromBody] AddInfraConfigRepositoryRequest request, IMediator mediator) =>
+                    {
+                        var command = new AddInfraConfigRepositoryCommand(
+                            new ProjectId(projectId),
+                            new InfrastructureConfigId(configId),
+                            request.Alias,
+                            request.ProviderType,
+                            request.RepositoryUrl,
+                            request.DefaultBranch,
+                            request.ContentKinds);
+                        var result = await mediator.Send(command);
+                        return result.Match(
+                            id => Results.Created($"/projects/{projectId}/configs/{configId}/repositories/{id.Value}", new { id = id.Value.ToString() }),
+                            errors => errors.Result());
+                    })
+                .WithName("AddInfraConfigRepository")
+                .WithSummary("Declare a Git repository on an InfrastructureConfig (MultiRepo only)")
+                .WithDescription("Adds a Git repository to the configuration. Allowed only when the parent project layout is MultiRepo and the configuration has a layout mode set. Requires Owner access.")
+                .Produces(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPut("/{projectId:guid}/configs/{configId:guid}/repositories/{repositoryId:guid}",
+                    async ([FromRoute] Guid projectId, [FromRoute] Guid configId, [FromRoute] Guid repositoryId,
+                        [FromBody] UpdateInfraConfigRepositoryRequest request, IMediator mediator) =>
+                    {
+                        var command = new UpdateInfraConfigRepositoryCommand(
+                            new ProjectId(projectId),
+                            new InfrastructureConfigId(configId),
+                            new InfraConfigRepositoryId(repositoryId),
+                            request.ProviderType,
+                            request.RepositoryUrl,
+                            request.DefaultBranch,
+                            request.ContentKinds);
+                        var result = await mediator.Send(command);
+                        return result.Match(_ => Results.NoContent(), errors => errors.Result());
+                    })
+                .WithName("UpdateInfraConfigRepository")
+                .WithSummary("Update an InfraConfig repository")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapDelete("/{projectId:guid}/configs/{configId:guid}/repositories/{repositoryId:guid}",
+                    async ([FromRoute] Guid projectId, [FromRoute] Guid configId, [FromRoute] Guid repositoryId, IMediator mediator) =>
+                    {
+                        var command = new RemoveInfraConfigRepositoryCommand(
+                            new ProjectId(projectId),
+                            new InfrastructureConfigId(configId),
+                            new InfraConfigRepositoryId(repositoryId));
+                        var result = await mediator.Send(command);
+                        return result.Match(_ => Results.NoContent(), errors => errors.Result());
+                    })
+                .WithName("RemoveInfraConfigRepository")
+                .WithSummary("Delete an InfraConfig repository")
+                .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status403Forbidden);

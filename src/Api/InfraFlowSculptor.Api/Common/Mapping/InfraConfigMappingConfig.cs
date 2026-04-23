@@ -88,14 +88,8 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.ResourceGroupCount, src => src.ResourceGroupCount)
             .Map(dest => dest.ResourceCount, src => src.ResourceCount)
             .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferenceCount)
-            .Map(dest => dest.RepositoryBinding,
-                src => src.RepositoryBinding != null
-                    ? new RepositoryBindingResponse(
-                        src.RepositoryBinding.Alias,
-                        src.RepositoryBinding.Branch,
-                        src.RepositoryBinding.InfraPath,
-                        src.RepositoryBinding.PipelinePath)
-                    : null);
+            .Map(dest => dest.LayoutMode, src => src.LayoutMode)
+            .Map(dest => dest.Repositories, src => src.Repositories);
 
         // InfrastructureConfig domain -> GetInfrastructureConfigResult
         config.NewConfig<Domain.InfrastructureConfigAggregate.InfrastructureConfig, GetInfrastructureConfigResult>()
@@ -108,14 +102,31 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.ResourceAbbreviationOverrides, src => src.ResourceAbbreviationOverrides)
             .Map(dest => dest.Tags, src => src.Tags)
             .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferences.Count)
-            .Map(dest => dest.RepositoryBinding,
-                src => src.RepositoryBinding != null
-                    ? new RepositoryBindingResult(
-                        src.RepositoryBinding.Alias.Value,
-                        src.RepositoryBinding.Branch,
-                        src.RepositoryBinding.InfraPath,
-                        src.RepositoryBinding.PipelinePath)
-                    : null);
+            .Map(dest => dest.LayoutMode, src => src.LayoutMode != null ? src.LayoutMode.Value.ToString() : null)
+            .Map(dest => dest.Repositories, src => src.Repositories);
+
+        // InfraConfigRepository entity -> InfraConfigRepositoryResult
+        config.NewConfig<Domain.InfrastructureConfigAggregate.Entities.InfraConfigRepository, InfraConfigRepositoryResult>()
+            .Map(dest => dest.Id, src => src.Id.Value)
+            .Map(dest => dest.Alias, src => src.Alias.Value)
+            .Map(dest => dest.ProviderType, src => src.ProviderType.Value.ToString())
+            .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
+            .Map(dest => dest.Owner, src => src.Owner)
+            .Map(dest => dest.RepositoryName, src => src.RepositoryName)
+            .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
+            .Map(dest => dest.ContentKinds,
+                src => src.ContentKinds.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries));
+
+        // InfraConfigRepositoryResult -> InfraConfigRepositoryResponse
+        config.NewConfig<InfraConfigRepositoryResult, InfraConfigRepositoryResponse>()
+            .Map(dest => dest.Id, src => src.Id.ToString())
+            .Map(dest => dest.Alias, src => src.Alias)
+            .Map(dest => dest.ProviderType, src => src.ProviderType)
+            .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
+            .Map(dest => dest.Owner, src => src.Owner)
+            .Map(dest => dest.RepositoryName, src => src.RepositoryName)
+            .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
+            .Map(dest => dest.ContentKinds, src => src.ContentKinds);
 
         // User entity -> UserResult
         config.NewConfig<User, UserResult>()

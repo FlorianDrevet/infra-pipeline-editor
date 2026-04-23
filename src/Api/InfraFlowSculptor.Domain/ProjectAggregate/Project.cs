@@ -83,17 +83,11 @@ public sealed class Project : AggregateRoot<ProjectId>
     // ─── Repository Mode ────────────────────────────────────────────────────
 
     /// <summary>
-    /// Gets the layout preset of this project (V1 multi-repo topology).
+    /// Gets the layout preset of this project.
     /// </summary>
     public LayoutPreset LayoutPreset { get; private set; } = new(LayoutPresetEnum.MultiRepo);
 
-    /// <summary>
-    /// Gets the strategy used to share common Bicep modules across repositories.
-    /// In V1 only <see cref="CommonsStrategyEnum.DuplicatePerRepo"/> is supported.
-    /// </summary>
-    public CommonsStrategy CommonsStrategy { get; private set; } = new(CommonsStrategyEnum.DuplicatePerRepo);
-
-    // ─── Project Repositories (V1 multi-repo) ───────────────────────────────
+    // ─── Project Repositories ────────────────────────────────────────────────
 
     private readonly List<ProjectRepository> _repositories = [];
 
@@ -324,7 +318,7 @@ public sealed class Project : AggregateRoot<ProjectId>
 
     /// <summary>
     /// Adds a new <see cref="ProjectRepository"/> to this project.
-    /// The alias must be unique within the project.
+    /// The alias must be unique within the project. The current <see cref="LayoutPreset"/> must allow the operation.
     /// </summary>
     public ErrorOr<ProjectRepository> AddRepository(
         RepositoryAlias alias,
@@ -333,6 +327,10 @@ public sealed class Project : AggregateRoot<ProjectId>
         string defaultBranch,
         RepositoryContentKinds contentKinds)
     {
+        var allowed = EnsureRepositoryAllowedByLayout(contentKinds, expectedCountAfterAdd: _repositories.Count + 1);
+        if (allowed.IsError)
+            return allowed.Errors;
+
         if (_repositories.Any(r => r.Alias == alias))
             return Domain.Common.Errors.Errors.ProjectRepository.DuplicateAlias(alias);
 
@@ -355,6 +353,11 @@ public sealed class Project : AggregateRoot<ProjectId>
         var existing = _repositories.FirstOrDefault(r => r.Id == id);
         if (existing is null)
             return Domain.Common.Errors.Errors.ProjectRepository.NotFound(id);
+
+        // Validate the candidate kinds against the current layout (count remains the same).
+        var allowed = EnsureRepositoryAllowedByLayout(contentKinds, expectedCountAfterAdd: _repositories.Count, ignoredId: id);
+        if (allowed.IsError)
+            return allowed.Errors;
 
         var updated = existing.Update(providerType, repositoryUrl, defaultBranch, contentKinds);
         if (updated.IsError)
@@ -380,50 +383,106 @@ public sealed class Project : AggregateRoot<ProjectId>
 
     // ─── Repository Mode Management ─────────────────────────────────────────
 
-    /// <summary>Sets the layout preset for this project.</summary>
+    /// <summary>
+    /// Sets the layout preset for this project.
+    /// Switching to <see cref="LayoutPresetEnum.MultiRepo"/> auto-clears project-level repositories.
+    /// Switching to AllInOne / SplitInfraCode is strict: current repositories must already match the new cardinality.
+    /// </summary>
     public ErrorOr<Success> SetLayoutPreset(LayoutPreset preset)
     {
         ArgumentNullException.ThrowIfNull(preset);
+
+        switch (preset.Value)
+        {
+            case LayoutPresetEnum.MultiRepo:
+                _repositories.Clear();
+                break;
+
+            case LayoutPresetEnum.AllInOne:
+                if (!IsValidAllInOne(_repositories))
+                    return Domain.Common.Errors.Errors.Project.AllInOneRequiresExactlyOneRepository();
+                break;
+
+            case LayoutPresetEnum.SplitInfraCode:
+                if (!IsValidSplitInfraCode(_repositories))
+                    return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
+                break;
+        }
+
         LayoutPreset = preset;
         return Result.Success;
     }
 
-    /// <summary>
-    /// Sets the commons strategy for this project.
-    /// In V1 only <see cref="CommonsStrategyEnum.DuplicatePerRepo"/> is accepted.
-    /// </summary>
-    public ErrorOr<Success> SetCommonsStrategy(CommonsStrategy strategy)
+    private ErrorOr<Success> EnsureRepositoryAllowedByLayout(
+        RepositoryContentKinds candidateKinds,
+        int expectedCountAfterAdd,
+        ProjectRepositoryId? ignoredId = null)
     {
-        ArgumentNullException.ThrowIfNull(strategy);
+        var others = ignoredId is null
+            ? _repositories
+            : _repositories.Where(r => r.Id != ignoredId).ToList();
 
-        if (strategy.Value != CommonsStrategyEnum.DuplicatePerRepo)
-            return Domain.Common.Errors.Errors.ProjectRepository.UnsupportedCommonsStrategy(strategy.Value);
+        switch (LayoutPreset.Value)
+        {
+            case LayoutPresetEnum.MultiRepo:
+                return Domain.Common.Errors.Errors.Project.RepositoryNotAllowedByLayout(
+                    LayoutPresetEnum.MultiRepo,
+                    "in MultiRepo mode the project owns no repository; declare them on each InfrastructureConfig instead.");
 
-        CommonsStrategy = strategy;
+            case LayoutPresetEnum.AllInOne:
+                if (expectedCountAfterAdd > 1)
+                    return Domain.Common.Errors.Errors.Project.AllInOneRequiresExactlyOneRepository();
+                if (!candidateKinds.Has(RepositoryContentKindsEnum.Infrastructure)
+                    || !candidateKinds.Has(RepositoryContentKindsEnum.ApplicationCode))
+                    return Domain.Common.Errors.Errors.Project.AllInOneRequiresExactlyOneRepository();
+                return Result.Success;
+
+            case LayoutPresetEnum.SplitInfraCode:
+                if (expectedCountAfterAdd > 2)
+                    return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
+                var isInfraOnly = candidateKinds.Has(RepositoryContentKindsEnum.Infrastructure)
+                                  && !candidateKinds.Has(RepositoryContentKindsEnum.ApplicationCode);
+                var isAppOnly = candidateKinds.Has(RepositoryContentKindsEnum.ApplicationCode)
+                                && !candidateKinds.Has(RepositoryContentKindsEnum.Infrastructure);
+                if (!isInfraOnly && !isAppOnly)
+                    return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
+                // Forbid duplicates of the same role across the project.
+                var conflict = others.Any(r =>
+                    (isInfraOnly && r.ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure))
+                    || (isAppOnly && r.ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode)));
+                if (conflict)
+                    return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
+                return Result.Success;
+        }
+
         return Result.Success;
+    }
+
+    private static bool IsValidAllInOne(IReadOnlyCollection<ProjectRepository> repos)
+        => repos.Count == 1
+           && repos.First().ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure)
+           && repos.First().ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode);
+
+    private static bool IsValidSplitInfraCode(IReadOnlyCollection<ProjectRepository> repos)
+    {
+        if (repos.Count != 2) return false;
+        var infraOnly = repos.Count(r => r.ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure)
+                                         && !r.ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode));
+        var appOnly = repos.Count(r => r.ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode)
+                                       && !r.ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure));
+        return infraOnly == 1 && appOnly == 1;
     }
 
     /// <summary>
     /// Returns <see langword="true"/> when a single project-level "generate all" operation is unambiguous,
-    /// i.e. all infrastructure configurations resolve to the same repository alias (or the project has zero configs).
-    /// Returns <see langword="false"/> for heterogeneous multi-repo topologies where each configuration
-    /// targets a different repository alias — callers must generate config-by-config in that case.
+    /// i.e. the project layout owns its repos (AllInOne or SplitInfraCode). MultiRepo always returns <see langword="false"/>
+    /// because each configuration owns its own repositories.
     /// </summary>
-    /// <param name="configs">
-    /// The infrastructure configurations to evaluate. The caller is responsible for filtering to this project's configs.
-    /// </param>
-    /// <returns><see langword="true"/> when all configs resolve to the same alias; otherwise <see langword="false"/>.</returns>
+    /// <param name="configs">Reserved for future heuristics. Currently unused.</param>
     public bool CanGenerateAllFromProjectLevel(IReadOnlyCollection<InfrastructureConfig> configs)
     {
         ArgumentNullException.ThrowIfNull(configs);
-        if (configs.Count == 0)
-            return true;
-
-        var aliases = configs
-            .Select(c => c.RepositoryBinding?.Alias.Value ?? "default")
-            .Distinct(StringComparer.Ordinal);
-
-        return aliases.Take(2).Count() <= 1;
+        return LayoutPreset.Value != LayoutPresetEnum.MultiRepo;
     }
 
     // ─── Agent Pool Management ──────────────────────────────────────────

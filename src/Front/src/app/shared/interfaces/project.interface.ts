@@ -32,7 +32,6 @@ export interface ProjectResponse {
   usedResourceTypes?: string[];
   repositories?: ProjectRepositoryResponse[];
   layoutPreset?: string;
-  commonsStrategy?: string;
 }
 
 export interface RecentItemResponse {

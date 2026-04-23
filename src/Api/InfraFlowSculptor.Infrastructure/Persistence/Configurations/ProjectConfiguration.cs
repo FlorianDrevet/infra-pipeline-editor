@@ -101,14 +101,6 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .IsRequired();
 
         // ========================
-        // CommonsStrategy
-        // ========================
-        builder.Property(x => x.CommonsStrategy)
-            .HasConversion(new EnumValueConverter<CommonsStrategy, CommonsStrategyEnum>())
-            .HasDefaultValue(new CommonsStrategy(CommonsStrategyEnum.DuplicatePerRepo))
-            .IsRequired();
-
-        // ========================
         // AgentPoolName
         // ========================
         builder.Property(x => x.AgentPoolName)

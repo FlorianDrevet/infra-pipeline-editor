@@ -1,4 +1,4 @@
-import { RepositoryBindingResponse } from './repository-binding.interface';
+import { InfraConfigRepositoryResponse } from './infra-config-repository.interface';
 
 // ─── Responses ───────────────────────────────────────────────────────────────
 
@@ -61,7 +61,8 @@ export interface InfrastructureConfigResponse {
   crossConfigReferenceCount: number;
   appPipelineMode: string;
   tags: TagResponse[];
-  repositoryBinding?: RepositoryBindingResponse | null;
+  layoutMode?: string | null;
+  repositories?: InfraConfigRepositoryResponse[];
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────

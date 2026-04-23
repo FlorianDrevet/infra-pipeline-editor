@@ -1193,51 +1193,123 @@
               <p class="rg-error">{{ gitActionError() | translate }}</p>
             }
 
-            <!-- V2 Repository binding (multi-repo topology) -->
-            <section class="repo-binding-card">
-              <div class="repo-binding-card__header">
-                <div>
-                  <h3>{{ 'CONFIG_DETAIL.BINDING.TITLE' | translate }}</h3>
-                  <p class="repo-binding-card__help">
-                    {{ 'CONFIG_DETAIL.BINDING.HELP' | translate }}
-                  </p>
-                </div>
-                @if (canWrite()) {
-                  <button class="add-rg-btn" (click)="openRepositoryBindingDialog()">
-                    <mat-icon class="add-rg-btn__icon">link</mat-icon>
-                    {{ 'CONFIG_DETAIL.BINDING.EDIT' | translate }}
-                  </button>
-                }
-              </div>
-              @if (config()?.repositoryBinding; as binding) {
-                <div class="repo-binding-card__body">
-                  <div class="detail-row">
-                    <span>{{ 'CONFIG_DETAIL.BINDING.ALIAS' | translate }}</span>
-                    <strong>{{ binding.alias }}</strong>
+            <!-- V2 Per-config repositories (only when project layout = MultiRepo) -->
+            @if (isProjectMultiRepo()) {
+              <section class="repo-binding-card">
+                <div class="repo-binding-card__header">
+                  <div>
+                    <h3>{{ 'CONFIG_DETAIL.REPOSITORIES.TITLE' | translate }}</h3>
+                    <p class="repo-binding-card__help">
+                      {{ 'CONFIG_DETAIL.REPOSITORIES.HELP' | translate }}
+                    </p>
                   </div>
-                  @if (binding.branch) {
-                    <div class="detail-row">
-                      <span>{{ 'CONFIG_DETAIL.BINDING.BRANCH_OVERRIDE' | translate }}</span>
-                      <strong>{{ binding.branch }}</strong>
-                    </div>
-                  }
-                  @if (binding.infraPath) {
-                    <div class="detail-row">
-                      <span>{{ 'CONFIG_DETAIL.BINDING.INFRA_PATH_OVERRIDE' | translate }}</span>
-                      <strong>{{ binding.infraPath }}</strong>
-                    </div>
-                  }
-                  @if (binding.pipelinePath) {
-                    <div class="detail-row">
-                      <span>{{ 'CONFIG_DETAIL.BINDING.PIPELINE_PATH_OVERRIDE' | translate }}</span>
-                      <strong>{{ binding.pipelinePath }}</strong>
-                    </div>
+                </div>
+
+                <!-- Sub-mode chooser -->
+                <div class="repo-binding-card__body">
+                  <p class="config-mode-label">
+                    {{ 'CONFIG_DETAIL.REPOSITORIES.MODE_LABEL' | translate }}
+                  </p>
+                  <div class="config-mode-buttons">
+                    <button
+                      mat-stroked-button
+                      [color]="configLayoutMode() === 'AllInOne' ? 'primary' : ''"
+                      [class.config-mode-buttons__active]="configLayoutMode() === 'AllInOne'"
+                      [disabled]="!canWrite() || configLayoutModeSaving()"
+                      (click)="setConfigLayoutMode('AllInOne')">
+                      <mat-icon>folder</mat-icon>
+                      {{ 'CONFIG_DETAIL.REPOSITORIES.MODE_ALL_IN_ONE' | translate }}
+                    </button>
+                    <button
+                      mat-stroked-button
+                      [color]="configLayoutMode() === 'SplitInfraCode' ? 'primary' : ''"
+                      [class.config-mode-buttons__active]="configLayoutMode() === 'SplitInfraCode'"
+                      [disabled]="!canWrite() || configLayoutModeSaving()"
+                      (click)="setConfigLayoutMode('SplitInfraCode')">
+                      <mat-icon>folder_copy</mat-icon>
+                      {{ 'CONFIG_DETAIL.REPOSITORIES.MODE_SPLIT' | translate }}
+                    </button>
+                  </div>
+
+                  @switch (configLayoutMode()) {
+                    @case ('AllInOne') {
+                      <div class="config-repo-area">
+                        @if (configAllInOneRepo(); as repo) {
+                          <div class="config-repo-row">
+                            <div class="config-repo-row__info">
+                              <mat-icon class="config-repo-row__icon">folder_open</mat-icon>
+                              <div>
+                                <strong>{{ repo.alias }}</strong>
+                                <p class="config-repo-row__url">{{ repo.owner }}/{{ repo.repositoryName }} · {{ repo.defaultBranch }}</p>
+                              </div>
+                            </div>
+                            @if (canWrite()) {
+                              <div class="config-repo-row__actions">
+                                <button mat-stroked-button (click)="openConfigAllInOneDialog()" [disabled]="configRepoActionId() === repo.id">
+                                  <mat-icon>edit</mat-icon>
+                                  {{ 'CONFIG_DETAIL.REPOSITORIES.EDIT' | translate }}
+                                </button>
+                                <button mat-stroked-button color="warn" (click)="removeConfigRepository(repo)" [disabled]="configRepoActionId() === repo.id">
+                                  <mat-icon>delete_outline</mat-icon>
+                                  {{ 'CONFIG_DETAIL.REPOSITORIES.DELETE' | translate }}
+                                </button>
+                              </div>
+                            }
+                          </div>
+                        } @else if (canWrite()) {
+                          <button class="add-rg-btn" (click)="openConfigAllInOneDialog()">
+                            <mat-icon class="add-rg-btn__icon">add</mat-icon>
+                            {{ 'CONFIG_DETAIL.REPOSITORIES.ADD_ALL_IN_ONE' | translate }}
+                          </button>
+                        }
+                      </div>
+                    }
+                    @case ('SplitInfraCode') {
+                      <div class="config-repo-area config-repo-area--grid">
+                        @for (slot of configSplitSlots(); track slot.kind) {
+                          <div class="config-repo-slot">
+                            <span class="config-repo-slot__label">{{ slot.labelKey | translate }}</span>
+                            @if (slot.repo; as repo) {
+                              <div class="config-repo-row">
+                                <div class="config-repo-row__info">
+                                  <mat-icon class="config-repo-row__icon">folder_open</mat-icon>
+                                  <div>
+                                    <strong>{{ repo.alias }}</strong>
+                                    <p class="config-repo-row__url">{{ repo.owner }}/{{ repo.repositoryName }} · {{ repo.defaultBranch }}</p>
+                                  </div>
+                                </div>
+                                @if (canWrite()) {
+                                  <div class="config-repo-row__actions">
+                                    <button mat-stroked-button (click)="openConfigSlotDialog(slot.kind, repo)" [disabled]="configRepoActionId() === repo.id">
+                                      <mat-icon>edit</mat-icon>
+                                      {{ 'CONFIG_DETAIL.REPOSITORIES.EDIT' | translate }}
+                                    </button>
+                                    <button mat-stroked-button color="warn" (click)="removeConfigRepository(repo)" [disabled]="configRepoActionId() === repo.id">
+                                      <mat-icon>delete_outline</mat-icon>
+                                      {{ 'CONFIG_DETAIL.REPOSITORIES.DELETE' | translate }}
+                                    </button>
+                                  </div>
+                                }
+                              </div>
+                            } @else if (canWrite()) {
+                              <button class="add-rg-btn" (click)="openConfigSlotDialog(slot.kind, null)">
+                                <mat-icon class="add-rg-btn__icon">add</mat-icon>
+                                {{ 'CONFIG_DETAIL.REPOSITORIES.ADD_SLOT' | translate }}
+                              </button>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                    @default {
+                      <p class="repo-binding-card__empty">
+                        {{ 'CONFIG_DETAIL.REPOSITORIES.MODE_EMPTY' | translate }}
+                      </p>
+                    }
                   }
                 </div>
-              } @else {
-                <p class="repo-binding-card__empty">{{ 'CONFIG_DETAIL.BINDING.EMPTY' | translate }}</p>
-              }
-            </section>
+              </section>
+            }
 
           </div>
         </mat-tab>

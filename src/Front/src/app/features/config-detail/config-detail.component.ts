@@ -71,10 +71,14 @@ import { StorageAccountResponse, StorageAccountSubResourcesResponse } from '../.
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
 import {
-  RepositoryBindingDialogComponent,
-  RepositoryBindingDialogData,
-  RepositoryBindingDialogResult,
-} from './repository-binding-dialog/repository-binding-dialog.component';
+  InfraConfigRepositoryDialogComponent,
+  InfraConfigRepositoryDialogData,
+} from './infra-config-repository-dialog/infra-config-repository-dialog.component';
+import {
+  ConfigLayoutMode,
+  InfraConfigRepositoryResponse,
+} from '../../shared/interfaces/infra-config-repository.interface';
+import { RepositoryContentKind } from '../../shared/interfaces/project-repository.interface';
 import {
   CrossConfigReferenceResponse,
   IncomingCrossConfigReferenceResponse,
@@ -336,6 +340,47 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly configTags = computed(() => this.config()?.tags ?? []);
 
   protected readonly isMultiRepo = computed(() => this.project()?.layoutPreset !== 'AllInOne');
+
+  /** Project layout preset narrowed to the values used by this component. */
+  protected readonly projectLayoutPreset = computed<'AllInOne' | 'SplitInfraCode' | 'MultiRepo'>(() => {
+    const preset = this.project()?.layoutPreset;
+    if (preset === 'SplitInfraCode' || preset === 'MultiRepo') return preset;
+    return 'AllInOne';
+  });
+
+  protected readonly isProjectMultiRepo = computed(() => this.projectLayoutPreset() === 'MultiRepo');
+
+  protected readonly configLayoutMode = computed<ConfigLayoutMode | null>(() => {
+    const mode = this.config()?.layoutMode;
+    return mode === 'AllInOne' || mode === 'SplitInfraCode' ? mode : null;
+  });
+
+  protected readonly configRepositories = computed<InfraConfigRepositoryResponse[]>(
+    () => this.config()?.repositories ?? [],
+  );
+
+  protected readonly configAllInOneRepo = computed<InfraConfigRepositoryResponse | null>(
+    () => this.configRepositories()[0] ?? null,
+  );
+
+  protected readonly configSplitSlots = computed(() => {
+    const repos = this.configRepositories();
+    return [
+      {
+        kind: 'Infrastructure' as RepositoryContentKind,
+        labelKey: 'CONFIG_DETAIL.REPOSITORIES.SLOT_INFRASTRUCTURE',
+        repo: repos.find((r) => r.contentKinds.includes('Infrastructure')) ?? null,
+      },
+      {
+        kind: 'ApplicationCode' as RepositoryContentKind,
+        labelKey: 'CONFIG_DETAIL.REPOSITORIES.SLOT_APPLICATION_CODE',
+        repo: repos.find((r) => r.contentKinds.includes('ApplicationCode')) ?? null,
+      },
+    ];
+  });
+
+  protected readonly configRepoActionId = signal<string | null>(null);
+  protected readonly configLayoutModeSaving = signal(false);
 
   // ─── Unified generation (multi-repo) ───
   protected readonly generateAllLoading = computed(
@@ -1695,30 +1740,77 @@ export class ConfigDetailComponent implements OnInit {
 
 
 
-  // ─── Repository Binding ───
+  // ─── Per-config repositories (project layout = MultiRepo) ───
 
-  protected openRepositoryBindingDialog(): void {
+  protected async setConfigLayoutMode(mode: ConfigLayoutMode): Promise<void> {
     const cfg = this.config();
     if (!cfg) return;
+    if (this.configLayoutMode() === mode) return;
 
-    const data: RepositoryBindingDialogData = {
+    this.configLayoutModeSaving.set(true);
+    try {
+      await this.projectService.setConfigLayoutMode(cfg.projectId, cfg.id, mode);
+      const updated = await this.infraConfigService.getById(cfg.id);
+      this.config.set(updated);
+    } catch {
+      this.gitActionError.set('CONFIG_DETAIL.REPOSITORIES.LAYOUT_MODE_SAVE_ERROR');
+    } finally {
+      this.configLayoutModeSaving.set(false);
+    }
+  }
+
+  protected openConfigAllInOneDialog(): void {
+    const cfg = this.config();
+    if (!cfg) return;
+    const existing = this.configAllInOneRepo();
+    const data: InfraConfigRepositoryDialogData = {
       projectId: cfg.projectId,
       configId: cfg.id,
-      currentBinding: cfg.repositoryBinding ?? null,
+      mode: existing ? 'edit' : 'create',
+      existing: existing ?? undefined,
+      lockedKinds: ['Infrastructure', 'ApplicationCode'],
     };
-
-    const ref = this.dialog.open<
-      RepositoryBindingDialogComponent,
-      RepositoryBindingDialogData,
-      RepositoryBindingDialogResult
-    >(RepositoryBindingDialogComponent, { width: '520px', data });
-
+    const ref = this.dialog.open(InfraConfigRepositoryDialogComponent, { data, width: '560px' });
     ref.afterClosed().subscribe(async (result) => {
-      if (result?.updated) {
+      if (result) {
         const updated = await this.infraConfigService.getById(cfg.id);
         this.config.set(updated);
       }
     });
+  }
+
+  protected openConfigSlotDialog(kind: RepositoryContentKind, repo: InfraConfigRepositoryResponse | null): void {
+    const cfg = this.config();
+    if (!cfg) return;
+    const data: InfraConfigRepositoryDialogData = {
+      projectId: cfg.projectId,
+      configId: cfg.id,
+      mode: repo ? 'edit' : 'create',
+      existing: repo ?? undefined,
+      lockedKinds: [kind],
+    };
+    const ref = this.dialog.open(InfraConfigRepositoryDialogComponent, { data, width: '560px' });
+    ref.afterClosed().subscribe(async (result) => {
+      if (result) {
+        const updated = await this.infraConfigService.getById(cfg.id);
+        this.config.set(updated);
+      }
+    });
+  }
+
+  protected async removeConfigRepository(repo: InfraConfigRepositoryResponse): Promise<void> {
+    const cfg = this.config();
+    if (!cfg) return;
+    this.configRepoActionId.set(repo.id);
+    try {
+      await this.projectService.removeConfigRepository(cfg.projectId, cfg.id, repo.id);
+      const updated = await this.infraConfigService.getById(cfg.id);
+      this.config.set(updated);
+    } catch {
+      this.gitActionError.set('CONFIG_DETAIL.REPOSITORIES.DELETE_ERROR');
+    } finally {
+      this.configRepoActionId.set(null);
+    }
   }
 
   protected async testGitConnection(): Promise<void> {

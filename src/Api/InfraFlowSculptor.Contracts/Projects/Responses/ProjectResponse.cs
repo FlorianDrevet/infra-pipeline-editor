@@ -16,5 +16,4 @@ public record ProjectResponse(
     string? AgentPoolName = null,
     IReadOnlyList<string>? UsedResourceTypes = null,
     IReadOnlyList<ProjectRepositoryResponse>? Repositories = null,
-    string? LayoutPreset = null,
-    string? CommonsStrategy = null);
+    string? LayoutPreset = null);

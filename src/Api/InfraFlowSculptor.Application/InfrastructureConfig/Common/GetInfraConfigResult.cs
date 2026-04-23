@@ -16,4 +16,5 @@ public record GetInfrastructureConfigResult(
     int ResourceGroupCount = 0,
     int ResourceCount = 0,
     int CrossConfigReferenceCount = 0,
-    RepositoryBindingResult? RepositoryBinding = null);
+    string? LayoutMode = null,
+    IReadOnlyList<InfraConfigRepositoryResult>? Repositories = null);
