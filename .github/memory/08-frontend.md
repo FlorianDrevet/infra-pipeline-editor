@@ -13,6 +13,11 @@
 - `features/` — feature pages (lazy-loaded)
 - `environments/` — API base URLs
 
+## ACA Containerization [2026-04-23]
+- `src/Front/Dockerfile` builds the Angular app with `node:20-alpine`, injects the production `API_URL` into `src/environments/environment.ts` at image build time, then serves the compiled SPA from `nginx:1.27-alpine`.
+- `src/Front/nginx.conf` listens on port `8080` and uses `try_files $uri $uri/ /index.html` for Angular client-side routing.
+- `src/Front/.dockerignore` excludes `node_modules`, `dist`, and `.angular` so local Windows artifacts do not leak into the Linux image build context.
+
 ## Build Budgets [2026-03-21]
 - `anyComponentStyle`: warning 10 kB / error 20 kB
 - `initial` bundle: warning 500 kB / error 1 MB
@@ -59,6 +64,11 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - `resource-edit` now manages custom domains inside each environment panel instead of through a dedicated tab.
 - `customDomainsForEnv(envName)` replaced grouped state, and the add-domain dialog preselects the active environment.
 - The page includes an inline 5-step Azure DNS tutorial inside a `mat-expansion-panel` under the custom-domain section.
+
+## Container App Environment UX [2026-04-23]
+- In `resource-edit`, the Container App environment form is no longer a flat grid: it is split into two full-width categories before Health Probes.
+- `Capacity and scaling` groups CPU, memory, and replica limits; `Ingress and network exposure` groups transport, target port, and ingress toggles.
+- The final visual pattern reuses the same divider-based `env-extra-section` language as Health Probes (no boxed card background), while keeping the inner controls in small responsive grids.
 
 ## Existing Resource Diagnostics [2026-04-22]
 - `config-detail` and `project-detail` generation preflight checks must skip existing resources when building “missing environment configuration” warnings.

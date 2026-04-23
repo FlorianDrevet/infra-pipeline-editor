@@ -761,6 +761,10 @@
   gap: 1rem;
 }
 
+.env-category-grid {
+  gap: 0.95rem;
+}
+
 // ─── States ────
 
 .empty-state {
@@ -2348,6 +2352,10 @@
   .form-grid,
   .env-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .env-category-section {
+    padding: 1rem;
   }
 
   .env-selector {
