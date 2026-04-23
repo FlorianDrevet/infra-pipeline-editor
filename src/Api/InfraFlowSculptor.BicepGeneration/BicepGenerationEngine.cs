@@ -71,7 +71,8 @@ public sealed class BicepGenerationEngine
             perConfigResults,
             request.NamingContext,
             request.Environments,
-            hasAnyRoleAssignments);
+            hasAnyRoleAssignments,
+            request.FlattenShared);
 
         PruneMonoRepoModuleOutputs(monoResult, perConfigResults);
 

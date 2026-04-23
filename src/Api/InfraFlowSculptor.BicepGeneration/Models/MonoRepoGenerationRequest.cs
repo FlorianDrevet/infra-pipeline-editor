@@ -17,4 +17,12 @@ public sealed class MonoRepoGenerationRequest
 
     /// <summary>Gets or sets the environment names from the project.</summary>
     public required IReadOnlyList<string> EnvironmentNames { get; init; }
+
+    /// <summary>
+    /// When <c>true</c>, shared files (<c>types.bicep</c>, <c>functions.bicep</c>, <c>constants.bicep</c>,
+    /// <c>modules/...</c>) are emitted at the repository root and per-config <c>main.bicep</c> references
+    /// them via <c>../</c> instead of <c>../Common/</c>. When <c>false</c> (default), shared files are
+    /// emitted under a <c>Common/</c> folder.
+    /// </summary>
+    public bool FlattenShared { get; init; }
 }

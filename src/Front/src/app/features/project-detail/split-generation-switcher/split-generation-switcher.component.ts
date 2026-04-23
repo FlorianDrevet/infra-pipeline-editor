@@ -154,40 +154,44 @@ function buildBicepNodes(
 ): BicepTreeNode[] {
   const nodes: BicepTreeNode[] = [];
 
+  // Backend (SplitInfraCode) emits shared files at the repository root: keys are e.g.
+  // 'types.bicep', 'functions.bicep', 'modules/<ResourceType>/<file>.bicep'.
+  // Legacy 'Common/' prefix is stripped defensively to stay forward-compatible.
   const commonEntries = Object.entries(commonFileUris ?? {})
     .map(([key, uri]) => [key.startsWith('Common/') ? key.slice('Common/'.length) : key, uri] as [string, string]);
-  if (commonEntries.length > 0) {
-    nodes.push({ kind: 'folder', key: 'Common', name: 'Common/', badge: 'PROJECT_DETAIL.BICEP.SHARED', badgeVariant: 'types', folderIcon: 'folder_shared', depth: 0 } satisfies BicepFolderNode);
-    for (const [key] of commonEntries) {
-      if (key.startsWith('modules/')) continue;
-      const type: BicepFileType =
-        key === 'types.bicep' ? 'types'
-        : key === 'functions.bicep' ? 'functions'
-        : key === 'constants.bicep' ? 'constants'
-        : 'generic';
-      nodes.push({ kind: 'file', path: `Common/${key}`, displayName: key, type, uri: `Common/${key}`, depth: 1, parentFolderKey: 'Common' } satisfies BicepFileNode);
+
+  // Top-level shared files (types/functions/constants) at depth 0.
+  for (const [key] of commonEntries) {
+    if (key.startsWith('modules/')) continue;
+    const type: BicepFileType =
+      key === 'types.bicep' ? 'types'
+      : key === 'functions.bicep' ? 'functions'
+      : key === 'constants.bicep' ? 'constants'
+      : 'generic';
+    nodes.push({ kind: 'file', path: key, displayName: key, type, uri: key, depth: 0, parentFolderKey: '' } satisfies BicepFileNode);
+  }
+
+  // Shared modules/ folder at depth 0 (no Common/ wrapper).
+  const moduleEntries = commonEntries.filter(([key]) => key.startsWith('modules/'));
+  if (moduleEntries.length > 0) {
+    nodes.push({ kind: 'folder', key: 'modules', name: 'modules/', folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
+    const folderMap = new Map<string, { name: string; files: Array<{ path: string; displayName: string }> }>();
+    for (const [filePath] of moduleEntries) {
+      const parts = filePath.split('/');
+      if (parts.length < 3) continue;
+      const fn = parts[1];
+      const folderKey = `modules/${fn}`;
+      if (!folderMap.has(folderKey)) folderMap.set(folderKey, { name: fn, files: [] });
+      folderMap.get(folderKey)!.files.push({ path: filePath, displayName: parts[2] });
     }
-    const moduleEntries = commonEntries.filter(([key]) => key.startsWith('modules/'));
-    if (moduleEntries.length > 0) {
-      nodes.push({ kind: 'folder', key: 'Common/modules', name: 'modules/', folderIcon: 'folder', depth: 1, parentFolderKey: 'Common' } satisfies BicepFolderNode);
-      const folderMap = new Map<string, { name: string; files: Array<{ path: string; displayName: string }> }>();
-      for (const [filePath] of moduleEntries) {
-        const parts = filePath.split('/');
-        if (parts.length < 3) continue;
-        const fn = parts[1];
-        const folderKey = `Common/modules/${fn}`;
-        if (!folderMap.has(folderKey)) folderMap.set(folderKey, { name: fn, files: [] });
-        folderMap.get(folderKey)!.files.push({ path: `Common/${filePath}`, displayName: parts[2] });
-      }
-      for (const [folderKey, folder] of folderMap) {
-        nodes.push({ kind: 'folder', key: folderKey, name: `${folder.name}/`, folderIcon: 'folder', depth: 2, parentFolderKey: 'Common/modules' } satisfies BicepFolderNode);
-        for (const file of folder.files) {
-          const type: BicepFileType =
-            file.displayName === 'types.bicep' ? 'types'
-            : file.displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
-            : 'module-type';
-          nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type, uri: file.path, depth: 3, parentFolderKey: folderKey } satisfies BicepFileNode);
-        }
+    for (const [folderKey, folder] of folderMap) {
+      nodes.push({ kind: 'folder', key: folderKey, name: `${folder.name}/`, folderIcon: 'folder', depth: 1, parentFolderKey: 'modules' } satisfies BicepFolderNode);
+      for (const file of folder.files) {
+        const type: BicepFileType =
+          file.displayName === 'types.bicep' ? 'types'
+          : file.displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
+          : 'module-type';
+        nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type, uri: file.path, depth: 2, parentFolderKey: folderKey } satisfies BicepFileNode);
       }
     }
   }

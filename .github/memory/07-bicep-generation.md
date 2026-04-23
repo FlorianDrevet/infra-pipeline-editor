@@ -1,5 +1,11 @@
 # Bicep Generation
 
+## Mono-Repo Shared Layout (Common/ vs flat) [2026-04-23]
+- `MonoRepoBicepAssembler.Assemble(..., bool flattenShared = false)` and `MonoRepoGenerationRequest.FlattenShared` control whether shared files (`types.bicep`, `functions.bicep`, `constants.bicep`, `modules/...`) live under a `Common/` namespace (default, AllInOne) or directly at the repo root (SplitInfraCode).
+- `GenerateProjectBicepCommandHandler` sets `FlattenShared = true` iff `project.LayoutPreset?.Value == LayoutPresetEnum.SplitInfraCode`. The same flag drives both the in-file `main.bicep` rewrites (`'../Common/modules/...'` vs `'../modules/...'`, `from '../Common/types.bicep'` vs `from '../types.bicep'`) and the upload prefix (`{prefix}/Common/{path}` vs `{prefix}/{path}`) plus the `CommonFileUris` keys returned to the API.
+- Per-config flow (`InfrastructureConfig.GenerateBicepCommand` + `PushBicepToGitCommand`) used in `LayoutPresetEnum.MultiRepo` was already flat at the root (no `Common/`), so MultiRepo per-config repos receive `types.bicep`, `functions.bicep`, `main.bicep`, `parameters/...`, `modules/...` directly. No change there.
+- Frontend: `SplitGenerationSwitcherComponent.buildBicepNodes` renders the new flat layout (no `Common/` folder node, shared files at depth 0, `modules/` folder at depth 0). The legacy `ProjectDetailComponent.buildBicepNodes` still wraps in a `Common/` folder for AllInOne (where the backend keeps the `Common/` prefix).
+
 ## V2 Multi-repo Git routing [2026-04-23]
 
 **Decision:** engines (`BicepGenerationEngine`, `MonoRepoBicepAssembler`, `PipelineGenerationEngine`) remain **repo-agnostic**. They produce an abstract tree (`IReadOnlyDictionary<string,string>` path→content). Repo routing lives **only in Application-layer handlers** via `IRepositoryTargetResolver`.

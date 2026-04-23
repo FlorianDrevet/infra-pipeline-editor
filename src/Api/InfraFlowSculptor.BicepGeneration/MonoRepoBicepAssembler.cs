@@ -10,9 +10,10 @@ using InfraFlowSculptor.GenerationCore;
 namespace InfraFlowSculptor.BicepGeneration;
 
 /// <summary>
-/// Assembles Bicep output for mono-repo mode. Produces a <c>Common/</c> folder with shared modules
-/// and per-configuration folders each containing a <c>main.bicep</c> with relative references
-/// to <c>../../Common/modules/...</c>.
+/// Assembles Bicep output for mono-repo mode. By default, produces a <c>Common/</c> folder with shared
+/// modules and per-configuration folders each containing a <c>main.bicep</c> with relative references
+/// to <c>../Common/modules/...</c>. When <paramref name="flattenShared"/> is set on <see cref="Assemble"/>,
+/// shared files are emitted at the root and references use <c>../modules/...</c> instead.
 /// </summary>
 public static class MonoRepoBicepAssembler
 {
@@ -25,7 +26,8 @@ public static class MonoRepoBicepAssembler
         IReadOnlyDictionary<string, GenerationResult> perConfigResults,
         NamingContext namingContext,
         IReadOnlyList<EnvironmentDefinition> environments,
-        bool hasAnyRoleAssignments)
+        bool hasAnyRoleAssignments,
+        bool flattenShared = false)
     {
         var commonFiles = new Dictionary<string, string>();
         var configFiles = new Dictionary<string, IReadOnlyDictionary<string, string>>();
@@ -75,8 +77,8 @@ public static class MonoRepoBicepAssembler
             var sanitizedName = PathSanitizer.Sanitize(configName);
             var files = new Dictionary<string, string>();
 
-            // Rewrite main.bicep to reference Common modules via relative path
-            var rewrittenMain = RewriteMainBicepForMonoRepo(result.MainBicep, commonModulePathMaps[configName]);
+            // Rewrite main.bicep to reference shared modules via relative path
+            var rewrittenMain = RewriteMainBicepForMonoRepo(result.MainBicep, commonModulePathMaps[configName], flattenShared);
             files["main.bicep"] = rewrittenMain;
 
             // Parameter files go under parameters/
@@ -96,13 +98,16 @@ public static class MonoRepoBicepAssembler
     }
 
     /// <summary>
-    /// Rewrites <c>main.bicep</c> module references from <c>./modules/...</c> to <c>../Common/modules/...</c>
-    /// and shared file imports from <c>types.bicep</c> etc. to <c>../Common/types.bicep</c> etc.
+    /// Rewrites <c>main.bicep</c> module references from <c>./modules/...</c> to either
+    /// <c>../Common/modules/...</c> (default) or <c>../modules/...</c> (when <paramref name="flattenShared"/> is
+    /// <c>true</c>), and shared file imports accordingly.
     /// </summary>
     private static string RewriteMainBicepForMonoRepo(
         string mainBicep,
-        IReadOnlyDictionary<string, string> commonModulePathMap)
+        IReadOnlyDictionary<string, string> commonModulePathMap,
+        bool flattenShared)
     {
+        var sharedPrefix = flattenShared ? ".." : "../Common";
         var sb = new StringBuilder(mainBicep.Length);
 
         foreach (var line in mainBicep.Split('\n'))
@@ -119,24 +124,21 @@ public static class MonoRepoBicepAssembler
                     ? normalizedPath
                     : originalPath;
 
-                trimmed = trimmed.Replace($"'./{originalPath}'", $"'../Common/{commonPath}'");
+                trimmed = trimmed.Replace($"'./{originalPath}'", $"'{sharedPrefix}/{commonPath}'");
             }
 
-            // Rewrite import references:
-            // from 'types.bicep' → from '../Common/types.bicep'
-            // from 'functions.bicep' → from '../Common/functions.bicep'
-            // from 'constants.bicep' → from '../Common/constants.bicep'
+            // Rewrite import references to either '../Common/<file>' (default) or '../<file>' (flat).
             if (trimmed.Contains("from 'types.bicep'"))
             {
-                trimmed = trimmed.Replace("from 'types.bicep'", "from '../Common/types.bicep'");
+                trimmed = trimmed.Replace("from 'types.bicep'", $"from '{sharedPrefix}/types.bicep'");
             }
             else if (trimmed.Contains("from 'functions.bicep'"))
             {
-                trimmed = trimmed.Replace("from 'functions.bicep'", "from '../Common/functions.bicep'");
+                trimmed = trimmed.Replace("from 'functions.bicep'", $"from '{sharedPrefix}/functions.bicep'");
             }
             else if (trimmed.Contains("from 'constants.bicep'"))
             {
-                trimmed = trimmed.Replace("from 'constants.bicep'", "from '../Common/constants.bicep'");
+                trimmed = trimmed.Replace("from 'constants.bicep'", $"from '{sharedPrefix}/constants.bicep'");
             }
 
             sb.AppendLine(trimmed);

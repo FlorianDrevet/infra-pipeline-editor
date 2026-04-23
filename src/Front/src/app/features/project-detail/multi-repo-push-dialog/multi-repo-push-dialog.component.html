@@ -1,0 +1,222 @@
+<h2 mat-dialog-title class="mr-dialog__title">
+  <mat-icon class="mr-dialog__title-icon">cloud_upload</mat-icon>
+  <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.TITLE' | translate }}</span>
+</h2>
+<p class="mr-dialog__subtitle">{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUBTITLE' | translate }}</p>
+
+<mat-dialog-content class="mr-dialog__content">
+  @if (state() === 'error' && !infraResult() && !codeResult()) {
+    <div class="mr-banner mr-banner--error">
+      <mat-icon>error_outline</mat-icon>
+      <div>
+        <strong>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE' | translate }}</strong>
+        <p>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_DESC' | translate }}</p>
+      </div>
+    </div>
+  }
+  @if (state() === 'partial') {
+    <div class="mr-banner mr-banner--partial">
+      <mat-icon>warning_amber</mat-icon>
+      <div>
+        <strong>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.PARTIAL_TITLE' | translate }}</strong>
+        <p>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.PARTIAL_DESC' | translate }}</p>
+      </div>
+    </div>
+  }
+  @if (state() === 'success') {
+    <div class="mr-banner mr-banner--success">
+      <mat-icon>check_circle</mat-icon>
+      <div>
+        <strong>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUCCESS_TITLE' | translate }}</strong>
+      </div>
+    </div>
+  }
+
+  <div class="mr-grid">
+    <!-- ─── Infra card ─── -->
+    <mat-card class="mr-card mr-card--infra"
+              [class.mr-card--ok]="infraResult()?.success === true"
+              [class.mr-card--ko]="infraResult() && infraResult()!.success === false">
+      <mat-card-header class="mr-card__header">
+        <mat-icon class="mr-card__header-icon mr-card__header-icon--infra">dns</mat-icon>
+        <div class="mr-card__header-text">
+          <mat-card-title>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.INFRA_CARD_TITLE' | translate }}</mat-card-title>
+          <mat-card-subtitle><code>{{ data.infraAlias }}</code></mat-card-subtitle>
+        </div>
+      </mat-card-header>
+      <mat-card-content class="mr-card__content">
+        @if (state() === 'pushing') {
+          <div class="mr-card__overlay">
+            <mat-spinner diameter="28"></mat-spinner>
+            <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING' | translate }}</span>
+          </div>
+        }
+        @if (infraResult()?.success === true) {
+          <div class="mr-card__result mr-card__result--ok">
+            <p class="mr-card__result-title">
+              <mat-icon>check_circle</mat-icon>
+              {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.REPO_OK' | translate }}
+            </p>
+            @if (infraResult()!.commitSha) {
+              <div class="mr-card__row">
+                <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_SHA_LABEL' | translate }}</span>
+                <button type="button" class="mr-card__commit"
+                        [matTooltip]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_COPIED' | translate"
+                        (click)="copyCommitSha(infraResult()!.commitSha)">
+                  <code>{{ infraResult()!.commitSha!.substring(0, 8) }}</code>
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+              </div>
+            }
+            @if (infraResult()!.branchUrl) {
+              <a class="mr-card__link" [href]="infraResult()!.branchUrl!" target="_blank" rel="noopener">
+                <mat-icon>open_in_new</mat-icon>
+                {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_URL_LABEL' | translate }}
+              </a>
+            }
+            <p class="mr-card__count">
+              {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.FILE_COUNT' | translate: { count: infraResult()!.fileCount } }}
+            </p>
+          </div>
+        } @else if (infraResult() && infraResult()!.success === false) {
+          <div class="mr-card__result mr-card__result--ko">
+            <p class="mr-card__result-title">
+              <mat-icon>error_outline</mat-icon>
+              {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.REPO_FAILED' | translate }}
+            </p>
+            @if (infraResult()!.errorDescription) {
+              <p class="mr-card__error">{{ infraResult()!.errorDescription }}</p>
+            }
+          </div>
+        } @else {
+          <form [formGroup]="infraForm" class="mr-form">
+            <mat-form-field appearance="outline" class="mr-form__field">
+              <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate }}</mat-label>
+              <input matInput formControlName="branch"
+                     [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="mr-form__field">
+              <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_LABEL' | translate }}</mat-label>
+              <textarea matInput formControlName="commit" rows="2"
+                        [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_PLACEHOLDER' | translate"></textarea>
+            </mat-form-field>
+          </form>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ─── Code card ─── -->
+    <mat-card class="mr-card mr-card--code"
+              [class.mr-card--ok]="codeResult()?.success === true"
+              [class.mr-card--ko]="codeResult() && codeResult()!.success === false">
+      <mat-card-header class="mr-card__header">
+        <mat-icon class="mr-card__header-icon mr-card__header-icon--code">code</mat-icon>
+        <div class="mr-card__header-text">
+          <mat-card-title>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CODE_CARD_TITLE' | translate }}</mat-card-title>
+          <mat-card-subtitle><code>{{ data.codeAlias }}</code></mat-card-subtitle>
+        </div>
+      </mat-card-header>
+      <mat-card-content class="mr-card__content">
+        @if (state() === 'pushing') {
+          <div class="mr-card__overlay">
+            <mat-spinner diameter="28"></mat-spinner>
+            <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING' | translate }}</span>
+          </div>
+        }
+        @if (codeResult()?.success === true) {
+          <div class="mr-card__result mr-card__result--ok">
+            <p class="mr-card__result-title">
+              <mat-icon>check_circle</mat-icon>
+              {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.REPO_OK' | translate }}
+            </p>
+            @if (codeResult()!.commitSha) {
+              <div class="mr-card__row">
+                <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_SHA_LABEL' | translate }}</span>
+                <button type="button" class="mr-card__commit"
+                        [matTooltip]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_COPIED' | translate"
+                        (click)="copyCommitSha(codeResult()!.commitSha)">
+                  <code>{{ codeResult()!.commitSha!.substring(0, 8) }}</code>
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+              </div>
+            }
+            @if (codeResult()!.branchUrl) {
+              <a class="mr-card__link" [href]="codeResult()!.branchUrl!" target="_blank" rel="noopener">
+                <mat-icon>open_in_new</mat-icon>
+                {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_URL_LABEL' | translate }}
+              </a>
+            }
+            <p class="mr-card__count">
+              {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.FILE_COUNT' | translate: { count: codeResult()!.fileCount } }}
+            </p>
+          </div>
+        } @else if (codeResult() && codeResult()!.success === false) {
+          <div class="mr-card__result mr-card__result--ko">
+            <p class="mr-card__result-title">
+              <mat-icon>error_outline</mat-icon>
+              {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.REPO_FAILED' | translate }}
+            </p>
+            @if (codeResult()!.errorDescription) {
+              <p class="mr-card__error">{{ codeResult()!.errorDescription }}</p>
+            }
+          </div>
+        } @else {
+          <form [formGroup]="codeForm" class="mr-form">
+            <mat-form-field appearance="outline" class="mr-form__field">
+              <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate }}</mat-label>
+              <input matInput formControlName="branch"
+                     [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="mr-form__field">
+              <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_LABEL' | translate }}</mat-label>
+              <textarea matInput formControlName="commit" rows="2"
+                        [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_PLACEHOLDER' | translate"></textarea>
+            </mat-form-field>
+          </form>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="mr-dialog__actions">
+  @switch (state()) {
+    @case ('form') {
+      <button mat-stroked-button type="button" (click)="onClose()">
+        {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CANCEL' | translate }}
+      </button>
+      <button mat-flat-button color="primary" type="button" [disabled]="!canPush()" (click)="onPush()">
+        <mat-icon>cloud_upload</mat-icon>
+        {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_BOTH' | translate }}
+      </button>
+    }
+    @case ('pushing') {
+      <button mat-stroked-button type="button" disabled>
+        {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING' | translate }}
+      </button>
+    }
+    @case ('success') {
+      <button mat-flat-button color="primary" type="button" (click)="onClose()">
+        {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CLOSE' | translate }}
+      </button>
+    }
+    @case ('partial') {
+      <button mat-stroked-button type="button" (click)="onClose()">
+        {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CLOSE' | translate }}
+      </button>
+      <button mat-flat-button color="primary" type="button" (click)="onRetry()">
+        <mat-icon>refresh</mat-icon>
+        {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.RETRY' | translate }}
+      </button>
+    }
+    @case ('error') {
+      <button mat-stroked-button type="button" (click)="onClose()">
+        {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CLOSE' | translate }}
+      </button>
+      <button mat-flat-button color="primary" type="button" (click)="onRetry()">
+        <mat-icon>refresh</mat-icon>
+        {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.RETRY' | translate }}
+      </button>
+    }
+  }
+</mat-dialog-actions>
