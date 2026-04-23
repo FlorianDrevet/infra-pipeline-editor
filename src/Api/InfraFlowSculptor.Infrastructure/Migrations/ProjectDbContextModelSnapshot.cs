@@ -428,11 +428,12 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SourceResourceId");
-
                     b.HasIndex("TargetResourceId");
 
                     b.HasIndex("UserAssignedIdentityId");
+
+                    b.HasIndex("SourceResourceId", "TargetResourceId", "UserAssignedIdentityId", "RoleDefinitionId")
+                        .IsUnique();
 
                     b.ToTable("RoleAssignments", (string)null);
                 });
@@ -2075,7 +2076,7 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany()
                         .HasForeignKey("KeyVaultResourceId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("InfraFlowSculptor.Domain.Common.BaseModels.AzureResource", null)
                         .WithMany("AppSettings")

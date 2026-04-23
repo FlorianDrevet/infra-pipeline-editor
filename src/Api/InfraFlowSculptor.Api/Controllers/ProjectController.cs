@@ -49,17 +49,17 @@ using InfraFlowSculptor.Application.Projects.Queries.ListProjectConfigs;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectPipelineVariableGroups;
 using InfraFlowSculptor.Application.Projects.Queries.ValidateRecentItems;
-using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Contracts.Projects.Requests;
 using InfraFlowSculptor.Contracts.Projects.Responses;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using InfraFlowSculptor.Api.Common;
 using InfraFlowSculptor.Api.Errors;
+using InfraFlowSculptor.Api.RateLimiting;
 
 namespace InfraFlowSculptor.Api.Controllers;
 
@@ -859,6 +859,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("GenerateProjectBicep")
                 .WithSummary("Generate Bicep files for the entire project (mono-repo)")
                 .WithDescription("Generates Bicep files for all configurations in the project, organized as a mono-repo with a shared Common folder and per-config deployment folders.")
@@ -881,6 +882,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("DownloadProjectBicep")
                 .WithSummary("Download generated Bicep files for a project")
                 .WithDescription("Downloads the latest generated mono-repo Bicep files for the given project as a ZIP archive.")
@@ -892,7 +894,11 @@ public static class ProjectController
             group.MapGet("/{projectId:guid}/generate-bicep/files/{*filePath}",
                     async ([FromRoute] Guid projectId, [FromRoute] string filePath, IMediator mediator) =>
                     {
-                        var query = new GetProjectBicepFileContentQuery(projectId, filePath);
+                        // Audit SEC-004 (2026-04-23): reject path traversal before reaching the handler.
+                        if (!SafeRelativePath.TryNormalize(filePath, out var safePath))
+                            return Results.BadRequest(new { error = "Invalid file path" });
+
+                        var query = new GetProjectBicepFileContentQuery(projectId, safePath);
                         var result = await mediator.Send(query);
 
                         return result.Match(
@@ -927,6 +933,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("PushProjectBicepToGit")
                 .WithSummary("Push project-level Bicep files to Git (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated Bicep files to the configured Git repository. Used in MonoRepo mode.")
@@ -958,6 +965,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("GenerateProjectPipeline")
                 .WithSummary("Generate pipeline files for the entire project (mono-repo)")
                 .WithDescription("Generates Azure DevOps pipeline YAML files for all configurations in the project.")
@@ -980,6 +988,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("DownloadProjectPipeline")
                 .WithSummary("Download generated pipeline files for a project")
                 .WithDescription("Downloads the latest generated mono-repo pipeline files for the given project as a ZIP archive.")
@@ -991,7 +1000,11 @@ public static class ProjectController
             group.MapGet("/{projectId:guid}/generate-pipeline/files/{*filePath}",
                     async ([FromRoute] Guid projectId, [FromRoute] string filePath, IMediator mediator) =>
                     {
-                        var query = new GetProjectPipelineFileContentQuery(projectId, filePath);
+                        // Audit SEC-004 (2026-04-23): reject path traversal before reaching the handler.
+                        if (!SafeRelativePath.TryNormalize(filePath, out var safePath))
+                            return Results.BadRequest(new { error = "Invalid file path" });
+
+                        var query = new GetProjectPipelineFileContentQuery(projectId, safePath);
                         var result = await mediator.Send(query);
 
                         return result.Match(
@@ -1026,6 +1039,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("PushProjectPipelineToGit")
                 .WithSummary("Push project-level pipeline files to Git (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated pipeline files to the configured Git repository. Used in MonoRepo mode.")
@@ -1050,6 +1064,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("GenerateProjectBootstrapPipeline")
                 .WithSummary("Generate the Azure DevOps bootstrap pipeline for a project")
                 .WithDescription("Generates bootstrap.pipeline.yml — an idempotent Azure DevOps pipeline that provisions pipeline definitions, variable groups and authorizations via az devops CLI.")
@@ -1073,6 +1088,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("DownloadProjectBootstrapPipeline")
                 .WithSummary("Download the latest bootstrap pipeline as a ZIP archive")
                 .WithDescription("Returns a ZIP archive containing the latest generated bootstrap.pipeline.yml for the given project.")
@@ -1086,7 +1102,11 @@ public static class ProjectController
                         [FromRoute] string filePath,
                         IMediator mediator) =>
                     {
-                        var query = new GetProjectBootstrapPipelineFileContentQuery(projectId, filePath);
+                        // Audit SEC-004 (2026-04-23): reject path traversal before reaching the handler.
+                        if (!SafeRelativePath.TryNormalize(filePath, out var safePath))
+                            return Results.BadRequest(new { error = "Invalid file path" });
+
+                        var query = new GetProjectBootstrapPipelineFileContentQuery(projectId, safePath);
                         var result = await mediator.Send(query);
 
                         return result.Match(
@@ -1119,6 +1139,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("PushProjectBootstrapPipelineToGit")
                 .WithSummary("Push the bootstrap pipeline file to Git (Azure DevOps)")
                 .WithDescription("Pushes the latest generated bootstrap.pipeline.yml to the configured Git repository.")
@@ -1272,3 +1293,4 @@ public static class ProjectController
         });
     }
 }
+

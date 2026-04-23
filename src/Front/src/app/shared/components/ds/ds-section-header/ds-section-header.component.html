@@ -1,0 +1,24 @@
+<div class="ds-section-header">
+  @if (icon()) {
+    <mat-icon class="ds-section-header__icon">{{ icon() }}</mat-icon>
+  }
+  <div class="ds-section-header__text">
+    @switch (level()) {
+      @case (1) {
+        <h1 class="ds-section-header__title ds-section-header__title--lvl1">{{ title() }}</h1>
+      }
+      @case (3) {
+        <h3 class="ds-section-header__title ds-section-header__title--lvl3">{{ title() }}</h3>
+      }
+      @default {
+        <h2 class="ds-section-header__title">{{ title() }}</h2>
+      }
+    }
+    @if (subtitle()) {
+      <p class="ds-section-header__subtitle">{{ subtitle() }}</p>
+    }
+  </div>
+  <div class="ds-section-header__action">
+    <ng-content select="[ds-section-action]"></ng-content>
+  </div>
+</div>

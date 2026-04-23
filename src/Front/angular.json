@@ -31,6 +31,9 @@
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "stylePreprocessorOptions": {
+              "includePaths": ["src"]
+            },
             "allowedCommonJsDependencies": [
               "protobufjs/minimal",
               "file-saver"

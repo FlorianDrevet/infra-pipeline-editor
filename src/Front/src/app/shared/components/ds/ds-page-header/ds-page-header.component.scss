@@ -1,0 +1,107 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+}
+
+.ds-page-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem 2rem;
+  border-radius: $ifs-radius-2xl;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+
+  &--gradient {
+    background: $ifs-gradient-brand;
+    color: #fff;
+    box-shadow: $ifs-shadow-hero;
+
+    .ds-page-header__badge {
+      background: rgba(255, 255, 255, 0.2);
+
+      mat-icon {
+        color: inherit;
+      }
+    }
+  }
+
+  &--plain {
+    background: $ifs-surface-0;
+    color: $ifs-ink-900;
+    border: 1px solid $ifs-border-soft;
+    box-shadow: $ifs-shadow-xs;
+
+    .ds-page-header__badge {
+      background: $ifs-info-soft;
+
+      mat-icon {
+        color: $ifs-brand-blue;
+      }
+    }
+
+    .ds-page-header__subtitle {
+      color: $ifs-ink-500;
+      opacity: 1;
+    }
+  }
+
+  &__content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__badge {
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    border-radius: $ifs-radius-md;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 1.6rem;
+      width: 1.6rem;
+      height: 1.6rem;
+    }
+  }
+
+  &__text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: clamp(1.5rem, 2.2vw, 2rem);
+    font-weight: 700;
+    margin: 0;
+  }
+
+  &__subtitle {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin: 0.3rem 0 0 0;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    padding: 1.25rem;
+
+    &__title {
+      font-size: 1.4rem;
+    }
+  }
+}

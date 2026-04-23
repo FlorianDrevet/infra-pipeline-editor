@@ -52,6 +52,24 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - Browser tab icon now uses versioned assets in `src/index.html` to break Chrome favicon cache: `public/ifs-favicon.svg` + `public/ifs-favicon.png`, with `public/favicon.ico` regenerated as legacy fallback.
 - The favicon follows the login page visual DNA: deep blue to cyan gradient + four-tile infra grid motif.
 
+## Design System V1 [2026-04-23]
+- **SCSS tokens** under `src/Front/src/scss/`:
+  - `_tokens.scss` — single source of truth: brand (`$ifs-brand-*`), ink/surface palettes, semantic state colors, signature gradients (`$ifs-gradient-brand`, `$ifs-gradient-cta`, `$ifs-gradient-login`, `$ifs-gradient-nav`, `$ifs-gradient-app-bg`), borders, radius (`sm`/`md`/`lg`/`xl`/`2xl`/`3xl`/`pill`), shadows (`xs`→`xl` + `cta`/`cta-hover`/`hero`/`nav`), spacing (`0`→`16`), z-index, transitions (`$ifs-ease-out`, `$ifs-duration-fast/base/slow`), focus ring.
+  - `_mixins.scss` — `ifs-gradient-brand`, `ifs-gradient-cta`, `ifs-glass($opacity, $blur)`, `ifs-card-surface($radius, $shadow)`, `ifs-hover-lift`, `ifs-form-grid($min, $row-gap, $col-gap)`, `ifs-focus-visible`, `ifs-truncate`, `ifs-scrollbar-soft`.
+  - `_animations.scss` — `ifs-fade-in`, `ifs-slide-in-up/down`, `ifs-spin`, `ifs-pulse-soft`.
+  - `_typography.scss` — `$ifs-text-xs`→`$ifs-text-4xl` maps + `@mixin ifs-text($scale)` + utility classes `.ifs-h1`..`.ifs-h4`, `.ifs-body`, `.ifs-body-sm`, `.ifs-caption`.
+- `_main.scss` `@forward`s tokens + vars + typography + colors + mixins + animations.
+- `angular.json` has `stylePreprocessorOptions.includePaths: ["src"]` — any component can do `@use "scss/main" as *;`.
+- `tailwind.config.js` extends with `ifs-*` colors, radius, shadows, and gradient backgrounds (`bg-ifs-brand`, `bg-ifs-cta`, `bg-ifs-cyan`).
+- **DS components** under `src/Front/src/app/shared/components/ds/` (barrel `index.ts` re-exports all 5):
+  - `DsButtonComponent` (`app-ds-button`) — variants `primary`/`secondary`/`ghost`/`danger`, sizes `sm`/`md`/`lg`, `disabled`, `loading` (CSS spinner), `icon` (mat-icon), `iconPosition` `leading`/`trailing`, `type`, `fullWidth`, `clicked` output.
+  - `DsCardComponent` (`app-ds-card`) — variants `elevated`/`outlined`/`glass`, `padding` `none`/`sm`/`md`/`lg`, `accent` `none`/`primary`/`success`/`warning`/`error` (left border 3px), `interactive` (cursor + hover-lift), projections `[ds-card-header]` and `[ds-card-footer]`, `cardClick` output.
+  - `DsAlertComponent` (`app-ds-alert`) — `severity` `info`/`success`/`warning`/`error`, optional `title`, `dismissible` with internal `visible` signal, `dismissed` output, default mat-icons per severity.
+  - `DsSectionHeaderComponent` (`app-ds-section-header`) — `icon`, `title` (required), `subtitle`, `level` 1/2/3, projection `[ds-section-action]`.
+  - `DsPageHeaderComponent` (`app-ds-page-header`) — `title` (required), `subtitle`, `icon`, `variant` `gradient`/`plain`, projection `[ds-page-actions]`. Gradient variant uses `$ifs-gradient-brand` + `$ifs-shadow-hero`.
+- **Showcase page** `/design-system` (lazy route in `app-routing.ts`, behind `AuthenticationGuard`) at `features/design-system/` — visual inventory of all tokens + component variants. Useful for design QA and onboarding.
+- **V1 scope:** foundation only. V2 will progressively migrate existing pages (login, home, projects, project-detail, config-detail, resource-edit) to consume the DS without visual regression.
+
 ## Shared Components
 - `DeploymentConfigComponent` [2026-04-02] — extracted container/code deployment mode toggle + ACR selector + UAI flow
 - `ConfirmDialogComponent` — reusable confirm dialog with i18n

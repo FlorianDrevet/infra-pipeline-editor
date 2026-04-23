@@ -50,5 +50,17 @@ public sealed class RoleAssignmentConfiguration : IEntityTypeConfiguration<RoleA
             .HasForeignKey(r => r.UserAssignedIdentityId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Audit DB-005 (2026-04-23): prevent duplicate functional role assignments
+        // (same source → same target → same identity → same role definition).
+        // NOTE: existing duplicates must be cleaned up before applying this migration.
+        builder.HasIndex(r => new
+            {
+                r.SourceResourceId,
+                r.TargetResourceId,
+                r.UserAssignedIdentityId,
+                r.RoleDefinitionId
+            })
+            .IsUnique();
     }
 }

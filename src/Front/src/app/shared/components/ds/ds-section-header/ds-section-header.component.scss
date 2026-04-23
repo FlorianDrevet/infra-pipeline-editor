@@ -1,0 +1,50 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+}
+
+.ds-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  &__icon {
+    color: $ifs-brand-blue;
+    font-size: 1.4rem;
+    width: 1.4rem;
+    height: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    @include ifs-text($ifs-text-xl);
+    color: $ifs-ink-900;
+    margin: 0;
+
+    &--lvl1 { font-size: 2rem; }
+    &--lvl3 { font-size: 1.05rem; }
+  }
+
+  &__subtitle {
+    @include ifs-text($ifs-text-sm);
+    color: $ifs-ink-500;
+    margin: 0.15rem 0 0 0;
+  }
+
+  &__action {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+
+    &:empty {
+      display: none;
+    }
+  }
+}

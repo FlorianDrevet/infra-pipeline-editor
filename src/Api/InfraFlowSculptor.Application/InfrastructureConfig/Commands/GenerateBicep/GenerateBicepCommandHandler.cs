@@ -21,7 +21,8 @@ public sealed class GenerateBicepCommandHandler(
     IInfrastructureConfigReadRepository configRepository,
     BicepGenerationEngine bicepGenerationEngine,
     IBlobService blobService,
-    IConfigDiagnosticService diagnosticService)
+    IConfigDiagnosticService diagnosticService,
+    IInfraConfigAccessService accessService)
     : ICommandHandler<GenerateBicepCommand, GenerateBicepResult>
 {
     /// <summary>
@@ -40,11 +41,18 @@ public sealed class GenerateBicepCommandHandler(
         GenerateBicepCommand command,
         CancellationToken cancellationToken)
     {
+        var configId = new InfrastructureConfigId(command.InfrastructureConfigId);
+
+        // Audit APP-002 (2026-04-23): enforce write access before generating artifacts.
+        var accessResult = await accessService.VerifyWriteAccessAsync(configId, cancellationToken);
+        if (accessResult.IsError)
+            return accessResult.Errors;
+
         var config = await configRepository.GetByIdWithResourcesAsync(
             command.InfrastructureConfigId, cancellationToken);
 
         if (config is null)
-            return Errors.InfrastructureConfig.NotFoundError(new InfrastructureConfigId(command.InfrastructureConfigId));
+            return Errors.InfrastructureConfig.NotFoundError(configId);
 
         var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
 

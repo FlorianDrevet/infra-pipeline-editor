@@ -1,0 +1,113 @@
+@use "scss/main" as *;
+
+:host {
+  display: inline-flex;
+
+  &.full-width {
+    display: flex;
+    width: 100%;
+  }
+}
+
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-family: inherit;
+  border: 1px solid transparent;
+  border-radius: $ifs-radius-md;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background $ifs-duration-base $ifs-ease-out,
+    color $ifs-duration-base $ifs-ease-out,
+    box-shadow $ifs-duration-base $ifs-ease-out,
+    border-color $ifs-duration-base $ifs-ease-out,
+    transform $ifs-duration-base $ifs-ease-out;
+
+  @include ifs-focus-visible;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &.full-width {
+    width: 100%;
+    justify-content: center;
+  }
+
+  &__icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    line-height: 1.1rem;
+  }
+
+  &__spinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: ifs-spin 0.7s linear infinite;
+  }
+
+  // --- Variants ---
+  &--primary {
+    background: $ifs-gradient-cta;
+    color: #fff;
+    box-shadow: $ifs-shadow-cta;
+
+    &:not(:disabled) {
+      @include ifs-hover-lift;
+    }
+  }
+
+  &--secondary {
+    background: $ifs-surface-0;
+    color: $ifs-brand-blue;
+    border-color: $ifs-info-border;
+
+    &:not(:disabled):hover {
+      background: $ifs-info-soft;
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $ifs-brand-blue;
+
+    &:not(:disabled):hover {
+      background: $ifs-info-soft;
+    }
+  }
+
+  &--danger {
+    background: $ifs-error-soft;
+    color: $ifs-error-strong;
+    border-color: $ifs-error-border;
+
+    &:not(:disabled):hover {
+      background: rgba(244, 67, 54, 0.18);
+    }
+  }
+
+  // --- Sizes ---
+  &--sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.825rem;
+  }
+
+  &--md {
+    padding: 0.6rem 1.1rem;
+    font-size: 0.9rem;
+  }
+
+  &--lg {
+    padding: 0.8rem 1.4rem;
+    font-size: 1rem;
+  }
+}

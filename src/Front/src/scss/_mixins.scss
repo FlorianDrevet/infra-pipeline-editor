@@ -1,0 +1,62 @@
+@use "tokens" as *;
+
+// --- Gradient shorthands ---
+@mixin ifs-gradient-brand { background: $ifs-gradient-brand; }
+@mixin ifs-gradient-cta { background: $ifs-gradient-cta; }
+@mixin ifs-gradient-app-bg { background: $ifs-gradient-app-bg; }
+
+// --- Glassmorphism (frosted card / nav / footer) ---
+@mixin ifs-glass($opacity: 0.88, $blur: 14px, $tint: rgba(255, 255, 255, 1)) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+}
+
+// --- Card surface (default) ---
+@mixin ifs-card-surface($radius: $ifs-radius-xl, $shadow: $ifs-shadow-xs) {
+  background: $ifs-surface-0;
+  border: 1px solid $ifs-border-soft;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  transition:
+    box-shadow $ifs-duration-base $ifs-ease-out,
+    border-color $ifs-duration-base $ifs-ease-out,
+    transform $ifs-duration-base $ifs-ease-out;
+}
+
+// --- Hover lift ---
+@mixin ifs-hover-lift {
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $ifs-shadow-cta-hover;
+  }
+}
+
+// --- Form grid layout ---
+@mixin ifs-form-grid($min: 14rem, $row-gap: 0.75rem, $col-gap: 1.25rem) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax($min, 1fr));
+  gap: $row-gap $col-gap;
+}
+
+// --- Focus visible ---
+@mixin ifs-focus-visible {
+  &:focus-visible {
+    outline: none;
+    box-shadow: $ifs-focus-ring;
+  }
+}
+
+// --- Truncate ---
+@mixin ifs-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// --- Scrollbar (subtle) ---
+@mixin ifs-scrollbar-soft {
+  &::-webkit-scrollbar { width: 8px; height: 8px; }
+  &::-webkit-scrollbar-thumb { background: $ifs-ink-300; border-radius: $ifs-radius-pill; }
+  &::-webkit-scrollbar-track { background: transparent; }
+}

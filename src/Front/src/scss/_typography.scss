@@ -1,3 +1,36 @@
+@use "sass:map";
+@use "tokens" as *;
+
+// --- Font family ---
+$ifs-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+$ifs-font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
+
+// --- Font scale (size, line-height, weight) ---
+$ifs-text-xs:   (size: 0.75rem,  line: 1.4, weight: 500);
+$ifs-text-sm:   (size: 0.875rem, line: 1.5, weight: 400);
+$ifs-text-base: (size: 1rem,     line: 1.6, weight: 400);
+$ifs-text-md:   (size: 1.0625rem, line: 1.55, weight: 500);
+$ifs-text-lg:   (size: 1.125rem, line: 1.5, weight: 600);
+$ifs-text-xl:   (size: 1.25rem,  line: 1.4, weight: 700);
+$ifs-text-2xl:  (size: 1.5rem,   line: 1.3, weight: 700);
+$ifs-text-3xl:  (size: 1.875rem, line: 1.25, weight: 700);
+$ifs-text-4xl:  (size: 2.25rem,  line: 1.2, weight: 700);
+
+// --- Helper mixin ---
+@mixin ifs-text($scale) {
+  font-size: map.get($scale, size);
+  line-height: map.get($scale, line);
+  font-weight: map.get($scale, weight);
+}
+
+// --- Heading utility classes ---
+.ifs-h1 { @include ifs-text($ifs-text-4xl); color: $ifs-ink-900; margin: 0; }
+.ifs-h2 { @include ifs-text($ifs-text-3xl); color: $ifs-ink-900; margin: 0; }
+.ifs-h3 { @include ifs-text($ifs-text-2xl); color: $ifs-ink-900; margin: 0; }
+.ifs-h4 { @include ifs-text($ifs-text-xl);  color: $ifs-ink-900; margin: 0; }
+.ifs-body { @include ifs-text($ifs-text-base); color: $ifs-ink-700; }
+.ifs-body-sm { @include ifs-text($ifs-text-sm); color: $ifs-ink-500; }
+.ifs-caption { @include ifs-text($ifs-text-xs); color: $ifs-ink-500; }
 // Declaration des polices custom si necessaire.
 
 /* Example
