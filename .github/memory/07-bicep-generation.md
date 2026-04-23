@@ -62,6 +62,7 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - `MainBicepAssembler` emits secure param declarations and module call arguments; `ParameterFileAssembler` emits empty placeholders per environment file.
 - Generators opt in through `GeneratedTypeModule.SecureParameters`.
 - `GenerationRequest.SecureParameterOverrides` still feeds `PipelineGenerationEngine.BuildOverrideParameters()`, but only for secure params not redirected through `SecureParameterMappings`.
+- `MainBicepAssembler` must emit `dependsOn: [ {keyVaultModule}Module ]` on each generated `kvSecrets.module.bicep` declaration for locally created Key Vaults. The secrets module uses an `existing` Key Vault reference internally, so without the explicit dependency ARM can race secret creation ahead of vault creation and fail with `Microsoft.KeyVault/vaults/secrets NotFound` on paths like `ifs-kv-dev/JWT_SECRET`.
 
 ## ACR Auth Modes [2026-04-23]
 - `InfrastructureConfigReadRepository` projects `acrAuthMode` into `ResourceDefinition.Properties` for `ContainerApp`, `WebApp`, and `FunctionApp`.

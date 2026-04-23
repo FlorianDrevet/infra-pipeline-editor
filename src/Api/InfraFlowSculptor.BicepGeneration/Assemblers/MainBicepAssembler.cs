@@ -522,6 +522,9 @@ internal static class MainBicepAssembler
                 }
                 sb.AppendLine("    ]");
                 sb.AppendLine("  }");
+                sb.AppendLine("  dependsOn: [");
+                sb.AppendLine($"    {kvModule.ModuleName}Module");
+                sb.AppendLine("  ]");
                 sb.AppendLine("}");
                 sb.AppendLine();
             }
