@@ -565,7 +565,7 @@ internal static class MainBicepAssembler
 
                 foreach (var role in group.Roles)
                 {
-                    sb.AppendLine($"      RbacRoles.{group.ServiceCategory}['{role.RoleDefinitionName}']");
+                    sb.AppendLine($"      RbacRoles.{role.ServiceCategory}['{role.RoleDefinitionName}']");
                 }
 
                 sb.AppendLine("    ]");

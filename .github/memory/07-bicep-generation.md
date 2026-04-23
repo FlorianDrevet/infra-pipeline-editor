@@ -84,6 +84,10 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - `MonoRepoBicepAssembler` must rebuild `Common/constants.bicep` from the union of all per-config `RoleAssignments`, not by picking one config's `ConstantsBicep` payload by file size.
 - Otherwise a config `main.bicep` can import `../Common/constants.bicep` and reference a role such as `Key Vault Secrets User` that is absent from the shared file, producing BCP053 while another config's file only contains roles like `AcrPull`.
 
+## Role Reference ServiceCategory per Role [2026-04-23]
+- `RoleRef` must carry its own `ServiceCategory` (not inherit from the group). `MainBicepAssembler` must emit `RbacRoles.{role.ServiceCategory}['{role.RoleDefinitionName}']`, not `RbacRoles.{group.ServiceCategory}[...]`.
+- When a single (source, target) group contains roles from different Azure services (e.g. AcrPull → containerregistry + Key Vault Secrets User → keyvault), using `group.ServiceCategory` (which takes the first role's category) produces BCP053 because `constants.bicep` indexes roles by their actual service category.
+
 ## Resource-Level Identity Injection [2026-04-23]
 - `BicepGenerationEngine` identity injection must detect only the resource-root `identity:` block. Nested properties such as Container App ACR registry entries also use an `identity:` field; treating those as an existing resource identity prevents injection of the actual managed-identity block and causes mixed-identity modules to miss `identityType` / UAI params.
 

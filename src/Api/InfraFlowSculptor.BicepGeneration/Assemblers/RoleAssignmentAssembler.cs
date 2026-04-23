@@ -34,7 +34,7 @@ internal static class RoleAssignmentAssembler
                     ManagedIdentityType = first.ManagedIdentityType,
                     UserAssignedIdentityName = first.UserAssignedIdentityName,
                     IsTargetCrossConfig = first.IsTargetCrossConfig,
-                    Roles = g.Select(ra => new RoleRef(ra.RoleDefinitionName)).ToList()
+                    Roles = g.Select(ra => new RoleRef(ra.RoleDefinitionName, ra.ServiceCategory)).ToList()
                 };
             })
             .ToList();
