@@ -80,6 +80,10 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - `MonoRepoBicepAssembler` must perform the same content-based disambiguation across configurations when populating `Common/modules/...`, and rewrite each config `main.bicep` to the normalized Common path. Otherwise one config can reuse another config's incompatible module file and trigger BCP037 on params such as `identityType` or `userAssignedIdentityFrontendId`.
 - Folder-level `modules/{ResourceType}/types.bicep` must be merged, not first-wins or last-wins, because identity parameterization can append exported types like `ManagedIdentityType` only for some configs.
 
+## Mono-Repo Shared Constants [2026-04-23]
+- `MonoRepoBicepAssembler` must rebuild `Common/constants.bicep` from the union of all per-config `RoleAssignments`, not by picking one config's `ConstantsBicep` payload by file size.
+- Otherwise a config `main.bicep` can import `../Common/constants.bicep` and reference a role such as `Key Vault Secrets User` that is absent from the shared file, producing BCP053 while another config's file only contains roles like `AcrPull`.
+
 ## Resource-Level Identity Injection [2026-04-23]
 - `BicepGenerationEngine` identity injection must detect only the resource-root `identity:` block. Nested properties such as Container App ACR registry entries also use an `identity:` field; treating those as an existing resource identity prevents injection of the actual managed-identity block and causes mixed-identity modules to miss `identityType` / UAI params.
 

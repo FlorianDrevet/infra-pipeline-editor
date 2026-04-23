@@ -59,16 +59,13 @@ public static class MonoRepoBicepAssembler
         // ── Merge constants.bicep (union of all role assignments) ───────────
         if (hasAnyRoleAssignments)
         {
-            // Pick the biggest constants.bicep (all configs share the same roles catalog)
-            var allConstants = perConfigResults.Values
-                .Where(r => !string.IsNullOrEmpty(r.ConstantsBicep))
-                .Select(r => r.ConstantsBicep)
-                .OrderByDescending(c => c.Length)
-                .FirstOrDefault();
+            var allRoleAssignments = perConfigResults.Values
+                .SelectMany(r => r.RoleAssignments)
+                .ToList();
 
-            if (allConstants is not null)
+            if (allRoleAssignments.Count > 0)
             {
-                commonFiles["constants.bicep"] = allConstants;
+                commonFiles["constants.bicep"] = ConstantsBicepAssembler.Generate(allRoleAssignments);
             }
         }
 

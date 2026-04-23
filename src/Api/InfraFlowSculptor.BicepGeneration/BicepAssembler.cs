@@ -111,6 +111,7 @@ public static class BicepAssembler
             MainBicep = main,
             TypesBicep = typesBicep,
             FunctionsBicep = functionsBicep,
+            RoleAssignments = roleAssignments,
             ConstantsBicep = constantsBicep,
             EnvironmentParameterFiles = environmentParameterFiles,
             ModuleFiles = moduleFiles
