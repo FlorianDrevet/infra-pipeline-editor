@@ -12,6 +12,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { DsButtonComponent } from '../../../shared/components/ds';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
 import { ProjectService } from '../../../shared/services/project.service';
@@ -45,6 +46,7 @@ export interface AddAppConfigKeyDialogData {
     MatFormFieldModule,
     MatTooltipModule,
     MatCheckboxModule,
+    DsButtonComponent,
   ],
   templateUrl: './add-app-config-key-dialog.component.html',
   styleUrl: './add-app-config-key-dialog.component.scss',

@@ -111,12 +111,11 @@
     <button mat-stroked-button (click)="goBack()">
       {{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_BACK' | translate }}
     </button>
-    <button
-      mat-raised-button
-      color="primary"
+    <app-ds-button
+      variant="primary"
       [disabled]="form.invalid"
-      (click)="onConfirm()">
+      (clicked)="onConfirm()">
       {{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ADD' | translate }}
-    </button>
+    </app-ds-button>
   }
 </mat-dialog-actions>

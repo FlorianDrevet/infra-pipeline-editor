@@ -28,6 +28,7 @@ import { UserResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
+import { DsButtonComponent } from '../../shared/components/ds';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import {
@@ -96,6 +97,7 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
+    DsButtonComponent,
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',

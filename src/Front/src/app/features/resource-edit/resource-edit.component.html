@@ -1762,11 +1762,11 @@
                             <button mat-stroked-button type="button" (click)="showBlobAddForm.set(false)">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
                             </button>
-                            <button mat-raised-button color="primary" type="submit"
-                              [disabled]="blobAddForm.invalid || storageActionLoading()">
-                              @if (storageActionLoading()) { <mat-spinner diameter="16"></mat-spinner> }
+                            <app-ds-button variant="primary" type="submit"
+                              [disabled]="blobAddForm.invalid || storageActionLoading()"
+                              [loading]="storageActionLoading()">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_BLOB' | translate }}
-                            </button>
+                            </app-ds-button>
                           </div>
                         </form>
                       </div>
@@ -2096,11 +2096,11 @@
                             <button mat-stroked-button type="button" (click)="showQueueAddForm.set(false)">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
                             </button>
-                            <button mat-raised-button color="primary" type="submit"
-                              [disabled]="queueAddForm.invalid || storageActionLoading()">
-                              @if (storageActionLoading()) { <mat-spinner diameter="16"></mat-spinner> }
+                            <app-ds-button variant="primary" type="submit"
+                              [disabled]="queueAddForm.invalid || storageActionLoading()"
+                              [loading]="storageActionLoading()">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_QUEUE' | translate }}
-                            </button>
+                            </app-ds-button>
                           </div>
                         </form>
                       </div>
@@ -2160,11 +2160,11 @@
                             <button mat-stroked-button type="button" (click)="showTableAddForm.set(false)">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.REMOVE_CONFIRM_CANCEL' | translate }}
                             </button>
-                            <button mat-raised-button color="primary" type="submit"
-                              [disabled]="tableAddForm.invalid || storageActionLoading()">
-                              @if (storageActionLoading()) { <mat-spinner diameter="16"></mat-spinner> }
+                            <app-ds-button variant="primary" type="submit"
+                              [disabled]="tableAddForm.invalid || storageActionLoading()"
+                              [loading]="storageActionLoading()">
                               {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_TABLE' | translate }}
-                            </button>
+                            </app-ds-button>
                           </div>
                         </form>
                       </div>

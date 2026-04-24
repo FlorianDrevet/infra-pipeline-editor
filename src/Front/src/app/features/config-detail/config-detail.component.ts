@@ -21,7 +21,7 @@ import {
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import {
+import { DsButtonComponent } from '../../shared/components/ds';import {
   EditAbbreviationDialogComponent,
   EditAbbreviationDialogData,
   EditAbbreviationDialogResult,
@@ -123,6 +123,7 @@ interface ResourceDisplayItem {
     MatTooltipModule,
     BicepFilePanelComponent,
     DiagnosticPopoverComponent,
+    DsButtonComponent,
   ],
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',

@@ -955,40 +955,39 @@
     {{ 'CONFIG_DETAIL.RESOURCES.FORM.CANCEL' | translate }}
   </button>
   @if (step() === 'create-plan') {
-    <button mat-flat-button color="primary" (click)="onCreatePlanAndContinue()"
-            [disabled]="(parentResourceSuffix() === 'SQL' ? createSqlServerForm.invalid : createPlanForm.invalid) || isCreatingPlan()">
-      @if (isCreatingPlan()) {
-        <mat-spinner diameter="18"></mat-spinner>
-      } @else {
-        {{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_AND_CONTINUE' | translate }}
-      }
-    </button>
+    <app-ds-button
+      variant="primary"
+      (clicked)="onCreatePlanAndContinue()"
+      [loading]="isCreatingPlan()"
+      [disabled]="(parentResourceSuffix() === 'SQL' ? createSqlServerForm.invalid : createPlanForm.invalid) || isCreatingPlan()">
+      {{ 'CONFIG_DETAIL.RESOURCES.FORM.CREATE_PLAN_AND_CONTINUE' | translate }}
+    </app-ds-button>
   }
   @if (step() === 'common') {
     @if (needsEnvironmentSettings()) {
-      <button mat-flat-button color="primary" (click)="onNextToEnvironments()"
-              [disabled]="!isCommonValid() || !hasEnvironments || isSubmitBlockedByNameAvailability()">
+      <app-ds-button
+        variant="primary"
+        (clicked)="onNextToEnvironments()"
+        [disabled]="!isCommonValid() || !hasEnvironments || isSubmitBlockedByNameAvailability()">
         {{ 'CONFIG_DETAIL.RESOURCES.FORM.NEXT' | translate }}
-      </button>
+      </app-ds-button>
     } @else {
-      <button mat-flat-button color="primary" (click)="onSubmit()"
-              [disabled]="!isCommonValid() || isSubmitting() || isSubmitBlockedByNameAvailability()">
-        @if (isSubmitting()) {
-          <mat-spinner diameter="18"></mat-spinner>
-        } @else {
-          {{ 'CONFIG_DETAIL.RESOURCES.FORM.ADD' | translate }}
-        }
-      </button>
+      <app-ds-button
+        variant="primary"
+        (clicked)="onSubmit()"
+        [loading]="isSubmitting()"
+        [disabled]="!isCommonValid() || isSubmitting() || isSubmitBlockedByNameAvailability()">
+        {{ 'CONFIG_DETAIL.RESOURCES.FORM.ADD' | translate }}
+      </app-ds-button>
     }
   }
   @if (step() === 'environments') {
-    <button mat-flat-button color="primary" (click)="onSubmit()"
-            [disabled]="!envFormsValid() || isSubmitting()">
-      @if (isSubmitting()) {
-        <mat-spinner diameter="18"></mat-spinner>
-      } @else {
-        {{ 'CONFIG_DETAIL.RESOURCES.FORM.ADD' | translate }}
-      }
-    </button>
+    <app-ds-button
+      variant="primary"
+      (clicked)="onSubmit()"
+      [loading]="isSubmitting()"
+      [disabled]="!envFormsValid() || isSubmitting()">
+      {{ 'CONFIG_DETAIL.RESOURCES.FORM.ADD' | translate }}
+    </app-ds-button>
   }
 </mat-dialog-actions>

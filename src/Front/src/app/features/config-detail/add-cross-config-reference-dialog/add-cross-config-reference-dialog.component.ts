@@ -13,6 +13,7 @@ import {
   AddCrossConfigReferenceRequest,
 } from '../../../shared/interfaces/cross-config-reference.interface';
 import { RESOURCE_TYPE_ICONS } from '../enums/resource-type.enum';
+import { DsButtonComponent } from '../../../shared/components/ds';
 
 export interface AddCrossConfigReferenceDialogData {
   configId: string;
@@ -37,6 +38,7 @@ interface ResourceGroup {
     MatInputModule,
     MatProgressSpinnerModule,
     TranslateModule,
+    DsButtonComponent,
   ],
   templateUrl: './add-cross-config-reference-dialog.component.html',
   styleUrl: './add-cross-config-reference-dialog.component.scss',

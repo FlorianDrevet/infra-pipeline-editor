@@ -89,6 +89,7 @@ import { AddCustomDomainDialogComponent, AddCustomDomainDialogData } from './add
 import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
+import { DsButtonComponent } from '../../shared/components/ds';
 
 /** Key Vault missing role entry for the KV access warning banner */
 interface KvMissingRoleEntry {
@@ -338,6 +339,7 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     CompactSelectComponent,
     DeploymentConfigComponent,
     ToggleSectionCardComponent,
+    DsButtonComponent,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',

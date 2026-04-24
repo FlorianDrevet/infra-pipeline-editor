@@ -12,6 +12,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { DsButtonComponent } from '../../../shared/components/ds';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { AppSettingService } from '../../../shared/services/app-setting.service';
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
@@ -44,6 +45,7 @@ export interface AddAppSettingDialogData {
     MatFormFieldModule,
     MatTooltipModule,
     MatCheckboxModule,
+    DsButtonComponent,
   ],
   templateUrl: './add-app-setting-dialog.component.html',
   styleUrl: './add-app-setting-dialog.component.scss',

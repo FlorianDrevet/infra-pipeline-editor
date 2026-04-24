@@ -21,6 +21,7 @@ import { ProjectResponse } from '../../../shared/interfaces/project.interface';
 import { InfrastructureConfigResponse } from '../../../shared/interfaces/infra-config.interface';
 import { ProjectRepositoryResponse } from '../../../shared/interfaces/project-repository.interface';
 import { ProjectService } from '../../../shared/services/project.service';
+import { DsButtonComponent } from '../../../shared/components/ds';
 import {
   PushToGitDialogComponent,
   PushToGitDialogData,
@@ -53,6 +54,7 @@ const DEFAULT_ALIAS = 'default';
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    DsButtonComponent,
   ],
   templateUrl: './generation-board.component.html',
   styleUrl: './generation-board.component.scss',

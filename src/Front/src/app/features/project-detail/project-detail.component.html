@@ -941,13 +941,14 @@
                   <button mat-stroked-button type="button" (click)="cancelProjectTagsEdit()" [disabled]="tagsSaving()">
                     {{ 'PROJECT_DETAIL.TAGS.CANCEL' | translate }}
                   </button>
-                  <button mat-flat-button color="primary" type="button" (click)="saveProjectTags()" [disabled]="tagsSaving()">
-                    @if (tagsSaving()) {
-                      <mat-spinner diameter="16"></mat-spinner>
-                    } @else {
-                      {{ 'PROJECT_DETAIL.TAGS.SAVE' | translate }}
-                    }
-                  </button>
+                  <app-ds-button
+                    variant="primary"
+                    type="button"
+                    (clicked)="saveProjectTags()"
+                    [loading]="tagsSaving()"
+                    [disabled]="tagsSaving()">
+                    {{ 'PROJECT_DETAIL.TAGS.SAVE' | translate }}
+                  </app-ds-button>
                 </div>
               </div>
             }

@@ -339,18 +339,17 @@
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CANCEL' | translate }}
         </button>
       }
-      <button
-        mat-flat-button
-        color="primary"
+      <app-ds-button
+        variant="primary"
         [disabled]="!canSubmit()"
-        (click)="onSubmit()">
+        [loading]="isSubmitting()"
+        (clicked)="onSubmit()">
         @if (isSubmitting()) {
-          <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADDING' | translate }}
         } @else {
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADD' | translate }}
         }
-      </button>
+      </app-ds-button>
     </mat-dialog-actions>
   }
 
@@ -639,13 +638,12 @@
         <button mat-stroked-button (click)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
         </button>
-        <button
-          mat-flat-button
-          color="primary"
+        <app-ds-button
+          variant="primary"
           [disabled]="!canProceedFromSensitiveStep()"
-          (click)="proceedFromSensitiveStep()">
+          (clicked)="proceedFromSensitiveStep()">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NEXT' | translate }}
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
 
@@ -707,18 +705,17 @@
         <button mat-stroked-button (click)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
         </button>
-        <button
-          mat-flat-button
-          color="primary"
+        <app-ds-button
+          variant="primary"
           [disabled]="!canSubmit()"
-          (click)="onSubmit()">
+          [loading]="isSubmitting()"
+          (clicked)="onSubmit()">
           @if (isSubmitting()) {
-            <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
             {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADDING' | translate }}
           } @else {
             {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADD' | translate }}
           }
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
   }

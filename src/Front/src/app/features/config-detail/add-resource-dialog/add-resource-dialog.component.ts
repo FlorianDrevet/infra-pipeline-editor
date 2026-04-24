@@ -62,6 +62,7 @@ import { NameAvailabilityService } from '../../../shared/services/name-availabil
 import { EnvironmentNameAvailabilityResponseItem } from '../../../shared/interfaces/name-availability.interface';
 import { ToggleSectionCardComponent } from '../../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DeploymentConfigComponent } from '../../../shared/components/deployment-config/deployment-config.component';
+import { DsButtonComponent } from '../../../shared/components/ds';
 
 export interface AddResourceDialogData {
   resourceGroupId: string;
@@ -278,6 +279,7 @@ type DialogStep = 'type' | 'plan-selection' | 'create-plan' | 'common' | 'enviro
     TranslateModule,
     ToggleSectionCardComponent,
     DeploymentConfigComponent,
+    DsButtonComponent,
   ],
   templateUrl: './add-resource-dialog.component.html',
   styleUrl: './add-resource-dialog.component.scss',

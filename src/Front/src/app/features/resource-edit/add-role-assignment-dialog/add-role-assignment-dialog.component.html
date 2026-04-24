@@ -121,18 +121,17 @@
           <mat-icon>arrow_back</mat-icon>
           {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
         </button>
-        <button
-          mat-flat-button
-          color="primary"
+        <app-ds-button
+          variant="primary"
           [disabled]="!canSubmit()"
-          (click)="onSubmit()">
+          [loading]="isSubmitting()"
+          (clicked)="onSubmit()">
           @if (isSubmitting()) {
-            <mat-spinner diameter="18" class="submit-spinner"></mat-spinner>
             {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGNING' | translate }}
           } @else {
             {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGN' | translate }}
           }
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
 
@@ -353,18 +352,17 @@
           <mat-icon>arrow_back</mat-icon>
           {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
         </button>
-        <button
-          mat-flat-button
-          color="primary"
+        <app-ds-button
+          variant="primary"
           [disabled]="!canSubmit()"
-          (click)="onSubmit()">
+          [loading]="isSubmitting()"
+          (clicked)="onSubmit()">
           @if (isSubmitting()) {
-            <mat-spinner diameter="18" class="submit-spinner"></mat-spinner>
             {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGNING' | translate }}
           } @else {
             {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGN' | translate }}
           }
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
   }

@@ -10,6 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { DsButtonComponent } from '../../../shared/components/ds';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
 import { UserAssignedIdentityService } from '../../../shared/services/user-assigned-identity.service';
@@ -55,6 +56,7 @@ export interface AddRoleAssignmentDialogData {
     MatSelectModule,
     MatFormFieldModule,
     MatTooltipModule,
+    DsButtonComponent,
   ],
   templateUrl: './add-role-assignment-dialog.component.html',
   styleUrl: './add-role-assignment-dialog.component.scss',

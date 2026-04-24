@@ -95,17 +95,16 @@
 
           @if (topology() === 'single' && canGenerateAll()) {
             <mat-card-actions align="end" class="repo-card__actions">
-              <button
-                mat-flat-button
-                color="primary"
-                (click)="onGenerateAll()"
+              <app-ds-button
+                variant="primary"
+                icon="rocket_launch"
+                (clicked)="onGenerateAll()"
                 [disabled]="!project()?.repositories?.length"
                 [matTooltip]="!project()?.repositories?.length
                   ? ('PROJECT_DETAIL.BOARD.NO_GIT_CONFIG' | translate)
                   : ''">
-                <mat-icon>rocket_launch</mat-icon>
                 {{ 'PROJECT_DETAIL.BOARD.GENERATE_ALL_CONFIGS' | translate }}
-              </button>
+              </app-ds-button>
             </mat-card-actions>
           }
         </mat-card>

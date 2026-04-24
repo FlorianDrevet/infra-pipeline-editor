@@ -780,13 +780,13 @@
                 <button mat-stroked-button (click)="cancelConfigTagsEdit()">
                   {{ 'CONFIG_DETAIL.TAGS.CANCEL' | translate }}
                 </button>
-                <button mat-flat-button color="primary" (click)="saveConfigTags()" [disabled]="configTagsSaving()">
-                  @if (configTagsSaving()) {
-                    <mat-spinner diameter="18"></mat-spinner>
-                  } @else {
-                    {{ 'CONFIG_DETAIL.TAGS.SAVE' | translate }}
-                  }
-                </button>
+                <app-ds-button
+                  variant="primary"
+                  (clicked)="saveConfigTags()"
+                  [loading]="configTagsSaving()"
+                  [disabled]="configTagsSaving()">
+                  {{ 'CONFIG_DETAIL.TAGS.SAVE' | translate }}
+                </app-ds-button>
               </div>
             </div>
           } @else {
