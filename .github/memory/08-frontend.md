@@ -52,6 +52,19 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 
 ## Branding Assets [2026-04-22]
 - Browser tab icon now uses versioned assets in `src/index.html` to break Chrome favicon cache: `public/ifs-favicon.svg` + `public/ifs-favicon.png`, with `public/favicon.ico` regenerated as legacy fallback.
+
+## Angular 21 migration + DS sweep [2026-04-24]
+- **6 commits on `fix/generation-pipelines`:** `cf7d4b2` v19→v20, `4975fe2` v20→v21, `a576916` Dockerfile/nginx, `14e7619` DS wave 1 (14 dialogs + 22 gradients), `18cca05` DS wave 2a (4 shared dialogs + storage dialog + big SCSS to tokens), `f2266b2` DS wave 2bc (19 more CTAs in resource-edit/config-detail/project-detail).
+- **Zoneless API rename:** `provideExperimentalZonelessChangeDetection` → `provideZonelessChangeDetection` (stable since v20). Applied in `src/app/app.config.ts`.
+- **Material v20+v21 sass migrations** rewrote `styles.scss` and 3 feature SCSS automatically.
+- **Control-flow migration (auto in v21)** removed redundant `CommonModule` imports across 18 components.
+- **Forms:** stay typed Reactive — Signal Forms remain developer-preview in v21, NOT migrated.
+- **SSR:** explicitly NOT introduced (high MSAL/browser-only risk, near-zero SEO benefit for B2B SaaS authentifié).
+- **DS adoption (3 sweeps total):** added `$ifs-gradient-card-soft` token; replaced ~60 inline gradients across `login`/`home`/`projects`/`project-detail`/`resource-edit`/`config-detail` and 5 dialog SCSS with `$ifs-gradient-{brand,brand-soft,cta,login,card-soft}`; converted ~47 primary CTAs from `<button mat-flat-button color="primary">` (and `mat-raised-button`) to `<app-ds-button variant="primary">` (or `variant="danger"` for `color="warn"`). Each `.ts` updated with `DsButtonComponent` barrel import.
+- **Pitfall — `<app-ds-button>` does NOT forward `form="<id>"` attribute.** `add-config-dialog` keeps its native `<button mat-flat-button type="submit" form="add-config-form">` because conversion would break the form-id submit binding. If `app-ds-button` ever needs to live outside its trigger form, extend `DsButtonComponent` to forward `[attr.form]`.
+- **Skipped intentionally (still raw Material):** `add-config-dialog` (form attr), `resource-edit:466 save-password-btn` (layout-specific class), and ~30 categorical `rgba()` gradients used as semantic status surfaces (each unique to one element, not worth a dedicated token).
+- **`mat-form-field` deliberately untouched.** Already restyled by the global Material override in `styles.scss` (V2). Mass-replacing creates regressions on autocomplete/datepicker/mat-error integration.
+
 ## Design System V2 [2026-04-24]
 - **8 new form components** under `src/Front/src/app/shared/components/ds/` (all `ControlValueAccessor`, compatible with `formControlName` / `ngModel` / two-way `[(value)]`):
   - `DsTextFieldComponent` (`app-ds-text-field`) — native `<input>` (no mat-form-field), brand-blue label, cyan focus ring, prefix/suffix mat-icon, hint/error, clearable, types `text`/`email`/`password`/`number`/`tel`/`url`.
