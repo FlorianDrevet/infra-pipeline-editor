@@ -92,7 +92,7 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - **8 new form components** under `src/Front/src/app/shared/components/ds/` (all `ControlValueAccessor`, compatible with `formControlName` / `ngModel` / two-way `[(value)]`):
   - `DsTextFieldComponent` (`app-ds-text-field`) — native `<input>` (no mat-form-field), brand-blue label, cyan focus ring, prefix/suffix mat-icon, hint/error, clearable, types `text`/`email`/`password`/`number`/`tel`/`url`.
   - `DsTextareaComponent` (`app-ds-textarea`) — autoResize via `effect()` + `viewChild` on textarea, optional `maxLength` with character counter.
-  - `DsSelectComponent` (`app-ds-select`) — custom dropdown (NOT `mat-select`), `DsSelectOption { value, label, icon?, disabled?, description? }`, searchable filter, click-outside + Escape close (HostListener), clearable, animated chevron.
+  - `DsSelectComponent` (`app-ds-select`) — custom dropdown (NOT `mat-select`), `DsSelectOption { value, label, icon?, disabled?, description? }`, searchable filter, clearable, animated chevron, and since 2026-04-24 the options panel is rendered via `cdkConnectedOverlay` (same pattern as `compact-select`) with trigger-width sync + transparent backdrop. This prevents long dropdowns from creating scrollbars inside `mat-tab-group` / scrollable sections and makes them overlay adjacent content correctly.
   - `DsToggleComponent` (`app-ds-toggle`) — iOS-style switch, brand-gradient track when checked, label + description, labelPosition before/after.
   - `DsCheckboxComponent` (`app-ds-checkbox`) — square brand-blue when checked, indeterminate state.
   - `DsRadioGroupComponent` (`app-ds-radio-group`) — `DsRadioOption { value, label, description?, disabled? }`, vertical/horizontal layout.

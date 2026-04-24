@@ -5,11 +5,12 @@ import {
   HostListener,
   computed,
   forwardRef,
-  inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
 
+import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -27,7 +28,7 @@ export interface DsSelectOption {
 @Component({
   selector: 'app-ds-select',
   standalone: true,
-  imports: [MatIconModule],
+  imports: [MatIconModule, OverlayModule],
   templateUrl: './ds-select.component.html',
   styleUrl: './ds-select.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,8 +55,26 @@ export class DsSelectComponent implements ControlValueAccessor {
   protected readonly isOpen = signal(false);
   protected readonly searchTerm = signal('');
   private readonly internalDisabled = signal(false);
+  private readonly triggerRef = viewChild<ElementRef<HTMLButtonElement>>('trigger');
 
   protected readonly disabledState = computed(() => this.disabled() || this.internalDisabled());
+  protected readonly overlayWidth = computed(() => this.triggerRef()?.nativeElement.getBoundingClientRect().width ?? 0);
+  protected readonly overlayPositions: ConnectedPosition[] = [
+    {
+      originX: 'start',
+      originY: 'bottom',
+      overlayX: 'start',
+      overlayY: 'top',
+      offsetY: 6,
+    },
+    {
+      originX: 'start',
+      originY: 'top',
+      overlayX: 'start',
+      overlayY: 'bottom',
+      offsetY: -6,
+    },
+  ];
 
   protected readonly selectedOption = computed(() =>
     this.options().find((o) => o.value === this.value()),
@@ -68,8 +87,6 @@ export class DsSelectComponent implements ControlValueAccessor {
     }
     return this.options().filter((o) => o.label.toLowerCase().includes(term));
   });
-
-  private readonly elementRef = inject(ElementRef<HTMLElement>);
 
   private onChangeFn: (v: string | number | null) => void = () => {};
   private onTouchedFn: () => void = () => {};
@@ -128,16 +145,6 @@ export class DsSelectComponent implements ControlValueAccessor {
 
   protected onBlur(): void {
     // Touched is emitted on close.
-  }
-
-  @HostListener('document:click', ['$event'])
-  protected onDocumentClick(event: MouseEvent): void {
-    if (!this.isOpen()) {
-      return;
-    }
-    if (!this.elementRef.nativeElement.contains(event.target as Node)) {
-      this.close();
-    }
   }
 
   @HostListener('document:keydown.escape')

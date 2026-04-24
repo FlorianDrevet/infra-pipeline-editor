@@ -35,6 +35,14 @@ dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\ -p:DefineConstants
 - `UseHsts()` is enabled outside Development.
 - `RateLimiting` exposes a global limiter (100 req/min per user or IP) and an `Expensive` policy (10 req/min) applied to generation, download, and push endpoints.
 
+## Project Pipeline Mono-Repo Layout [2026-04-24]
+
+- `GenerateProjectPipelineCommandHandler` now returns repo-relative project pipeline paths under `.azuredevops/...` for both legacy union maps and split infra/app maps: shared templates go to `.azuredevops/Common/...`, per-config infra wrappers to `.azuredevops/{config}/...`, and split app wrappers to `.azuredevops/{config}/apps/{appName}/...`.
+- Blob storage still uses routing buckets (`pipeline/project/{id}/{ts}/{infra|app}/...`), but `GetProjectPipelineFileContentQueryHandler` now resolves both direct repo-relative paths and the split `infra/` / `app/` bucketed blobs, so the project detail UI can load files using the displayed `.azuredevops/...` path.
+- Mono-repo infra wrappers now reference `../Common/pipelines/{ci,pr}.pipeline.yml` and `../Common/jobs/deploy.job.yml`; their path filters include both `{config}/*` and the pipeline tree itself (`.azuredevops/Common/*`, `.azuredevops/{config}/*`) so wrapper/template edits trigger validation builds.
+- Split app wrappers now reference `../../../Common/pipelines/app-*.pipeline.yml` because their generated location is `.azuredevops/{config}/apps/{appName}/...`.
+- Project bootstrap pipeline definitions now target the same YAML layout: `/.azuredevops/{config}/ci.pipeline.yml`, `/.azuredevops/{config}/pr.pipeline.yml`, `/.azuredevops/{config}/release.pipeline.yml`, and `/.azuredevops/{config}/apps/{appName}/{ci,release}.app-pipeline.yml`.
+
 ## App Pipeline Shared Templates
 
 - App pipelines use **shared YAML templates** (`extends:` pattern) like infra pipelines, decomposed under `.azuredevops/{pipelines,jobs,steps}/` matching the infra convention.

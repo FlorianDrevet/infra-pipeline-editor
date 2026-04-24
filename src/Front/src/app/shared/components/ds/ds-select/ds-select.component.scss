@@ -141,20 +141,21 @@
 }
 
 .ds-select__panel {
-  position: absolute;
-  top: calc(100% + 0.35rem);
-  left: 0;
-  right: 0;
   z-index: $ifs-z-popover;
   background: $ifs-surface-0;
   border: 1px solid $ifs-border-medium;
   border-radius: $ifs-radius-md;
   box-shadow: $ifs-shadow-lg;
   max-height: 18rem;
+  min-width: 12rem;
   display: flex;
   flex-direction: column;
   animation: ifs-slide-in-down $ifs-duration-fast $ifs-ease-out;
   overflow: hidden;
+}
+
+.ds-select__backdrop {
+  background: transparent;
 }
 
 .ds-select__search {
