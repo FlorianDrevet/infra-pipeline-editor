@@ -8,9 +8,11 @@ trigger:
   paths:
     include:
       - worker/*
+      - .azuredevops/Common/*
+      - .azuredevops/worker/*
 
 extends:
-  template: ../.azuredevops/pipelines/ci.pipeline.yml
+  template: ../Common/pipelines/ci.pipeline.yml
   parameters:
     continueOnError: true
     projectName: worker

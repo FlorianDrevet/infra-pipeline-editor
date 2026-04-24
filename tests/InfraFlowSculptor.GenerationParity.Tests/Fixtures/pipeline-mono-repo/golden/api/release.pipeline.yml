@@ -19,7 +19,7 @@ stages:
         displayName: "Deploy ${{ environment }}"
 
         jobs:
-          - template: ../.azuredevops/jobs/deploy.job.yml
+          - template: ../Common/jobs/deploy.job.yml
             parameters:
               projectName: api
               environment: ${{ environment }}

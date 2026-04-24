@@ -10,8 +10,10 @@ pr:
   paths:
     include:
       - api/*
+      - .azuredevops/Common/*
+      - .azuredevops/api/*
 
 extends:
-  template: ../.azuredevops/pipelines/pr.pipeline.yml
+  template: ../Common/pipelines/pr.pipeline.yml
   parameters:
     projectName: api
