@@ -74,6 +74,102 @@ const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
 const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit', Reader: 'visibility' };
 
+function ensureTreeFolderNode(
+  nodes: BicepTreeNode[],
+  key: string,
+  name: string,
+  depth: number,
+  parentFolderKey?: string,
+  folderIcon: BicepFolderNode['folderIcon'] = 'folder',
+): void {
+  if (nodes.some((node) => node.kind === 'folder' && node.key === key)) {
+    return;
+  }
+
+  nodes.push({
+    kind: 'folder',
+    key,
+    name,
+    folderIcon,
+    depth,
+    parentFolderKey,
+  } satisfies BicepFolderNode);
+}
+
+function appendTreeFileNode(
+  nodes: BicepTreeNode[],
+  rootKey: string,
+  backendPath: string,
+  relativePath: string,
+): void {
+  const parts = relativePath.split('/').filter((part) => part.length > 0);
+  if (parts.length === 0) {
+    return;
+  }
+
+  let parentKey = rootKey;
+  for (let index = 0; index < parts.length - 1; index++) {
+    const folderKey = `${rootKey}/${parts.slice(0, index + 1).join('/')}`;
+    ensureTreeFolderNode(nodes, folderKey, `${parts[index]}/`, index + 1, parentKey);
+    parentKey = folderKey;
+  }
+
+  nodes.push({
+    kind: 'file',
+    path: backendPath,
+    displayName: parts[parts.length - 1],
+    type: 'generic',
+    uri: backendPath,
+    depth: parts.length,
+    parentFolderKey: parentKey,
+  } satisfies BicepFileNode);
+}
+
+function buildAzureDevOpsNodes(
+  commonFileUris: Record<string, string>,
+  configFileUris: Record<string, Record<string, string>>,
+): BicepTreeNode[] {
+  const nodes: BicepTreeNode[] = [];
+  const commonEntries = Object.keys(commonFileUris ?? {});
+  const configEntries = Object.entries(configFileUris ?? {});
+
+  if (commonEntries.length === 0 && configEntries.length === 0) {
+    return nodes;
+  }
+
+  ensureTreeFolderNode(nodes, '.azuredevops', '.azuredevops/', 0, undefined, 'folder_shared');
+
+  for (const filePath of commonEntries) {
+    const relativePath = filePath.startsWith('.azuredevops/')
+      ? filePath.slice('.azuredevops/'.length)
+      : filePath;
+
+    if (!relativePath) {
+      continue;
+    }
+
+    appendTreeFileNode(nodes, '.azuredevops', filePath, relativePath);
+  }
+
+  for (const [configName, files] of configEntries) {
+    for (const filePath of Object.keys(files)) {
+      const relativePath = filePath.startsWith('.azuredevops/')
+        ? filePath.slice('.azuredevops/'.length)
+        : filePath.startsWith(`${configName}/`)
+          ? filePath
+          : `${configName}/${filePath}`;
+
+      if (!relativePath) {
+        continue;
+      }
+
+      appendTreeFileNode(nodes, '.azuredevops', filePath, relativePath);
+    }
+  }
+
+  return nodes;
+}
+
 @Component({
   selector: 'app-project-detail',
   standalone: true,
@@ -280,75 +376,7 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectPipelineNodes = computed<BicepTreeNode[]>(() => {
     const result = this.projectPipelineResult();
     if (!result) return [];
-    const nodes: BicepTreeNode[] = [];
-
-    // ── .azuredevops/ common folder ──
-    if (result.commonFileUris && Object.keys(result.commonFileUris).length > 0) {
-      nodes.push({ kind: 'folder', key: '.azuredevops', name: '.azuredevops/', folderIcon: 'folder_shared', depth: 0 } satisfies BicepFolderNode);
-
-      // Group common files by subfolder (e.g. "pipelines", "jobs", "steps")
-      const subfolderMap = new Map<string, Array<{ path: string; displayName: string }>>();
-      for (const [key] of Object.entries(result.commonFileUris)) {
-        // Keys are like ".azuredevops/pipelines/ci.pipeline.yml"
-        const relativePath = key.startsWith('.azuredevops/') ? key.slice('.azuredevops/'.length) : key;
-        const parts = relativePath.split('/');
-        if (parts.length >= 3) {
-          // e.g. "pipelines" → folder, "ci.pipeline.yml" → file
-          const subfolderKey = parts.slice(0, parts.length - 1).join('/');
-          if (!subfolderMap.has(subfolderKey)) subfolderMap.set(subfolderKey, []);
-          subfolderMap.get(subfolderKey)!.push({ path: key, displayName: parts[parts.length - 1] });
-        } else if (parts.length === 2) {
-          const subfolderKey = parts[0];
-          if (!subfolderMap.has(subfolderKey)) subfolderMap.set(subfolderKey, []);
-          subfolderMap.get(subfolderKey)!.push({ path: key, displayName: parts[1] });
-        } else {
-          // File directly under .azuredevops/
-          nodes.push({ kind: 'file', path: key, displayName: parts[0], type: 'generic', uri: key, depth: 1, parentFolderKey: '.azuredevops' } satisfies BicepFileNode);
-        }
-      }
-
-      for (const [subfolderPath, files] of subfolderMap) {
-        // Build nested folder structure: .azuredevops > pipelines|jobs|steps
-        const subParts = subfolderPath.split('/');
-        let parentKey = '.azuredevops';
-        for (let i = 0; i < subParts.length; i++) {
-          const folderKey = `.azuredevops/${subParts.slice(0, i + 1).join('/')}`;
-          // Only push if not already added
-          if (!nodes.some(n => n.kind === 'folder' && n.key === folderKey)) {
-            nodes.push({ kind: 'folder', key: folderKey, name: `${subParts[i]}/`, folderIcon: 'folder', depth: i + 1, parentFolderKey: parentKey } satisfies BicepFolderNode);
-          }
-          parentKey = folderKey;
-        }
-        // Push files under the deepest subfolder
-        for (const file of files) {
-          nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type: 'generic', uri: file.path, depth: subParts.length + 1, parentFolderKey: parentKey } satisfies BicepFileNode);
-        }
-      }
-    }
-
-    // ── Per-config folders ──
-    for (const [configName, files] of Object.entries(result.configFileUris)) {
-      nodes.push({ kind: 'folder', key: configName, name: `${configName}/`, folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
-      for (const [fileName] of Object.entries(files)) {
-        // Build nested subfolders for files like "variables/dev.yml"
-        const parts = fileName.split('/');
-        if (parts.length > 1) {
-          let parentKey = configName;
-          for (let i = 0; i < parts.length - 1; i++) {
-            const folderKey = `${configName}/${parts.slice(0, i + 1).join('/')}`;
-            if (!nodes.some(n => n.kind === 'folder' && n.key === folderKey)) {
-              nodes.push({ kind: 'folder', key: folderKey, name: `${parts[i]}/`, folderIcon: 'folder', depth: i + 1, parentFolderKey: parentKey } satisfies BicepFolderNode);
-            }
-            parentKey = folderKey;
-          }
-          nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: parts[parts.length - 1], type: 'generic', uri: `${configName}/${fileName}`, depth: parts.length, parentFolderKey: parentKey } satisfies BicepFileNode);
-        } else {
-          nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: fileName, type: 'generic', uri: `${configName}/${fileName}`, depth: 1, parentFolderKey: configName } satisfies BicepFileNode);
-        }
-      }
-    }
-
-    return nodes;
+    return buildAzureDevOpsNodes(result.commonFileUris, result.configFileUris);
   });
 
   protected readonly loadProjectPipelineFile = (filePath: string): Promise<string> => {

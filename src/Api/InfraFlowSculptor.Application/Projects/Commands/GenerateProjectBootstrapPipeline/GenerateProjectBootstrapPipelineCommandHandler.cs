@@ -156,15 +156,15 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         [
             new BootstrapPipelineDefinition(
                 Name: $"{sanitizedConfigName} - CI",
-                YamlPath: $"/{basePrefix}{sanitizedConfigName}/ci.pipeline.yml",
+                YamlPath: $"/{basePrefix}.azuredevops/{sanitizedConfigName}/ci.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
             new BootstrapPipelineDefinition(
                 Name: $"{sanitizedConfigName} - PR",
-                YamlPath: $"/{basePrefix}{sanitizedConfigName}/pr.pipeline.yml",
+                YamlPath: $"/{basePrefix}.azuredevops/{sanitizedConfigName}/pr.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
             new BootstrapPipelineDefinition(
                 Name: $"{sanitizedConfigName} - Release",
-                YamlPath: $"/{basePrefix}{sanitizedConfigName}/release.pipeline.yml",
+                YamlPath: $"/{basePrefix}.azuredevops/{sanitizedConfigName}/release.pipeline.yml",
                 Folder: $"\\{sanitizedConfigName}"),
         ];
     }
@@ -187,7 +187,7 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
             var appFolderName = await ResolveApplicationFolderNameAsync(resource, cancellationToken)
                 .ConfigureAwait(false);
             var sanitizedAppName = PathSanitizer.Sanitize(appFolderName);
-            var yamlBasePath = $"/{basePrefix}{sanitizedConfigName}/apps/{sanitizedAppName}";
+            var yamlBasePath = $"/{basePrefix}.azuredevops/{sanitizedConfigName}/apps/{sanitizedAppName}";
             var folder = $"\\{sanitizedConfigName}\\Applications\\{sanitizedAppName}";
 
             pipelines.Add(new BootstrapPipelineDefinition(

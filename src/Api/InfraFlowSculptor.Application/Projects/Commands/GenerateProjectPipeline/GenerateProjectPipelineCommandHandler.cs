@@ -153,10 +153,10 @@ public sealed class GenerateProjectPipelineCommandHandler(
         var appCommonUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
         foreach (var (path, content) in assembled.CommonFiles)
         {
-            // assembled.CommonFiles is the infra shared template tree (.azuredevops/ relative).
+            var repoRelativePath = $".azuredevops/Common/{path}";
             var uri = await blobService.UploadContentAsync(
-                $"{prefix}/infra/.azuredevops/{path}", content, "text/plain");
-            infraCommonUris[$".azuredevops/{path}"] = uri;
+                $"{prefix}/infra/{repoRelativePath}", content, "text/plain");
+            infraCommonUris[repoRelativePath] = uri;
         }
 
         // Upload shared application pipeline templates whenever any per-config bucket emitted apps/ wrappers.
@@ -167,10 +167,10 @@ public sealed class GenerateProjectPipelineCommandHandler(
         {
             foreach (var (path, content) in AppPipelineGenerationEngine.GenerateSharedTemplates())
             {
-                // path already includes the .azuredevops/ prefix.
+                var repoRelativePath = ToCommonAzureDevOpsPath(path);
                 var uri = await blobService.UploadContentAsync(
-                    $"{prefix}/app/{path}", content, "text/plain");
-                appCommonUris[path] = uri;
+                    $"{prefix}/app/{repoRelativePath}", content, "text/plain");
+                appCommonUris[repoRelativePath] = uri;
             }
         }
 
@@ -185,17 +185,19 @@ public sealed class GenerateProjectPipelineCommandHandler(
             var infraUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
             foreach (var (path, content) in infraFiles)
             {
+                var repoRelativePath = $".azuredevops/{configName}/{path}";
                 var uri = await blobService.UploadContentAsync(
-                    $"{prefix}/infra/{configName}/{path}", content, "text/plain");
-                infraUris[path] = uri;
+                    $"{prefix}/infra/{repoRelativePath}", content, "text/plain");
+                infraUris[repoRelativePath] = uri;
             }
 
             var appUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
             foreach (var (path, content) in appFiles)
             {
+                var repoRelativePath = $".azuredevops/{configName}/{path}";
                 var uri = await blobService.UploadContentAsync(
-                    $"{prefix}/app/{configName}/{path}", content, "text/plain");
-                appUris[path] = uri;
+                    $"{prefix}/app/{repoRelativePath}", content, "text/plain");
+                appUris[repoRelativePath] = uri;
             }
 
             infraConfigUris[configName] = infraUris;
@@ -219,6 +221,15 @@ public sealed class GenerateProjectPipelineCommandHandler(
             AppCommonFileUris: appCommonUris,
             InfraConfigFileUris: infraConfigUris,
             AppConfigFileUris: appConfigUris);
+    }
+
+    private static string ToCommonAzureDevOpsPath(string path)
+    {
+        const string azureDevOpsPrefix = ".azuredevops/";
+
+        return path.StartsWith(azureDevOpsPrefix, StringComparison.Ordinal)
+            ? $".azuredevops/Common/{path[azureDevOpsPrefix.Length..]}"
+            : $".azuredevops/Common/{path}";
     }
 
     private static GenerationRequest BuildGenerationRequest(

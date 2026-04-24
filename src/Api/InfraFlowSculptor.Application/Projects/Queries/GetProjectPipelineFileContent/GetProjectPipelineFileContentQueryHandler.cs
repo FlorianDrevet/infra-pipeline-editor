@@ -34,12 +34,20 @@ public sealed class GetProjectPipelineFileContentQueryHandler(
             .OrderDescending()
             .First();
 
-        var blobName = $"{latestPrefix}/{query.FilePath}";
-        var content = await blobService.DownloadContentAsync(blobName);
+        var candidateBlobNames = new[]
+        {
+            $"{latestPrefix}/{query.FilePath}",
+            $"{latestPrefix}/infra/{query.FilePath}",
+            $"{latestPrefix}/app/{query.FilePath}",
+        };
 
-        if (content is null)
-            return Errors.Project.PipelineFileNotFoundError(query.FilePath);
+        foreach (var blobName in candidateBlobNames)
+        {
+            var content = await blobService.DownloadContentAsync(blobName);
+            if (content is not null)
+                return new GetProjectPipelineFileContentResult(content);
+        }
 
-        return new GetProjectPipelineFileContentResult(content);
+        return Errors.Project.PipelineFileNotFoundError(query.FilePath);
     }
 }

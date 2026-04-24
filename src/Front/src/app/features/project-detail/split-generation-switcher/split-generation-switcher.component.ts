@@ -154,75 +154,77 @@ function buildBicepNodes(
 ): BicepTreeNode[] {
   const nodes: BicepTreeNode[] = [];
 
-  // Backend (SplitInfraCode) emits shared files at the repository root: keys are e.g.
-  // 'types.bicep', 'functions.bicep', 'modules/<ResourceType>/<file>.bicep'.
-  // Legacy 'Common/' prefix is stripped defensively to stay forward-compatible.
-  const commonEntries = Object.entries(commonFileUris ?? {})
-    .map(([key, uri]) => [key.startsWith('Common/') ? key.slice('Common/'.length) : key, uri] as [string, string]);
+  const commonEntries = Object.keys(commonFileUris ?? {});
+  if (commonEntries.length > 0) {
+    ensureFolderNode(nodes, 'Common', 'Common/', 0, undefined, 'folder_shared');
 
-  // Top-level shared files (types/functions/constants) at depth 0.
-  for (const [key] of commonEntries) {
-    if (key.startsWith('modules/')) continue;
-    const type: BicepFileType =
-      key === 'types.bicep' ? 'types'
-      : key === 'functions.bicep' ? 'functions'
-      : key === 'constants.bicep' ? 'constants'
-      : 'generic';
-    nodes.push({ kind: 'file', path: key, displayName: key, type, uri: key, depth: 0, parentFolderKey: '' } satisfies BicepFileNode);
-  }
+    for (const filePath of commonEntries) {
+      const relativePath = filePath.startsWith('Common/')
+        ? filePath.slice('Common/'.length)
+        : filePath;
 
-  // Shared modules/ folder at depth 0 (no Common/ wrapper).
-  const moduleEntries = commonEntries.filter(([key]) => key.startsWith('modules/'));
-  if (moduleEntries.length > 0) {
-    nodes.push({ kind: 'folder', key: 'modules', name: 'modules/', folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
-    const folderMap = new Map<string, { name: string; files: Array<{ path: string; displayName: string }> }>();
-    for (const [filePath] of moduleEntries) {
-      const parts = filePath.split('/');
-      if (parts.length < 3) continue;
-      const fn = parts[1];
-      const folderKey = `modules/${fn}`;
-      if (!folderMap.has(folderKey)) folderMap.set(folderKey, { name: fn, files: [] });
-      folderMap.get(folderKey)!.files.push({ path: filePath, displayName: parts[2] });
-    }
-    for (const [folderKey, folder] of folderMap) {
-      nodes.push({ kind: 'folder', key: folderKey, name: `${folder.name}/`, folderIcon: 'folder', depth: 1, parentFolderKey: 'modules' } satisfies BicepFolderNode);
-      for (const file of folder.files) {
-        const type: BicepFileType =
-          file.displayName === 'types.bicep' ? 'types'
-          : file.displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
-          : 'module-type';
-        nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type, uri: file.path, depth: 2, parentFolderKey: folderKey } satisfies BicepFileNode);
+      if (!relativePath) {
+        continue;
       }
+
+      appendHierarchicalFileNode(
+        nodes,
+        'Common',
+        filePath,
+        relativePath,
+        (entryPath, displayName) => {
+          if (entryPath.startsWith('modules/')) {
+            return displayName === 'types.bicep'
+              ? 'types'
+              : displayName.endsWith('.roleassignments.module.bicep')
+                ? 'role-assignments'
+                : 'module-type';
+          }
+
+          return displayName === 'types.bicep'
+            ? 'types'
+            : displayName === 'functions.bicep'
+              ? 'functions'
+              : displayName === 'constants.bicep'
+                ? 'constants'
+                : 'generic';
+        },
+      );
     }
   }
 
   for (const [configName, files] of Object.entries(configFileUris ?? {})) {
-    nodes.push({ kind: 'folder', key: configName, name: `${configName}/`, folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
+    ensureFolderNode(nodes, configName, `${configName}/`, 0);
+
     for (const fileName of Object.keys(files)) {
-      const parts = fileName.split('/');
-      if (parts.length > 1) {
-        let parentKey = configName;
-        for (let i = 0; i < parts.length - 1; i++) {
-          const folderKey = `${configName}/${parts.slice(0, i + 1).join('/')}`;
-          if (!nodes.some(n => n.kind === 'folder' && n.key === folderKey)) {
-            nodes.push({ kind: 'folder', key: folderKey, name: `${parts[i]}/`, folderIcon: 'folder', depth: i + 1, parentFolderKey: parentKey } satisfies BicepFolderNode);
-          }
-          parentKey = folderKey;
-        }
-        const displayName = parts[parts.length - 1];
-        const type: BicepFileType =
-          displayName.endsWith('.bicepparam') ? 'params'
-          : displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
-          : 'generic';
-        nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName, type, uri: `${configName}/${fileName}`, depth: parts.length, parentFolderKey: parentKey } satisfies BicepFileNode);
-      } else {
-        const type: BicepFileType =
-          fileName === 'main.bicep' ? 'entry-point'
-          : fileName.endsWith('.bicepparam') ? 'params'
-          : fileName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
-          : 'generic';
-        nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: fileName, type, uri: `${configName}/${fileName}`, depth: 1, parentFolderKey: configName } satisfies BicepFileNode);
+      const backendPath = fileName.startsWith(`${configName}/`)
+        ? fileName
+        : `${configName}/${fileName}`;
+      const relativePath = backendPath.startsWith(`${configName}/`)
+        ? backendPath.slice(configName.length + 1)
+        : backendPath;
+
+      if (!relativePath) {
+        continue;
       }
+
+      appendHierarchicalFileNode(
+        nodes,
+        configName,
+        backendPath,
+        relativePath,
+        (entryPath, displayName) => {
+          if (displayName === 'main.bicep' && !entryPath.includes('/')) {
+            return 'entry-point';
+          }
+
+          return displayName.endsWith('.bicepparam')
+            ? 'params'
+            : displayName.endsWith('.roleassignments.module.bicep')
+              ? 'role-assignments'
+              : 'generic';
+        },
+      );
     }
   }
 
@@ -235,59 +237,95 @@ function buildPipelineNodes(
 ): BicepTreeNode[] {
   const nodes: BicepTreeNode[] = [];
 
-  if (commonFileUris && Object.keys(commonFileUris).length > 0) {
-    nodes.push({ kind: 'folder', key: '.azuredevops', name: '.azuredevops/', folderIcon: 'folder_shared', depth: 0 } satisfies BicepFolderNode);
-    const subfolderMap = new Map<string, Array<{ path: string; displayName: string }>>();
-    for (const key of Object.keys(commonFileUris)) {
-      const relativePath = key.startsWith('.azuredevops/') ? key.slice('.azuredevops/'.length) : key;
-      const parts = relativePath.split('/');
-      if (parts.length >= 3) {
-        const subfolderKey = parts.slice(0, parts.length - 1).join('/');
-        if (!subfolderMap.has(subfolderKey)) subfolderMap.set(subfolderKey, []);
-        subfolderMap.get(subfolderKey)!.push({ path: key, displayName: parts[parts.length - 1] });
-      } else if (parts.length === 2) {
-        const subfolderKey = parts[0];
-        if (!subfolderMap.has(subfolderKey)) subfolderMap.set(subfolderKey, []);
-        subfolderMap.get(subfolderKey)!.push({ path: key, displayName: parts[1] });
-      } else {
-        nodes.push({ kind: 'file', path: key, displayName: parts[0], type: 'generic', uri: key, depth: 1, parentFolderKey: '.azuredevops' } satisfies BicepFileNode);
-      }
-    }
-    for (const [subfolderPath, files] of subfolderMap) {
-      const subParts = subfolderPath.split('/');
-      let parentKey = '.azuredevops';
-      for (let i = 0; i < subParts.length; i++) {
-        const folderKey = `.azuredevops/${subParts.slice(0, i + 1).join('/')}`;
-        if (!nodes.some(n => n.kind === 'folder' && n.key === folderKey)) {
-          nodes.push({ kind: 'folder', key: folderKey, name: `${subParts[i]}/`, folderIcon: 'folder', depth: i + 1, parentFolderKey: parentKey } satisfies BicepFolderNode);
-        }
-        parentKey = folderKey;
-      }
-      for (const file of files) {
-        nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type: 'generic', uri: file.path, depth: subParts.length + 1, parentFolderKey: parentKey } satisfies BicepFileNode);
-      }
-    }
+  const commonEntries = Object.keys(commonFileUris ?? {});
+  const configEntries = Object.entries(configFileUris ?? {});
+
+  if (commonEntries.length === 0 && configEntries.length === 0) {
+    return nodes;
   }
 
-  for (const [configName, files] of Object.entries(configFileUris ?? {})) {
-    nodes.push({ kind: 'folder', key: configName, name: `${configName}/`, folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
-    for (const fileName of Object.keys(files)) {
-      const parts = fileName.split('/');
-      if (parts.length > 1) {
-        let parentKey = configName;
-        for (let i = 0; i < parts.length - 1; i++) {
-          const folderKey = `${configName}/${parts.slice(0, i + 1).join('/')}`;
-          if (!nodes.some(n => n.kind === 'folder' && n.key === folderKey)) {
-            nodes.push({ kind: 'folder', key: folderKey, name: `${parts[i]}/`, folderIcon: 'folder', depth: i + 1, parentFolderKey: parentKey } satisfies BicepFolderNode);
-          }
-          parentKey = folderKey;
-        }
-        nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: parts[parts.length - 1], type: 'generic', uri: `${configName}/${fileName}`, depth: parts.length, parentFolderKey: parentKey } satisfies BicepFileNode);
-      } else {
-        nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: fileName, type: 'generic', uri: `${configName}/${fileName}`, depth: 1, parentFolderKey: configName } satisfies BicepFileNode);
+  ensureFolderNode(nodes, '.azuredevops', '.azuredevops/', 0, undefined, 'folder_shared');
+
+  for (const filePath of commonEntries) {
+    const relativePath = filePath.startsWith('.azuredevops/')
+      ? filePath.slice('.azuredevops/'.length)
+      : filePath;
+
+    if (!relativePath) {
+      continue;
+    }
+
+    appendHierarchicalFileNode(nodes, '.azuredevops', filePath, relativePath, () => 'generic');
+  }
+
+  for (const [configName, files] of configEntries) {
+    for (const filePath of Object.keys(files)) {
+      const relativePath = filePath.startsWith('.azuredevops/')
+        ? filePath.slice('.azuredevops/'.length)
+        : filePath.startsWith(`${configName}/`)
+          ? filePath
+          : `${configName}/${filePath}`;
+
+      if (!relativePath) {
+        continue;
       }
+
+      appendHierarchicalFileNode(nodes, '.azuredevops', filePath, relativePath, () => 'generic');
     }
   }
 
   return nodes;
+}
+
+function ensureFolderNode(
+  nodes: BicepTreeNode[],
+  key: string,
+  name: string,
+  depth: number,
+  parentFolderKey?: string,
+  folderIcon: BicepFolderNode['folderIcon'] = 'folder',
+): void {
+  if (nodes.some((node) => node.kind === 'folder' && node.key === key)) {
+    return;
+  }
+
+  nodes.push({
+    kind: 'folder',
+    key,
+    name,
+    folderIcon,
+    depth,
+    parentFolderKey,
+  } satisfies BicepFolderNode);
+}
+
+function appendHierarchicalFileNode(
+  nodes: BicepTreeNode[],
+  rootKey: string,
+  backendPath: string,
+  relativePath: string,
+  resolveType: (entryPath: string, displayName: string) => BicepFileType,
+): void {
+  const parts = relativePath.split('/').filter((part) => part.length > 0);
+  if (parts.length === 0) {
+    return;
+  }
+
+  let parentKey = rootKey;
+  for (let index = 0; index < parts.length - 1; index++) {
+    const folderKey = `${rootKey}/${parts.slice(0, index + 1).join('/')}`;
+    ensureFolderNode(nodes, folderKey, `${parts[index]}/`, index + 1, parentKey);
+    parentKey = folderKey;
+  }
+
+  const displayName = parts[parts.length - 1];
+  nodes.push({
+    kind: 'file',
+    path: backendPath,
+    displayName,
+    type: resolveType(relativePath, displayName),
+    uri: backendPath,
+    depth: parts.length,
+    parentFolderKey: parentKey,
+  } satisfies BicepFileNode);
 }

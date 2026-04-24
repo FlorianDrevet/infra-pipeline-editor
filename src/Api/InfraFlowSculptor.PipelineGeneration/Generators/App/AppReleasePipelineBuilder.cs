@@ -6,12 +6,13 @@ namespace InfraFlowSculptor.PipelineGeneration.Generators.App;
 
 /// <summary>
 /// Builds thin release pipeline wrapper YAML files that reference shared templates via <c>extends:</c>.
-/// Wrappers live under <c>apps/{appName}/</c> and reference templates under <c>.azuredevops/pipelines/</c>.
+/// Wrappers live under <c>.azuredevops/{configName}/apps/{appName}/</c> and reference templates under
+/// <c>.azuredevops/Common/pipelines/</c>.
 /// </summary>
 internal static class AppReleasePipelineBuilder
 {
-    private const string ContainerTemplatePath = "../../.azuredevops/pipelines/app-release-container.pipeline.yml";
-    private const string CodeTemplatePath = "../../.azuredevops/pipelines/app-release-code.pipeline.yml";
+    private const string ContainerTemplatePath = "../../../Common/pipelines/app-release-container.pipeline.yml";
+    private const string CodeTemplatePath = "../../../Common/pipelines/app-release-code.pipeline.yml";
 
     internal static string BuildContainerPipeline(AppPipelineGenerationRequest request)
     {
