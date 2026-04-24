@@ -136,34 +136,22 @@
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.GENERAL.CONFIGURATION' | translate }}</h3>
                 <div class="form-grid">
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="enableRbacAuthorization" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_RBAC_AUTHORIZATION' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="enableRbacAuthorization" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_RBAC_AUTHORIZATION' | translate"></app-ds-toggle>
                   </div>
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="enabledForDeployment" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.ENABLED_FOR_DEPLOYMENT' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="enabledForDeployment" [label]="'RESOURCE_EDIT.FIELDS.ENABLED_FOR_DEPLOYMENT' | translate"></app-ds-toggle>
                   </div>
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="enabledForDiskEncryption" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.ENABLED_FOR_DISK_ENCRYPTION' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="enabledForDiskEncryption" [label]="'RESOURCE_EDIT.FIELDS.ENABLED_FOR_DISK_ENCRYPTION' | translate"></app-ds-toggle>
                   </div>
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="enabledForTemplateDeployment" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.ENABLED_FOR_TEMPLATE_DEPLOYMENT' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="enabledForTemplateDeployment" [label]="'RESOURCE_EDIT.FIELDS.ENABLED_FOR_TEMPLATE_DEPLOYMENT' | translate"></app-ds-toggle>
                   </div>
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="enablePurgeProtection" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_PURGE_PROTECTION' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="enablePurgeProtection" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_PURGE_PROTECTION' | translate"></app-ds-toggle>
                   </div>
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="enableSoftDelete" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_SOFT_DELETE' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="enableSoftDelete" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_SOFT_DELETE' | translate"></app-ds-toggle>
                   </div>
                 </div>
               </div>
@@ -215,14 +203,10 @@
                 </app-deployment-config>
                 <div class="form-grid" style="margin-top: 1rem;">
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="alwaysOn" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="alwaysOn" [label]="'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate"></app-ds-toggle>
                   </div>
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="httpsOnly" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="httpsOnly" [label]="'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate"></app-ds-toggle>
                   </div>
                 </div>
               </div>
@@ -261,9 +245,7 @@
                 </app-deployment-config>
                 <div class="form-grid" style="margin-top: 1rem;">
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="httpsOnly" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="httpsOnly" [label]="'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate"></app-ds-toggle>
                   </div>
                 </div>
               </div>
@@ -310,19 +292,13 @@
                     [label]="'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate"
                     [options]="redisTlsOptions" />
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="enableNonSslPort" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_NON_SSL' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="enableNonSslPort" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_NON_SSL' | translate"></app-ds-toggle>
                   </div>
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="disableAccessKeyAuthentication" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.DISABLE_ACCESS_KEY_AUTH' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="disableAccessKeyAuthentication" [label]="'RESOURCE_EDIT.FIELDS.DISABLE_ACCESS_KEY_AUTH' | translate"></app-ds-toggle>
                   </div>
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="enableAadAuth" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.ENABLE_AAD_AUTH' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="enableAadAuth" [label]="'RESOURCE_EDIT.FIELDS.ENABLE_AAD_AUTH' | translate"></app-ds-toggle>
                   </div>
                   @if (redisAadWarning()) {
                     <div class="feedback-banner feedback-banner--error" role="alert">
@@ -489,14 +465,10 @@
                     [label]="'RESOURCE_EDIT.FIELDS.TLS_VERSION' | translate"
                     [options]="storageTlsOptions" />
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="allowBlobPublicAccess" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.ALLOW_BLOB_PUBLIC' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="allowBlobPublicAccess" [label]="'RESOURCE_EDIT.FIELDS.ALLOW_BLOB_PUBLIC' | translate"></app-ds-toggle>
                   </div>
                   <div class="form-field form-field--toggle">
-                    <mat-slide-toggle formControlName="enableHttpsTrafficOnly" color="primary">
-                      {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
-                    </mat-slide-toggle>
+                    <app-ds-toggle formControlName="enableHttpsTrafficOnly" [label]="'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate"></app-ds-toggle>
                   </div>
                 </div>
               </div>
@@ -664,14 +636,10 @@
                               [hint]="'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate" />
                           }
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="alwaysOn" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="alwaysOn" [label]="'RESOURCE_EDIT.FIELDS.ALWAYS_ON' | translate"></app-ds-toggle>
                           </div>
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="httpsOnly" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="httpsOnly" [label]="'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate"></app-ds-toggle>
                           </div>
                         </div>
                       </div>
@@ -697,9 +665,7 @@
                             [label]="'RESOURCE_EDIT.FIELDS.MAX_INSTANCE_COUNT' | translate"
                             [hint]="'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate" />
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="httpsOnly" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="httpsOnly" [label]="'RESOURCE_EDIT.FIELDS.HTTPS_ONLY' | translate"></app-ds-toggle>
                           </div>
                         </div>
                       </div>
@@ -738,14 +704,10 @@
                             [options]="appConfigurationPublicNetworkOptions"
                             [clearable]="true" />
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="purgeProtectionEnabled" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.PURGE_PROTECTION' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="purgeProtectionEnabled" [label]="'RESOURCE_EDIT.FIELDS.PURGE_PROTECTION' | translate"></app-ds-toggle>
                           </div>
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="disableLocalAuth" [label]="'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate"></app-ds-toggle>
                           </div>
                         </div>
                       </div>
@@ -779,14 +741,10 @@
                         <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_APP_ENV_NETWORK_DESC' | translate }}</p>
                         <div class="form-grid env-category-grid">
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="internalLoadBalancerEnabled" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.INTERNAL_LOAD_BALANCER' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="internalLoadBalancerEnabled" [label]="'RESOURCE_EDIT.FIELDS.INTERNAL_LOAD_BALANCER' | translate"></app-ds-toggle>
                           </div>
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="zoneRedundancyEnabled" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANCY' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="zoneRedundancyEnabled" [label]="'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANCY' | translate"></app-ds-toggle>
                           </div>
                         </div>
                       </div>
@@ -842,14 +800,10 @@
                             [label]="'RESOURCE_EDIT.FIELDS.INGRESS_TARGET_PORT' | translate"
                             [hint]="'RESOURCE_EDIT.ENVIRONMENTS.NULL_HINT' | translate" />
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="ingressEnabled" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.INGRESS_ENABLED' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="ingressEnabled" [label]="'RESOURCE_EDIT.FIELDS.INGRESS_ENABLED' | translate"></app-ds-toggle>
                           </div>
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="ingressExternal" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.INGRESS_EXTERNAL' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="ingressExternal" [label]="'RESOURCE_EDIT.FIELDS.INGRESS_EXTERNAL' | translate"></app-ds-toggle>
                           </div>
                         </div>
                       </div>
@@ -985,14 +939,10 @@
                         <p class="env-extra-section__desc">{{ 'RESOURCE_EDIT.FIELDS.APP_INSIGHTS_PRIVACY_DESC' | translate }}</p>
                         <div class="form-grid env-category-grid">
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="disableIpMasking" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.DISABLE_IP_MASKING' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="disableIpMasking" [label]="'RESOURCE_EDIT.FIELDS.DISABLE_IP_MASKING' | translate"></app-ds-toggle>
                           </div>
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="disableLocalAuth" [label]="'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate"></app-ds-toggle>
                           </div>
                         </div>
                       </div>
@@ -1041,19 +991,13 @@
                             [options]="cosmosBackupPolicyOptions"
                             [clearable]="true" />
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="enableAutomaticFailover" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.AUTOMATIC_FAILOVER' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="enableAutomaticFailover" [label]="'RESOURCE_EDIT.FIELDS.AUTOMATIC_FAILOVER' | translate"></app-ds-toggle>
                           </div>
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="enableMultipleWriteLocations" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.MULTI_REGION_WRITES' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="enableMultipleWriteLocations" [label]="'RESOURCE_EDIT.FIELDS.MULTI_REGION_WRITES' | translate"></app-ds-toggle>
                           </div>
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="enableFreeTier" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.FREE_TIER' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="enableFreeTier" [label]="'RESOURCE_EDIT.FIELDS.FREE_TIER' | translate"></app-ds-toggle>
                           </div>
                         </div>
                       </div>
@@ -1092,14 +1036,10 @@
                             [options]="serviceBusMinTlsOptions"
                             [clearable]="true" />
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="zoneRedundant" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANT' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="zoneRedundant" [label]="'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANT' | translate"></app-ds-toggle>
                           </div>
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="disableLocalAuth" [label]="'RESOURCE_EDIT.FIELDS.DISABLE_LOCAL_AUTH' | translate"></app-ds-toggle>
                           </div>
                         </div>
                       </div>
@@ -1116,14 +1056,10 @@
                         [options]="acrPublicNetworkOptions"
                         [clearable]="true" />
                       <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="adminUserEnabled" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.ADMIN_USER_ENABLED' | translate }}
-                        </mat-slide-toggle>
+                        <app-ds-toggle formControlName="adminUserEnabled" [label]="'RESOURCE_EDIT.FIELDS.ADMIN_USER_ENABLED' | translate"></app-ds-toggle>
                       </div>
                       <div class="form-field form-field--toggle">
-                        <mat-slide-toggle formControlName="zoneRedundancy" color="primary">
-                          {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANCY' | translate }}
-                        </mat-slide-toggle>
+                        <app-ds-toggle formControlName="zoneRedundancy" [label]="'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANCY' | translate"></app-ds-toggle>
                       </div>
                     }
                     @case ('SqlServer') {
@@ -1160,9 +1096,7 @@
                             [label]="'RESOURCE_EDIT.FIELDS.MAX_SIZE_GB' | translate"
                             [placeholder]="'RESOURCE_EDIT.ENVIRONMENTS.USE_DEFAULT' | translate" />
                           <div class="form-field form-field--toggle">
-                            <mat-slide-toggle formControlName="zoneRedundant" color="primary">
-                              {{ 'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANT' | translate }}
-                            </mat-slide-toggle>
+                            <app-ds-toggle formControlName="zoneRedundant" [label]="'RESOURCE_EDIT.FIELDS.ZONE_REDUNDANT' | translate"></app-ds-toggle>
                           </div>
                         </div>
                       </div>

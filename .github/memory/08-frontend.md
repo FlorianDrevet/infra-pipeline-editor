@@ -93,7 +93,7 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
   - `DsTextFieldComponent` (`app-ds-text-field`) — native `<input>` (no mat-form-field), brand-blue label, cyan focus ring, prefix/suffix mat-icon, hint/error, clearable, types `text`/`email`/`password`/`number`/`tel`/`url`.
   - `DsTextareaComponent` (`app-ds-textarea`) — autoResize via `effect()` + `viewChild` on textarea, optional `maxLength` with character counter.
   - `DsSelectComponent` (`app-ds-select`) — custom dropdown (NOT `mat-select`), `DsSelectOption { value, label, icon?, disabled?, description? }`, searchable filter, clearable, animated chevron, and since 2026-04-24 the options panel is rendered via `cdkConnectedOverlay` (same pattern as `compact-select`) with trigger-width sync + transparent backdrop. This prevents long dropdowns from creating scrollbars inside `mat-tab-group` / scrollable sections and makes them overlay adjacent content correctly.
-  - `DsToggleComponent` (`app-ds-toggle`) — iOS-style switch, brand-gradient track when checked, label + description, labelPosition before/after.
+  - `DsToggleComponent` (`app-ds-toggle`) — iOS-style switch, brand-gradient track when checked, label + description, labelPosition before/after, and since 2026-04-24 an optional `ariaLabel` input for icon-only or label-less usages inside shared card headers.
   - `DsCheckboxComponent` (`app-ds-checkbox`) — square brand-blue when checked, indeterminate state.
   - `DsRadioGroupComponent` (`app-ds-radio-group`) — `DsRadioOption { value, label, description?, disabled? }`, vertical/horizontal layout.
   - `DsChipComponent` (`app-ds-chip`) — variants `neutral`/`primary`/`success`/`warning`/`error`/`cyan`, sizes `sm`/`md`, optional icon, removable.
@@ -126,7 +126,7 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - `DeploymentConfigComponent` [2026-04-02] — extracted container/code deployment mode toggle + ACR selector + UAI flow
 - `ConfirmDialogComponent` — reusable confirm dialog with i18n
 - `EditAbbreviationDialogComponent` [2026-04-22] — reusable abbreviation override editor (config-detail + project-detail naming tabs)
-- `ToggleSectionCardComponent` [2026-04-22] — generic reusable toggle card (icon + title + subtitle + slide toggle + content projection). Visual identity: blue accent border, rounded card, shadow, fade animation. Used for health probe config in ContainerApp (add-resource-dialog + resource-edit). Reusable for any section needing enable/disable toggle with collapsible content.
+- `ToggleSectionCardComponent` [2026-04-22, updated 2026-04-24] — generic reusable toggle card (icon + title + subtitle + collapsible content projection). It now uses `app-ds-toggle` instead of `mat-slide-toggle`, exposes a stronger premium card style (accented icon badge, higher-elevation surface, top-aligned header), and is used by ACA health probe config in both `add-resource-dialog` and `resource-edit`.
 
 ## ACR Auth Mode UX [2026-04-23]
 - `DeploymentConfigComponent` now owns the shared ACR auth-mode selector with `ManagedIdentity` and `AdminCredentials`, defaulting to managed identity whenever an ACR is selected without a stored mode.
@@ -144,6 +144,7 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - In `resource-edit`, the Container App environment form is no longer a flat grid: it is split into two full-width categories before Health Probes.
 - `Capacity and scaling` groups CPU, memory, and replica limits; `Ingress and network exposure` groups transport, target port, and ingress toggles.
 - The final visual pattern reuses the same divider-based `env-extra-section` language as Health Probes (no boxed card background), while keeping the inner controls in small responsive grids.
+- Health Probes cards in both `resource-edit` and `add-resource-dialog` are rendered through a shared 3-column CSS grid using `repeat(3, minmax(0, 1fr))` plus child `min-width: 0; height: 100%` to force equal-width cards on desktop, then collapse to 2 columns and 1 column responsively.
 
 ## Environment Editor Categorization [2026-04-23]
 - ALL 13 resource types in the Environments tab now use `env-extra-section` sections with icon, title, and description.

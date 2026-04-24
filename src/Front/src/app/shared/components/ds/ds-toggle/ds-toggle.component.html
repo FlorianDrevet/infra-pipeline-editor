@@ -19,6 +19,7 @@
       type="checkbox"
       class="ds-toggle__input"
       role="switch"
+      [attr.aria-label]="ariaLabel()"
       [checked]="checked()"
       [disabled]="disabledState()"
       (change)="onToggle($event)"

@@ -150,9 +150,7 @@
       <!-- Step 2: Common fields -->
       <p class="step-subtitle">{{ 'CONFIG_DETAIL.RESOURCES.FORM.COMMON_FIELDS' | translate }}</p>
       <form [formGroup]="commonForm" class="resource-form">
-        <mat-slide-toggle formControlName="isExisting" color="warn">
-          {{ 'ADD_RESOURCE_DIALOG.IS_EXISTING' | translate }}
-        </mat-slide-toggle>
+        <app-ds-toggle formControlName="isExisting" [label]="'ADD_RESOURCE_DIALOG.IS_EXISTING' | translate"></app-ds-toggle>
         <div class="form-separator"></div>
 
         <app-ds-text-field
@@ -253,12 +251,8 @@
               (dockerImageNameChange)="commonForm.patchValue({ dockerImageName: $event })">
             </app-deployment-config>
             <div style="margin-top: 1rem;">
-              <mat-slide-toggle formControlName="alwaysOn" color="primary">
-                {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALWAYS_ON' | translate }}
-              </mat-slide-toggle>
-              <mat-slide-toggle formControlName="httpsOnly" color="primary">
-                {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
-              </mat-slide-toggle>
+              <app-ds-toggle formControlName="alwaysOn" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ALWAYS_ON' | translate"></app-ds-toggle>
+              <app-ds-toggle formControlName="httpsOnly" [label]="'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate"></app-ds-toggle>
             </div>
           }
 
@@ -294,9 +288,7 @@
               (dockerImageNameChange)="commonForm.patchValue({ dockerImageName: $event })">
             </app-deployment-config>
             <div style="margin-top: 1rem;">
-              <mat-slide-toggle formControlName="httpsOnly" color="primary">
-                {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
-              </mat-slide-toggle>
+              <app-ds-toggle formControlName="httpsOnly" [label]="'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate"></app-ds-toggle>
             </div>
           }
 
@@ -351,15 +343,9 @@
                 [label]="'CONFIG_DETAIL.RESOURCES.FORM.TLS_VERSION' | translate"
                 [options]="redisTlsOptions" />
             </div>
-            <mat-slide-toggle formControlName="enableNonSslPort" color="primary">
-              {{ 'CONFIG_DETAIL.RESOURCES.FORM.ENABLE_NON_SSL' | translate }}
-            </mat-slide-toggle>
-            <mat-slide-toggle formControlName="disableAccessKeyAuthentication" color="primary">
-              {{ 'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_ACCESS_KEY_AUTH' | translate }}
-            </mat-slide-toggle>
-            <mat-slide-toggle formControlName="enableAadAuth" color="primary">
-              {{ 'CONFIG_DETAIL.RESOURCES.FORM.ENABLE_AAD_AUTH' | translate }}
-            </mat-slide-toggle>
+            <app-ds-toggle formControlName="enableNonSslPort" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ENABLE_NON_SSL' | translate"></app-ds-toggle>
+            <app-ds-toggle formControlName="disableAccessKeyAuthentication" [label]="'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_ACCESS_KEY_AUTH' | translate"></app-ds-toggle>
+            <app-ds-toggle formControlName="enableAadAuth" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ENABLE_AAD_AUTH' | translate"></app-ds-toggle>
             @if (redisAadWarning()) {
               <div class="dialog-warning">
                 {{ 'CONFIG_DETAIL.RESOURCES.FORM.REDIS_AAD_WARNING' | translate }}
@@ -412,12 +398,8 @@
               formControlName="minimumTlsVersion"
               [label]="'CONFIG_DETAIL.RESOURCES.FORM.TLS_VERSION' | translate"
               [options]="storageTlsOptions" />
-            <mat-slide-toggle formControlName="allowBlobPublicAccess" color="primary">
-              {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALLOW_BLOB_PUBLIC' | translate }}
-            </mat-slide-toggle>
-            <mat-slide-toggle formControlName="enableHttpsTrafficOnly" color="primary">
-              {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
-            </mat-slide-toggle>
+            <app-ds-toggle formControlName="allowBlobPublicAccess" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ALLOW_BLOB_PUBLIC' | translate"></app-ds-toggle>
+            <app-ds-toggle formControlName="enableHttpsTrafficOnly" [label]="'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate"></app-ds-toggle>
           }
         }
       </form>
@@ -489,12 +471,8 @@
               }
               @case (ResourceTypeEnum.WebApp) {
                 <div [formGroup]="getEnvFormGroup(i)" class="env-form">
-                  <mat-slide-toggle formControlName="alwaysOn" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ALWAYS_ON' | translate }}
-                  </mat-slide-toggle>
-                  <mat-slide-toggle formControlName="httpsOnly" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
-                  </mat-slide-toggle>
+                  <app-ds-toggle formControlName="alwaysOn" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ALWAYS_ON' | translate"></app-ds-toggle>
+                  <app-ds-toggle formControlName="httpsOnly" [label]="'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate"></app-ds-toggle>
                 </div>
               }
               @case (ResourceTypeEnum.FunctionApp) {
@@ -503,9 +481,7 @@
                     formControlName="maxInstanceCount"
                     type="number"
                     [label]="'CONFIG_DETAIL.RESOURCES.FORM.MAX_INSTANCE_COUNT' | translate" />
-                  <mat-slide-toggle formControlName="httpsOnly" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate }}
-                  </mat-slide-toggle>
+                  <app-ds-toggle formControlName="httpsOnly" [label]="'CONFIG_DETAIL.RESOURCES.FORM.HTTPS_ONLY' | translate"></app-ds-toggle>
                 </div>
               }
               @case (ResourceTypeEnum.AppConfiguration) {
@@ -522,12 +498,8 @@
                     formControlName="publicNetworkAccess"
                     [label]="'CONFIG_DETAIL.RESOURCES.FORM.PUBLIC_NETWORK_ACCESS' | translate"
                     [options]="appConfigurationPublicNetworkOptions" />
-                  <mat-slide-toggle formControlName="purgeProtectionEnabled" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.PURGE_PROTECTION' | translate }}
-                  </mat-slide-toggle>
-                  <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_LOCAL_AUTH' | translate }}
-                  </mat-slide-toggle>
+                  <app-ds-toggle formControlName="purgeProtectionEnabled" [label]="'CONFIG_DETAIL.RESOURCES.FORM.PURGE_PROTECTION' | translate"></app-ds-toggle>
+                  <app-ds-toggle formControlName="disableLocalAuth" [label]="'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_LOCAL_AUTH' | translate"></app-ds-toggle>
                 </div>
               }
               @case (ResourceTypeEnum.ContainerAppEnvironment) {
@@ -540,12 +512,8 @@
                     formControlName="workloadProfileType"
                     [label]="'CONFIG_DETAIL.RESOURCES.FORM.WORKLOAD_PROFILE' | translate"
                     [options]="caeWorkloadProfileOptions" />
-                  <mat-slide-toggle formControlName="internalLoadBalancerEnabled" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.INTERNAL_LOAD_BALANCER' | translate }}
-                  </mat-slide-toggle>
-                  <mat-slide-toggle formControlName="zoneRedundancyEnabled" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANCY' | translate }}
-                  </mat-slide-toggle>
+                  <app-ds-toggle formControlName="internalLoadBalancerEnabled" [label]="'CONFIG_DETAIL.RESOURCES.FORM.INTERNAL_LOAD_BALANCER' | translate"></app-ds-toggle>
+                  <app-ds-toggle formControlName="zoneRedundancyEnabled" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANCY' | translate"></app-ds-toggle>
                 </div>
               }
               @case (ResourceTypeEnum.ContainerApp) {
@@ -578,12 +546,8 @@
                     formControlName="ingressTargetPort"
                     type="number"
                     [label]="'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_TARGET_PORT' | translate" />
-                  <mat-slide-toggle formControlName="ingressEnabled" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_ENABLED' | translate }}
-                  </mat-slide-toggle>
-                  <mat-slide-toggle formControlName="ingressExternal" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_EXTERNAL' | translate }}
-                  </mat-slide-toggle>
+                  <app-ds-toggle formControlName="ingressEnabled" [label]="'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_ENABLED' | translate"></app-ds-toggle>
+                  <app-ds-toggle formControlName="ingressExternal" [label]="'CONFIG_DETAIL.RESOURCES.FORM.INGRESS_EXTERNAL' | translate"></app-ds-toggle>
 
                   <!-- Health Probes -->
                   <div class="health-probes-section">
@@ -688,12 +652,8 @@
                     formControlName="ingestionMode"
                     [label]="'CONFIG_DETAIL.RESOURCES.FORM.INGESTION_MODE' | translate"
                     [options]="aiIngestionModeOptions" />
-                  <mat-slide-toggle formControlName="disableIpMasking" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_IP_MASKING' | translate }}
-                  </mat-slide-toggle>
-                  <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_LOCAL_AUTH' | translate }}
-                  </mat-slide-toggle>
+                  <app-ds-toggle formControlName="disableIpMasking" [label]="'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_IP_MASKING' | translate"></app-ds-toggle>
+                  <app-ds-toggle formControlName="disableLocalAuth" [label]="'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_LOCAL_AUTH' | translate"></app-ds-toggle>
                 </div>
               }
               @case (ResourceTypeEnum.CosmosDb) {
@@ -720,15 +680,9 @@
                     formControlName="backupPolicyType"
                     [label]="'CONFIG_DETAIL.RESOURCES.FORM.BACKUP_POLICY' | translate"
                     [options]="cosmosBackupPolicyOptions" />
-                  <mat-slide-toggle formControlName="enableAutomaticFailover" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.AUTOMATIC_FAILOVER' | translate }}
-                  </mat-slide-toggle>
-                  <mat-slide-toggle formControlName="enableMultipleWriteLocations" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.MULTI_REGION_WRITES' | translate }}
-                  </mat-slide-toggle>
-                  <mat-slide-toggle formControlName="enableFreeTier" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.FREE_TIER' | translate }}
-                  </mat-slide-toggle>
+                  <app-ds-toggle formControlName="enableAutomaticFailover" [label]="'CONFIG_DETAIL.RESOURCES.FORM.AUTOMATIC_FAILOVER' | translate"></app-ds-toggle>
+                  <app-ds-toggle formControlName="enableMultipleWriteLocations" [label]="'CONFIG_DETAIL.RESOURCES.FORM.MULTI_REGION_WRITES' | translate"></app-ds-toggle>
+                  <app-ds-toggle formControlName="enableFreeTier" [label]="'CONFIG_DETAIL.RESOURCES.FORM.FREE_TIER' | translate"></app-ds-toggle>
                 </div>
               }
               @case (ResourceTypeEnum.SqlServer) {
@@ -749,9 +703,7 @@
                     formControlName="maxSizeGb"
                     type="number"
                     [label]="'CONFIG_DETAIL.RESOURCES.FORM.MAX_SIZE_GB' | translate" />
-                  <mat-slide-toggle formControlName="zoneRedundant" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANT' | translate }}
-                  </mat-slide-toggle>
+                  <app-ds-toggle formControlName="zoneRedundant" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANT' | translate"></app-ds-toggle>
                 </div>
               }
               @case (ResourceTypeEnum.ServiceBusNamespace) {
@@ -768,12 +720,8 @@
                     formControlName="minimumTlsVersion"
                     [label]="'CONFIG_DETAIL.RESOURCES.FORM.MIN_TLS_VERSION' | translate"
                     [options]="serviceBusTlsOptions" />
-                  <mat-slide-toggle formControlName="zoneRedundant" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANT' | translate }}
-                  </mat-slide-toggle>
-                  <mat-slide-toggle formControlName="disableLocalAuth" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_LOCAL_AUTH' | translate }}
-                  </mat-slide-toggle>
+                  <app-ds-toggle formControlName="zoneRedundant" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANT' | translate"></app-ds-toggle>
+                  <app-ds-toggle formControlName="disableLocalAuth" [label]="'CONFIG_DETAIL.RESOURCES.FORM.DISABLE_LOCAL_AUTH' | translate"></app-ds-toggle>
                 </div>
               }
               @case (ResourceTypeEnum.ContainerRegistry) {
@@ -786,12 +734,8 @@
                     formControlName="publicNetworkAccess"
                     [label]="'CONFIG_DETAIL.RESOURCES.FORM.PUBLIC_NETWORK_ACCESS' | translate"
                     [options]="acrPublicNetworkOptions" />
-                  <mat-slide-toggle formControlName="adminUserEnabled" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ADMIN_USER_ENABLED' | translate }}
-                  </mat-slide-toggle>
-                  <mat-slide-toggle formControlName="zoneRedundancy" color="primary">
-                    {{ 'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANCY' | translate }}
-                  </mat-slide-toggle>
+                  <app-ds-toggle formControlName="adminUserEnabled" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ADMIN_USER_ENABLED' | translate"></app-ds-toggle>
+                  <app-ds-toggle formControlName="zoneRedundancy" [label]="'CONFIG_DETAIL.RESOURCES.FORM.ZONE_REDUNDANCY' | translate"></app-ds-toggle>
                 </div>
               }
             }

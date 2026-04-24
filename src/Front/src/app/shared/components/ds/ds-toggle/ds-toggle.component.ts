@@ -30,6 +30,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 export class DsToggleComponent implements ControlValueAccessor {
   public readonly label = input<string | undefined>(undefined);
   public readonly description = input<string | undefined>(undefined);
+  public readonly ariaLabel = input<string | undefined>(undefined);
   public readonly disabled = input<boolean>(false);
   public readonly labelPosition = input<'before' | 'after'>('after');
 
