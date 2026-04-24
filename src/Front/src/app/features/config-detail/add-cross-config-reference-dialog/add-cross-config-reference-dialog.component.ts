@@ -1,10 +1,8 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProjectService } from '../../../shared/services/project.service';
@@ -13,7 +11,7 @@ import {
   AddCrossConfigReferenceRequest,
 } from '../../../shared/interfaces/cross-config-reference.interface';
 import { RESOURCE_TYPE_ICONS } from '../enums/resource-type.enum';
-import { DsButtonComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsTextareaComponent } from '../../../shared/components/ds';
 
 export interface AddCrossConfigReferenceDialogData {
   configId: string;
@@ -31,14 +29,15 @@ interface ResourceGroup {
   standalone: true,
   imports: [
     ReactiveFormsModule,
+    FormsModule,
     MatButtonModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
     TranslateModule,
     DsButtonComponent,
+    DsTextFieldComponent,
+    DsTextareaComponent,
   ],
   templateUrl: './add-cross-config-reference-dialog.component.html',
   styleUrl: './add-cross-config-reference-dialog.component.scss',

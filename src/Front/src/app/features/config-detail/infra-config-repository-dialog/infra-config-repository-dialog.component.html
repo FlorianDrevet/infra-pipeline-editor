@@ -4,35 +4,27 @@
 
 <mat-dialog-content>
   <form [formGroup]="form" class="repo-form" (ngSubmit)="onSubmit()">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS' | translate }}</mat-label>
-      <input matInput formControlName="alias"
-             [placeholder]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_PLACEHOLDER' | translate" />
-      <mat-hint>{{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_HINT' | translate }}</mat-hint>
-      @if (form.controls.alias.hasError('pattern') && form.controls.alias.touched) {
-        <mat-error>{{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_PATTERN_ERROR' | translate }}</mat-error>
-      }
-    </mat-form-field>
+    <app-ds-text-field
+      formControlName="alias"
+      [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS' | translate"
+      [placeholder]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_PLACEHOLDER' | translate"
+      [hint]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_HINT' | translate"
+      [error]="form.controls.alias.hasError('pattern') && form.controls.alias.touched ? ('CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_PATTERN_ERROR' | translate) : undefined" />
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.PROVIDER' | translate }}</mat-label>
-      <mat-select formControlName="providerType">
-        @for (option of providerOptions; track option.value) {
-          <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <app-ds-select
+      formControlName="providerType"
+      [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.PROVIDER' | translate"
+      [options]="providerOptions" />
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.REPO_URL' | translate }}</mat-label>
-      <input matInput formControlName="repositoryUrl"
-             [placeholder]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.REPO_URL_PLACEHOLDER' | translate" />
-    </mat-form-field>
+    <app-ds-text-field
+      formControlName="repositoryUrl"
+      [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.REPO_URL' | translate"
+      [placeholder]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.REPO_URL_PLACEHOLDER' | translate" />
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.DEFAULT_BRANCH' | translate }}</mat-label>
-      <input matInput formControlName="defaultBranch" placeholder="main" />
-    </mat-form-field>
+    <app-ds-text-field
+      formControlName="defaultBranch"
+      [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.DEFAULT_BRANCH' | translate"
+      placeholder="main" />
 
     <div class="content-kinds">
       <span class="content-kinds__label">{{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.CONTENT_KINDS' | translate }}</span>

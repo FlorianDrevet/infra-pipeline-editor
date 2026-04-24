@@ -2,15 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { StorageAccountService } from '../../../shared/services/storage-account.service';
 import { StorageAccountResponse } from '../../../shared/interfaces/storage-account.interface';
-import { DsButtonComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption } from '../../../shared/components/ds';
 
 export interface AddStorageServiceDialogData {
   storageAccountId: string;
@@ -26,12 +23,6 @@ export interface AddStorageServiceDialogResult {
 
 type StorageServiceType = 'BlobContainer' | 'Queue' | 'Table';
 
-const PUBLIC_ACCESS_OPTIONS = [
-  { label: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_NONE', value: 'None' },
-  { label: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_BLOB', value: 'Blob' },
-  { label: 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_CONTAINER', value: 'Container' },
-];
-
 @Component({
   selector: 'app-add-storage-service-dialog',
   standalone: true,
@@ -40,12 +31,11 @@ const PUBLIC_ACCESS_OPTIONS = [
     ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
-    MatSelectModule,
     MatProgressSpinnerModule,
     DsButtonComponent,
+    DsTextFieldComponent,
+    DsSelectComponent,
   ],
   templateUrl: './add-storage-service-dialog.component.html',
   styleUrl: './add-storage-service-dialog.component.scss',
@@ -55,12 +45,17 @@ export class AddStorageServiceDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<AddStorageServiceDialogComponent>);
   private readonly data = inject<AddStorageServiceDialogData>(MAT_DIALOG_DATA);
   private readonly storageAccountService = inject(StorageAccountService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly step = signal<'type' | 'config'>('type');
   protected readonly selectedType = signal<StorageServiceType | null>(null);
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
-  protected readonly publicAccessOptions = PUBLIC_ACCESS_OPTIONS;
+  protected readonly publicAccessOptions: DsSelectOption[] = [
+    { value: 'None', label: this.translate.instant('RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_NONE') },
+    { value: 'Blob', label: this.translate.instant('RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_BLOB') },
+    { value: 'Container', label: this.translate.instant('RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_CONTAINER') },
+  ];
 
   protected readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(63)]],

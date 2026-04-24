@@ -16,14 +16,13 @@
       </div>
 
       <div class="search-bar">
-        <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-          <mat-icon matPrefix>search</mat-icon>
-          <input
-            matInput
-            [placeholder]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_SEARCH_PLACEHOLDER' | translate"
-            [value]="searchQuery()"
-            (input)="onSearchInput($event)" />
-        </mat-form-field>
+        <app-ds-text-field
+          class="search-field"
+          prefixIcon="search"
+          [placeholder]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_SEARCH_PLACEHOLDER' | translate"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          [ngModelOptions]="{ standalone: true }" />
       </div>
 
       @if (hasNoResources()) {
@@ -75,27 +74,23 @@
       }
 
       <form [formGroup]="form" class="configure-form">
-        <mat-form-field appearance="outline">
-          <mat-label>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_LABEL' | translate }}</mat-label>
-          <input matInput formControlName="alias" />
-          <mat-hint>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_HINT' | translate }}</mat-hint>
-          @if (form.controls.alias.hasError('required') && form.controls.alias.touched) {
-            <mat-error>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_LABEL' | translate }}</mat-error>
-          }
-          @if (form.controls.alias.hasError('pattern') && form.controls.alias.touched) {
-            <mat-error>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_HINT' | translate }}</mat-error>
-          }
-        </mat-form-field>
+        <app-ds-text-field
+          formControlName="alias"
+          [label]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_LABEL' | translate"
+          [hint]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_HINT' | translate"
+          [error]="
+            (form.controls.alias.hasError('required') && form.controls.alias.touched)
+              ? ('CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_LABEL' | translate)
+              : (form.controls.alias.hasError('pattern') && form.controls.alias.touched)
+                ? ('CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_ALIAS_HINT' | translate)
+                : undefined
+          " />
 
-        <mat-form-field appearance="outline">
-          <mat-label>{{ 'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_PURPOSE_LABEL' | translate }}</mat-label>
-          <textarea
-            matInput
-            formControlName="purpose"
-            rows="3"
-            [placeholder]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_PURPOSE_PLACEHOLDER' | translate">
-          </textarea>
-        </mat-form-field>
+        <app-ds-textarea
+          formControlName="purpose"
+          [label]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_PURPOSE_LABEL' | translate"
+          [placeholder]="'CONFIG_DETAIL.CROSS_CONFIG_REFS.ADD_DIALOG_PURPOSE_PLACEHOLDER' | translate"
+          [rows]="3" />
       </form>
     }
   }

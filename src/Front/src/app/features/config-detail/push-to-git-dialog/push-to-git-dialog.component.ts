@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -47,7 +47,8 @@ interface PushToGitResultSummary {
     MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
-      DsButtonComponent,
+    DsButtonComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './push-to-git-dialog.component.html',
   styleUrl: './push-to-git-dialog.component.scss',

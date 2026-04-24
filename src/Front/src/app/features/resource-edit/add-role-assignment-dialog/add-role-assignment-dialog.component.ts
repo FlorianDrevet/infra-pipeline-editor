@@ -4,13 +4,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { DsButtonComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption } from '../../../shared/components/ds';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
 import { UserAssignedIdentityService } from '../../../shared/services/user-assigned-identity.service';
@@ -50,13 +47,12 @@ export interface AddRoleAssignmentDialogData {
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
     MatRadioModule,
-    MatSelectModule,
-    MatFormFieldModule,
     MatTooltipModule,
     DsButtonComponent,
+    DsTextFieldComponent,
+    DsSelectComponent,
   ],
   templateUrl: './add-role-assignment-dialog.component.html',
   styleUrl: './add-role-assignment-dialog.component.scss',
@@ -87,6 +83,9 @@ export class AddRoleAssignmentDialogComponent {
 
   // ─── Step 2 — Configuration ───
   protected readonly availableRoles = signal<AzureRoleDefinitionResponse[]>([]);
+  protected readonly availableRoleOptions = computed<DsSelectOption[]>(() =>
+    this.availableRoles().map((r) => ({ value: r.id, label: r.name })),
+  );
   protected readonly rolesLoading = signal(false);
   protected readonly selectedIdentityType = signal<string>('SystemAssigned');
   protected readonly selectedRoleId = signal<string>('');

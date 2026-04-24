@@ -153,17 +153,20 @@ function buildAzureDevOpsNodes(
 
   for (const [configName, files] of configEntries) {
     for (const filePath of Object.keys(files)) {
-      const relativePath = filePath.startsWith('.azuredevops/')
-        ? filePath.slice('.azuredevops/'.length)
+      const backendPath = filePath.startsWith('.azuredevops/')
+        ? filePath
         : filePath.startsWith(`${configName}/`)
           ? filePath
           : `${configName}/${filePath}`;
+      const relativePath = backendPath.startsWith('.azuredevops/')
+        ? backendPath.slice('.azuredevops/'.length)
+        : backendPath;
 
       if (!relativePath) {
         continue;
       }
 
-      appendTreeFileNode(nodes, '.azuredevops', filePath, relativePath);
+      appendTreeFileNode(nodes, '.azuredevops', backendPath, relativePath);
     }
   }
 

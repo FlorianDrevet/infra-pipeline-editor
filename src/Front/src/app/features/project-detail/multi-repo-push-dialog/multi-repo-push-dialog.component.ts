@@ -2,12 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsTextareaComponent } from '../../../shared/components/ds';
 import { MatCardModule } from '@angular/material/card';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -42,14 +40,14 @@ type DialogState = 'form' | 'pushing' | 'success' | 'partial' | 'error';
     MatButtonModule,
     MatCardModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     ReactiveFormsModule,
     TranslateModule,
-      DsButtonComponent,
+    DsButtonComponent,
+    DsTextFieldComponent,
+    DsTextareaComponent,
   ],
   templateUrl: './multi-repo-push-dialog.component.html',
   styleUrl: './multi-repo-push-dialog.component.scss',

@@ -28,11 +28,10 @@
           </mat-autocomplete>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_MESSAGE' | translate }}</mat-label>
-          <input matInput formControlName="commitMessage"
-                 [placeholder]="'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_MESSAGE_PLACEHOLDER' | translate" />
-        </mat-form-field>
+        <app-ds-text-field
+          formControlName="commitMessage"
+          [label]="'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_MESSAGE' | translate"
+          [placeholder]="'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_MESSAGE_PLACEHOLDER' | translate" />
       </form>
     }
 

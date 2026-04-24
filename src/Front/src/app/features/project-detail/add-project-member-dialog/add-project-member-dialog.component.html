@@ -24,14 +24,10 @@
       </mat-autocomplete>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_ROLE_LABEL' | translate }}</mat-label>
-      <mat-select formControlName="role">
-        @for (role of roles; track role) {
-          <mat-option [value]="role">{{ 'PROJECT_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <app-ds-select
+      formControlName="role"
+      [label]="'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_ROLE_LABEL' | translate"
+      [options]="roleOptions" />
 
     @if (errorKey()) {
       <p class="dialog-error">{{ errorKey() | translate }}</p>

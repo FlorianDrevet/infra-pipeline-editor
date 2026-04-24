@@ -4,35 +4,27 @@
 
 <mat-dialog-content>
   <form [formGroup]="form" class="repo-form" (ngSubmit)="onSubmit()">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.LAYOUT.FORM.ALIAS' | translate }}</mat-label>
-      <input matInput formControlName="alias"
-             [placeholder]="'PROJECT_DETAIL.LAYOUT.FORM.ALIAS_PLACEHOLDER' | translate" />
-      <mat-hint>{{ 'PROJECT_DETAIL.LAYOUT.FORM.ALIAS_HINT' | translate }}</mat-hint>
-      @if (form.controls.alias.hasError('pattern') && form.controls.alias.touched) {
-        <mat-error>{{ 'PROJECT_DETAIL.LAYOUT.FORM.ALIAS_PATTERN_ERROR' | translate }}</mat-error>
-      }
-    </mat-form-field>
+    <app-ds-text-field
+      formControlName="alias"
+      [label]="'PROJECT_DETAIL.LAYOUT.FORM.ALIAS' | translate"
+      [placeholder]="'PROJECT_DETAIL.LAYOUT.FORM.ALIAS_PLACEHOLDER' | translate"
+      [hint]="'PROJECT_DETAIL.LAYOUT.FORM.ALIAS_HINT' | translate"
+      [error]="form.controls.alias.hasError('pattern') && form.controls.alias.touched ? ('PROJECT_DETAIL.LAYOUT.FORM.ALIAS_PATTERN_ERROR' | translate) : undefined" />
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.LAYOUT.FORM.PROVIDER' | translate }}</mat-label>
-      <mat-select formControlName="providerType">
-        @for (option of providerOptions; track option.value) {
-          <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <app-ds-select
+      formControlName="providerType"
+      [label]="'PROJECT_DETAIL.LAYOUT.FORM.PROVIDER' | translate"
+      [options]="providerOptions" />
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.LAYOUT.FORM.REPO_URL' | translate }}</mat-label>
-      <input matInput formControlName="repositoryUrl"
-             [placeholder]="'PROJECT_DETAIL.LAYOUT.FORM.REPO_URL_PLACEHOLDER' | translate" />
-    </mat-form-field>
+    <app-ds-text-field
+      formControlName="repositoryUrl"
+      [label]="'PROJECT_DETAIL.LAYOUT.FORM.REPO_URL' | translate"
+      [placeholder]="'PROJECT_DETAIL.LAYOUT.FORM.REPO_URL_PLACEHOLDER' | translate" />
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.LAYOUT.FORM.DEFAULT_BRANCH' | translate }}</mat-label>
-      <input matInput formControlName="defaultBranch" placeholder="main" />
-    </mat-form-field>
+    <app-ds-text-field
+      formControlName="defaultBranch"
+      [label]="'PROJECT_DETAIL.LAYOUT.FORM.DEFAULT_BRANCH' | translate"
+      placeholder="main" />
 
     <div class="content-kinds">
       <span class="content-kinds__label">{{ 'PROJECT_DETAIL.LAYOUT.FORM.CONTENT_KINDS' | translate }}</span>

@@ -8,17 +8,14 @@ import {
   AbstractControl,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent } from '../../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption } from '../../../../shared/components/ds';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   AddProjectRepositoryRequest,
@@ -39,7 +36,7 @@ export interface RepositoryDialogData {
   lockedKinds?: RepositoryContentKind[];
 }
 
-const PROVIDER_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
+const PROVIDER_OPTIONS: DsSelectOption[] = [
   { value: 'AzureDevOps', label: 'Azure DevOps' },
   { value: 'GitHub', label: 'GitHub' },
   { value: 'GitLab', label: 'GitLab' },
@@ -57,14 +54,13 @@ const CONTENT_KINDS: ReadonlyArray<RepositoryContentKind> = [
   imports: [
     MatDialogModule,
     MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
     MatCheckboxModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
-      DsButtonComponent,
+    DsButtonComponent,
+    DsTextFieldComponent,
+    DsSelectComponent,
   ],
   templateUrl: './repository-dialog.component.html',
   styleUrl: './repository-dialog.component.scss',

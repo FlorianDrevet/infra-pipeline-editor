@@ -90,16 +90,15 @@
           </div>
         } @else {
           <form [formGroup]="infraForm" class="mr-form">
-            <mat-form-field appearance="outline" class="mr-form__field">
-              <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate }}</mat-label>
-              <input matInput formControlName="branch"
-                     [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate" />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="mr-form__field">
-              <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_LABEL' | translate }}</mat-label>
-              <textarea matInput formControlName="commit" rows="2"
-                        [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_PLACEHOLDER' | translate"></textarea>
-            </mat-form-field>
+            <app-ds-text-field
+              formControlName="branch"
+              [label]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate"
+              [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate" />
+            <app-ds-textarea
+              formControlName="commit"
+              [label]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_LABEL' | translate"
+              [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_PLACEHOLDER' | translate"
+              [rows]="2" />
           </form>
         }
       </mat-card-content>
@@ -162,16 +161,15 @@
           </div>
         } @else {
           <form [formGroup]="codeForm" class="mr-form">
-            <mat-form-field appearance="outline" class="mr-form__field">
-              <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate }}</mat-label>
-              <input matInput formControlName="branch"
-                     [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate" />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="mr-form__field">
-              <mat-label>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_LABEL' | translate }}</mat-label>
-              <textarea matInput formControlName="commit" rows="2"
-                        [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_PLACEHOLDER' | translate"></textarea>
-            </mat-form-field>
+            <app-ds-text-field
+              formControlName="branch"
+              [label]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_LABEL' | translate"
+              [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.BRANCH_PLACEHOLDER' | translate" />
+            <app-ds-textarea
+              formControlName="commit"
+              [label]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_LABEL' | translate"
+              [placeholder]="'PROJECT_DETAIL.MULTI_REPO_PUSH.COMMIT_PLACEHOLDER' | translate"
+              [rows]="2" />
           </form>
         }
       </mat-card-content>
