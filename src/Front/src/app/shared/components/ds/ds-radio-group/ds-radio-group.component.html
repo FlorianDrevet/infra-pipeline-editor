@@ -1,0 +1,36 @@
+@if (label()) {
+  <span class="ds-radio-group__label">{{ label() }}</span>
+}
+<div
+  class="ds-radio-group"
+  [class.ds-radio-group--horizontal]="direction() === 'horizontal'"
+  role="radiogroup"
+>
+  @for (opt of options(); track opt.value) {
+    <label
+      class="ds-radio"
+      [class.ds-radio--disabled]="disabledState() || opt.disabled"
+      [class.ds-radio--checked]="opt.value === value()"
+    >
+      <span class="ds-radio__circle">
+        <input
+          type="radio"
+          class="ds-radio__input"
+          [name]="name()"
+          [value]="opt.value"
+          [checked]="opt.value === value()"
+          [disabled]="disabledState() || opt.disabled"
+          (change)="select(opt.value)"
+          (blur)="onBlur()"
+        />
+        <span class="ds-radio__dot"></span>
+      </span>
+      <span class="ds-radio__text">
+        <span class="ds-radio__option-label">{{ opt.label }}</span>
+        @if (opt.description) {
+          <small>{{ opt.description }}</small>
+        }
+      </span>
+    </label>
+  }
+</div>

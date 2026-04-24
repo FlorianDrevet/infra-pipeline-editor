@@ -1,0 +1,11 @@
+<span class="ds-chip ds-chip--{{ variant() }} ds-chip--{{ size() }}">
+  @if (icon()) {
+    <mat-icon class="ds-chip__icon">{{ icon() }}</mat-icon>
+  }
+  <span class="ds-chip__text"><ng-content></ng-content></span>
+  @if (removable()) {
+    <button type="button" class="ds-chip__remove" (click)="onRemove($event)" aria-label="Remove">
+      <mat-icon>close</mat-icon>
+    </button>
+  }
+</span>

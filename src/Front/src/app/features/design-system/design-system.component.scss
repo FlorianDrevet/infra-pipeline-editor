@@ -157,3 +157,10 @@
   flex-direction: column;
   gap: 0.75rem;
 }
+
+.ds-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+}

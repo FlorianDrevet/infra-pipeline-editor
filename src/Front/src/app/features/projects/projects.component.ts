@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
+import { DsButtonComponent, DsPageHeaderComponent } from '../../shared/components/ds';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { FavoritesService } from '../../shared/services/favorites.service';
@@ -11,7 +12,7 @@ import { CreateProjectDialogComponent } from '../home/create-project-dialog/crea
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [TranslateModule, RouterLink, MatDialogModule, MatIconModule],
+  imports: [TranslateModule, RouterLink, MatDialogModule, MatIconModule, DsButtonComponent, DsPageHeaderComponent],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.scss',
 })

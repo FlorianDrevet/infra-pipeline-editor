@@ -1,11 +1,22 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import {
   DsAlertComponent,
   DsButtonComponent,
   DsCardComponent,
+  DsCheckboxComponent,
+  DsChipComponent,
+  DsIconButtonComponent,
   DsPageHeaderComponent,
+  DsRadioGroupComponent,
+  DsRadioOption,
   DsSectionHeaderComponent,
+  DsSelectComponent,
+  DsSelectOption,
+  DsTextFieldComponent,
+  DsTextareaComponent,
+  DsToggleComponent,
 } from '../../shared/components/ds';
 
 interface Swatch {
@@ -36,11 +47,20 @@ interface RadiusSample {
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     DsAlertComponent,
     DsButtonComponent,
     DsCardComponent,
+    DsCheckboxComponent,
+    DsChipComponent,
+    DsIconButtonComponent,
     DsPageHeaderComponent,
+    DsRadioGroupComponent,
     DsSectionHeaderComponent,
+    DsSelectComponent,
+    DsTextFieldComponent,
+    DsTextareaComponent,
+    DsToggleComponent,
   ],
   templateUrl: './design-system.component.html',
   styleUrl: './design-system.component.scss',
@@ -110,5 +130,28 @@ export class DesignSystemComponent {
     { name: 'radius-xl', value: '1.3rem' },
     { name: 'radius-2xl', value: '1.4rem' },
     { name: 'radius-3xl', value: '1.6rem' },
+  ];
+
+  protected readonly showcaseForm = new FormGroup({
+    text: new FormControl<string | null>('Hello world'),
+    email: new FormControl<string | null>(''),
+    password: new FormControl<string | null>(''),
+    bio: new FormControl<string | null>(''),
+    role: new FormControl<string | null>(null),
+    notify: new FormControl<boolean | null>(true),
+    accept: new FormControl<boolean | null>(false),
+    plan: new FormControl<string | number | null>('starter'),
+  });
+
+  protected readonly roleOptions: DsSelectOption[] = [
+    { value: 'owner', label: 'Owner', icon: 'admin_panel_settings', description: 'Full administrative access' },
+    { value: 'contributor', label: 'Contributor', icon: 'edit', description: 'Can edit configurations' },
+    { value: 'reader', label: 'Reader', icon: 'visibility', description: 'Read-only access' },
+  ];
+
+  protected readonly planOptions: DsRadioOption[] = [
+    { value: 'starter', label: 'Starter', description: 'For small teams' },
+    { value: 'pro', label: 'Pro', description: 'For growing teams' },
+    { value: 'enterprise', label: 'Enterprise', description: 'For large organizations' },
   ];
 }

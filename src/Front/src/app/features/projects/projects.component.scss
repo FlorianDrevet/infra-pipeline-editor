@@ -1,3 +1,5 @@
+@use "scss/main" as *;
+
 :host {
   display: block;
 }
@@ -11,30 +13,7 @@
   gap: 1.5rem;
 }
 
-/* ── Header ─────────────────────────────────────────────────── */
-
-.projects-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-
-  &__text {
-    h1 {
-      margin: 0;
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #0d2b4f;
-    }
-
-    p {
-      margin: 0.35rem 0 0;
-      color: #60758e;
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-  }
-}
+/* ── Header (migrated to app-ds-page-header) ────────────────── */
 
 /* ── Toolbar ────────────────────────────────────────────────── */
 
@@ -382,10 +361,6 @@ a.project-card:hover .project-card__fav mat-icon,
 }
 
 @media (max-width: 640px) {
-  .projects-header {
-    flex-direction: column;
-  }
-
   .toolbar {
     flex-direction: column;
 

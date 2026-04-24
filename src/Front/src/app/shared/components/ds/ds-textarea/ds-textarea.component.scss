@@ -1,0 +1,107 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.ds-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.ds-field__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: $ifs-brand-blue;
+  letter-spacing: 0.01em;
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.ds-field__required {
+  color: $ifs-error-strong;
+  font-weight: 700;
+}
+
+.ds-field__control {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  padding: 0.7rem 0.85rem;
+  background: $ifs-surface-0;
+  border: 1.5px solid $ifs-border-strong;
+  border-radius: $ifs-radius-md;
+  transition: all $ifs-duration-fast $ifs-ease-out;
+}
+
+.ds-field--focused .ds-field__control {
+  border-color: $ifs-brand-blue;
+  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15), inset 0 0 0 0.5px $ifs-brand-blue;
+  background: #fff;
+}
+
+.ds-field--invalid .ds-field__control {
+  border-color: $ifs-error-strong;
+  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.12);
+}
+
+.ds-field--disabled .ds-field__control {
+  background: $ifs-surface-100;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.ds-field__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: $ifs-ink-700;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 4rem;
+  line-height: 1.5;
+  width: 100%;
+
+  &::placeholder {
+    color: $ifs-ink-400;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.ds-field__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ds-field__message {
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.ds-field__message--hint {
+  color: $ifs-ink-500;
+}
+
+.ds-field__message--error {
+  color: $ifs-error-strong;
+  font-weight: 500;
+}
+
+.ds-field__counter {
+  font-size: 0.74rem;
+  color: $ifs-ink-400;
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}

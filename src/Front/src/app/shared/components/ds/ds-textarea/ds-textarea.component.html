@@ -1,0 +1,44 @@
+<div
+  class="ds-field"
+  [class.ds-field--invalid]="!!error()"
+  [class.ds-field--disabled]="disabledState()"
+  [class.ds-field--focused]="focused()"
+>
+  @if (label()) {
+    <label class="ds-field__label" [for]="inputId">
+      {{ label() }}
+      @if (required()) {
+        <span class="ds-field__required">*</span>
+      }
+    </label>
+  }
+  <div class="ds-field__control">
+    <textarea
+      #textareaEl
+      [id]="inputId"
+      [placeholder]="placeholder()"
+      [disabled]="disabledState()"
+      [required]="required()"
+      [autocomplete]="autocomplete()"
+      [rows]="rows()"
+      [attr.maxlength]="maxLength() ?? null"
+      [value]="value()"
+      (input)="onInput($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+      class="ds-field__input"
+    ></textarea>
+  </div>
+  <div class="ds-field__row">
+    @if (error()) {
+      <span class="ds-field__message ds-field__message--error">{{ error() }}</span>
+    } @else if (hint()) {
+      <span class="ds-field__message ds-field__message--hint">{{ hint() }}</span>
+    } @else {
+      <span></span>
+    }
+    @if (maxLength()) {
+      <span class="ds-field__counter">{{ value().length }} / {{ maxLength() }}</span>
+    }
+  </div>
+</div>

@@ -1,0 +1,104 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+}
+
+.ds-radio-group__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: $ifs-brand-blue;
+  display: block;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.01em;
+}
+
+.ds-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+
+  &--horizontal {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+}
+
+.ds-radio {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  cursor: pointer;
+  user-select: none;
+
+  &--disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  &:has(input:focus-visible) .ds-radio__circle {
+    box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.4);
+  }
+}
+
+.ds-radio__circle {
+  position: relative;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  border: 1.5px solid $ifs-border-strong;
+  background: #fff;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transition: all $ifs-duration-fast $ifs-ease-out;
+  margin-top: 0.1rem;
+}
+
+.ds-radio--checked .ds-radio__circle {
+  border-color: $ifs-brand-blue;
+  box-shadow: 0 0 0 1px $ifs-brand-blue, 0 2px 8px rgba(21, 101, 192, 0.25);
+}
+
+.ds-radio__input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: inherit;
+}
+
+.ds-radio__dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: $ifs-gradient-cta;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all $ifs-duration-fast $ifs-ease-out;
+  pointer-events: none;
+}
+
+.ds-radio--checked .ds-radio__dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.ds-radio__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.ds-radio__option-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $ifs-ink-700;
+}
+
+.ds-radio__text small {
+  font-size: 0.78rem;
+  color: $ifs-ink-500;
+  line-height: 1.35;
+}

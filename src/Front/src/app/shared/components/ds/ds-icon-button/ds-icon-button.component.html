@@ -1,0 +1,14 @@
+<button
+  [type]="type()"
+  class="ds-icon-btn ds-icon-btn--{{ variant() }} ds-icon-btn--{{ size() }}"
+  [disabled]="isDisabled()"
+  (click)="onClick($event)"
+  [attr.aria-label]="ariaLabel()"
+  [attr.title]="tooltip() || null"
+>
+  @if (loading()) {
+    <span class="ds-icon-btn__spinner"></span>
+  } @else {
+    <mat-icon>{{ icon() }}</mat-icon>
+  }
+</button>

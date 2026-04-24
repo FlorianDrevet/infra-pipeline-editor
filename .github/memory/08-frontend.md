@@ -52,6 +52,25 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - Browser tab icon now uses versioned assets in `src/index.html` to break Chrome favicon cache: `public/ifs-favicon.svg` + `public/ifs-favicon.png`, with `public/favicon.ico` regenerated as legacy fallback.
 - The favicon follows the login page visual DNA: deep blue to cyan gradient + four-tile infra grid motif.
 
+## Design System V2 [2026-04-24]
+- **8 new form components** under `src/Front/src/app/shared/components/ds/` (all `ControlValueAccessor`, compatible with `formControlName` / `ngModel` / two-way `[(value)]`):
+  - `DsTextFieldComponent` (`app-ds-text-field`) — native `<input>` (no mat-form-field), brand-blue label, cyan focus ring, prefix/suffix mat-icon, hint/error, clearable, types `text`/`email`/`password`/`number`/`tel`/`url`.
+  - `DsTextareaComponent` (`app-ds-textarea`) — autoResize via `effect()` + `viewChild` on textarea, optional `maxLength` with character counter.
+  - `DsSelectComponent` (`app-ds-select`) — custom dropdown (NOT `mat-select`), `DsSelectOption { value, label, icon?, disabled?, description? }`, searchable filter, click-outside + Escape close (HostListener), clearable, animated chevron.
+  - `DsToggleComponent` (`app-ds-toggle`) — iOS-style switch, brand-gradient track when checked, label + description, labelPosition before/after.
+  - `DsCheckboxComponent` (`app-ds-checkbox`) — square brand-blue when checked, indeterminate state.
+  - `DsRadioGroupComponent` (`app-ds-radio-group`) — `DsRadioOption { value, label, description?, disabled? }`, vertical/horizontal layout.
+  - `DsChipComponent` (`app-ds-chip`) — variants `neutral`/`primary`/`success`/`warning`/`error`/`cyan`, sizes `sm`/`md`, optional icon, removable.
+  - `DsIconButtonComponent` (`app-ds-icon-button`) — circular icon button, variants `ghost`/`subtle`/`primary`/`danger`, sizes `sm`/`md`/`lg`, loading spinner, requires `ariaLabel` for a11y.
+- **Global Material Theme Override** added in `src/Front/src/styles.scss` (~210 lines). Uses `$ifs-*` tokens to restyle EVERY existing Material usage instantly without touching components: `mat-mdc-form-field` (outline brand, label brand-blue on focus, error red, container-shape 12px), `mat-mdc-select-panel` (radius md + shadow-lg + border, selected option brand gradient), `mat-mdc-checkbox` + `mat-mdc-slide-toggle` (brand-blue selected), `mat-mdc-tab-group` (cyan indicator + brand-blue active label), `mat-mdc-raised-button.mat-primary` (gradient-cta + shadow-cta + lift hover, opt-out via `.no-ifs-override`), `mat-mdc-outlined-button.mat-primary` (info-border + brand-blue label), `mat-mdc-dialog-surface` (radius 2xl + shadow-xl), `mat-mdc-snack-bar-container`, `mat-mdc-progress-spinner`, `mat-mdc-menu-panel`, `mat-mdc-tooltip`, `mat-expansion-panel`, plus `::selection { background: rgba(2,136,209,0.25) }`.
+- **Migrations explicites V2** :
+  - `core/layouts/footer` — SCSS migré vers tokens (`$ifs-gradient-glass-footer`, `$ifs-ink-900/500`, `$ifs-brand-blue`).
+  - `core/layouts/navigation` — SCSS migré vers tokens (`$ifs-gradient-nav`, `$ifs-shadow-nav`).
+  - `features/projects` — header remplacé par `<app-ds-page-header variant="gradient" icon="folder_special">`, CTAs `Create` + `Try again` + empty-state remplacés par `<app-ds-button variant="primary|ghost">`.
+  - `features/home` — `quick-actions` migré vers `<app-ds-card variant="outlined" accent="primary" [interactive]="true" (cardClick)>`. Greeting-bar volontairement non touchée (layout custom).
+- **Showcase étendu** (`/design-system`) avec 8 nouvelles sections : Form Inputs (avec error, disabled, clearable), Textarea (avec maxLength), Select (avec searchable + clearable), Toggle, Checkbox, Radio Group (vertical + horizontal), Chips (tous variants + removable), Icon Buttons (toutes variants × sizes + loading + disabled). Toutes les sections form sont câblées via un `FormGroup` + `formControlName` pour démontrer l'intégration Reactive Forms.
+- **V3 (à planifier)** : refactor progressif des composants restants (config-detail, resource-edit, project-detail, dialogs) pour migrer leurs `mat-form-field` natifs vers `app-ds-text-field`/`app-ds-select` quand pertinent, et leurs cards/buttons custom vers les composants DS.
+
 ## Design System V1 [2026-04-23]
 - **SCSS tokens** under `src/Front/src/scss/`:
   - `_tokens.scss` — single source of truth: brand (`$ifs-brand-*`), ink/surface palettes, semantic state colors, signature gradients (`$ifs-gradient-brand`, `$ifs-gradient-cta`, `$ifs-gradient-login`, `$ifs-gradient-nav`, `$ifs-gradient-app-bg`), borders, radius (`sm`/`md`/`lg`/`xl`/`2xl`/`3xl`/`pill`), shadows (`xs`→`xl` + `cta`/`cta-hover`/`hero`/`nav`), spacing (`0`→`16`), z-index, transitions (`$ifs-ease-out`, `$ifs-duration-fast/base/slow`), focus ring.

@@ -1,16 +1,14 @@
 <div class="projects-page">
-  <header class="projects-header">
-    <div class="projects-header__text">
-      <h1>{{ 'PROJECTS.TITLE' | translate }}</h1>
-      <p>{{ 'PROJECTS.DESCRIPTION' | translate }}</p>
-    </div>
-    <div class="projects-header__actions">
-      <button type="button" class="btn btn--primary" (click)="openCreateDialog()">
-        <mat-icon>add</mat-icon>
-        {{ 'PROJECTS.ACTIONS.CREATE' | translate }}
-      </button>
-    </div>
-  </header>
+  <app-ds-page-header
+    [title]="'PROJECTS.TITLE' | translate"
+    [subtitle]="'PROJECTS.DESCRIPTION' | translate"
+    icon="folder_special"
+    variant="gradient"
+  >
+    <app-ds-button ds-page-actions variant="primary" icon="add" (clicked)="openCreateDialog()">
+      {{ 'PROJECTS.ACTIONS.CREATE' | translate }}
+    </app-ds-button>
+  </app-ds-page-header>
 
   <div class="toolbar">
     <div class="toolbar__search">
@@ -56,9 +54,9 @@
       <mat-icon class="state-card__icon">error_outline</mat-icon>
       <div>
         <strong>{{ 'PROJECTS.STATE.LOAD_FAILED' | translate }}</strong>
-        <button type="button" class="btn btn--ghost" (click)="refreshProjects()">
+        <app-ds-button variant="ghost" icon="refresh" (clicked)="refreshProjects()">
           {{ 'PROJECTS.ACTIONS.TRY_AGAIN' | translate }}
-        </button>
+        </app-ds-button>
       </div>
     </div>
   } @else if (projects().length === 0) {
@@ -66,9 +64,9 @@
       <mat-icon class="state-card__icon state-card__icon--large">folder_open</mat-icon>
       <strong>{{ 'PROJECTS.STATE.EMPTY_TITLE' | translate }}</strong>
       <p>{{ 'PROJECTS.STATE.EMPTY_DESCRIPTION' | translate }}</p>
-      <button type="button" class="btn btn--primary" (click)="openCreateDialog()">
+      <app-ds-button variant="primary" icon="add" (clicked)="openCreateDialog()">
         {{ 'PROJECTS.STATE.EMPTY_CTA' | translate }}
-      </button>
+      </app-ds-button>
     </div>
   } @else {
     @if (filteredProjects().length === 0) {

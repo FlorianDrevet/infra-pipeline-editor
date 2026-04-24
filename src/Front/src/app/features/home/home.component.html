@@ -19,19 +19,25 @@
 
   <!-- ── Quick actions ───────────────────────────────────────── -->
   <section class="quick-actions">
-    <button type="button" class="action-card action-card--create" (click)="openCreateDialog()">
-      <mat-icon>add_circle_outline</mat-icon>
-      <div>
-        <strong>{{ 'HOME.ACTIONS.NEW_PROJECT' | translate }}</strong>
-        <span>{{ 'HOME.ACTIONS.NEW_PROJECT_DESC' | translate }}</span>
+    <app-ds-card variant="outlined" accent="primary" [interactive]="true" (cardClick)="openCreateDialog()" class="home-action-card">
+      <div class="home-action-card__inner">
+        <mat-icon class="home-action-card__icon">add_circle_outline</mat-icon>
+        <div class="home-action-card__text">
+          <strong>{{ 'HOME.ACTIONS.NEW_PROJECT' | translate }}</strong>
+          <span>{{ 'HOME.ACTIONS.NEW_PROJECT_DESC' | translate }}</span>
+        </div>
       </div>
-    </button>
-    <a class="action-card" routerLink="/projects">
-      <mat-icon>folder_open</mat-icon>
-      <div>
-        <strong>{{ 'HOME.ACTIONS.VIEW_ALL_PROJECTS' | translate }}</strong>
-        <span>{{ 'HOME.ACTIONS.VIEW_ALL_DESC' | translate }}</span>
-      </div>
+    </app-ds-card>
+    <a routerLink="/projects" class="home-action-link">
+      <app-ds-card variant="outlined" [interactive]="true" class="home-action-card">
+        <div class="home-action-card__inner">
+          <mat-icon class="home-action-card__icon">folder_open</mat-icon>
+          <div class="home-action-card__text">
+            <strong>{{ 'HOME.ACTIONS.VIEW_ALL_PROJECTS' | translate }}</strong>
+            <span>{{ 'HOME.ACTIONS.VIEW_ALL_DESC' | translate }}</span>
+          </div>
+        </div>
+      </app-ds-card>
     </a>
   </section>
 

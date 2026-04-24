@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
+import { DsCardComponent } from '../../shared/components/ds';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { FavoritesService } from '../../shared/services/favorites.service';
@@ -12,7 +13,7 @@ import { CreateProjectDialogComponent } from './create-project-dialog/create-pro
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [TranslateModule, RouterLink, MatDialogModule, MatIconModule],
+  imports: [TranslateModule, RouterLink, MatDialogModule, MatIconModule, DsCardComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

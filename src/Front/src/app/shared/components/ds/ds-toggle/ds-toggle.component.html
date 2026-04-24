@@ -1,0 +1,30 @@
+<label
+  class="ds-toggle"
+  [class.ds-toggle--disabled]="disabledState()"
+  [class.ds-toggle--checked]="checked()"
+  [class.ds-toggle--label-before]="labelPosition() === 'before'"
+>
+  @if (label() || description()) {
+    <span class="ds-toggle__text">
+      @if (label()) {
+        <span class="ds-toggle__label">{{ label() }}</span>
+      }
+      @if (description()) {
+        <span class="ds-toggle__description">{{ description() }}</span>
+      }
+    </span>
+  }
+  <span class="ds-toggle__switch">
+    <input
+      type="checkbox"
+      class="ds-toggle__input"
+      role="switch"
+      [checked]="checked()"
+      [disabled]="disabledState()"
+      (change)="onToggle($event)"
+      (blur)="onBlur()"
+    />
+    <span class="ds-toggle__track"></span>
+    <span class="ds-toggle__thumb"></span>
+  </span>
+</label>

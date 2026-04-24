@@ -255,4 +255,167 @@
       <app-ds-button ds-page-actions variant="primary" size="sm">Action</app-ds-button>
     </app-ds-page-header>
   </section>
+
+  <!-- Form Inputs -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="edit_note" title="Form Inputs" subtitle="Native inputs with brand identity" />
+    <app-ds-card variant="outlined" padding="lg">
+      <form [formGroup]="showcaseForm" class="ds-form-grid">
+        <app-ds-text-field
+          formControlName="text"
+          label="Text field"
+          placeholder="Type something..."
+          hint="A standard text input"
+        />
+        <app-ds-text-field
+          formControlName="email"
+          label="Email with prefix icon"
+          type="email"
+          placeholder="you@example.com"
+          prefixIcon="mail"
+          [required]="true"
+          autocomplete="email"
+        />
+        <app-ds-text-field
+          formControlName="password"
+          label="Password"
+          type="password"
+          placeholder="••••••••"
+          prefixIcon="lock"
+          suffixIcon="visibility_off"
+          autocomplete="current-password"
+        />
+        <app-ds-text-field
+          label="With error state"
+          placeholder="Try invalid value"
+          error="This field is required"
+        />
+        <app-ds-text-field
+          label="Disabled"
+          placeholder="Cannot edit"
+          [disabled]="true"
+        />
+        <app-ds-text-field
+          label="Clearable"
+          placeholder="Type to see clear button"
+          [clearable]="true"
+        />
+      </form>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="notes" title="Textarea" subtitle="Multi-line input" />
+    <app-ds-card variant="outlined" padding="lg">
+      <app-ds-textarea
+        formControlName="bio"
+        label="Bio"
+        placeholder="Tell us about yourself..."
+        hint="Brief description"
+        [rows]="4"
+        [maxLength]="280"
+      />
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="arrow_drop_down_circle" title="Select" subtitle="Custom dropdown with options, icons, search" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div class="ds-form-grid">
+        <app-ds-select
+          formControlName="role"
+          label="Role"
+          placeholder="Select a role"
+          [options]="roleOptions"
+          hint="Determines permission scope"
+        />
+        <app-ds-select
+          label="Searchable select"
+          placeholder="Type to filter"
+          [options]="roleOptions"
+          [searchable]="true"
+          [clearable]="true"
+        />
+      </div>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="toggle_on" title="Toggle" subtitle="Boolean switch with brand gradient" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div class="ds-stack">
+        <app-ds-toggle formControlName="notify" label="Email notifications" description="Receive product updates via email" />
+        <app-ds-toggle label="Disabled (off)" [disabled]="true" />
+        <app-ds-toggle label="Label before" labelPosition="before" />
+      </div>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="check_box" title="Checkbox" subtitle="Square checkbox, brand blue checked" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div class="ds-stack">
+        <app-ds-checkbox formControlName="accept" label="I accept the terms and conditions" description="Required to continue" />
+        <app-ds-checkbox label="Indeterminate" [indeterminate]="true" />
+        <app-ds-checkbox label="Disabled" [disabled]="true" />
+      </div>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="radio_button_checked" title="Radio Group" subtitle="Single selection, vertical or horizontal" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div class="ds-stack">
+        <app-ds-radio-group
+          formControlName="plan"
+          name="plan-vertical"
+          label="Choose your plan (vertical)"
+          [options]="planOptions"
+        />
+        <app-ds-radio-group
+          name="plan-horizontal"
+          label="Inline layout"
+          direction="horizontal"
+          [options]="planOptions"
+        />
+      </div>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="label" title="Chips" subtitle="Status badges, tags, removable chips" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div class="ds-row">
+        <app-ds-chip variant="neutral">Neutral</app-ds-chip>
+        <app-ds-chip variant="primary">Primary</app-ds-chip>
+        <app-ds-chip variant="success">Success</app-ds-chip>
+        <app-ds-chip variant="warning">Warning</app-ds-chip>
+        <app-ds-chip variant="error">Error</app-ds-chip>
+        <app-ds-chip variant="cyan">Cyan</app-ds-chip>
+      </div>
+      <div class="ds-row">
+        <app-ds-chip variant="primary" icon="bolt">With icon</app-ds-chip>
+        <app-ds-chip variant="success" icon="check_circle">Synced</app-ds-chip>
+        <app-ds-chip variant="warning" icon="warning">Attention</app-ds-chip>
+        <app-ds-chip variant="primary" [removable]="true">Removable tag</app-ds-chip>
+        <app-ds-chip variant="neutral" size="sm">Small</app-ds-chip>
+      </div>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="touch_app" title="Icon Buttons" subtitle="Compact circular actions" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div class="ds-row">
+        <app-ds-icon-button icon="favorite" variant="ghost" size="sm" ariaLabel="Like (sm)" />
+        <app-ds-icon-button icon="favorite" variant="ghost" size="md" ariaLabel="Like (md)" />
+        <app-ds-icon-button icon="favorite" variant="ghost" size="lg" ariaLabel="Like (lg)" />
+        <app-ds-icon-button icon="settings" variant="subtle" ariaLabel="Settings" tooltip="Settings" />
+        <app-ds-icon-button icon="add" variant="primary" ariaLabel="Add" />
+        <app-ds-icon-button icon="delete" variant="danger" ariaLabel="Delete" />
+        <app-ds-icon-button icon="refresh" variant="ghost" [loading]="true" ariaLabel="Loading" />
+        <app-ds-icon-button icon="block" variant="primary" [disabled]="true" ariaLabel="Disabled" />
+      </div>
+    </app-ds-card>
+  </section>
 </div>

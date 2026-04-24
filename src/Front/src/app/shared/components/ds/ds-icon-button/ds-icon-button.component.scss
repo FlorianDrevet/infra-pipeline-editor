@@ -1,0 +1,103 @@
+@use "scss/main" as *;
+
+:host {
+  display: inline-flex;
+}
+
+.ds-icon-btn {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: all $ifs-duration-fast $ifs-ease-out;
+  padding: 0;
+  @include ifs-focus-visible;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  mat-icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  &--sm {
+    width: 1.85rem;
+    height: 1.85rem;
+
+    mat-icon {
+      font-size: 1rem;
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+
+  &--md {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  &--lg {
+    width: 2.75rem;
+    height: 2.75rem;
+
+    mat-icon {
+      font-size: 1.3rem;
+      width: 1.3rem;
+      height: 1.3rem;
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $ifs-ink-500;
+
+    &:hover:not(:disabled) {
+      background: $ifs-info-soft;
+      color: $ifs-brand-blue;
+    }
+  }
+
+  &--subtle {
+    background: $ifs-info-soft;
+    color: $ifs-brand-blue;
+
+    &:hover:not(:disabled) {
+      background: rgba(21, 101, 192, 0.15);
+    }
+  }
+
+  &--primary {
+    background: $ifs-gradient-cta;
+    color: #fff;
+    box-shadow: $ifs-shadow-cta;
+
+    &:hover:not(:disabled) {
+      box-shadow: $ifs-shadow-cta-hover;
+      transform: translateY(-1px);
+    }
+  }
+
+  &--danger {
+    background: transparent;
+    color: $ifs-error-strong;
+
+    &:hover:not(:disabled) {
+      background: $ifs-error-soft;
+    }
+  }
+}
+
+.ds-icon-btn__spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ifs-spin 0.7s linear infinite;
+  opacity: 0.7;
+}

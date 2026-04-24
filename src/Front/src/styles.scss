@@ -53,3 +53,217 @@ $custom-theme: mat.define-theme((
 
 @tailwind components;
 @tailwind utilities;
+
+// =============================================================================
+// IFS — Material Theme Overrides (apply DS V2 identity to Material components)
+// =============================================================================
+
+// --- Form Field outline ---
+.mat-mdc-form-field {
+  --mdc-outlined-text-field-outline-color: #{$ifs-border-strong};
+  --mdc-outlined-text-field-hover-outline-color: #{$ifs-brand-blue};
+  --mdc-outlined-text-field-focus-outline-color: #{$ifs-brand-blue};
+  --mdc-outlined-text-field-label-text-color: #{$ifs-ink-500};
+  --mdc-outlined-text-field-focus-label-text-color: #{$ifs-brand-blue};
+  --mdc-outlined-text-field-input-text-color: #{$ifs-ink-700};
+  --mdc-outlined-text-field-caret-color: #{$ifs-brand-blue};
+  --mdc-outlined-text-field-container-shape: 12px;
+  --mdc-outlined-text-field-error-outline-color: #{$ifs-error-strong};
+  --mdc-outlined-text-field-error-focus-outline-color: #{$ifs-error-strong};
+  --mdc-outlined-text-field-error-label-text-color: #{$ifs-error-strong};
+  --mdc-outlined-text-field-error-hover-outline-color: #{$ifs-error-strong};
+
+  .mat-mdc-form-field-icon-suffix mat-icon,
+  .mat-mdc-form-field-icon-prefix mat-icon {
+    color: $ifs-brand-blue;
+  }
+
+  .mat-mdc-form-field-error {
+    color: $ifs-error-strong;
+    font-weight: 500;
+  }
+
+  .mat-mdc-form-field-hint {
+    color: $ifs-ink-500;
+  }
+}
+
+// --- Select panel ---
+.mat-mdc-select-panel {
+  border-radius: $ifs-radius-md !important;
+  box-shadow: $ifs-shadow-lg !important;
+  border: 1px solid $ifs-border-medium;
+}
+
+.mat-mdc-option {
+  --mat-option-selected-state-label-text-color: #{$ifs-brand-blue};
+  --mat-option-selected-state-layer-color: #{$ifs-info-soft};
+  --mat-option-hover-state-layer-color: #{$ifs-info-soft};
+  --mat-option-focus-state-layer-color: #{$ifs-info-soft};
+
+  &.mdc-list-item--selected {
+    background: linear-gradient(135deg, rgba(21, 101, 192, 0.1), rgba(2, 136, 209, 0.06)) !important;
+
+    .mdc-list-item__primary-text {
+      color: $ifs-brand-blue !important;
+      font-weight: 600;
+    }
+  }
+}
+
+.mat-mdc-select-value {
+  color: $ifs-ink-700;
+}
+
+// --- Checkbox ---
+.mat-mdc-checkbox {
+  --mdc-checkbox-selected-icon-color: #{$ifs-brand-blue};
+  --mdc-checkbox-selected-hover-icon-color: #{$ifs-brand-blue};
+  --mdc-checkbox-selected-focus-icon-color: #{$ifs-brand-blue};
+  --mdc-checkbox-selected-pressed-icon-color: #{$ifs-brand-blue};
+  --mdc-checkbox-selected-checkmark-color: #ffffff;
+  --mdc-checkbox-selected-hover-state-layer-color: #{$ifs-brand-blue};
+  --mdc-checkbox-selected-focus-state-layer-color: #{$ifs-brand-blue};
+  --mdc-checkbox-selected-pressed-state-layer-color: #{$ifs-brand-blue};
+  --mdc-checkbox-unselected-icon-color: #{$ifs-border-strong};
+  --mdc-checkbox-unselected-hover-icon-color: #{$ifs-brand-blue};
+}
+
+// --- Slide toggle ---
+.mat-mdc-slide-toggle {
+  --mdc-switch-selected-track-color: #{$ifs-brand-blue};
+  --mdc-switch-selected-hover-track-color: #{$ifs-brand-blue};
+  --mdc-switch-selected-focus-track-color: #{$ifs-brand-blue};
+  --mdc-switch-selected-pressed-track-color: #{$ifs-brand-blue};
+  --mdc-switch-selected-handle-color: #ffffff;
+  --mdc-switch-selected-hover-handle-color: #ffffff;
+  --mdc-switch-selected-focus-handle-color: #ffffff;
+  --mdc-switch-selected-pressed-handle-color: #ffffff;
+  --mdc-switch-selected-icon-color: #{$ifs-brand-blue};
+}
+
+// --- Tabs ---
+.mat-mdc-tab-group,
+.mat-mdc-tab-nav-bar {
+  --mdc-tab-indicator-active-indicator-color: #{$ifs-brand-cyan};
+  --mat-tab-header-active-label-text-color: #{$ifs-brand-blue};
+  --mat-tab-header-active-focus-label-text-color: #{$ifs-brand-blue};
+  --mat-tab-header-active-hover-label-text-color: #{$ifs-brand-blue};
+  --mat-tab-header-inactive-label-text-color: #{$ifs-ink-500};
+  --mat-tab-header-active-ripple-color: #{$ifs-brand-blue};
+  --mat-tab-header-inactive-ripple-color: #{$ifs-brand-blue};
+}
+
+.mat-mdc-tab .mdc-tab__text-label {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+// --- Buttons (raised primary -> brand gradient) ---
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-raised-button[color="primary"] {
+  --mdc-protected-button-container-color: transparent;
+  background: $ifs-gradient-cta !important;
+  color: #fff !important;
+  box-shadow: $ifs-shadow-cta !important;
+  border-radius: $ifs-radius-md !important;
+  transition:
+    box-shadow $ifs-duration-fast $ifs-ease-out,
+    transform $ifs-duration-fast $ifs-ease-out !important;
+
+  &:hover:not(:disabled) {
+    box-shadow: $ifs-shadow-cta-hover !important;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    background: $ifs-ink-200 !important;
+    color: $ifs-ink-400 !important;
+    box-shadow: none !important;
+  }
+
+  &.no-ifs-override {
+    background: revert !important;
+    color: revert !important;
+    box-shadow: revert !important;
+    transform: none !important;
+  }
+}
+
+.mat-mdc-button,
+.mat-mdc-outlined-button,
+.mat-mdc-stroked-button {
+  border-radius: $ifs-radius-md !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+}
+
+.mat-mdc-outlined-button.mat-primary,
+.mat-mdc-stroked-button.mat-primary {
+  --mdc-outlined-button-outline-color: #{$ifs-info-border};
+  --mdc-outlined-button-label-text-color: #{$ifs-brand-blue};
+
+  &:hover:not(:disabled) {
+    background: $ifs-info-soft !important;
+  }
+}
+
+.mat-mdc-button.mat-primary {
+  --mdc-text-button-label-text-color: #{$ifs-brand-blue};
+}
+
+// --- Dialog surface ---
+.mat-mdc-dialog-surface {
+  border-radius: $ifs-radius-2xl !important;
+  box-shadow: $ifs-shadow-xl !important;
+  border: 1px solid $ifs-border-soft;
+}
+
+.mat-mdc-dialog-title {
+  color: $ifs-ink-900 !important;
+  font-weight: 700 !important;
+}
+
+// --- Snack bar ---
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-shape: #{$ifs-radius-lg};
+
+  .mdc-snackbar__surface {
+    box-shadow: $ifs-shadow-lg !important;
+  }
+}
+
+// --- Progress spinner ---
+.mat-mdc-progress-spinner {
+  --mdc-circular-progress-active-indicator-color: #{$ifs-brand-blue};
+}
+
+// --- Menu ---
+.mat-mdc-menu-panel {
+  border-radius: $ifs-radius-md !important;
+  box-shadow: $ifs-shadow-lg !important;
+  border: 1px solid $ifs-border-medium;
+}
+
+// --- Tooltip ---
+.mat-mdc-tooltip {
+  --mdc-plain-tooltip-container-color: #{$ifs-ink-900};
+  --mdc-plain-tooltip-supporting-text-color: #ffffff;
+  --mdc-plain-tooltip-container-shape: #{$ifs-radius-sm};
+  font-weight: 500 !important;
+}
+
+// --- Expansion panel ---
+.mat-expansion-panel {
+  border-radius: $ifs-radius-md !important;
+  box-shadow: $ifs-shadow-xs !important;
+
+  &:not(.mat-expanded):hover {
+    background: $ifs-info-soft;
+  }
+}
+
+// --- Selection focus ---
+::selection {
+  background: rgba(2, 136, 209, 0.25);
+}
