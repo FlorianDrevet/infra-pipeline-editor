@@ -65,6 +65,29 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - **Skipped intentionally (still raw Material):** `add-config-dialog` (form attr), `resource-edit:466 save-password-btn` (layout-specific class), and ~30 categorical `rgba()` gradients used as semantic status surfaces (each unique to one element, not worth a dedicated token).
 - **`mat-form-field` deliberately untouched.** Already restyled by the global Material override in `styles.scss` (V2). Mass-replacing creates regressions on autocomplete/datepicker/mat-error integration.
 
+## DS Forms Migration Wave 3 [2026-04-24]
+- **~216 `<mat-form-field>` migrated** to DS form components across **25+ files** in 7 commits (`ed8c1f9`..`6cd06e8`):
+  - Wave 3a (`ed8c1f9`): 12 fields, 9 dialogs (small ones)
+  - Wave 3b (`47d8b53`): 23 fields, 8 dialogs
+  - Wave 3c (`719ef91`): 20 fields, 4 components
+  - Wave 3d (`c7c12a7`): 24 fields, 2 stepper dialogs
+  - Wave 3e (`d1ad3ba`): 62 fields, `add-resource-dialog` wizard
+  - Wave 3f (`6cd06e8`): 75 fields, `resource-edit.component.html` (3055 lines)
+- **Patterns used**:
+  - `<input matInput>` → `<app-ds-text-field formControlName="..." [label]="..|translate" [hint]="..|translate" [error]="..." [type]="..." />`
+  - `<textarea matInput>` → `<app-ds-textarea formControlName="..." [rows]="..." />`
+  - `<mat-select>` → `<app-ds-select formControlName="..." [options]="..." [label]="..." />` (options as `protected readonly xxxOpts: DsSelectOption[]`)
+  - For non-FormGroup signal-based inputs: `[ngModel]+(ngModelChange)+[ngModelOptions]="{standalone:true}"` (FormsModule already imported)
+- **Imports cleaned**: `MatFormFieldModule` / `MatInputModule` / `MatSelectModule` / `MatOptionModule` removed from components where ALL fields were converted.
+- **4 `<mat-form-field>` intentionally kept** (DS components don't support these slots):
+  - `push-to-git-dialog.component.html` — `[matAutocomplete]` for branch suggestions
+  - `add-project-member-dialog.component.html` — `[matAutocomplete]` for user search
+  - `add-naming-template-dialog.component.html` — `viewChild` ElementRef on input for cursor manipulation
+  - `add-project-naming-template-dialog.component.html` — same viewChild pattern
+- **Constraints lost** on number inputs: HTML `min` / `max` / `maxlength` attributes (DS text field doesn't expose them). FormControl validators still enforce them at the model level.
+- **i18n trap [2026-04-24]**: `TranslateService.instant()` used to build `DsSelectOption[]` arrays captures labels at component construction time and is NOT reactive on language switch. Accepted MVP trade-off — switching language mid-session requires component re-creation. Document if a user-facing language switcher is added.
+- **DS form CVA constraint**: `DsTextField` does NOT support `value`/`valueChange` two-way binding (CVA-only). Use `formControlName` (preferred) or `[ngModel]+(ngModelChange)+[ngModelOptions]="{standalone:true}"`.
+
 ## Design System V2 [2026-04-24]
 - **8 new form components** under `src/Front/src/app/shared/components/ds/` (all `ControlValueAccessor`, compatible with `formControlName` / `ngModel` / two-way `[(value)]`):
   - `DsTextFieldComponent` (`app-ds-text-field`) — native `<input>` (no mat-form-field), brand-blue label, cyan focus ring, prefix/suffix mat-icon, hint/error, clearable, types `text`/`email`/`password`/`number`/`tel`/`url`.
