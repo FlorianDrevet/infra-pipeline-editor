@@ -999,16 +999,16 @@ a.config-card {
   border: 1px solid rgba(0, 188, 212, 0.2);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   overflow: hidden;
-  --mat-tab-header-inactive-label-text-color: rgba(255, 255, 255, 0.6);
-  --mat-tab-header-inactive-hover-label-text-color: rgba(255, 255, 255, 0.82);
-  --mat-tab-header-inactive-focus-label-text-color: rgba(255, 255, 255, 0.82);
-  --mat-tab-header-active-label-text-color: #00bcd4;
-  --mat-tab-header-active-hover-label-text-color: #00e5ff;
-  --mat-tab-header-active-focus-label-text-color: #00e5ff;
-  --mat-tab-header-active-focus-state-layer-opacity: 0;
-  --mat-tab-header-active-pressed-state-layer-opacity: 0;
-  --mat-tab-header-inactive-focus-state-layer-opacity: 0;
-  --mat-tab-header-inactive-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-label-text-color: rgba(255, 255, 255, 0.6);
+  --mat-tab-inactive-hover-label-text-color: rgba(255, 255, 255, 0.82);
+  --mat-tab-inactive-focus-label-text-color: rgba(255, 255, 255, 0.82);
+  --mat-tab-active-label-text-color: #00bcd4;
+  --mat-tab-active-hover-label-text-color: #00e5ff;
+  --mat-tab-active-focus-label-text-color: #00e5ff;
+  --mat-tab-active-focus-state-layer-opacity: 0;
+  --mat-tab-active-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-focus-state-layer-opacity: 0;
+  --mat-tab-inactive-pressed-state-layer-opacity: 0;
 
   ::ng-deep .mat-mdc-tab-header {
     border-bottom: 1px solid rgba(0, 188, 212, 0.15);

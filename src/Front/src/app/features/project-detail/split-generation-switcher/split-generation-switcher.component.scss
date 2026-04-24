@@ -9,17 +9,17 @@
   overflow: hidden;
 
   // Angular Material CSS vars for outer Infra/Code tabs
-  --mat-tab-header-inactive-label-text-color: rgba(255, 255, 255, 0.55);
-  --mat-tab-header-inactive-hover-label-text-color: rgba(255, 255, 255, 0.78);
-  --mat-tab-header-inactive-focus-label-text-color: rgba(255, 255, 255, 0.78);
-  --mat-tab-header-active-label-text-color: #5cb6ff;
-  --mat-tab-header-active-hover-label-text-color: #7dc8ff;
-  --mat-tab-header-active-focus-label-text-color: #7dc8ff;
-  --mat-tab-header-active-focus-state-layer-opacity: 0;
-  --mat-tab-header-active-pressed-state-layer-opacity: 0;
-  --mat-tab-header-inactive-focus-state-layer-opacity: 0;
-  --mat-tab-header-inactive-pressed-state-layer-opacity: 0;
-  --mat-tab-header-inactive-hover-state-layer-opacity: 0;
+  --mat-tab-inactive-label-text-color: rgba(255, 255, 255, 0.55);
+  --mat-tab-inactive-hover-label-text-color: rgba(255, 255, 255, 0.78);
+  --mat-tab-inactive-focus-label-text-color: rgba(255, 255, 255, 0.78);
+  --mat-tab-active-label-text-color: #5cb6ff;
+  --mat-tab-active-hover-label-text-color: #7dc8ff;
+  --mat-tab-active-focus-label-text-color: #7dc8ff;
+  --mat-tab-active-focus-state-layer-opacity: 0;
+  --mat-tab-active-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-focus-state-layer-opacity: 0;
+  --mat-tab-inactive-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-hover-state-layer-opacity: 0;
 
   ::ng-deep > .mat-mdc-tab-header {
     border-bottom: 1px solid rgba(146, 191, 235, 0.2);
@@ -106,17 +106,17 @@
   box-shadow: none !important;
   background: transparent;
 
-  --mat-tab-header-inactive-label-text-color: rgba(255, 255, 255, 0.6);
-  --mat-tab-header-inactive-hover-label-text-color: rgba(255, 255, 255, 0.82);
-  --mat-tab-header-inactive-focus-label-text-color: rgba(255, 255, 255, 0.82);
-  --mat-tab-header-active-label-text-color: #00bcd4;
-  --mat-tab-header-active-hover-label-text-color: #00e5ff;
-  --mat-tab-header-active-focus-label-text-color: #00e5ff;
-  --mat-tab-header-active-focus-state-layer-opacity: 0;
-  --mat-tab-header-active-pressed-state-layer-opacity: 0;
-  --mat-tab-header-inactive-focus-state-layer-opacity: 0;
-  --mat-tab-header-inactive-pressed-state-layer-opacity: 0;
-  --mat-tab-header-inactive-hover-state-layer-opacity: 0;
+  --mat-tab-inactive-label-text-color: rgba(255, 255, 255, 0.6);
+  --mat-tab-inactive-hover-label-text-color: rgba(255, 255, 255, 0.82);
+  --mat-tab-inactive-focus-label-text-color: rgba(255, 255, 255, 0.82);
+  --mat-tab-active-label-text-color: #00bcd4;
+  --mat-tab-active-hover-label-text-color: #00e5ff;
+  --mat-tab-active-focus-label-text-color: #00e5ff;
+  --mat-tab-active-focus-state-layer-opacity: 0;
+  --mat-tab-active-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-focus-state-layer-opacity: 0;
+  --mat-tab-inactive-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-hover-state-layer-opacity: 0;
 
   ::ng-deep .mat-mdc-tab-header {
     border-bottom: 1px solid rgba(0, 188, 212, 0.15);
@@ -138,9 +138,9 @@
   }
 
   &--code {
-    --mat-tab-header-active-label-text-color: #4dd0e1;
-    --mat-tab-header-active-hover-label-text-color: #80deea;
-    --mat-tab-header-active-focus-label-text-color: #80deea;
+    --mat-tab-active-label-text-color: #4dd0e1;
+    --mat-tab-active-hover-label-text-color: #80deea;
+    --mat-tab-active-focus-label-text-color: #80deea;
 
     ::ng-deep .mdc-tab-indicator__content--underline {
       border-color: #4dd0e1;
