@@ -6,19 +6,15 @@ import { EMPTY, Subscription, catchError, debounceTime, distinctUntilChanged, fi
 import { MatButtonModule } from '@angular/material/button';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { KeyVaultService } from '../../shared/services/key-vault.service';
 import { RedisCacheService } from '../../shared/services/redis-cache.service';
@@ -89,7 +85,7 @@ import { AddCustomDomainDialogComponent, AddCustomDomainDialogData } from './add
 import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
-import { DsButtonComponent } from '../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption } from '../../shared/components/ds';
 
 /** Key Vault missing role entry for the KV access warning banner */
 interface KvMissingRoleEntry {
@@ -323,13 +319,9 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     ReactiveFormsModule,
     MatButtonModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
-    MatOptionModule,
     MatProgressSpinnerModule,
     MatRadioModule,
-    MatSelectModule,
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
@@ -340,6 +332,8 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     DeploymentConfigComponent,
     ToggleSectionCardComponent,
     DsButtonComponent,
+    DsTextFieldComponent,
+    DsSelectComponent,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
@@ -377,6 +371,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly nameAvailabilityService = inject(NameAvailabilityService);
   private readonly customDomainService = inject(CustomDomainService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   // ─── Route params ───
   protected configId = '';
@@ -814,6 +809,44 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly sqlServerVersionOptions = SQL_SERVER_VERSION_OPTIONS;
   protected readonly sqlMinTlsOptions = SQL_MIN_TLS_OPTIONS;
   protected readonly runtimeVersionOptions = signal<string[]>([]);
+
+  /** ServiceBus SKU options (used inline in env tab) */
+  protected readonly serviceBusSkuOptions: DsSelectOption[] = [
+    { label: 'Basic', value: 'Basic' },
+    { label: 'Standard', value: 'Standard' },
+    { label: 'Premium', value: 'Premium' },
+  ];
+
+  /** ServiceBus minimum TLS options (used inline in env tab) */
+  protected readonly serviceBusMinTlsOptions: DsSelectOption[] = [
+    { label: 'TLS 1.0', value: '1.0' },
+    { label: 'TLS 1.1', value: '1.1' },
+    { label: 'TLS 1.2', value: '1.2' },
+  ];
+
+  /** Translated public access options for the DS select */
+  protected readonly publicAccessSelectOptions = computed<DsSelectOption[]>(() =>
+    this.publicAccessOptions.map(o => ({ value: o.value, label: this.translate.instant(o.label) })),
+  );
+
+  /** SQL Server options computed from allResources for SqlDatabase picker */
+  protected readonly sqlServerOptionsForSelect = computed<DsSelectOption[]>(() =>
+    this.allResources()
+      .filter(r => r.resourceType === 'SqlServer')
+      .map(r => ({ value: r.id, label: r.name })),
+  );
+
+  /** Log Analytics Workspace options with explicit None entry */
+  protected readonly lawOptionsForSelect = computed<DsSelectOption[]>(() => [
+    { value: null, label: this.translate.instant('RESOURCE_EDIT.GENERAL.NONE') },
+    ...this.availableLogAnalyticsWorkspaces().map(law => ({ value: law.id, label: law.name })),
+  ]);
+
+  /** Variable Group options for the SQL password selector, with a sentinel "create new" entry. */
+  protected readonly passwordVgSelectOptions = computed<DsSelectOption[]>(() => [
+    ...this.passwordVgOptions().map(vg => ({ value: vg.id, label: vg.groupName })),
+    { value: '__create_new__', label: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.CREATE_NEW_GROUP') },
+  ]);
 
   // ─── Secure Parameter Mappings (SqlServer password config) ───
   protected readonly secureParamMappings = signal<SecureParameterMappingResponse[]>([]);
