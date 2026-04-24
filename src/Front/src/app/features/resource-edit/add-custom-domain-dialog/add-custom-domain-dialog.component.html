@@ -6,27 +6,30 @@
 <mat-dialog-content>
   <div class="cd-dialog-form">
     <!-- Environment -->
-    <mat-form-field appearance="outline" class="cd-dialog-form__field">
-      <mat-label>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.ENVIRONMENT' | translate }}</mat-label>
-      <mat-select [ngModel]="environmentName()" (ngModelChange)="environmentName.set($event)">
-        @for (env of data.environments; track env.name) {
-          <mat-option [value]="env.name">{{ env.name }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <app-ds-select
+      class="cd-dialog-form__field"
+      [label]="'RESOURCE_EDIT.CUSTOM_DOMAINS.ENVIRONMENT' | translate"
+      [options]="environmentOptions()"
+      [ngModel]="environmentName()"
+      (ngModelChange)="environmentName.set($event)"
+      [ngModelOptions]="{ standalone: true }" />
 
     <!-- Domain Name -->
-    <mat-form-field appearance="outline" class="cd-dialog-form__field">
-      <mat-label>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DOMAIN_NAME' | translate }}</mat-label>
-      <input matInput [ngModel]="domainName()" (ngModelChange)="domainName.set($event)" placeholder="api.example.com" />
-      <mat-hint>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DOMAIN_NAME_HINT' | translate }}</mat-hint>
-      @if (domainName().length > 0 && !isDomainValid()) {
-        <mat-error>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DOMAIN_NAME_HINT' | translate }}</mat-error>
-      }
-      @if (isDuplicate()) {
-        <mat-error>{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.DUPLICATE' | translate }}</mat-error>
-      }
-    </mat-form-field>
+    <app-ds-text-field
+      class="cd-dialog-form__field"
+      [label]="'RESOURCE_EDIT.CUSTOM_DOMAINS.DOMAIN_NAME' | translate"
+      placeholder="api.example.com"
+      [hint]="'RESOURCE_EDIT.CUSTOM_DOMAINS.DOMAIN_NAME_HINT' | translate"
+      [ngModel]="domainName()"
+      (ngModelChange)="domainName.set($event)"
+      [ngModelOptions]="{ standalone: true }"
+      [error]="
+        isDuplicate()
+          ? ('RESOURCE_EDIT.CUSTOM_DOMAINS.DUPLICATE' | translate)
+          : (domainName().length > 0 && !isDomainValid()
+              ? ('RESOURCE_EDIT.CUSTOM_DOMAINS.DOMAIN_NAME_HINT' | translate)
+              : undefined)
+      " />
 
     <!-- Binding Type -->
     <div class="cd-dialog-form__radio-group">

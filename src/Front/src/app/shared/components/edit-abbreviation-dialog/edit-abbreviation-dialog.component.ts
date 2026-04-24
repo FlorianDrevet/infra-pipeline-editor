@@ -1,12 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { DsButtonComponent } from '../ds';
+import { DsButtonComponent, DsTextFieldComponent } from '../ds';
 
 export interface EditAbbreviationDialogData {
   resourceType: string;
@@ -24,11 +22,11 @@ export interface EditAbbreviationDialogResult {
   imports: [
     MatButtonModule,
     MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
+    FormsModule,
     ReactiveFormsModule,
     TranslateModule,
     DsButtonComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './edit-abbreviation-dialog.component.html',
   styleUrl: './edit-abbreviation-dialog.component.scss',

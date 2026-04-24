@@ -1,34 +1,29 @@
 <h2 mat-dialog-title>{{ 'ABBREVIATIONS.EDIT_DIALOG_TITLE' | translate }}</h2>
 
 <mat-dialog-content>
+  <app-ds-text-field
+    [label]="'ABBREVIATIONS.EDIT_DIALOG_RESOURCE_TYPE' | translate"
+    [ngModel]="resourceType"
+    [ngModelOptions]="{ standalone: true }"
+    [disabled]="true" />
+
+  <app-ds-text-field
+    [label]="'ABBREVIATIONS.EDIT_DIALOG_DEFAULT' | translate"
+    [ngModel]="defaultAbbreviation"
+    [ngModelOptions]="{ standalone: true }"
+    [disabled]="true" />
+
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'ABBREVIATIONS.EDIT_DIALOG_RESOURCE_TYPE' | translate }}</mat-label>
-      <input matInput [value]="resourceType" disabled />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'ABBREVIATIONS.EDIT_DIALOG_DEFAULT' | translate }}</mat-label>
-      <input matInput [value]="defaultAbbreviation" disabled />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'ABBREVIATIONS.EDIT_DIALOG_CUSTOM' | translate }}</mat-label>
-      <input
-        matInput
-        formControlName="abbreviation"
-        [placeholder]="'ABBREVIATIONS.EDIT_DIALOG_PLACEHOLDER' | translate" />
-      <mat-hint>{{ 'ABBREVIATIONS.EDIT_DIALOG_HINT' | translate }}</mat-hint>
-      @if (form.controls.abbreviation.hasError('required') && form.controls.abbreviation.touched) {
-        <mat-error>{{ 'ABBREVIATIONS.EDIT_DIALOG_CUSTOM' | translate }}</mat-error>
-      }
-      @if (form.controls.abbreviation.hasError('pattern')) {
-        <mat-error>{{ 'ABBREVIATIONS.EDIT_DIALOG_HINT' | translate }}</mat-error>
-      }
-      @if (form.controls.abbreviation.hasError('maxlength')) {
-        <mat-error>{{ 'ABBREVIATIONS.EDIT_DIALOG_HINT' | translate }}</mat-error>
-      }
-    </mat-form-field>
+    <app-ds-text-field
+      formControlName="abbreviation"
+      [label]="'ABBREVIATIONS.EDIT_DIALOG_CUSTOM' | translate"
+      [placeholder]="'ABBREVIATIONS.EDIT_DIALOG_PLACEHOLDER' | translate"
+      [hint]="'ABBREVIATIONS.EDIT_DIALOG_HINT' | translate"
+      [error]="
+        form.controls.abbreviation.touched && form.controls.abbreviation.invalid
+          ? ('ABBREVIATIONS.EDIT_DIALOG_HINT' | translate)
+          : undefined
+      " />
   </form>
 </mat-dialog-content>
 

@@ -4,12 +4,12 @@
 
 <mat-dialog-content>
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME' | translate }}</mat-label>
-      <input matInput formControlName="groupName"
-        [placeholder]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_PLACEHOLDER' | translate" />
-      <mat-hint>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_HINT' | translate }}</mat-hint>
-    </mat-form-field>
+    <app-ds-text-field
+      class="full-width"
+      formControlName="groupName"
+      [label]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME' | translate"
+      [placeholder]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_PLACEHOLDER' | translate"
+      [hint]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_HINT' | translate" />
   </form>
 </mat-dialog-content>
 

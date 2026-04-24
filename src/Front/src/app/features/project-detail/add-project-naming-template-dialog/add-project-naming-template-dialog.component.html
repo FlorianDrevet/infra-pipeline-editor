@@ -3,14 +3,12 @@
 <mat-dialog-content>
   <form [formGroup]="form" class="template-form" (ngSubmit)="onSubmit()">
     @if (isResourceMode) {
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'PROJECT_DETAIL.NAMING_TEMPLATES.FORM.RESOURCE_TYPE' | translate }}</mat-label>
-        <mat-select formControlName="resourceType" [disabled]="isEditMode">
-          @for (option of resourceTypeOptions(); track option.value) {
-            <mat-option [value]="option.value">{{ option.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <app-ds-select
+        class="full-width"
+        formControlName="resourceType"
+        [label]="'PROJECT_DETAIL.NAMING_TEMPLATES.FORM.RESOURCE_TYPE' | translate"
+        [options]="resourceTypeOptions()"
+        [disabled]="isEditMode" />
     }
 
     <mat-form-field appearance="outline" class="full-width">

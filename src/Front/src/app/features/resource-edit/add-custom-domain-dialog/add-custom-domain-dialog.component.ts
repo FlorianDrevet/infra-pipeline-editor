@@ -1,11 +1,8 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsSelectComponent, DsTextFieldComponent, type DsSelectOption } from '../../../shared/components/ds';
 import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -27,11 +24,10 @@ export interface AddCustomDomainDialogData {
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
     MatRadioModule,
       DsButtonComponent,
+      DsSelectComponent,
+      DsTextFieldComponent,
   ],
   templateUrl: './add-custom-domain-dialog.component.html',
   styleUrl: './add-custom-domain-dialog.component.scss',
@@ -43,6 +39,10 @@ export class AddCustomDomainDialogComponent {
   protected readonly environmentName = signal(this.data.preselectedEnvironment ?? '');
   protected readonly domainName = signal('');
   protected readonly bindingType = signal('SniEnabled');
+
+  protected readonly environmentOptions = computed<DsSelectOption[]>(() =>
+    this.data.environments.map((env) => ({ value: env.name, label: env.name })),
+  );
 
   private readonly fqdnPattern = /^(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(\.[a-zA-Z0-9-]{1,63})*\.[a-zA-Z]{2,}$/;
 

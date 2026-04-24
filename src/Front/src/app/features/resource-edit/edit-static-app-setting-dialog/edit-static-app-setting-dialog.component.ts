@@ -1,11 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsTextFieldComponent } from '../../../shared/components/ds';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import axios from 'axios';
@@ -29,10 +27,9 @@ export interface EditStaticAppSettingDialogData {
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
-    MatFormFieldModule,
       DsButtonComponent,
+      DsTextFieldComponent,
   ],
   templateUrl: './edit-static-app-setting-dialog.component.html',
   styleUrl: './edit-static-app-setting-dialog.component.scss',

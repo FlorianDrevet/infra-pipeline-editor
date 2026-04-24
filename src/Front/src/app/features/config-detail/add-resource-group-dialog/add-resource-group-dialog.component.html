@@ -4,20 +4,17 @@
 
 <mat-dialog-content>
   <form [formGroup]="form" class="rg-form" (ngSubmit)="onSubmit()">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME' | translate }}</mat-label>
-      <input matInput formControlName="name"
-        [placeholder]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME_PLACEHOLDER' | translate" />
-    </mat-form-field>
+    <app-ds-text-field
+      class="full-width"
+      formControlName="name"
+      [label]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME' | translate"
+      [placeholder]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME_PLACEHOLDER' | translate" />
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.LOCATION' | translate }}</mat-label>
-      <mat-select formControlName="location">
-        @for (option of locationOptions; track option.value) {
-          <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <app-ds-select
+      class="full-width"
+      formControlName="location"
+      [label]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.LOCATION' | translate"
+      [options]="locationOptions" />
 
     @if (errorKey()) {
       <p class="dialog-error">{{ errorKey() | translate }}</p>

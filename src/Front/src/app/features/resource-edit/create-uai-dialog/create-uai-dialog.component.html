@@ -6,10 +6,13 @@
 
   <mat-dialog-content class="as-dialog__content">
     <div class="config-section">
-      <mat-form-field appearance="outline" class="config-section__field">
-        <mat-label>{{ 'RESOURCE_EDIT.CREATE_UAI_DIALOG.NAME_LABEL' | translate }}</mat-label>
-        <input matInput [ngModel]="name()" (ngModelChange)="name.set($event)" [placeholder]="'RESOURCE_EDIT.CREATE_UAI_DIALOG.NAME_PLACEHOLDER' | translate" />
-      </mat-form-field>
+      <app-ds-text-field
+        class="config-section__field"
+        [label]="'RESOURCE_EDIT.CREATE_UAI_DIALOG.NAME_LABEL' | translate"
+        [placeholder]="'RESOURCE_EDIT.CREATE_UAI_DIALOG.NAME_PLACEHOLDER' | translate"
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        [ngModelOptions]="{ standalone: true }" />
     </div>
 
     <p class="location-info">
