@@ -1,3 +1,5 @@
+@use "scss/main" as *;
+
 :host {
   display: block;
   height: 100vh;
@@ -15,7 +17,7 @@
   display: flex;
   flex-direction: column;
   padding: 2.5rem;
-  background: linear-gradient(160deg, #1a3a8a 0%, #1565c0 35%, #0288d1 65%, #00acc1 100%);
+  background: $ifs-gradient-login;
   color: #fff;
   position: relative;
 }

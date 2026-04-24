@@ -41,7 +41,7 @@
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()">{{ 'COMMON.CANCEL' | translate }}</button>
-  <button mat-raised-button color="primary" [disabled]="!isFormValid()" (click)="onConfirm()">
+  <app-ds-button variant="primary" [disabled]="!isFormValid()" (clicked)="onConfirm()">
     {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.ADD' | translate }}
-  </button>
+  </app-ds-button>
 </mat-dialog-actions>

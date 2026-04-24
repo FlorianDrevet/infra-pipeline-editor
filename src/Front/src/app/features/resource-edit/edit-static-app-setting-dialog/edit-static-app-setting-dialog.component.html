@@ -39,12 +39,8 @@
     <button mat-stroked-button (click)="onCancel()" [disabled]="isSubmitting()">
       {{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.CANCEL' | translate }}
     </button>
-    <button mat-flat-button color="primary" (click)="onSave()" [disabled]="isSubmitting() || !settingName()">
-      @if (isSubmitting()) {
-        <mat-spinner diameter="18"></mat-spinner>
-      } @else {
-        {{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.SAVE' | translate }}
-      }
-    </button>
+    <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="!settingName()" (clicked)="onSave()">
+      {{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.SAVE' | translate }}
+    </app-ds-button>
   </mat-dialog-actions>
 </div>

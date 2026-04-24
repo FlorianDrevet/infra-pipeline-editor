@@ -17,7 +17,7 @@
   <button mat-stroked-button type="button" (click)="onCancel()">
     {{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.DIALOG_CANCEL' | translate }}
   </button>
-  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid">
+  <app-ds-button variant="primary" [disabled]="form.invalid" (clicked)="onSubmit()">
     {{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.DIALOG_ADD' | translate }}
-  </button>
+  </app-ds-button>
 </mat-dialog-actions>

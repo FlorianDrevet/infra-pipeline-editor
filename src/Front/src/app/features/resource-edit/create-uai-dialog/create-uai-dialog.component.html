@@ -29,12 +29,8 @@
     <button mat-stroked-button (click)="onCancel()" [disabled]="isSubmitting()">
       {{ 'RESOURCE_EDIT.CREATE_UAI_DIALOG.CANCEL' | translate }}
     </button>
-    <button mat-flat-button color="primary" (click)="onCreate()" [disabled]="isSubmitting() || !name()">
-      @if (isSubmitting()) {
-        <mat-spinner diameter="18"></mat-spinner>
-      } @else {
-        {{ 'RESOURCE_EDIT.CREATE_UAI_DIALOG.CREATE' | translate }}
-      }
-    </button>
+    <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="!name()" (clicked)="onCreate()">
+      {{ 'RESOURCE_EDIT.CREATE_UAI_DIALOG.CREATE' | translate }}
+    </app-ds-button>
   </mat-dialog-actions>
 </div>

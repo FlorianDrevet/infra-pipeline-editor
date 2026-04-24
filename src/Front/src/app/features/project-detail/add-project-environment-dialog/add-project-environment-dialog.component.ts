@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { DsButtonComponent } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -37,6 +38,7 @@ export interface AddProjectEnvironmentDialogData {
     MatSlideToggleModule,
     ReactiveFormsModule,
     TranslateModule,
+      DsButtonComponent,
   ],
   templateUrl: './add-project-environment-dialog.component.html',
   styleUrl: './add-project-environment-dialog.component.scss',

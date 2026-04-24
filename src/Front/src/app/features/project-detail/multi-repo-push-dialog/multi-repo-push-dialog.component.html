@@ -185,10 +185,9 @@
       <button mat-stroked-button type="button" (click)="onClose()">
         {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CANCEL' | translate }}
       </button>
-      <button mat-flat-button color="primary" type="button" [disabled]="!canPush()" (click)="onPush()">
-        <mat-icon>cloud_upload</mat-icon>
+      <app-ds-button variant="primary" icon="cloud_upload" [disabled]="!canPush()" (clicked)="onPush()">
         {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_BOTH' | translate }}
-      </button>
+      </app-ds-button>
     }
     @case ('pushing') {
       <button mat-stroked-button type="button" disabled>
@@ -196,27 +195,25 @@
       </button>
     }
     @case ('success') {
-      <button mat-flat-button color="primary" type="button" (click)="onClose()">
+      <app-ds-button variant="primary" (clicked)="onClose()">
         {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CLOSE' | translate }}
-      </button>
+      </app-ds-button>
     }
     @case ('partial') {
       <button mat-stroked-button type="button" (click)="onClose()">
         {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CLOSE' | translate }}
       </button>
-      <button mat-flat-button color="primary" type="button" (click)="onRetry()">
-        <mat-icon>refresh</mat-icon>
+      <app-ds-button variant="primary" icon="refresh" (clicked)="onRetry()">
         {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.RETRY' | translate }}
-      </button>
+      </app-ds-button>
     }
     @case ('error') {
       <button mat-stroked-button type="button" (click)="onClose()">
         {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CLOSE' | translate }}
       </button>
-      <button mat-flat-button color="primary" type="button" (click)="onRetry()">
-        <mat-icon>refresh</mat-icon>
+      <app-ds-button variant="primary" icon="refresh" (clicked)="onRetry()">
         {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.RETRY' | translate }}
-      </button>
+      </app-ds-button>
     }
   }
 </mat-dialog-actions>

@@ -8,6 +8,7 @@ import {
   AbstractControl,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { DsButtonComponent } from '../../../shared/components/ds';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import {
   MAT_DIALOG_DATA,
@@ -61,6 +62,7 @@ const CONTENT_KINDS: ReadonlyArray<RepositoryContentKind> = [
     MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
+      DsButtonComponent,
   ],
   templateUrl: './infra-config-repository-dialog.component.html',
   styleUrl: './infra-config-repository-dialog.component.scss',

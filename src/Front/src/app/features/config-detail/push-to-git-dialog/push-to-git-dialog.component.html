@@ -88,10 +88,9 @@
       <button mat-stroked-button type="button" (click)="onClose()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
       </button>
-      <button mat-flat-button color="primary" (click)="onPush()" [disabled]="form.invalid">
-        <mat-icon>rocket_launch</mat-icon>
+      <app-ds-button variant="primary" icon="rocket_launch" [disabled]="form.invalid" (clicked)="onPush()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.PUSH' | translate }}
-      </button>
+      </app-ds-button>
     }
 
     @case ('pushing') {
@@ -99,18 +98,18 @@
     }
 
     @case ('success') {
-      <button mat-flat-button color="primary" (click)="onClose()">
+      <app-ds-button variant="primary" (clicked)="onClose()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
-      </button>
+      </app-ds-button>
     }
 
     @case ('error') {
       <button mat-stroked-button type="button" (click)="onClose()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
       </button>
-      <button mat-flat-button color="primary" (click)="onRetry()">
+      <app-ds-button variant="primary" (clicked)="onRetry()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.RETRY' | translate }}
-      </button>
+      </app-ds-button>
     }
   }
 </mat-dialog-actions>

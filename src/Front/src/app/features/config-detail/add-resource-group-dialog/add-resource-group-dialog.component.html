@@ -29,11 +29,7 @@
   <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
     {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.CANCEL' | translate }}
   </button>
-  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || isSubmitting()">
-    @if (isSubmitting()) {
-      <mat-spinner diameter="18"></mat-spinner>
-    } @else {
-      {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.ADD' | translate }}
-    }
-  </button>
+  <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid" (clicked)="onSubmit()">
+    {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.ADD' | translate }}
+  </app-ds-button>
 </mat-dialog-actions>

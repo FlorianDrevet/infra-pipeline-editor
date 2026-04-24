@@ -123,11 +123,7 @@
   <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
     {{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.CANCEL' | translate }}
   </button>
-  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || isSubmitting()">
-    @if (isSubmitting()) {
-      <mat-spinner diameter="18"></mat-spinner>
-    } @else {
-      {{ (isEditMode ? 'PROJECT_DETAIL.ENVIRONMENTS.FORM.SAVE' : 'PROJECT_DETAIL.ENVIRONMENTS.FORM.ADD') | translate }}
-    }
-  </button>
+  <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid" (clicked)="onSubmit()">
+    {{ (isEditMode ? 'PROJECT_DETAIL.ENVIRONMENTS.FORM.SAVE' : 'PROJECT_DETAIL.ENVIRONMENTS.FORM.ADD') | translate }}
+  </app-ds-button>
 </mat-dialog-actions>

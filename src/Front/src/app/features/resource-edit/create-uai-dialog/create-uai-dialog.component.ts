@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { DsButtonComponent } from '../../../shared/components/ds';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -28,6 +29,7 @@ export interface CreateUaiDialogData {
     MatInputModule,
     MatProgressSpinnerModule,
     MatFormFieldModule,
+      DsButtonComponent,
   ],
   templateUrl: './create-uai-dialog.component.html',
   styleUrl: './create-uai-dialog.component.scss',

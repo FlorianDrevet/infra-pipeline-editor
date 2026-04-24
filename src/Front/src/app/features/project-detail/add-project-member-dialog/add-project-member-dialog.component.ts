@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { DsButtonComponent } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -35,6 +36,7 @@ const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
     MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
+      DsButtonComponent,
   ],
   templateUrl: './add-project-member-dialog.component.html',
   styleUrl: './add-project-member-dialog.component.scss',

@@ -43,11 +43,7 @@
   <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
     {{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_CANCEL' | translate }}
   </button>
-  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || !selectedUser() || isSubmitting()">
-    @if (isSubmitting()) {
-      <mat-spinner diameter="18"></mat-spinner>
-    } @else {
-      {{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_ADD' | translate }}
-    }
-  </button>
+  <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid || !selectedUser()" (clicked)="onSubmit()">
+    {{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_ADD' | translate }}
+  </app-ds-button>
 </mat-dialog-actions>

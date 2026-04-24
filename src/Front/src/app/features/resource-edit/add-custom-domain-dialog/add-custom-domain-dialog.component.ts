@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { DsButtonComponent } from '../../../shared/components/ds';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -30,6 +31,7 @@ export interface AddCustomDomainDialogData {
     MatInputModule,
     MatSelectModule,
     MatRadioModule,
+      DsButtonComponent,
   ],
   templateUrl: './add-custom-domain-dialog.component.html',
   styleUrl: './add-custom-domain-dialog.component.scss',
