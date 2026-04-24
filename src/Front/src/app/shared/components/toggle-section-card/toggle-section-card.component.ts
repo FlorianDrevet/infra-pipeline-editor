@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TranslateModule } from '@ngx-translate/core';
@@ -7,7 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
 @Component({
   selector: 'app-toggle-section-card',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatSlideToggleModule, TranslateModule],
+  imports: [MatIconModule, MatSlideToggleModule, TranslateModule],
   templateUrl: './toggle-section-card.component.html',
   styleUrl: './toggle-section-card.component.scss',
 })

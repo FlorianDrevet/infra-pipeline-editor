@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, HostBinding, computed, input, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MatIconModule } from '@angular/material/icon';
 
 /**
@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-ds-button',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [MatIconModule],
   templateUrl: './ds-button.component.html',
   styleUrl: './ds-button.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

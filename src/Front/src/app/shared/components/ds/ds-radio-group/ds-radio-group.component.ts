@@ -6,7 +6,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 export interface DsRadioOption {
@@ -22,7 +22,7 @@ export interface DsRadioOption {
 @Component({
   selector: 'app-ds-radio-group',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './ds-radio-group.component.html',
   styleUrl: './ds-radio-group.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

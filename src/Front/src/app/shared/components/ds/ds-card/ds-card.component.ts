@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 /**
  * Design system card. Supports elevated/outlined/glass variants, accent borders and projection slots.
@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-ds-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './ds-card.component.html',
   styleUrl: './ds-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

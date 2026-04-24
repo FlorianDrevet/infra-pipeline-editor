@@ -6,7 +6,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -19,7 +19,7 @@ let dsTextFieldUid = 0;
 @Component({
   selector: 'app-ds-text-field',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [MatIconModule],
   templateUrl: './ds-text-field.component.html',
   styleUrl: './ds-text-field.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MatIconModule } from '@angular/material/icon';
 
 type AlertSeverity = 'info' | 'success' | 'warning' | 'error';
@@ -17,7 +17,7 @@ const DEFAULT_ICONS: Record<AlertSeverity, string> = {
 @Component({
   selector: 'app-ds-alert',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [MatIconModule],
   templateUrl: './ds-alert.component.html',
   styleUrl: './ds-alert.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

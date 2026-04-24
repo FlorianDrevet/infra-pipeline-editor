@@ -9,7 +9,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -27,7 +27,7 @@ export interface DsSelectOption {
 @Component({
   selector: 'app-ds-select',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [MatIconModule],
   templateUrl: './ds-select.component.html',
   styleUrl: './ds-select.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

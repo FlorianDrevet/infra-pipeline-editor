@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -18,7 +18,6 @@ export type AcrUaiStateValue = 'idle' | 'checking' | 'ok' | 'uai-missing-role' |
   selector: 'app-deployment-config',
   standalone: true,
   imports: [
-    CommonModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -26,8 +25,8 @@ export type AcrUaiStateValue = 'idle' | 'checking' | 'ok' | 'uai-missing-role' |
     MatProgressSpinnerModule,
     MatSelectModule,
     TranslateModule,
-    CompactSelectComponent,
-  ],
+    CompactSelectComponent
+],
   templateUrl: './deployment-config.component.html',
   styleUrl: './deployment-config.component.scss',
 })

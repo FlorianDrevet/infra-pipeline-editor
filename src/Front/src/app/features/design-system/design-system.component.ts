@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import {
   DsAlertComponent,
@@ -46,7 +46,6 @@ interface RadiusSample {
   selector: 'app-design-system',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     DsAlertComponent,
     DsButtonComponent,
@@ -60,8 +59,8 @@ interface RadiusSample {
     DsSelectComponent,
     DsTextFieldComponent,
     DsTextareaComponent,
-    DsToggleComponent,
-  ],
+    DsToggleComponent
+],
   templateUrl: './design-system.component.html',
   styleUrl: './design-system.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -10,7 +10,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 let dsTextareaUid = 0;
@@ -21,7 +21,7 @@ let dsTextareaUid = 0;
 @Component({
   selector: 'app-ds-textarea',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './ds-textarea.component.html',
   styleUrl: './ds-textarea.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

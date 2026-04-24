@@ -6,7 +6,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 /**
@@ -15,7 +15,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 @Component({
   selector: 'app-ds-toggle',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './ds-toggle.component.html',
   styleUrl: './ds-toggle.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
