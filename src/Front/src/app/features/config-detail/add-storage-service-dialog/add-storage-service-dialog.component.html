@@ -70,20 +70,17 @@
         <button mat-stroked-button (click)="goBack()" [disabled]="isSubmitting()">
           {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
         </button>
-        <button
-          mat-raised-button
-          color="primary"
-          (click)="onSubmit()"
+        <app-ds-button
+          variant="primary"
+          (clicked)="onSubmit()"
+          [loading]="isSubmitting()"
           [disabled]="form.invalid || isSubmitting()">
-          @if (isSubmitting()) {
-            <mat-spinner diameter="18"></mat-spinner>
-          }
           @switch (selectedType()) {
             @case ('BlobContainer') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_BLOB' | translate }} }
             @case ('Queue') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_QUEUE' | translate }} }
             @case ('Table') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_TABLE' | translate }} }
           }
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
   }

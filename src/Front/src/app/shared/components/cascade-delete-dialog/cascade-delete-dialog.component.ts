@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { DependentResourceResponse } from '../../interfaces/dependent-resource.interface';
+import { DsButtonComponent } from '../ds';
 
 export interface CascadeDeleteDialogData {
   titleKey: string;
@@ -19,7 +20,7 @@ export interface CascadeDeleteDialogData {
 @Component({
   selector: 'app-cascade-delete-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule, MatIconModule, TranslateModule],
+  imports: [MatDialogModule, MatButtonModule, MatIconModule, TranslateModule, DsButtonComponent],
   templateUrl: './cascade-delete-dialog.component.html',
   styleUrl: './cascade-delete-dialog.component.scss',
 })

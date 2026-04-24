@@ -6,6 +6,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { DsButtonComponent } from '../ds';
+
 export interface EditAbbreviationDialogData {
   resourceType: string;
   defaultAbbreviation: string;
@@ -26,6 +28,7 @@ export interface EditAbbreviationDialogResult {
     MatInputModule,
     ReactiveFormsModule,
     TranslateModule,
+    DsButtonComponent,
   ],
   templateUrl: './edit-abbreviation-dialog.component.html',
   styleUrl: './edit-abbreviation-dialog.component.scss',

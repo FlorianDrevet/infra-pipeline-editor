@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import { StorageAccountService } from '../../../shared/services/storage-account.service';
 import { StorageAccountResponse } from '../../../shared/interfaces/storage-account.interface';
+import { DsButtonComponent } from '../../../shared/components/ds';
 
 export interface AddStorageServiceDialogData {
   storageAccountId: string;
@@ -44,6 +45,7 @@ const PUBLIC_ACCESS_OPTIONS = [
     MatInputModule,
     MatSelectModule,
     MatProgressSpinnerModule,
+    DsButtonComponent,
   ],
   templateUrl: './add-storage-service-dialog.component.html',
   styleUrl: './add-storage-service-dialog.component.scss',

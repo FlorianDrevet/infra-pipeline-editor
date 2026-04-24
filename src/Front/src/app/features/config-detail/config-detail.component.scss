@@ -1,3 +1,5 @@
+@use "scss/main" as *;
+
 :host {
   display: block;
 }
@@ -16,7 +18,7 @@
 .detail-header {
   padding: 1.5rem;
   border-radius: 1.8rem;
-  background: linear-gradient(145deg, #0d2f66 0%, #1565c0 40%, #009fbd 100%);
+  background: $ifs-gradient-brand;
   color: #fff;
   box-shadow: 0 28px 60px rgba(13, 47, 102, 0.26);
   position: relative;
@@ -208,7 +210,7 @@
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 1.2rem;
-  background: linear-gradient(180deg, #fff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.24);
   position: relative;
   transition: opacity 0.2s ease;
@@ -325,7 +327,7 @@
 .env-card {
   padding: 1.1rem;
   border-radius: 1.2rem;
-  background: linear-gradient(180deg, #fff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.24);
   position: relative;
   transition: opacity 0.2s ease;
@@ -420,7 +422,7 @@
   gap: 0.85rem;
   padding: 0.8rem 1.1rem;
   border-radius: 1rem;
-  background: linear-gradient(180deg, #fff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.18);
   position: relative;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -576,7 +578,7 @@
 
 .rg-accordion {
   border-radius: 1.2rem;
-  background: linear-gradient(180deg, #fff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.24);
   overflow: hidden;
   transition: border-color 0.2s;
@@ -1097,7 +1099,7 @@
   gap: 1rem;
   padding: 0.85rem 1rem;
   border-radius: 1rem;
-  background: linear-gradient(180deg, #fff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.18);
   position: relative;
 
@@ -2247,7 +2249,7 @@
 .git-config-card {
   padding: 1.2rem;
   border-radius: 1.2rem;
-  background: linear-gradient(180deg, #ffffff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.24);
   box-shadow: 0 10px 26px rgba(16, 52, 86, 0.06);
 }
@@ -2558,7 +2560,7 @@
 .vg-card {
   padding: 1.1rem;
   border-radius: 1.2rem;
-  background: linear-gradient(180deg, #fff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.24);
   transition: box-shadow 0.2s ease;
 

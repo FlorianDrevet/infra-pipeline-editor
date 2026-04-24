@@ -8,6 +8,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ResourceDiagnosticResponse } from '../../interfaces/bicep-generator.interface';
 import { RESOURCE_TYPE_ABBREVIATIONS } from '../../../features/config-detail/enums/resource-type.enum';
+import { DsButtonComponent } from '../ds';
 
 const ARM_TYPE_TO_FRIENDLY: Record<string, string> = {
   'Microsoft.KeyVault/vaults': 'KeyVault',
@@ -62,7 +63,8 @@ export interface GenerationDiagnosticsDialogData {
     MatDialogModule,
     MatIconModule,
     MatTooltipModule,
-    TranslateModule
+    TranslateModule,
+    DsButtonComponent
 ],
   templateUrl: './generation-diagnostics-dialog.component.html',
   styleUrl: './generation-diagnostics-dialog.component.scss',

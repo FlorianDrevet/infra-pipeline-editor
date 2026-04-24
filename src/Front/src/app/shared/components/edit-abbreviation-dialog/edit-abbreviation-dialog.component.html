@@ -36,7 +36,7 @@
   <button mat-stroked-button type="button" (click)="onCancel()">
     {{ 'ABBREVIATIONS.EDIT_DIALOG_CANCEL' | translate }}
   </button>
-  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid">
+  <app-ds-button variant="primary" (clicked)="onSubmit()" [disabled]="form.invalid">
     {{ 'ABBREVIATIONS.EDIT_DIALOG_SAVE' | translate }}
-  </button>
+  </app-ds-button>
 </mat-dialog-actions>
