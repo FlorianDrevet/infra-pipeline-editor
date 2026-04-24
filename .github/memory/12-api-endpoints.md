@@ -16,10 +16,16 @@
 | `/projects` | POST | `` | `CreateProjectCommand` |
 | `/projects` | DELETE | `/{id:guid}` | `DeleteProjectCommand` |
 | `/projects` | PUT | `/{id:guid}/agent-pool` | `SetAgentPoolCommand` (moved from /infra-configs) [2026-04-04] |
+| `/projects` | POST/PUT/DELETE | `/{id:guid}/repositories/{repoId?}` | Project repository CRUD |
+| `/projects` | PUT | `/{id:guid}/layout-preset` | `SetProjectLayoutPresetCommand` |
+| `/projects` | PUT/POST/PUT/DELETE | `/{id:guid}/configs/{configId:guid}/{layout-mode|repositories/...}` | Config layout mode + config repository CRUD |
 | `/projects` | POST | `/validate-recent` | `ValidateRecentItemsQuery` |
 | `/projects` | POST | `/{id:guid}/git-config/test` | `TestGitConnectionCommand` (resolver-backed, V3) |
 | `/projects` | GET | `/{id:guid}/git-config/branches` | `ListGitBranchesQuery` (resolver-backed, V3) |
+| `/projects` | POST | `/{id:guid}/generate-bicep` | `GenerateProjectBicepCommand` |
 | `/projects` | GET | `/{id:guid}/generate-bicep/download` | `DownloadProjectBicepCommand` |
+| `/projects` | GET | `/{id:guid}/generate-bicep/files/{*filePath}` | `GetProjectBicepFileContentQuery` |
+| `/projects` | POST | `/{id:guid}/push-to-git` | `PushProjectBicepToGitCommand` |
 | `/projects` | POST | `/{id:guid}/generate-pipeline` | `GenerateProjectPipelineCommand` |
 | `/projects` | GET | `/{id:guid}/generate-pipeline/download` | `DownloadProjectPipelineCommand` |
 | `/projects` | GET | `/{id:guid}/generate-pipeline/files/{*filePath}` | `GetProjectPipelineFileContentQuery` |

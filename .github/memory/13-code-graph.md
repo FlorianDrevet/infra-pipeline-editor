@@ -8,9 +8,9 @@
 ## Index status
 
 - **Repo indexé :** `infra-pipeline-editor`
-- **Dernière indexation connue :** 2026-04-03 (⚠️ stale — abbreviation overrides, name availability, seed script, etc. added since)
-- **Spot-check [2026-04-23] :** `gitnexus_context()` ne résout pas encore des symboles récents comme `CustomDomain` ou `BootstrapPipelineGenerationEngine`; traiter le graphe comme incomplet pour les features ajoutées après 2026-04-03 jusqu'à ré-indexation.
-- **Stats :** 9 569 nœuds, 41 834 edges, 667 clusters, 300 flows (likely higher now)
+- **Session context [2026-04-24] :** GitNexus expose le repo avec ~13 470 symboles, 50 976 relations, et 300 flows.
+- **Spot-check [2026-04-23] :** `gitnexus_context()` ne résout pas encore certains symboles récents comme `CustomDomain` ou `BootstrapPipelineGenerationEngine`; traiter le graphe comme potentiellement incomplet pour les features ajoutées en toute fin de vague 2026-04-23.
+- **Obsolete cached stats removed:** the earlier 2026-04-03 counts (`9 569` nodes / `41 834` edges / `667` clusters) no longer represent the current index surface.
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)
 
@@ -53,4 +53,4 @@
 
 ---
 
-*Dernière mise à jour : 2026-04-23 — Dream consolidation (dream cycle)*
+*Dernière mise à jour : 2026-04-24 — Dream consolidation (dream cycle)*

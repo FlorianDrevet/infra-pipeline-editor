@@ -35,4 +35,4 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 
 ## GitHub Operations
 - Default GitHub repository for this project is `FlorianDrevet/infra-pipeline-editor` unless the user explicitly names another repository.
-- Audit issue creation can be driven directly from `docs/AUDIT-2026-04-14.md`; on 2026-04-15, all 66 findings were recreated as GitHub issues and mojibake was removed from the `phase:*` and `severity:*` label descriptions.
+- Audit issue workflows use reports under `audits/` (for example `audits/audit-14-04-2026`) together with `scripts/sync-audit-issues.ps1`; on 2026-04-15, 66 findings were recreated as GitHub issues and the `phase:*` / `severity:*` label mojibake was cleaned up.

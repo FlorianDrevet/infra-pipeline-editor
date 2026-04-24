@@ -19,6 +19,22 @@ dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.Ap
 npm install; npm run start; npm run build; npm run typecheck
 ```
 
+## Tests
+
+```powershell
+dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\
+dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\ -p:DefineConstants=REGENERATE_GOLDENS
+```
+
+- `InfraFlowSculptor.GenerationParity.Tests` is the byte-for-byte golden-file safety net for Bicep and pipeline generation output.
+- Goldens live under `tests/InfraFlowSculptor.GenerationParity.Tests/Fixtures/*/golden/`; regenerate them only for intentional output drift.
+
+## API Runtime Hardening [2026-04-23]
+
+- `Program.cs` now adds `X-Frame-Options=DENY`, `X-Content-Type-Options=nosniff`, `Referrer-Policy=strict-origin-when-cross-origin`, and a restrictive `Permissions-Policy` before HTTPS redirection.
+- `UseHsts()` is enabled outside Development.
+- `RateLimiting` exposes a global limiter (100 req/min per user or IP) and an `Expensive` policy (10 req/min) applied to generation, download, and push endpoints.
+
 ## App Pipeline Shared Templates
 
 - App pipelines use **shared YAML templates** (`extends:` pattern) like infra pipelines, decomposed under `.azuredevops/{pipelines,jobs,steps}/` matching the infra convention.

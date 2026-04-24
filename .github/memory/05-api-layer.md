@@ -43,6 +43,11 @@ result.Match(
 - This applies to all 18 resource responses, project/member responses, infra-config responses, and sub-resource responses.
 - `GET /resource-group/{id}/resources` may now enrich `AzureResourceResponse` with optional `StorageSubResources` (blob containers, queues, tables) so `config-detail` can render Storage Account children on the first list payload without calling `GET /storage-accounts/{id}` for each account.
 
+## Wildcard File Paths [2026-04-23]
+
+- Endpoints exposing `/{*filePath}` must validate and normalize the route value with `SafeRelativePath.TryNormalize(...)` before dispatching to MediatR or blob storage lookups.
+- Reject `..`, leading slash, drive letters, and absolute paths at the controller boundary with `400 Bad Request`; do not leave path traversal filtering to downstream handlers.
+
 ## Tag Validation [2026-04-16]
 
 - Azure tag limits enforced: key max 512 chars, value max 256 chars, max 15 tags per entity.

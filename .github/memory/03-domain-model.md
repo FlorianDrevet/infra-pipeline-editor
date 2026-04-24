@@ -4,8 +4,8 @@
 
 | Aggregate | Root | Key Entities | Notes |
 |---|---|---|---|
-| `Project` | `Project` | `ProjectMember`, `ProjectEnvironmentDefinition`, `ProjectResourceNamingTemplate`, `ProjectResourceAbbreviation`, `ProjectRepository`, `ProjectPipelineVariableGroup` | Groups InfrastructureConfigs; owns membership/RBAC, default environments, naming conventions, N `ProjectRepository` (V2 multi-repo), `LayoutPreset` (AllInOne/SplitInfraCode/MultiRepo/Custom), `CommonsStrategy` (V2: DuplicatePerRepo only), shared pipeline variable groups, `AgentPoolName`, project-level resource abbreviation overrides |
-| `InfrastructureConfig` | `InfrastructureConfig` | `ParameterDefinition`, `ResourceParameterUsage`, `ResourceNamingTemplate`, `ResourceAbbreviationOverride`, `CrossConfigResourceReference` | Has `ProjectId` FK to Project. Environments inherited from parent Project. Config-level resource abbreviation overrides. Optional owned `RepositoryBinding` (V1 multi-repo: Alias, Branch?, InfraPath?, PipelinePath?). |
+| `Project` | `Project` | `ProjectMember`, `ProjectEnvironmentDefinition`, `ProjectResourceNamingTemplate`, `ProjectResourceAbbreviation`, `ProjectRepository`, `ProjectPipelineVariableGroup` | Groups InfrastructureConfigs; owns membership/RBAC, default environments, naming conventions, shared pipeline variable groups, `AgentPoolName`, project-level resource abbreviation overrides, project-level `ProjectRepository` declarations, and `LayoutPreset` (`AllInOne` / `SplitInfraCode` / `MultiRepo`). |
+| `InfrastructureConfig` | `InfrastructureConfig` | `ParameterDefinition`, `ResourceParameterUsage`, `ResourceNamingTemplate`, `ResourceAbbreviationOverride`, `CrossConfigResourceReference`, `InfraConfigRepository` | Has `ProjectId` FK to Project. Environments inherited from parent Project. Config-level resource abbreviation overrides. In `MultiRepo` projects, it can also carry nullable `LayoutMode` (`AllInOne` / `SplitInfraCode`) plus config-level `InfraConfigRepository` declarations. |
 | `ResourceGroup` | `ResourceGroup` | `AzureResource` (base) | Hosts Azure resources. No child entities — `ResourceEnvironmentConfig` was removed. |
 | `KeyVault` | extends `AzureResource` | `KeyVaultEnvironmentSettings` | TPT in EF Core |
 | `RedisCache` | extends `AzureResource` | `RedisCacheEnvironmentSettings` | TPT in EF Core |
@@ -111,22 +111,14 @@ Two-level abbreviation override system matching NamingTemplate precedence:
 - Collection initializers: prefer `= []` over `= new()`.
 - `EnumValueObject` types: use primary constructor pattern.
 
-## Multi-Repo Topology V2 [2026-04-23]
+## Layout-Driven Repository Topology [2026-04-23]
 
-- `Project.SetLayoutPreset(LayoutPreset)` now mirrors `InfrastructureConfig.SetLayoutMode`: changing the preset auto-clears `Project.Repositories` so the user can reconfigure the target slots after switching between `AllInOne`, `SplitInfraCode`, and `MultiRepo`. Re-selecting the current preset is a no-op.
-- `Project.CanGenerateAllFromProjectLevel(IReadOnlyCollection<InfrastructureConfig> configs) : bool` — retourne `false` si les configs résolvent vers ≥2 aliases distincts (binding?.Alias ?? `"default"`). Utilisée par `GenerateProjectBicepCommandHandler` et `GenerateProjectPipelineCommandHandler` comme garde avant génération. Retourne `Errors.GitRouting.AmbiguousProjectLevelGeneration` si false.
-- Le domaine accepte maintenant des références cross-aggregate **en lecture seulement** pour l'inspection de règles métier (pattern domain-service-like sur l'aggregate root). `Project` importe `InfraFlowSculptor.Domain.InfrastructureConfigAggregate`.
-
-## Multi-Repo Topology V1 [2026-04-23]
-
-- `ProjectRepository` (`Entity<ProjectRepositoryId>`, owned by `Project`): `Alias` (slug `^[a-z0-9-]+$`, unique per project), `ProviderType` (`GitProviderType`), `RepositoryUrl/Owner/RepositoryName/DefaultBranch`, `ContentKinds` (custom flags VO: `Infrastructure | ApplicationCode | Pipelines`, persisted as CSV string).
-- `RepositoryBinding` (sealed VO, owned on `InfrastructureConfig`): `Alias` (FK logique vers ProjectRepository.Alias, validé applicativement, **pas FK SQL**), `Branch?`, `InfraPath?`, `PipelinePath?`. Persisté inline (4 colonnes `RepositoryBinding_*`).
-- `LayoutPreset` (`EnumValueObject<LayoutPresetEnum>`): `AllInOne | SplitInfraCode | MultiRepo | Custom`. Purement informatif, ne pilote pas la génération en V1.
-- `CommonsStrategy` (`EnumValueObject<CommonsStrategyEnum>`): `DuplicatePerRepo | DedicatedCommonsRepo | AzdoRepoResource`. **V1 rejette tout sauf `DuplicatePerRepo`** dans `Project.SetCommonsStrategy`.
-- `Project.RepositoryMode` (legacy) **supprimé** en V3. La topologie multi-repo s'exprime via `LayoutPreset` (AllInOne/SplitInfraCode/MultiRepo/Custom) + `Project.Repositories` (collection `ProjectRepository`).
-- `Project.GitRepositoryConfiguration` (entité legacy) **supprimé** en V3. Le routage Git passe désormais exclusivement par `IRepositoryTargetResolver` qui combine `RepositoryBinding` (par config) et `ProjectRepository` (par alias).
-- `RepositoryUrlHelper` (internal static, `ProjectAggregate/Common/`): logique de parsing URL/normalisation paths extraite à l'origine de `GitRepositoryConfiguration` et réutilisée par `ProjectRepository`.
-- Les engines Bicep/Pipelines **ne lisent pas encore** les `RepositoryBinding` en V1 — refactor reporté en V2. La rétrocompat est garantie par le miroir.
+- `Project.LayoutPreset` is now the top-level switch: `AllInOne`, `SplitInfraCode`, or `MultiRepo`. Switching preset clears `Project.Repositories` so the repository slots can be reconfigured safely.
+- `ProjectRepository.ContentKinds` only supports `Infrastructure` and `ApplicationCode`. `AllInOne` requires exactly one repo carrying both flags; `SplitInfraCode` requires exactly two repos, one infra-only and one app-only; `MultiRepo` forbids project-level repositories entirely.
+- `InfrastructureConfig` now owns nullable `LayoutMode` (`AllInOne` or `SplitInfraCode`) plus a `Repositories` collection of `InfraConfigRepository` entities used only when the parent project layout is `MultiRepo`.
+- `InfrastructureConfig.SetLayoutMode(...)` clears config-level repositories whenever the mode changes, mirroring the project-level reset behavior.
+- `Project.CanGenerateAllFromProjectLevel(...)` now returns `false` for `MultiRepo`; project-level generate-all remains reserved for layouts where the project itself owns the effective repositories.
+- Legacy `GitRepositoryConfiguration`, `RepositoryMode`, `RepositoryBinding`, and `CommonsStrategy` were removed during the V3/layout-driven cleanup. Only persisted data repair remains relevant (see `06-persistence.md`).
 
 ## Error Definitions
 

@@ -307,21 +307,23 @@
   <section class="ds-showcase__section">
     <app-ds-section-header icon="notes" title="Textarea" subtitle="Multi-line input" />
     <app-ds-card variant="outlined" padding="lg">
-      <app-ds-textarea
-        formControlName="bio"
-        label="Bio"
-        placeholder="Tell us about yourself..."
-        hint="Brief description"
-        [rows]="4"
-        [maxLength]="280"
-      />
+      <div [formGroup]="showcaseForm">
+        <app-ds-textarea
+          formControlName="bio"
+          label="Bio"
+          placeholder="Tell us about yourself..."
+          hint="Brief description"
+          [rows]="4"
+          [maxLength]="280"
+        />
+      </div>
     </app-ds-card>
   </section>
 
   <section class="ds-showcase__section">
     <app-ds-section-header icon="arrow_drop_down_circle" title="Select" subtitle="Custom dropdown with options, icons, search" />
     <app-ds-card variant="outlined" padding="lg">
-      <div class="ds-form-grid">
+      <div [formGroup]="showcaseForm" class="ds-form-grid">
         <app-ds-select
           formControlName="role"
           label="Role"
@@ -343,7 +345,7 @@
   <section class="ds-showcase__section">
     <app-ds-section-header icon="toggle_on" title="Toggle" subtitle="Boolean switch with brand gradient" />
     <app-ds-card variant="outlined" padding="lg">
-      <div class="ds-stack">
+      <div [formGroup]="showcaseForm" class="ds-stack">
         <app-ds-toggle formControlName="notify" label="Email notifications" description="Receive product updates via email" />
         <app-ds-toggle label="Disabled (off)" [disabled]="true" />
         <app-ds-toggle label="Label before" labelPosition="before" />
@@ -354,7 +356,7 @@
   <section class="ds-showcase__section">
     <app-ds-section-header icon="check_box" title="Checkbox" subtitle="Square checkbox, brand blue checked" />
     <app-ds-card variant="outlined" padding="lg">
-      <div class="ds-stack">
+      <div [formGroup]="showcaseForm" class="ds-stack">
         <app-ds-checkbox formControlName="accept" label="I accept the terms and conditions" description="Required to continue" />
         <app-ds-checkbox label="Indeterminate" [indeterminate]="true" />
         <app-ds-checkbox label="Disabled" [disabled]="true" />
@@ -365,7 +367,7 @@
   <section class="ds-showcase__section">
     <app-ds-section-header icon="radio_button_checked" title="Radio Group" subtitle="Single selection, vertical or horizontal" />
     <app-ds-card variant="outlined" padding="lg">
-      <div class="ds-stack">
+      <div [formGroup]="showcaseForm" class="ds-stack">
         <app-ds-radio-group
           formControlName="plan"
           name="plan-vertical"

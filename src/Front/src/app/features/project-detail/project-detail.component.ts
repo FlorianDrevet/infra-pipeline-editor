@@ -47,7 +47,6 @@ import {
   AddProjectNamingTemplateDialogResult,
 } from './add-project-naming-template-dialog/add-project-naming-template-dialog.component';
 import { LayoutRepositoriesComponent } from './layout-repositories/layout-repositories.component';
-import { GenerationBoardComponent } from './generation-board/generation-board.component';
 import { SplitGenerationSwitcherComponent } from './split-generation-switcher/split-generation-switcher.component';
 import {
   PushToGitDialogComponent,
@@ -84,7 +83,6 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     ReactiveFormsModule,
     BicepFilePanelComponent,
     LayoutRepositoriesComponent,
-    GenerationBoardComponent,
     SplitGenerationSwitcherComponent,
     MatButtonModule,
     MatButtonToggleModule,

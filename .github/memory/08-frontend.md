@@ -50,8 +50,6 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 
 ## Branding Assets [2026-04-22]
 - Browser tab icon now uses versioned assets in `src/index.html` to break Chrome favicon cache: `public/ifs-favicon.svg` + `public/ifs-favicon.png`, with `public/favicon.ico` regenerated as legacy fallback.
-- The favicon follows the login page visual DNA: deep blue to cyan gradient + four-tile infra grid motif.
-
 ## Design System V2 [2026-04-24]
 - **8 new form components** under `src/Front/src/app/shared/components/ds/` (all `ControlValueAccessor`, compatible with `formControlName` / `ngModel` / two-way `[(value)]`):
   - `DsTextFieldComponent` (`app-ds-text-field`) — native `<input>` (no mat-form-field), brand-blue label, cyan focus ring, prefix/suffix mat-icon, hint/error, clearable, types `text`/`email`/`password`/`number`/`tel`/`url`.
@@ -69,7 +67,6 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
   - `features/projects` — header remplacé par `<app-ds-page-header variant="gradient" icon="folder_special">`, CTAs `Create` + `Try again` + empty-state remplacés par `<app-ds-button variant="primary|ghost">`.
   - `features/home` — `quick-actions` migré vers `<app-ds-card variant="outlined" accent="primary" [interactive]="true" (cardClick)>`. Greeting-bar volontairement non touchée (layout custom).
 - **Showcase étendu** (`/design-system`) avec 8 nouvelles sections : Form Inputs (avec error, disabled, clearable), Textarea (avec maxLength), Select (avec searchable + clearable), Toggle, Checkbox, Radio Group (vertical + horizontal), Chips (tous variants + removable), Icon Buttons (toutes variants × sizes + loading + disabled). Toutes les sections form sont câblées via un `FormGroup` + `formControlName` pour démontrer l'intégration Reactive Forms.
-- **V3 (à planifier)** : refactor progressif des composants restants (config-detail, resource-edit, project-detail, dialogs) pour migrer leurs `mat-form-field` natifs vers `app-ds-text-field`/`app-ds-select` quand pertinent, et leurs cards/buttons custom vers les composants DS.
 
 ## Design System V1 [2026-04-23]
 - **SCSS tokens** under `src/Front/src/scss/`:
@@ -86,8 +83,6 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
   - `DsAlertComponent` (`app-ds-alert`) — `severity` `info`/`success`/`warning`/`error`, optional `title`, `dismissible` with internal `visible` signal, `dismissed` output, default mat-icons per severity.
   - `DsSectionHeaderComponent` (`app-ds-section-header`) — `icon`, `title` (required), `subtitle`, `level` 1/2/3, projection `[ds-section-action]`.
   - `DsPageHeaderComponent` (`app-ds-page-header`) — `title` (required), `subtitle`, `icon`, `variant` `gradient`/`plain`, projection `[ds-page-actions]`. Gradient variant uses `$ifs-gradient-brand` + `$ifs-shadow-hero`.
-- **Showcase page** `/design-system` (lazy route in `app-routing.ts`, behind `AuthenticationGuard`) at `features/design-system/` — visual inventory of all tokens + component variants. Useful for design QA and onboarding.
-- **V1 scope:** foundation only. V2 will progressively migrate existing pages (login, home, projects, project-detail, config-detail, resource-edit) to consume the DS without visual regression.
 
 ## Shared Components
 - `DeploymentConfigComponent` [2026-04-02] — extracted container/code deployment mode toggle + ACR selector + UAI flow
@@ -106,11 +101,6 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 - 10 resource types supported via `NAME_AVAILABILITY_TYPES` Set (ContainerRegistry, StorageAccount, KeyVault, RedisCache, AppConfiguration, ServiceBusNamespace, EventHubNamespace, WebApp, FunctionApp, SqlServer).
 - Save/submit blocking (`isSaveBlockedByNameAvailability`) with bypass override button ("It's my resource"). `"current"` status shows blue check icon for already-deployed names.
 - `add-resource-dialog`: inline results panel with per-env status icons, submit/next blocked when names unavailable.
-
-## Custom Domains UX [2026-04-23]
-- `resource-edit` now manages custom domains inside each environment panel instead of through a dedicated tab.
-- `customDomainsForEnv(envName)` replaced grouped state, and the add-domain dialog preselects the active environment.
-- The page includes an inline 5-step Azure DNS tutorial inside a `mat-expansion-panel` under the custom-domain section.
 
 ## Container App Environment UX [2026-04-23]
 - In `resource-edit`, the Container App environment form is no longer a flat grid: it is split into two full-width categories before Health Probes.
@@ -142,7 +132,6 @@ background: linear-gradient(135deg, #1a237e 0%, #0288d1 50%, #00bcd4 100%);
 
 ## Mono-repo Git Push UX [2026-04-22]
 - `project-detail` now exposes a single mono-repo push CTA instead of separate Bicep/Pipeline/Bootstrap push buttons.
-- The CTA is enabled only when all three project-level generation results exist.
 - `PushToGitDialogComponent` supports `isCombinedProjectPush` and now calls the dedicated backend endpoint `POST /projects/{projectId}/push-generated-artifacts-to-git`.
 - For projects with `LayoutPreset === 'SplitInfraCode'`, `GenerationBoardComponent.onGenerateAll()` opens `MultiRepoPushDialogComponent` instead (dual push: 2 cards Infra/Code with branch+commit forms, states `form|pushing|success|partial|error`, calls `POST /projects/{id}/push-multi-repo-artifacts-to-git`, HTTP always 200 — inspect `results[i].success`). Aliases auto-resolved from `project.repositories` filtered by `contentKinds.includes('Infrastructure'|'ApplicationCode')`. localStorage key `ifs-push-branch-multi-{projectId}-{alias}`.
 - For `SplitInfraCode` projects, the project-detail generation tabs (`mat-tab-group.generation-tabs`) are replaced by `SplitGenerationSwitcherComponent` (outer 2 tabs Infra/Code with file-count chips, inner Bicep/Pipeline/Bootstrap for Infra and Pipeline-only for Code — Bootstrap stays infra-only). Reads new `pipelineResult.{infra,app}{Common,Config}FileUris` fields from `GenerateProjectPipelineResponse`.
@@ -179,3 +168,9 @@ When a resource's parameters are moved between general config and per-environmen
 2. `buildXxxEnvironmentSettings()` — add/remove fields in the mapper
 3. HTML `@case (ResourceTypeEnum.Xxx)` in the environments step — add/remove form fields
 Failing to update all 3 causes phantom fields shown in the creation modal that don't match the actual resource schema.
+## PITFALL — Angular compiler warnings [2026-04-24]
+- `NG8102` is emitted when a template uses `??` on an expression whose type is already non-nullable. Example: `resourceTypeIcons[item.resourceType] ?? 'category'` is invalid when `RESOURCE_TYPE_ICONS` is typed as a total map for the enum.
+- `TS-998113` is emitted when a standalone component remains listed in a component's `imports` array but no longer appears in the template. After replacing a template fragment, remove the unused standalone import as well or Angular will keep warning during `ng serve`/`ng build`.
+
+## PITFALL — Design System showcase forms [2026-04-24]
+- In `features/design-system`, every demo control using `formControlName` must remain under a local `formGroup`/`[formGroup]` container. Leaving one of the DS form components (`app-ds-textarea`, `app-ds-select`, `app-ds-toggle`, `app-ds-checkbox`, `app-ds-radio-group`) outside the `showcaseForm` context causes a runtime Reactive Forms error and the page can render with placeholder white blocks instead of fully bound content.
