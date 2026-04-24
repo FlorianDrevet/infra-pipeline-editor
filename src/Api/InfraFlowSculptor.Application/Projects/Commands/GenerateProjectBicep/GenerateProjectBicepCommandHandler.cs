@@ -78,25 +78,20 @@ public sealed class GenerateProjectBicepCommandHandler(
         }
 
         // 4. Generate mono-repo Bicep files.
-        // For SplitInfraCode projects, shared files are emitted at the repository root
-        // (no Common/ wrapper) since the infra repo only holds bicep + pipelines.
-        // For AllInOne, shared files stay namespaced under Common/.
-        var flattenShared = project.LayoutPreset?.Value == Domain.ProjectAggregate.ValueObjects.LayoutPresetEnum.SplitInfraCode;
-
+        // Shared files remain under Common/ for both AllInOne and SplitInfraCode layouts.
         var monoRepoRequest = new MonoRepoGenerationRequest
         {
             ConfigRequests = configRequests,
             NamingContext = sharedNamingContext!,
             Environments = allEnvironments,
             EnvironmentNames = allEnvironmentNames,
-            FlattenShared = flattenShared,
         };
 
         var result = bicepGenerationEngine.GenerateMonoRepo(monoRepoRequest);
 
         // 5. Upload to blob storage
         var prefix = $"bicep/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
-        var sharedPathSegment = flattenShared ? string.Empty : "Common/";
+        const string sharedPathSegment = "Common/";
 
         var commonFileUris = new Dictionary<string, Uri>();
         foreach (var (path, content) in result.CommonFiles)
