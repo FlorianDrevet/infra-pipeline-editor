@@ -4,15 +4,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
-import { DsButtonComponent } from '../../../shared/components/ds';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent } from '../../../shared/components/ds';
 import { AzureResourceResponse } from '../../../shared/interfaces/resource-group.interface';
 import { AppSettingService } from '../../../shared/services/app-setting.service';
 import { RoleAssignmentService } from '../../../shared/services/role-assignment.service';
@@ -38,14 +35,13 @@ export interface AddAppSettingDialogData {
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
     MatRadioModule,
-    MatSelectModule,
-    MatFormFieldModule,
     MatTooltipModule,
     MatCheckboxModule,
     DsButtonComponent,
+    DsSelectComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './add-app-setting-dialog.component.html',
   styleUrl: './add-app-setting-dialog.component.scss',
@@ -56,8 +52,19 @@ export class AddAppSettingDialogComponent {
   private readonly appSettingService = inject(AppSettingService);
   private readonly roleAssignmentService = inject(RoleAssignmentService);
   private readonly projectService = inject(ProjectService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly resourceTypeIcons = RESOURCE_TYPE_ICONS;
+
+  // ─── Variable group select options (DS) ───
+  private readonly createNewGroupLabel = this.translate.instant('RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CREATE_NEW_GROUP');
+  protected readonly vgSelectOptions = computed<DsSelectOption[]>(() => [
+    ...this.vgOptions().map((vg) => ({ value: vg.id, label: vg.groupName })),
+    { value: '__create_new__', label: this.createNewGroupLabel, icon: 'add' },
+  ]);
+  protected readonly vgSelectValue = computed<string>(() =>
+    this.selectedVariableGroupId() ?? (this.isCreatingNewGroup() ? '__create_new__' : ''),
+  );
 
   // ─── Mode: static value or resource output ───
   protected readonly mode = signal<'static' | 'output'>('output');
