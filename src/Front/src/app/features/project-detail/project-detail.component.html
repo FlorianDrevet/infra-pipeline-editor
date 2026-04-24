@@ -750,17 +750,12 @@
                       </div>
                       <div class="member-card__actions">
                         @if (isOwner()) {
-                          <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
-                            <mat-select
-                              [value]="member.role"
-                              [aria-label]="'PROJECT_DETAIL.MEMBERS.CHANGE_ROLE_ARIA' | translate"
-                              [disabled]="memberActionId() === member.id"
-                              (selectionChange)="onRoleChange(member, $event.value)">
-                              @for (role of roles; track role) {
-                                <mat-option [value]="role">{{ 'PROJECT_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
-                              }
-                            </mat-select>
-                          </mat-form-field>
+                          <app-ds-select
+                            class="role-select"
+                            [options]="roleDsOptions"
+                            [ngModel]="member.role"
+                            (ngModelChange)="onRoleChange(member, $event)"
+                            [disabled]="memberActionId() === member.id" />
                           <button
                             class="remove-btn"
                             [matTooltip]="'PROJECT_DETAIL.MEMBERS.REMOVE' | translate"
@@ -909,14 +904,16 @@
             } @else {
               <div class="tags-editor">
                 <div class="tags-add-row">
-                  <mat-form-field appearance="outline" class="tag-name-field">
-                    <mat-label>{{ 'PROJECT_DETAIL.TAGS.TAG_NAME' | translate }}</mat-label>
-                    <input matInput [formControl]="tagNameCtrl" (keydown.enter)="addProjectTag()" />
-                  </mat-form-field>
-                  <mat-form-field appearance="outline" class="tag-value-field">
-                    <mat-label>{{ 'PROJECT_DETAIL.TAGS.TAG_VALUE' | translate }}</mat-label>
-                    <input matInput [formControl]="tagValueCtrl" (keydown.enter)="addProjectTag()" />
-                  </mat-form-field>
+                  <app-ds-text-field
+                    class="tag-name-field"
+                    [label]="'PROJECT_DETAIL.TAGS.TAG_NAME' | translate"
+                    [formControl]="tagNameCtrl"
+                    (keydown.enter)="addProjectTag()" />
+                  <app-ds-text-field
+                    class="tag-value-field"
+                    [label]="'PROJECT_DETAIL.TAGS.TAG_VALUE' | translate"
+                    [formControl]="tagValueCtrl"
+                    (keydown.enter)="addProjectTag()" />
                   <button type="button" mat-icon-button (click)="addProjectTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
                     <mat-icon>add</mat-icon>
                   </button>
@@ -971,14 +968,13 @@
               </mat-slide-toggle>
 
               @if (useCustomPool()) {
-                <mat-form-field appearance="outline" class="pool-name-field">
-                  <mat-label>{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_NAME' | translate }}</mat-label>
-                  <input matInput
-                         [value]="agentPoolName() ?? ''"
-                         (input)="agentPoolName.set($any($event.target).value)"
-                         [disabled]="agentPoolLoading()" />
-                  <mat-hint>{{ 'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_HINT' | translate }}</mat-hint>
-                </mat-form-field>
+                <app-ds-text-field
+                  class="pool-name-field"
+                  [label]="'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_NAME' | translate"
+                  [hint]="'PROJECT_DETAIL.SETTINGS.AGENT_POOL.POOL_HINT' | translate"
+                  [ngModel]="agentPoolName() ?? ''"
+                  (ngModelChange)="agentPoolName.set($event)"
+                  [disabled]="agentPoolLoading()" />
               }
 
               <div class="agent-pool-actions">

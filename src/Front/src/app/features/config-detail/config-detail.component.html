@@ -223,15 +223,12 @@
             }
 
             @if (sortedEnvironments().length > 0) {
-              <mat-form-field appearance="outline" class="preview-env-select" subscriptSizing="dynamic">
-                <mat-label>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_ENV' | translate }}</mat-label>
-                <mat-select [ngModel]="previewEnvId()" (ngModelChange)="previewEnvId.set($event)">
-                  <mat-option [value]="null">{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_NONE' | translate }}</mat-option>
-                  @for (env of sortedEnvironments(); track env.id) {
-                    <mat-option [value]="env.id">{{ env.name }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
+              <app-ds-select
+                class="preview-env-select"
+                [label]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_ENV' | translate"
+                [options]="previewEnvDsOptions()"
+                [ngModel]="previewEnvId()"
+                (ngModelChange)="previewEnvId.set($event)" />
             }
           </div>
 
@@ -735,16 +732,16 @@
               </div>
 
               <div class="tags-edit-card__form">
-                <mat-form-field class="tags-edit-card__name" appearance="outline" subscriptSizing="dynamic">
-                  <mat-label>{{ 'CONFIG_DETAIL.TAGS.TAG_NAME' | translate }}</mat-label>
-                  <input matInput [formControl]="configTagNameCtrl"
-                    (keydown.enter)="addConfigTag(); $event.preventDefault()" />
-                </mat-form-field>
-                <mat-form-field class="tags-edit-card__value" appearance="outline" subscriptSizing="dynamic">
-                  <mat-label>{{ 'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate }}</mat-label>
-                  <input matInput [formControl]="configTagValueCtrl"
-                    (keydown.enter)="addConfigTag(); $event.preventDefault()" />
-                </mat-form-field>
+                <app-ds-text-field
+                  class="tags-edit-card__name"
+                  [label]="'CONFIG_DETAIL.TAGS.TAG_NAME' | translate"
+                  [formControl]="configTagNameCtrl"
+                  (keydown.enter)="addConfigTag(); $event.preventDefault()" />
+                <app-ds-text-field
+                  class="tags-edit-card__value"
+                  [label]="'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate"
+                  [formControl]="configTagValueCtrl"
+                  (keydown.enter)="addConfigTag(); $event.preventDefault()" />
                 <button class="template-action-btn template-action-btn--add" (click)="addConfigTag()"
                   [disabled]="!configTagNameCtrl.value.trim()">
                   <mat-icon>add</mat-icon>

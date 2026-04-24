@@ -1,14 +1,16 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CompactSelectComponent, CompactSelectOption } from '../compact-select/compact-select.component';
 import { AcrAuthMode } from '../../interfaces/container-registry.interface';
+import {
+  DsSelectComponent,
+  DsSelectOption,
+  DsTextFieldComponent,
+} from '../ds';
 
 export type DeploymentConfigMode = 'code-or-container' | 'container-only';
 export type DeploymentModeValue = 'Code' | 'Container';
@@ -18,14 +20,13 @@ export type AcrUaiStateValue = 'idle' | 'checking' | 'ok' | 'uai-missing-role' |
   selector: 'app-deployment-config',
   standalone: true,
   imports: [
-    MatFormFieldModule,
+    FormsModule,
     MatIconModule,
-    MatInputModule,
-    MatOptionModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     TranslateModule,
-    CompactSelectComponent
+    CompactSelectComponent,
+    DsSelectComponent,
+    DsTextFieldComponent,
 ],
   templateUrl: './deployment-config.component.html',
   styleUrl: './deployment-config.component.scss',
@@ -61,6 +62,23 @@ export class DeploymentConfigComponent {
   readonly acrSelectedUaiIdChange = output<string | null>();
   readonly addAcrPullRole = output<void>();
   readonly createUai = output<void>();
+
+  // ─── DS Select options (computed) ───
+  private readonly translate = inject(TranslateService);
+  private readonly acrNoneLabel = this.translate.instant('RESOURCE_EDIT.FIELDS.ACR_NONE');
+
+  protected readonly runtimeStackDsOptions = computed<DsSelectOption[]>(() =>
+    this.runtimeStackOptions().map((o) => ({ value: o.value, label: o.label })),
+  );
+
+  protected readonly runtimeVersionDsOptions = computed<DsSelectOption[]>(() =>
+    this.runtimeVersionOptions().map((v) => ({ value: v, label: v })),
+  );
+
+  protected readonly containerRegistryDsOptions = computed<DsSelectOption[]>(() => [
+    { value: null, label: this.acrNoneLabel },
+    ...this.availableContainerRegistries().map((acr) => ({ value: acr.id, label: acr.name })),
+  ]);
 
   protected get isContainerMode(): boolean {
     return this.deploymentMode() === 'Container';

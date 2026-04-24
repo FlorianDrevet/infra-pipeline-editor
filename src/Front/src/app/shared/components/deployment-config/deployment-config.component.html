@@ -26,43 +26,42 @@
   <!-- Code mode (only for code-or-container when not container) -->
   @if (mode() === 'code-or-container' && !isContainerMode) {
     <div class="form-grid">
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate }}</mat-label>
-        <mat-select [value]="runtimeStack()" (selectionChange)="runtimeStackChange.emit($event.value)">
-          @for (opt of runtimeStackOptions(); track opt.value) {
-            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate }}</mat-label>
-        <mat-select [value]="runtimeVersion()" (selectionChange)="runtimeVersionChange.emit($event.value)">
-          @for (ver of runtimeVersionOptions(); track ver) {
-            <mat-option [value]="ver">{{ ver }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <app-ds-select
+        class="form-field"
+        [label]="'RESOURCE_EDIT.FIELDS.RUNTIME_STACK' | translate"
+        [options]="runtimeStackDsOptions()"
+        [ngModel]="runtimeStack()"
+        (ngModelChange)="runtimeStackChange.emit($event)"
+        [disabled]="!canWrite() || disabled()" />
+      <app-ds-select
+        class="form-field"
+        [label]="'RESOURCE_EDIT.FIELDS.RUNTIME_VERSION' | translate"
+        [options]="runtimeVersionDsOptions()"
+        [ngModel]="runtimeVersion()"
+        (ngModelChange)="runtimeVersionChange.emit($event)"
+        [disabled]="!canWrite() || disabled()" />
     </div>
   }
 
   <!-- Container mode (code-or-container in container mode, or container-only) -->
   @if (mode() === 'container-only' || isContainerMode) {
     <div class="form-grid form-grid--full">
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>{{ 'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate }}</mat-label>
-        <mat-select [value]="containerRegistryId()" (selectionChange)="containerRegistryChange.emit($event.value)">
-          <mat-option [value]="null">{{ 'RESOURCE_EDIT.FIELDS.ACR_NONE' | translate }}</mat-option>
-          @for (acr of availableContainerRegistries(); track acr.id) {
-            <mat-option [value]="acr.id">{{ acr.name }}</mat-option>
-          }
-        </mat-select>
-        <mat-hint>{{ 'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate }}</mat-hint>
-      </mat-form-field>
+      <app-ds-select
+        class="form-field"
+        [label]="'RESOURCE_EDIT.FIELDS.CONTAINER_REGISTRY' | translate"
+        [hint]="'RESOURCE_EDIT.FIELDS.ACR_HINT' | translate"
+        [options]="containerRegistryDsOptions()"
+        [ngModel]="containerRegistryId()"
+        (ngModelChange)="containerRegistryChange.emit($event)"
+        [disabled]="!canWrite() || disabled()" />
       @if (showDockerImageName()) {
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>{{ 'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate }}</mat-label>
-          <input matInput [value]="dockerImageName() ?? ''" [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate" (input)="dockerImageNameChange.emit($any($event.target).value)" />
-        </mat-form-field>
+        <app-ds-text-field
+          class="form-field"
+          [label]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME' | translate"
+          [placeholder]="'RESOURCE_EDIT.FIELDS.DOCKER_IMAGE_NAME_PLACEHOLDER' | translate"
+          [ngModel]="dockerImageName() ?? ''"
+          (ngModelChange)="dockerImageNameChange.emit($event)"
+          [disabled]="!canWrite() || disabled()" />
       }
     </div>
 

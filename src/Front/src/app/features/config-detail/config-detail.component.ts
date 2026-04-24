@@ -3,14 +3,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   InfrastructureConfigResponse,
   ResourceNamingTemplateResponse,
@@ -21,7 +18,7 @@ import {
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { DsButtonComponent } from '../../shared/components/ds';import {
+import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent } from '../../shared/components/ds';import {
   EditAbbreviationDialogComponent,
   EditAbbreviationDialogData,
   EditAbbreviationDialogResult,
@@ -113,17 +110,16 @@ interface ResourceDisplayItem {
     MatButtonModule,
     MatChipsModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
     BicepFilePanelComponent,
     DiagnosticPopoverComponent,
     DsButtonComponent,
+    DsSelectComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',
@@ -484,6 +480,13 @@ export class ConfigDetailComponent implements OnInit {
   });
 
   protected readonly previewEnvId = signal<string | null>(null);
+
+  private readonly translate = inject(TranslateService);
+  private readonly previewNoneLabel = this.translate.instant('CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_NONE');
+  protected readonly previewEnvDsOptions = computed<DsSelectOption[]>(() => [
+    { value: null, label: this.previewNoneLabel },
+    ...this.sortedEnvironments().map((env) => ({ value: env.id, label: env.name })),
+  ]);
 
   protected readonly previewEnv = computed(() => {
     const id = this.previewEnvId();

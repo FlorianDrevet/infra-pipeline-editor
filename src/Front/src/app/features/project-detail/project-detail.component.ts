@@ -5,11 +5,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -28,7 +25,7 @@ import { UserResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
-import { DsButtonComponent } from '../../shared/components/ds';
+import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent } from '../../shared/components/ds';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import {
@@ -188,15 +185,14 @@ function buildAzureDevOpsNodes(
     MatButtonToggleModule,
     MatChipsModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
     DsButtonComponent,
+    DsSelectComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
@@ -235,6 +231,12 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly namingErrorKey = signal('');
   protected readonly roles = ROLES;
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
+
+  private readonly translateService = inject(TranslateService);
+  protected readonly roleDsOptions: DsSelectOption[] = ROLES.map((role) => ({
+    value: role,
+    label: this.translateService.instant('PROJECT_DETAIL.MEMBERS.ROLE_' + role.toUpperCase()),
+  }));
 
   // ─── Project Tags ───
   protected readonly isEditingProjectTags = signal(false);

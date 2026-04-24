@@ -1,14 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { DsButtonComponent } from '../../../shared/components/ds';
+import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { TranslateModule } from '@ngx-translate/core';
@@ -29,16 +25,14 @@ export interface AddProjectEnvironmentDialogData {
     MatButtonModule,
     MatChipsModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
-    MatOptionModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     MatSlideToggleModule,
     ReactiveFormsModule,
     TranslateModule,
-      DsButtonComponent,
+    DsButtonComponent,
+    DsSelectComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './add-project-environment-dialog.component.html',
   styleUrl: './add-project-environment-dialog.component.scss',
@@ -53,6 +47,10 @@ export class AddProjectEnvironmentDialogComponent {
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
   protected readonly locationOptions = LOCATION_OPTIONS;
+  protected readonly locationDsOptions: DsSelectOption[] = LOCATION_OPTIONS.map((o) => ({
+    value: o.value,
+    label: o.label,
+  }));
 
   protected readonly localTags = signal<TagRequest[]>(
     this.data.existing?.tags?.map(t => ({ name: t.name, value: t.value })) ?? []
