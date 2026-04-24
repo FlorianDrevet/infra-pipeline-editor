@@ -1,11 +1,13 @@
 # Frontend (Angular)
 
 ## Stack & Conventions
-- Angular 19 standalone, zoneless (`provideExperimentalZonelessChangeDetection`)
+- Angular **21** standalone, zoneless (`provideZonelessChangeDetection` — stable API since v20; renamed from `provideExperimentalZonelessChangeDetection` during the v19→v20 migration)
 - Signals for state (`signal`, `computed`, `toSignal`), `inject()` for DI
 - 3 separate files per component (`.ts`, `.html`, `.scss`)
-- New control flow syntax (`@if`, `@for`, `@switch`)
-- Material + Tailwind, Axios HTTP client
+- New control flow syntax (`@if`, `@for`, `@switch`) — `CommonModule` imports auto-removed by the Angular control-flow migration in v21
+- Material 21 + Tailwind, Axios HTTP client
+- TypeScript `lib: es2022` (set by Angular CLI v21 migration)
+
 
 ## Structure
 - `core/` — layout/shell (navigation, footer)
@@ -13,9 +15,9 @@
 - `features/` — feature pages (lazy-loaded)
 - `environments/` — API base URLs
 
-## ACA Containerization [2026-04-23]
-- `src/Front/Dockerfile` builds the Angular app with `node:20-alpine`, injects the production `API_URL` into `src/environments/environment.ts` at image build time, then serves the compiled SPA from `nginx:1.27-alpine`.
-- `src/Front/nginx.conf` listens on port `8080` and uses `try_files $uri $uri/ /index.html` for Angular client-side routing.
+## ACA Containerization [2026-04-23, updated 2026-04-24 for Angular 21]
+- `src/Front/Dockerfile` builds the Angular app with `node:22-alpine` (Angular 21 requires Node ≥20.19, bumped to LTS 22), uses BuildKit cache mount on `/root/.npm` for faster CI rebuilds, injects the production `API_URL` into `src/environments/environment.ts` at image build time, then serves the compiled SPA from `nginx:1.29-alpine`. Multi-stage build pinned to `--configuration=production`. `HEALTHCHECK` curls `/` every 30s.
+- `src/Front/nginx.conf` listens on port `8080`, gzip-compresses JS/CSS/JSON/SVG/XML, serves hashed assets with 1-year `immutable` cache and uses `try_files $uri $uri/ /index.html` (with `Cache-Control: no-cache`) for Angular client-side routing.
 - `src/Front/.dockerignore` excludes `node_modules`, `dist`, and `.angular` so local Windows artifacts do not leak into the Linux image build context.
 
 ## Build Budgets [2026-03-21]
