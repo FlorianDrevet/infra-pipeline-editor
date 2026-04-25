@@ -24,10 +24,13 @@ public sealed class UpdateProjectRepositoryCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        if (!Enum.TryParse<GitProviderTypeEnum>(command.ProviderType, ignoreCase: true, out var providerTypeEnum))
-            return Errors.GitRepository.InvalidProviderType(command.ProviderType);
-
-        var providerType = new GitProviderType(providerTypeEnum);
+        GitProviderType? providerType = null;
+        if (!string.IsNullOrWhiteSpace(command.ProviderType))
+        {
+            if (!Enum.TryParse<GitProviderTypeEnum>(command.ProviderType, ignoreCase: true, out var providerTypeEnum))
+                return Errors.GitRepository.InvalidProviderType(command.ProviderType);
+            providerType = new GitProviderType(providerTypeEnum);
+        }
 
         var contentKindsResult = ParseContentKinds(command.ContentKinds);
         if (contentKindsResult.IsError)

@@ -1,0 +1,18 @@
+<button
+  [type]="type()"
+  class="ds-panel-action-button"
+  [class.ds-panel-action-button--neutral]="tone() === 'neutral'"
+  [class.ds-panel-action-button--accent]="tone() === 'accent'"
+  [class.ds-panel-action-button--danger]="tone() === 'danger'"
+  [class.ds-panel-action-button--light]="surface() === 'light'"
+  [class.ds-panel-action-button--dark]="surface() === 'dark'"
+  [class.ds-panel-action-button--pressed]="pressed() === true"
+  [attr.aria-label]="ariaLabel()"
+  [attr.aria-expanded]="ariaExpanded()"
+  [attr.aria-pressed]="pressed() === null ? null : pressed()"
+  [matTooltip]="tooltip() ?? ''"
+  [matTooltipDisabled]="!tooltip()"
+  (click)="onClick($event)">
+  <span class="ds-panel-action-button__sheen"></span>
+  <mat-icon>{{ icon() }}</mat-icon>
+</button>

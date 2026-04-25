@@ -790,10 +790,11 @@
       "INFRA_TAB": "Infra",
       "CODE_TAB": "Code",
       "FILES_COUNT": "{{count}} fichier(s)",
-      "BOOTSTRAP_INFO": "Le bootstrap est géré côté Infra.",
+      "BOOTSTRAP_INFO": "Le bootstrap est séparé : le dépôt infra est propriétaire des environnements et variable groups ; le dépôt code se contente de les valider et de provisionner ses propres pipelines applicatifs.",
+      "BOOTSTRAP_APP_INFO": "Ce pipeline de bootstrap s'exécute dans le dépôt code. Il NE crée PAS d'environnements ni de variable groups (qui appartiennent au bootstrap infra). Il vérifie qu'ils existent puis crée les définitions de pipelines applicatifs.",
       "EMPTY": "Aucun fichier généré pour le moment.",
-      "INFRA_PUSH_DESC": "Pousse les artefacts d'infrastructure générés : Bicep, pipeline infra et bootstrap.",
-      "CODE_PUSH_DESC": "Pousse les artefacts de pipeline code générés vers le dépôt applicatif.",
+      "INFRA_PUSH_DESC": "Pousse les artefacts d'infrastructure générés : Bicep, pipeline infra et bootstrap infra (propriétaire des environnements et variable groups).",
+      "CODE_PUSH_DESC": "Pousse le pipeline applicatif et le bootstrap côté code (validation des ressources partagées + création des pipelines applicatifs).",
       "PUSH_INFRA": "Pousser l'infra",
       "PUSH_CODE": "Pousser le code"
     },
@@ -844,6 +845,7 @@
       "TAB_BICEP": "Bicep",
       "TAB_PIPELINE": "Pipeline",
       "TAB_BOOTSTRAP": "Bootstrap ADO",
+      "TAB_BOOTSTRAP_APP": "Bootstrap (App)",
       "COLLAPSE": "Replier les résultats de génération",
       "EXPAND": "Déplier les résultats de génération",
       "CLOSE": "Fermer les résultats de génération"

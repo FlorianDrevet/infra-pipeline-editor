@@ -11,7 +11,7 @@ public sealed class AddProjectEnvironmentCommandValidator : AbstractValidator<Ad
         RuleFor(x => x.Prefix).NotNull().MaximumLength(50);
         RuleFor(x => x.Suffix).NotNull().MaximumLength(50);
         RuleFor(x => x.Location).NotEmpty();
-        RuleFor(x => x.SubscriptionId).NotEmpty();
+        // SubscriptionId is optional at creation time: Guid.Empty means "to be configured later".
         RuleFor(x => x.Order).GreaterThanOrEqualTo(0);
 
         RuleForEach(x => x.Tags).ChildRules(tag =>
