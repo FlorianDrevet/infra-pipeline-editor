@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   DsAlertComponent,
@@ -29,9 +30,9 @@ import {
 } from '../create-project-wizard.types';
 
 const STANDARD_ENV_PRESETS: EnvironmentDraft[] = [
-  { name: 'Development', shortName: 'dev', prefix: '', suffix: '', location: 'WestEurope', subscriptionId: '', order: 0, requiresApproval: false },
-  { name: 'Staging', shortName: 'stg', prefix: '', suffix: '', location: 'WestEurope', subscriptionId: '', order: 1, requiresApproval: false },
-  { name: 'Production', shortName: 'prd', prefix: '', suffix: '', location: 'WestEurope', subscriptionId: '', order: 2, requiresApproval: true },
+  { name: 'Development', shortName: 'dev', prefix: 'dev-', suffix: '-dev', location: 'WestEurope', subscriptionId: '', order: 0, requiresApproval: false },
+  { name: 'Staging', shortName: 'stg', prefix: 'stg-', suffix: '-stg', location: 'WestEurope', subscriptionId: '', order: 1, requiresApproval: true },
+  { name: 'Production', shortName: 'prd', prefix: 'prd-', suffix: '-prd', location: 'WestEurope', subscriptionId: '', order: 2, requiresApproval: true },
 ];
 
 /**
@@ -43,6 +44,7 @@ const STANDARD_ENV_PRESETS: EnvironmentDraft[] = [
   standalone: true,
   imports: [
     FormsModule,
+    MatIconModule,
     TranslateModule,
     DsAlertComponent,
     DsButtonComponent,
@@ -133,7 +135,25 @@ export class EnvironmentStepComponent implements OnInit {
   }
 
   protected requestSuggestions(): void {
-    this.showSuggestionsConfirm.set(true);
+    if (this.isEnvironmentsDirty()) {
+      this.showSuggestionsConfirm.set(true);
+    } else {
+      this.confirmSuggestions();
+    }
+  }
+
+  private isEnvironmentsDirty(): boolean {
+    const envs = this.environments();
+    if (envs.length > 1) return true;
+    if (envs.length === 0) return false;
+    const e = envs[0];
+    return (
+      e.name.trim() !== '' ||
+      e.shortName.trim() !== '' ||
+      e.subscriptionId.trim() !== '' ||
+      e.prefix.trim() !== '' ||
+      e.suffix.trim() !== ''
+    );
   }
 
   protected confirmSuggestions(): void {

@@ -29,10 +29,6 @@ export class HomeComponent implements OnInit {
 
   protected readonly recentItems = this.recentlyViewedService.recentItems;
 
-  protected readonly totalMemberCount = computed(() =>
-    this.projects().reduce((count, project) => count + project.members.length, 0)
-  );
-
   protected readonly favoriteProjects = computed(() =>
     this.projects().filter((p) => this.favoritesService.isFavorite(p.id))
   );

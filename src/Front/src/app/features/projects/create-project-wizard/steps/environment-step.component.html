@@ -39,9 +39,7 @@
               @if (env.location) {
                 <app-ds-chip variant="neutral" size="sm">{{ env.location }}</app-ds-chip>
               }
-              <span class="material-symbols-outlined env-card__chevron">
-                {{ expandedIndex() === i ? 'expand_less' : 'expand_more' }}
-              </span>
+              <mat-icon class="env-card__chevron">{{ expandedIndex() === i ? 'expand_less' : 'expand_more' }}</mat-icon>
             </span>
           </button>
 
