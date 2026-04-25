@@ -957,19 +957,35 @@ a.config-card {
 // ─── Generation Panel (wrapper) ────
 
 .generation-panel {
+  position: relative;
   margin-bottom: 1.5rem;
 
+  &--with-header {
+    padding-top: 4rem;
+  }
+
+  &--headerless {
+    padding-top: 0;
+  }
+
   &--collapsed {
+    &.generation-panel--with-header {
+      padding-top: 0;
+    }
+
     .generation-panel__header {
       margin-bottom: 0;
     }
   }
 
   &__header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
+    justify-content: flex-end;
+    margin-bottom: 0;
   }
 
   &__actions {
@@ -984,15 +1000,6 @@ a.config-card {
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
   }
-
-  &__title {
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #1e293b;
-    letter-spacing: -0.01em;
-  }
-
 }
 
 // ─── Generation Tabs ────

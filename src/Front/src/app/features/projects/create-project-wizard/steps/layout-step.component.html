@@ -1,0 +1,33 @@
+<div class="layout-step">
+  <header class="layout-step__header">
+    <h3>{{ 'PROJECT_CREATE.STEP.LAYOUT.TITLE' | translate }}</h3>
+  </header>
+
+  <div class="layout-step__cards" role="radiogroup">
+    @for (option of options; track option.value) {
+      <button
+        type="button"
+        class="layout-card"
+        role="radio"
+        [class.layout-card--selected]="selected() === option.value"
+        [attr.aria-checked]="selected() === option.value"
+        (click)="select(option.value)"
+      >
+        <span class="layout-card__icon-wrap" aria-hidden="true">
+          <span class="material-symbols-outlined layout-card__icon">{{ option.icon }}</span>
+        </span>
+        <span class="layout-card__body">
+          <span class="layout-card__title-row">
+            <span class="layout-card__title">{{ option.titleKey | translate }}</span>
+            @if (option.recommended) {
+              <app-ds-chip variant="success" size="sm">
+                {{ 'PROJECT_CREATE.STEP.LAYOUT.RECOMMENDED' | translate }}
+              </app-ds-chip>
+            }
+          </span>
+          <span class="layout-card__desc">{{ option.descKey | translate }}</span>
+        </span>
+      </button>
+    }
+  </div>
+</div>

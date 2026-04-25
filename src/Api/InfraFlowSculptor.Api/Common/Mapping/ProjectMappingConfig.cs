@@ -167,5 +167,17 @@ public sealed class ProjectMappingConfig : IRegister
 
         // PushBicepToGitResult -> PushBicepToGitResponse
         config.NewConfig<PushBicepToGitResult, InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.PushBicepToGitResponse>();
+
+        // CreateProjectWithSetupRequest -> CreateProjectWithSetupCommand
+        config.NewConfig<EnvironmentSetupRequest,
+                InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.EnvironmentSetupItem>()
+            .Map(dest => dest.Prefix, src => src.Prefix ?? string.Empty)
+            .Map(dest => dest.Suffix, src => src.Suffix ?? string.Empty);
+
+        config.NewConfig<RepositorySetupRequest,
+            InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.RepositorySetupItem>();
+
+        config.NewConfig<CreateProjectWithSetupRequest,
+            InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup.CreateProjectWithSetupCommand>();
     }
 }

@@ -5,6 +5,7 @@ import { MethodEnum } from '../enums/method.enum';
 import {
   ProjectResponse,
   CreateProjectRequest,
+  CreateProjectWithSetupRequest,
   AddProjectMemberRequest,
   UpdateProjectMemberRoleRequest,
   RecentItemResponse,
@@ -76,6 +77,10 @@ export class ProjectService {
 
   createProject(request: CreateProjectRequest): Promise<ProjectResponse> {
     return this.axios.request$<ProjectResponse>(MethodEnum.POST, '/projects', request);
+  }
+
+  createProjectWithSetup(request: CreateProjectWithSetupRequest): Promise<ProjectResponse> {
+    return this.axios.request$<ProjectResponse>(MethodEnum.POST, '/projects/with-setup', request);
   }
 
   deleteProject(id: string): Promise<void> {

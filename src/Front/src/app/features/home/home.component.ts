@@ -8,7 +8,7 @@ import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { FavoritesService } from '../../shared/services/favorites.service';
 import { RecentlyViewedService, RecentlyViewedItem } from '../../shared/services/recently-viewed.service';
-import { CreateProjectDialogComponent } from './create-project-dialog/create-project-dialog.component';
+import { CreateProjectWizardDialogComponent } from '../projects/create-project-wizard/create-project-wizard-dialog.component';
 
 @Component({
   selector: 'app-home',
@@ -55,8 +55,11 @@ export class HomeComponent implements OnInit {
   }
 
   protected openCreateDialog(): void {
-    const dialogRef = this.dialog.open(CreateProjectDialogComponent, {
-      width: '480px',
+    const dialogRef = this.dialog.open(CreateProjectWizardDialogComponent, {
+      width: '720px',
+      maxHeight: '90vh',
+      panelClass: 'ifs-wizard-dialog',
+      disableClose: true,
     });
 
     dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {

@@ -1,0 +1,78 @@
+.wizard {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(90vh - 32px);
+  width: 100%;
+  background: var(--surface-color, #ffffff);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem 0.5rem;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary, #111827);
+  }
+
+  &__banner {
+    padding: 0.75rem 1.25rem 0;
+  }
+
+  &__banner-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__banner-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  &__stepper {
+    flex: 1 1 auto;
+    overflow-y: auto;
+  }
+
+  &__step-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+  }
+
+  // matStepperNext/Previous are kept as native (hidden) buttons so we can drive
+  // navigation from our DS buttons while letting Angular Material manage the
+  // stepper state machine.
+  &__hidden-mat {
+    position: absolute;
+    width: 0;
+    height: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &__submit-error {
+    margin-bottom: 1rem;
+  }
+}
+
+::ng-deep .ifs-wizard-dialog .mat-mdc-dialog-surface {
+  padding: 0;
+  border-radius: 16px;
+  overflow: hidden;
+}

@@ -83,16 +83,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
         var (infraPipelineFiles, appPipelineFiles) = pipelineSplitResult.Value;
 
         IReadOnlyDictionary<string, string>? bicepFiles = null;
-        IReadOnlyDictionary<string, string> bootstrapInfraFiles = new Dictionary<string, string>();
-        IReadOnlyDictionary<string, string> bootstrapAppFiles = new Dictionary<string, string>();
-
-        if (infraPushTarget is not null || codePushTarget is not null)
-        {
-            var bootstrapSplitResult = await LoadLatestBootstrapFilesSplitAsync(command.ProjectId.Value, cancellationToken);
-            if (bootstrapSplitResult.IsError)
-                return bootstrapSplitResult.Errors;
-            (bootstrapInfraFiles, bootstrapAppFiles) = bootstrapSplitResult.Value;
-        }
+        IReadOnlyDictionary<string, string>? bootstrapFiles = null;
 
         if (infraPushTarget is not null)
         {
@@ -101,14 +92,20 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
             if (bicepFilesResult.IsError)
                 return bicepFilesResult.Errors;
 
+            var bootstrapFilesResult = await LoadLatestArtifactFilesAsync(
+                "bootstrap", command.ProjectId.Value, Errors.Project.BootstrapFilesNotFoundError, cancellationToken);
+            if (bootstrapFilesResult.IsError)
+                return bootstrapFilesResult.Errors;
+
             bicepFiles = bicepFilesResult.Value;
+            bootstrapFiles = bootstrapFilesResult.Value;
         }
 
         var results = new List<RepoPushResult>((infraPushTarget is not null ? 1 : 0) + (codePushTarget is not null ? 1 : 0));
 
         if (infraPushTarget is not null)
         {
-            // Push infra repository (Bicep + infra pipeline + infra bootstrap).
+            // Push infra repository (Bicep + infra pipeline + bootstrap).
             var infraPushRequest = BuildPushRequest(
                 token,
                 infraTarget!,
@@ -117,7 +114,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
                 [
                     (infraTarget.BasePath, bicepFiles!),
                     (infraTarget.PipelineBasePath, infraPipelineFiles),
-                    (infraTarget.PipelineBasePath, bootstrapInfraFiles),
+                    (infraTarget.PipelineBasePath, bootstrapFiles!),
                 ]);
 
             results.Add(await PushOneAsync(infraTarget!, infraPushTarget.Alias, infraPushRequest, cancellationToken));
@@ -125,8 +122,8 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
 
         if (codePushTarget is not null)
         {
-            // Push app repository (app pipeline + application-side bootstrap).
-            if (appPipelineFiles.Count == 0 && bootstrapAppFiles.Count == 0)
+            // Push app repository (app pipeline files only).
+            if (appPipelineFiles.Count == 0)
             {
                 results.Add(new RepoPushResult(
                     Alias: codePushTarget.Alias,
@@ -135,7 +132,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
                     CommitSha: null,
                     FileCount: 0,
                     ErrorCode: null,
-                    ErrorDescription: "No application pipeline or bootstrap files to push."));
+                    ErrorDescription: "No application pipeline files to push."));
             }
             else
             {
@@ -143,11 +140,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
                     token,
                     appTarget!,
                     codePushTarget,
-                    scopes:
-                    [
-                        (appTarget.PipelineBasePath, appPipelineFiles),
-                        (appTarget.PipelineBasePath, bootstrapAppFiles),
-                    ]);
+                    scopes: [(appTarget.PipelineBasePath, appPipelineFiles)]);
 
                 results.Add(await PushOneAsync(appTarget!, codePushTarget.Alias, appPushRequest, cancellationToken));
             }
@@ -245,50 +238,6 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
 
         return ((IReadOnlyDictionary<string, string>)normalizedInfra,
                 (IReadOnlyDictionary<string, string>)normalizedApp);
-    }
-
-    private async Task<ErrorOr<(IReadOnlyDictionary<string, string> Infra, IReadOnlyDictionary<string, string> App)>>
-        LoadLatestBootstrapFilesSplitAsync(Guid projectId, CancellationToken cancellationToken)
-    {
-        var prefix = $"bootstrap/project/{projectId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
-
-        if (allBlobs.Count == 0)
-            return Errors.Project.BootstrapFilesNotFoundError(projectId);
-
-        var latestPrefix = allBlobs
-            .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var latestBlobs = allBlobs
-            .Where(blobName => blobName.StartsWith(latestPrefix, StringComparison.Ordinal))
-            .ToList();
-
-        var infra = new Dictionary<string, string>(StringComparer.Ordinal);
-        var app = new Dictionary<string, string>(StringComparer.Ordinal);
-
-        foreach (var blobName in latestBlobs)
-        {
-            var content = await blobService.DownloadContentAsync(blobName);
-            if (content is null)
-                continue;
-
-            var relativePath = blobName[(latestPrefix.Length + 1)..];
-
-            if (relativePath.StartsWith($"{InfraBucket}/", StringComparison.Ordinal))
-                infra[relativePath[(InfraBucket.Length + 1)..]] = content;
-            else if (relativePath.StartsWith($"{AppBucket}/", StringComparison.Ordinal))
-                app[relativePath[(AppBucket.Length + 1)..]] = content;
-            else
-                infra[relativePath] = content; // legacy/AllInOne layout fallback (no bucket prefix)
-        }
-
-        if (infra.Count == 0 && app.Count == 0)
-            return Errors.Project.BootstrapFilesNotFoundError(projectId);
-
-        return ((IReadOnlyDictionary<string, string>)infra, (IReadOnlyDictionary<string, string>)app);
     }
 
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestArtifactFilesAsync(

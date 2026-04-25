@@ -1466,19 +1466,26 @@
 // ─── Generation Panel (wrapper) ────
 
 .generation-panel {
+  position: relative;
   margin-bottom: 1.5rem;
+  padding-top: 4rem;
 
   &--collapsed {
+    padding-top: 0;
+
     .generation-panel__header {
       margin-bottom: 0;
     }
   }
 
   &__header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
+    justify-content: flex-end;
+    margin-bottom: 0;
   }
 
   &__actions {
@@ -1493,15 +1500,6 @@
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
   }
-
-  &__title {
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.92);
-    letter-spacing: -0.01em;
-  }
-
 }
 
 // ─── Generation Tabs ────

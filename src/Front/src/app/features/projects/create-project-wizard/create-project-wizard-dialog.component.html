@@ -1,0 +1,171 @@
+<div class="wizard">
+  <header class="wizard__header">
+    <h2 class="wizard__title">{{ 'PROJECT_CREATE.TITLE' | translate }}</h2>
+    <app-ds-icon-button
+      icon="close"
+      variant="ghost"
+      size="md"
+      [ariaLabel]="'PROJECT_CREATE.CANCEL' | translate"
+      (clicked)="attemptCancel()"
+    ></app-ds-icon-button>
+  </header>
+
+  @if (resumePromptVisible()) {
+    <div class="wizard__banner">
+      <app-ds-alert severity="info" [title]="'PROJECT_CREATE.DRAFT.RESUME_TITLE' | translate">
+        <div class="wizard__banner-body">
+          <span>{{ 'PROJECT_CREATE.DRAFT.RESUME_TEXT' | translate }}</span>
+          <div class="wizard__banner-actions">
+            <app-ds-button variant="ghost" size="sm" (clicked)="discardDraft()">
+              {{ 'PROJECT_CREATE.DRAFT.DISCARD_BUTTON' | translate }}
+            </app-ds-button>
+            <app-ds-button variant="primary" size="sm" (clicked)="resumeDraft()">
+              {{ 'PROJECT_CREATE.DRAFT.RESUME_BUTTON' | translate }}
+            </app-ds-button>
+          </div>
+        </div>
+      </app-ds-alert>
+    </div>
+  }
+
+  @if (abandonPromptVisible()) {
+    <div class="wizard__banner">
+      <app-ds-alert severity="warning">
+        <div class="wizard__banner-body">
+          <span>{{ 'PROJECT_CREATE.ABANDON_CONFIRM' | translate }}</span>
+          <div class="wizard__banner-actions">
+            <app-ds-button variant="ghost" size="sm" (clicked)="dismissAbandonPrompt()">
+              {{ 'PROJECT_CREATE.CANCEL' | translate }}
+            </app-ds-button>
+            <app-ds-button variant="secondary" size="sm" (clicked)="keepDraftAndClose()">
+              {{ 'PROJECT_CREATE.ABANDON_KEEP' | translate }}
+            </app-ds-button>
+            <app-ds-button variant="danger" size="sm" (clicked)="confirmAbandon()">
+              {{ 'PROJECT_CREATE.ABANDON_DISCARD' | translate }}
+            </app-ds-button>
+          </div>
+        </div>
+      </app-ds-alert>
+    </div>
+  }
+
+  <mat-stepper #stepper [linear]="true" class="wizard__stepper">
+    <mat-step [completed]="identityValid()" [editable]="true" [label]="'PROJECT_CREATE.STEP.IDENTITY.LABEL' | translate">
+      <app-identity-step
+        [(draft)]="draft"
+        (validityChange)="onIdentityValidity($event)"
+        (quickStart)="onQuickStart()"
+      ></app-identity-step>
+      <div class="wizard__step-actions">
+        <app-ds-button variant="ghost" (clicked)="attemptCancel()">
+          {{ 'PROJECT_CREATE.CANCEL' | translate }}
+        </app-ds-button>
+        <button
+          type="button"
+          class="wizard__hidden-mat"
+          matStepperNext
+          [disabled]="!identityValid()"
+          #identityNext
+        ></button>
+        <app-ds-button
+          variant="primary"
+          [disabled]="!identityValid()"
+          (clicked)="identityNext.click()"
+        >
+          {{ 'PROJECT_CREATE.NEXT' | translate }}
+        </app-ds-button>
+      </div>
+    </mat-step>
+
+    <mat-step [completed]="layoutValid()" [editable]="true" [label]="'PROJECT_CREATE.STEP.LAYOUT.LABEL' | translate">
+      <app-layout-step
+        [(draft)]="draft"
+        (validityChange)="onLayoutValidity($event)"
+      ></app-layout-step>
+      <div class="wizard__step-actions">
+        <button type="button" class="wizard__hidden-mat" matStepperPrevious #layoutPrev></button>
+        <app-ds-button variant="ghost" (clicked)="layoutPrev.click()">
+          {{ 'PROJECT_CREATE.BACK' | translate }}
+        </app-ds-button>
+        <button type="button" class="wizard__hidden-mat" matStepperNext [disabled]="!layoutValid()" #layoutNext></button>
+        <app-ds-button
+          variant="primary"
+          [disabled]="!layoutValid()"
+          (clicked)="layoutNext.click()"
+        >
+          {{ 'PROJECT_CREATE.NEXT' | translate }}
+        </app-ds-button>
+      </div>
+    </mat-step>
+
+    <mat-step [completed]="environmentsValid()" [editable]="true" [label]="'PROJECT_CREATE.STEP.ENVIRONMENTS.LABEL' | translate">
+      <app-environment-step
+        [(draft)]="draft"
+        (validityChange)="onEnvironmentsValidity($event)"
+      ></app-environment-step>
+      <div class="wizard__step-actions">
+        <button type="button" class="wizard__hidden-mat" matStepperPrevious #envPrev></button>
+        <app-ds-button variant="ghost" (clicked)="envPrev.click()">
+          {{ 'PROJECT_CREATE.BACK' | translate }}
+        </app-ds-button>
+        <button type="button" class="wizard__hidden-mat" matStepperNext [disabled]="!environmentsValid()" #envNext></button>
+        <app-ds-button
+          variant="primary"
+          [disabled]="!environmentsValid()"
+          (clicked)="envNext.click()"
+        >
+          {{ 'PROJECT_CREATE.NEXT' | translate }}
+        </app-ds-button>
+      </div>
+    </mat-step>
+
+    @if (needsRepositoriesStep()) {
+      <mat-step [completed]="repositoriesValid()" [editable]="true" [label]="'PROJECT_CREATE.STEP.REPOSITORIES.LABEL' | translate">
+        <app-repositories-step
+          [(draft)]="draft"
+          (validityChange)="onRepositoriesValidity($event)"
+        ></app-repositories-step>
+        <div class="wizard__step-actions">
+          <button type="button" class="wizard__hidden-mat" matStepperPrevious #repoPrev></button>
+          <app-ds-button variant="ghost" (clicked)="repoPrev.click()">
+            {{ 'PROJECT_CREATE.BACK' | translate }}
+          </app-ds-button>
+          <button type="button" class="wizard__hidden-mat" matStepperNext [disabled]="!repositoriesValid()" #repoNext></button>
+          <app-ds-button
+            variant="primary"
+            [disabled]="!repositoriesValid()"
+            (clicked)="repoNext.click()"
+          >
+            {{ 'PROJECT_CREATE.NEXT' | translate }}
+          </app-ds-button>
+        </div>
+      </mat-step>
+    }
+
+    <mat-step [label]="'PROJECT_CREATE.STEP.REVIEW.LABEL' | translate">
+      @if (submitErrorText()) {
+        <div class="wizard__submit-error">
+          <app-ds-alert severity="error">{{ submitErrorText() }}</app-ds-alert>
+        </div>
+      }
+
+      <app-review-step [draft]="draft()"></app-review-step>
+
+      <div class="wizard__step-actions">
+        <button type="button" class="wizard__hidden-mat" matStepperPrevious #reviewPrev></button>
+        <app-ds-button variant="ghost" (clicked)="reviewPrev.click()" [disabled]="isSubmitting()">
+          {{ 'PROJECT_CREATE.BACK' | translate }}
+        </app-ds-button>
+        <app-ds-button
+          variant="primary"
+          icon="rocket_launch"
+          [loading]="isSubmitting()"
+          [disabled]="!canSubmit()"
+          (clicked)="onSubmit()"
+        >
+          {{ 'PROJECT_CREATE.SUBMIT' | translate }}
+        </app-ds-button>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</div>

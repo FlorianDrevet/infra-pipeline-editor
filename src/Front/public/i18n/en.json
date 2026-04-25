@@ -108,6 +108,90 @@
       "CREATE_ERROR_FALLBACK": "Unable to create the project right now. Please try again."
     }
   },
+  "PROJECT_CREATE": {
+    "TITLE": "Create a project",
+    "QUICK_START": "Quick start",
+    "QUICK_START_HINT": "Pre-fill with sensible defaults",
+    "STEP": {
+      "IDENTITY": {
+        "LABEL": "Identity",
+        "TITLE": "Name your project",
+        "NAME_LABEL": "Project name",
+        "NAME_HINT": "3 to 80 characters",
+        "DESCRIPTION_LABEL": "Description",
+        "DESCRIPTION_HINT": "Optional"
+      },
+      "LAYOUT": {
+        "LABEL": "Layout",
+        "TITLE": "Choose how your repositories are organised",
+        "ALL_IN_ONE_TITLE": "Mono-repository",
+        "ALL_IN_ONE_DESC": "A single repository for code + infra. Best to get started.",
+        "RECOMMENDED": "Recommended",
+        "SPLIT_TITLE": "Split infra / code",
+        "SPLIT_DESC": "Two separate repositories: one for infra, one for application code.",
+        "MULTI_TITLE": "Multi-repository",
+        "MULTI_DESC": "Repositories defined per configuration. For advanced setups."
+      },
+      "ENVIRONMENTS": {
+        "LABEL": "Environments",
+        "TITLE": "Define your environments",
+        "ADD": "Add an environment",
+        "SUGGESTIONS": "Standard suggestions",
+        "SUGGESTIONS_CONFIRM": "This will replace your current environments.",
+        "REMOVE": "Remove",
+        "NAME": "Name",
+        "SHORT_NAME": "Short name",
+        "PREFIX": "Prefix",
+        "SUFFIX": "Suffix",
+        "LOCATION": "Azure region",
+        "SUBSCRIPTION_ID": "Subscription ID",
+        "SUBSCRIPTION_HINT": "Optional — You can configure it later",
+        "ORDER": "Order",
+        "REQUIRES_APPROVAL": "Requires approval"
+      },
+      "REPOSITORIES": {
+        "LABEL": "Repositories",
+        "TITLE": "Configure your repositories",
+        "OPTIONAL_HINT": "You can leave the connection details empty and fill them in later from the project page.",
+        "MAIN": "Main repository",
+        "INFRA": "Infrastructure repository",
+        "APP": "Application repository",
+        "ALIAS": "Alias",
+        "ALIAS_HINT": "Lowercase letters, digits and dashes only",
+        "PROVIDER": "Git provider",
+        "URL": "Repository URL",
+        "BRANCH": "Default branch",
+        "CONNECTION_INCOMPLETE": "Please fill in all connection fields or leave them all empty."
+      },
+      "REVIEW": {
+        "LABEL": "Review",
+        "TITLE": "Review and create",
+        "PROJECT_SECTION": "Project",
+        "LAYOUT_SECTION": "Layout",
+        "ENVIRONMENTS_SECTION": "Environments",
+        "REPOSITORIES_SECTION": "Repositories",
+        "REPO_CONFIGURED": "Configured",
+        "REPO_PENDING": "To configure later"
+      }
+    },
+    "DRAFT": {
+      "RESUME_TITLE": "Draft found",
+      "RESUME_TEXT": "You have a project draft in progress.",
+      "RESUME_BUTTON": "Resume",
+      "DISCARD_BUTTON": "Start over"
+    },
+    "ERROR": {
+      "GENERIC": "An error occurred while creating the project."
+    },
+    "ABANDON_CONFIRM": "Abandon project creation? Your draft will be deleted.",
+    "ABANDON_KEEP": "Keep the draft",
+    "ABANDON_DISCARD": "Abandon",
+    "SUBMIT": "Create project",
+    "BACK": "Back",
+    "NEXT": "Next",
+    "CANCEL": "Cancel",
+    "SUCCESS_SNACKBAR": "Project created successfully"
+  },
   "PROJECTS": {
     "TITLE": "Projects",
     "DESCRIPTION": "Browse, search, and manage all your infrastructure projects.",

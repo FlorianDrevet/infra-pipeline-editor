@@ -53,6 +53,33 @@ export interface CreateProjectRequest {
   isExisting?: boolean;
 }
 
+export interface EnvironmentSetupRequest {
+  name: string;
+  shortName: string;
+  prefix?: string;
+  suffix?: string;
+  location: string;
+  subscriptionId?: string;
+  order: number;
+  requiresApproval: boolean;
+}
+
+export interface RepositorySetupRequest {
+  alias: string;
+  contentKinds: string[];
+  providerType?: 'GitHub' | 'AzureDevOps';
+  repositoryUrl?: string;
+  defaultBranch?: string;
+}
+
+export interface CreateProjectWithSetupRequest {
+  name: string;
+  description?: string;
+  layoutPreset: 'AllInOne' | 'SplitInfraCode' | 'MultiRepo';
+  environments: EnvironmentSetupRequest[];
+  repositories: RepositorySetupRequest[];
+}
+
 export interface SetProjectTagsRequest {
   tags: TagRequest[];
 }

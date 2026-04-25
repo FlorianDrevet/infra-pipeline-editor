@@ -7,7 +7,7 @@ import { DsButtonComponent, DsPageHeaderComponent } from '../../shared/component
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { FavoritesService } from '../../shared/services/favorites.service';
-import { CreateProjectDialogComponent } from '../home/create-project-dialog/create-project-dialog.component';
+import { CreateProjectWizardDialogComponent } from './create-project-wizard/create-project-wizard-dialog.component';
 
 @Component({
   selector: 'app-projects',
@@ -92,8 +92,11 @@ export class ProjectsComponent implements OnInit {
   }
 
   protected openCreateDialog(): void {
-    const dialogRef = this.dialog.open(CreateProjectDialogComponent, {
-      width: '480px',
+    const dialogRef = this.dialog.open(CreateProjectWizardDialogComponent, {
+      width: '720px',
+      maxHeight: '90vh',
+      panelClass: 'ifs-wizard-dialog',
+      disableClose: true,
     });
 
     dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {

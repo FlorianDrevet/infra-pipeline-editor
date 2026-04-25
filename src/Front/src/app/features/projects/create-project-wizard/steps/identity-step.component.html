@@ -1,0 +1,38 @@
+<div class="identity-step">
+  <header class="identity-step__header">
+    <div class="identity-step__title">
+      <h3>{{ 'PROJECT_CREATE.STEP.IDENTITY.TITLE' | translate }}</h3>
+    </div>
+    <app-ds-button
+      variant="ghost"
+      size="sm"
+      icon="auto_awesome"
+      (clicked)="onQuickStart()"
+    >
+      {{ 'PROJECT_CREATE.QUICK_START' | translate }}
+    </app-ds-button>
+  </header>
+
+  <p class="identity-step__quick-hint">{{ 'PROJECT_CREATE.QUICK_START_HINT' | translate }}</p>
+
+  <div class="identity-step__field">
+    <app-ds-text-field
+      [label]="'PROJECT_CREATE.STEP.IDENTITY.NAME_LABEL' | translate"
+      [hint]="'PROJECT_CREATE.STEP.IDENTITY.NAME_HINT' | translate"
+      [required]="true"
+      [ngModel]="draft().name"
+      (ngModelChange)="onNameChange($event)"
+    ></app-ds-text-field>
+  </div>
+
+  <div class="identity-step__field">
+    <app-ds-textarea
+      [label]="'PROJECT_CREATE.STEP.IDENTITY.DESCRIPTION_LABEL' | translate"
+      [hint]="'PROJECT_CREATE.STEP.IDENTITY.DESCRIPTION_HINT' | translate"
+      [rows]="4"
+      [maxLength]="1000"
+      [ngModel]="draft().description"
+      (ngModelChange)="onDescriptionChange($event)"
+    ></app-ds-textarea>
+  </div>
+</div>

@@ -52,7 +52,6 @@
     @if (isMultiRepo() && generationPanelOpen()) {
       <section class="generation-panel" [class.generation-panel--collapsed]="generationPanelCollapsed()">
         <div class="generation-panel__header">
-          <h3 class="generation-panel__title">{{ 'CONFIG_DETAIL.GENERATION.TITLE' | translate }}</h3>
           <div class="generation-panel__actions">
             <app-ds-panel-action-button
               [icon]="generationPanelCollapsed() ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"

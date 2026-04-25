@@ -75,31 +75,14 @@
 
           <!-- Project Generation Panel (mono-repo) — shown only after clicking Generate -->
           @if (projectGenerationPanelOpen()) {
-            <section class="generation-panel" [class.generation-panel--collapsed]="projectGenerationPanelCollapsed()">
-              <div class="generation-panel__header">
-                <h3 class="generation-panel__title">{{ 'PROJECT_DETAIL.GENERATION.TITLE' | translate }}</h3>
-                <div class="generation-panel__actions">
-                  <app-ds-panel-action-button
-                    [icon]="projectGenerationPanelCollapsed() ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
-                    tone="accent"
-                    surface="light"
-                    [pressed]="!projectGenerationPanelCollapsed()"
-                    [ariaExpanded]="!projectGenerationPanelCollapsed()"
-                    [ariaLabel]="((projectGenerationPanelCollapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
-                    [tooltip]="((projectGenerationPanelCollapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
-                    (clicked)="toggleProjectGenerationPanelCollapsed()" />
-                  <app-ds-panel-action-button
-                    icon="close"
-                    tone="danger"
-                    surface="light"
-                    [ariaLabel]="'PROJECT_DETAIL.GENERATION.CLOSE' | translate"
-                    [tooltip]="'PROJECT_DETAIL.GENERATION.CLOSE' | translate"
-                    (clicked)="closeProjectGenerationPanel()" />
-                </div>
-              </div>
-              @if (!projectGenerationPanelCollapsed()) {
+            <section
+              class="generation-panel"
+              [class.generation-panel--collapsed]="projectGenerationPanelCollapsed()"
+              [class.generation-panel--with-header]="project()?.layoutPreset !== 'SplitInfraCode'"
+              [class.generation-panel--headerless]="project()?.layoutPreset === 'SplitInfraCode'">
               @if (project()?.layoutPreset === 'SplitInfraCode') {
                 <app-split-generation-switcher
+                  [collapsed]="projectGenerationPanelCollapsed()"
                   [bicepResult]="projectBicepResult()"
                   [pipelineResult]="projectPipelineResult()"
                   [bootstrapResult]="projectBootstrapResult()"
@@ -112,6 +95,7 @@
                   [loadBicepFile]="loadProjectBicepFile"
                   [loadPipelineFile]="loadProjectPipelineFile"
                   [loadBootstrapFile]="loadProjectBootstrapFile"
+                  (toggleCollapsed)="toggleProjectGenerationPanelCollapsed()"
                   (retryBicep)="generateProjectBicep()"
                   (retryPipeline)="generateProjectPipeline()"
                   (retryBootstrap)="generateProjectBootstrap()"
@@ -119,6 +103,20 @@
                   (pushCode)="openProjectMultiRepoPushDialog('code')">
                 </app-split-generation-switcher>
               } @else {
+              <div class="generation-panel__header">
+                <div class="generation-panel__actions">
+                  <app-ds-panel-action-button
+                    [icon]="projectGenerationPanelCollapsed() ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
+                    tone="accent"
+                    surface="light"
+                    [pressed]="!projectGenerationPanelCollapsed()"
+                    [ariaExpanded]="!projectGenerationPanelCollapsed()"
+                    [ariaLabel]="((projectGenerationPanelCollapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
+                    [tooltip]="((projectGenerationPanelCollapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
+                    (clicked)="toggleProjectGenerationPanelCollapsed()" />
+                </div>
+              </div>
+              @if (!projectGenerationPanelCollapsed()) {
               <mat-tab-group class="generation-tabs" animationDuration="200ms">
                 <!-- Bicep Tab -->
                 <mat-tab>

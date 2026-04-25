@@ -108,6 +108,90 @@
       "CREATE_ERROR_FALLBACK": "Impossible de creer le projet pour le moment. Veuillez reessayer."
     }
   },
+  "PROJECT_CREATE": {
+    "TITLE": "Créer un projet",
+    "QUICK_START": "Démarrage rapide",
+    "QUICK_START_HINT": "Pré-remplir avec les valeurs par défaut",
+    "STEP": {
+      "IDENTITY": {
+        "LABEL": "Identité",
+        "TITLE": "Nommez votre projet",
+        "NAME_LABEL": "Nom du projet",
+        "NAME_HINT": "3 à 80 caractères",
+        "DESCRIPTION_LABEL": "Description",
+        "DESCRIPTION_HINT": "Optionnel"
+      },
+      "LAYOUT": {
+        "LABEL": "Organisation",
+        "TITLE": "Choisissez l'organisation des repositories",
+        "ALL_IN_ONE_TITLE": "Mono-repository",
+        "ALL_IN_ONE_DESC": "Un seul repository pour code + infra. Idéal pour démarrer.",
+        "RECOMMENDED": "Recommandé",
+        "SPLIT_TITLE": "Infra / Code séparés",
+        "SPLIT_DESC": "Deux repositories distincts: un pour l'infra, un pour le code.",
+        "MULTI_TITLE": "Multi-repository",
+        "MULTI_DESC": "Repositories définis par configuration. Pour les setups avancés."
+      },
+      "ENVIRONMENTS": {
+        "LABEL": "Environnements",
+        "TITLE": "Définissez vos environnements",
+        "ADD": "Ajouter un environnement",
+        "SUGGESTIONS": "Suggestions standards",
+        "SUGGESTIONS_CONFIRM": "Cela remplacera vos environnements actuels.",
+        "REMOVE": "Supprimer",
+        "NAME": "Nom",
+        "SHORT_NAME": "Identifiant court",
+        "PREFIX": "Préfixe",
+        "SUFFIX": "Suffixe",
+        "LOCATION": "Région Azure",
+        "SUBSCRIPTION_ID": "ID d'abonnement",
+        "SUBSCRIPTION_HINT": "Optionnel — Vous pourrez le configurer plus tard",
+        "ORDER": "Ordre",
+        "REQUIRES_APPROVAL": "Approbation requise"
+      },
+      "REPOSITORIES": {
+        "LABEL": "Repositories",
+        "TITLE": "Configurez vos repositories",
+        "OPTIONAL_HINT": "Vous pouvez laisser les détails de connexion vides et les compléter plus tard depuis la page projet.",
+        "MAIN": "Repository principal",
+        "INFRA": "Repository infrastructure",
+        "APP": "Repository application",
+        "ALIAS": "Alias",
+        "ALIAS_HINT": "Lettres minuscules, chiffres et tirets uniquement",
+        "PROVIDER": "Fournisseur Git",
+        "URL": "URL du repository",
+        "BRANCH": "Branche par défaut",
+        "CONNECTION_INCOMPLETE": "Veuillez renseigner tous les champs ou les laisser tous vides."
+      },
+      "REVIEW": {
+        "LABEL": "Récapitulatif",
+        "TITLE": "Vérifiez et créez",
+        "PROJECT_SECTION": "Projet",
+        "LAYOUT_SECTION": "Organisation",
+        "ENVIRONMENTS_SECTION": "Environnements",
+        "REPOSITORIES_SECTION": "Repositories",
+        "REPO_CONFIGURED": "Configuré",
+        "REPO_PENDING": "À configurer plus tard"
+      }
+    },
+    "DRAFT": {
+      "RESUME_TITLE": "Brouillon trouvé",
+      "RESUME_TEXT": "Vous avez un brouillon de projet en cours.",
+      "RESUME_BUTTON": "Reprendre",
+      "DISCARD_BUTTON": "Recommencer"
+    },
+    "ERROR": {
+      "GENERIC": "Une erreur est survenue lors de la création du projet."
+    },
+    "ABANDON_CONFIRM": "Abandonner la création du projet ? Votre brouillon sera supprimé.",
+    "ABANDON_KEEP": "Garder le brouillon",
+    "ABANDON_DISCARD": "Abandonner",
+    "SUBMIT": "Créer le projet",
+    "BACK": "Retour",
+    "NEXT": "Suivant",
+    "CANCEL": "Annuler",
+    "SUCCESS_SNACKBAR": "Projet créé avec succès"
+  },
   "PROJECTS": {
     "TITLE": "Projets",
     "DESCRIPTION": "Parcourez, recherchez et gerez tous vos projets d'infrastructure.",

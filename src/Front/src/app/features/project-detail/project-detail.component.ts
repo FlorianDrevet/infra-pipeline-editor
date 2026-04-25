@@ -1124,13 +1124,6 @@ export class ProjectDetailComponent implements OnInit {
     ]);
   }
 
-  protected closeProjectGenerationPanel(): void {
-    this.closeProjectBicepPanel();
-    this.closeProjectPipelinePanel();
-    this.closeProjectBootstrapPanel();
-    this.projectGenerationPanelCollapsed.set(false);
-  }
-
   protected toggleProjectGenerationPanelCollapsed(): void {
     this.projectGenerationPanelCollapsed.update((collapsed) => !collapsed);
   }
