@@ -34,11 +34,13 @@ import {
   RepositoryDialogComponent,
   RepositoryDialogData,
 } from './repository-dialog/repository-dialog.component';
+import { DsOptionCardComponent } from '../../../shared/components/ds';
 
 interface PresetOption {
   value: ProjectLayoutPreset;
   labelKey: string;
   descriptionKey: string;
+  icon: string;
 }
 
 interface RepoSlot {
@@ -52,16 +54,19 @@ const LAYOUT_PRESETS: ReadonlyArray<PresetOption> = [
     value: 'AllInOne',
     labelKey: 'PROJECT_DETAIL.LAYOUT.PRESET_ALL_IN_ONE',
     descriptionKey: 'PROJECT_DETAIL.LAYOUT.PRESET_ALL_IN_ONE_DESC',
+    icon: 'inventory_2',
   },
   {
     value: 'SplitInfraCode',
     labelKey: 'PROJECT_DETAIL.LAYOUT.PRESET_SPLIT_INFRA_CODE',
     descriptionKey: 'PROJECT_DETAIL.LAYOUT.PRESET_SPLIT_INFRA_CODE_DESC',
+    icon: 'call_split',
   },
   {
     value: 'MultiRepo',
     labelKey: 'PROJECT_DETAIL.LAYOUT.PRESET_MULTI_REPO',
     descriptionKey: 'PROJECT_DETAIL.LAYOUT.PRESET_MULTI_REPO_DESC',
+    icon: 'hub',
   },
 ];
 
@@ -79,6 +84,7 @@ const LAYOUT_PRESETS: ReadonlyArray<PresetOption> = [
     MatProgressSpinnerModule,
     MatSelectModule,
     MatTooltipModule,
+    DsOptionCardComponent,
   ],
   templateUrl: './layout-repositories.component.html',
   styleUrl: './layout-repositories.component.scss',

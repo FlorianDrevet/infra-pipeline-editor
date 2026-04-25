@@ -12,17 +12,16 @@
         </p>
       </header>
 
-      <div class="preset-grid">
+      <div class="preset-grid" role="radiogroup">
         @for (option of layoutPresets; track option.value) {
-          <button
-            type="button"
-            class="preset-card"
-            [class.preset-card--active]="currentPreset() === option.value"
+          <app-ds-option-card
+            [icon]="option.icon"
+            [title]="option.labelKey | translate"
+            [description]="option.descriptionKey | translate"
+            [selected]="currentPreset() === option.value"
             [disabled]="presetSaving()"
-            (click)="onPresetChange(option.value)">
-            <span class="preset-card__title">{{ option.labelKey | translate }}</span>
-            <span class="preset-card__desc">{{ option.descriptionKey | translate }}</span>
-          </button>
+            (cardSelect)="onPresetChange(option.value)"
+          />
         }
       </div>
     </section>

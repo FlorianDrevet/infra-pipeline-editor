@@ -7,8 +7,8 @@ import {
   model,
   output,
 } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
+import { DsOptionCardComponent } from '../../../../shared/components/ds';
 import {
   CreateProjectWizardDraft,
   LayoutPreset,
@@ -30,7 +30,7 @@ interface LayoutOption {
 @Component({
   selector: 'app-layout-step',
   standalone: true,
-  imports: [TranslateModule, MatIconModule],
+  imports: [TranslateModule, DsOptionCardComponent],
   templateUrl: './layout-step.component.html',
   styleUrl: './layout-step.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
