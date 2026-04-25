@@ -14,16 +14,11 @@
         (click)="select(option.value)"
       >
         <span class="layout-card__icon-wrap" aria-hidden="true">
-          <span class="material-symbols-outlined layout-card__icon">{{ option.icon }}</span>
+          <mat-icon class="layout-card__icon">{{ option.icon }}</mat-icon>
         </span>
         <span class="layout-card__body">
           <span class="layout-card__title-row">
             <span class="layout-card__title">{{ option.titleKey | translate }}</span>
-            @if (option.recommended) {
-              <app-ds-chip variant="success" size="sm">
-                {{ 'PROJECT_CREATE.STEP.LAYOUT.RECOMMENDED' | translate }}
-              </app-ds-chip>
-            }
           </span>
           <span class="layout-card__desc">{{ option.descKey | translate }}</span>
         </span>

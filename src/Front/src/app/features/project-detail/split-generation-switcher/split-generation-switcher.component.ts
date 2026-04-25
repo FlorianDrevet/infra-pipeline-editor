@@ -28,7 +28,8 @@ import {
 
 /**
  * Two-level switcher rendered when project.layoutPreset === 'SplitInfraCode'.
- * Outer tabs: Infra / Code. Inner sub-tabs: Bicep, Pipeline, Bootstrap (Infra) / Pipeline (Code).
+ * Outer tabs: Infra / Code. Inner sub-tabs: Bicep, Pipeline, Bootstrap (Infra) /
+ * Pipeline, Bootstrap (Code).
  */
 @Component({
   selector: 'app-split-generation-switcher',
@@ -93,18 +94,19 @@ export class SplitGenerationSwitcherComponent {
       }
     }
     if (bs) {
-      total += Object.keys(bs.fileUris ?? {}).length;
+      total += Object.keys(bs.infraFileUris ?? {}).length;
     }
     return total;
   });
 
   protected readonly codeFileCount = computed(() => {
     const p = this.pipelineResult();
-    if (!p) return 0;
-    let total = Object.keys(p.appCommonFileUris ?? {}).length;
-    for (const cfg of Object.values(p.appConfigFileUris ?? {})) {
+    const bs = this.bootstrapResult();
+    let total = Object.keys(p?.appCommonFileUris ?? {}).length;
+    for (const cfg of Object.values(p?.appConfigFileUris ?? {})) {
       total += Object.keys(cfg).length;
     }
+    total += Object.keys(bs?.appFileUris ?? {}).length;
     return total;
   });
 
@@ -128,30 +130,25 @@ export class SplitGenerationSwitcherComponent {
     return buildPipelineNodes(result.appCommonFileUris, result.appConfigFileUris);
   });
 
-  // ─── Bootstrap tree (infra-only) ───
-  protected readonly bootstrapNodes = computed<BicepTreeNode[]>(() => {
+  // ─── Bootstrap trees (infra/app split) ───
+  protected readonly infraBootstrapNodes = computed<BicepTreeNode[]>(() => {
     const result = this.bootstrapResult();
     if (!result) return [];
-    const nodes: BicepTreeNode[] = [];
-    for (const fileName of Object.keys(result.fileUris)) {
-      nodes.push({
-        kind: 'file',
-        path: fileName,
-        displayName: fileName,
-        type: 'generic',
-        uri: fileName,
-        depth: 0,
-        parentFolderKey: '',
-      } satisfies BicepFileNode);
-    }
-    return nodes;
+    return buildBootstrapNodes(result.infraFileUris, 'infra');
+  });
+
+  protected readonly appBootstrapNodes = computed<BicepTreeNode[]>(() => {
+    const result = this.bootstrapResult();
+    if (!result) return [];
+    return buildBootstrapNodes(result.appFileUris, 'app');
   });
 
   protected readonly hasInfraPipeline = computed(() => this.infraPipelineNodes().length > 0);
   protected readonly hasAppPipeline = computed(() => this.appPipelineNodes().length > 0);
+  protected readonly hasInfraBootstrap = computed(() => this.infraBootstrapNodes().length > 0);
   protected readonly canPushInfra = computed(() => this.bicepNodes().length > 0
     && this.hasInfraPipeline()
-    && this.bootstrapNodes().length > 0
+    && this.hasInfraBootstrap()
     && !this.isGeneratingBicep()
     && !this.isGeneratingPipeline()
     && !this.isGeneratingBootstrap());
@@ -309,6 +306,19 @@ function buildPipelineNodes(
   return nodes;
 }
 
+function buildBootstrapNodes(
+  fileUris: Record<string, string>,
+  bucketPrefix?: string,
+): BicepTreeNode[] {
+  const nodes: BicepTreeNode[] = [];
+
+  for (const filePath of Object.keys(fileUris ?? {})) {
+    appendBucketedFileNode(nodes, filePath, bucketPrefix ? `${bucketPrefix}/${filePath}` : filePath);
+  }
+
+  return nodes;
+}
+
 function ensureFolderNode(
   nodes: BicepTreeNode[],
   key: string,
@@ -358,6 +368,35 @@ function appendHierarchicalFileNode(
     type: resolveType(relativePath, displayName),
     uri: backendPath,
     depth: parts.length,
+    parentFolderKey: parentKey,
+  } satisfies BicepFileNode);
+}
+
+function appendBucketedFileNode(
+  nodes: BicepTreeNode[],
+  relativePath: string,
+  uri: string,
+): void {
+  const parts = relativePath.split('/').filter((part) => part.length > 0);
+  if (parts.length === 0) {
+    return;
+  }
+
+  let parentKey = '';
+  for (let index = 0; index < parts.length - 1; index++) {
+    const folderKey = parts.slice(0, index + 1).join('/');
+    ensureFolderNode(nodes, folderKey, `${parts[index]}/`, index, parentKey || undefined);
+    parentKey = folderKey;
+  }
+
+  const displayName = parts[parts.length - 1];
+  nodes.push({
+    kind: 'file',
+    path: relativePath,
+    displayName,
+    type: 'generic',
+    uri,
+    depth: parts.length - 1,
     parentFolderKey: parentKey,
   } satisfies BicepFileNode);
 }

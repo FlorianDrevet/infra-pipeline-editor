@@ -118,7 +118,7 @@
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">rocket_launch</mat-icon>
-          <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP' | translate }}</span>
+          <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP_APP' | translate }}</span>
         </ng-template>
         <div class="generation-tab-content">
           @if (isGeneratingBootstrap()) {
@@ -136,9 +136,9 @@
               </button>
             </div>
           }
-          @if (bootstrapNodes().length > 0) {
+          @if (infraBootstrapNodes().length > 0) {
             <app-bicep-file-panel
-              [nodes]="bootstrapNodes()"
+              [nodes]="infraBootstrapNodes()"
               [barTitle]="'bootstrap-generator \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
               [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
               [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
@@ -222,6 +222,64 @@
               [loadFile]="loadPipelineFile()">
             </app-bicep-file-panel>
           } @else if (!isGeneratingPipeline() && !pipelineGenerationError()) {
+            <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">rocket_launch</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP' | translate }}</span>
+        </ng-template>
+        <div class="generation-tab-content">
+          <section class="split-switcher__bootstrap-guide" aria-labelledby="split-switcher-code-bootstrap-guide-title">
+            <div class="split-switcher__bootstrap-guide-header">
+              <mat-icon class="split-switcher__bootstrap-guide-icon">info</mat-icon>
+              <div class="split-switcher__bootstrap-guide-copy">
+                <span class="split-switcher__bootstrap-guide-eyebrow">{{ 'PROJECT_DETAIL.SWITCHER.CODE_TAB' | translate }}</span>
+                <h3 id="split-switcher-code-bootstrap-guide-title" class="split-switcher__bootstrap-guide-title">
+                  {{ 'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_APP_GUIDE_TITLE' | translate }}
+                </h3>
+              </div>
+            </div>
+
+            <p class="split-switcher__bootstrap-guide-text">
+              {{ 'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_APP_INFO' | translate }}
+            </p>
+
+            <ol class="split-switcher__bootstrap-guide-steps">
+              <li>{{ 'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_APP_STEP_1' | translate }}</li>
+              <li>{{ 'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_APP_STEP_2' | translate }}</li>
+              <li>{{ 'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_APP_STEP_3' | translate }}</li>
+            </ol>
+          </section>
+
+          @if (isGeneratingBootstrap()) {
+            <div class="split-switcher__loading">
+              <mat-spinner diameter="22"></mat-spinner>
+              <span>{{ 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' | translate }}</span>
+            </div>
+          }
+          @if (bootstrapGenerationError()) {
+            <div class="split-switcher__error">
+              <p>{{ bootstrapGenerationError()! | translate }}</p>
+              <button class="split-switcher__retry" type="button" (click)="onRetryBootstrap()">
+                <mat-icon>refresh</mat-icon>
+                {{ 'PROJECT_DETAIL.BOOTSTRAP.RETRY' | translate }}
+              </button>
+            </div>
+          }
+          @if (appBootstrapNodes().length > 0) {
+            <app-bicep-file-panel
+              [nodes]="appBootstrapNodes()"
+              [barTitle]="'bootstrap-generator (code) \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
+              [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
+              [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
+              [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
+              [loadFile]="loadBootstrapFile()">
+            </app-bicep-file-panel>
+          } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError()) {
             <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
           }
         </div>

@@ -290,22 +290,29 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
         foreach (var (basePath, files) in scopes)
         {
             var normalizedBasePath = NormalizeBasePath(basePath);
-            if (!mergedScopes.TryGetValue(normalizedBasePath, out var scopedFiles))
+
+            if (!string.IsNullOrEmpty(normalizedBasePath))
             {
-                scopedFiles = new Dictionary<string, string>(StringComparer.Ordinal);
-                mergedScopes[normalizedBasePath] = scopedFiles;
+                foreach (var (relativePath, content) in files)
+                {
+                    var mergeError = TryAddScopedFile(mergedScopes, normalizedBasePath, relativePath, content);
+                    if (mergeError is not null)
+                        return mergeError.Value;
+                }
+
+                continue;
             }
 
             foreach (var (relativePath, content) in files)
             {
-                if (scopedFiles.TryGetValue(relativePath, out var existing)
-                    && !string.Equals(existing, content, StringComparison.Ordinal))
+                // Root-level scopes are re-sliced by top-level folder so Git cleanup can delete stale generated
+                // files without claiming the entire repository root as a cleanup scope.
+                var (scopedBasePath, scopedRelativePath) = SplitRootScopedPath(relativePath);
+                var mergeError = TryAddScopedFile(mergedScopes, scopedBasePath, scopedRelativePath, content);
+                if (mergeError is not null)
                 {
-                    return Errors.GitRepository.PushFailed(
-                        $"Generated file collision detected for path '{CombinePath(normalizedBasePath, relativePath)}'.");
+                    return mergeError.Value;
                 }
-
-                scopedFiles[relativePath] = content;
             }
         }
 
@@ -325,6 +332,39 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
                 })
                 .ToList(),
         };
+    }
+
+    private static ErrorOr<Updated> TryAddScopedFile(
+        IDictionary<string, Dictionary<string, string>> mergedScopes,
+        string basePath,
+        string relativePath,
+        string content)
+    {
+        if (!mergedScopes.TryGetValue(basePath, out var scopedFiles))
+        {
+            scopedFiles = new Dictionary<string, string>(StringComparer.Ordinal);
+            mergedScopes[basePath] = scopedFiles;
+        }
+
+        if (scopedFiles.TryGetValue(relativePath, out var existing)
+            && !string.Equals(existing, content, StringComparison.Ordinal))
+        {
+            return Errors.GitRepository.PushFailed(
+                $"Generated file collision detected for path '{CombinePath(basePath, relativePath)}'.");
+        }
+
+        scopedFiles[relativePath] = content;
+        return Result.Updated;
+    }
+
+    private static (string BasePath, string RelativePath) SplitRootScopedPath(string relativePath)
+    {
+        var normalizedRelativePath = relativePath.TrimStart('/');
+        var separatorIndex = normalizedRelativePath.IndexOf('/');
+
+        return separatorIndex < 0
+            ? (string.Empty, normalizedRelativePath)
+            : (normalizedRelativePath[..separatorIndex], normalizedRelativePath[(separatorIndex + 1)..]);
     }
 
     private static string NormalizeBasePath(string? basePath) =>

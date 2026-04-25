@@ -14,6 +14,7 @@
 | `/projects` | GET | `` | `ListMyProjectsQuery` |
 | `/projects` | GET | `/{id:guid}` | `GetProjectQuery` |
 | `/projects` | POST | `` | `CreateProjectCommand` |
+| `/projects` | POST | `/with-setup` | `CreateProjectWithSetupCommand` (atomic project + layout + envs + repo slots; nullable connection details) [2026-04-25] |
 | `/projects` | DELETE | `/{id:guid}` | `DeleteProjectCommand` |
 | `/projects` | PUT | `/{id:guid}/agent-pool` | `SetAgentPoolCommand` (moved from /infra-configs) [2026-04-04] |
 | `/projects` | POST/PUT/DELETE | `/{id:guid}/repositories/{repoId?}` | Project repository CRUD |

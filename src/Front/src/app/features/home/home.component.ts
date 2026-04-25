@@ -56,7 +56,8 @@ export class HomeComponent implements OnInit {
 
   protected openCreateDialog(): void {
     const dialogRef = this.dialog.open(CreateProjectWizardDialogComponent, {
-      width: '720px',
+      width: '960px',
+      maxWidth: '96vw',
       maxHeight: '90vh',
       panelClass: 'ifs-wizard-dialog',
       disableClose: true,

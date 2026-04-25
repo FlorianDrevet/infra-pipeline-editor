@@ -1260,7 +1260,12 @@ export class ProjectDetailComponent implements OnInit {
       mode,
     };
 
-    this.dialog.open(MultiRepoPushDialogComponent, { width: 'min(720px, 92vw)', data });
+    this.dialog.open(MultiRepoPushDialogComponent, {
+      width: mode === 'both' ? '68rem' : '38rem',
+      maxWidth: '96vw',
+      panelClass: 'ifs-multi-repo-push-dialog',
+      data,
+    });
   }
 
   private resolveSplitRepoAliases(project: ProjectResponse): { infraAlias: string; codeAlias: string } | null {

@@ -270,6 +270,73 @@
   font-size: 0.9rem;
 }
 
+.split-switcher__bootstrap-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(77, 208, 225, 0.22);
+  background:
+    linear-gradient(135deg, rgba(12, 66, 78, 0.34), rgba(8, 28, 42, 0.7)),
+    rgba(10, 18, 32, 0.92);
+}
+
+.split-switcher__bootstrap-guide-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.split-switcher__bootstrap-guide-icon {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  font-size: 1.15rem;
+  color: #6de7ff;
+}
+
+.split-switcher__bootstrap-guide-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.split-switcher__bootstrap-guide-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(109, 231, 255, 0.78);
+}
+
+.split-switcher__bootstrap-guide-title {
+  margin: 0;
+  color: #f4fbff;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.split-switcher__bootstrap-guide-text {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.split-switcher__bootstrap-guide-steps {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: rgba(233, 244, 255, 0.84);
+  font-size: 0.82rem;
+  line-height: 1.55;
+
+  li + li {
+    margin-top: 0.35rem;
+  }
+}
+
 // ─── Replicate parent-scoped utility classes used in the template ───
 
 .generation-tab-content {

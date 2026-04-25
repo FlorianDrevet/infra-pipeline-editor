@@ -161,7 +161,12 @@ export class GenerationBoardComponent implements OnInit {
         infraAlias: infraRepo.alias,
         codeAlias: codeRepo.alias,
       };
-      this.dialog.open(MultiRepoPushDialogComponent, { width: 'min(720px, 92vw)', data });
+      this.dialog.open(MultiRepoPushDialogComponent, {
+        width: '68rem',
+        maxWidth: '96vw',
+        panelClass: 'ifs-multi-repo-push-dialog',
+        data,
+      });
       return;
     }
 

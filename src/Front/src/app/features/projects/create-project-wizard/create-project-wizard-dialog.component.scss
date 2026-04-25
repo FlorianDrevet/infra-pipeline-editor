@@ -10,7 +10,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1rem 1.25rem 0.5rem;
+    padding: 1.125rem 1.5rem 0.625rem;
     border-bottom: 1px solid var(--border-color, #e5e7eb);
   }
 
@@ -22,7 +22,7 @@
   }
 
   &__banner {
-    padding: 0.75rem 1.25rem 0;
+    padding: 0.875rem 1.5rem 0;
   }
 
   &__banner-body {
@@ -71,8 +71,39 @@
   }
 }
 
-::ng-deep .ifs-wizard-dialog .mat-mdc-dialog-surface {
-  padding: 0;
-  border-radius: 16px;
-  overflow: hidden;
+::ng-deep .ifs-wizard-dialog {
+  .mat-mdc-dialog-surface {
+    padding: 0;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .mat-horizontal-stepper-header-container {
+    padding: 0 1rem;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(255, 255, 255, 0.98));
+  }
+
+  .mat-step-header {
+    min-width: 0;
+    padding: 1rem 0.75rem;
+  }
+
+  .mat-step-label,
+  .mat-step-text-label {
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
+
+@media (max-width: 640px) {
+  .wizard {
+    &__header {
+      padding: 1rem 1rem 0.5rem;
+    }
+
+    &__banner {
+      padding: 0.75rem 1rem 0;
+    }
+  }
 }

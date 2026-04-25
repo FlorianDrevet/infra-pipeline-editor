@@ -7,8 +7,8 @@ import {
   model,
   output,
 } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
-import { DsChipComponent } from '../../../../shared/components/ds';
 import {
   CreateProjectWizardDraft,
   LayoutPreset,
@@ -20,7 +20,6 @@ interface LayoutOption {
   titleKey: string;
   descKey: string;
   icon: string;
-  recommended: boolean;
 }
 
 /**
@@ -31,7 +30,7 @@ interface LayoutOption {
 @Component({
   selector: 'app-layout-step',
   standalone: true,
-  imports: [TranslateModule, DsChipComponent],
+  imports: [TranslateModule, MatIconModule],
   templateUrl: './layout-step.component.html',
   styleUrl: './layout-step.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,21 +45,18 @@ export class LayoutStepComponent implements OnInit {
       titleKey: 'PROJECT_CREATE.STEP.LAYOUT.ALL_IN_ONE_TITLE',
       descKey: 'PROJECT_CREATE.STEP.LAYOUT.ALL_IN_ONE_DESC',
       icon: 'inventory_2',
-      recommended: true,
     },
     {
       value: 'SplitInfraCode',
       titleKey: 'PROJECT_CREATE.STEP.LAYOUT.SPLIT_TITLE',
       descKey: 'PROJECT_CREATE.STEP.LAYOUT.SPLIT_DESC',
       icon: 'call_split',
-      recommended: false,
     },
     {
       value: 'MultiRepo',
       titleKey: 'PROJECT_CREATE.STEP.LAYOUT.MULTI_TITLE',
       descKey: 'PROJECT_CREATE.STEP.LAYOUT.MULTI_DESC',
       icon: 'hub',
-      recommended: false,
     },
   ];
 
