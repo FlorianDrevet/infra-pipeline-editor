@@ -31,7 +31,14 @@ Après lecture de `MEMORY.md`, lire `.github/memory/dream-state.md` et :
 2. **Vérifier les gates :**
    - Time gate : `lastDreamDate` date ≥ 24h dans le passé ?
    - Session gate : `sessionsSinceLastDream` ≥ 5 ?
-3. **Si les deux gates sont satisfaites :** invoquer `@dream` via `runSubagent` **AVANT** de traiter la demande utilisateur.
+3. **Si les deux gates sont satisfaites :** sérialiser le dream avant toute invocation de sous-agent.
+   - Utiliser un verrou exclusif côté système de fichiers : `$dreamLockPath = Join-Path $env:TEMP "infra-pipeline-editor-dream-lock"`
+   - Si le verrou existe déjà et qu'il a plus de 30 minutes, le considérer comme stale et le supprimer une seule fois avant de retenter l'acquisition.
+   - Tenter l'acquisition avec PowerShell : `New-Item -ItemType Directory -Path $dreamLockPath -ErrorAction Stop | Out-Null`
+   - Si l'acquisition échoue parce que le répertoire existe déjà, un autre agent prépare ou exécute déjà le dream : **ne pas** invoquer `@dream`; continuer directement la tâche utilisateur.
+   - Une fois le verrou acquis, relire `.github/memory/dream-state.md`. Si le gate est déjà refermé (`lastDreamDate` = date du jour et `sessionsSinceLastDream` = 0), libérer le verrou et continuer sans dream.
+   - Sinon, invoquer `@dream` via `runSubagent` **AVANT** de traiter la demande utilisateur.
+   - **Toujours** libérer le verrou après le retour de `@dream`, même en cas d'échec.
 4. **Si non :** continuer normalement.
 
 ### 1ter. GitNexus Freshness Check

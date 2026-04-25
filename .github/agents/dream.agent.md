@@ -18,6 +18,7 @@ Il ne modifie **aucun code du projet** — il ne touche que les fichiers mémoir
 Cet agent est invoqué par `@dev` via `runSubagent` quand les deux gates sont satisfaites :
 1. **Time gate :** ≥ 24h depuis `lastDreamDate` dans `.github/memory/dream-state.md`
 2. **Session gate :** `sessionsSinceLastDream` ≥ 5
+3. **Verrou exclusif :** `@dev` doit d'abord acquérir un verrou exclusif via `$env:TEMP\infra-pipeline-editor-dream-lock`; si le verrou n'est pas acquis, `@dream` ne doit pas être lancé.
 
 ---
 
@@ -26,9 +27,10 @@ Cet agent est invoqué par `@dev` via `runSubagent` quand les deux gates sont sa
 ### Phase 1 — Orient
 
 1. Lire `.github/memory/dream-state.md`
-2. Lister le contenu de `.github/memory/` (tous les fichiers thématiques)
-3. Lire `MEMORY.md` (l'index léger à la racine)
-4. Survoler chaque fichier thématique (`01-*.md` à `12-*.md` + `changelog.md`) pour identifier les zones à améliorer
+2. Si `dream-state.md` montre déjà un cycle fermé (`lastDreamDate` = date du jour et `sessionsSinceLastDream` = 0), conclure qu'un autre dream a déjà terminé et s'arrêter immédiatement sans modifier d'autres fichiers mémoire.
+3. Lister le contenu de `.github/memory/` (tous les fichiers thématiques)
+4. Lire `MEMORY.md` (l'index léger à la racine)
+5. Survoler chaque fichier thématique (`01-*.md` à `12-*.md` + `changelog.md`) pour identifier les zones à améliorer
 
 ### Phase 2 — Gather Recent Signal
 
@@ -72,6 +74,7 @@ Pour chaque signal trouvé :
 - **NE PAS** modifier de fichiers en dehors de `.github/memory/` et `MEMORY.md`
 - **NE PAS** modifier de code source du projet
 - **NE PAS** supprimer un fichier thématique entier (condenser plutôt)
+- Le verrou exclusif du dream est géré par `@dev`; `@dream` ne le crée pas et ne le supprime pas.
 - **Toujours** mettre à jour `dream-state.md` en fin de dream :
   - `lastDreamDate` = date du jour
   - `sessionsSinceLastDream` = 0

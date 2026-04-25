@@ -6,7 +6,7 @@
 |---|---|---|
 | `dev` | Orchestrateur principal, lit MEMORY, route aux agents spécialisés | `.github/agents/dev.agent.md` |
 | `dotnet-dev` | Expert C#/.NET 10 | `.github/agents/dotnet-dev.agent.md` |
-| `angular-front` | Expert Angular 19, tout travail `src/Front` | `.github/agents/angular-front.agent.md` |
+| `angular-front` | Expert frontend Angular standalone, tout travail `src/Front` (repo en Angular 21) | `.github/agents/angular-front.agent.md` |
 | `architect` | Analyse archi, challenge, plan d'implémentation (ne code pas) | `.github/agents/architect.agent.md` |
 | `aspire-debug` | Debug runtime Aspire, MCP diagnostics | `.github/agents/aspire-debug.agent.md` |
 | `audit-expert` | Audit technique expert, produit des rapports `audits/` et synchronise les issues GitHub d'audit | `.github/agents/audit-expert.agent.md` |
@@ -14,6 +14,12 @@
 | `merge-main` | Fusion main sur branche courante | `.github/agents/merge-main.agent.md` |
 | `dream` | Consolidation mémoire (4 phases Dream) | `.github/agents/dream.agent.md` |
 | `memory` | **DEPRECATED** — redirecteur vers `dev` | `.github/agents/memory.agent.md` |
+
+## Dream concurrency [2026-04-25]
+
+- `@dev` doit sérialiser `@dream` avec un verrou exclusif PowerShell via le répertoire temporaire `$env:TEMP\infra-pipeline-editor-dream-lock` avant toute invocation du sous-agent.
+- Si le verrou existe déjà, l'agent courant doit considérer qu'un autre agent possède déjà le cycle Dream et continuer la tâche utilisateur sans lancer un second dream.
+- `@dream` doit sortir sans modifier la mémoire si `dream-state.md` montre déjà un gate fermé pour la date du jour (`lastDreamDate` = aujourd'hui et `sessionsSinceLastDream` = 0).
 
 ## Skills
 
@@ -26,7 +32,7 @@
 | `draw-io-diagram-generator` | Create or update draw.io diagrams (`.drawio`, `.drawio.svg`, `.drawio.png`) for architecture and technical documentation | `.github/skills/draw-io-diagram-generator/SKILL.md` |
 | `audit-workflow` | Produce expert code audits and reconcile audit findings with GitHub issues and labels | `.github/skills/audit-workflow/SKILL.md` |
 | `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |
-| `angular-patterns` | Any Angular 19 code: Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
+| `angular-patterns` | Angular frontend patterns for ce repo : Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
 
 ## Skill Concept
 A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when the task justifies it. No tools, composable, lightweight. Skills override pre-training with tested project-specific patterns.

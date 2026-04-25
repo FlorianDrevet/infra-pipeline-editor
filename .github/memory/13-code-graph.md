@@ -8,8 +8,9 @@
 ## Index status
 
 - **Repo indexé :** `infra-pipeline-editor`
-- **Session context [2026-04-24] :** GitNexus expose le repo avec ~13 470 symboles, 50 976 relations, et 300 flows.
-- **Spot-check [2026-04-23] :** `gitnexus_context()` ne résout pas encore certains symboles récents comme `CustomDomain` ou `BootstrapPipelineGenerationEngine`; traiter le graphe comme potentiellement incomplet pour les features ajoutées en toute fin de vague 2026-04-23.
+- **Session context [2026-04-25] :** GitNexus expose le repo avec 14 901 nodes, 55 895 relations, 810 communities, et 300 flows (index frais au 2026-04-24T10:48:20Z).
+- **Spot-check [2026-04-25] :** les requêtes GitNexus résolvent désormais `CustomDomain` et `BootstrapPipelineGenerationEngine`; l'ancienne alerte sur les symboles récents non résolus est obsolète.
+- **Règle pratique [2026-04-25] :** pour les noms partagés entre entités métier et classes d'erreur, fournir `file_path` à `gitnexus_context()` pour obtenir le bon symbole du premier coup.
 - **Obsolete cached stats removed:** the earlier 2026-04-03 counts (`9 569` nodes / `41 834` edges / `667` clusters) no longer represent the current index surface.
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)
@@ -21,7 +22,7 @@
 | `BicepGenerationEngine` | Class (970 lignes) | Cœur de la génération Bicep — 2 handlers dépendent + tous les generators |
 | `BicepAssembler` | Class (~180 lines) | Thin orchestrator — delegates to 14 specialized classes under `Assemblers/`, `Helpers/`, `StorageAccount/`, `Models/` |
 | `InfrastructureConfigReadRepository` | Class | Point central de lecture — switch cases sur tous les types de ressources |
-| `AppPipelineGenerationEngine` | Class | Orchestrateur app pipeline — 5 generators (Container/Code × resource type), appelé par les 2 pipeline handlers |
+| `AppPipelineGenerationEngine` | Class | Orchestrateur app pipeline — 5 generators (Container/Code × resource type), appelé par les handlers génération pipeline; spot-check GitNexus [2026-04-25]: risque upstream **MEDIUM**, 6 dépendants directs |
 | `MonoRepoPipelineAssembler` | Class | Assembleur pipeline YAML infra — mono-repo structure, couplé aux handlers génération pipeline |
 
 ## Flows critiques
@@ -49,8 +50,11 @@
 
 ## Clusters fonctionnels principaux
 
-> À compléter par `@dream` lors de la prochaine consolidation via `READ gitnexus://repo/infra-pipeline-editor/clusters`.
+- **Génération Bicep** — `BicepGenerationController` / handlers projet+config -> `BicepGenerationEngine` -> `BicepAssembler` / `MonoRepoBicepAssembler`
+- **Génération Pipeline** — `PipelineGenerationController` / `ProjectController` -> handlers projet+config -> `MonoRepoPipelineAssembler`, `AppPipelineGenerationEngine`, `BootstrapPipelineGenerationEngine`
+- **Topology & Git routing** — `Project`, `InfrastructureConfig`, `IRepositoryTargetResolver`, repositories projet/config, handlers de push mono-repo et multi-repo
+- **CRUD ressources** — contrôleurs par ressource -> handlers CQRS -> repositories EF Core / read repositories
 
 ---
 
-*Dernière mise à jour : 2026-04-24 — Dream consolidation (dream cycle)*
+*Dernière mise à jour : 2026-04-25 — Dream consolidation (dream cycle)*

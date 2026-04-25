@@ -1178,8 +1178,8 @@
         </div>
       </mat-tab>
 
-      <!-- Git Configuration (multi-repo only) -->
-      @if (isMultiRepo()) {
+      <!-- Git Configuration (project layout = MultiRepo only) -->
+      @if (isProjectMultiRepo()) {
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon class="tab-icon">code</mat-icon>
