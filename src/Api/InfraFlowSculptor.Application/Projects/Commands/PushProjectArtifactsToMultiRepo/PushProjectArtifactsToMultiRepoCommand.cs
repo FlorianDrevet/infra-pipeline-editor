@@ -14,12 +14,12 @@ namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsTo
 /// the per-config push endpoints.
 /// </remarks>
 /// <param name="ProjectId">The project to push.</param>
-/// <param name="Infra">Push target for the infrastructure-flagged repository.</param>
-/// <param name="Code">Push target for the application-code-flagged repository.</param>
+/// <param name="Infra">Optional push target for the infrastructure-flagged repository.</param>
+/// <param name="Code">Optional push target for the application-code-flagged repository.</param>
 public sealed record PushProjectArtifactsToMultiRepoCommand(
     ProjectId ProjectId,
-    RepoPushTarget Infra,
-    RepoPushTarget Code) : ICommand<PushProjectArtifactsToMultiRepoResult>;
+    RepoPushTarget? Infra,
+    RepoPushTarget? Code) : ICommand<PushProjectArtifactsToMultiRepoResult>;
 
 /// <summary>Per-repository push parameters.</summary>
 /// <param name="Alias">The expected alias on the project (used for safety check vs resolver).</param>
@@ -27,8 +27,8 @@ public sealed record PushProjectArtifactsToMultiRepoCommand(
 /// <param name="CommitMessage">The Git commit message.</param>
 public sealed record RepoPushTarget(string Alias, string BranchName, string CommitMessage);
 
-/// <summary>Aggregated result of a SplitInfraCode dual push.</summary>
-/// <param name="Results">One entry per repository (infra first, then code), in the order pushed.</param>
+/// <summary>Aggregated result of a SplitInfraCode multi-repository push.</summary>
+/// <param name="Results">One entry per requested repository, in the order pushed (infra first, then code).</param>
 public sealed record PushProjectArtifactsToMultiRepoResult(IReadOnlyList<RepoPushResult> Results);
 
 /// <summary>Outcome of a single repository push.</summary>

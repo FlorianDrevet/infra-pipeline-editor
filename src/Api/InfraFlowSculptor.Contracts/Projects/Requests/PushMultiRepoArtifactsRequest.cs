@@ -3,11 +3,11 @@ using System.ComponentModel.DataAnnotations;
 namespace InfraFlowSculptor.Contracts.Projects.Requests;
 
 /// <summary>Request body for the SplitInfraCode dual-repo push endpoint.</summary>
-/// <param name="Infra">Push parameters for the infrastructure-flagged repository.</param>
-/// <param name="Code">Push parameters for the application-code-flagged repository.</param>
+/// <param name="Infra">Optional push parameters for the infrastructure-flagged repository.</param>
+/// <param name="Code">Optional push parameters for the application-code-flagged repository.</param>
 public sealed record PushMultiRepoArtifactsRequest(
-    [property: Required] RepoPushTargetRequest Infra,
-    [property: Required] RepoPushTargetRequest Code);
+    RepoPushTargetRequest? Infra,
+    RepoPushTargetRequest? Code);
 
 /// <summary>Per-repository push target.</summary>
 /// <param name="Alias">The expected repository alias on the project.</param>

@@ -16,9 +16,9 @@ public sealed class RepositoryTargetResolver : IRepositoryTargetResolver
         ArgumentNullException.ThrowIfNull(project);
 
         // Routing role:
-        //  - ApplicationPipeline → ApplicationCode-flagged repository (SplitInfraCode dual push).
-        //  - Everything else (Bicep, infra pipeline, bootstrap) → Infrastructure-flagged repository.
-        var role = kind == ArtifactKind.ApplicationPipeline
+        //  - ApplicationPipeline / BootstrapApplication → ApplicationCode-flagged repository (SplitInfraCode dual push).
+        //  - Everything else (Bicep, infra pipeline, infra bootstrap) → Infrastructure-flagged repository.
+        var role = kind is ArtifactKind.ApplicationPipeline or ArtifactKind.BootstrapApplication
             ? RepositoryContentKindsEnum.ApplicationCode
             : RepositoryContentKindsEnum.Infrastructure;
 
@@ -41,17 +41,20 @@ public sealed class RepositoryTargetResolver : IRepositoryTargetResolver
         if (projectRepo is null)
             return Errors.GitRouting.AliasNotFound(role.ToString());
 
+        if (!projectRepo.IsConfigured)
+            return Errors.GitRouting.RepositorySlotNotConfigured(projectRepo.Alias.Value);
+
         return BuildFromProjectRepository(projectRepo);
     }
 
     private static ResolvedRepositoryTarget BuildFromProjectRepository(ProjectRepository repo) =>
         new(
             Alias: repo.Alias.Value,
-            ProviderType: repo.ProviderType,
-            RepositoryUrl: repo.RepositoryUrl,
-            Owner: repo.Owner,
-            RepositoryName: repo.RepositoryName,
-            Branch: repo.DefaultBranch,
+            ProviderType: repo.ProviderType!,
+            RepositoryUrl: repo.RepositoryUrl!,
+            Owner: repo.Owner!,
+            RepositoryName: repo.RepositoryName!,
+            Branch: repo.DefaultBranch!,
             BasePath: null,
             PipelineBasePath: null,
             PatSecretName: null);

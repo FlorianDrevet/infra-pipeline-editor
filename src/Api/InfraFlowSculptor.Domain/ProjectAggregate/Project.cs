@@ -319,12 +319,15 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// <summary>
     /// Adds a new <see cref="ProjectRepository"/> to this project.
     /// The alias must be unique within the project. The current <see cref="LayoutPreset"/> must allow the operation.
+    /// Connection details (<paramref name="providerType"/>, <paramref name="repositoryUrl"/>, <paramref name="defaultBranch"/>)
+    /// are optional: pass them all to create a fully configured repository, or pass them all as <c>null</c>/empty
+    /// to create an unconfigured slot to be completed later.
     /// </summary>
     public ErrorOr<ProjectRepository> AddRepository(
         RepositoryAlias alias,
-        GitProviderType providerType,
-        string repositoryUrl,
-        string defaultBranch,
+        GitProviderType? providerType,
+        string? repositoryUrl,
+        string? defaultBranch,
         RepositoryContentKinds contentKinds)
     {
         var allowed = EnsureRepositoryAllowedByLayout(contentKinds, expectedCountAfterAdd: _repositories.Count + 1);
@@ -345,9 +348,9 @@ public sealed class Project : AggregateRoot<ProjectId>
     /// <summary>Updates an existing <see cref="ProjectRepository"/> by id.</summary>
     public ErrorOr<ProjectRepository> UpdateRepository(
         ProjectRepositoryId id,
-        GitProviderType providerType,
-        string repositoryUrl,
-        string defaultBranch,
+        GitProviderType? providerType,
+        string? repositoryUrl,
+        string? defaultBranch,
         RepositoryContentKinds contentKinds)
     {
         var existing = _repositories.FirstOrDefault(r => r.Id == id);

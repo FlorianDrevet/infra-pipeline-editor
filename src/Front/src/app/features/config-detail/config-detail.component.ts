@@ -2,6 +2,7 @@ import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -18,7 +19,14 @@ import {
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent } from '../../shared/components/ds';import {
+import {
+  DsButtonComponent,
+  DsPanelActionButtonComponent,
+  DsSelectComponent,
+  DsSelectOption,
+  DsTextFieldComponent,
+} from '../../shared/components/ds';
+import {
   EditAbbreviationDialogComponent,
   EditAbbreviationDialogData,
   EditAbbreviationDialogResult,
@@ -108,6 +116,7 @@ interface ResourceDisplayItem {
     FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
+    MatCardModule,
     MatChipsModule,
     MatDialogModule,
     MatIconModule,
@@ -118,6 +127,7 @@ interface ResourceDisplayItem {
     BicepFilePanelComponent,
     DiagnosticPopoverComponent,
     DsButtonComponent,
+    DsPanelActionButtonComponent,
     DsSelectComponent,
     DsTextFieldComponent,
   ],
@@ -183,7 +193,6 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly bicepResult = signal<GenerateBicepResponse | null>(null);
   protected readonly bicepErrorKey = signal('');
   protected readonly bicepPanelOpen = signal(false);
-  protected readonly bicepPanelCollapsed = signal(false);
   protected readonly bicepDownloading = signal(false);
 
   // ─── Bicep File Panel ───
@@ -250,7 +259,6 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly pipelineResult = signal<GeneratePipelineResponse | null>(null);
   protected readonly pipelineErrorKey = signal('');
   protected readonly pipelinePanelOpen = signal(false);
-  protected readonly pipelinePanelCollapsed = signal(false);
   protected readonly pipelineDownloading = signal(false);
 
   protected readonly configPipelineNodes = computed<BicepTreeNode[]>(() => {
@@ -383,6 +391,7 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly generateAllLoading = computed(
     () => this.validatingDiagnostics() || this.bicepLoading() || this.pipelineLoading(),
   );
+  protected readonly generationPanelCollapsed = signal(false);
   protected readonly generationPanelOpen = computed(
     () => this.bicepPanelOpen() || this.pipelinePanelOpen() || this.bicepLoading() || this.pipelineLoading(),
   );
@@ -408,6 +417,11 @@ export class ConfigDetailComponent implements OnInit {
   protected closeGenerationPanel(): void {
     this.closeBicepPanel();
     this.closePipelinePanel();
+    this.generationPanelCollapsed.set(false);
+  }
+
+  protected toggleGenerationPanelCollapsed(): void {
+    this.generationPanelCollapsed.update((collapsed) => !collapsed);
   }
 
   // ─── Git Config (multi-repo, config-level display) ───
@@ -1464,6 +1478,7 @@ export class ConfigDetailComponent implements OnInit {
     this.bicepLoading.set(true);
     this.bicepErrorKey.set('');
     this.bicepResult.set(null);
+    this.generationPanelCollapsed.set(false);
     this.bicepPanelOpen.set(true);
 
     try {
@@ -1546,6 +1561,7 @@ export class ConfigDetailComponent implements OnInit {
     this.pipelineLoading.set(true);
     this.pipelineErrorKey.set('');
     this.pipelineResult.set(null);
+    this.generationPanelCollapsed.set(false);
     this.pipelinePanelOpen.set(true);
 
     try {
@@ -1751,12 +1767,22 @@ export class ConfigDetailComponent implements OnInit {
     if (!cfg) return;
     if (this.configLayoutMode() === mode) return;
 
+    const previous = cfg;
+
+    this.gitActionError.set('');
     this.configLayoutModeSaving.set(true);
+    this.config.set({
+      ...cfg,
+      layoutMode: mode,
+      repositories: [],
+    });
+
     try {
       await this.projectService.setConfigLayoutMode(cfg.projectId, cfg.id, mode);
       const updated = await this.infraConfigService.getById(cfg.id);
       this.config.set(updated);
     } catch {
+      this.config.set(previous);
       this.gitActionError.set('CONFIG_DETAIL.REPOSITORIES.LAYOUT_MODE_SAVE_ERROR');
     } finally {
       this.configLayoutModeSaving.set(false);

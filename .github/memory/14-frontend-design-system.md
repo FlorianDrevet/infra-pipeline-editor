@@ -18,9 +18,10 @@
 
 - Layout and CTA primitives: `app-ds-button`, `app-ds-card`, `app-ds-alert`, `app-ds-section-header`, `app-ds-page-header`.
 - CVA form controls: `app-ds-text-field`, `app-ds-textarea`, `app-ds-select`, `app-ds-toggle`, `app-ds-checkbox`, `app-ds-radio-group`.
-- Support controls: `app-ds-chip`, `app-ds-icon-button`.
+- Support controls: `app-ds-chip`, `app-ds-icon-button`, `app-ds-panel-action-button`.
 - `DsSelectComponent` uses `cdkConnectedOverlay` so dropdowns escape scrollable/tabbed containers instead of creating nested scrollbars.
 - `DsToggleComponent` exposes `ariaLabel` for icon-only or label-less usages and is reused by `ToggleSectionCardComponent`.
+- `DsPanelActionButtonComponent` targets compact panel-header actions with `tone` (`neutral | accent | danger`), `surface` (`light | dark`), optional `pressed`/`ariaExpanded`, and a premium glassy soft-square visual. It currently powers the generation-panel collapse/close cluster in `config-detail` and `project-detail`.
 
 ## Global Material Override
 
@@ -41,6 +42,7 @@
 
 - Prefer `formControlName` for DS forms. For isolated signal-based inputs, use standalone `ngModel`.
 - Do not assume DS controls forward arbitrary native attributes; `app-ds-button` does not forward `form="<id>"`.
+- `app-ds-panel-action-button` is the preferred control for compact panel/card header actions on mixed light/dark surfaces; do not overload `app-ds-icon-button` for toggled panel-state affordances.
 - `TranslateService.instant()`-built `DsSelectOption[]` labels are not reactive on language switch; component recreation is required.
 - Reactive-forms demos and showcases must keep DS controls inside a local `FormGroup` container or Angular throws runtime binding errors.
 - `DsTextField` migrations should rely on CVA binding rather than ad hoc `value`/`valueChange` assumptions.

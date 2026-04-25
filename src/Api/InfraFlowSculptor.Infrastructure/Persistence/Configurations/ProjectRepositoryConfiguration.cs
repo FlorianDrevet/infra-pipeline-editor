@@ -32,24 +32,23 @@ public sealed class ProjectRepositoryConfiguration : IEntityTypeConfiguration<Pr
 
         builder.Property(x => x.ProviderType)
             .HasConversion(new EnumValueConverter<GitProviderType, GitProviderTypeEnum>())
-            .IsRequired();
+            .IsRequired(false);
 
         builder.Property(x => x.RepositoryUrl)
-            .IsRequired()
+            .IsRequired(false)
             .HasMaxLength(500);
 
         builder.Property(x => x.Owner)
-            .IsRequired()
+            .IsRequired(false)
             .HasMaxLength(200);
 
         builder.Property(x => x.RepositoryName)
-            .IsRequired()
+            .IsRequired(false)
             .HasMaxLength(200);
 
         builder.Property(x => x.DefaultBranch)
-            .IsRequired()
-            .HasMaxLength(200)
-            .HasDefaultValue("main");
+            .IsRequired(false)
+            .HasMaxLength(200);
 
         builder.Property(x => x.ContentKinds)
             .HasConversion(new RepositoryContentKindsConverter())

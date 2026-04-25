@@ -11,6 +11,7 @@ using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.PipelineGeneration;
 using InfraFlowSculptor.PipelineGeneration.Models;
@@ -68,10 +69,21 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         var organizationName = DecodeUrlSegment(ownerParts[0]);
         var adoProjectName = DecodeUrlSegment(ownerParts.Length > 1 ? ownerParts[1] : ownerParts[0]);
 
-        var pipelineBasePath = target.PipelineBasePath;
-        var pipelines = await BuildPipelineDefinitionsAsync(
+        var isSplit = project.LayoutPreset.Value == LayoutPresetEnum.SplitInfraCode;
+
+        ResolvedRepositoryTarget? appTarget = null;
+        if (isSplit)
+        {
+            var appTargetResult = targetResolver.Resolve(project, config: null, ArtifactKind.BootstrapApplication);
+            if (appTargetResult.IsError)
+                return appTargetResult.Errors;
+            appTarget = appTargetResult.Value;
+        }
+
+        var (infraPipelines, appPipelines) = await BuildPipelineDefinitionsSplitAsync(
                 configs,
-                pipelineBasePath,
+                infraPipelineBasePath: target.PipelineBasePath,
+                appPipelineBasePath: isSplit ? appTarget!.PipelineBasePath : target.PipelineBasePath,
                 cancellationToken)
             .ConfigureAwait(false);
 
@@ -94,57 +106,124 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
 
         var bootstrapEnvironments = BuildEnvironmentDefinitions(project.EnvironmentDefinitions, configs);
 
-        var bootstrapRequest = new BootstrapGenerationRequest
-        {
-            OrganizationName = organizationName,
-            ProjectName = adoProjectName,
-            RepositoryName = DecodeUrlSegment(target.RepositoryName),
-            DefaultBranch = target.Branch,
-            AgentPoolName = project.AgentPoolName,
-            Pipelines = pipelines,
-            Environments = bootstrapEnvironments,
-            VariableGroups = variableGroups,
-        };
-
-        var generationResult = bootstrapEngine.Generate(bootstrapRequest);
         var prefix = $"bootstrap/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
-        var fileUris = new Dictionary<string, Uri>();
+        var unionFileUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
+        var infraFileUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
+        var appFileUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
 
-        foreach (var (path, content) in generationResult.Files)
+        if (isSplit)
         {
-            var uri = await blobService.UploadContentAsync($"{prefix}/{path}", content, "text/plain");
-            fileUris[path] = uri;
+            // Infra bootstrap (FullOwner): infra pipelines + envs + VGs.
+            var infraRequest = new BootstrapGenerationRequest
+            {
+                OrganizationName = organizationName,
+                ProjectName = adoProjectName,
+                RepositoryName = DecodeUrlSegment(target.RepositoryName),
+                DefaultBranch = target.Branch,
+                AgentPoolName = project.AgentPoolName,
+                Pipelines = infraPipelines,
+                Environments = bootstrapEnvironments,
+                VariableGroups = variableGroups,
+                Mode = BootstrapMode.FullOwner,
+            };
+
+            var infraGeneration = bootstrapEngine.Generate(infraRequest);
+            foreach (var (path, content) in infraGeneration.Files)
+            {
+                var uri = await blobService.UploadContentAsync($"{prefix}/infra/{path}", content, "text/plain");
+                infraFileUris[path] = uri;
+                unionFileUris[$"infra/{path}"] = uri;
+            }
+
+            // Application bootstrap (ApplicationOnly): app pipelines + validation of envs/VGs.
+            var appRequest = new BootstrapGenerationRequest
+            {
+                OrganizationName = organizationName,
+                ProjectName = adoProjectName,
+                RepositoryName = DecodeUrlSegment(appTarget!.RepositoryName),
+                DefaultBranch = appTarget.Branch,
+                AgentPoolName = project.AgentPoolName,
+                Pipelines = appPipelines,
+                Environments = bootstrapEnvironments,
+                VariableGroups = variableGroups,
+                Mode = BootstrapMode.ApplicationOnly,
+            };
+
+            var appGeneration = bootstrapEngine.Generate(appRequest);
+            foreach (var (path, content) in appGeneration.Files)
+            {
+                var uri = await blobService.UploadContentAsync($"{prefix}/app/{path}", content, "text/plain");
+                appFileUris[path] = uri;
+                unionFileUris[$"app/{path}"] = uri;
+            }
+        }
+        else
+        {
+            // AllInOne / MultiRepo: single bootstrap owns everything (infra + app pipelines).
+            var allPipelines = infraPipelines.Concat(appPipelines)
+                .DistinctBy(pipeline => new { pipeline.Name, pipeline.YamlPath, pipeline.Folder })
+                .ToList();
+
+            var bootstrapRequest = new BootstrapGenerationRequest
+            {
+                OrganizationName = organizationName,
+                ProjectName = adoProjectName,
+                RepositoryName = DecodeUrlSegment(target.RepositoryName),
+                DefaultBranch = target.Branch,
+                AgentPoolName = project.AgentPoolName,
+                Pipelines = allPipelines,
+                Environments = bootstrapEnvironments,
+                VariableGroups = variableGroups,
+                Mode = BootstrapMode.FullOwner,
+            };
+
+            var generationResult = bootstrapEngine.Generate(bootstrapRequest);
+
+            foreach (var (path, content) in generationResult.Files)
+            {
+                var uri = await blobService.UploadContentAsync($"{prefix}/{path}", content, "text/plain");
+                unionFileUris[path] = uri;
+                infraFileUris[path] = uri;
+            }
         }
 
-        return new GenerateProjectBootstrapPipelineResult(fileUris);
+        return new GenerateProjectBootstrapPipelineResult(unionFileUris, infraFileUris, appFileUris);
     }
 
-    private async Task<IReadOnlyList<BootstrapPipelineDefinition>> BuildPipelineDefinitionsAsync(
+    private async Task<(IReadOnlyList<BootstrapPipelineDefinition> Infra, IReadOnlyList<BootstrapPipelineDefinition> App)>
+        BuildPipelineDefinitionsSplitAsync(
         IReadOnlyList<InfrastructureConfigReadModel> configs,
-        string? pipelineBasePath,
+        string? infraPipelineBasePath,
+        string? appPipelineBasePath,
         CancellationToken cancellationToken)
     {
-        var pipelines = new List<BootstrapPipelineDefinition>();
-        var basePrefix = string.IsNullOrEmpty(pipelineBasePath)
+        var infraPipelines = new List<BootstrapPipelineDefinition>();
+        var appPipelines = new List<BootstrapPipelineDefinition>();
+
+        var infraBasePrefix = string.IsNullOrEmpty(infraPipelineBasePath)
             ? string.Empty
-            : $"{pipelineBasePath.Trim('/')}/";
+            : $"{infraPipelineBasePath.Trim('/')}/";
+
+        var appBasePrefix = string.IsNullOrEmpty(appPipelineBasePath)
+            ? string.Empty
+            : $"{appPipelineBasePath.Trim('/')}/";
 
         foreach (var config in configs)
         {
             var sanitizedConfigName = PathSanitizer.Sanitize(config.Name);
 
-            pipelines.AddRange(BuildInfrastructurePipelineDefinitions(config.Name, sanitizedConfigName, basePrefix));
-            pipelines.AddRange(await BuildApplicationPipelineDefinitionsAsync(
+            infraPipelines.AddRange(BuildInfrastructurePipelineDefinitions(config.Name, sanitizedConfigName, infraBasePrefix));
+            appPipelines.AddRange(await BuildApplicationPipelineDefinitionsAsync(
                     config,
                     sanitizedConfigName,
-                    basePrefix,
+                    appBasePrefix,
                     cancellationToken)
                 .ConfigureAwait(false));
         }
 
-        return pipelines
-            .DistinctBy(pipeline => new { pipeline.Name, pipeline.YamlPath, pipeline.Folder })
-            .ToList();
+        return (
+            infraPipelines.DistinctBy(pipeline => new { pipeline.Name, pipeline.YamlPath, pipeline.Folder }).ToList(),
+            appPipelines.DistinctBy(pipeline => new { pipeline.Name, pipeline.YamlPath, pipeline.Folder }).ToList());
     }
 
     private static IReadOnlyList<BootstrapPipelineDefinition> BuildInfrastructurePipelineDefinitions(

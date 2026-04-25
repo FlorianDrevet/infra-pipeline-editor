@@ -18,19 +18,36 @@ public sealed class AddProjectRepositoryCommandValidator
             .MaximumLength(50).WithMessage("Alias must not exceed 50 characters.")
             .Matches(AliasPattern).WithMessage("Alias must contain only lowercase letters, digits and hyphens.");
 
+        // Connection details are optional, but when provided they must be valid and consistent.
         RuleFor(x => x.ProviderType)
-            .NotEmpty().WithMessage("ProviderType is required.")
-            .Must(v => v is "GitHub" or "AzureDevOps")
+            .Must(v => v is null or "GitHub" or "AzureDevOps")
             .WithMessage("ProviderType must be 'GitHub' or 'AzureDevOps'.");
 
-        RuleFor(x => x.RepositoryUrl)
-            .NotEmpty().WithMessage("RepositoryUrl is required.")
-            .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
-            .WithMessage("RepositoryUrl must be a valid absolute URL.");
+        When(x => !string.IsNullOrWhiteSpace(x.RepositoryUrl), () =>
+        {
+            RuleFor(x => x.RepositoryUrl!)
+                .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
+                .WithMessage("RepositoryUrl must be a valid absolute URL.");
+        });
 
         RuleFor(x => x.DefaultBranch)
-            .NotEmpty().WithMessage("DefaultBranch is required.")
             .MaximumLength(200).WithMessage("DefaultBranch must not exceed 200 characters.");
+
+        // All-or-nothing: connection details must be either fully provided or fully empty.
+        RuleFor(x => x).Custom((cmd, ctx) =>
+        {
+            var hasUrl = !string.IsNullOrWhiteSpace(cmd.RepositoryUrl);
+            var hasBranch = !string.IsNullOrWhiteSpace(cmd.DefaultBranch);
+            var hasProvider = !string.IsNullOrWhiteSpace(cmd.ProviderType);
+            var anySet = hasUrl || hasBranch || hasProvider;
+            var allSet = hasUrl && hasBranch && hasProvider;
+            if (anySet && !allSet)
+            {
+                ctx.AddFailure(
+                    "ConnectionDetails",
+                    "ProviderType, RepositoryUrl and DefaultBranch must be either all provided or all empty.");
+            }
+        });
 
         RuleFor(x => x.ContentKinds)
             .NotNull().WithMessage("ContentKinds is required.")

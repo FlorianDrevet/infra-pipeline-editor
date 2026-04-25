@@ -128,7 +128,16 @@ export interface GenerateProjectPipelineResponse {
 }
 
 export interface GenerateProjectBootstrapPipelineResponse {
+  /**
+   * Flat union of all generated bootstrap files keyed by relative path.
+   * In SplitInfraCode layout, paths are prefixed with `infra/` and `app/`.
+   * In AllInOne layout, paths are root-level.
+   */
   fileUris: Record<string, string>;
+  /** Bootstrap files targeted at the infra-flagged repository (no `infra/` prefix). */
+  infraFileUris: Record<string, string>;
+  /** Bootstrap files targeted at the application-code repository (no `app/` prefix). Empty in AllInOne. */
+  appFileUris: Record<string, string>;
 }
 
 // ─── Project Pipeline Variable Groups ────────────────────────────────────────

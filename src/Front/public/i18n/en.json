@@ -624,7 +624,10 @@
     "GENERATION": {
       "TITLE": "Generation Results",
       "TAB_BICEP": "Bicep",
-      "TAB_PIPELINE": "Pipeline"
+      "TAB_PIPELINE": "Pipeline",
+      "COLLAPSE": "Collapse generation results",
+      "EXPAND": "Expand generation results",
+      "CLOSE": "Close generation results"
     },
     "GENERATE_ALL": {
       "BUTTON": "Generate",
@@ -805,12 +808,21 @@
       "INFRA_TAB": "Infra",
       "CODE_TAB": "Code",
       "FILES_COUNT": "{{count}} file(s)",
-      "BOOTSTRAP_INFO": "Bootstrap is managed on the Infra side.",
-      "EMPTY": "No files generated yet."
+      "BOOTSTRAP_INFO": "Bootstrap is split: the infra repo owns environments and variable groups; the code repo only validates them and provisions its own application pipelines.",
+      "BOOTSTRAP_APP_INFO": "This bootstrap pipeline runs in the code repository. It does NOT create environments or variable groups (those belong to the infra bootstrap). It validates that they exist, then provisions the application pipeline definitions.",
+      "EMPTY": "No files generated yet.",
+      "INFRA_PUSH_DESC": "Pushes generated infrastructure artifacts: Bicep, infra pipeline, and infra bootstrap (owner of environments and variable groups).",
+      "CODE_PUSH_DESC": "Pushes generated application pipeline and the application-side bootstrap (validates shared resources + provisions app pipelines).",
+      "PUSH_INFRA": "Push infra",
+      "PUSH_CODE": "Push code"
     },
     "MULTI_REPO_PUSH": {
       "TITLE": "Push to Git (Infra + Code)",
+      "TITLE_INFRA": "Push infra to Git",
+      "TITLE_CODE": "Push application code to Git",
       "SUBTITLE": "Two independent commits will be created — one per repository.",
+      "SUBTITLE_INFRA": "A single commit will be created in the infrastructure repository.",
+      "SUBTITLE_CODE": "A single commit will be created in the application code repository.",
       "INFRA_CARD_TITLE": "Infrastructure repository",
       "CODE_CARD_TITLE": "Application code repository",
       "BRANCH_LABEL": "Target branch",
@@ -818,12 +830,22 @@
       "COMMIT_LABEL": "Commit message",
       "COMMIT_PLACEHOLDER": "Optional commit message",
       "CTA_PUSH_BOTH": "Push both repositories",
+      "CTA_PUSH_INFRA": "Push infrastructure repository",
+      "CTA_PUSH_CODE": "Push application repository",
       "PUSHING": "Pushing to both repositories…",
+      "PUSHING_INFRA": "Pushing infrastructure repository…",
+      "PUSHING_CODE": "Pushing application code repository…",
       "SUCCESS_TITLE": "All repositories pushed successfully",
+      "SUCCESS_TITLE_INFRA": "Infrastructure repository pushed successfully",
+      "SUCCESS_TITLE_CODE": "Application code repository pushed successfully",
       "PARTIAL_TITLE": "Push partially completed",
       "PARTIAL_DESC": "One of the two pushes failed. Review the details and retry.",
       "ERROR_TITLE": "Both pushes failed",
       "ERROR_DESC": "Neither repository could be updated. See details below.",
+      "ERROR_TITLE_INFRA": "Infrastructure push failed",
+      "ERROR_TITLE_CODE": "Application code push failed",
+      "ERROR_DESC_INFRA": "The infrastructure repository could not be updated. See details below.",
+      "ERROR_DESC_CODE": "The application code repository could not be updated. See details below.",
       "REPO_OK": "Pushed successfully",
       "REPO_FAILED": "Push failed",
       "COMMIT_SHA_LABEL": "Commit",
@@ -840,7 +862,11 @@
       "TITLE": "Generation Results",
       "TAB_BICEP": "Bicep",
       "TAB_PIPELINE": "Pipeline",
-      "TAB_BOOTSTRAP": "Bootstrap ADO"
+      "TAB_BOOTSTRAP": "Bootstrap ADO",
+      "TAB_BOOTSTRAP_APP": "Bootstrap (App)",
+      "COLLAPSE": "Collapse generation results",
+      "EXPAND": "Expand generation results",
+      "CLOSE": "Close generation results"
     },
     "BICEP": {
       "GENERATE": "Generate Bicep",

@@ -1,3 +1,5 @@
+export type MultiRepoPushMode = 'both' | 'infra' | 'code';
+
 export interface RepoPushTarget {
   alias: string;
   branchName: string;
@@ -5,8 +7,8 @@ export interface RepoPushTarget {
 }
 
 export interface MultiRepoPushRequest {
-  infra: RepoPushTarget;
-  code: RepoPushTarget;
+  infra?: RepoPushTarget;
+  code?: RepoPushTarget;
 }
 
 export interface RepoPushResult {

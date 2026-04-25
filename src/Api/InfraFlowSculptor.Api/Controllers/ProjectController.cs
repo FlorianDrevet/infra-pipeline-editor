@@ -1060,7 +1060,7 @@ public static class ProjectController
                         return result.Match(
                             value => Results.Created(
                                 $"/projects/{projectId}/generate-bootstrap-pipeline/files/bootstrap.pipeline.yml",
-                                new GenerateProjectBootstrapPipelineResponse(value.FileUris)),
+                                new GenerateProjectBootstrapPipelineResponse(value.FileUris, value.InfraFileUris, value.AppFileUris)),
                             errors => errors.Result()
                         );
                     })
@@ -1180,14 +1180,18 @@ public static class ProjectController
                     {
                         var command = new PushProjectArtifactsToMultiRepoCommand(
                             new ProjectId(projectId),
-                            new RepoPushTarget(
-                                request.Infra.Alias,
-                                request.Infra.BranchName,
-                                request.Infra.CommitMessage),
-                            new RepoPushTarget(
-                                request.Code.Alias,
-                                request.Code.BranchName,
-                                request.Code.CommitMessage));
+                            request.Infra is null
+                                ? null
+                                : new RepoPushTarget(
+                                    request.Infra.Alias,
+                                    request.Infra.BranchName,
+                                    request.Infra.CommitMessage),
+                            request.Code is null
+                                ? null
+                                : new RepoPushTarget(
+                                    request.Code.Alias,
+                                    request.Code.BranchName,
+                                    request.Code.CommitMessage));
 
                         var result = await mediator.Send(command);
 
@@ -1211,8 +1215,8 @@ public static class ProjectController
                         );
                     })
                 .WithName("PushProjectArtifactsToMultiRepo")
-                .WithSummary("Push project artifacts to two repositories (SplitInfraCode dual push)")
-                .WithDescription("Pushes the latest project-level generated artifacts to both the infrastructure-flagged repository (Bicep + infra pipeline + bootstrap) and the application-code-flagged repository (app pipeline files) in two independent commits. Per-repo errors are reported in the response, not as HTTP errors.")
+                .WithSummary("Push project artifacts to one or two repositories (SplitInfraCode multi push)")
+                .WithDescription("Pushes the latest project-level generated artifacts to the requested infrastructure-flagged repository (Bicep + infra pipeline + bootstrap), the requested application-code repository (app pipeline files), or both in independent commits. Per-repo errors are reported in the response, not as HTTP errors.")
                 .Produces<PushMultiRepoArtifactsResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)

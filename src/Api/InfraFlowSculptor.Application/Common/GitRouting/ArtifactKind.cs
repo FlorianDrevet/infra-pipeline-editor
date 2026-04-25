@@ -14,9 +14,20 @@ public enum ArtifactKind
     /// <summary>CI/CD pipeline artifacts (YAML pipelines per configuration).</summary>
     Pipeline,
 
-    /// <summary>Project-level bootstrap pipeline artifacts.</summary>
+    /// <summary>
+    /// Project-level bootstrap pipeline artifacts targeting the infrastructure-flagged repository.
+    /// In <c>SplitInfraCode</c> layout, this bootstrap owns the project-level shared Azure DevOps
+    /// resources (environments, variable groups) and the infrastructure pipeline definitions.
+    /// </summary>
     Bootstrap,
 
     /// <summary>Application CI/CD pipeline artifacts (per-resource wrappers + shared app templates) that target the application-code repository.</summary>
     ApplicationPipeline,
+
+    /// <summary>
+    /// Project-level bootstrap pipeline artifacts targeting the application-code-flagged repository.
+    /// Only emitted in <c>SplitInfraCode</c> layout; provisions only application pipeline definitions
+    /// and validates that shared project-level resources (environments, variable groups) already exist.
+    /// </summary>
+    BootstrapApplication,
 }

@@ -10,6 +10,7 @@ public static partial class Errors
     {
         private const string AliasNotFoundCode = "GitRouting.AliasNotFound";
         private const string NoRepositoryConfiguredCode = "GitRouting.NoRepositoryConfigured";
+        private const string RepositorySlotNotConfiguredCode = "GitRouting.RepositorySlotNotConfigured";
         private const string AmbiguousProjectLevelGenerationCode = "GitRouting.AmbiguousProjectLevelGeneration";
         private const string LayoutNotSupportedForMultiRepoPushCode = "GitRouting.LayoutNotSupportedForMultiRepoPush";
 
@@ -32,6 +33,16 @@ public static partial class Errors
             Error.Validation(
                 code: NoRepositoryConfiguredCode,
                 description: $"Project '{projectId.Value}' has no repository configured.");
+
+        /// <summary>
+        /// Returned when a repository slot was created (alias + content kinds) but its connection
+        /// details (provider, URL, default branch) have not been provided yet.
+        /// </summary>
+        /// <param name="alias">The alias of the unconfigured repository slot.</param>
+        public static Error RepositorySlotNotConfigured(string alias) =>
+            Error.Validation(
+                code: RepositorySlotNotConfiguredCode,
+                description: $"Repository '{alias}' is declared but its Git connection details (provider, URL, default branch) are not configured yet.");
 
         /// <summary>
         /// Returned when a project-level "generate-all" operation is attempted while the project

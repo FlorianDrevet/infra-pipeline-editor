@@ -10,7 +10,22 @@
       </span>
     </ng-template>
 
-    <mat-tab-group class="generation-tabs split-switcher__inner" animationDuration="200ms">
+    <div class="split-switcher__panel">
+      <div class="split-switcher__cta split-switcher__cta--infra">
+        <div class="split-switcher__cta-copy">
+          <span class="split-switcher__cta-eyebrow">{{ 'PROJECT_DETAIL.SWITCHER.INFRA_TAB' | translate }}</span>
+          <p class="split-switcher__cta-text">{{ 'PROJECT_DETAIL.SWITCHER.INFRA_PUSH_DESC' | translate }}</p>
+        </div>
+        <app-ds-button
+          variant="primary"
+          icon="cloud_upload"
+          [disabled]="!canPushInfra()"
+          (clicked)="onPushInfra()">
+          {{ 'PROJECT_DETAIL.SWITCHER.PUSH_INFRA' | translate }}
+        </app-ds-button>
+      </div>
+
+      <mat-tab-group class="generation-tabs split-switcher__inner" animationDuration="200ms">
       <!-- Bicep -->
       <mat-tab>
         <ng-template mat-tab-label>
@@ -107,10 +122,10 @@
               </button>
             </div>
           }
-          @if (bootstrapNodes().length > 0) {
+          @if (hasInfraBootstrap()) {
             <app-bicep-file-panel
-              [nodes]="bootstrapNodes()"
-              [barTitle]="'bootstrap-generator \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
+              [nodes]="infraBootstrapNodes()"
+              [barTitle]="'bootstrap-generator (infra) \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
               [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
               [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
               [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
@@ -121,7 +136,8 @@
           }
         </div>
       </mat-tab>
-    </mat-tab-group>
+      </mat-tab-group>
+    </div>
   </mat-tab>
 
   <!-- ════════════════════════ CODE TAB ════════════════════════ -->
@@ -139,8 +155,23 @@
       </span>
     </ng-template>
 
-    <mat-tab-group class="generation-tabs split-switcher__inner split-switcher__inner--code"
-                   animationDuration="200ms">
+    <div class="split-switcher__panel">
+      <div class="split-switcher__cta split-switcher__cta--code">
+        <div class="split-switcher__cta-copy">
+          <span class="split-switcher__cta-eyebrow">{{ 'PROJECT_DETAIL.SWITCHER.CODE_TAB' | translate }}</span>
+          <p class="split-switcher__cta-text">{{ 'PROJECT_DETAIL.SWITCHER.CODE_PUSH_DESC' | translate }}</p>
+        </div>
+        <app-ds-button
+          variant="primary"
+          icon="cloud_upload"
+          [disabled]="!canPushCode()"
+          (clicked)="onPushCode()">
+          {{ 'PROJECT_DETAIL.SWITCHER.PUSH_CODE' | translate }}
+        </app-ds-button>
+      </div>
+
+      <mat-tab-group class="generation-tabs split-switcher__inner split-switcher__inner--code"
+                     animationDuration="200ms">
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">account_tree</mat-icon>
@@ -176,6 +207,48 @@
           }
         </div>
       </mat-tab>
-    </mat-tab-group>
+
+      <!-- Bootstrap (Code-side, application-only) -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">rocket_launch</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP_APP' | translate }}</span>
+        </ng-template>
+        <div class="generation-tab-content">
+          <div class="split-switcher__notice">
+            <mat-icon>info_outline</mat-icon>
+            <span>{{ 'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_APP_INFO' | translate }}</span>
+          </div>
+          @if (isGeneratingBootstrap()) {
+            <div class="split-switcher__loading">
+              <mat-spinner diameter="22"></mat-spinner>
+              <span>{{ 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' | translate }}</span>
+            </div>
+          }
+          @if (bootstrapGenerationError()) {
+            <div class="split-switcher__error">
+              <p>{{ bootstrapGenerationError()! | translate }}</p>
+              <button class="split-switcher__retry" type="button" (click)="onRetryBootstrap()">
+                <mat-icon>refresh</mat-icon>
+                {{ 'PROJECT_DETAIL.BOOTSTRAP.RETRY' | translate }}
+              </button>
+            </div>
+          }
+          @if (hasAppBootstrap()) {
+            <app-bicep-file-panel
+              [nodes]="appBootstrapNodes()"
+              [barTitle]="'bootstrap-generator (app) \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
+              [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
+              [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
+              [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
+              [loadFile]="loadBootstrapFile()">
+            </app-bicep-file-panel>
+          } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError()) {
+            <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
+          }
+        </div>
+      </mat-tab>
+      </mat-tab-group>
+    </div>
   </mat-tab>
 </mat-tab-group>

@@ -94,5 +94,10 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 
 - `RoleAssignmentConfiguration` now enforces a unique index on `(SourceResourceId, TargetResourceId, UserAssignedIdentityId, RoleDefinitionId)` so duplicate RBAC rows are rejected at the database level as well as in application logic.
 
+## Demo Snapshot Invariants [2026-04-25]
+
+- For Container Apps using Managed Identity ACR auth with a user-assigned `AcrPull` role, `AzureResource.AssignedUserAssignedIdentityId` must also point to that same UAI; otherwise Bicep generation falls back to the system identity for `acrManagedIdentityClientId`.
+- The API JWT secret app setting must be stored as `JwtSettings__Secret`; `JWT_SECRET` is the Key Vault secret name, not the ASP.NET configuration key bound from `JwtSettings:Secret`.
+
 ## Migrations
 17+ migration files in `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`. Always add a new migration when changing domain model.

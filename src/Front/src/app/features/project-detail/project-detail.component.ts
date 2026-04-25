@@ -25,7 +25,13 @@ import { UserResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
-import { DsButtonComponent, DsSelectComponent, DsSelectOption, DsTextFieldComponent } from '../../shared/components/ds';
+import {
+  DsButtonComponent,
+  DsPanelActionButtonComponent,
+  DsSelectComponent,
+  DsSelectOption,
+  DsTextFieldComponent,
+} from '../../shared/components/ds';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import {
@@ -47,6 +53,10 @@ import {
 import { LayoutRepositoriesComponent } from './layout-repositories/layout-repositories.component';
 import { SplitGenerationSwitcherComponent } from './split-generation-switcher/split-generation-switcher.component';
 import {
+  MultiRepoPushDialogComponent,
+  MultiRepoPushDialogData,
+} from './multi-repo-push-dialog/multi-repo-push-dialog.component';
+import {
   PushToGitDialogComponent,
   PushToGitDialogData,
 } from '../config-detail/push-to-git-dialog/push-to-git-dialog.component';
@@ -66,6 +76,7 @@ import {
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { firstValueFrom } from 'rxjs';
+import { MultiRepoPushMode } from '../../shared/interfaces/multi-repo-push.interface';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
@@ -191,6 +202,7 @@ function buildAzureDevOpsNodes(
     MatTabsModule,
     MatTooltipModule,
     DsButtonComponent,
+    DsPanelActionButtonComponent,
     DsSelectComponent,
     DsTextFieldComponent,
   ],
@@ -262,7 +274,7 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectBicepDownloading = signal(false);
   protected readonly projectBicepErrorKey = signal('');
   protected readonly projectBicepPanelOpen = signal(false);
-  protected readonly projectBicepPanelCollapsed = signal(false);
+  protected readonly projectGenerationPanelCollapsed = signal(false);
 
   // ─── Project Pipeline Generation (mono-repo) ───
   protected readonly projectPipelineLoading = signal(false);
@@ -270,7 +282,6 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectPipelineDownloading = signal(false);
   protected readonly projectPipelineErrorKey = signal('');
   protected readonly projectPipelinePanelOpen = signal(false);
-  protected readonly projectPipelinePanelCollapsed = signal(false);
 
   // ─── Project Bootstrap Pipeline Generation (Azure DevOps) ───
   protected readonly projectBootstrapLoading = signal(false);
@@ -283,6 +294,7 @@ export class ProjectDetailComponent implements OnInit {
       && this.projectPipelineResult() !== null
       && this.projectBootstrapResult() !== null,
   );
+  protected readonly isSplitInfraCodeLayout = computed(() => this.project()?.layoutPreset === 'SplitInfraCode');
 
   // ─── Pipeline Variable Groups ───
   protected readonly variableGroups = signal<ProjectPipelineVariableGroupResponse[]>([]);
@@ -1037,6 +1049,7 @@ export class ProjectDetailComponent implements OnInit {
     this.projectBicepLoading.set(true);
     this.projectBicepErrorKey.set('');
     this.projectBicepResult.set(null);
+    this.projectGenerationPanelCollapsed.set(false);
     this.projectBicepPanelOpen.set(true);
 
     try {
@@ -1068,6 +1081,7 @@ export class ProjectDetailComponent implements OnInit {
     this.projectPipelineLoading.set(true);
     this.projectPipelineErrorKey.set('');
     this.projectPipelineResult.set(null);
+    this.projectGenerationPanelCollapsed.set(false);
     this.projectPipelinePanelOpen.set(true);
 
     try {
@@ -1114,6 +1128,11 @@ export class ProjectDetailComponent implements OnInit {
     this.closeProjectBicepPanel();
     this.closeProjectPipelinePanel();
     this.closeProjectBootstrapPanel();
+    this.projectGenerationPanelCollapsed.set(false);
+  }
+
+  protected toggleProjectGenerationPanelCollapsed(): void {
+    this.projectGenerationPanelCollapsed.update((collapsed) => !collapsed);
   }
 
   // ─── Generation Diagnostics Dialog ───
@@ -1222,7 +1241,7 @@ export class ProjectDetailComponent implements OnInit {
 
   protected openProjectPushAllToGitDialog(): void {
     const project = this.project();
-    if (!project || !(project.repositories?.length)) return;
+    if (!project || !(project.repositories?.length) || project.layoutPreset === 'SplitInfraCode') return;
 
     const data: PushToGitDialogData = {
       configId: '', // Not used for project push
@@ -1231,6 +1250,45 @@ export class ProjectDetailComponent implements OnInit {
       isCombinedProjectPush: true,
     };
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
+  }
+
+  protected openProjectMultiRepoPushDialog(mode: MultiRepoPushMode): void {
+    const project = this.project();
+    const aliases = project ? this.resolveSplitRepoAliases(project) : null;
+    if (!project || !aliases) {
+      this.showProjectActionError('PROJECT_DETAIL.MULTI_REPO_PUSH.MISSING_SLOTS');
+      return;
+    }
+
+    const data: MultiRepoPushDialogData = {
+      projectId: project.id,
+      infraAlias: aliases.infraAlias,
+      codeAlias: aliases.codeAlias,
+      mode,
+    };
+
+    this.dialog.open(MultiRepoPushDialogComponent, { width: 'min(720px, 92vw)', data });
+  }
+
+  private resolveSplitRepoAliases(project: ProjectResponse): { infraAlias: string; codeAlias: string } | null {
+    const repositories = project.repositories ?? [];
+    const infraAlias = repositories.find((repository) => repository.contentKinds?.includes('Infrastructure'))?.alias;
+    const codeAlias = repositories.find((repository) => repository.contentKinds?.includes('ApplicationCode'))?.alias;
+
+    return infraAlias && codeAlias
+      ? { infraAlias, codeAlias }
+      : null;
+  }
+
+  private showProjectActionError(messageKey: string): void {
+    this.snackBar.open(
+      this.translate.instant(messageKey),
+      this.translate.instant('COMMON.CLOSE'),
+      {
+        duration: 5000,
+        panelClass: 'error-snackbar',
+      },
+    );
   }
 
   protected closeProjectPipelinePanel(): void {
@@ -1270,6 +1328,7 @@ export class ProjectDetailComponent implements OnInit {
     this.projectBootstrapLoading.set(true);
     this.projectBootstrapErrorKey.set('');
     this.projectBootstrapResult.set(null);
+    this.projectGenerationPanelCollapsed.set(false);
     this.projectBootstrapPanelOpen.set(true);
 
     try {

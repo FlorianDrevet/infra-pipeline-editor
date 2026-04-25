@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
+import { DsButtonComponent } from '../../../shared/components/ds';
 import {
   GenerateProjectBicepResponse,
   GenerateProjectBootstrapPipelineResponse,
@@ -38,6 +39,7 @@ import {
     MatProgressSpinnerModule,
     MatTabsModule,
     MatTooltipModule,
+    DsButtonComponent,
     BicepFilePanelComponent,
   ],
   templateUrl: './split-generation-switcher.component.html',
@@ -64,12 +66,13 @@ export class SplitGenerationSwitcherComponent {
   readonly retryBicep = output<void>();
   readonly retryPipeline = output<void>();
   readonly retryBootstrap = output<void>();
+  readonly pushInfra = output<void>();
+  readonly pushCode = output<void>();
 
   // ─── File counts (for badges) ───
   protected readonly infraFileCount = computed(() => {
     const p = this.pipelineResult();
     const b = this.bicepResult();
-    const bs = this.bootstrapResult();
     let total = 0;
     if (b) {
       total += Object.keys(b.commonFileUris ?? {}).length;
@@ -83,19 +86,20 @@ export class SplitGenerationSwitcherComponent {
         total += Object.keys(cfg).length;
       }
     }
-    if (bs) {
-      total += Object.keys(bs.fileUris ?? {}).length;
-    }
+    total += this.infraBootstrapNodes().filter((n) => n.kind === 'file').length;
     return total;
   });
 
   protected readonly codeFileCount = computed(() => {
     const p = this.pipelineResult();
-    if (!p) return 0;
-    let total = Object.keys(p.appCommonFileUris ?? {}).length;
-    for (const cfg of Object.values(p.appConfigFileUris ?? {})) {
-      total += Object.keys(cfg).length;
+    let total = 0;
+    if (p) {
+      total += Object.keys(p.appCommonFileUris ?? {}).length;
+      for (const cfg of Object.values(p.appConfigFileUris ?? {})) {
+        total += Object.keys(cfg).length;
+      }
     }
+    total += this.appBootstrapNodes().filter((n) => n.kind === 'file').length;
     return total;
   });
 
@@ -119,31 +123,41 @@ export class SplitGenerationSwitcherComponent {
     return buildPipelineNodes(result.appCommonFileUris, result.appConfigFileUris);
   });
 
-  // ─── Bootstrap tree (infra-only) ───
-  protected readonly bootstrapNodes = computed<BicepTreeNode[]>(() => {
-    const result = this.bootstrapResult();
-    if (!result) return [];
-    const nodes: BicepTreeNode[] = [];
-    for (const fileName of Object.keys(result.fileUris)) {
-      nodes.push({
-        kind: 'file',
-        path: fileName,
-        displayName: fileName,
-        type: 'generic',
-        uri: fileName,
-        depth: 0,
-        parentFolderKey: '',
-      } satisfies BicepFileNode);
-    }
-    return nodes;
-  });
+  // ─── Bootstrap trees (split: infra owner + code application-only) ───
+  protected readonly infraBootstrapNodes = computed<BicepTreeNode[]>(() =>
+    buildBootstrapNodes(this.bootstrapResult(), 'infra'),
+  );
+
+  protected readonly appBootstrapNodes = computed<BicepTreeNode[]>(() =>
+    buildBootstrapNodes(this.bootstrapResult(), 'app'),
+  );
 
   protected readonly hasInfraPipeline = computed(() => this.infraPipelineNodes().length > 0);
   protected readonly hasAppPipeline = computed(() => this.appPipelineNodes().length > 0);
+  protected readonly hasInfraBootstrap = computed(() => this.infraBootstrapNodes().some((n) => n.kind === 'file'));
+  protected readonly hasAppBootstrap = computed(() => this.appBootstrapNodes().some((n) => n.kind === 'file'));
+  protected readonly canPushInfra = computed(() => this.bicepNodes().length > 0
+    && this.hasInfraPipeline()
+    && this.hasInfraBootstrap()
+    && !this.isGeneratingBicep()
+    && !this.isGeneratingPipeline()
+    && !this.isGeneratingBootstrap());
+  protected readonly canPushCode = computed(() => (this.hasAppPipeline() || this.hasAppBootstrap())
+    && !this.isGeneratingPipeline()
+    && !this.isGeneratingBootstrap());
 
   protected onRetryBicep(): void { this.retryBicep.emit(); }
   protected onRetryPipeline(): void { this.retryPipeline.emit(); }
   protected onRetryBootstrap(): void { this.retryBootstrap.emit(); }
+  protected onPushInfra(): void {
+    if (!this.canPushInfra()) return;
+    this.pushInfra.emit();
+  }
+
+  protected onPushCode(): void {
+    if (!this.canPushCode()) return;
+    this.pushCode.emit();
+  }
 }
 
 // ─── Tree builders (extracted from project-detail.component.ts logic) ───
@@ -277,6 +291,55 @@ function buildPipelineNodes(
     }
   }
 
+  return nodes;
+}
+
+/**
+ * Builds bootstrap file nodes for one bucket (`infra` or `app`).
+ *
+ * - In SplitInfraCode layout, `fileUris` keys are prefixed (`infra/...` / `app/...`).
+ *   This helper isolates one bucket and strips the prefix from display names while
+ *   keeping the original prefixed path as the load-key (so the file content endpoint
+ *   resolves against the same blob path).
+ * - In AllInOne layout, no key has a bucket prefix and everything is treated as `infra`.
+ *   The `app` bucket then yields no nodes.
+ */
+function buildBootstrapNodes(
+  result: GenerateProjectBootstrapPipelineResponse | null,
+  bucket: 'infra' | 'app',
+): BicepTreeNode[] {
+  if (!result) return [];
+
+  const fileUris = result.fileUris ?? {};
+  const allKeys = Object.keys(fileUris);
+  const hasBuckets = allKeys.some((k) => k.startsWith('infra/') || k.startsWith('app/'));
+
+  let bucketKeys: string[];
+  if (hasBuckets) {
+    const prefix = `${bucket}/`;
+    bucketKeys = allKeys.filter((k) => k.startsWith(prefix));
+  } else {
+    // AllInOne fallback: everything is treated as infra-side; app bucket stays empty.
+    bucketKeys = bucket === 'infra' ? allKeys : [];
+  }
+
+  if (bucketKeys.length === 0) {
+    return [];
+  }
+
+  const nodes: BicepTreeNode[] = [];
+  for (const fullPath of bucketKeys) {
+    const displayName = hasBuckets ? fullPath.slice(bucket.length + 1) : fullPath;
+    nodes.push({
+      kind: 'file',
+      path: fullPath,
+      displayName,
+      type: 'generic',
+      uri: fullPath,
+      depth: 0,
+      parentFolderKey: '',
+    } satisfies BicepFileNode);
+  }
   return nodes;
 }
 

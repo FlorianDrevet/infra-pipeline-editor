@@ -12,6 +12,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProjectService } from '../../../shared/services/project.service';
 import {
+  MultiRepoPushMode,
+  MultiRepoPushRequest,
   MultiRepoPushResponse,
   RepoPushResult,
 } from '../../../shared/interfaces/multi-repo-push.interface';
@@ -20,6 +22,7 @@ export interface MultiRepoPushDialogData {
   projectId: string;
   infraAlias: string;
   codeAlias: string;
+  mode?: MultiRepoPushMode;
 }
 
 type DialogState = 'form' | 'pushing' | 'success' | 'partial' | 'error';
@@ -78,38 +81,89 @@ export class MultiRepoPushDialogComponent {
     commit: new FormControl<string>('', { nonNullable: true }),
   });
 
+  protected readonly mode = computed<MultiRepoPushMode>(() => this.data.mode ?? 'both');
+  protected readonly isBothMode = computed(() => this.mode() === 'both');
+  protected readonly showsInfraCard = computed(() => this.mode() !== 'code');
+  protected readonly showsCodeCard = computed(() => this.mode() !== 'infra');
+  protected readonly titleIcon = computed(() => this.mode() === 'infra'
+    ? 'dns'
+    : this.mode() === 'code'
+      ? 'code'
+      : 'cloud_upload');
+  protected readonly titleKey = computed(() => this.mode() === 'infra'
+    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.TITLE_INFRA'
+    : this.mode() === 'code'
+      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.TITLE_CODE'
+      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.TITLE');
+  protected readonly subtitleKey = computed(() => this.mode() === 'infra'
+    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUBTITLE_INFRA'
+    : this.mode() === 'code'
+      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUBTITLE_CODE'
+      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUBTITLE');
+  protected readonly pushActionKey = computed(() => this.mode() === 'infra'
+    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_INFRA'
+    : this.mode() === 'code'
+      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_CODE'
+      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_BOTH');
+  protected readonly pushingKey = computed(() => this.mode() === 'infra'
+    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING_INFRA'
+    : this.mode() === 'code'
+      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING_CODE'
+      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING');
+  protected readonly successTitleKey = computed(() => this.mode() === 'infra'
+    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUCCESS_TITLE_INFRA'
+    : this.mode() === 'code'
+      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUCCESS_TITLE_CODE'
+      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUCCESS_TITLE');
+  protected readonly errorTitleKey = computed(() => this.mode() === 'infra'
+    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE_INFRA'
+    : this.mode() === 'code'
+      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE_CODE'
+      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE');
+  protected readonly errorDescKey = computed(() => this.mode() === 'infra'
+    ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_DESC_INFRA'
+    : this.mode() === 'code'
+      ? 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_DESC_CODE'
+      : 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_DESC');
+
   protected readonly canPush = computed(() => {
     const isPushing = this.state() === 'pushing';
-    return !isPushing && this.infraForm.valid && this.codeForm.valid;
+    return !isPushing
+      && (!this.showsInfraCard() || this.infraForm.valid)
+      && (!this.showsCodeCard() || this.codeForm.valid);
   });
 
   protected async onPush(): Promise<void> {
     if (this.state() === 'pushing') return;
-    if (this.infraForm.invalid || this.codeForm.invalid) return;
+    if (!this.canPush()) return;
     this.state.set('pushing');
     this.errorKey.set('');
 
-    const infraBranch = this.infraForm.controls.branch.value;
-    const codeBranch = this.codeForm.controls.branch.value;
+    const request: MultiRepoPushRequest = {};
+    if (this.showsInfraCard()) {
+      const infraBranch = this.infraForm.controls.branch.value;
+      localStorage.setItem(this.infraBranchKey, infraBranch);
+      request.infra = {
+        alias: this.data.infraAlias,
+        branchName: infraBranch,
+        commitMessage: this.infraForm.controls.commit.value,
+      };
+    }
 
-    localStorage.setItem(this.infraBranchKey, infraBranch);
-    localStorage.setItem(this.codeBranchKey, codeBranch);
+    if (this.showsCodeCard()) {
+      const codeBranch = this.codeForm.controls.branch.value;
+      localStorage.setItem(this.codeBranchKey, codeBranch);
+      request.code = {
+        alias: this.data.codeAlias,
+        branchName: codeBranch,
+        commitMessage: this.codeForm.controls.commit.value,
+      };
+    }
 
     try {
       const response: MultiRepoPushResponse = await this.projectService.pushProjectArtifactsToMultiRepo(
         this.data.projectId,
-        {
-          infra: {
-            alias: this.data.infraAlias,
-            branchName: infraBranch,
-            commitMessage: this.infraForm.controls.commit.value,
-          },
-          code: {
-            alias: this.data.codeAlias,
-            branchName: codeBranch,
-            commitMessage: this.codeForm.controls.commit.value,
-          },
-        },
+        request,
       );
 
       const infra = response.results.find(r => r.alias === this.data.infraAlias) ?? null;
@@ -117,13 +171,22 @@ export class MultiRepoPushDialogComponent {
       this.infraResult.set(infra);
       this.codeResult.set(code);
 
-      const infraOk = infra?.success === true;
-      const codeOk = code?.success === true;
-      if (infraOk && codeOk) this.state.set('success');
-      else if (!infraOk && !codeOk) this.state.set('error');
-      else this.state.set('partial');
+      const expectsInfra = this.showsInfraCard();
+      const expectsCode = this.showsCodeCard();
+      const infraOk = !expectsInfra || infra?.success === true;
+      const codeOk = !expectsCode || code?.success === true;
+      const infraFailed = expectsInfra && infra?.success === false;
+      const codeFailed = expectsCode && code?.success === false;
+
+      if (infraOk && codeOk) {
+        this.state.set('success');
+      } else if (this.isBothMode() && ((infraOk && codeFailed) || (codeOk && infraFailed))) {
+        this.state.set('partial');
+      } else {
+        this.state.set('error');
+      }
     } catch {
-      this.errorKey.set('PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE');
+      this.errorKey.set(this.errorTitleKey());
       this.state.set('error');
     }
   }

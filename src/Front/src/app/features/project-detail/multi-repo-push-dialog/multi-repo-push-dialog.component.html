@@ -1,16 +1,16 @@
 <h2 mat-dialog-title class="mr-dialog__title">
-  <mat-icon class="mr-dialog__title-icon">cloud_upload</mat-icon>
-  <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.TITLE' | translate }}</span>
+  <mat-icon class="mr-dialog__title-icon">{{ titleIcon() }}</mat-icon>
+  <span>{{ titleKey() | translate }}</span>
 </h2>
-<p class="mr-dialog__subtitle">{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUBTITLE' | translate }}</p>
+<p class="mr-dialog__subtitle">{{ subtitleKey() | translate }}</p>
 
 <mat-dialog-content class="mr-dialog__content">
-  @if (state() === 'error' && !infraResult() && !codeResult()) {
+  @if (state() === 'error') {
     <div class="mr-banner mr-banner--error">
       <mat-icon>error_outline</mat-icon>
       <div>
-        <strong>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_TITLE' | translate }}</strong>
-        <p>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.ERROR_DESC' | translate }}</p>
+        <strong>{{ errorTitleKey() | translate }}</strong>
+        <p>{{ errorDescKey() | translate }}</p>
       </div>
     </div>
   }
@@ -27,13 +27,13 @@
     <div class="mr-banner mr-banner--success">
       <mat-icon>check_circle</mat-icon>
       <div>
-        <strong>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.SUCCESS_TITLE' | translate }}</strong>
+        <strong>{{ successTitleKey() | translate }}</strong>
       </div>
     </div>
   }
 
-  <div class="mr-grid">
-    <!-- ─── Infra card ─── -->
+  <div class="mr-grid" [class.mr-grid--single]="!isBothMode()">
+    @if (showsInfraCard()) {
     <mat-card class="mr-card mr-card--infra"
               [class.mr-card--ok]="infraResult()?.success === true"
               [class.mr-card--ko]="infraResult() && infraResult()!.success === false">
@@ -48,7 +48,7 @@
         @if (state() === 'pushing') {
           <div class="mr-card__overlay">
             <mat-spinner diameter="28"></mat-spinner>
-            <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING' | translate }}</span>
+            <span>{{ pushingKey() | translate }}</span>
           </div>
         }
         @if (infraResult()?.success === true) {
@@ -103,8 +103,9 @@
         }
       </mat-card-content>
     </mat-card>
+    }
 
-    <!-- ─── Code card ─── -->
+    @if (showsCodeCard()) {
     <mat-card class="mr-card mr-card--code"
               [class.mr-card--ok]="codeResult()?.success === true"
               [class.mr-card--ko]="codeResult() && codeResult()!.success === false">
@@ -119,7 +120,7 @@
         @if (state() === 'pushing') {
           <div class="mr-card__overlay">
             <mat-spinner diameter="28"></mat-spinner>
-            <span>{{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING' | translate }}</span>
+            <span>{{ pushingKey() | translate }}</span>
           </div>
         }
         @if (codeResult()?.success === true) {
@@ -174,6 +175,7 @@
         }
       </mat-card-content>
     </mat-card>
+    }
   </div>
 </mat-dialog-content>
 
@@ -184,12 +186,12 @@
         {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CANCEL' | translate }}
       </button>
       <app-ds-button variant="primary" icon="cloud_upload" [disabled]="!canPush()" (clicked)="onPush()">
-        {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.CTA_PUSH_BOTH' | translate }}
+        {{ pushActionKey() | translate }}
       </app-ds-button>
     }
     @case ('pushing') {
       <button mat-stroked-button type="button" disabled>
-        {{ 'PROJECT_DETAIL.MULTI_REPO_PUSH.PUSHING' | translate }}
+        {{ pushingKey() | translate }}
       </button>
     }
     @case ('success') {

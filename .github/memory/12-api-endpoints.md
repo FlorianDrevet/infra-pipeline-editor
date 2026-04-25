@@ -35,7 +35,7 @@
 | `/projects` | GET | `/{id:guid}/generate-bootstrap-pipeline/files/{*filePath}` | `GetProjectBootstrapPipelineFileContentQuery` |
 | `/projects` | POST | `/{id:guid}/push-bootstrap-pipeline-to-git` | `PushProjectBootstrapPipelineToGitCommand` |
 | `/projects` | POST | `/{id:guid}/push-generated-artifacts-to-git` | `PushProjectGeneratedArtifactsToGitCommand` |
-| `/projects` | POST | `/{id:guid}/push-multi-repo-artifacts-to-git` | `PushProjectArtifactsToMultiRepoCommand` (SplitInfraCode dual push, always 200, per-repo `RepoPushResult`) |
+| `/projects` | POST | `/{id:guid}/push-multi-repo-artifacts-to-git` | `PushProjectArtifactsToMultiRepoCommand` (SplitInfraCode infra-only, code-only, or dual push; validator requires at least one target; always 200 with per-repo `RepoPushResult`) |
 | `/resource-group` | GET/POST/PUT/DELETE | `/{id:guid}` | ResourceGroup CRUD (DELETE added [2026-04-04]) |
 
 ## Azure Resource CRUD (18 types — standard GET/POST/PUT/DELETE pattern)

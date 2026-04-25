@@ -106,11 +106,12 @@ public sealed class ProjectMappingConfig : IRegister
         config.NewConfig<ProjectRepository, ProjectRepositoryResult>()
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Alias, src => src.Alias.Value)
-            .Map(dest => dest.ProviderType, src => src.ProviderType.Value.ToString())
+            .Map(dest => dest.ProviderType, src => src.ProviderType != null ? src.ProviderType.Value.ToString() : null)
             .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
             .Map(dest => dest.Owner, src => src.Owner)
             .Map(dest => dest.RepositoryName, src => src.RepositoryName)
             .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
+            .Map(dest => dest.IsConfigured, src => src.IsConfigured)
             .Map(dest => dest.ContentKinds,
                 src => src.ContentKinds.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries));
 
@@ -155,6 +156,7 @@ public sealed class ProjectMappingConfig : IRegister
             .Map(dest => dest.Owner, src => src.Owner)
             .Map(dest => dest.RepositoryName, src => src.RepositoryName)
             .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
+            .Map(dest => dest.IsConfigured, src => src.IsConfigured)
             .Map(dest => dest.ContentKinds, src => src.ContentKinds);
 
         // TestGitConnectionResult -> TestGitConnectionResponse

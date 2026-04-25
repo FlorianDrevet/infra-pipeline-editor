@@ -5,6 +5,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectBootstrapPipelineToGit;
@@ -52,8 +53,14 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
         if (secretResult.IsError)
             return secretResult.Errors;
 
-        // 5. Retrieve latest generated bootstrap pipeline files from Blob Storage
-        var filesResult = await GetLatestBootstrapFilesAsync(command.ProjectId.Value, cancellationToken);
+        // 5. Retrieve latest generated bootstrap pipeline files from Blob Storage.
+        // In SplitInfraCode layout, only the infra/ bucket is pushed here — the app/ bucket
+        // is pushed by PushProjectArtifactsToMultiRepoCommandHandler to the code repo.
+        var isSplit = project.LayoutPreset.Value == LayoutPresetEnum.SplitInfraCode;
+        var filesResult = await GetLatestBootstrapFilesAsync(
+            command.ProjectId.Value,
+            bucketPrefix: isSplit ? "infra/" : null,
+            cancellationToken);
         if (filesResult.IsError)
             return filesResult.Errors;
 
@@ -73,7 +80,7 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
     }
 
     private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> GetLatestBootstrapFilesAsync(
-        Guid projectId, CancellationToken cancellationToken)
+        Guid projectId, string? bucketPrefix, CancellationToken cancellationToken)
     {
         var prefix = $"bootstrap/project/{projectId}/";
         var allBlobs = await blobService.ListBlobsAsync(prefix);
@@ -87,8 +94,12 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
             .OrderDescending()
             .First();
 
+        var bucketBlobPrefix = string.IsNullOrEmpty(bucketPrefix)
+            ? latestPrefix + "/"
+            : $"{latestPrefix}/{bucketPrefix.TrimEnd('/')}/";
+
         var latestBlobs = allBlobs
-            .Where(b => b.StartsWith(latestPrefix, StringComparison.Ordinal))
+            .Where(b => b.StartsWith(bucketBlobPrefix, StringComparison.Ordinal))
             .ToList();
 
         var files = new Dictionary<string, string>();
@@ -97,7 +108,7 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
             var content = await blobService.DownloadContentAsync(blobName);
             if (content is null) continue;
 
-            var relativePath = blobName[(latestPrefix.Length + 1)..];
+            var relativePath = blobName[bucketBlobPrefix.Length..];
             files[relativePath] = content;
         }
 

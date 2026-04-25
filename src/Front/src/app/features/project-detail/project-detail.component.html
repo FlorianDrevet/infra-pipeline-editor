@@ -53,7 +53,7 @@
                 }
                 {{ (validatingDiagnostics() ? 'PROJECT_DETAIL.GENERATE_ALL.VALIDATING' : 'PROJECT_DETAIL.GENERATE_ALL.BUTTON') | translate }}
               </button>
-              @if ((project()!.repositories?.length ?? 0) > 0) {
+              @if ((project()!.repositories?.length ?? 0) > 0 && !isSplitInfraCodeLayout()) {
                 <button class="push-btn" (click)="openProjectPushAllToGitDialog()" [disabled]="!canPushAllProjectArtifacts()">
                   <mat-icon class="push-btn__icon">rocket_launch</mat-icon>
                   {{ 'PROJECT_DETAIL.GENERATE_ALL.PUSH_TO_GIT' | translate }}
@@ -75,13 +75,29 @@
 
           <!-- Project Generation Panel (mono-repo) — shown only after clicking Generate -->
           @if (projectGenerationPanelOpen()) {
-            <section class="generation-panel">
+            <section class="generation-panel" [class.generation-panel--collapsed]="projectGenerationPanelCollapsed()">
               <div class="generation-panel__header">
                 <h3 class="generation-panel__title">{{ 'PROJECT_DETAIL.GENERATION.TITLE' | translate }}</h3>
-                <button class="generation-panel__close" (click)="closeProjectGenerationPanel()">
-                  <mat-icon>close</mat-icon>
-                </button>
+                <div class="generation-panel__actions">
+                  <app-ds-panel-action-button
+                    [icon]="projectGenerationPanelCollapsed() ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
+                    tone="accent"
+                    surface="light"
+                    [pressed]="!projectGenerationPanelCollapsed()"
+                    [ariaExpanded]="!projectGenerationPanelCollapsed()"
+                    [ariaLabel]="((projectGenerationPanelCollapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
+                    [tooltip]="((projectGenerationPanelCollapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
+                    (clicked)="toggleProjectGenerationPanelCollapsed()" />
+                  <app-ds-panel-action-button
+                    icon="close"
+                    tone="danger"
+                    surface="light"
+                    [ariaLabel]="'PROJECT_DETAIL.GENERATION.CLOSE' | translate"
+                    [tooltip]="'PROJECT_DETAIL.GENERATION.CLOSE' | translate"
+                    (clicked)="closeProjectGenerationPanel()" />
+                </div>
               </div>
+              @if (!projectGenerationPanelCollapsed()) {
               @if (project()?.layoutPreset === 'SplitInfraCode') {
                 <app-split-generation-switcher
                   [bicepResult]="projectBicepResult()"
@@ -98,7 +114,9 @@
                   [loadBootstrapFile]="loadProjectBootstrapFile"
                   (retryBicep)="generateProjectBicep()"
                   (retryPipeline)="generateProjectPipeline()"
-                  (retryBootstrap)="generateProjectBootstrap()">
+                  (retryBootstrap)="generateProjectBootstrap()"
+                  (pushInfra)="openProjectMultiRepoPushDialog('infra')"
+                  (pushCode)="openProjectMultiRepoPushDialog('code')">
                 </app-split-generation-switcher>
               } @else {
               <mat-tab-group class="generation-tabs" animationDuration="200ms">
@@ -365,6 +383,7 @@
                   </div>
                 </mat-tab>
               </mat-tab-group>
+              }
               }
             </section>
           }

@@ -623,7 +623,10 @@
     "GENERATION": {
       "TITLE": "Résultats de génération",
       "TAB_BICEP": "Bicep",
-      "TAB_PIPELINE": "Pipeline"
+      "TAB_PIPELINE": "Pipeline",
+      "COLLAPSE": "Replier les résultats de génération",
+      "EXPAND": "Déplier les résultats de génération",
+      "CLOSE": "Fermer les résultats de génération"
     },
     "GENERATE_ALL": {
       "BUTTON": "Générer",
@@ -788,11 +791,19 @@
       "CODE_TAB": "Code",
       "FILES_COUNT": "{{count}} fichier(s)",
       "BOOTSTRAP_INFO": "Le bootstrap est géré côté Infra.",
-      "EMPTY": "Aucun fichier généré pour le moment."
+      "EMPTY": "Aucun fichier généré pour le moment.",
+      "INFRA_PUSH_DESC": "Pousse les artefacts d'infrastructure générés : Bicep, pipeline infra et bootstrap.",
+      "CODE_PUSH_DESC": "Pousse les artefacts de pipeline code générés vers le dépôt applicatif.",
+      "PUSH_INFRA": "Pousser l'infra",
+      "PUSH_CODE": "Pousser le code"
     },
     "MULTI_REPO_PUSH": {
       "TITLE": "Pousser vers Git (Infra + Code)",
+      "TITLE_INFRA": "Pousser l'infra vers Git",
+      "TITLE_CODE": "Pousser le code applicatif vers Git",
       "SUBTITLE": "Deux commits indépendants seront créés — un par dépôt.",
+      "SUBTITLE_INFRA": "Un commit sera créé dans le dépôt d'infrastructure.",
+      "SUBTITLE_CODE": "Un commit sera créé dans le dépôt de code applicatif.",
       "INFRA_CARD_TITLE": "Dépôt d'infrastructure",
       "CODE_CARD_TITLE": "Dépôt de code applicatif",
       "BRANCH_LABEL": "Branche cible",
@@ -800,12 +811,22 @@
       "COMMIT_LABEL": "Message de commit",
       "COMMIT_PLACEHOLDER": "Message de commit (optionnel)",
       "CTA_PUSH_BOTH": "Pousser les deux dépôts",
+      "CTA_PUSH_INFRA": "Pousser le dépôt infra",
+      "CTA_PUSH_CODE": "Pousser le dépôt applicatif",
       "PUSHING": "Push en cours sur les deux dépôts…",
+      "PUSHING_INFRA": "Push en cours sur le dépôt d'infrastructure…",
+      "PUSHING_CODE": "Push en cours sur le dépôt de code applicatif…",
       "SUCCESS_TITLE": "Tous les dépôts ont été poussés avec succès",
+      "SUCCESS_TITLE_INFRA": "Le dépôt d'infrastructure a été poussé avec succès",
+      "SUCCESS_TITLE_CODE": "Le dépôt de code applicatif a été poussé avec succès",
       "PARTIAL_TITLE": "Push partiellement réussi",
       "PARTIAL_DESC": "L'un des deux pushs a échoué. Consultez les détails et réessayez.",
       "ERROR_TITLE": "Les deux pushs ont échoué",
       "ERROR_DESC": "Aucun dépôt n'a pu être mis à jour. Voir les détails ci-dessous.",
+      "ERROR_TITLE_INFRA": "Le push infra a échoué",
+      "ERROR_TITLE_CODE": "Le push code a échoué",
+      "ERROR_DESC_INFRA": "Le dépôt d'infrastructure n'a pas pu être mis à jour. Voir les détails ci-dessous.",
+      "ERROR_DESC_CODE": "Le dépôt de code applicatif n'a pas pu être mis à jour. Voir les détails ci-dessous.",
       "REPO_OK": "Poussé avec succès",
       "REPO_FAILED": "Échec du push",
       "COMMIT_SHA_LABEL": "Commit",
@@ -822,7 +843,10 @@
       "TITLE": "Résultats de génération",
       "TAB_BICEP": "Bicep",
       "TAB_PIPELINE": "Pipeline",
-      "TAB_BOOTSTRAP": "Bootstrap ADO"
+      "TAB_BOOTSTRAP": "Bootstrap ADO",
+      "COLLAPSE": "Replier les résultats de génération",
+      "EXPAND": "Déplier les résultats de génération",
+      "CLOSE": "Fermer les résultats de génération"
     },
     "BICEP": {
       "GENERATE": "Generer Bicep",

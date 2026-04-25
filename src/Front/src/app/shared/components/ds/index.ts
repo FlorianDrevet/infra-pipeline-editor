@@ -11,3 +11,4 @@ export * from './ds-checkbox/ds-checkbox.component';
 export * from './ds-radio-group/ds-radio-group.component';
 export * from './ds-chip/ds-chip.component';
 export * from './ds-icon-button/ds-icon-button.component';
+export * from './ds-panel-action-button/ds-panel-action-button.component';

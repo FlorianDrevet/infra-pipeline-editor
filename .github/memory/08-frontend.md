@@ -42,6 +42,12 @@
 - Most buttons, toggles, and form fields were migrated during the Angular 21 / DS waves; remaining raw `mat-form-field` cases are intentional where DS controls do not cover `matAutocomplete`, detached submit buttons, or `viewChild`-driven input editing
 - `DsSelectComponent` renders via `cdkConnectedOverlay`; `DsToggleComponent` exposes `ariaLabel` and is the standard toggle used by `ToggleSectionCardComponent`
 
+## Config Detail Git Tab Visibility [2026-04-25]
+- In `config-detail`, the `Git` tab is visible only when `project.layoutPreset === 'MultiRepo'`.
+- `SplitInfraCode` still keeps its generation/push flows, but no longer exposes the config-level repository-management tab.
+- The `Git` tab now mirrors the project-level layout/repository UX for configuration sub-modes: the chooser uses the same preset-card visual pattern as `project-detail`, and the repository bindings render with the same `repo-card` / `slot-empty` card language.
+- Changing a configuration sub-mode (`AllInOne` / `SplitInfraCode`) updates the local signal optimistically before the refetch, so the click has immediate visible feedback instead of waiting for the round-trip.
+
 ## DS Constraints & Shared Components
 - `app-ds-button` does **not** forward `form="<id>"`; keep native buttons for detached submit triggers such as `add-config-dialog`
 - DS form controls are CVA-first: prefer `formControlName`; for ad hoc inputs use standalone `ngModel`
@@ -56,9 +62,10 @@
 - **Container App environments:** capacity/scaling, ingress/network, and Health Probes are split into sections; probe cards use a shared equal-width 3-column grid on desktop and collapse responsively
 - **Environment editor categorization:** 13 resource editors use `env-extra-section` groups. ContainerRegistry and EventHubNamespace remain uncategorized; this added 38 `RESOURCE_EDIT.FIELDS.*` i18n keys in both locales
 - **Existing-resource diagnostics:** generation preflight checks in `config-detail` and `project-detail` must ignore `resource.isExisting` items when computing missing-environment warnings
+- **Generation result panels:** `config-detail` and `project-detail` generation surfaces now keep a visible header with two separate actions: collapse/expand the current results and fully close the panel. Any fresh Bicep, Pipeline, or Bootstrap generation auto-expands the panel again so progress/output is immediately visible
 - **Storage children in config-detail:** Storage Account blob/queue/table children seed directly from `resource.storageSubResources` returned by `/resource-group/{id}/resources`; full `getById()` calls remain only for explicit refresh flows
 - **Project naming abbreviations:** project-detail shows overrides only for resource types actually used in the project
-- **Mono-repo push UX:** combined project push uses `POST /projects/{id}/push-generated-artifacts-to-git`; `SplitInfraCode` projects use `MultiRepoPushDialogComponent` and `SplitGenerationSwitcherComponent`, reading `pipelineResult.{infra,app}{Common,Config}FileUris`
+- **Mono-repo push UX:** combined project push uses `POST /projects/{id}/push-generated-artifacts-to-git`; `SplitInfraCode` projects hide that mono-repo CTA, surface dedicated Infra and Code push buttons from `SplitGenerationSwitcherComponent`, and open `MultiRepoPushDialogComponent` in `infra` / `code` / `both` modes based on generated artifact readiness, reading `pipelineResult.{infra,app}{Common,Config}FileUris` plus Bicep/bootstrap artifacts
 - **Bootstrap ADO UX:** project-detail shows one guide card with explicit Build Service permission steps and Azure DevOps menu paths
 - **Secure parameter mapping:** `resource-edit` exposes SQL Server password mapping through `SecureParameterMappingService`, with either random generation or variable-group-backed injection
 - **Custom domains:** supported only for ContainerApp, WebApp, and FunctionApp, inside per-environment panels with add-dialog preselection of the current environment
@@ -68,4 +75,5 @@
 - `onContainerRegistryChange` must patch `generalForm.containerRegistryId`; `onDeploymentModeChange` must trigger `checkAcrPullAccess()` when switching back to container mode with an ACR already selected; `isAcrEnabled` should stay the single source of truth
 - `groupedRoleAssignments` must seed the assigned-UAI group even when it has zero role assignments, and the empty state must treat `assignedUserAssignedIdentity` as meaningful state
 - When a resource parameter moves between general and environment config, update all 3 creation-modal touchpoints: `createEnvFormGroup(type)`, `buildXxxEnvironmentSettings()`, and the HTML `@case (ResourceTypeEnum.Xxx)` block in the environments step
+- The generation panel collapse state is shared at the panel level, not per tab. Reset it to `false` when a new generation starts or when the panel is fully closed, otherwise a user can launch generation and keep the loading/result content hidden accidentally
 - Angular warning `NG8102` means a `??` fallback is redundant on a non-nullable expression; `TS-998113` means a standalone import remains in `imports` after the template stopped using it
