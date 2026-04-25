@@ -334,7 +334,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
         };
     }
 
-    private static ErrorOr<Updated> TryAddScopedFile(
+    private static Error? TryAddScopedFile(
         IDictionary<string, Dictionary<string, string>> mergedScopes,
         string basePath,
         string relativePath,
@@ -354,7 +354,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
         }
 
         scopedFiles[relativePath] = content;
-        return Result.Updated;
+        return null;
     }
 
     private static (string BasePath, string RelativePath) SplitRootScopedPath(string relativePath)
