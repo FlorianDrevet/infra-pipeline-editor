@@ -39,6 +39,7 @@
 - `@azure/msal-browser@^5` (no `@azure/msal-angular`)
 - `MsalAuthService`: lazy-init `PublicClientApplication`, `loginRedirect()`, deterministic account selection
 - Auth loop fix [2026-03-21]: explicit active account from `handleRedirectPromise()`
+- Auth expiry redirect fix [2026-04-25]: `AxiosService` now routes both `401` responses and the pre-request `getAccessToken() => null` case through a single login redirect helper. The helper uses `location.replace('/login')`, prevents duplicate redirects with an in-flight flag, and returns a never-settling promise during navigation so expired-session API calls do not briefly surface component-level error banners. If the app is already on `/login`, it rejects with `CanceledError` instead of redirecting again.
 
 ## API Services
 All `providedIn: 'root'`, use `AxiosService.request$<T>()`. Key services: `InfraConfigService`, `ResourceGroupService`, `KeyVaultService`, `RedisCacheService`, `StorageAccountService`, `RoleAssignmentService`, `BicepGeneratorService`, `ProjectService`, `ContainerRegistryService`.
