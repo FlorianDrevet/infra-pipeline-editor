@@ -73,10 +73,12 @@ export class SplitGenerationSwitcherComponent {
   readonly retryBootstrap = output<void>();
   readonly pushInfra = output<void>();
   readonly pushCode = output<void>();
-  readonly downloadZip = output<void>();
+  readonly downloadInfraZip = output<void>();
+  readonly downloadCodeZip = output<void>();
   readonly toggleCollapsed = output<void>();
 
-  readonly isDownloadingZip = input<boolean>(false);
+  readonly isDownloadingInfraZip = input<boolean>(false);
+  readonly isDownloadingCodeZip = input<boolean>(false);
 
   // ─── File counts (for badges) ───
   protected readonly infraFileCount = computed(() => {
@@ -155,8 +157,22 @@ export class SplitGenerationSwitcherComponent {
     && !this.isGeneratingBicep()
     && !this.isGeneratingPipeline()
     && !this.isGeneratingBootstrap());
-  protected readonly canPushCode = computed(() => this.hasAppPipeline() && !this.isGeneratingPipeline());
-  protected readonly canDownloadZip = computed(() => this.bicepNodes().length > 0 && !this.isGeneratingBicep() && !this.isDownloadingZip());
+  protected readonly canPushCode = computed(() => this.hasAppPipeline()
+    && this.appBootstrapNodes().length > 0
+    && !this.isGeneratingPipeline()
+    && !this.isGeneratingBootstrap());
+  protected readonly canDownloadInfraZip = computed(() => this.bicepNodes().length > 0
+    && this.hasInfraPipeline()
+    && this.hasInfraBootstrap()
+    && !this.isGeneratingBicep()
+    && !this.isGeneratingPipeline()
+    && !this.isGeneratingBootstrap()
+    && !this.isDownloadingInfraZip());
+  protected readonly canDownloadCodeZip = computed(() => this.hasAppPipeline()
+    && this.appBootstrapNodes().length > 0
+    && !this.isGeneratingPipeline()
+    && !this.isGeneratingBootstrap()
+    && !this.isDownloadingCodeZip());
 
   protected onRetryBicep(): void { this.retryBicep.emit(); }
   protected onRetryPipeline(): void { this.retryPipeline.emit(); }
@@ -171,9 +187,14 @@ export class SplitGenerationSwitcherComponent {
     this.pushCode.emit();
   }
 
-  protected onDownloadZip(): void {
-    if (!this.canDownloadZip()) return;
-    this.downloadZip.emit();
+  protected onDownloadInfraZip(): void {
+    if (!this.canDownloadInfraZip()) return;
+    this.downloadInfraZip.emit();
+  }
+
+  protected onDownloadCodeZip(): void {
+    if (!this.canDownloadCodeZip()) return;
+    this.downloadCodeZip.emit();
   }
 
   protected onToggleCollapsed(): void {

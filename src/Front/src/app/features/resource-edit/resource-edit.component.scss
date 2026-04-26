@@ -305,6 +305,20 @@
     background: rgba(13, 101, 192, 0.03);
     border: 1px solid rgba(146, 191, 235, 0.12);
   }
+
+  &--with-action {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    app-ds-text-field {
+      flex: 1;
+    }
+
+    app-dockerfile-picker {
+      margin-top: 24px;
+    }
+  }
 }
 
 .general-form {

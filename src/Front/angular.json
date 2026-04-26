@@ -36,7 +36,8 @@
             },
             "allowedCommonJsDependencies": [
               "protobufjs/minimal",
-              "file-saver"
+              "file-saver",
+              "jszip"
             ],
             "assets": [
               {

@@ -23,6 +23,8 @@
 | `/projects` | POST | `/validate-recent` | `ValidateRecentItemsQuery` |
 | `/projects` | POST | `/{id:guid}/git-config/test` | `TestGitConnectionCommand` (resolver-backed, V3) |
 | `/projects` | GET | `/{id:guid}/git-config/branches` | `ListGitBranchesQuery` (resolver-backed, V3) |
+| `/projects` | GET | `/{id:guid}/git-config/code-branches` | `ListCodeRepoBranchesQuery` (code-repo, optional `?configId=`) [2026-04-26] |
+| `/projects` | GET | `/{id:guid}/git-config/code-files` | `SearchCodeRepoFilesQuery` (`?branch=&pattern=&configId=`) [2026-04-26] |
 | `/projects` | POST | `/{id:guid}/generate-bicep` | `GenerateProjectBicepCommand` |
 | `/projects` | GET | `/{id:guid}/generate-bicep/download` | `DownloadProjectBicepCommand` |
 | `/projects` | GET | `/{id:guid}/generate-bicep/files/{*filePath}` | `GetProjectBicepFileContentQuery` |

@@ -2855,11 +2855,20 @@
                 <h3 class="form-section__title">{{ 'RESOURCE_EDIT.APP_PIPELINE.SECTION_BUILD' | translate }}</h3>
                 <div class="form-grid">
                   @if (resourceType === 'ContainerApp' || isContainerMode()) {
-                    <app-ds-text-field class="form-field"
-                      formControlName="dockerfilePath"
-                      [label]="'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH' | translate"
-                      [hint]="'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH_HINT' | translate"
-                      placeholder="Dockerfile" />
+                    <div class="form-field form-field--with-action">
+                      <app-ds-text-field
+                        formControlName="dockerfilePath"
+                        [label]="'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH' | translate"
+                        [hint]="'RESOURCE_EDIT.APP_PIPELINE.DOCKERFILE_PATH_HINT' | translate"
+                        placeholder="Dockerfile" />
+                      @if (config()?.projectId) {
+                        <app-dockerfile-picker
+                          [projectId]="config()!.projectId"
+                          [configId]="configId"
+                          [disabled]="!config()?.projectId"
+                          (pathSelected)="generalForm.get('dockerfilePath')?.setValue($event); generalForm.markAsDirty()" />
+                      }
+                    </div>
                   } @else {
                     <app-ds-text-field class="form-field"
                       formControlName="sourceCodePath"

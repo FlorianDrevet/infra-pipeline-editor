@@ -882,7 +882,7 @@
       "BOOTSTRAP_APP_STEP_3": "Servez-vous-en pour valider ces ressources partagées et provisionner les définitions de pipelines applicatifs.",
       "EMPTY": "Aucun fichier généré pour le moment.",
       "INFRA_PUSH_DESC": "Pousse les artefacts d'infrastructure générés : Bicep, pipeline infra et bootstrap infra (propriétaire des environnements et variable groups).",
-      "CODE_PUSH_DESC": "Pousse les artefacts de pipeline applicatif vers le dépôt code. Utilisez l'onglet de bootstrap code ci-dessous pour créer ou mettre à jour le pipeline de bootstrap manuellement.",
+      "CODE_PUSH_DESC": "Pousse les artefacts générés de la section code vers le dépôt applicatif : pipeline applicatif et bootstrap code.",
       "PUSH_INFRA": "Pousser l'infra",
       "PUSH_CODE": "Pousser le code"
     },
@@ -1401,7 +1401,13 @@
       "BUILD_COMMAND": "Commande de build",
       "BUILD_COMMAND_HINT": "Commande personnalis\u00e9e (ex: dotnet publish -c Release)",
       "APPLICATION_NAME": "Nom de l'applicatif",
-      "APPLICATION_NAME_HINT": "Nom affich\u00e9 dans Azure DevOps lors des ex\u00e9cutions de pipeline (par d\u00e9faut : nom de la ressource)"
+      "APPLICATION_NAME_HINT": "Nom affich\u00e9 dans Azure DevOps lors des ex\u00e9cutions de pipeline (par d\u00e9faut : nom de la ressource)",
+      "BROWSE_DOCKERFILE": "Parcourir",
+      "SELECT_BRANCH": "Branche",
+      "NO_REPO_CONFIGURED": "Aucun d\u00e9p\u00f4t Git configur\u00e9",
+      "NO_DOCKERFILES_FOUND": "Aucun Dockerfile trouv\u00e9 sur cette branche",
+      "LOADING_BRANCHES": "Chargement des branches\u2026",
+      "LOADING_FILES": "Recherche des Dockerfiles\u2026"
     },
     "GENERAL": {
       "IDENTITY": "Identit\u00e9",

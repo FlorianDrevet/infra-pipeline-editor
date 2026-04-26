@@ -12,7 +12,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsTo
 
 /// <summary>
 /// Handles <see cref="PushProjectArtifactsToMultiRepoCommand"/>.
-/// Pushes infra artifacts (Bicep + infra pipeline + bootstrap) and/or app pipeline artifacts to
+/// Pushes infra artifacts (Bicep + infra pipeline + bootstrap) and/or app artifacts (app pipeline + app bootstrap) to
 /// the requested repositories in independent commits, returning a per-repo success/error result.
 /// </summary>
 public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
@@ -84,6 +84,7 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
 
         IReadOnlyDictionary<string, string>? bicepFiles = null;
         IReadOnlyDictionary<string, string>? bootstrapFiles = null;
+        IReadOnlyDictionary<string, string>? appBootstrapFiles = null;
 
         if (infraPushTarget is not null)
         {
@@ -99,6 +100,16 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
 
             bicepFiles = bicepFilesResult.Value;
             bootstrapFiles = bootstrapFilesResult.Value;
+        }
+
+        if (codePushTarget is not null)
+        {
+            var appBootstrapFilesResult = await LoadLatestBootstrapFilesAsync(
+                command.ProjectId.Value, bucketPrefix: "app/", cancellationToken);
+            if (appBootstrapFilesResult.IsError)
+                return appBootstrapFilesResult.Errors;
+
+            appBootstrapFiles = appBootstrapFilesResult.Value;
         }
 
         var results = new List<RepoPushResult>((infraPushTarget is not null ? 1 : 0) + (codePushTarget is not null ? 1 : 0));
@@ -122,8 +133,8 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
 
         if (codePushTarget is not null)
         {
-            // Push app repository (app pipeline files only).
-            if (appPipelineFiles.Count == 0)
+            // Push app repository (app pipeline + app bootstrap).
+            if (appPipelineFiles.Count == 0 && appBootstrapFiles!.Count == 0)
             {
                 results.Add(new RepoPushResult(
                     Alias: codePushTarget.Alias,
@@ -140,7 +151,11 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
                     token,
                     appTarget!,
                     codePushTarget,
-                    scopes: [(appTarget.PipelineBasePath, appPipelineFiles)]);
+                    scopes:
+                    [
+                        (appTarget.PipelineBasePath, appPipelineFiles),
+                        (appTarget.PipelineBasePath, appBootstrapFiles!),
+                    ]);
 
                 results.Add(await PushOneAsync(appTarget!, codePushTarget.Alias, appPushRequest, cancellationToken));
             }
@@ -315,7 +330,8 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
                 continue;
 
             var relativePath = blobName[bucketBlobPrefix.Length..];
-            files[relativePath] = content;
+            // Bootstrap pipeline always lives under .azuredevops/ at the repository root.
+            files[$".azuredevops/{relativePath}"] = content;
         }
 
         if (files.Count == 0)

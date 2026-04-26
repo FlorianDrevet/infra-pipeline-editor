@@ -40,7 +40,10 @@
 
   &__stepper {
     flex: 1 1 auto;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
   }
 
   &__step-actions {
@@ -48,9 +51,10 @@
     align-items: center;
     gap: 0.5rem;
     justify-content: flex-end;
-    margin-top: 1.25rem;
-    padding-top: 1rem;
+    padding: 1rem 1.5rem;
     border-top: 1px solid var(--border-color, #e5e7eb);
+    background: var(--surface-color, #ffffff);
+    flex-shrink: 0;
   }
 
   // matStepperNext/Previous are kept as native (hidden) buttons so we can drive
@@ -78,10 +82,17 @@
     overflow: hidden;
   }
 
+  // The stepper internal wrapper must also be a growing flex column
+  .mat-horizontal-stepper-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
   .mat-horizontal-stepper-header-container {
     padding: 0.4rem 1rem;
     border-bottom: 1px solid var(--border-color, #e5e7eb);
     background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(255, 255, 255, 0.98));
+    flex-shrink: 0;
     --mat-stepper-header-hover-state-layer-shape: 1rem;
     --mat-stepper-header-focus-state-layer-shape: 1rem;
     --mat-stepper-header-hover-state-layer-color: rgba(15, 23, 42, 0.05);
@@ -118,7 +129,16 @@
 
   // Space between the stepper header bar and step content
   .mat-horizontal-content-container {
+    flex: 1 1 auto;
+    overflow-y: auto;
     padding-top: 1.5rem;
+    min-height: 0;
+  }
+
+  // Each step content wrapper must stretch to fill available space
+  .mat-horizontal-stepper-content.mat-horizontal-stepper-content-current {
+    display: flex;
+    flex-direction: column;
   }
 }
 

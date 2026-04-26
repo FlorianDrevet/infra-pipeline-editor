@@ -63,6 +63,7 @@ import {
 import { RESOURCE_TYPE_OPTIONS, RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
 import { AddVariableGroupDialogComponent } from '../config-detail/add-variable-group-dialog/add-variable-group-dialog.component';
 import { saveAs } from 'file-saver';
+import JSZip from 'jszip';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepFileType, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
@@ -81,6 +82,11 @@ import { MultiRepoPushMode } from '../../shared/interfaces/multi-repo-push.inter
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
 const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit', Reader: 'visibility' };
+
+interface CombinedArtifactArchiveSource {
+  archivePromise: Promise<Blob>;
+  filterPrefix?: 'infra' | 'app';
+}
 
 function ensureTreeFolderNode(
   nodes: BicepTreeNode[],
@@ -272,6 +278,7 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectBicepLoading = signal(false);
   protected readonly projectBicepResult = signal<GenerateProjectBicepResponse | null>(null);
   protected readonly projectBicepDownloading = signal(false);
+  protected readonly projectInfraArtifactsDownloading = signal(false);
   protected readonly projectBicepErrorKey = signal('');
   protected readonly projectBicepPanelOpen = signal(false);
   protected readonly projectGenerationPanelCollapsed = signal(false);
@@ -280,6 +287,7 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectPipelineLoading = signal(false);
   protected readonly projectPipelineResult = signal<GenerateProjectPipelineResponse | null>(null);
   protected readonly projectPipelineDownloading = signal(false);
+  protected readonly projectCodeArtifactsDownloading = signal(false);
   protected readonly projectPipelineErrorKey = signal('');
   protected readonly projectPipelinePanelOpen = signal(false);
 
@@ -1230,6 +1238,52 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
+  protected async downloadProjectInfraArtifacts(): Promise<void> {
+    const project = this.project();
+    const bicepResult = this.projectBicepResult();
+    const pipelineResult = this.projectPipelineResult();
+    const bootstrapResult = this.projectBootstrapResult();
+
+    if (!project?.id || !bicepResult || !pipelineResult || !bootstrapResult || this.projectInfraArtifactsDownloading()) {
+      return;
+    }
+
+    this.projectInfraArtifactsDownloading.set(true);
+    try {
+      const blob = await this.buildCombinedProjectArchive([
+        { archivePromise: this.projectService.downloadProjectZip(project.id) },
+        { archivePromise: this.projectService.downloadProjectPipelineZip(project.id), filterPrefix: 'infra' },
+        { archivePromise: this.projectService.downloadProjectBootstrapPipelineZip(project.id), filterPrefix: 'infra' },
+      ]);
+
+      saveAs(blob, `${project.name ?? 'project'}-infra-artifacts.zip`);
+    } finally {
+      this.projectInfraArtifactsDownloading.set(false);
+    }
+  }
+
+  protected async downloadProjectCodeArtifacts(): Promise<void> {
+    const project = this.project();
+    const pipelineResult = this.projectPipelineResult();
+    const bootstrapResult = this.projectBootstrapResult();
+
+    if (!project?.id || !pipelineResult || !bootstrapResult || this.projectCodeArtifactsDownloading()) {
+      return;
+    }
+
+    this.projectCodeArtifactsDownloading.set(true);
+    try {
+      const blob = await this.buildCombinedProjectArchive([
+        { archivePromise: this.projectService.downloadProjectPipelineZip(project.id), filterPrefix: 'app' },
+        { archivePromise: this.projectService.downloadProjectBootstrapPipelineZip(project.id), filterPrefix: 'app' },
+      ]);
+
+      saveAs(blob, `${project.name ?? 'project'}-code-artifacts.zip`);
+    } finally {
+      this.projectCodeArtifactsDownloading.set(false);
+    }
+  }
+
 
 
   protected openProjectPushAllToGitDialog(): void {
@@ -1266,6 +1320,42 @@ export class ProjectDetailComponent implements OnInit {
       panelClass: 'ifs-multi-repo-push-dialog',
       data,
     });
+  }
+
+  private async buildCombinedProjectArchive(sources: CombinedArtifactArchiveSource[]): Promise<Blob> {
+    const archive = new JSZip();
+
+    await Promise.all(sources.map(async (source) => {
+      const sourceBlob = await source.archivePromise;
+      await this.appendArchiveEntries(archive, sourceBlob, source.filterPrefix);
+    }));
+
+    return archive.generateAsync({ type: 'blob' });
+  }
+
+  private async appendArchiveEntries(targetArchive: JSZip, sourceArchiveBlob: Blob, filterPrefix?: 'infra' | 'app'): Promise<void> {
+    const sourceArchive = await JSZip.loadAsync(sourceArchiveBlob);
+    const normalizedPrefix = filterPrefix ? `${filterPrefix}/` : null;
+
+    for (const entry of Object.values(sourceArchive.files)) {
+      if (entry.dir) {
+        continue;
+      }
+
+      let entryPath = entry.name;
+      if (normalizedPrefix) {
+        if (!entryPath.startsWith(normalizedPrefix)) {
+          continue;
+        }
+
+        entryPath = entryPath.slice(normalizedPrefix.length);
+        if (!entryPath) {
+          continue;
+        }
+      }
+
+      targetArchive.file(entryPath, await entry.async('uint8array'));
+    }
   }
 
   private resolveSplitRepoAliases(project: ProjectResponse): { infraAlias: string; codeAlias: string } | null {

@@ -85,6 +85,7 @@ import { CompactSelectComponent } from '../../shared/components/compact-select/c
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
 import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
 import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
+import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
 
 /** Key Vault missing role entry for the KV access warning banner */
 interface KvMissingRoleEntry {
@@ -332,6 +333,7 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
     ToggleSectionCardComponent,
     DsButtonComponent,
     DsTextFieldComponent,
+    DockerfilePickerComponent,
     DsSelectComponent,
   ],
   templateUrl: './resource-edit.component.html',

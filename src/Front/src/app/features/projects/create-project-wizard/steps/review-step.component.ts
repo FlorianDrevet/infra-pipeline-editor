@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   DsChipComponent,
@@ -21,7 +22,7 @@ const LAYOUT_LABELS: Record<string, { titleKey: string; icon: string }> = {
 @Component({
   selector: 'app-review-step',
   standalone: true,
-  imports: [TranslateModule, DsChipComponent, DsSectionHeaderComponent],
+  imports: [MatIconModule, TranslateModule, DsChipComponent, DsSectionHeaderComponent],
   templateUrl: './review-step.component.html',
   styleUrl: './review-step.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

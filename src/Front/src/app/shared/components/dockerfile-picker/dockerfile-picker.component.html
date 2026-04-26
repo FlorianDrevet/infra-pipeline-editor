@@ -1,0 +1,83 @@
+<button
+  cdkOverlayOrigin
+  #trigger="cdkOverlayOrigin"
+  type="button"
+  class="picker-trigger"
+  [class.picker-trigger--disabled]="disabled()"
+  [disabled]="disabled()"
+  (click)="toggle()"
+  [attr.aria-label]="'RESOURCE_EDIT.APP_PIPELINE.BROWSE_DOCKERFILE' | translate">
+  <mat-icon>folder_open</mat-icon>
+</button>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="trigger"
+  [cdkConnectedOverlayOpen]="isOpen()"
+  [cdkConnectedOverlayPositions]="overlayPositions"
+  [cdkConnectedOverlayMinWidth]="320"
+  [cdkConnectedOverlayHasBackdrop]="true"
+  cdkConnectedOverlayBackdropClass="dockerfile-picker__backdrop"
+  (backdropClick)="close()"
+  (detach)="close()">
+
+  <div class="picker-panel">
+    @if (error()) {
+      <div class="picker-panel__error">
+        <mat-icon>warning</mat-icon>
+        <span>{{ error()! | translate }}</span>
+      </div>
+    } @else {
+      <!-- Branch selector -->
+      <div class="picker-panel__section">
+        <label class="picker-panel__label">{{ 'RESOURCE_EDIT.APP_PIPELINE.SELECT_BRANCH' | translate }}</label>
+        @if (loadingBranches()) {
+          <div class="picker-panel__loading">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.LOADING_BRANCHES' | translate }}</span>
+          </div>
+        } @else {
+          <select
+            class="picker-panel__select"
+            [value]="selectedBranch()"
+            (change)="onBranchChange($event)">
+            @for (branch of branches(); track branch.name) {
+              <option [value]="branch.name">{{ branch.name }}</option>
+            }
+          </select>
+        }
+      </div>
+
+      <!-- File list -->
+      <div class="picker-panel__section">
+        <label class="picker-panel__label">Dockerfiles</label>
+        @if (loadingFiles()) {
+          <div class="picker-panel__loading">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.LOADING_FILES' | translate }}</span>
+          </div>
+        } @else if (hasFiles()) {
+          <ul class="picker-panel__file-list" role="listbox">
+            @for (file of files(); track file.path) {
+              <li
+                class="picker-panel__file-item"
+                role="option"
+                tabindex="0"
+                (click)="selectFile(file)"
+                (keydown.enter)="selectFile(file)"
+                (keydown.space)="selectFile(file)">
+                <mat-icon class="picker-panel__file-icon">description</mat-icon>
+                <span class="picker-panel__file-path">{{ file.path }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <div class="picker-panel__empty">
+            <mat-icon>search_off</mat-icon>
+            <span>{{ 'RESOURCE_EDIT.APP_PIPELINE.NO_DOCKERFILES_FOUND' | translate }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ng-template>

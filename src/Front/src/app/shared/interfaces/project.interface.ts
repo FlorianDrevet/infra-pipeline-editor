@@ -140,6 +140,11 @@ export interface GitBranchResponse {
   isProtected: boolean;
 }
 
+export interface GitFileResponse {
+  path: string;
+  name: string;
+}
+
 export interface GenerateProjectBicepResponse {
   commonFileUris: Record<string, string>;
   configFileUris: Record<string, Record<string, string>>;

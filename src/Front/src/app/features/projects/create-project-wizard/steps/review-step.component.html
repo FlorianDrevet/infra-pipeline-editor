@@ -27,7 +27,7 @@
     ></app-ds-section-header>
     @if (layoutLabel()) {
       <div class="review-step__layout">
-        <span class="material-symbols-outlined">{{ layoutLabel()!.icon }}</span>
+        <mat-icon class="review-step__layout-icon">{{ layoutLabel()!.icon }}</mat-icon>
         <span>{{ layoutLabel()!.titleKey | translate }}</span>
       </div>
     }

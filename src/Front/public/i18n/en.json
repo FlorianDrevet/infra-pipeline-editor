@@ -900,7 +900,7 @@
       "BOOTSTRAP_APP_STEP_3": "Use it to validate those shared resources and provision the application pipeline definitions.",
       "EMPTY": "No files generated yet.",
       "INFRA_PUSH_DESC": "Pushes generated infrastructure artifacts: Bicep, infra pipeline, and infra bootstrap (owner of environments and variable groups).",
-      "CODE_PUSH_DESC": "Pushes generated application pipeline artifacts to the code repository. Use the code bootstrap tab below to create or refresh the bootstrap pipeline manually.",
+      "CODE_PUSH_DESC": "Pushes the generated code-section artifacts to the application repository: application pipeline and code bootstrap.",
       "PUSH_INFRA": "Push infra",
       "PUSH_CODE": "Push code"
     },
@@ -1410,7 +1410,13 @@
       "BUILD_COMMAND": "Build command",
       "BUILD_COMMAND_HINT": "Custom command (e.g., dotnet publish -c Release)",
       "APPLICATION_NAME": "Application Name",
-      "APPLICATION_NAME_HINT": "Name displayed in Azure DevOps during pipeline runs (defaults to resource name)"
+      "APPLICATION_NAME_HINT": "Name displayed in Azure DevOps during pipeline runs (defaults to resource name)",
+      "BROWSE_DOCKERFILE": "Browse",
+      "SELECT_BRANCH": "Branch",
+      "NO_REPO_CONFIGURED": "No Git repository configured",
+      "NO_DOCKERFILES_FOUND": "No Dockerfile found on this branch",
+      "LOADING_BRANCHES": "Loading branches…",
+      "LOADING_FILES": "Searching for Dockerfiles…"
     },
     "GENERAL": {
       "IDENTITY": "Identity",

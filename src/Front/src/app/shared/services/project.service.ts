@@ -12,6 +12,7 @@ import {
   ValidateRecentItemsRequest,
   TestGitConnectionResponse,
   GitBranchResponse,
+  GitFileResponse,
   AddProjectEnvironmentRequest,
   UpdateProjectEnvironmentRequest,
   GenerateProjectBicepResponse,
@@ -229,6 +230,26 @@ export class ProjectService {
     return this.axios.request$<GitBranchResponse[]>(
       MethodEnum.GET,
       `/projects/${projectId}/git-config/branches`
+    );
+  }
+
+  // ─── Git Operations (code-specific branches + file search) ───
+
+  listCodeBranches(projectId: string, configId?: string): Promise<GitBranchResponse[]> {
+    const params = configId ? `?configId=${configId}` : '';
+    return this.axios.request$<GitBranchResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/git-config/code-branches${params}`
+    );
+  }
+
+  searchCodeFiles(projectId: string, branch: string, pattern?: string, configId?: string): Promise<GitFileResponse[]> {
+    const params = new URLSearchParams({ branch });
+    if (pattern) params.set('pattern', pattern);
+    if (configId) params.set('configId', configId);
+    return this.axios.request$<GitFileResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/git-config/code-files?${params.toString()}`
     );
   }
 
