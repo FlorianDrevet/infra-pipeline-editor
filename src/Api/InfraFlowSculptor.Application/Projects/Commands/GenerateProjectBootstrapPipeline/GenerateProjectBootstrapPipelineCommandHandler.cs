@@ -323,9 +323,17 @@ public sealed class GenerateProjectBootstrapPipelineCommandHandler(
         {
             var groupNames = ExpandGroupName(group.GroupName, environments);
             var secretVariableNames = configs
-                .SelectMany(config => config.SecureParameterMappings ?? [])
-                .Where(mapping => mapping.VariableGroupId == group.Id.Value && mapping.PipelineVariableName is not null)
-                .Select(mapping => mapping.PipelineVariableName!)
+                .SelectMany(config =>
+                    (config.SecureParameterMappings ?? [])
+                        .Where(mapping => mapping.VariableGroupId == group.Id.Value && mapping.PipelineVariableName is not null)
+                        .Select(mapping => mapping.PipelineVariableName!)
+                    .Concat(config.AppSettings
+                        .Where(setting =>
+                            setting.VariableGroupId == group.Id.Value
+                            && setting.PipelineVariableName is not null
+                            && setting.IsKeyVaultReference
+                            && string.Equals(setting.SecretValueAssignment, "ViaBicepparam", StringComparison.OrdinalIgnoreCase))
+                        .Select(setting => setting.PipelineVariableName!)))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
             var variableNames = variableGroupUsages.TryGetValue(group.Id.Value, out var usages)

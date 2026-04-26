@@ -12,6 +12,7 @@ import {
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
@@ -95,6 +96,7 @@ export class CreateProjectWizardDialogComponent implements OnInit {
   protected readonly abandonPromptVisible = signal(false);
 
   protected readonly stepperRef = viewChild<MatStepper>('stepper');
+  protected readonly activeStepIndex = signal(0);
 
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -103,6 +105,21 @@ export class CreateProjectWizardDialogComponent implements OnInit {
   );
 
   protected readonly reviewStepIndex = computed(() => (this.needsRepositoriesStep() ? 4 : 3));
+
+  protected readonly isCurrentStepValid = computed(() => {
+    switch (this.activeStepIndex()) {
+      case STEP_IDENTITY:
+        return this.identityValid();
+      case STEP_LAYOUT:
+        return this.layoutValid();
+      case STEP_ENVIRONMENTS:
+        return this.environmentsValid();
+      case STEP_REPOSITORIES:
+        return this.repositoriesValid();
+      default:
+        return true;
+    }
+  });
 
   public constructor() {
     // Persist the draft to sessionStorage 300ms after the last change.
@@ -162,6 +179,20 @@ export class CreateProjectWizardDialogComponent implements OnInit {
 
   protected onRepositoriesValidity(valid: boolean): void {
     this.repositoriesValid.set(valid);
+  }
+
+  // ─── Stepper navigation ─────────────────────────────────────────────────
+
+  protected onStepChange(event: StepperSelectionEvent): void {
+    this.activeStepIndex.set(event.selectedIndex);
+  }
+
+  protected goNext(): void {
+    this.stepperRef()?.next();
+  }
+
+  protected goPrevious(): void {
+    this.stepperRef()?.previous();
   }
 
   // ─── Quick start ──────────────────────────────────────────────────────────

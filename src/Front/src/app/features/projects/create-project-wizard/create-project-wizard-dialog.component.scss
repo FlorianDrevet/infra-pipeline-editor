@@ -1,9 +1,9 @@
 .wizard {
   display: flex;
   flex-direction: column;
-  max-height: calc(90vh - 32px);
+  height: 100%;
   width: 100%;
-  background: var(--surface-color, #ffffff);
+  overflow: hidden;
 
   &__header {
     display: flex;
@@ -46,28 +46,14 @@
     overflow: hidden;
   }
 
-  &__step-actions {
+  &__footer {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     justify-content: flex-end;
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     border-top: 1px solid var(--border-color, #e5e7eb);
-    background: var(--surface-color, #ffffff);
     flex-shrink: 0;
-  }
-
-  // matStepperNext/Previous are kept as native (hidden) buttons so we can drive
-  // navigation from our DS buttons while letting Angular Material manage the
-  // stepper state machine.
-  &__hidden-mat {
-    position: absolute;
-    width: 0;
-    height: 0;
-    padding: 0;
-    border: 0;
-    opacity: 0;
-    pointer-events: none;
   }
 
   &__submit-error {
@@ -127,18 +113,12 @@
     line-height: 1.25;
   }
 
-  // Space between the stepper header bar and step content
   .mat-horizontal-content-container {
     flex: 1 1 auto;
     overflow-y: auto;
     padding-top: 1.5rem;
+    padding-bottom: 1rem;
     min-height: 0;
-  }
-
-  // Each step content wrapper must stretch to fill available space
-  .mat-horizontal-stepper-content.mat-horizontal-stepper-content-current {
-    display: flex;
-    flex-direction: column;
   }
 }
 
@@ -150,6 +130,10 @@
 
     &__banner {
       padding: 0.75rem 1rem 0;
+    }
+
+    &__footer {
+      padding: 0.75rem 1rem;
     }
   }
 }
