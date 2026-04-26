@@ -75,21 +75,12 @@ dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\ -p:DefineConstants
 
 ## Infrastructure Services
 
-- **ARM RBAC deployment prerequisite [2026-04-23]**: infra deployments that include generated Container Registry role assignments require the Azure deployment principal / service connection to have `Microsoft.Authorization/roleAssignments/write` on the target scope (registry, resource group, or subscription). In practice, `Contributor` is insufficient; grant `Owner` or `User Access Administrator` where the ACR-scoped RBAC is created. This repo intentionally emits those `Microsoft.Authorization/roleAssignments` resources for config `RoleAssignments`, and `AcrPullDiagnosticRule` requires `AcrPull` for managed-identity-based ACR access unless `acrAuthMode = AdminCredentials`.
-
-- **GitHub Git Provider**: uses Refit (`IGitHubTreeApi`) instead of raw `HttpClient` for GitHub API calls [2026-04-16]. Registered in `Infrastructure/DependencyInjection.cs`.
-- **Azure DevOps integration boundary [2026-04-22]**: `AzureDevOpsGitProviderService` still covers Git repository operations only (test connection, list branches, push files), while project bootstrap now provisions Azure DevOps pipeline definitions and variable groups through generated YAML executed inside Azure DevOps with Azure CLI calls. The bootstrap no longer emits the `Authorize Variable Groups on All Pipelines` step. Pipeline and Library security ACL assignment remains a separate concern: it can be automated only through Azure DevOps Security ACL APIs with an identity that already has admin rights. The current bootstrap runs under `$(System.AccessToken)` and therefore cannot reliably self-grant the missing rights it needs on first run. Treat pipeline `Manage security` and library `Security` assignments for the Build Service identity as one-time manual prerequisites.
-- **Azure DevOps Git push branch creation [2026-04-23]**: when `AzureDevOpsGitProviderService` pushes to a branch that does not yet exist, `refUpdates.oldObjectId` must use the base branch commit SHA for edit/delete scenarios instead of the all-zero sentinel. Otherwise Azure DevOps treats the push as an initial commit on an empty tree and rejects `edit` changes with `InvalidArgumentValueException` (`The path '...' does not exist at commit ...`).
-- **App pipeline path normalization [2026-04-23]**: isolated app pipeline generation must not emit duplicated logical folders like `apps/{appName}/{resourceName}/...` when `ApplicationName` is null or matches `ResourceName`. `AppPipelineGenerationEngine` now collapses that redundant first segment, and the pipeline push handlers normalize legacy duplicated blob paths (for example `apps/Ifs-frontend/ifs-frontend/ci.app-pipeline.yml` -> `apps/Ifs-frontend/ci.app-pipeline.yml`) before pushing to Git so previously generated artifacts remain compatible.
-- **Manual Azure DevOps bootstrap security procedure [2026-04-22]**:
-	1. Run the bootstrap pipeline once so the Build Service identity exists in Azure DevOps if the project uses project-scoped job authorization.
-	2. Determine the identity to grant: `{Project Name} Build Service ({Org})` for project-scoped tokens, or `Project Collection Build Service ({Org})` for collection-scoped tokens.
-	3. In `Pipelines` -> `Pipelines` -> `...` -> `Manage security`, add that Build Service identity and allow at minimum `Create build pipeline` on the target folder path used by bootstrap (for example `\Core`, or the root if you want inheritance for all generated folders).
-	4. In `Pipelines` -> `Library` -> `Security`, add the same Build Service identity.
-	5. Minimum role for creating new variable groups is `Creator`; recommended role for the current bootstrap flow is `Administrator`, especially if reruns must update existing groups or manage their permissions.
-	6. If self-hosted pools or service connections are used, grant the Build Service identity the required `Use`/`User` permissions on those resources as separate setup steps.
-- **DNS Name Availability**: `DnsNameAvailabilityChecker` [2026-04-22] — resolves `{name}.{azureSuffix}` via DNS, no Azure auth required. Replaced previous ARM-based `AzureNameAvailabilityChecker`.
-- **Diagnostic Rules**: `IDiagnosticRule.EvaluateAsync()` [2026-04-22] — async interface with `Task.WhenAll` parallelization. Rules: `AcrPullDiagnosticRule`, `KeyVaultAccessDiagnosticRule`, `NameAvailabilityDiagnosticRule`.
+- **ARM RBAC prerequisite**: deployments with ACR role assignments need `Owner` or `User Access Administrator` on target scope (`Contributor` insufficient for `Microsoft.Authorization/roleAssignments/write`).
+- **GitHub Git Provider**: Refit (`IGitHubTreeApi`), registered in `Infrastructure/DependencyInjection.cs`.
+- **Azure DevOps Git**: `AzureDevOpsGitProviderService` covers Git ops only (push, branches). Bootstrap provisions pipeline/VG/envs through generated YAML. Pipeline/Library security is a manual prerequisite. New branch push: `oldObjectId` must use base branch SHA (not all-zero sentinel).
+- **App pipeline path normalization**: `AppPipelineGenerationEngine` collapses redundant `apps/{appName}/{resourceName}/...` to `apps/{appName}/...`.
+- **DNS Name Availability**: `DnsNameAvailabilityChecker` — DNS-based, no Azure auth required.
+- **Diagnostic Rules**: `IDiagnosticRule.EvaluateAsync()` — `AcrPullDiagnosticRule`, `KeyVaultAccessDiagnosticRule`, `NameAvailabilityDiagnosticRule`.
 
 ## Sonar Quality Rules
 - **S1192** — Duplicate strings in migrations (accepted)

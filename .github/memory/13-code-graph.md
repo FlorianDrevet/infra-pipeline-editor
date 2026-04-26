@@ -8,7 +8,7 @@
 ## Index status
 
 - **Repo indexé :** `infra-pipeline-editor`
-- **Session context [2026-04-25] :** GitNexus expose le repo avec 14 901 nodes, 55 895 relations, 810 communities, et 300 flows (index frais au 2026-04-24T10:48:20Z).
+- **Session context [2026-04-26] :** GitNexus expose le repo avec ~15 241 nodes, ~56 667 relations, ~810 communities, et 300 flows (index freshness à vérifier si outil rapporte stale).
 - **Spot-check [2026-04-25] :** les requêtes GitNexus résolvent désormais `CustomDomain` et `BootstrapPipelineGenerationEngine`; l'ancienne alerte sur les symboles récents non résolus est obsolète.
 - **Règle pratique [2026-04-25] :** pour les noms partagés entre entités métier et classes d'erreur, fournir `file_path` à `gitnexus_context()` pour obtenir le bon symbole du premier coup.
 - **Obsolete cached stats removed:** the earlier 2026-04-03 counts (`9 569` nodes / `41 834` edges / `667` clusters) no longer represent the current index surface.
@@ -32,7 +32,8 @@
 | Génération Bicep (config) | `BicepGenerationController` → `GenerateBicepCommandHandler` → `BicepGenerationEngine` → `BicepAssembler` (→ sub-assemblers) |
 | Génération Bicep (projet) | `BicepGenerationController` → `GenerateProjectBicepCommandHandler` → `BicepGenerationEngine` → `MonoRepoBicepAssembler` |
 | Génération Pipeline (infra+app) | `PipelineGenerationController` → `GeneratePipelineCommandHandler` → `MonoRepoPipelineAssembler` + `AppPipelineGenerationEngine` |
-| Génération Bootstrap ADO (projet) | `ProjectController` → `GenerateProjectBootstrapPipelineCommandHandler` → `BootstrapPipelineGenerationEngine` |
+| Génération Bootstrap ADO (projet) | `ProjectController` → `GenerateProjectBootstrapPipelineCommandHandler` → `BootstrapPipelineGenerationEngine` (split-aware: `FullOwner` for infra, `ApplicationOnly` for code) |
+| Création projet (wizard) | `ProjectController` → `CreateProjectWithSetupCommandHandler` → atomic Project + Layout + Envs + Repos |
 | CRUD Resource (pattern) | `{Resource}Controller` → MediatR → `{Action}{Resource}CommandHandler` → `I{Resource}Repository` → EF Core |
 
 ## Counts — Verified by Cypher [2026-04-03]
@@ -57,4 +58,4 @@
 
 ---
 
-*Dernière mise à jour : 2026-04-25 — Dream consolidation (dream cycle)*
+*Dernière mise à jour : 2026-04-26 — Dream consolidation (dream cycle)*
