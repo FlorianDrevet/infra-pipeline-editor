@@ -79,22 +79,35 @@
   }
 
   .mat-horizontal-stepper-header-container {
-    padding: 0 1rem;
+    padding: 0.4rem 1rem;
     border-bottom: 1px solid var(--border-color, #e5e7eb);
     background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(255, 255, 255, 0.98));
+    --mat-stepper-header-hover-state-layer-shape: 1rem;
+    --mat-stepper-header-focus-state-layer-shape: 1rem;
+    --mat-stepper-header-hover-state-layer-color: rgba(15, 23, 42, 0.05);
+    --mat-stepper-header-focus-state-layer-color: rgba(2, 136, 209, 0.12);
   }
 
   // Space between connector line and step circles
   .mat-stepper-horizontal-line {
-    margin: 0 8px;
+    margin: 0 10px;
   }
 
   .mat-step-header {
     min-width: 0;
-    padding: 1rem 0.75rem;
-    border-radius: 0.5rem;
-    margin-block: 0.375rem;
+    padding: 0.9rem 0.85rem;
+    border-radius: 1rem;
     overflow: hidden;
+    transition:
+      background-color 140ms ease-out,
+      box-shadow 140ms ease-out;
+  }
+
+  .mat-step-header:hover:not([aria-disabled]),
+  .mat-step-header:hover[aria-disabled='false'],
+  .mat-step-header.cdk-keyboard-focused,
+  .mat-step-header.cdk-program-focused {
+    box-shadow: inset 0 0 0 1px rgba(2, 136, 209, 0.08);
   }
 
   .mat-step-label,

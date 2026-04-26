@@ -6,6 +6,7 @@
   <div class="layout-step__cards" role="radiogroup">
     @for (option of options; track option.value) {
       <app-ds-option-card
+        class="layout-step__card-item"
         [icon]="option.icon"
         [title]="option.titleKey | translate"
         [description]="option.descKey | translate"

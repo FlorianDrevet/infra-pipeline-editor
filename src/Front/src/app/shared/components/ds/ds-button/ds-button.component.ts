@@ -14,7 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DsButtonComponent {
-  public readonly variant = input<'primary' | 'secondary' | 'ghost' | 'danger'>('primary');
+  public readonly variant = input<'primary' | 'secondary' | 'ghost' | 'danger' | 'success'>('primary');
   public readonly size = input<'sm' | 'md' | 'lg'>('md');
   public readonly disabled = input<boolean>(false);
   public readonly loading = input<boolean>(false);

@@ -92,8 +92,8 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
             if (bicepFilesResult.IsError)
                 return bicepFilesResult.Errors;
 
-            var bootstrapFilesResult = await LoadLatestArtifactFilesAsync(
-                "bootstrap", command.ProjectId.Value, Errors.Project.BootstrapFilesNotFoundError, cancellationToken);
+            var bootstrapFilesResult = await LoadLatestBootstrapFilesAsync(
+                command.ProjectId.Value, bucketPrefix: "infra/", cancellationToken);
             if (bootstrapFilesResult.IsError)
                 return bootstrapFilesResult.Errors;
 
@@ -275,6 +275,51 @@ public sealed class PushProjectArtifactsToMultiRepoCommandHandler(
 
         if (files.Count == 0)
             return notFoundErrorFactory(projectId);
+
+        return files;
+    }
+
+    /// <summary>
+    /// Loads bootstrap pipeline files from blob storage, optionally filtering by bucket prefix.
+    /// In <c>SplitInfraCode</c> layout, bootstrap blobs are stored under <c>infra/</c> and <c>app/</c> sub-prefixes.
+    /// Passing a <paramref name="bucketPrefix"/> (e.g. <c>"infra/"</c>) returns only that bucket's files with the prefix stripped.
+    /// </summary>
+    private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> LoadLatestBootstrapFilesAsync(
+        Guid projectId, string? bucketPrefix, CancellationToken cancellationToken)
+    {
+        var prefix = $"bootstrap/project/{projectId}/";
+        var allBlobs = await blobService.ListBlobsAsync(prefix);
+
+        if (allBlobs.Count == 0)
+            return Errors.Project.BootstrapFilesNotFoundError(projectId);
+
+        var latestPrefix = allBlobs
+            .Select(b => string.Join('/', b.Split('/').Take(4)))
+            .Distinct()
+            .OrderDescending()
+            .First();
+
+        var bucketBlobPrefix = string.IsNullOrEmpty(bucketPrefix)
+            ? latestPrefix + "/"
+            : $"{latestPrefix}/{bucketPrefix.TrimEnd('/')}/";
+
+        var latestBlobs = allBlobs
+            .Where(b => b.StartsWith(bucketBlobPrefix, StringComparison.Ordinal))
+            .ToList();
+
+        var files = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var blobName in latestBlobs)
+        {
+            var content = await blobService.DownloadContentAsync(blobName);
+            if (content is null)
+                continue;
+
+            var relativePath = blobName[bucketBlobPrefix.Length..];
+            files[relativePath] = content;
+        }
+
+        if (files.Count == 0)
+            return Errors.Project.BootstrapFilesNotFoundError(projectId);
 
         return files;
     }

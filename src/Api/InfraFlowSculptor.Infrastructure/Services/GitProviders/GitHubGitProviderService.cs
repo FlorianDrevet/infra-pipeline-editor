@@ -211,6 +211,38 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
         }
     }
 
+    /// <inheritdoc />
+    public async Task<ErrorOr<IReadOnlyList<GitFileResult>>> SearchFilesAsync(
+        string token, string owner, string repositoryName,
+        string branch, string? filenamePattern,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = CreateClient(token);
+
+            var branchRef = await client.Git.Reference.Get(owner, repositoryName, $"heads/{branch}");
+            var sha = branchRef.Object.Sha;
+
+            var tree = await client.Git.Tree.GetRecursive(owner, repositoryName, sha);
+
+            var results = tree.Tree
+                .Where(item => item.Type == TreeType.Blob && !string.IsNullOrEmpty(item.Path))
+                .Where(item => string.IsNullOrEmpty(filenamePattern)
+                    || System.IO.Path.GetFileName(item.Path)
+                        .Contains(filenamePattern, StringComparison.OrdinalIgnoreCase))
+                .Take(200)
+                .Select(item => new GitFileResult(item.Path, System.IO.Path.GetFileName(item.Path)))
+                .ToList();
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.SearchFilesFailed(ex.Message);
+        }
+    }
+
     private static GitHubClient CreateClient(string token)
     {
         var client = new GitHubClient(new Octokit.ProductHeaderValue("InfraFlowSculptor"));

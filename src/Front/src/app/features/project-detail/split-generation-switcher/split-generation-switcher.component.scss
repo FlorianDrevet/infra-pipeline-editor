@@ -138,6 +138,18 @@
   }
 }
 
+.split-switcher__cta-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: none;
+
+  @media (max-width: 720px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .split-switcher__cta-copy {
   display: flex;
   flex-direction: column;

@@ -19,5 +19,15 @@
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
     }
   }
+
+  &__card-item {
+    display: block;
+    height: 100%;
+  }
+}
+
+:host ::ng-deep .layout-step__card-item .ds-option-card {
+  height: 100%;
+  min-block-size: 7.75rem;
 }
 

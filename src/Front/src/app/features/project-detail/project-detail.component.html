@@ -89,6 +89,7 @@
                   [isGeneratingBicep]="projectBicepLoading()"
                   [isGeneratingPipeline]="projectPipelineLoading()"
                   [isGeneratingBootstrap]="projectBootstrapLoading()"
+                  [isDownloadingZip]="projectBicepDownloading()"
                   [bicepGenerationError]="projectBicepErrorKey()"
                   [pipelineGenerationError]="projectPipelineErrorKey()"
                   [bootstrapGenerationError]="projectBootstrapErrorKey()"
@@ -99,6 +100,7 @@
                   (retryBicep)="generateProjectBicep()"
                   (retryPipeline)="generateProjectPipeline()"
                   (retryBootstrap)="generateProjectBootstrap()"
+                  (downloadZip)="downloadProjectBicepFiles()"
                   (pushInfra)="openProjectMultiRepoPushDialog('infra')"
                   (pushCode)="openProjectMultiRepoPushDialog('code')">
                 </app-split-generation-switcher>

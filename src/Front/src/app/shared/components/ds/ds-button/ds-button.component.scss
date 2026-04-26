@@ -95,6 +95,20 @@
     }
   }
 
+  &--success {
+    background: linear-gradient(145deg, #1b5e20 0%, #388e3c 100%);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(27, 94, 32, 0.28);
+
+    &:not(:disabled) {
+      @include ifs-hover-lift;
+
+      &:hover {
+        box-shadow: 0 12px 32px rgba(27, 94, 32, 0.38);
+      }
+    }
+  }
+
   // --- Sizes ---
   &--sm {
     padding: 0.4rem 0.8rem;

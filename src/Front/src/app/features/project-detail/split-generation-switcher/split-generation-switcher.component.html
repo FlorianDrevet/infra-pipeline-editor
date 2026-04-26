@@ -30,13 +30,23 @@
           <span class="split-switcher__cta-eyebrow">{{ 'PROJECT_DETAIL.SWITCHER.INFRA_TAB' | translate }}</span>
           <p class="split-switcher__cta-text">{{ 'PROJECT_DETAIL.SWITCHER.INFRA_PUSH_DESC' | translate }}</p>
         </div>
-        <app-ds-button
-          variant="primary"
-          icon="cloud_upload"
-          [disabled]="!canPushInfra()"
-          (clicked)="onPushInfra()">
-          {{ 'PROJECT_DETAIL.SWITCHER.PUSH_INFRA' | translate }}
-        </app-ds-button>
+        <div class="split-switcher__cta-actions">
+          <app-ds-button
+            variant="success"
+            icon="download"
+            [disabled]="!canDownloadZip()"
+            [loading]="isDownloadingZip()"
+            (clicked)="onDownloadZip()">
+            {{ (isDownloadingZip() ? 'PROJECT_DETAIL.BICEP.DOWNLOADING' : 'PROJECT_DETAIL.BICEP.DOWNLOAD') | translate }}
+          </app-ds-button>
+          <app-ds-button
+            variant="primary"
+            icon="cloud_upload"
+            [disabled]="!canPushInfra()"
+            (clicked)="onPushInfra()">
+            {{ 'PROJECT_DETAIL.SWITCHER.PUSH_INFRA' | translate }}
+          </app-ds-button>
+        </div>
       </div>
 
       <mat-tab-group class="generation-tabs split-switcher__inner" animationDuration="200ms">

@@ -165,6 +165,9 @@ public sealed class ProjectMappingConfig : IRegister
         // GitBranchResult -> GitBranchResponse
         config.NewConfig<GitBranchResult, GitBranchResponse>();
 
+        // GitFileResult -> GitFileResponse
+        config.NewConfig<GitFileResult, GitFileResponse>();
+
         // PushBicepToGitResult -> PushBicepToGitResponse
         config.NewConfig<PushBicepToGitResult, InfraFlowSculptor.Contracts.InfrastructureConfig.Responses.PushBicepToGitResponse>();
 

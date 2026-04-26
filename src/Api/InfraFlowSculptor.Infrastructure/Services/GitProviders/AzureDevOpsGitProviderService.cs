@@ -343,6 +343,42 @@ public sealed class AzureDevOpsGitProviderService(
         }
     }
 
+    /// <inheritdoc />
+    public async Task<ErrorOr<IReadOnlyList<GitFileResult>>> SearchFilesAsync(
+        string token, string owner, string repositoryName,
+        string branch, string? filenamePattern,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var client = CreateClient(token);
+            var (org, project) = ParseOwner(owner);
+
+            var url = $"https://dev.azure.com/{org}/{project}/_apis/git/repositories/{repositoryName}/items?recursionLevel=full&versionDescriptor.version={Uri.EscapeDataString(branch)}&versionDescriptor.versionType=branch&api-version={ApiVersion}";
+            var response = await client.GetFromJsonAsync<AdoItemList>(url, cancellationToken);
+
+            var results = (response?.Value ?? [])
+                .Where(item => item is { IsFolder: false, Path: not null })
+                .Where(item =>
+                {
+                    var fileName = System.IO.Path.GetFileName(item.Path!);
+                    return string.IsNullOrEmpty(filenamePattern)
+                        || fileName.Contains(filenamePattern, StringComparison.OrdinalIgnoreCase);
+                })
+                .Take(200)
+                .Select(item => new GitFileResult(
+                    item.Path!.TrimStart('/'),
+                    System.IO.Path.GetFileName(item.Path!)))
+                .ToList();
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.SearchFilesFailed(ex.Message);
+        }
+    }
+
     private HttpClient CreateClient(string token)
     {
         var client = httpClientFactory.CreateClient();

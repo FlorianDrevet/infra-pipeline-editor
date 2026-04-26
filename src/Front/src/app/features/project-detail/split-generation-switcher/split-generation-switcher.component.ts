@@ -73,7 +73,10 @@ export class SplitGenerationSwitcherComponent {
   readonly retryBootstrap = output<void>();
   readonly pushInfra = output<void>();
   readonly pushCode = output<void>();
+  readonly downloadZip = output<void>();
   readonly toggleCollapsed = output<void>();
+
+  readonly isDownloadingZip = input<boolean>(false);
 
   // ─── File counts (for badges) ───
   protected readonly infraFileCount = computed(() => {
@@ -153,6 +156,7 @@ export class SplitGenerationSwitcherComponent {
     && !this.isGeneratingPipeline()
     && !this.isGeneratingBootstrap());
   protected readonly canPushCode = computed(() => this.hasAppPipeline() && !this.isGeneratingPipeline());
+  protected readonly canDownloadZip = computed(() => this.bicepNodes().length > 0 && !this.isGeneratingBicep() && !this.isDownloadingZip());
 
   protected onRetryBicep(): void { this.retryBicep.emit(); }
   protected onRetryPipeline(): void { this.retryPipeline.emit(); }
@@ -165,6 +169,11 @@ export class SplitGenerationSwitcherComponent {
   protected onPushCode(): void {
     if (!this.canPushCode()) return;
     this.pushCode.emit();
+  }
+
+  protected onDownloadZip(): void {
+    if (!this.canDownloadZip()) return;
+    this.downloadZip.emit();
   }
 
   protected onToggleCollapsed(): void {

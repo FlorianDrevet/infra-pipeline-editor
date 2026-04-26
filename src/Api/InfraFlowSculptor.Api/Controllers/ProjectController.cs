@@ -44,6 +44,8 @@ using InfraFlowSculptor.Application.Projects.Queries.GetProjectBicepFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectBootstrapPipelineFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectPipelineFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.ListGitBranches;
+using InfraFlowSculptor.Application.Projects.Queries.ListCodeRepoBranches;
+using InfraFlowSculptor.Application.Projects.Queries.SearchCodeRepoFiles;
 using InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectConfigs;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
@@ -591,6 +593,61 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Git Code Repository Operations (branches + file search) ─────────────────
+
+            group.MapGet("/{projectId:guid}/git-config/code-branches",
+                    async ([FromRoute] Guid projectId, [FromQuery] Guid? configId, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListCodeRepoBranchesQuery(
+                            new ProjectId(projectId),
+                            configId.HasValue ? new InfrastructureConfigId(configId.Value) : null);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            branches =>
+                            {
+                                var responses = branches.Select(b => mapper.Map<GitBranchResponse>(b)).ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListCodeRepoBranches")
+                .WithSummary("List code repository branches")
+                .WithDescription("Lists all branches in the application-code Git repository. Requires read access to the project.")
+                .Produces<IReadOnlyList<GitBranchResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{projectId:guid}/git-config/code-files",
+                    async ([FromRoute] Guid projectId, [FromQuery] string branch, [FromQuery] string? pattern, [FromQuery] Guid? configId, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new SearchCodeRepoFilesQuery(
+                            new ProjectId(projectId),
+                            branch,
+                            pattern,
+                            configId.HasValue ? new InfrastructureConfigId(configId.Value) : null);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            files =>
+                            {
+                                var responses = files.Select(f => mapper.Map<GitFileResponse>(f)).ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SearchCodeRepoFiles")
+                .WithSummary("Search files in code repository")
+                .WithDescription("Searches for files matching a filename pattern in the application-code Git repository on a specific branch. Requires read access to the project.")
+                .Produces<IReadOnlyList<GitFileResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden)
+                .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
             // GET /{id:guid}/resources
             group.MapGet("/{id:guid}/resources",
