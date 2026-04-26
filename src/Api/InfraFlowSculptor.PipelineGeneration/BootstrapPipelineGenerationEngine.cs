@@ -100,6 +100,7 @@ public sealed class BootstrapPipelineGenerationEngine
         sb.AppendLine("# Prerequisites:");
         sb.AppendLine("#   - The pipeline/job must expose $(System.AccessToken) to scripts");
         sb.AppendLine("#   - The build service identity must be allowed to manage pipelines, environments, and variable groups");
+        sb.AppendLine("#   - The build service identity must also have Use permission on any agent pool referenced by the generated YAML");
         sb.AppendLine("#   - Service connections configured per environment in Azure DevOps");
         sb.AppendLine("#   - Azure CLI with azure-devops extension available on agent");
 
@@ -221,9 +222,14 @@ public sealed class BootstrapPipelineGenerationEngine
             sb.AppendLine($"{StepBodyIndent}$ErrorActionPreference = 'Stop'");
             sb.AppendLine($"{StepBodyIndent}$existing = az pipelines list --folder-path '{sanitizedFolder}' --query \"[?name=='{sanitizedName}'].id | [0]\" -o tsv --detect false");
             sb.AppendLine($"{StepBodyIndent}if ([string]::IsNullOrWhiteSpace($existing)) {{");
-            sb.AppendLine($"{StepBodyIndent}  $createdId = az pipelines create --name '{sanitizedName}' --repository \"$(repositoryName)\" --repository-type tfsgit --branch \"$(defaultBranch)\" --yml-path '{sanitizedPath}' --folder-path '{sanitizedFolder}' --skip-first-run true --query 'id' -o tsv --detect false");
+            sb.AppendLine($"{StepBodyIndent}  $createOutput = az pipelines create --name '{sanitizedName}' --repository \"$(repositoryName)\" --repository-type tfsgit --branch \"$(defaultBranch)\" --yml-path '{sanitizedPath}' --folder-path '{sanitizedFolder}' --skip-first-run true --query 'id' -o tsv --detect false 2>&1");
+            sb.AppendLine($"{StepBodyIndent}  $createdId = ($createOutput | Select-Object -Last 1 | Out-String).Trim()");
             sb.AppendLine($"{StepBodyIndent}  if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($createdId)) {{");
-            sb.AppendLine($"{StepBodyIndent}    throw 'Failed to create pipeline {sanitizedName}. Ensure the Azure DevOps identity used by System.AccessToken has the Create build pipeline permission on path {sanitizedFolder}.'");
+            sb.AppendLine($"{StepBodyIndent}    $details = ($createOutput | Out-String).Trim()");
+            sb.AppendLine($"{StepBodyIndent}    if ([string]::IsNullOrWhiteSpace($details)) {{");
+            sb.AppendLine($"{StepBodyIndent}      $details = 'No output returned by Azure DevOps CLI.'");
+            sb.AppendLine($"{StepBodyIndent}    }}");
+            sb.AppendLine($"{StepBodyIndent}    throw 'Failed to create pipeline {sanitizedName}. Ensure the Azure DevOps identity used by System.AccessToken has the Create build pipeline permission on path {sanitizedFolder} and Use permission on the agent pool referenced by {sanitizedPath}. Azure DevOps CLI output: ' + $details");
             sb.AppendLine($"{StepBodyIndent}  }}");
             sb.AppendLine($"{StepBodyIndent}  Write-Host ('Created pipeline: {sanitizedName} (ID: ' + $createdId + ')')");
             sb.AppendLine($"{StepBodyIndent}}}");

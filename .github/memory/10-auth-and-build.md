@@ -68,7 +68,7 @@ dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\ -p:DefineConstants
 - Bootstrap jobs: split into `Provision Pipeline Definitions`, `Provision Environments`, `Provision Variable Groups`.
 - Variable groups: seed empty groups with `PLACEHOLDER=bootstrap`, delete placeholder only after real variables exist.
 - Environments: created by `shortName` (lower-cased); release templates must use `shortName` for `environment:` field, `name` only for display labels.
-- ADO folder security: Build Service needs `Create build pipeline` + Environments `Creator`. Manual prerequisites: pipeline `Manage security` and library `Security` for Build Service identity.
+- ADO folder security: Build Service needs `Create build pipeline` on the folder, Environments `Creator`, and `Use` permission on any agent pool referenced by generated YAML. Pipeline creation validates the target YAML immediately; bootstrap generation now preserves raw `az pipelines create` output so pool denials surface instead of looking like a generic create-permission failure. Manual prerequisites: pipeline `Manage security` and library `Security` for Build Service identity.
 - Mono-repo PR validation: sparse-checkout must include `Common/` alongside the config folder.
 - Variable-group mappings: target the Bicep parameter name (e.g. `ifsApiJwtSecretSecretValue`), not the env var name (`JWT_SECRET`).
 - App pipeline paths: generators return filenames relative to app folder only; `AppPipelineGenerationEngine.GenerateAll()` owns the `apps/{appName}/...` prefix.

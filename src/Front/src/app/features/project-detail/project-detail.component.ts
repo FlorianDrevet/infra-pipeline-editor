@@ -78,14 +78,17 @@ import { ResourceGroupService } from '../../shared/services/resource-group.servi
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { firstValueFrom } from 'rxjs';
 import { MultiRepoPushMode } from '../../shared/interfaces/multi-repo-push.interface';
+import {
+  GeneratedArtifactArchiveSourceSpec,
+  tryResolveGeneratedArtifactEntryPath,
+} from './project-generated-artifact-paths';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
 const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit', Reader: 'visibility' };
 
-interface CombinedArtifactArchiveSource {
+interface CombinedArtifactArchiveSource extends GeneratedArtifactArchiveSourceSpec {
   archivePromise: Promise<Blob>;
-  filterPrefix?: 'infra' | 'app';
 }
 
 function ensureTreeFolderNode(
@@ -1251,9 +1254,9 @@ export class ProjectDetailComponent implements OnInit {
     this.projectInfraArtifactsDownloading.set(true);
     try {
       const blob = await this.buildCombinedProjectArchive([
-        { archivePromise: this.projectService.downloadProjectZip(project.id) },
-        { archivePromise: this.projectService.downloadProjectPipelineZip(project.id), filterPrefix: 'infra' },
-        { archivePromise: this.projectService.downloadProjectBootstrapPipelineZip(project.id), filterPrefix: 'infra' },
+        { archivePromise: this.projectService.downloadProjectZip(project.id), archiveKind: 'bicep' },
+        { archivePromise: this.projectService.downloadProjectPipelineZip(project.id), archiveKind: 'pipeline', filterPrefix: 'infra' },
+        { archivePromise: this.projectService.downloadProjectBootstrapPipelineZip(project.id), archiveKind: 'bootstrap', filterPrefix: 'infra' },
       ]);
 
       saveAs(blob, `${project.name ?? 'project'}-infra-artifacts.zip`);
@@ -1274,8 +1277,8 @@ export class ProjectDetailComponent implements OnInit {
     this.projectCodeArtifactsDownloading.set(true);
     try {
       const blob = await this.buildCombinedProjectArchive([
-        { archivePromise: this.projectService.downloadProjectPipelineZip(project.id), filterPrefix: 'app' },
-        { archivePromise: this.projectService.downloadProjectBootstrapPipelineZip(project.id), filterPrefix: 'app' },
+        { archivePromise: this.projectService.downloadProjectPipelineZip(project.id), archiveKind: 'pipeline', filterPrefix: 'app' },
+        { archivePromise: this.projectService.downloadProjectBootstrapPipelineZip(project.id), archiveKind: 'bootstrap', filterPrefix: 'app' },
       ]);
 
       saveAs(blob, `${project.name ?? 'project'}-code-artifacts.zip`);
@@ -1327,31 +1330,27 @@ export class ProjectDetailComponent implements OnInit {
 
     await Promise.all(sources.map(async (source) => {
       const sourceBlob = await source.archivePromise;
-      await this.appendArchiveEntries(archive, sourceBlob, source.filterPrefix);
+      await this.appendArchiveEntries(archive, sourceBlob, source);
     }));
 
     return archive.generateAsync({ type: 'blob' });
   }
 
-  private async appendArchiveEntries(targetArchive: JSZip, sourceArchiveBlob: Blob, filterPrefix?: 'infra' | 'app'): Promise<void> {
+  private async appendArchiveEntries(
+    targetArchive: JSZip,
+    sourceArchiveBlob: Blob,
+    source: CombinedArtifactArchiveSource,
+  ): Promise<void> {
     const sourceArchive = await JSZip.loadAsync(sourceArchiveBlob);
-    const normalizedPrefix = filterPrefix ? `${filterPrefix}/` : null;
 
     for (const entry of Object.values(sourceArchive.files)) {
       if (entry.dir) {
         continue;
       }
 
-      let entryPath = entry.name;
-      if (normalizedPrefix) {
-        if (!entryPath.startsWith(normalizedPrefix)) {
-          continue;
-        }
-
-        entryPath = entryPath.slice(normalizedPrefix.length);
-        if (!entryPath) {
-          continue;
-        }
+      const entryPath = tryResolveGeneratedArtifactEntryPath(entry.name, source);
+      if (!entryPath) {
+        continue;
       }
 
       targetArchive.file(entryPath, await entry.async('uint8array'));

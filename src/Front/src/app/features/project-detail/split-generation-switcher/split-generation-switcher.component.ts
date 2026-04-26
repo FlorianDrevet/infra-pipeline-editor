@@ -25,6 +25,7 @@ import {
   BicepFolderNode,
   BicepTreeNode,
 } from '../../../shared/components/bicep-file-panel/bicep-file-panel.component';
+import { toBootstrapRepoRelativePath } from '../project-generated-artifact-paths';
 
 /**
  * Two-level switcher rendered when project.layoutPreset === 'SplitInfraCode'.
@@ -343,7 +344,11 @@ function buildBootstrapNodes(
   const nodes: BicepTreeNode[] = [];
 
   for (const filePath of Object.keys(fileUris ?? {})) {
-    appendBucketedFileNode(nodes, filePath, bucketPrefix ? `${bucketPrefix}/${filePath}` : filePath);
+    appendBucketedFileNode(
+      nodes,
+      toBootstrapRepoRelativePath(filePath),
+      bucketPrefix ? `${bucketPrefix}/${filePath}` : filePath,
+    );
   }
 
   return nodes;
