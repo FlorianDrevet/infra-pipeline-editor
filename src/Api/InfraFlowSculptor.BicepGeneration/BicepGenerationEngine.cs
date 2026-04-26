@@ -136,6 +136,27 @@ public sealed class BicepGenerationEngine
             .Select(kv => kv.Key)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+        // Also parameterize identity when multiple resources of the same ARM type require
+        // different sets of user-assigned identities. Without this, each instance would inject
+        // its own UAI param name into the module template (e.g. userAssignedIdentityBackendId vs
+        // userAssignedIdentityFrontendId), producing two distinct module files for what should
+        // be a single shared module. Parameterizing declares ALL UAI params (each defaulting to
+        // an empty string) so every instance reuses the same template and passes only its own.
+        var differingUaiArmTypes = sourceResourcesNeedingUserIdentity
+            .GroupBy(kv => kv.Key.SourceResourceType, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Select(kv => string.Join(
+                    "|",
+                    kv.Value.OrderBy(s => s, StringComparer.OrdinalIgnoreCase)))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Count() > 1)
+            .Select(g => g.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var armType in differingUaiArmTypes)
+        {
+            mixedIdentityArmTypes.Add(armType);
+        }
+
         // Determine which source resources need output declarations for app settings
         // Include both regular output references AND sensitive outputs exported to KV
         var outputsBySourceResource = request.AppSettings
@@ -156,6 +177,17 @@ public sealed class BicepGenerationEngine
         // Determine which target resources have app settings
         var targetResourcesWithAppSettings = request.AppSettings
             .Select(s => s.TargetResourceName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Determine which compute ARM types host at least one resource with app settings.
+        // When any instance of a compute type needs envVars/appSettings, every other instance
+        // of the same type must also receive the param declaration so all instances share a
+        // single module template (the param defaults to []; instances without app settings
+        // simply omit the argument in main.bicep).
+        var computeArmTypesWithAppSettings = request.Resources
+            .Where(r => ComputeResourceTypes.Contains(r.Type)
+                && targetResourcesWithAppSettings.Contains(r.Name))
+            .Select(r => r.Type)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // ── Build resource ID → (name, resource type name) lookup for parent references ──
@@ -233,9 +265,12 @@ public sealed class BicepGenerationEngine
                 moduleBicepContent = InjectOutputDeclarations(moduleBicepContent, outputs);
             }
 
-            // Inject appSettings/env param for compute resources that have app settings
-            if (targetResourcesWithAppSettings.Contains(resource.Name)
-                && ComputeResourceTypes.Contains(resource.Type))
+            // Inject appSettings/env param for every compute resource of an ARM type that
+            // hosts at least one resource with app settings. Even resources without app settings
+            // get the param (default = []) so all instances of the same compute type share an
+            // identical module template.
+            if (ComputeResourceTypes.Contains(resource.Type)
+                && computeArmTypesWithAppSettings.Contains(resource.Type))
             {
                 moduleBicepContent = InjectAppSettingsParam(moduleBicepContent, resource.Type);
             }
@@ -571,19 +606,22 @@ public sealed class BicepGenerationEngine
             moduleBicep = InsertAt(moduleBicep, insertIdx, paramSb.ToString());
         }
 
-        // Build: var userAssignedIdentities = { '${uai1Id}': {}, '${uai2Id}': {} }
-        // Only included when identityType contains 'UserAssigned'
+        // Build: var userAssignedIdentityMap = union(
+        //   !empty(userAssignedIdentityFooId) ? { '${userAssignedIdentityFooId}': {} } : {}, ...)
+        // Skipping empty params lets multiple resources reuse the same module template while
+        // each only passes the UAI ids it actually needs.
         var hasUais = allUaiIds.Count > 0;
         if (hasUais)
         {
             var varSb = new StringBuilder();
-            varSb.AppendLine("var userAssignedIdentityMap = {");
-            foreach (var uaiId in allUaiIds)
+            varSb.AppendLine("var userAssignedIdentityMap = union(");
+            for (var i = 0; i < allUaiIds.Count; i++)
             {
-                var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-                varSb.AppendLine($"  '${{{paramName}}}': {{}}");
+                var paramName = $"userAssignedIdentity{Capitalize(allUaiIds[i])}Id";
+                var separator = i < allUaiIds.Count - 1 ? "," : string.Empty;
+                varSb.AppendLine($"  !empty({paramName}) ? {{ '${{{paramName}}}': {{}} }} : {{}}{separator}");
             }
-            varSb.AppendLine("}");
+            varSb.AppendLine(")");
             varSb.AppendLine();
 
             var resourceIdx = FindFirstLineIndex(moduleBicep, "resource ");
@@ -600,7 +638,7 @@ public sealed class BicepGenerationEngine
             identityBlock = """
               identity: {
                 type: identityType
-                userAssignedIdentities: contains(identityType, 'UserAssigned') ? userAssignedIdentityMap : null
+                userAssignedIdentities: contains(identityType, 'UserAssigned') && !empty(userAssignedIdentityMap) ? userAssignedIdentityMap : null
               }
 
             """;

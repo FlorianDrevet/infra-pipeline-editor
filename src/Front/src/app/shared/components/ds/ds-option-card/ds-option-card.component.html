@@ -1,0 +1,17 @@
+<button
+  type="button"
+  class="ds-option-card"
+  role="radio"
+  [class.ds-option-card--selected]="selected()"
+  [disabled]="disabled() || null"
+  [attr.aria-checked]="selected()"
+  (click)="onClick()"
+>
+  <span class="ds-option-card__icon-wrap" aria-hidden="true">
+    <mat-icon class="ds-option-card__icon">{{ icon() }}</mat-icon>
+  </span>
+  <span class="ds-option-card__body">
+    <span class="ds-option-card__title">{{ title() }}</span>
+    <span class="ds-option-card__desc">{{ description() }}</span>
+  </span>
+</button>
