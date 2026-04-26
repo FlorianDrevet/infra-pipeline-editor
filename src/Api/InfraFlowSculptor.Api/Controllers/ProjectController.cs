@@ -11,6 +11,7 @@ using InfraFlowSculptor.Application.Projects.Commands.AddProjectRepository;
 using InfraFlowSculptor.Application.Projects.Commands.DeleteProject;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectMember;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProject;
+using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Application.Projects.Commands.DownloadProjectBicep;
 using InfraFlowSculptor.Application.Projects.Commands.DownloadProjectPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
@@ -139,6 +140,28 @@ public static class ProjectController
                 .WithName("CreateProject")
                 .WithSummary("Create a Project")
                 .WithDescription("Creates a new Project. The current user is automatically added as Owner.")
+                .Produces<ProjectResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+            group.MapPost("/with-setup",
+                    async (CreateProjectWithSetupRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = mapper.Map<CreateProjectWithSetupCommand>(request);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            project =>
+                            {
+                                var response = mapper.Map<ProjectResponse>(project);
+                                return Results.Created($"/projects/{response.Id}", response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("CreateProjectWithSetup")
+                .WithSummary("Create a Project with setup")
+                .WithDescription("Creates a new Project and applies the wizard layout, environments, and repository slots in a single operation.")
                 .Produces<ProjectResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);

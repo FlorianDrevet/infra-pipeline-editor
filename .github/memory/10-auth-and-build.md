@@ -66,11 +66,13 @@ dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\ -p:DefineConstants
 - Pipeline display names: use `PathSanitizer.Sanitize(configName)` because release YAML resolves CI artifacts via `'{sanitizedConfigName} - CI'`.
 - Pipeline definitions: bootstrap creates infra (CI/PR/Release) + app definitions per compute resource (`{ConfigName} - {ResourceName} - CI/Release`).
 - Bootstrap jobs: split into `Provision Pipeline Definitions`, `Provision Environments`, `Provision Variable Groups`.
+- Generated infra wrapper pipelines (`ci.pipeline.yml`, `pr.pipeline.yml`, `release.pipeline.yml`) must emit an explicit root-level `pool` block in addition to any pool inside shared templates/jobs. During `az pipelines create`, Azure DevOps can validate the wrapper before resolving nested templates and otherwise fall back to the project default hosted queue.
 - Variable groups: seed empty groups with `PLACEHOLDER=bootstrap`, delete placeholder only after real variables exist.
 - Environments: created by `shortName` (lower-cased); release templates must use `shortName` for `environment:` field, `name` only for display labels.
 - ADO folder security: Build Service needs `Create build pipeline` on the folder, Environments `Creator`, and `Use` permission on any agent pool referenced by generated YAML. Pipeline creation validates the target YAML immediately; bootstrap generation now preserves raw `az pipelines create` output so pool denials surface instead of looking like a generic create-permission failure. Manual prerequisites: pipeline `Manage security` and library `Security` for Build Service identity.
 - Mono-repo PR validation: sparse-checkout must include `Common/` alongside the config folder.
 - Variable-group mappings: target the Bicep parameter name (e.g. `ifsApiJwtSecretSecretValue`), not the env var name (`JWT_SECRET`).
+- Key Vault app settings using `SecretValueAssignment = ViaBicepparam` and a `PipelineVariableName` must bootstrap their Azure DevOps variable-group entry as a secret variable. The library variable name is the pipeline variable name (for example `jwt-secret`), not the Key Vault secret name (`JWT_SECRET`). Generating a plain variable with an empty value (`--value ''`) breaks Azure CLI on Windows agents.
 - App pipeline paths: generators return filenames relative to app folder only; `AppPipelineGenerationEngine.GenerateAll()` owns the `apps/{appName}/...` prefix.
 
 ## Infrastructure Services

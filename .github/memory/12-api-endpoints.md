@@ -41,6 +41,8 @@
 | `/projects` | POST | `/{id:guid}/push-multi-repo-artifacts-to-git` | `PushProjectArtifactsToMultiRepoCommand` (SplitInfraCode infra-only, code-only, or dual push; validator requires at least one target; always 200 with per-repo `RepoPushResult`; root-level generated folders are re-sliced into cleanup scopes so old generated files under config folders / `.azuredevops/` are removed on subsequent pushes) [2026-04-25] |
 | `/resource-group` | GET/POST/PUT/DELETE | `/{id:guid}` | ResourceGroup CRUD (DELETE added [2026-04-04]) |
 
+Note [2026-04-26]: the create-project wizard submit path depends on an explicit `group.MapPost("/with-setup", ...)` registration inside `ProjectController.UseProjectController()`. The handler, contract, and Mapster mapping do not expose this route automatically.
+
 ## Azure Resource CRUD (18 types — standard GET/POST/PUT/DELETE pattern)
 
 | Group | Extra endpoints |

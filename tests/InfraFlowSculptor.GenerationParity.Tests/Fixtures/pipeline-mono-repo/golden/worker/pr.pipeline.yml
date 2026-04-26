@@ -13,6 +13,9 @@ pr:
       - .azuredevops/Common/*
       - .azuredevops/worker/*
 
+pool:
+  vmImage: 'ubuntu-latest'
+
 extends:
   template: ../Common/pipelines/pr.pipeline.yml
   parameters:

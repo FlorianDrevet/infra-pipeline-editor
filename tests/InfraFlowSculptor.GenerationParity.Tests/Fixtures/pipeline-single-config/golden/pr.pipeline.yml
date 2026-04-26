@@ -11,6 +11,9 @@ pr:
     include:
       - default/*
 
+pool:
+  vmImage: 'ubuntu-latest'
+
 extends:
   template: ../.azuredevops/pipelines/pr.pipeline.yml
   parameters:

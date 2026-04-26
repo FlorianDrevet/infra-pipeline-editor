@@ -11,6 +11,9 @@ trigger:
       - .azuredevops/Common/*
       - .azuredevops/api/*
 
+pool:
+  vmImage: 'ubuntu-latest'
+
 extends:
   template: ../Common/pipelines/ci.pipeline.yml
   parameters:

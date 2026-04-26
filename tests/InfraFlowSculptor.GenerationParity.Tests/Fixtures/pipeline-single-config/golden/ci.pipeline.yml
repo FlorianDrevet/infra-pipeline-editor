@@ -9,6 +9,9 @@ trigger:
     include:
       - default/*
 
+pool:
+  vmImage: 'ubuntu-latest'
+
 extends:
   template: ../.azuredevops/pipelines/ci.pipeline.yml
   parameters:
