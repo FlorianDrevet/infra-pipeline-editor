@@ -100,10 +100,12 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - Container App admin mode emits `configuration.secrets` plus `registries.username/passwordSecretRef`; Web App and Function App admin mode emit `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME`, and secure `DOCKER_REGISTRY_SERVER_PASSWORD` app settings.
 - App pipeline generation mirrors the same mode: managed identity keeps the `Docker@2` service-connection flow, admin credentials switch to explicit `docker login` and build/push script steps.
 
-## Module Reuse Across Same-Type Resources [2026-04-25]
-- `BicepGenerationEngine.GenerateCore` triggers parameterized identity for an ARM type when EITHER the resources of that type require multiple identity *kinds* OR they require **different UAI sets**. The second condition prevents one ContainerApp using `userAssignedIdentityBackendId` and another using `userAssignedIdentityFrontendId` from producing two distinct module files.
-- When parameterized, the module declares ALL UAI params for that ARM type (each defaulting to `''`). The `userAssignedIdentities` map is built via `union(!empty(<param>) ? { '${<param>}': {} } : {}, …)` so instances skip empty entries safely.
-- For compute ARM types, `envVars` (Container App) / `appSettings` (Web/Function App) is now injected into **every** module instance as soon as **any** resource of that type has app settings. Instances without app settings simply omit the argument in `main.bicep` and rely on the default `[]`. Together these two rules let `BicepAssembler.NormalizePrimaryModuleFileNames` collapse all instances onto a single shared `*.module.bicep` file (no `.{hash}` suffix).
+## Module Reuse Across Same-Type Resources [2026-04-26]
+- **AVM-style generic params:** Modules use a single `param userAssignedIdentityId string` (or `string = ''` when parameterized) instead of per-UAI-name params like `userAssignedIdentityBackendId`. `main.bicep` passes the correct UAI module output for each resource instance.
+- For compute ARM types, `envVars` (Container App) / `appSettings` (Web/Function App) is injected into **every** module instance as soon as **any** resource of that type has app settings. Instances without app settings simply omit the argument in `main.bicep` and rely on the default `[]`.
+- Together these two rules let `BicepAssembler.NormalizePrimaryModuleFileNames` collapse all instances onto a single shared `*.module.bicep` file (no `.{hash}` suffix).
+- The `differingUaiArmTypes` pre-computation was removed — no longer needed since all instances naturally produce identical module content with the generic param.
+- When `InjectParameterizedIdentity` is used (mixed identity kinds), the module template includes: `userAssignedIdentities: contains(identityType, 'UserAssigned') && !empty(userAssignedIdentityId) ? { '${userAssignedIdentityId}': {} } : null`.
 
 ## Compute Module Variant Files [2026-04-23]
  - `ContainerApp`, `WebApp`, and `FunctionApp` variants with incompatible parameter surfaces must use distinct `GeneratedTypeModule.ModuleFileName` values (for example base vs ACR-managed-identity vs ACR-admin-credentials). `BicepAssembler` deduplicates emitted module files by file name, so sharing one file name across variants can make `main.bicep` pass params that the surviving module file does not declare, leading to BCP037.

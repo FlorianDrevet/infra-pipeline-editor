@@ -136,27 +136,6 @@ public sealed class BicepGenerationEngine
             .Select(kv => kv.Key)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        // Also parameterize identity when multiple resources of the same ARM type require
-        // different sets of user-assigned identities. Without this, each instance would inject
-        // its own UAI param name into the module template (e.g. userAssignedIdentityBackendId vs
-        // userAssignedIdentityFrontendId), producing two distinct module files for what should
-        // be a single shared module. Parameterizing declares ALL UAI params (each defaulting to
-        // an empty string) so every instance reuses the same template and passes only its own.
-        var differingUaiArmTypes = sourceResourcesNeedingUserIdentity
-            .GroupBy(kv => kv.Key.SourceResourceType, StringComparer.OrdinalIgnoreCase)
-            .Where(g => g.Select(kv => string.Join(
-                    "|",
-                    kv.Value.OrderBy(s => s, StringComparer.OrdinalIgnoreCase)))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .Count() > 1)
-            .Select(g => g.Key)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var armType in differingUaiArmTypes)
-        {
-            mixedIdentityArmTypes.Add(armType);
-        }
-
         // Determine which source resources need output declarations for app settings
         // Include both regular output references AND sensitive outputs exported to KV
         var outputsBySourceResource = request.AppSettings
@@ -233,16 +212,11 @@ public sealed class BicepGenerationEngine
             if (isMixed)
             {
                 // Mixed ARM type: inject parameterized identity into the module template.
-                // This makes the module accept identityType + optional UAI params.
-                // All UAI param declarations referenced by ANY resource of this type are injected;
-                // each instance passes only the UAI ids it needs from main.bicep.
-                var allUaiIdsForType = sourceResourcesNeedingUserIdentity
-                    .Where(kv => kv.Key.SourceResourceType == resource.Type)
-                    .SelectMany(kv => kv.Value)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList();
+                // This makes the module accept identityType + optional generic UAI param.
+                var hasAnyUaiForType = sourceResourcesNeedingUserIdentity
+                    .Any(kv => kv.Key.SourceResourceType == resource.Type);
 
-                moduleBicepContent = InjectParameterizedIdentity(moduleBicepContent, allUaiIdsForType);
+                moduleBicepContent = InjectParameterizedIdentity(moduleBicepContent, hasAnyUaiForType);
             }
             else
             {
@@ -425,42 +399,29 @@ public sealed class BicepGenerationEngine
     /// Injects <c>identity: { type: 'UserAssigned', userAssignedIdentities: { ... } }</c>
     /// into the resource declaration. When the resource also has SystemAssigned identity,
     /// upgrades to <c>'SystemAssigned, UserAssigned'</c>.
-    /// Each UAI is referenced via a resource-id parameter.
+    /// Uses a single generic <c>userAssignedIdentityId</c> parameter so all instances of the
+    /// same ARM type share an identical module template (Azure Verified Modules style).
     /// </summary>
     private static string InjectUserAssignedIdentity(
         string moduleBicep,
         List<string> uaiIdentifiers,
         bool alsoHasSystemAssigned)
     {
-        // Build parameter declarations for each UAI resource ID
-        var paramDeclarations = new StringBuilder();
-        foreach (var uaiId in uaiIdentifiers)
+        // Single generic param — agnostic of the specific UAI name
+        if (!HasParam(moduleBicep, "userAssignedIdentityId"))
         {
-            var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-            if (HasParam(moduleBicep, paramName))
-                continue;
-            paramDeclarations.AppendLine($"@description('Resource ID of user-assigned identity: {uaiId}')");
-            paramDeclarations.AppendLine($"param {paramName} string");
-        }
+            var paramDeclarations = new StringBuilder();
+            paramDeclarations.AppendLine("@description('Resource ID of user-assigned managed identity')");
+            paramDeclarations.AppendLine("param userAssignedIdentityId string");
+            paramDeclarations.AppendLine();
 
-        // Insert params before the first 'var' or 'resource' line
-        if (paramDeclarations.Length > 0)
-        {
             var insertIdx = FindFirstLineIndex(moduleBicep, "var ");
             if (insertIdx < 0)
                 insertIdx = FindFirstLineIndex(moduleBicep, "resource ");
             if (insertIdx >= 0)
             {
-                moduleBicep = InsertAt(moduleBicep, insertIdx, paramDeclarations.ToString() + "\n");
+                moduleBicep = InsertAt(moduleBicep, insertIdx, paramDeclarations.ToString());
             }
-        }
-
-        // Build the userAssignedIdentities object entries
-        var uaiEntries = new StringBuilder();
-        foreach (var uaiId in uaiIdentifiers)
-        {
-            var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-            uaiEntries.AppendLine($"      '${{{paramName}}}': {{}}");
         }
 
         // Determine desired identity type
@@ -474,13 +435,13 @@ public sealed class BicepGenerationEngine
             // Replace type and add userAssignedIdentities.
             moduleBicep = moduleBicep.Replace(
                 "type: 'SystemAssigned'",
-                $"type: '{identityType}'\n    userAssignedIdentities: {{\n{uaiEntries}    }}");
+                $"type: '{identityType}'\n    userAssignedIdentities: {{\n      '${{userAssignedIdentityId}}': {{}}\n    }}");
         }
         else
         {
             // No identity block yet — inject before 'properties:' or before closing brace
             var identityBlock =
-                $"  identity: {{\n    type: '{identityType}'\n    userAssignedIdentities: {{\n{uaiEntries}    }}\n  }}\n";
+                $"  identity: {{\n    type: '{identityType}'\n    userAssignedIdentities: {{\n      '${{userAssignedIdentityId}}': {{}}\n    }}\n  }}\n";
 
             var propertiesMatch = PropertiesBlockPattern.Match(moduleBicep);
             if (propertiesMatch.Success)
@@ -557,12 +518,12 @@ public sealed class BicepGenerationEngine
     /// <summary>
     /// Injects a parameterized identity block into the module template.
     /// The module receives <c>param identityType ManagedIdentityType</c> (typed union from types.bicep)
-    /// and optional UAI resource ID params.
+    /// and an optional generic <c>userAssignedIdentityId</c> parameter.
     /// The identity section is built dynamically at deployment time.
     /// Also appends <c>ManagedIdentityType</c> to the module's <c>types.bicep</c> content
     /// and adds the import to the module template.
     /// </summary>
-    private static string InjectParameterizedIdentity(string moduleBicep, List<string> allUaiIds)
+    private static string InjectParameterizedIdentity(string moduleBicep, bool hasAnyUai)
     {
         var symbolMatch = ResourceSymbolPattern.Match(moduleBicep);
         if (!symbolMatch.Success) return moduleBicep;
@@ -580,21 +541,17 @@ public sealed class BicepGenerationEngine
         // Add ManagedIdentityType to the import line in the module template
         moduleBicep = AddTypeImport(moduleBicep, "ManagedIdentityType");
 
-        // Build param declarations
+        // Build param declarations — single generic UAI param
         var paramSb = new StringBuilder();
         paramSb.AppendLine("@description('Managed identity type for this resource')");
         paramSb.AppendLine("param identityType ManagedIdentityType = 'SystemAssigned'");
         paramSb.AppendLine();
 
-        foreach (var uaiId in allUaiIds)
+        if (hasAnyUai && !HasParam(moduleBicep, "userAssignedIdentityId"))
         {
-            var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-            if (!HasParam(moduleBicep, paramName))
-            {
-                paramSb.AppendLine($"@description('Resource ID of user-assigned identity: {uaiId} (empty when not applicable)')");
-                paramSb.AppendLine($"param {paramName} string = ''");
-                paramSb.AppendLine();
-            }
+            paramSb.AppendLine("@description('Resource ID of user-assigned managed identity (empty when not applicable)')");
+            paramSb.AppendLine("param userAssignedIdentityId string = ''");
+            paramSb.AppendLine();
         }
 
         // Insert params before the first 'var' or 'resource' line
@@ -606,39 +563,14 @@ public sealed class BicepGenerationEngine
             moduleBicep = InsertAt(moduleBicep, insertIdx, paramSb.ToString());
         }
 
-        // Build: var userAssignedIdentityMap = union(
-        //   !empty(userAssignedIdentityFooId) ? { '${userAssignedIdentityFooId}': {} } : {}, ...)
-        // Skipping empty params lets multiple resources reuse the same module template while
-        // each only passes the UAI ids it actually needs.
-        var hasUais = allUaiIds.Count > 0;
-        if (hasUais)
-        {
-            var varSb = new StringBuilder();
-            varSb.AppendLine("var userAssignedIdentityMap = union(");
-            for (var i = 0; i < allUaiIds.Count; i++)
-            {
-                var paramName = $"userAssignedIdentity{Capitalize(allUaiIds[i])}Id";
-                var separator = i < allUaiIds.Count - 1 ? "," : string.Empty;
-                varSb.AppendLine($"  !empty({paramName}) ? {{ '${{{paramName}}}': {{}} }} : {{}}{separator}");
-            }
-            varSb.AppendLine(")");
-            varSb.AppendLine();
-
-            var resourceIdx = FindFirstLineIndex(moduleBicep, "resource ");
-            if (resourceIdx >= 0)
-            {
-                moduleBicep = InsertAt(moduleBicep, resourceIdx, varSb.ToString());
-            }
-        }
-
         // Build the identity block — always present (no 'None' case)
         string identityBlock;
-        if (hasUais)
+        if (hasAnyUai)
         {
             identityBlock = """
               identity: {
                 type: identityType
-                userAssignedIdentities: contains(identityType, 'UserAssigned') && !empty(userAssignedIdentityMap) ? userAssignedIdentityMap : null
+                userAssignedIdentities: contains(identityType, 'UserAssigned') && !empty(userAssignedIdentityId) ? { '${userAssignedIdentityId}': {} } : null
               }
 
             """;

@@ -330,17 +330,14 @@ internal static class MainBicepAssembler
                 if (module.ResourceTypeName != "UserAssignedIdentity"
                     && uaiBySourceResource.TryGetValue(moduleKey, out var uaiNamesParam))
                 {
-                    foreach (var uaiName in uaiNamesParam)
+                    // Single generic param — use first UAI for this resource
+                    var uaiName = uaiNamesParam[0];
+                    var uaiModSym = modules.FirstOrDefault(m =>
+                        m.ResourceTypeName == "UserAssignedIdentity"
+                        && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
+                    if (uaiModSym is not null)
                     {
-                        var uaiId = BicepIdentifierHelper.ToBicepIdentifier(uaiName);
-                        var pName = $"userAssignedIdentity{BicepFormattingHelper.Capitalize(uaiId)}Id";
-                        var uaiModSym = modules.FirstOrDefault(m =>
-                            m.ResourceTypeName == "UserAssignedIdentity"
-                            && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
-                        if (uaiModSym is not null)
-                        {
-                            sb.AppendLine($"    {pName}: {uaiModSym.ModuleName}Module.outputs.resourceId");
-                        }
+                        sb.AppendLine($"    userAssignedIdentityId: {uaiModSym.ModuleName}Module.outputs.resourceId");
                     }
                 }
             }
@@ -349,17 +346,14 @@ internal static class MainBicepAssembler
                 if (module.ResourceTypeName != "UserAssignedIdentity"
                     && uaiBySourceResource.TryGetValue(moduleKey, out var uaiNames))
                 {
-                    foreach (var uaiName in uaiNames)
+                    // Single generic param — use first UAI for this resource
+                    var uaiName = uaiNames[0];
+                    var uaiModuleSymbol = modules.FirstOrDefault(m =>
+                        m.ResourceTypeName == "UserAssignedIdentity"
+                        && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
+                    if (uaiModuleSymbol is not null)
                     {
-                        var uaiId = BicepIdentifierHelper.ToBicepIdentifier(uaiName);
-                        var paramName = $"userAssignedIdentity{BicepFormattingHelper.Capitalize(uaiId)}Id";
-                        var uaiModuleSymbol = modules.FirstOrDefault(m =>
-                            m.ResourceTypeName == "UserAssignedIdentity"
-                            && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
-                        if (uaiModuleSymbol is not null)
-                        {
-                            sb.AppendLine($"    {paramName}: {uaiModuleSymbol.ModuleName}Module.outputs.resourceId");
-                        }
+                        sb.AppendLine($"    userAssignedIdentityId: {uaiModuleSymbol.ModuleName}Module.outputs.resourceId");
                     }
                 }
             }
