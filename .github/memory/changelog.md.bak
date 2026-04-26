@@ -4,34 +4,6 @@
 
 | Date | Author | Change |
 |------|--------|--------|
-| 2026-04-25 | dev | SplitInfraCode completion: Bicep module reuse (shared UAI params + envVars injection), bootstrap split-aware generation (`BootstrapMode` FullOwner/ApplicationOnly, `ArtifactKind.BootstrapApplication`), project creation wizard V1 (4/5-step stepper + `POST /projects/with-setup` + sessionStorage draft), scoped Git push cleanup per folder, multi-repo push dialog rebuild (mode-aware widths), generation-panel UX redesign (`DsPanelActionButtonComponent`, collapse/expand, auto-reopen), `BootstrapSetupGuideComponent` extracted, config-detail Git tab only for MultiRepo, config-detail multi-repo layout UX aligned with project-level, dream concurrency lock, auth-expiry 401 redirect hardening, local snapshot refresh. |
-| 2026-04-24 | dev | Angular 21 upgrade + DS rollout (global Material theming, DS form controls, `cdkConnectedOverlay` selects, broad migrations). SplitInfraCode realigned: restored `Common/` for Bicep and `.azuredevops/Common/...` for pipelines. |
-| 2026-04-23 | dev/copilot | Multi-repo + generation wave: security hardening (path traversal, headers, HSTS, rate limiting, validators, unique role-assignment index, KV FK SetNull), layout-driven repository topology, legacy removal, SplitInfraCode generation/push, bootstrap ADO hardening, Bicep/pipeline correctness fixes, frontend multi-repo UI, DB repair script, ACR RBAC prereq. |
-| 2026-04-22 | copilot | Custom domains E2E, bootstrap ADO hardening, mono-repo combined push, Container App health probes + grouped Bicep params, CAE LAW security, name availability, resource abbreviation overrides, SQL Server fixes, snapshot seeding. |
-| 2026-04-21 | copilot | Secure parameter support, pipeline override wiring, output symbol validation, LAW fallback, artifact path sanitization, module reference disambiguation. |
-| 2026-04-20 | copilot | Infra release artifact standardization; Aspire MCP detection mismatch documented. |
-| 2026-04-17 | copilot | `.bicepparam` filenames now use environment short names; full names kept inside payload. |
-| 2026-04-16 | copilot | Platform alignment: sealed enum VOs, string DTO IDs, `.ProducesProblem(401)`, tag limits, role-assignment domain service, camelCase Bicep identifiers, Aspire API decoupling. |
-| 2026-04-15 | copilot | Merged `main` into DDD branch; sealed `AzureResource` aggregates; audit automation refreshed. |
-| 2026-04-14 | copilot | Audit PowerShell: Windows-friendly, UTF-8, no PS7 requirement. |
-| 2026-04-13 | copilot | Draw.io architecture tooling + diagram refresh. |
-| 2026-04-04 | copilot | Generation/pipeline stabilization: ADO release fixes, unified app pipeline endpoint, BicepAssembler refactor, FK cascade fixes. |
-| 2026-04-03 | copilot | App pipeline generation, GitNexus integration, Container App fixes. |
-| 2026-04-02 | copilot | Assigned user-managed identity refactor (domain→Bicep→frontend). |
-| 2026-04-01 | copilot | Windows-first conventions; general-config i18n/runtime cleanup. |
-| 2026-03-31 | copilot | Event Hub namespace + configuration keys UX redesign. |
-| 2026-03-30 | copilot | ACR pull role assignments, pipeline variable groups, Unit of Work, domain quality conventions. |
-| 2026-03-29 | copilot | Azure DevOps pipeline YAML generation (`AzureResourceManagerConnection`). |
-| 2026-03-28 | copilot | Unified generation UX, mono-repo pipelines, secret/static app settings, architect agent. |
-| 2026-03-27 | copilot | UAI grouping + Storage Account CORS/lifecycle editing. |
-| 2026-03-26 | copilot | Storage Account CORS UX + queue/table Bicep generation redesign. |
-| 2026-03-24 | copilot | Log Analytics Workspace + Application Insights E2E. |
-# Changelog
-
-> Entries older than 60 days are pruned during dream consolidation.
-
-| Date | Author | Change |
-|------|--------|--------|
 | 2026-04-26 | dev | **Generic module params (AVM-style).** Replaced per-project UAI param names (`userAssignedIdentityBackendId`, `userAssignedIdentityFrontendId`, …) with a single generic `userAssignedIdentityId` across `InjectUserAssignedIdentity`, `InjectParameterizedIdentity`, and `MainBicepAssembler`. Modules are now project-agnostic and reusable across projects. Removed `differingUaiArmTypes` workaround (no longer needed since all UAI-bearing resources naturally produce identical module content). `computeArmTypesWithAppSettings` logic from previous session still applies for `envVars`/`appSettings` uniformity. Validation: `dotnet build BicepGeneration.csproj` (0 errors), parity tests 4/4 pass. |
 | 2026-04-25 | dev | Bicep generation now reuses a single module file across same-typed resources that diverge only by their UAI param names or by whether they declare app-settings/`envVars`. `BicepGenerationEngine.GenerateCore` now also flags an ARM type as parameterized-identity when its resources require **different** UAI sets (in addition to mixed identity kinds), and injects the `appSettings`/`envVars` param into every compute resource of an ARM type as soon as **any** resource of that type has app settings. `InjectParameterizedIdentity` now builds the `userAssignedIdentities` map via `union(!empty(<param>) ? { '${<param>}': {} } : {}, …)` so instances that don't use a given UAI safely skip its empty entry. Result: two ACA instances using two different UAIs share `containerApp.module.bicep` instead of producing two hashed `containerAppAcrManagedIdentity.{hash}.module.bicep` files. Validation: `dotnet build .\InfraFlowSculptor.slnx` (0 errors), `dotnet test tests\InfraFlowSculptor.GenerationParity.Tests` (4/4 pass — fixtures don't include ContainerApp scenarios). |
 | 2026-04-25 | dev | Project-level Git pushes now split root-level generated artifacts into per-folder scopes before calling the multi-scope Git providers. This preserves the existing file paths but restores safe cleanup for `Common/`, config folders, `.azuredevops/`, `infra/`, and `app/`, which prevents stale legacy files like an old `Infra-Flow-Sculptor/release.pipeline.yml` from surviving after SplitInfraCode project pushes. Validation: `dotnet build .\src\Api\InfraFlowSculptor.Application\InfraFlowSculptor.Application.csproj` (passes; 2 pre-existing nullable warnings remain in `PushProjectArtifactsToMultiRepoCommandHandler`). |

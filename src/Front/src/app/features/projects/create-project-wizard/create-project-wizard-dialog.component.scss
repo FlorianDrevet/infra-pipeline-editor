@@ -92,6 +92,9 @@
   .mat-step-header {
     min-width: 0;
     padding: 1rem 0.75rem;
+    border-radius: 0.5rem;
+    margin-block: 0.375rem;
+    overflow: hidden;
   }
 
   .mat-step-label,

@@ -17,7 +17,7 @@
       <div class="detail-header__nav">
         <a class="ghost-button" [routerLink]="['/projects', config()!.projectId]">{{ 'CONFIG_DETAIL.ACTIONS.BACK' | translate }}</a>
         <div class="detail-header__actions">
-          @if (isMultiRepo()) {
+          @if (isProjectMultiRepo()) {
             <button class="bicep-cta" (click)="generateAll()" [disabled]="generateAllLoading()">
               @if (generateAllLoading()) {
                 <mat-spinner diameter="18" class="bicep-cta__spinner"></mat-spinner>
@@ -49,7 +49,7 @@
     </section>
 
     <!-- Generation Panels (Bicep + Pipeline) — shown only after clicking Generate -->
-    @if (isMultiRepo() && generationPanelOpen()) {
+    @if (isProjectMultiRepo() && generationPanelOpen()) {
       <section class="generation-panel" [class.generation-panel--collapsed]="generationPanelCollapsed()">
         <div class="generation-panel__header">
           <div class="generation-panel__actions">

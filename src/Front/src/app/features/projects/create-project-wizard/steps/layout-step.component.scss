@@ -13,7 +13,7 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.875rem;
-    align-items: start;
+    align-items: stretch;
 
     @media (min-width: 700px) {
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
