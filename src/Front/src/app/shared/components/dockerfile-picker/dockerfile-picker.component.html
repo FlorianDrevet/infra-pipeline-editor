@@ -3,8 +3,8 @@
   #trigger="cdkOverlayOrigin"
   type="button"
   class="picker-trigger"
-  [class.picker-trigger--disabled]="disabled()"
-  [disabled]="disabled()"
+  [class.picker-trigger--disabled]="isDisabled()"
+  [disabled]="isDisabled()"
   (click)="toggle()"
   [attr.aria-label]="'RESOURCE_EDIT.APP_PIPELINE.BROWSE_DOCKERFILE' | translate">
   <mat-icon>folder_open</mat-icon>

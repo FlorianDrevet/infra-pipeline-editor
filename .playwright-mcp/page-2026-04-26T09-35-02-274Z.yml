@@ -1,0 +1,38 @@
+- generic [ref=e3]:
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e10]
+          - generic [ref=e12]: InfraFlowSculptor
+        - generic [ref=e13]:
+          - heading "Infrastructure as Data, Bicep as Code" [level=1] [ref=e14]:
+            - text: Infrastructure as Data,
+            - text: Bicep as Code
+          - paragraph [ref=e15]: Simplifiez la configuration Azure avec des outils visuels, une generation Bicep automatisee et une integration DevOps fluide.
+        - list [ref=e16]:
+          - listitem [ref=e17]:
+            - img [ref=e19]
+            - generic [ref=e21]:
+              - strong [ref=e22]: Concepteur visuel d'infrastructure
+              - paragraph [ref=e23]: Configurez les ressources Azure avec une interface intuitive
+          - listitem [ref=e24]:
+            - img [ref=e26]
+            - generic [ref=e28]:
+              - strong [ref=e29]: Generation Bicep automatisee
+              - paragraph [ref=e30]: Generez des artefacts IaC prets pour la production
+          - listitem [ref=e31]:
+            - img [ref=e33]
+            - generic [ref=e35]:
+              - strong [ref=e36]: Securite entreprise
+              - paragraph [ref=e37]: Integration Microsoft Entra ID avec RBAC
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - heading "Bon retour" [level=2] [ref=e40]
+          - paragraph [ref=e41]: Connectez-vous pour continuer
+          - button "Se connecter avec Microsoft" [ref=e42] [cursor=pointer]:
+            - img [ref=e43]
+            - generic [ref=e48]: Se connecter avec Microsoft
+        - button "Aide" [ref=e49] [cursor=pointer]: "?"
+  - button "Activate agent-ui-annotation" [ref=e51] [cursor=pointer]:
+    - img [ref=e52]

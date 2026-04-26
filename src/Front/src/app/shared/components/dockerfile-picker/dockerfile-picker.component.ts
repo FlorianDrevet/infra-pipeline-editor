@@ -24,9 +24,11 @@ export class DockerfilePickerComponent {
   private readonly projectService = inject(ProjectService);
 
   // Inputs
-  readonly projectId = input.required<string>();
+  readonly projectId = input<string>('');
   readonly configId = input<string | undefined>(undefined);
   readonly disabled = input(false);
+
+  protected readonly isDisabled = computed(() => this.disabled() || !this.projectId());
 
   // Output
   readonly pathSelected = output<string>();
@@ -48,7 +50,7 @@ export class DockerfilePickerComponent {
   ];
 
   async toggle(): Promise<void> {
-    if (this.disabled()) return;
+    if (this.isDisabled()) return;
     if (this.isOpen()) {
       this.close();
       return;
