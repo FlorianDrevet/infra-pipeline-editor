@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-27 | copilot | Added the `xunit-unit-testing` skill, routed xUnit work through `dev` and `dotnet-dev`, and documented the repo-wide unit-test placement and execution conventions under `tests/`. |
 | 2026-04-27 | dev | Added architecture audit docs under `docs/architecture/bicep-refactoring/` to capture the current Bicep-generation pain points and the proposed refactoring paths (Pipeline, Builder + IR, Visitor). |
 | 2026-04-26 | dev | Closed the post-wizard / split-generation polish wave: restored `POST /projects/with-setup`, added explicit root-level `pool` blocks to infra wrapper pipelines, made bootstrap Key Vault variable-group provisioning secret-aware with clearer ADO diagnostics, aligned SplitInfraCode preview/download/push paths and scopes (including code-repo app bootstrap), introduced code-repo Dockerfile browsing endpoints plus `DockerfilePickerComponent`, and gated config-level generate/push actions to true `MultiRepo` projects. |
 | 2026-04-25 | dev | Completed the main SplitInfraCode delivery: shared same-type module reuse, split-aware bootstrap/application artifacts, project creation wizard V1, scoped generated-artifact cleanup, split push/download UX, generation-panel controls, bootstrap guide extraction, multi-repo Git UX alignment, dream concurrency locking, auth-expiry redirect hardening, and local snapshot refresh. |

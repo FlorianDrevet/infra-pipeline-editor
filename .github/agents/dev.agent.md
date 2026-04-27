@@ -155,6 +155,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Audit technique complet du dépôt avec synchronisation GitHub | **`audit-expert`** + charger le skill `audit-workflow` | `.github/agents/audit-expert.agent.md` |
 | Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` || Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
 | Modifier/créer du code C#/.NET | **`dotnet-dev`** | `.github/agents/dotnet-dev.agent.md` |
+| Rédiger ou corriger des tests unitaires .NET/xUnit | **`dotnet-dev`** + charger le skill `xunit-unit-testing` | `.github/skills/xunit-unit-testing/SKILL.md` |
 | Modifier/créer du code Angular | **`angular-front`** + charger le skill `ui-ux-front-saas` si UI | `.github/agents/angular-front.agent.md` |
 | Debug runtime/AppHost Aspire | **`aspire-debug`** | `.github/agents/aspire-debug.agent.md` |
 | Créer ou soumettre une Pull Request | **`pr-manager`** | `.github/agents/pr-manager.agent.md` |
@@ -182,6 +183,10 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 
 - **Code C# isolé** (nouveau handler, validator, repository, config EF) :
   Déléguer directement à `dotnet-dev` — il a toutes les règles de qualité .NET.
+
+- **Tests unitaires .NET / xUnit** (création, correction de bug, couverture, snapshots) :
+  Charger le skill `xunit-unit-testing`, puis déléguer à `dotnet-dev`.
+  Les tests doivent vivre dans `tests/<Assembly>.Tests/` et ne doivent jamais être ajoutés dans `InfraFlowSculptor.GenerationParity.Tests`.
 
 - **Code Angular isolé** (composant, service, interface, route) :
   Déléguer directement à `angular-front` — il a toutes les règles Angular 19.
@@ -249,6 +254,11 @@ Un skill est **différent d'un agent** :
 - **Quand le charger :** dès qu'une tâche consiste à produire un audit technique du dépôt, écrire le rapport dans `audits/`, ou réconcilier les issues GitHub d'audit avec les findings
 - **Fichier :** `.github/skills/audit-workflow/SKILL.md`
 - **Contenu :** la couverture d'audit, le format des findings, la stratégie de labels GitHub, et les règles de réconciliation entre audits successifs
+
+#### `xunit-unit-testing`
+- **Quand le charger :** dès qu'une tâche consiste à créer, corriger, revoir, ou étendre des tests unitaires .NET/xUnit
+- **Fichier :** `.github/skills/xunit-unit-testing/SKILL.md`
+- **Contenu :** emplacement des projets de tests sous `tests/`, conventions de nommage `Given_When_Then`, usage de xUnit/FluentAssertions/NSubstitute/Verify/Bogus/MockQueryable, données déterministes, coverage et mutation
 
 ---
 

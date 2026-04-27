@@ -22,11 +22,16 @@ npm install; npm run start; npm run build; npm run typecheck
 ## Tests
 
 ```powershell
+dotnet test .\InfraFlowSculptor.slnx
 dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\
 dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\ -p:DefineConstants=REGENERATE_GOLDENS
+dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 ```
 
+- All .NET test projects live under `tests/`.
+- Unit test projects follow `<TargetAssembly>.Tests` and reference a single production assembly.
 - `InfraFlowSculptor.GenerationParity.Tests` is the byte-for-byte golden-file safety net for Bicep and pipeline generation output.
+- `InfraFlowSculptor.GenerationParity.Tests` is not the place for ordinary unit tests.
 - Goldens live under `tests/InfraFlowSculptor.GenerationParity.Tests/Fixtures/*/golden/`; regenerate them only for intentional output drift.
 
 ## API Runtime Hardening [2026-04-23]

@@ -42,6 +42,11 @@ Tu es l'expert C#/.NET 10 de ce dépôt. Tu maîtrises :
 > **OBLIGATOIRE** : Charger `.github/skills/dotnet-patterns/SKILL.md` via `read_file` AVANT de produire du code C#.
 > Ce skill contient tous les patterns techniques : nommage, XML docs, magic strings, SOLID, async/await, nulls, immutabilité, pattern matching, LINQ, exceptions, logging, primary constructors, sealed, guard clauses, code smells, performances, sécurité OWASP.
 
+## Tests unitaires xUnit — Chargement du skill
+
+> **OBLIGATOIRE** : Charger `.github/skills/xunit-unit-testing/SKILL.md` via `read_file` AVANT de produire, modifier, ou revoir des tests unitaires xUnit.
+> Ce skill définit où écrire les tests dans `tests/`, comment structurer les projets `.Tests`, quand utiliser FluentAssertions, NSubstitute, Verify, Bogus, MockQueryable, FakeTimeProvider, et quelles commandes `dotnet test` exécuter.
+
 ---
 
 ## 19. EF Core — Règles spécifiques au projet
@@ -130,6 +135,8 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 - [ ] Comparaisons EF Core sur value objects entiers (pas `.Value`)
 - [ ] Validator FluentValidation avec `WithMessage()` sur chaque règle
 - [ ] ErrorOr pour les erreurs métier prévisibles (pas d'exception)
+- [ ] Si la tâche touche des tests unitaires : skill `xunit-unit-testing` chargé
+- [ ] Si la tâche touche des tests unitaires : `dotnet test` projet puis solution exécuté
 - [ ] Build vérifié : `dotnet build .\InfraFlowSculptor.slnx`
 - [ ] `MEMORY.md` mis à jour si nouvelles conventions découvertes
 

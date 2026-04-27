@@ -32,7 +32,14 @@
 | `draw-io-diagram-generator` | Create or update draw.io diagrams (`.drawio`, `.drawio.svg`, `.drawio.png`) for architecture and technical documentation | `.github/skills/draw-io-diagram-generator/SKILL.md` |
 | `audit-workflow` | Produce expert code audits and reconcile audit findings with GitHub issues and labels | `.github/skills/audit-workflow/SKILL.md` |
 | `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |
+| `xunit-unit-testing` | Any .NET xUnit unit-test work: project placement under `tests/`, naming, AAA, FluentAssertions, NSubstitute, Verify, Bogus, MockQueryable, coverage, mutation | `.github/skills/xunit-unit-testing/SKILL.md` |
 | `angular-patterns` | Angular frontend patterns for ce repo : Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
+
+## Unit Test Routing [2026-04-27]
+
+- `dotnet-dev` must load `xunit-unit-testing` for any xUnit unit-test task (creation, review, bug reproduction, snapshots, coverage, mutation).
+- Unit test projects belong under `tests/<TargetAssembly>.Tests/` and target exactly one production assembly.
+- `tests/InfraFlowSculptor.GenerationParity.Tests/` remains reserved for generation parity/golden checks and must not receive ordinary unit tests.
 
 ## Skill Concept
 A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when the task justifies it. No tools, composable, lightweight. Skills override pre-training with tested project-specific patterns.

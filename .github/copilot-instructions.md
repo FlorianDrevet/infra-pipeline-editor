@@ -8,6 +8,10 @@
 
 - Use `.NET SDK 10.0.100` from `global.json`.
 - Build the full solution with `dotnet build .\InfraFlowSculptor.slnx`.
+- Run the full .NET test suite with `dotnet test .\InfraFlowSculptor.slnx`.
+- Run a single .NET test project with `dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj`.
+- Run the generation parity harness with `dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\`.
+- Regenerate golden files with `dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\ -p:DefineConstants=REGENERATE_GOLDENS`.
 - Run the full local stack with Aspire via `dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj`.
 - Build the infrastructure configuration API only with `dotnet build .\src\Api\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj`.
 - Build the Bicep generator API only with `dotnet build .\src\BicepGenerators\BicepGenerator.Api\BicepGenerator.Api.csproj`.
@@ -17,7 +21,7 @@
   - `npm run build`
   - `npm run typecheck`
 - The repository is also used as a `dotnet new` template source: `dotnet new install .` then `dotnet new templatewebcqrs -o ProjectName`.
-- No test projects are currently present in the repository, so there is no supported full-suite or single-test command yet.
+- Unit test projects belong under `tests\` and follow the `<TargetAssembly>.Tests` naming convention, with one project per target assembly.
 - No repository-specific lint or formatting command is defined in the checked-in files.
 
 ## High-level architecture
@@ -40,6 +44,7 @@
 - **Architecture review & planning** — Use the `architect` agent (`.github/agents/architect.agent.md`) for any architecture analysis, feasibility check, implementation planning, or challenge of a feature request against the existing codebase. The architect never codes — it produces structured implementation plans for expert agents to follow.
 - **Expert code audits** — Use the `audit-expert` agent (`.github/agents/audit-expert.agent.md`) for repository audits that must produce a report in `audits/` and reconcile GitHub audit issues and labels on `FlorianDrevet/infra-pipeline-editor`.
 - **Backend C#/.NET** — Any C# code generation or modification MUST follow `.github/agents/dotnet-dev.agent.md` conventions (XML docs, no magic strings, SOLID, async/await, EF Core, FluentValidation, sealed, guard clauses, no code smells).
+- **.NET unit testing** — Load the `xunit-unit-testing` skill (`.github/skills/xunit-unit-testing/SKILL.md`) for any xUnit unit-test creation, bug reproduction, snapshot test, coverage, or mutation-testing task.
 - **Frontend Angular** — Any work in `src\Front` MUST use the `angular-front` agent (`.github/agents/angular-front.agent.md`).
 - **Aspire runtime debugging** — Any runtime/AppHost investigation (resource failures, logs/traces, startup issues) MUST use the `aspire-debug` agent (`.github/agents/aspire-debug.agent.md`).
 - **Memory consolidation (Dream)** — The `dream` agent (`.github/agents/dream.agent.md`) performs periodic memory consolidation (4 phases: Orient → Gather → Consolidate → Prune). Triggered automatically by `@dev` when time gate (≥24h) AND session gate (≥5 sessions) are both satisfied and an exclusive Dream lock at `$env:TEMP\infra-pipeline-editor-dream-lock` can be acquired. Dream state tracked in `.github/memory/dream-state.md`.
@@ -65,6 +70,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 | `draw-io-diagram-generator` | Creating or updating `.drawio` architecture, flow, sequence, ER, or UML diagrams for the project | `.github/skills/draw-io-diagram-generator/SKILL.md` |
 | `audit-workflow` | Running expert code audits, writing the report under `audits/`, and synchronizing audit findings with GitHub labels/issues | `.github/skills/audit-workflow/SKILL.md` |
 | `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |
+| `xunit-unit-testing` | Any .NET xUnit unit-test work: project placement, naming, AAA, FluentAssertions, NSubstitute, Verify, Bogus, MockQueryable, coverage, mutation | `.github/skills/xunit-unit-testing/SKILL.md` |
 | `angular-patterns` | Any Angular 19 code: Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
 
 ---
