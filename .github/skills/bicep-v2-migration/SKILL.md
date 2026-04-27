@@ -251,7 +251,14 @@ Tests à écrire pour chaque générateur :
 - **`BicepIntLiteral` as ternary alternate** — `new BicepIntLiteral(0)` as the `Alternate` in a conditional emits as `0` correctly.
 - **Test count** — 28 tests covering 7 params, sku with 3 props (name, tier, conditional capacity), properties with 3 props, 2 outputs (including listKeys), 2 exported types, emission parity.
 
-### Migration #6 — (à compléter)
+### Migration #6 — AppConfiguration (Tier 2, 91 LOC)
+- **Simplest Tier 2 generator** — No conditional logic, no complex outputs. Straightforward param-to-property mapping.
+- **Simple sku object** — Unlike ServiceBusNamespace (3 props with conditional), AppConfiguration sku has only `name: sku`. One-liner nested object.
+- **`.properties.endpoint` output** — `BicepRawExpression("appConfig.properties.endpoint")` for accessing nested runtime property. No `listKeys()` or interpolation needed.
+- **Test property names reminder** — `BicepRawExpression.RawBicep` (not `.Expression`), `BicepCustomType.Name` (not `.TypeName`), `Resource.ArmTypeWithApiVersion` (not `.ArmType`), `Resource.Body` is `IReadOnlyList<BicepPropertyAssignment>` (not `BicepObjectExpression`).
+- **Test count** — 27 tests covering 7 params, simple sku, 4-prop properties, 2 outputs, 2 exported types, emission parity.
+
+### Migration #7 — (à compléter)
 
 ---
 

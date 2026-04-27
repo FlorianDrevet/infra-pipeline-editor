@@ -115,14 +115,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | types.bicep (SkuName, PublicNetworkAccess), sku extraction |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 91 LOC, 2 imports (SkuName, PublicNetworkAccess), 7 params (2 custom, 2 bool, 1 int with defaults), simple sku, 4-prop properties, 2 outputs (id + endpoint), 2 exported types, Parameters["sku"] |
+| Tests TDD écrits | ✅ | `tests/.../Generators/AppConfigurationTypeBicepGeneratorTests.cs` — 27 tests |
+| Migration vers Builder | ✅ | Implements `IResourceTypeBicepSpecGenerator`, straightforward — simplest Tier 2 generator |
+| Parité d'émission vérifiée | ✅ | Module + types emission verified |
+| Branché dans le pipeline | ✅ | No DI change needed — auto-detected by `ModuleBuildStage` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | |
 
 ### 2.3 — ApplicationInsights (91 LOC)
 

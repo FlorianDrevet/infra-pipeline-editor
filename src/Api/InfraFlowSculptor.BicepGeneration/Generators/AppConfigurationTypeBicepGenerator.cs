@@ -1,13 +1,15 @@
+using InfraFlowSculptor.BicepGeneration.Ir;
+using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
 /// <summary>
-/// Generates a Bicep module for Azure App Configuration (<c>Microsoft.AppConfiguration/configurationStores</c>).
+/// Generates a Bicep module for Azure App Configuration (<c>Microsoft.AppConfiguration/configurationStores@2023-03-01</c>).
 /// </summary>
 public sealed class AppConfigurationTypeBicepGenerator
-    : IResourceTypeBicepGenerator
+    : IResourceTypeBicepSpecGenerator
 {
     /// <inheritdoc />
     public string ResourceType
@@ -15,6 +17,47 @@ public sealed class AppConfigurationTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.AppConfiguration;
+
+    /// <inheritdoc />
+    public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
+    {
+        return new BicepModuleBuilder()
+            .Module("appConfiguration", "AppConfiguration", ResourceTypeName)
+            .Import("./types.bicep", "SkuName", "PublicNetworkAccess")
+            .Param("location", BicepType.String, "Azure region for the App Configuration store")
+            .Param("name", BicepType.String, "Name of the App Configuration store")
+            .Param("sku", BicepType.Custom("SkuName"), "SKU of the App Configuration store",
+                defaultValue: new BicepStringLiteral("standard"))
+            .Param("softDeleteRetentionInDays", BicepType.Int, "Number of days to retain soft-deleted items",
+                defaultValue: new BicepIntLiteral(7))
+            .Param("enablePurgeProtection", BicepType.Bool, "Whether purge protection is enabled",
+                defaultValue: new BicepBoolLiteral(false))
+            .Param("disableLocalAuth", BicepType.Bool, "Whether local authentication is disabled",
+                defaultValue: new BicepBoolLiteral(false))
+            .Param("publicNetworkAccess", BicepType.Custom("PublicNetworkAccess"), "Public network access setting",
+                defaultValue: new BicepStringLiteral("Enabled"))
+            .Resource("appConfig", "Microsoft.AppConfiguration/configurationStores@2023-03-01")
+            .Property("name", new BicepReference("name"))
+            .Property("location", new BicepReference("location"))
+            .Property("sku", sku => sku
+                .Property("name", new BicepReference("sku")))
+            .Property("properties", props => props
+                .Property("softDeleteRetentionInDays", new BicepReference("softDeleteRetentionInDays"))
+                .Property("enablePurgeProtection", new BicepReference("enablePurgeProtection"))
+                .Property("disableLocalAuth", new BicepReference("disableLocalAuth"))
+                .Property("publicNetworkAccess", new BicepReference("publicNetworkAccess")))
+            .Output("id", BicepType.String, new BicepRawExpression("appConfig.id"),
+                description: "The resource ID of the App Configuration store")
+            .Output("endpoint", BicepType.String, new BicepRawExpression("appConfig.properties.endpoint"),
+                description: "The endpoint of the App Configuration store")
+            .ExportedType("SkuName",
+                new BicepRawExpression("'free' | 'standard'"),
+                description: "SKU name for the App Configuration store")
+            .ExportedType("PublicNetworkAccess",
+                new BicepRawExpression("'Enabled' | 'Disabled'"),
+                description: "Public network access setting")
+            .Build();
+    }
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

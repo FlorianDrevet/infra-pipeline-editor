@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-27 | dev | **Migration 2.2 — AppConfiguration → Builder+IR.** Simplest Tier 2 generator. Simple sku, `.properties.endpoint` output, 2 custom types. 27 new tests (323 total). |
 | 2026-04-27 | dev | **Migration 2.1 — ServiceBusNamespace → Builder+IR.** First Tier 2 generator. `listKeys()` output via `BicepRawExpression`, param reuse (`sku.tier: sku`), inline ternary in nested object. 28 new tests (296 total). |
 | 2026-04-27 | dev | **Migration 1.4 — ContainerRegistry → Builder+IR.** Inline `BicepConditionalExpression` in resource body, `BicepBoolLiteral` defaults, 2 custom types. Tier 1 complete (4/4 generators). 27 new tests (268 total). |
 | 2026-04-27 | dev | **Migration 1.3 — AppServicePlan → Builder+IR.** First generator with variables (`Var()`), `BicepConditionalExpression`, 2 imports, 2 custom types. Fixed `ModuleBuildStage` to preserve `Parameters` dict from legacy `Generate()`. 27 new tests (241 total). |
