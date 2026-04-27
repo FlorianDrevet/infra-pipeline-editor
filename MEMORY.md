@@ -40,6 +40,7 @@
 7. **FK cascade on delete:** Cross-resource FKs must be SetNull or Cascade, never Restrict — causes violations on parent cascade-delete (see `06-persistence.md`)
 8. **Response DTO IDs:** Always `string` (not `Guid`) — Mapster maps `Id.Value.ToString()` (see `05-api-layer.md`)
 9. **OpenAPI 401:** All protected endpoints must include `.ProducesProblem(401)` (see `05-api-layer.md`)
+10. **TDD obligatoire:** Never write production code without tests first — load `tdd-workflow` skill, follow RED→GREEN→REFACTOR→VERIFY, track debt in `.github/test-debt.md` (see `11-agents-skills.md`)
 
 ---
 

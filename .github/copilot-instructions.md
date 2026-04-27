@@ -72,6 +72,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 | `audit-workflow` | Running expert code audits, writing the report under `audits/`, and synchronizing audit findings with GitHub labels/issues | `.github/skills/audit-workflow/SKILL.md` |
 | `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |
 | `xunit-unit-testing` | Any .NET xUnit unit-test work: project placement, naming, AAA, FluentAssertions, NSubstitute, Verify, Bogus, MockQueryable, coverage, mutation | `.github/skills/xunit-unit-testing/SKILL.md` |
+| `tdd-workflow` | **Any code modification**: enforces TDD Red→Green→Refactor→Verify cycle, test project init, test debt tracking in `.github/test-debt.md` | `.github/skills/tdd-workflow/SKILL.md` |
 | `angular-patterns` | Any Angular 19 code: Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
 | `bicep-v2-migration` | Migrating an IResourceTypeBicepGenerator from legacy string template to Builder + IR (Vague 2), including TDD tests, emitter parity, review cycle, and skill feedback loop | `.github/skills/bicep-v2-migration/SKILL.md` |
 
@@ -89,6 +90,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 8. **Response DTO IDs:** Always `string` (not `Guid`) — Mapster maps `Id.Value.ToString()`
 9. **OpenAPI 401:** All protected endpoints must include `.ProducesProblem(401)`
 10. **GitNexus:** Before modifying a shared symbol, run `gitnexus_impact()` to assess blast radius
+11. **TDD obligatoire:** Never write production code without tests first — load `tdd-workflow` skill, follow RED→GREEN→REFACTOR→VERIFY, track debt in `.github/test-debt.md`
 
 ## Pull Request conventions
 

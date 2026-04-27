@@ -34,6 +34,12 @@ Tu es l'expert C#/.NET 10 de ce dépôt. Tu maîtrises :
    - **Risque HIGH/CRITICAL** → alerter l'utilisateur avant de modifier
    - Si besoin de comprendre un flux complet : `gitnexus_query("concept")` puis `gitnexus_context("Symbol")`
    - Référence complète : charger le skill `gitnexus-workflow` (`.github/skills/gitnexus-workflow/SKILL.md`)
+6. **TDD obligatoire** — Charger `.github/skills/tdd-workflow/SKILL.md` AVANT toute modification de code.
+   Le cycle Red → Green → Refactor → Verify est imposé :
+   - **AVANT de modifier du code** : écrire ou compléter les tests unitaires (RED).
+   - **Si le projet de tests n'existe pas** : le créer selon `xunit-unit-testing` section 2.
+   - **Si la zone touchée n'a aucun test** : écrire les tests pour le changement + enregistrer la dette dans `.github/test-debt.md`.
+   - **APRÈS implémentation** : `dotnet test` sur le projet puis sur la solution.
 
 ---
 
@@ -120,6 +126,9 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 ## 21. Checklist de génération d'un artefact .NET
 
 - [ ] Lu `MEMORY.md` avant de commencer
+- [ ] Skill `tdd-workflow` chargé — cycle RED → GREEN → REFACTOR → VERIFY appliqué
+- [ ] Tests écrits AVANT le code de production (ou en parallèle pour scaffolding massif)
+- [ ] Projet de tests existant pour l'assembly modifié (`tests/<Assembly>.Tests/`)
 - [ ] Nommage conforme aux conventions Microsoft
 - [ ] Documentation XML sur tous les membres publics/protégés
 - [ ] Pas de magic strings — constantes ou `nameof()`
@@ -144,8 +153,11 @@ public sealed class CreateKeyVaultCommandValidator : AbstractValidator<CreateKey
 
 ## 22. Protocole de fin de tâche
 
-1. Exécuter `dotnet build .\InfraFlowSculptor.slnx` — corriger toutes les erreurs.
-2. Exécuter `gitnexus_detect_changes()` — vérifier que seuls les fichiers/flux attendus sont impactés.
-3. Si un changement de modèle EF Core : `dotnet ef migrations add <DescriptiveName>`.
-4. Mettre à jour `MEMORY.md` avec les nouvelles conventions ou pièges découverts.
-5. Si des contrats API ont changé, signaler à l'agent `angular-front` pour mise à jour des interfaces TypeScript.
+1. Exécuter `dotnet test .\tests\<Assembly>.Tests\<Assembly>.Tests.csproj` — tous les tests du projet touchés passent.
+2. Exécuter `dotnet test .\InfraFlowSculptor.slnx` — aucune régression sur la solution.
+3. Exécuter `dotnet build .\InfraFlowSculptor.slnx` — corriger toutes les erreurs.
+4. Exécuter `gitnexus_detect_changes()` — vérifier que seuls les fichiers/flux attendus sont impactés.
+5. Si un changement de modèle EF Core : `dotnet ef migrations add <DescriptiveName>`.
+6. Enregistrer toute dette de tests détectée dans `.github/test-debt.md`.
+7. Mettre à jour `MEMORY.md` avec les nouvelles conventions ou pièges découverts.
+8. Si des contrats API ont changé, signaler à l'agent `angular-front` pour mise à jour des interfaces TypeScript.

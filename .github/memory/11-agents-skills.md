@@ -35,12 +35,16 @@
 | `audit-workflow` | Produce expert code audits and reconcile audit findings with GitHub issues and labels | `.github/skills/audit-workflow/SKILL.md` |
 | `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |
 | `xunit-unit-testing` | Any .NET xUnit unit-test work: project placement under `tests/`, naming, AAA, FluentAssertions, NSubstitute, Verify, Bogus, MockQueryable, coverage, mutation | `.github/skills/xunit-unit-testing/SKILL.md` |
+| `tdd-workflow` | **Any code modification** — enforces TDD Red→Green→Refactor→Verify cycle, test project init, test debt tracking in `.github/test-debt.md` | `.github/skills/tdd-workflow/SKILL.md` |
 | `angular-patterns` | Angular frontend patterns for ce repo : Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
 | `bicep-v2-migration` | Migrating an IResourceTypeBicepGenerator from legacy string template to Builder + IR (Vague 2), including TDD tests, emitter parity, review cycle, and skill feedback loop | `.github/skills/bicep-v2-migration/SKILL.md` |
 
 ## Unit Test Routing [2026-04-27]
 
-- `dotnet-dev` must load `xunit-unit-testing` for any xUnit unit-test task (creation, review, bug reproduction, snapshots, coverage, mutation).
+- `dotnet-dev` must load `tdd-workflow` + `xunit-unit-testing` for any code modification task (not just test-only tasks).
+- The TDD cycle RED → GREEN → REFACTOR → VERIFY is mandatory before any production code is written.
+- If the test project `tests/<Assembly>.Tests/` doesn't exist, create it following `xunit-unit-testing` section 2.
+- Test debt (areas with no test coverage) must be tracked in `.github/test-debt.md`.
 - Unit test projects belong under `tests/<TargetAssembly>.Tests/` and target exactly one production assembly.
 - `tests/InfraFlowSculptor.GenerationParity.Tests/` is currently just a kept folder without an active `.csproj`; do not place ordinary unit tests there.
 

@@ -158,7 +158,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Appliquer un backlog de correction issu d'une review pré-merge | **`review-remediator`** | `.github/agents/review-remediator.agent.md` |
 | Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` |
 | Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
-| Modifier/créer du code C#/.NET | **`dotnet-dev`** | `.github/agents/dotnet-dev.agent.md` |
+| Modifier/créer du code C#/.NET | **`dotnet-dev`** + charger les skills `tdd-workflow` + `xunit-unit-testing` | `.github/agents/dotnet-dev.agent.md` |
 | Rédiger ou corriger des tests unitaires .NET/xUnit | **`dotnet-dev`** + charger le skill `xunit-unit-testing` | `.github/skills/xunit-unit-testing/SKILL.md` |
 | Modifier/créer du code Angular | **`angular-front`** + charger le skill `ui-ux-front-saas` si UI | `.github/agents/angular-front.agent.md` |
 | Debug runtime/AppHost Aspire | **`aspire-debug`** | `.github/agents/aspire-debug.agent.md` |
@@ -176,8 +176,16 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 > 3. Un **extrait de code existant** comme référence de style quand applicable
 > 4. Le **résultat attendu** décrit de façon non ambiguë
 > 5. Le **résultat de `gitnexus_impact()`** si la tâche modifie un symbole partagé (pour que le sous-agent connaisse le blast radius)
+> 6. **L'instruction TDD** : rappeler que le skill `tdd-workflow` est obligatoire et que les tests doivent être écrits AVANT le code de production
 >
 > Un prompt vague produit du code générique qui diverge des conventions du projet.
+
+> **RÈGLE TDD — Toute délégation de code DOIT inclure le cycle TDD.**
+> Quand tu délègues à `dotnet-dev` ou `angular-front`, rappeler explicitement :
+> - Charger le skill `tdd-workflow` + `xunit-unit-testing` (pour .NET)
+> - Écrire les tests AVANT l'implémentation (RED → GREEN → REFACTOR → VERIFY)
+> - Enregistrer la dette de tests détectée dans `.github/test-debt.md`
+> - Vérifier `dotnet test .\InfraFlowSculptor.slnx` en fin de tâche
 
 - **Nouvelle feature, demande complexe, ou changement architectural significatif** :
   Déléguer d'abord à `architect` pour obtenir un plan d'implémentation validé. L'architecte challenge la demande, vérifie la cohérence avec l'existant, et produit un plan étape par étape attribuant chaque action à l'agent expert approprié. Une fois le plan reçu, `dev` coordonne l'exécution en suivant le plan à la lettre.
@@ -272,6 +280,11 @@ Un skill est **différent d'un agent** :
 - **Fichier :** `.github/skills/xunit-unit-testing/SKILL.md`
 - **Contenu :** emplacement des projets de tests sous `tests/`, conventions de nommage `Given_When_Then`, usage de xUnit/FluentAssertions/NSubstitute/Verify/Bogus/MockQueryable, données déterministes, coverage et mutation
 
+#### `tdd-workflow`
+- **Quand le charger :** dès qu'un agent doit modifier, créer, ou corriger du code exécutable (.NET ou Angular)
+- **Fichier :** `.github/skills/tdd-workflow/SKILL.md`
+- **Contenu :** cycle obligatoire RED → GREEN → REFACTOR → VERIFY, initialisation de projet de tests, détection et enregistrement de la dette dans `.github/test-debt.md`, exceptions au TDD strict, intégration avec les autres skills
+
 #### `bicep-v2-migration`
 - **Quand le charger :** dès qu'une tâche consiste à migrer un `IResourceTypeBicepGenerator` du pattern legacy (const string template + regex) vers le pattern Builder + IR (Vague 2)
 - **Fichier :** `.github/skills/bicep-v2-migration/SKILL.md`
@@ -308,9 +321,12 @@ Son rôle est de **lire la mémoire, analyser, charger les bons outils de connai
 
 ```
 [ ] Plan vérifié item par item (step 4bis) — tout item manquant complété avant de continuer
+[ ] TDD vérifié : tests écrits AVANT le code de production (si code modifié)
+[ ] Tests passés : dotnet test .\InfraFlowSculptor.slnx (si code C# touché)
 [ ] Build vérifié : dotnet build .\InfraFlowSculptor.slnx (si code C# touché)
 [ ] Frontend vérifié : npm run typecheck + npm run build dans src/Front (si code Angular touché)
 [ ] GitNexus detect_changes vérifié (si code modifié) — seuls les fichiers/flux attendus sont impactés
+[ ] Dette de tests enregistrée dans .github/test-debt.md (si dette détectée)
 [ ] Fichier thématique mis à jour dans .github/memory/ (nouveaux agrégats, conventions, pièges)
 [ ] Changelog : ligne ajoutée dans .github/memory/changelog.md
 [ ] Session scratchpad supprimé si tâche multi-agent terminée (/memories/session/task-*.md)
