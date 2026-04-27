@@ -37,7 +37,7 @@ public static class BicepAssembler
         var typesBicep = TypesBicepAssembler.Generate(environments, hasRoleAssignments);
         var functionsBicep = FunctionsBicepAssembler.Generate(namingContext);
         var constantsBicep = hasRoleAssignments ? ConstantsBicepAssembler.Generate(roleAssignments) : string.Empty;
-        var main = MainBicepAssembler.Generate(normalizedModules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? [], projectTags, configTags);
+        var mainEmission = MainBicepAssembler.Generate(normalizedModules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? [], projectTags, configTags);
 
         var environmentParameterFiles = ParameterFileAssembler.GenerateEnvironmentParameterFiles(
             normalizedModules, environments, resources, appSettings);
@@ -108,13 +108,14 @@ public static class BicepAssembler
 
         return new GenerationResult
         {
-            MainBicep = main,
+            MainBicep = mainEmission.Content,
             TypesBicep = typesBicep,
             FunctionsBicep = functionsBicep,
             RoleAssignments = roleAssignments,
             ConstantsBicep = constantsBicep,
             EnvironmentParameterFiles = environmentParameterFiles,
-            ModuleFiles = moduleFiles
+            ModuleFiles = moduleFiles,
+            UsedOutputsByModulePath = mainEmission.UsedOutputsByModulePath,
         };
     }
 

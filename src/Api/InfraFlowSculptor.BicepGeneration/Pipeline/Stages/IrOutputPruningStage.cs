@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Emit;
@@ -10,8 +9,9 @@ namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 /// </summary>
 /// <remarks>
 /// <para><b>Pre-conditions:</b> <see cref="AssemblyStage"/> (Order 900) has populated
-/// <see cref="BicepGenerationContext.Result"/> with the assembled <c>main.bicep</c> and
-/// per-module Bicep file contents. Each <see cref="ModuleWorkItem"/> exposes a
+/// <see cref="BicepGenerationContext.Result"/> with the assembled <c>main.bicep</c>, the
+/// per-module Bicep file contents, and <see cref="Models.GenerationResult.UsedOutputsByModulePath"/>
+/// (populated during <c>main.bicep</c> emission). Each <see cref="ModuleWorkItem"/> exposes a
 /// <see cref="BicepModuleSpec"/> describing its outputs.</para>
 /// <para><b>Post-conditions:</b> for every work item whose generated module file is present in
 /// <see cref="Models.GenerationResult.ModuleFiles"/>, <see cref="BicepModuleSpec.Outputs"/> is filtered
@@ -23,8 +23,6 @@ namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 /// </remarks>
 public sealed class IrOutputPruningStage : IBicepGenerationStage
 {
-    private static readonly Regex OutputReferencePattern = new(@"(\w+)Module\.outputs\.(\w+)", RegexOptions.Compiled);
-
     private readonly BicepEmitter _emitter = new();
 
     /// <inheritdoc />
@@ -49,7 +47,7 @@ public sealed class IrOutputPruningStage : IBicepGenerationStage
             return;
         }
 
-        var usedOutputsByPath = CollectUsedOutputsByPath(result.MainBicep);
+        var usedOutputsByPath = result.UsedOutputsByModulePath;
 
         foreach (var item in context.WorkItems)
         {
@@ -59,8 +57,9 @@ public sealed class IrOutputPruningStage : IBicepGenerationStage
                 continue;
             }
 
-            var usedOutputs = usedOutputsByPath.GetValueOrDefault(modulePath)
-                ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var usedOutputs = usedOutputsByPath.TryGetValue(modulePath, out var outputs)
+                ? new HashSet<string>(outputs, StringComparer.OrdinalIgnoreCase)
+                : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             var prunedOutputs = item.Spec.Outputs
                 .Where(o => usedOutputs.Contains(o.Name))
@@ -82,67 +81,5 @@ public sealed class IrOutputPruningStage : IBicepGenerationStage
 
             moduleFiles[modulePath] = newContent;
         }
-    }
-
-    /// <summary>
-    /// Scans <paramref name="mainBicep"/> for <c>{symbol}Module.outputs.{outputName}</c> references
-    /// and groups the discovered output names by the corresponding module file path
-    /// (resolved from the <c>module</c> declaration).
-    /// </summary>
-    /// <remarks>
-    /// Module-path resolution and case-insensitive comparison match the legacy text-based pruner
-    /// for byte-for-byte parity.
-    /// </remarks>
-    internal static Dictionary<string, HashSet<string>> CollectUsedOutputsByPath(string mainBicep)
-    {
-        var result = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
-        if (string.IsNullOrEmpty(mainBicep))
-        {
-            return result;
-        }
-
-        var matches = OutputReferencePattern.Matches(mainBicep);
-        if (matches.Count == 0)
-        {
-            return result;
-        }
-
-        var symbolToPath = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (Match match in matches)
-        {
-            var symbolName = match.Groups[1].Value;
-            if (symbolToPath.ContainsKey(symbolName))
-            {
-                continue;
-            }
-
-            var declRegex = new Regex(@"module\s+" + Regex.Escape(symbolName) + @"Module\s+'\.\/([^']+)'");
-            var declMatch = declRegex.Match(mainBicep);
-            if (declMatch.Success)
-            {
-                symbolToPath[symbolName] = declMatch.Groups[1].Value;
-            }
-        }
-
-        foreach (Match match in matches)
-        {
-            var symbolName = match.Groups[1].Value;
-            var outputName = match.Groups[2].Value;
-
-            if (!symbolToPath.TryGetValue(symbolName, out var filePath))
-            {
-                continue;
-            }
-
-            if (!result.TryGetValue(filePath, out var outputs))
-            {
-                outputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                result[filePath] = outputs;
-            }
-            outputs.Add(outputName);
-        }
-
-        return result;
     }
 }

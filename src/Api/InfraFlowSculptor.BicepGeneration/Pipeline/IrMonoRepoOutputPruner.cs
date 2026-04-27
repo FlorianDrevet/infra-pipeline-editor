@@ -2,7 +2,6 @@ using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Ir.Emit;
 using InfraFlowSculptor.BicepGeneration.Models;
-using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline;
 
@@ -10,12 +9,13 @@ namespace InfraFlowSculptor.BicepGeneration.Pipeline;
 /// IR-based output pruning helper for mono-repo assemblies.
 /// </summary>
 /// <remarks>
-/// Single-configuration pruning is owned by <see cref="IrOutputPruningStage"/>. The mono-repo
+/// Single-configuration pruning is owned by <see cref="Stages.IrOutputPruningStage"/>. The mono-repo
 /// flow defers per-config pruning (<see cref="BicepGenerationContext.SkipOutputPruning"/>)
 /// because shared modules in <see cref="MonoRepoGenerationResult.CommonFiles"/> must keep any
-/// output referenced by at least one configuration's <c>main.bicep</c>. This helper computes
-/// that union, filters each shared module's <see cref="BicepModuleSpec"/>, and re-emits the
-/// pruned module text into <see cref="MonoRepoGenerationResult.CommonFiles"/>.
+/// output referenced by at least one configuration's <c>main.bicep</c>. This helper unions the
+/// per-configuration <see cref="GenerationResult.UsedOutputsByModulePath"/> maps populated during
+/// emission, filters each shared module's <see cref="BicepModuleSpec"/>, and re-emits the pruned
+/// module text into <see cref="MonoRepoGenerationResult.CommonFiles"/>.
 /// </remarks>
 internal static class IrMonoRepoOutputPruner
 {
@@ -23,14 +23,14 @@ internal static class IrMonoRepoOutputPruner
 
     /// <summary>
     /// Prunes unused outputs from the shared modules of a mono-repo result, using the union
-    /// of output references from every per-configuration <c>main.bicep</c>. Modules that
+    /// of output references from every per-configuration generation result. Modules that
     /// belong to a configuration whose work items the helper cannot match (e.g. modules
-    /// produced outside of an <see cref="IResourceTypeBicepSpecGenerator"/>, such as
+    /// produced outside of an <see cref="Generators.IResourceTypeBicepSpecGenerator"/>, such as
     /// <c>kvSecrets.module.bicep</c> or role-assignment templates) are left untouched.
     /// </summary>
     /// <param name="monoResult">The assembled mono-repo result whose shared modules are to be pruned.</param>
-    /// <param name="perConfigResults">Per-configuration generation results. Their <c>main.bicep</c>
-    /// is scanned for output references.</param>
+    /// <param name="perConfigResults">Per-configuration generation results. Their
+    /// <see cref="GenerationResult.UsedOutputsByModulePath"/> maps are unioned to discover usages.</param>
     /// <param name="perConfigContexts">Per-configuration pipeline contexts. Their
     /// <see cref="BicepGenerationContext.WorkItems"/> are inspected to locate the
     /// <see cref="BicepModuleSpec"/> matching each shared module path.</param>
@@ -48,8 +48,7 @@ internal static class IrMonoRepoOutputPruner
 
         foreach (var (_, configResult) in perConfigResults)
         {
-            var configUsed = IrOutputPruningStage.CollectUsedOutputsByPath(configResult.MainBicep);
-            foreach (var (path, outputs) in configUsed)
+            foreach (var (path, outputs) in configResult.UsedOutputsByModulePath)
             {
                 if (!combinedUsedOutputs.TryGetValue(path, out var existing))
                 {

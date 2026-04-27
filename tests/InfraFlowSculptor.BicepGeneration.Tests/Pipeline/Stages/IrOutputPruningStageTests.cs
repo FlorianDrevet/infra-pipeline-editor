@@ -27,12 +27,15 @@ public sealed class IrOutputPruningStageTests
     [Fact]
     public void Execute_RemovesOutputs_WhenNotInUsedMap()
     {
-        // Arrange — main.bicep references only "vaultUri" on kvModule
+        // Arrange — only "vaultUri" is registered as used for the kv module
         var context = CreateContextWithSingleModule(
             modulePath: "modules/KeyVault/kv.module.bicep",
             symbolName: "kv",
             outputs: ["vaultUri", "id", "name"],
-            mainBicep: BuildMainBicep("kv", "modules/KeyVault/kv.module.bicep", "vaultUri"));
+            usedOutputsByModulePath: new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["modules/KeyVault/kv.module.bicep"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "vaultUri" },
+            });
 
         // Act
         _sut.Execute(context);
@@ -51,12 +54,15 @@ public sealed class IrOutputPruningStageTests
     [Fact]
     public void Execute_KeepsOutputs_WhenInUsedMap_CaseInsensitive()
     {
-        // Arrange — main.bicep references "VAULTURI" (different case) on kvModule
+        // Arrange — "VAULTURI" registered with different case than the spec output "vaultUri"
         var context = CreateContextWithSingleModule(
             modulePath: "modules/KeyVault/kv.module.bicep",
             symbolName: "kv",
             outputs: ["vaultUri"],
-            mainBicep: BuildMainBicep("kv", "modules/KeyVault/kv.module.bicep", "VAULTURI"));
+            usedOutputsByModulePath: new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["modules/KeyVault/kv.module.bicep"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "VAULTURI" },
+            });
 
         // Act
         _sut.Execute(context);
@@ -73,7 +79,7 @@ public sealed class IrOutputPruningStageTests
             modulePath: "modules/Test/test.module.bicep",
             symbolName: "test",
             outputs: [],
-            mainBicep: "// no module references");
+            usedOutputsByModulePath: new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase));
 
         var originalContent = context.Result!.ModuleFiles["modules/Test/test.module.bicep"];
 
@@ -88,16 +94,14 @@ public sealed class IrOutputPruningStageTests
     [Fact]
     public void Execute_PrunesEachModuleIndependently()
     {
-        // Arrange — two modules, main.bicep uses only one output from each
-        var mainBicep = $$"""
-            module kvModule './modules/KeyVault/kv.module.bicep' = {}
-            module redisModule './modules/RedisCache/redis.module.bicep' = {}
+        // Arrange — two modules, each used map keeps a single output
+        var usedMap = new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["modules/KeyVault/kv.module.bicep"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "vaultUri" },
+            ["modules/RedisCache/redis.module.bicep"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "hostName" },
+        };
 
-            var a = kvModule.outputs.vaultUri
-            var b = redisModule.outputs.hostName
-            """;
-
-        var context = CreateEmptyContext(mainBicep);
+        var context = CreateEmptyContext(usedMap);
         AddWorkItem(context, "modules/KeyVault/kv.module.bicep", "kv", "KeyVault", ["vaultUri", "id"]);
         AddWorkItem(context, "modules/RedisCache/redis.module.bicep", "redis", "RedisCache", ["hostName", "port"]);
 
@@ -112,12 +116,12 @@ public sealed class IrOutputPruningStageTests
     [Fact]
     public void Execute_RemovesAllOutputs_WhenModulePathMissingFromUsedMap()
     {
-        // Arrange — main.bicep does not reference this module at all
+        // Arrange — used map is empty, so nothing references this module's outputs
         var context = CreateContextWithSingleModule(
             modulePath: "modules/KeyVault/kv.module.bicep",
             symbolName: "kv",
             outputs: ["vaultUri", "id"],
-            mainBicep: "// main.bicep with no module references");
+            usedOutputsByModulePath: new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase));
 
         // Act
         _sut.Execute(context);
@@ -129,13 +133,12 @@ public sealed class IrOutputPruningStageTests
     [Fact]
     public void Execute_SkipsWorkItemsWithoutSpec()
     {
-        // Arrange — legacy work item with a Spec that has no outputs and a main.bicep
-        // that doesn't reference it — stage must run without throwing.
+        // Arrange — legacy work item with a Spec that has no outputs and an empty used map.
         var context = CreateContextWithSingleModule(
             modulePath: "modules/Legacy/legacy.module.bicep",
             symbolName: "legacy",
             outputs: [],
-            mainBicep: "// empty");
+            usedOutputsByModulePath: new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase));
 
         // Act
         var act = () => _sut.Execute(context);
@@ -152,7 +155,10 @@ public sealed class IrOutputPruningStageTests
             modulePath: "modules/KeyVault/kv.module.bicep",
             symbolName: "kv",
             outputs: ["vaultUri", "id"],
-            mainBicep: BuildMainBicep("kv", "modules/KeyVault/kv.module.bicep", "vaultUri"));
+            usedOutputsByModulePath: new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["modules/KeyVault/kv.module.bicep"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "vaultUri" },
+            });
 
         context.SkipOutputPruning = true;
         var originalSpecOutputCount = context.WorkItems[0].Spec.Outputs.Count;
@@ -168,22 +174,13 @@ public sealed class IrOutputPruningStageTests
 
     // ── Helpers ──
 
-    private static string BuildMainBicep(string symbolName, string modulePath, string outputName)
-    {
-        return $$"""
-            module {{symbolName}}Module './{{modulePath}}' = {}
-
-            var x = {{symbolName}}Module.outputs.{{outputName}}
-            """;
-    }
-
     private static BicepGenerationContext CreateContextWithSingleModule(
         string modulePath,
         string symbolName,
         IReadOnlyList<string> outputs,
-        string mainBicep)
+        IReadOnlyDictionary<string, IReadOnlyCollection<string>> usedOutputsByModulePath)
     {
-        var context = CreateEmptyContext(mainBicep);
+        var context = CreateEmptyContext(usedOutputsByModulePath);
         var folderAndFile = SplitModulePath(modulePath);
         AddWorkItem(context, modulePath, symbolName, folderAndFile.Folder, outputs);
         return context;
@@ -197,7 +194,8 @@ public sealed class IrOutputPruningStageTests
         return (withoutPrefix[..firstSlash], withoutPrefix[(firstSlash + 1)..]);
     }
 
-    private static BicepGenerationContext CreateEmptyContext(string mainBicep)
+    private static BicepGenerationContext CreateEmptyContext(
+        IReadOnlyDictionary<string, IReadOnlyCollection<string>> usedOutputsByModulePath)
     {
         var context = new BicepGenerationContext
         {
@@ -214,8 +212,9 @@ public sealed class IrOutputPruningStageTests
             },
             Result = new GenerationResult
             {
-                MainBicep = mainBicep,
+                MainBicep = string.Empty,
                 ModuleFiles = new Dictionary<string, string>(),
+                UsedOutputsByModulePath = usedOutputsByModulePath,
             },
         };
         return context;
