@@ -56,7 +56,7 @@ public sealed class BicepEmitter
         return sb.ToString().TrimEnd('\n', '\r') + "\n";
     }
 
-    private void EmitImports(StringBuilder sb, IReadOnlyList<BicepImport> imports)
+    private static void EmitImports(StringBuilder sb, IReadOnlyList<BicepImport> imports)
     {
         if (imports.Count == 0)
             return;
@@ -76,7 +76,7 @@ public sealed class BicepEmitter
         sb.AppendLine();
     }
 
-    private void EmitParameters(StringBuilder sb, IReadOnlyList<BicepParam> parameters)
+    private static void EmitParameters(StringBuilder sb, IReadOnlyList<BicepParam> parameters)
     {
         for (var i = 0; i < parameters.Count; i++)
         {

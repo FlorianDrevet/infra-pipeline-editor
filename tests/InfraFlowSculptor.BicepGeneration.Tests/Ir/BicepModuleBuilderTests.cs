@@ -150,4 +150,74 @@ public sealed class BicepModuleBuilderTests
         spec.Companions.Should().ContainSingle()
             .Which.ModuleName.Should().Be("kvSecret");
     }
+
+    [Fact]
+    public void Given_BuilderWithModuleFileName_When_Build_Then_SpecHasModuleFileName()
+    {
+        var spec = new BicepModuleBuilder()
+            .Module("webApp", "web-app", "Web App")
+            .ModuleFileName("web-app-code")
+            .Resource("app", "Microsoft.Web/sites@2023-12-01")
+            .Build();
+
+        spec.ModuleFileName.Should().Be("web-app-code");
+    }
+
+    [Fact]
+    public void Given_BuilderWithExistingResource_When_Build_Then_SpecContainsExistingResource()
+    {
+        var spec = new BicepModuleBuilder()
+            .Module("db", "sql-database", "SQL Database")
+            .Resource("db", "Microsoft.Sql/servers/databases@2023-05-01-preview")
+            .ExistingResource("sqlServer", "Microsoft.Sql/servers@2023-05-01-preview", "sqlServerName")
+            .Build();
+
+        spec.ExistingResources.Should().ContainSingle();
+        spec.ExistingResources[0].Symbol.Should().Be("sqlServer");
+        spec.ExistingResources[0].NameExpression.Should().Be("sqlServerName");
+    }
+
+    [Fact]
+    public void Given_BuilderWithParent_When_Build_Then_ResourceHasParentSymbol()
+    {
+        var spec = new BicepModuleBuilder()
+            .Module("db", "sql-database", "SQL Database")
+            .Resource("db", "Microsoft.Sql/servers/databases@2023-05-01-preview")
+            .Parent("sqlServer")
+            .Build();
+
+        spec.Resource.ParentSymbol.Should().Be("sqlServer");
+    }
+
+    [Fact]
+    public void Given_BuilderWithAdditionalResource_When_Build_Then_SpecContainsAdditionalResource()
+    {
+        var spec = new BicepModuleBuilder()
+            .Module("kv", "key-vault", "Key Vault")
+            .Resource("kv", "Microsoft.KeyVault/vaults@2023-07-01")
+            .AdditionalResource("roleAssignment", "Microsoft.Authorization/roleAssignments@2022-04-01",
+                condition: new BicepReference("assignRole"),
+                scope: "kv",
+                bodyBuilder: body => body.Property("name", new BicepRawExpression("guid(kv.id)")))
+            .Build();
+
+        spec.AdditionalResources.Should().ContainSingle();
+        var additionalRes = spec.AdditionalResources[0];
+        additionalRes.Symbol.Should().Be("roleAssignment");
+        additionalRes.Condition.Should().BeOfType<BicepReference>();
+        additionalRes.Scope.Should().Be("kv");
+        additionalRes.Body.Should().ContainSingle().Which.Key.Should().Be("name");
+    }
+
+    [Fact]
+    public void Given_BuilderWithoutModule_When_Build_Then_ThrowsInvalidOperation()
+    {
+        var builder = new BicepModuleBuilder()
+            .Resource("kv", "Microsoft.KeyVault/vaults@2023-07-01");
+
+        var act = () => builder.Build();
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*Module*");
+    }
 }

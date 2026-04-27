@@ -34,7 +34,7 @@
 | 0.6 | Adaptation des stages 300-700+850 (dual mode) | ✅ | ModuleBuild (300), Identity (400), Output (500), AppSettings (600), Tags (700) + SpecEmission (850) |
 | 0.7 | Interface générateur (`IResourceTypeBicepSpecGenerator`) | ✅ | Extends `IResourceTypeBicepGenerator`, ajoute `GenerateSpec()`. `ModuleWorkItem.Spec` ajouté |
 | 0.8 | Tests infrastructure IR | ✅ | 37 tests : Emitter (21), Builder (10), Identity (7), Output (5), Tags (5), AppSettings (4) — tous verts |
-| 0.9 | Review de code Phase 0 | ⬜ | `review-expert` → `review-remediator` |
+| 0.9 | Review de code Phase 0 | ✅ | 4 MEDIUM + 2 LOW — all fixed. +13 tests (emitter/builder coverage) |
 
 ---
 

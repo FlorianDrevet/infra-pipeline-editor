@@ -10,28 +10,22 @@ public sealed class BicepEmitterTests
 
     #region Helpers
 
-    private static BicepModuleSpec MinimalSpec(
-        Action<BicepModuleSpec>? customize = null)
+    private static BicepModuleSpec MinimalSpec() => new()
     {
-        var spec = new BicepModuleSpec
+        ModuleName = "keyVault",
+        ModuleFolderName = "key-vault",
+        ResourceTypeName = "Key Vault",
+        Resource = new BicepResourceDeclaration
         {
-            ModuleName = "keyVault",
-            ModuleFolderName = "key-vault",
-            ResourceTypeName = "Key Vault",
-            Resource = new BicepResourceDeclaration
-            {
-                Symbol = "kv",
-                ArmTypeWithApiVersion = "Microsoft.KeyVault/vaults@2023-07-01",
-                Body =
-                [
-                    new BicepPropertyAssignment("name", new BicepReference("name")),
-                    new BicepPropertyAssignment("location", new BicepReference("location")),
-                ],
-            },
-        };
-        customize?.Invoke(spec);
-        return spec;
-    }
+            Symbol = "kv",
+            ArmTypeWithApiVersion = "Microsoft.KeyVault/vaults@2023-07-01",
+            Body =
+            [
+                new BicepPropertyAssignment("name", new BicepReference("name")),
+                new BicepPropertyAssignment("location", new BicepReference("location")),
+            ],
+        },
+    };
 
     #endregion
 
@@ -388,4 +382,212 @@ public sealed class BicepEmitterTests
 
         paramLines.Should().HaveCount(2);
     }
+
+    #region ExistingResource emission
+
+    [Fact]
+    public void Given_SpecWithExistingResource_When_EmitModule_Then_EmitsExistingBlock()
+    {
+        var spec = MinimalSpec() with
+        {
+            ExistingResources =
+            [
+                new BicepExistingResource("sqlServer", "Microsoft.Sql/servers@2023-05-01-preview", "sqlServerName"),
+            ],
+        };
+
+        var result = _sut.EmitModule(spec);
+
+        result.Should().Contain("resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' existing = {");
+        result.Should().Contain("  name: sqlServerName");
+    }
+
+    #endregion
+
+    #region Resource with Condition
+
+    [Fact]
+    public void Given_ResourceWithCondition_When_EmitModule_Then_EmitsIfGuard()
+    {
+        var spec = MinimalSpec() with
+        {
+            Resource = new BicepResourceDeclaration
+            {
+                Symbol = "kv",
+                ArmTypeWithApiVersion = "Microsoft.KeyVault/vaults@2023-07-01",
+                Condition = new BicepReference("deployVault"),
+                Body =
+                [
+                    new BicepPropertyAssignment("name", new BicepReference("name")),
+                ],
+            },
+        };
+
+        var result = _sut.EmitModule(spec);
+
+        result.Should().Contain("resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = if (deployVault) {");
+    }
+
+    #endregion
+
+    #region Resource with ForLoop
+
+    [Fact]
+    public void Given_ResourceWithForLoop_When_EmitModule_Then_EmitsForSyntax()
+    {
+        var spec = MinimalSpec() with
+        {
+            Resource = new BicepResourceDeclaration
+            {
+                Symbol = "app",
+                ArmTypeWithApiVersion = "Microsoft.Web/sites@2023-12-01",
+                ForLoop = new BicepForLoop("item", new BicepReference("items")),
+                Body =
+                [
+                    new BicepPropertyAssignment("name", new BicepReference("item.name")),
+                ],
+            },
+        };
+
+        var result = _sut.EmitModule(spec);
+
+        result.Should().Contain("resource app 'Microsoft.Web/sites@2023-12-01' = [for item in items: {");
+        result.Should().Contain("  name: item.name");
+        result.TrimEnd().Should().EndWith("}]");
+    }
+
+    #endregion
+
+    #region Resource with ParentSymbol and Scope
+
+    [Fact]
+    public void Given_ResourceWithParentSymbol_When_EmitModule_Then_EmitsParentLine()
+    {
+        var spec = MinimalSpec() with
+        {
+            Resource = new BicepResourceDeclaration
+            {
+                Symbol = "db",
+                ArmTypeWithApiVersion = "Microsoft.Sql/servers/databases@2023-05-01-preview",
+                ParentSymbol = "sqlServer",
+                Body =
+                [
+                    new BicepPropertyAssignment("name", new BicepReference("databaseName")),
+                ],
+            },
+        };
+
+        var result = _sut.EmitModule(spec);
+
+        result.Should().Contain("  parent: sqlServer");
+        result.Should().Contain("  name: databaseName");
+    }
+
+    [Fact]
+    public void Given_ResourceWithScope_When_EmitModule_Then_EmitsScopeLine()
+    {
+        var spec = MinimalSpec() with
+        {
+            Resource = new BicepResourceDeclaration
+            {
+                Symbol = "diag",
+                ArmTypeWithApiVersion = "Microsoft.Insights/diagnosticSettings@2021-05-01-preview",
+                Scope = "kv",
+                Body =
+                [
+                    new BicepPropertyAssignment("name", new BicepStringLiteral("diag")),
+                ],
+            },
+        };
+
+        var result = _sut.EmitModule(spec);
+
+        result.Should().Contain("  scope: kv");
+    }
+
+    #endregion
+
+    #region AdditionalResources
+
+    [Fact]
+    public void Given_SpecWithAdditionalResource_When_EmitModule_Then_EmitsAfterPrimaryResource()
+    {
+        var spec = MinimalSpec() with
+        {
+            AdditionalResources =
+            [
+                new BicepResourceDeclaration
+                {
+                    Symbol = "roleAssignment",
+                    ArmTypeWithApiVersion = "Microsoft.Authorization/roleAssignments@2022-04-01",
+                    Scope = "kv",
+                    Condition = new BicepReference("assignRole"),
+                    Body =
+                    [
+                        new BicepPropertyAssignment("name", new BicepRawExpression("guid(kv.id)")),
+                    ],
+                },
+            ],
+        };
+
+        var result = _sut.EmitModule(spec);
+
+        // Primary resource should appear first
+        result.Should().Contain("resource kv 'Microsoft.KeyVault/vaults@2023-07-01'");
+        // Additional resource after
+        result.Should().Contain("resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (assignRole) {");
+        result.Should().Contain("  scope: kv");
+    }
+
+    #endregion
+
+    #region Output with description
+
+    [Fact]
+    public void Given_OutputWithDescription_When_EmitModule_Then_EmitsDescriptionDecorator()
+    {
+        var spec = MinimalSpec() with
+        {
+            Outputs =
+            [
+                new BicepOutput("vaultUri", BicepType.String,
+                    new BicepRawExpression("kv.properties.vaultUri"),
+                    Description: "The URI of the vault"),
+            ],
+        };
+
+        var result = _sut.EmitModule(spec);
+
+        result.Should().Contain("@description('The URI of the vault')");
+        result.Should().Contain("output vaultUri string = kv.properties.vaultUri");
+    }
+
+    #endregion
+
+    #region EmitTypes with multiple types
+
+    [Fact]
+    public void Given_SpecWithMultipleExportedTypes_When_EmitTypes_Then_EmitsAllTypes()
+    {
+        var spec = MinimalSpec() with
+        {
+            ExportedTypes =
+            [
+                new BicepTypeDefinition("SkuName",
+                    new BicepRawExpression("'Free' | 'Standard' | 'Premium'"),
+                    IsExported: true, Description: "SKU name"),
+                new BicepTypeDefinition("Tier",
+                    new BicepRawExpression("'Basic' | 'Standard'"),
+                    IsExported: true),
+            ],
+        };
+
+        var result = _sut.EmitTypes(spec);
+
+        result.Should().Contain("type SkuName = 'Free' | 'Standard' | 'Premium'");
+        result.Should().Contain("type Tier = 'Basic' | 'Standard'");
+        result.Should().Contain("@description('SKU name')");
+    }
+
+    #endregion
 }
