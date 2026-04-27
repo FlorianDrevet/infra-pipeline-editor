@@ -26,7 +26,9 @@ dotnet test .\InfraFlowSculptor.slnx
 dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 ```
 
-- No active .NET test project is currently checked in.
+- Active .NET test projects currently checked in:
+	- `tests/InfraFlowSculptor.BicepGeneration.Tests/`
+	- `tests/InfraFlowSculptor.PipelineGeneration.Tests/`
 - All .NET test projects live under `tests/`.
 - Unit test projects follow `<TargetAssembly>.Tests` and reference a single production assembly.
 - `tests/InfraFlowSculptor.GenerationParity.Tests/` is currently an empty placeholder folder with no `.csproj`.
@@ -65,6 +67,7 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 - Auth: `$(System.AccessToken)` exposed to scripts; no PAT in YAML. `az devops configure` must NOT receive `--detect false`.
 - URL encoding: decode `%20` etc. before injecting org/project/repo names into CLI defaults.
 - Pipeline names: ASCII-safe (`-` not Unicode dashes); check existence via `az pipelines list` (not `show`); fail fast on non-zero exit.
+- Pipeline creation on Windows PowerShell 5.1 must temporarily relax `$ErrorActionPreference` around `az pipelines create`, capture `$LASTEXITCODE` explicitly, and pass `--only-show-errors`; otherwise Azure CLI success warnings on `stderr` can surface as `NativeCommandError` and fail the bootstrap step despite a real pipeline creation.
 - Pipeline display names: use `PathSanitizer.Sanitize(configName)` because release YAML resolves CI artifacts via `'{sanitizedConfigName} - CI'`.
 - Pipeline definitions: bootstrap creates infra (CI/PR/Release) + app definitions per compute resource (`{ConfigName} - {ResourceName} - CI/Release`).
 - Bootstrap jobs: split into `Provision Pipeline Definitions`, `Provision Environments`, `Provision Variable Groups`.

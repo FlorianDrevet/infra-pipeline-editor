@@ -22,8 +22,9 @@
 | 2 | `InfraFlowSculptor.Application` | All handlers/validators | No unit tests for MediatR handlers, FluentValidation validators, pipeline behaviors | P1 | 2026-04-27 | | |
 | 3 | `InfraFlowSculptor.Infrastructure` | Repositories, services | No unit tests for repository implementations, auth services, Refit clients | P2 | 2026-04-27 | | |
 | 4 | `InfraFlowSculptor.Api` | Controllers, DI, error mapping | No unit tests for endpoint registration, Mapster configs, error conversion | P2 | 2026-04-27 | | |
-| 5 | `InfraFlowSculptor.PipelineGeneration` | Pipeline generators | No dedicated test project (only parity tests) | P2 | 2026-04-27 | | |
+| 5 | `InfraFlowSculptor.PipelineGeneration` | Pipeline generators | No dedicated test project (only parity tests) | P2 | 2026-04-27 | 2026-04-27 | dev |
 | 6 | `InfraFlowSculptor.GenerationCore` | Shared generation abstractions | No dedicated test project | P3 | 2026-04-27 | | |
+| 7 | `InfraFlowSculptor.PipelineGeneration` | Bootstrap and app pipeline generators | Dedicated test project now exists, but most generator paths are still uncovered beyond the bootstrap pipeline warning regression | P2 | 2026-04-27 | | |
 
 ---
 
