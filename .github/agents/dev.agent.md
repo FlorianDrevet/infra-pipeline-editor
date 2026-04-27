@@ -150,10 +150,13 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 ## Table de routage — Quel agent pour quelle tâche ?
 
 | Tâche | Agent à utiliser | Fichier |
-|-------|-----------------|---------|| Explorer le codebase (fichiers, patterns, conventions) avant délégation | **`Explore`** | sous-agent built-in, aucun fichier agent |
+|-------|------------------|---------|
+| Explorer le codebase (fichiers, patterns, conventions) avant délégation | **`Explore`** | sous-agent built-in, aucun fichier agent |
 | Analyse d'impact / exploration structurelle avant modification | Charger le skill **`gitnexus-workflow`** | `.github/skills/gitnexus-workflow/SKILL.md` |
 | Audit technique complet du dépôt avec synchronisation GitHub | **`audit-expert`** + charger le skill `audit-workflow` | `.github/agents/audit-expert.agent.md` |
-| Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` || Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
+| Revue de code pré-merge, review de diff contre `main`, gate qualité avant merge | **`review-expert`** | `.github/agents/review-expert.agent.md` |
+| Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` |
+| Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
 | Modifier/créer du code C#/.NET | **`dotnet-dev`** | `.github/agents/dotnet-dev.agent.md` |
 | Rédiger ou corriger des tests unitaires .NET/xUnit | **`dotnet-dev`** + charger le skill `xunit-unit-testing` | `.github/skills/xunit-unit-testing/SKILL.md` |
 | Modifier/créer du code Angular | **`angular-front`** + charger le skill `ui-ux-front-saas` si UI | `.github/agents/angular-front.agent.md` |
@@ -183,6 +186,10 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 
 - **Code C# isolé** (nouveau handler, validator, repository, config EF) :
   Déléguer directement à `dotnet-dev` — il a toutes les règles de qualité .NET.
+
+- **Code review / review pré-merge / revue d'un diff généré par des agents** :
+  Déléguer à `review-expert`.
+  Cet agent relit le diff destiné à `main`, priorise les findings par sévérité, explique le risque, puis produit un backlog de correction réutilisable.
 
 - **Tests unitaires .NET / xUnit** (création, correction de bug, couverture, snapshots) :
   Charger le skill `xunit-unit-testing`, puis déléguer à `dotnet-dev`.
