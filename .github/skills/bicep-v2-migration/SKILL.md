@@ -372,6 +372,17 @@ Tests à écrire pour chaque générateur :
 - **Property dotted-path references:** `BicepReference("ingress.enabled")`, `BicepReference("scaling.minReplicas")`, `BicepReference("containerRuntime.image")` — `BicepReference.Symbol` accepts dotted paths verbatim. The emitter outputs them as-is.
 - **54 tests total.** **800 tests cumulative, 0 failures.**
 
+### Migration #18 — StorageAccount (Phase 5.2, Tier 5 — companion modules + identity baked in)
+
+- **Primary module migrated, companions kept in legacy:** StorageAccount has 3 companion modules (Blobs, Queues, Tables) with storage-specific metadata (`BlobContainerNames`, `CorsRules`, `LifecycleRules`, `QueueNames`, `StorageTableNames`) consumed by the assembler via `GeneratedCompanionModule` properties. These don't map to `BicepCompanionSpec` (which only wraps `BicepModuleSpec`). Strategy: migrate the simple primary module to IR, keep companions in legacy `Generate()`.
+- **`ModuleBuildStage` fix for `CompanionModules` preservation:** When `IResourceTypeBicepSpecGenerator` path is taken, `CreateSkeletonModule(spec) with { Parameters = module.Parameters }` was dropping `CompanionModules` and `ParameterGroupMappings` from the original `Generate()` result. Fixed by adding `CompanionModules = module.CompanionModules, ParameterGroupMappings = module.ParameterGroupMappings` to the `with` expression. This is a latent bug that also affected ContainerApp (Phase 5.1) for `ParameterGroupMappings`, but wasn't caught because the assembler path isn't unit-tested.
+- **Identity baked in (not injected):** StorageAccount hardcodes `identity: { type: 'SystemAssigned' }` directly in the resource body. Unlike other generators where identity is injected by the `IdentityTransformer` stage, this one has it as a static property assignment.
+- **Simplest Tier 5 primary module:** Despite being Tier 5 (due to companions), the primary module is straightforward — 8 params (4 custom types with defaults + 2 bool + 2 string), 1 resource, 6 outputs, 4 exported union string types. No variables, no variants, no secure params.
+- **4 custom type params with defaults:** `sku` (SkuName, default 'Standard_LRS'), `kind` (StorageKind, default 'StorageV2'), `accessTier` (AccessTier, default 'Hot'), `minimumTlsVersion` (TlsVersion, default 'TLS1_2'). Builder: `Param("sku", BicepType.Custom("SkuName"), ..., defaultValue: new BicepStringLiteral("Standard_LRS"))`.
+- **Nested objects in resource body:** `sku: { name: sku }`, `identity: { type: 'SystemAssigned' }`, `properties: { 4 items }` — all modeled with `BicepObjectBuilder` nested actions.
+- **6 outputs via `BicepRawExpression`:** `storage.id`, `storage.name`, `storage.properties.primaryEndpoints.blob/table/queue/file` — dotted property access expressions.
+- **42 tests total.** **842 tests cumulative, 0 failures.** **All 18 generators migrated — Tier 5 complete.**
+
 ## Ordre de migration recommandé
 
 Voir le fichier de suivi : `docs/architecture/bicep-refactoring/MIGRATION-TRACKER.md`

@@ -283,14 +283,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | 3 companion modules (Blobs, Queues, Tables), JSON deserialization, CorsRuleDescription, ContainerLifecycleRule |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 3 companion modules (Blobs, Queues, Tables), JSON deserialization, CorsRuleDescription, ContainerLifecycleRule |
+| Tests TDD écrits | ✅ | 42 tests in `StorageAccountTypeBicepGeneratorTests.cs` |
+| Migration vers Builder | ✅ | Primary module migrated to IR (8 params, 4 custom types, identity baked in, 6 outputs). Companions remain in legacy `Generate()` |
+| Parité d'émission vérifiée | ✅ | 842 total tests green |
+| Branché dans le pipeline | ✅ | `ModuleBuildStage` updated to preserve `CompanionModules` + `ParameterGroupMappings` from legacy `Generate()` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ⬜ | Migration #18 added |
 
 ---
 

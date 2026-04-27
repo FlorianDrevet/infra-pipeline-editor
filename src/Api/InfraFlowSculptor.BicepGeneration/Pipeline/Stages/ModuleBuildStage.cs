@@ -58,11 +58,13 @@ public sealed class ModuleBuildStage : IBicepGenerationStage
             if (generator is IResourceTypeBicepSpecGenerator specGen)
             {
                 spec = specGen.GenerateSpec(resource);
-                // Preserve Parameters (user-configured values) from legacy Generate()
+                // Preserve Parameters (user-configured values) and CompanionModules from legacy Generate()
                 // — the skeleton only carries structural metadata.
                 module = LegacyTextModuleAdapter.CreateSkeletonModule(spec) with
                 {
                     Parameters = module.Parameters,
+                    CompanionModules = module.CompanionModules,
+                    ParameterGroupMappings = module.ParameterGroupMappings,
                 };
             }
 
