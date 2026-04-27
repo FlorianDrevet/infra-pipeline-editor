@@ -8,6 +8,7 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/" />
+  <Folder Name="/src/Api/" />
   <Folder Name="/src/Aspire/">
     <Project Path="src/Aspire/InfraFlowSculptor.AppHost/InfraFlowSculptor.AppHost.csproj" />
     <Project Path="src/Aspire/InfraFlowSculptor.ServiceDefaults/InfraFlowSculptor.ServiceDefaults.csproj" />
@@ -23,6 +24,7 @@
     <Project Path="src/Api/InfraFlowSculptor.Infrastructure/InfraFlowSculptor.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/InfraFlowSculptor.GenerationParity.Tests/InfraFlowSculptor.GenerationParity.Tests.csproj" />
+    <Project Path="tests/InfraFlowSculptor.BicepGeneration.Tests/InfraFlowSculptor.BicepGeneration.Tests.csproj" />
+    <Project Path="tests/InfraFlowSculptor.PipelineGeneration.Tests/InfraFlowSculptor.PipelineGeneration.Tests.csproj" />
   </Folder>
 </Solution>

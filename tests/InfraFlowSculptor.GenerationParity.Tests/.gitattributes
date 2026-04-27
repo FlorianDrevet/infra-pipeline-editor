@@ -1,2 +1,0 @@
-# Force LF newlines for all golden files so CRLF normalization is deterministic.
-Fixtures/**/golden/** text eol=lf

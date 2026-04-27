@@ -22,12 +22,16 @@ npm install; npm run start; npm run build; npm run typecheck
 ## Tests
 
 ```powershell
-dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\
-dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\ -p:DefineConstants=REGENERATE_GOLDENS
+dotnet test .\InfraFlowSculptor.slnx
+dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 ```
 
-- `InfraFlowSculptor.GenerationParity.Tests` is the byte-for-byte golden-file safety net for Bicep and pipeline generation output.
-- Goldens live under `tests/InfraFlowSculptor.GenerationParity.Tests/Fixtures/*/golden/`; regenerate them only for intentional output drift.
+- Active .NET test projects currently checked in:
+	- `tests/InfraFlowSculptor.BicepGeneration.Tests/`
+	- `tests/InfraFlowSculptor.PipelineGeneration.Tests/`
+- All .NET test projects live under `tests/`.
+- Unit test projects follow `<TargetAssembly>.Tests` and reference a single production assembly.
+- `tests/InfraFlowSculptor.GenerationParity.Tests/` is currently an empty placeholder folder with no `.csproj`.
 
 ## API Runtime Hardening [2026-04-23]
 
@@ -63,6 +67,7 @@ dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\ -p:DefineConstants
 - Auth: `$(System.AccessToken)` exposed to scripts; no PAT in YAML. `az devops configure` must NOT receive `--detect false`.
 - URL encoding: decode `%20` etc. before injecting org/project/repo names into CLI defaults.
 - Pipeline names: ASCII-safe (`-` not Unicode dashes); check existence via `az pipelines list` (not `show`); fail fast on non-zero exit.
+- Pipeline creation on Windows PowerShell 5.1 must temporarily relax `$ErrorActionPreference` around `az pipelines create`, capture `$LASTEXITCODE` explicitly, and pass `--only-show-errors`; otherwise Azure CLI success warnings on `stderr` can surface as `NativeCommandError` and fail the bootstrap step despite a real pipeline creation.
 - Pipeline display names: use `PathSanitizer.Sanitize(configName)` because release YAML resolves CI artifacts via `'{sanitizedConfigName} - CI'`.
 - Pipeline definitions: bootstrap creates infra (CI/PR/Release) + app definitions per compute resource (`{ConfigName} - {ResourceName} - CI/Release`).
 - Bootstrap jobs: split into `Provision Pipeline Definitions`, `Provision Environments`, `Provision Variable Groups`.

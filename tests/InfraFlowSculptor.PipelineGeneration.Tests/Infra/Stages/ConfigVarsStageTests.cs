@@ -1,0 +1,72 @@
+using InfraFlowSculptor.GenerationCore.Models;
+using InfraFlowSculptor.PipelineGeneration.Infra;
+using InfraFlowSculptor.PipelineGeneration.Infra.Stages;
+
+namespace InfraFlowSculptor.PipelineGeneration.Tests.Infra.Stages;
+
+/// <summary>
+/// Unit tests for <see cref="ConfigVarsStage"/>.
+/// </summary>
+public sealed class ConfigVarsStageTests
+{
+    private readonly ConfigVarsStage _sut = new();
+
+    [Fact]
+    public void Order_Is_400()
+    {
+        _sut.Order.Should().Be(400);
+    }
+
+    [Fact]
+    public void Given_StandardContext_When_Execute_Then_AddsVarsFile()
+    {
+        // Arrange
+        var context = CreateContext(isMonoRepo: false);
+
+        // Act
+        _sut.Execute(context);
+
+        // Assert
+        context.Files.Should().ContainKey("variables/vars.yml");
+        context.Files["variables/vars.yml"].Should().Contain("# Config-level variables");
+    }
+
+    [Fact]
+    public void Given_MonoRepoContext_When_Execute_Then_NoOutput()
+    {
+        // Arrange
+        var context = CreateContext(isMonoRepo: true);
+
+        // Act
+        _sut.Execute(context);
+
+        // Assert
+        context.Files.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Given_ContextWithArmConnection_When_Execute_Then_IncludesArmConnection()
+    {
+        // Arrange
+        var context = CreateContext(isMonoRepo: false);
+
+        // Act
+        _sut.Execute(context);
+
+        // Assert
+        context.Files["variables/vars.yml"].Should().Contain("azureResourceManagerConnection: 'arm-dev'");
+    }
+
+    private static InfraPipelineContext CreateContext(bool isMonoRepo) => new()
+    {
+        Request = new GenerationRequest
+        {
+            Environments =
+            [
+                new EnvironmentDefinition { Name = "Development", ShortName = "dev", AzureResourceManagerConnection = "arm-dev" },
+            ],
+        },
+        ConfigName = "my-config",
+        IsMonoRepo = isMonoRepo,
+    };
+}

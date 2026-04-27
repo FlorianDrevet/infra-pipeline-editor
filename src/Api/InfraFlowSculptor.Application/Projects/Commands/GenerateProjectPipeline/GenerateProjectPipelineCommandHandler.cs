@@ -17,6 +17,7 @@ using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration;
 using InfraFlowSculptor.PipelineGeneration.Models;
 using MediatR;
+using AppPipelineMode = InfraFlowSculptor.GenerationCore.Models.AppPipelineMode;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipeline;
 
@@ -28,7 +29,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
     IInfrastructureConfigReadRepository configReadRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     AppPipelineGenerationEngine appPipelineGenerationEngine,
-    IEnumerable<IResourceTypeBicepGenerator> bicepGenerators,
+    IEnumerable<IResourceTypeBicepSpecGenerator> bicepGenerators,
     IContainerAppRepository containerAppRepository,
     IWebAppRepository webAppRepository,
     IFunctionAppRepository functionAppRepository,
@@ -236,7 +237,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
         InfrastructureConfigReadModel config,
         List<Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup> projectVariableGroups,
         Domain.ProjectAggregate.Project? project,
-        IEnumerable<IResourceTypeBicepGenerator> generators,
+        IEnumerable<IResourceTypeBicepSpecGenerator> generators,
         string? bicepBasePath)
     {
         var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);

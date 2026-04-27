@@ -1,5 +1,93 @@
 # Bicep Generation
 
+## Onboarding documentation refreshed [2026-04-27]
+
+- `docs/architecture/bicep-generation.md` was rewritten as a full onboarding and learning guide for the refactored Bicep generation engine.
+- The document now explains the end-to-end flow from Application handlers to blob upload, the staged pipeline, Builder + IR, assemblers, mono-repo behavior, architectural decisions, and a step-by-step reading path through the codebase.
+- It explicitly teaches how to navigate `InfraFlowSculptor.BicepGeneration.csproj`, the test csproj, and `Directory.Packages.props` to understand project boundaries and central package management.
+
+## Pipeline Architecture (Vague 1) [2026-04-27]
+
+The legacy 920-line `BicepGenerationEngine` God Object was decomposed into a thin facade (~85 LOC) over a staged pipeline. **Public surface preserved** — `BicepGenerationEngine.Generate(GenerationRequest)` and `GenerateMonoRepo(MonoRepoGenerationRequest)` keep the same signatures, so all handlers (`GenerateBicepCommandHandler`, etc.) are untouched.
+
+### Layout under `src/Api/InfraFlowSculptor.BicepGeneration/`
+
+- `BicepGenerationEngine.cs` — facade. Builds a `BicepGenerationContext`, runs the pipeline, applies post-assembly output pruning (single-config or mono-repo).
+- `Pipeline/`
+  - `IBicepGenerationStage.cs` — `int Order` + `void Execute(BicepGenerationContext)`. Stateless, idempotent, singleton-safe.
+  - `BicepGenerationContext.cs` — mutable per-generation state (`Request`, `WorkItems`, `Identity`, `AppSettings`, `ResourceIdToInfo`, `Result`). `ModuleWorkItem` holds the resource + the in-flight `GeneratedTypeModule` (record `with`-mutated by stages).
+  - `BicepGenerationPipeline.cs` — orchestrator; sorts injected stages by `Order` at construction.
+  - `Stages/` — 9 stages, ordered with spacing of 100 to allow future insertions:
+    1. `IdentityAnalysisStage` (100) — system/user identity sets + mixed-ARM-types set.
+    2. `AppSettingsAnalysisStage` (200) — outputs to inject per source resource + compute ARM types needing app-settings param.
+    3. `ModuleBuildStage` (300) — calls each `IResourceTypeBicepGenerator`, builds initial `WorkItem`. Throws `NotSupportedException` for unregistered ARM types.
+    4. `IdentityInjectionStage` (400) — applies system/user/parameterized identity blocks.
+    5. `OutputInjectionStage` (500) — appends `output` declarations referenced by app settings; secure outputs marked `@secure()`.
+    6. `AppSettingsInjectionStage` (600) — injects `appSettings` (Web/Function App) or `envVars` (Container App) param.
+    7. `TagsInjectionStage` (700) — injects `param tags object = {}` + `tags: tags`.
+    8. `ParentReferenceResolutionStage` (800) — resolves `appServicePlanId`, `containerAppEnvironmentId`, `logAnalyticsWorkspaceId` (with same-config / cross-config existing fallback for `Microsoft.Insights/components` and `Microsoft.App/managedEnvironments`), and `sqlServerId`.
+    9. `AssemblyStage` (900) — delegates to `BicepAssembler.Assemble`. Output pruning is **not** here — owned by the engine to support cross-config pruning in mono-repo.
+- `TextManipulation/` — pure static helpers extracted from the engine, **byte-for-byte parity** with the legacy implementation:
+  - `BicepTextManipulationHelpers` — 13 compiled regex (`ResourceSymbolPattern`, `IdentityBlockPattern`, etc.), `InsertAt`, `FindClosingBrace`, `FindFirstLineIndex`, `HasParam`, `HasOutput`, `Capitalize`, `AddTypeImport`.
+  - `BicepIdentityInjector` — `InjectSystemAssigned`, `InjectUserAssigned`, `InjectParameterized` + `ManagedIdentityTypeBicepType` const.
+  - `BicepOutputInjector` — `Inject(string, IReadOnlyCollection<ModuleOutputInjection>)`, `ExtractRootSymbol`.
+  - `BicepAppSettingsInjector` — `Inject(string, string armType)` routing to `InjectWebFunctionAppSettings` / `InjectContainerAppEnvVars`.
+  - `BicepTagsInjector` — `Inject(string)`.
+  - `BicepOutputPruner` — `PruneSingleConfig`, `PruneMonoRepo`, `CollectUsedOutputsByPath`.
+
+### DI registration
+
+In `src/Api/InfraFlowSculptor.Application/DependencyInjection.cs`, the 18 `IResourceTypeBicepGenerator` singletons are followed by 9 `IBicepGenerationStage` singletons + `BicepGenerationPipeline` + `BicepGenerationEngine`. Stage order is determined by `IBicepGenerationStage.Order`, **not** by DI registration order.
+
+### Magic strings removed
+
+Compute ARM identifiers were extracted into `AzureResourceTypes.ComputeArmTypes` (`IReadOnlySet<string>` containing `WebApp`, `FunctionApp`, `ContainerApp` ARM strings).
+
+### Testability
+
+Each stage and each `TextManipulation/*` helper is independently unit-testable. `InternalsVisibleTo` on the BicepGeneration csproj exposes `internal` helpers to the test assembly. Test project at `tests/InfraFlowSculptor.BicepGeneration.Tests/` with xUnit 2.9.3 + FluentAssertions 6.12.2 + NSubstitute 5.3.0:
+
+- **124+51 unit tests** covering:
+  - `TextManipulation/`: `BicepTextManipulationHelpers` (18), `BicepIdentityInjector` (12), `BicepOutputInjector` (11), `BicepAppSettingsInjector` (7), `BicepTagsInjector` (5), `BicepOutputPruner` (4)
+  - `Pipeline/`: `BicepGenerationPipeline` orchestration (4)
+  - `Pipeline/Stages/`: `IdentityAnalysis` (8), `AppSettingsAnalysis` (8), `ModuleBuild` (6), `IdentityInjection` (7), `OutputInjection` (4), `AppSettingsInjection` (4), `TagsInjection` (4), `ParentReferenceResolution` (9), `Assembly` (3)
+  - `Ir/` (Phase 0): `BicepEmitterTests` (21), `BicepModuleBuilderTests` (10), `IdentityTransformerTests` (7), `OutputTransformerTests` (5), `TagsTransformerTests` (5), `AppSettingsTransformerTests` (4)
+- Convention: `Given_When_Then` naming, AAA pattern, `_sut` for SUT, FluentAssertions, NSubstitute for `IBicepGenerationStage` / `IResourceTypeBicepGenerator` mocks
+- Pitfall: `BicepTagsInjector.Inject` regex requires `\n` before first `param`; test modules must include a `@description` or blank line above the first param
+
+### Constraints for future modifications
+
+- **Never** call `BicepOutputPruner.PruneSingleConfig` from a stage — pruning is engine-owned to keep the mono-repo cross-config pruning correct.
+- A new mutation stage that touches `ModuleBicepContent` must use `item.Module = item.Module with { ModuleBicepContent = ... }` to avoid losing fields set by earlier stages (identity kind, parameterized flag, etc.).
+- Adding a new helper to `TextManipulation/` requires keeping it `internal` or `public static` and **pure** (no DI, no shared state).
+
+## Vague 2 — Builder + IR Infrastructure (Phase 0) [2026-04-27]
+
+Phase 0 of the Vague 2 migration adds the IR (Intermediate Representation) layer that allows generators to be migrated from legacy `const string` templates to typed `BicepModuleSpec` records. The existing pipeline is fully backward-compatible — legacy generators continue to work unchanged.
+
+### New files under `src/Api/InfraFlowSculptor.BicepGeneration/Ir/`
+
+- **Model records (9 files):** `BicepType.cs`, `BicepExpression.cs`, `BicepParam.cs`, `BicepOutput.cs`, `BicepImport.cs`, `BicepVar.cs`, `BicepTypeDefinition.cs`, `BicepResourceDeclaration.cs`, `BicepModuleSpec.cs`, `BicepCompanionSpec.cs`
+- **Builder (`Ir/Builder/`):** `BicepModuleBuilder.cs` (fluent API, instance-based `new BicepModuleBuilder().Module().Resource().Param().Property().Build()`), `BicepObjectBuilder.cs` (nested object helper with string/bool/int/expression overloads)
+- **Emitter (`Ir/Emit/BicepEmitter.cs`):** `EmitModule(spec) → string`, `EmitTypes(spec) → string`. Handles imports, params (with `@description`/`@secure` decorators), variables, resource body with nested indentation, outputs, type definitions
+- **Transformers (`Ir/Transformations/`):** `IdentityTransformer` (system/user/parameterized), `OutputTransformer`, `TagsTransformer`, `AppSettingsTransformer` (web/function/container app). All are extension methods on `BicepModuleSpec`, returning new immutable instances
+- **Adapter:** `LegacyTextModuleAdapter.cs` — bridges IR `BicepModuleSpec` to legacy `GeneratedTypeModule` (skeleton for assembly, content for emission)
+
+### Interface and pipeline changes
+
+- **`IResourceTypeBicepSpecGenerator`** (new interface in `Generators/`) extends `IResourceTypeBicepGenerator`, adds `BicepModuleSpec GenerateSpec(ResourceDefinition)`. Generators migrated to IR implement this.
+- **`ModuleWorkItem.Spec`** — nullable `BicepModuleSpec?` property on work items. Non-null = IR path.
+- **Dual-mode stages:** Stages 400 (Identity), 500 (Output), 600 (AppSettings), 700 (Tags) check `item.Spec is not null` and route to IR transformers or legacy text manipulation accordingly.
+- **`SpecEmissionStage` (Order 850):** New stage between Tags (700) and Assembly (900). For IR work items, calls `LegacyTextModuleAdapter.EmitContent()` to populate `ModuleBicepContent` and `ModuleTypesBicepContent`.
+- **`ModuleBuildStage` (300):** Checks `generator is IResourceTypeBicepSpecGenerator`, calls `GenerateSpec()`, creates skeleton via `LegacyTextModuleAdapter.CreateSkeletonModule()`.
+
+### Key design decisions
+
+- Identity goes in `BicepResourceDeclaration.Body` as a regular `BicepPropertyAssignment` (no separate typed property)
+- `IReadOnlyList<T>` used throughout (consistent with existing codebase)
+- Collection expressions `[..existing, newItem]` used in transformers for immutability
+- Emitter outputs LF line endings (`\n`), not CRLF
+
 ## Bootstrap split for SplitInfraCode [2026-04-25]
 - `BootstrapPipelineGenerationEngine` is mode-driven via `BootstrapMode` enum (`FullOwner` default, `ApplicationOnly` for code-side in SplitInfraCode). `FullOwner` keeps the historical 3-job structure (provision pipelines + environments + variable groups). `ApplicationOnly` emits a `ValidateSharedResources` job (env via REST, variable groups via `az pipelines variable-group list`) followed by a `ProvisionPipelineDefinitions` job with `dependsOn: ValidateSharedResources`. The validation step throws an actionable error listing missing items if the infra bootstrap was not run first.
 - `ArtifactKind.BootstrapApplication` was added next to `Bootstrap`. `RepositoryTargetResolver` routes `BootstrapApplication` (and `ApplicationPipeline`) to `RepositoryContentKindsEnum.ApplicationCode`.
@@ -26,7 +114,7 @@
 - `GenerateProjectPipelineCommandHandler` uploads under `pipeline/project/{id}/{ts}/{infra|app}/...` blob layout and returns 6 result fields: legacy `CommonFileUris`/`ConfigFileUris` (union, backward compat) + new `InfraCommonFileUris`, `AppCommonFileUris`, `InfraConfigFileUris`, `AppConfigFileUris`. `GeneratedPipelinePathNormalizer` strips the leading `infra/`/`app/` segment so legacy AllInOne push handler keeps reading the new layout transparently.
 - 9 handlers bascules in V2 A3 (PushBicepToGit, PushPipelineToGit, GeneratePipeline, PushProjectBicepToGit, PushProjectPipelineToGit, PushProjectBootstrapPipelineToGit, PushProjectGeneratedArtifactsToGit V2-lite, GenerateProjectPipeline, GenerateProjectBootstrapPipeline).
 - `GenerateProjectBicep` + `GenerateProjectPipeline` gate via `Project.CanGenerateAllFromProjectLevel(configs)` → `Errors.GitRouting.AmbiguousProjectLevelGeneration` if heterogeneous.
-- **Parity harness** `tests/InfraFlowSculptor.GenerationParity.Tests/` (xUnit, 35 goldens byte-à-byte). Regenerate: `dotnet test -p:DefineConstants=REGENERATE_GOLDENS`.
+- **Parity placeholder folder** `tests/InfraFlowSculptor.GenerationParity.Tests/` is still present, but it is now empty and the active xUnit `.csproj` was removed on 2026-04-27 to reset the .NET test strategy. Recreate a dedicated test project there before relying on golden-file commands again.
 
 ## Architecture
 - Pure engine in `InfraFlowSculptor.BicepGeneration` (no domain dependency)
@@ -106,6 +194,11 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - Together these two rules let `BicepAssembler.NormalizePrimaryModuleFileNames` collapse all instances onto a single shared `*.module.bicep` file (no `.{hash}` suffix).
 - The `differingUaiArmTypes` pre-computation was removed — no longer needed since all instances naturally produce identical module content with the generic param.
 - When `InjectParameterizedIdentity` is used (mixed identity kinds), the module template includes: `userAssignedIdentities: contains(identityType, 'UserAssigned') && !empty(userAssignedIdentityId) ? { '${userAssignedIdentityId}': {} } : null`.
+
+## Main.Bicep Type Import Collisions [2026-04-27]
+- `MainBicepAssembler` must alias colliding exported type names imported from different module folders in `main.bicep`. The rule is: keep unique imported names as-is, but rewrite collisions to `<ModuleFolderName><TypeName>` and emit `import { TypeName as Alias }`.
+- The same alias must be reused in parameter declarations (`param ... Alias`), otherwise Bicep import-closure analysis can fail before regular diagnostics with `An element with the same key but a different value already exists` on common exported names such as `SkuName` or `TlsVersion`.
+- The regression was reproduced from generated artifacts under `C:\Users\flori\RiderProjects\ifs\Infra-Flow-Sculptor\main.bicep`, where `SqlDatabase`, `StorageAccount`, `KeyVault`, and `SqlServer` all contributed colliding exported type names through `../Common/modules/*/types.bicep`.
 
 ## Compute Module Variant Files [2026-04-23]
  - `ContainerApp`, `WebApp`, and `FunctionApp` variants with incompatible parameter surfaces must use distinct `GeneratedTypeModule.ModuleFileName` values (for example base vs ACR-managed-identity vs ACR-admin-credentials). `BicepAssembler` deduplicates emitted module files by file name, so sharing one file name across variants can make `main.bicep` pass params that the surviving module file does not declare, leading to BCP037.

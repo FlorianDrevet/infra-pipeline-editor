@@ -22,6 +22,15 @@ public sealed class GenerationResult : IGenerationResult
     public IReadOnlyDictionary<string, string> ModuleFiles { get; init; } =
         new Dictionary<string, string>();
 
+    /// <summary>
+    /// Map of module file path → set of output names referenced by <c>main.bicep</c>.
+    /// Populated during <c>main.bicep</c> emission and consumed by the IR output pruner
+    /// to remove unused outputs without re-parsing the generated text. Path keys are
+    /// case-insensitive. Empty when no module outputs are referenced.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyCollection<string>> UsedOutputsByModulePath { get; init; } =
+        new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Role assignments used to build <c>constants.bicep</c> for this config.</summary>
     public IReadOnlyList<RoleAssignmentDefinition> RoleAssignments { get; init; } = [];
 

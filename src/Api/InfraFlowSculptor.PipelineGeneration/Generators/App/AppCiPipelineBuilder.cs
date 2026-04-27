@@ -19,34 +19,34 @@ internal static class AppCiPipelineBuilder
     internal static string BuildContainerPipeline(AppPipelineGenerationRequest request)
     {
         var sb = new StringBuilder();
-        var buildSourceEnvironment = AppPipelineBuilderCommon.GetBuildSourceEnvironment(request);
+        var buildSourceEnvironment = AppNamingHelper.GetBuildSourceEnvironment(request);
         var buildSourceEnvKey = buildSourceEnvironment?.ShortName.ToLowerInvariant() ?? string.Empty;
-        var imageRepository = AppPipelineBuilderCommon.ResolveImageRepository(request);
-        var imageTagPattern = AppPipelineBuilderCommon.ResolveImageTagPattern(request);
+        var imageRepository = AppNamingHelper.ResolveImageRepository(request);
+        var imageTagPattern = AppNamingHelper.ResolveImageTagPattern(request);
         var dockerfilePath = request.DockerfilePath ?? "Dockerfile";
         var buildContext = request.SourceCodePath ?? ".";
         var acrAuthMode = request.AcrAuthMode ?? "ServiceConnection";
         var buildSourceEnvVariablesPath = string.IsNullOrWhiteSpace(buildSourceEnvKey)
             ? string.Empty
-            : AppPipelineBuilderCommon.GetEnvironmentVariablesPath(buildSourceEnvKey, request.IsMonoRepo);
+            : AppHeaderEmitter.GetEnvironmentVariablesPath(buildSourceEnvKey, request.IsMonoRepo);
 
         AppendCiHeader(sb, request);
 
         sb.AppendLine("extends:");
         sb.AppendLine($"  template: {ContainerTemplatePath}");
         sb.AppendLine("  parameters:");
-        sb.AppendLine($"    resourceName: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.ResourceName)}'");
-        sb.AppendLine($"    configName: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.ConfigName)}'");
-        sb.AppendLine($"    resourceType: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.ResourceType)}'");
-        sb.AppendLine($"    imageRepository: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(imageRepository)}'");
-        sb.AppendLine($"    imageTagPattern: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(imageTagPattern)}'");
-        sb.AppendLine($"    dockerfilePath: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(dockerfilePath)}'");
-        sb.AppendLine($"    buildContext: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(buildContext)}'");
-        sb.AppendLine($"    containerRegistryName: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.ContainerRegistryName ?? string.Empty)}'");
-        sb.AppendLine($"    acrAuthMode: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(acrAuthMode)}'");
+        sb.AppendLine($"    resourceName: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.ResourceName)}'");
+        sb.AppendLine($"    configName: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.ConfigName)}'");
+        sb.AppendLine($"    resourceType: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.ResourceType)}'");
+        sb.AppendLine($"    imageRepository: '{AppNamingHelper.EscapeForSingleQuotedYaml(imageRepository)}'");
+        sb.AppendLine($"    imageTagPattern: '{AppNamingHelper.EscapeForSingleQuotedYaml(imageTagPattern)}'");
+        sb.AppendLine($"    dockerfilePath: '{AppNamingHelper.EscapeForSingleQuotedYaml(dockerfilePath)}'");
+        sb.AppendLine($"    buildContext: '{AppNamingHelper.EscapeForSingleQuotedYaml(buildContext)}'");
+        sb.AppendLine($"    containerRegistryName: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.ContainerRegistryName ?? string.Empty)}'");
+        sb.AppendLine($"    acrAuthMode: '{AppNamingHelper.EscapeForSingleQuotedYaml(acrAuthMode)}'");
         sb.AppendLine($"    enableSecurityScans: {(request.EnableSecurityScans ? "true" : "false")}");
         sb.AppendLine($"    promotionStrategy: '{request.PromotionStrategy}'");
-        sb.AppendLine($"    buildSourceEnvVariablesPath: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(buildSourceEnvVariablesPath)}'");
+        sb.AppendLine($"    buildSourceEnvVariablesPath: '{AppNamingHelper.EscapeForSingleQuotedYaml(buildSourceEnvVariablesPath)}'");
         AppendVariableGroupsParameter(sb, buildSourceEnvKey, request);
         AppendAgentPoolParameter(sb, request.AgentPoolName);
 
@@ -56,25 +56,25 @@ internal static class AppCiPipelineBuilder
     internal static string BuildCodePipeline(AppPipelineGenerationRequest request)
     {
         var sb = new StringBuilder();
-        var imageRepository = AppPipelineBuilderCommon.ResolveImageRepository(request);
-        var imageTagPattern = AppPipelineBuilderCommon.ResolveImageTagPattern(request);
+        var imageRepository = AppNamingHelper.ResolveImageRepository(request);
+        var imageTagPattern = AppNamingHelper.ResolveImageTagPattern(request);
 
         AppendCiHeader(sb, request);
 
         sb.AppendLine("extends:");
         sb.AppendLine($"  template: {CodeTemplatePath}");
         sb.AppendLine("  parameters:");
-        sb.AppendLine($"    resourceName: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.ResourceName)}'");
-        sb.AppendLine($"    configName: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.ConfigName)}'");
-        sb.AppendLine($"    imageRepository: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(imageRepository)}'");
-        sb.AppendLine($"    imageTagPattern: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(imageTagPattern)}'");
-        sb.AppendLine($"    runtimeStack: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.RuntimeStack?.ToUpperInvariant() ?? "DOTNETCORE")}'");
-        sb.AppendLine($"    runtimeVersion: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.RuntimeVersion ?? "8.0")}'");
-        sb.AppendLine($"    sourcePath: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.SourceCodePath ?? ".")}'");
-        sb.AppendLine($"    testCommand: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.TestCommand ?? string.Empty)}'");
-        sb.AppendLine($"    buildCommand: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.BuildCommand ?? string.Empty)}'");
+        sb.AppendLine($"    resourceName: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.ResourceName)}'");
+        sb.AppendLine($"    configName: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.ConfigName)}'");
+        sb.AppendLine($"    imageRepository: '{AppNamingHelper.EscapeForSingleQuotedYaml(imageRepository)}'");
+        sb.AppendLine($"    imageTagPattern: '{AppNamingHelper.EscapeForSingleQuotedYaml(imageTagPattern)}'");
+        sb.AppendLine($"    runtimeStack: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.RuntimeStack?.ToUpperInvariant() ?? "DOTNETCORE")}'");
+        sb.AppendLine($"    runtimeVersion: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.RuntimeVersion ?? "8.0")}'");
+        sb.AppendLine($"    sourcePath: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.SourceCodePath ?? ".")}'");
+        sb.AppendLine($"    testCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.TestCommand ?? string.Empty)}'");
+        sb.AppendLine($"    buildCommand: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.BuildCommand ?? string.Empty)}'");
         sb.AppendLine($"    promotionStrategy: '{request.PromotionStrategy}'");
-        sb.AppendLine($"    resourceType: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(request.ResourceType)}'");
+        sb.AppendLine($"    resourceType: '{AppNamingHelper.EscapeForSingleQuotedYaml(request.ResourceType)}'");
         AppendAgentPoolParameter(sb, request.AgentPoolName);
 
         return sb.ToString();
@@ -117,7 +117,7 @@ internal static class AppCiPipelineBuilder
         foreach (var group in request.PipelineVariableGroups)
         {
             var resolvedName = group.GroupName.Replace("{env}", envKey, StringComparison.OrdinalIgnoreCase);
-            sb.AppendLine($"      - '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(resolvedName)}'");
+            sb.AppendLine($"      - '{AppNamingHelper.EscapeForSingleQuotedYaml(resolvedName)}'");
         }
     }
 
@@ -125,7 +125,7 @@ internal static class AppCiPipelineBuilder
     {
         if (!string.IsNullOrWhiteSpace(agentPoolName))
         {
-            sb.AppendLine($"    agentPoolName: '{AppPipelineBuilderCommon.EscapeForSingleQuotedYaml(agentPoolName)}'");
+            sb.AppendLine($"    agentPoolName: '{AppNamingHelper.EscapeForSingleQuotedYaml(agentPoolName)}'");
         }
     }
 }

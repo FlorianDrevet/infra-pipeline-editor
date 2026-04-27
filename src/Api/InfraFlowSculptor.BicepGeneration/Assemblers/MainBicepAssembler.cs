@@ -14,8 +14,11 @@ internal static class MainBicepAssembler
 {
     /// <summary>
     /// Generates the <c>main.bicep</c> content for the given modules and deployment context.
+    /// Returns both the generated text and the map of module outputs referenced during emission,
+    /// keyed by module file path. The map is consumed by the IR output pruner to remove unused outputs
+    /// without re-parsing the generated text.
     /// </summary>
-    internal static string Generate(
+    internal static MainBicepEmissionResult Generate(
         IReadOnlyCollection<GeneratedTypeModule> modules,
         IReadOnlyList<ResourceGroupDefinition> resourceGroups,
         NamingContext namingContext,
@@ -26,6 +29,7 @@ internal static class MainBicepAssembler
         IReadOnlyDictionary<string, string>? configTags = null)
     {
         var sb = new StringBuilder();
+        var tracker = new OutputUsageTracker();
         var localResourceGroupSymbols = resourceGroups
             .Select(rg => BicepIdentifierHelper.ToBicepIdentifier(rg.Name))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -60,16 +64,22 @@ internal static class MainBicepAssembler
         }
 
         // Module-level type imports (for structured parameter types)
+        var importedModuleTypeNames = BuildImportedModuleTypeNames(modules);
         var moduleTypeImports = modules
             .Where(m => m.ParameterTypeOverrides.Count > 0)
-            .GroupBy(m => m.ModuleFolderName)
+            .SelectMany(module => module.ParameterTypeOverrides.Values
+                .Distinct(StringComparer.Ordinal)
+                .Select(typeName => (module.ModuleFolderName, TypeName: typeName)))
+            .Distinct()
+            .GroupBy(x => x.ModuleFolderName)
             .ToList();
         foreach (var group in moduleTypeImports)
         {
             var typeNames = group
-                .SelectMany(m => m.ParameterTypeOverrides.Values)
-                .Distinct()
-                .OrderBy(t => t);
+                .OrderBy(x => x.TypeName, StringComparer.Ordinal)
+                .Select(x => FormatImportedTypeSymbol(
+                    x.TypeName,
+                    importedModuleTypeNames[BuildModuleTypeImportKey(x.ModuleFolderName, x.TypeName)]));
             sb.Append("import { ");
             sb.AppendJoin(", ", typeNames);
             sb.AppendLine($" }} from './modules/{group.Key}/types.bicep'");
@@ -88,7 +98,7 @@ internal static class MainBicepAssembler
             foreach (var (key, value) in module.Parameters)
             {
                 var bicepType = module.ParameterTypeOverrides.TryGetValue(key, out var customType)
-                    ? customType
+                    ? ResolveImportedTypeName(importedModuleTypeNames, module.ModuleFolderName, customType)
                     : BicepFormattingHelper.InferBicepType(value);
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} {bicepType}");
             }
@@ -262,11 +272,13 @@ internal static class MainBicepAssembler
         {
             var rgSymbol = BicepIdentifierHelper.ToBicepIdentifier(module.ResourceGroupName);
             var moduleSymbol = $"{module.ModuleName}Module";
+            var modulePath = $"modules/{module.ModuleFolderName}/{module.ModuleFileName}";
+            tracker.RegisterModulePath(moduleSymbol, modulePath);
             var nameExpr = BicepNamingHelper.BuildNamingExpression(
                 module.LogicalResourceName, module.ResourceAbbreviation,
                 module.ResourceTypeName, namingContext);
 
-            sb.AppendLine($"module {moduleSymbol} './modules/{module.ModuleFolderName}/{module.ModuleFileName}' = {{");
+            sb.AppendLine($"module {moduleSymbol} './{modulePath}' = {{");
             sb.AppendLine($"  name: '{module.ModuleName}'");
             sb.AppendLine($"  scope: {rgSymbol}");
             sb.AppendLine("  params: {");
@@ -293,7 +305,9 @@ internal static class MainBicepAssembler
                     && m.ResourceTypeName.Equals(parentResourceType, StringComparison.OrdinalIgnoreCase));
                 if (parentModule is not null)
                 {
-                    sb.AppendLine($"    {paramName}: {parentModule.ModuleName}Module.outputs.id");
+                    var parentSymbol = $"{parentModule.ModuleName}Module";
+                    tracker.RegisterUsage(parentSymbol, "id");
+                    sb.AppendLine($"    {paramName}: {parentSymbol}.outputs.id");
                 }
             }
 
@@ -337,7 +351,9 @@ internal static class MainBicepAssembler
                         && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
                     if (uaiModSym is not null)
                     {
-                        sb.AppendLine($"    userAssignedIdentityId: {uaiModSym.ModuleName}Module.outputs.resourceId");
+                        var uaiSymbol = $"{uaiModSym.ModuleName}Module";
+                        tracker.RegisterUsage(uaiSymbol, "resourceId");
+                        sb.AppendLine($"    userAssignedIdentityId: {uaiSymbol}.outputs.resourceId");
                     }
                 }
             }
@@ -353,7 +369,9 @@ internal static class MainBicepAssembler
                         && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
                     if (uaiModuleSymbol is not null)
                     {
-                        sb.AppendLine($"    userAssignedIdentityId: {uaiModuleSymbol.ModuleName}Module.outputs.resourceId");
+                        var uaiSymbol = $"{uaiModuleSymbol.ModuleName}Module";
+                        tracker.RegisterUsage(uaiSymbol, "resourceId");
+                        sb.AppendLine($"    userAssignedIdentityId: {uaiSymbol}.outputs.resourceId");
                     }
                 }
             }
@@ -378,6 +396,7 @@ internal static class MainBicepAssembler
                     {
                         var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.KeyVaultResourceName);
                         var kvSecretsModuleSymbol = $"{kvIdentifier}KvSecretsModule";
+                        tracker.RegisterUsage(kvSecretsModuleSymbol, "secretUris");
                         sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris.{BicepFormattingHelper.EscapeBicepString(setting.SecretName)}}})'");
                     }
                     else if (setting.IsKeyVaultReference && setting.KeyVaultResourceName is not null && setting.SecretName is not null)
@@ -386,6 +405,7 @@ internal static class MainBicepAssembler
                         {
                             var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(setting.KeyVaultResourceName);
                             var kvSecretsModuleSymbol = $"{kvIdentifier}KvSecretsModule";
+                            tracker.RegisterUsage(kvSecretsModuleSymbol, "secretUris");
                             sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSecretsModuleSymbol}.outputs.secretUris.{BicepFormattingHelper.EscapeBicepString(setting.SecretName)}}})'");
                         }
                         else
@@ -395,7 +415,9 @@ internal static class MainBicepAssembler
                                 && m.ResourceTypeName.Equals(AzureResourceTypes.KeyVault, StringComparison.OrdinalIgnoreCase));
                             if (kvModule is not null)
                             {
-                                sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{BicepFormattingHelper.EscapeBicepString(setting.SecretName)})'");
+                                var kvSymbol = $"{kvModule.ModuleName}Module";
+                                tracker.RegisterUsage(kvSymbol, "vaultUri");
+                                sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvSymbol}.outputs.vaultUri}}secrets/{BicepFormattingHelper.EscapeBicepString(setting.SecretName)})'");
                             }
                         }
                     }
@@ -416,7 +438,9 @@ internal static class MainBicepAssembler
                                     || m.ResourceTypeName.Equals(setting.SourceResourceTypeName, StringComparison.OrdinalIgnoreCase)));
                             if (sourceModule is not null)
                             {
-                                sb.AppendLine($"        value: {sourceModule.ModuleName}Module.outputs.{setting.SourceOutputName}");
+                                var sourceSymbol = $"{sourceModule.ModuleName}Module";
+                                tracker.RegisterUsage(sourceSymbol, setting.SourceOutputName!);
+                                sb.AppendLine($"        value: {sourceSymbol}.outputs.{setting.SourceOutputName}");
                             }
                         }
                     }
@@ -461,10 +485,12 @@ internal static class MainBicepAssembler
                     || m.ResourceTypeName.Equals(export.SourceResourceTypeName, StringComparison.OrdinalIgnoreCase)));
             if (sourceModule is not null)
             {
+                var sourceSymbol = $"{sourceModule.ModuleName}Module";
+                tracker.RegisterUsage(sourceSymbol, export.SourceOutputName!);
                 allKvSecrets.Add((
                     export.KeyVaultResourceName!,
                     export.SecretName!,
-                    $"{sourceModule.ModuleName}Module.outputs.{export.SourceOutputName}"));
+                    $"{sourceSymbol}.outputs.{export.SourceOutputName}"));
             }
         }
 
@@ -496,12 +522,14 @@ internal static class MainBicepAssembler
 
                 var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(kvGroup.Key);
                 var kvSecretsModuleSymbol = $"{kvIdentifier}KvSecretsModule";
+                const string KvSecretsModulePath = "modules/KeyVault/kvSecrets.module.bicep";
+                tracker.RegisterModulePath(kvSecretsModuleSymbol, KvSecretsModulePath);
                 var kvRgSymbol = BicepIdentifierHelper.ToBicepIdentifier(kvModule.ResourceGroupName);
                 var kvNameExpr = BicepNamingHelper.BuildNamingExpression(
                     kvModule.LogicalResourceName, kvModule.ResourceAbbreviation,
                     kvModule.ResourceTypeName, namingContext);
 
-                sb.AppendLine($"module {kvSecretsModuleSymbol} './modules/KeyVault/kvSecrets.module.bicep' = {{");
+                sb.AppendLine($"module {kvSecretsModuleSymbol} './{KvSecretsModulePath}' = {{");
                 sb.AppendLine($"  name: '{kvIdentifier}-kv-secrets'");
                 sb.AppendLine($"  scope: {kvRgSymbol}");
                 sb.AppendLine("  params: {");
@@ -550,9 +578,11 @@ internal static class MainBicepAssembler
                     group.TargetResourceName, group.TargetResourceAbbreviation,
                     group.TargetResourceTypeName, namingContext);
 
-                var principalIdExpr = RoleAssignmentAssembler.ResolvePrincipalIdExpression(group, modules);
+                var principalIdExpr = RoleAssignmentAssembler.ResolvePrincipalIdExpression(group, modules, tracker);
 
-                sb.AppendLine($"module {moduleSymbol} './modules/{targetFolder}/{moduleFileName}' = {{");
+                var roleModulePath = $"modules/{targetFolder}/{moduleFileName}";
+                tracker.RegisterModulePath(moduleSymbol, roleModulePath);
+                sb.AppendLine($"module {moduleSymbol} './{roleModulePath}' = {{");
                 sb.AppendLine($"  name: '{moduleSymbol}'");
                 sb.AppendLine($"  scope: {targetRgSymbol}");
                 sb.AppendLine("  params: {");
@@ -572,7 +602,53 @@ internal static class MainBicepAssembler
             }
         }
 
-        return sb.ToString();
+        return new MainBicepEmissionResult(sb.ToString(), tracker.Build());
+
+        static IReadOnlyDictionary<string, string> BuildImportedModuleTypeNames(IReadOnlyCollection<GeneratedTypeModule> generatedModules)
+        {
+            var moduleTypeImports = generatedModules
+                .Where(m => m.ParameterTypeOverrides.Count > 0)
+                .SelectMany(module => module.ParameterTypeOverrides.Values
+                    .Distinct(StringComparer.Ordinal)
+                    .Select(typeName => (module.ModuleFolderName, TypeName: typeName)))
+                .Distinct()
+                .ToList();
+
+            var collidingTypeNames = moduleTypeImports
+                .GroupBy(x => x.TypeName, StringComparer.Ordinal)
+                .Where(group => group.Select(x => x.ModuleFolderName).Distinct(StringComparer.OrdinalIgnoreCase).Count() > 1)
+                .Select(group => group.Key)
+                .ToHashSet(StringComparer.Ordinal);
+
+            return moduleTypeImports.ToDictionary(
+                x => BuildModuleTypeImportKey(x.ModuleFolderName, x.TypeName),
+                x => collidingTypeNames.Contains(x.TypeName)
+                    ? $"{x.ModuleFolderName}{x.TypeName}"
+                    : x.TypeName,
+                StringComparer.OrdinalIgnoreCase);
+        }
+
+        static string ResolveImportedTypeName(
+            IReadOnlyDictionary<string, string> importedTypeNames,
+            string moduleFolderName,
+            string typeName)
+        {
+            return importedTypeNames.TryGetValue(BuildModuleTypeImportKey(moduleFolderName, typeName), out var importedTypeName)
+                ? importedTypeName
+                : typeName;
+        }
+
+        static string FormatImportedTypeSymbol(string typeName, string importedTypeName)
+        {
+            return string.Equals(typeName, importedTypeName, StringComparison.Ordinal)
+                ? typeName
+                : $"{typeName} as {importedTypeName}";
+        }
+
+        static string BuildModuleTypeImportKey(string moduleFolderName, string typeName)
+        {
+            return $"{moduleFolderName}|{typeName}";
+        }
 
         void AddNamingImport(string resourceTypeName)
         {

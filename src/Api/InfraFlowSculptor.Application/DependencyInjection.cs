@@ -11,9 +11,15 @@ using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.BicepGeneration.Generators;
+using InfraFlowSculptor.BicepGeneration.Pipeline;
+using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 using InfraFlowSculptor.PipelineGeneration;
+using InfraFlowSculptor.PipelineGeneration.Bootstrap;
+using InfraFlowSculptor.PipelineGeneration.Bootstrap.Stages;
 using InfraFlowSculptor.PipelineGeneration.Generators;
 using InfraFlowSculptor.PipelineGeneration.Generators.App;
+using InfraFlowSculptor.PipelineGeneration.Infra;
+using InfraFlowSculptor.PipelineGeneration.Infra.Stages;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using InfraFlowSculptor.Application.Common.Behaviors;
@@ -50,27 +56,58 @@ public static class DependencyInjection
         services.AddScoped<IRoleAssignmentImpactAnalyzer, RoleAssignmentImpactAnalyzer>();
 
         // Bicep generation domain services
-        services.AddSingleton<IResourceTypeBicepGenerator, StorageAccountTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, KeyVaultTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, RedisCacheTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, AppServicePlanTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, WebAppTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, FunctionAppTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, UserAssignedIdentityTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, AppConfigurationTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, ContainerAppEnvironmentTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, ContainerAppTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, LogAnalyticsWorkspaceTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, ApplicationInsightsTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, CosmosDbTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, SqlServerTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, SqlDatabaseTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, ServiceBusNamespaceTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, ContainerRegistryTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, StorageAccountTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, KeyVaultTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, RedisCacheTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, AppServicePlanTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, WebAppTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, FunctionAppTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, UserAssignedIdentityTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, AppConfigurationTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, ContainerAppEnvironmentTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, ContainerAppTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, LogAnalyticsWorkspaceTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, ApplicationInsightsTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, CosmosDbTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, SqlServerTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, SqlDatabaseTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, ServiceBusNamespaceTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, ContainerRegistryTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, EventHubNamespaceTypeBicepGenerator>();
+
+        // Bicep generation pipeline (Vague 1 — staged decomposition of the engine).
+        // Stages are ordered by IBicepGenerationStage.Order at pipeline construction.
+        services.AddSingleton<IBicepGenerationStage, IdentityAnalysisStage>();
+        services.AddSingleton<IBicepGenerationStage, AppSettingsAnalysisStage>();
+        services.AddSingleton<IBicepGenerationStage, ModuleBuildStage>();
+        services.AddSingleton<IBicepGenerationStage, IdentityInjectionStage>();
+        services.AddSingleton<IBicepGenerationStage, OutputInjectionStage>();
+        services.AddSingleton<IBicepGenerationStage, AppSettingsInjectionStage>();
+        services.AddSingleton<IBicepGenerationStage, TagsInjectionStage>();
+        services.AddSingleton<IBicepGenerationStage, ParentReferenceResolutionStage>();
+        services.AddSingleton<IBicepGenerationStage, SpecEmissionStage>();
+        services.AddSingleton<IBicepGenerationStage, AssemblyStage>();
+        services.AddSingleton<IBicepGenerationStage, IrOutputPruningStage>();
+        services.AddSingleton<BicepGenerationPipeline>();
         services.AddSingleton<BicepGenerationEngine>();
 
-        // Pipeline generation engine
+        // Infrastructure pipeline stages
+        services.AddSingleton<IInfraPipelineStage, CiPipelineStage>();
+        services.AddSingleton<IInfraPipelineStage, PrPipelineStage>();
+        services.AddSingleton<IInfraPipelineStage, ReleasePipelineStage>();
+        services.AddSingleton<IInfraPipelineStage, ConfigVarsStage>();
+        services.AddSingleton<IInfraPipelineStage, EnvironmentVarsStage>();
+        services.AddSingleton<InfraPipeline>();
         services.AddSingleton<PipelineGenerationEngine>();
+
+        // Bootstrap pipeline stages
+        services.AddSingleton<IBootstrapPipelineStage, HeaderEmissionStage>();
+        services.AddSingleton<IBootstrapPipelineStage, ValidateSharedResourcesJobStage>();
+        services.AddSingleton<IBootstrapPipelineStage, PipelineProvisionJobStage>();
+        services.AddSingleton<IBootstrapPipelineStage, EnvironmentProvisionJobStage>();
+        services.AddSingleton<IBootstrapPipelineStage, VariableGroupProvisionJobStage>();
+        services.AddSingleton<IBootstrapPipelineStage, NoOpFallbackStage>();
+        services.AddSingleton<BootstrapPipeline>();
         services.AddSingleton<BootstrapPipelineGenerationEngine>();
 
         // Application pipeline generation

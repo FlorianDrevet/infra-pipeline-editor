@@ -1,17 +1,87 @@
 using System.Text.Json;
+using InfraFlowSculptor.BicepGeneration.Ir;
+using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Generators;
 
 public sealed class StorageAccountTypeBicepGenerator
-    : IResourceTypeBicepGenerator
+    : IResourceTypeBicepSpecGenerator
 {
     public string ResourceType
         => AzureResourceTypes.ArmTypes.StorageAccount;
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.StorageAccount;
+
+    /// <inheritdoc />
+    public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
+    {
+        var builder = new BicepModuleBuilder()
+            .Module("storageAccount", "StorageAccount", ResourceTypeName)
+            .Import("./types.bicep", "SkuName", "StorageKind", "AccessTier", "TlsVersion")
+            .Param("location", BicepType.String, "Azure region for the Storage Account")
+            .Param("name", BicepType.String, "Name of the Storage Account")
+            .Param("sku", BicepType.Custom("SkuName"), "SKU of the Storage Account",
+                defaultValue: new BicepStringLiteral("Standard_LRS"))
+            .Param("kind", BicepType.Custom("StorageKind"), "Kind of Storage Account",
+                defaultValue: new BicepStringLiteral("StorageV2"))
+            .Param("accessTier", BicepType.Custom("AccessTier"), "Access tier for blob storage",
+                defaultValue: new BicepStringLiteral("Hot"))
+            .Param("allowBlobPublicAccess", BicepType.Bool, "Whether public access to blobs is allowed")
+            .Param("supportsHttpsTrafficOnly", BicepType.Bool, "Whether HTTPS traffic only is enforced")
+            .Param("minimumTlsVersion", BicepType.Custom("TlsVersion"), "Minimum TLS version for client connections",
+                defaultValue: new BicepStringLiteral("TLS1_2"));
+
+        builder.Resource("storage", "Microsoft.Storage/storageAccounts@2025-06-01")
+            .Property("name", new BicepReference("name"))
+            .Property("location", new BicepReference("location"))
+            .Property("kind", new BicepReference("kind"))
+            .Property("sku", sku => sku
+                .Property("name", new BicepReference("sku")))
+            .Property("identity", identity => identity
+                .Property("type", new BicepStringLiteral("SystemAssigned")))
+            .Property("properties", props => props
+                .Property("allowBlobPublicAccess", new BicepReference("allowBlobPublicAccess"))
+                .Property("supportsHttpsTrafficOnly", new BicepReference("supportsHttpsTrafficOnly"))
+                .Property("minimumTlsVersion", new BicepReference("minimumTlsVersion"))
+                .Property("accessTier", new BicepReference("accessTier")));
+
+        builder
+            .Output("id", BicepType.String, new BicepRawExpression("storage.id"),
+                description: "The resource ID of the Storage Account")
+            .Output("name", BicepType.String, new BicepRawExpression("storage.name"),
+                description: "The name of the Storage Account")
+            .Output("primaryBlobEndpoint", BicepType.String,
+                new BicepRawExpression("storage.properties.primaryEndpoints.blob"),
+                description: "The primary blob endpoint")
+            .Output("primaryTableEndpoint", BicepType.String,
+                new BicepRawExpression("storage.properties.primaryEndpoints.table"),
+                description: "The primary table endpoint")
+            .Output("primaryQueueEndpoint", BicepType.String,
+                new BicepRawExpression("storage.properties.primaryEndpoints.queue"),
+                description: "The primary queue endpoint")
+            .Output("primaryFileEndpoint", BicepType.String,
+                new BicepRawExpression("storage.properties.primaryEndpoints.file"),
+                description: "The primary file endpoint");
+
+        builder
+            .ExportedType("SkuName",
+                new BicepRawExpression("'Standard_LRS' | 'Standard_GRS' | 'Standard_RAGRS' | 'Standard_ZRS' | 'Premium_LRS' | 'Premium_ZRS'"),
+                description: "SKU name for the Storage Account")
+            .ExportedType("StorageKind",
+                new BicepRawExpression("'BlobStorage' | 'BlockBlobStorage' | 'FileStorage' | 'Storage' | 'StorageV2'"),
+                description: "Kind of Storage Account")
+            .ExportedType("AccessTier",
+                new BicepRawExpression("'Hot' | 'Cool' | 'Premium'"),
+                description: "Access tier for the Storage Account")
+            .ExportedType("TlsVersion",
+                new BicepRawExpression("'TLS1_0' | 'TLS1_1' | 'TLS1_2'"),
+                description: "Minimum TLS version for Storage Account connections");
+
+        return builder.Build();
+    }
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {

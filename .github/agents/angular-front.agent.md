@@ -116,5 +116,8 @@ src/Front/src/app/
 
 1. Exécuter `npm run typecheck` et `npm run build` dans `src/Front`.
 2. Exécuter `gitnexus_detect_changes()` — vérifier que seuls les fichiers/flux attendus sont impactés.
-3. Documenter les nouveaux composants/services/interfaces dans `MEMORY.md` section 13.
-4. Si les contrats API ont changé, mettre à jour les interfaces frontend ET signaler la dépendance dans la PR.
+3. Si des tests Jasmine/Karma existent pour les fichiers modifiés, vérifier qu'ils passent (`npm run test` si configuré).
+4. Si la zone touchée a des tests existants et que le changement modifie un comportement, mettre à jour les tests AVANT l'implémentation (TDD).
+5. Si la zone touchée n'a aucun test et qu'un service critique ou une logique métier est modifié, enregistrer la dette dans `.github/test-debt.md` avec le préfixe `Front/`.
+6. Documenter les nouveaux composants/services/interfaces dans `MEMORY.md` section 13.
+7. Si les contrats API ont changé, mettre à jour les interfaces frontend ET signaler la dépendance dans la PR.

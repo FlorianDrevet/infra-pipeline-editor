@@ -37,7 +37,7 @@ public static class BicepAssembler
         var typesBicep = TypesBicepAssembler.Generate(environments, hasRoleAssignments);
         var functionsBicep = FunctionsBicepAssembler.Generate(namingContext);
         var constantsBicep = hasRoleAssignments ? ConstantsBicepAssembler.Generate(roleAssignments) : string.Empty;
-        var main = MainBicepAssembler.Generate(normalizedModules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? [], projectTags, configTags);
+        var mainEmission = MainBicepAssembler.Generate(normalizedModules, resourceGroups, namingContext, roleAssignments, appSettings, existingResourceReferences ?? [], projectTags, configTags);
 
         var environmentParameterFiles = ParameterFileAssembler.GenerateEnvironmentParameterFiles(
             normalizedModules, environments, resources, appSettings);
@@ -108,13 +108,14 @@ public static class BicepAssembler
 
         return new GenerationResult
         {
-            MainBicep = main,
+            MainBicep = mainEmission.Content,
             TypesBicep = typesBicep,
             FunctionsBicep = functionsBicep,
             RoleAssignments = roleAssignments,
             ConstantsBicep = constantsBicep,
             EnvironmentParameterFiles = environmentParameterFiles,
-            ModuleFiles = moduleFiles
+            ModuleFiles = moduleFiles,
+            UsedOutputsByModulePath = mainEmission.UsedOutputsByModulePath,
         };
     }
 
@@ -168,70 +169,5 @@ public static class BicepAssembler
         }
 
         return $"{moduleFileName}.{hash}";
-    }
-
-    /// <summary>
-    /// Removes <c>output</c> declarations from a Bicep file whose names are not in
-    /// <paramref name="usedOutputs" />.  Preserves all other content verbatim.
-    /// </summary>
-    /// <param name="bicepContent">The full content of a generated Bicep module file.</param>
-    /// <param name="usedOutputs">The set of output names that are actually referenced.</param>
-    /// <returns>The Bicep content with unused output declarations stripped.</returns>
-    public static string PruneUnusedOutputs(string bicepContent, HashSet<string> usedOutputs)
-    {
-        if (string.IsNullOrEmpty(bicepContent))
-            return bicepContent;
-
-        var lines = bicepContent.Split('\n');
-        var result = new StringBuilder(bicepContent.Length);
-        var pendingAnnotations = new List<string>();
-
-        foreach (var rawLine in lines)
-        {
-            var line = rawLine.TrimEnd('\r');
-
-            // Buffer @description / @secure / @export annotations — they belong to the next declaration.
-            if (line.TrimStart().StartsWith('@'))
-            {
-                pendingAnnotations.Add(line);
-                continue;
-            }
-
-            // Detect an output declaration: output <name> ...
-            var trimmed = line.TrimStart();
-            if (trimmed.StartsWith("output ", StringComparison.Ordinal))
-            {
-                var parts = trimmed.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries);
-                var outputName = parts.Length >= 2 ? parts[1] : string.Empty;
-
-                if (!usedOutputs.Contains(outputName))
-                {
-                    pendingAnnotations.Clear();
-                    continue;
-                }
-            }
-
-            // Flush buffered annotations before any non-output line.
-            foreach (var annotation in pendingAnnotations)
-            {
-                result.Append(annotation).Append('\n');
-            }
-            pendingAnnotations.Clear();
-
-            result.Append(line).Append('\n');
-        }
-
-        // Flush any trailing annotations (edge case).
-        foreach (var annotation in pendingAnnotations)
-        {
-            result.Append(annotation).Append('\n');
-        }
-
-        // Remove trailing newline added by the loop if the original didn't end with one.
-        var output = result.ToString();
-        if (!bicepContent.EndsWith('\n') && output.EndsWith('\n'))
-            output = output[..^1];
-
-        return output;
     }
 }

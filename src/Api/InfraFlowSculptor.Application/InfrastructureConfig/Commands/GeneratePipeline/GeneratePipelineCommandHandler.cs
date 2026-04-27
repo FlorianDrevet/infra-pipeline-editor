@@ -15,6 +15,7 @@ using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration;
 using MediatR;
+using AppPipelineMode = InfraFlowSculptor.GenerationCore.Models.AppPipelineMode;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.GeneratePipeline;
 
@@ -24,7 +25,7 @@ public sealed class GeneratePipelineCommandHandler(
     IProjectRepository projectRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     AppPipelineGenerationEngine appPipelineGenerationEngine,
-    IEnumerable<IResourceTypeBicepGenerator> bicepGenerators,
+    IEnumerable<IResourceTypeBicepSpecGenerator> bicepGenerators,
     IContainerAppRepository containerAppRepository,
     IWebAppRepository webAppRepository,
     IFunctionAppRepository functionAppRepository,

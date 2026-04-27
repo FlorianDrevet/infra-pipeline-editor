@@ -1,3 +1,5 @@
+using InfraFlowSculptor.BicepGeneration.Ir;
+using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
 
@@ -7,7 +9,7 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 /// Generates a Bicep module for Azure Container Registry (<c>Microsoft.ContainerRegistry/registries</c>).
 /// </summary>
 public sealed class ContainerRegistryTypeBicepGenerator
-    : IResourceTypeBicepGenerator
+    : IResourceTypeBicepSpecGenerator
 {
     /// <inheritdoc />
     public string ResourceType
@@ -15,6 +17,47 @@ public sealed class ContainerRegistryTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.ContainerRegistry;
+
+    /// <inheritdoc />
+    public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
+    {
+        return new BicepModuleBuilder()
+            .Module("containerRegistry", "ContainerRegistry", ResourceTypeName)
+            .Import("./types.bicep", "SkuName", "PublicNetworkAccess")
+            .Param("location", BicepType.String, "Azure region for the Container Registry")
+            .Param("name", BicepType.String, "Name of the Container Registry")
+            .Param("sku", BicepType.Custom("SkuName"), "SKU of the Container Registry",
+                defaultValue: new BicepStringLiteral("Basic"))
+            .Param("adminUserEnabled", BicepType.Bool, "Whether the admin user is enabled",
+                defaultValue: new BicepBoolLiteral(false))
+            .Param("publicNetworkAccess", BicepType.Custom("PublicNetworkAccess"), "Public network access setting",
+                defaultValue: new BicepStringLiteral("Enabled"))
+            .Param("zoneRedundancy", BicepType.Bool, "Whether zone redundancy is enabled (Premium only)",
+                defaultValue: new BicepBoolLiteral(false))
+            .Resource("containerRegistry", "Microsoft.ContainerRegistry/registries@2023-07-01")
+            .Property("name", new BicepReference("name"))
+            .Property("location", new BicepReference("location"))
+            .Property("sku", sku => sku
+                .Property("name", new BicepReference("sku")))
+            .Property("properties", props => props
+                .Property("adminUserEnabled", new BicepReference("adminUserEnabled"))
+                .Property("publicNetworkAccess", new BicepReference("publicNetworkAccess"))
+                .Property("zoneRedundancy", new BicepConditionalExpression(
+                    new BicepReference("zoneRedundancy"),
+                    new BicepStringLiteral("Enabled"),
+                    new BicepStringLiteral("Disabled"))))
+            .Output("id", BicepType.String, new BicepRawExpression("containerRegistry.id"),
+                description: "The resource ID of the Container Registry")
+            .Output("loginServer", BicepType.String, new BicepRawExpression("containerRegistry.properties.loginServer"),
+                description: "The login server of the Container Registry")
+            .ExportedType("SkuName",
+                new BicepRawExpression("'Basic' | 'Standard' | 'Premium'"),
+                description: "SKU for the Container Registry")
+            .ExportedType("PublicNetworkAccess",
+                new BicepRawExpression("'Enabled' | 'Disabled'"),
+                description: "Public network access setting for the Container Registry")
+            .Build();
+    }
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)
