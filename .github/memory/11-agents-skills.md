@@ -36,6 +36,7 @@
 | `dotnet-patterns` | Any C#/.NET code generation: naming, XML docs, SOLID, async/await, EF Core, pattern matching, security | `.github/skills/dotnet-patterns/SKILL.md` |
 | `xunit-unit-testing` | Any .NET xUnit unit-test work: project placement under `tests/`, naming, AAA, FluentAssertions, NSubstitute, Verify, Bogus, MockQueryable, coverage, mutation | `.github/skills/xunit-unit-testing/SKILL.md` |
 | `angular-patterns` | Angular frontend patterns for ce repo : Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
+| `bicep-v2-migration` | Migrating an IResourceTypeBicepGenerator from legacy string template to Builder + IR (Vague 2), including TDD tests, emitter parity, review cycle, and skill feedback loop | `.github/skills/bicep-v2-migration/SKILL.md` |
 
 ## Unit Test Routing [2026-04-27]
 

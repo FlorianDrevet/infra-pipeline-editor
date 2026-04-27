@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-27 | dev | Created `bicep-v2-migration` skill (`.github/skills/bicep-v2-migration/SKILL.md`) with the 7-step migration workflow per generator (analyse → TDD → migration → parité → pipeline → review → maj skill), Phase 0 infra IR requirements, pitfalls, and feedback loop. Created migration tracker at `docs/architecture/bicep-refactoring/MIGRATION-TRACKER.md` with 6 phases (0: Infra IR, 1-5: generators by complexity tier, 6: cleanup), 18 generators ordered simplest→complex, 159 total steps tracked. Registered the skill in `copilot-instructions.md` and `dev.agent.md`. |
 | 2026-04-27 | dev | Created 124 unit tests for the Vague 1 Bicep pipeline refactoring across 16 test files under `tests/InfraFlowSculptor.BicepGeneration.Tests/` (TextManipulation helpers + Pipeline orchestration + 9 stages). Added `GlobalUsings.cs` for xUnit, `InternalsVisibleTo` for internal helpers, FluentAssertions + NSubstitute packages. All 124 tests green, full solution build clean. |
 | 2026-04-27 | dev | Added the `review-main` workspace prompt to standardize strict diff reviews against `main`, and added the `review-remediator` agent to consume approved review backlogs and implement validated corrective actions. |
 | 2026-04-27 | dev | Added the `review-expert` agent for strict pre-merge reviews of the current branch diff against `main`, with severity-ranked findings, explicit risk rationale, and a corrective backlog ready to hand off for implementation. |

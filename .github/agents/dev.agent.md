@@ -272,6 +272,11 @@ Un skill est **différent d'un agent** :
 - **Fichier :** `.github/skills/xunit-unit-testing/SKILL.md`
 - **Contenu :** emplacement des projets de tests sous `tests/`, conventions de nommage `Given_When_Then`, usage de xUnit/FluentAssertions/NSubstitute/Verify/Bogus/MockQueryable, données déterministes, coverage et mutation
 
+#### `bicep-v2-migration`
+- **Quand le charger :** dès qu'une tâche consiste à migrer un `IResourceTypeBicepGenerator` du pattern legacy (const string template + regex) vers le pattern Builder + IR (Vague 2)
+- **Fichier :** `.github/skills/bicep-v2-migration/SKILL.md`
+- **Contenu :** les 7 étapes par générateur (analyse → TDD → migration → parité → pipeline → review → maj skill), l'infrastructure IR prérequise, les pièges connus, et la boucle de retour d'expérience
+
 ---
 
 ## Discipline de prompt — Static vs Dynamic
