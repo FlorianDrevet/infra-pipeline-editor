@@ -26,14 +26,14 @@
 
 | # | Tâche | Statut | Notes |
 |---|-------|--------|-------|
-| 0.1 | Modèle IR (`BicepGeneration/Ir/` — records immuables) | ⬜ | `BicepModuleSpec`, `BicepParam`, `BicepOutput`, `BicepResourceDeclaration`, `BicepExpression` hierarchy, `BicepIdentityBlock`, types, imports, companions |
-| 0.2 | Builder fluent (`Ir/Builder/`) | ⬜ | `BicepModuleBuilder`, `BicepResourceBuilder`, `BicepObjectBuilder` |
-| 0.3 | Emitter (`Ir/Emit/BicepEmitter`) | ⬜ | Transforme `BicepModuleSpec` → string. Doit produire un output identique au legacy |
-| 0.4 | Transformations IR (`Ir/Transformations/`) | ⬜ | `IdentityTransformer`, `OutputTransformer`, `AppSettingsTransformer`, `TagsTransformer` |
-| 0.5 | Adaptateur legacy (`LegacyTextModuleAdapter`) | ⬜ | Permet coexistence IR + legacy dans le pipeline |
-| 0.6 | Adaptation des stages 300-700 (dual mode) | ⬜ | Détection IR vs legacy, routing vers transformer ou regex |
-| 0.7 | Interface générateur (`IResourceTypeBicepSpecGenerator` ou dual method) | ⬜ | Permettre aux générateurs de retourner un `BicepModuleSpec` |
-| 0.8 | Tests infrastructure IR | ⬜ | Emitter, Builder, chaque Transformer, adaptateur legacy |
+| 0.1 | Modèle IR (`BicepGeneration/Ir/` — records immuables) | ✅ | `BicepModuleSpec`, `BicepParam`, `BicepOutput`, `BicepResourceDeclaration`, `BicepExpression` hierarchy, `BicepType`, `BicepVar`, `BicepImport`, `BicepTypeDefinition`, `BicepCompanionSpec` — 9 fichiers |
+| 0.2 | Builder fluent (`Ir/Builder/`) | ✅ | `BicepModuleBuilder`, `BicepObjectBuilder` |
+| 0.3 | Emitter (`Ir/Emit/BicepEmitter`) | ✅ | Transforme `BicepModuleSpec` → string. Imports, params, vars, resource, outputs, types |
+| 0.4 | Transformations IR (`Ir/Transformations/`) | ✅ | `IdentityTransformer`, `OutputTransformer`, `AppSettingsTransformer`, `TagsTransformer` |
+| 0.5 | Adaptateur legacy (`LegacyTextModuleAdapter`) | ✅ | `CreateSkeletonModule` + `EmitContent` pour coexistence IR/legacy |
+| 0.6 | Adaptation des stages 300-700+850 (dual mode) | ✅ | ModuleBuild (300), Identity (400), Output (500), AppSettings (600), Tags (700) + SpecEmission (850) |
+| 0.7 | Interface générateur (`IResourceTypeBicepSpecGenerator`) | ✅ | Extends `IResourceTypeBicepGenerator`, ajoute `GenerateSpec()`. `ModuleWorkItem.Spec` ajouté |
+| 0.8 | Tests infrastructure IR | ✅ | 37 tests : Emitter (21), Builder (10), Identity (7), Output (5), Tags (5), AppSettings (4) — tous verts |
 | 0.9 | Review de code Phase 0 | ⬜ | `review-expert` → `review-remediator` |
 
 ---

@@ -1,3 +1,4 @@
+using InfraFlowSculptor.BicepGeneration.Ir.Transformations;
 using InfraFlowSculptor.BicepGeneration.TextManipulation;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
@@ -27,12 +28,24 @@ public sealed class OutputInjectionStage : IBicepGenerationStage
             if (!outputsBySource.TryGetValue(item.Resource.Name, out var outputs))
                 continue;
 
-            var injections = outputs
-                .Select(o => new ModuleOutputInjection(o.OutputName, o.BicepExpression, o.IsSecure))
-                .ToArray();
+            // Dual-mode: IR transformers or legacy text manipulation.
+            if (item.Spec is not null)
+            {
+                var irOutputs = outputs
+                    .Select(o => (o.OutputName, o.BicepExpression, o.IsSecure))
+                    .ToList();
 
-            var newContent = BicepOutputInjector.Inject(item.Module.ModuleBicepContent, injections);
-            item.Module = item.Module with { ModuleBicepContent = newContent };
+                item.Spec = item.Spec.WithOutputs(irOutputs);
+            }
+            else
+            {
+                var injections = outputs
+                    .Select(o => new ModuleOutputInjection(o.OutputName, o.BicepExpression, o.IsSecure))
+                    .ToArray();
+
+                var newContent = BicepOutputInjector.Inject(item.Module.ModuleBicepContent, injections);
+                item.Module = item.Module with { ModuleBicepContent = newContent };
+            }
         }
     }
 }

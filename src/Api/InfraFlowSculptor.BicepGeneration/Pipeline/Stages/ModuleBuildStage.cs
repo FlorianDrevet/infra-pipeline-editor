@@ -1,5 +1,6 @@
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
+using InfraFlowSculptor.BicepGeneration.Ir;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 
@@ -50,7 +51,15 @@ public sealed class ModuleBuildStage : IBicepGenerationStage
                     $"No Bicep generator registered for resource '{resource.Name}' with resource type '{resource.Type}'.");
             }
 
+            // Try IR path first for generators migrated to Builder + IR.
+            BicepModuleSpec? spec = null;
             var module = generator.Generate(resource);
+
+            if (generator is IResourceTypeBicepSpecGenerator specGen)
+            {
+                spec = specGen.GenerateSpec(resource);
+                module = LegacyTextModuleAdapter.CreateSkeletonModule(spec);
+            }
 
             var resourceIdentifier = BicepIdentifierHelper.ToBicepIdentifier(resource.Name);
             var moduleName = $"{module.ModuleName}{Capitalize(resourceIdentifier)}";
@@ -61,6 +70,7 @@ public sealed class ModuleBuildStage : IBicepGenerationStage
             context.WorkItems.Add(new ModuleWorkItem
             {
                 Resource = resource,
+                Spec = spec,
                 Module = module with
                 {
                     ModuleName = moduleName,

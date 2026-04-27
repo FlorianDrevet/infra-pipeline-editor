@@ -1,3 +1,4 @@
+using InfraFlowSculptor.BicepGeneration.Ir.Transformations;
 using InfraFlowSculptor.BicepGeneration.TextManipulation;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
@@ -42,32 +43,54 @@ public sealed class IdentityInjectionStage : IBicepGenerationStage
             else if (needsUser)
                 identityKind = "UserAssigned";
 
-            var moduleBicep = item.Module.ModuleBicepContent;
+            item.IdentityKind = identityKind;
+            item.UsesParameterizedIdentity = isMixed;
 
-            if (isMixed)
+            // Dual-mode: IR transformers or legacy text manipulation.
+            if (item.Spec is not null)
             {
-                var hasAnyUaiForType = identity.UserIdentityResources
-                    .Any(kv => kv.Key.Type == resource.Type);
-                moduleBicep = BicepIdentityInjector.InjectParameterized(moduleBicep, hasAnyUaiForType);
+                if (isMixed)
+                {
+                    var hasAnyUaiForType = identity.UserIdentityResources
+                        .Any(kv => kv.Key.Type == resource.Type);
+                    item.Spec = item.Spec.WithParameterizedIdentity(hasAnyUaiForType);
+                }
+                else
+                {
+                    if (needsSystem)
+                        item.Spec = item.Spec.WithSystemAssignedIdentity();
+
+                    if (needsUser)
+                        item.Spec = item.Spec.WithUserAssignedIdentity(needsSystem);
+                }
             }
             else
             {
-                if (needsSystem)
-                    moduleBicep = BicepIdentityInjector.InjectSystemAssigned(moduleBicep);
+                var moduleBicep = item.Module.ModuleBicepContent;
 
-                if (needsUser)
-                    moduleBicep = BicepIdentityInjector.InjectUserAssigned(moduleBicep, uaiIdentifiers!, needsSystem);
+                if (isMixed)
+                {
+                    var hasAnyUaiForType = identity.UserIdentityResources
+                        .Any(kv => kv.Key.Type == resource.Type);
+                    moduleBicep = BicepIdentityInjector.InjectParameterized(moduleBicep, hasAnyUaiForType);
+                }
+                else
+                {
+                    if (needsSystem)
+                        moduleBicep = BicepIdentityInjector.InjectSystemAssigned(moduleBicep);
+
+                    if (needsUser)
+                        moduleBicep = BicepIdentityInjector.InjectUserAssigned(moduleBicep, uaiIdentifiers!, needsSystem);
+                }
+
+                item.Module = item.Module with
+                {
+                    ModuleBicepContent = moduleBicep,
+                    ModuleTypesBicepContent = isMixed
+                        ? (item.Module.ModuleTypesBicepContent ?? string.Empty) + BicepIdentityInjector.ManagedIdentityTypeBicepType
+                        : item.Module.ModuleTypesBicepContent,
+                };
             }
-
-            item.IdentityKind = identityKind;
-            item.UsesParameterizedIdentity = isMixed;
-            item.Module = item.Module with
-            {
-                ModuleBicepContent = moduleBicep,
-                ModuleTypesBicepContent = isMixed
-                    ? (item.Module.ModuleTypesBicepContent ?? string.Empty) + BicepIdentityInjector.ManagedIdentityTypeBicepType
-                    : item.Module.ModuleTypesBicepContent,
-            };
         }
     }
 }

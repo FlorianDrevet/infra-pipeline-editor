@@ -80,6 +80,7 @@ public static class DependencyInjection
         services.AddSingleton<IBicepGenerationStage, AppSettingsInjectionStage>();
         services.AddSingleton<IBicepGenerationStage, TagsInjectionStage>();
         services.AddSingleton<IBicepGenerationStage, ParentReferenceResolutionStage>();
+        services.AddSingleton<IBicepGenerationStage, SpecEmissionStage>();
         services.AddSingleton<IBicepGenerationStage, AssemblyStage>();
         services.AddSingleton<BicepGenerationPipeline>();
         services.AddSingleton<BicepGenerationEngine>();

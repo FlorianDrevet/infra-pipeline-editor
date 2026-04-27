@@ -1,3 +1,4 @@
+using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
@@ -41,6 +42,12 @@ public sealed class ModuleWorkItem
 
     /// <summary>Current module record. Mutated in place by stages via record <c>with</c>.</summary>
     public required GeneratedTypeModule Module { get; set; }
+
+    /// <summary>
+    /// Structured IR specification for this module. Non-null for generators migrated to Builder + IR.
+    /// When set, pipeline stages apply IR transformers instead of legacy text manipulation.
+    /// </summary>
+    public BicepModuleSpec? Spec { get; set; }
 
     /// <summary>Identity kind targeted for this resource (<c>SystemAssigned</c>, <c>UserAssigned</c>,
     /// <c>SystemAssigned, UserAssigned</c>, or <c>null</c> when no identity is required).</summary>
