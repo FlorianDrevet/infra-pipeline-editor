@@ -297,7 +297,14 @@ Tests à écrire pour chaque générateur :
 - **Child resource ARM type** — Uses `Microsoft.Sql/servers/databases@...` (slash-delimited child path).
 - **Test count** — 33 tests covering 7 params (SkuName custom type), existing resource, parent ref, nested sku + properties, 1 output, 1 exported type, legacy GB→bytes conversion, emission parity.
 
-### Migration #12 — (à compléter)
+### Migration #12 — CosmosDb (Tier 3, 121 LOC)
+- **First generator with `BicepType.Array` param** — `Param("capabilities", BicepType.Array, defaultValue: new BicepArrayExpression([]))`. Emitter renders `param capabilities array = []`.
+- **Deeply nested resource body** — `properties` has 8 children including `consistencyPolicy` (3-prop nested object), `backupPolicy` (1-prop nested object), and `locations` (array with one nested object containing 3 properties). The `BicepObjectBuilder` shorthand overloads (`.Property(key, stringValue)`, `.Property(key, intValue)`, `.Property(key, boolValue)`) simplify literal-heavy nested objects.
+- **Array with nested object** — `locations` uses `new BicepArrayExpression([new BicepObjectExpression([...])])` directly in the builder's `.Property()` call. The emitter's `EmitArrayMultiline()` handles multi-line rendering with proper indentation for object items inside arrays.
+- **No dynamic properties** — Like SqlServer, the legacy `Generate()` has an empty Parameters dict. All param defaults are baked into the IR spec.
+- **Test count** — 40 tests covering 11 params (3 custom types, 3 bool, 2 int, 1 array), deeply nested properties, locations array structure, 3 outputs, 3 exported types, legacy compat, emission parity.
+
+### Migration #13 — (à compléter)
 
 ---
 

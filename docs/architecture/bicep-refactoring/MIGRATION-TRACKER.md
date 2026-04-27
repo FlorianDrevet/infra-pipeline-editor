@@ -197,11 +197,11 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | Multi-region locations array, capabilities, types.bicep (DatabaseKind, ConsistencyLevel, BackupPolicyType) |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 121 LOC, static const template. 11 params (3 custom types, 3 bool defaults, 2 int defaults, 1 array default `[]`). Deeply nested properties (consistencyPolicy 3-prop, backupPolicy 1-prop, locations array with nested object). 3 outputs, 3 exported types |
+| Tests TDD écrits | ✅ | `tests/.../Generators/CosmosDbTypeBicepGeneratorTests.cs` — 40 tests |
+| Migration vers Builder | ✅ | First generator with `BicepType.Array` param + `BicepArrayExpression([])` default. `BicepArrayExpression` with nested `BicepObjectExpression` for locations array. `BicepObjectBuilder` string/int/bool shorthand overloads used throughout |
+| Parité d'émission vérifiée | ✅ | Array emission multiline with nested objects |
+| Branché dans le pipeline | ✅ | Auto-detected via `IResourceTypeBicepSpecGenerator` — no DI changes |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
 | Skill mis à jour avec retours | ⬜ | |
