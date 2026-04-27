@@ -158,14 +158,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | Template dynamique `BuildModuleTemplate()`, 6 boolean properties, types.bicep (SkuName) |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 95 LOC, `BuildModuleTemplate()` with 6 dynamic booleans from `resource.Properties`, `subscription().tenantId` raw expression, nested sku inside properties (family='A'), 3 params, 3 outputs (id + name + vaultUri), 1 exported type, Parameters["sku"] |
+| Tests TDD écrits | ✅ | `tests/.../Generators/KeyVaultTypeBicepGeneratorTests.cs` — 29 tests (incl. dynamic property defaults + overrides) |
+| Migration vers Builder | ✅ | `IResourceTypeBicepSpecGenerator`, `bool.Parse(resource.Properties.GetValueOrDefault(...))` → `BicepBoolLiteral`, first generator with dynamic resource.Properties injection |
+| Parité d'émission vérifiée | ✅ | Module + types emission verified, default + override scenarios |
+| Branché dans le pipeline | ✅ | No DI change needed — auto-detected by `ModuleBuildStage` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | |
 
 ### 3.2 — SqlServer (97 LOC)
 

@@ -274,7 +274,15 @@ Tests à écrire pour chaque générateur :
 - **Test count** — 31 tests covering 9 params (2 custom types, 3 bool, 2 int), sku reuse, conditional, 2 outputs, 2 exported types, emission parity.
 - **Tier 2 complete** — All 4 Tier 2 generators migrated (ServiceBusNamespace, AppConfiguration, ApplicationInsights, EventHubNamespace).
 
-### Migration #9 — (à compléter)
+### Migration #9 — KeyVault (Tier 3, 95 LOC)
+- **First generator with dynamic `resource.Properties` injection** — 6 boolean properties read from `resource.Properties.GetValueOrDefault()` with defaults, parsed via `bool.Parse()`, emitted as `BicepBoolLiteral`. Not Bicep params — baked in at generation time.
+- **`subscription().tenantId`** — `BicepRawExpression("subscription().tenantId")` for a built-in Bicep function call in a resource property.
+- **Nested sku inside properties** — Unlike ServiceBus/AppConfig/EventHub where `sku` is a top-level resource body property, KeyVault puts `sku` inside `properties` per ARM schema. Two-prop object: `family: 'A'` (string literal) + `name: sku` (param ref).
+- **`BicepReference.Symbol`** — Confirmed again (not `.ReferenceName`). Pattern is stable.
+- **Test CreateResource helper with optional Properties** — `CreateResource(Dictionary<string, string>? properties = null)` enables testing default vs override scenarios. Two dedicated tests verify all 6 booleans with defaults and with full overrides.
+- **Test count** — 29 tests covering 3 params, nested sku, tenantId raw expression, 6 dynamic booleans (default + override), 3 outputs, 1 exported type, emission parity with overrides.
+
+### Migration #10 — (à compléter)
 
 ---
 

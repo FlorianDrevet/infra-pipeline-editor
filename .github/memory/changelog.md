@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-27 | dev | **Migration 3.1 — KeyVault → Builder+IR.** First generator with dynamic `resource.Properties` injection (6 booleans as `BicepBoolLiteral`), `subscription().tenantId` raw expression, nested sku inside properties. 29 new tests (411 total). |
 | 2026-04-27 | dev | **Migration 2.4 — EventHubNamespace → Builder+IR.** Sku name+tier reusing same param, conditional `maximumThroughputUnits` ternary, property-to-param name mismatches. 31 new tests (383 total). **Tier 2 complete (4/4).** |
 | 2026-04-27 | dev | **Migration 2.3 — ApplicationInsights → Builder+IR.** Top-level `kind: 'web'` literal, PascalCase property keys, cross-resource `logAnalyticsWorkspaceId` param, 3 outputs. 29 new tests (352 total). |
 | 2026-04-27 | dev | **Migration 2.2 — AppConfiguration → Builder+IR.** Simplest Tier 2 generator. Simple sku, `.properties.endpoint` output, 2 custom types. 27 new tests (323 total). |
