@@ -128,14 +128,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | types.bicep (IngestionMode), dépendance `logAnalyticsWorkspaceId` param |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 91 LOC, 1 import (IngestionMode), 8 params (1 custom, 2 bool, 2 int, 1 cross-resource string), `kind: 'web'` top-level literal, 7-prop properties with PascalCase keys, 3 outputs (id + 2 runtime `.properties.*`), 1 exported type |
+| Tests TDD écrits | ✅ | `tests/.../Generators/ApplicationInsightsTypeBicepGeneratorTests.cs` — 29 tests |
+| Migration vers Builder | ✅ | `IResourceTypeBicepSpecGenerator`, `BicepStringLiteral("web")` for top-level `kind` + `Application_Type` |
+| Parité d'émission vérifiée | ✅ | Module + types emission verified |
+| Branché dans le pipeline | ✅ | No DI change needed — auto-detected by `ModuleBuildStage` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | |
 
 ### 2.4 — EventHubNamespace (97 LOC)
 

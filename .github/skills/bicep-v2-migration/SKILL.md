@@ -258,7 +258,15 @@ Tests à écrire pour chaque générateur :
 - **Test property names reminder** — `BicepRawExpression.RawBicep` (not `.Expression`), `BicepCustomType.Name` (not `.TypeName`), `Resource.ArmTypeWithApiVersion` (not `.ArmType`), `Resource.Body` is `IReadOnlyList<BicepPropertyAssignment>` (not `BicepObjectExpression`).
 - **Test count** — 27 tests covering 7 params, simple sku, 4-prop properties, 2 outputs, 2 exported types, emission parity.
 
-### Migration #7 — (à compléter)
+### Migration #7 — ApplicationInsights (Tier 2, 91 LOC)
+- **Top-level `kind` literal** — `BicepStringLiteral("web")` used as a direct resource body property (not a param ref). First generator with a string literal at the resource top level.
+- **PascalCase property keys** — `Application_Type`, `WorkspaceResourceId`, `SamplingPercentage`, etc. The builder preserves key casing exactly — no normalization.
+- **Cross-resource param** — `logAnalyticsWorkspaceId` is a plain `BicepType.String` param with no default, representing a dependency on another resource's output.
+- **3 outputs** — `id`, `instrumentationKey` (`applicationInsights.properties.InstrumentationKey`), `connectionString` (`applicationInsights.properties.ConnectionString`). All via `BicepRawExpression`.
+- **Param count off-by-one** — Initially wrote test expecting 7 params but generator has 8 (forgot `ingestionMode`). Always recount from the template.
+- **Test count** — 29 tests covering 8 params, `kind` literal, 7-prop `properties` with string literal + param refs, 3 outputs, 1 exported type, emission parity.
+
+### Migration #8 — (à compléter)
 
 ---
 
