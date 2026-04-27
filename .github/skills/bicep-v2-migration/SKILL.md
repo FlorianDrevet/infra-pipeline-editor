@@ -210,13 +210,13 @@ Tests à écrire pour chaque générateur :
 > Cette section est alimentée après chaque migration. Les erreurs récurrentes trouvées en revue
 > doivent être ajoutées ici pour éviter de les reproduire sur les générateurs suivants.
 
-### Migration #1 — (à compléter après UserAssignedIdentity)
-<!-- Format: 
-- **Erreur** : description
-- **Cause** : pourquoi c'est arrivé  
-- **Fix** : ce qui a été corrigé
-- **Règle** : la règle à appliquer pour les suivants
--->
+### Migration #1 — UserAssignedIdentity (Tier 1, 47 LOC)
+- **Observation** : Simplest generator — no types, no companions, no variants, no secure params. Pure happy path.
+- **DI** : No change needed. The existing `IResourceTypeBicepGenerator` registration is sufficient because `ModuleBuildStage` detects `is IResourceTypeBicepSpecGenerator` at runtime.
+- **Legacy `Generate()` kept** : Both `Generate()` and `GenerateSpec()` coexist. `Generate()` is called first, then `GenerateSpec()` overrides if the generator implements the spec interface.
+- **Parity** : Emitter output is semantically identical but has cosmetic differences — blank lines between outputs (emitter adds `\n` before each output). This is acceptable per the skill.
+- **Test count** : 18 tests covering spec structure, params, resource, outputs, interface contracts, emission content, and legacy backward compat.
+- **Règle** : For simple generators with no types/companions, the migration is mechanical: translate the `const string` template into `BicepModuleBuilder` calls. Zero surprises.
 
 ### Migration #2 — (à compléter)
 

@@ -46,11 +46,11 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | |
-| Tests TDD écrits | ⬜ | `tests/.../Generators/UserAssignedIdentityTypeBicepGeneratorTests.cs` |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 47 LOC, 1 template, no types/companions/variants/secure params |
+| Tests TDD écrits | ✅ | `tests/.../Generators/UserAssignedIdentityTypeBicepGeneratorTests.cs` — 18 tests |
+| Migration vers Builder | ✅ | Implements `IResourceTypeBicepSpecGenerator`, `GenerateSpec()` via `BicepModuleBuilder` |
+| Parité d'émission vérifiée | ✅ | Emitter output contains all expected sections; cosmetic: blank lines between outputs |
+| Branché dans le pipeline | ✅ | No DI change needed — `ModuleBuildStage` detects `is IResourceTypeBicepSpecGenerator` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
 | Skill mis à jour avec retours | ⬜ | |
