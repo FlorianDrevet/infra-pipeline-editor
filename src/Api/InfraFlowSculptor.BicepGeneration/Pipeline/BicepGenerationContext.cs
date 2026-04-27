@@ -29,6 +29,14 @@ public sealed class BicepGenerationContext
 
     /// <summary>Final assembly output, populated by <c>AssemblyStage</c>.</summary>
     public GenerationResult? Result { get; set; }
+
+    /// <summary>
+    /// When <c>true</c>, the <see cref="Stages.IrOutputPruningStage"/> is a no-op for this run.
+    /// Used by <see cref="BicepGenerationEngine.GenerateMonoRepo"/> to defer pruning until
+    /// after mono-repo assembly so that pruning operates on the union of demands across
+    /// every per-configuration <c>main.bicep</c>.
+    /// </summary>
+    public bool SkipOutputPruning { get; set; }
 }
 
 /// <summary>

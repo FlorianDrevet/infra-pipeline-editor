@@ -48,21 +48,30 @@ internal static class RoleAssignmentAssembler
 
     /// <summary>
     /// Resolves the Bicep expression for the <c>principalId</c> parameter
-    /// of a role assignment module based on the managed identity type.
+    /// of a role assignment module based on the managed identity type, and registers
+    /// the corresponding <c>{symbol}Module.outputs.principalId</c> usage on
+    /// <paramref name="tracker"/> so the output pruner can keep the output alive.
     /// </summary>
     internal static string ResolvePrincipalIdExpression(
         GroupedRoleAssignment group,
-        IReadOnlyCollection<GeneratedTypeModule> modules)
+        IReadOnlyCollection<GeneratedTypeModule> modules,
+        OutputUsageTracker tracker)
     {
+        const string PrincipalIdOutputName = "principalId";
+
         if (group.ManagedIdentityType == "UserAssigned" && group.UserAssignedIdentityName is not null)
         {
             var uaiIdentifier = BicepIdentifierHelper.ToBicepIdentifier(group.UserAssignedIdentityName);
-            return $"userAssignedIdentity{BicepFormattingHelper.Capitalize(uaiIdentifier)}Module.outputs.principalId";
+            var uaiSymbol = $"userAssignedIdentity{BicepFormattingHelper.Capitalize(uaiIdentifier)}Module";
+            tracker.RegisterUsage(uaiSymbol, PrincipalIdOutputName);
+            return $"{uaiSymbol}.outputs.{PrincipalIdOutputName}";
         }
 
         // SystemAssigned: reference the source resource module's principalId output
         var sourceIdentifier = BicepIdentifierHelper.ToBicepIdentifier(group.SourceResourceName);
         var sourceBaseName = ResourceTypeMetadata.GetBaseModuleName(group.SourceResourceType);
-        return $"{sourceBaseName}{BicepFormattingHelper.Capitalize(sourceIdentifier)}Module.outputs.principalId";
+        var sourceSymbol = $"{sourceBaseName}{BicepFormattingHelper.Capitalize(sourceIdentifier)}Module";
+        tracker.RegisterUsage(sourceSymbol, PrincipalIdOutputName);
+        return $"{sourceSymbol}.outputs.{PrincipalIdOutputName}";
     }
 }

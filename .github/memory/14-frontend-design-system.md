@@ -46,3 +46,7 @@
 - `TranslateService.instant()`-built `DsSelectOption[]` labels are not reactive on language switch; component recreation is required.
 - Reactive-forms demos and showcases must keep DS controls inside a local `FormGroup` container or Angular throws runtime binding errors.
 - `DsTextField` migrations should rely on CVA binding rather than ad hoc `value`/`valueChange` assumptions.
+
+## UI Caveats
+
+- Standalone shared components (e.g. `DockerfilePickerComponent`) embedded in light DS forms must use brand-palette colors (`#0d65c0` family) for triggers/borders, not white-on-white styling. The resource-edit form surfaces are light translucent (`rgba(255,255,255,0.84)`); white triggers become invisible. Verify trigger contrast on the actual host form before shipping a new shared icon control.
