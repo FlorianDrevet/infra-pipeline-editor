@@ -15,6 +15,7 @@ using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration;
 using MediatR;
+using AppPipelineMode = InfraFlowSculptor.GenerationCore.Models.AppPipelineMode;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.GeneratePipeline;
 

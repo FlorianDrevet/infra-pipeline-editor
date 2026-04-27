@@ -1,5 +1,3 @@
-using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Generators;
@@ -44,10 +42,10 @@ public sealed class AppPipelineGenerationEngine
         if (request.ApplicationName is not null)
             request.ApplicationName = PathSanitizer.Sanitize(request.ApplicationName);
 
-        if (!Enum.TryParse<DeploymentMode.DeploymentModeType>(request.DeploymentMode, ignoreCase: true, out _))
+        if (!DeploymentModes.All.Contains(request.DeploymentMode))
         {
             throw new ArgumentException(
-                $"Invalid deployment mode '{request.DeploymentMode}'. Valid values are: {string.Join(", ", Enum.GetNames<DeploymentMode.DeploymentModeType>())}.",
+                $"Invalid deployment mode '{request.DeploymentMode}'. Valid values are: {string.Join(", ", DeploymentModes.All)}.",
                 nameof(request.DeploymentMode));
         }
 

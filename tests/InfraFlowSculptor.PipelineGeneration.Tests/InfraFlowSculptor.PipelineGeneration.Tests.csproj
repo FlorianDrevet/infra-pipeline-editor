@@ -23,4 +23,8 @@
     <ProjectReference Include="..\..\src\Api\InfraFlowSculptor.PipelineGeneration\InfraFlowSculptor.PipelineGeneration.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="GoldenFiles\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

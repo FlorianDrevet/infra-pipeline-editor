@@ -8,7 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\InfraFlowSculptor.Domain\InfraFlowSculptor.Domain.csproj" />
+        <InternalsVisibleTo Include="InfraFlowSculptor.PipelineGeneration.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\InfraFlowSculptor.GenerationCore\InfraFlowSculptor.GenerationCore.csproj" />
     </ItemGroup>
 

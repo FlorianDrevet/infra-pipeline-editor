@@ -14,8 +14,12 @@ using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Pipeline;
 using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 using InfraFlowSculptor.PipelineGeneration;
+using InfraFlowSculptor.PipelineGeneration.Bootstrap;
+using InfraFlowSculptor.PipelineGeneration.Bootstrap.Stages;
 using InfraFlowSculptor.PipelineGeneration.Generators;
 using InfraFlowSculptor.PipelineGeneration.Generators.App;
+using InfraFlowSculptor.PipelineGeneration.Infra;
+using InfraFlowSculptor.PipelineGeneration.Infra.Stages;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using InfraFlowSculptor.Application.Common.Behaviors;
@@ -87,8 +91,23 @@ public static class DependencyInjection
         services.AddSingleton<BicepGenerationPipeline>();
         services.AddSingleton<BicepGenerationEngine>();
 
-        // Pipeline generation engine
+        // Infrastructure pipeline stages
+        services.AddSingleton<IInfraPipelineStage, CiPipelineStage>();
+        services.AddSingleton<IInfraPipelineStage, PrPipelineStage>();
+        services.AddSingleton<IInfraPipelineStage, ReleasePipelineStage>();
+        services.AddSingleton<IInfraPipelineStage, ConfigVarsStage>();
+        services.AddSingleton<IInfraPipelineStage, EnvironmentVarsStage>();
+        services.AddSingleton<InfraPipeline>();
         services.AddSingleton<PipelineGenerationEngine>();
+
+        // Bootstrap pipeline stages
+        services.AddSingleton<IBootstrapPipelineStage, HeaderEmissionStage>();
+        services.AddSingleton<IBootstrapPipelineStage, ValidateSharedResourcesJobStage>();
+        services.AddSingleton<IBootstrapPipelineStage, PipelineProvisionJobStage>();
+        services.AddSingleton<IBootstrapPipelineStage, EnvironmentProvisionJobStage>();
+        services.AddSingleton<IBootstrapPipelineStage, VariableGroupProvisionJobStage>();
+        services.AddSingleton<IBootstrapPipelineStage, NoOpFallbackStage>();
+        services.AddSingleton<BootstrapPipeline>();
         services.AddSingleton<BootstrapPipelineGenerationEngine>();
 
         // Application pipeline generation
