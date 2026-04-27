@@ -171,14 +171,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | `@secure()` param, version normalization (V12→12.0), types.bicep |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 97 LOC, static const template, 2 imports (SqlServerVersion, TlsVersion), 6 params (2 custom types, 1 `@secure()` string), `publicNetworkAccess: 'Enabled'` literal, 2 outputs (id + FQDN), 2 exported types, `NormalizeSqlServerVersion()` helper, Parameters dict + SecureParameters |
+| Tests TDD écrits | ✅ | `tests/.../Generators/SqlServerTypeBicepGeneratorTests.cs` — 30 tests (incl. secure param, V12 normalization) |
+| Migration vers Builder | ✅ | `IResourceTypeBicepSpecGenerator`, first generator with `secure: true` param via Builder API |
+| Parité d'émission vérifiée | ✅ | Module + types emission verified, `@secure()` decorator emitted |
+| Branché dans le pipeline | ✅ | No DI change needed — auto-detected by `ModuleBuildStage` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | |
 
 ### 3.3 — SqlDatabase (91 LOC)
 

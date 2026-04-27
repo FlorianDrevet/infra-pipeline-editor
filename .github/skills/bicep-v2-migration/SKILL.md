@@ -282,7 +282,14 @@ Tests à écrire pour chaque générateur :
 - **Test CreateResource helper with optional Properties** — `CreateResource(Dictionary<string, string>? properties = null)` enables testing default vs override scenarios. Two dedicated tests verify all 6 booleans with defaults and with full overrides.
 - **Test count** — 29 tests covering 3 params, nested sku, tenantId raw expression, 6 dynamic booleans (default + override), 3 outputs, 1 exported type, emission parity with overrides.
 
-### Migration #10 — (à compléter)
+### Migration #10 — SqlServer (Tier 3, 97 LOC)
+- **First generator with `@secure()` param** — `Param("administratorLoginPassword", BicepType.String, secure: true)`. Builder API `secure:` named arg, IR `BicepParam.IsSecure`, emitter prepends `@secure()` decorator. `LegacyTextModuleAdapter.CreateSkeletonModule()` auto-derives `SecureParameters` from `IsSecure` params.
+- **Static const template** — Unlike KeyVault (`BuildModuleTemplate` with dynamic booleans), SqlServer uses a const string template. The `GenerateSpec()` method doesn't read `resource.Properties` — those are only used in legacy `Generate()` for Parameters dict.
+- **`publicNetworkAccess: 'Enabled'`** — Hardcoded `BicepStringLiteral("Enabled")` in resource body. Not a param — always emitted as literal.
+- **`NormalizeSqlServerVersion()`** — Only used in legacy `Generate()` for the Parameters dict. The IR spec always has the default `'12.0'` — normalization is a deployment-time concern, not a Bicep template concern.
+- **Test count** — 30 tests covering 6 params (incl. secure), 5-prop properties, `publicNetworkAccess` literal, 2 outputs, 2 exported types, legacy V12 normalization, SecureParameters, emission parity.
+
+### Migration #11 — (à compléter)
 
 ---
 
