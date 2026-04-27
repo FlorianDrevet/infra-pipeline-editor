@@ -1,3 +1,8 @@
+---
+name: xunit-unit-testing
+description: "Use when: xUnit unit tests, .NET unit tests, test project setup, FluentAssertions, NSubstitute, Verify, Bogus, MockQueryable, coverage, mutation"
+---
+
 # Skill : xunit-unit-testing — Tests unitaires xUnit du projet
 
 > **À charger pour toute création, correction, revue, ou extension de tests unitaires .NET/xUnit dans ce dépôt.**
@@ -13,7 +18,7 @@
 - **Chemin attendu :** `tests/<TargetAssembly>.Tests/<TargetAssembly>.Tests.csproj`.
 - **Référence projet :** un seul `ProjectReference` vers l'assembly testé.
 - **Ne jamais écrire de tests unitaires dans** `tests/InfraFlowSculptor.GenerationParity.Tests`.
-  Ce projet reste réservé aux golden/parity tests byte-for-byte de génération.
+  Ce dossier est conservé vide à part et n'héberge actuellement aucun `.csproj` actif.
 
 Exemples attendus dans ce dépôt :
 
@@ -25,7 +30,7 @@ Exemples attendus dans ce dépôt :
 Pour les moteurs de génération :
 
 - Les **règles algorithmiques atomiques** vont dans un projet `.Tests` dédié.
-- Les **comparaisons d'artefacts complets** restent dans `InfraFlowSculptor.GenerationParity.Tests`.
+- Les **comparaisons d'artefacts complets** peuvent être recréées plus tard dans un harness dédié sous `tests/InfraFlowSculptor.GenerationParity.Tests/`, mais il n'existe pas de projet actif aujourd'hui.
 
 ---
 

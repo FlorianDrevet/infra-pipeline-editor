@@ -10,8 +10,6 @@
 - Build the full solution with `dotnet build .\InfraFlowSculptor.slnx`.
 - Run the full .NET test suite with `dotnet test .\InfraFlowSculptor.slnx`.
 - Run a single .NET test project with `dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj`.
-- Run the generation parity harness with `dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\`.
-- Regenerate golden files with `dotnet test .\tests\InfraFlowSculptor.GenerationParity.Tests\ -p:DefineConstants=REGENERATE_GOLDENS`.
 - Run the full local stack with Aspire via `dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj`.
 - Build the infrastructure configuration API only with `dotnet build .\src\Api\InfraFlowSculptor.Api\InfraFlowSculptor.Api.csproj`.
 - Build the Bicep generator API only with `dotnet build .\src\BicepGenerators\BicepGenerator.Api\BicepGenerator.Api.csproj`.
@@ -21,6 +19,7 @@
   - `npm run build`
   - `npm run typecheck`
 - The repository is also used as a `dotnet new` template source: `dotnet new install .` then `dotnet new templatewebcqrs -o ProjectName`.
+- No active .NET test project is currently checked in; recreate projects under `tests\<TargetAssembly>.Tests\` as needed.
 - Unit test projects belong under `tests\` and follow the `<TargetAssembly>.Tests` naming convention, with one project per target assembly.
 - No repository-specific lint or formatting command is defined in the checked-in files.
 

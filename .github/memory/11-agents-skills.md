@@ -39,7 +39,7 @@
 
 - `dotnet-dev` must load `xunit-unit-testing` for any xUnit unit-test task (creation, review, bug reproduction, snapshots, coverage, mutation).
 - Unit test projects belong under `tests/<TargetAssembly>.Tests/` and target exactly one production assembly.
-- `tests/InfraFlowSculptor.GenerationParity.Tests/` remains reserved for generation parity/golden checks and must not receive ordinary unit tests.
+- `tests/InfraFlowSculptor.GenerationParity.Tests/` is currently just a kept folder without an active `.csproj`; do not place ordinary unit tests there.
 
 ## Skill Concept
 A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when the task justifies it. No tools, composable, lightweight. Skills override pre-training with tested project-specific patterns.

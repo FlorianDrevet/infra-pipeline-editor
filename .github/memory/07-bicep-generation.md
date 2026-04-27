@@ -26,7 +26,7 @@
 - `GenerateProjectPipelineCommandHandler` uploads under `pipeline/project/{id}/{ts}/{infra|app}/...` blob layout and returns 6 result fields: legacy `CommonFileUris`/`ConfigFileUris` (union, backward compat) + new `InfraCommonFileUris`, `AppCommonFileUris`, `InfraConfigFileUris`, `AppConfigFileUris`. `GeneratedPipelinePathNormalizer` strips the leading `infra/`/`app/` segment so legacy AllInOne push handler keeps reading the new layout transparently.
 - 9 handlers bascules in V2 A3 (PushBicepToGit, PushPipelineToGit, GeneratePipeline, PushProjectBicepToGit, PushProjectPipelineToGit, PushProjectBootstrapPipelineToGit, PushProjectGeneratedArtifactsToGit V2-lite, GenerateProjectPipeline, GenerateProjectBootstrapPipeline).
 - `GenerateProjectBicep` + `GenerateProjectPipeline` gate via `Project.CanGenerateAllFromProjectLevel(configs)` → `Errors.GitRouting.AmbiguousProjectLevelGeneration` if heterogeneous.
-- **Parity harness** `tests/InfraFlowSculptor.GenerationParity.Tests/` (xUnit, 35 goldens byte-à-byte). Regenerate: `dotnet test -p:DefineConstants=REGENERATE_GOLDENS`.
+- **Parity placeholder folder** `tests/InfraFlowSculptor.GenerationParity.Tests/` is still present, but it is now empty and the active xUnit `.csproj` was removed on 2026-04-27 to reset the .NET test strategy. Recreate a dedicated test project there before relying on golden-file commands again.
 
 ## Architecture
 - Pure engine in `InfraFlowSculptor.BicepGeneration` (no domain dependency)
