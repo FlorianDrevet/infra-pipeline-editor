@@ -24,7 +24,7 @@ public sealed class GeneratePipelineCommandHandler(
     IProjectRepository projectRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     AppPipelineGenerationEngine appPipelineGenerationEngine,
-    IEnumerable<IResourceTypeBicepGenerator> bicepGenerators,
+    IEnumerable<IResourceTypeBicepSpecGenerator> bicepGenerators,
     IContainerAppRepository containerAppRepository,
     IWebAppRepository webAppRepository,
     IFunctionAppRepository functionAppRepository,

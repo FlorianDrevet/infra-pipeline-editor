@@ -1,4 +1,5 @@
 using FluentAssertions;
+using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.Pipeline;
 using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
@@ -10,17 +11,6 @@ public sealed class TagsInjectionStageTests
 {
     private readonly TagsInjectionStage _sut = new();
 
-    private const string MinimalModuleBicep = """
-        @description('Location for all resources')
-        param location string
-
-        resource kv 'Microsoft.KeyVault/vaults' = {
-          name: 'myKv'
-          location: location
-          properties: {}
-        }
-        """;
-
     [Fact]
     public void Given_Stage_When_CheckOrder_Then_Returns700()
     {
@@ -28,21 +18,22 @@ public sealed class TagsInjectionStageTests
     }
 
     [Fact]
-    public void Given_WorkItem_When_Execute_Then_TagsInjectedIntoModule()
+    public void Given_WorkItem_When_Execute_Then_TagsInjectedIntoSpec()
     {
         // Arrange
-        var context = CreateSingleItemContext(MinimalModuleBicep);
+        var context = CreateSingleItemContext();
 
         // Act
         _sut.Execute(context);
 
         // Assert
-        context.WorkItems[0].Module.ModuleBicepContent.Should().Contain("param tags object");
-        context.WorkItems[0].Module.ModuleBicepContent.Should().Contain("tags: tags");
+        var spec = context.WorkItems[0].Spec;
+        spec.Parameters.Should().Contain(p => p.Name == "tags");
+        spec.Resource.Body.Should().Contain(p => p.Key == "tags");
     }
 
     [Fact]
-    public void Given_MultipleWorkItems_When_Execute_Then_AllModulesReceiveTags()
+    public void Given_MultipleWorkItems_When_Execute_Then_AllSpecsReceiveTags()
     {
         // Arrange
         var resource1 = CreateResource("kv-1", "Microsoft.KeyVault/vaults");
@@ -54,12 +45,14 @@ public sealed class TagsInjectionStageTests
         context.WorkItems.Add(new ModuleWorkItem
         {
             Resource = resource1,
-            Module = new GeneratedTypeModule { ModuleBicepContent = MinimalModuleBicep },
+            Module = new GeneratedTypeModule(),
+            Spec = CreateMinimalSpec(),
         });
         context.WorkItems.Add(new ModuleWorkItem
         {
             Resource = resource2,
-            Module = new GeneratedTypeModule { ModuleBicepContent = MinimalModuleBicep },
+            Module = new GeneratedTypeModule(),
+            Spec = CreateMinimalSpec(),
         });
 
         // Act
@@ -67,38 +60,30 @@ public sealed class TagsInjectionStageTests
 
         // Assert
         context.WorkItems.Should().AllSatisfy(item =>
-            item.Module.ModuleBicepContent.Should().Contain("param tags object"));
+            item.Spec.Parameters.Should().Contain(p => p.Name == "tags"));
     }
 
     [Fact]
-    public void Given_ModuleAlreadyHasTags_When_Execute_Then_NoOpForThatModule()
+    public void Given_SpecAlreadyHasTags_When_Execute_Then_NoOpForThatModule()
     {
         // Arrange
-        const string moduleWithTags = """
-            param location string
-            param tags object = {}
-
-            resource kv 'Microsoft.KeyVault/vaults' = {
-              name: 'myKv'
-              location: location
-              tags: tags
-              properties: {}
-            }
-            """;
-        var context = CreateSingleItemContext(moduleWithTags);
+        var spec = CreateMinimalSpec();
+        spec = spec with
+        {
+            Parameters = spec.Parameters.Append(new BicepParam("tags", BicepType.Object, "tags")).ToList(),
+        };
+        var context = CreateSingleItemContext(spec);
 
         // Act
         _sut.Execute(context);
 
         // Assert — param tags should appear exactly once
-        var paramCount = context.WorkItems[0].Module.ModuleBicepContent
-            .Split("param tags").Length - 1;
-        paramCount.Should().Be(1);
+        context.WorkItems[0].Spec.Parameters.Count(p => p.Name == "tags").Should().Be(1);
     }
 
     // ── Helpers ──
 
-    private static BicepGenerationContext CreateSingleItemContext(string moduleBicep)
+    private static BicepGenerationContext CreateSingleItemContext(BicepModuleSpec? spec = null)
     {
         var resource = CreateResource("my-kv", "Microsoft.KeyVault/vaults");
         var context = new BicepGenerationContext
@@ -108,10 +93,23 @@ public sealed class TagsInjectionStageTests
         context.WorkItems.Add(new ModuleWorkItem
         {
             Resource = resource,
-            Module = new GeneratedTypeModule { ModuleBicepContent = moduleBicep },
+            Module = new GeneratedTypeModule(),
+            Spec = spec ?? CreateMinimalSpec(),
         });
         return context;
     }
+
+    private static BicepModuleSpec CreateMinimalSpec() => new()
+    {
+        ModuleName = "test",
+        ModuleFolderName = "Test",
+        ResourceTypeName = "Test",
+        Resource = new BicepResourceDeclaration
+        {
+            Symbol = "testResource",
+            ArmTypeWithApiVersion = "Microsoft.Test/resources@2024-01-01",
+        },
+    };
 
     private static ResourceDefinition CreateResource(string name, string type) =>
         new() { ResourceId = Guid.NewGuid(), Name = name, Type = type };

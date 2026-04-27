@@ -1,6 +1,7 @@
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Ir;
+using InfraFlowSculptor.BicepGeneration.Ir.Emit;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 
@@ -11,18 +12,18 @@ namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 /// <para><b>Pre-conditions:</b> <see cref="BicepGenerationContext.Request"/> populated.</para>
 /// <para><b>Post-conditions:</b> <see cref="BicepGenerationContext.WorkItems"/> contains one
 /// <see cref="ModuleWorkItem"/> per resource (with the per-resource Bicep template produced by the
-/// matching <see cref="IResourceTypeBicepGenerator"/>) and <see cref="BicepGenerationContext.ResourceIdToInfo"/>
+/// matching <see cref="IResourceTypeBicepSpecGenerator"/>) and <see cref="BicepGenerationContext.ResourceIdToInfo"/>
 /// is populated for parent-reference resolution.</para>
 /// <para>Throws <see cref="NotSupportedException"/> when a resource has no registered generator.</para>
 /// </remarks>
 public sealed class ModuleBuildStage : IBicepGenerationStage
 {
-    private readonly IReadOnlyDictionary<string, IResourceTypeBicepGenerator> _generatorByArmType;
+    private readonly IReadOnlyDictionary<string, IResourceTypeBicepSpecGenerator> _generatorByArmType;
 
     /// <summary>
-    /// Creates the stage with the available <see cref="IResourceTypeBicepGenerator"/> implementations.
+    /// Creates the stage with the available <see cref="IResourceTypeBicepSpecGenerator"/> implementations.
     /// </summary>
-    public ModuleBuildStage(IEnumerable<IResourceTypeBicepGenerator> generators)
+    public ModuleBuildStage(IEnumerable<IResourceTypeBicepSpecGenerator> generators)
     {
         _generatorByArmType = generators.ToDictionary(g => g.ResourceType, g => g, StringComparer.OrdinalIgnoreCase);
     }
@@ -51,22 +52,18 @@ public sealed class ModuleBuildStage : IBicepGenerationStage
                     $"No Bicep generator registered for resource '{resource.Name}' with resource type '{resource.Type}'.");
             }
 
-            // Try IR path first for generators migrated to Builder + IR.
-            BicepModuleSpec? spec = null;
-            var module = generator.Generate(resource);
+            var spec = generator.GenerateSpec(resource);
+            var legacyModule = generator.Generate(resource);
 
-            if (generator is IResourceTypeBicepSpecGenerator specGen)
+            // The IR skeleton carries structural metadata from the spec; preserve
+            // Parameters (user-configured values), CompanionModules, and
+            // ParameterGroupMappings from the legacy Generate() which still owns that data.
+            var module = LegacyTextModuleAdapter.CreateSkeletonModule(spec) with
             {
-                spec = specGen.GenerateSpec(resource);
-                // Preserve Parameters (user-configured values) and CompanionModules from legacy Generate()
-                // — the skeleton only carries structural metadata.
-                module = LegacyTextModuleAdapter.CreateSkeletonModule(spec) with
-                {
-                    Parameters = module.Parameters,
-                    CompanionModules = module.CompanionModules,
-                    ParameterGroupMappings = module.ParameterGroupMappings,
-                };
-            }
+                Parameters = legacyModule.Parameters,
+                CompanionModules = legacyModule.CompanionModules,
+                ParameterGroupMappings = legacyModule.ParameterGroupMappings,
+            };
 
             var resourceIdentifier = BicepIdentifierHelper.ToBicepIdentifier(resource.Name);
             var moduleName = $"{module.ModuleName}{Capitalize(resourceIdentifier)}";
@@ -77,7 +74,7 @@ public sealed class ModuleBuildStage : IBicepGenerationStage
             context.WorkItems.Add(new ModuleWorkItem
             {
                 Resource = resource,
-                Spec = spec,
+                Spec = spec!,
                 Module = module with
                 {
                     ModuleName = moduleName,

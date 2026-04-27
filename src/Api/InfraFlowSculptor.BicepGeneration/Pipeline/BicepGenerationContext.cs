@@ -44,10 +44,11 @@ public sealed class ModuleWorkItem
     public required GeneratedTypeModule Module { get; set; }
 
     /// <summary>
-    /// Structured IR specification for this module. Non-null for generators migrated to Builder + IR.
-    /// When set, pipeline stages apply IR transformers instead of legacy text manipulation.
+    /// Structured IR specification for this module. All generators implement
+    /// <see cref="Generators.IResourceTypeBicepSpecGenerator"/> — pipeline stages apply
+    /// IR transformers exclusively.
     /// </summary>
-    public BicepModuleSpec? Spec { get; set; }
+    public required BicepModuleSpec Spec { get; set; }
 
     /// <summary>Identity kind targeted for this resource (<c>SystemAssigned</c>, <c>UserAssigned</c>,
     /// <c>SystemAssigned, UserAssigned</c>, or <c>null</c> when no identity is required).</summary>

@@ -52,23 +52,24 @@ public static class DependencyInjection
         services.AddScoped<IRoleAssignmentImpactAnalyzer, RoleAssignmentImpactAnalyzer>();
 
         // Bicep generation domain services
-        services.AddSingleton<IResourceTypeBicepGenerator, StorageAccountTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, KeyVaultTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, RedisCacheTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, AppServicePlanTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, WebAppTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, FunctionAppTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, UserAssignedIdentityTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, AppConfigurationTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, ContainerAppEnvironmentTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, ContainerAppTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, LogAnalyticsWorkspaceTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, ApplicationInsightsTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, CosmosDbTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, SqlServerTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, SqlDatabaseTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, ServiceBusNamespaceTypeBicepGenerator>();
-        services.AddSingleton<IResourceTypeBicepGenerator, ContainerRegistryTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, StorageAccountTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, KeyVaultTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, RedisCacheTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, AppServicePlanTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, WebAppTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, FunctionAppTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, UserAssignedIdentityTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, AppConfigurationTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, ContainerAppEnvironmentTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, ContainerAppTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, LogAnalyticsWorkspaceTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, ApplicationInsightsTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, CosmosDbTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, SqlServerTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, SqlDatabaseTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, ServiceBusNamespaceTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, ContainerRegistryTypeBicepGenerator>();
+        services.AddSingleton<IResourceTypeBicepSpecGenerator, EventHubNamespaceTypeBicepGenerator>();
 
         // Bicep generation pipeline (Vague 1 — staged decomposition of the engine).
         // Stages are ordered by IBicepGenerationStage.Order at pipeline construction.

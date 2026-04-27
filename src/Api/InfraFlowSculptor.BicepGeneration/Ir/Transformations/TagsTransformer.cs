@@ -2,7 +2,7 @@ namespace InfraFlowSculptor.BicepGeneration.Ir.Transformations;
 
 /// <summary>
 /// Pure transformations on <see cref="BicepModuleSpec"/> for tags injection.
-/// Replaces the legacy <see cref="TextManipulation.BicepTagsInjector"/> regex operations.
+/// Replaces the legacy regex-based text manipulation operations.
 /// </summary>
 internal static class TagsTransformer
 {

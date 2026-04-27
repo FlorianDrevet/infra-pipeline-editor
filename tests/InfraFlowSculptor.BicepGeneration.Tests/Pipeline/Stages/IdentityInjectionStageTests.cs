@@ -1,8 +1,8 @@
 using FluentAssertions;
+using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.Pipeline;
 using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
-using InfraFlowSculptor.BicepGeneration.TextManipulation;
 using InfraFlowSculptor.GenerationCore.Models;
 
 namespace InfraFlowSculptor.BicepGeneration.Tests.Pipeline.Stages;
@@ -10,18 +10,6 @@ namespace InfraFlowSculptor.BicepGeneration.Tests.Pipeline.Stages;
 public sealed class IdentityInjectionStageTests
 {
     private readonly IdentityInjectionStage _sut = new();
-
-    private const string MinimalModuleBicep = """
-        param location string
-
-        resource webApp 'Microsoft.Web/sites' = {
-          name: 'myApp'
-          location: location
-          properties: {
-            siteConfig: {}
-          }
-        }
-        """;
 
     [Fact]
     public void Given_Stage_When_CheckOrder_Then_Returns400()
@@ -44,7 +32,7 @@ public sealed class IdentityInjectionStageTests
         var item = context.WorkItems[0];
         item.IdentityKind.Should().Be("SystemAssigned");
         item.UsesParameterizedIdentity.Should().BeFalse();
-        item.Module.ModuleBicepContent.Should().Contain("type: 'SystemAssigned'");
+        item.Spec.Resource.Body.Should().Contain(p => p.Key == "identity");
     }
 
     [Fact]
@@ -61,8 +49,8 @@ public sealed class IdentityInjectionStageTests
         // Assert
         var item = context.WorkItems[0];
         item.IdentityKind.Should().Be("UserAssigned");
-        item.Module.ModuleBicepContent.Should().Contain("type: 'UserAssigned'");
-        item.Module.ModuleBicepContent.Should().Contain("userAssignedIdentities:");
+        item.Spec.Resource.Body.Should().Contain(p => p.Key == "identity");
+        item.Spec.Parameters.Should().Contain(p => p.Name == "userAssignedIdentityId");
     }
 
     [Fact]
@@ -95,8 +83,8 @@ public sealed class IdentityInjectionStageTests
         // Assert
         var item = context.WorkItems[0];
         item.UsesParameterizedIdentity.Should().BeTrue();
-        item.Module.ModuleBicepContent.Should().Contain("param identityType ManagedIdentityType");
-        item.Module.ModuleTypesBicepContent.Should().Contain("ManagedIdentityType");
+        item.Spec.Parameters.Should().Contain(p => p.Name == "identityType");
+        item.Spec.ExportedTypes.Should().Contain(t => t.Name == "ManagedIdentityType");
     }
 
     [Fact]
@@ -142,7 +130,8 @@ public sealed class IdentityInjectionStageTests
         context.WorkItems.Add(new ModuleWorkItem
         {
             Resource = resource,
-            Module = new GeneratedTypeModule { ModuleBicepContent = MinimalModuleBicep },
+            Module = new GeneratedTypeModule(),
+            Spec = CreateMinimalSpec(),
         });
 
         // Act
@@ -154,6 +143,18 @@ public sealed class IdentityInjectionStageTests
     }
 
     // ── Helpers ──
+
+    private static BicepModuleSpec CreateMinimalSpec() => new()
+    {
+        ModuleName = "test",
+        ModuleFolderName = "Test",
+        ResourceTypeName = "Test",
+        Resource = new BicepResourceDeclaration
+        {
+            Symbol = "testResource",
+            ArmTypeWithApiVersion = "Microsoft.Test/resources@2024-01-01",
+        },
+    };
 
     private static BicepGenerationContext CreateContextWithWorkItem(
         string resourceName, string armType,
@@ -175,12 +176,6 @@ public sealed class IdentityInjectionStageTests
         var mixedSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (mixed) mixedSet.Add(armType);
 
-        // For mixed: if there's user identity for the same ARM type, add it to userDict
-        if (mixed && userIdentity)
-        {
-            // already added above
-        }
-
         var identity = new IdentityAnalysisResult(systemSet, userDict, mixedSet);
 
         var context = new BicepGenerationContext
@@ -191,7 +186,8 @@ public sealed class IdentityInjectionStageTests
         context.WorkItems.Add(new ModuleWorkItem
         {
             Resource = resource,
-            Module = new GeneratedTypeModule { ModuleBicepContent = MinimalModuleBicep },
+            Module = new GeneratedTypeModule(),
+            Spec = CreateMinimalSpec(),
         });
 
         return context;

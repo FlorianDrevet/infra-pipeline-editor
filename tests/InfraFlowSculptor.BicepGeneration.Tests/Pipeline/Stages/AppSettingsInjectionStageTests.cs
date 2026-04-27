@@ -1,4 +1,5 @@
 using FluentAssertions;
+using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.Pipeline;
 using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
@@ -11,43 +12,6 @@ public sealed class AppSettingsInjectionStageTests
 {
     private readonly AppSettingsInjectionStage _sut = new();
 
-    private const string WebAppModuleBicep = """
-        param location string
-
-        resource webApp 'Microsoft.Web/sites' = {
-          name: 'myApp'
-          location: location
-          properties: {
-            siteConfig: {
-              linuxFxVersion: 'DOTNET|8.0'
-            }
-          }
-        }
-        """;
-
-    private const string ContainerAppModuleBicep = """
-        param location string
-
-        resource containerApp 'Microsoft.App/containerApps' = {
-          name: 'myContainer'
-          location: location
-          properties: {
-            template: {
-              containers: [
-                {
-                  name: 'app'
-                  image: 'img:latest'
-                  resources: {
-                    cpu: '0.5'
-                    memory: '1Gi'
-                  }
-                }
-              ]
-            }
-          }
-        }
-        """;
-
     [Fact]
     public void Given_Stage_When_CheckOrder_Then_Returns600()
     {
@@ -59,14 +23,14 @@ public sealed class AppSettingsInjectionStageTests
     {
         // Arrange
         var context = CreateContext(
-            "my-webapp", AzureResourceTypes.ArmTypes.WebApp, WebAppModuleBicep,
+            "my-webapp", AzureResourceTypes.ArmTypes.WebApp,
             computeArmTypesWithAppSettings: [AzureResourceTypes.ArmTypes.WebApp]);
 
         // Act
         _sut.Execute(context);
 
         // Assert
-        context.WorkItems[0].Module.ModuleBicepContent.Should().Contain("param appSettings array");
+        context.WorkItems[0].Spec.Parameters.Should().Contain(p => p.Name == "appSettings");
     }
 
     [Fact]
@@ -74,30 +38,32 @@ public sealed class AppSettingsInjectionStageTests
     {
         // Arrange
         var context = CreateContext(
-            "my-container", AzureResourceTypes.ArmTypes.ContainerApp, ContainerAppModuleBicep,
+            "my-container", AzureResourceTypes.ArmTypes.ContainerApp,
             computeArmTypesWithAppSettings: [AzureResourceTypes.ArmTypes.ContainerApp]);
 
         // Act
         _sut.Execute(context);
 
         // Assert
-        context.WorkItems[0].Module.ModuleBicepContent.Should().Contain("param envVars array");
+        context.WorkItems[0].Spec.Parameters.Should().Contain(p => p.Name == "envVars");
     }
 
     [Fact]
     public void Given_NonComputeResource_When_Execute_Then_NoChange()
     {
         // Arrange
-        const string kvModule = "param location string\nresource kv 'Microsoft.KeyVault/vaults' = {}";
+        var originalSpec = CreateMinimalSpec();
         var context = CreateContext(
-            "my-kv", AzureResourceTypes.ArmTypes.KeyVault, kvModule,
-            computeArmTypesWithAppSettings: [AzureResourceTypes.ArmTypes.WebApp]);
+            "my-kv", AzureResourceTypes.ArmTypes.KeyVault,
+            computeArmTypesWithAppSettings: [AzureResourceTypes.ArmTypes.WebApp],
+            specOverride: originalSpec);
 
         // Act
         _sut.Execute(context);
 
-        // Assert
-        context.WorkItems[0].Module.ModuleBicepContent.Should().Be(kvModule);
+        // Assert — spec should not have been mutated (no appSettings or envVars param)
+        context.WorkItems[0].Spec.Parameters.Should().NotContain(p => p.Name == "appSettings");
+        context.WorkItems[0].Spec.Parameters.Should().NotContain(p => p.Name == "envVars");
     }
 
     [Fact]
@@ -105,21 +71,34 @@ public sealed class AppSettingsInjectionStageTests
     {
         // Arrange — WebApp type but no app settings target this ARM type
         var context = CreateContext(
-            "my-webapp", AzureResourceTypes.ArmTypes.WebApp, WebAppModuleBicep,
+            "my-webapp", AzureResourceTypes.ArmTypes.WebApp,
             computeArmTypesWithAppSettings: []);
 
         // Act
         _sut.Execute(context);
 
         // Assert
-        context.WorkItems[0].Module.ModuleBicepContent.Should().Be(WebAppModuleBicep);
+        context.WorkItems[0].Spec.Parameters.Should().NotContain(p => p.Name == "appSettings");
     }
 
     // ── Helpers ──
 
+    private static BicepModuleSpec CreateMinimalSpec() => new()
+    {
+        ModuleName = "test",
+        ModuleFolderName = "Test",
+        ResourceTypeName = "Test",
+        Resource = new BicepResourceDeclaration
+        {
+            Symbol = "testResource",
+            ArmTypeWithApiVersion = "Microsoft.Test/resources@2024-01-01",
+        },
+    };
+
     private static BicepGenerationContext CreateContext(
-        string resourceName, string armType, string moduleBicep,
-        HashSet<string> computeArmTypesWithAppSettings)
+        string resourceName, string armType,
+        HashSet<string> computeArmTypesWithAppSettings,
+        BicepModuleSpec? specOverride = null)
     {
         var resource = new ResourceDefinition
         {
@@ -138,7 +117,8 @@ public sealed class AppSettingsInjectionStageTests
         context.WorkItems.Add(new ModuleWorkItem
         {
             Resource = resource,
-            Module = new GeneratedTypeModule { ModuleBicepContent = moduleBicep },
+            Module = new GeneratedTypeModule(),
+            Spec = specOverride ?? CreateMinimalSpec(),
         });
 
         return context;

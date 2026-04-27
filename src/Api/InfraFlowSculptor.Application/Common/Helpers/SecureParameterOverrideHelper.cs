@@ -22,7 +22,7 @@ public static class SecureParameterOverrideHelper
     /// <returns>The list of auto-derived secure parameter override names (not custom-mapped).</returns>
     public static List<string> DeriveSecureParameterOverrides(
         IEnumerable<ResourceDefinition> resources,
-        IEnumerable<IResourceTypeBicepGenerator> generators,
+        IEnumerable<IResourceTypeBicepSpecGenerator> generators,
         IReadOnlyList<SecureParameterMappingReadModel>? secureParameterMappings,
         List<PipelineVariableGroupDefinition> variableGroups)
     {

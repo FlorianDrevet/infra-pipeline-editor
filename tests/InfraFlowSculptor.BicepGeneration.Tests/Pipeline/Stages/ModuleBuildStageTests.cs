@@ -1,5 +1,6 @@
 using FluentAssertions;
 using InfraFlowSculptor.BicepGeneration.Generators;
+using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.Pipeline;
 using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
@@ -10,8 +11,6 @@ namespace InfraFlowSculptor.BicepGeneration.Tests.Pipeline.Stages;
 
 public sealed class ModuleBuildStageTests
 {
-    private const string SampleBicepContent = "resource kv 'Microsoft.KeyVault/vaults' = { name: 'myKv' }";
-
     [Fact]
     public void Given_Stage_When_CheckOrder_Then_Returns300()
     {
@@ -49,9 +48,10 @@ public sealed class ModuleBuildStageTests
         context.WorkItems.Should().ContainSingle();
         var workItem = context.WorkItems[0];
         workItem.Resource.Name.Should().Be("my-keyvault");
-        workItem.Module.ModuleBicepContent.Should().Be(SampleBicepContent);
         workItem.Module.ResourceGroupName.Should().Be("rg-shared");
         workItem.Module.ResourceAbbreviation.Should().Be("kv");
+        workItem.Spec.Should().NotBeNull();
+        workItem.Spec.ModuleName.Should().Be("keyVault");
     }
 
     [Fact]
@@ -149,16 +149,28 @@ public sealed class ModuleBuildStageTests
 
     // ── Helpers ──
 
-    private static IResourceTypeBicepGenerator CreateGenerator(
-        string armType, string typeName, string moduleName = "module")
+    private static IResourceTypeBicepSpecGenerator CreateGenerator(
+        string armType, string typeName, string moduleName = "keyVault")
     {
-        var generator = Substitute.For<IResourceTypeBicepGenerator>();
+        var spec = new BicepModuleSpec
+        {
+            ModuleName = moduleName,
+            ModuleFolderName = typeName,
+            ResourceTypeName = typeName,
+            Resource = new BicepResourceDeclaration
+            {
+                Symbol = "kv",
+                ArmTypeWithApiVersion = $"{armType}@2024-01-01",
+            },
+        };
+
+        var generator = Substitute.For<IResourceTypeBicepSpecGenerator>();
         generator.ResourceType.Returns(armType);
         generator.ResourceTypeName.Returns(typeName);
+        generator.GenerateSpec(Arg.Any<ResourceDefinition>()).Returns(spec);
         generator.Generate(Arg.Any<ResourceDefinition>()).Returns(new GeneratedTypeModule
         {
             ModuleName = moduleName,
-            ModuleBicepContent = SampleBicepContent,
             ModuleFileName = "kv.module.bicep",
             ModuleFolderName = typeName,
             ResourceTypeName = typeName,

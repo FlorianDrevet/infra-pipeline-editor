@@ -4,7 +4,7 @@ namespace InfraFlowSculptor.BicepGeneration.Ir.Transformations;
 
 /// <summary>
 /// Pure transformations on <see cref="BicepModuleSpec"/> for app-settings / env-vars injection.
-/// Replaces the legacy <see cref="TextManipulation.BicepAppSettingsInjector"/> regex operations.
+/// Replaces the legacy regex-based text manipulation operations.
 /// </summary>
 internal static class AppSettingsTransformer
 {

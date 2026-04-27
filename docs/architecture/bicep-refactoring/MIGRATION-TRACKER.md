@@ -298,12 +298,12 @@
 
 | # | Tâche | Statut | Notes |
 |---|-------|--------|-------|
-| 6.1 | Supprimer `LegacyTextModuleAdapter` (plus de générateurs legacy) | ⬜ | |
-| 6.2 | Supprimer `TextManipulation/` (regex devenues inutiles) | ⬜ | |
-| 6.3 | Nettoyer les tests legacy des TextManipulation | ⬜ | |
-| 6.4 | Retirer le dual-mode des stages (IR only) | ⬜ | |
+| 6.1 | Supprimer `LegacyTextModuleAdapter` (plus de générateurs legacy) | ⬜ | Renommage optionnel futur — adapter conservé, c'est le bridge IR→DTO |
+| 6.2 | Supprimer `TextManipulation/` (regex devenues inutiles) | ✅ | 5 injectors supprimés, `BicepOutputPruner` conservé (post-assembly) |
+| 6.3 | Nettoyer les tests legacy des TextManipulation | ✅ | 5 test files supprimés (61 tests), `BicepOutputPrunerTests` conservé |
+| 6.4 | Retirer le dual-mode des stages (IR only) | ✅ | Stages IR-only, `Spec` required, DI → `IResourceTypeBicepSpecGenerator`, App-layer updated |
 | 6.5 | Review finale de l'architecture IR | ⬜ | |
-| 6.6 | Mise à jour mémoire projet | ⬜ | |
+| 6.6 | Mise à jour mémoire projet | ✅ | Changelog + tracker mis à jour |
 
 ---
 
@@ -311,14 +311,14 @@
 
 | Phase | Total étapes | Terminées | Progression |
 |-------|-------------|-----------|-------------|
-| Phase 0 — Infra IR | 9 | 0 | 0% |
-| Phase 1 — Tier 1 (×4) | 32 | 0 | 0% |
-| Phase 2 — Tier 2 (×4) | 32 | 0 | 0% |
-| Phase 3 — Tier 3 (×6) | 48 | 0 | 0% |
-| Phase 4 — Tier 4 (×2) | 16 | 0 | 0% |
-| Phase 5 — Tier 5 (×2) | 16 | 0 | 0% |
-| Phase 6 — Finalisation | 6 | 0 | 0% |
-| **Total** | **159** | **0** | **0%** |
+| Phase 0 — Infra IR | 9 | 9 | 100% |
+| Phase 1 — Tier 1 (×4) | 32 | 32 | 100% |
+| Phase 2 — Tier 2 (×4) | 32 | 32 | 100% |
+| Phase 3 — Tier 3 (×6) | 48 | 48 | 100% |
+| Phase 4 — Tier 4 (×2) | 16 | 16 | 100% |
+| Phase 5 — Tier 5 (×2) | 16 | 16 | 100% |
+| Phase 6 — Finalisation | 6 | 4 | 67% |
+| **Total** | **159** | **157** | **99%** |
 
 ---
 

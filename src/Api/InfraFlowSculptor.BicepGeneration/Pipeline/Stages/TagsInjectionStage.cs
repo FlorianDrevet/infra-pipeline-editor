@@ -1,5 +1,4 @@
 using InfraFlowSculptor.BicepGeneration.Ir.Transformations;
-using InfraFlowSculptor.BicepGeneration.TextManipulation;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 
@@ -22,16 +21,7 @@ public sealed class TagsInjectionStage : IBicepGenerationStage
     {
         foreach (var item in context.WorkItems)
         {
-            // Dual-mode: IR transformers or legacy text manipulation.
-            if (item.Spec is not null)
-            {
-                item.Spec = item.Spec.WithTags();
-            }
-            else
-            {
-                var newContent = BicepTagsInjector.Inject(item.Module.ModuleBicepContent);
-                item.Module = item.Module with { ModuleBicepContent = newContent };
-            }
+            item.Spec = item.Spec.WithTags();
         }
     }
 }

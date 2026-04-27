@@ -1,4 +1,5 @@
 using FluentAssertions;
+using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.Pipeline;
 using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
@@ -151,6 +152,7 @@ public sealed class ParentReferenceResolutionStageTests
         {
             Resource = appInsightsResource,
             Module = new GeneratedTypeModule(),
+            Spec = CreateMinimalSpec(),
         });
 
         // Act
@@ -206,6 +208,7 @@ public sealed class ParentReferenceResolutionStageTests
         {
             Resource = resource,
             Module = new GeneratedTypeModule(),
+            Spec = CreateMinimalSpec(),
             IdentityKind = "SystemAssigned",
             UsesParameterizedIdentity = true,
         });
@@ -243,6 +246,18 @@ public sealed class ParentReferenceResolutionStageTests
 
     // ── Helpers ──
 
+    private static BicepModuleSpec CreateMinimalSpec() => new()
+    {
+        ModuleName = "test",
+        ModuleFolderName = "Test",
+        ResourceTypeName = "Test",
+        Resource = new BicepResourceDeclaration
+        {
+            Symbol = "testResource",
+            ArmTypeWithApiVersion = "Microsoft.Test/resources@2024-01-01",
+        },
+    };
+
     private static BicepGenerationContext CreateContext(
         ResourceDefinition[] resources,
         Dictionary<Guid, (string Name, string ResourceTypeName)> resourceIdToInfo)
@@ -258,6 +273,7 @@ public sealed class ParentReferenceResolutionStageTests
             {
                 Resource = resource,
                 Module = new GeneratedTypeModule(),
+                Spec = CreateMinimalSpec(),
             });
         }
         return context;
@@ -276,6 +292,7 @@ public sealed class ParentReferenceResolutionStageTests
         {
             Resource = workItemResource,
             Module = new GeneratedTypeModule(),
+            Spec = CreateMinimalSpec(),
         });
         return context;
     }

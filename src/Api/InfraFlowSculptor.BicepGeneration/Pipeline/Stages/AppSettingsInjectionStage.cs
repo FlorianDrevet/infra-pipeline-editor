@@ -1,5 +1,4 @@
 using InfraFlowSculptor.BicepGeneration.Ir.Transformations;
-using InfraFlowSculptor.BicepGeneration.TextManipulation;
 using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
@@ -34,16 +33,7 @@ public sealed class AppSettingsInjectionStage : IBicepGenerationStage
             if (!computeArmTypesWithAppSettings.Contains(resource.Type))
                 continue;
 
-            // Dual-mode: IR transformers or legacy text manipulation.
-            if (item.Spec is not null)
-            {
-                item.Spec = item.Spec.WithAppSettings(resource.Type);
-            }
-            else
-            {
-                var newContent = BicepAppSettingsInjector.Inject(item.Module.ModuleBicepContent, resource.Type);
-                item.Module = item.Module with { ModuleBicepContent = newContent };
-            }
+            item.Spec = item.Spec.WithAppSettings(resource.Type);
         }
     }
 }

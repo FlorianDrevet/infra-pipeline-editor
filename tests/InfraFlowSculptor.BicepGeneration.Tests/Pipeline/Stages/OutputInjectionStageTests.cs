@@ -1,4 +1,5 @@
 using FluentAssertions;
+using InfraFlowSculptor.BicepGeneration.Ir;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.BicepGeneration.Pipeline;
 using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
@@ -10,16 +11,6 @@ public sealed class OutputInjectionStageTests
 {
     private readonly OutputInjectionStage _sut = new();
 
-    private const string ModuleWithResource = """
-        param location string
-
-        resource kv 'Microsoft.KeyVault/vaults' = {
-          name: 'myKv'
-          location: location
-          properties: {}
-        }
-        """;
-
     [Fact]
     public void Given_Stage_When_CheckOrder_Then_Returns500()
     {
@@ -27,47 +18,45 @@ public sealed class OutputInjectionStageTests
     }
 
     [Fact]
-    public void Given_WorkItemWithSourceOutputs_When_Execute_Then_OutputsInjectedIntoModule()
+    public void Given_WorkItemWithSourceOutputs_When_Execute_Then_OutputsInjectedIntoSpec()
     {
         // Arrange
-        var context = CreateContext("my-kv", ModuleWithResource,
+        var context = CreateContext("my-kv",
             ("my-kv", [("vaultUri", "kv.properties.vaultUri", false)]));
 
         // Act
         _sut.Execute(context);
 
         // Assert
-        context.WorkItems[0].Module.ModuleBicepContent
-            .Should().Contain("output vaultUri string = kv.properties.vaultUri");
+        context.WorkItems[0].Spec.Outputs.Should().Contain(o => o.Name == "vaultUri");
     }
 
     [Fact]
-    public void Given_WorkItemNotInOutputsBySource_When_Execute_Then_ModuleUnchanged()
+    public void Given_WorkItemNotInOutputsBySource_When_Execute_Then_SpecUnchanged()
     {
         // Arrange
-        var context = CreateContext("my-redis", ModuleWithResource,
+        var context = CreateContext("my-redis", CreateMinimalSpec(),
             ("my-kv", [("vaultUri", "kv.properties.vaultUri", false)]));
 
         // Act
         _sut.Execute(context);
 
         // Assert
-        context.WorkItems[0].Module.ModuleBicepContent.Trim()
-            .Should().Be(ModuleWithResource.Trim());
+        context.WorkItems[0].Spec.Outputs.Should().BeEmpty();
     }
 
     [Fact]
     public void Given_SecureOutput_When_Execute_Then_SecureDecoratorAdded()
     {
         // Arrange
-        var context = CreateContext("my-kv", ModuleWithResource,
+        var context = CreateContext("my-kv",
             ("my-kv", [("secretValue", "kv.properties.secretUri", true)]));
 
         // Act
         _sut.Execute(context);
 
         // Assert
-        context.WorkItems[0].Module.ModuleBicepContent.Should().Contain("@secure()");
+        context.WorkItems[0].Spec.Outputs.Should().Contain(o => o.Name == "secretValue" && o.IsSecure);
     }
 
     [Fact]
@@ -88,22 +77,39 @@ public sealed class OutputInjectionStageTests
         context.WorkItems.Add(new ModuleWorkItem
         {
             Resource = resource,
-            Module = new GeneratedTypeModule { ModuleBicepContent = ModuleWithResource },
+            Module = new GeneratedTypeModule(),
+            Spec = CreateMinimalSpec(),
         });
 
         // Act
         _sut.Execute(context);
 
         // Assert
-        context.WorkItems[0].Module.ModuleBicepContent.Trim()
-            .Should().Be(ModuleWithResource.Trim());
+        context.WorkItems[0].Spec.Outputs.Should().BeEmpty();
     }
 
     // ── Helpers ──
 
+    private static BicepModuleSpec CreateMinimalSpec() => new()
+    {
+        ModuleName = "test",
+        ModuleFolderName = "Test",
+        ResourceTypeName = "Test",
+        Resource = new BicepResourceDeclaration
+        {
+            Symbol = "kv",
+            ArmTypeWithApiVersion = "Microsoft.KeyVault/vaults@2024-01-01",
+        },
+    };
+
     private static BicepGenerationContext CreateContext(
         string workItemResourceName,
-        string moduleBicep,
+        params (string SourceName, List<(string OutputName, string BicepExpr, bool IsSecure)> Outputs)[] outputEntries)
+        => CreateContext(workItemResourceName, null, outputEntries);
+
+    private static BicepGenerationContext CreateContext(
+        string workItemResourceName,
+        BicepModuleSpec? specOverride,
         params (string SourceName, List<(string OutputName, string BicepExpr, bool IsSecure)> Outputs)[] outputEntries)
     {
         var resource = new ResourceDefinition
@@ -129,7 +135,8 @@ public sealed class OutputInjectionStageTests
         context.WorkItems.Add(new ModuleWorkItem
         {
             Resource = resource,
-            Module = new GeneratedTypeModule { ModuleBicepContent = moduleBicep },
+            Module = new GeneratedTypeModule(),
+            Spec = specOverride ?? CreateMinimalSpec(),
         });
 
         return context;

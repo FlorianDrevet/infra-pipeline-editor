@@ -25,9 +25,6 @@ public sealed class SpecEmissionStage : IBicepGenerationStage
     {
         foreach (var item in context.WorkItems)
         {
-            if (item.Spec is null)
-                continue;
-
             item.Module = LegacyTextModuleAdapter.EmitContent(item.Module, item.Spec, _emitter);
         }
     }

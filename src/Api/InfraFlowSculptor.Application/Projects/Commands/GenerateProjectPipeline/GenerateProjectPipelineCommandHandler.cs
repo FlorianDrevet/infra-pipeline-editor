@@ -28,7 +28,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
     IInfrastructureConfigReadRepository configReadRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     AppPipelineGenerationEngine appPipelineGenerationEngine,
-    IEnumerable<IResourceTypeBicepGenerator> bicepGenerators,
+    IEnumerable<IResourceTypeBicepSpecGenerator> bicepGenerators,
     IContainerAppRepository containerAppRepository,
     IWebAppRepository webAppRepository,
     IFunctionAppRepository functionAppRepository,
@@ -236,7 +236,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
         InfrastructureConfigReadModel config,
         List<Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup> projectVariableGroups,
         Domain.ProjectAggregate.Project? project,
-        IEnumerable<IResourceTypeBicepGenerator> generators,
+        IEnumerable<IResourceTypeBicepSpecGenerator> generators,
         string? bicepBasePath)
     {
         var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
