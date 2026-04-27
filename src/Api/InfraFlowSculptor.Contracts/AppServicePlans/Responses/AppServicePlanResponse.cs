@@ -15,5 +15,8 @@ public record AppServicePlanResponse(
     string Name,
     string Location,
     string OsType,
-    IReadOnlyList<AppServicePlanEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<AppServicePlanEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

@@ -76,7 +76,7 @@ internal static class StorageAccountCompanionHelper
             return;
         }
 
-        sb.AppendLine($"param {parameterName} = ");
+        sb.Append($"param {parameterName} = ");
         foreach (var line in RenderCorsRules(corsRules))
         {
             sb.AppendLine(line);
@@ -139,7 +139,7 @@ internal static class StorageAccountCompanionHelper
             return;
         }
 
-        sb.AppendLine($"param {parameterName} = ");
+        sb.Append($"param {parameterName} = ");
         foreach (var line in RenderLifecycleRules(rules))
         {
             sb.AppendLine(line);
@@ -193,6 +193,9 @@ internal static class StorageAccountCompanionHelper
         }
 
         sb.AppendLine("  }");
+        sb.AppendLine($"  dependsOn: [");
+        sb.AppendLine($"    {module.ModuleName}Module");
+        sb.AppendLine("  ]");
         sb.AppendLine("}");
         sb.AppendLine();
     }

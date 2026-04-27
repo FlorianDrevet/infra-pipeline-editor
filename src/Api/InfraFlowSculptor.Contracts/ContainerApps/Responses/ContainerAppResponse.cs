@@ -10,8 +10,12 @@ public record ContainerAppResponse(
     string Location,
     string ContainerAppEnvironmentId,
     string? ContainerRegistryId,
+    string? AcrAuthMode,
     string? DockerImageName,
     string? DockerfilePath,
     string? ApplicationName,
-    IReadOnlyList<ContainerAppEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<ContainerAppEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

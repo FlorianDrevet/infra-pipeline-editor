@@ -5,29 +5,40 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse, ProjectPipelineVariableGroupResponse, SetProjectTagsRequest } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, ProjectMemberResponse, GenerateProjectBicepResponse, GenerateProjectPipelineResponse, GenerateProjectBootstrapPipelineResponse, ProjectPipelineVariableGroupResponse, SetProjectTagsRequest } from '../../shared/interfaces/project.interface';
 import {
   InfrastructureConfigResponse,
   EnvironmentDefinitionResponse,
   ResourceNamingTemplateResponse,
+  ResourceAbbreviationOverrideResponse,
+  SetResourceAbbreviationOverrideRequest,
   TagRequest,
 } from '../../shared/interfaces/infra-config.interface';
 import { UserResponse } from '../../shared/interfaces/infra-config.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { AuthenticationService } from '../../shared/services/authentication.service';
+import {
+  DsButtonComponent,
+  DsPanelActionButtonComponent,
+  DsSelectComponent,
+  DsSelectOption,
+  DsTextFieldComponent,
+} from '../../shared/components/ds';
 import { RecentlyViewedService } from '../../shared/services/recently-viewed.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  EditAbbreviationDialogComponent,
+  EditAbbreviationDialogData,
+  EditAbbreviationDialogResult,
+} from '../../shared/components/edit-abbreviation-dialog/edit-abbreviation-dialog.component';
 import { AddProjectMemberDialogComponent, AddProjectMemberDialogData } from './add-project-member-dialog/add-project-member-dialog.component';
 import { AddConfigDialogComponent, AddConfigDialogData } from './add-config-dialog/add-config-dialog.component';
 import {
@@ -39,15 +50,20 @@ import {
   AddProjectNamingTemplateDialogData,
   AddProjectNamingTemplateDialogResult,
 } from './add-project-naming-template-dialog/add-project-naming-template-dialog.component';
-import { GitConfigDialogComponent, GitConfigDialogData } from './git-config-dialog/git-config-dialog.component';
+import { LayoutRepositoriesComponent } from './layout-repositories/layout-repositories.component';
+import { SplitGenerationSwitcherComponent } from './split-generation-switcher/split-generation-switcher.component';
+import {
+  MultiRepoPushDialogComponent,
+  MultiRepoPushDialogData,
+} from './multi-repo-push-dialog/multi-repo-push-dialog.component';
 import {
   PushToGitDialogComponent,
   PushToGitDialogData,
 } from '../config-detail/push-to-git-dialog/push-to-git-dialog.component';
-import { RESOURCE_TYPE_OPTIONS } from '../config-detail/enums/resource-type.enum';
-import { TestGitConnectionResponse } from '../../shared/interfaces/project.interface';
+import { RESOURCE_TYPE_OPTIONS, RESOURCE_TYPE_ABBREVIATIONS, RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
 import { AddVariableGroupDialogComponent } from '../config-detail/add-variable-group-dialog/add-variable-group-dialog.component';
 import { saveAs } from 'file-saver';
+import JSZip from 'jszip';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepFileType, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
@@ -61,10 +77,118 @@ import {
 import { ResourceGroupService } from '../../shared/services/resource-group.service';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { firstValueFrom } from 'rxjs';
+import { MultiRepoPushMode } from '../../shared/interfaces/multi-repo-push.interface';
+import {
+  GeneratedArtifactArchiveSourceSpec,
+  tryResolveGeneratedArtifactEntryPath,
+} from './project-generated-artifact-paths';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
 const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit', Reader: 'visibility' };
+
+interface CombinedArtifactArchiveSource extends GeneratedArtifactArchiveSourceSpec {
+  archivePromise: Promise<Blob>;
+}
+
+function ensureTreeFolderNode(
+  nodes: BicepTreeNode[],
+  key: string,
+  name: string,
+  depth: number,
+  parentFolderKey?: string,
+  folderIcon: BicepFolderNode['folderIcon'] = 'folder',
+): void {
+  if (nodes.some((node) => node.kind === 'folder' && node.key === key)) {
+    return;
+  }
+
+  nodes.push({
+    kind: 'folder',
+    key,
+    name,
+    folderIcon,
+    depth,
+    parentFolderKey,
+  } satisfies BicepFolderNode);
+}
+
+function appendTreeFileNode(
+  nodes: BicepTreeNode[],
+  rootKey: string,
+  backendPath: string,
+  relativePath: string,
+): void {
+  const parts = relativePath.split('/').filter((part) => part.length > 0);
+  if (parts.length === 0) {
+    return;
+  }
+
+  let parentKey = rootKey;
+  for (let index = 0; index < parts.length - 1; index++) {
+    const folderKey = `${rootKey}/${parts.slice(0, index + 1).join('/')}`;
+    ensureTreeFolderNode(nodes, folderKey, `${parts[index]}/`, index + 1, parentKey);
+    parentKey = folderKey;
+  }
+
+  nodes.push({
+    kind: 'file',
+    path: backendPath,
+    displayName: parts[parts.length - 1],
+    type: 'generic',
+    uri: backendPath,
+    depth: parts.length,
+    parentFolderKey: parentKey,
+  } satisfies BicepFileNode);
+}
+
+function buildAzureDevOpsNodes(
+  commonFileUris: Record<string, string>,
+  configFileUris: Record<string, Record<string, string>>,
+): BicepTreeNode[] {
+  const nodes: BicepTreeNode[] = [];
+  const commonEntries = Object.keys(commonFileUris ?? {});
+  const configEntries = Object.entries(configFileUris ?? {});
+
+  if (commonEntries.length === 0 && configEntries.length === 0) {
+    return nodes;
+  }
+
+  ensureTreeFolderNode(nodes, '.azuredevops', '.azuredevops/', 0, undefined, 'folder_shared');
+
+  for (const filePath of commonEntries) {
+    const relativePath = filePath.startsWith('.azuredevops/')
+      ? filePath.slice('.azuredevops/'.length)
+      : filePath;
+
+    if (!relativePath) {
+      continue;
+    }
+
+    appendTreeFileNode(nodes, '.azuredevops', filePath, relativePath);
+  }
+
+  for (const [configName, files] of configEntries) {
+    for (const filePath of Object.keys(files)) {
+      const backendPath = filePath.startsWith('.azuredevops/')
+        ? filePath
+        : filePath.startsWith(`${configName}/`)
+          ? filePath
+          : `${configName}/${filePath}`;
+      const relativePath = backendPath.startsWith('.azuredevops/')
+        ? backendPath.slice('.azuredevops/'.length)
+        : backendPath;
+
+      if (!relativePath) {
+        continue;
+      }
+
+      appendTreeFileNode(nodes, '.azuredevops', backendPath, relativePath);
+    }
+  }
+
+  return nodes;
+}
 
 @Component({
   selector: 'app-project-detail',
@@ -75,18 +199,21 @@ const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit
     FormsModule,
     ReactiveFormsModule,
     BicepFilePanelComponent,
+    LayoutRepositoriesComponent,
+    SplitGenerationSwitcherComponent,
     MatButtonModule,
     MatButtonToggleModule,
     MatChipsModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
+    DsButtonComponent,
+    DsPanelActionButtonComponent,
+    DsSelectComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
@@ -126,9 +253,11 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly roles = ROLES;
   protected readonly resourceTypeOptions = RESOURCE_TYPE_OPTIONS;
 
-  // ─── Repository Mode ───
-  protected readonly repoModeSaving = signal(false);
-  protected readonly repoModeError = signal('');
+  private readonly translateService = inject(TranslateService);
+  protected readonly roleDsOptions: DsSelectOption[] = ROLES.map((role) => ({
+    value: role,
+    label: this.translateService.instant('PROJECT_DETAIL.MEMBERS.ROLE_' + role.toUpperCase()),
+  }));
 
   // ─── Project Tags ───
   protected readonly isEditingProjectTags = signal(false);
@@ -139,8 +268,6 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly tagValueCtrl = new FormControl('', { nonNullable: true });
 
   protected readonly projectTags = computed(() => this.project()?.tags ?? []);
-
-  protected readonly isMonoRepo = computed(() => this.project()?.repositoryMode === 'MonoRepo');
 
   // ─── Agent Pool ───
   protected readonly agentPoolLoading = signal(false);
@@ -154,17 +281,31 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectBicepLoading = signal(false);
   protected readonly projectBicepResult = signal<GenerateProjectBicepResponse | null>(null);
   protected readonly projectBicepDownloading = signal(false);
+  protected readonly projectInfraArtifactsDownloading = signal(false);
   protected readonly projectBicepErrorKey = signal('');
   protected readonly projectBicepPanelOpen = signal(false);
-  protected readonly projectBicepPanelCollapsed = signal(false);
+  protected readonly projectGenerationPanelCollapsed = signal(false);
 
   // ─── Project Pipeline Generation (mono-repo) ───
   protected readonly projectPipelineLoading = signal(false);
   protected readonly projectPipelineResult = signal<GenerateProjectPipelineResponse | null>(null);
   protected readonly projectPipelineDownloading = signal(false);
+  protected readonly projectCodeArtifactsDownloading = signal(false);
   protected readonly projectPipelineErrorKey = signal('');
   protected readonly projectPipelinePanelOpen = signal(false);
-  protected readonly projectPipelinePanelCollapsed = signal(false);
+
+  // ─── Project Bootstrap Pipeline Generation (Azure DevOps) ───
+  protected readonly projectBootstrapLoading = signal(false);
+  protected readonly projectBootstrapResult = signal<GenerateProjectBootstrapPipelineResponse | null>(null);
+  protected readonly projectBootstrapDownloading = signal(false);
+  protected readonly projectBootstrapErrorKey = signal('');
+  protected readonly projectBootstrapPanelOpen = signal(false);
+  protected readonly canPushAllProjectArtifacts = computed(
+    () => this.projectBicepResult() !== null
+      && this.projectPipelineResult() !== null
+      && this.projectBootstrapResult() !== null,
+  );
+  protected readonly isSplitInfraCodeLayout = computed(() => this.project()?.layoutPreset === 'SplitInfraCode');
 
   // ─── Pipeline Variable Groups ───
   protected readonly variableGroups = signal<ProjectPipelineVariableGroupResponse[]>([]);
@@ -224,12 +365,31 @@ export class ProjectDetailComponent implements OnInit {
     for (const [configName, files] of Object.entries(result.configFileUris)) {
       nodes.push({ kind: 'folder', key: configName, name: `${configName}/`, folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
       for (const [fileName, uri] of Object.entries(files)) {
-        const type: BicepFileType =
-          fileName === 'main.bicep' ? 'entry-point'
-          : fileName.endsWith('.bicepparam') ? 'params'
-          : fileName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
-          : 'generic';
-        nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: fileName.split('/').at(-1)!, type, uri: `${configName}/${fileName}`, depth: 1, parentFolderKey: configName } satisfies BicepFileNode);
+        const parts = fileName.split('/');
+        if (parts.length > 1) {
+          // File is nested (e.g. "parameters/main.dev.bicepparam") — create intermediate folder nodes.
+          let parentKey = configName;
+          for (let i = 0; i < parts.length - 1; i++) {
+            const folderKey = `${configName}/${parts.slice(0, i + 1).join('/')}`;
+            if (!nodes.some(n => n.kind === 'folder' && n.key === folderKey)) {
+              nodes.push({ kind: 'folder', key: folderKey, name: `${parts[i]}/`, folderIcon: 'folder', depth: i + 1, parentFolderKey: parentKey } satisfies BicepFolderNode);
+            }
+            parentKey = folderKey;
+          }
+          const displayName = parts[parts.length - 1];
+          const type: BicepFileType =
+            displayName.endsWith('.bicepparam') ? 'params'
+            : displayName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
+            : 'generic';
+          nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName, type, uri: `${configName}/${fileName}`, depth: parts.length, parentFolderKey: parentKey } satisfies BicepFileNode);
+        } else {
+          const type: BicepFileType =
+            fileName === 'main.bicep' ? 'entry-point'
+            : fileName.endsWith('.bicepparam') ? 'params'
+            : fileName.endsWith('.roleassignments.module.bicep') ? 'role-assignments'
+            : 'generic';
+          nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: fileName, type, uri: `${configName}/${fileName}`, depth: 1, parentFolderKey: configName } satisfies BicepFileNode);
+        }
       }
     }
 
@@ -244,75 +404,7 @@ export class ProjectDetailComponent implements OnInit {
   protected readonly projectPipelineNodes = computed<BicepTreeNode[]>(() => {
     const result = this.projectPipelineResult();
     if (!result) return [];
-    const nodes: BicepTreeNode[] = [];
-
-    // ── .azuredevops/ common folder ──
-    if (result.commonFileUris && Object.keys(result.commonFileUris).length > 0) {
-      nodes.push({ kind: 'folder', key: '.azuredevops', name: '.azuredevops/', folderIcon: 'folder_shared', depth: 0 } satisfies BicepFolderNode);
-
-      // Group common files by subfolder (e.g. "pipelines", "jobs", "steps")
-      const subfolderMap = new Map<string, Array<{ path: string; displayName: string }>>();
-      for (const [key] of Object.entries(result.commonFileUris)) {
-        // Keys are like ".azuredevops/pipelines/ci.pipeline.yml"
-        const relativePath = key.startsWith('.azuredevops/') ? key.slice('.azuredevops/'.length) : key;
-        const parts = relativePath.split('/');
-        if (parts.length >= 3) {
-          // e.g. "pipelines" → folder, "ci.pipeline.yml" → file
-          const subfolderKey = parts.slice(0, parts.length - 1).join('/');
-          if (!subfolderMap.has(subfolderKey)) subfolderMap.set(subfolderKey, []);
-          subfolderMap.get(subfolderKey)!.push({ path: key, displayName: parts[parts.length - 1] });
-        } else if (parts.length === 2) {
-          const subfolderKey = parts[0];
-          if (!subfolderMap.has(subfolderKey)) subfolderMap.set(subfolderKey, []);
-          subfolderMap.get(subfolderKey)!.push({ path: key, displayName: parts[1] });
-        } else {
-          // File directly under .azuredevops/
-          nodes.push({ kind: 'file', path: key, displayName: parts[0], type: 'generic', uri: key, depth: 1, parentFolderKey: '.azuredevops' } satisfies BicepFileNode);
-        }
-      }
-
-      for (const [subfolderPath, files] of subfolderMap) {
-        // Build nested folder structure: .azuredevops > pipelines|jobs|steps
-        const subParts = subfolderPath.split('/');
-        let parentKey = '.azuredevops';
-        for (let i = 0; i < subParts.length; i++) {
-          const folderKey = `.azuredevops/${subParts.slice(0, i + 1).join('/')}`;
-          // Only push if not already added
-          if (!nodes.some(n => n.kind === 'folder' && n.key === folderKey)) {
-            nodes.push({ kind: 'folder', key: folderKey, name: `${subParts[i]}/`, folderIcon: 'folder', depth: i + 1, parentFolderKey: parentKey } satisfies BicepFolderNode);
-          }
-          parentKey = folderKey;
-        }
-        // Push files under the deepest subfolder
-        for (const file of files) {
-          nodes.push({ kind: 'file', path: file.path, displayName: file.displayName, type: 'generic', uri: file.path, depth: subParts.length + 1, parentFolderKey: parentKey } satisfies BicepFileNode);
-        }
-      }
-    }
-
-    // ── Per-config folders ──
-    for (const [configName, files] of Object.entries(result.configFileUris)) {
-      nodes.push({ kind: 'folder', key: configName, name: `${configName}/`, folderIcon: 'folder', depth: 0 } satisfies BicepFolderNode);
-      for (const [fileName] of Object.entries(files)) {
-        // Build nested subfolders for files like "variables/dev.yml"
-        const parts = fileName.split('/');
-        if (parts.length > 1) {
-          let parentKey = configName;
-          for (let i = 0; i < parts.length - 1; i++) {
-            const folderKey = `${configName}/${parts.slice(0, i + 1).join('/')}`;
-            if (!nodes.some(n => n.kind === 'folder' && n.key === folderKey)) {
-              nodes.push({ kind: 'folder', key: folderKey, name: `${parts[i]}/`, folderIcon: 'folder', depth: i + 1, parentFolderKey: parentKey } satisfies BicepFolderNode);
-            }
-            parentKey = folderKey;
-          }
-          nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: parts[parts.length - 1], type: 'generic', uri: `${configName}/${fileName}`, depth: parts.length, parentFolderKey: parentKey } satisfies BicepFileNode);
-        } else {
-          nodes.push({ kind: 'file', path: `${configName}/${fileName}`, displayName: fileName, type: 'generic', uri: `${configName}/${fileName}`, depth: 1, parentFolderKey: configName } satisfies BicepFileNode);
-        }
-      }
-    }
-
-    return nodes;
+    return buildAzureDevOpsNodes(result.commonFileUris, result.configFileUris);
   });
 
   protected readonly loadProjectPipelineFile = (filePath: string): Promise<string> => {
@@ -320,10 +412,28 @@ export class ProjectDetailComponent implements OnInit {
     return this.projectService.getProjectPipelineFileContent(projectId, filePath);
   };
 
-  // ─── Git Config ───
-  protected readonly gitTestLoading = signal(false);
-  protected readonly gitTestResult = signal<TestGitConnectionResponse | null>(null);
-  protected readonly gitActionError = signal('');
+  protected readonly projectBootstrapNodes = computed<BicepTreeNode[]>(() => {
+    const result = this.projectBootstrapResult();
+    if (!result) return [];
+    const nodes: BicepTreeNode[] = [];
+    for (const [fileName] of Object.entries(result.fileUris)) {
+      nodes.push({
+        kind: 'file',
+        path: fileName,
+        displayName: fileName,
+        type: 'generic',
+        uri: fileName,
+        depth: 0,
+        parentFolderKey: '',
+      } satisfies BicepFileNode);
+    }
+    return nodes;
+  });
+
+  protected readonly loadProjectBootstrapFile = (filePath: string): Promise<string> => {
+    const projectId = this.project()?.id ?? '';
+    return this.projectService.getProjectBootstrapPipelineFileContent(projectId, filePath);
+  };
 
   protected readonly sortedEnvironments = computed(() => {
     const envs = this.project()?.environmentDefinitions ?? [];
@@ -392,6 +502,9 @@ export class ProjectDetailComponent implements OnInit {
         type: 'project',
         description: project.description,
       });
+
+      // Non-blocking: eagerly load pipeline variable groups for badge count
+      this.loadVariableGroups().catch(() => {});
     } catch {
       this.loadError.set('PROJECT_DETAIL.ERROR.LOAD_FAILED');
     } finally {
@@ -676,6 +789,115 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
+  // ─── Abbreviation Overrides ───
+
+  protected readonly abbreviationDisplayItems = computed(() => {
+    const proj = this.project();
+    if (!proj) return [];
+
+    const overrides = proj.resourceAbbreviations ?? [];
+    const overrideMap = new Map(overrides.map(o => [o.resourceType, o.abbreviation]));
+
+    const usedTypes = proj.usedResourceTypes ?? [];
+
+    return usedTypes
+      .sort()
+      .map(rt => {
+        const defaultAbbr = RESOURCE_TYPE_ABBREVIATIONS[rt] ?? rt.toLowerCase();
+        const customAbbr = overrideMap.get(rt);
+        return {
+          resourceType: rt,
+          icon: RESOURCE_TYPE_ICONS[rt] ?? 'widgets',
+          defaultAbbreviation: defaultAbbr,
+          customAbbreviation: customAbbr ?? null,
+          effectiveAbbreviation: customAbbr ?? defaultAbbr,
+          isCustomized: !!customAbbr,
+        };
+      });
+  });
+
+  protected isAbbreviationBusy(resourceType: string): boolean {
+    const key = this.namingActionKey();
+    return key === `abbr:${resourceType}` || key === `abbr-remove:${resourceType}`;
+  }
+
+  protected openEditAbbreviationDialog(item: { resourceType: string; defaultAbbreviation: string; customAbbreviation: string | null }): void {
+    const dialogRef = this.dialog.open<EditAbbreviationDialogComponent, EditAbbreviationDialogData, EditAbbreviationDialogResult>(
+      EditAbbreviationDialogComponent,
+      {
+        width: '420px',
+        data: {
+          resourceType: item.resourceType,
+          defaultAbbreviation: item.defaultAbbreviation,
+          currentAbbreviation: item.customAbbreviation ?? item.defaultAbbreviation,
+        },
+      },
+    );
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.saveAbbreviationOverride(item.resourceType, result.abbreviation);
+      }
+    });
+  }
+
+  protected openResetAbbreviationDialog(item: { resourceType: string; defaultAbbreviation: string }): void {
+    const dialogRef = this.dialog.open<ConfirmDialogComponent, ConfirmDialogData, boolean>(
+      ConfirmDialogComponent,
+      {
+        width: '420px',
+        data: {
+          titleKey: 'ABBREVIATIONS.RESET_CONFIRM_TITLE',
+          messageKey: 'ABBREVIATIONS.RESET_CONFIRM_MESSAGE',
+          messageParams: { resourceType: item.resourceType, default: item.defaultAbbreviation },
+          confirmKey: 'ABBREVIATIONS.RESET_CONFIRM_ACTION',
+          cancelKey: 'ABBREVIATIONS.RESET_CONFIRM_CANCEL',
+        },
+      },
+    );
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.removeAbbreviationOverride(item.resourceType);
+      }
+    });
+  }
+
+  private async saveAbbreviationOverride(resourceType: string, abbreviation: string): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId) return;
+
+    this.namingActionKey.set(`abbr:${resourceType}`);
+    this.namingErrorKey.set('');
+
+    try {
+      const request: SetResourceAbbreviationOverrideRequest = { abbreviation };
+      await this.projectService.setResourceAbbreviation(projectId, resourceType, request);
+      await this.refreshProject(projectId);
+    } catch {
+      this.namingErrorKey.set('ABBREVIATIONS.SAVE_ERROR');
+    } finally {
+      this.namingActionKey.set(null);
+    }
+  }
+
+  private async removeAbbreviationOverride(resourceType: string): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId) return;
+
+    this.namingActionKey.set(`abbr-remove:${resourceType}`);
+    this.namingErrorKey.set('');
+
+    try {
+      await this.projectService.removeResourceAbbreviation(projectId, resourceType);
+      await this.refreshProject(projectId);
+    } catch {
+      this.namingErrorKey.set('ABBREVIATIONS.RESET_ERROR');
+    } finally {
+      this.namingActionKey.set(null);
+    }
+  }
+
   private async refreshProject(projectId: string): Promise<void> {
     const refreshed = await this.projectService.getProject(projectId);
     this.project.set(refreshed);
@@ -772,30 +994,6 @@ export class ProjectDetailComponent implements OnInit {
     });
   }
 
-  // ─── Repository Mode ───
-
-  protected async onRepositoryModeChange(newMode: string): Promise<void> {
-    const projectId = this.project()?.id;
-    if (!projectId) return;
-
-    this.repoModeSaving.set(true);
-    this.repoModeError.set('');
-
-    try {
-      await this.projectService.setRepositoryMode(projectId, { repositoryMode: newMode });
-      this.project.update((p) => (p ? { ...p, repositoryMode: newMode } : p));
-      // Close bicep and pipeline panels when switching modes
-      this.projectBicepPanelOpen.set(false);
-      this.projectBicepResult.set(null);
-      this.projectPipelinePanelOpen.set(false);
-      this.projectPipelineResult.set(null);
-    } catch {
-      this.repoModeError.set('PROJECT_DETAIL.REPO_MODE.ERROR');
-    } finally {
-      this.repoModeSaving.set(false);
-    }
-  }
-
   // ─── Project Tags ───
 
   protected startEditProjectTags(): void {
@@ -862,6 +1060,7 @@ export class ProjectDetailComponent implements OnInit {
     this.projectBicepLoading.set(true);
     this.projectBicepErrorKey.set('');
     this.projectBicepResult.set(null);
+    this.projectGenerationPanelCollapsed.set(false);
     this.projectBicepPanelOpen.set(true);
 
     try {
@@ -893,6 +1092,7 @@ export class ProjectDetailComponent implements OnInit {
     this.projectPipelineLoading.set(true);
     this.projectPipelineErrorKey.set('');
     this.projectPipelineResult.set(null);
+    this.projectGenerationPanelCollapsed.set(false);
     this.projectPipelinePanelOpen.set(true);
 
     try {
@@ -908,11 +1108,11 @@ export class ProjectDetailComponent implements OnInit {
   // ─── Unified Generate All (mono-repo) ───
 
   protected readonly projectGenerateAllLoading = computed(
-    () => this.validatingDiagnostics() || this.projectBicepLoading() || this.projectPipelineLoading(),
+    () => this.validatingDiagnostics() || this.projectBicepLoading() || this.projectPipelineLoading() || this.projectBootstrapLoading(),
   );
 
   protected readonly projectGenerationPanelOpen = computed(
-    () => this.projectBicepPanelOpen() || this.projectPipelinePanelOpen() || this.projectBicepLoading() || this.projectPipelineLoading(),
+    () => this.projectBicepPanelOpen() || this.projectPipelinePanelOpen() || this.projectBootstrapPanelOpen() || this.projectBicepLoading() || this.projectPipelineLoading() || this.projectBootstrapLoading(),
   );
 
   protected async generateAll(): Promise<void> {
@@ -927,16 +1127,16 @@ export class ProjectDetailComponent implements OnInit {
       this.validatingDiagnostics.set(false);
     }
 
-    // Launch both generations in parallel
+    // Launch all generations in parallel
     await Promise.all([
       this.doGenerateProjectBicep(),
       this.doGenerateProjectPipeline(),
+      this.doGenerateProjectBootstrap(),
     ]);
   }
 
-  protected closeProjectGenerationPanel(): void {
-    this.closeProjectBicepPanel();
-    this.closeProjectPipelinePanel();
+  protected toggleProjectGenerationPanelCollapsed(): void {
+    this.projectGenerationPanelCollapsed.update((collapsed) => !collapsed);
   }
 
   // ─── Generation Diagnostics Dialog ───
@@ -967,6 +1167,7 @@ export class ProjectDetailComponent implements OnInit {
           const missingEnvResources: MissingEnvResource[] = [];
           for (const resources of rgResources) {
             for (const resource of resources) {
+              if (resource.isExisting) continue;
               if (ENV_SETTINGS_EXCLUDED_TYPES.has(resource.resourceType)) continue;
               const configured = new Set(resource.configuredEnvironments ?? []);
               const missing = allEnvNames.filter(name => !configured.has(name));
@@ -1040,20 +1241,141 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
-
-
-  protected openProjectPushToGitDialog(): void {
+  protected async downloadProjectInfraArtifacts(): Promise<void> {
     const project = this.project();
-    const gitConfig = project?.gitRepositoryConfiguration;
-    if (!project || !gitConfig) return;
+    const bicepResult = this.projectBicepResult();
+    const pipelineResult = this.projectPipelineResult();
+    const bootstrapResult = this.projectBootstrapResult();
+
+    if (!project?.id || !bicepResult || !pipelineResult || !bootstrapResult || this.projectInfraArtifactsDownloading()) {
+      return;
+    }
+
+    this.projectInfraArtifactsDownloading.set(true);
+    try {
+      const blob = await this.buildCombinedProjectArchive([
+        { archivePromise: this.projectService.downloadProjectZip(project.id), archiveKind: 'bicep' },
+        { archivePromise: this.projectService.downloadProjectPipelineZip(project.id), archiveKind: 'pipeline', filterPrefix: 'infra' },
+        { archivePromise: this.projectService.downloadProjectBootstrapPipelineZip(project.id), archiveKind: 'bootstrap', filterPrefix: 'infra' },
+      ]);
+
+      saveAs(blob, `${project.name ?? 'project'}-infra-artifacts.zip`);
+    } finally {
+      this.projectInfraArtifactsDownloading.set(false);
+    }
+  }
+
+  protected async downloadProjectCodeArtifacts(): Promise<void> {
+    const project = this.project();
+    const pipelineResult = this.projectPipelineResult();
+    const bootstrapResult = this.projectBootstrapResult();
+
+    if (!project?.id || !pipelineResult || !bootstrapResult || this.projectCodeArtifactsDownloading()) {
+      return;
+    }
+
+    this.projectCodeArtifactsDownloading.set(true);
+    try {
+      const blob = await this.buildCombinedProjectArchive([
+        { archivePromise: this.projectService.downloadProjectPipelineZip(project.id), archiveKind: 'pipeline', filterPrefix: 'app' },
+        { archivePromise: this.projectService.downloadProjectBootstrapPipelineZip(project.id), archiveKind: 'bootstrap', filterPrefix: 'app' },
+      ]);
+
+      saveAs(blob, `${project.name ?? 'project'}-code-artifacts.zip`);
+    } finally {
+      this.projectCodeArtifactsDownloading.set(false);
+    }
+  }
+
+
+
+  protected openProjectPushAllToGitDialog(): void {
+    const project = this.project();
+    if (!project || !(project.repositories?.length) || project.layoutPreset === 'SplitInfraCode') return;
 
     const data: PushToGitDialogData = {
       configId: '', // Not used for project push
       projectId: project.id,
-      gitConfig,
       isProjectLevel: true,
+      isCombinedProjectPush: true,
     };
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
+  }
+
+  protected openProjectMultiRepoPushDialog(mode: MultiRepoPushMode): void {
+    const project = this.project();
+    const aliases = project ? this.resolveSplitRepoAliases(project) : null;
+    if (!project || !aliases) {
+      this.showProjectActionError('PROJECT_DETAIL.MULTI_REPO_PUSH.MISSING_SLOTS');
+      return;
+    }
+
+    const data: MultiRepoPushDialogData = {
+      projectId: project.id,
+      infraAlias: aliases.infraAlias,
+      codeAlias: aliases.codeAlias,
+      mode,
+    };
+
+    this.dialog.open(MultiRepoPushDialogComponent, {
+      width: mode === 'both' ? '68rem' : '38rem',
+      maxWidth: '96vw',
+      panelClass: 'ifs-multi-repo-push-dialog',
+      data,
+    });
+  }
+
+  private async buildCombinedProjectArchive(sources: CombinedArtifactArchiveSource[]): Promise<Blob> {
+    const archive = new JSZip();
+
+    await Promise.all(sources.map(async (source) => {
+      const sourceBlob = await source.archivePromise;
+      await this.appendArchiveEntries(archive, sourceBlob, source);
+    }));
+
+    return archive.generateAsync({ type: 'blob' });
+  }
+
+  private async appendArchiveEntries(
+    targetArchive: JSZip,
+    sourceArchiveBlob: Blob,
+    source: CombinedArtifactArchiveSource,
+  ): Promise<void> {
+    const sourceArchive = await JSZip.loadAsync(sourceArchiveBlob);
+
+    for (const entry of Object.values(sourceArchive.files)) {
+      if (entry.dir) {
+        continue;
+      }
+
+      const entryPath = tryResolveGeneratedArtifactEntryPath(entry.name, source);
+      if (!entryPath) {
+        continue;
+      }
+
+      targetArchive.file(entryPath, await entry.async('uint8array'));
+    }
+  }
+
+  private resolveSplitRepoAliases(project: ProjectResponse): { infraAlias: string; codeAlias: string } | null {
+    const repositories = project.repositories ?? [];
+    const infraAlias = repositories.find((repository) => repository.contentKinds?.includes('Infrastructure'))?.alias;
+    const codeAlias = repositories.find((repository) => repository.contentKinds?.includes('ApplicationCode'))?.alias;
+
+    return infraAlias && codeAlias
+      ? { infraAlias, codeAlias }
+      : null;
+  }
+
+  private showProjectActionError(messageKey: string): void {
+    this.snackBar.open(
+      this.translate.instant(messageKey),
+      this.translate.instant('COMMON.CLOSE'),
+      {
+        duration: 5000,
+        panelClass: 'error-snackbar',
+      },
+    );
   }
 
   protected closeProjectPipelinePanel(): void {
@@ -1078,101 +1400,60 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
-  protected openProjectPipelinePushToGitDialog(): void {
-    const project = this.project();
-    const gitConfig = project?.gitRepositoryConfiguration;
-    if (!project || !gitConfig) return;
+  // ─── Project Bootstrap Pipeline Generation (Azure DevOps) ───
 
-    const data: PushToGitDialogData = {
-      configId: '',
-      projectId: project.id,
-      gitConfig,
-      isProjectLevel: true,
-      isPipeline: true,
-    };
-    this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
-  }
-
-  // ─── Git Configuration ───
-
-  protected openGitConfigDialog(): void {
-    const project = this.project();
-    if (!project) return;
-
-    const data: GitConfigDialogData = {
-      projectId: project.id,
-      existing: project.gitRepositoryConfiguration,
-    };
-
-    const dialogRef = this.dialog.open(GitConfigDialogComponent, {
-      width: '520px',
-      data,
-    });
-
-    dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {
-      if (result) {
-        this.project.set(result);
-        this.gitTestResult.set(null);
-        this.gitActionError.set('');
-      }
-    });
-  }
-
-  protected async testGitConnection(): Promise<void> {
+  protected async generateProjectBootstrap(): Promise<void> {
     const projectId = this.project()?.id;
-    if (!projectId) return;
+    if (!projectId || this.projectBootstrapLoading()) return;
+    await this.doGenerateProjectBootstrap();
+  }
 
-    this.gitTestLoading.set(true);
-    this.gitTestResult.set(null);
-    this.gitActionError.set('');
+  private async doGenerateProjectBootstrap(): Promise<void> {
+    const projectId = this.project()?.id;
+    if (!projectId || this.projectBootstrapLoading()) return;
+
+    this.projectBootstrapLoading.set(true);
+    this.projectBootstrapErrorKey.set('');
+    this.projectBootstrapResult.set(null);
+    this.projectGenerationPanelCollapsed.set(false);
+    this.projectBootstrapPanelOpen.set(true);
 
     try {
-      const result = await this.projectService.testGitConnection(projectId);
-      this.gitTestResult.set(result);
+      const result = await this.projectService.generateProjectBootstrapPipeline(projectId);
+      this.projectBootstrapResult.set(result);
     } catch {
-      this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.TEST_FAILED');
+      this.projectBootstrapErrorKey.set('PROJECT_DETAIL.BOOTSTRAP.GENERATE_ERROR');
     } finally {
-      this.gitTestLoading.set(false);
+      this.projectBootstrapLoading.set(false);
     }
   }
 
-  protected openRemoveGitConfigDialog(): void {
+  protected closeProjectBootstrapPanel(): void {
+    this.projectBootstrapPanelOpen.set(false);
+    this.projectBootstrapResult.set(null);
+    this.projectBootstrapErrorKey.set('');
+  }
+
+  protected async downloadProjectBootstrapFiles(): Promise<void> {
     const project = this.project();
-    if (!project) return;
+    const result = this.projectBootstrapResult();
 
-    const data: ConfirmDialogData = {
-      titleKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_TITLE',
-      messageKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_MESSAGE',
-      confirmKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_YES',
-      cancelKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_CANCEL',
-    };
+    if (!project?.id || !result || this.projectBootstrapDownloading()) return;
 
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-
-      this.gitActionError.set('');
-      try {
-        await this.projectService.removeGitConfig(project.id);
-        this.project.update((p) => {
-          if (!p) return p;
-          return { ...p, gitRepositoryConfiguration: null };
-        });
-        this.gitTestResult.set(null);
-      } catch {
-        this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.REMOVE_ERROR');
-      }
-    });
+    this.projectBootstrapDownloading.set(true);
+    try {
+      const blob = await this.projectService.downloadProjectBootstrapPipelineZip(project.id);
+      const projectName = project.name ?? 'project';
+      saveAs(blob, `${projectName}-bootstrap.zip`);
+    } finally {
+      this.projectBootstrapDownloading.set(false);
+    }
   }
 
   // ─── Pipeline Variable Groups ───
 
-  protected async onTabChange(index: number): Promise<void> {
-    // Tab 4 is pipeline variable groups — lazy load on first visit
-    if (index === 4 && !this.vgLoaded()) {
-      await this.loadVariableGroups();
-    }
+  protected onTabChange(_index: number): void {
+    // Variable groups are now loaded eagerly in loadProject()
   }
 
   protected async loadVariableGroups(): Promise<void> {

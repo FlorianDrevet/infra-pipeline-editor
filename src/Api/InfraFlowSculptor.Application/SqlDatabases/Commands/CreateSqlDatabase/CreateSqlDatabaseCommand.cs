@@ -13,5 +13,6 @@ public record CreateSqlDatabaseCommand(
     Location Location,
     Guid SqlServerId,
     string Collation,
-    IReadOnlyList<SqlDatabaseEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<SqlDatabaseEnvironmentConfigData>? EnvironmentSettings = null,
+    bool IsExisting = false
 ) : ICommand<SqlDatabaseResult>;

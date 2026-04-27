@@ -16,9 +16,12 @@ public record FunctionAppResult(
     bool HttpsOnly,
     string DeploymentMode,
     Guid? ContainerRegistryId,
+    string? AcrAuthMode,
     string? DockerImageName,
     string? DockerfilePath,
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
-    IReadOnlyList<FunctionAppEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyList<FunctionAppEnvironmentConfigData> EnvironmentSettings,
+    bool IsExisting = false
+);

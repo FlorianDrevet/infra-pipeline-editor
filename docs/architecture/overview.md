@@ -154,4 +154,5 @@ builder.Services
 - [CQRS et MediatR](cqrs-patterns.md) — Commandes, queries, handlers, validation
 - [Couche API](api-layer.md) — Endpoints, mapping, gestion d'erreurs
 - [Persistance EF Core](persistence.md) — Repositories, configurations, conventions
+- [Lecture des ressources projet et views SQL](project-resource-queries.md) — Flux des queries de lecture projet, projections légères et views keyless
 - [Guide de navigation](getting-started.md) — Comment trouver et ajouter du code

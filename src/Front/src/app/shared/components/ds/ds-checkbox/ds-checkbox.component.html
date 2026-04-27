@@ -1,0 +1,29 @@
+<label
+  class="ds-checkbox"
+  [class.ds-checkbox--disabled]="disabledState()"
+  [class.ds-checkbox--checked]="checked()"
+  [class.ds-checkbox--indeterminate]="indeterminate()"
+>
+  <span class="ds-checkbox__box">
+    <input
+      type="checkbox"
+      class="ds-checkbox__input"
+      [checked]="checked()"
+      [disabled]="disabledState()"
+      [indeterminate]="indeterminate()"
+      (change)="onToggle($event)"
+      (blur)="onBlur()"
+    />
+    <mat-icon class="ds-checkbox__icon">{{ indeterminate() ? 'remove' : 'check' }}</mat-icon>
+  </span>
+  @if (label() || description()) {
+    <span class="ds-checkbox__text">
+      @if (label()) {
+        <span class="ds-checkbox__label">{{ label() }}</span>
+      }
+      @if (description()) {
+        <span class="ds-checkbox__description">{{ description() }}</span>
+      }
+    </span>
+  }
+</label>

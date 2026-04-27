@@ -33,25 +33,18 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
 
     private const string ContainerAppEnvironmentTypesTemplate = """
         @export()
-        @description('SKU for the Container App Environment')
-        type SkuName = 'Consumption' | 'Premium'
-
-        @export()
         @description('Workload profile type for the Container App Environment')
         type WorkloadProfileType = 'Consumption' | 'D4' | 'D8' | 'D16' | 'D32' | 'E4' | 'E8' | 'E16' | 'E32'
         """;
 
     private const string ContainerAppEnvironmentModuleTemplate = """
-        import { SkuName, WorkloadProfileType } from './types.bicep'
+        import { WorkloadProfileType } from './types.bicep'
 
         @description('Azure region for the Container App Environment')
         param location string
 
         @description('Name of the Container App Environment')
         param name string
-
-        @description('SKU of the Container App Environment')
-        param sku SkuName = 'Consumption'
 
         @description('Workload profile type')
         param workloadProfileType WorkloadProfileType = 'Consumption'
@@ -62,7 +55,7 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
         @description('Whether zone redundancy is enabled')
         param zoneRedundancyEnabled bool = false
 
-        @description('Resource ID of the Log Analytics workspace (empty to skip)')
+        @description('Resource ID of the Log Analytics workspace. When provided, logs are routed to this workspace via Azure Monitor — no shared key required.')
         param logAnalyticsWorkspaceId string = ''
 
         resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
@@ -73,16 +66,27 @@ public sealed class ContainerAppEnvironmentTypeBicepGenerator
             vnetConfiguration: {
               internal: internalLoadBalancerEnabled
             }
-            appLogsConfiguration: {
-              destination: 'log-analytics'
-              logAnalyticsConfiguration: logAnalyticsWorkspaceId != '' ? {
-                customerId: logAnalyticsWorkspaceId
-              } : null
-            }
+            appLogsConfiguration: logAnalyticsWorkspaceId != '' ? {
+              destination: 'azure-monitor'
+            } : null
             workloadProfiles: [
               {
                 name: workloadProfileType
                 workloadProfileType: workloadProfileType
+              }
+            ]
+          }
+        }
+
+        resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (logAnalyticsWorkspaceId != '') {
+          name: 'containerAppEnvLogs'
+          scope: containerAppEnv
+          properties: {
+            workspaceId: logAnalyticsWorkspaceId
+            logs: [
+              {
+                categoryGroup: 'allLogs'
+                enabled: true
               }
             ]
           }

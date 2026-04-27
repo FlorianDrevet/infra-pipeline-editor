@@ -8,5 +8,8 @@ public record LogAnalyticsWorkspaceResponse(
     string ResourceGroupId,
     string Name,
     string Location,
-    IReadOnlyList<LogAnalyticsWorkspaceEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<LogAnalyticsWorkspaceEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

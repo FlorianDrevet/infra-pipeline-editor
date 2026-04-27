@@ -1,8 +1,11 @@
+using InfraFlowSculptor.Application.Common.GitRouting;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -21,11 +24,14 @@ public sealed class GeneratePipelineCommandHandler(
     IProjectRepository projectRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     AppPipelineGenerationEngine appPipelineGenerationEngine,
+    IEnumerable<IResourceTypeBicepGenerator> bicepGenerators,
     IContainerAppRepository containerAppRepository,
     IWebAppRepository webAppRepository,
     IFunctionAppRepository functionAppRepository,
     IContainerRegistryRepository containerRegistryRepository,
-    IGeneratedArtifactService artifactService)
+    IGeneratedArtifactService artifactService,
+    IRepositoryTargetResolver targetResolver,
+    IInfrastructureConfigRepository infraConfigRepository)
     : ICommandHandler<GeneratePipelineCommand, GeneratePipelineResult>
 {
     public async Task<ErrorOr<GeneratePipelineResult>> Handle(
@@ -38,11 +44,31 @@ public sealed class GeneratePipelineCommandHandler(
         if (config is null)
             return Errors.InfrastructureConfig.NotFoundError(new InfrastructureConfigId(command.InfrastructureConfigId));
 
+        var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
+
         // Load project-level pipeline variable groups
         var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
             new ProjectId(config.ProjectId), cancellationToken);
+        // Load project (with Repositories + legacy GitRepositoryConfiguration) for V2 routing.
         var projectWithGit = await projectRepository.GetByIdWithAllAsync(
             new ProjectId(config.ProjectId), cancellationToken);
+
+        // Load the domain InfrastructureConfig entity so the resolver can honor its RepositoryBinding.
+        var domainConfig = await infraConfigRepository.GetByIdAsync(
+            new InfrastructureConfigId(command.InfrastructureConfigId), cancellationToken);
+
+        // Resolve the pipeline-kind target to derive the BicepBasePath used by release pipeline YAML
+        // (infra path inside the target repo). A missing repository is tolerated here: BicepBasePath
+        // simply becomes null, matching the previous behavior when no Git configuration existed.
+        string? bicepBasePath = null;
+        if (projectWithGit is not null && domainConfig is not null)
+        {
+            var targetResult = targetResolver.Resolve(projectWithGit, domainConfig, ArtifactKind.Pipeline);
+            if (!targetResult.IsError)
+            {
+                bicepBasePath = targetResult.Value.BasePath;
+            }
+        }
 
         var projectVariableGroups = project?.PipelineVariableGroups
             .Select(g =>
@@ -54,7 +80,7 @@ public sealed class GeneratePipelineCommandHandler(
                     .Select(s => new PipelineVariableMappingDefinition
                     {
                         PipelineVariableName = s.PipelineVariableName!,
-                        BicepParameterName = s.Name,
+                        BicepParameterName = AppSettingPipelineParameterNameHelper.ResolveBicepParameterName(s),
                     })
                     .ToList();
 
@@ -66,15 +92,16 @@ public sealed class GeneratePipelineCommandHandler(
             }).ToList() ?? [];
 
         var resources = config.ResourceGroups
-            .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
+            .SelectMany(rg => rg.Resources
+                .Where(r => !r.IsExisting)
+                .Select(r => new ResourceDefinition
             {
                 Name = r.Name,
                 Type = r.ResourceType,
                 ResourceGroupName = rg.Name,
                 Sku = r.Properties.GetValueOrDefault("sku", string.Empty),
                 Properties = r.Properties,
-                ResourceAbbreviation = ResourceAbbreviationCatalog.GetAbbreviation(
-                    GetResourceTypeName(r.ResourceType)),
+                ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType, mergedAbbreviations),
                 EnvironmentConfigs = r.EnvironmentConfigs
                     .ToDictionary(
                         ec => ec.EnvironmentName,
@@ -112,7 +139,7 @@ public sealed class GeneratePipelineCommandHandler(
         {
             DefaultTemplate = config.NamingContext.DefaultTemplate,
             ResourceTemplates = config.NamingContext.ResourceTemplates,
-            ResourceAbbreviations = ResourceAbbreviationCatalog.GetAll(),
+            ResourceAbbreviations = mergedAbbreviations,
         };
 
         var generationRequest = new GenerationRequest
@@ -126,8 +153,10 @@ public sealed class GeneratePipelineCommandHandler(
             AppSettings = [],
             ExistingResourceReferences = [],
             PipelineVariableGroups = projectVariableGroups,
+            SecureParameterOverrides = SecureParameterOverrideHelper.DeriveSecureParameterOverrides(
+                resources, bicepGenerators, config.SecureParameterMappings, projectVariableGroups),
             AgentPoolName = project?.AgentPoolName,
-            BicepBasePath = projectWithGit?.GitRepositoryConfiguration?.BasePath,
+            BicepBasePath = bicepBasePath,
         };
 
         var result = pipelineGenerationEngine.Generate(generationRequest, config.Name);
@@ -188,6 +217,17 @@ public sealed class GeneratePipelineCommandHandler(
             fileUris[path] = uri;
         }
 
+        // Upload shared app pipeline templates (only when there are app pipelines to reference them)
+        if (appResult.Files.Count > 0)
+        {
+            foreach (var (path, content) in AppPipelineGenerationEngine.GenerateSharedTemplates())
+            {
+                var uri = await artifactService.UploadArtifactAsync(
+                    "pipeline", command.InfrastructureConfigId, timestamp, path, content);
+                fileUris[path] = uri;
+            }
+        }
+
         return new GeneratePipelineResult(fileUris);
     }
 
@@ -234,6 +274,9 @@ public sealed class GeneratePipelineCommandHandler(
             DockerfilePath = containerApp.DockerfilePath,
             DockerImageName = containerApp.DockerImageName,
             ContainerRegistryName = containerRegistryName,
+            AcrAuthMode = containerApp.AcrAuthMode?.Value.ToString(),
+            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
+            EnableSecurityScans = true,
         };
     }
 
@@ -261,8 +304,11 @@ public sealed class GeneratePipelineCommandHandler(
             BuildCommand = webApp.BuildCommand,
             DockerImageName = webApp.DockerImageName,
             ContainerRegistryName = containerRegistryName,
+            AcrAuthMode = webApp.AcrAuthMode?.Value.ToString(),
             RuntimeStack = webApp.RuntimeStack.Value.ToString(),
             RuntimeVersion = webApp.RuntimeVersion,
+            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
+            EnableSecurityScans = true,
         };
     }
 
@@ -290,8 +336,11 @@ public sealed class GeneratePipelineCommandHandler(
             BuildCommand = functionApp.BuildCommand,
             DockerImageName = functionApp.DockerImageName,
             ContainerRegistryName = containerRegistryName,
+            AcrAuthMode = functionApp.AcrAuthMode?.Value.ToString(),
             RuntimeStack = functionApp.RuntimeStack.Value.ToString(),
             RuntimeVersion = functionApp.RuntimeVersion,
+            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
+            EnableSecurityScans = true,
         };
     }
 
@@ -310,4 +359,34 @@ public sealed class GeneratePipelineCommandHandler(
 
     private static string GetResourceTypeName(string azureResourceType) =>
         AzureResourceTypes.GetFriendlyName(azureResourceType);
+
+    /// <summary>
+    /// Resolves the resource abbreviation from the Azure resource type string,
+    /// preferring overrides from the merged abbreviation dictionary.
+    /// </summary>
+    private static string GetResourceAbbreviation(
+        string azureResourceType,
+        IReadOnlyDictionary<string, string> mergedAbbreviations)
+    {
+        var typeName = AzureResourceTypes.GetFriendlyName(azureResourceType);
+        return mergedAbbreviations.TryGetValue(typeName, out var abbr)
+            ? abbr
+            : ResourceAbbreviationCatalog.GetAbbreviation(typeName);
+    }
+
+    /// <summary>
+    /// Merges the catalog defaults with user overrides.
+    /// Overrides take precedence over catalog entries.
+    /// </summary>
+    private static IReadOnlyDictionary<string, string> MergeAbbreviations(
+        IReadOnlyDictionary<string, string> overrides)
+    {
+        var merged = new Dictionary<string, string>(ResourceAbbreviationCatalog.GetAll(), StringComparer.OrdinalIgnoreCase);
+        foreach (var (key, value) in overrides)
+        {
+            merged[key] = value;
+        }
+
+        return merged;
+    }
 }

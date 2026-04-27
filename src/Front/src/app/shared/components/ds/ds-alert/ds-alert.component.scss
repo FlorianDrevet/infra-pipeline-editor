@@ -1,0 +1,85 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+}
+
+.ds-alert {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.85rem 1.15rem;
+  border-radius: $ifs-radius-lg;
+  border: 1px solid;
+  animation: ifs-slide-in-down $ifs-duration-base $ifs-ease-out;
+
+  &--info {
+    background: $ifs-info-soft;
+    border-color: $ifs-info-border;
+    color: $ifs-brand-blue;
+  }
+
+  &--success {
+    background: $ifs-success-soft;
+    border-color: $ifs-success-border;
+    color: $ifs-success;
+  }
+
+  &--warning {
+    background: $ifs-warning-soft;
+    border-color: $ifs-warning-border;
+    color: $ifs-warning-strong;
+  }
+
+  &--error {
+    background: $ifs-error-soft;
+    border-color: $ifs-error-border;
+    color: $ifs-error-strong;
+  }
+
+  &__icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  &__body {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  &__close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+    padding: 0.2rem;
+    border-radius: $ifs-radius-sm;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    &:hover {
+      opacity: 1;
+      background: rgba(0, 0, 0, 0.05);
+    }
+  }
+}

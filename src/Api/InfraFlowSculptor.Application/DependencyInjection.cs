@@ -1,6 +1,9 @@
 using System.Reflection;
 using FluentValidation;
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
+using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Application.Common.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics.Rules;
@@ -36,6 +39,12 @@ public static class DependencyInjection
         services.AddScoped<IInfraConfigAccessService, InfraConfigAccessService>();
         services.AddScoped<IProjectAccessService, ProjectAccessService>();
 
+        // Resource naming
+        services.AddScoped<IResourceNameResolver, ResourceNameResolver>();
+
+        // V2 multi-repo Git routing
+        services.AddScoped<IRepositoryTargetResolver, RepositoryTargetResolver>();
+
         // Role assignment domain services
         services.AddScoped<IRoleAssignmentDomainService, RoleAssignmentDomainService>();
         services.AddScoped<IRoleAssignmentImpactAnalyzer, RoleAssignmentImpactAnalyzer>();
@@ -62,6 +71,7 @@ public static class DependencyInjection
 
         // Pipeline generation engine
         services.AddSingleton<PipelineGenerationEngine>();
+        services.AddSingleton<BootstrapPipelineGenerationEngine>();
 
         // Application pipeline generation
         services.AddSingleton<IAppPipelineGenerator, ContainerAppPipelineGenerator>();
@@ -75,6 +85,7 @@ public static class DependencyInjection
         services.AddScoped<IConfigDiagnosticService, ConfigDiagnosticService>();
         services.AddScoped<IDiagnosticRule, AcrPullDiagnosticRule>();
         services.AddScoped<IDiagnosticRule, KeyVaultAccessDiagnosticRule>();
+        services.AddScoped<IDiagnosticRule, NameAvailabilityDiagnosticRule>();
 
         return services;
     }

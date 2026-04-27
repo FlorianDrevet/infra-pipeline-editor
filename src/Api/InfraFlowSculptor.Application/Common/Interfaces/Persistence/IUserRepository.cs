@@ -1,6 +1,5 @@
 using InfraFlowSculptor.Domain.UserAggregate;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
-using InfraFlowSculptor.Application.Common.Interfaces;
 
 namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 
@@ -8,14 +7,12 @@ namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 public interface IUserRepository : IRepository<User>
 {
     /// <summary>
-    /// Retrieves an existing user by Entra ID or creates a new one if none exists.
+    /// Retrieves a user by their Microsoft Entra ID.
     /// </summary>
-    /// <param name="entraId">The Azure Entra Object ID of the user.</param>
-    /// <param name="firstName">The first name to use when creating a new user.</param>
-    /// <param name="lastName">The last name to use when creating a new user.</param>
+    /// <param name="entraId">The Entra object identifier.</param>
     /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
-    /// <returns>The existing or newly created <see cref="User"/>.</returns>
-    Task<User> GetOrCreateByEntraIdAsync(string entraId, string firstName, string lastName, CancellationToken cancellationToken = default);
+    /// <returns>The matching <see cref="User"/>, or <c>null</c> if not found.</returns>
+    Task<User?> GetByEntraIdAsync(string entraId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves all users whose identifiers are in the specified list.

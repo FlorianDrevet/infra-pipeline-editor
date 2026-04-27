@@ -48,6 +48,56 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
 - **SetNull** is safe for optional FKs (e.g. `AppSettings.SourceResourceId`, `AppConfigurationKeys.KeyVaultResourceId`).
 - **Cascade** is safe for mandatory child relationships (e.g. `ResourceLinks.SourceResourceId`, `AzureResourceDependencies.DependsOnId`, `ResourceParameterUsages.ParameterId`, `RoleAssignment.TargetResourceId`).
 - EF Core ordering conflict: if a Cascade-delete on parent already orphans rows, a parallel SetNull on the same rows emits SQL after the rows are gone → FK error. Solution: make both paths Cascade.
+- Concrete rule [2026-04-23]: `AppSettingConfiguration.KeyVaultResourceId` must stay `SetNull`, not `Cascade`, so deleting a Key Vault detaches optional app-setting references instead of silently deleting the settings themselves.
+
+## Polymorphic TPT Queries [2026-04-16]
+
+- `ProjectDbContext` must include `DbSet<AzureResource> AzureResources` for polymorphic TPT queries that need to resolve any resource type by ID without knowing the concrete type.
+- Used by `AzureResourceBaseRepository` and `ResourceGroupRepository` for cross-type lookups.
+
+## SQL Read Views [2026-04-23]
+
+- `ProjectDbContext` maps `vw_ResourceEnvironmentEntries` and `vw_ChildToParentLinks` as keyless read models (`ResourceEnvironmentEntryView`, `ChildToParentLinkView`).
+- `ResourceGroupRepository` uses these views through `GetConfiguredEnvironmentsByResourceGroupAsync()` and `GetChildToParentMappingAsync()` so Application handlers do not need to know all typed environment-setting tables or child-resource TPT tables.
+- `ListProjectResourcesQueryHandler` still lists project resources via `GetByInfraConfigIdAsync()` with `Include(r => r.Resources)`; the views support adjacent resource-read scenarios like `ListResourceGroupResources` and incoming cross-config reference resolution.
+
+## Resource Group Storage List Optimization [2026-04-23]
+
+- `ListResourceGroupResourcesQueryHandler` enriches Storage Accounts with lightweight child collections through `IResourceGroupRepository.GetStorageSubResourcesByStorageAccountIdsAsync()`.
+- `ResourceGroupRepository` intentionally uses 3 narrow batch queries over `BlobContainers`, `StorageQueues`, and `StorageTables` filtered by Storage Account IDs, instead of loading full StorageAccount aggregates or adding a new SQL view/migration.
+- This keeps the first Resource Group list to a single HTTP payload while avoiding the previous frontend N+1 pattern (`GET /storage-accounts/{id}` per account).
+
+## Repository Naming Conventions [2026-04-16]
+
+- `GetByContainedResourceIdAsync` — finds a parent entity (e.g. ResourceGroup) by a child resource's ID. Renamed from the ambiguous `GetByResourceIdAsync`.
+- Convention: use `ByContainedXxx` prefix when the lookup navigates from child to parent.
+
+## Layout-Driven Repository Configuration [2026-04-23]
+
+- `ProjectDbContext` now exposes both `ProjectRepositories` and `InfraConfigRepositories`.
+- `ProjectRepositories` and `InfraConfigRepositories` both persist `RepositoryContentKinds` through `RepositoryContentKindsConverter`; valid flags are now only `Infrastructure` and `ApplicationCode`.
+- `InfrastructureConfigs.LayoutMode` is a nullable enum-backed column (`ConfigLayoutMode`) configured with `EnumValueConverter<ConfigLayoutMode, ConfigLayoutModeEnum>()`.
+- `InfraConfigRepositories` is a dedicated child table with cascade delete and a unique `(InfrastructureConfigId, Alias)` index.
+- `LayoutDrivenRepoConfiguration` removed `Projects.CommonsStrategy` and the inline `InfrastructureConfigs.RepositoryBinding_*` columns, and added `InfrastructureConfigs.LayoutMode` plus `InfraConfigRepositories`.
+- `RemoveLegacyGitRepositoryConfiguration` dropped the old `GitRepositoryConfigurations` table. The presence of that table in historical migrations or designer snapshots is legacy history only, not the current model.
+
+## Legacy Repository Topology Repair [2026-04-23]
+
+- `scripts/fix-legacy-repository-topology.ps1` is the one-off database repair for rows persisted before `RepositoryContentKindsEnum.Pipelines` was removed.
+- The script is idempotent and currently:
+    - removes the legacy `Pipelines` token from both `ProjectRepositories.ContentKinds` and `InfraConfigRepositories.ContentKinds`;
+    - upgrades one-repo `AllInOne` rows to `Infrastructure,ApplicationCode` when needed;
+    - upgrades pseudo-two-repo `AllInOne` rows to `SplitInfraCode` when the persisted topology is really infra repo + app repo.
+- It auto-detects the local Aspire `postgres:17.6` container, reads `POSTGRES_PASSWORD`, and patches `infraDb` through `psql`.
+
+## Duplicate Role Assignment Guard [2026-04-23]
+
+- `RoleAssignmentConfiguration` now enforces a unique index on `(SourceResourceId, TargetResourceId, UserAssignedIdentityId, RoleDefinitionId)` so duplicate RBAC rows are rejected at the database level as well as in application logic.
+
+## Demo Snapshot Invariants [2026-04-25]
+
+- For Container Apps using Managed Identity ACR auth with a user-assigned `AcrPull` role, `AzureResource.AssignedUserAssignedIdentityId` must also point to that same UAI; otherwise Bicep generation falls back to the system identity for `acrManagedIdentityClientId`.
+- The API JWT secret app setting must be stored as `JwtSettings__Secret`; `JWT_SECRET` is the Key Vault secret name, not the ASP.NET configuration key bound from `JwtSettings:Secret`.
 
 ## Migrations
 17+ migration files in `src/Api/InfraFlowSculptor.Infrastructure/Migrations/`. Always add a new migration when changing domain model.

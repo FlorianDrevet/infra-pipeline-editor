@@ -4,22 +4,27 @@
 
 | Date | Author | Change |
 |------|--------|--------|
-| 2026-04-16 | copilot | Rewrote the root `README.md` into a polished GitHub landing page highlighting the project's value proposition, architecture, engineering choices, supported Azure scope, and onboarding/documentation paths. |
-| 2026-04-16 | copilot | Decoupled Aspire from the API project: removed `Aspire.Npgsql`, `Aspire.Npgsql.EntityFrameworkCore.PostgreSQL`, ServiceDefaults reference. Moved DbContext registration, OTel, and health checks into Infrastructure DI. API can now be deployed standalone without any Aspire dependency. |
-| 2026-04-15 | copilot | Merged `origin/main` into `copilot/ddd-002-seal-azure-resource-classes`, resolved memory-file conflicts semantically, and preserved the DDD-002 sealed-aggregate work. |
-| 2026-04-15 | copilot | Sealed all concrete `AzureResource` aggregates in the domain model to enforce invariants and block uncontrolled inheritance (DDD-002). |
-| 2026-04-15 | copilot | Added the `audit-expert` agent, the `audit-workflow` skill, and `scripts/sync-audit-issues.ps1` with repo-backed label configuration in `.github/audit/config.json` to generate expert audits under `audits/` and reconcile GitHub audit issues across runs. |
-| 2026-04-15 | copilot | Recreated the 66 GitHub audit issues from `docs/AUDIT-2026-04-14.md`, normalized the `phase:*` and `severity:*` label descriptions to remove mojibake, and recorded `FlorianDrevet/infra-pipeline-editor` as the default GitHub repository for this project. |
-| 2026-04-14 | copilot | Consolidated the audit automation on Windows: added PowerShell entry points in `scripts/`, updated the scripts README, corrected the documented audit issue total to 62, removed the unnecessary PowerShell 7 requirement, and fixed mojibake by forcing UTF-8 reads of the `.sh` source files (validated from `cmd` through `powershell.exe` 5.1). |
-| 2026-04-13 | copilot | Added the `draw-io-diagram-generator` skill and refreshed `docs/architecture/infraflowsculptor-architecture.drawio` as an Azure deployment diagram centered on deployed resources and their interactions. |
-| 2026-04-04 | copilot | Major consolidation: fixed Azure DevOps infra release validation/path/scope/service-connection/sparse-checkout issues, merged app pipeline generation into `POST /generate-pipeline`, moved `AgentPoolName` from `InfrastructureConfig` to `Project`, moved `ContainerAppEnvironment.LogAnalyticsWorkspaceId` to the aggregate root, added `DELETE /resource-group/{id}`, refactored `BicepAssembler`, improved generation UX with validating state, and corrected cross-resource FK cascade behavior for project deletion. |
-| 2026-04-03 | copilot | Added application pipeline generation end-to-end, integrated GitNexus workflow plus `13-code-graph.md`, audited memory counts/endpoints via GitNexus, and finalized ContainerApp pipeline/runtime fixes (`DockerImageName`, per-env bicep params, ACR/UAI reactivity). |
-| 2026-04-02 | copilot | Completed the Assign Identity refactor across domain, CQRS, Bicep, frontend, and diagnostics, with nullable FK support on `AzureResource` for assigned UAI. |
-| 2026-04-01 | copilot | Standardized Windows-first/build-only conventions, fixed impact dialog i18n, and moved runtime stack/version fields into general configuration. |
-| 2026-03-31 | copilot | Delivered the EventHubNamespace aggregate full-stack and redesigned the Configuration Keys tab. |
-| 2026-03-30 | copilot | Added UAI-based ACR role assignment, refactored pipeline variable groups, introduced the Unit of Work pattern, and tightened domain code-quality conventions. |
-| 2026-03-29 | copilot | Shipped the first real Azure DevOps pipeline YAML generation flow with `AzureResourceManagerConnection` support and tenant cleanup. |
-| 2026-03-28 | copilot | Unified generation UX, introduced mono-repo pipeline generation, added secret/static app settings handling, and introduced the `architect` agent. |
-| 2026-03-27 | copilot | Improved UAI grouping, fixed nullable value object handling, and moved StorageAccount CORS/lifecycle editing into the Storage tab. |
-| 2026-03-26 | copilot | Redesigned StorageAccount CORS management, added storage queue/table Bicep generation, and renamed generated modules. |
-| 2026-03-24 | copilot | Added LogAnalyticsWorkspace and ApplicationInsights end-to-end across the stack. |
+| 2026-04-27 | dev | Added architecture audit docs under `docs/architecture/bicep-refactoring/` to capture the current Bicep-generation pain points and the proposed refactoring paths (Pipeline, Builder + IR, Visitor). |
+| 2026-04-26 | dev | Closed the post-wizard / split-generation polish wave: restored `POST /projects/with-setup`, added explicit root-level `pool` blocks to infra wrapper pipelines, made bootstrap Key Vault variable-group provisioning secret-aware with clearer ADO diagnostics, aligned SplitInfraCode preview/download/push paths and scopes (including code-repo app bootstrap), introduced code-repo Dockerfile browsing endpoints plus `DockerfilePickerComponent`, and gated config-level generate/push actions to true `MultiRepo` projects. |
+| 2026-04-25 | dev | Completed the main SplitInfraCode delivery: shared same-type module reuse, split-aware bootstrap/application artifacts, project creation wizard V1, scoped generated-artifact cleanup, split push/download UX, generation-panel controls, bootstrap guide extraction, multi-repo Git UX alignment, dream concurrency locking, auth-expiry redirect hardening, and local snapshot refresh. |
+| 2026-04-24 | dev | Upgraded the frontend to Angular 21, rolled out the Design System broadly, and restored `Common/` plus `.azuredevops/Common/...` shared layouts for project-level split generation. |
+| 2026-04-23 | dev/copilot | Landed the large multi-repo + generation hardening wave: security headers/rate limiting/path validation, layout-driven repository topology, legacy Git-topology removal, SplitInfraCode generation/push, bootstrap ADO fixes, Bicep/pipeline correctness fixes, frontend multi-repo UX, DB repair tooling, and ACR RBAC prerequisite guidance. |
+| 2026-04-22 | copilot | Delivered custom domains end to end, bootstrap ADO hardening, mono-repo combined push, Container App health probes and grouped Bicep params, CAE Log Analytics security fixes, DNS name availability, resource abbreviation overrides, SQL Server fixes, favicon refresh, and snapshot seeding. |
+| 2026-04-21 | copilot | Added secure parameters, pipeline override wiring, output-symbol validation, LAW fallback, artifact path sanitization, and module reference disambiguation. |
+| 2026-04-20 | copilot | Standardized infra release artifacts and documented the Aspire MCP detection mismatch. |
+| 2026-04-17 | copilot | Switched `.bicepparam` filenames to environment short names while keeping full environment names inside the payload. |
+| 2026-04-16 | copilot | Aligned platform conventions around sealed enum value objects, string response IDs, `.ProducesProblem(401)`, tag limits, shared role-assignment services, camelCase Bicep identifiers, and standalone API/Aspire wiring. |
+| 2026-04-15 | copilot | Merged `main`, sealed concrete `AzureResource` aggregates, and refreshed audit automation plus GitHub audit issues. |
+| 2026-04-14 | copilot | Made audit automation Windows-first with UTF-8-safe PowerShell entry points and no PowerShell 7 requirement. |
+| 2026-04-13 | copilot | Added draw.io architecture tooling and refreshed the main architecture diagram. |
+| 2026-04-04 | copilot | Stabilized generation/pipelines with Azure DevOps release fixes, unified app pipeline generation, a BicepAssembler refactor, and FK cascade corrections. |
+| 2026-04-03 | copilot | Added app pipeline generation, GitNexus integration, and Container App runtime/pipeline fixes. |
+| 2026-04-02 | copilot | Refactored the assigned user-managed identity flow across domain, CQRS, Bicep, frontend, and diagnostics. |
+| 2026-04-01 | copilot | Reinforced Windows-first conventions and cleaned up general-config i18n/runtime issues. |
+| 2026-03-31 | copilot | Delivered Event Hub namespace support and the configuration-keys UX redesign. |
+| 2026-03-30 | copilot | Added ACR pull role assignments, pipeline variable groups, Unit of Work behavior, and domain quality conventions. |
+| 2026-03-29 | copilot | Added Azure DevOps pipeline YAML generation around `AzureResourceManagerConnection`. |
+| 2026-03-28 | copilot | Introduced unified generation UX, mono-repo pipelines, secret/static app settings, and the architect agent. |
+| 2026-03-27 | copilot | Improved UAI grouping plus Storage Account CORS/lifecycle editing. |
+| 2026-03-26 | copilot | Redesigned Storage Account CORS UX and queue/table Bicep generation. |
+| 2026-03-24 | copilot | Delivered Log Analytics Workspace and Application Insights end to end. |

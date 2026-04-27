@@ -1,3 +1,5 @@
+@use "scss/main" as *;
+
 .role-dialog {
   min-width: 28rem;
   max-width: 36rem;
@@ -53,7 +55,7 @@
   padding: 0.85rem 1rem;
   border-radius: 1rem;
   border: 1.5px solid rgba(146, 191, 235, 0.22);
-  background: linear-gradient(180deg, #fff, #f8fbff);
+  background: $ifs-gradient-card-soft;
   cursor: pointer;
   transition: all 0.18s ease;
   text-align: left;
@@ -316,7 +318,7 @@
   padding: 0.65rem 0.85rem;
   border-radius: 0.75rem;
   border: 1.5px solid rgba(146, 191, 235, 0.22);
-  background: linear-gradient(180deg, #fff, #f8fbff);
+  background: $ifs-gradient-card-soft;
   cursor: pointer;
   transition: all 0.18s ease;
   text-align: left;

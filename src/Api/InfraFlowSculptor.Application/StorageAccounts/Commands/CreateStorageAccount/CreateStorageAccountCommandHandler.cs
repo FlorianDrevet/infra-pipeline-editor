@@ -66,7 +66,8 @@ public class CreateStorageAccountCommandHandler(
                     rule.RuleName,
                     rule.ContainerNames,
                     rule.TimeToLiveInDays))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await storageAccountRepository.AddAsync(storageAccount);
 

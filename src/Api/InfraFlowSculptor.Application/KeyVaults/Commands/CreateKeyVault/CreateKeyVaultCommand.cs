@@ -16,5 +16,6 @@ public record CreateKeyVaultCommand(
     bool EnabledForTemplateDeployment = false,
     bool EnablePurgeProtection = true,
     bool EnableSoftDelete = true,
-    IReadOnlyList<KeyVaultEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<KeyVaultEnvironmentConfigData>? EnvironmentSettings = null,
+    bool IsExisting = false
 ) : ICommand<KeyVaultResult>;

@@ -1,0 +1,19 @@
+<button
+  [type]="type()"
+  [class]="classes()"
+  [class.full-width]="fullWidth()"
+  [disabled]="isDisabled()"
+  (click)="onClick($event)"
+>
+  @if (loading()) {
+    <span class="ds-btn__spinner" aria-hidden="true"></span>
+  } @else if (icon() && iconPosition() === 'leading') {
+    <mat-icon class="ds-btn__icon">{{ icon() }}</mat-icon>
+  }
+
+  <span class="ds-btn__label"><ng-content></ng-content></span>
+
+  @if (!loading() && icon() && iconPosition() === 'trailing') {
+    <mat-icon class="ds-btn__icon">{{ icon() }}</mat-icon>
+  }
+</button>

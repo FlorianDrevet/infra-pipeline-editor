@@ -28,7 +28,7 @@ public sealed class GetConfigDiagnosticsQueryHandler(
             return Errors.InfrastructureConfig.NotFoundError(
                 new InfrastructureConfigId(query.InfrastructureConfigId));
 
-        var diagnostics = diagnosticService.Evaluate(config);
+        var diagnostics = await diagnosticService.EvaluateAsync(config, cancellationToken).ConfigureAwait(false);
 
         return new GetConfigDiagnosticsResult(diagnostics);
     }

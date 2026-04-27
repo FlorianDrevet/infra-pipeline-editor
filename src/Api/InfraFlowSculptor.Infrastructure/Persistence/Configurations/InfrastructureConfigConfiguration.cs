@@ -80,12 +80,39 @@ public sealed class InfrastructureConfigConfiguration
             .OnDelete(DeleteBehavior.Cascade);
 
         // ========================
+        // ResourceAbbreviationOverrides (Entity)
+        // ========================
+        builder.HasMany(x => x.ResourceAbbreviationOverrides)
+            .WithOne(x => x.InfraConfig)
+            .HasForeignKey(x => x.InfraConfigId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ========================
         // CrossConfigResourceReferences (Entity)
         // ========================
         builder.HasMany(x => x.CrossConfigReferences)
             .WithOne()
             .HasForeignKey(x => x.InfraConfigId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ========================
+        // LayoutMode (per-config sub-mode for MultiRepo)
+        // ========================
+        builder.Property(x => x.LayoutMode)
+            .HasConversion(new EnumValueConverter<ConfigLayoutMode, ConfigLayoutModeEnum>())
+            .HasMaxLength(30)
+            .IsRequired(false);
+
+        // ========================
+        // Repositories (Entity, MultiRepo only)
+        // ========================
+        builder.HasMany(x => x.Repositories)
+            .WithOne()
+            .HasForeignKey(r => r.InfrastructureConfigId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(x => x.Repositories)
+            .HasField("_repositories")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         // ========================
         // Tags (OWNED)

@@ -1,6 +1,7 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.GenerateBicep;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
+using InfraFlowSculptor.Application.InfrastructureConfig.Queries.CheckResourceNameAvailability;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.GetConfigDiagnostics;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossConfigReferences;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListIncomingCrossConfigReferences;
@@ -62,6 +63,18 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.ResourceType, src => src.ResourceType)
             .Map(dest => dest.Template, src => src.Template);
 
+        // ResourceAbbreviationOverride entity -> ResourceAbbreviationOverrideResult
+        config.NewConfig<ResourceAbbreviationOverride, ResourceAbbreviationOverrideResult>()
+            .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest.ResourceType, src => src.ResourceType)
+            .Map(dest => dest.Abbreviation, src => src.Abbreviation);
+
+        // ResourceAbbreviationOverrideResult -> ResourceAbbreviationOverrideResponse
+        config.NewConfig<ResourceAbbreviationOverrideResult, ResourceAbbreviationOverrideResponse>()
+            .Map(dest => dest.Id, src => src.Id.Value.ToString())
+            .Map(dest => dest.ResourceType, src => src.ResourceType)
+            .Map(dest => dest.Abbreviation, src => src.Abbreviation);
+
         // GetInfrastructureConfigResult -> InfrastructureConfigResponse
         config.NewConfig<GetInfrastructureConfigResult, InfrastructureConfigResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
@@ -70,10 +83,13 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate)
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.ResourceAbbreviationOverrides, src => src.ResourceAbbreviationOverrides)
             .Map(dest => dest.Tags, src => src.Tags)
             .Map(dest => dest.ResourceGroupCount, src => src.ResourceGroupCount)
             .Map(dest => dest.ResourceCount, src => src.ResourceCount)
-            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferenceCount);
+            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferenceCount)
+            .Map(dest => dest.LayoutMode, src => src.LayoutMode)
+            .Map(dest => dest.Repositories, src => src.Repositories);
 
         // InfrastructureConfig domain -> GetInfrastructureConfigResult
         config.NewConfig<Domain.InfrastructureConfigAggregate.InfrastructureConfig, GetInfrastructureConfigResult>()
@@ -83,8 +99,34 @@ public sealed class InfraConfigMappingConfig : IRegister
             .Map(dest => dest.DefaultNamingTemplate, src => src.DefaultNamingTemplate != null ? src.DefaultNamingTemplate.Value : null)
             .Map(dest => dest.UseProjectNamingConventions, src => src.UseProjectNamingConventions)
             .Map(dest => dest.ResourceNamingTemplates, src => src.ResourceNamingTemplates)
+            .Map(dest => dest.ResourceAbbreviationOverrides, src => src.ResourceAbbreviationOverrides)
             .Map(dest => dest.Tags, src => src.Tags)
-            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferences.Count);
+            .Map(dest => dest.CrossConfigReferenceCount, src => src.CrossConfigReferences.Count)
+            .Map(dest => dest.LayoutMode, src => src.LayoutMode != null ? src.LayoutMode.Value.ToString() : null)
+            .Map(dest => dest.Repositories, src => src.Repositories);
+
+        // InfraConfigRepository entity -> InfraConfigRepositoryResult
+        config.NewConfig<Domain.InfrastructureConfigAggregate.Entities.InfraConfigRepository, InfraConfigRepositoryResult>()
+            .Map(dest => dest.Id, src => src.Id.Value)
+            .Map(dest => dest.Alias, src => src.Alias.Value)
+            .Map(dest => dest.ProviderType, src => src.ProviderType.Value.ToString())
+            .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
+            .Map(dest => dest.Owner, src => src.Owner)
+            .Map(dest => dest.RepositoryName, src => src.RepositoryName)
+            .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
+            .Map(dest => dest.ContentKinds,
+                src => src.ContentKinds.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries));
+
+        // InfraConfigRepositoryResult -> InfraConfigRepositoryResponse
+        config.NewConfig<InfraConfigRepositoryResult, InfraConfigRepositoryResponse>()
+            .Map(dest => dest.Id, src => src.Id.ToString())
+            .Map(dest => dest.Alias, src => src.Alias)
+            .Map(dest => dest.ProviderType, src => src.ProviderType)
+            .Map(dest => dest.RepositoryUrl, src => src.RepositoryUrl)
+            .Map(dest => dest.Owner, src => src.Owner)
+            .Map(dest => dest.RepositoryName, src => src.RepositoryName)
+            .Map(dest => dest.DefaultBranch, src => src.DefaultBranch)
+            .Map(dest => dest.ContentKinds, src => src.ContentKinds);
 
         // User entity -> UserResult
         config.NewConfig<User, UserResult>()
@@ -126,5 +168,9 @@ public sealed class InfraConfigMappingConfig : IRegister
 
         // GenerateBicepResult -> GenerateBicepResponse
         config.NewConfig<GenerateBicepResult, GenerateBicepResponse>();
+
+        // CheckResourceNameAvailability mappings
+        config.NewConfig<EnvironmentNameAvailabilityResult, EnvironmentNameAvailabilityResponseItem>();
+        config.NewConfig<CheckResourceNameAvailabilityResult, CheckResourceNameAvailabilityResponse>();
     }
 }

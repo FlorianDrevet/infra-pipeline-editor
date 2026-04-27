@@ -8,7 +8,7 @@ namespace InfraFlowSculptor.Domain.Common.Models;
 public abstract class SingleValueObject<T> : ValueObject
 {
     /// <summary>Gets the underlying primitive value.</summary>
-    public T Value { get; set; } = default!;
+    public T Value { get; private set; } = default!;
 
     /// <summary>EF Core / serialization constructor.</summary>
     protected SingleValueObject() { }

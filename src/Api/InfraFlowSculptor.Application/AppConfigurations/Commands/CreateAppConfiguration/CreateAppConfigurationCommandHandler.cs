@@ -39,7 +39,8 @@ public class CreateAppConfigurationCommandHandler(
             request.Location,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName, ec.Sku, ec.SoftDeleteRetentionInDays, ec.PurgeProtectionEnabled, ec.DisableLocalAuth, ec.PublicNetworkAccess))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var savedAppConfiguration = await appConfigurationRepository.AddAsync(appConfiguration);
 

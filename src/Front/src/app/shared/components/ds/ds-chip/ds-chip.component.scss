@@ -1,0 +1,89 @@
+@use "scss/main" as *;
+
+:host {
+  display: inline-flex;
+}
+
+.ds-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: $ifs-radius-pill;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.4;
+  border: 1px solid transparent;
+
+  &--sm {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  &--neutral {
+    background: $ifs-ink-100;
+    color: $ifs-ink-700;
+    border-color: $ifs-ink-200;
+  }
+
+  &--primary {
+    background: $ifs-info-soft;
+    color: $ifs-brand-blue;
+    border-color: $ifs-info-border;
+  }
+
+  &--success {
+    background: $ifs-success-soft;
+    color: $ifs-success;
+    border-color: $ifs-success-border;
+  }
+
+  &--warning {
+    background: $ifs-warning-soft;
+    color: $ifs-warning-strong;
+    border-color: $ifs-warning-border;
+  }
+
+  &--error {
+    background: $ifs-error-soft;
+    color: $ifs-error-strong;
+    border-color: $ifs-error-border;
+  }
+
+  &--cyan {
+    background: rgba(0, 188, 212, 0.12);
+    color: $ifs-brand-cyan;
+    border-color: rgba(0, 188, 212, 0.3);
+  }
+}
+
+.ds-chip__icon {
+  font-size: 0.85rem;
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.ds-chip__remove {
+  display: grid;
+  place-items: center;
+  width: 0.95rem;
+  height: 0.95rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+  border-radius: 50%;
+  padding: 0;
+
+  &:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  mat-icon {
+    font-size: 0.7rem;
+    width: 0.7rem;
+    height: 0.7rem;
+  }
+}

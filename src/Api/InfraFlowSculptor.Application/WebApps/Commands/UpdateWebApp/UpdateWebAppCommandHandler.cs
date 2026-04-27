@@ -53,7 +53,11 @@ public class UpdateWebAppCommandHandler(
             ? new AzureResourceId(request.ContainerRegistryId.Value)
             : (AzureResourceId?)null;
 
-        webApp.Update(request.Name, request.Location, appServicePlanId, runtimeStack, request.RuntimeVersion, request.AlwaysOn, request.HttpsOnly, deploymentMode, containerRegistryId, request.DockerImageName, request.DockerfilePath, request.SourceCodePath, request.BuildCommand, request.ApplicationName);
+        webApp.Update(request.Name, request.Location, appServicePlanId, runtimeStack, request.RuntimeVersion, request.AlwaysOn, request.HttpsOnly, deploymentMode, containerRegistryId,
+            !string.IsNullOrWhiteSpace(request.AcrAuthMode)
+                ? new AcrAuthMode(Enum.Parse<AcrAuthMode.AcrAuthModeType>(request.AcrAuthMode))
+                : null,
+            request.DockerImageName, request.DockerfilePath, request.SourceCodePath, request.BuildCommand, request.ApplicationName);
 
         if (request.EnvironmentSettings is not null)
             webApp.SetAllEnvironmentSettings(

@@ -8,6 +8,7 @@ export interface StorageAccountEnvironmentConfigEntry {
 export interface StorageAccountEnvironmentConfigResponse {
   environmentName: string;
   sku: string | null;
+  isExisting?: boolean;
 }
 
 export interface CorsRuleEntry {
@@ -24,6 +25,7 @@ export interface CorsRuleResponse {
   allowedHeaders: string[];
   exposedHeaders: string[];
   maxAgeInSeconds: number;
+  isExisting?: boolean;
 }
 
 export interface BlobLifecycleRuleEntry {
@@ -36,6 +38,7 @@ export interface BlobLifecycleRuleResponse {
   ruleName: string;
   containerNames: string[];
   timeToLiveInDays: number;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -44,19 +47,28 @@ export interface BlobContainerResponse {
   id: string;
   name: string;
   publicAccess: string;
+  isExisting?: boolean;
 }
 
 export interface StorageQueueResponse {
   id: string;
   name: string;
+  isExisting?: boolean;
 }
 
 export interface StorageTableResponse {
   id: string;
   name: string;
+  isExisting?: boolean;
 }
 
-export interface StorageAccountResponse {
+export interface StorageAccountSubResourcesResponse {
+  blobContainers: BlobContainerResponse[];
+  queues: StorageQueueResponse[];
+  tables: StorageTableResponse[];
+}
+
+export interface StorageAccountResponse extends StorageAccountSubResourcesResponse {
   id: string;
   resourceGroupId: string;
   name: string;
@@ -69,10 +81,8 @@ export interface StorageAccountResponse {
   corsRules: CorsRuleResponse[];
   tableCorsRules: CorsRuleResponse[];
   lifecycleRules: BlobLifecycleRuleResponse[];
-  blobContainers: BlobContainerResponse[];
-  queues: StorageQueueResponse[];
-  tables: StorageTableResponse[];
   environmentSettings: StorageAccountEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -90,6 +100,7 @@ export interface CreateStorageAccountRequest {
   tableCorsRules?: CorsRuleEntry[];
   lifecycleRules?: BlobLifecycleRuleEntry[];
   environmentSettings?: StorageAccountEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateStorageAccountRequest {

@@ -16,6 +16,18 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     {
     }
 
+    /// <summary>Override to eagerly load the per-config Repositories collection (MultiRepo layout).</summary>
+    public override async Task<InfrastructureConfig?> GetByIdAsync(
+        Domain.Common.Models.ValueObject id, CancellationToken cancellationToken = default)
+    {
+        if (id is not InfrastructureConfigId typedId)
+            return await base.GetByIdAsync(id, cancellationToken);
+
+        return await Context.InfrastructureConfigs
+            .Include(c => c.Repositories)
+            .FirstOrDefaultAsync(c => c.Id == typedId, cancellationToken);
+    }
+
     public async Task<InfrastructureConfig?> GetByIdWithMembersAsync(InfrastructureConfigId id, CancellationToken cancellationToken = default)
     {
         return await Context.InfrastructureConfigs
@@ -36,6 +48,7 @@ public class InfrastructureConfigRepository : BaseRepository<InfrastructureConfi
     {
         return await Context.InfrastructureConfigs
             .Include(c => c.ResourceNamingTemplates)
+            .Include(c => c.ResourceAbbreviationOverrides)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 

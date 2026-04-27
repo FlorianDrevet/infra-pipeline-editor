@@ -8,19 +8,18 @@
   }
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" id="add-config-form">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.CONFIGS.FORM.NAME' | translate }}</mat-label>
-      <input
-        matInput
-        formControlName="name"
-        maxlength="80"
-        [placeholder]="'PROJECT_DETAIL.CONFIGS.FORM.NAME_PLACEHOLDER' | translate" />
-      @if (nameControl.touched && nameControl.hasError('required')) {
-        <mat-error>{{ 'HOME.FORM.ERROR_REQUIRED' | translate }}</mat-error>
-      } @else if (nameControl.touched && nameControl.hasError('minlength')) {
-        <mat-error>{{ 'HOME.FORM.ERROR_MIN_LENGTH' | translate }}</mat-error>
-      }
-    </mat-form-field>
+    <app-ds-text-field
+      class="full-width"
+      formControlName="name"
+      [label]="'PROJECT_DETAIL.CONFIGS.FORM.NAME' | translate"
+      [placeholder]="'PROJECT_DETAIL.CONFIGS.FORM.NAME_PLACEHOLDER' | translate"
+      [error]="
+        nameControl.touched && nameControl.hasError('required')
+          ? ('HOME.FORM.ERROR_REQUIRED' | translate)
+          : (nameControl.touched && nameControl.hasError('minlength')
+              ? ('HOME.FORM.ERROR_MIN_LENGTH' | translate)
+              : undefined)
+      " />
   </form>
 </mat-dialog-content>
 

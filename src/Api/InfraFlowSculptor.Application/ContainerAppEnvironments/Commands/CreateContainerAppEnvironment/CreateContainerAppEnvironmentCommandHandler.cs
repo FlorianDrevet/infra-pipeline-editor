@@ -51,7 +51,8 @@ public sealed class CreateContainerAppEnvironmentCommandHandler(
             logAnalyticsWorkspaceId,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName, ec.Sku, ec.WorkloadProfileType, ec.InternalLoadBalancerEnabled, ec.ZoneRedundancyEnabled))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await containerAppEnvironmentRepository.AddAsync(containerAppEnvironment);
 

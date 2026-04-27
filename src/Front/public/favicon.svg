@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="ifsGradient" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1A3A8A" />
+      <stop offset="0.55" stop-color="#0288D1" />
+      <stop offset="1" stop-color="#00ACC1" />
+    </linearGradient>
+    <linearGradient id="ifsHighlight" x1="18" y1="16" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.3" />
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#ifsGradient)" />
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#ifsHighlight)" />
+  <path d="M24 22H40M24 42H40M22 24V40M42 24V40" stroke="#BFEFFF" stroke-width="3" stroke-linecap="round" opacity="0.85" />
+  <rect x="15" y="15" width="14" height="14" rx="4" fill="#FFFFFF" />
+  <rect x="35" y="15" width="14" height="14" rx="4" fill="#FFFFFF" />
+  <rect x="15" y="35" width="14" height="14" rx="4" fill="#FFFFFF" />
+  <rect x="35" y="35" width="14" height="14" rx="4" fill="#FFFFFF" />
+</svg>

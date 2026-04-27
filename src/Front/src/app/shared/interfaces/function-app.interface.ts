@@ -1,3 +1,5 @@
+import { AcrAuthMode } from './container-registry.interface';
+
 // ─── Environment Settings ────────────────────────────────────────────────────
 
 export interface FunctionAppEnvironmentConfigEntry {
@@ -12,6 +14,7 @@ export interface FunctionAppEnvironmentConfigResponse {
   httpsOnly: boolean | null;
   maxInstanceCount: number | null;
   dockerImageTag: string | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -24,6 +27,7 @@ export interface FunctionAppResponse {
   appServicePlanId: string;
   deploymentMode: string;
   containerRegistryId: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName: string | null;
   dockerfilePath: string | null;
   sourceCodePath: string | null;
@@ -33,6 +37,7 @@ export interface FunctionAppResponse {
   httpsOnly: boolean;
   applicationName: string | null;
   environmentSettings: FunctionAppEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -44,6 +49,7 @@ export interface CreateFunctionAppRequest {
   appServicePlanId: string;
   deploymentMode?: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   sourceCodePath?: string | null;
@@ -53,6 +59,7 @@ export interface CreateFunctionAppRequest {
   httpsOnly: boolean;
   applicationName?: string | null;
   environmentSettings?: FunctionAppEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateFunctionAppRequest {
@@ -61,6 +68,7 @@ export interface UpdateFunctionAppRequest {
   appServicePlanId: string;
   deploymentMode?: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   sourceCodePath?: string | null;

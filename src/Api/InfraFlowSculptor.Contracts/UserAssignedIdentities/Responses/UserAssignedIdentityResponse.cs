@@ -7,5 +7,8 @@ public record UserAssignedIdentityResponse(
     string Id,
     string ResourceGroupId,
     string Name,
-    string Location
+    string Location,
+
+    bool IsExisting = false
+
 );

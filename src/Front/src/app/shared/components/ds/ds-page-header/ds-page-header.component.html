@@ -1,0 +1,18 @@
+<header class="ds-page-header ds-page-header--{{ variant() }}">
+  <div class="ds-page-header__content">
+    @if (icon()) {
+      <div class="ds-page-header__badge">
+        <mat-icon>{{ icon() }}</mat-icon>
+      </div>
+    }
+    <div class="ds-page-header__text">
+      <h1 class="ds-page-header__title">{{ title() }}</h1>
+      @if (subtitle()) {
+        <p class="ds-page-header__subtitle">{{ subtitle() }}</p>
+      }
+    </div>
+  </div>
+  <div class="ds-page-header__actions">
+    <ng-content select="[ds-page-actions]"></ng-content>
+  </div>
+</header>

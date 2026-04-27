@@ -12,4 +12,6 @@ public record SqlDatabaseResult(
     Location Location,
     Guid SqlServerId,
     string Collation,
-    IReadOnlyList<SqlDatabaseEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyList<SqlDatabaseEnvironmentConfigData> EnvironmentSettings,
+    bool IsExisting = false
+);

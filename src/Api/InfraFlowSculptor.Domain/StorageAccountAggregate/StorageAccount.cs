@@ -141,6 +141,10 @@ public sealed class StorageAccount : AzureResource
     {
         Name = name;
         Location = location;
+
+        if (IsExisting)
+            return;
+
         Kind = kind;
         AccessTier = accessTier;
         AllowBlobPublicAccess = allowBlobPublicAccess;
@@ -152,10 +156,13 @@ public sealed class StorageAccount : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         StorageAccountSku? sku)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -173,9 +180,13 @@ public sealed class StorageAccount : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, StorageAccountSku? Sku)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var s in settings)
         {
@@ -246,6 +257,7 @@ public sealed class StorageAccount : AzureResource
     }
 
     /// <summary>Creates a new Storage Account with resource-level configuration.</summary>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     public static StorageAccount Create(
         ResourceGroupId resourceGroupId,
         Name name,
@@ -268,7 +280,8 @@ public sealed class StorageAccount : AzureResource
             IReadOnlyList<string> AllowedHeaders,
             IReadOnlyList<string> ExposedHeaders,
             int MaxAgeInSeconds)>? tableCorsRules = null,
-        IReadOnlyList<(string RuleName, IReadOnlyList<string> ContainerNames, int TimeToLiveInDays)>? lifecycleRules = null)
+        IReadOnlyList<(string RuleName, IReadOnlyList<string> ContainerNames, int TimeToLiveInDays)>? lifecycleRules = null,
+        bool isExisting = false)
     {
         var storageAccount = new StorageAccount
         {
@@ -276,6 +289,7 @@ public sealed class StorageAccount : AzureResource
             ResourceGroupId = resourceGroupId,
             Name = name,
             Location = location,
+            IsExisting = isExisting,
             Kind = kind,
             AccessTier = accessTier,
             AllowBlobPublicAccess = allowBlobPublicAccess,
@@ -283,16 +297,16 @@ public sealed class StorageAccount : AzureResource
             MinimumTlsVersion = minimumTlsVersion
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             storageAccount.SetAllEnvironmentSettings(environmentSettings);
 
-        if (corsRules is not null)
+        if (!isExisting && corsRules is not null)
             storageAccount.SetCorsRules(corsRules);
 
-        if (tableCorsRules is not null)
+        if (!isExisting && tableCorsRules is not null)
             storageAccount.SetTableCorsRules(tableCorsRules);
 
-        if (lifecycleRules is not null)
+        if (!isExisting && lifecycleRules is not null)
             storageAccount.SetLifecycleRules(lifecycleRules);
 
         return storageAccount;

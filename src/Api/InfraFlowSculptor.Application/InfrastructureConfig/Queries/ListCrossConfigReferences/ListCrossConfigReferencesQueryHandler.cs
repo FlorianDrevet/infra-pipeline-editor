@@ -1,6 +1,7 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using MediatR;
 
@@ -8,6 +9,7 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListCrossCo
 
 /// <summary>
 /// Handles listing cross-configuration resource references with resolved target metadata.
+/// Batch-loads all target configs and resources in two queries instead of 2N sequential ones.
 /// </summary>
 public sealed class ListCrossConfigReferencesQueryHandler(
     IInfraConfigAccessService accessService,
@@ -29,28 +31,49 @@ public sealed class ListCrossConfigReferencesQueryHandler(
         if (config is null)
             return authResult.Errors;
 
+        if (config.CrossConfigReferences.Count == 0)
+            return new List<CrossConfigReferenceDetailResult>();
+
+        // Batch-load all target config IDs in one query
+        var targetConfigIds = config.CrossConfigReferences
+            .Select(r => r.TargetConfigId)
+            .Distinct()
+            .ToList();
+        var targetConfigs = new Dictionary<InfrastructureConfigId, Domain.InfrastructureConfigAggregate.InfrastructureConfig>();
+        foreach (var tcId in targetConfigIds)
+        {
+            var tc = await infraConfigRepository.GetByIdAsync(tcId, cancellationToken);
+            if (tc is not null)
+                targetConfigs[tc.Id] = tc;
+        }
+
+        // Batch-load all target resource metadata (name, type, RG name) in one query
+        var targetResourceIds = config.CrossConfigReferences
+            .Select(r => r.TargetResourceId)
+            .Distinct()
+            .ToList();
+        var resourceMetadataList = await resourceGroupRepository.GetResourceMetadataBatchAsync(
+            targetResourceIds, cancellationToken);
+        var resourceMetadata = resourceMetadataList.ToDictionary(m => m.ResourceId);
+
         var results = new List<CrossConfigReferenceDetailResult>();
 
         foreach (var reference in config.CrossConfigReferences)
         {
-            var targetConfig = await infraConfigRepository.GetByIdAsync(reference.TargetConfigId, cancellationToken);
-            if (targetConfig is null) continue;
+            if (!targetConfigs.TryGetValue(reference.TargetConfigId, out var targetConfig))
+                continue;
 
-            var targetRg = await resourceGroupRepository.GetByContainedResourceIdAsync(
-                reference.TargetResourceId, cancellationToken);
-            if (targetRg is null) continue;
-
-            var targetResource = targetRg.Resources.FirstOrDefault(r => r.Id == reference.TargetResourceId);
-            if (targetResource is null) continue;
+            if (!resourceMetadata.TryGetValue(reference.TargetResourceId.Value, out var meta))
+                continue;
 
             results.Add(new CrossConfigReferenceDetailResult(
                 ReferenceId: reference.Id.Value,
                 TargetConfigId: reference.TargetConfigId.Value,
                 TargetConfigName: targetConfig.Name.Value,
                 TargetResourceId: reference.TargetResourceId.Value,
-                TargetResourceName: targetResource.Name.Value,
-                TargetResourceType: targetResource.GetType().Name,
-                TargetResourceGroupName: targetRg.Name.Value));
+                TargetResourceName: meta.ResourceName,
+                TargetResourceType: meta.ResourceType,
+                TargetResourceGroupName: meta.ResourceGroupName));
         }
 
         return results;

@@ -12,6 +12,7 @@ export interface LogAnalyticsWorkspaceEnvironmentConfigResponse {
   sku: string | null;
   retentionInDays: number | null;
   dailyQuotaGb: number | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -22,6 +23,7 @@ export interface LogAnalyticsWorkspaceResponse {
   name: string;
   location: string;
   environmentSettings: LogAnalyticsWorkspaceEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -31,6 +33,7 @@ export interface CreateLogAnalyticsWorkspaceRequest {
   name: string;
   location: string;
   environmentSettings?: LogAnalyticsWorkspaceEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateLogAnalyticsWorkspaceRequest {

@@ -1,0 +1,52 @@
+<div
+  class="ds-field"
+  [class.ds-field--invalid]="!!error()"
+  [class.ds-field--disabled]="disabledState()"
+  [class.ds-field--focused]="focused()"
+>
+  @if (label()) {
+    <label class="ds-field__label" [for]="inputId">
+      {{ label() }}
+      @if (required()) {
+        <span class="ds-field__required">*</span>
+      }
+    </label>
+  }
+  <div class="ds-field__control">
+    @if (prefixIcon()) {
+      <mat-icon class="ds-field__icon ds-field__icon--prefix">{{ prefixIcon() }}</mat-icon>
+    }
+    <input
+      [id]="inputId"
+      [type]="type()"
+      [placeholder]="placeholder()"
+      [disabled]="disabledState()"
+      [required]="required()"
+      [autocomplete]="autocomplete()"
+      [value]="value()"
+      (input)="onInput($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+      class="ds-field__input"
+    />
+    @if (clearable() && value() && !disabledState()) {
+      <button
+        type="button"
+        class="ds-field__clear"
+        (click)="clear()"
+        tabindex="-1"
+        aria-label="Clear"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+    @if (suffixIcon()) {
+      <mat-icon class="ds-field__icon ds-field__icon--suffix">{{ suffixIcon() }}</mat-icon>
+    }
+  </div>
+  @if (error()) {
+    <span class="ds-field__message ds-field__message--error">{{ error() }}</span>
+  } @else if (hint()) {
+    <span class="ds-field__message ds-field__message--hint">{{ hint() }}</span>
+  }
+</div>

@@ -5,6 +5,7 @@ export interface UserAssignedIdentityResponse {
   resourceGroupId: string;
   name: string;
   location: string;
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -13,6 +14,7 @@ export interface CreateUserAssignedIdentityRequest {
   resourceGroupId: string;
   name: string;
   location: string;
+  isExisting?: boolean;
 }
 
 export interface UpdateUserAssignedIdentityRequest {

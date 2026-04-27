@@ -12,5 +12,8 @@ public record LogAnalyticsWorkspaceResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<LogAnalyticsWorkspaceEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyList<LogAnalyticsWorkspaceEnvironmentConfigData> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

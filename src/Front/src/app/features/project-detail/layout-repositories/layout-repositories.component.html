@@ -1,0 +1,162 @@
+<div class="layout-repos">
+  @if (isLoading()) {
+    <div class="layout-repos__loading">
+      <mat-spinner diameter="32"></mat-spinner>
+    </div>
+  } @else if (project()) {
+    <section class="layout-repos__section">
+      <header class="layout-repos__section-header">
+        <h3>{{ 'PROJECT_DETAIL.LAYOUT.PRESET' | translate }}</h3>
+        <p class="layout-repos__section-help">
+          {{ 'PROJECT_DETAIL.LAYOUT.PRESET_HELP' | translate }}
+        </p>
+      </header>
+
+      <div class="preset-grid" role="radiogroup">
+        @for (option of layoutPresets; track option.value) {
+          <app-ds-option-card
+            [icon]="option.icon"
+            [title]="option.labelKey | translate"
+            [description]="option.descriptionKey | translate"
+            [selected]="currentPreset() === option.value"
+            [disabled]="presetSaving()"
+            (cardSelect)="onPresetChange(option.value)"
+          />
+        }
+      </div>
+    </section>
+
+    @switch (currentPreset()) {
+      @case ('AllInOne') {
+        <section class="layout-repos__section">
+          <header class="layout-repos__section-header">
+            <h3>{{ 'PROJECT_DETAIL.LAYOUT.SLOT_ALL_IN_ONE' | translate }}</h3>
+            <p class="layout-repos__section-help">
+              {{ 'PROJECT_DETAIL.LAYOUT.SLOT_ALL_IN_ONE_HELP' | translate }}
+            </p>
+          </header>
+
+          @if (allInOneRepo(); as repo) {
+            <mat-card class="repo-card" [class.repo-card--busy]="repoActionId() === repo.id">
+              <mat-card-header>
+                <mat-card-title class="repo-card__title">
+                  <mat-icon class="repo-card__icon">folder_open</mat-icon>
+                  <span>{{ repo.alias }}</span>
+                </mat-card-title>
+                <mat-card-subtitle>{{ repo.providerType }}</mat-card-subtitle>
+              </mat-card-header>
+
+              <mat-card-content class="repo-card__content">
+                <div class="repo-card__row">
+                  <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
+                  <a class="repo-card__link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
+                    {{ repo.owner }}/{{ repo.repositoryName }}
+                  </a>
+                </div>
+                <div class="repo-card__row">
+                  <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
+                  <strong>{{ repo.defaultBranch }}</strong>
+                </div>
+                <div class="repo-card__chips">
+                  @for (kind of repo.contentKinds; track kind) {
+                    <mat-chip disableRipple>{{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}</mat-chip>
+                  }
+                </div>
+              </mat-card-content>
+
+              <mat-card-actions align="end">
+                <button mat-stroked-button (click)="openAllInOneDialog()" [disabled]="repoActionId() === repo.id">
+                  <mat-icon>edit</mat-icon>
+                  {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
+                </button>
+                <button mat-stroked-button color="warn" (click)="openRemoveRepoDialog(repo)" [disabled]="repoActionId() === repo.id">
+                  <mat-icon>delete_outline</mat-icon>
+                  {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          } @else {
+            <button type="button" class="slot-empty" (click)="openAllInOneDialog()">
+              <mat-icon class="slot-empty__icon">add_circle_outline</mat-icon>
+              <span class="slot-empty__title">{{ 'PROJECT_DETAIL.LAYOUT.SLOT_ADD_ALL_IN_ONE' | translate }}</span>
+              <span class="slot-empty__desc">{{ 'PROJECT_DETAIL.LAYOUT.SLOT_ALL_IN_ONE_HELP' | translate }}</span>
+            </button>
+          }
+        </section>
+      }
+
+      @case ('SplitInfraCode') {
+        <section class="layout-repos__section">
+          <header class="layout-repos__section-header">
+            <h3>{{ 'PROJECT_DETAIL.LAYOUT.SLOTS_SPLIT_TITLE' | translate }}</h3>
+            <p class="layout-repos__section-help">
+              {{ 'PROJECT_DETAIL.LAYOUT.SLOTS_SPLIT_HELP' | translate }}
+            </p>
+          </header>
+
+          <div class="repo-grid">
+            @for (slot of splitSlots(); track slot.kind) {
+              @if (slot.repo; as repo) {
+                <mat-card class="repo-card" [class.repo-card--busy]="repoActionId() === repo.id">
+                  <mat-card-header>
+                    <mat-card-title class="repo-card__title">
+                      <mat-icon class="repo-card__icon">folder_open</mat-icon>
+                      <span>{{ slot.labelKey | translate }}</span>
+                    </mat-card-title>
+                    <mat-card-subtitle>{{ repo.alias }} · {{ repo.providerType }}</mat-card-subtitle>
+                  </mat-card-header>
+
+                  <mat-card-content class="repo-card__content">
+                    <div class="repo-card__row">
+                      <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
+                      <a class="repo-card__link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
+                        {{ repo.owner }}/{{ repo.repositoryName }}
+                      </a>
+                    </div>
+                    <div class="repo-card__row">
+                      <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
+                      <strong>{{ repo.defaultBranch }}</strong>
+                    </div>
+                  </mat-card-content>
+
+                  <mat-card-actions align="end">
+                    <button mat-stroked-button (click)="openSlotDialog(slot)" [disabled]="repoActionId() === repo.id">
+                      <mat-icon>edit</mat-icon>
+                      {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
+                    </button>
+                    <button mat-stroked-button color="warn" (click)="openRemoveRepoDialog(repo)" [disabled]="repoActionId() === repo.id">
+                      <mat-icon>delete_outline</mat-icon>
+                      {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
+                    </button>
+                  </mat-card-actions>
+                </mat-card>
+              } @else {
+                <button type="button" class="slot-empty" (click)="openSlotDialog(slot)">
+                  <mat-icon class="slot-empty__icon">add_circle_outline</mat-icon>
+                  <span class="slot-empty__title">{{ slot.labelKey | translate }}</span>
+                  <span class="slot-empty__desc">{{ 'PROJECT_DETAIL.LAYOUT.SLOT_ADD_HINT' | translate }}</span>
+                </button>
+              }
+            }
+          </div>
+        </section>
+      }
+
+      @case ('MultiRepo') {
+        <section class="layout-repos__section">
+          <div class="multirepo-banner">
+            <mat-icon class="multirepo-banner__icon">info</mat-icon>
+            <div>
+              <h4 class="multirepo-banner__title">
+                {{ 'PROJECT_DETAIL.LAYOUT.MULTI_REPO_BANNER_TITLE' | translate }}
+              </h4>
+              <p class="multirepo-banner__desc">
+                {{ 'PROJECT_DETAIL.LAYOUT.MULTI_REPO_BANNER_DESC' | translate }}
+              </p>
+            </div>
+          </div>
+        </section>
+      }
+    }
+  }
+</div>

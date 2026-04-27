@@ -14,7 +14,10 @@ public record ContainerAppResult(
     Location Location,
     Guid ContainerAppEnvironmentId,
     Guid? ContainerRegistryId,
+    string? AcrAuthMode,
     string? DockerImageName,
     string? DockerfilePath,
     string? ApplicationName,
-    IReadOnlyList<ContainerAppEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyList<ContainerAppEnvironmentConfigData> EnvironmentSettings,
+    bool IsExisting = false
+);

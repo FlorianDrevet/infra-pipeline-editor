@@ -8,7 +8,8 @@
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
-@include mat.core();
+@include mat.elevation-classes();
+@include mat.app-background();
 
 // Define the theme object.
 $custom-theme: mat.define-theme((
@@ -53,3 +54,217 @@ $custom-theme: mat.define-theme((
 
 @tailwind components;
 @tailwind utilities;
+
+// =============================================================================
+// IFS — Material Theme Overrides (apply DS V2 identity to Material components)
+// =============================================================================
+
+// --- Form Field outline ---
+.mat-mdc-form-field {
+  --mat-form-field-outlined-outline-color: #{$ifs-border-strong};
+  --mat-form-field-outlined-hover-outline-color: #{$ifs-brand-blue};
+  --mat-form-field-outlined-focus-outline-color: #{$ifs-brand-blue};
+  --mat-form-field-outlined-label-text-color: #{$ifs-ink-500};
+  --mat-form-field-outlined-focus-label-text-color: #{$ifs-brand-blue};
+  --mat-form-field-outlined-input-text-color: #{$ifs-ink-700};
+  --mat-form-field-outlined-caret-color: #{$ifs-brand-blue};
+  --mat-form-field-outlined-container-shape: 12px;
+  --mat-form-field-outlined-error-outline-color: #{$ifs-error-strong};
+  --mat-form-field-outlined-error-focus-outline-color: #{$ifs-error-strong};
+  --mat-form-field-outlined-error-label-text-color: #{$ifs-error-strong};
+  --mat-form-field-outlined-error-hover-outline-color: #{$ifs-error-strong};
+
+  .mat-mdc-form-field-icon-suffix mat-icon,
+  .mat-mdc-form-field-icon-prefix mat-icon {
+    color: $ifs-brand-blue;
+  }
+
+  .mat-mdc-form-field-error {
+    color: $ifs-error-strong;
+    font-weight: 500;
+  }
+
+  .mat-mdc-form-field-hint {
+    color: $ifs-ink-500;
+  }
+}
+
+// --- Select panel ---
+.mat-mdc-select-panel {
+  border-radius: $ifs-radius-md !important;
+  box-shadow: $ifs-shadow-lg !important;
+  border: 1px solid $ifs-border-medium;
+}
+
+.mat-mdc-option {
+  --mat-option-selected-state-label-text-color: #{$ifs-brand-blue};
+  --mat-option-selected-state-layer-color: #{$ifs-info-soft};
+  --mat-option-hover-state-layer-color: #{$ifs-info-soft};
+  --mat-option-focus-state-layer-color: #{$ifs-info-soft};
+
+  &.mdc-list-item--selected {
+    background: linear-gradient(135deg, rgba(21, 101, 192, 0.1), rgba(2, 136, 209, 0.06)) !important;
+
+    .mdc-list-item__primary-text {
+      color: $ifs-brand-blue !important;
+      font-weight: 600;
+    }
+  }
+}
+
+.mat-mdc-select-value {
+  color: $ifs-ink-700;
+}
+
+// --- Checkbox ---
+.mat-mdc-checkbox {
+  --mat-checkbox-selected-icon-color: #{$ifs-brand-blue};
+  --mat-checkbox-selected-hover-icon-color: #{$ifs-brand-blue};
+  --mat-checkbox-selected-focus-icon-color: #{$ifs-brand-blue};
+  --mat-checkbox-selected-pressed-icon-color: #{$ifs-brand-blue};
+  --mat-checkbox-selected-checkmark-color: #ffffff;
+  --mat-checkbox-selected-hover-state-layer-color: #{$ifs-brand-blue};
+  --mat-checkbox-selected-focus-state-layer-color: #{$ifs-brand-blue};
+  --mat-checkbox-selected-pressed-state-layer-color: #{$ifs-brand-blue};
+  --mat-checkbox-unselected-icon-color: #{$ifs-border-strong};
+  --mat-checkbox-unselected-hover-icon-color: #{$ifs-brand-blue};
+}
+
+// --- Slide toggle ---
+.mat-mdc-slide-toggle {
+  --mat-slide-toggle-selected-track-color: #{$ifs-brand-blue};
+  --mat-slide-toggle-selected-hover-track-color: #{$ifs-brand-blue};
+  --mat-slide-toggle-selected-focus-track-color: #{$ifs-brand-blue};
+  --mat-slide-toggle-selected-pressed-track-color: #{$ifs-brand-blue};
+  --mat-slide-toggle-selected-handle-color: #ffffff;
+  --mat-slide-toggle-selected-hover-handle-color: #ffffff;
+  --mat-slide-toggle-selected-focus-handle-color: #ffffff;
+  --mat-slide-toggle-selected-pressed-handle-color: #ffffff;
+  --mat-slide-toggle-selected-icon-color: #{$ifs-brand-blue};
+}
+
+// --- Tabs ---
+.mat-mdc-tab-group,
+.mat-mdc-tab-nav-bar {
+  --mat-tab-active-indicator-color: #{$ifs-brand-cyan};
+  --mat-tab-active-label-text-color: #{$ifs-brand-blue};
+  --mat-tab-active-focus-label-text-color: #{$ifs-brand-blue};
+  --mat-tab-active-hover-label-text-color: #{$ifs-brand-blue};
+  --mat-tab-inactive-label-text-color: #{$ifs-ink-500};
+  --mat-tab-active-ripple-color: #{$ifs-brand-blue};
+  --mat-tab-inactive-ripple-color: #{$ifs-brand-blue};
+}
+
+.mat-mdc-tab .mdc-tab__text-label {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+// --- Buttons (raised primary -> brand gradient) ---
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-raised-button[color="primary"] {
+  --mat-button-protected-container-color: transparent;
+  background: $ifs-gradient-cta !important;
+  color: #fff !important;
+  box-shadow: $ifs-shadow-cta !important;
+  border-radius: $ifs-radius-md !important;
+  transition:
+    box-shadow $ifs-duration-fast $ifs-ease-out,
+    transform $ifs-duration-fast $ifs-ease-out !important;
+
+  &:hover:not(:disabled) {
+    box-shadow: $ifs-shadow-cta-hover !important;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    background: $ifs-ink-200 !important;
+    color: $ifs-ink-400 !important;
+    box-shadow: none !important;
+  }
+
+  &.no-ifs-override {
+    background: revert !important;
+    color: revert !important;
+    box-shadow: revert !important;
+    transform: none !important;
+  }
+}
+
+.mat-mdc-button,
+.mat-mdc-outlined-button,
+.mat-mdc-stroked-button {
+  border-radius: $ifs-radius-md !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+}
+
+.mat-mdc-outlined-button.mat-primary,
+.mat-mdc-stroked-button.mat-primary {
+  --mat-button-outlined-outline-color: #{$ifs-info-border};
+  --mat-button-outlined-label-text-color: #{$ifs-brand-blue};
+
+  &:hover:not(:disabled) {
+    background: $ifs-info-soft !important;
+  }
+}
+
+.mat-mdc-button.mat-primary {
+  --mat-button-text-label-text-color: #{$ifs-brand-blue};
+}
+
+// --- Dialog surface ---
+.mat-mdc-dialog-surface {
+  border-radius: $ifs-radius-2xl !important;
+  box-shadow: $ifs-shadow-xl !important;
+  border: 1px solid $ifs-border-soft;
+}
+
+.mat-mdc-dialog-title {
+  color: $ifs-ink-900 !important;
+  font-weight: 700 !important;
+}
+
+// --- Snack bar ---
+.mat-mdc-snack-bar-container {
+  --mat-snackbar-container-shape: #{$ifs-radius-lg};
+
+  .mdc-snackbar__surface {
+    box-shadow: $ifs-shadow-lg !important;
+  }
+}
+
+// --- Progress spinner ---
+.mat-mdc-progress-spinner {
+  --mat-progress-spinner-active-indicator-color: #{$ifs-brand-blue};
+}
+
+// --- Menu ---
+.mat-mdc-menu-panel {
+  border-radius: $ifs-radius-md !important;
+  box-shadow: $ifs-shadow-lg !important;
+  border: 1px solid $ifs-border-medium;
+}
+
+// --- Tooltip ---
+.mat-mdc-tooltip {
+  --mat-tooltip-container-color: #{$ifs-ink-900};
+  --mat-tooltip-supporting-text-color: #ffffff;
+  --mat-tooltip-container-shape: #{$ifs-radius-sm};
+  font-weight: 500 !important;
+}
+
+// --- Expansion panel ---
+.mat-expansion-panel {
+  border-radius: $ifs-radius-md !important;
+  box-shadow: $ifs-shadow-xs !important;
+
+  &:not(.mat-expanded):hover {
+    background: $ifs-info-soft;
+  }
+}
+
+// --- Selection focus ---
+::selection {
+  background: rgba(2, 136, 209, 0.25);
+}

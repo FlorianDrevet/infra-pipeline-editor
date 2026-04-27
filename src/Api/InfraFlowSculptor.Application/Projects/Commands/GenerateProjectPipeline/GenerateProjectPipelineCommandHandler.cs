@@ -1,9 +1,13 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Generation;
+using InfraFlowSculptor.Application.Common.GitRouting;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.ReadModels;
+using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -20,14 +24,17 @@ namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipelin
 public sealed class GenerateProjectPipelineCommandHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
+    IInfrastructureConfigRepository configRepository,
     IInfrastructureConfigReadRepository configReadRepository,
     PipelineGenerationEngine pipelineGenerationEngine,
     AppPipelineGenerationEngine appPipelineGenerationEngine,
+    IEnumerable<IResourceTypeBicepGenerator> bicepGenerators,
     IContainerAppRepository containerAppRepository,
     IWebAppRepository webAppRepository,
     IFunctionAppRepository functionAppRepository,
     IContainerRegistryRepository containerRegistryRepository,
-    IBlobService blobService)
+    IBlobService blobService,
+    IRepositoryTargetResolver targetResolver)
     : ICommandHandler<GenerateProjectPipelineCommand, GenerateProjectPipelineResult>
 {
 
@@ -49,6 +56,16 @@ public sealed class GenerateProjectPipelineCommandHandler(
         if (configs.Count == 0)
             return Errors.Project.NoConfigurationsError();
 
+        // 2.bis Ambiguity gate: reject project-level generate-all for heterogeneous multi-repo topologies.
+        // Uses domain aggregates to access RepositoryBinding (not exposed by the read model).
+        var projectForGate = await projectRepository.GetByIdAsync(command.ProjectId, cancellationToken);
+        if (projectForGate is null)
+            return Errors.Project.NotFoundError(command.ProjectId);
+
+        var domainConfigs = await configRepository.GetByProjectIdAsync(command.ProjectId, cancellationToken);
+        if (!projectForGate.CanGenerateAllFromProjectLevel(domainConfigs))
+            return Errors.GitRouting.AmbiguousProjectLevelGeneration;
+
         // 3. Load project-level pipeline variable groups
         var project = await projectRepository.GetByIdWithPipelineVariableGroupsAsync(
             command.ProjectId, cancellationToken);
@@ -57,12 +74,27 @@ public sealed class GenerateProjectPipelineCommandHandler(
 
         var projectVariableGroups = project?.PipelineVariableGroups.ToList() ?? [];
 
+        // Resolve the project-level target (alias "default") to determine base paths within the repo.
+        // Heterogeneous multi-repo projects will simply fall back to null paths here — the per-config
+        // push handlers are responsible for enforcing the routing at push time.
+        string? bicepBasePath = null;
+        string? pipelineBasePath = null;
+        if (projectWithGit is not null)
+        {
+            var targetResult = targetResolver.Resolve(projectWithGit, config: null, ArtifactKind.Pipeline);
+            if (!targetResult.IsError)
+            {
+                bicepBasePath = targetResult.Value.BasePath;
+                pipelineBasePath = targetResult.Value.PipelineBasePath;
+            }
+        }
+
         // 4. Generate pipeline YAML per config (mono-repo mode: no per-config variables)
         var perConfigResults = new Dictionary<string, PipelineGenerationResult>();
 
         foreach (var config in configs)
         {
-            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, projectWithGit ?? project);
+            var generationRequest = BuildGenerationRequest(config, projectVariableGroups, projectWithGit ?? project, bicepGenerators, bicepBasePath);
             var result = pipelineGenerationEngine.Generate(generationRequest, config.Name, isMonoRepo: true);
 
             // Generate app pipelines for compute resources in this config
@@ -106,50 +138,120 @@ public sealed class GenerateProjectPipelineCommandHandler(
             perConfigResults,
             environments,
             agentPoolName,
-            projectWithGit?.GitRepositoryConfiguration?.BasePath,
-            projectWithGit?.GitRepositoryConfiguration?.PipelineBasePath);
+            bicepBasePath,
+            pipelineBasePath);
 
-        // 7. Upload to blob storage
+        // 7. Upload to blob storage.
+        // Layout (since SplitInfraCode dual-push):
+        //   {prefix}/infra/.azuredevops/...   \u2192 infra shared templates
+        //   {prefix}/app/.azuredevops/...     \u2192 app shared templates (when any app pipeline exists)
+        //   {prefix}/infra/{configName}/...   \u2192 infra per-config files
+        //   {prefix}/app/{configName}/...     \u2192 app per-config files (apps/ wrappers)
         var prefix = $"pipeline/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
 
-        var commonFileUris = new Dictionary<string, Uri>();
+        var infraCommonUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
+        var appCommonUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
         foreach (var (path, content) in assembled.CommonFiles)
         {
+            var repoRelativePath = $".azuredevops/Common/{path}";
             var uri = await blobService.UploadContentAsync(
-                $"{prefix}/.azuredevops/{path}", content, "text/plain");
-            commonFileUris[$".azuredevops/{path}"] = uri;
+                $"{prefix}/infra/{repoRelativePath}", content, "text/plain");
+            infraCommonUris[repoRelativePath] = uri;
         }
 
-        var configFileUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>();
+        // Upload shared application pipeline templates whenever any per-config bucket emitted apps/ wrappers.
+        var hasAppPipelines = assembled.ConfigFiles.Values
+            .Any(files => files.Keys.Any(p => p.StartsWith("apps/", StringComparison.Ordinal)));
+
+        if (hasAppPipelines)
+        {
+            foreach (var (path, content) in AppPipelineGenerationEngine.GenerateSharedTemplates())
+            {
+                var repoRelativePath = ToCommonAzureDevOpsPath(path);
+                var uri = await blobService.UploadContentAsync(
+                    $"{prefix}/app/{repoRelativePath}", content, "text/plain");
+                appCommonUris[repoRelativePath] = uri;
+            }
+        }
+
+        var infraConfigUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>(StringComparer.Ordinal);
+        var appConfigUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>(StringComparer.Ordinal);
+        var unionConfigUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>(StringComparer.Ordinal);
+
         foreach (var (configName, files) in assembled.ConfigFiles)
         {
-            var uris = new Dictionary<string, Uri>();
-            foreach (var (path, content) in files)
+            var (infraFiles, appFiles) = AppPipelineFileClassifier.Split(files);
+
+            var infraUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
+            foreach (var (path, content) in infraFiles)
             {
+                var repoRelativePath = $".azuredevops/{configName}/{path}";
                 var uri = await blobService.UploadContentAsync(
-                    $"{prefix}/{configName}/{path}", content, "text/plain");
-                uris[path] = uri;
+                    $"{prefix}/infra/{repoRelativePath}", content, "text/plain");
+                infraUris[repoRelativePath] = uri;
             }
-            configFileUris[configName] = uris;
+
+            var appUris = new Dictionary<string, Uri>(StringComparer.Ordinal);
+            foreach (var (path, content) in appFiles)
+            {
+                var repoRelativePath = $".azuredevops/{configName}/{path}";
+                var uri = await blobService.UploadContentAsync(
+                    $"{prefix}/app/{repoRelativePath}", content, "text/plain");
+                appUris[repoRelativePath] = uri;
+            }
+
+            infraConfigUris[configName] = infraUris;
+            appConfigUris[configName] = appUris;
+
+            // Union view (legacy CommonFileUris/ConfigFileUris consumers expect a flat per-config map).
+            var union = new Dictionary<string, Uri>(infraUris, StringComparer.Ordinal);
+            foreach (var (path, uri) in appUris)
+                union[path] = uri;
+            unionConfigUris[configName] = union;
         }
 
-        return new GenerateProjectPipelineResult(commonFileUris, configFileUris);
+        var unionCommonUris = new Dictionary<string, Uri>(infraCommonUris, StringComparer.Ordinal);
+        foreach (var (path, uri) in appCommonUris)
+            unionCommonUris[path] = uri;
+
+        return new GenerateProjectPipelineResult(
+            CommonFileUris: unionCommonUris,
+            ConfigFileUris: unionConfigUris,
+            InfraCommonFileUris: infraCommonUris,
+            AppCommonFileUris: appCommonUris,
+            InfraConfigFileUris: infraConfigUris,
+            AppConfigFileUris: appConfigUris);
+    }
+
+    private static string ToCommonAzureDevOpsPath(string path)
+    {
+        const string azureDevOpsPrefix = ".azuredevops/";
+
+        return path.StartsWith(azureDevOpsPrefix, StringComparison.Ordinal)
+            ? $".azuredevops/Common/{path[azureDevOpsPrefix.Length..]}"
+            : $".azuredevops/Common/{path}";
     }
 
     private static GenerationRequest BuildGenerationRequest(
         InfrastructureConfigReadModel config,
         List<Domain.ProjectAggregate.Entities.ProjectPipelineVariableGroup> projectVariableGroups,
-        Domain.ProjectAggregate.Project? project)
+        Domain.ProjectAggregate.Project? project,
+        IEnumerable<IResourceTypeBicepGenerator> generators,
+        string? bicepBasePath)
     {
+        var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
+
         var resources = config.ResourceGroups
-            .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
+            .SelectMany(rg => rg.Resources
+                .Where(r => !r.IsExisting)
+                .Select(r => new ResourceDefinition
             {
                 Name = r.Name,
                 Type = r.ResourceType,
                 ResourceGroupName = rg.Name,
                 Sku = r.Properties.GetValueOrDefault("sku", string.Empty),
                 Properties = r.Properties,
-                ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType),
+                ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType, mergedAbbreviations),
                 EnvironmentConfigs = r.EnvironmentConfigs
                     .ToDictionary(
                         ec => ec.EnvironmentName,
@@ -187,7 +289,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
         {
             DefaultTemplate = config.NamingContext.DefaultTemplate,
             ResourceTemplates = config.NamingContext.ResourceTemplates,
-            ResourceAbbreviations = ResourceAbbreviationCatalog.GetAll(),
+            ResourceAbbreviations = mergedAbbreviations,
         };
 
         // Derive PVG mappings from app settings linked to each variable group
@@ -200,7 +302,7 @@ public sealed class GenerateProjectPipelineCommandHandler(
                     .Select(s => new PipelineVariableMappingDefinition
                     {
                         PipelineVariableName = s.PipelineVariableName!,
-                        BicepParameterName = s.Name,
+                        BicepParameterName = AppSettingPipelineParameterNameHelper.ResolveBicepParameterName(s),
                     })
                     .ToList();
 
@@ -223,15 +325,33 @@ public sealed class GenerateProjectPipelineCommandHandler(
             AppSettings = [],
             ExistingResourceReferences = [],
             PipelineVariableGroups = pipelineVariableGroups,
+            SecureParameterOverrides = SecureParameterOverrideHelper.DeriveSecureParameterOverrides(
+                resources, generators, config.SecureParameterMappings, pipelineVariableGroups),
             AgentPoolName = project?.AgentPoolName,
-            BicepBasePath = project?.GitRepositoryConfiguration?.BasePath,
+            BicepBasePath = bicepBasePath,
         };
     }
 
-    private static string GetResourceAbbreviation(string azureResourceType)
+    private static string GetResourceAbbreviation(
+        string azureResourceType,
+        IReadOnlyDictionary<string, string> mergedAbbreviations)
     {
         var typeName = AzureResourceTypes.GetFriendlyName(azureResourceType);
-        return ResourceAbbreviationCatalog.GetAbbreviation(typeName);
+        return mergedAbbreviations.TryGetValue(typeName, out var abbr)
+            ? abbr
+            : ResourceAbbreviationCatalog.GetAbbreviation(typeName);
+    }
+
+    private static IReadOnlyDictionary<string, string> MergeAbbreviations(
+        IReadOnlyDictionary<string, string> overrides)
+    {
+        var merged = new Dictionary<string, string>(ResourceAbbreviationCatalog.GetAll(), StringComparer.OrdinalIgnoreCase);
+        foreach (var (key, value) in overrides)
+        {
+            merged[key] = value;
+        }
+
+        return merged;
     }
 
     /// <summary>
@@ -331,6 +451,9 @@ public sealed class GenerateProjectPipelineCommandHandler(
             DockerfilePath = containerApp.DockerfilePath,
             DockerImageName = containerApp.DockerImageName,
             ContainerRegistryName = acrName,
+            AcrAuthMode = containerApp.AcrAuthMode?.Value.ToString(),
+            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
+            EnableSecurityScans = true,
         };
     }
 
@@ -356,8 +479,11 @@ public sealed class GenerateProjectPipelineCommandHandler(
             BuildCommand = webApp.BuildCommand,
             DockerImageName = webApp.DockerImageName,
             ContainerRegistryName = acrName,
+            AcrAuthMode = webApp.AcrAuthMode?.Value.ToString(),
             RuntimeStack = webApp.RuntimeStack.Value.ToString(),
             RuntimeVersion = webApp.RuntimeVersion,
+            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
+            EnableSecurityScans = true,
         };
     }
 
@@ -383,8 +509,11 @@ public sealed class GenerateProjectPipelineCommandHandler(
             BuildCommand = functionApp.BuildCommand,
             DockerImageName = functionApp.DockerImageName,
             ContainerRegistryName = acrName,
+            AcrAuthMode = functionApp.AcrAuthMode?.Value.ToString(),
             RuntimeStack = functionApp.RuntimeStack.Value.ToString(),
             RuntimeVersion = functionApp.RuntimeVersion,
+            PromotionStrategy = AppPipelinePromotionStrategy.AcrImport,
+            EnableSecurityScans = true,
         };
     }
 

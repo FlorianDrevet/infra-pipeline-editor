@@ -5,7 +5,7 @@ using InfraFlowSculptor.Domain.Common.Errors;
 
 namespace InfraFlowSculptor.Application.Projects.Queries.ListProjectPipelineVariableGroups;
 
-/// <summary>Handles listing project-level pipeline variable groups with their mappings.</summary>
+/// <summary>Handles listing project-level pipeline variable groups with their variable usages.</summary>
 public sealed class ListProjectPipelineVariableGroupsQueryHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository)
@@ -24,10 +24,17 @@ public sealed class ListProjectPipelineVariableGroupsQueryHandler(
         if (project is null)
             return Errors.Project.NotFoundError(query.ProjectId);
 
+        var variableGroupIds = project.PipelineVariableGroups
+            .Select(g => g.Id)
+            .ToList();
+
+        var usagesMap = await projectRepository.GetPipelineVariableUsagesAsync(variableGroupIds, cancellationToken);
+
         return project.PipelineVariableGroups
             .Select(g => new ProjectPipelineVariableGroupResult(
                 g.Id.Value,
-                g.GroupName))
+                g.GroupName,
+                usagesMap.TryGetValue(g.Id.Value, out var usages) ? usages : []))
             .ToList();
     }
 }

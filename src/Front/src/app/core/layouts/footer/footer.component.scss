@@ -1,12 +1,12 @@
+@use "scss/main" as *;
+
 :host {
 	display: block;
 }
 
 .shell-footer {
 	border-top: 1px solid rgba(20, 87, 151, 0.12);
-	background:
-		linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(240, 247, 255, 0.94)),
-		linear-gradient(125deg, rgba(21, 101, 192, 0.08), rgba(0, 172, 193, 0.08));
+	background: $ifs-gradient-glass-footer;
 	backdrop-filter: blur(14px);
 }
 
@@ -30,7 +30,7 @@
 
 .shell-footer__brand {
 	strong {
-		color: #0d2b4f;
+		color: $ifs-ink-900;
 		font-size: 1rem;
 		font-weight: 700;
 	}
@@ -38,7 +38,7 @@
 	p {
 		margin: 0;
 		max-width: 28rem;
-		color: #4d6784;
+		color: $ifs-ink-500;
 		font-size: 0.88rem;
 		line-height: 1.55;
 	}
@@ -46,12 +46,12 @@
 
 .shell-footer__meta,
 .shell-footer__legal {
-	color: #5b718b;
+	color: $ifs-ink-500;
 	font-size: 0.82rem;
 }
 
 .shell-footer__meta a {
-	color: #1565c0;
+	color: $ifs-brand-blue;
 	font-weight: 600;
 	text-decoration: none;
 

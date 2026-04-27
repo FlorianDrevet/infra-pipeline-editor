@@ -11,5 +11,6 @@ public record CreateLogAnalyticsWorkspaceCommand(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<LogAnalyticsWorkspaceEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<LogAnalyticsWorkspaceEnvironmentConfigData>? EnvironmentSettings = null,
+    bool IsExisting = false
 ) : ICommand<LogAnalyticsWorkspaceResult>;

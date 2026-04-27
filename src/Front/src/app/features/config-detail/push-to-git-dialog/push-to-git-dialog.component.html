@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.DIALOG_TITLE' | translate }}</h2>
+<h2 mat-dialog-title>{{ dialogTitleKey | translate }}</h2>
 
 <mat-dialog-content>
   @switch (state()) {
@@ -28,25 +28,27 @@
           </mat-autocomplete>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_MESSAGE' | translate }}</mat-label>
-          <input matInput formControlName="commitMessage"
-                 [placeholder]="'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_MESSAGE_PLACEHOLDER' | translate" />
-        </mat-form-field>
+        <app-ds-text-field
+          formControlName="commitMessage"
+          [label]="'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_MESSAGE' | translate"
+          [placeholder]="'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_MESSAGE_PLACEHOLDER' | translate" />
       </form>
     }
 
     @case ('pushing') {
       <div class="push-state push-state--loading">
         <mat-spinner diameter="36"></mat-spinner>
-        <p>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.PUSHING' | translate }}</p>
+        <p>{{ pushingMessageKey | translate }}</p>
       </div>
     }
 
     @case ('success') {
       <div class="push-state push-state--success">
         <mat-icon class="push-state__icon push-state__icon--success">check_circle</mat-icon>
-        <h3>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.SUCCESS_TITLE' | translate }}</h3>
+        <h3>{{ successTitleKey | translate }}</h3>
+        @if (combinedSuccessDetailKey) {
+          <p class="push-state__detail push-state__detail--info">{{ combinedSuccessDetailKey | translate }}</p>
+        }
 
         <div class="push-result">
           <div class="push-result__row">
@@ -57,7 +59,7 @@
             </a>
           </div>
           <div class="push-result__row">
-            <span>{{ 'CONFIG_DETAIL.PUSH_TO_GIT.COMMIT_SHA' | translate }}</span>
+            <span>{{ commitLabelKey | translate }}</span>
             <code>{{ result()!.commitSha }}</code>
           </div>
           <div class="push-result__row">
@@ -85,10 +87,9 @@
       <button mat-stroked-button type="button" (click)="onClose()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
       </button>
-      <button mat-flat-button color="primary" (click)="onPush()" [disabled]="form.invalid">
-        <mat-icon>rocket_launch</mat-icon>
+      <app-ds-button variant="primary" icon="rocket_launch" [disabled]="form.invalid" (clicked)="onPush()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.PUSH' | translate }}
-      </button>
+      </app-ds-button>
     }
 
     @case ('pushing') {
@@ -96,18 +97,18 @@
     }
 
     @case ('success') {
-      <button mat-flat-button color="primary" (click)="onClose()">
+      <app-ds-button variant="primary" (clicked)="onClose()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
-      </button>
+      </app-ds-button>
     }
 
     @case ('error') {
       <button mat-stroked-button type="button" (click)="onClose()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.CLOSE' | translate }}
       </button>
-      <button mat-flat-button color="primary" (click)="onRetry()">
+      <app-ds-button variant="primary" (clicked)="onRetry()">
         {{ 'CONFIG_DETAIL.PUSH_TO_GIT.RETRY' | translate }}
-      </button>
+      </app-ds-button>
     }
   }
 </mat-dialog-actions>

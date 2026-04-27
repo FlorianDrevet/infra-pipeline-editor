@@ -1,0 +1,166 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+}
+
+.ds-showcase {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  &__section {
+    margin-bottom: 3rem;
+  }
+
+  &__subtitle {
+    @include ifs-text($ifs-text-md);
+    color: $ifs-ink-700;
+    margin: 1.25rem 0 0.75rem;
+  }
+}
+
+.ds-swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.ds-swatch {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: $ifs-surface-0;
+  border: 1px solid $ifs-border-soft;
+  border-radius: $ifs-radius-md;
+  padding: 0.5rem 0.75rem;
+
+  &__chip {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: $ifs-radius-sm;
+    flex-shrink: 0;
+
+    &--bordered {
+      border: 1px solid $ifs-ink-200;
+    }
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    strong {
+      font-size: 0.8rem;
+      color: $ifs-ink-900;
+    }
+
+    code {
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: $ifs-ink-500;
+    }
+  }
+}
+
+.ds-gradient-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.ds-gradient-card {
+  background: $ifs-surface-0;
+  border: 1px solid $ifs-border-soft;
+  border-radius: $ifs-radius-md;
+  overflow: hidden;
+
+  &__preview {
+    height: 110px;
+  }
+
+  &__meta {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+    color: $ifs-ink-700;
+  }
+}
+
+.ds-shadow-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.ds-shadow-card {
+  background: $ifs-surface-0;
+  border-radius: $ifs-radius-lg;
+  padding: 1.25rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: $ifs-ink-700;
+}
+
+.ds-radius-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.ds-radius-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  background: $ifs-surface-0;
+  border: 1px solid $ifs-border-soft;
+  border-radius: $ifs-radius-md;
+
+  &__chip {
+    width: 5rem;
+    height: 5rem;
+    background: $ifs-gradient-brand-soft;
+  }
+
+  strong {
+    font-size: 0.85rem;
+    color: $ifs-ink-900;
+  }
+
+  code {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: $ifs-ink-500;
+  }
+}
+
+.ds-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.ds-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.ds-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ds-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+}

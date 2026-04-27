@@ -2,24 +2,35 @@ import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   InfrastructureConfigResponse,
   ResourceNamingTemplateResponse,
+  ResourceAbbreviationOverrideResponse,
   SetInfraConfigTagsRequest,
   TagRequest,
 } from '../../shared/interfaces/infra-config.interface';
 import { ResourceGroupResponse, AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { InfraConfigService } from '../../shared/services/infra-config.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  DsButtonComponent,
+  DsPanelActionButtonComponent,
+  DsSelectComponent,
+  DsSelectOption,
+  DsTextFieldComponent,
+} from '../../shared/components/ds';
+import {
+  EditAbbreviationDialogComponent,
+  EditAbbreviationDialogData,
+  EditAbbreviationDialogResult,
+} from '../../shared/components/edit-abbreviation-dialog/edit-abbreviation-dialog.component';
 import { AddResourceGroupDialogComponent, AddResourceGroupDialogData } from './add-resource-group-dialog/add-resource-group-dialog.component';
 import { AddResourceDialogComponent, AddResourceDialogData } from './add-resource-dialog/add-resource-dialog.component';
 import {
@@ -61,10 +72,18 @@ import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { BicepFilePanelComponent, BicepFileNode, BicepFolderNode, BicepTreeNode } from '../../shared/components/bicep-file-panel/bicep-file-panel.component';
-import { StorageAccountResponse } from '../../shared/interfaces/storage-account.interface';
+import { StorageAccountResponse, StorageAccountSubResourcesResponse } from '../../shared/interfaces/storage-account.interface';
 import { AddStorageServiceDialogComponent, AddStorageServiceDialogData, AddStorageServiceDialogResult } from './add-storage-service-dialog/add-storage-service-dialog.component';
 import { PushToGitDialogComponent, PushToGitDialogData } from './push-to-git-dialog/push-to-git-dialog.component';
-import { GitConfigDialogComponent, GitConfigDialogData } from '../project-detail/git-config-dialog/git-config-dialog.component';
+import {
+  InfraConfigRepositoryDialogComponent,
+  InfraConfigRepositoryDialogData,
+} from './infra-config-repository-dialog/infra-config-repository-dialog.component';
+import {
+  ConfigLayoutMode,
+  InfraConfigRepositoryResponse,
+} from '../../shared/interfaces/infra-config-repository.interface';
+import { RepositoryContentKind } from '../../shared/interfaces/project-repository.interface';
 import {
   CrossConfigReferenceResponse,
   IncomingCrossConfigReferenceResponse,
@@ -97,18 +116,20 @@ interface ResourceDisplayItem {
     FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
+    MatCardModule,
     MatChipsModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
     BicepFilePanelComponent,
     DiagnosticPopoverComponent,
+    DsButtonComponent,
+    DsPanelActionButtonComponent,
+    DsSelectComponent,
+    DsTextFieldComponent,
   ],
   templateUrl: './config-detail.component.html',
   styleUrl: './config-detail.component.scss',
@@ -161,7 +182,7 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly expandedParentResources = signal<Set<string>>(new Set<string>());
 
   // ─── Storage Account sub-resources ───
-  protected readonly storageAccountDetails = signal<Record<string, StorageAccountResponse | undefined>>({});
+  protected readonly storageAccountDetails = signal<Record<string, StorageAccountSubResourcesResponse | undefined>>({});
   protected readonly storageDetailsLoading = signal<string | null>(null);
 
   // ─── Diagnostics Validation ───
@@ -172,7 +193,6 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly bicepResult = signal<GenerateBicepResponse | null>(null);
   protected readonly bicepErrorKey = signal('');
   protected readonly bicepPanelOpen = signal(false);
-  protected readonly bicepPanelCollapsed = signal(false);
   protected readonly bicepDownloading = signal(false);
 
   // ─── Bicep File Panel ───
@@ -239,7 +259,6 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly pipelineResult = signal<GeneratePipelineResponse | null>(null);
   protected readonly pipelineErrorKey = signal('');
   protected readonly pipelinePanelOpen = signal(false);
-  protected readonly pipelinePanelCollapsed = signal(false);
   protected readonly pipelineDownloading = signal(false);
 
   protected readonly configPipelineNodes = computed<BicepTreeNode[]>(() => {
@@ -305,6 +324,17 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly vgErrorKey = signal('');
   protected readonly vgLoaded = signal(false);
 
+  protected readonly configVariableGroups = computed(() => {
+    const configName = this.config()?.name ?? '';
+    if (!configName) return this.variableGroups();
+    return this.variableGroups()
+      .map(g => ({
+        ...g,
+        variables: g.variables.filter(v => v.configName === configName),
+      }))
+      .filter(g => g.variables.length > 0);
+  });
+
   // ─── Config Tags ───
   protected readonly isEditingConfigTags = signal(false);
   protected readonly editingConfigTags = signal<TagRequest[]>([]);
@@ -314,12 +344,54 @@ export class ConfigDetailComponent implements OnInit {
   protected readonly configTagValueCtrl = new FormControl('', { nonNullable: true });
   protected readonly configTags = computed(() => this.config()?.tags ?? []);
 
-  protected readonly isMultiRepo = computed(() => this.project()?.repositoryMode === 'MultiRepo');
+  protected readonly isMultiRepo = computed(() => this.project()?.layoutPreset !== 'AllInOne');
+
+  /** Project layout preset narrowed to the values used by this component. */
+  protected readonly projectLayoutPreset = computed<'AllInOne' | 'SplitInfraCode' | 'MultiRepo'>(() => {
+    const preset = this.project()?.layoutPreset;
+    if (preset === 'SplitInfraCode' || preset === 'MultiRepo') return preset;
+    return 'AllInOne';
+  });
+
+  protected readonly isProjectMultiRepo = computed(() => this.projectLayoutPreset() === 'MultiRepo');
+
+  protected readonly configLayoutMode = computed<ConfigLayoutMode | null>(() => {
+    const mode = this.config()?.layoutMode;
+    return mode === 'AllInOne' || mode === 'SplitInfraCode' ? mode : null;
+  });
+
+  protected readonly configRepositories = computed<InfraConfigRepositoryResponse[]>(
+    () => this.config()?.repositories ?? [],
+  );
+
+  protected readonly configAllInOneRepo = computed<InfraConfigRepositoryResponse | null>(
+    () => this.configRepositories()[0] ?? null,
+  );
+
+  protected readonly configSplitSlots = computed(() => {
+    const repos = this.configRepositories();
+    return [
+      {
+        kind: 'Infrastructure' as RepositoryContentKind,
+        labelKey: 'CONFIG_DETAIL.REPOSITORIES.SLOT_INFRASTRUCTURE',
+        repo: repos.find((r) => r.contentKinds.includes('Infrastructure')) ?? null,
+      },
+      {
+        kind: 'ApplicationCode' as RepositoryContentKind,
+        labelKey: 'CONFIG_DETAIL.REPOSITORIES.SLOT_APPLICATION_CODE',
+        repo: repos.find((r) => r.contentKinds.includes('ApplicationCode')) ?? null,
+      },
+    ];
+  });
+
+  protected readonly configRepoActionId = signal<string | null>(null);
+  protected readonly configLayoutModeSaving = signal(false);
 
   // ─── Unified generation (multi-repo) ───
   protected readonly generateAllLoading = computed(
     () => this.validatingDiagnostics() || this.bicepLoading() || this.pipelineLoading(),
   );
+  protected readonly generationPanelCollapsed = signal(false);
   protected readonly generationPanelOpen = computed(
     () => this.bicepPanelOpen() || this.pipelinePanelOpen() || this.bicepLoading() || this.pipelineLoading(),
   );
@@ -345,6 +417,11 @@ export class ConfigDetailComponent implements OnInit {
   protected closeGenerationPanel(): void {
     this.closeBicepPanel();
     this.closePipelinePanel();
+    this.generationPanelCollapsed.set(false);
+  }
+
+  protected toggleGenerationPanelCollapsed(): void {
+    this.generationPanelCollapsed.update((collapsed) => !collapsed);
   }
 
   // ─── Git Config (multi-repo, config-level display) ───
@@ -368,6 +445,7 @@ export class ConfigDetailComponent implements OnInit {
    * the resource type has no environment settings or if all environments are configured.
    */
   protected getMissingEnvironments(resource: AzureResourceResponse): string[] {
+    if (resource.isExisting) return [];
     if (this.ENV_SETTINGS_EXCLUDED_TYPES.has(resource.resourceType)) return [];
     const allEnvNames = this.projectSortedEnvironments().map(e => e.name);
     if (allEnvNames.length === 0) return [];
@@ -379,6 +457,7 @@ export class ConfigDetailComponent implements OnInit {
    * Returns true if the resource has at least one missing environment configuration.
    */
   protected hasMissingEnvironments(resource: AzureResourceResponse): boolean {
+    if (resource.isExisting) return false;
     return this.getMissingEnvironments(resource).length > 0;
   }
 
@@ -416,6 +495,13 @@ export class ConfigDetailComponent implements OnInit {
 
   protected readonly previewEnvId = signal<string | null>(null);
 
+  private readonly translate = inject(TranslateService);
+  private readonly previewNoneLabel = this.translate.instant('CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_NONE');
+  protected readonly previewEnvDsOptions = computed<DsSelectOption[]>(() => [
+    { value: null, label: this.previewNoneLabel },
+    ...this.sortedEnvironments().map((env) => ({ value: env.id, label: env.name })),
+  ]);
+
   protected readonly previewEnv = computed(() => {
     const id = this.previewEnvId();
     if (!id) return null;
@@ -442,6 +528,14 @@ export class ConfigDetailComponent implements OnInit {
     const template = resourceOverride?.template ?? defaultTemplate;
     if (!template) return null;
 
+    // Resolve abbreviation: config override → project override → catalog default
+    const configAbbrOverride = cfg.resourceAbbreviationOverrides?.find((o) => o.resourceType === resourceType);
+    const projectAbbrOverride = proj?.resourceAbbreviations?.find((o) => o.resourceType === resourceType);
+    const effectiveAbbr = configAbbrOverride?.abbreviation
+      ?? projectAbbrOverride?.abbreviation
+      ?? RESOURCE_TYPE_ABBREVIATIONS[resourceType]
+      ?? resourceType.toLowerCase();
+
     const replacements: Record<string, string> = {
       name: resourceName,
       prefix: env.prefix ?? '',
@@ -449,7 +543,7 @@ export class ConfigDetailComponent implements OnInit {
       env: env.name,
       envShort: env.shortName ?? '',
       resourceType,
-      resourceAbbr: RESOURCE_TYPE_ABBREVIATIONS[resourceType] ?? resourceType.toLowerCase(),
+      resourceAbbr: effectiveAbbr,
       location: env.location,
     };
 
@@ -491,6 +585,10 @@ export class ConfigDetailComponent implements OnInit {
     this.previewEnvId.set(null);
     this.diagnostics.set([]);
     this.loadError.set('');
+    this.variableGroups.set([]);
+    this.vgLoading.set(false);
+    this.vgErrorKey.set('');
+    this.vgLoaded.set(false);
   }
 
   private async loadConfig(id: string): Promise<void> {
@@ -498,6 +596,7 @@ export class ConfigDetailComponent implements OnInit {
     this.loadError.set('');
 
     try {
+      // Phase 1 — critical data (blocks rendering)
       const [config, resourceGroups] = await Promise.all([
         this.infraConfigService.getById(id),
         this.infraConfigService.getResourceGroups(id),
@@ -505,28 +604,34 @@ export class ConfigDetailComponent implements OnInit {
       this.config.set(config);
       this.resourceGroups.set(resourceGroups);
 
-      // Load the parent project for inheritance data
-      if (config.projectId) {
-        try {
-          const project = await this.projectService.getProject(config.projectId);
-          this.project.set(project);
-        } catch {
-          // Non-blocking — project data used only for inheritance display
-        }
-      }
+      // Phase 2 — secondary data + auto-expand first RG (all independent, fire in parallel)
+      const projectPromise = config.projectId
+        ? this.projectService
+            .getProject(config.projectId)
+            .then((project) => {
+              this.project.set(project);
+              // Pre-select the first effective environment for the naming preview
+              const effectiveEnvs = project?.environmentDefinitions ?? [];
+              const firstEnv = [...effectiveEnvs].sort((a, b) => a.order - b.order)[0];
+              if (firstEnv) {
+                this.previewEnvId.set(firstEnv.id);
+              }
+            })
+            .catch(() => {
+              /* Non-blocking — project data used only for inheritance display */
+            })
+        : Promise.resolve();
 
-      // Pre-select the first effective environment (by order) for the naming preview
-      const effectiveEnvs = this.project()?.environmentDefinitions ?? [];
-      const firstEnv = [...effectiveEnvs].sort((a, b) => a.order - b.order)[0];
-      if (firstEnv) {
-        this.previewEnvId.set(firstEnv.id);
-      }
+      await Promise.all([
+        projectPromise,
+        this.openDefaultResourceGroup(resourceGroups),
+      ]);
 
-      // Load cross-config references BEFORE expanding RGs so they appear in resource lists
-      await this.loadCrossConfigReferences();
-      await this.loadDiagnostics();
+      // Non-blocking: fire-and-forget secondary data (diagnostics, variable groups, cross-config refs)
+      this.loadDiagnostics().catch(() => {});
+      this.loadVariableGroups().catch(() => {});
+      this.loadCrossConfigReferences().catch(() => {});
 
-      await this.openDefaultResourceGroup(resourceGroups);
       this.recentlyViewedService.trackView({
         id: config.id,
         name: config.name,
@@ -576,6 +681,7 @@ export class ConfigDetailComponent implements OnInit {
     this.rgResourcesLoading.set(rgId);
     try {
       const resources = await this.resourceGroupService.getResources(rgId);
+      this.cacheStorageSubResources(resources);
       this.rgResources.update((prev) => ({ ...prev, [rgId]: resources }));
       // Auto-expand all parent resources by default (local + cross-config virtual)
       const parentIds = resources
@@ -592,18 +698,32 @@ export class ConfigDetailComponent implements OnInit {
           return next;
         });
       }
-      // Auto-load StorageAccount details for expanded parents
-      const storageIds = resources
-        .filter((r) => r.resourceType === 'StorageAccount')
-        .map((r) => r.id);
-      for (const id of storageIds) {
-        this.loadStorageAccountDetails(id);
-      }
     } catch {
       this.rgResources.update((prev) => ({ ...prev, [rgId]: [] }));
     } finally {
       this.rgResourcesLoading.set(null);
     }
+  }
+
+  private cacheStorageSubResources(resources: AzureResourceResponse[]): void {
+    const storageSubResourcesById: Record<string, StorageAccountSubResourcesResponse> = {};
+
+    for (const resource of resources) {
+      if (resource.resourceType !== 'StorageAccount' || !resource.storageSubResources) {
+        continue;
+      }
+
+      storageSubResourcesById[resource.id] = resource.storageSubResources;
+    }
+
+    if (Object.keys(storageSubResourcesById).length === 0) {
+      return;
+    }
+
+    this.storageAccountDetails.update((prev) => ({
+      ...prev,
+      ...storageSubResourcesById,
+    }));
   }
 
   private async openDefaultResourceGroup(resourceGroups: ResourceGroupResponse[]): Promise<void> {
@@ -749,6 +869,7 @@ export class ConfigDetailComponent implements OnInit {
   }
 
   protected async loadStorageAccountDetails(storageId: string): Promise<void> {
+    if (this.storageAccountDetails()[storageId]) return; // already cached
     if (this.storageDetailsLoading() === storageId) return;
     this.storageDetailsLoading.set(storageId);
     try {
@@ -1034,6 +1155,118 @@ export class ConfigDetailComponent implements OnInit {
     }
   }
 
+  // ─── Abbreviation Overrides ───
+
+  protected readonly abbreviationDisplayItems = computed(() => {
+    const rgs = this.resourceGroups();
+    const resources = this.rgResources();
+    const overrides = this.config()?.resourceAbbreviationOverrides ?? [];
+
+    // Collect all resource types used in this config
+    const usedTypes = new Set<string>();
+    for (const rg of rgs) {
+      const rgRes = resources[rg.id];
+      if (rgRes) {
+        for (const r of rgRes) {
+          usedTypes.add(r.resourceType);
+        }
+      }
+    }
+    // Always include ResourceGroup itself
+    usedTypes.add('ResourceGroup');
+
+    const overrideMap = new Map(overrides.map((o) => [o.resourceType, o]));
+
+    return [...usedTypes].sort().map((resourceType) => {
+      const override = overrideMap.get(resourceType);
+      const defaultAbbr = RESOURCE_TYPE_ABBREVIATIONS[resourceType] ?? resourceType.toLowerCase();
+      return {
+        resourceType,
+        defaultAbbreviation: defaultAbbr,
+        customAbbreviation: override?.abbreviation ?? null,
+        effectiveAbbreviation: override?.abbreviation ?? defaultAbbr,
+        isCustomized: !!override,
+      };
+    });
+  });
+
+  protected isAbbreviationBusy(resourceType: string): boolean {
+    const actionKey = this.namingActionKey();
+    return actionKey === `abbr:${resourceType}` || actionKey === `abbr-remove:${resourceType}`;
+  }
+
+  protected openEditAbbreviationDialog(item: { resourceType: string; defaultAbbreviation: string; effectiveAbbreviation: string }): void {
+    if (!this.canWrite()) return;
+
+    const dialogRef = this.dialog.open(EditAbbreviationDialogComponent, {
+      data: {
+        resourceType: item.resourceType,
+        defaultAbbreviation: item.defaultAbbreviation,
+        currentAbbreviation: item.effectiveAbbreviation,
+      } satisfies EditAbbreviationDialogData,
+      width: '400px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: EditAbbreviationDialogResult | null) => {
+      if (!result) return;
+      await this.saveAbbreviationOverride(item.resourceType, result.abbreviation);
+    });
+  }
+
+  protected openResetAbbreviationDialog(item: { resourceType: string; defaultAbbreviation: string }): void {
+    if (!this.canWrite()) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'ABBREVIATIONS.RESET_CONFIRM_TITLE',
+        messageKey: 'ABBREVIATIONS.RESET_CONFIRM_MESSAGE',
+        messageParams: { resourceType: item.resourceType, defaultAbbr: item.defaultAbbreviation },
+        confirmKey: 'ABBREVIATIONS.RESET_CONFIRM_YES',
+        cancelKey: 'ABBREVIATIONS.RESET_CONFIRM_CANCEL',
+      } satisfies ConfirmDialogData,
+      width: '400px',
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
+      if (!confirmed) return;
+      await this.removeAbbreviationOverride(item.resourceType);
+    });
+  }
+
+  private async saveAbbreviationOverride(resourceType: string, abbreviation: string): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.namingActionKey.set(`abbr:${resourceType}`);
+    this.namingErrorKey.set('');
+
+    try {
+      await this.infraConfigService.setResourceAbbreviationOverride(configId, resourceType, { abbreviation });
+      await this.refreshConfig(configId);
+    } catch {
+      this.namingErrorKey.set('ABBREVIATIONS.SAVE_ERROR');
+    } finally {
+      this.namingActionKey.set(null);
+    }
+  }
+
+  private async removeAbbreviationOverride(resourceType: string): Promise<void> {
+    const configId = this.config()?.id;
+    if (!configId) return;
+
+    this.namingActionKey.set(`abbr-remove:${resourceType}`);
+    this.namingErrorKey.set('');
+
+    try {
+      await this.infraConfigService.removeResourceAbbreviationOverride(configId, resourceType);
+      await this.refreshConfig(configId);
+    } catch {
+      this.namingErrorKey.set('ABBREVIATIONS.RESET_ERROR');
+    } finally {
+      this.namingActionKey.set(null);
+    }
+  }
+
   protected async toggleInheritanceNaming(useProject: boolean): Promise<void> {
     const configId = this.config()?.id;
     if (!configId) return;
@@ -1245,6 +1478,7 @@ export class ConfigDetailComponent implements OnInit {
     this.bicepLoading.set(true);
     this.bicepErrorKey.set('');
     this.bicepResult.set(null);
+    this.generationPanelCollapsed.set(false);
     this.bicepPanelOpen.set(true);
 
     try {
@@ -1278,10 +1512,9 @@ export class ConfigDetailComponent implements OnInit {
   protected openPushToGitDialog(): void {
     const configId = this.config()?.id;
     const projectId = this.config()?.projectId;
-    const gitConfig = this.project()?.gitRepositoryConfiguration;
-    if (!configId || !projectId || !gitConfig) return;
+    if (!configId || !projectId) return;
 
-    const data: PushToGitDialogData = { configId, projectId, gitConfig };
+    const data: PushToGitDialogData = { configId, projectId };
     this.dialog.open(PushToGitDialogComponent, { width: '480px', data });
   }
 
@@ -1328,6 +1561,7 @@ export class ConfigDetailComponent implements OnInit {
     this.pipelineLoading.set(true);
     this.pipelineErrorKey.set('');
     this.pipelineResult.set(null);
+    this.generationPanelCollapsed.set(false);
     this.pipelinePanelOpen.set(true);
 
     try {
@@ -1500,15 +1734,12 @@ export class ConfigDetailComponent implements OnInit {
     if (index === 3 && !this.crossConfigLoaded()) {
       await this.loadCrossConfigReferences();
     }
-    // Tab 4 is pipeline variable groups — lazy load on first visit
-    if (index === 4 && !this.vgLoaded()) {
-      await this.loadVariableGroups();
-    }
+    // Variable groups are now loaded eagerly in loadConfig()
   }
 
   protected async loadCrossConfigReferences(): Promise<void> {
     const configId = this.config()?.id;
-    if (!configId) return;
+    if (!configId || this.crossConfigLoading()) return;
 
     this.crossConfigLoading.set(true);
     this.crossConfigErrorKey.set('');
@@ -1529,29 +1760,87 @@ export class ConfigDetailComponent implements OnInit {
 
 
 
-  // ─── Git Configuration (multi-repo) ───
+  // ─── Per-config repositories (project layout = MultiRepo) ───
 
-  protected openGitConfigDialog(): void {
-    const proj = this.project();
-    if (!proj) return;
+  protected async setConfigLayoutMode(mode: ConfigLayoutMode): Promise<void> {
+    const cfg = this.config();
+    if (!cfg) return;
+    if (this.configLayoutMode() === mode) return;
 
-    const data: GitConfigDialogData = {
-      projectId: proj.id,
-      existing: proj.gitRepositoryConfiguration,
-    };
+    const previous = cfg;
 
-    const dialogRef = this.dialog.open(GitConfigDialogComponent, {
-      width: '520px',
-      data,
+    this.gitActionError.set('');
+    this.configLayoutModeSaving.set(true);
+    this.config.set({
+      ...cfg,
+      layoutMode: mode,
+      repositories: [],
     });
 
-    dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {
+    try {
+      await this.projectService.setConfigLayoutMode(cfg.projectId, cfg.id, mode);
+      const updated = await this.infraConfigService.getById(cfg.id);
+      this.config.set(updated);
+    } catch {
+      this.config.set(previous);
+      this.gitActionError.set('CONFIG_DETAIL.REPOSITORIES.LAYOUT_MODE_SAVE_ERROR');
+    } finally {
+      this.configLayoutModeSaving.set(false);
+    }
+  }
+
+  protected openConfigAllInOneDialog(): void {
+    const cfg = this.config();
+    if (!cfg) return;
+    const existing = this.configAllInOneRepo();
+    const data: InfraConfigRepositoryDialogData = {
+      projectId: cfg.projectId,
+      configId: cfg.id,
+      mode: existing ? 'edit' : 'create',
+      existing: existing ?? undefined,
+      lockedKinds: ['Infrastructure', 'ApplicationCode'],
+    };
+    const ref = this.dialog.open(InfraConfigRepositoryDialogComponent, { data, width: '560px' });
+    ref.afterClosed().subscribe(async (result) => {
       if (result) {
-        this.project.set(result);
-        this.gitTestResult.set(null);
-        this.gitActionError.set('');
+        const updated = await this.infraConfigService.getById(cfg.id);
+        this.config.set(updated);
       }
     });
+  }
+
+  protected openConfigSlotDialog(kind: RepositoryContentKind, repo: InfraConfigRepositoryResponse | null): void {
+    const cfg = this.config();
+    if (!cfg) return;
+    const data: InfraConfigRepositoryDialogData = {
+      projectId: cfg.projectId,
+      configId: cfg.id,
+      mode: repo ? 'edit' : 'create',
+      existing: repo ?? undefined,
+      lockedKinds: [kind],
+    };
+    const ref = this.dialog.open(InfraConfigRepositoryDialogComponent, { data, width: '560px' });
+    ref.afterClosed().subscribe(async (result) => {
+      if (result) {
+        const updated = await this.infraConfigService.getById(cfg.id);
+        this.config.set(updated);
+      }
+    });
+  }
+
+  protected async removeConfigRepository(repo: InfraConfigRepositoryResponse): Promise<void> {
+    const cfg = this.config();
+    if (!cfg) return;
+    this.configRepoActionId.set(repo.id);
+    try {
+      await this.projectService.removeConfigRepository(cfg.projectId, cfg.id, repo.id);
+      const updated = await this.infraConfigService.getById(cfg.id);
+      this.config.set(updated);
+    } catch {
+      this.gitActionError.set('CONFIG_DETAIL.REPOSITORIES.DELETE_ERROR');
+    } finally {
+      this.configRepoActionId.set(null);
+    }
   }
 
   protected async testGitConnection(): Promise<void> {
@@ -1570,36 +1859,6 @@ export class ConfigDetailComponent implements OnInit {
     } finally {
       this.gitTestLoading.set(false);
     }
-  }
-
-  protected openRemoveGitConfigDialog(): void {
-    const proj = this.project();
-    if (!proj) return;
-
-    const data: ConfirmDialogData = {
-      titleKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_TITLE',
-      messageKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_MESSAGE',
-      confirmKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_YES',
-      cancelKey: 'PROJECT_DETAIL.GIT_CONFIG.REMOVE_CONFIRM_CANCEL',
-    };
-
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, { width: '400px', data });
-
-    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
-      if (!confirmed) return;
-
-      this.gitActionError.set('');
-      try {
-        await this.projectService.removeGitConfig(proj.id);
-        this.project.update((p) => {
-          if (!p) return p;
-          return { ...p, gitRepositoryConfiguration: null };
-        });
-        this.gitTestResult.set(null);
-      } catch {
-        this.gitActionError.set('PROJECT_DETAIL.GIT_CONFIG.REMOVE_ERROR');
-      }
-    });
   }
 
   // ─── Pipeline Variable Groups ───

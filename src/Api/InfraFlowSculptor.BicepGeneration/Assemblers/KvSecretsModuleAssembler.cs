@@ -21,7 +21,6 @@ internal static class KvSecretsModuleAssembler
         sb.AppendLine("@description('Name of the Key Vault')");
         sb.AppendLine("param keyVaultName string");
         sb.AppendLine();
-        sb.AppendLine("@secure()");
         sb.AppendLine("@description('List of secrets to store: { name: string, value: string }[]')");
         sb.AppendLine("param secrets array");
         sb.AppendLine();
@@ -38,7 +37,7 @@ internal static class KvSecretsModuleAssembler
         sb.AppendLine("}]");
         sb.AppendLine();
         sb.AppendLine("@description('Dictionary of secret URIs keyed by secret name')");
-        sb.AppendLine("output secretUris object = toObject(range(0, length(secrets)), i => secrets[i].name, i => kvSecrets[i].properties.secretUri)");
+        sb.AppendLine("output secretUris object = toObject(kvSecrets, kv => last(split(kv.name, '/')), kv => kv.properties.secretUri)");
         return sb.ToString();
     }
 }

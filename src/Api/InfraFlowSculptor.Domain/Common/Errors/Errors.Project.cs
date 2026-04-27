@@ -52,6 +52,26 @@ public static partial class Errors
         public static Error InvalidRepositoryModeError(string mode) =>
             Error.Validation(code: "Project.InvalidRepositoryMode", description: $"Invalid repository mode '{mode}'. Valid values: MultiRepo, MonoRepo.");
 
+        /// <summary>Returned when a layout preset string cannot be parsed into a valid <see cref="LayoutPresetEnum"/> value.</summary>
+        public static Error InvalidLayoutPreset(string raw) =>
+            Error.Validation(code: "Project.InvalidLayoutPreset", description: $"Invalid layout preset '{raw}'. Valid values: AllInOne, SplitInfraCode, MultiRepo.");
+
+        /// <summary>Returned when current project repositories do not match the requested layout cardinality.</summary>
+        public static Error LayoutPresetMismatch(LayoutPresetEnum target, string detail) =>
+            Error.Conflict(code: "Project.LayoutPresetMismatch", description: $"Current project repositories do not match layout '{target}': {detail}");
+
+        /// <summary>Returned when AllInOne layout is requested but the project does not have exactly one repository hosting both Infrastructure and ApplicationCode.</summary>
+        public static Error AllInOneRequiresExactlyOneRepository() =>
+            Error.Conflict(code: "Project.AllInOneRequiresExactlyOneRepository", description: "AllInOne layout requires exactly one project repository declaring both Infrastructure and ApplicationCode content kinds.");
+
+        /// <summary>Returned when SplitInfraCode layout is requested but the project does not have exactly two repositories (one Infrastructure, one ApplicationCode).</summary>
+        public static Error SplitInfraCodeRequiresInfraAndAppRepositories() =>
+            Error.Conflict(code: "Project.SplitInfraCodeRequiresInfraAndAppRepositories", description: "SplitInfraCode layout requires exactly two project repositories: one with Infrastructure only, one with ApplicationCode only.");
+
+        /// <summary>Returned when a project repository is added but its content kinds violate the current layout preset.</summary>
+        public static Error RepositoryNotAllowedByLayout(LayoutPresetEnum preset, string detail) =>
+            Error.Conflict(code: "Project.RepositoryNotAllowedByLayout", description: $"Repository operation is not allowed by layout '{preset}': {detail}");
+
         /// <summary>Returned when a project has no infrastructure configurations for generation.</summary>
         public static Error NoConfigurationsError() =>
             Error.NotFound(code: "Project.NoConfigurations", description: "No infrastructure configurations found for this project.");
@@ -71,5 +91,17 @@ public static partial class Errors
         /// <summary>Returned when a specific pipeline file is not found in the latest project generation.</summary>
         public static Error PipelineFileNotFoundError(string filePath) =>
             Error.NotFound(code: "Project.PipelineFileNotFound", description: $"File '{filePath}' was not found.");
+
+        /// <summary>Returned when no abbreviation override exists for the given resource type.</summary>
+        public static Error ResourceAbbreviationNotFoundError(string resourceType) =>
+            Error.NotFound(code: "Project.ResourceAbbreviationNotFound", description: $"No abbreviation override exists for resource type '{resourceType}'.");
+
+        /// <summary>Returned when no generated bootstrap pipeline files exist for the given project.</summary>
+        public static Error BootstrapFilesNotFoundError(Guid projectId) =>
+            Error.NotFound(code: "Project.BootstrapFilesNotFound", description: $"No generated bootstrap pipeline files found for project '{projectId}'.");
+
+        /// <summary>Returned when a specific bootstrap pipeline file is not found in the latest generation.</summary>
+        public static Error BootstrapFileNotFoundError(string filePath) =>
+            Error.NotFound(code: "Project.BootstrapFileNotFound", description: $"Bootstrap file '{filePath}' was not found.");
     }
 }

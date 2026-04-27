@@ -52,6 +52,10 @@ public sealed class RedisCache : AzureResource
     {
         Name = name;
         Location = location;
+
+        if (IsExisting)
+            return;
+
         RedisVersion = redisVersion;
         EnableNonSslPort = enableNonSslPort;
         MinimumTlsVersion = minimumTlsVersion;
@@ -63,12 +67,15 @@ public sealed class RedisCache : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         RedisCacheSku? sku,
         int? capacity,
         MaxMemoryPolicy? maxMemoryPolicy)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -86,9 +93,13 @@ public sealed class RedisCache : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var s in settings)
         {
@@ -98,6 +109,16 @@ public sealed class RedisCache : AzureResource
     }
 
     /// <summary>Creates a new <see cref="RedisCache"/> with a generated identifier.</summary>
+    /// <param name="resourceGroupId">The parent resource group identifier.</param>
+    /// <param name="name">The resource name.</param>
+    /// <param name="location">The Azure region.</param>
+    /// <param name="redisVersion">The Redis engine version.</param>
+    /// <param name="enableNonSslPort">Whether the non-SSL port is enabled.</param>
+    /// <param name="minimumTlsVersion">The minimum TLS version.</param>
+    /// <param name="disableAccessKeyAuthentication">Whether access key authentication is disabled.</param>
+    /// <param name="enableAadAuth">Whether AAD authentication is enabled.</param>
+    /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     public static RedisCache Create(
         ResourceGroupId resourceGroupId,
         Name name,
@@ -107,7 +128,8 @@ public sealed class RedisCache : AzureResource
         TlsVersion? minimumTlsVersion,
         bool disableAccessKeyAuthentication,
         bool enableAadAuth,
-        IReadOnlyList<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, RedisCacheSku? Sku, int? Capacity, MaxMemoryPolicy? MaxMemoryPolicy)>? environmentSettings = null,
+        bool isExisting = false)
     {
         var redisCache = new RedisCache
         {
@@ -115,6 +137,7 @@ public sealed class RedisCache : AzureResource
             ResourceGroupId = resourceGroupId,
             Name = name,
             Location = location,
+            IsExisting = isExisting,
             RedisVersion = redisVersion,
             EnableNonSslPort = enableNonSslPort,
             MinimumTlsVersion = minimumTlsVersion,
@@ -122,7 +145,7 @@ public sealed class RedisCache : AzureResource
             EnableAadAuth = enableAadAuth
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             redisCache.SetAllEnvironmentSettings(environmentSettings);
 
         return redisCache;

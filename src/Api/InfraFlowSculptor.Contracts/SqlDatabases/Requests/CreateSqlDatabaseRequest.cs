@@ -9,4 +9,9 @@ public class CreateSqlDatabaseRequest : SqlDatabaseRequestBase
     /// <summary>Unique identifier of the Resource Group that will own this SQL Database.</summary>
     [Required, GuidValidation]
     public required Guid ResourceGroupId { get; init; }
+
+    /// <summary>Whether this resource already exists in Azure and is not managed by this project.</summary>
+
+    public bool IsExisting { get; init; } = false;
+
 }

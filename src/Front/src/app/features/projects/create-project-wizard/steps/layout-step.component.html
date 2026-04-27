@@ -1,0 +1,18 @@
+<div class="layout-step">
+  <header class="layout-step__header">
+    <h3>{{ 'PROJECT_CREATE.STEP.LAYOUT.TITLE' | translate }}</h3>
+  </header>
+
+  <div class="layout-step__cards" role="radiogroup">
+    @for (option of options; track option.value) {
+      <app-ds-option-card
+        class="layout-step__card-item"
+        [icon]="option.icon"
+        [title]="option.titleKey | translate"
+        [description]="option.descKey | translate"
+        [selected]="selected() === option.value"
+        (cardSelect)="select(option.value)"
+      />
+    }
+  </div>
+</div>

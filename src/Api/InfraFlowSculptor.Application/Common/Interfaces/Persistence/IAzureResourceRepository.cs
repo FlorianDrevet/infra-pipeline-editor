@@ -15,6 +15,16 @@ public interface IAzureResourceRepository
     /// </summary>
     Task<AzureResource?> GetByIdWithRoleAssignmentsAndAppSettingsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Returns a resource with its secure parameter mappings loaded.
+    /// </summary>
+    Task<AzureResource?> GetByIdWithSecureParameterMappingsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns a resource with its custom domain bindings loaded.
+    /// </summary>
+    Task<AzureResource?> GetByIdWithCustomDomainsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
+
     Task<bool> ExistsAsync(AzureResourceId id, CancellationToken cancellationToken = default);
     Task<AzureResource> UpdateAsync(AzureResource resource, CancellationToken cancellationToken = default);
 

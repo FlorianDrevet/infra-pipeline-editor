@@ -40,6 +40,24 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
     /// <summary>Gets or sets the transport method (e.g., "auto", "http", "http2", "tcp").</summary>
     public string? TransportMethod { get; private set; }
 
+    /// <summary>Gets or sets the readiness probe HTTP path (e.g., "/healthz/ready").</summary>
+    public string? ReadinessProbePath { get; private set; }
+
+    /// <summary>Gets or sets the readiness probe port.</summary>
+    public int? ReadinessProbePort { get; private set; }
+
+    /// <summary>Gets or sets the liveness probe HTTP path (e.g., "/healthz/live").</summary>
+    public string? LivenessProbePath { get; private set; }
+
+    /// <summary>Gets or sets the liveness probe port.</summary>
+    public int? LivenessProbePort { get; private set; }
+
+    /// <summary>Gets or sets the startup probe HTTP path (e.g., "/healthz/startup").</summary>
+    public string? StartupProbePath { get; private set; }
+
+    /// <summary>Gets or sets the startup probe port.</summary>
+    public int? StartupProbePort { get; private set; }
+
     private ContainerAppEnvironmentSettings() { }
 
     internal ContainerAppEnvironmentSettings(
@@ -52,7 +70,13 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
         bool? ingressEnabled,
         int? ingressTargetPort,
         bool? ingressExternal,
-        string? transportMethod)
+        string? transportMethod,
+        string? readinessProbePath,
+        int? readinessProbePort,
+        string? livenessProbePath,
+        int? livenessProbePort,
+        string? startupProbePath,
+        int? startupProbePort)
         : base(ContainerAppEnvironmentSettingsId.CreateUnique())
     {
         ContainerAppId = containerAppId;
@@ -65,6 +89,12 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
         IngressTargetPort = ingressTargetPort;
         IngressExternal = ingressExternal;
         TransportMethod = transportMethod;
+        ReadinessProbePath = readinessProbePath;
+        ReadinessProbePort = readinessProbePort;
+        LivenessProbePath = livenessProbePath;
+        LivenessProbePort = livenessProbePort;
+        StartupProbePath = startupProbePath;
+        StartupProbePort = startupProbePort;
     }
 
     /// <summary>
@@ -80,8 +110,14 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
         bool? ingressEnabled,
         int? ingressTargetPort,
         bool? ingressExternal,
-        string? transportMethod)
-        => new(containerAppId, environmentName, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod);
+        string? transportMethod,
+        string? readinessProbePath = null,
+        int? readinessProbePort = null,
+        string? livenessProbePath = null,
+        int? livenessProbePort = null,
+        string? startupProbePath = null,
+        int? startupProbePort = null)
+        => new(containerAppId, environmentName, cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod, readinessProbePath, readinessProbePort, livenessProbePath, livenessProbePort, startupProbePath, startupProbePort);
 
     /// <summary>Updates the configuration overrides for this environment.</summary>
     public void Update(
@@ -92,7 +128,13 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
         bool? ingressEnabled,
         int? ingressTargetPort,
         bool? ingressExternal,
-        string? transportMethod)
+        string? transportMethod,
+        string? readinessProbePath = null,
+        int? readinessProbePort = null,
+        string? livenessProbePath = null,
+        int? livenessProbePort = null,
+        string? startupProbePath = null,
+        int? startupProbePort = null)
     {
         CpuCores = cpuCores;
         MemoryGi = memoryGi;
@@ -102,6 +144,12 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
         IngressTargetPort = ingressTargetPort;
         IngressExternal = ingressExternal;
         TransportMethod = transportMethod;
+        ReadinessProbePath = readinessProbePath;
+        ReadinessProbePort = readinessProbePort;
+        LivenessProbePath = livenessProbePath;
+        LivenessProbePort = livenessProbePort;
+        StartupProbePath = startupProbePath;
+        StartupProbePort = startupProbePort;
     }
 
     /// <summary>
@@ -118,6 +166,12 @@ public sealed class ContainerAppEnvironmentSettings : Entity<ContainerAppEnviron
         if (IngressTargetPort is not null) dict["ingressTargetPort"] = IngressTargetPort.Value.ToString();
         if (IngressExternal is not null) dict["ingressExternal"] = IngressExternal.Value.ToString().ToLower();
         if (TransportMethod is not null) dict["transportMethod"] = TransportMethod;
+        if (ReadinessProbePath is not null) dict["readinessProbePath"] = ReadinessProbePath;
+        if (ReadinessProbePort is not null) dict["readinessProbePort"] = ReadinessProbePort.Value.ToString();
+        if (LivenessProbePath is not null) dict["livenessProbePath"] = LivenessProbePath;
+        if (LivenessProbePort is not null) dict["livenessProbePort"] = LivenessProbePort.Value.ToString();
+        if (StartupProbePath is not null) dict["startupProbePath"] = StartupProbePath;
+        if (StartupProbePort is not null) dict["startupProbePort"] = StartupProbePort.Value.ToString();
         return dict;
     }
 }

@@ -11,7 +11,10 @@ public record GetInfrastructureConfigResult(
     string? DefaultNamingTemplate,
     bool UseProjectNamingConventions,
     IReadOnlyList<ResourceNamingTemplateResult> ResourceNamingTemplates,
+    IReadOnlyList<ResourceAbbreviationOverrideResult> ResourceAbbreviationOverrides,
     IReadOnlyList<TagResult> Tags,
     int ResourceGroupCount = 0,
     int ResourceCount = 0,
-    int CrossConfigReferenceCount = 0);
+    int CrossConfigReferenceCount = 0,
+    string? LayoutMode = null,
+    IReadOnlyList<InfraConfigRepositoryResult>? Repositories = null);

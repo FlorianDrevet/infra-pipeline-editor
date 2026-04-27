@@ -13,8 +13,10 @@ public record CreateContainerAppCommand(
     Location Location,
     Guid ContainerAppEnvironmentId,
     Guid? ContainerRegistryId,
+    string? AcrAuthMode = null,
     string? DockerImageName = null,
     string? DockerfilePath = null,
     string? ApplicationName = null,
-    IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<ContainerAppEnvironmentConfigData>? EnvironmentSettings = null,
+    bool IsExisting = false
 ) : ICommand<ContainerAppResult>;

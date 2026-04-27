@@ -8,6 +8,7 @@ export interface KeyVaultEnvironmentConfigEntry {
 export interface KeyVaultEnvironmentConfigResponse {
   environmentName: string;
   sku: string | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -24,6 +25,7 @@ export interface KeyVaultResponse {
   enablePurgeProtection: boolean;
   enableSoftDelete: boolean;
   environmentSettings: KeyVaultEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -39,6 +41,7 @@ export interface CreateKeyVaultRequest {
   enablePurgeProtection?: boolean;
   enableSoftDelete?: boolean;
   environmentSettings?: KeyVaultEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateKeyVaultRequest {

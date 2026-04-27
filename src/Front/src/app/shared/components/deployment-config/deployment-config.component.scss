@@ -111,6 +111,90 @@
   border: 1px solid rgba(146, 191, 235, 0.15);
 }
 
+// ─── ACR Auth Mode ────
+
+.acr-auth-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  &__label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: rgba(16, 52, 84, 0.78);
+  }
+
+  &__hint {
+    font-size: 0.73rem;
+    color: rgba(16, 52, 84, 0.55);
+    line-height: 1.45;
+  }
+
+  &__toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  &__option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 36px;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid rgba(146, 191, 235, 0.24);
+    border-radius: 999px;
+    background: #fff;
+    color: #5a7da0;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      border-color: rgba(13, 101, 192, 0.28);
+      background: rgba(13, 101, 192, 0.04);
+      color: #103454;
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    &--active {
+      border-color: rgba(13, 101, 192, 0.35);
+      background: rgba(13, 101, 192, 0.08);
+      color: #103454;
+      box-shadow: 0 1px 4px rgba(13, 101, 192, 0.08);
+    }
+  }
+
+  &__option-label {
+    line-height: 1;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.12rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(2, 136, 209, 0.1);
+    color: #0d65c0;
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+}
+
 // ─── ACR Inline Status (checking / ok) ────
 
 .acr-inline-status {
@@ -139,6 +223,12 @@
     background: rgba(46, 125, 50, 0.05);
     border: 1px solid rgba(46, 125, 50, 0.12);
     color: #2e7d32;
+  }
+
+  &--info {
+    background: rgba(13, 101, 192, 0.05);
+    border: 1px solid rgba(13, 101, 192, 0.12);
+    color: #103454;
   }
 }
 

@@ -1,6 +1,7 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using MediatR;
 
@@ -9,8 +10,8 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListIncomin
 /// <summary>
 /// Handles listing incoming cross-config references: resources in OTHER configurations
 /// that depend on resources in THIS configuration through cross-config references.
-/// For each incoming reference, resolves the child resources in the source configuration
-/// whose parent FK matches the referenced target resource.
+/// Optimized to batch-load sibling configs, resolve targets via the base AzureResource table,
+/// and use a parent-child view instead of N+1 sequential queries.
 /// </summary>
 public sealed class ListIncomingCrossConfigReferencesQueryHandler(
     IInfraConfigAccessService accessService,
@@ -30,64 +31,111 @@ public sealed class ListIncomingCrossConfigReferencesQueryHandler(
 
         var config = authResult.Value;
 
-        // Load all sibling configs in the same project
+        // Load all sibling configs in the same project (lightweight, no Includes)
         var siblingConfigs = await infraConfigRepository.GetByProjectIdAsync(config.ProjectId, cancellationToken);
 
-        var results = new List<IncomingCrossConfigReferenceResult>();
+        // Collect all incoming cross-config references targeting this config
+        var incomingRefs = new List<(
+            InfrastructureConfigId SiblingId,
+            string SiblingName,
+            Guid ReferenceId,
+            AzureResourceId TargetResourceId)>();
 
         foreach (var sibling in siblingConfigs)
         {
             if (sibling.Id == config.Id) continue;
 
-            // Load sibling with cross-config references
             var siblingWithRefs = await infraConfigRepository.GetByIdWithMembersAsync(sibling.Id, cancellationToken);
             if (siblingWithRefs is null) continue;
 
-            // Find refs that target this config
-            var incomingRefs = siblingWithRefs.CrossConfigReferences
+            var matchingRefs = siblingWithRefs.CrossConfigReferences
                 .Where(r => r.TargetConfigId == config.Id)
                 .ToList();
 
-            if (incomingRefs.Count == 0) continue;
-
-            // Load source config's resource groups to resolve child→parent mappings
-            var sourceRgs = await resourceGroupRepository.GetByInfraConfigIdAsync(sibling.Id, cancellationToken);
-
-            foreach (var ccRef in incomingRefs)
+            foreach (var r in matchingRefs)
             {
-                // Resolve target resource in this config
-                var targetRg = await resourceGroupRepository.GetByContainedResourceIdAsync(ccRef.TargetResourceId, cancellationToken);
-                if (targetRg is null) continue;
+                incomingRefs.Add((sibling.Id, siblingWithRefs.Name.Value, r.Id.Value, r.TargetResourceId));
+            }
+        }
 
-                var targetResource = targetRg.Resources.FirstOrDefault(r => r.Id == ccRef.TargetResourceId);
-                if (targetResource is null) continue;
+        if (incomingRefs.Count == 0)
+            return new List<IncomingCrossConfigReferenceResult>();
 
-                // Find child resources in the source config whose parent FK is the target resource
-                foreach (var sourceRg in sourceRgs)
+        // Batch-resolve all target resource metadata (name, type, RG name)
+        var targetResourceIds = incomingRefs
+            .Select(r => r.TargetResourceId)
+            .Distinct()
+            .ToList();
+        var targetMetadataList = await resourceGroupRepository.GetResourceMetadataBatchAsync(
+            targetResourceIds, cancellationToken);
+        var targetMetadata = targetMetadataList.ToDictionary(m => m.ResourceId);
+
+        // Load parent-child mappings for all sibling configs' resource groups
+        // to find child resources whose parent FK matches a target resource
+        var siblingConfigIds = incomingRefs
+            .Select(r => r.SiblingId)
+            .Distinct()
+            .ToList();
+
+        // For each sibling, load its RGs (lightweight) and collect child→parent mappings
+        var allChildToParent = new Dictionary<Guid, (Guid ParentId, Guid SiblingConfigId, string SiblingConfigName, string ChildName, string ChildType, string ChildRgName)>();
+
+        foreach (var siblingId in siblingConfigIds)
+        {
+            var siblingName = incomingRefs.First(r => r.SiblingId == siblingId).SiblingName;
+            var rgs = await resourceGroupRepository.GetLightweightByInfraConfigIdAsync(siblingId, cancellationToken);
+
+            foreach (var rg in rgs)
+            {
+                var parentMapping = await resourceGroupRepository.GetChildToParentMappingAsync(rg.Id, cancellationToken);
+
+                if (parentMapping.Count == 0) continue;
+
+                // Batch-resolve child resource metadata
+                var childIds = parentMapping.Keys.Select(id => new AzureResourceId(id)).ToList();
+                var childMetadataList = await resourceGroupRepository.GetResourceMetadataBatchAsync(
+                    childIds, cancellationToken);
+
+                foreach (var childMeta in childMetadataList)
                 {
-                    var parentMapping = await resourceGroupRepository.GetChildToParentMappingAsync(sourceRg.Id, cancellationToken);
-
-                    foreach (var (childId, parentId) in parentMapping)
+                    if (parentMapping.TryGetValue(childMeta.ResourceId, out var parentId))
                     {
-                        if (parentId != ccRef.TargetResourceId.Value) continue;
-
-                        var childResource = sourceRg.Resources
-                            .FirstOrDefault(r => r.Id.Value == childId);
-                        if (childResource is null) continue;
-
-                        results.Add(new IncomingCrossConfigReferenceResult(
-                            ReferenceId: ccRef.Id.Value,
-                            SourceConfigId: sibling.Id.Value,
-                            SourceConfigName: siblingWithRefs.Name.Value,
-                            SourceResourceId: childResource.Id.Value,
-                            SourceResourceName: childResource.Name.Value,
-                            SourceResourceType: childResource.GetType().Name,
-                            SourceResourceGroupName: sourceRg.Name.Value,
-                            TargetResourceId: targetResource.Id.Value,
-                            TargetResourceName: targetResource.Name.Value,
-                            TargetResourceType: targetResource.GetType().Name));
+                        allChildToParent[childMeta.ResourceId] = (
+                            parentId,
+                            siblingId.Value,
+                            siblingName,
+                            childMeta.ResourceName,
+                            childMeta.ResourceType,
+                            childMeta.ResourceGroupName);
                     }
                 }
+            }
+        }
+
+        // Build results by matching incoming refs' target resources to child→parent mappings
+        var results = new List<IncomingCrossConfigReferenceResult>();
+
+        foreach (var incoming in incomingRefs)
+        {
+            if (!targetMetadata.TryGetValue(incoming.TargetResourceId.Value, out var target))
+                continue;
+
+            foreach (var (childId, mapping) in allChildToParent)
+            {
+                if (mapping.ParentId != incoming.TargetResourceId.Value) continue;
+                if (mapping.SiblingConfigId != incoming.SiblingId.Value) continue;
+
+                results.Add(new IncomingCrossConfigReferenceResult(
+                    ReferenceId: incoming.ReferenceId,
+                    SourceConfigId: mapping.SiblingConfigId,
+                    SourceConfigName: mapping.SiblingConfigName,
+                    SourceResourceId: childId,
+                    SourceResourceName: mapping.ChildName,
+                    SourceResourceType: mapping.ChildType,
+                    SourceResourceGroupName: mapping.ChildRgName,
+                    TargetResourceId: target.ResourceId,
+                    TargetResourceName: target.ResourceName,
+                    TargetResourceType: target.ResourceType));
             }
         }
 

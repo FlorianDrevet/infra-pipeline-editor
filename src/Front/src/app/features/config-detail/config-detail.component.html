@@ -17,7 +17,7 @@
       <div class="detail-header__nav">
         <a class="ghost-button" [routerLink]="['/projects', config()!.projectId]">{{ 'CONFIG_DETAIL.ACTIONS.BACK' | translate }}</a>
         <div class="detail-header__actions">
-          @if (isMultiRepo()) {
+          @if (isProjectMultiRepo()) {
             <button class="bicep-cta" (click)="generateAll()" [disabled]="generateAllLoading()">
               @if (generateAllLoading()) {
                 <mat-spinner diameter="18" class="bicep-cta__spinner"></mat-spinner>
@@ -26,7 +26,7 @@
               }
               {{ (validatingDiagnostics() ? 'CONFIG_DETAIL.GENERATE_ALL.VALIDATING' : generateAllLoading() ? 'CONFIG_DETAIL.GENERATE_ALL.GENERATING' : 'CONFIG_DETAIL.GENERATE_ALL.BUTTON') | translate }}
             </button>
-            @if (project()?.gitRepositoryConfiguration) {
+            @if ((project()?.repositories?.length ?? 0) > 0) {
               <button class="bicep-cta bicep-cta--git" (click)="openPushToGitDialog()">
                 <mat-icon class="bicep-cta__icon">rocket_launch</mat-icon>
                 {{ 'CONFIG_DETAIL.PUSH_TO_GIT.BUTTON' | translate }}
@@ -49,14 +49,29 @@
     </section>
 
     <!-- Generation Panels (Bicep + Pipeline) — shown only after clicking Generate -->
-    @if (isMultiRepo() && generationPanelOpen()) {
-      <section class="generation-panel">
+    @if (isProjectMultiRepo() && generationPanelOpen()) {
+      <section class="generation-panel" [class.generation-panel--collapsed]="generationPanelCollapsed()">
         <div class="generation-panel__header">
-          <h3 class="generation-panel__title">{{ 'CONFIG_DETAIL.GENERATION.TITLE' | translate }}</h3>
-          <button class="generation-panel__close" (click)="closeGenerationPanel()">
-            <mat-icon>close</mat-icon>
-          </button>
+          <div class="generation-panel__actions">
+            <app-ds-panel-action-button
+              [icon]="generationPanelCollapsed() ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
+              tone="accent"
+              surface="dark"
+              [pressed]="!generationPanelCollapsed()"
+              [ariaExpanded]="!generationPanelCollapsed()"
+              [ariaLabel]="((generationPanelCollapsed() ? 'CONFIG_DETAIL.GENERATION.EXPAND' : 'CONFIG_DETAIL.GENERATION.COLLAPSE') | translate)"
+              [tooltip]="((generationPanelCollapsed() ? 'CONFIG_DETAIL.GENERATION.EXPAND' : 'CONFIG_DETAIL.GENERATION.COLLAPSE') | translate)"
+              (clicked)="toggleGenerationPanelCollapsed()" />
+            <app-ds-panel-action-button
+              icon="close"
+              tone="danger"
+              surface="dark"
+              [ariaLabel]="'CONFIG_DETAIL.GENERATION.CLOSE' | translate"
+              [tooltip]="'CONFIG_DETAIL.GENERATION.CLOSE' | translate"
+              (clicked)="closeGenerationPanel()" />
+          </div>
         </div>
+        @if (!generationPanelCollapsed()) {
         <mat-tab-group class="generation-tabs" animationDuration="200ms">
           <!-- Bicep Tab -->
           <mat-tab>
@@ -202,6 +217,7 @@
             </div>
           </mat-tab>
         </mat-tab-group>
+        }
       </section>
     }
 
@@ -223,15 +239,12 @@
             }
 
             @if (sortedEnvironments().length > 0) {
-              <mat-form-field appearance="outline" class="preview-env-select" subscriptSizing="dynamic">
-                <mat-label>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_ENV' | translate }}</mat-label>
-                <mat-select [ngModel]="previewEnvId()" (ngModelChange)="previewEnvId.set($event)">
-                  <mat-option [value]="null">{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_NONE' | translate }}</mat-option>
-                  @for (env of sortedEnvironments(); track env.id) {
-                    <mat-option [value]="env.id">{{ env.name }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
+              <app-ds-select
+                class="preview-env-select"
+                [label]="'CONFIG_DETAIL.RESOURCE_GROUPS.PREVIEW_ENV' | translate"
+                [options]="previewEnvDsOptions()"
+                [ngModel]="previewEnvId()"
+                (ngModelChange)="previewEnvId.set($event)" />
             }
           </div>
 
@@ -318,6 +331,9 @@
                                         }
                                         @if (hasResourceDiagnostics(item.resource.id)) {
                                           <app-diagnostic-popover [diagnostics]="getResourceDiagnostics(item.resource.id)" />
+                                        }
+                                        @if (item.resource.isExisting) {
+                                          <span class="existing-resource-badge">{{ 'RESOURCE_LIST.EXISTING_BADGE' | translate }}</span>
                                         }
                                       </div>
                                       <span class="resource-item__type">{{ item.resource.resourceType }}</span>
@@ -458,6 +474,9 @@
                                           @if (hasResourceDiagnostics(item.resource.id)) {
                                             <app-diagnostic-popover [diagnostics]="getResourceDiagnostics(item.resource.id)" />
                                           }
+                                          @if (item.resource.isExisting) {
+                                            <span class="existing-resource-badge">{{ 'RESOURCE_LIST.EXISTING_BADGE' | translate }}</span>
+                                          }
                                         }
                                       </div>
                                       <span class="resource-item__type">
@@ -594,6 +613,9 @@
                                       @if (hasResourceDiagnostics(item.resource.id)) {
                                         <app-diagnostic-popover [diagnostics]="getResourceDiagnostics(item.resource.id)" />
                                       }
+                                      @if (item.resource.isExisting) {
+                                        <span class="existing-resource-badge">{{ 'RESOURCE_LIST.EXISTING_BADGE' | translate }}</span>
+                                      }
                                     </div>
                                     <span class="resource-item__type">{{ item.resource.resourceType }}</span>
                                   </div>
@@ -726,16 +748,16 @@
               </div>
 
               <div class="tags-edit-card__form">
-                <mat-form-field class="tags-edit-card__name" appearance="outline" subscriptSizing="dynamic">
-                  <mat-label>{{ 'CONFIG_DETAIL.TAGS.TAG_NAME' | translate }}</mat-label>
-                  <input matInput [formControl]="configTagNameCtrl"
-                    (keydown.enter)="addConfigTag(); $event.preventDefault()" />
-                </mat-form-field>
-                <mat-form-field class="tags-edit-card__value" appearance="outline" subscriptSizing="dynamic">
-                  <mat-label>{{ 'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate }}</mat-label>
-                  <input matInput [formControl]="configTagValueCtrl"
-                    (keydown.enter)="addConfigTag(); $event.preventDefault()" />
-                </mat-form-field>
+                <app-ds-text-field
+                  class="tags-edit-card__name"
+                  [label]="'CONFIG_DETAIL.TAGS.TAG_NAME' | translate"
+                  [formControl]="configTagNameCtrl"
+                  (keydown.enter)="addConfigTag(); $event.preventDefault()" />
+                <app-ds-text-field
+                  class="tags-edit-card__value"
+                  [label]="'CONFIG_DETAIL.TAGS.TAG_VALUE' | translate"
+                  [formControl]="configTagValueCtrl"
+                  (keydown.enter)="addConfigTag(); $event.preventDefault()" />
                 <button class="template-action-btn template-action-btn--add" (click)="addConfigTag()"
                   [disabled]="!configTagNameCtrl.value.trim()">
                   <mat-icon>add</mat-icon>
@@ -771,13 +793,13 @@
                 <button mat-stroked-button (click)="cancelConfigTagsEdit()">
                   {{ 'CONFIG_DETAIL.TAGS.CANCEL' | translate }}
                 </button>
-                <button mat-flat-button color="primary" (click)="saveConfigTags()" [disabled]="configTagsSaving()">
-                  @if (configTagsSaving()) {
-                    <mat-spinner diameter="18"></mat-spinner>
-                  } @else {
-                    {{ 'CONFIG_DETAIL.TAGS.SAVE' | translate }}
-                  }
-                </button>
+                <app-ds-button
+                  variant="primary"
+                  (clicked)="saveConfigTags()"
+                  [loading]="configTagsSaving()"
+                  [disabled]="configTagsSaving()">
+                  {{ 'CONFIG_DETAIL.TAGS.SAVE' | translate }}
+                </app-ds-button>
               </div>
             </div>
           } @else {
@@ -962,6 +984,76 @@
               </div>
             }
           }
+
+          <!-- Abbreviation Overrides -->
+          <section class="abbreviations-section">
+            <h3 class="abbreviations-section__title">
+              <mat-icon>text_fields</mat-icon>
+              {{ 'ABBREVIATIONS.TITLE' | translate }}
+            </h3>
+            <p class="abbreviations-section__subtitle">{{ 'ABBREVIATIONS.SUBTITLE' | translate }}</p>
+
+            @if (abbreviationDisplayItems().length === 0) {
+              <div class="empty-state">
+                <mat-icon class="empty-state__icon">text_fields</mat-icon>
+                <p>{{ 'ABBREVIATIONS.EMPTY' | translate }}</p>
+              </div>
+            } @else {
+              <div class="abbreviation-list">
+                <div class="abbreviation-list__header">
+                  <span class="abbreviation-list__col abbreviation-list__col--type">{{ 'ABBREVIATIONS.COLUMN_RESOURCE_TYPE' | translate }}</span>
+                  <span class="abbreviation-list__col abbreviation-list__col--default">{{ 'ABBREVIATIONS.COLUMN_DEFAULT' | translate }}</span>
+                  <span class="abbreviation-list__col abbreviation-list__col--effective">{{ 'ABBREVIATIONS.COLUMN_EFFECTIVE' | translate }}</span>
+                  <span class="abbreviation-list__col abbreviation-list__col--status"></span>
+                  <span class="abbreviation-list__col abbreviation-list__col--actions"></span>
+                </div>
+                @for (item of abbreviationDisplayItems(); track item.resourceType) {
+                  <article class="abbreviation-row" [class.abbreviation-row--busy]="isAbbreviationBusy(item.resourceType)">
+                    @if (isAbbreviationBusy(item.resourceType)) {
+                      <div class="abbreviation-row__spinner">
+                        <mat-spinner diameter="18"></mat-spinner>
+                      </div>
+                    }
+                    <span class="abbreviation-list__col abbreviation-list__col--type">
+                      <mat-icon class="abbreviation-row__icon">{{ resourceTypeIcons[item.resourceType] }}</mat-icon>
+                      {{ item.resourceType }}
+                    </span>
+                    <span class="abbreviation-list__col abbreviation-list__col--default">
+                      <code>{{ item.defaultAbbreviation }}</code>
+                    </span>
+                    <span class="abbreviation-list__col abbreviation-list__col--effective">
+                      <code class="effective-abbr" [class.effective-abbr--custom]="item.isCustomized">{{ item.effectiveAbbreviation }}</code>
+                    </span>
+                    <span class="abbreviation-list__col abbreviation-list__col--status">
+                      @if (item.isCustomized) {
+                        <span class="customized-chip">{{ 'ABBREVIATIONS.CUSTOMIZED' | translate }}</span>
+                      }
+                    </span>
+                    @if (canWrite()) {
+                      <span class="abbreviation-list__col abbreviation-list__col--actions">
+                        <button
+                          class="template-action-btn template-action-btn--edit"
+                          [matTooltip]="'ABBREVIATIONS.EDIT' | translate"
+                          [disabled]="isAbbreviationBusy(item.resourceType) || namingActionKey() !== null"
+                          (click)="openEditAbbreviationDialog(item)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        @if (item.isCustomized) {
+                          <button
+                            class="template-action-btn template-action-btn--delete"
+                            [matTooltip]="'ABBREVIATIONS.RESET' | translate"
+                            [disabled]="isAbbreviationBusy(item.resourceType) || namingActionKey() !== null"
+                            (click)="openResetAbbreviationDialog(item)">
+                            <mat-icon>restart_alt</mat-icon>
+                          </button>
+                        }
+                      </span>
+                    }
+                  </article>
+                }
+              </div>
+            }
+          </section>
         </div>
       </mat-tab>
 
@@ -1016,7 +1108,7 @@
         <ng-template mat-tab-label>
           <mat-icon class="tab-icon">library_books</mat-icon>
           <span>{{ 'CONFIG_DETAIL.TABS.PIPELINE_VARIABLES' | translate }}</span>
-          <span class="tab-count">{{ variableGroups().length }}</span>
+          <span class="tab-count">{{ configVariableGroups().length }}</span>
         </ng-template>
         <div class="tab-content">
           @if (vgErrorKey()) {
@@ -1024,9 +1116,9 @@
           }
 
           <!-- Derived hint -->
-          <div class="env-description" style="margin-bottom: 1rem;">
-            <mat-icon class="env-description__icon">info_outline</mat-icon>
-            <p>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.DERIVED_HINT' | translate }}</p>
+          <div class="settings-info-banner" style="margin-bottom: 1rem;">
+            <mat-icon class="settings-info-banner__icon">info_outline</mat-icon>
+            <span>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.DERIVED_HINT' | translate }}</span>
           </div>
 
           @if (canWrite()) {
@@ -1042,9 +1134,9 @@
             <div class="empty-state">
               <mat-spinner diameter="32"></mat-spinner>
             </div>
-          } @else if (variableGroups().length > 0) {
+          } @else if (configVariableGroups().length > 0) {
             <div class="vg-list">
-              @for (group of variableGroups(); track group.id) {
+              @for (group of configVariableGroups(); track group.id) {
                 <article class="vg-card">
                   <div class="vg-card__header">
                     <div class="vg-card__title-row">
@@ -1102,8 +1194,8 @@
         </div>
       </mat-tab>
 
-      <!-- Git Configuration (multi-repo only) -->
-      @if (isMultiRepo()) {
+      <!-- Git Configuration (project layout = MultiRepo only) -->
+      @if (isProjectMultiRepo()) {
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon class="tab-icon">code</mat-icon>
@@ -1114,101 +1206,163 @@
               <p class="rg-error">{{ gitActionError() | translate }}</p>
             }
 
-            @if (project()?.gitRepositoryConfiguration; as gitConfig) {
-              <article class="git-config-card">
-                <div class="git-config-card__header">
-                  <div class="git-config-card__provider">
-                    <mat-icon class="git-config-card__provider-icon">
-                      @if (gitConfig.providerType === 'GitHub') { hub } @else { cloud_queue }
-                    </mat-icon>
-                    <h3>{{ gitConfig.providerType }}</h3>
+            <!-- V2 Per-config repositories (only when project layout = MultiRepo) -->
+            @if (isProjectMultiRepo()) {
+              <div class="config-layout-repos">
+                <section class="config-layout-repos__section">
+                  <header class="config-layout-repos__section-header">
+                    <h3>{{ 'CONFIG_DETAIL.REPOSITORIES.TITLE' | translate }}</h3>
+                    <p class="config-layout-repos__section-help">
+                      {{ 'CONFIG_DETAIL.REPOSITORIES.HELP' | translate }}
+                    </p>
+                  </header>
+
+                  <div class="preset-grid">
+                    <button
+                      type="button"
+                      class="preset-card"
+                      [class.preset-card--active]="configLayoutMode() === 'AllInOne'"
+                      [disabled]="!canWrite() || configLayoutModeSaving()"
+                      (click)="setConfigLayoutMode('AllInOne')">
+                      <span class="preset-card__title">{{ 'CONFIG_DETAIL.REPOSITORIES.MODE_ALL_IN_ONE' | translate }}</span>
+                      <span class="preset-card__desc">{{ 'PROJECT_DETAIL.LAYOUT.SLOT_ALL_IN_ONE_HELP' | translate }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="preset-card"
+                      [class.preset-card--active]="configLayoutMode() === 'SplitInfraCode'"
+                      [disabled]="!canWrite() || configLayoutModeSaving()"
+                      (click)="setConfigLayoutMode('SplitInfraCode')">
+                      <span class="preset-card__title">{{ 'CONFIG_DETAIL.REPOSITORIES.MODE_SPLIT' | translate }}</span>
+                      <span class="preset-card__desc">{{ 'PROJECT_DETAIL.LAYOUT.SLOTS_SPLIT_HELP' | translate }}</span>
+                    </button>
                   </div>
-                  @if (canWrite()) {
-                    <div class="git-config-card__actions">
-                      <button class="add-rg-btn" (click)="testGitConnection()" [disabled]="gitTestLoading()">
-                        @if (gitTestLoading()) {
-                          <mat-spinner diameter="16"></mat-spinner>
-                        } @else {
-                          <mat-icon class="add-rg-btn__icon">sync</mat-icon>
+                </section>
+
+                @switch (configLayoutMode()) {
+                  @case ('AllInOne') {
+                    <section class="config-layout-repos__section">
+                      <header class="config-layout-repos__section-header">
+                        <h3>{{ 'CONFIG_DETAIL.REPOSITORIES.MODE_ALL_IN_ONE' | translate }}</h3>
+                        <p class="config-layout-repos__section-help">
+                          {{ 'PROJECT_DETAIL.LAYOUT.SLOT_ALL_IN_ONE_HELP' | translate }}
+                        </p>
+                      </header>
+
+                      @if (configAllInOneRepo(); as repo) {
+                        <mat-card class="repo-card" [class.repo-card--busy]="configRepoActionId() === repo.id">
+                          <mat-card-header>
+                            <mat-card-title class="repo-card__title">
+                              <mat-icon class="repo-card__icon">folder_open</mat-icon>
+                              <span>{{ repo.alias }}</span>
+                            </mat-card-title>
+                            <mat-card-subtitle>{{ repo.providerType }}</mat-card-subtitle>
+                          </mat-card-header>
+
+                          <mat-card-content class="repo-card__content">
+                            <div class="repo-card__row">
+                              <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
+                              <a class="repo-card__link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
+                                {{ repo.owner }}/{{ repo.repositoryName }}
+                              </a>
+                            </div>
+                            <div class="repo-card__row">
+                              <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
+                              <strong>{{ repo.defaultBranch }}</strong>
+                            </div>
+                            <div class="repo-card__chips">
+                              @for (kind of repo.contentKinds; track kind) {
+                                <mat-chip disableRipple>{{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}</mat-chip>
+                              }
+                            </div>
+                          </mat-card-content>
+
+                          <mat-card-actions align="end">
+                            <button mat-stroked-button (click)="openConfigAllInOneDialog()" [disabled]="!canWrite() || configRepoActionId() === repo.id">
+                              <mat-icon>edit</mat-icon>
+                              {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
+                            </button>
+                            <button mat-stroked-button color="warn" (click)="removeConfigRepository(repo)" [disabled]="!canWrite() || configRepoActionId() === repo.id">
+                              <mat-icon>delete_outline</mat-icon>
+                              {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
+                            </button>
+                          </mat-card-actions>
+                        </mat-card>
+                      } @else {
+                        <button type="button" class="slot-empty" [disabled]="!canWrite()" (click)="openConfigAllInOneDialog()">
+                          <mat-icon class="slot-empty__icon">add_circle_outline</mat-icon>
+                          <span class="slot-empty__title">{{ 'CONFIG_DETAIL.REPOSITORIES.ADD_ALL_IN_ONE' | translate }}</span>
+                          <span class="slot-empty__desc">{{ 'PROJECT_DETAIL.LAYOUT.SLOT_ALL_IN_ONE_HELP' | translate }}</span>
+                        </button>
+                      }
+                    </section>
+                  }
+                  @case ('SplitInfraCode') {
+                    <section class="config-layout-repos__section">
+                      <header class="config-layout-repos__section-header">
+                        <h3>{{ 'CONFIG_DETAIL.REPOSITORIES.MODE_SPLIT' | translate }}</h3>
+                        <p class="config-layout-repos__section-help">
+                          {{ 'PROJECT_DETAIL.LAYOUT.SLOTS_SPLIT_HELP' | translate }}
+                        </p>
+                      </header>
+
+                      <div class="repo-grid">
+                        @for (slot of configSplitSlots(); track slot.kind) {
+                          @if (slot.repo; as repo) {
+                            <mat-card class="repo-card" [class.repo-card--busy]="configRepoActionId() === repo.id">
+                              <mat-card-header>
+                                <mat-card-title class="repo-card__title">
+                                  <mat-icon class="repo-card__icon">folder_open</mat-icon>
+                                  <span>{{ slot.labelKey | translate }}</span>
+                                </mat-card-title>
+                                <mat-card-subtitle>{{ repo.alias }} · {{ repo.providerType }}</mat-card-subtitle>
+                              </mat-card-header>
+
+                              <mat-card-content class="repo-card__content">
+                                <div class="repo-card__row">
+                                  <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.URL' | translate }}</span>
+                                  <a class="repo-card__link" [href]="repo.repositoryUrl" target="_blank" rel="noopener">
+                                    {{ repo.owner }}/{{ repo.repositoryName }}
+                                  </a>
+                                </div>
+                                <div class="repo-card__row">
+                                  <span class="repo-card__label">{{ 'PROJECT_DETAIL.LAYOUT.BRANCH' | translate }}</span>
+                                  <strong>{{ repo.defaultBranch }}</strong>
+                                </div>
+                              </mat-card-content>
+
+                              <mat-card-actions align="end">
+                                <button mat-stroked-button (click)="openConfigSlotDialog(slot.kind, repo)" [disabled]="!canWrite() || configRepoActionId() === repo.id">
+                                  <mat-icon>edit</mat-icon>
+                                  {{ 'PROJECT_DETAIL.LAYOUT.EDIT' | translate }}
+                                </button>
+                                <button mat-stroked-button color="warn" (click)="removeConfigRepository(repo)" [disabled]="!canWrite() || configRepoActionId() === repo.id">
+                                  <mat-icon>delete_outline</mat-icon>
+                                  {{ 'PROJECT_DETAIL.LAYOUT.DELETE' | translate }}
+                                </button>
+                              </mat-card-actions>
+                            </mat-card>
+                          } @else {
+                            <button type="button" class="slot-empty" [disabled]="!canWrite()" (click)="openConfigSlotDialog(slot.kind, null)">
+                              <mat-icon class="slot-empty__icon">add_circle_outline</mat-icon>
+                              <span class="slot-empty__title">{{ slot.labelKey | translate }}</span>
+                              <span class="slot-empty__desc">{{ 'PROJECT_DETAIL.LAYOUT.SLOT_ADD_HINT' | translate }}</span>
+                            </button>
+                          }
                         }
-                        {{ (gitTestLoading() ? 'PROJECT_DETAIL.GIT_CONFIG.TESTING' : 'PROJECT_DETAIL.GIT_CONFIG.TEST_CONNECTION') | translate }}
-                      </button>
-                      <button class="add-rg-btn" (click)="openGitConfigDialog()">
-                        <mat-icon class="add-rg-btn__icon">edit</mat-icon>
-                        {{ 'PROJECT_DETAIL.GIT_CONFIG.EDIT' | translate }}
-                      </button>
-                      <button class="delete-btn" (click)="openRemoveGitConfigDialog()">
-                        <mat-icon class="delete-btn__icon">delete_outline</mat-icon>
-                        {{ 'PROJECT_DETAIL.GIT_CONFIG.REMOVE' | translate }}
-                      </button>
+                      </div>
+                    </section>
+                  }
+                  @default {
+                    <div class="empty-state">
+                      <mat-icon class="empty-state__icon">folder_open</mat-icon>
+                      <p>{{ 'CONFIG_DETAIL.REPOSITORIES.MODE_EMPTY' | translate }}</p>
                     </div>
                   }
-                </div>
-
-                <div class="git-config-card__details">
-                  <div class="detail-row">
-                    <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.REPOSITORY_URL' | translate }}</span>
-                    <a class="detail-link" [href]="gitConfig.repositoryUrl" target="_blank" rel="noopener">
-                      {{ gitConfig.repositoryUrl }}
-                      <mat-icon class="detail-link__icon">open_in_new</mat-icon>
-                    </a>
-                  </div>
-                  <div class="detail-row">
-                    <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.DEFAULT_BRANCH' | translate }}</span>
-                    <strong>{{ gitConfig.defaultBranch }}</strong>
-                  </div>
-                  @if (gitConfig.basePath) {
-                    <div class="detail-row">
-                      <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.BASE_PATH' | translate }}</span>
-                      <strong>{{ gitConfig.basePath }}</strong>
-                    </div>
-                  }
-                  <div class="detail-row">
-                    <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.OWNER' | translate }}</span>
-                    <strong>{{ gitConfig.owner }}</strong>
-                  </div>
-                  <div class="detail-row">
-                    <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.REPOSITORY_NAME' | translate }}</span>
-                    <strong>{{ gitConfig.repositoryName }}</strong>
-                  </div>
-                </div>
-
-                <!-- Test Connection Result -->
-                @if (gitTestResult(); as testResult) {
-                  <div class="git-test-result" [class.git-test-result--success]="testResult.success" [class.git-test-result--error]="!testResult.success">
-                    @if (testResult.success) {
-                      <mat-icon class="git-test-result__icon">check_circle</mat-icon>
-                      <div class="git-test-result__content">
-                        <strong>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_SUCCESS' | translate }}</strong>
-                        <div class="git-test-result__details">
-                          <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_REPO_NAME' | translate }}: {{ testResult.repositoryFullName }}</span>
-                          <span>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_BRANCH' | translate }}: {{ testResult.defaultBranch }}</span>
-                        </div>
-                      </div>
-                    } @else {
-                      <mat-icon class="git-test-result__icon">error_outline</mat-icon>
-                      <div class="git-test-result__content">
-                        <strong>{{ 'PROJECT_DETAIL.GIT_CONFIG.TEST_FAILED' | translate }}</strong>
-                        @if (testResult.errorMessage) {
-                          <p>{{ testResult.errorMessage }}</p>
-                        }
-                      </div>
-                    }
-                  </div>
-                }
-              </article>
-            } @else {
-              <div class="empty-state">
-                <mat-icon class="empty-state__icon">code</mat-icon>
-                <p>{{ 'CONFIG_DETAIL.GIT_CONFIG.EMPTY' | translate }}</p>
-                @if (canWrite()) {
-                  <button class="add-rg-btn" (click)="openGitConfigDialog()">
-                    <mat-icon class="add-rg-btn__icon">add_circle_outline</mat-icon>
-                    {{ 'PROJECT_DETAIL.GIT_CONFIG.CONFIGURE' | translate }}
-                  </button>
                 }
               </div>
             }
+
           </div>
         </mat-tab>
       }

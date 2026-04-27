@@ -4,20 +4,17 @@
 
 <mat-dialog-content>
   <form [formGroup]="form" class="rg-form" (ngSubmit)="onSubmit()">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME' | translate }}</mat-label>
-      <input matInput formControlName="name"
-        [placeholder]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME_PLACEHOLDER' | translate" />
-    </mat-form-field>
+    <app-ds-text-field
+      class="full-width"
+      formControlName="name"
+      [label]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME' | translate"
+      [placeholder]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.NAME_PLACEHOLDER' | translate" />
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.LOCATION' | translate }}</mat-label>
-      <mat-select formControlName="location">
-        @for (option of locationOptions; track option.value) {
-          <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <app-ds-select
+      class="full-width"
+      formControlName="location"
+      [label]="'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.LOCATION' | translate"
+      [options]="locationOptions" />
 
     @if (errorKey()) {
       <p class="dialog-error">{{ errorKey() | translate }}</p>
@@ -29,11 +26,7 @@
   <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
     {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.CANCEL' | translate }}
   </button>
-  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || isSubmitting()">
-    @if (isSubmitting()) {
-      <mat-spinner diameter="18"></mat-spinner>
-    } @else {
-      {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.ADD' | translate }}
-    }
-  </button>
+  <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid" (clicked)="onSubmit()">
+    {{ 'CONFIG_DETAIL.RESOURCE_GROUPS.FORM.ADD' | translate }}
+  </app-ds-button>
 </mat-dialog-actions>

@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -9,14 +10,21 @@ using MediatR;
 
 namespace InfraFlowSculptor.Application.InfrastructureConfig.Commands.PushBicepToGit;
 
-/// <summary>Handles the <see cref="PushBicepToGitCommand"/>.</summary>
+/// <summary>
+/// Handles the <see cref="PushBicepToGitCommand"/>.
+/// Uses <see cref="IRepositoryTargetResolver"/> (V2 routing) with <see cref="ArtifactKind.Infrastructure"/>
+/// to resolve the target repository from the configuration's <c>RepositoryBinding</c>,
+/// falling back to the legacy project-level <c>GitRepositoryConfiguration</c> via the resolver's
+/// built-in compatibility path.
+/// </summary>
 public sealed class PushBicepToGitCommandHandler(
     IInfraConfigAccessService accessService,
     IInfrastructureConfigRepository infraConfigRepo,
     IProjectRepository projectRepo,
     IKeyVaultSecretClient keyVaultClient,
     IGitProviderFactory gitProviderFactory,
-    IBlobService blobService)
+    IBlobService blobService,
+    IRepositoryTargetResolver targetResolver)
     : ICommandHandler<PushBicepToGitCommand, PushBicepToGitResult>
 {
     /// <inheritdoc />
@@ -38,34 +46,35 @@ public sealed class PushBicepToGitCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(config.ProjectId);
 
-        // 3. Check Git config exists
-        if (project.GitRepositoryConfiguration is null)
-            return Errors.GitRepository.NotConfigured();
+        // 3. Resolve the target repository via V2 routing.
+        var targetResult = targetResolver.Resolve(project, config, ArtifactKind.Infrastructure);
+        if (targetResult.IsError)
+            return targetResult.Errors;
 
-        var gitConfig = project.GitRepositoryConfiguration;
+        var target = targetResult.Value;
 
-        // 4. Retrieve the PAT from the centralized Key Vault
+        // 4. Retrieve the PAT from the centralized Key Vault.
         var secretResult = await keyVaultClient.GetSecretAsync(
             $"git-pat-{project.Id.Value}", cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 
-        // 5. Retrieve latest generated Bicep files from Blob Storage
+        // 5. Retrieve latest generated Bicep files from Blob Storage.
         var filesResult = await GetLatestBicepFilesAsync(command.InfrastructureConfigId, cancellationToken);
         if (filesResult.IsError)
             return filesResult.Errors;
 
-        // 6. Push to Git
-        var gitProvider = gitProviderFactory.Create(gitConfig.ProviderType);
+        // 6. Push to Git.
+        var gitProvider = gitProviderFactory.Create(target.ProviderType);
         return await gitProvider.PushFilesAsync(new GitPushRequest
         {
             Token = secretResult.Value,
-            Owner = gitConfig.Owner,
-            RepositoryName = gitConfig.RepositoryName,
-            BaseBranch = gitConfig.DefaultBranch,
+            Owner = target.Owner,
+            RepositoryName = target.RepositoryName,
+            BaseBranch = target.Branch,
             TargetBranchName = command.BranchName,
             CommitMessage = command.CommitMessage,
-            BasePath = gitConfig.BasePath,
+            BasePath = target.BasePath,
             Files = filesResult.Value,
         }, cancellationToken);
     }

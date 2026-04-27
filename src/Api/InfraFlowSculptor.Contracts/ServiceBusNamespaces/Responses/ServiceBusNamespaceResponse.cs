@@ -31,4 +31,6 @@ public record ServiceBusNamespaceEnvironmentConfigResponse(
     int? Capacity,
     bool? ZoneRedundant,
     bool? DisableLocalAuth,
-    string? MinimumTlsVersion);
+    string? MinimumTlsVersion,
+    bool IsExisting = false
+);

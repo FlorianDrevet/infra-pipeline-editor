@@ -38,6 +38,10 @@ public sealed class ApplicationInsights : AzureResource
     {
         Name = name;
         Location = location;
+
+        if (IsExisting)
+            return;
+
         LogAnalyticsWorkspaceId = logAnalyticsWorkspaceId;
     }
 
@@ -45,6 +49,7 @@ public sealed class ApplicationInsights : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         decimal? samplingPercentage,
@@ -53,6 +58,8 @@ public sealed class ApplicationInsights : AzureResource
         bool? disableLocalAuth,
         string? ingestionMode)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -71,9 +78,13 @@ public sealed class ApplicationInsights : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, decimal? SamplingPercentage, int? RetentionInDays, bool? DisableIpMasking, bool? DisableLocalAuth, string? IngestionMode)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var (envName, samplingPercentage, retentionInDays, disableIpMasking, disableLocalAuth, ingestionMode) in settings)
         {
@@ -91,13 +102,15 @@ public sealed class ApplicationInsights : AzureResource
     /// <param name="location">The Azure region.</param>
     /// <param name="logAnalyticsWorkspaceId">The identifier of the linked Log Analytics Workspace.</param>
     /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     /// <returns>A new <see cref="ApplicationInsights"/> aggregate root.</returns>
     public static ApplicationInsights Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
         AzureResourceId logAnalyticsWorkspaceId,
-        IReadOnlyList<(string EnvironmentName, decimal? SamplingPercentage, int? RetentionInDays, bool? DisableIpMasking, bool? DisableLocalAuth, string? IngestionMode)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, decimal? SamplingPercentage, int? RetentionInDays, bool? DisableIpMasking, bool? DisableLocalAuth, string? IngestionMode)>? environmentSettings = null,
+        bool isExisting = false)
     {
         var applicationInsights = new ApplicationInsights
         {
@@ -105,10 +118,11 @@ public sealed class ApplicationInsights : AzureResource
             ResourceGroupId = resourceGroupId,
             Name = name,
             Location = location,
+            IsExisting = isExisting,
             LogAnalyticsWorkspaceId = logAnalyticsWorkspaceId
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             applicationInsights.SetAllEnvironmentSettings(environmentSettings);
 
         return applicationInsights;

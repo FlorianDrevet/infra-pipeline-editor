@@ -41,6 +41,31 @@ public sealed record GeneratedTypeModule
         new Dictionary<string, object>();
 
     /// <summary>
+    /// Maps a parameter key to a custom Bicep type name instead of the inferred primitive type.
+    /// When a key appears here, <c>main.bicep</c> declares <c>param {name} {CustomType}</c>
+    /// instead of <c>param {name} object</c>. The type must be <c>@export()</c>-ed from the
+    /// module's <c>types.bicep</c>.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ParameterTypeOverrides { get; init; } =
+        new Dictionary<string, string>();
+
+    /// <summary>
+    /// Maps a flat environment-override key (from domain <c>ToDictionary()</c>) to the structured
+    /// parameter group it belongs to. The tuple is <c>(groupParameterKey, propertyName)</c>.
+    /// Example: <c>"cpuCores" → ("containerRuntime", "cpuCores")</c> tells the parameter assembler
+    /// to merge the override value into the <c>containerRuntime</c> object's <c>cpuCores</c> property.
+    /// </summary>
+    public IReadOnlyDictionary<string, (string GroupKey, string PropertyName)> ParameterGroupMappings { get; init; } =
+        new Dictionary<string, (string, string)>();
+
+    /// <summary>
+    /// Names of module parameters that require <c>@secure()</c> decoration and have no default value.
+    /// These are declared as <c>@secure() param {moduleName}{ParamName} string</c> in <c>main.bicep</c>
+    /// and passed through to the module call.
+    /// </summary>
+    public IReadOnlyList<string> SecureParameters { get; init; } = [];
+
+    /// <summary>
     /// Optional companion modules to deploy alongside this resource
     /// (e.g. blob and table services for a Storage Account).
     /// </summary>
@@ -61,20 +86,31 @@ public sealed record GeneratedTypeModule
     public bool UsesParameterizedIdentity { get; init; }
 
     /// <summary>
-    /// Maps a Bicep parameter name in this module to the logical name of the parent resource
+    /// Maps a Bicep parameter name in this module to the logical name and resource type of the parent resource
     /// whose module <c>outputs.id</c> should be passed.
-    /// Example: <c>"appServicePlanId" → "my-asp"</c> generates
+    /// Example: <c>"appServicePlanId" → ("my-asp", "AppServicePlan")</c> generates
     /// <c>appServicePlanId: appServicePlanMyAspModule.outputs.id</c> in <c>main.bicep</c>.
+    /// The resource type name disambiguates when multiple resources share the same logical name.
     /// </summary>
-    public IReadOnlyDictionary<string, string> ParentModuleIdReferences { get; init; } =
-        new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, (string Name, string ResourceTypeName)> ParentModuleIdReferences { get; init; } =
+        new Dictionary<string, (string Name, string ResourceTypeName)>();
 
     /// <summary>
-    /// Maps a Bicep parameter name in this module to the logical name of the parent resource
+    /// Maps a Bicep parameter name in this module to the logical name and resource type of the parent resource
     /// whose computed naming expression should be passed.
     /// Used for child resources that need the parent's deployed name (e.g., SqlDatabase → sqlServerName).
+    /// The resource type name disambiguates when multiple resources share the same logical name.
     /// </summary>
-    public IReadOnlyDictionary<string, string> ParentModuleNameReferences { get; init; } =
+    public IReadOnlyDictionary<string, (string Name, string ResourceTypeName)> ParentModuleNameReferences { get; init; } =
+        new Dictionary<string, (string Name, string ResourceTypeName)>();
+
+    /// <summary>
+    /// Maps a Bicep parameter name in this module to the logical name of a cross-configuration
+    /// existing resource whose <c>.id</c> property should be passed.
+    /// Example: <c>"logAnalyticsWorkspaceId" → "ifs"</c> generates
+    /// <c>logAnalyticsWorkspaceId: existing_ifs.id</c> in <c>main.bicep</c>.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ExistingResourceIdReferences { get; init; } =
         new Dictionary<string, string>();
 
     private static string NormalizePrimaryModuleFileName(string moduleFileName)

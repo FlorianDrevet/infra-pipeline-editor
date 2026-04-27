@@ -11,5 +11,8 @@ public record UserAssignedIdentityResult(
     AzureResourceId Id,
     ResourceGroupId ResourceGroupId,
     Name Name,
-    Location Location
+    Location Location,
+
+    bool IsExisting = false
+
 );

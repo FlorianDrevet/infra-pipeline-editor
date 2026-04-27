@@ -3,15 +3,16 @@ import { RouterLink } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
+import { DsButtonComponent, DsPageHeaderComponent } from '../../shared/components/ds';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { FavoritesService } from '../../shared/services/favorites.service';
-import { CreateProjectDialogComponent } from '../home/create-project-dialog/create-project-dialog.component';
+import { CreateProjectWizardDialogComponent } from './create-project-wizard/create-project-wizard-dialog.component';
 
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [TranslateModule, RouterLink, MatDialogModule, MatIconModule],
+  imports: [TranslateModule, RouterLink, MatDialogModule, MatIconModule, DsButtonComponent, DsPageHeaderComponent],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.scss',
 })
@@ -91,8 +92,12 @@ export class ProjectsComponent implements OnInit {
   }
 
   protected openCreateDialog(): void {
-    const dialogRef = this.dialog.open(CreateProjectDialogComponent, {
-      width: '480px',
+    const dialogRef = this.dialog.open(CreateProjectWizardDialogComponent, {
+      width: '960px',
+      maxWidth: '96vw',
+      maxHeight: '90vh',
+      panelClass: 'ifs-wizard-dialog',
+      disableClose: true,
     });
 
     dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {

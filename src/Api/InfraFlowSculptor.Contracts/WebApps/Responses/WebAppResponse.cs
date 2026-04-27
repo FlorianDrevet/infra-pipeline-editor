@@ -14,11 +14,14 @@ namespace InfraFlowSculptor.Contracts.WebApps.Responses;
 /// <param name="HttpsOnly">Whether the app requires HTTPS only.</param>
 /// <param name="DeploymentMode">Deployment mode (Code or Container).</param>
 /// <param name="ContainerRegistryId">Optional Container Registry identifier.</param>
+/// <param name="AcrAuthMode">Optional authentication mode used to pull images from Azure Container Registry.</param>
 /// <param name="DockerImageName">Docker image name for container deployments.</param>
 /// <param name="DockerfilePath">Relative path to the Dockerfile in the repository.</param>
 /// <param name="SourceCodePath">Relative path to the source code folder.</param>
 /// <param name="BuildCommand">Optional custom build command.</param>
+/// <param name="ApplicationName">Optional user-friendly application name used in generated pipelines.</param>
 /// <param name="EnvironmentSettings">Per-environment typed configuration overrides.</param>
+/// <param name="IsExisting">Whether the resource references an already-existing Azure resource.</param>
 public record WebAppResponse(
     string Id,
     string ResourceGroupId,
@@ -31,10 +34,12 @@ public record WebAppResponse(
     bool HttpsOnly,
     string DeploymentMode,
     string? ContainerRegistryId,
+    string? AcrAuthMode,
     string? DockerImageName,
     string? DockerfilePath,
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
-    IReadOnlyList<WebAppEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<WebAppEnvironmentConfigResponse> EnvironmentSettings,
+    bool IsExisting = false
 );

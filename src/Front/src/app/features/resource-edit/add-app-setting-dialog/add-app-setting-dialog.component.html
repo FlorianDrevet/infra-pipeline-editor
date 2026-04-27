@@ -31,10 +31,12 @@
 
       <!-- Variable name (always visible through all steps) -->
       <div class="config-section">
-        <mat-form-field appearance="outline" class="config-section__field">
-          <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_LABEL' | translate }}</mat-label>
-          <input matInput [ngModel]="settingName()" (ngModelChange)="settingName.set($event)" [placeholder]="isSecret() ? suggestedName() : 'MY_VARIABLE_NAME'" />
-        </mat-form-field>
+        <app-ds-text-field
+          class="config-section__field"
+          [label]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_LABEL' | translate"
+          [ngModel]="settingName()"
+          (ngModelChange)="settingName.set($event)"
+          [placeholder]="isSecret() ? suggestedName() : 'MY_VARIABLE_NAME'" />
       </div>
 
       <!-- ─── Static Step 1: What type of variable? ─── -->
@@ -112,10 +114,12 @@
             <p class="env-values-section__label">{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUES_LABEL' | translate }}</p>
             @for (env of data.environments; track env.name) {
               <div class="config-section">
-                <mat-form-field appearance="outline" class="config-section__field">
-                  <mat-label>{{ env.name }}</mat-label>
-                  <input matInput [ngModel]="environmentValues()[env.name] || ''" (ngModelChange)="updateEnvironmentValue(env.name, $event)" [placeholder]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUE_PLACEHOLDER' | translate" />
-                </mat-form-field>
+                <app-ds-text-field
+                  class="config-section__field"
+                  [label]="env.name"
+                  [ngModel]="environmentValues()[env.name] || ''"
+                  (ngModelChange)="updateEnvironmentValue(env.name, $event)"
+                  [placeholder]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ENV_VALUE_PLACEHOLDER' | translate" />
               </div>
             }
           </div>
@@ -129,32 +133,30 @@
                 <mat-spinner diameter="20"></mat-spinner>
               </div>
             } @else {
-              <mat-form-field appearance="outline" class="config-section__field">
-                <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SELECT_VARIABLE_GROUP' | translate }}</mat-label>
-                <mat-select [ngModel]="selectedVariableGroupId() ?? (isCreatingNewGroup() ? '__create_new__' : '')" (ngModelChange)="onVgSelectionChange($event)">
-                  @for (vg of vgOptions(); track vg.id) {
-                    <mat-option [value]="vg.id">{{ vg.groupName }}</mat-option>
-                  }
-                  <mat-option value="__create_new__">
-                    <mat-icon>add</mat-icon>
-                    {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CREATE_NEW_GROUP' | translate }}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
+              <app-ds-select
+                class="config-section__field"
+                [label]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SELECT_VARIABLE_GROUP' | translate"
+                [options]="vgSelectOptions()"
+                [ngModel]="vgSelectValue()"
+                (ngModelChange)="onVgSelectionChange($event)" />
 
               @if (isCreatingNewGroup()) {
-                <mat-form-field appearance="outline" class="config-section__field">
-                  <mat-label>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME' | translate }}</mat-label>
-                  <input matInput [ngModel]="newGroupName()" (ngModelChange)="newGroupName.set($event)" [placeholder]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_PLACEHOLDER' | translate" />
-                  <mat-hint>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_HINT' | translate }}</mat-hint>
-                </mat-form-field>
+                <app-ds-text-field
+                  class="config-section__field"
+                  [label]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME' | translate"
+                  [ngModel]="newGroupName()"
+                  (ngModelChange)="newGroupName.set($event)"
+                  [placeholder]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_PLACEHOLDER' | translate"
+                  [hint]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_HINT' | translate" />
               }
 
-              <mat-form-field appearance="outline" class="config-section__field">
-                <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME' | translate }}</mat-label>
-                <input matInput [ngModel]="pipelineVariableName()" (ngModelChange)="pipelineVariableName.set($event)" placeholder="myVariableName" />
-                <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME_HINT' | translate }}</mat-hint>
-              </mat-form-field>
+              <app-ds-text-field
+                class="config-section__field"
+                [label]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME' | translate"
+                [ngModel]="pipelineVariableName()"
+                (ngModelChange)="pipelineVariableName.set($event)"
+                placeholder="myVariableName"
+                [hint]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME_HINT' | translate" />
             }
           </div>
         }
@@ -237,11 +239,13 @@
 
             <!-- Secret name -->
             <div class="config-section">
-              <mat-form-field appearance="outline" class="config-section__field">
-                <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SECRET_NAME_LABEL' | translate }}</mat-label>
-                <input matInput [ngModel]="secretName()" (ngModelChange)="secretName.set($event)" placeholder="my-secret-name" />
-                <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SECRET_NAME_HINT' | translate }}</mat-hint>
-              </mat-form-field>
+              <app-ds-text-field
+                class="config-section__field"
+                [label]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SECRET_NAME_LABEL' | translate"
+                [ngModel]="secretName()"
+                (ngModelChange)="secretName.set($event)"
+                placeholder="my-secret-name"
+                [hint]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SECRET_NAME_HINT' | translate" />
             </div>
           }
         </div>
@@ -289,32 +293,30 @@
                   <mat-spinner diameter="20"></mat-spinner>
                 </div>
               } @else {
-                <mat-form-field appearance="outline" class="config-section__field">
-                  <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SELECT_VARIABLE_GROUP' | translate }}</mat-label>
-                  <mat-select [ngModel]="selectedVariableGroupId() ?? (isCreatingNewGroup() ? '__create_new__' : '')" (ngModelChange)="onVgSelectionChange($event)">
-                    @for (vg of vgOptions(); track vg.id) {
-                      <mat-option [value]="vg.id">{{ vg.groupName }}</mat-option>
-                    }
-                    <mat-option value="__create_new__">
-                      <mat-icon>add</mat-icon>
-                      {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CREATE_NEW_GROUP' | translate }}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
+                <app-ds-select
+                  class="config-section__field"
+                  [label]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SELECT_VARIABLE_GROUP' | translate"
+                  [options]="vgSelectOptions()"
+                  [ngModel]="vgSelectValue()"
+                  (ngModelChange)="onVgSelectionChange($event)" />
 
                 @if (isCreatingNewGroup()) {
-                  <mat-form-field appearance="outline" class="config-section__field">
-                    <mat-label>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME' | translate }}</mat-label>
-                    <input matInput [ngModel]="newGroupName()" (ngModelChange)="newGroupName.set($event)" [placeholder]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_PLACEHOLDER' | translate" />
-                    <mat-hint>{{ 'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_HINT' | translate }}</mat-hint>
-                  </mat-form-field>
+                  <app-ds-text-field
+                    class="config-section__field"
+                    [label]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME' | translate"
+                    [ngModel]="newGroupName()"
+                    (ngModelChange)="newGroupName.set($event)"
+                    [placeholder]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_PLACEHOLDER' | translate"
+                    [hint]="'CONFIG_DETAIL.PIPELINE_VARIABLES.GROUP_NAME_HINT' | translate" />
                 }
 
-                <mat-form-field appearance="outline" class="config-section__field">
-                  <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME' | translate }}</mat-label>
-                  <input matInput [ngModel]="pipelineVariableName()" (ngModelChange)="pipelineVariableName.set($event)" placeholder="myVariableName" />
-                  <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME_HINT' | translate }}</mat-hint>
-                </mat-form-field>
+                <app-ds-text-field
+                  class="config-section__field"
+                  [label]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME' | translate"
+                  [ngModel]="pipelineVariableName()"
+                  (ngModelChange)="pipelineVariableName.set($event)"
+                  placeholder="myVariableName"
+                  [hint]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.PIPELINE_VARIABLE_NAME_HINT' | translate" />
               }
             </div>
           }
@@ -339,18 +341,17 @@
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.CANCEL' | translate }}
         </button>
       }
-      <button
-        mat-flat-button
-        color="primary"
+      <app-ds-button
+        variant="primary"
         [disabled]="!canSubmit()"
-        (click)="onSubmit()">
+        [loading]="isSubmitting()"
+        (clicked)="onSubmit()">
         @if (isSubmitting()) {
-          <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADDING' | translate }}
         } @else {
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADD' | translate }}
         }
-      </button>
+      </app-ds-button>
     </mat-dialog-actions>
   }
 
@@ -607,11 +608,13 @@
               }
 
               <div class="config-section">
-                <mat-form-field appearance="outline" class="config-section__field">
-                  <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_SECRET_NAME' | translate }}</mat-label>
-                  <input matInput [ngModel]="sensitiveSecretName()" (ngModelChange)="sensitiveSecretName.set($event)" placeholder="my-secret-name" />
-                  <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_SECRET_NAME_HINT' | translate }}</mat-hint>
-                </mat-form-field>
+                <app-ds-text-field
+                  class="config-section__field"
+                  [label]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_SECRET_NAME' | translate"
+                  [ngModel]="sensitiveSecretName()"
+                  (ngModelChange)="sensitiveSecretName.set($event)"
+                  placeholder="my-secret-name"
+                  [hint]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.SENSITIVE_SECRET_NAME_HINT' | translate" />
               </div>
             }
           </div>
@@ -639,13 +642,12 @@
         <button mat-stroked-button (click)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
         </button>
-        <button
-          mat-flat-button
-          color="primary"
+        <app-ds-button
+          variant="primary"
           [disabled]="!canProceedFromSensitiveStep()"
-          (click)="proceedFromSensitiveStep()">
+          (clicked)="proceedFromSensitiveStep()">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.KV_NEXT' | translate }}
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
 
@@ -688,11 +690,13 @@
         </div>
 
         <div class="config-section">
-          <mat-form-field appearance="outline" class="config-section__field">
-            <mat-label>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_LABEL' | translate }}</mat-label>
-            <input matInput [ngModel]="settingName()" (ngModelChange)="settingName.set($event)" [placeholder]="suggestedName()" />
-            <mat-hint>{{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_HINT' | translate }}</mat-hint>
-          </mat-form-field>
+          <app-ds-text-field
+            class="config-section__field"
+            [label]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_LABEL' | translate"
+            [ngModel]="settingName()"
+            (ngModelChange)="settingName.set($event)"
+            [placeholder]="suggestedName()"
+            [hint]="'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.NAME_HINT' | translate" />
         </div>
 
         @if (errorKey()) {
@@ -707,18 +711,17 @@
         <button mat-stroked-button (click)="goBack()">
           {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.BACK' | translate }}
         </button>
-        <button
-          mat-flat-button
-          color="primary"
+        <app-ds-button
+          variant="primary"
           [disabled]="!canSubmit()"
-          (click)="onSubmit()">
+          [loading]="isSubmitting()"
+          (clicked)="onSubmit()">
           @if (isSubmitting()) {
-            <mat-spinner diameter="16" class="submit-spinner"></mat-spinner>
             {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADDING' | translate }}
           } @else {
             {{ 'RESOURCE_EDIT.ADD_APP_SETTING_DIALOG.ADD' | translate }}
           }
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
   }

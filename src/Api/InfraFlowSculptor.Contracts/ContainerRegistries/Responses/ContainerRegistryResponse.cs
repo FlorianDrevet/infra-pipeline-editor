@@ -8,5 +8,8 @@ public record ContainerRegistryResponse(
     string ResourceGroupId,
     string Name,
     string Location,
-    IReadOnlyList<ContainerRegistryEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<ContainerRegistryEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

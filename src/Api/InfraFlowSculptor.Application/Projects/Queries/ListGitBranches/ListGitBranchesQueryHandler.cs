@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -13,7 +14,8 @@ public sealed class ListGitBranchesQueryHandler(
     IProjectRepository projectRepository,
     IProjectAccessService accessService,
     IKeyVaultSecretClient keyVaultSecretClient,
-    IGitProviderFactory gitProviderFactory)
+    IGitProviderFactory gitProviderFactory,
+    IRepositoryTargetResolver targetResolver)
     : IQueryHandler<ListGitBranchesQuery, IReadOnlyList<GitBranchResult>>
 {
     /// <inheritdoc />
@@ -28,18 +30,19 @@ public sealed class ListGitBranchesQueryHandler(
         if (project is null)
             return Errors.Project.NotFoundError(query.ProjectId);
 
-        if (project.GitRepositoryConfiguration is null)
-            return Errors.GitRepository.NotConfigured();
+        var targetResult = targetResolver.Resolve(project, config: null, ArtifactKind.Infrastructure);
+        if (targetResult.IsError)
+            return targetResult.Errors;
 
-        var gitConfig = project.GitRepositoryConfiguration;
+        var target = targetResult.Value;
 
         var secretResult = await keyVaultSecretClient.GetSecretAsync(
             $"git-pat-{project.Id.Value}", cancellationToken);
         if (secretResult.IsError)
             return secretResult.Errors;
 
-        var gitProvider = gitProviderFactory.Create(gitConfig.ProviderType);
+        var gitProvider = gitProviderFactory.Create(target.ProviderType);
         return await gitProvider.ListBranchesAsync(
-            secretResult.Value, gitConfig.Owner, gitConfig.RepositoryName, cancellationToken);
+            secretResult.Value, target.Owner, target.RepositoryName, cancellationToken);
     }
 }

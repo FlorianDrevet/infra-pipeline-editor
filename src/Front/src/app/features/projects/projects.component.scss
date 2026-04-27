@@ -1,3 +1,5 @@
+@use "scss/main" as *;
+
 :host {
   display: block;
 }
@@ -11,30 +13,7 @@
   gap: 1.5rem;
 }
 
-/* ── Header ─────────────────────────────────────────────────── */
-
-.projects-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-
-  &__text {
-    h1 {
-      margin: 0;
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #0d2b4f;
-    }
-
-    p {
-      margin: 0.35rem 0 0;
-      color: #60758e;
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-  }
-}
+/* ── Header (migrated to app-ds-page-header) ────────────────── */
 
 /* ── Toolbar ────────────────────────────────────────────────── */
 
@@ -132,7 +111,7 @@
   }
 
   &--primary {
-    background: linear-gradient(145deg, #0d2f66 0%, #1565c0 100%);
+    background: $ifs-gradient-cta;
     color: #fff;
     box-shadow: 0 8px 24px rgba(13, 47, 102, 0.22);
 
@@ -270,7 +249,7 @@
   color: inherit;
   padding: 1.15rem;
   border-radius: 1.2rem;
-  background: linear-gradient(180deg, #ffffff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.24);
   box-shadow: 0 8px 22px rgba(16, 52, 86, 0.06);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -382,10 +361,6 @@ a.project-card:hover .project-card__fav mat-icon,
 }
 
 @media (max-width: 640px) {
-  .projects-header {
-    flex-direction: column;
-  }
-
   .toolbar {
     flex-direction: column;
 

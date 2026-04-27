@@ -1,9 +1,11 @@
 import {
   EnvironmentDefinitionResponse,
+  ResourceAbbreviationOverrideResponse,
   ResourceNamingTemplateResponse,
   TagRequest,
   TagResponse,
 } from './infra-config.interface';
+import { ProjectRepositoryResponse } from './project-repository.interface';
 
 // ─── Responses ───────────────────────────────────────────────────────────────
 
@@ -20,14 +22,16 @@ export interface ProjectResponse {
   id: string;
   name: string;
   description?: string;
-  repositoryMode: string;
   members: ProjectMemberResponse[];
   environmentDefinitions: EnvironmentDefinitionResponse[];
   defaultNamingTemplate: string | null;
   resourceNamingTemplates: ResourceNamingTemplateResponse[];
-  gitRepositoryConfiguration?: GitConfigResponse | null;
+  resourceAbbreviations: ResourceAbbreviationOverrideResponse[];
   tags: TagResponse[];
   agentPoolName: string | null;
+  usedResourceTypes?: string[];
+  repositories?: ProjectRepositoryResponse[];
+  layoutPreset?: string;
 }
 
 export interface RecentItemResponse {
@@ -46,7 +50,34 @@ export interface ValidateRecentItemsRequest {
 export interface CreateProjectRequest {
   name: string;
   description?: string;
-  repositoryMode?: string;
+  isExisting?: boolean;
+}
+
+export interface EnvironmentSetupRequest {
+  name: string;
+  shortName: string;
+  prefix?: string;
+  suffix?: string;
+  location: string;
+  subscriptionId?: string;
+  order: number;
+  requiresApproval: boolean;
+}
+
+export interface RepositorySetupRequest {
+  alias: string;
+  contentKinds: string[];
+  providerType?: 'GitHub' | 'AzureDevOps';
+  repositoryUrl?: string;
+  defaultBranch?: string;
+}
+
+export interface CreateProjectWithSetupRequest {
+  name: string;
+  description?: string;
+  layoutPreset: 'AllInOne' | 'SplitInfraCode' | 'MultiRepo';
+  environments: EnvironmentSetupRequest[];
+  repositories: RepositorySetupRequest[];
 }
 
 export interface SetProjectTagsRequest {
@@ -94,28 +125,8 @@ export interface UpdateProjectEnvironmentRequest {
   tags?: TagRequest[];
 }
 
-// ─── Git Configuration ──────────────────────────────────────────────────────
+// ─── Git Operations ──────────────────────────────────────────────────────
 
-
-export interface GitConfigResponse {
-  id: string;
-  providerType: string;
-  repositoryUrl: string;
-  defaultBranch: string;
-  basePath?: string | null;
-  pipelineBasePath?: string | null;
-  owner: string;
-  repositoryName: string;
-}
-
-export interface SetGitConfigRequest {
-  providerType: string;
-  repositoryUrl: string;
-  defaultBranch: string;
-  basePath?: string | null;
-  pipelineBasePath?: string | null;
-  personalAccessToken: string;
-}
 
 export interface TestGitConnectionResponse {
   success: boolean;
@@ -129,10 +140,9 @@ export interface GitBranchResponse {
   isProtected: boolean;
 }
 
-// ─── Repository Mode ────────────────────────────────────────────────────────
-
-export interface SetRepositoryModeRequest {
-  repositoryMode: string;
+export interface GitFileResponse {
+  path: string;
+  name: string;
 }
 
 export interface GenerateProjectBicepResponse {
@@ -143,6 +153,23 @@ export interface GenerateProjectBicepResponse {
 export interface GenerateProjectPipelineResponse {
   commonFileUris: Record<string, string>;
   configFileUris: Record<string, Record<string, string>>;
+  infraCommonFileUris: Record<string, string>;
+  appCommonFileUris: Record<string, string>;
+  infraConfigFileUris: Record<string, Record<string, string>>;
+  appConfigFileUris: Record<string, Record<string, string>>;
+}
+
+export interface GenerateProjectBootstrapPipelineResponse {
+  /**
+   * Flat union of all generated bootstrap files keyed by relative path.
+   * In SplitInfraCode layout, paths are prefixed with `infra/` and `app/`.
+   * In AllInOne layout, paths are root-level.
+   */
+  fileUris: Record<string, string>;
+  /** Bootstrap files targeted at the infra-flagged repository (no `infra/` prefix). */
+  infraFileUris: Record<string, string>;
+  /** Bootstrap files targeted at the application-code repository (no `app/` prefix). Empty in AllInOne. */
+  appFileUris: Record<string, string>;
 }
 
 // ─── Project Pipeline Variable Groups ────────────────────────────────────────

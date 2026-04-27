@@ -21,4 +21,6 @@ public record ServiceBusNamespaceResult(
 public record ServiceBusQueueResult(Guid Id, string Name);
 
 /// <summary>Application-layer result for a Service Bus Topic Subscription.</summary>
-public record ServiceBusTopicSubscriptionResult(Guid Id, string TopicName, string SubscriptionName);
+public record ServiceBusTopicSubscriptionResult(Guid Id, string TopicName, string SubscriptionName,
+    bool IsExisting = false
+);

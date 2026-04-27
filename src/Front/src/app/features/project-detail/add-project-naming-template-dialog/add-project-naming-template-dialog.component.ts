@@ -1,13 +1,12 @@
 import { Component, computed, ElementRef, inject, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { DsButtonComponent, DsSelectComponent } from '../../../shared/components/ds';
 import { MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatOptionModule } from '@angular/material/core';
-import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { RESOURCE_TYPE_OPTIONS } from '../../config-detail/enums/resource-type.enum';
@@ -37,11 +36,11 @@ export interface AddProjectNamingTemplateDialogResult {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatOptionModule,
-    MatSelectModule,
     MatTooltipModule,
     ReactiveFormsModule,
     TranslateModule,
+      DsButtonComponent,
+      DsSelectComponent,
   ],
   templateUrl: './add-project-naming-template-dialog.component.html',
   styleUrl: './add-project-naming-template-dialog.component.scss',

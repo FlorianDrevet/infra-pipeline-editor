@@ -23,6 +23,10 @@ public abstract class ContainerAppRequestBase
     [GuidValidation]
     public Guid? ContainerRegistryId { get; init; }
 
+    /// <summary>Optional authentication mode used to pull images from Azure Container Registry.</summary>
+    [EnumValidation(typeof(AcrAuthMode.AcrAuthModeType))]
+    public string? AcrAuthMode { get; init; }
+
     /// <summary>Optional base Docker image name (e.g., "myregistry.azurecr.io/myapp/api") without the tag.</summary>
     public string? DockerImageName { get; init; }
 
@@ -68,6 +72,24 @@ public class ContainerAppEnvironmentConfigEntry
 
     /// <summary>Optional transport method (e.g., "auto", "http", "http2", "tcp").</summary>
     public string? TransportMethod { get; init; }
+
+    /// <summary>Optional HTTP path for the readiness probe (e.g., "/healthz/ready").</summary>
+    public string? ReadinessProbePath { get; init; }
+
+    /// <summary>Optional port for the readiness probe (1-65535).</summary>
+    public int? ReadinessProbePort { get; init; }
+
+    /// <summary>Optional HTTP path for the liveness probe (e.g., "/healthz/live").</summary>
+    public string? LivenessProbePath { get; init; }
+
+    /// <summary>Optional port for the liveness probe (1-65535).</summary>
+    public int? LivenessProbePort { get; init; }
+
+    /// <summary>Optional HTTP path for the startup probe (e.g., "/healthz/startup").</summary>
+    public string? StartupProbePath { get; init; }
+
+    /// <summary>Optional port for the startup probe (1-65535).</summary>
+    public int? StartupProbePort { get; init; }
 }
 
 /// <summary>Response DTO for a typed per-environment Container App configuration.</summary>
@@ -80,4 +102,10 @@ public record ContainerAppEnvironmentConfigResponse(
     bool? IngressEnabled,
     int? IngressTargetPort,
     bool? IngressExternal,
-    string? TransportMethod);
+    string? TransportMethod,
+    string? ReadinessProbePath = null,
+    int? ReadinessProbePort = null,
+    string? LivenessProbePath = null,
+    int? LivenessProbePort = null,
+    string? StartupProbePath = null,
+    int? StartupProbePort = null);

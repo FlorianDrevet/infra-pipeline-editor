@@ -13,4 +13,10 @@ public record ContainerAppEnvironmentConfigData(
     bool? IngressEnabled,
     int? IngressTargetPort,
     bool? IngressExternal,
-    string? TransportMethod);
+    string? TransportMethod,
+    string? ReadinessProbePath = null,
+    int? ReadinessProbePort = null,
+    string? LivenessProbePath = null,
+    int? LivenessProbePort = null,
+    string? StartupProbePath = null,
+    int? StartupProbePort = null);

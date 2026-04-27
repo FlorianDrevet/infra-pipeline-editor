@@ -12,6 +12,7 @@ namespace InfraFlowSculptor.Application.Projects.Queries.GetProject;
 public sealed class GetProjectQueryHandler(
     IProjectAccessService accessService,
     IProjectRepository projectRepository,
+    IResourceGroupRepository resourceGroupRepository,
     IMapper mapper)
     : IQueryHandler<GetProjectQuery, ProjectResult>
 {
@@ -29,6 +30,10 @@ public sealed class GetProjectQueryHandler(
         if (project is null)
             return Errors.Project.NotFoundError(query.Id);
 
-        return mapper.Map<ProjectResult>(project);
+        var usedResourceTypes = await resourceGroupRepository.GetDistinctResourceTypesByProjectIdAsync(
+            query.Id, cancellationToken);
+
+        var result = mapper.Map<ProjectResult>(project);
+        return result with { UsedResourceTypes = usedResourceTypes };
     }
 }

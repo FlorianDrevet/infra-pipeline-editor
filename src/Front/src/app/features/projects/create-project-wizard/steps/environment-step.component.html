@@ -1,0 +1,129 @@
+<div class="env-step">
+  <header class="env-step__header">
+    <h3>{{ 'PROJECT_CREATE.STEP.ENVIRONMENTS.TITLE' | translate }}</h3>
+  </header>
+
+  @if (showSuggestionsConfirm()) {
+    <app-ds-alert severity="warning">
+      <div class="env-step__confirm">
+        <span>{{ 'PROJECT_CREATE.STEP.ENVIRONMENTS.SUGGESTIONS_CONFIRM' | translate }}</span>
+        <div class="env-step__confirm-actions">
+          <app-ds-button variant="ghost" size="sm" (clicked)="cancelSuggestions()">
+            {{ 'PROJECT_CREATE.CANCEL' | translate }}
+          </app-ds-button>
+          <app-ds-button variant="primary" size="sm" (clicked)="confirmSuggestions()">
+            {{ 'PROJECT_CREATE.STEP.ENVIRONMENTS.SUGGESTIONS' | translate }}
+          </app-ds-button>
+        </div>
+      </div>
+    </app-ds-alert>
+  }
+
+  <div class="env-step__list">
+    @for (env of environments(); track $index; let i = $index) {
+      <app-ds-card padding="sm">
+        <div class="env-card">
+          <button
+            type="button"
+            class="env-card__head"
+            (click)="toggleExpanded(i)"
+            [attr.aria-expanded]="expandedIndex() === i"
+          >
+            <span class="env-card__head-main">
+              <span class="env-card__name">{{ env.name || ('PROJECT_CREATE.STEP.ENVIRONMENTS.NAME' | translate) }}</span>
+              @if (env.shortName) {
+                <span class="env-card__short">({{ env.shortName }})</span>
+              }
+            </span>
+            <span class="env-card__head-right">
+              @if (env.location) {
+                <app-ds-chip variant="neutral" size="sm">{{ env.location }}</app-ds-chip>
+              }
+              <mat-icon class="env-card__chevron">{{ expandedIndex() === i ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </span>
+          </button>
+
+          @if (expandedIndex() === i) {
+            <div class="env-card__body">
+              <div class="env-card__row">
+                <app-ds-text-field
+                  [label]="'PROJECT_CREATE.STEP.ENVIRONMENTS.NAME' | translate"
+                  [required]="true"
+                  [ngModel]="env.name"
+                  (ngModelChange)="updateField(i, 'name', $event)"
+                ></app-ds-text-field>
+                <app-ds-text-field
+                  [label]="'PROJECT_CREATE.STEP.ENVIRONMENTS.SHORT_NAME' | translate"
+                  [required]="true"
+                  [ngModel]="env.shortName"
+                  (ngModelChange)="updateField(i, 'shortName', $event)"
+                ></app-ds-text-field>
+              </div>
+
+              <div class="env-card__row">
+                <app-ds-text-field
+                  [label]="'PROJECT_CREATE.STEP.ENVIRONMENTS.PREFIX' | translate"
+                  [ngModel]="env.prefix"
+                  (ngModelChange)="updateField(i, 'prefix', $event)"
+                ></app-ds-text-field>
+                <app-ds-text-field
+                  [label]="'PROJECT_CREATE.STEP.ENVIRONMENTS.SUFFIX' | translate"
+                  [ngModel]="env.suffix"
+                  (ngModelChange)="updateField(i, 'suffix', $event)"
+                ></app-ds-text-field>
+              </div>
+
+              <div class="env-card__row">
+                <app-ds-select
+                  [label]="'PROJECT_CREATE.STEP.ENVIRONMENTS.LOCATION' | translate"
+                  [options]="locationOptions"
+                  [required]="true"
+                  [searchable]="true"
+                  [ngModel]="env.location"
+                  (ngModelChange)="updateField(i, 'location', $event)"
+                ></app-ds-select>
+              </div>
+
+              <div class="env-card__row">
+                <app-ds-text-field
+                  [label]="'PROJECT_CREATE.STEP.ENVIRONMENTS.SUBSCRIPTION_ID' | translate"
+                  [hint]="'PROJECT_CREATE.STEP.ENVIRONMENTS.SUBSCRIPTION_HINT' | translate"
+                  [ngModel]="env.subscriptionId"
+                  (ngModelChange)="updateField(i, 'subscriptionId', $event)"
+                ></app-ds-text-field>
+              </div>
+
+              <div class="env-card__row env-card__row--inline">
+                <app-ds-toggle
+                  [label]="'PROJECT_CREATE.STEP.ENVIRONMENTS.REQUIRES_APPROVAL' | translate"
+                  [ngModel]="env.requiresApproval"
+                  (ngModelChange)="updateField(i, 'requiresApproval', $event)"
+                ></app-ds-toggle>
+
+                @if (canRemove()) {
+                  <app-ds-icon-button
+                    icon="delete"
+                    variant="danger"
+                    size="sm"
+                    [ariaLabel]="'PROJECT_CREATE.STEP.ENVIRONMENTS.REMOVE' | translate"
+                    [tooltip]="'PROJECT_CREATE.STEP.ENVIRONMENTS.REMOVE' | translate"
+                    (clicked)="removeEnvironment(i)"
+                  ></app-ds-icon-button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </app-ds-card>
+    }
+  </div>
+
+  <div class="env-step__actions">
+    <app-ds-button variant="secondary" icon="add" (clicked)="addEnvironment()">
+      {{ 'PROJECT_CREATE.STEP.ENVIRONMENTS.ADD' | translate }}
+    </app-ds-button>
+    <app-ds-button variant="ghost" icon="auto_fix_high" (clicked)="requestSuggestions()">
+      {{ 'PROJECT_CREATE.STEP.ENVIRONMENTS.SUGGESTIONS' | translate }}
+    </app-ds-button>
+  </div>
+</div>

@@ -1,46 +1,27 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
-using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Identity.Web;
 
 namespace InfraFlowSculptor.Infrastructure.Services;
 
-public class CurrentUser:  ICurrentUser
+/// <summary>
+/// Resolves the current authenticated user's identifier from the HTTP context.
+/// Relies on <c>UserProvisioningMiddleware</c> having already ensured the user exists in the database.
+/// </summary>
+public sealed class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUser
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IUserRepository _userRepository;
+    /// <summary>Key used by the provisioning middleware to store the user identifier.</summary>
+    private const string UserIdItemKey = "ProvisionedUserId";
 
-    public CurrentUser(
-        IHttpContextAccessor httpContextAccessor,
-        IUserRepository userRepository)
+    /// <inheritdoc />
+    public Task<UserId> GetUserIdAsync(CancellationToken cancellationToken = default)
     {
-        _httpContextAccessor = httpContextAccessor;
-        _userRepository = userRepository;
-    }
+        var httpContext = httpContextAccessor.HttpContext
+                         ?? throw new UnauthorizedAccessException("No active HTTP context.");
 
-    public async Task<UserId> GetUserIdAsync(CancellationToken cancellationToken = default)
-    {
-        var principal = _httpContextAccessor.HttpContext?.User
-                        ?? throw new UnauthorizedAccessException();
+        if (httpContext.Items[UserIdItemKey] is UserId userId)
+            return Task.FromResult(userId);
 
-        var entraId = principal.FindFirst(ClaimConstants.ObjectId)?.Value
-                      ?? throw new UnauthorizedAccessException("Missing oid claim");
-        
-        var nameClaim = principal.FindFirst(ClaimConstants.Name)?.Value
-                        ?? throw new UnauthorizedAccessException("Missing name claim");
-        
-        var firstName = string.Empty;
-        var lastName = nameClaim;
-        
-        if (nameClaim.Contains(' '))
-        {
-            firstName = nameClaim.Split(' ')[0];
-            lastName = nameClaim.Split(' ')[1];
-        }
-
-        var user = await _userRepository.GetOrCreateByEntraIdAsync(entraId, firstName, lastName, cancellationToken);
-
-        return user.Id;
+        throw new UnauthorizedAccessException("User was not provisioned. Ensure authentication middleware is configured.");
     }
 }

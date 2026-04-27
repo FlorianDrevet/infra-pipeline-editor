@@ -1,3 +1,4 @@
+using ErrorOr;
 using InfraFlowSculptor.Domain.Common.BaseModels.Entites;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Models;
@@ -17,6 +18,13 @@ namespace InfraFlowSculptor.Domain.Common.BaseModels;
 /// </summary>
 public class AzureResource : AggregateRoot<AzureResourceId>
 {
+    /// <summary>
+    /// Gets the concrete resource type name (e.g. "KeyVault", "WebApp").
+    /// Persisted as a discriminator column to enable lightweight queries without TPT resolution.
+    /// Automatically set by <see cref="Infrastructure"/> on entity creation.
+    /// </summary>
+    public string ResourceType { get; private set; } = string.Empty;
+
     /// <summary>Gets the parent resource group identifier.</summary>
     public required ResourceGroupId ResourceGroupId { get; set; }
 
@@ -34,7 +42,14 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     /// Set this at resource creation time when the user explicitly provides a full name.
     /// </summary>
     public string? CustomNameOverride { get; set; }
-    
+
+    /// <summary>
+    /// Gets whether this resource already exists in Azure and is not managed (deployed) by this project.
+    /// When <c>true</c>, the resource generates a Bicep <c>existing</c> declaration instead of a deployment module.
+    /// Immutable after creation.
+    /// </summary>
+    public bool IsExisting { get; protected set; }
+
     private readonly List<AzureResource> _dependsOn = [];
 
     /// <summary>Gets the resources this resource depends on.</summary>
@@ -64,6 +79,16 @@ public class AzureResource : AggregateRoot<AzureResourceId>
     private readonly List<AppSetting> _appSettings = [];
     /// <summary>Gets the application settings (environment variables) configured on this resource.</summary>
     public IReadOnlyCollection<AppSetting> AppSettings => _appSettings.AsReadOnly();
+
+    private readonly List<SecureParameterMapping> _secureParameterMappings = [];
+
+    /// <summary>Gets the secure parameter mappings for this resource.</summary>
+    public IReadOnlyCollection<SecureParameterMapping> SecureParameterMappings => _secureParameterMappings.AsReadOnly();
+
+    private readonly List<CustomDomain> _customDomains = [];
+
+    /// <summary>Gets the custom domain bindings configured on this resource.</summary>
+    public IReadOnlyCollection<CustomDomain> CustomDomains => _customDomains.AsReadOnly();
 
     /// <summary>Gets the optional User-Assigned Identity explicitly attached to this resource.</summary>
     public AzureResourceId? AssignedUserAssignedIdentityId { get; private set; }
@@ -280,6 +305,83 @@ public class AzureResource : AggregateRoot<AzureResourceId>
 
         _parameterUsages.Add(
             new ResourceParameterUsage(Id, parameter.Id, usage));
+    }
+
+    /// <summary>
+    /// Adds a custom domain binding to this resource for a specific environment.
+    /// Duplicates (same environment + domain name) are rejected.
+    /// </summary>
+    /// <param name="environmentName">The deployment environment name.</param>
+    /// <param name="domainName">The fully qualified domain name.</param>
+    /// <param name="bindingType">The SSL binding type (default: "SniEnabled").</param>
+    /// <returns>The created <see cref="CustomDomain"/>, or an error if duplicate.</returns>
+    public ErrorOr<CustomDomain> AddCustomDomain(
+        string environmentName,
+        string domainName,
+        string bindingType = "SniEnabled")
+    {
+        if (IsExisting)
+            return Errors.Errors.CustomDomain.NotSupportedForExistingResource();
+
+        var normalizedDomain = domainName.ToLowerInvariant().Trim();
+
+        if (_customDomains.Any(cd =>
+                cd.EnvironmentName == environmentName &&
+                cd.DomainName == normalizedDomain))
+            return Errors.Errors.CustomDomain.DuplicateDomain(environmentName, normalizedDomain);
+
+        var customDomain = CustomDomain.Create(Id, environmentName, normalizedDomain, bindingType);
+        _customDomains.Add(customDomain);
+        return customDomain;
+    }
+
+    /// <summary>Removes a custom domain binding by its identifier. No-op if not found.</summary>
+    /// <param name="customDomainId">Identifier of the custom domain to remove.</param>
+    public void RemoveCustomDomain(CustomDomainId customDomainId)
+    {
+        var domain = _customDomains.FirstOrDefault(cd => cd.Id == customDomainId);
+        if (domain is not null)
+            _customDomains.Remove(domain);
+    }
+
+    /// <summary>
+    /// Sets or clears a mapping for a secure Bicep parameter to a pipeline variable group.
+    /// When <paramref name="variableGroupId"/> is <c>null</c>, the existing mapping is removed.
+    /// </summary>
+    /// <param name="secureParameterName">Name of the secure Bicep parameter.</param>
+    /// <param name="variableGroupId">Pipeline variable group identifier, or <c>null</c> to clear.</param>
+    /// <param name="pipelineVariableName">Variable name within the group, or <c>null</c> to clear.</param>
+    /// <returns>The created/updated mapping, or an error.</returns>
+    public ErrorOr<SecureParameterMapping> SetSecureParameterMapping(
+        string secureParameterName,
+        ProjectPipelineVariableGroupId? variableGroupId,
+        string? pipelineVariableName)
+    {
+        if ((variableGroupId is not null && string.IsNullOrWhiteSpace(pipelineVariableName)) ||
+            (variableGroupId is null && !string.IsNullOrWhiteSpace(pipelineVariableName)))
+            return Errors.Errors.SecureParameterMapping.InconsistentMapping();
+
+        var existing = _secureParameterMappings.FirstOrDefault(
+            m => m.SecureParameterName == secureParameterName);
+
+        if (existing is not null)
+        {
+            if (variableGroupId is null)
+            {
+                _secureParameterMappings.Remove(existing);
+                return existing;
+            }
+
+            existing.Update(variableGroupId, pipelineVariableName!);
+            return existing;
+        }
+
+        if (variableGroupId is null)
+            return Errors.Errors.SecureParameterMapping.NotFound(secureParameterName);
+
+        var mapping = SecureParameterMapping.Create(Id, secureParameterName, variableGroupId, pipelineVariableName!);
+        _secureParameterMappings.Add(mapping);
+        return mapping;
     }
 
     /// <summary>EF Core constructor.</summary>

@@ -46,4 +46,28 @@ public static partial class NamingTemplateValidator
         var staticText = PlaceholderRegex.Replace(template, string.Empty);
         return !InvalidStaticCharRegex.IsMatch(staticText);
     }
+
+    /// <summary>
+    /// Returns <c>true</c> when the static characters of <paramref name="template"/>
+    /// comply with the naming rules for the specified <paramref name="resourceType"/>.
+    /// Falls back to the generic <see cref="HasValidStaticChars"/> check when no constraint is registered.
+    /// </summary>
+    public static bool HasValidStaticCharsForResourceType(string template, string resourceType)
+    {
+        var constraint = AzureNamingConstraints.GetConstraint(resourceType);
+        if (constraint is null)
+            return HasValidStaticChars(template);
+
+        var staticText = PlaceholderRegex.Replace(template, string.Empty);
+        return !constraint.InvalidStaticCharsRegex.IsMatch(staticText);
+    }
+
+    /// <summary>
+    /// Returns a human-readable description of the allowed characters for the given resource type,
+    /// or <c>null</c> if no constraint is registered.
+    /// </summary>
+    public static string? GetAllowedCharsDescription(string resourceType)
+    {
+        return AzureNamingConstraints.GetConstraint(resourceType)?.AllowedCharsDescription;
+    }
 }

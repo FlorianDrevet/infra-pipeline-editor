@@ -39,6 +39,10 @@ public sealed class SqlDatabase : AzureResource
     {
         Name = name;
         Location = location;
+
+        if (IsExisting)
+            return;
+
         SqlServerId = sqlServerId;
         Collation = collation;
     }
@@ -47,12 +51,15 @@ public sealed class SqlDatabase : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         SqlDatabaseSku? sku,
         int? maxSizeGb,
         bool? zoneRedundant)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -70,9 +77,13 @@ public sealed class SqlDatabase : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, SqlDatabaseSku? Sku, int? MaxSizeGb, bool? ZoneRedundant)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var (envName, sku, maxSizeGb, zoneRedundant) in settings)
         {
@@ -82,13 +93,15 @@ public sealed class SqlDatabase : AzureResource
     }
 
     /// <summary>Creates a new SQL Database with a generated identifier.</summary>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     public static SqlDatabase Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
         AzureResourceId sqlServerId,
         string collation,
-        IReadOnlyList<(string EnvironmentName, SqlDatabaseSku? Sku, int? MaxSizeGb, bool? ZoneRedundant)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, SqlDatabaseSku? Sku, int? MaxSizeGb, bool? ZoneRedundant)>? environmentSettings = null,
+        bool isExisting = false)
     {
         var database = new SqlDatabase
         {
@@ -96,11 +109,12 @@ public sealed class SqlDatabase : AzureResource
             ResourceGroupId = resourceGroupId,
             Name = name,
             Location = location,
+            IsExisting = isExisting,
             SqlServerId = sqlServerId,
             Collation = collation
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             database.SetAllEnvironmentSettings(environmentSettings);
 
         return database;

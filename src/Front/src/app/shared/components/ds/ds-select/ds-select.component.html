@@ -1,0 +1,104 @@
+<div
+  class="ds-field"
+  [class.ds-field--invalid]="!!error()"
+  [class.ds-field--disabled]="disabledState()"
+  [class.ds-field--focused]="isOpen()"
+>
+  @if (label()) {
+    <label class="ds-field__label">
+      {{ label() }}
+      @if (required()) {
+        <span class="ds-field__required">*</span>
+      }
+    </label>
+  }
+  <button
+    #trigger
+    cdkOverlayOrigin
+    type="button"
+    class="ds-field__control ds-select__trigger"
+    [disabled]="disabledState()"
+    (click)="toggleOpen()"
+  >
+    @if (selectedOption()?.icon; as icon) {
+      <mat-icon class="ds-field__icon ds-field__icon--prefix">{{ icon }}</mat-icon>
+    }
+    <span class="ds-select__value" [class.ds-select__value--placeholder]="!selectedOption()">
+      {{ selectedOption()?.label ?? placeholder() }}
+    </span>
+    @if (clearable() && selectedOption() && !disabledState()) {
+      <button
+        type="button"
+        class="ds-field__clear"
+        (click)="$event.stopPropagation(); clear()"
+        tabindex="-1"
+        aria-label="Clear"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+    <mat-icon class="ds-select__chevron" [class.ds-select__chevron--open]="isOpen()"
+      >expand_more</mat-icon
+    >
+  </button>
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="trigger"
+    [cdkConnectedOverlayOpen]="isOpen()"
+    [cdkConnectedOverlayPositions]="overlayPositions"
+    [cdkConnectedOverlayWidth]="overlayWidth()"
+    [cdkConnectedOverlayViewportMargin]="12"
+    [cdkConnectedOverlayPush]="true"
+    [cdkConnectedOverlayHasBackdrop]="true"
+    cdkConnectedOverlayBackdropClass="ds-select__backdrop"
+    (backdropClick)="close()"
+    (detach)="close()"
+  >
+    <div class="ds-select__panel" role="listbox">
+      @if (searchable()) {
+        <div class="ds-select__search">
+          <mat-icon>search</mat-icon>
+          <input
+            type="text"
+            [value]="searchTerm()"
+            (input)="onSearch($event)"
+            (click)="$event.stopPropagation()"
+            placeholder="Search…"
+          />
+        </div>
+      }
+      <div class="ds-select__options">
+        @for (opt of filteredOptions(); track opt.value) {
+          <button
+            type="button"
+            class="ds-select__option"
+            [class.ds-select__option--selected]="opt.value === value()"
+            [class.ds-select__option--disabled]="opt.disabled"
+            [disabled]="opt.disabled"
+            (click)="select(opt)"
+          >
+            @if (opt.icon) {
+              <mat-icon>{{ opt.icon }}</mat-icon>
+            }
+            <div class="ds-select__option-text">
+              <span>{{ opt.label }}</span>
+              @if (opt.description) {
+                <small>{{ opt.description }}</small>
+              }
+            </div>
+            @if (opt.value === value()) {
+              <mat-icon class="ds-select__check">check</mat-icon>
+            }
+          </button>
+        } @empty {
+          <div class="ds-select__empty">No options</div>
+        }
+      </div>
+    </div>
+  </ng-template>
+  @if (error()) {
+    <span class="ds-field__message ds-field__message--error">{{ error() }}</span>
+  } @else if (hint()) {
+    <span class="ds-field__message ds-field__message--hint">{{ hint() }}</span>
+  }
+</div>

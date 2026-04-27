@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Domain.Common.BaseModels;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using InfraFlowSculptor.Infrastructure.Persistence.Configurations.Converters;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,15 @@ public sealed class ContainerAppConfiguration : IEntityTypeConfiguration<Contain
 
         builder.Property(x => x.ContainerRegistryId)
             .HasConversion(new IdValueConverter<AzureResourceId>())
+            .IsRequired(false);
+
+        builder.Property(x => x.AcrAuthMode)
+            .HasConversion(
+                v => v == null ? null : v.Value.ToString(),
+                v => string.IsNullOrWhiteSpace(v)
+                    ? null
+                    : new AcrAuthMode(
+                        Enum.Parse<AcrAuthMode.AcrAuthModeType>(v)))
             .IsRequired(false);
 
         builder.Property(x => x.DockerImageName)

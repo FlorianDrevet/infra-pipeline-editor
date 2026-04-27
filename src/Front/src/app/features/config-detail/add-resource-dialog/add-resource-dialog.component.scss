@@ -150,6 +150,11 @@ mat-slide-toggle {
   margin-bottom: 0.5rem;
 }
 
+.form-separator {
+  margin: 0.75rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
 .dialog-error {
   margin: 0.5rem 0 0;
   padding: 0.6rem 0.8rem;
@@ -366,5 +371,212 @@ mat-slide-toggle {
 
   &:hover {
     background: rgba(21, 101, 192, 0.08);
+  }
+}
+
+// ── Name Availability ──
+.name-availability-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+
+  &--checking {
+    background: rgba(13, 101, 192, 0.05);
+    border: 1px solid rgba(13, 101, 192, 0.1);
+    color: #0d65c0;
+  }
+}
+
+.name-availability-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.name-availability-env {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  background: #fff;
+  border: 1px solid rgba(16, 52, 84, 0.08);
+
+  &--available {
+    border-color: rgba(46, 125, 50, 0.2);
+    background: rgba(46, 125, 50, 0.03);
+  }
+
+  &--unavailable {
+    border-color: rgba(198, 40, 40, 0.25);
+    background: rgba(198, 40, 40, 0.03);
+  }
+
+  &--invalid {
+    border-color: rgba(245, 166, 35, 0.3);
+    background: rgba(245, 166, 35, 0.04);
+  }
+
+  &__icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+
+    .name-availability-env--available & { color: #2e7d32; }
+    .name-availability-env--unavailable & { color: #c62828; }
+    .name-availability-env--invalid & { color: #b8770a; }
+    .name-availability-env--unknown & { color: rgba(16, 52, 84, 0.5); }
+  }
+
+  &__name {
+    font-weight: 600;
+    color: rgba(16, 52, 84, 0.85);
+  }
+
+  &__chip {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.05rem 0.35rem;
+    border-radius: 999px;
+    background: rgba(16, 52, 84, 0.08);
+    color: rgba(16, 52, 84, 0.65);
+    font-weight: 600;
+  }
+
+  &__generated {
+    background: rgba(16, 52, 84, 0.05);
+    border-radius: 4px;
+    padding: 0.05rem 0.35rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.72rem;
+    color: rgba(16, 52, 84, 0.85);
+  }
+
+  &__message {
+    font-size: 0.72rem;
+    color: rgba(16, 52, 84, 0.6);
+    font-style: italic;
+  }
+}
+
+.name-availability-override {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+
+  &__text {
+    font-size: 0.76rem;
+    color: #92400e;
+    flex: 1;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    background: rgba(245, 158, 11, 0.08);
+    color: #b45309;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+
+    &:hover {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+  }
+
+  &__icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+// ── Health Probes Section ──
+.health-probes-section {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  width: 100%;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  &__icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #1565c0;
+  }
+
+  &__title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #103454;
+  }
+
+  &__desc {
+    font-size: 0.78rem;
+    color: #78909c;
+    margin: 0 0 0.75rem;
+    line-height: 1.4;
+  }
+}
+
+.health-probes-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  width: 100%;
+  align-items: stretch;
+}
+
+.health-probes-cards > * {
+  min-width: 0;
+  height: 100%;
+}
+
+.probe-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.probe-field {
+  width: 100%;
+}
+
+@media (max-width: 1080px) {
+  .health-probes-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .health-probes-cards,
+  .probe-fields {
+    grid-template-columns: 1fr;
   }
 }

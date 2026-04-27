@@ -53,5 +53,8 @@ public record StorageAccountResponse(
     IReadOnlyList<StorageQueueResponse> Queues,
     IReadOnlyList<StorageTableResponse> Tables,
     IReadOnlyList<StorageAccountEnvironmentConfigResponse> EnvironmentSettings,
-    IReadOnlyList<BlobLifecycleRuleResponse> LifecycleRules
+    IReadOnlyList<BlobLifecycleRuleResponse> LifecycleRules,
+
+    bool IsExisting = false
+
 );

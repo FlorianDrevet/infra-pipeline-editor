@@ -1,0 +1,423 @@
+<div class="ds-showcase">
+  <app-ds-page-header
+    title="Design System"
+    subtitle="InfraFlowSculptor visual language"
+    icon="palette"
+    variant="gradient"
+  >
+    <app-ds-button ds-page-actions variant="secondary" size="sm" icon="open_in_new">Docs</app-ds-button>
+  </app-ds-page-header>
+
+  <!-- Colors -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="format_color_fill" title="Colors" subtitle="Brand, ink, surface and semantic palettes" />
+
+    <h4 class="ds-showcase__subtitle">Brand</h4>
+    <div class="ds-swatch-grid">
+      @for (s of brandSwatches; track s.name) {
+        <div class="ds-swatch">
+          <div class="ds-swatch__chip" [style.background]="s.value"></div>
+          <div class="ds-swatch__meta">
+            <strong>{{ s.name }}</strong>
+            <code>{{ s.value }}</code>
+          </div>
+        </div>
+      }
+    </div>
+
+    <h4 class="ds-showcase__subtitle">Ink (text)</h4>
+    <div class="ds-swatch-grid">
+      @for (s of inkSwatches; track s.name) {
+        <div class="ds-swatch">
+          <div class="ds-swatch__chip" [style.background]="s.value"></div>
+          <div class="ds-swatch__meta">
+            <strong>{{ s.name }}</strong>
+            <code>{{ s.value }}</code>
+          </div>
+        </div>
+      }
+    </div>
+
+    <h4 class="ds-showcase__subtitle">Surface</h4>
+    <div class="ds-swatch-grid">
+      @for (s of surfaceSwatches; track s.name) {
+        <div class="ds-swatch">
+          <div class="ds-swatch__chip ds-swatch__chip--bordered" [style.background]="s.value"></div>
+          <div class="ds-swatch__meta">
+            <strong>{{ s.name }}</strong>
+            <code>{{ s.value }}</code>
+          </div>
+        </div>
+      }
+    </div>
+
+    <h4 class="ds-showcase__subtitle">Semantic</h4>
+    <div class="ds-swatch-grid">
+      @for (s of semanticSwatches; track s.name) {
+        <div class="ds-swatch">
+          <div class="ds-swatch__chip" [style.background]="s.value"></div>
+          <div class="ds-swatch__meta">
+            <strong>{{ s.name }}</strong>
+            <code>{{ s.value }}</code>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Gradients -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="gradient" title="Gradients" subtitle="Signature backgrounds" />
+    <div class="ds-gradient-grid">
+      @for (g of gradients; track g.name) {
+        <div class="ds-gradient-card">
+          <div class="ds-gradient-card__preview" [style.background]="g.css"></div>
+          <div class="ds-gradient-card__meta">
+            <strong>{{ g.name }}</strong>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Shadows -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="layers" title="Shadows" subtitle="Elevation scale" />
+    <div class="ds-shadow-grid">
+      @for (s of shadows; track s.name) {
+        <div class="ds-shadow-card" [style.boxShadow]="s.css">
+          <strong>{{ s.name }}</strong>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Radius -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="rounded_corner" title="Radius" subtitle="Corner rounding scale" />
+    <div class="ds-radius-grid">
+      @for (r of radii; track r.name) {
+        <div class="ds-radius-card">
+          <div class="ds-radius-card__chip" [style.borderRadius]="r.value"></div>
+          <strong>{{ r.name }}</strong>
+          <code>{{ r.value }}</code>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Typography -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="text_fields" title="Typography" subtitle="Heading and body scale" />
+    <app-ds-card variant="outlined" padding="lg">
+      <h1 class="ifs-h1">Heading H1 — The quick brown fox</h1>
+      <h2 class="ifs-h2">Heading H2 — The quick brown fox</h2>
+      <h3 class="ifs-h3">Heading H3 — The quick brown fox</h3>
+      <h4 class="ifs-h4">Heading H4 — The quick brown fox</h4>
+      <p class="ifs-body">Body — Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      <p class="ifs-body-sm">Body small — Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      <p class="ifs-caption">Caption — LOREM IPSUM DOLOR</p>
+    </app-ds-card>
+  </section>
+
+  <!-- Buttons -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="smart_button" title="Buttons" subtitle="Variants × sizes × states" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div class="ds-row">
+        <app-ds-button variant="primary" size="sm">Primary sm</app-ds-button>
+        <app-ds-button variant="primary" size="md">Primary md</app-ds-button>
+        <app-ds-button variant="primary" size="lg">Primary lg</app-ds-button>
+      </div>
+      <div class="ds-row">
+        <app-ds-button variant="secondary" size="sm">Secondary sm</app-ds-button>
+        <app-ds-button variant="secondary" size="md">Secondary md</app-ds-button>
+        <app-ds-button variant="secondary" size="lg">Secondary lg</app-ds-button>
+      </div>
+      <div class="ds-row">
+        <app-ds-button variant="ghost" size="sm">Ghost sm</app-ds-button>
+        <app-ds-button variant="ghost" size="md">Ghost md</app-ds-button>
+        <app-ds-button variant="ghost" size="lg">Ghost lg</app-ds-button>
+      </div>
+      <div class="ds-row">
+        <app-ds-button variant="danger" size="sm">Danger sm</app-ds-button>
+        <app-ds-button variant="danger" size="md">Danger md</app-ds-button>
+        <app-ds-button variant="danger" size="lg">Danger lg</app-ds-button>
+      </div>
+      <div class="ds-row">
+        <app-ds-button variant="primary" icon="rocket_launch">With icon leading</app-ds-button>
+        <app-ds-button variant="secondary" icon="arrow_forward" iconPosition="trailing">Trailing icon</app-ds-button>
+        <app-ds-button variant="primary" [disabled]="true">Disabled</app-ds-button>
+        <app-ds-button variant="primary" [loading]="true">Loading</app-ds-button>
+      </div>
+      <div class="ds-row">
+        <app-ds-button variant="primary" [fullWidth]="true">Full width primary</app-ds-button>
+      </div>
+    </app-ds-card>
+  </section>
+
+  <!-- Cards -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="dashboard" title="Cards" subtitle="Variants and accents" />
+    <div class="ds-card-grid">
+      <app-ds-card variant="elevated">
+        <div ds-card-header><strong>Elevated</strong></div>
+        Card body content with elevated shadow.
+        <div ds-card-footer>
+          <app-ds-button variant="ghost" size="sm">Cancel</app-ds-button>
+          <app-ds-button variant="primary" size="sm">Save</app-ds-button>
+        </div>
+      </app-ds-card>
+
+      <app-ds-card variant="outlined">
+        <div ds-card-header><strong>Outlined</strong></div>
+        Default surface, soft border, subtle shadow.
+      </app-ds-card>
+
+      <app-ds-card variant="glass">
+        <div ds-card-header><strong>Glass</strong></div>
+        Frosted background with blur.
+      </app-ds-card>
+
+      <app-ds-card variant="outlined" accent="primary">
+        <strong>Accent primary</strong>
+        <p>Left border in brand blue.</p>
+      </app-ds-card>
+
+      <app-ds-card variant="outlined" accent="success">
+        <strong>Accent success</strong>
+        <p>Left border in success green.</p>
+      </app-ds-card>
+
+      <app-ds-card variant="outlined" accent="warning">
+        <strong>Accent warning</strong>
+        <p>Left border in warning amber.</p>
+      </app-ds-card>
+
+      <app-ds-card variant="outlined" accent="error">
+        <strong>Accent error</strong>
+        <p>Left border in error red.</p>
+      </app-ds-card>
+
+      <app-ds-card variant="elevated" [interactive]="true">
+        <strong>Interactive</strong>
+        <p>Hover to lift.</p>
+      </app-ds-card>
+    </div>
+  </section>
+
+  <!-- Alerts -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="notifications" title="Alerts" subtitle="Inline severity messages" />
+    <div class="ds-stack">
+      <app-ds-alert severity="info">This is an informational alert.</app-ds-alert>
+      <app-ds-alert severity="success">Operation completed successfully.</app-ds-alert>
+      <app-ds-alert severity="warning">Some configuration needs attention.</app-ds-alert>
+      <app-ds-alert severity="error">An error occurred while processing.</app-ds-alert>
+      <app-ds-alert severity="info" title="With title">Optional title above the message body.</app-ds-alert>
+      <app-ds-alert severity="success" title="Saved" [dismissible]="true">Click the close button to dismiss.</app-ds-alert>
+    </div>
+  </section>
+
+  <!-- Section Headers -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="title" title="Section Headers" subtitle="Three levels, optional icon and action slot" />
+    <app-ds-card variant="outlined" padding="lg">
+      <app-ds-section-header [level]="1" title="Level 1 header" subtitle="Largest section heading" />
+      <app-ds-section-header [level]="2" icon="settings" title="Level 2 with icon" subtitle="Default level" />
+      <app-ds-section-header [level]="3" title="Level 3 header (compact)" />
+      <app-ds-section-header icon="bolt" title="With action" subtitle="Right-aligned action slot">
+        <app-ds-button ds-section-action variant="primary" size="sm" icon="add">Add</app-ds-button>
+      </app-ds-section-header>
+    </app-ds-card>
+  </section>
+
+  <!-- Page Headers -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="view_headline" title="Page Headers" subtitle="Hero banner for top of pages" />
+
+    <app-ds-page-header
+      title="Gradient variant"
+      subtitle="Signature brand banner"
+      icon="cloud"
+      variant="gradient"
+    >
+      <app-ds-button ds-page-actions variant="secondary" size="sm" icon="settings">Settings</app-ds-button>
+      <app-ds-button ds-page-actions variant="primary" size="sm" icon="add">New</app-ds-button>
+    </app-ds-page-header>
+
+    <app-ds-page-header
+      title="Plain variant"
+      subtitle="Subtle alternative for nested pages"
+      icon="folder"
+      variant="plain"
+    >
+      <app-ds-button ds-page-actions variant="primary" size="sm">Action</app-ds-button>
+    </app-ds-page-header>
+  </section>
+
+  <!-- Form Inputs -->
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="edit_note" title="Form Inputs" subtitle="Native inputs with brand identity" />
+    <app-ds-card variant="outlined" padding="lg">
+      <form [formGroup]="showcaseForm" class="ds-form-grid">
+        <app-ds-text-field
+          formControlName="text"
+          label="Text field"
+          placeholder="Type something..."
+          hint="A standard text input"
+        />
+        <app-ds-text-field
+          formControlName="email"
+          label="Email with prefix icon"
+          type="email"
+          placeholder="you@example.com"
+          prefixIcon="mail"
+          [required]="true"
+          autocomplete="email"
+        />
+        <app-ds-text-field
+          formControlName="password"
+          label="Password"
+          type="password"
+          placeholder="••••••••"
+          prefixIcon="lock"
+          suffixIcon="visibility_off"
+          autocomplete="current-password"
+        />
+        <app-ds-text-field
+          label="With error state"
+          placeholder="Try invalid value"
+          error="This field is required"
+        />
+        <app-ds-text-field
+          label="Disabled"
+          placeholder="Cannot edit"
+          [disabled]="true"
+        />
+        <app-ds-text-field
+          label="Clearable"
+          placeholder="Type to see clear button"
+          [clearable]="true"
+        />
+      </form>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="notes" title="Textarea" subtitle="Multi-line input" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div [formGroup]="showcaseForm">
+        <app-ds-textarea
+          formControlName="bio"
+          label="Bio"
+          placeholder="Tell us about yourself..."
+          hint="Brief description"
+          [rows]="4"
+          [maxLength]="280"
+        />
+      </div>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="arrow_drop_down_circle" title="Select" subtitle="Custom dropdown with options, icons, search" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div [formGroup]="showcaseForm" class="ds-form-grid">
+        <app-ds-select
+          formControlName="role"
+          label="Role"
+          placeholder="Select a role"
+          [options]="roleOptions"
+          hint="Determines permission scope"
+        />
+        <app-ds-select
+          label="Searchable select"
+          placeholder="Type to filter"
+          [options]="roleOptions"
+          [searchable]="true"
+          [clearable]="true"
+        />
+      </div>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="toggle_on" title="Toggle" subtitle="Boolean switch with brand gradient" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div [formGroup]="showcaseForm" class="ds-stack">
+        <app-ds-toggle formControlName="notify" label="Email notifications" description="Receive product updates via email" />
+        <app-ds-toggle label="Disabled (off)" [disabled]="true" />
+        <app-ds-toggle label="Label before" labelPosition="before" />
+      </div>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="check_box" title="Checkbox" subtitle="Square checkbox, brand blue checked" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div [formGroup]="showcaseForm" class="ds-stack">
+        <app-ds-checkbox formControlName="accept" label="I accept the terms and conditions" description="Required to continue" />
+        <app-ds-checkbox label="Indeterminate" [indeterminate]="true" />
+        <app-ds-checkbox label="Disabled" [disabled]="true" />
+      </div>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="radio_button_checked" title="Radio Group" subtitle="Single selection, vertical or horizontal" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div [formGroup]="showcaseForm" class="ds-stack">
+        <app-ds-radio-group
+          formControlName="plan"
+          name="plan-vertical"
+          label="Choose your plan (vertical)"
+          [options]="planOptions"
+        />
+        <app-ds-radio-group
+          name="plan-horizontal"
+          label="Inline layout"
+          direction="horizontal"
+          [options]="planOptions"
+        />
+      </div>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="label" title="Chips" subtitle="Status badges, tags, removable chips" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div class="ds-row">
+        <app-ds-chip variant="neutral">Neutral</app-ds-chip>
+        <app-ds-chip variant="primary">Primary</app-ds-chip>
+        <app-ds-chip variant="success">Success</app-ds-chip>
+        <app-ds-chip variant="warning">Warning</app-ds-chip>
+        <app-ds-chip variant="error">Error</app-ds-chip>
+        <app-ds-chip variant="cyan">Cyan</app-ds-chip>
+      </div>
+      <div class="ds-row">
+        <app-ds-chip variant="primary" icon="bolt">With icon</app-ds-chip>
+        <app-ds-chip variant="success" icon="check_circle">Synced</app-ds-chip>
+        <app-ds-chip variant="warning" icon="warning">Attention</app-ds-chip>
+        <app-ds-chip variant="primary" [removable]="true">Removable tag</app-ds-chip>
+        <app-ds-chip variant="neutral" size="sm">Small</app-ds-chip>
+      </div>
+    </app-ds-card>
+  </section>
+
+  <section class="ds-showcase__section">
+    <app-ds-section-header icon="touch_app" title="Icon Buttons" subtitle="Compact circular actions" />
+    <app-ds-card variant="outlined" padding="lg">
+      <div class="ds-row">
+        <app-ds-icon-button icon="favorite" variant="ghost" size="sm" ariaLabel="Like (sm)" />
+        <app-ds-icon-button icon="favorite" variant="ghost" size="md" ariaLabel="Like (md)" />
+        <app-ds-icon-button icon="favorite" variant="ghost" size="lg" ariaLabel="Like (lg)" />
+        <app-ds-icon-button icon="settings" variant="subtle" ariaLabel="Settings" tooltip="Settings" />
+        <app-ds-icon-button icon="add" variant="primary" ariaLabel="Add" />
+        <app-ds-icon-button icon="delete" variant="danger" ariaLabel="Delete" />
+        <app-ds-icon-button icon="refresh" variant="ghost" [loading]="true" ariaLabel="Loading" />
+        <app-ds-icon-button icon="block" variant="primary" [disabled]="true" ariaLabel="Disabled" />
+      </div>
+    </app-ds-card>
+  </section>
+</div>

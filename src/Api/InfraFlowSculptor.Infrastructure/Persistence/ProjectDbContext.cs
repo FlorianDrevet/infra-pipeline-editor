@@ -40,6 +40,7 @@ using InfraFlowSculptor.Domain.ContainerRegistryAggregate;
 using InfraFlowSculptor.Domain.ContainerRegistryAggregate.Entities;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate;
 using InfraFlowSculptor.Domain.EventHubNamespaceAggregate.Entities;
+using InfraFlowSculptor.Infrastructure.Persistence.Views;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfraFlowSculptor.Infrastructure.Persistence;
@@ -50,6 +51,7 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<ProjectMember> ProjectMembers { get; set; } = null!;
     public DbSet<ProjectResourceNamingTemplate> ProjectResourceNamingTemplates { get; set; } = null!;
+    public DbSet<ProjectResourceAbbreviation> ProjectResourceAbbreviations { get; set; } = null!;
     public DbSet<InfrastructureConfig> InfrastructureConfigs { get; set; } = null!;
     public DbSet<ResourceGroup> ResourceGroups { get; set; } = null!;
     public DbSet<KeyVault> KeyVaults { get; set; } = null!;
@@ -65,9 +67,12 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<ResourceParameterUsage> ResourceParameterUsage { get; set; } = null!;
     public DbSet<InputOutputLink> InputOutputLinks { get; set; } = null!;
     public DbSet<ResourceNamingTemplate> ResourceNamingTemplates { get; set; } = null!;
+    public DbSet<ResourceAbbreviationOverride> ResourceAbbreviationOverrides { get; set; } = null!;
     public DbSet<RoleAssignment> RoleAssignments { get; set; } = null!;
     public DbSet<AppSetting> AppSettings { get; set; } = null!;
     public DbSet<AppSettingEnvironmentValue> AppSettingEnvironmentValues { get; set; } = null!;
+    public DbSet<SecureParameterMapping> SecureParameterMappings { get; set; } = null!;
+    public DbSet<CustomDomain> CustomDomains { get; set; } = null!;
     public DbSet<KeyVaultEnvironmentSettings> KeyVaultEnvironmentSettings { get; set; } = null!;
     public DbSet<RedisCacheEnvironmentSettings> RedisCacheEnvironmentSettings { get; set; } = null!;
     public DbSet<StorageAccountEnvironmentSettings> StorageAccountEnvironmentSettings { get; set; } = null!;
@@ -106,16 +111,49 @@ public class ProjectDbContext(DbContextOptions<ProjectDbContext> options) : DbCo
     public DbSet<EventHubNamespaceEnvironmentSettings> EventHubNamespaceEnvironmentSettings { get; set; } = null!;
     public DbSet<Domain.EventHubNamespaceAggregate.Entities.EventHub> EventHubs { get; set; } = null!;
     public DbSet<EventHubConsumerGroup> EventHubConsumerGroups { get; set; } = null!;
-    public DbSet<GitRepositoryConfiguration> GitRepositoryConfigurations { get; set; } = null!;
+    public DbSet<ProjectRepository> ProjectRepositories { get; set; } = null!;
+    public DbSet<Domain.InfrastructureConfigAggregate.Entities.InfraConfigRepository> InfraConfigRepositories { get; set; } = null!;
     public DbSet<CrossConfigResourceReference> CrossConfigResourceReferences { get; set; } = null!;
     public DbSet<ProjectPipelineVariableGroup> ProjectPipelineVariableGroups { get; set; } = null!;
 
+    /// <summary>Keyless entity mapped to the <c>vw_ResourceEnvironmentEntries</c> PostgreSQL view.</summary>
+    public DbSet<ResourceEnvironmentEntryView> ResourceEnvironmentEntryViews { get; set; } = null!;
+
+    /// <summary>Keyless entity mapped to the <c>vw_ChildToParentLinks</c> PostgreSQL view.</summary>
+    public DbSet<ChildToParentLinkView> ChildToParentLinkViews { get; set; } = null!;
+
+    /// <inheritdoc />
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<AzureResource>())
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Property(nameof(AzureResource.ResourceType)).CurrentValue =
+                    entry.Entity.GetType().Name;
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
             .ApplyConfigurationsFromAssembly(typeof(ProjectDbContext).Assembly);
-        
+
+        modelBuilder.Entity<ResourceEnvironmentEntryView>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_ResourceEnvironmentEntries");
+        });
+
+        modelBuilder.Entity<ChildToParentLinkView>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_ChildToParentLinks");
+        });
+
         base.OnModelCreating(modelBuilder);
     }
 }

@@ -1,0 +1,397 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+::ng-deep .ifs-multi-repo-push-dialog .mat-mdc-dialog-surface {
+  padding: 0;
+  overflow: hidden;
+  background: $ifs-surface-0;
+  border: 1px solid $ifs-border-soft;
+  box-shadow: $ifs-shadow-lg;
+}
+
+.mr-dialog {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: $ifs-surface-0;
+}
+
+.mr-dialog__content {
+  display: flex;
+  flex-direction: column;
+  gap: $ifs-space-4;
+  margin: 0;
+  padding: $ifs-space-5 !important;
+  overflow-x: hidden;
+
+  @include ifs-scrollbar-soft;
+}
+
+.mr-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $ifs-space-3;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0 $ifs-space-5 $ifs-space-5 !important;
+  border-top: 0;
+  background: $ifs-surface-0;
+}
+
+.mr-dialog__actions > * {
+  margin: 0 !important;
+}
+
+.mr-banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: $ifs-space-3;
+  align-items: flex-start;
+  padding: $ifs-space-4 $ifs-space-5;
+  border-radius: $ifs-radius-lg;
+  border: 1px solid transparent;
+
+  mat-icon {
+    flex: none;
+    margin-top: 0.1rem;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: $ifs-space-1;
+    font-size: 0.92rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+
+  &--success {
+    background: $ifs-success-soft;
+    border-color: $ifs-success-border;
+    color: $ifs-success;
+  }
+
+  &--partial {
+    background: $ifs-warning-soft;
+    border-color: $ifs-warning-border;
+    color: $ifs-warning-strong;
+  }
+
+  &--error {
+    background: $ifs-error-soft;
+    border-color: $ifs-error-border;
+    color: $ifs-error-strong;
+  }
+}
+
+.mr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $ifs-space-4;
+  align-items: start;
+  min-width: 0;
+}
+
+.mr-grid--single {
+  grid-template-columns: minmax(0, 36rem);
+  justify-content: center;
+}
+
+.mr-card {
+  @include ifs-card-surface($ifs-radius-2xl, $ifs-shadow-lg);
+
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  background: #ffffff !important;
+  border: 1px solid $ifs-border-soft !important;
+  box-shadow: $ifs-shadow-md !important;
+
+  &--ok {
+    border-color: $ifs-success-border !important;
+  }
+
+  &--ko {
+    border-color: $ifs-error-border !important;
+  }
+}
+
+.mr-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: $ifs-space-4;
+  padding: $ifs-space-5 $ifs-space-5 $ifs-space-4;
+}
+
+.mr-card__icon-shell {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: $ifs-radius-lg;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: $ifs-surface-100;
+  color: $ifs-brand-blue;
+
+  mat-icon {
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+}
+
+.mr-card--code .mr-card__icon-shell {
+  background: rgba($ifs-brand-cyan, 0.08);
+  color: $ifs-brand-cyan-deep;
+}
+
+.mr-card__header-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.mr-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $ifs-space-3;
+  flex-wrap: wrap;
+}
+
+.mr-card__title {
+  margin: 0;
+  color: $ifs-ink-900;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.mr-card__alias {
+  @include ifs-truncate;
+
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.2rem 0.65rem;
+  border-radius: $ifs-radius-pill;
+  background: rgba($ifs-brand-blue, 0.08);
+  color: $ifs-ink-800;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.mr-card--code .mr-card__alias {
+  background: rgba($ifs-brand-cyan, 0.12);
+}
+
+.mr-card__content {
+  position: relative;
+  min-width: 0;
+  padding: 0 $ifs-space-5 $ifs-space-5;
+}
+
+.mr-card__overlay {
+  @include ifs-glass(0.82, 12px);
+
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $ifs-space-2;
+  z-index: 2;
+  border-radius: $ifs-radius-xl;
+  border: 1px solid $ifs-border-soft;
+  color: $ifs-brand-blue;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mr-form {
+  display: flex;
+  flex-direction: column;
+  gap: $ifs-space-4;
+  min-width: 0;
+}
+
+.mr-card__result {
+  display: flex;
+  flex-direction: column;
+  gap: $ifs-space-3;
+  min-width: 0;
+
+  &--ok {
+    color: $ifs-success;
+  }
+
+  &--ko {
+    color: $ifs-error-strong;
+  }
+}
+
+.mr-card__result-title {
+  display: flex;
+  align-items: center;
+  gap: $ifs-space-2;
+  margin: 0;
+  color: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+
+  mat-icon {
+    flex: none;
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+}
+
+.mr-card__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $ifs-space-3;
+  flex-wrap: wrap;
+  min-width: 0;
+  padding: $ifs-space-3 $ifs-space-4;
+  border-radius: $ifs-radius-lg;
+  border: 1px solid $ifs-border-soft;
+  background: $ifs-surface-50;
+  color: $ifs-ink-500;
+  font-size: 0.84rem;
+
+  span:first-child {
+    color: $ifs-ink-500;
+    font-weight: 600;
+  }
+}
+
+.mr-card__commit {
+  @include ifs-focus-visible;
+
+  display: inline-flex;
+  align-items: center;
+  gap: $ifs-space-2;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid $ifs-info-border;
+  border-radius: $ifs-radius-pill;
+  background: rgba($ifs-brand-blue, 0.08);
+  cursor: pointer;
+  color: $ifs-ink-800;
+  font-size: 0.8rem;
+  font-weight: 600;
+
+  &:hover {
+    background: rgba($ifs-brand-blue, 0.14);
+  }
+
+  code {
+    @include ifs-truncate;
+
+    max-width: 12rem;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.78rem;
+  }
+
+  mat-icon {
+    flex: none;
+    font-size: 0.95rem;
+    width: 0.95rem;
+    height: 0.95rem;
+    color: $ifs-brand-blue;
+  }
+}
+
+.mr-card__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $ifs-space-2;
+  min-width: 0;
+  max-width: 100%;
+  color: $ifs-brand-blue;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  span {
+    @include ifs-truncate;
+  }
+
+  mat-icon {
+    flex: none;
+    font-size: 0.95rem;
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.mr-card__count {
+  margin: 0;
+  color: $ifs-ink-500;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.mr-card__error {
+  margin: 0;
+  padding: $ifs-space-3 $ifs-space-4;
+  border-radius: $ifs-radius-lg;
+  border: 1px solid $ifs-error-border;
+  background: $ifs-error-soft;
+  color: $ifs-error-strong;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 56rem) {
+  .mr-grid,
+  .mr-grid--single {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 44rem) {
+  .mr-dialog__content {
+    padding: $ifs-space-4 !important;
+  }
+
+  .mr-dialog__actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    padding: 0 $ifs-space-4 $ifs-space-4 !important;
+  }
+
+  .mr-dialog__actions > * {
+    width: 100%;
+  }
+
+  .mr-card__header,
+  .mr-card__content {
+    padding-left: $ifs-space-4;
+    padding-right: $ifs-space-4;
+  }
+
+  .mr-card__header {
+    padding-top: $ifs-space-5;
+  }
+
+  .mr-card__content {
+    padding-bottom: $ifs-space-4;
+  }
+}

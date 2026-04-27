@@ -5,18 +5,19 @@ import { MethodEnum } from '../enums/method.enum';
 import {
   ProjectResponse,
   CreateProjectRequest,
+  CreateProjectWithSetupRequest,
   AddProjectMemberRequest,
   UpdateProjectMemberRoleRequest,
   RecentItemResponse,
   ValidateRecentItemsRequest,
-  SetGitConfigRequest,
   TestGitConnectionResponse,
   GitBranchResponse,
+  GitFileResponse,
   AddProjectEnvironmentRequest,
   UpdateProjectEnvironmentRequest,
-  SetRepositoryModeRequest,
   GenerateProjectBicepResponse,
   GenerateProjectPipelineResponse,
+  GenerateProjectBootstrapPipelineResponse,
   ProjectPipelineVariableGroupResponse,
   AddProjectPipelineVariableGroupRequest,
   SetProjectTagsRequest,
@@ -33,8 +34,25 @@ import {
   ResourceNamingTemplateResponse,
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
+  ResourceAbbreviationOverrideResponse,
+  SetResourceAbbreviationOverrideRequest,
 } from '../interfaces/infra-config.interface';
 import { ProjectResourceResponse } from '../interfaces/cross-config-reference.interface';
+import {
+  ProjectRepositoryResponse,
+  AddProjectRepositoryRequest,
+  UpdateProjectRepositoryRequest,
+  ProjectLayoutPreset,
+} from '../interfaces/project-repository.interface';
+import {
+  AddInfraConfigRepositoryRequest,
+  ConfigLayoutMode,
+  UpdateInfraConfigRepositoryRequest,
+} from '../interfaces/infra-config-repository.interface';
+import {
+  MultiRepoPushRequest,
+  MultiRepoPushResponse,
+} from '../interfaces/multi-repo-push.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -60,6 +78,10 @@ export class ProjectService {
 
   createProject(request: CreateProjectRequest): Promise<ProjectResponse> {
     return this.axios.request$<ProjectResponse>(MethodEnum.POST, '/projects', request);
+  }
+
+  createProjectWithSetup(request: CreateProjectWithSetupRequest): Promise<ProjectResponse> {
+    return this.axios.request$<ProjectResponse>(MethodEnum.POST, '/projects/with-setup', request);
   }
 
   deleteProject(id: string): Promise<void> {
@@ -171,22 +193,31 @@ export class ProjectService {
     );
   }
 
-  // ─── Git Configuration ───
+  // ─── Abbreviation Overrides ───
 
-  setGitConfig(projectId: string, request: SetGitConfigRequest): Promise<ProjectResponse> {
-    return this.axios.request$<ProjectResponse>(
+  setResourceAbbreviation(
+    projectId: string,
+    resourceType: string,
+    request: SetResourceAbbreviationOverrideRequest
+  ): Promise<ResourceAbbreviationOverrideResponse> {
+    return this.axios.request$<ResourceAbbreviationOverrideResponse>(
       MethodEnum.PUT,
-      `/projects/${projectId}/git-config`,
+      `/projects/${projectId}/naming/abbreviations/${resourceType}`,
       request
     );
   }
 
-  removeGitConfig(projectId: string): Promise<void> {
+  removeResourceAbbreviation(
+    projectId: string,
+    resourceType: string
+  ): Promise<void> {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
-      `/projects/${projectId}/git-config`
+      `/projects/${projectId}/naming/abbreviations/${resourceType}`
     );
   }
+
+  // ─── Git Operations (test connection + list branches) ───
 
   testGitConnection(projectId: string): Promise<TestGitConnectionResponse> {
     return this.axios.request$<TestGitConnectionResponse>(
@@ -202,22 +233,32 @@ export class ProjectService {
     );
   }
 
+  // ─── Git Operations (code-specific branches + file search) ───
+
+  listCodeBranches(projectId: string, configId?: string): Promise<GitBranchResponse[]> {
+    const params = configId ? `?configId=${configId}` : '';
+    return this.axios.request$<GitBranchResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/git-config/code-branches${params}`
+    );
+  }
+
+  searchCodeFiles(projectId: string, branch: string, pattern?: string, configId?: string): Promise<GitFileResponse[]> {
+    const params = new URLSearchParams({ branch });
+    if (pattern) params.set('pattern', pattern);
+    if (configId) params.set('configId', configId);
+    return this.axios.request$<GitFileResponse[]>(
+      MethodEnum.GET,
+      `/projects/${projectId}/git-config/code-files?${params.toString()}`
+    );
+  }
+
   // ─── Project Resources ───
 
   getProjectResources(projectId: string): Promise<ProjectResourceResponse[]> {
     return this.axios.request$<ProjectResourceResponse[]>(
       MethodEnum.GET,
       `/projects/${projectId}/resources`
-    );
-  }
-
-  // ─── Repository Mode ───
-
-  setRepositoryMode(projectId: string, request: SetRepositoryModeRequest): Promise<void> {
-    return this.axios.request$<void>(
-      MethodEnum.PUT,
-      `/projects/${projectId}/repository-mode`,
-      request
     );
   }
 
@@ -254,6 +295,28 @@ export class ProjectService {
     );
   }
 
+  pushProjectGeneratedArtifactsToGit(
+    projectId: string,
+    request: PushBicepToGitRequest
+  ): Promise<PushBicepToGitResponse> {
+    return this.axios.request$<PushBicepToGitResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/push-generated-artifacts-to-git`,
+      request
+    );
+  }
+
+  pushProjectArtifactsToMultiRepo(
+    projectId: string,
+    request: MultiRepoPushRequest
+  ): Promise<MultiRepoPushResponse> {
+    return this.axios.request$<MultiRepoPushResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/push-multi-repo-artifacts-to-git`,
+      request
+    );
+  }
+
   // ─── Project Pipeline Generation (mono-repo) ───
 
   generateProjectPipeline(projectId: string): Promise<GenerateProjectPipelineResponse> {
@@ -285,6 +348,41 @@ export class ProjectService {
     return this.axios.request$<PushBicepToGitResponse>(
       MethodEnum.POST,
       `/projects/${projectId}/push-pipeline-to-git`,
+      request
+    );
+  }
+
+  // ─── Project Bootstrap Pipeline Generation (Azure DevOps) ───
+
+  generateProjectBootstrapPipeline(projectId: string): Promise<GenerateProjectBootstrapPipelineResponse> {
+    return this.axios.request$<GenerateProjectBootstrapPipelineResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/generate-bootstrap-pipeline`
+    );
+  }
+
+  async downloadProjectBootstrapPipelineZip(projectId: string): Promise<Blob> {
+    const response = await axios.get(
+      `/projects/${projectId}/generate-bootstrap-pipeline/download`,
+      { responseType: 'blob' }
+    );
+    return response.data as Blob;
+  }
+
+  getProjectBootstrapPipelineFileContent(projectId: string, filePath: string): Promise<string> {
+    return this.axios.request$<{ content: string }>(
+      MethodEnum.GET,
+      `/projects/${projectId}/generate-bootstrap-pipeline/files/${filePath}`
+    ).then(response => response.content);
+  }
+
+  pushProjectBootstrapPipelineToGit(
+    projectId: string,
+    request: PushBicepToGitRequest
+  ): Promise<PushBicepToGitResponse> {
+    return this.axios.request$<PushBicepToGitResponse>(
+      MethodEnum.POST,
+      `/projects/${projectId}/push-bootstrap-pipeline-to-git`,
       request
     );
   }
@@ -333,6 +431,101 @@ export class ProjectService {
       MethodEnum.PUT,
       `/projects/${projectId}/agent-pool`,
       request
+    );
+  }
+
+  // ─── V2 Multi-Repo Topology ───
+
+  async listRepositories(projectId: string): Promise<ProjectRepositoryResponse[]> {
+    const project = await this.getProject(projectId);
+    return project.repositories ?? [];
+  }
+
+  addRepository(
+    projectId: string,
+    request: AddProjectRepositoryRequest
+  ): Promise<{ id: string }> {
+    return this.axios.request$<{ id: string }>(
+      MethodEnum.POST,
+      `/projects/${projectId}/repositories`,
+      request
+    );
+  }
+
+  updateRepository(
+    projectId: string,
+    repoId: string,
+    request: UpdateProjectRepositoryRequest
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/repositories/${repoId}`,
+      request
+    );
+  }
+
+  removeRepository(projectId: string, repoId: string): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/repositories/${repoId}`
+    );
+  }
+
+  setLayoutPreset(projectId: string, preset: ProjectLayoutPreset): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/layout-preset`,
+      { preset }
+    );
+  }
+
+  // ─── Per-config repositories (MultiRepo project layout) ───
+
+  setConfigLayoutMode(
+    projectId: string,
+    configId: string,
+    mode: ConfigLayoutMode | null
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/configs/${configId}/layout-mode`,
+      { mode }
+    );
+  }
+
+  addConfigRepository(
+    projectId: string,
+    configId: string,
+    request: AddInfraConfigRepositoryRequest
+  ): Promise<{ id: string }> {
+    return this.axios.request$<{ id: string }>(
+      MethodEnum.POST,
+      `/projects/${projectId}/configs/${configId}/repositories`,
+      request
+    );
+  }
+
+  updateConfigRepository(
+    projectId: string,
+    configId: string,
+    repoId: string,
+    request: UpdateInfraConfigRepositoryRequest
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.PUT,
+      `/projects/${projectId}/configs/${configId}/repositories/${repoId}`,
+      request
+    );
+  }
+
+  removeConfigRepository(
+    projectId: string,
+    configId: string,
+    repoId: string
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/projects/${projectId}/configs/${configId}/repositories/${repoId}`
     );
   }
 }

@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Api;
+using InfraFlowSculptor.Api.Common;
 using InfraFlowSculptor.Api.Controllers;
 using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
@@ -49,12 +50,31 @@ app.AddDevelopmentTools(builder.Configuration);
 app.UseCors("CorsPolicy");
 
 app.UseErrorHandling();
+
+// Audit SEC-002 (2026-04-23): security headers applied to every response.
+// CSP intentionally omitted: see SEC-002 follow-up.
+app.Use(async (ctx, next) =>
+{
+    var headers = ctx.Response.Headers;
+    headers["X-Frame-Options"] = "DENY";
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()";
+    await next();
+});
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseRateLimiter(); //After UseRouting
 app.UseStatusCodePages();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<UserProvisioningMiddleware>();
 
 //Controllers
 app.UseProjectController();
@@ -82,6 +102,8 @@ app.UseServiceBusNamespaceController();
 app.UseContainerRegistryController();
 app.UseEventHubNamespaceController();
 app.UseAppSettingController();
+app.UseSecureParameterMappingController();
+app.UseCustomDomainController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
 

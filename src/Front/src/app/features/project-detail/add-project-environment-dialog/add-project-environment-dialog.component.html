@@ -4,54 +4,51 @@
 
 <mat-dialog-content>
   <form [formGroup]="form" class="env-form" (ngSubmit)="onSubmit()">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.NAME' | translate }}</mat-label>
-      <input matInput formControlName="name"
-        [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.NAME_PLACEHOLDER' | translate" />
-    </mat-form-field>
+    <app-ds-text-field
+      class="full-width"
+      formControlName="name"
+      [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.NAME' | translate"
+      [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.NAME_PLACEHOLDER' | translate" />
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.LOCATION' | translate }}</mat-label>
-      <mat-select formControlName="location">
-        @for (option of locationOptions; track option.value) {
-          <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <app-ds-select
+      class="full-width"
+      formControlName="location"
+      [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.LOCATION' | translate"
+      [options]="locationDsOptions" />
 
     <div class="form-row">
-      <mat-form-field appearance="outline" class="half-width">
-        <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUBSCRIPTION_ID' | translate }}</mat-label>
-        <input matInput formControlName="subscriptionId" />
-      </mat-form-field>
+      <app-ds-text-field
+        class="half-width"
+        formControlName="subscriptionId"
+        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUBSCRIPTION_ID' | translate" />
 
-      <mat-form-field appearance="outline" class="half-width">
-        <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION' | translate }}</mat-label>
-        <input matInput formControlName="azureResourceManagerConnection"
-          [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION_PLACEHOLDER' | translate" />
-      </mat-form-field>
+      <app-ds-text-field
+        class="half-width"
+        formControlName="azureResourceManagerConnection"
+        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION' | translate"
+        [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.AZURE_RM_CONNECTION_PLACEHOLDER' | translate" />
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="outline" class="half-width">
-        <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.SHORT_NAME' | translate }}</mat-label>
-        <input matInput formControlName="shortName"
-          [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SHORT_NAME_PLACEHOLDER' | translate" />
-      </mat-form-field>
+      <app-ds-text-field
+        class="half-width"
+        formControlName="shortName"
+        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SHORT_NAME' | translate"
+        [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SHORT_NAME_PLACEHOLDER' | translate" />
     </div>
 
     <div class="form-row">
-      <mat-form-field appearance="outline" class="half-width">
-        <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.PREFIX' | translate }}</mat-label>
-        <input matInput formControlName="prefix"
-          [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.PREFIX_PLACEHOLDER' | translate" />
-      </mat-form-field>
+      <app-ds-text-field
+        class="half-width"
+        formControlName="prefix"
+        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.PREFIX' | translate"
+        [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.PREFIX_PLACEHOLDER' | translate" />
 
-      <mat-form-field appearance="outline" class="half-width">
-        <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUFFIX' | translate }}</mat-label>
-        <input matInput formControlName="suffix"
-          [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUFFIX_PLACEHOLDER' | translate" />
-      </mat-form-field>
+      <app-ds-text-field
+        class="half-width"
+        formControlName="suffix"
+        [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUFFIX' | translate"
+        [placeholder]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.SUFFIX_PLACEHOLDER' | translate" />
     </div>
 
     <div class="order-section">
@@ -85,14 +82,14 @@
     <div class="tags-section">
       <p class="tags-section__label">{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAGS' | translate }}</p>
       <div class="tags-add-row">
-        <mat-form-field appearance="outline" class="tag-name-field">
-          <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAG_NAME' | translate }}</mat-label>
-          <input matInput [formControl]="tagNameCtrl" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="tag-value-field">
-          <mat-label>{{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAG_VALUE' | translate }}</mat-label>
-          <input matInput [formControl]="tagValueCtrl" />
-        </mat-form-field>
+        <app-ds-text-field
+          class="tag-name-field"
+          [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAG_NAME' | translate"
+          [formControl]="tagNameCtrl" />
+        <app-ds-text-field
+          class="tag-value-field"
+          [label]="'PROJECT_DETAIL.ENVIRONMENTS.FORM.TAG_VALUE' | translate"
+          [formControl]="tagValueCtrl" />
         <button type="button" mat-icon-button (click)="addTag()" [disabled]="!tagNameCtrl.value.trim() || !tagValueCtrl.value.trim()">
           <mat-icon>add</mat-icon>
         </button>
@@ -123,11 +120,7 @@
   <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
     {{ 'PROJECT_DETAIL.ENVIRONMENTS.FORM.CANCEL' | translate }}
   </button>
-  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || isSubmitting()">
-    @if (isSubmitting()) {
-      <mat-spinner diameter="18"></mat-spinner>
-    } @else {
-      {{ (isEditMode ? 'PROJECT_DETAIL.ENVIRONMENTS.FORM.SAVE' : 'PROJECT_DETAIL.ENVIRONMENTS.FORM.ADD') | translate }}
-    }
-  </button>
+  <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid" (clicked)="onSubmit()">
+    {{ (isEditMode ? 'PROJECT_DETAIL.ENVIRONMENTS.FORM.SAVE' : 'PROJECT_DETAIL.ENVIRONMENTS.FORM.ADD') | translate }}
+  </app-ds-button>
 </mat-dialog-actions>

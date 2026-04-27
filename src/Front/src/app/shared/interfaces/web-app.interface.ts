@@ -1,3 +1,5 @@
+import { AcrAuthMode } from './container-registry.interface';
+
 // ─── Environment Settings ────────────────────────────────────────────────────
 
 export interface WebAppEnvironmentConfigEntry {
@@ -12,6 +14,7 @@ export interface WebAppEnvironmentConfigResponse {
   alwaysOn: boolean | null;
   httpsOnly: boolean | null;
   dockerImageTag: string | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -24,6 +27,7 @@ export interface WebAppResponse {
   appServicePlanId: string;
   deploymentMode: string;
   containerRegistryId: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName: string | null;
   dockerfilePath: string | null;
   sourceCodePath: string | null;
@@ -34,6 +38,7 @@ export interface WebAppResponse {
   httpsOnly: boolean;
   applicationName: string | null;
   environmentSettings: WebAppEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -45,6 +50,7 @@ export interface CreateWebAppRequest {
   appServicePlanId: string;
   deploymentMode?: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   sourceCodePath?: string | null;
@@ -55,6 +61,7 @@ export interface CreateWebAppRequest {
   httpsOnly: boolean;
   applicationName?: string | null;
   environmentSettings?: WebAppEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateWebAppRequest {
@@ -63,6 +70,7 @@ export interface UpdateWebAppRequest {
   appServicePlanId: string;
   deploymentMode?: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   sourceCodePath?: string | null;

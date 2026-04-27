@@ -14,21 +14,22 @@ internal static class ParameterFileAssembler
     /// <summary>
     /// Generates one <c>.bicepparam</c> file per environment.
     /// Each file sets <c>environmentName</c> and the resource-specific parameter overrides.
+    /// File names use <see cref="EnvironmentDefinition.ShortName"/> to match the pipeline convention.
     /// </summary>
     internal static Dictionary<string, string> GenerateEnvironmentParameterFiles(
         IReadOnlyCollection<GeneratedTypeModule> modules,
-        IReadOnlyList<string> environmentNames,
+        IReadOnlyList<EnvironmentDefinition> environments,
         IEnumerable<ResourceDefinition> resources,
         IReadOnlyList<AppSettingDefinition> appSettings)
     {
         var resourceList = resources.ToList();
         var result = new Dictionary<string, string>();
 
-        foreach (var envName in environmentNames)
+        foreach (var env in environments)
         {
-            var envModules = ApplyEnvironmentOverrides(modules, envName, resourceList);
-            var paramContent = GenerateMainParameters(envModules, envName, appSettings);
-            var fileName = $"main.{envName.ToLowerInvariant()}.bicepparam";
+            var envModules = ApplyEnvironmentOverrides(modules, env.Name, resourceList);
+            var paramContent = GenerateMainParameters(envModules, env.Name, appSettings);
+            var fileName = $"main.{env.ShortName.ToLowerInvariant()}.bicepparam";
             result[fileName] = paramContent;
         }
 
@@ -55,20 +56,50 @@ internal static class ParameterFileAssembler
                 return module.ModuleName == expectedModuleName;
             });
 
-            if (matchingResource is null ||
-                !matchingResource.EnvironmentConfigs.TryGetValue(environmentName, out var envOverrides) ||
-                envOverrides.Count == 0)
-            {
+            if (matchingResource is null)
                 return module;
-            }
+
+            var hasEnvOverrides = matchingResource.EnvironmentConfigs.TryGetValue(environmentName, out var envOverrides)
+                && envOverrides.Count > 0;
+
+            var envCustomDomains = matchingResource.CustomDomains
+                .Where(cd => cd.EnvironmentName.Equals(environmentName, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (!hasEnvOverrides && envCustomDomains.Count == 0)
+                return module;
 
             var mergedParams = new Dictionary<string, object>(module.Parameters);
-            foreach (var (key, value) in envOverrides)
+
+            if (hasEnvOverrides)
             {
-                if (mergedParams.ContainsKey(key))
+                foreach (var (key, value) in envOverrides!)
                 {
-                    mergedParams[key] = value;
+                    // Check if this flat key maps to a property inside a structured parameter group
+                    if (module.ParameterGroupMappings.TryGetValue(key, out var mapping))
+                    {
+                        if (mergedParams.TryGetValue(mapping.GroupKey, out var groupObj))
+                        {
+                            mergedParams[mapping.GroupKey] = MergePropertyIntoObject(
+                                groupObj, mapping.PropertyName, value);
+                        }
+                    }
+                    else if (mergedParams.TryGetValue(key, out var existingValue))
+                    {
+                        mergedParams[key] = CoerceToOriginalType(value, existingValue);
+                    }
                 }
+            }
+
+            if (envCustomDomains.Count > 0 && mergedParams.ContainsKey("customDomains"))
+            {
+                mergedParams["customDomains"] = envCustomDomains
+                    .Select(cd => (object)new Dictionary<string, object>
+                    {
+                        ["domainName"] = cd.DomainName,
+                        ["bindingType"] = cd.BindingType
+                    })
+                    .ToList<object>();
             }
 
             return module with { Parameters = mergedParams };
@@ -97,6 +128,12 @@ internal static class ParameterFileAssembler
             foreach (var (key, value) in module.Parameters)
             {
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} = {BicepFormattingHelper.SerializeToBicep(value)}");
+            }
+
+            // Secure parameters — placeholder values to be replaced at deployment time
+            foreach (var secureParam in module.SecureParameters)
+            {
+                sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)} = ''");
             }
 
             foreach (var (name, _, value) in StorageAccountCompanionHelper.GetStorageAccountCorsParameters(module))
@@ -132,5 +169,75 @@ internal static class ParameterFileAssembler
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Converts a string override value to the C# type of the existing parameter default,
+    /// so that <see cref="BicepFormattingHelper.SerializeToBicep"/> emits the correct Bicep literal
+    /// (e.g. <c>false</c> instead of <c>'false'</c>).
+    /// </summary>
+    private static object CoerceToOriginalType(string value, object existingValue)
+    {
+        return existingValue switch
+        {
+            bool when bool.TryParse(value, out var b) => b,
+            int when int.TryParse(value, out var i) => i,
+            long when long.TryParse(value, out var l) => l,
+            double when double.TryParse(value, out var d) => d,
+            _ => value
+        };
+    }
+
+    /// <summary>
+    /// Creates a deep copy of an anonymous/POCO object with one property value replaced,
+    /// preserving all other properties. Supports dot-separated <paramref name="propertyPath"/>
+    /// for nested objects (e.g. <c>"readiness.path"</c> navigates into the <c>readiness</c>
+    /// sub-object and replaces its <c>path</c> property).
+    /// </summary>
+    private static object MergePropertyIntoObject(object source, string propertyPath, string newValue)
+    {
+        var dotIndex = propertyPath.IndexOf('.');
+        var head = dotIndex >= 0 ? propertyPath[..dotIndex] : propertyPath;
+        var tail = dotIndex >= 0 ? propertyPath[(dotIndex + 1)..] : null;
+
+        var dict = new Dictionary<string, object>();
+
+        if (source is IDictionary<string, object> existingDict)
+        {
+            foreach (var (k, v) in existingDict)
+            {
+                if (k.Equals(head, StringComparison.OrdinalIgnoreCase))
+                {
+                    dict[k] = tail is not null
+                        ? MergePropertyIntoObject(v, tail, newValue)
+                        : (v is not null ? CoerceToOriginalType(newValue, v) : newValue);
+                }
+                else
+                {
+                    dict[k] = v;
+                }
+            }
+        }
+        else
+        {
+            var props = source.GetType().GetProperties(
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            foreach (var prop in props)
+            {
+                var val = prop.GetValue(source);
+                if (prop.Name.Equals(head, StringComparison.OrdinalIgnoreCase))
+                {
+                    dict[prop.Name] = tail is not null
+                        ? MergePropertyIntoObject(val!, tail, newValue)
+                        : (val is not null ? CoerceToOriginalType(newValue, val) : newValue);
+                }
+                else
+                {
+                    dict[prop.Name] = val!;
+                }
+            }
+        }
+
+        return dict;
     }
 }

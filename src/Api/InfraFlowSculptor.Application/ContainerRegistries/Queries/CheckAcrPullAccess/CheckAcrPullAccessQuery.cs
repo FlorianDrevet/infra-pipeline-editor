@@ -6,9 +6,11 @@ namespace InfraFlowSculptor.Application.ContainerRegistries.Queries.CheckAcrPull
 /// <summary>Query to check whether a compute resource has the "AcrPull" role on a Container Registry.</summary>
 /// <param name="ResourceId">Identifier of the compute resource (WebApp, FunctionApp, or ContainerApp).</param>
 /// <param name="ContainerRegistryId">Identifier of the Container Registry resource.</param>
+/// <param name="AcrAuthMode">Authentication mode used by the compute resource to access the container registry.</param>
 public record CheckAcrPullAccessQuery(
     AzureResourceId ResourceId,
-    AzureResourceId ContainerRegistryId
+    AzureResourceId ContainerRegistryId,
+    string? AcrAuthMode = null
 ) : IQuery<CheckAcrPullAccessResult>;
 
 /// <summary>Result indicating whether the compute resource has AcrPull access via a User Assigned Identity.</summary>
@@ -18,10 +20,12 @@ public record CheckAcrPullAccessQuery(
 /// <param name="AssignedUserAssignedIdentityId">ID of the UAI that has a role assignment on this container registry, if any.</param>
 /// <param name="AssignedUserAssignedIdentityName">Name of the UAI that has a role assignment on this container registry, if any.</param>
 /// <param name="HasUserAssignedIdentity">Whether the resource has any UAI-based role assignment at all.</param>
+/// <param name="AcrAuthMode">Authentication mode used by the compute resource to access the container registry.</param>
 public sealed record CheckAcrPullAccessResult(
     bool HasAccess,
     string? MissingRoleDefinitionId,
     string? MissingRoleName,
     string? AssignedUserAssignedIdentityId,
     string? AssignedUserAssignedIdentityName,
-    bool HasUserAssignedIdentity);
+    bool HasUserAssignedIdentity,
+    string? AcrAuthMode);

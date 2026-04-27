@@ -7,6 +7,8 @@ import {
   SetDefaultNamingTemplateRequest,
   SetResourceNamingTemplateRequest,
   SetInfraConfigTagsRequest,
+  ResourceAbbreviationOverrideResponse,
+  SetResourceAbbreviationOverrideRequest,
 } from '../interfaces/infra-config.interface';
 import { ResourceGroupResponse } from '../interfaces/resource-group.interface';
 import {
@@ -87,6 +89,30 @@ export class InfraConfigService {
     return this.axios.request$<void>(
       MethodEnum.DELETE,
       `/infra-config/${id}/naming/resources/${resourceType}`
+    );
+  }
+
+  // ─── Abbreviation Overrides ───
+
+  setResourceAbbreviationOverride(
+    id: string,
+    resourceType: string,
+    request: SetResourceAbbreviationOverrideRequest
+  ): Promise<ResourceAbbreviationOverrideResponse> {
+    return this.axios.request$<ResourceAbbreviationOverrideResponse>(
+      MethodEnum.PUT,
+      `/infra-config/${id}/naming/abbreviations/${resourceType}`,
+      request
+    );
+  }
+
+  removeResourceAbbreviationOverride(
+    id: string,
+    resourceType: string
+  ): Promise<void> {
+    return this.axios.request$<void>(
+      MethodEnum.DELETE,
+      `/infra-config/${id}/naming/abbreviations/${resourceType}`
     );
   }
 

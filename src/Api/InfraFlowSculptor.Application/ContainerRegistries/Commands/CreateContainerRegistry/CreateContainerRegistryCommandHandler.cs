@@ -37,7 +37,8 @@ public sealed class CreateContainerRegistryCommandHandler(
             request.Location,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName, ec.Sku, ec.AdminUserEnabled, ec.PublicNetworkAccess, ec.ZoneRedundancy))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await containerRegistryRepository.AddAsync(containerRegistry);
 

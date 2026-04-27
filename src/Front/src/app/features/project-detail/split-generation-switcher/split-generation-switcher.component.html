@@ -1,0 +1,312 @@
+<div class="split-switcher__shell">
+  <div class="split-switcher__header-actions">
+    <app-ds-panel-action-button
+      [icon]="collapsed() ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
+      tone="accent"
+      surface="dark"
+      [pressed]="!collapsed()"
+      [ariaExpanded]="!collapsed()"
+      [ariaLabel]="((collapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
+      [tooltip]="((collapsed() ? 'PROJECT_DETAIL.GENERATION.EXPAND' : 'PROJECT_DETAIL.GENERATION.COLLAPSE') | translate)"
+      (clicked)="onToggleCollapsed()" />
+  </div>
+
+<mat-tab-group class="split-switcher" animationDuration="200ms">
+  <!-- ════════════════════════ INFRA TAB ════════════════════════ -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon class="split-switcher__tab-icon">dns</mat-icon>
+      <span>{{ 'PROJECT_DETAIL.SWITCHER.INFRA_TAB' | translate }}</span>
+      <span class="split-switcher__chip split-switcher__chip--infra"
+            [class.split-switcher__chip--empty]="infraFileCount() === 0">
+        {{ infraFileCount() }}
+      </span>
+    </ng-template>
+
+    @if (!collapsed()) {
+    <div class="split-switcher__panel">
+      <div class="split-switcher__cta split-switcher__cta--infra">
+        <div class="split-switcher__cta-copy">
+          <span class="split-switcher__cta-eyebrow">{{ 'PROJECT_DETAIL.SWITCHER.INFRA_TAB' | translate }}</span>
+          <p class="split-switcher__cta-text">{{ 'PROJECT_DETAIL.SWITCHER.INFRA_PUSH_DESC' | translate }}</p>
+        </div>
+        <div class="split-switcher__cta-actions">
+          <app-ds-button
+            variant="success"
+            icon="download"
+            [disabled]="!canDownloadInfraZip()"
+            [loading]="isDownloadingInfraZip()"
+            (clicked)="onDownloadInfraZip()">
+            {{ (isDownloadingInfraZip() ? 'PROJECT_DETAIL.BICEP.DOWNLOADING' : 'PROJECT_DETAIL.BICEP.DOWNLOAD') | translate }}
+          </app-ds-button>
+          <app-ds-button
+            variant="primary"
+            icon="cloud_upload"
+            [disabled]="!canPushInfra()"
+            (clicked)="onPushInfra()">
+            {{ 'PROJECT_DETAIL.SWITCHER.PUSH_INFRA' | translate }}
+          </app-ds-button>
+        </div>
+      </div>
+
+      <mat-tab-group class="generation-tabs split-switcher__inner" animationDuration="200ms">
+      <!-- Bicep -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">terminal</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BICEP' | translate }}</span>
+        </ng-template>
+        <div class="generation-tab-content">
+          @if (isGeneratingBicep()) {
+            <div class="split-switcher__loading">
+              <mat-spinner diameter="22"></mat-spinner>
+              <span>{{ 'PROJECT_DETAIL.BICEP.TERMINAL_GENERATING' | translate }}</span>
+            </div>
+          }
+          @if (bicepGenerationError()) {
+            <div class="split-switcher__error">
+              <p>{{ bicepGenerationError()! | translate }}</p>
+              <button class="split-switcher__retry" type="button" (click)="onRetryBicep()">
+                <mat-icon>refresh</mat-icon>
+                {{ 'PROJECT_DETAIL.BICEP.RETRY' | translate }}
+              </button>
+            </div>
+          }
+          @if (bicepNodes().length > 0) {
+            <app-bicep-file-panel
+              [nodes]="bicepNodes()"
+              [barTitle]="'bicep-generator \u2014 ' + ('PROJECT_DETAIL.BICEP.ARTIFACTS' | translate)"
+              [terminalDoneText]="'PROJECT_DETAIL.BICEP.TERMINAL_DONE' | translate"
+              [fileLoadingText]="'PROJECT_DETAIL.BICEP.FILE_LOADING' | translate"
+              [fileErrorText]="'PROJECT_DETAIL.BICEP.FILE_ERROR' | translate"
+              [loadFile]="loadBicepFile()">
+            </app-bicep-file-panel>
+          } @else if (!isGeneratingBicep() && !bicepGenerationError()) {
+            <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Pipeline (Infra) -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">account_tree</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_PIPELINE' | translate }}</span>
+        </ng-template>
+        <div class="generation-tab-content">
+          @if (isGeneratingPipeline()) {
+            <div class="split-switcher__loading">
+              <mat-spinner diameter="22"></mat-spinner>
+              <span>{{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}</span>
+            </div>
+          }
+          @if (pipelineGenerationError()) {
+            <div class="split-switcher__error">
+              <p>{{ pipelineGenerationError()! | translate }}</p>
+              <button class="split-switcher__retry" type="button" (click)="onRetryPipeline()">
+                <mat-icon>refresh</mat-icon>
+                {{ 'PROJECT_DETAIL.PIPELINE.RETRY' | translate }}
+              </button>
+            </div>
+          }
+          @if (hasInfraPipeline()) {
+            <app-bicep-file-panel
+              [nodes]="infraPipelineNodes()"
+              [barTitle]="'pipeline-generator \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
+              [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
+              [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
+              [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
+              [loadFile]="loadPipelineFile()">
+            </app-bicep-file-panel>
+          } @else if (!isGeneratingPipeline() && !pipelineGenerationError()) {
+            <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Bootstrap (Infra-only) -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">rocket_launch</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP_APP' | translate }}</span>
+        </ng-template>
+        <div class="generation-tab-content">
+          @if (isGeneratingBootstrap()) {
+            <div class="split-switcher__loading">
+              <mat-spinner diameter="22"></mat-spinner>
+              <span>{{ 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' | translate }}</span>
+            </div>
+          }
+          @if (bootstrapGenerationError()) {
+            <div class="split-switcher__error">
+              <p>{{ bootstrapGenerationError()! | translate }}</p>
+              <button class="split-switcher__retry" type="button" (click)="onRetryBootstrap()">
+                <mat-icon>refresh</mat-icon>
+                {{ 'PROJECT_DETAIL.BOOTSTRAP.RETRY' | translate }}
+              </button>
+            </div>
+          }
+          @if (infraBootstrapNodes().length > 0) {
+            <app-bicep-file-panel
+              [nodes]="infraBootstrapNodes()"
+              [barTitle]="'bootstrap-generator \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
+              [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
+              [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
+              [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
+              [loadFile]="loadBootstrapFile()">
+            </app-bicep-file-panel>
+          } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError()) {
+            <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
+          }
+
+          <!-- Step-by-step Azure DevOps setup guide (push, run, permissions, finalize). -->
+          <app-bootstrap-setup-guide />
+        </div>
+      </mat-tab>
+      </mat-tab-group>
+    </div>
+    }
+  </mat-tab>
+
+  <!-- ════════════════════════ CODE TAB ════════════════════════ -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon class="split-switcher__tab-icon">code</mat-icon>
+      <span>{{ 'PROJECT_DETAIL.SWITCHER.CODE_TAB' | translate }}</span>
+      <mat-icon class="split-switcher__info-icon"
+                [matTooltip]="'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_INFO' | translate">
+        info_outline
+      </mat-icon>
+      <span class="split-switcher__chip split-switcher__chip--code"
+            [class.split-switcher__chip--empty]="codeFileCount() === 0">
+        {{ codeFileCount() }}
+      </span>
+    </ng-template>
+
+    @if (!collapsed()) {
+    <div class="split-switcher__panel">
+      <div class="split-switcher__cta split-switcher__cta--code">
+        <div class="split-switcher__cta-copy">
+          <span class="split-switcher__cta-eyebrow">{{ 'PROJECT_DETAIL.SWITCHER.CODE_TAB' | translate }}</span>
+          <p class="split-switcher__cta-text">{{ 'PROJECT_DETAIL.SWITCHER.CODE_PUSH_DESC' | translate }}</p>
+        </div>
+        <div class="split-switcher__cta-actions">
+          <app-ds-button
+            variant="success"
+            icon="download"
+            [disabled]="!canDownloadCodeZip()"
+            [loading]="isDownloadingCodeZip()"
+            (clicked)="onDownloadCodeZip()">
+            {{ (isDownloadingCodeZip() ? 'PROJECT_DETAIL.BICEP.DOWNLOADING' : 'PROJECT_DETAIL.BICEP.DOWNLOAD') | translate }}
+          </app-ds-button>
+          <app-ds-button
+            variant="primary"
+            icon="cloud_upload"
+            [disabled]="!canPushCode()"
+            (clicked)="onPushCode()">
+            {{ 'PROJECT_DETAIL.SWITCHER.PUSH_CODE' | translate }}
+          </app-ds-button>
+        </div>
+      </div>
+
+      <mat-tab-group class="generation-tabs split-switcher__inner split-switcher__inner--code"
+                     animationDuration="200ms">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">account_tree</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_PIPELINE' | translate }}</span>
+        </ng-template>
+        <div class="generation-tab-content">
+          @if (isGeneratingPipeline()) {
+            <div class="split-switcher__loading">
+              <mat-spinner diameter="22"></mat-spinner>
+              <span>{{ 'PROJECT_DETAIL.PIPELINE.TERMINAL_GENERATING' | translate }}</span>
+            </div>
+          }
+          @if (pipelineGenerationError()) {
+            <div class="split-switcher__error">
+              <p>{{ pipelineGenerationError()! | translate }}</p>
+              <button class="split-switcher__retry" type="button" (click)="onRetryPipeline()">
+                <mat-icon>refresh</mat-icon>
+                {{ 'PROJECT_DETAIL.PIPELINE.RETRY' | translate }}
+              </button>
+            </div>
+          }
+          @if (hasAppPipeline()) {
+            <app-bicep-file-panel
+              [nodes]="appPipelineNodes()"
+              [barTitle]="'pipeline-generator (code) \u2014 ' + ('PROJECT_DETAIL.PIPELINE.ARTIFACTS' | translate)"
+              [terminalDoneText]="'PROJECT_DETAIL.PIPELINE.TERMINAL_DONE' | translate"
+              [fileLoadingText]="'PROJECT_DETAIL.PIPELINE.FILE_LOADING' | translate"
+              [fileErrorText]="'PROJECT_DETAIL.PIPELINE.FILE_ERROR' | translate"
+              [loadFile]="loadPipelineFile()">
+            </app-bicep-file-panel>
+          } @else if (!isGeneratingPipeline() && !pipelineGenerationError()) {
+            <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">rocket_launch</mat-icon>
+          <span>{{ 'PROJECT_DETAIL.GENERATION.TAB_BOOTSTRAP' | translate }}</span>
+        </ng-template>
+        <div class="generation-tab-content">
+          <section class="split-switcher__bootstrap-guide" aria-labelledby="split-switcher-code-bootstrap-guide-title">
+            <div class="split-switcher__bootstrap-guide-header">
+              <mat-icon class="split-switcher__bootstrap-guide-icon">info</mat-icon>
+              <div class="split-switcher__bootstrap-guide-copy">
+                <span class="split-switcher__bootstrap-guide-eyebrow">{{ 'PROJECT_DETAIL.SWITCHER.CODE_TAB' | translate }}</span>
+                <h3 id="split-switcher-code-bootstrap-guide-title" class="split-switcher__bootstrap-guide-title">
+                  {{ 'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_APP_GUIDE_TITLE' | translate }}
+                </h3>
+              </div>
+            </div>
+
+            <p class="split-switcher__bootstrap-guide-text">
+              {{ 'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_APP_INFO' | translate }}
+            </p>
+
+            <ol class="split-switcher__bootstrap-guide-steps">
+              <li>{{ 'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_APP_STEP_1' | translate }}</li>
+              <li>{{ 'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_APP_STEP_2' | translate }}</li>
+              <li>{{ 'PROJECT_DETAIL.SWITCHER.BOOTSTRAP_APP_STEP_3' | translate }}</li>
+            </ol>
+          </section>
+
+          @if (isGeneratingBootstrap()) {
+            <div class="split-switcher__loading">
+              <mat-spinner diameter="22"></mat-spinner>
+              <span>{{ 'PROJECT_DETAIL.BOOTSTRAP.GENERATING' | translate }}</span>
+            </div>
+          }
+          @if (bootstrapGenerationError()) {
+            <div class="split-switcher__error">
+              <p>{{ bootstrapGenerationError()! | translate }}</p>
+              <button class="split-switcher__retry" type="button" (click)="onRetryBootstrap()">
+                <mat-icon>refresh</mat-icon>
+                {{ 'PROJECT_DETAIL.BOOTSTRAP.RETRY' | translate }}
+              </button>
+            </div>
+          }
+          @if (appBootstrapNodes().length > 0) {
+            <app-bicep-file-panel
+              [nodes]="appBootstrapNodes()"
+              [barTitle]="'bootstrap-generator (code) \u2014 ' + ('PROJECT_DETAIL.BOOTSTRAP.ARTIFACTS' | translate)"
+              [terminalDoneText]="'PROJECT_DETAIL.BOOTSTRAP.TERMINAL_DONE' | translate"
+              [fileLoadingText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_LOADING' | translate"
+              [fileErrorText]="'PROJECT_DETAIL.BOOTSTRAP.FILE_ERROR' | translate"
+              [loadFile]="loadBootstrapFile()">
+            </app-bicep-file-panel>
+          } @else if (!isGeneratingBootstrap() && !bootstrapGenerationError()) {
+            <div class="split-switcher__empty">{{ 'PROJECT_DETAIL.SWITCHER.EMPTY' | translate }}</div>
+          }
+        </div>
+      </mat-tab>
+      </mat-tab-group>
+    </div>
+    }
+  </mat-tab>
+</mat-tab-group>
+</div>

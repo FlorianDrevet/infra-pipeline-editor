@@ -70,7 +70,10 @@ public sealed class AppSettingConfiguration : IEntityTypeConfiguration<AppSettin
             .WithMany()
             .HasForeignKey(s => s.KeyVaultResourceId)
             .IsRequired(false)
-            .OnDelete(DeleteBehavior.Cascade);
+            // Audit DB-006 (2026-04-23): SetNull avoids silent data loss when the referenced
+            // KeyVault is deleted. The mapping becomes invalid → surfaced as a domain error
+            // at write/generation time instead of a silent cascade.
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(s => new { s.ResourceId, s.Name })
             .IsUnique();

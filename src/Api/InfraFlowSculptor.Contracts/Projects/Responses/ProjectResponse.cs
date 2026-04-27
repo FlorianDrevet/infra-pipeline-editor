@@ -11,7 +11,9 @@ public record ProjectResponse(
     IReadOnlyList<EnvironmentDefinitionResponse> EnvironmentDefinitions,
     string? DefaultNamingTemplate,
     IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates,
-    GitConfigResponse? GitRepositoryConfiguration,
-    string RepositoryMode,
+    IReadOnlyList<ResourceAbbreviationOverrideResponse> ResourceAbbreviations,
     IReadOnlyList<TagResponse> Tags,
-    string? AgentPoolName = null);
+    string? AgentPoolName = null,
+    IReadOnlyList<string>? UsedResourceTypes = null,
+    IReadOnlyList<ProjectRepositoryResponse>? Repositories = null,
+    string? LayoutPreset = null);

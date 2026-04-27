@@ -13,5 +13,8 @@ public record CosmosDbResponse(
     string ResourceGroupId,
     string Name,
     string Location,
-    IReadOnlyList<CosmosDbEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<CosmosDbEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

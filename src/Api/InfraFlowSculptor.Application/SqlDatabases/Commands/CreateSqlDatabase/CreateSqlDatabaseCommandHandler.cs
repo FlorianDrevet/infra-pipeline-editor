@@ -52,7 +52,8 @@ public class CreateSqlDatabaseCommandHandler(
                         : (SqlDatabaseSku?)null,
                     ec.MaxSizeGb,
                     ec.ZoneRedundant))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await sqlDatabaseRepository.AddAsync(database);
 

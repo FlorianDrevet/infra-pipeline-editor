@@ -1,0 +1,75 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+}
+
+.ds-card {
+  @include ifs-card-surface($ifs-radius-xl, $ifs-shadow-xs);
+  display: block;
+
+  &--elevated {
+    box-shadow: $ifs-shadow-lg;
+    border-color: $ifs-border-medium;
+  }
+
+  &--outlined {
+    // default surface
+  }
+
+  &--glass {
+    background: rgba(255, 255, 255, 0.86);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  &--accent-primary { border-left: 3px solid $ifs-brand-blue; }
+  &--accent-success { border-left: 3px solid $ifs-success; }
+  &--accent-warning { border-left: 3px solid $ifs-warning; }
+  &--accent-error   { border-left: 3px solid $ifs-error; }
+
+  &--padding-none { padding: 0; }
+  &--padding-sm   { padding: 0.85rem; }
+  &--padding-md   { padding: 1.25rem; }
+  &--padding-lg   { padding: 1.75rem; }
+
+  &.interactive {
+    cursor: pointer;
+    @include ifs-hover-lift;
+  }
+
+  &__header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid $ifs-ink-100;
+
+    &:empty {
+      display: none;
+      margin: 0;
+      padding: 0;
+      border: none;
+    }
+  }
+
+  &__body {
+    &:empty {
+      display: none;
+    }
+  }
+
+  &__footer {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid $ifs-ink-100;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+
+    &:empty {
+      display: none;
+      margin: 0;
+      padding: 0;
+      border: none;
+    }
+  }
+}

@@ -13,5 +13,8 @@ public record AppConfigurationResponse(
     string ResourceGroupId,
     string Name,
     string Location,
-    IReadOnlyList<AppConfigurationEnvironmentConfigResponse> EnvironmentSettings
+    IReadOnlyList<AppConfigurationEnvironmentConfigResponse> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

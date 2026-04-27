@@ -45,8 +45,24 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 - `DependencyInjection.cs` (Application) registers MediatR, ValidationBehavior, UnitOfWorkBehavior, validators by assembly scan.
 - `DependencyInjection.cs` (Infrastructure) registers `IUnitOfWork`.
 
+## User Provisioning [2026-04-22]
+
+- User auto-provisioning is handled by `UserProvisioningMiddleware` (ASP.NET Core middleware, `Api/Common/`).
+- Runs after `UseAuthorization()`, before endpoint execution.
+- On authenticated request: checks if user exists by EntraId, creates + saves immediately if not.
+- Stores `UserId` in `HttpContext.Items["ProvisionedUserId"]`.
+- `ICurrentUser.GetUserIdAsync()` reads from `HttpContext.Items` (synchronous, no DB call).
+- `IUserRepository` is read-only: `GetByEntraIdAsync` (no create method). No `SaveChangesAsync` in repos.
+- **Key design:** middleware owns its own persistence (outside MediatR UoW scope), repos stay pure reads.
+
 ## Shared Authorization Service
 
 - `IInfraConfigAccessService` (injectable): `VerifyReadAccessAsync`, `VerifyWriteAccessAsync`
 - `MemberCommandHelper` for owner-only member management
 - Access check: ResourceGroup has `InfraConfigId` directly; KeyVault/RedisCache have `ResourceGroupId` → load ResourceGroup → use `InfraConfigId`
+
+## Domain Services [2026-04-16]
+
+- `IRoleAssignmentDomainService` / `RoleAssignmentDomainService`: extracted cross-cutting role assignment logic shared by Add/Remove/Assign/Unassign/Update identity handlers.
+- Pattern: when 3+ handlers share identical domain logic (load resource, check access, validate, mutate), extract into a domain service interface + implementation registered in `Application/DependencyInjection.cs`.
+- Domain services live under `Application/{Feature}/Common/`.

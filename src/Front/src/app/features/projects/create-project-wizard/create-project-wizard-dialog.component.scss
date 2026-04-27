@@ -1,0 +1,139 @@
+.wizard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.125rem 1.5rem 0.625rem;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary, #111827);
+  }
+
+  &__banner {
+    padding: 0.875rem 1.5rem 0;
+  }
+
+  &__banner-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__banner-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  &__stepper {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+    flex-shrink: 0;
+  }
+
+  &__submit-error {
+    margin-bottom: 1rem;
+  }
+}
+
+::ng-deep .ifs-wizard-dialog {
+  .mat-mdc-dialog-surface {
+    padding: 0;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  // The stepper internal wrapper must also be a growing flex column
+  .mat-horizontal-stepper-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .mat-horizontal-stepper-header-container {
+    padding: 0.4rem 1rem;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(255, 255, 255, 0.98));
+    flex-shrink: 0;
+    --mat-stepper-header-hover-state-layer-shape: 1rem;
+    --mat-stepper-header-focus-state-layer-shape: 1rem;
+    --mat-stepper-header-hover-state-layer-color: rgba(15, 23, 42, 0.05);
+    --mat-stepper-header-focus-state-layer-color: rgba(2, 136, 209, 0.12);
+  }
+
+  // Space between connector line and step circles
+  .mat-stepper-horizontal-line {
+    margin: 0 10px;
+  }
+
+  .mat-step-header {
+    min-width: 0;
+    padding: 0.9rem 0.85rem;
+    border-radius: 1rem;
+    overflow: hidden;
+    transition:
+      background-color 140ms ease-out,
+      box-shadow 140ms ease-out;
+  }
+
+  .mat-step-header:hover:not([aria-disabled]),
+  .mat-step-header:hover[aria-disabled='false'],
+  .mat-step-header.cdk-keyboard-focused,
+  .mat-step-header.cdk-program-focused {
+    box-shadow: inset 0 0 0 1px rgba(2, 136, 209, 0.08);
+  }
+
+  .mat-step-label,
+  .mat-step-text-label {
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .mat-horizontal-content-container {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .wizard {
+    &__header {
+      padding: 1rem 1rem 0.5rem;
+    }
+
+    &__banner {
+      padding: 0.75rem 1rem 0;
+    }
+
+    &__footer {
+      padding: 0.75rem 1rem;
+    }
+  }
+}

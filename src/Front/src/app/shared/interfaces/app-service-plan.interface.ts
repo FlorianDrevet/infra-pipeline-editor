@@ -10,6 +10,7 @@ export interface AppServicePlanEnvironmentConfigResponse {
   environmentName: string;
   sku: string | null;
   capacity: number | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -21,6 +22,7 @@ export interface AppServicePlanResponse {
   location: string;
   osType: string;
   environmentSettings: AppServicePlanEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -31,6 +33,7 @@ export interface CreateAppServicePlanRequest {
   location: string;
   osType: string;
   environmentSettings?: AppServicePlanEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateAppServicePlanRequest {

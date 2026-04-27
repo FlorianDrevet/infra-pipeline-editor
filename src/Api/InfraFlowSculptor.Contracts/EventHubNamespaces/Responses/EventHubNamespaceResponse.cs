@@ -17,4 +17,6 @@ public record EventHubNamespaceResponse(
 public record EventHubResponse(string Id, string Name);
 
 /// <summary>Response DTO for an Event Hub Consumer Group.</summary>
-public record EventHubConsumerGroupResponse(string Id, string EventHubName, string ConsumerGroupName);
+public record EventHubConsumerGroupResponse(string Id, string EventHubName, string ConsumerGroupName,
+    bool IsExisting = false
+);

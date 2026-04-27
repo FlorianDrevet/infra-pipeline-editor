@@ -1,3 +1,6 @@
-@use "vars" as *;
-@use "typography" as *;
-@use "colors" as *;
+@forward "tokens";
+@forward "vars";
+@forward "typography";
+@forward "colors";
+@forward "mixins";
+@forward "animations";

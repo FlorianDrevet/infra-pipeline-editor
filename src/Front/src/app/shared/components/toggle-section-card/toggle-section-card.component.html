@@ -1,0 +1,32 @@
+<div class="toggle-card"
+     [class.toggle-card--enabled]="enabled()"
+     [class.toggle-card--disabled]="disabled()"
+     [style.--toggle-card-accent]="accentColor()"
+     [style.border-left-color]="enabled() ? accentColor() : 'transparent'">
+  <div class="toggle-card__header">
+    <div class="toggle-card__identity">
+      <div class="toggle-card__icon-wrapper">
+        <mat-icon class="toggle-card__icon">{{ icon() }}</mat-icon>
+      </div>
+      <div class="toggle-card__titles">
+        <span class="toggle-card__title">{{ title() }}</span>
+        @if (subtitle()) {
+          <span class="toggle-card__subtitle">{{ subtitle() }}</span>
+        }
+      </div>
+    </div>
+    <app-ds-toggle
+      class="toggle-card__toggle"
+      [disabled]="disabled()"
+      [ariaLabel]="title()"
+      [ngModel]="enabled()"
+      [ngModelOptions]="{ standalone: true }"
+      (ngModelChange)="enabledChange.emit($event)">
+    </app-ds-toggle>
+  </div>
+  @if (enabled()) {
+    <div class="toggle-card__body">
+      <ng-content></ng-content>
+    </div>
+  }
+</div>

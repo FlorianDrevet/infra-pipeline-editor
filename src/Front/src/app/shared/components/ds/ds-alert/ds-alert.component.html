@@ -1,0 +1,16 @@
+@if (visible()) {
+  <div class="ds-alert ds-alert--{{ severity() }}" role="alert">
+    <mat-icon class="ds-alert__icon">{{ resolvedIcon() }}</mat-icon>
+    <div class="ds-alert__content">
+      @if (title()) {
+        <div class="ds-alert__title">{{ title() }}</div>
+      }
+      <div class="ds-alert__body"><ng-content></ng-content></div>
+    </div>
+    @if (dismissible()) {
+      <button type="button" class="ds-alert__close" (click)="onDismiss()" aria-label="Dismiss">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </div>
+}

@@ -12,5 +12,8 @@ public record AppConfigurationResult(
     ResourceGroupId ResourceGroupId,
     Name Name,
     Location Location,
-    IReadOnlyList<AppConfigurationEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyList<AppConfigurationEnvironmentConfigData> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

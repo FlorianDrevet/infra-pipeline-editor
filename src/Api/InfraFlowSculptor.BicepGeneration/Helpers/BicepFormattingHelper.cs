@@ -55,6 +55,7 @@ internal static class BicepFormattingHelper
             string => "string",
             int or long or double => "int",
             bool => "bool",
+            System.Collections.IList => "array",
             _ => "object"
         };
     }
@@ -66,6 +67,8 @@ internal static class BicepFormattingHelper
             string s => $"'{s}'",
             bool b => b ? "true" : "false",
             int or long or double => value.ToString()!,
+            IList<object> list => SerializeArray(list),
+            IDictionary<string, object> dict => SerializeDictionary(dict),
             _ => SerializeObject(value)
         };
     }
@@ -85,6 +88,42 @@ internal static class BicepFormattingHelper
         }
 
         sb.Append('}');
+        return sb.ToString();
+    }
+
+    private static string SerializeDictionary(IDictionary<string, object> dict)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("{");
+
+        foreach (var (key, value) in dict)
+        {
+            if (value is not null)
+                sb.AppendLine($"  {key}: {SerializeToBicep(value)}");
+        }
+
+        sb.Append('}');
+        return sb.ToString();
+    }
+
+    private static string SerializeArray(IList<object> items)
+    {
+        if (items.Count == 0)
+            return "[]";
+
+        var sb = new StringBuilder();
+        sb.AppendLine("[");
+
+        foreach (var item in items)
+        {
+            var serialized = SerializeToBicep(item);
+            foreach (var line in serialized.Split('\n'))
+            {
+                sb.AppendLine($"  {line.TrimEnd()}");
+            }
+        }
+
+        sb.Append(']');
         return sb.ToString();
     }
 

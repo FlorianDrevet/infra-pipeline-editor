@@ -61,6 +61,9 @@ public class CreateWebAppCommandHandler(
             request.HttpsOnly,
             deploymentMode,
             containerRegistryId,
+            !string.IsNullOrWhiteSpace(request.AcrAuthMode)
+                ? new AcrAuthMode(Enum.Parse<AcrAuthMode.AcrAuthModeType>(request.AcrAuthMode))
+                : null,
             request.DockerImageName,
             request.DockerfilePath,
             request.SourceCodePath,
@@ -71,7 +74,8 @@ public class CreateWebAppCommandHandler(
                     ec.AlwaysOn,
                     ec.HttpsOnly,
                     ec.DockerImageTag))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await webAppRepository.AddAsync(webApp);
 

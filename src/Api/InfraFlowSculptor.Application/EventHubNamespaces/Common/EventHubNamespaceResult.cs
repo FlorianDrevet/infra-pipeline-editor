@@ -19,4 +19,6 @@ public record EventHubNamespaceResult(
 public record EventHubResult(Guid Id, string Name);
 
 /// <summary>Application-layer result for an Event Hub Consumer Group.</summary>
-public record EventHubConsumerGroupResult(Guid Id, string EventHubName, string ConsumerGroupName);
+public record EventHubConsumerGroupResult(Guid Id, string EventHubName, string ConsumerGroupName,
+    bool IsExisting = false
+);

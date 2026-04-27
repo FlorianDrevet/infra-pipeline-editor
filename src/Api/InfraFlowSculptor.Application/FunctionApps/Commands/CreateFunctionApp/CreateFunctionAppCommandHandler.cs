@@ -60,6 +60,9 @@ public sealed class CreateFunctionAppCommandHandler(
             request.HttpsOnly,
             deploymentMode,
             containerRegistryId,
+            !string.IsNullOrWhiteSpace(request.AcrAuthMode)
+                ? new AcrAuthMode(Enum.Parse<AcrAuthMode.AcrAuthModeType>(request.AcrAuthMode))
+                : null,
             request.DockerImageName,
             request.DockerfilePath,
             request.SourceCodePath,
@@ -70,7 +73,8 @@ public sealed class CreateFunctionAppCommandHandler(
                     ec.HttpsOnly,
                     ec.MaxInstanceCount,
                     ec.DockerImageTag))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await functionAppRepository.AddAsync(functionApp);
 

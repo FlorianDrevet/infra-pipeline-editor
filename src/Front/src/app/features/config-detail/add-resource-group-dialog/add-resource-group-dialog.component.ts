@@ -1,13 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { DsButtonComponent, DsSelectComponent, DsTextFieldComponent } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { TranslateModule } from '@ngx-translate/core';
 import { ResourceGroupResponse } from '../../../shared/interfaces/resource-group.interface';
 import { ResourceGroupService } from '../../../shared/services/resource-group.service';
@@ -23,14 +20,13 @@ export interface AddResourceGroupDialogData {
   imports: [
     MatButtonModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
-    MatOptionModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     ReactiveFormsModule,
     TranslateModule,
+      DsButtonComponent,
+      DsSelectComponent,
+      DsTextFieldComponent,
   ],
   templateUrl: './add-resource-group-dialog.component.html',
   styleUrl: './add-resource-group-dialog.component.scss',

@@ -22,6 +22,9 @@ public sealed class GenerationResult : IGenerationResult
     public IReadOnlyDictionary<string, string> ModuleFiles { get; init; } =
         new Dictionary<string, string>();
 
+    /// <summary>Role assignments used to build <c>constants.bicep</c> for this config.</summary>
+    public IReadOnlyList<RoleAssignmentDefinition> RoleAssignments { get; init; } = [];
+
     /// <summary>Content of <c>constants.bicep</c> — exported RBAC role definitions grouped by service.</summary>
     public string ConstantsBicep { get; init; } = string.Empty;
 

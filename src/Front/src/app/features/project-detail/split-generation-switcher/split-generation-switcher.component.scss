@@ -1,0 +1,365 @@
+// Outer two-level switcher styles. Inner sub-tabs reuse the existing
+// `.generation-tabs` class from project-detail.component.scss (dark theme).
+
+.split-switcher__shell {
+  position: relative;
+}
+
+.split-switcher__header-actions {
+  position: absolute;
+  top: 0.62rem;
+  right: 0.8rem;
+  z-index: 3;
+  display: inline-flex;
+}
+
+.split-switcher {
+  border-radius: 1.6rem;
+  background: rgba(10, 18, 32, 0.92);
+  border: 1px solid rgba(146, 191, 235, 0.18);
+  box-shadow: 0 24px 54px rgba(16, 52, 86, 0.12);
+  overflow: hidden;
+
+  // Angular Material CSS vars for outer Infra/Code tabs
+  --mat-tab-inactive-label-text-color: rgba(255, 255, 255, 0.55);
+  --mat-tab-inactive-hover-label-text-color: rgba(255, 255, 255, 0.78);
+  --mat-tab-inactive-focus-label-text-color: rgba(255, 255, 255, 0.78);
+  --mat-tab-active-label-text-color: #5cb6ff;
+  --mat-tab-active-hover-label-text-color: #7dc8ff;
+  --mat-tab-active-focus-label-text-color: #7dc8ff;
+  --mat-tab-active-focus-state-layer-opacity: 0;
+  --mat-tab-active-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-focus-state-layer-opacity: 0;
+  --mat-tab-inactive-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-hover-state-layer-opacity: 0;
+
+  ::ng-deep > .mat-mdc-tab-header {
+    border-bottom: 1px solid rgba(146, 191, 235, 0.2);
+    background: rgba(10, 18, 32, 0.72);
+    padding: 0 4.2rem 0 0.5rem;
+  }
+
+  ::ng-deep > .mat-mdc-tab-header .mat-mdc-tab {
+    height: 3.6rem;
+    min-width: 0;
+    padding: 0 1.4rem;
+  }
+
+  ::ng-deep > .mat-mdc-tab-header .mdc-tab__text-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.01em;
+  }
+
+  ::ng-deep > .mat-mdc-tab-header .mdc-tab-indicator__content--underline {
+    border-color: #5cb6ff;
+    border-width: 2.5px;
+  }
+
+  ::ng-deep > .mat-mdc-tab-header .mat-mdc-tab:nth-of-type(2).mdc-tab--active .mdc-tab-indicator__content--underline {
+    border-color: #4dd0e1;
+  }
+
+  // Active second-tab color override (Code tab uses teal)
+  ::ng-deep > .mat-mdc-tab-header .mat-mdc-tab:nth-of-type(2).mdc-tab--active .mdc-tab__text-label {
+    color: #4dd0e1;
+  }
+}
+
+.split-switcher__tab-icon {
+  font-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.split-switcher__info-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: help;
+}
+
+.split-switcher__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.4rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+
+  &--infra {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  &--code {
+    background: #e0f7fa;
+    color: #00838f;
+  }
+
+  &--empty {
+    opacity: 0.5;
+  }
+}
+
+.split-switcher__panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.split-switcher__cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem 1rem;
+  border-bottom: 1px solid rgba(146, 191, 235, 0.14);
+  background: linear-gradient(135deg, rgba(14, 35, 62, 0.94), rgba(10, 18, 32, 0.9));
+
+  app-ds-button {
+    flex: none;
+  }
+
+  &--code {
+    background: linear-gradient(135deg, rgba(8, 39, 48, 0.94), rgba(10, 18, 32, 0.9));
+  }
+
+  @media (max-width: 720px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.split-switcher__cta-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: none;
+
+  @media (max-width: 720px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.split-switcher__cta-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.split-switcher__cta-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(124, 194, 255, 0.82);
+}
+
+.split-switcher__cta--code .split-switcher__cta-eyebrow {
+  color: rgba(109, 231, 255, 0.82);
+}
+
+.split-switcher__cta-text {
+  margin: 0;
+  max-width: 38rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+// Inner mat-tab-group: replicate dark-theme tab styles since the parent's
+// `.generation-tabs` is encapsulated and does not leak into this child component.
+.split-switcher__inner {
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent;
+
+  --mat-tab-inactive-label-text-color: rgba(255, 255, 255, 0.6);
+  --mat-tab-inactive-hover-label-text-color: rgba(255, 255, 255, 0.82);
+  --mat-tab-inactive-focus-label-text-color: rgba(255, 255, 255, 0.82);
+  --mat-tab-active-label-text-color: #00bcd4;
+  --mat-tab-active-hover-label-text-color: #00e5ff;
+  --mat-tab-active-focus-label-text-color: #00e5ff;
+  --mat-tab-active-focus-state-layer-opacity: 0;
+  --mat-tab-active-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-focus-state-layer-opacity: 0;
+  --mat-tab-inactive-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-hover-state-layer-opacity: 0;
+
+  ::ng-deep .mat-mdc-tab-header {
+    border-bottom: 1px solid rgba(0, 188, 212, 0.15);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0 0.5rem;
+  }
+
+  ::ng-deep .mdc-tab__text-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    font-size: 0.84rem;
+  }
+
+  ::ng-deep .mdc-tab-indicator__content--underline {
+    border-color: #00bcd4;
+    border-width: 2.5px;
+  }
+
+  &--code {
+    --mat-tab-active-label-text-color: #4dd0e1;
+    --mat-tab-active-hover-label-text-color: #80deea;
+    --mat-tab-active-focus-label-text-color: #80deea;
+
+    ::ng-deep .mdc-tab-indicator__content--underline {
+      border-color: #4dd0e1;
+    }
+  }
+}
+
+.split-switcher__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 1rem 1.2rem;
+  border-radius: 0.9rem;
+  background: rgba(0, 188, 212, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.88rem;
+}
+
+.split-switcher__error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 1rem 1.2rem;
+  border-radius: 0.9rem;
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  color: #ffb4ab;
+  font-size: 0.88rem;
+
+  p { margin: 0; }
+}
+
+.split-switcher__retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease;
+
+  mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.split-switcher__empty {
+  margin: 0;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.9rem;
+}
+
+.split-switcher__bootstrap-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(77, 208, 225, 0.22);
+  background:
+    linear-gradient(135deg, rgba(12, 66, 78, 0.34), rgba(8, 28, 42, 0.7)),
+    rgba(10, 18, 32, 0.92);
+}
+
+.split-switcher__bootstrap-guide-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.split-switcher__bootstrap-guide-icon {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  font-size: 1.15rem;
+  color: #6de7ff;
+}
+
+.split-switcher__bootstrap-guide-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.split-switcher__bootstrap-guide-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(109, 231, 255, 0.78);
+}
+
+.split-switcher__bootstrap-guide-title {
+  margin: 0;
+  color: #f4fbff;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.split-switcher__bootstrap-guide-text {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.split-switcher__bootstrap-guide-steps {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: rgba(233, 244, 255, 0.84);
+  font-size: 0.82rem;
+  line-height: 1.55;
+
+  li + li {
+    margin-top: 0.35rem;
+  }
+}
+
+// ─── Replicate parent-scoped utility classes used in the template ───
+
+.generation-tab-content {
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tab-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}

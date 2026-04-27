@@ -1,5 +1,5 @@
 import { Component, input, output, signal, computed, ElementRef, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MatIconModule } from '@angular/material/icon';
 import { OverlayModule, CdkOverlayOrigin, CdkConnectedOverlay } from '@angular/cdk/overlay';
 
@@ -12,7 +12,7 @@ export interface CompactSelectOption {
 @Component({
   selector: 'app-compact-select',
   standalone: true,
-  imports: [CommonModule, MatIconModule, OverlayModule],
+  imports: [MatIconModule, OverlayModule],
   templateUrl: './compact-select.component.html',
   styleUrl: './compact-select.component.scss',
 })

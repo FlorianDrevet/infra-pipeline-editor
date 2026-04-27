@@ -1,7 +1,9 @@
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 using InfraFlowSculptor.PipelineGeneration.Generators;
+using InfraFlowSculptor.PipelineGeneration.Generators.App;
 
 namespace InfraFlowSculptor.PipelineGeneration;
 
@@ -36,6 +38,12 @@ public sealed class AppPipelineGenerationEngine
     /// </exception>
     public AppPipelineGenerationResult Generate(AppPipelineGenerationRequest request)
     {
+        // Sanitize names that become path segments or YAML references
+        request.ResourceName = PathSanitizer.Sanitize(request.ResourceName);
+        request.ConfigName = PathSanitizer.Sanitize(request.ConfigName);
+        if (request.ApplicationName is not null)
+            request.ApplicationName = PathSanitizer.Sanitize(request.ApplicationName);
+
         if (!Enum.TryParse<DeploymentMode.DeploymentModeType>(request.DeploymentMode, ignoreCase: true, out _))
         {
             throw new ArgumentException(
@@ -80,7 +88,18 @@ public sealed class AppPipelineGenerationEngine
     }
 
     /// <summary>
-    /// Generates isolated per-resource pipelines, each under apps/{appName}/.
+    /// Generates the shared application pipeline templates under <c>.azuredevops/{pipelines,jobs,steps}/</c>.
+    /// These templates are referenced by per-resource wrapper pipelines via <c>extends:</c>.
+    /// </summary>
+    /// <returns>Dictionary keyed by repository-relative path → YAML content.</returns>
+    public static IReadOnlyDictionary<string, string> GenerateSharedTemplates()
+    {
+        return AppPipelineTemplatesGenerator.GenerateAll();
+    }
+
+    /// <summary>
+    /// Generates isolated per-resource pipeline wrappers, each under apps/{appName}/.
+    /// Shared templates are emitted separately via <see cref="GenerateSharedTemplates"/>.
     /// </summary>
     private AppPipelineGenerationResult GenerateIsolated(
         IReadOnlyList<AppPipelineGenerationRequest> requests,
@@ -91,11 +110,11 @@ public sealed class AppPipelineGenerationEngine
         foreach (var request in requests)
         {
             var result = Generate(request);
-            var appName = request.ApplicationName ?? request.ResourceName;
+            var appName = PathSanitizer.Sanitize(request.ApplicationName ?? request.ResourceName);
 
             foreach (var (path, content) in result.Files)
             {
-                mergedFiles[$"apps/{appName}/{path}"] = content;
+                mergedFiles[BuildIsolatedOutputPath(appName, path)] = content;
             }
         }
 
@@ -103,26 +122,56 @@ public sealed class AppPipelineGenerationEngine
     }
 
     /// <summary>
-    /// Generates a single combined CI + release pipeline with parallel jobs per resource.
+    /// Generates combined per-config pipeline wrappers under apps/{configName}/.
+    /// Shared templates are emitted separately via <see cref="GenerateSharedTemplates"/>.
     /// </summary>
     private AppPipelineGenerationResult GenerateCombined(
         IReadOnlyList<AppPipelineGenerationRequest> requests,
         string configName)
     {
-        // For combined mode, generate per-resource then merge under a single directory
+        configName = PathSanitizer.Sanitize(configName);
+
         var mergedFiles = new Dictionary<string, string>();
 
         foreach (var request in requests)
         {
             var result = Generate(request);
-            var appName = request.ApplicationName ?? request.ResourceName;
+            var appName = PathSanitizer.Sanitize(request.ApplicationName ?? request.ResourceName);
 
             foreach (var (path, content) in result.Files)
             {
-                mergedFiles[$"apps/{configName}/{appName}-{path}"] = content;
+                mergedFiles[BuildCombinedOutputPath(configName, appName, path)] = content;
             }
         }
 
         return new AppPipelineGenerationResult { Files = mergedFiles };
+    }
+
+    private static string BuildIsolatedOutputPath(string appName, string generatedPath)
+    {
+        var appRelativePath = TrimRedundantAppSegment(appName, generatedPath);
+        return $"apps/{appName}/{appRelativePath}";
+    }
+
+    private static string BuildCombinedOutputPath(string configName, string appName, string generatedPath)
+    {
+        var appRelativePath = TrimRedundantAppSegment(appName, generatedPath)
+            .Replace('/', '-');
+
+        return $"apps/{configName}/{appName}-{appRelativePath}";
+    }
+
+    private static string TrimRedundantAppSegment(string appName, string generatedPath)
+    {
+        var normalizedPath = generatedPath.TrimStart('/');
+        var separatorIndex = normalizedPath.IndexOf('/');
+        if (separatorIndex < 0)
+            return normalizedPath;
+
+        var firstSegment = normalizedPath[..separatorIndex];
+        if (!string.Equals(firstSegment, appName, StringComparison.OrdinalIgnoreCase))
+            return normalizedPath;
+
+        return normalizedPath[(separatorIndex + 1)..];
     }
 }

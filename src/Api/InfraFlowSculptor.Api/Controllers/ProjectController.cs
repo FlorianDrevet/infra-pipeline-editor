@@ -1,40 +1,57 @@
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.SetInfraConfigLayoutMode;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.AddInfraConfigRepository;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.UpdateInfraConfigRepository;
+using InfraFlowSculptor.Application.InfrastructureConfig.Commands.RemoveInfraConfigRepository;
+using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Application.InfrastructureConfig.Queries.ListUsers;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectEnvironment;
+using InfraFlowSculptor.Application.Projects.Commands.AddProjectRepository;
 using InfraFlowSculptor.Application.Projects.Commands.DeleteProject;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectMember;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProject;
+using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Application.Projects.Commands.DownloadProjectBicep;
 using InfraFlowSculptor.Application.Projects.Commands.DownloadProjectPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectPipeline;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectBicepToGit;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectGeneratedArtifactsToGit;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectArtifactsToMultiRepo;
 using InfraFlowSculptor.Application.Projects.Commands.PushProjectPipelineToGit;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectEnvironment;
-using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectGitConfig;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectMember;
+using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectRepository;
+using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectResourceAbbreviation;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectResourceNamingTemplate;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectDefaultNamingTemplate;
-using InfraFlowSculptor.Application.Projects.Commands.SetProjectGitConfig;
+using InfraFlowSculptor.Application.Projects.Commands.SetProjectLayoutPreset;
+using InfraFlowSculptor.Application.Projects.Commands.SetProjectResourceAbbreviation;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectResourceNamingTemplate;
-using InfraFlowSculptor.Application.Projects.Commands.SetRepositoryMode;
 using InfraFlowSculptor.Application.Projects.Commands.SetAgentPool;
 using InfraFlowSculptor.Application.Projects.Commands.TestGitConnection;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectEnvironment;
 using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectMemberRole;
+using InfraFlowSculptor.Application.Projects.Commands.UpdateProjectRepository;
 using InfraFlowSculptor.Application.Projects.Commands.AddProjectPipelineVariableGroup;
 using InfraFlowSculptor.Application.Projects.Commands.RemoveProjectPipelineVariableGroup;
 using InfraFlowSculptor.Application.Projects.Commands.SetProjectTags;
 using InfraFlowSculptor.Application.Projects.Queries.GetProject;
+using InfraFlowSculptor.Application.Projects.Commands.DownloadProjectBootstrapPipeline;
+using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBootstrapPipeline;
+using InfraFlowSculptor.Application.Projects.Commands.PushProjectBootstrapPipelineToGit;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectBicepFileContent;
+using InfraFlowSculptor.Application.Projects.Queries.GetProjectBootstrapPipelineFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.GetProjectPipelineFileContent;
 using InfraFlowSculptor.Application.Projects.Queries.ListGitBranches;
+using InfraFlowSculptor.Application.Projects.Queries.ListCodeRepoBranches;
+using InfraFlowSculptor.Application.Projects.Queries.SearchCodeRepoFiles;
 using InfraFlowSculptor.Application.Projects.Queries.ListMyProjects;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectConfigs;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectResources;
 using InfraFlowSculptor.Application.Projects.Queries.ListProjectPipelineVariableGroups;
 using InfraFlowSculptor.Application.Projects.Queries.ValidateRecentItems;
-using InfraFlowSculptor.Contracts.InfrastructureConfig.Requests;
 using InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 using InfraFlowSculptor.Contracts.Projects.Requests;
 using InfraFlowSculptor.Contracts.Projects.Responses;
@@ -43,7 +60,9 @@ using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using InfraFlowSculptor.Api.Common;
 using InfraFlowSculptor.Api.Errors;
+using InfraFlowSculptor.Api.RateLimiting;
 
 namespace InfraFlowSculptor.Api.Controllers;
 
@@ -121,6 +140,28 @@ public static class ProjectController
                 .WithName("CreateProject")
                 .WithSummary("Create a Project")
                 .WithDescription("Creates a new Project. The current user is automatically added as Owner.")
+                .Produces<ProjectResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+            group.MapPost("/with-setup",
+                    async (CreateProjectWithSetupRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = mapper.Map<CreateProjectWithSetupCommand>(request);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            project =>
+                            {
+                                var response = mapper.Map<ProjectResponse>(project);
+                                return Results.Created($"/projects/{response.Id}", response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("CreateProjectWithSetup")
+                .WithSummary("Create a Project with setup")
+                .WithDescription("Creates a new Project and applies the wizard layout, environments, and repository slots in a single operation.")
                 .Produces<ProjectResponse>(StatusCodes.Status201Created)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
@@ -414,6 +455,54 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
+            // ── Abbreviation Overrides ────────────────────────────────
+
+            group.MapPut("/{id:guid}/naming/abbreviations/{resourceType}",
+                    async ([FromRoute] Guid id, [FromRoute] string resourceType, SetResourceAbbreviationOverrideRequest request, IMediator mediator, IMapper mapper) =>
+                    {
+                        var command = new SetProjectResourceAbbreviationCommand(
+                            new ProjectId(id),
+                            resourceType,
+                            request.Abbreviation
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            abbr => Results.Ok(mapper.Map<ResourceAbbreviationOverrideResponse>(abbr)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetProjectResourceAbbreviation")
+                .WithSummary("Set a per-resource-type abbreviation override")
+                .WithDescription("Creates or replaces the abbreviation for a specific Azure resource type at the project level. Must be lowercase alphanumeric, max 10 characters. Requires Owner or Contributor access.")
+                .Produces<ResourceAbbreviationOverrideResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapDelete("/{id:guid}/naming/abbreviations/{resourceType}",
+                    async ([FromRoute] Guid id, [FromRoute] string resourceType, IMediator mediator) =>
+                    {
+                        var command = new RemoveProjectResourceAbbreviationCommand(
+                            new ProjectId(id),
+                            resourceType
+                        );
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveProjectResourceAbbreviation")
+                .WithSummary("Remove a per-resource-type abbreviation override")
+                .WithDescription("Removes the abbreviation override for a specific Azure resource type from the project. The catalog default will be used instead. Requires Owner or Contributor access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
             // ── Tags ──────────────────────────────────────────────────
 
             group.MapPut("/{id:guid}/tags",
@@ -484,49 +573,7 @@ public static class ProjectController
                 .Produces<IReadOnlyList<RecentItemResponse>>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-            // ── Git Repository Configuration ─────────────────────────────
-
-            group.MapPut("/{projectId:guid}/git-config",
-                    async ([FromRoute] Guid projectId, [FromBody] SetGitConfigRequest request,
-                        IMediator mediator, IMapper mapper) =>
-                    {
-                        var command = mapper.Map<SetProjectGitConfigCommand>(request) with
-                        {
-                            ProjectId = new ProjectId(projectId)
-                        };
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            _ => Results.NoContent(),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("SetProjectGitConfig")
-                .WithSummary("Set or update Git repository configuration")
-                .WithDescription("Configures the Git repository where generated Bicep files can be pushed. Requires Owner access.")
-                .Produces(StatusCodes.Status204NoContent)
-                .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status401Unauthorized)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
-
-            group.MapDelete("/{projectId:guid}/git-config",
-                    async ([FromRoute] Guid projectId, IMediator mediator) =>
-                    {
-                        var command = new RemoveProjectGitConfigCommand(new ProjectId(projectId));
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            _ => Results.NoContent(),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("RemoveProjectGitConfig")
-                .WithSummary("Remove Git repository configuration")
-                .WithDescription("Removes the Git repository configuration from the project. Requires Owner access.")
-                .Produces(StatusCodes.Status204NoContent)
-                .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status401Unauthorized)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
+            // ── Git Repository Operations (test + list branches) ─────────────────────────────
 
             group.MapPost("/{projectId:guid}/git-config/test",
                     async ([FromRoute] Guid projectId, IMediator mediator, IMapper mapper) =>
@@ -570,6 +617,61 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
+            // ── Git Code Repository Operations (branches + file search) ─────────────────
+
+            group.MapGet("/{projectId:guid}/git-config/code-branches",
+                    async ([FromRoute] Guid projectId, [FromQuery] Guid? configId, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new ListCodeRepoBranchesQuery(
+                            new ProjectId(projectId),
+                            configId.HasValue ? new InfrastructureConfigId(configId.Value) : null);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            branches =>
+                            {
+                                var responses = branches.Select(b => mapper.Map<GitBranchResponse>(b)).ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("ListCodeRepoBranches")
+                .WithSummary("List code repository branches")
+                .WithDescription("Lists all branches in the application-code Git repository. Requires read access to the project.")
+                .Produces<IReadOnlyList<GitBranchResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{projectId:guid}/git-config/code-files",
+                    async ([FromRoute] Guid projectId, [FromQuery] string branch, [FromQuery] string? pattern, [FromQuery] Guid? configId, IMediator mediator, IMapper mapper) =>
+                    {
+                        var query = new SearchCodeRepoFilesQuery(
+                            new ProjectId(projectId),
+                            branch,
+                            pattern,
+                            configId.HasValue ? new InfrastructureConfigId(configId.Value) : null);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            files =>
+                            {
+                                var responses = files.Select(f => mapper.Map<GitFileResponse>(f)).ToList();
+                                return TypedResults.Ok(responses);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SearchCodeRepoFiles")
+                .WithSummary("Search files in code repository")
+                .WithDescription("Searches for files matching a filename pattern in the application-code Git repository on a specific branch. Requires read access to the project.")
+                .Produces<IReadOnlyList<GitFileResponse>>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden)
+                .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
+
             // GET /{id:guid}/resources
             group.MapGet("/{id:guid}/resources",
                     async ([FromRoute] Guid id, IMediator mediator, IMapper mapper) =>
@@ -590,31 +692,6 @@ public static class ProjectController
                 .WithSummary("List all resources across configurations")
                 .WithDescription("Returns all Azure resources across all infrastructure configurations in the project. Used for cross-config resource reference selection.")
                 .Produces<IReadOnlyList<ProjectResourceResponse>>(StatusCodes.Status200OK)
-                .ProducesProblem(StatusCodes.Status404NotFound)
-                .ProducesProblem(StatusCodes.Status401Unauthorized)
-                .ProducesProblem(StatusCodes.Status403Forbidden);
-
-            // ── Repository Mode ─────────────────────────────────────────
-
-            group.MapPut("/{projectId:guid}/repository-mode",
-                    async ([FromRoute] Guid projectId,
-                        [FromBody] SetRepositoryModeRequest request,
-                        IMediator mediator) =>
-                    {
-                        var command = new SetRepositoryModeCommand(
-                            new ProjectId(projectId),
-                            request.RepositoryMode);
-                        var result = await mediator.Send(command);
-
-                        return result.Match(
-                            _ => Results.NoContent(),
-                            errors => errors.Result()
-                        );
-                    })
-                .WithName("SetRepositoryMode")
-                .WithSummary("Set the repository mode (MonoRepo/MultiRepo)")
-                .WithDescription("Configures how generated Bicep files are organized: MultiRepo (per-config push) or MonoRepo (project-level push with shared Common folder). Requires Owner access.")
-                .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
@@ -644,6 +721,205 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
 
+            // ── Repositories (V1 multi-repo topology) ───────────────────
+
+            group.MapPost("/{projectId:guid}/repositories",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] AddProjectRepositoryRequest request,
+                        IMediator mediator) =>
+                    {
+                        var command = new AddProjectRepositoryCommand(
+                            new ProjectId(projectId),
+                            request.Alias,
+                            request.ProviderType,
+                            request.RepositoryUrl,
+                            request.DefaultBranch,
+                            request.ContentKinds);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            repoId => Results.Created(
+                                $"/projects/{projectId}/repositories/{repoId.Value}",
+                                new { id = repoId.Value.ToString() }),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("AddProjectRepository")
+                .WithSummary("Add a project-level Git repository declaration")
+                .WithDescription("Declares a new Git repository at the project level. Each repository has a project-scoped alias and one or more content kinds (Infrastructure, ApplicationCode, Pipelines). Requires Owner access.")
+                .Produces(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPut("/{projectId:guid}/repositories/{repoId:guid}",
+                    async ([FromRoute] Guid projectId,
+                        [FromRoute] Guid repoId,
+                        [FromBody] UpdateProjectRepositoryRequest request,
+                        IMediator mediator) =>
+                    {
+                        var command = new UpdateProjectRepositoryCommand(
+                            new ProjectId(projectId),
+                            new ProjectRepositoryId(repoId),
+                            request.ProviderType,
+                            request.RepositoryUrl,
+                            request.DefaultBranch,
+                            request.ContentKinds);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("UpdateProjectRepository")
+                .WithSummary("Update a project-level Git repository declaration")
+                .WithDescription("Updates an existing project repository (alias is immutable). Requires Owner access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapDelete("/{projectId:guid}/repositories/{repoId:guid}",
+                    async ([FromRoute] Guid projectId,
+                        [FromRoute] Guid repoId,
+                        IMediator mediator) =>
+                    {
+                        var command = new RemoveProjectRepositoryCommand(
+                            new ProjectId(projectId),
+                            new ProjectRepositoryId(repoId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("RemoveProjectRepository")
+                .WithSummary("Remove a project-level Git repository declaration")
+                .WithDescription("Removes a project repository. Returns 409 Conflict if the repository is still referenced by an infrastructure configuration binding. Requires Owner access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status409Conflict)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPut("/{projectId:guid}/layout-preset",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] SetProjectLayoutPresetRequest request,
+                        IMediator mediator) =>
+                    {
+                        var command = new SetProjectLayoutPresetCommand(
+                            new ProjectId(projectId),
+                            request.Preset);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            _ => Results.NoContent(),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("SetProjectLayoutPreset")
+                .WithSummary("Set the project layout preset")
+                .WithDescription("Updates the project layout preset. Valid values: AllInOne, SplitInfraCode, MultiRepo. Switching to MultiRepo auto-clears project repositories. Requires Owner access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+
+            // ── InfraConfig Repositories (MultiRepo project layout only) ──────────────
+
+            group.MapPut("/{projectId:guid}/configs/{configId:guid}/layout-mode",
+                    async ([FromRoute] Guid projectId, [FromRoute] Guid configId,
+                        [FromBody] SetInfraConfigLayoutModeRequest request, IMediator mediator) =>
+                    {
+                        var command = new SetInfraConfigLayoutModeCommand(
+                            new ProjectId(projectId),
+                            new InfrastructureConfigId(configId),
+                            request.Mode);
+                        var result = await mediator.Send(command);
+                        return result.Match(_ => Results.NoContent(), errors => errors.Result());
+                    })
+                .WithName("SetInfraConfigLayoutMode")
+                .WithSummary("Set or clear the per-configuration layout mode")
+                .WithDescription("Sets the layout mode (AllInOne or SplitInfraCode) for the configuration. Only meaningful when the parent project layout is MultiRepo. Switching mode clears existing config-level repositories. Requires Owner access.")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPost("/{projectId:guid}/configs/{configId:guid}/repositories",
+                    async ([FromRoute] Guid projectId, [FromRoute] Guid configId,
+                        [FromBody] AddInfraConfigRepositoryRequest request, IMediator mediator) =>
+                    {
+                        var command = new AddInfraConfigRepositoryCommand(
+                            new ProjectId(projectId),
+                            new InfrastructureConfigId(configId),
+                            request.Alias,
+                            request.ProviderType,
+                            request.RepositoryUrl,
+                            request.DefaultBranch,
+                            request.ContentKinds);
+                        var result = await mediator.Send(command);
+                        return result.Match(
+                            id => Results.Created($"/projects/{projectId}/configs/{configId}/repositories/{id.Value}", new { id = id.Value.ToString() }),
+                            errors => errors.Result());
+                    })
+                .WithName("AddInfraConfigRepository")
+                .WithSummary("Declare a Git repository on an InfrastructureConfig (MultiRepo only)")
+                .WithDescription("Adds a Git repository to the configuration. Allowed only when the parent project layout is MultiRepo and the configuration has a layout mode set. Requires Owner access.")
+                .Produces(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPut("/{projectId:guid}/configs/{configId:guid}/repositories/{repositoryId:guid}",
+                    async ([FromRoute] Guid projectId, [FromRoute] Guid configId, [FromRoute] Guid repositoryId,
+                        [FromBody] UpdateInfraConfigRepositoryRequest request, IMediator mediator) =>
+                    {
+                        var command = new UpdateInfraConfigRepositoryCommand(
+                            new ProjectId(projectId),
+                            new InfrastructureConfigId(configId),
+                            new InfraConfigRepositoryId(repositoryId),
+                            request.ProviderType,
+                            request.RepositoryUrl,
+                            request.DefaultBranch,
+                            request.ContentKinds);
+                        var result = await mediator.Send(command);
+                        return result.Match(_ => Results.NoContent(), errors => errors.Result());
+                    })
+                .WithName("UpdateInfraConfigRepository")
+                .WithSummary("Update an InfraConfig repository")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapDelete("/{projectId:guid}/configs/{configId:guid}/repositories/{repositoryId:guid}",
+                    async ([FromRoute] Guid projectId, [FromRoute] Guid configId, [FromRoute] Guid repositoryId, IMediator mediator) =>
+                    {
+                        var command = new RemoveInfraConfigRepositoryCommand(
+                            new ProjectId(projectId),
+                            new InfrastructureConfigId(configId),
+                            new InfraConfigRepositoryId(repositoryId));
+                        var result = await mediator.Send(command);
+                        return result.Match(_ => Results.NoContent(), errors => errors.Result());
+                    })
+                .WithName("RemoveInfraConfigRepository")
+                .WithSummary("Delete an InfraConfig repository")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+
             // ── Project-level Bicep Generation (mono-repo) ──────────────
 
             group.MapPost("/{projectId:guid}/generate-bicep",
@@ -663,6 +939,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("GenerateProjectBicep")
                 .WithSummary("Generate Bicep files for the entire project (mono-repo)")
                 .WithDescription("Generates Bicep files for all configurations in the project, organized as a mono-repo with a shared Common folder and per-config deployment folders.")
@@ -685,6 +962,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("DownloadProjectBicep")
                 .WithSummary("Download generated Bicep files for a project")
                 .WithDescription("Downloads the latest generated mono-repo Bicep files for the given project as a ZIP archive.")
@@ -696,7 +974,11 @@ public static class ProjectController
             group.MapGet("/{projectId:guid}/generate-bicep/files/{*filePath}",
                     async ([FromRoute] Guid projectId, [FromRoute] string filePath, IMediator mediator) =>
                     {
-                        var query = new GetProjectBicepFileContentQuery(projectId, filePath);
+                        // Audit SEC-004 (2026-04-23): reject path traversal before reaching the handler.
+                        if (!SafeRelativePath.TryNormalize(filePath, out var safePath))
+                            return Results.BadRequest(new { error = "Invalid file path" });
+
+                        var query = new GetProjectBicepFileContentQuery(projectId, safePath);
                         var result = await mediator.Send(query);
 
                         return result.Match(
@@ -731,6 +1013,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("PushProjectBicepToGit")
                 .WithSummary("Push project-level Bicep files to Git (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated Bicep files to the configured Git repository. Used in MonoRepo mode.")
@@ -752,12 +1035,17 @@ public static class ProjectController
                             {
                                 var response = new GenerateProjectPipelineResponse(
                                     value.CommonFileUris,
-                                    value.ConfigFileUris);
+                                    value.ConfigFileUris,
+                                    value.InfraCommonFileUris,
+                                    value.AppCommonFileUris,
+                                    value.InfraConfigFileUris,
+                                    value.AppConfigFileUris);
                                 return Results.Created($"/projects/{projectId}/generate-pipeline", response);
                             },
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("GenerateProjectPipeline")
                 .WithSummary("Generate pipeline files for the entire project (mono-repo)")
                 .WithDescription("Generates Azure DevOps pipeline YAML files for all configurations in the project.")
@@ -780,6 +1068,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("DownloadProjectPipeline")
                 .WithSummary("Download generated pipeline files for a project")
                 .WithDescription("Downloads the latest generated mono-repo pipeline files for the given project as a ZIP archive.")
@@ -791,7 +1080,11 @@ public static class ProjectController
             group.MapGet("/{projectId:guid}/generate-pipeline/files/{*filePath}",
                     async ([FromRoute] Guid projectId, [FromRoute] string filePath, IMediator mediator) =>
                     {
-                        var query = new GetProjectPipelineFileContentQuery(projectId, filePath);
+                        // Audit SEC-004 (2026-04-23): reject path traversal before reaching the handler.
+                        if (!SafeRelativePath.TryNormalize(filePath, out var safePath))
+                            return Results.BadRequest(new { error = "Invalid file path" });
+
+                        var query = new GetProjectPipelineFileContentQuery(projectId, safePath);
                         var result = await mediator.Send(query);
 
                         return result.Match(
@@ -826,6 +1119,7 @@ public static class ProjectController
                             errors => errors.Result()
                         );
                     })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
                 .WithName("PushProjectPipelineToGit")
                 .WithSummary("Push project-level pipeline files to Git (mono-repo)")
                 .WithDescription("Pushes the latest project-level generated pipeline files to the configured Git repository. Used in MonoRepo mode.")
@@ -833,6 +1127,181 @@ public static class ProjectController
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status401Unauthorized)
                 .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            // ── Project-level Bootstrap Pipeline (Azure DevOps) ──────────────────────────────
+
+            group.MapPost("/{projectId:guid}/generate-bootstrap-pipeline",
+                    async ([FromRoute] Guid projectId,
+                        IMediator mediator) =>
+                    {
+                        var command = new GenerateProjectBootstrapPipelineCommand(new ProjectId(projectId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.Created(
+                                $"/projects/{projectId}/generate-bootstrap-pipeline/files/bootstrap.pipeline.yml",
+                                new GenerateProjectBootstrapPipelineResponse(value.FileUris, value.InfraFileUris, value.AppFileUris)),
+                            errors => errors.Result()
+                        );
+                    })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .WithName("GenerateProjectBootstrapPipeline")
+                .WithSummary("Generate the Azure DevOps bootstrap pipeline for a project")
+                .WithDescription("Generates bootstrap.pipeline.yml — an idempotent Azure DevOps pipeline that provisions pipeline definitions, variable groups and authorizations via az devops CLI.")
+                .Produces<GenerateProjectBootstrapPipelineResponse>(StatusCodes.Status201Created)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{projectId:guid}/generate-bootstrap-pipeline/download",
+                    async ([FromRoute] Guid projectId,
+                        IMediator mediator) =>
+                    {
+                        var command = new DownloadProjectBootstrapPipelineCommand(new ProjectId(projectId));
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.File(
+                                value.ZipContent,
+                                "application/zip",
+                                value.FileName),
+                            errors => errors.Result()
+                        );
+                    })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .WithName("DownloadProjectBootstrapPipeline")
+                .WithSummary("Download the latest bootstrap pipeline as a ZIP archive")
+                .WithDescription("Returns a ZIP archive containing the latest generated bootstrap.pipeline.yml for the given project.")
+                .Produces<FileContentResult>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapGet("/{projectId:guid}/generate-bootstrap-pipeline/files/{*filePath}",
+                    async ([FromRoute] Guid projectId,
+                        [FromRoute] string filePath,
+                        IMediator mediator) =>
+                    {
+                        // Audit SEC-004 (2026-04-23): reject path traversal before reaching the handler.
+                        if (!SafeRelativePath.TryNormalize(filePath, out var safePath))
+                            return Results.BadRequest(new { error = "Invalid file path" });
+
+                        var query = new GetProjectBootstrapPipelineFileContentQuery(projectId, safePath);
+                        var result = await mediator.Send(query);
+
+                        return result.Match(
+                            value => Results.Ok(new { content = value.Content }),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("GetProjectBootstrapPipelineFileContent")
+                .WithSummary("Get generated bootstrap pipeline file content for a project")
+                .WithDescription("Reads the latest generated bootstrap pipeline file content for the given project and relative file path.")
+                .Produces(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPost("/{projectId:guid}/push-bootstrap-pipeline-to-git",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] PushBicepToGitRequest request,
+                        IMediator mediator,
+                        IMapper mapper) =>
+                    {
+                        var command = new PushProjectBootstrapPipelineToGitCommand(
+                            new ProjectId(projectId),
+                            request.BranchName,
+                            request.CommitMessage);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.Ok(mapper.Map<PushBicepToGitResponse>(value)),
+                            errors => errors.Result()
+                        );
+                    })
+                .RequireRateLimiting(RateLimiting.DependencyInjection.ExpensivePolicy)
+                .WithName("PushProjectBootstrapPipelineToGit")
+                .WithSummary("Push the bootstrap pipeline file to Git (Azure DevOps)")
+                .WithDescription("Pushes the latest generated bootstrap.pipeline.yml to the configured Git repository.")
+                .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPost("/{projectId:guid}/push-generated-artifacts-to-git",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] PushBicepToGitRequest request,
+                        IMediator mediator,
+                        IMapper mapper) =>
+                    {
+                        var command = new PushProjectGeneratedArtifactsToGitCommand(
+                            new ProjectId(projectId),
+                            request.BranchName,
+                            request.CommitMessage);
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value => Results.Ok(mapper.Map<PushBicepToGitResponse>(value)),
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("PushProjectGeneratedArtifactsToGit")
+                .WithSummary("Push generated project artifacts to Git in a single commit (mono-repo)")
+                .WithDescription("Pushes the latest project-level generated Bicep, pipeline, and bootstrap pipeline files to the configured Git repository in one provider call and one commit.")
+                .Produces<PushBicepToGitResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden);
+
+            group.MapPost("/{projectId:guid}/push-multi-repo-artifacts-to-git",
+                    async ([FromRoute] Guid projectId,
+                        [FromBody] PushMultiRepoArtifactsRequest request,
+                        IMediator mediator) =>
+                    {
+                        var command = new PushProjectArtifactsToMultiRepoCommand(
+                            new ProjectId(projectId),
+                            request.Infra is null
+                                ? null
+                                : new RepoPushTarget(
+                                    request.Infra.Alias,
+                                    request.Infra.BranchName,
+                                    request.Infra.CommitMessage),
+                            request.Code is null
+                                ? null
+                                : new RepoPushTarget(
+                                    request.Code.Alias,
+                                    request.Code.BranchName,
+                                    request.Code.CommitMessage));
+
+                        var result = await mediator.Send(command);
+
+                        return result.Match(
+                            value =>
+                            {
+                                var response = new PushMultiRepoArtifactsResponse(
+                                    value.Results
+                                        .Select(r => new RepoPushResultResponse(
+                                            r.Alias,
+                                            r.Success,
+                                            r.BranchUrl,
+                                            r.CommitSha,
+                                            r.FileCount,
+                                            r.ErrorCode,
+                                            r.ErrorDescription))
+                                        .ToList());
+                                return Results.Ok(response);
+                            },
+                            errors => errors.Result()
+                        );
+                    })
+                .WithName("PushProjectArtifactsToMultiRepo")
+                .WithSummary("Push project artifacts to one or two repositories (SplitInfraCode multi push)")
+                .WithDescription("Pushes the latest project-level generated artifacts to the requested infrastructure-flagged repository (Bicep + infra pipeline + bootstrap), the requested application-code repository (app pipeline files), or both in independent commits. Per-repo errors are reported in the response, not as HTTP errors.")
+                .Produces<PushMultiRepoArtifactsResponse>(StatusCodes.Status200OK)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status401Unauthorized)
+                .ProducesProblem(StatusCodes.Status403Forbidden)
+                .ProducesProblem(StatusCodes.Status404NotFound);
 
             // ── Pipeline Variable Groups (project-level) ────────────────
 
@@ -872,7 +1341,8 @@ public static class ProjectController
                                 $"/projects/{projectId}/pipeline-variable-groups/{g.GroupId}",
                                 new ProjectPipelineVariableGroupResponse(
                                     g.GroupId.ToString(),
-                                    g.GroupName)),
+                                    g.GroupName,
+                                    [])),
                             errors => errors.Result()
                         );
                     })
@@ -907,3 +1377,4 @@ public static class ProjectController
         });
     }
 }
+

@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.GitRouting;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -13,7 +14,8 @@ public sealed class TestGitConnectionCommandHandler(
     IProjectRepository projectRepository,
     IProjectAccessService accessService,
     IKeyVaultSecretClient keyVaultSecretClient,
-    IGitProviderFactory gitProviderFactory)
+    IGitProviderFactory gitProviderFactory,
+    IRepositoryTargetResolver targetResolver)
     : ICommandHandler<TestGitConnectionCommand, TestGitConnectionResult>
 {
     /// <inheritdoc />
@@ -28,10 +30,11 @@ public sealed class TestGitConnectionCommandHandler(
         if (project is null)
             return Errors.Project.NotFoundError(command.ProjectId);
 
-        if (project.GitRepositoryConfiguration is null)
-            return Errors.GitRepository.NotConfigured();
+        var targetResult = targetResolver.Resolve(project, config: null, ArtifactKind.Infrastructure);
+        if (targetResult.IsError)
+            return targetResult.Errors;
 
-        var gitConfig = project.GitRepositoryConfiguration;
+        var target = targetResult.Value;
 
         // Retrieve the PAT from the centralized Key Vault
         var secretResult = await keyVaultSecretClient.GetSecretAsync(
@@ -40,8 +43,8 @@ public sealed class TestGitConnectionCommandHandler(
             return secretResult.Errors;
 
         // Test the connection
-        var gitProvider = gitProviderFactory.Create(gitConfig.ProviderType);
+        var gitProvider = gitProviderFactory.Create(target.ProviderType);
         return await gitProvider.TestConnectionAsync(
-            secretResult.Value, gitConfig.Owner, gitConfig.RepositoryName, cancellationToken);
+            secretResult.Value, target.Owner, target.RepositoryName, cancellationToken);
     }
 }

@@ -3,16 +3,17 @@ import { RouterLink } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
+import { DsCardComponent } from '../../shared/components/ds';
 import { ProjectResponse } from '../../shared/interfaces/project.interface';
 import { ProjectService } from '../../shared/services/project.service';
 import { FavoritesService } from '../../shared/services/favorites.service';
 import { RecentlyViewedService, RecentlyViewedItem } from '../../shared/services/recently-viewed.service';
-import { CreateProjectDialogComponent } from './create-project-dialog/create-project-dialog.component';
+import { CreateProjectWizardDialogComponent } from '../projects/create-project-wizard/create-project-wizard-dialog.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [TranslateModule, RouterLink, MatDialogModule, MatIconModule],
+  imports: [TranslateModule, RouterLink, MatDialogModule, MatIconModule, DsCardComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -27,10 +28,6 @@ export class HomeComponent implements OnInit {
   protected readonly loadError = signal('');
 
   protected readonly recentItems = this.recentlyViewedService.recentItems;
-
-  protected readonly totalMemberCount = computed(() =>
-    this.projects().reduce((count, project) => count + project.members.length, 0)
-  );
 
   protected readonly favoriteProjects = computed(() =>
     this.projects().filter((p) => this.favoritesService.isFavorite(p.id))
@@ -54,8 +51,12 @@ export class HomeComponent implements OnInit {
   }
 
   protected openCreateDialog(): void {
-    const dialogRef = this.dialog.open(CreateProjectDialogComponent, {
-      width: '480px',
+    const dialogRef = this.dialog.open(CreateProjectWizardDialogComponent, {
+      width: '960px',
+      maxWidth: '96vw',
+      maxHeight: '90vh',
+      panelClass: 'ifs-wizard-dialog',
+      disableClose: true,
     });
 
     dialogRef.afterClosed().subscribe((result?: ProjectResponse) => {

@@ -41,7 +41,8 @@ public class CreateKeyVaultCommandHandler(
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName,
                     ec.Sku is not null ? new Sku(Enum.Parse<Sku.SkuEnum>(ec.Sku)) : (Sku?)null))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var savedKeyVault = await keyVaultRepository.AddAsync(keyVault);
 

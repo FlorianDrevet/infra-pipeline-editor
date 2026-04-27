@@ -11,10 +11,13 @@ namespace InfraFlowSculptor.Contracts.InfrastructureConfig.Responses;
 /// </param>
 /// <param name="UseProjectNamingConventions">Whether this config inherits naming conventions from the parent project.</param>
 /// <param name="ResourceNamingTemplates">Per-resource-type naming template overrides.</param>
+/// <param name="ResourceAbbreviationOverrides">Per-resource-type abbreviation overrides for the <c>{resourceAbbr}</c> placeholder.</param>
 /// <param name="Tags">Configuration-level tags.</param>
 /// <param name="ResourceGroupCount">Number of resource groups in this configuration.</param>
 /// <param name="ResourceCount">Total number of Azure resources across all resource groups.</param>
 /// <param name="CrossConfigReferenceCount">Number of cross-configuration resource references.</param>
+/// <param name="LayoutMode">When the parent project is in MultiRepo mode, the per-config layout (AllInOne or SplitInfraCode); <c>null</c> otherwise.</param>
+/// <param name="Repositories">When the parent project is in MultiRepo mode, the Git repositories declared on this configuration.</param>
 public record InfrastructureConfigResponse(
     string Id,
     string Name,
@@ -22,7 +25,10 @@ public record InfrastructureConfigResponse(
     string? DefaultNamingTemplate,
     bool UseProjectNamingConventions,
     IReadOnlyList<ResourceNamingTemplateResponse> ResourceNamingTemplates,
+    IReadOnlyList<ResourceAbbreviationOverrideResponse> ResourceAbbreviationOverrides,
     IReadOnlyList<TagResponse> Tags,
     int ResourceGroupCount,
     int ResourceCount,
-    int CrossConfigReferenceCount);
+    int CrossConfigReferenceCount,
+    string? LayoutMode = null,
+    IReadOnlyList<InfraConfigRepositoryResponse>? Repositories = null);

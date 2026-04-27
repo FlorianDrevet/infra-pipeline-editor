@@ -24,14 +24,10 @@
       </mat-autocomplete>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_ROLE_LABEL' | translate }}</mat-label>
-      <mat-select formControlName="role">
-        @for (role of roles; track role) {
-          <mat-option [value]="role">{{ 'PROJECT_DETAIL.MEMBERS.ROLE_' + role.toUpperCase() | translate }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <app-ds-select
+      formControlName="role"
+      [label]="'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_ROLE_LABEL' | translate"
+      [options]="roleOptions" />
 
     @if (errorKey()) {
       <p class="dialog-error">{{ errorKey() | translate }}</p>
@@ -43,11 +39,7 @@
   <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
     {{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_CANCEL' | translate }}
   </button>
-  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || !selectedUser() || isSubmitting()">
-    @if (isSubmitting()) {
-      <mat-spinner diameter="18"></mat-spinner>
-    } @else {
-      {{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_ADD' | translate }}
-    }
-  </button>
+  <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid || !selectedUser()" (clicked)="onSubmit()">
+    {{ 'PROJECT_DETAIL.MEMBERS.ADD_DIALOG_ADD' | translate }}
+  </app-ds-button>
 </mat-dialog-actions>

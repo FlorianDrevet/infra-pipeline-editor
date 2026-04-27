@@ -26,6 +26,9 @@ internal static class MainBicepAssembler
         IReadOnlyDictionary<string, string>? configTags = null)
     {
         var sb = new StringBuilder();
+        var localResourceGroupSymbols = resourceGroups
+            .Select(rg => BicepIdentifierHelper.ToBicepIdentifier(rg.Name))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         sb.AppendLine("targetScope = 'subscription'");
         sb.AppendLine();
@@ -34,6 +37,16 @@ internal static class MainBicepAssembler
         sb.AppendLine("import { EnvironmentName, environments } from 'types.bicep'");
 
         var functionImports = BicepNamingHelper.BuildFunctionImportList(namingContext, modules, resourceGroups);
+        foreach (var existingReference in existingResourceReferences)
+        {
+            AddNamingImport(existingReference.ResourceTypeName);
+        }
+
+        foreach (var roleAssignment in roleAssignments)
+        {
+            AddNamingImport(roleAssignment.TargetResourceTypeName);
+        }
+
         if (functionImports.Count > 0)
         {
             sb.Append("import { ");
@@ -44,6 +57,22 @@ internal static class MainBicepAssembler
         if (roleAssignments.Count > 0)
         {
             sb.AppendLine("import { RbacRoles } from 'constants.bicep'");
+        }
+
+        // Module-level type imports (for structured parameter types)
+        var moduleTypeImports = modules
+            .Where(m => m.ParameterTypeOverrides.Count > 0)
+            .GroupBy(m => m.ModuleFolderName)
+            .ToList();
+        foreach (var group in moduleTypeImports)
+        {
+            var typeNames = group
+                .SelectMany(m => m.ParameterTypeOverrides.Values)
+                .Distinct()
+                .OrderBy(t => t);
+            sb.Append("import { ");
+            sb.AppendJoin(", ", typeNames);
+            sb.AppendLine($" }} from './modules/{group.Key}/types.bicep'");
         }
 
         sb.AppendLine();
@@ -58,8 +87,18 @@ internal static class MainBicepAssembler
         {
             foreach (var (key, value) in module.Parameters)
             {
-                var bicepType = BicepFormattingHelper.InferBicepType(value);
+                var bicepType = module.ParameterTypeOverrides.TryGetValue(key, out var customType)
+                    ? customType
+                    : BicepFormattingHelper.InferBicepType(value);
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} {bicepType}");
+            }
+
+            // Secure parameters (e.g. passwords) — @secure() string with no default
+            foreach (var secureParam in module.SecureParameters)
+            {
+                sb.AppendLine();
+                sb.AppendLine("@secure()");
+                sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)} string");
             }
 
             foreach (var (name, description, _) in StorageAccountCompanionHelper.GetStorageAccountCorsParameters(module))
@@ -158,14 +197,17 @@ internal static class MainBicepAssembler
         }
 
         // ── Existing resource declarations (cross-config references) ────────
-        if (existingResourceReferences.Count > 0)
-        {
-            // Deduplicate external resource groups (multiple resources may share the same RG)
-            var externalRgs = existingResourceReferences
-                .Select(r => r.ResourceGroupName)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+        var externalRgs = existingResourceReferences
+            .Select(r => r.ResourceGroupName)
+            .Concat(roleAssignments
+                .Where(ra => ra.IsTargetCrossConfig
+                    || !localResourceGroupSymbols.Contains(BicepIdentifierHelper.ToBicepIdentifier(ra.TargetResourceGroupName)))
+                .Select(ra => ra.TargetResourceGroupName))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
+        if (externalRgs.Count > 0)
+        {
             sb.AppendLine("// ── Cross-configuration existing resource groups ──────────────────");
             foreach (var extRgName in externalRgs)
             {
@@ -178,22 +220,25 @@ internal static class MainBicepAssembler
                 sb.AppendLine();
             }
 
-            sb.AppendLine("// ── Cross-configuration existing resources ──────────────────────");
-            foreach (var extRef in existingResourceReferences)
+            if (existingResourceReferences.Count > 0)
             {
-                var extSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceName)}";
-                var extRgSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceGroupName)}";
-                var nameExprRes = BicepNamingHelper.BuildNamingExpression(
-                    extRef.ResourceName, extRef.ResourceAbbreviation,
-                    extRef.ResourceTypeName, namingContext);
+                sb.AppendLine("// ── Cross-configuration existing resources ──────────────────────");
+                foreach (var extRef in existingResourceReferences)
+                {
+                    var extSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceName)}";
+                    var extRgSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(extRef.ResourceGroupName)}";
+                    var nameExprRes = BicepNamingHelper.BuildNamingExpression(
+                        extRef.ResourceName, extRef.ResourceAbbreviation,
+                        extRef.ResourceTypeName, namingContext);
 
-                var apiVersion = ResourceTypeMetadata.GetExistingResourceApiVersion(extRef.ResourceType);
+                    var apiVersion = ResourceTypeMetadata.GetExistingResourceApiVersion(extRef.ResourceType);
 
-                sb.AppendLine($"resource {extSymbol} '{extRef.ResourceType}@{apiVersion}' existing = {{");
-                sb.AppendLine($"  name: {nameExprRes}");
-                sb.AppendLine($"  scope: {extRgSymbol}");
-                sb.AppendLine("}");
-                sb.AppendLine();
+                    sb.AppendLine($"resource {extSymbol} '{extRef.ResourceType}@{apiVersion}' existing = {{");
+                    sb.AppendLine($"  name: {nameExprRes}");
+                    sb.AppendLine($"  scope: {extRgSymbol}");
+                    sb.AppendLine("}");
+                    sb.AppendLine();
+                }
             }
         }
 
@@ -234,22 +279,37 @@ internal static class MainBicepAssembler
                 sb.AppendLine($"    {paramKey}: {module.ModuleName}{BicepFormattingHelper.Capitalize(paramKey)}");
             }
 
+            // ── Secure parameters (passwords, secrets) ──
+            foreach (var secureParam in module.SecureParameters)
+            {
+                sb.AppendLine($"    {secureParam}: {module.ModuleName}{BicepFormattingHelper.Capitalize(secureParam)}");
+            }
+
             // ── Parent module ID references ──
-            foreach (var (paramName, parentLogicalName) in module.ParentModuleIdReferences)
+            foreach (var (paramName, (parentLogicalName, parentResourceType)) in module.ParentModuleIdReferences)
             {
                 var parentModule = modules.FirstOrDefault(m =>
-                    m.LogicalResourceName.Equals(parentLogicalName, StringComparison.OrdinalIgnoreCase));
+                    m.LogicalResourceName.Equals(parentLogicalName, StringComparison.OrdinalIgnoreCase)
+                    && m.ResourceTypeName.Equals(parentResourceType, StringComparison.OrdinalIgnoreCase));
                 if (parentModule is not null)
                 {
                     sb.AppendLine($"    {paramName}: {parentModule.ModuleName}Module.outputs.id");
                 }
             }
 
+            // ── Cross-config existing resource ID references ──
+            foreach (var (paramName, existingResourceName) in module.ExistingResourceIdReferences)
+            {
+                var existingSymbol = $"existing_{BicepIdentifierHelper.ToBicepIdentifier(existingResourceName)}";
+                sb.AppendLine($"    {paramName}: {existingSymbol}.id");
+            }
+
             // ── Parent module name references ──
-            foreach (var (paramName, parentLogicalName) in module.ParentModuleNameReferences)
+            foreach (var (paramName, (parentLogicalName, parentResourceType)) in module.ParentModuleNameReferences)
             {
                 var parentModule = modules.FirstOrDefault(m =>
-                    m.LogicalResourceName.Equals(parentLogicalName, StringComparison.OrdinalIgnoreCase));
+                    m.LogicalResourceName.Equals(parentLogicalName, StringComparison.OrdinalIgnoreCase)
+                    && m.ResourceTypeName.Equals(parentResourceType, StringComparison.OrdinalIgnoreCase));
                 if (parentModule is not null)
                 {
                     var parentNameExpr = BicepNamingHelper.BuildNamingExpression(
@@ -270,17 +330,14 @@ internal static class MainBicepAssembler
                 if (module.ResourceTypeName != "UserAssignedIdentity"
                     && uaiBySourceResource.TryGetValue(moduleKey, out var uaiNamesParam))
                 {
-                    foreach (var uaiName in uaiNamesParam)
+                    // Single generic param — use first UAI for this resource
+                    var uaiName = uaiNamesParam[0];
+                    var uaiModSym = modules.FirstOrDefault(m =>
+                        m.ResourceTypeName == "UserAssignedIdentity"
+                        && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
+                    if (uaiModSym is not null)
                     {
-                        var uaiId = BicepIdentifierHelper.ToBicepIdentifier(uaiName);
-                        var pName = $"userAssignedIdentity{BicepFormattingHelper.Capitalize(uaiId)}Id";
-                        var uaiModSym = modules.FirstOrDefault(m =>
-                            m.ResourceTypeName == "UserAssignedIdentity"
-                            && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
-                        if (uaiModSym is not null)
-                        {
-                            sb.AppendLine($"    {pName}: {uaiModSym.ModuleName}Module.outputs.resourceId");
-                        }
+                        sb.AppendLine($"    userAssignedIdentityId: {uaiModSym.ModuleName}Module.outputs.resourceId");
                     }
                 }
             }
@@ -289,17 +346,14 @@ internal static class MainBicepAssembler
                 if (module.ResourceTypeName != "UserAssignedIdentity"
                     && uaiBySourceResource.TryGetValue(moduleKey, out var uaiNames))
                 {
-                    foreach (var uaiName in uaiNames)
+                    // Single generic param — use first UAI for this resource
+                    var uaiName = uaiNames[0];
+                    var uaiModuleSymbol = modules.FirstOrDefault(m =>
+                        m.ResourceTypeName == "UserAssignedIdentity"
+                        && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
+                    if (uaiModuleSymbol is not null)
                     {
-                        var uaiId = BicepIdentifierHelper.ToBicepIdentifier(uaiName);
-                        var paramName = $"userAssignedIdentity{BicepFormattingHelper.Capitalize(uaiId)}Id";
-                        var uaiModuleSymbol = modules.FirstOrDefault(m =>
-                            m.ResourceTypeName == "UserAssignedIdentity"
-                            && m.LogicalResourceName.Equals(uaiName, StringComparison.OrdinalIgnoreCase));
-                        if (uaiModuleSymbol is not null)
-                        {
-                            sb.AppendLine($"    {paramName}: {uaiModuleSymbol.ModuleName}Module.outputs.resourceId");
-                        }
+                        sb.AppendLine($"    userAssignedIdentityId: {uaiModuleSymbol.ModuleName}Module.outputs.resourceId");
                     }
                 }
             }
@@ -337,7 +391,8 @@ internal static class MainBicepAssembler
                         else
                         {
                             var kvModule = modules.FirstOrDefault(m =>
-                                m.LogicalResourceName.Equals(setting.KeyVaultResourceName, StringComparison.OrdinalIgnoreCase));
+                                m.LogicalResourceName.Equals(setting.KeyVaultResourceName, StringComparison.OrdinalIgnoreCase)
+                                && m.ResourceTypeName.Equals(AzureResourceTypes.KeyVault, StringComparison.OrdinalIgnoreCase));
                             if (kvModule is not null)
                             {
                                 sb.AppendLine($"        value: '@Microsoft.KeyVault(SecretUri=${{{kvModule.ModuleName}Module.outputs.vaultUri}}secrets/{BicepFormattingHelper.EscapeBicepString(setting.SecretName)})'");
@@ -356,7 +411,9 @@ internal static class MainBicepAssembler
                         else
                         {
                             var sourceModule = modules.FirstOrDefault(m =>
-                                m.LogicalResourceName.Equals(setting.SourceResourceName, StringComparison.OrdinalIgnoreCase));
+                                m.LogicalResourceName.Equals(setting.SourceResourceName, StringComparison.OrdinalIgnoreCase)
+                                && (setting.SourceResourceTypeName is null
+                                    || m.ResourceTypeName.Equals(setting.SourceResourceTypeName, StringComparison.OrdinalIgnoreCase)));
                             if (sourceModule is not null)
                             {
                                 sb.AppendLine($"        value: {sourceModule.ModuleName}Module.outputs.{setting.SourceOutputName}");
@@ -399,7 +456,9 @@ internal static class MainBicepAssembler
                 && s.SourceOutputBicepExpression is not null))
         {
             var sourceModule = modules.FirstOrDefault(m =>
-                m.LogicalResourceName.Equals(export.SourceResourceName!, StringComparison.OrdinalIgnoreCase));
+                m.LogicalResourceName.Equals(export.SourceResourceName!, StringComparison.OrdinalIgnoreCase)
+                && (export.SourceResourceTypeName is null
+                    || m.ResourceTypeName.Equals(export.SourceResourceTypeName, StringComparison.OrdinalIgnoreCase)));
             if (sourceModule is not null)
             {
                 allKvSecrets.Add((
@@ -431,7 +490,8 @@ internal static class MainBicepAssembler
             foreach (var kvGroup in secretsByKv)
             {
                 var kvModule = modules.FirstOrDefault(m =>
-                    m.LogicalResourceName.Equals(kvGroup.Key, StringComparison.OrdinalIgnoreCase));
+                    m.LogicalResourceName.Equals(kvGroup.Key, StringComparison.OrdinalIgnoreCase)
+                    && m.ResourceTypeName.Equals(AzureResourceTypes.KeyVault, StringComparison.OrdinalIgnoreCase));
                 if (kvModule is null) continue;
 
                 var kvIdentifier = BicepIdentifierHelper.ToBicepIdentifier(kvGroup.Key);
@@ -456,6 +516,9 @@ internal static class MainBicepAssembler
                 }
                 sb.AppendLine("    ]");
                 sb.AppendLine("  }");
+                sb.AppendLine("  dependsOn: [");
+                sb.AppendLine($"    {kvModule.ModuleName}Module");
+                sb.AppendLine("  ]");
                 sb.AppendLine("}");
                 sb.AppendLine();
             }
@@ -476,9 +539,12 @@ internal static class MainBicepAssembler
                 var targetFolder = ResourceTypeMetadata.GetModuleFolderName(group.TargetResourceTypeName);
                 var moduleFileName = RoleAssignmentModuleTemplates.GetModuleFileName(group.TargetResourceTypeName);
 
-                var targetRgSymbol = group.IsTargetCrossConfig
-                    ? $"existing_{BicepIdentifierHelper.ToBicepIdentifier(group.TargetResourceGroupName)}"
-                    : BicepIdentifierHelper.ToBicepIdentifier(group.TargetResourceGroupName);
+                var targetRgIdentifier = BicepIdentifierHelper.ToBicepIdentifier(group.TargetResourceGroupName);
+                var usesExistingTargetScope = group.IsTargetCrossConfig
+                    || !localResourceGroupSymbols.Contains(targetRgIdentifier);
+                var targetRgSymbol = usesExistingTargetScope
+                    ? $"existing_{targetRgIdentifier}"
+                    : targetRgIdentifier;
 
                 var targetNameExpr = BicepNamingHelper.BuildNamingExpression(
                     group.TargetResourceName, group.TargetResourceAbbreviation,
@@ -496,7 +562,7 @@ internal static class MainBicepAssembler
 
                 foreach (var role in group.Roles)
                 {
-                    sb.AppendLine($"      RbacRoles.{group.ServiceCategory}['{role.RoleDefinitionName}']");
+                    sb.AppendLine($"      RbacRoles.{role.ServiceCategory}['{role.RoleDefinitionName}']");
                 }
 
                 sb.AppendLine("    ]");
@@ -507,5 +573,24 @@ internal static class MainBicepAssembler
         }
 
         return sb.ToString();
+
+        void AddNamingImport(string resourceTypeName)
+        {
+            if (string.IsNullOrWhiteSpace(resourceTypeName))
+            {
+                return;
+            }
+
+            if (namingContext.ResourceTemplates.ContainsKey(resourceTypeName))
+            {
+                functionImports.Add(NamingTemplateTranslator.GetFunctionName(resourceTypeName));
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(namingContext.DefaultTemplate))
+            {
+                functionImports.Add("BuildResourceName");
+            }
+        }
     }
 }

@@ -88,6 +88,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .Include(c => c.ResourceGroups)
                 .ThenInclude(rg => rg.Resources)
             .Include(c => c.ResourceNamingTemplates)
+            .Include(c => c.ResourceAbbreviationOverrides)
             .Include(c => c.Tags)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == configId, cancellationToken);
@@ -100,6 +101,11 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .SelectMany(rg => rg.Resources)
             .Select(r => r.Id)
             .ToList();
+
+        // NOTE: These queries are sequential because EF Core's DbContext is not thread-safe.
+        // Parallelization would require IDbContextFactory. Since Phase 1.3 moved diagnostics
+        // out of the critical path (fire-and-forget), these sequential queries no longer block
+        // the page rendering.
 
         var kvSettings = await dbContext.KeyVaultEnvironmentSettings
             .Where(es => allResourceIds.Contains(es.KeyVaultId))
@@ -211,6 +217,12 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        // ── Load custom domains for all resources in this config ────────────
+        var customDomains = await dbContext.CustomDomains
+            .Where(cd => allResourceIds.Contains(cd.ResourceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         // ── Load role assignments for all resources in this config ───────────
         var roleAssignments = await dbContext.RoleAssignments
             .Where(ra => allResourceIds.Contains(ra.SourceResourceId))
@@ -224,10 +236,41 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        // ── Load secure parameter mappings for all resources in this config ─
+        var secureParameterMappings = await dbContext.SecureParameterMappings
+            .Where(m => allResourceIds.Contains(m.ResourceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
         // Build a flat lookup of all resources by ID across all resource groups
         var allResources = config.ResourceGroups
             .SelectMany(rg => rg.Resources.Select(r => (Resource: r, ResourceGroup: rg)))
             .ToDictionary(x => x.Resource.Id);
+
+        // Pre-load external target resources (cross-config) that are not in allResources
+        var externalTargetIds = roleAssignments
+            .Select(ra => ra.TargetResourceId)
+            .Where(id => !allResources.ContainsKey(id))
+            .Distinct()
+            .ToList();
+
+        var externalTargets = new Dictionary<AzureResourceId, (AzureResource Resource, Domain.ResourceGroupAggregate.ResourceGroup ResourceGroup)>();
+        if (externalTargetIds.Count > 0)
+        {
+            var externalRgs = await dbContext.Set<Domain.ResourceGroupAggregate.ResourceGroup>()
+                .Include(rg => rg.Resources)
+                .Where(rg => rg.Resources.Any(r => externalTargetIds.Contains(r.Id)))
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            foreach (var rg in externalRgs)
+            {
+                foreach (var r in rg.Resources.Where(r => externalTargetIds.Contains(r.Id)))
+                {
+                    externalTargets[r.Id] = (r, rg);
+                }
+            }
+        }
 
         var roleAssignmentReadModels = roleAssignments
             .Select(ra =>
@@ -235,8 +278,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 if (!allResources.TryGetValue(ra.SourceResourceId, out var source))
                     return null;
 
-                // Target resource might be in a different resource group, look it up too
-                var hasTarget = allResources.TryGetValue(ra.TargetResourceId, out var target);
+                // Target resource might be in a different config, check both local and external
+                var hasTarget = allResources.TryGetValue(ra.TargetResourceId, out var target)
+                    || externalTargets.TryGetValue(ra.TargetResourceId, out target);
 
                 string? uaiName = null;
                 string? uaiRgName = null;
@@ -281,7 +325,18 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                         assignedUaiName = uaiEntry.Resource.Name.Value;
                     }
 
-                    return readModel with { AssignedUserAssignedIdentityName = assignedUaiName };
+                    // Map custom domains for this resource
+                    var resourceCustomDomains = customDomains
+                        .Where(cd => cd.ResourceId == r.Id)
+                        .Select(cd => new CustomDomainReadModel(cd.EnvironmentName, cd.DomainName, cd.BindingType))
+                        .ToList();
+
+                    return readModel with
+                    {
+                        AssignedUserAssignedIdentityName = assignedUaiName,
+                        IsExisting = r.IsExisting,
+                        CustomDomains = resourceCustomDomains
+                    };
                 })
                 .OfType<AzureResourceReadModel>()
                 .ToList();
@@ -296,6 +351,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         // ── Load parent project for environments and naming context ─────────
         var project = await dbContext.Projects
             .Include(p => p.ResourceNamingTemplates)
+            .Include(p => p.ResourceAbbreviations)
             .Include(p => p.Tags)
             .Include(p => p.EnvironmentDefinitions)
                 .ThenInclude(e => e.Tags)
@@ -388,7 +444,9 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
 
             var resourceTypeName = GetResourceTypeString(targetResource);
             var simpleTypeName = GetResourceTypeName(targetResource);
-            var abbreviation = ResourceAbbreviationCatalog.GetAbbreviation(simpleTypeName);
+            var abbreviation = namingContext.ResourceAbbreviations.TryGetValue(simpleTypeName, out var overrideAbbr)
+                ? overrideAbbr
+                : ResourceAbbreviationCatalog.GetAbbreviation(simpleTypeName);
 
             crossConfigRefReadModels.Add(new CrossConfigReferenceReadModel(
                 ReferenceId: ccRef.Id.Value,
@@ -406,13 +464,28 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             .Select(r => r.TargetResourceId)
             .ToHashSet();
 
+        var crossConfigRefLookup = crossConfigRefReadModels
+            .ToDictionary(r => r.TargetResourceId);
+
         var enrichedRoleAssignments = roleAssignmentReadModels
-            .Select(ra => ra with { IsTargetCrossConfig = crossConfigResourceIds.Contains(new AzureResourceId(ra.TargetResourceId)) })
+            .Select(ra =>
+            {
+                var isCrossConfig = crossConfigResourceIds.Contains(new AzureResourceId(ra.TargetResourceId));
+                if (isCrossConfig && crossConfigRefLookup.TryGetValue(ra.TargetResourceId, out var ccRef))
+                {
+                    return ra with
+                    {
+                        IsTargetCrossConfig = true,
+                        TargetResourceName = string.IsNullOrEmpty(ra.TargetResourceName) ? ccRef.TargetResourceName : ra.TargetResourceName,
+                        TargetResourceType = string.IsNullOrEmpty(ra.TargetResourceType) ? ccRef.TargetResourceType : ra.TargetResourceType,
+                        TargetResourceGroupName = string.IsNullOrEmpty(ra.TargetResourceGroupName) ? ccRef.TargetResourceGroupName : ra.TargetResourceGroupName,
+                    };
+                }
+                return ra with { IsTargetCrossConfig = isCrossConfig };
+            })
             .ToList();
 
         // ── Enrich app settings with cross-config info ──────────────────────
-        var crossConfigRefLookup = crossConfigRefReadModels
-            .ToDictionary(r => r.TargetResourceId);
 
         var enrichedAppSettings = appSettingReadModels
             .Select(s =>
@@ -430,6 +503,29 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
         var configTags = config.Tags
             .ToDictionary(t => t.Name, t => t.Value);
 
+        var secureParamReadModels = secureParameterMappings
+            .Select(m =>
+            {
+                if (!allResources.TryGetValue(m.ResourceId, out var owner))
+                    return null;
+
+                string? vgName = m.VariableGroupId is not null
+                    && varGroupLookup.TryGetValue(m.VariableGroupId, out var name)
+                        ? name
+                        : null;
+
+                return new SecureParameterMappingReadModel(
+                    Id: m.Id.Value,
+                    ResourceId: m.ResourceId.Value,
+                    ResourceName: owner.Resource.Name.Value,
+                    SecureParameterName: m.SecureParameterName,
+                    VariableGroupId: m.VariableGroupId?.Value,
+                    VariableGroupName: vgName,
+                    PipelineVariableName: m.PipelineVariableName);
+            })
+            .OfType<SecureParameterMappingReadModel>()
+            .ToList();
+
         return new InfrastructureConfigReadModel(
             config.Id.Value,
             config.Name.Value,
@@ -442,7 +538,8 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             crossConfigRefReadModels,
             projectTags,
             configTags,
-            config.AppPipelineMode.ToString());
+            config.AppPipelineMode.ToString(),
+            secureParamReadModels);
     }
 
     /// <summary>
@@ -484,7 +581,10 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 project.DefaultNamingTemplate?.Value,
                 project.ResourceNamingTemplates.ToDictionary(
                     t => t.ResourceType,
-                    t => t.Template.Value));
+                    t => t.Template.Value),
+                project.ResourceAbbreviations.ToDictionary(
+                    a => a.ResourceType,
+                    a => a.Abbreviation));
         }
 
         // Otherwise, read from the config itself (if overridden)
@@ -492,7 +592,10 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
             config.DefaultNamingTemplate?.Value,
             config.ResourceNamingTemplates.ToDictionary(
                 t => t.ResourceType,
-                t => t.Template.Value));
+                t => t.Template.Value),
+            config.ResourceAbbreviationOverrides.ToDictionary(
+                a => a.ResourceType,
+                a => a.Abbreviation));
     }
 
     /// <summary>
@@ -647,6 +750,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["appServicePlanId"] = wa.AppServicePlanId.Value.ToString(),
                     ["deploymentMode"] = wa.DeploymentMode.Value.ToString(),
                     ["containerRegistryId"] = wa.ContainerRegistryId?.Value.ToString() ?? "",
+                    ["acrAuthMode"] = wa.AcrAuthMode?.Value.ToString() ?? "",
                     ["dockerImageName"] = wa.DockerImageName ?? ""
                 },
                 waSettings
@@ -666,6 +770,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                     ["appServicePlanId"] = fa.AppServicePlanId.Value.ToString(),
                     ["deploymentMode"] = fa.DeploymentMode.Value.ToString(),
                     ["containerRegistryId"] = fa.ContainerRegistryId?.Value.ToString() ?? "",
+                    ["acrAuthMode"] = fa.AcrAuthMode?.Value.ToString() ?? "",
                     ["dockerImageName"] = fa.DockerImageName ?? ""
                 },
                 faSettings
@@ -710,6 +815,7 @@ public sealed class InfrastructureConfigReadRepository(ProjectDbContext dbContex
                 {
                     ["containerAppEnvironmentId"] = ca.ContainerAppEnvironmentId.Value.ToString(),
                     ["containerRegistryId"] = ca.ContainerRegistryId?.Value.ToString() ?? "",
+                    ["acrAuthMode"] = ca.AcrAuthMode?.Value.ToString() ?? "",
                     ["dockerImageName"] = ca.DockerImageName ?? ""
                 },
                 caSettings

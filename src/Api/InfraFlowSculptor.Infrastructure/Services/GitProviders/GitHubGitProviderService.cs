@@ -10,7 +10,8 @@ namespace InfraFlowSculptor.Infrastructure.Services.GitProviders;
 /// Pushes files to a GitHub repository using the Octokit SDK.
 /// Supports creating new branches and updating existing ones.
 /// </summary>
-public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi) : IGitProviderService
+public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi)
+    : IGitProviderService, IGitMultiScopePushProviderService
 {
 
     /// <inheritdoc />
@@ -30,77 +31,92 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi) : IGi
     }
 
     /// <inheritdoc />
-    public async Task<ErrorOr<PushBicepToGitResult>> PushFilesAsync(
-        GitPushRequest request, CancellationToken cancellationToken = default)
+    public Task<ErrorOr<PushBicepToGitResult>> PushFilesAsync(
+        GitPushRequest request,
+        CancellationToken cancellationToken = default) =>
+        PushScopedFilesAsync(
+            new MultiScopeGitPushRequest
+            {
+                Token = request.Token,
+                Owner = request.Owner,
+                RepositoryName = request.RepositoryName,
+                BaseBranch = request.BaseBranch,
+                TargetBranchName = request.TargetBranchName,
+                CommitMessage = request.CommitMessage,
+                Scopes =
+                [
+                    new MultiScopeGitPushRequest.GitPushScope
+                    {
+                        BasePath = request.BasePath,
+                        Files = request.Files,
+                    },
+                ],
+            },
+            cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<ErrorOr<PushBicepToGitResult>> PushScopedFilesAsync(
+        MultiScopeGitPushRequest request,
+        CancellationToken cancellationToken = default)
     {
         try
         {
+            var preparedPush = PrepareScopedPush(request);
+            if (preparedPush.IsError)
+                return preparedPush.Errors;
+
+            var pushData = preparedPush.Value;
             var client = CreateClient(request.Token);
 
-            // 1. Get the base branch SHA
             var baseBranchRef = await client.Git.Reference.Get(
-                request.Owner, request.RepositoryName, $"heads/{request.BaseBranch}");
+                request.Owner,
+                request.RepositoryName,
+                $"heads/{request.BaseBranch}");
             var baseSha = baseBranchRef.Object.Sha;
 
-            // 2. Determine parent SHA: use the target branch tip when it already exists
             string parentSha = baseSha;
             bool targetBranchExists = false;
             try
             {
                 var existingRef = await client.Git.Reference.Get(
-                    request.Owner, request.RepositoryName, $"heads/{request.TargetBranchName}");
+                    request.Owner,
+                    request.RepositoryName,
+                    $"heads/{request.TargetBranchName}");
                 parentSha = existingRef.Object.Sha;
                 targetBranchExists = true;
             }
             catch (NotFoundException)
             {
-                // Target branch does not exist yet — use the base branch SHA
+                // Target branch does not exist yet — use the base branch SHA.
             }
 
-            // 3. Determine the target directory prefix for cleanup
-            var targetPrefix = string.IsNullOrEmpty(request.BasePath) ? "" : $"{request.BasePath}/";
-
-            // 4. Build the target tree payload and track generated files.
-            var newFilePaths = new HashSet<string>(StringComparer.Ordinal);
-            var treeItems = new List<object>();
-
-            foreach (var (relativePath, content) in request.Files)
-            {
-                var blobPath = string.IsNullOrEmpty(request.BasePath)
-                    ? relativePath
-                    : $"{request.BasePath}/{relativePath}";
-
-                newFilePaths.Add(blobPath);
-
-                treeItems.Add(new
+            var treeItems = pushData.FilesByPath
+                .Select(file => (object)new
                 {
-                    Path = blobPath,
+                    Path = file.Key,
                     Mode = "100644",
                     Type = "blob",
-                    Content = content,
-                });
-            }
+                    Content = file.Value,
+                })
+                .ToList();
 
-            // 5. Get recursive tree of the parent commit to find stale files to delete
             var parentCommit = await client.Git.Commit.Get(request.Owner, request.RepositoryName, parentSha);
             var parentTreeSha = parentCommit.Tree.Sha;
 
-            // Only clean up stale files when a BasePath is configured,
-            // otherwise we'd delete every other file in the repository.
-            if (!string.IsNullOrEmpty(targetPrefix))
+            if (pushData.CleanupRoots.Count > 0)
             {
                 var existingTree = await client.Git.Tree.GetRecursive(
-                    request.Owner, request.RepositoryName, parentTreeSha);
+                    request.Owner,
+                    request.RepositoryName,
+                    parentTreeSha);
 
                 foreach (var item in existingTree.Tree)
                 {
-                    if (item.Type != TreeType.Blob)
+                    if (item.Type != TreeType.Blob || string.IsNullOrEmpty(item.Path))
                         continue;
 
-                    if (item.Path.StartsWith(targetPrefix, StringComparison.Ordinal)
-                        && !newFilePaths.Contains(item.Path))
+                    if (ShouldDeleteFile(item.Path, pushData))
                     {
-                        // GitHub expects explicit "sha": null for deletions.
                         treeItems.Add(new
                         {
                             Path = item.Path,
@@ -112,7 +128,6 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi) : IGi
                 }
             }
 
-            // 6. Create tree with a direct HTTP call so null sha values are preserved.
             var treeSha = await CreateTreeAsync(
                 request.Token,
                 request.Owner,
@@ -121,28 +136,32 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi) : IGi
                 treeItems,
                 cancellationToken);
 
-            // 7. Create commit whose parent is the correct branch tip
             var newCommit = new NewCommit(request.CommitMessage, treeSha, parentSha);
             var commit = await client.Git.Commit.Create(request.Owner, request.RepositoryName, newCommit);
 
-            // 8. Create or update branch reference
             string branchRef = $"refs/heads/{request.TargetBranchName}";
             if (targetBranchExists)
             {
                 await client.Git.Reference.Update(
-                    request.Owner, request.RepositoryName,
+                    request.Owner,
+                    request.RepositoryName,
                     $"heads/{request.TargetBranchName}",
                     new ReferenceUpdate(commit.Sha));
             }
             else
             {
                 await client.Git.Reference.Create(
-                    request.Owner, request.RepositoryName,
+                    request.Owner,
+                    request.RepositoryName,
                     new NewReference(branchRef, commit.Sha));
             }
 
             var branchUrl = $"https://github.com/{request.Owner}/{request.RepositoryName}/tree/{request.TargetBranchName}";
-            return new PushBicepToGitResult(request.TargetBranchName, branchUrl, commit.Sha, request.Files.Count);
+            return new PushBicepToGitResult(
+                request.TargetBranchName,
+                branchUrl,
+                commit.Sha,
+                pushData.FilesByPath.Count);
         }
         catch (Exception ex)
         {
@@ -192,10 +211,100 @@ public sealed class GitHubGitProviderService(IGitHubTreeApi gitHubTreeApi) : IGi
         }
     }
 
+    /// <inheritdoc />
+    public async Task<ErrorOr<IReadOnlyList<GitFileResult>>> SearchFilesAsync(
+        string token, string owner, string repositoryName,
+        string branch, string? filenamePattern,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = CreateClient(token);
+
+            var branchRef = await client.Git.Reference.Get(owner, repositoryName, $"heads/{branch}");
+            var sha = branchRef.Object.Sha;
+
+            var tree = await client.Git.Tree.GetRecursive(owner, repositoryName, sha);
+
+            var results = tree.Tree
+                .Where(item => item.Type == TreeType.Blob && !string.IsNullOrEmpty(item.Path))
+                .Where(item => string.IsNullOrEmpty(filenamePattern)
+                    || System.IO.Path.GetFileName(item.Path)
+                        .Contains(filenamePattern, StringComparison.OrdinalIgnoreCase))
+                .Take(200)
+                .Select(item => new GitFileResult(item.Path, System.IO.Path.GetFileName(item.Path)))
+                .ToList();
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            return Errors.GitRepository.SearchFilesFailed(ex.Message);
+        }
+    }
+
     private static GitHubClient CreateClient(string token)
     {
         var client = new GitHubClient(new Octokit.ProductHeaderValue("InfraFlowSculptor"));
         client.Credentials = new Credentials(token);
         return client;
     }
+
+    private static ErrorOr<PreparedGitHubPush> PrepareScopedPush(MultiScopeGitPushRequest request)
+    {
+        var filesByPath = new Dictionary<string, string>(StringComparer.Ordinal);
+        var cleanupRoots = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var scope in request.Scopes)
+        {
+            var normalizedBasePath = NormalizeBasePath(scope.BasePath);
+            if (!string.IsNullOrEmpty(normalizedBasePath))
+                cleanupRoots.Add(normalizedBasePath);
+
+            foreach (var (relativePath, content) in scope.Files)
+            {
+                var fullPath = CombinePath(normalizedBasePath, relativePath);
+                if (filesByPath.TryGetValue(fullPath, out var existingContent)
+                    && !string.Equals(existingContent, content, StringComparison.Ordinal))
+                {
+                    return Errors.GitRepository.PushFailed(
+                        $"Generated file collision detected for path '{fullPath}'.");
+                }
+
+                filesByPath[fullPath] = content;
+            }
+        }
+
+        return filesByPath.Count == 0
+            ? Errors.GitRepository.PushFailed("No generated files were provided for the Git push.")
+            : new PreparedGitHubPush(filesByPath, cleanupRoots);
+    }
+
+    private static bool ShouldDeleteFile(string path, PreparedGitHubPush pushData)
+    {
+        if (pushData.FilesByPath.ContainsKey(path))
+            return false;
+
+        foreach (var cleanupRoot in pushData.CleanupRoots)
+        {
+            if (path.StartsWith($"{cleanupRoot}/", StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static string NormalizeBasePath(string? basePath) =>
+        string.IsNullOrWhiteSpace(basePath)
+            ? string.Empty
+            : basePath.Trim('/');
+
+    private static string CombinePath(string basePath, string relativePath) =>
+        string.IsNullOrEmpty(basePath)
+            ? relativePath.TrimStart('/')
+            : $"{basePath}/{relativePath.TrimStart('/')}";
+
+    private sealed record PreparedGitHubPush(
+        IReadOnlyDictionary<string, string> FilesByPath,
+        IReadOnlySet<string> CleanupRoots);
 }

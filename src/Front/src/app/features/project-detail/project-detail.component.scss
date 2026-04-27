@@ -1,3 +1,5 @@
+@use "scss/main" as *;
+
 :host {
   display: block;
 }
@@ -16,7 +18,7 @@
 .detail-header {
   padding: 1.5rem;
   border-radius: 1.8rem;
-  background: linear-gradient(145deg, #0d2f66 0%, #1565c0 40%, #009fbd 100%);
+  background: $ifs-gradient-brand;
   color: #fff;
   box-shadow: 0 28px 60px rgba(13, 47, 102, 0.26);
   position: relative;
@@ -331,7 +333,7 @@ a.config-card {
 .config-card {
   padding: 1.1rem;
   border-radius: 1.2rem;
-  background: linear-gradient(180deg, #ffffff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.24);
   box-shadow: 0 10px 26px rgba(16, 52, 86, 0.06);
 }
@@ -456,7 +458,7 @@ a.config-card {
   gap: 0.75rem;
   padding: 0.75rem 0.9rem;
   border-radius: 1rem;
-  background: linear-gradient(180deg, #ffffff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.2);
   position: relative;
 }
@@ -604,7 +606,7 @@ a.config-card {
 .env-card {
   padding: 1.1rem;
   border-radius: 1.2rem;
-  background: linear-gradient(180deg, #fff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.24);
   position: relative;
   transition: opacity 0.2s ease;
@@ -759,7 +761,7 @@ a.config-card {
   gap: 1rem;
   padding: 0.85rem 1rem;
   border-radius: 1rem;
-  background: linear-gradient(180deg, #fff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.18);
   position: relative;
 
@@ -955,39 +957,48 @@ a.config-card {
 // ─── Generation Panel (wrapper) ────
 
 .generation-panel {
+  position: relative;
   margin-bottom: 1.5rem;
 
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
+  &--with-header {
+    padding-top: 4rem;
   }
 
-  &__title {
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.92);
-    letter-spacing: -0.01em;
+  &--headerless {
+    padding-top: 0;
   }
 
-  &__close {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.6rem;
-    color: rgba(255, 255, 255, 0.55);
-    cursor: pointer;
-    padding: 0.3rem;
-    display: flex;
-    align-items: center;
-    transition: all 0.2s ease;
-
-    &:hover {
-      background: rgba(255, 82, 82, 0.15);
-      border-color: rgba(255, 82, 82, 0.3);
-      color: #ff5252;
+  &--collapsed {
+    &.generation-panel--with-header {
+      padding-top: 0;
     }
+
+    .generation-panel__header {
+      margin-bottom: 0;
+    }
+  }
+
+  &__header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0;
+  }
+
+  &__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.34rem;
+    padding: 0.28rem;
+    border-radius: 1rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.9));
+    border: 1px solid rgba(146, 191, 235, 0.3);
+    box-shadow: 0 16px 30px rgba(16, 52, 86, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
   }
 }
 
@@ -999,16 +1010,16 @@ a.config-card {
   border: 1px solid rgba(0, 188, 212, 0.2);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   overflow: hidden;
-  --mat-tab-header-inactive-label-text-color: rgba(255, 255, 255, 0.6);
-  --mat-tab-header-inactive-hover-label-text-color: rgba(255, 255, 255, 0.82);
-  --mat-tab-header-inactive-focus-label-text-color: rgba(255, 255, 255, 0.82);
-  --mat-tab-header-active-label-text-color: #00bcd4;
-  --mat-tab-header-active-hover-label-text-color: #00e5ff;
-  --mat-tab-header-active-focus-label-text-color: #00e5ff;
-  --mat-tab-header-active-focus-state-layer-opacity: 0;
-  --mat-tab-header-active-pressed-state-layer-opacity: 0;
-  --mat-tab-header-inactive-focus-state-layer-opacity: 0;
-  --mat-tab-header-inactive-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-label-text-color: rgba(255, 255, 255, 0.6);
+  --mat-tab-inactive-hover-label-text-color: rgba(255, 255, 255, 0.82);
+  --mat-tab-inactive-focus-label-text-color: rgba(255, 255, 255, 0.82);
+  --mat-tab-active-label-text-color: #00bcd4;
+  --mat-tab-active-hover-label-text-color: #00e5ff;
+  --mat-tab-active-focus-label-text-color: #00e5ff;
+  --mat-tab-active-focus-state-layer-opacity: 0;
+  --mat-tab-active-pressed-state-layer-opacity: 0;
+  --mat-tab-inactive-focus-state-layer-opacity: 0;
+  --mat-tab-inactive-pressed-state-layer-opacity: 0;
 
   ::ng-deep .mat-mdc-tab-header {
     border-bottom: 1px solid rgba(0, 188, 212, 0.15);
@@ -1590,12 +1601,159 @@ a.config-card {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
+
+// ─── Bootstrap Unified Guide Card ────
+
+.bootstrap-guide-card {
+  margin: 1rem 0;
+  padding: 1.25rem 1.5rem 1.5rem;
+  border-radius: 1rem;
+  background: linear-gradient(160deg, rgba(10, 42, 78, 0.92) 0%, rgba(5, 28, 56, 0.94) 100%);
+  border: 1px solid rgba(0, 188, 212, 0.22);
+  box-shadow: 0 16px 36px rgba(3, 18, 37, 0.18);
+
+  &__title {
+    margin: 0 0 0.5rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: rgba(214, 242, 255, 0.95);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__intro {
+    margin: 0 0 1.25rem;
+    max-width: 48rem;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  &__section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 1.5rem 0 0.65rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid rgba(0, 188, 212, 0.18);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #7ce8ff;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  &__section-title--warning {
+    color: #ffbd2e;
+    border-bottom-color: rgba(255, 189, 46, 0.22);
+  }
+
+  &__section-title--success {
+    color: #50fa7b;
+    border-bottom-color: rgba(80, 250, 123, 0.22);
+  }
+
+  &__section-icon {
+    font-size: 1.05rem;
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  &__section-hint {
+    margin: 0 0 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: rgba(255, 189, 46, 0.06);
+    border: 1px solid rgba(255, 189, 46, 0.18);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.88);
+  }
+}
+
+.bootstrap-guide {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.bootstrap-guide__step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  &--permission {
+    background: rgba(255, 189, 46, 0.03);
+    border-color: rgba(255, 189, 46, 0.12);
+  }
+
+  &--success {
+    background: rgba(80, 250, 123, 0.03);
+    border-color: rgba(80, 250, 123, 0.12);
+  }
+}
+
+.bootstrap-guide__step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: $ifs-gradient-brand-soft;
+  box-shadow: 0 8px 16px rgba(0, 188, 212, 0.22);
+
+  &--permission {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    box-shadow: 0 8px 16px rgba(245, 158, 11, 0.22);
+    color: #1a1a2e;
+  }
+
+  &--success {
+    background: linear-gradient(135deg, #0ea5e9 0%, #34d399 100%);
+    box-shadow: 0 8px 16px rgba(52, 211, 153, 0.18);
+  }
+}
+
+.bootstrap-guide__step-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.84);
+  padding-top: 0.15rem;
+}
+
+@media (max-width: 640px) {
+  .bootstrap-guide-card {
+    padding: 1rem;
+  }
+
+  .bootstrap-guide__step {
+    padding: 0.8rem 0.85rem;
+  }
+
+  .bootstrap-guide__step-number {
+    width: 1.8rem;
+    height: 1.8rem;
+    font-size: 0.82rem;
+  }
+}
 // ─── Git Config ────
 
 .git-config-card {
   padding: 1.2rem;
   border-radius: 1.2rem;
-  background: linear-gradient(180deg, #ffffff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.24);
   box-shadow: 0 10px 26px rgba(16, 52, 86, 0.06);
 }
@@ -1878,7 +2036,7 @@ a.config-card {
 .vg-card {
   padding: 1.1rem;
   border-radius: 1.2rem;
-  background: linear-gradient(180deg, #fff, #f6fbff);
+  background: $ifs-gradient-card-soft;
   border: 1px solid rgba(146, 191, 235, 0.24);
   transition: box-shadow 0.2s ease;
 
@@ -2048,4 +2206,163 @@ a.config-card {
   width: 1.1rem;
   height: 1.1rem;
   color: #90a4ae;
+}
+
+// ─── Abbreviation Overrides ───
+
+.abbreviations-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.abbreviations-section__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #103454;
+  margin: 0 0 0.25rem;
+
+  mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #1565c0;
+  }
+}
+
+.abbreviations-section__subtitle {
+  font-size: 0.82rem;
+  color: #617892;
+  margin: 0 0 1rem;
+}
+
+.naming-section-header {
+  margin-bottom: 1.25rem;
+}
+
+.naming-section-header__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #103454;
+  margin: 0 0 0.25rem;
+
+  mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #1565c0;
+  }
+}
+
+.naming-section-header__subtitle {
+  font-size: 0.82rem;
+  color: #617892;
+  margin: 0;
+}
+
+.abbreviation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.abbreviation-list__header {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #90a4ae;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.abbreviation-list__col {
+  display: flex;
+  align-items: center;
+
+  &--type {
+    flex: 2;
+    gap: 0.4rem;
+  }
+
+  &--default {
+    flex: 1;
+  }
+
+  &--effective {
+    flex: 1;
+  }
+
+  &--actions {
+    flex: 0 0 5rem;
+    gap: 0.25rem;
+    justify-content: flex-end;
+  }
+}
+
+.abbreviation-row {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  &--busy {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.abbreviation-row__spinner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 1;
+  border-radius: 4px;
+}
+
+.abbreviation-row__icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: #617892;
+}
+
+.effective-abbr {
+  font-size: 0.85rem;
+  line-height: 1;
+
+  &--custom {
+    margin-left: -0.5rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(21, 101, 192, 0.12);
+    color: #0d47a1;
+    font-weight: 600;
+  }
+}
+
+.customized-chip {
+  font-size: 0.72rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  background: rgba(21, 101, 192, 0.1);
+  color: #1565c0;
+  font-weight: 500;
 }

@@ -17,10 +17,12 @@ public record CreateFunctionAppCommand(
     bool HttpsOnly,
     string DeploymentMode,
     Guid? ContainerRegistryId,
+    string? AcrAuthMode,
     string? DockerImageName,
     string? DockerfilePath = null,
     string? SourceCodePath = null,
     string? BuildCommand = null,
     string? ApplicationName = null,
-    IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null
+    IReadOnlyList<FunctionAppEnvironmentConfigData>? EnvironmentSettings = null,
+    bool IsExisting = false
 ) : ICommand<FunctionAppResult>;

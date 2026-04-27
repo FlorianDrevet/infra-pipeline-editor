@@ -13,7 +13,9 @@ public sealed class KeyVaultAccessDiagnosticRule : IDiagnosticRule
     private const string RuleCode = "KEY_VAULT_ACCESS_MISSING";
 
     /// <inheritdoc />
-    public IReadOnlyList<ResourceDiagnosticItem> Evaluate(InfrastructureConfigReadModel config)
+    public Task<IReadOnlyList<ResourceDiagnosticItem>> EvaluateAsync(
+        InfrastructureConfigReadModel config,
+        CancellationToken cancellationToken = default)
     {
         var diagnostics = new List<ResourceDiagnosticItem>();
 
@@ -54,6 +56,6 @@ public sealed class KeyVaultAccessDiagnosticRule : IDiagnosticRule
                 targetKvName));
         }
 
-        return diagnostics;
+        return Task.FromResult<IReadOnlyList<ResourceDiagnosticItem>>(diagnostics);
     }
 }

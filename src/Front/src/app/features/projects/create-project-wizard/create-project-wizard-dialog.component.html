@@ -1,0 +1,126 @@
+<div class="wizard">
+  <header class="wizard__header">
+    <h2 class="wizard__title">{{ 'PROJECT_CREATE.TITLE' | translate }}</h2>
+    <app-ds-icon-button
+      icon="close"
+      variant="ghost"
+      size="md"
+      [ariaLabel]="'PROJECT_CREATE.CANCEL' | translate"
+      (clicked)="attemptCancel()"
+    ></app-ds-icon-button>
+  </header>
+
+  @if (resumePromptVisible()) {
+    <div class="wizard__banner">
+      <app-ds-alert severity="info" [title]="'PROJECT_CREATE.DRAFT.RESUME_TITLE' | translate">
+        <div class="wizard__banner-body">
+          <span>{{ 'PROJECT_CREATE.DRAFT.RESUME_TEXT' | translate }}</span>
+          <div class="wizard__banner-actions">
+            <app-ds-button variant="ghost" size="sm" (clicked)="discardDraft()">
+              {{ 'PROJECT_CREATE.DRAFT.DISCARD_BUTTON' | translate }}
+            </app-ds-button>
+            <app-ds-button variant="primary" size="sm" (clicked)="resumeDraft()">
+              {{ 'PROJECT_CREATE.DRAFT.RESUME_BUTTON' | translate }}
+            </app-ds-button>
+          </div>
+        </div>
+      </app-ds-alert>
+    </div>
+  }
+
+  @if (abandonPromptVisible()) {
+    <div class="wizard__banner">
+      <app-ds-alert severity="warning">
+        <div class="wizard__banner-body">
+          <span>{{ 'PROJECT_CREATE.ABANDON_CONFIRM' | translate }}</span>
+          <div class="wizard__banner-actions">
+            <app-ds-button variant="ghost" size="sm" (clicked)="dismissAbandonPrompt()">
+              {{ 'PROJECT_CREATE.CANCEL' | translate }}
+            </app-ds-button>
+            <app-ds-button variant="secondary" size="sm" (clicked)="keepDraftAndClose()">
+              {{ 'PROJECT_CREATE.ABANDON_KEEP' | translate }}
+            </app-ds-button>
+            <app-ds-button variant="danger" size="sm" (clicked)="confirmAbandon()">
+              {{ 'PROJECT_CREATE.ABANDON_DISCARD' | translate }}
+            </app-ds-button>
+          </div>
+        </div>
+      </app-ds-alert>
+    </div>
+  }
+
+  <mat-stepper #stepper [linear]="true" class="wizard__stepper" (selectionChange)="onStepChange($event)">
+    <mat-step [completed]="identityValid()" [editable]="true" [label]="'PROJECT_CREATE.STEP.IDENTITY.LABEL' | translate">
+      <app-identity-step
+        [(draft)]="draft"
+        (validityChange)="onIdentityValidity($event)"
+        (quickStart)="onQuickStart()"
+      ></app-identity-step>
+    </mat-step>
+
+    <mat-step [completed]="layoutValid()" [editable]="true" [label]="'PROJECT_CREATE.STEP.LAYOUT.LABEL' | translate">
+      <app-layout-step
+        [(draft)]="draft"
+        (validityChange)="onLayoutValidity($event)"
+      ></app-layout-step>
+    </mat-step>
+
+    <mat-step [completed]="environmentsValid()" [editable]="true" [label]="'PROJECT_CREATE.STEP.ENVIRONMENTS.LABEL' | translate">
+      <app-environment-step
+        [(draft)]="draft"
+        (validityChange)="onEnvironmentsValidity($event)"
+      ></app-environment-step>
+    </mat-step>
+
+    @if (needsRepositoriesStep()) {
+      <mat-step [completed]="repositoriesValid()" [editable]="true" [label]="'PROJECT_CREATE.STEP.REPOSITORIES.LABEL' | translate">
+        <app-repositories-step
+          [(draft)]="draft"
+          (validityChange)="onRepositoriesValidity($event)"
+        ></app-repositories-step>
+      </mat-step>
+    }
+
+    <mat-step [label]="'PROJECT_CREATE.STEP.REVIEW.LABEL' | translate">
+      @if (submitErrorText()) {
+        <div class="wizard__submit-error">
+          <app-ds-alert severity="error">{{ submitErrorText() }}</app-ds-alert>
+        </div>
+      }
+
+      <app-review-step [draft]="draft()"></app-review-step>
+    </mat-step>
+  </mat-stepper>
+
+  <footer class="wizard__footer">
+    @if (activeStepIndex() === 0) {
+      <app-ds-button variant="ghost" (clicked)="attemptCancel()">
+        {{ 'PROJECT_CREATE.CANCEL' | translate }}
+      </app-ds-button>
+    } @else {
+      <app-ds-button variant="ghost" (clicked)="goPrevious()" [disabled]="isSubmitting()">
+        {{ 'PROJECT_CREATE.BACK' | translate }}
+      </app-ds-button>
+    }
+
+    @if (activeStepIndex() === reviewStepIndex()) {
+      <app-ds-button
+        variant="primary"
+        icon="rocket_launch"
+        [loading]="isSubmitting()"
+        [disabled]="!canSubmit()"
+        (clicked)="onSubmit()"
+      >
+        {{ 'PROJECT_CREATE.SUBMIT' | translate }}
+      </app-ds-button>
+    } @else {
+      <app-ds-button
+        variant="primary"
+        [disabled]="!isCurrentStepValid()"
+        (clicked)="goNext()"
+      >
+        {{ 'PROJECT_CREATE.NEXT' | translate }}
+      </app-ds-button>
+    }
+  </footer>
+</div>

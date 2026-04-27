@@ -1,0 +1,87 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+}
+
+.ds-option-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  width: 100%;
+  padding: 1rem 1.125rem;
+  border-radius: $ifs-radius-xl;
+  border: 1.5px solid $ifs-ink-100;
+  background: $ifs-gradient-card-soft;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color $ifs-duration-fast $ifs-ease-out,
+    box-shadow $ifs-duration-fast $ifs-ease-out,
+    transform $ifs-duration-fast $ifs-ease-out,
+    background $ifs-duration-fast $ifs-ease-out;
+
+  &:hover:not(:disabled) {
+    border-color: rgba($ifs-brand-blue, 0.28);
+    box-shadow: $ifs-shadow-md;
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $ifs-brand-blue;
+    outline-offset: 2px;
+  }
+
+  &--selected {
+    border-color: $ifs-brand-blue;
+    border-width: 2px;
+    padding: calc(1rem - 0.5px) calc(1.125rem - 0.5px);
+    background: linear-gradient(180deg, rgba(238, 248, 255, 0.97), $ifs-surface-0);
+    box-shadow: 0 8px 20px rgba($ifs-brand-blue, 0.14);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  &__icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: $ifs-radius-lg;
+    background: linear-gradient(135deg, rgba($ifs-brand-blue, 0.12), rgba($ifs-brand-cyan, 0.18));
+    flex-shrink: 0;
+  }
+
+  &__icon {
+    width: 22px;
+    height: 22px;
+    font-size: 22px;
+    line-height: 22px;
+    color: $ifs-brand-blue;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  &__title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.35;
+    color: $ifs-ink-900;
+  }
+
+  &__desc {
+    font-size: 0.84rem;
+    color: $ifs-ink-500;
+    line-height: 1.5;
+  }
+}

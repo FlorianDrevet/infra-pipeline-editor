@@ -58,6 +58,13 @@ public class GenerationRequest
     public IReadOnlyDictionary<string, string> ConfigTags { get; set; } = new Dictionary<string, string>();
 
     /// <summary>
+    /// Full Bicep parameter names for secure parameters (e.g. <c>sqlServerAdministratorLoginPassword</c>)
+    /// that must be overridden at deployment time via pipeline secret variables.
+    /// The release pipeline emits <c>-{paramName} $({paramName})</c> in <c>overrideParameters</c>.
+    /// </summary>
+    public IReadOnlyList<string> SecureParameterOverrides { get; set; } = [];
+
+    /// <summary>
     /// Self-hosted agent pool name. When set, pipelines use <c>pool: name: 'value'</c>.
     /// When <c>null</c>, pipelines use the Microsoft-hosted pool (<c>vmImage: ubuntu-latest</c>).
     /// </summary>

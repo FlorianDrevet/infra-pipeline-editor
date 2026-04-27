@@ -18,6 +18,8 @@ namespace InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
 /// <summary>Handles the <see cref="GenerateProjectBicepCommand"/>.</summary>
 public sealed class GenerateProjectBicepCommandHandler(
     IProjectAccessService accessService,
+    IProjectRepository projectRepository,
+    IInfrastructureConfigRepository configRepository,
     IInfrastructureConfigReadRepository configReadRepository,
     BicepGenerationEngine bicepGenerationEngine,
     IBlobService blobService)
@@ -45,6 +47,16 @@ public sealed class GenerateProjectBicepCommandHandler(
         if (configs.Count == 0)
             return Errors.Project.NoConfigurationsError();
 
+        // 2.bis Ambiguity gate: reject project-level generate-all for heterogeneous multi-repo topologies.
+        // Uses domain aggregates to access RepositoryBinding (not exposed by the read model).
+        var project = await projectRepository.GetByIdAsync(command.ProjectId, cancellationToken);
+        if (project is null)
+            return Errors.Project.NotFoundError(command.ProjectId);
+
+        var domainConfigs = await configRepository.GetByProjectIdAsync(command.ProjectId, cancellationToken);
+        if (!project.CanGenerateAllFromProjectLevel(domainConfigs))
+            return Errors.GitRouting.AmbiguousProjectLevelGeneration;
+
         // 3. Build per-config generation requests
         var configRequests = new Dictionary<string, GenerationRequest>();
         NamingContext? sharedNamingContext = null;
@@ -54,7 +66,7 @@ public sealed class GenerateProjectBicepCommandHandler(
         foreach (var config in configs)
         {
             var generationRequest = BuildGenerationRequest(config);
-            configRequests[config.Name] = generationRequest;
+            configRequests[PathSanitizer.Sanitize(config.Name)] = generationRequest;
 
             // Use the first config's naming context and environments as shared (they come from the project)
             if (sharedNamingContext is null)
@@ -65,7 +77,8 @@ public sealed class GenerateProjectBicepCommandHandler(
             }
         }
 
-        // 4. Generate mono-repo Bicep files
+        // 4. Generate mono-repo Bicep files.
+        // Shared files remain under Common/ for both AllInOne and SplitInfraCode layouts.
         var monoRepoRequest = new MonoRepoGenerationRequest
         {
             ConfigRequests = configRequests,
@@ -78,13 +91,14 @@ public sealed class GenerateProjectBicepCommandHandler(
 
         // 5. Upload to blob storage
         var prefix = $"bicep/project/{command.ProjectId.Value}/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
+        const string sharedPathSegment = "Common/";
 
         var commonFileUris = new Dictionary<string, Uri>();
         foreach (var (path, content) in result.CommonFiles)
         {
             var uri = await blobService.UploadContentAsync(
-                $"{prefix}/Common/{path}", content, "text/plain");
-            commonFileUris[$"Common/{path}"] = uri;
+                $"{prefix}/{sharedPathSegment}{path}", content, "text/plain");
+            commonFileUris[$"{sharedPathSegment}{path}"] = uri;
         }
 
         var configFileUris = new Dictionary<string, IReadOnlyDictionary<string, Uri>>();
@@ -106,8 +120,12 @@ public sealed class GenerateProjectBicepCommandHandler(
     private static GenerationRequest BuildGenerationRequest(
         InfrastructureConfig.ReadModels.InfrastructureConfigReadModel config)
     {
+        var mergedAbbreviations = MergeAbbreviations(config.NamingContext.ResourceAbbreviations);
+
         var resources = config.ResourceGroups
-            .SelectMany(rg => rg.Resources.Select(r => new ResourceDefinition
+            .SelectMany(rg => rg.Resources
+                .Where(r => !r.IsExisting)
+                .Select(r => new ResourceDefinition
             {
                 ResourceId = r.Id,
                 Name = r.Name,
@@ -115,12 +133,20 @@ public sealed class GenerateProjectBicepCommandHandler(
                 ResourceGroupName = rg.Name,
                 Sku = r.Properties.GetValueOrDefault("sku", string.Empty),
                 Properties = r.Properties,
-                ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType),
+                ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType, mergedAbbreviations),
                 EnvironmentConfigs = r.EnvironmentConfigs
                     .ToDictionary(
                         ec => ec.EnvironmentName,
                         ec => (IReadOnlyDictionary<string, string>)ec.Properties),
                 AssignedUserAssignedIdentityName = r.AssignedUserAssignedIdentityName,
+                CustomDomains = (r.CustomDomains ?? [])
+                    .Select(cd => new CustomDomainDefinition
+                    {
+                        EnvironmentName = cd.EnvironmentName,
+                        DomainName = cd.DomainName,
+                        BindingType = cd.BindingType,
+                    })
+                    .ToList(),
             }))
             .ToList();
 
@@ -153,7 +179,7 @@ public sealed class GenerateProjectBicepCommandHandler(
         {
             DefaultTemplate = config.NamingContext.DefaultTemplate,
             ResourceTemplates = config.NamingContext.ResourceTemplates,
-            ResourceAbbreviations = ResourceAbbreviationCatalog.GetAll(),
+            ResourceAbbreviations = mergedAbbreviations,
         };
 
         var roleAssignments = config.RoleAssignments
@@ -179,7 +205,7 @@ public sealed class GenerateProjectBicepCommandHandler(
                     RoleDefinitionDescription = roleDef?.Description ?? string.Empty,
                     ServiceCategory = RoleAssignmentModuleTemplates.GetServiceCategory(targetTypeName),
                     TargetResourceTypeName = targetTypeName,
-                    TargetResourceAbbreviation = GetResourceAbbreviation(ra.TargetResourceType),
+                    TargetResourceAbbreviation = GetResourceAbbreviation(ra.TargetResourceType, mergedAbbreviations),
                     UserAssignedIdentityName = ra.UserAssignedIdentityName,
                     UserAssignedIdentityResourceId = ra.UserAssignedIdentityResourceId,
                     UserAssignedIdentityResourceGroupName = ra.UserAssignedIdentityResourceGroupName,
@@ -245,6 +271,26 @@ public sealed class GenerateProjectBicepCommandHandler(
             })
             .ToList();
 
+        var localExistingRefs = config.ResourceGroups
+            .SelectMany(rg => rg.Resources
+                .Where(r => r.IsExisting)
+                .Select(r =>
+                {
+                    var typeName = GetResourceTypeName(r.ResourceType);
+                    return new ExistingResourceReference
+                    {
+                        ResourceName = r.Name,
+                        ResourceTypeName = typeName,
+                        ResourceType = r.ResourceType,
+                        ResourceGroupName = rg.Name,
+                        ResourceAbbreviation = GetResourceAbbreviation(r.ResourceType, mergedAbbreviations),
+                        SourceConfigName = string.Empty,
+                    };
+                }))
+            .ToList();
+
+        existingResourceReferences.AddRange(localExistingRefs);
+
         return new GenerationRequest
         {
             Resources = resources,
@@ -260,10 +306,26 @@ public sealed class GenerateProjectBicepCommandHandler(
         };
     }
 
-    private static string GetResourceAbbreviation(string azureResourceType)
+    private static string GetResourceAbbreviation(
+        string azureResourceType,
+        IReadOnlyDictionary<string, string> mergedAbbreviations)
     {
         var typeName = AzureResourceTypes.GetFriendlyName(azureResourceType);
-        return ResourceAbbreviationCatalog.GetAbbreviation(typeName);
+        return mergedAbbreviations.TryGetValue(typeName, out var abbr)
+            ? abbr
+            : ResourceAbbreviationCatalog.GetAbbreviation(typeName);
+    }
+
+    private static IReadOnlyDictionary<string, string> MergeAbbreviations(
+        IReadOnlyDictionary<string, string> overrides)
+    {
+        var merged = new Dictionary<string, string>(ResourceAbbreviationCatalog.GetAll(), StringComparer.OrdinalIgnoreCase);
+        foreach (var (key, value) in overrides)
+        {
+            merged[key] = value;
+        }
+
+        return merged;
     }
 
     private static string GetResourceTypeName(string azureResourceType) =>

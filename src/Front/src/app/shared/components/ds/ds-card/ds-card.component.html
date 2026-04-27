@@ -1,0 +1,11 @@
+<div [class]="classes()" (click)="onClick($event)">
+  <div class="ds-card__header">
+    <ng-content select="[ds-card-header]"></ng-content>
+  </div>
+  <div class="ds-card__body">
+    <ng-content></ng-content>
+  </div>
+  <div class="ds-card__footer">
+    <ng-content select="[ds-card-footer]"></ng-content>
+  </div>
+</div>

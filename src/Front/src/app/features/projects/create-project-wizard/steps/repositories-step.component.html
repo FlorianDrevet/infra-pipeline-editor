@@ -1,0 +1,64 @@
+<div class="repos-step">
+  <header class="repos-step__header">
+    <h3>{{ 'PROJECT_CREATE.STEP.REPOSITORIES.TITLE' | translate }}</h3>
+  </header>
+
+  <app-ds-alert severity="info">
+    {{ 'PROJECT_CREATE.STEP.REPOSITORIES.OPTIONAL_HINT' | translate }}
+  </app-ds-alert>
+
+  <div class="repos-step__list">
+    @for (label of cardLabels(); track label.index) {
+      @let repo = repositories()[label.index];
+      <app-ds-card padding="md">
+        <div class="repo-card">
+          <div class="repo-card__head">
+            <span class="repo-card__title">{{ label.titleKey | translate }}</span>
+            <div class="repo-card__chips">
+              @for (kind of label.contentKindKeys; track kind) {
+                <app-ds-chip variant="primary" size="sm">{{ kind }}</app-ds-chip>
+              }
+            </div>
+          </div>
+
+          <div class="repo-card__row">
+            <app-ds-text-field
+              [label]="'PROJECT_CREATE.STEP.REPOSITORIES.ALIAS' | translate"
+              [hint]="'PROJECT_CREATE.STEP.REPOSITORIES.ALIAS_HINT' | translate"
+              [required]="true"
+              [error]="aliasError(repo) ? ('PROJECT_CREATE.STEP.REPOSITORIES.ALIAS_HINT' | translate) : undefined"
+              [ngModel]="repo.alias"
+              (ngModelChange)="updateField(label.index, 'alias', $event)"
+            ></app-ds-text-field>
+          </div>
+
+          <div class="repo-card__row repo-card__row--triple">
+            <app-ds-select
+              [label]="'PROJECT_CREATE.STEP.REPOSITORIES.PROVIDER' | translate"
+              [options]="providerOptions"
+              [ngModel]="repo.providerType"
+              (ngModelChange)="updateField(label.index, 'providerType', $event)"
+            ></app-ds-select>
+            <app-ds-text-field
+              [label]="'PROJECT_CREATE.STEP.REPOSITORIES.URL' | translate"
+              [ngModel]="repo.repositoryUrl"
+              (ngModelChange)="updateField(label.index, 'repositoryUrl', $event)"
+            ></app-ds-text-field>
+            <app-ds-text-field
+              [label]="'PROJECT_CREATE.STEP.REPOSITORIES.BRANCH' | translate"
+              placeholder="main"
+              [ngModel]="repo.defaultBranch"
+              (ngModelChange)="updateField(label.index, 'defaultBranch', $event)"
+            ></app-ds-text-field>
+          </div>
+
+          @if (connectionPartial(repo)) {
+            <app-ds-alert severity="warning">
+              {{ 'PROJECT_CREATE.STEP.REPOSITORIES.CONNECTION_INCOMPLETE' | translate }}
+            </app-ds-alert>
+          }
+        </div>
+      </app-ds-card>
+    }
+  </div>
+</div>

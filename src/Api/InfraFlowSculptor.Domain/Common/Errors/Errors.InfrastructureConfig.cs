@@ -81,5 +81,11 @@ public static partial class Errors
             code: "InfrastructureConfig.ResourceNamingTemplateNotFound",
             description: $"No naming template override exists for resource type '{resourceType}'."
         );
+
+        /// <summary>Returned when no abbreviation override exists for the given resource type.</summary>
+        public static Error ResourceAbbreviationOverrideNotFoundError(string resourceType) => Error.NotFound(
+            code: "InfrastructureConfig.ResourceAbbreviationOverrideNotFound",
+            description: $"No abbreviation override exists for resource type '{resourceType}'."
+        );
     }
 }

@@ -25,4 +25,12 @@ public interface IGitProviderService
     /// </summary>
     Task<ErrorOr<IReadOnlyList<GitBranchResult>>> ListBranchesAsync(
         string token, string owner, string repositoryName, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Searches for files matching a filename pattern in the repository on a specific branch.
+    /// </summary>
+    Task<ErrorOr<IReadOnlyList<GitFileResult>>> SearchFilesAsync(
+        string token, string owner, string repositoryName,
+        string branch, string? filenamePattern,
+        CancellationToken cancellationToken = default);
 }

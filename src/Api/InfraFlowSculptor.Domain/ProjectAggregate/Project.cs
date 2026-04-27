@@ -1,5 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.Entities;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
@@ -51,6 +52,12 @@ public sealed class Project : AggregateRoot<ProjectId>
     public IReadOnlyCollection<ProjectResourceNamingTemplate> ResourceNamingTemplates
         => _resourceNamingTemplates.AsReadOnly();
 
+    private readonly List<ProjectResourceAbbreviation> _resourceAbbreviations = [];
+
+    /// <summary>Gets the project-level per-resource-type abbreviation overrides.</summary>
+    public IReadOnlyCollection<ProjectResourceAbbreviation> ResourceAbbreviations
+        => _resourceAbbreviations.AsReadOnly();
+
     // ─── Tags ───────────────────────────────────────────────────────────────
 
     private readonly List<Tag> _tags = [];
@@ -76,16 +83,16 @@ public sealed class Project : AggregateRoot<ProjectId>
     // ─── Repository Mode ────────────────────────────────────────────────────
 
     /// <summary>
-    /// Gets the repository mode for this project.
-    /// <see cref="RepositoryModeEnum.MultiRepo"/>: each configuration has its own repository/push.
-    /// <see cref="RepositoryModeEnum.MonoRepo"/>: all configurations share a single repository/push at project level.
+    /// Gets the layout preset of this project.
     /// </summary>
-    public RepositoryMode RepositoryMode { get; private set; } = new(RepositoryModeEnum.MultiRepo);
+    public LayoutPreset LayoutPreset { get; private set; } = new(LayoutPresetEnum.MultiRepo);
 
-    // ─── Git Repository Configuration ───────────────────────────────────────
+    // ─── Project Repositories ────────────────────────────────────────────────
 
-    /// <summary>Gets the optional Git repository configuration for pushing generated Bicep files.</summary>
-    public GitRepositoryConfiguration? GitRepositoryConfiguration { get; private set; }
+    private readonly List<ProjectRepository> _repositories = [];
+
+    /// <summary>Gets the Git repositories declared at project level.</summary>
+    public IReadOnlyCollection<ProjectRepository> Repositories => _repositories.AsReadOnly();
 
     // ─── Agent Pool ─────────────────────────────────────────────────────
 
@@ -253,6 +260,33 @@ public sealed class Project : AggregateRoot<ProjectId>
         return true;
     }
 
+    // ─── Resource Abbreviation Management ───────────────────────────────────
+
+    /// <summary>Sets or updates a per-resource-type abbreviation override.</summary>
+    public ProjectResourceAbbreviation SetResourceAbbreviation(string resourceType, string abbreviation)
+    {
+        var existing = _resourceAbbreviations.FirstOrDefault(a => a.ResourceType == resourceType);
+        if (existing is not null)
+        {
+            existing.Update(abbreviation);
+            return existing;
+        }
+
+        var entry = new ProjectResourceAbbreviation(Id, resourceType, abbreviation);
+        _resourceAbbreviations.Add(entry);
+        return entry;
+    }
+
+    /// <summary>Removes a per-resource-type abbreviation override.</summary>
+    public bool RemoveResourceAbbreviation(string resourceType)
+    {
+        var existing = _resourceAbbreviations.FirstOrDefault(a => a.ResourceType == resourceType);
+        if (existing is null)
+            return false;
+        _resourceAbbreviations.Remove(existing);
+        return true;
+    }
+
     // ─── Pipeline Variable Group Management ───────────────────────────────
 
     /// <summary>Adds a new pipeline variable group to this project.</summary>
@@ -280,43 +314,166 @@ public sealed class Project : AggregateRoot<ProjectId>
         return Result.Deleted;
     }
 
-    // ─── Git Repository Configuration Management ────────────────────────────
+    // ─── Project Repositories Management ────────────────────────────────────
 
-    /// <summary>Sets or updates the Git repository configuration for this project.</summary>
-    public GitRepositoryConfiguration SetGitRepositoryConfiguration(
-        GitProviderType providerType,
-        string repositoryUrl,
-        string defaultBranch,
-        string? basePath,
-        string? pipelineBasePath)
+    /// <summary>
+    /// Adds a new <see cref="ProjectRepository"/> to this project.
+    /// The alias must be unique within the project. The current <see cref="LayoutPreset"/> must allow the operation.
+    /// Connection details (<paramref name="providerType"/>, <paramref name="repositoryUrl"/>, <paramref name="defaultBranch"/>)
+    /// are optional: pass them all to create a fully configured repository, or pass them all as <c>null</c>/empty
+    /// to create an unconfigured slot to be completed later.
+    /// </summary>
+    public ErrorOr<ProjectRepository> AddRepository(
+        RepositoryAlias alias,
+        GitProviderType? providerType,
+        string? repositoryUrl,
+        string? defaultBranch,
+        RepositoryContentKinds contentKinds)
     {
-        if (GitRepositoryConfiguration is not null)
-        {
-            GitRepositoryConfiguration.Update(providerType, repositoryUrl, defaultBranch, basePath, pipelineBasePath);
-            return GitRepositoryConfiguration;
-        }
+        var allowed = EnsureRepositoryAllowedByLayout(contentKinds, expectedCountAfterAdd: _repositories.Count + 1);
+        if (allowed.IsError)
+            return allowed.Errors;
 
-        GitRepositoryConfiguration = Entities.GitRepositoryConfiguration.Create(
-            providerType, repositoryUrl, defaultBranch, basePath, pipelineBasePath, Id);
-        return GitRepositoryConfiguration;
+        if (_repositories.Any(r => r.Alias == alias))
+            return Domain.Common.Errors.Errors.ProjectRepository.DuplicateAlias(alias);
+
+        var created = ProjectRepository.Create(Id, alias, providerType, repositoryUrl, defaultBranch, contentKinds);
+        if (created.IsError)
+            return created.Errors;
+
+        _repositories.Add(created.Value);
+        return created.Value;
     }
 
-    /// <summary>Removes the Git repository configuration from this project.</summary>
-    public ErrorOr<Deleted> RemoveGitRepositoryConfiguration()
+    /// <summary>Updates an existing <see cref="ProjectRepository"/> by id.</summary>
+    public ErrorOr<ProjectRepository> UpdateRepository(
+        ProjectRepositoryId id,
+        GitProviderType? providerType,
+        string? repositoryUrl,
+        string? defaultBranch,
+        RepositoryContentKinds contentKinds)
     {
-        if (GitRepositoryConfiguration is null)
-            return Domain.Common.Errors.Errors.GitRepository.NotConfigured();
+        var existing = _repositories.FirstOrDefault(r => r.Id == id);
+        if (existing is null)
+            return Domain.Common.Errors.Errors.ProjectRepository.NotFound(id);
 
-        GitRepositoryConfiguration = null;
+        // Validate the candidate kinds against the current layout (count remains the same).
+        var allowed = EnsureRepositoryAllowedByLayout(contentKinds, expectedCountAfterAdd: _repositories.Count, ignoredId: id);
+        if (allowed.IsError)
+            return allowed.Errors;
+
+        var updated = existing.Update(providerType, repositoryUrl, defaultBranch, contentKinds);
+        if (updated.IsError)
+            return updated.Errors;
+
+        return existing;
+    }
+
+    /// <summary>Removes a <see cref="ProjectRepository"/> by id.</summary>
+    public ErrorOr<Deleted> RemoveRepository(ProjectRepositoryId id)
+    {
+        var existing = _repositories.FirstOrDefault(r => r.Id == id);
+        if (existing is null)
+            return Domain.Common.Errors.Errors.ProjectRepository.NotFound(id);
+
+        _repositories.Remove(existing);
         return Result.Deleted;
     }
 
+    /// <summary>Returns the repository matching the given alias, or <c>null</c> if none exists.</summary>
+    public ProjectRepository? GetRepositoryByAlias(RepositoryAlias alias)
+        => _repositories.FirstOrDefault(r => r.Alias == alias);
+
     // ─── Repository Mode Management ─────────────────────────────────────────
 
-    /// <summary>Sets the repository mode for this project.</summary>
-    public void SetRepositoryMode(RepositoryMode mode)
+    /// <summary>
+    /// Sets the layout preset for this project.
+    /// Switching to a different preset auto-clears project-level repositories so the user can reconfigure them.
+    /// Switching to the current preset is a no-op.
+    /// </summary>
+    public ErrorOr<Success> SetLayoutPreset(LayoutPreset preset)
     {
-        RepositoryMode = mode;
+        ArgumentNullException.ThrowIfNull(preset);
+
+        if (LayoutPreset.Value == preset.Value)
+            return Result.Success;
+
+        _repositories.Clear();
+
+        LayoutPreset = preset;
+        return Result.Success;
+    }
+
+    private ErrorOr<Success> EnsureRepositoryAllowedByLayout(
+        RepositoryContentKinds candidateKinds,
+        int expectedCountAfterAdd,
+        ProjectRepositoryId? ignoredId = null)
+    {
+        var others = ignoredId is null
+            ? _repositories
+            : _repositories.Where(r => r.Id != ignoredId).ToList();
+
+        switch (LayoutPreset.Value)
+        {
+            case LayoutPresetEnum.MultiRepo:
+                return Domain.Common.Errors.Errors.Project.RepositoryNotAllowedByLayout(
+                    LayoutPresetEnum.MultiRepo,
+                    "in MultiRepo mode the project owns no repository; declare them on each InfrastructureConfig instead.");
+
+            case LayoutPresetEnum.AllInOne:
+                if (expectedCountAfterAdd > 1)
+                    return Domain.Common.Errors.Errors.Project.AllInOneRequiresExactlyOneRepository();
+                if (!candidateKinds.Has(RepositoryContentKindsEnum.Infrastructure)
+                    || !candidateKinds.Has(RepositoryContentKindsEnum.ApplicationCode))
+                    return Domain.Common.Errors.Errors.Project.AllInOneRequiresExactlyOneRepository();
+                return Result.Success;
+
+            case LayoutPresetEnum.SplitInfraCode:
+                if (expectedCountAfterAdd > 2)
+                    return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
+                var isInfraOnly = candidateKinds.Has(RepositoryContentKindsEnum.Infrastructure)
+                                  && !candidateKinds.Has(RepositoryContentKindsEnum.ApplicationCode);
+                var isAppOnly = candidateKinds.Has(RepositoryContentKindsEnum.ApplicationCode)
+                                && !candidateKinds.Has(RepositoryContentKindsEnum.Infrastructure);
+                if (!isInfraOnly && !isAppOnly)
+                    return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
+                // Forbid duplicates of the same role across the project.
+                var conflict = others.Any(r =>
+                    (isInfraOnly && r.ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure))
+                    || (isAppOnly && r.ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode)));
+                if (conflict)
+                    return Domain.Common.Errors.Errors.Project.SplitInfraCodeRequiresInfraAndAppRepositories();
+                return Result.Success;
+        }
+
+        return Result.Success;
+    }
+
+    private static bool IsValidAllInOne(IReadOnlyCollection<ProjectRepository> repos)
+        => repos.Count == 1
+           && repos.First().ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure)
+           && repos.First().ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode);
+
+    private static bool IsValidSplitInfraCode(IReadOnlyCollection<ProjectRepository> repos)
+    {
+        if (repos.Count != 2) return false;
+        var infraOnly = repos.Count(r => r.ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure)
+                                         && !r.ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode));
+        var appOnly = repos.Count(r => r.ContentKinds.Has(RepositoryContentKindsEnum.ApplicationCode)
+                                       && !r.ContentKinds.Has(RepositoryContentKindsEnum.Infrastructure));
+        return infraOnly == 1 && appOnly == 1;
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when a single project-level "generate all" operation is unambiguous,
+    /// i.e. the project layout owns its repos (AllInOne or SplitInfraCode). MultiRepo always returns <see langword="false"/>
+    /// because each configuration owns its own repositories.
+    /// </summary>
+    /// <param name="configs">Reserved for future heuristics. Currently unused.</param>
+    public bool CanGenerateAllFromProjectLevel(IReadOnlyCollection<InfrastructureConfig> configs)
+    {
+        ArgumentNullException.ThrowIfNull(configs);
+        return LayoutPreset.Value != LayoutPresetEnum.MultiRepo;
     }
 
     // ─── Agent Pool Management ──────────────────────────────────────────

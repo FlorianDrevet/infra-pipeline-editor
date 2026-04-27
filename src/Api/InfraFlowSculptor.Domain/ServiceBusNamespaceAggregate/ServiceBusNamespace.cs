@@ -52,6 +52,7 @@ public sealed class ServiceBusNamespace : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         string? sku,
@@ -60,6 +61,8 @@ public sealed class ServiceBusNamespace : AzureResource
         bool? disableLocalAuth,
         string? minimumTlsVersion)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -78,9 +81,13 @@ public sealed class ServiceBusNamespace : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var (envName, sku, capacity, zoneRedundant, disableLocalAuth, minimumTlsVersion) in settings)
         {
@@ -160,22 +167,25 @@ public sealed class ServiceBusNamespace : AzureResource
     /// <param name="name">The display name.</param>
     /// <param name="location">The Azure region.</param>
     /// <param name="environmentSettings">Optional per-environment configuration overrides.</param>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     /// <returns>A new <see cref="ServiceBusNamespace"/> aggregate root.</returns>
     public static ServiceBusNamespace Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion)>? environmentSettings = null,
+        bool isExisting = false)
     {
         var sb = new ServiceBusNamespace
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location
+            Location = location,
+            IsExisting = isExisting
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             sb.SetAllEnvironmentSettings(environmentSettings);
 
         return sb;

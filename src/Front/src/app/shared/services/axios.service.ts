@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import axios, { AxiosHeaders } from 'axios';
+import axios, { AxiosHeaders, CanceledError } from 'axios';
 import { environment } from '../../../environments/environment';
 import { MethodEnum } from '../enums/method.enum';
 import { MsalAuthService } from './msal-auth.service';
@@ -9,9 +9,11 @@ import { MsalAuthService } from './msal-auth.service';
 })
 export class AxiosService {
   private readonly msalAuth = inject(MsalAuthService);
+  private loginRedirectInProgress = false;
 
   constructor() {
     const msalAuth = this.msalAuth;
+    const redirectToLogin = () => this.redirectToLogin();
 
     axios.defaults.baseURL = environment.api_url;
 
@@ -19,7 +21,7 @@ export class AxiosService {
       async function (config) {
         const token = await msalAuth.getAccessToken();
         if (!token) {
-          throw new Error('No active session. Please sign in.');
+          return redirectToLogin();
         }
         config.headers = new AxiosHeaders(config.headers);
         config.headers.set('Authorization', `Bearer ${token}`);
@@ -36,13 +38,24 @@ export class AxiosService {
       },
       function (error) {
         if (error.response?.status === 401) {
-          // Redirect to login page instead of triggering a popup-based logout,
-          // which may be blocked when initiated from a network callback.
-          globalThis.location.href = '/login';
+          return redirectToLogin();
         }
         return Promise.reject(error);
       }
     );
+  }
+
+  private redirectToLogin(): Promise<never> {
+    if (globalThis.location.pathname === '/login') {
+      return Promise.reject(new CanceledError('Authentication required.'));
+    }
+
+    if (!this.loginRedirectInProgress) {
+      this.loginRedirectInProgress = true;
+      globalThis.location.replace('/login');
+    }
+
+    return new Promise<never>(() => {});
   }
 
   public async request$<T = unknown>(

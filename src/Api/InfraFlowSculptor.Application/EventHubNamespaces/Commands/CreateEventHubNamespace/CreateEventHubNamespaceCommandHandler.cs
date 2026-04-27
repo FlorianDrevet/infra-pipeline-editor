@@ -35,7 +35,8 @@ public class CreateEventHubNamespaceCommandHandler(
             request.Location,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName, ec.Sku, ec.Capacity, ec.ZoneRedundant, ec.DisableLocalAuth, ec.MinimumTlsVersion, ec.AutoInflateEnabled, ec.MaxThroughputUnits))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await eventHubNamespaceRepository.AddAsync(eventHubNamespace);
 

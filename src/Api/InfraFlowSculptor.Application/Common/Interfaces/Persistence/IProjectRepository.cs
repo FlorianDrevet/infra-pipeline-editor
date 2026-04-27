@@ -3,6 +3,7 @@ using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.UserAggregate.ValueObjects;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Projects.Common;
+using InfraFlowSculptor.Application.Projects.Queries.ListProjectPipelineVariableGroups;
 
 namespace InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 
@@ -42,4 +43,15 @@ public interface IProjectRepository : IRepository<Project>
     /// Use this projection when only summary fields are needed, avoiding loading full aggregates with navigation properties.
     /// </summary>
     Task<List<ProjectSummary>> GetProjectSummariesForUserAsync(UserId userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns pipeline variable usages (app settings, secure parameter mappings, app configuration keys)
+    /// grouped by variable group identifier for the given set of variable groups.
+    /// </summary>
+    /// <param name="variableGroupIds">The variable group identifiers to query usages for.</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
+    /// <returns>A dictionary mapping each variable group identifier to its list of variable usages.</returns>
+    Task<Dictionary<Guid, List<PipelineVariableUsageResult>>> GetPipelineVariableUsagesAsync(
+        IReadOnlyCollection<ProjectPipelineVariableGroupId> variableGroupIds,
+        CancellationToken cancellationToken = default);
 }

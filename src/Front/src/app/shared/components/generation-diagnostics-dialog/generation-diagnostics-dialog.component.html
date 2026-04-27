@@ -106,8 +106,8 @@
     <button mat-stroked-button (click)="onCancel()">
       {{ 'GENERATION_DIAGNOSTICS.CANCEL' | translate }}
     </button>
-    <button mat-flat-button color="warn" (click)="onContinue()">
+    <app-ds-button variant="danger" (clicked)="onContinue()">
       {{ 'GENERATION_DIAGNOSTICS.CONTINUE' | translate }}
-    </button>
+    </app-ds-button>
   </mat-dialog-actions>
 </div>

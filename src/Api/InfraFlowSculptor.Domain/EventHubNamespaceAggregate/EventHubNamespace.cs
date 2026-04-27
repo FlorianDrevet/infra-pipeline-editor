@@ -51,6 +51,7 @@ public sealed class EventHubNamespace : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         string? sku,
@@ -61,6 +62,8 @@ public sealed class EventHubNamespace : AzureResource
         bool? autoInflateEnabled,
         int? maxThroughputUnits)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -79,9 +82,13 @@ public sealed class EventHubNamespace : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion, bool? AutoInflateEnabled, int? MaxThroughputUnits)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var (envName, sku, capacity, zoneRedundant, disableLocalAuth, minimumTlsVersion, autoInflateEnabled, maxThroughputUnits) in settings)
         {
@@ -157,21 +164,24 @@ public sealed class EventHubNamespace : AzureResource
     /// <summary>
     /// Creates a new <see cref="EventHubNamespace"/> instance with a generated identifier.
     /// </summary>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     public static EventHubNamespace Create(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyList<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion, bool? AutoInflateEnabled, int? MaxThroughputUnits)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, string? Sku, int? Capacity, bool? ZoneRedundant, bool? DisableLocalAuth, string? MinimumTlsVersion, bool? AutoInflateEnabled, int? MaxThroughputUnits)>? environmentSettings = null,
+        bool isExisting = false)
     {
         var eh = new EventHubNamespace
         {
             Id = AzureResourceId.CreateUnique(),
             ResourceGroupId = resourceGroupId,
             Name = name,
-            Location = location
+            Location = location,
+            IsExisting = isExisting
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             eh.SetAllEnvironmentSettings(environmentSettings);
 
         return eh;

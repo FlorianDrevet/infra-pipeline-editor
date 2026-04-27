@@ -3,6 +3,7 @@ using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.ContainerApps.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.Errors;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ContainerAppAggregate;
 using MapsterMapper;
 using MediatR;
@@ -46,12 +47,16 @@ public sealed class CreateContainerAppCommandHandler(
             request.ContainerRegistryId.HasValue
                 ? new AzureResourceId(request.ContainerRegistryId.Value)
                 : null,
+            !string.IsNullOrWhiteSpace(request.AcrAuthMode)
+                ? new AcrAuthMode(Enum.Parse<AcrAuthMode.AcrAuthModeType>(request.AcrAuthMode))
+                : null,
             request.DockerImageName,
             request.DockerfilePath,
             request.ApplicationName,
             request.EnvironmentSettings?
-                .Select(ec => (ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod))
-                .ToList());
+                .Select(ec => (ec.EnvironmentName, ec.CpuCores, ec.MemoryGi, ec.MinReplicas, ec.MaxReplicas, ec.IngressEnabled, ec.IngressTargetPort, ec.IngressExternal, ec.TransportMethod, ec.ReadinessProbePath, ec.ReadinessProbePort, ec.LivenessProbePath, ec.LivenessProbePort, ec.StartupProbePath, ec.StartupProbePort))
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await containerAppRepository.AddAsync(containerApp);
 

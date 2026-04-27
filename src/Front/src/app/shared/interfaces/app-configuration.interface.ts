@@ -16,6 +16,7 @@ export interface AppConfigurationEnvironmentConfigResponse {
   purgeProtectionEnabled: boolean | null;
   disableLocalAuth: boolean | null;
   publicNetworkAccess: string | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -26,6 +27,7 @@ export interface AppConfigurationResponse {
   name: string;
   location: string;
   environmentSettings: AppConfigurationEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -35,6 +37,7 @@ export interface CreateAppConfigurationRequest {
   name: string;
   location: string;
   environmentSettings?: AppConfigurationEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateAppConfigurationRequest {

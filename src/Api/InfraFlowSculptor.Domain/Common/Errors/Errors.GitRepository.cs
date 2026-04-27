@@ -14,6 +14,7 @@ public static partial class Errors
         private const string InvalidProviderTypeCode = "GitRepository.InvalidProviderType";
         private const string ConnectionTestFailedCode = "GitRepository.ConnectionTestFailed";
         private const string ListBranchesFailedCode = "GitRepository.ListBranchesFailed";
+        private const string SearchFilesFailedCode = "GitRepository.SearchFilesFailed";
 
         /// <summary>Returns an error when no Git config exists on the project.</summary>
         public static Error NotConfigured() =>
@@ -42,5 +43,9 @@ public static partial class Errors
         /// <summary>Returns a failure error when listing Git branches fails.</summary>
         public static Error ListBranchesFailed(string reason) =>
             Error.Failure(code: ListBranchesFailedCode, description: $"Failed to list branches from Git repository: {reason}");
+
+        /// <summary>Returns a failure error when searching files in the Git repository fails.</summary>
+        public static Error SearchFilesFailed(string reason) =>
+            Error.Failure(code: SearchFilesFailedCode, description: $"Failed to search files in Git repository: {reason}");
     }
 }

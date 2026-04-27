@@ -14,6 +14,7 @@ export interface ContainerAppEnvironmentEnvironmentConfigResponse {
   workloadProfileType: string | null;
   internalLoadBalancerEnabled: boolean | null;
   zoneRedundancyEnabled: boolean | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -25,6 +26,7 @@ export interface ContainerAppEnvironmentResponse {
   location: string;
   logAnalyticsWorkspaceId: string | null;
   environmentSettings: ContainerAppEnvironmentEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -35,6 +37,7 @@ export interface CreateContainerAppEnvironmentRequest {
   location: string;
   logAnalyticsWorkspaceId?: string | null;
   environmentSettings?: ContainerAppEnvironmentEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateContainerAppEnvironmentRequest {

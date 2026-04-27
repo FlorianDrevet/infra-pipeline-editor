@@ -38,7 +38,8 @@ public class CreateServiceBusNamespaceCommandHandler(
             request.Location,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName, ec.Sku, ec.Capacity, ec.ZoneRedundant, ec.DisableLocalAuth, ec.MinimumTlsVersion))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await serviceBusNamespaceRepository.AddAsync(serviceBusNamespace);
 

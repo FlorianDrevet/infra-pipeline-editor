@@ -1,0 +1,4 @@
+{
+	"chat.agent.defaultAgent": "dev",
+	"github.copilot.chat.codeGeneration.useInstructionFiles": true
+}

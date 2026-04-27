@@ -63,11 +63,11 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .OnDelete(DeleteBehavior.Cascade);
 
         // ========================
-        // GitRepositoryConfiguration (Entity, 0..1)
+        // ResourceAbbreviations (Entity)
         // ========================
-        builder.HasOne(x => x.GitRepositoryConfiguration)
-            .WithOne()
-            .HasForeignKey<GitRepositoryConfiguration>(x => x.ProjectId)
+        builder.HasMany(x => x.ResourceAbbreviations)
+            .WithOne(x => x.Project)
+            .HasForeignKey(x => x.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // ========================
@@ -82,11 +82,22 @@ public sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         // ========================
-        // RepositoryMode
+        // Repositories (Entity, V1 multi-repo)
         // ========================
-        builder.Property(x => x.RepositoryMode)
-            .HasConversion(new EnumValueConverter<RepositoryMode, RepositoryModeEnum>())
-            .HasDefaultValue(new RepositoryMode(RepositoryModeEnum.MultiRepo))
+        builder.HasMany(x => x.Repositories)
+            .WithOne()
+            .HasForeignKey(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(x => x.Repositories)
+            .HasField("_repositories")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        // ========================
+        // LayoutPreset
+        // ========================
+        builder.Property(x => x.LayoutPreset)
+            .HasConversion(new EnumValueConverter<LayoutPreset, LayoutPresetEnum>())
+            .HasDefaultValue(new LayoutPreset(LayoutPresetEnum.MultiRepo))
             .IsRequired();
 
         // ========================

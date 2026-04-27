@@ -7,10 +7,13 @@
   <mat-dialog-content class="as-dialog__content">
     <!-- Variable name -->
     <div class="config-section">
-      <mat-form-field appearance="outline" class="config-section__field">
-        <mat-label>{{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.NAME_LABEL' | translate }}</mat-label>
-        <input matInput [ngModel]="settingName()" (ngModelChange)="settingName.set($event)" [placeholder]="'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.NAME_PLACEHOLDER' | translate" />
-      </mat-form-field>
+      <app-ds-text-field
+        class="config-section__field"
+        [label]="'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.NAME_LABEL' | translate"
+        [placeholder]="'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.NAME_PLACEHOLDER' | translate"
+        [ngModel]="settingName()"
+        (ngModelChange)="settingName.set($event)"
+        [ngModelOptions]="{ standalone: true }" />
     </div>
 
     <!-- Environment values -->
@@ -18,10 +21,12 @@
       <p class="env-values-section__label">{{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.ENV_VALUES_TITLE' | translate }}</p>
       @for (env of data.environments; track env.name) {
         <div class="config-section">
-          <mat-form-field appearance="outline" class="config-section__field">
-            <mat-label>{{ env.name }}</mat-label>
-            <input matInput [ngModel]="environmentValues()[env.name] || ''" (ngModelChange)="updateEnvironmentValue(env.name, $event)" />
-          </mat-form-field>
+          <app-ds-text-field
+            class="config-section__field"
+            [label]="env.name"
+            [ngModel]="environmentValues()[env.name] || ''"
+            (ngModelChange)="updateEnvironmentValue(env.name, $event)"
+            [ngModelOptions]="{ standalone: true }" />
         </div>
       }
     </div>
@@ -39,12 +44,8 @@
     <button mat-stroked-button (click)="onCancel()" [disabled]="isSubmitting()">
       {{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.CANCEL' | translate }}
     </button>
-    <button mat-flat-button color="primary" (click)="onSave()" [disabled]="isSubmitting() || !settingName()">
-      @if (isSubmitting()) {
-        <mat-spinner diameter="18"></mat-spinner>
-      } @else {
-        {{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.SAVE' | translate }}
-      }
-    </button>
+    <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="!settingName()" (clicked)="onSave()">
+      {{ 'RESOURCE_EDIT.EDIT_APP_SETTING_DIALOG.SAVE' | translate }}
+    </app-ds-button>
   </mat-dialog-actions>
 </div>

@@ -1,0 +1,96 @@
+<div class="review-step">
+  <header class="review-step__header">
+    <h3>{{ 'PROJECT_CREATE.STEP.REVIEW.TITLE' | translate }}</h3>
+  </header>
+
+  <section class="review-step__section">
+    <app-ds-section-header
+      [title]="'PROJECT_CREATE.STEP.REVIEW.PROJECT_SECTION' | translate"
+      icon="folder"
+      [level]="3"
+    ></app-ds-section-header>
+    <dl class="review-step__list">
+      <dt>{{ 'PROJECT_CREATE.STEP.IDENTITY.NAME_LABEL' | translate }}</dt>
+      <dd>{{ draft().name }}</dd>
+      @if (draft().description) {
+        <dt>{{ 'PROJECT_CREATE.STEP.IDENTITY.DESCRIPTION_LABEL' | translate }}</dt>
+        <dd>{{ draft().description }}</dd>
+      }
+    </dl>
+  </section>
+
+  <section class="review-step__section">
+    <app-ds-section-header
+      [title]="'PROJECT_CREATE.STEP.REVIEW.LAYOUT_SECTION' | translate"
+      icon="dashboard"
+      [level]="3"
+    ></app-ds-section-header>
+    @if (layoutLabel()) {
+      <div class="review-step__layout">
+        <mat-icon class="review-step__layout-icon">{{ layoutLabel()!.icon }}</mat-icon>
+        <span>{{ layoutLabel()!.titleKey | translate }}</span>
+      </div>
+    }
+  </section>
+
+  <section class="review-step__section">
+    <app-ds-section-header
+      [title]="'PROJECT_CREATE.STEP.REVIEW.ENVIRONMENTS_SECTION' | translate"
+      icon="public"
+      [level]="3"
+    ></app-ds-section-header>
+    <table class="review-step__table">
+      <thead>
+        <tr>
+          <th>{{ 'PROJECT_CREATE.STEP.ENVIRONMENTS.NAME' | translate }}</th>
+          <th>{{ 'PROJECT_CREATE.STEP.ENVIRONMENTS.SHORT_NAME' | translate }}</th>
+          <th>{{ 'PROJECT_CREATE.STEP.ENVIRONMENTS.LOCATION' | translate }}</th>
+          <th>{{ 'PROJECT_CREATE.STEP.ENVIRONMENTS.ORDER' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (env of draft().environments; track env.order) {
+          <tr>
+            <td>{{ env.name }}</td>
+            <td>{{ env.shortName }}</td>
+            <td>{{ env.location }}</td>
+            <td>{{ env.order }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  @if (draft().repositories.length > 0) {
+    <section class="review-step__section">
+      <app-ds-section-header
+        [title]="'PROJECT_CREATE.STEP.REVIEW.REPOSITORIES_SECTION' | translate"
+        icon="source"
+        [level]="3"
+      ></app-ds-section-header>
+      <ul class="review-step__repo-list">
+        @for (repo of draft().repositories; track $index) {
+          <li class="review-step__repo">
+            <div class="review-step__repo-main">
+              <span class="review-step__repo-alias">{{ repo.alias || '—' }}</span>
+              <div class="review-step__repo-kinds">
+                @for (kind of repo.contentKinds; track kind) {
+                  <app-ds-chip variant="neutral" size="sm">{{ kind }}</app-ds-chip>
+                }
+              </div>
+            </div>
+            @if (isRepoConfigured(repo)) {
+              <app-ds-chip variant="success" size="sm" icon="check_circle">
+                {{ 'PROJECT_CREATE.STEP.REVIEW.REPO_CONFIGURED' | translate }}
+              </app-ds-chip>
+            } @else {
+              <app-ds-chip variant="warning" size="sm" icon="schedule">
+                {{ 'PROJECT_CREATE.STEP.REVIEW.REPO_PENDING' | translate }}
+              </app-ds-chip>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</div>

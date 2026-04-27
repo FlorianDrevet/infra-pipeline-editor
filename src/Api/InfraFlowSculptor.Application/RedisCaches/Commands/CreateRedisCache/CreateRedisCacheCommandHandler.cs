@@ -71,7 +71,8 @@ public class CreateRedisCacheCommandHandler(
             tlsVersion,
             request.DisableAccessKeyAuthentication,
             request.EnableAadAuth,
-            parsedSettings);
+            parsedSettings,
+            isExisting: request.IsExisting);
 
         var savedRedisCache = await redisCacheRepository.AddAsync(redisCache);
 

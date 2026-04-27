@@ -15,11 +15,6 @@ Tu identifies la cause racine rapidement en priorisant l'observabilité (état r
 
 ---
 
-## Environnement de développement
-
-> L'utilisateur travaille sur **Windows**. Toutes les commandes terminal doivent utiliser la syntaxe **PowerShell** (`pwsh`). Utiliser `.\ ` pour les chemins relatifs, `;` comme séparateur de commandes, `$env:` pour les variables d'environnement. Ne jamais suggérer de commandes bash/sh.
-
----
 
 ## Protocole obligatoire
 

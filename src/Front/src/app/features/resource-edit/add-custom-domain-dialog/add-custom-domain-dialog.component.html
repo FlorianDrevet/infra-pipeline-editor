@@ -1,0 +1,50 @@
+<h2 mat-dialog-title>
+  <mat-icon>language</mat-icon>
+  {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.ADD_TITLE' | translate }}
+</h2>
+
+<mat-dialog-content>
+  <div class="cd-dialog-form">
+    <!-- Environment -->
+    <app-ds-select
+      class="cd-dialog-form__field"
+      [label]="'RESOURCE_EDIT.CUSTOM_DOMAINS.ENVIRONMENT' | translate"
+      [options]="environmentOptions()"
+      [ngModel]="environmentName()"
+      (ngModelChange)="environmentName.set($event)"
+      [ngModelOptions]="{ standalone: true }" />
+
+    <!-- Domain Name -->
+    <app-ds-text-field
+      class="cd-dialog-form__field"
+      [label]="'RESOURCE_EDIT.CUSTOM_DOMAINS.DOMAIN_NAME' | translate"
+      placeholder="api.example.com"
+      [hint]="'RESOURCE_EDIT.CUSTOM_DOMAINS.DOMAIN_NAME_HINT' | translate"
+      [ngModel]="domainName()"
+      (ngModelChange)="domainName.set($event)"
+      [ngModelOptions]="{ standalone: true }"
+      [error]="
+        isDuplicate()
+          ? ('RESOURCE_EDIT.CUSTOM_DOMAINS.DUPLICATE' | translate)
+          : (domainName().length > 0 && !isDomainValid()
+              ? ('RESOURCE_EDIT.CUSTOM_DOMAINS.DOMAIN_NAME_HINT' | translate)
+              : undefined)
+      " />
+
+    <!-- Binding Type -->
+    <div class="cd-dialog-form__radio-group">
+      <label class="cd-dialog-form__radio-label">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_TYPE' | translate }}</label>
+      <mat-radio-group [ngModel]="bindingType()" (ngModelChange)="bindingType.set($event)">
+        <mat-radio-button value="SniEnabled">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_SNI' | translate }}</mat-radio-button>
+        <mat-radio-button value="Disabled">{{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.BINDING_DISABLED' | translate }}</mat-radio-button>
+      </mat-radio-group>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">{{ 'COMMON.CANCEL' | translate }}</button>
+  <app-ds-button variant="primary" [disabled]="!isFormValid()" (clicked)="onConfirm()">
+    {{ 'RESOURCE_EDIT.CUSTOM_DOMAINS.ADD' | translate }}
+  </app-ds-button>
+</mat-dialog-actions>

@@ -42,7 +42,8 @@ public class CreateSqlServerCommandHandler(
             request.AdministratorLogin,
             request.EnvironmentSettings?
                 .Select(ec => (ec.EnvironmentName, ec.MinimalTlsVersion))
-                .ToList());
+                .ToList(),
+            isExisting: request.IsExisting);
 
         var saved = await sqlServerRepository.AddAsync(server);
 

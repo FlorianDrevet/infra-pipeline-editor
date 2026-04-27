@@ -36,7 +36,7 @@
   <button mat-stroked-button (click)="cancel()">
     {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CANCEL' | translate }}
   </button>
-  <button mat-raised-button color="warn" (click)="confirm()">
+  <app-ds-button variant="danger" (clicked)="confirm()">
     {{ 'RESOURCE_EDIT.ROLE_ASSIGNMENT_IMPACT.CONFIRM_DELETE' | translate }}
-  </button>
+  </app-ds-button>
 </mat-dialog-actions>

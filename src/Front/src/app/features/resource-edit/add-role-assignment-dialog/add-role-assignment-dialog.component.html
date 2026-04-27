@@ -74,18 +74,13 @@
           } @else if (availableRoles().length === 0) {
             <p class="role-dialog__no-roles">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_ROLES' | translate }}</p>
           } @else {
-            <mat-form-field appearance="outline" class="role-select-field">
-              <mat-label>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_LABEL' | translate }}</mat-label>
-              <mat-select
-                [value]="selectedRoleId()"
-                (selectionChange)="selectedRoleId.set($event.value)">
-                @for (role of availableRoles(); track role.id) {
-                  <mat-option [value]="role.id">
-                    {{ role.name }}
-                  </mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
+            <app-ds-select
+              class="role-select-field"
+              [label]="'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_LABEL' | translate"
+              [options]="availableRoleOptions()"
+              [ngModel]="selectedRoleId()"
+              (ngModelChange)="selectedRoleId.set($event)"
+              [ngModelOptions]="{ standalone: true }" />
 
             <!-- Role description -->
             @if (selectedRoleId(); as roleId) {
@@ -121,18 +116,17 @@
           <mat-icon>arrow_back</mat-icon>
           {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
         </button>
-        <button
-          mat-flat-button
-          color="primary"
+        <app-ds-button
+          variant="primary"
           [disabled]="!canSubmit()"
-          (click)="onSubmit()">
+          [loading]="isSubmitting()"
+          (clicked)="onSubmit()">
           @if (isSubmitting()) {
-            <mat-spinner diameter="18" class="submit-spinner"></mat-spinner>
             {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGNING' | translate }}
           } @else {
             {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGN' | translate }}
           }
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
 
@@ -268,10 +262,12 @@
 
             @if (showCreateIdentity() && !hasAssignedUai()) {
               <div class="identity-create-inline">
-                <mat-form-field appearance="outline" class="identity-create-inline__field">
-                  <mat-label>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NEW_IDENTITY_NAME' | translate }}</mat-label>
-                  <input matInput [ngModel]="newIdentityName()" (ngModelChange)="newIdentityName.set($event)" />
-                </mat-form-field>
+                <app-ds-text-field
+                  class="identity-create-inline__field"
+                  [label]="'RESOURCE_EDIT.ADD_ROLE_DIALOG.NEW_IDENTITY_NAME' | translate"
+                  [ngModel]="newIdentityName()"
+                  (ngModelChange)="newIdentityName.set($event)"
+                  [ngModelOptions]="{ standalone: true }" />
                 <div class="identity-create-inline__actions">
                   <button
                     mat-flat-button
@@ -306,18 +302,13 @@
           } @else if (availableRoles().length === 0) {
             <p class="role-dialog__no-roles">{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.NO_ROLES' | translate }}</p>
           } @else {
-            <mat-form-field appearance="outline" class="role-select-field">
-              <mat-label>{{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_LABEL' | translate }}</mat-label>
-              <mat-select
-                [value]="selectedRoleId()"
-                (selectionChange)="onRoleChange($event.value)">
-                @for (role of availableRoles(); track role.id) {
-                  <mat-option [value]="role.id">
-                    {{ role.name }}
-                  </mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
+            <app-ds-select
+              class="role-select-field"
+              [label]="'RESOURCE_EDIT.ADD_ROLE_DIALOG.ROLE_LABEL' | translate"
+              [options]="availableRoleOptions()"
+              [ngModel]="selectedRoleId()"
+              (ngModelChange)="onRoleChange($event)"
+              [ngModelOptions]="{ standalone: true }" />
 
             <!-- Role description -->
             @if (selectedRoleId(); as roleId) {
@@ -353,18 +344,17 @@
           <mat-icon>arrow_back</mat-icon>
           {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
         </button>
-        <button
-          mat-flat-button
-          color="primary"
+        <app-ds-button
+          variant="primary"
           [disabled]="!canSubmit()"
-          (click)="onSubmit()">
+          [loading]="isSubmitting()"
+          (clicked)="onSubmit()">
           @if (isSubmitting()) {
-            <mat-spinner diameter="18" class="submit-spinner"></mat-spinner>
             {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGNING' | translate }}
           } @else {
             {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.ASSIGN' | translate }}
           }
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
   }

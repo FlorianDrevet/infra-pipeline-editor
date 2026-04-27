@@ -13,5 +13,8 @@ public record ContainerAppEnvironmentResult(
     Name Name,
     Location Location,
     Guid? LogAnalyticsWorkspaceId,
-    IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyList<ContainerAppEnvironmentEnvironmentConfigData> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

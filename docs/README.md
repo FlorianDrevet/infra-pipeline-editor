@@ -24,9 +24,10 @@ Ce dossier contient la documentation technique du projet **Infra Flow Sculptor**
 4. [Unit of Work](architecture/unit-of-work.md) — Persistance atomique, interfaces de marquage CQRS, pipeline MediatR
 5. [Couche API](architecture/api-layer.md) — Endpoints Minimal API, Mapster, gestion d'erreurs, contracts
 6. [Persistance EF Core](architecture/persistence.md) — Repositories, configurations, TPT, converters, migrations
-7. [Guide de navigation](architecture/getting-started.md) — Comment trouver du code, ajouter un nouveau type de ressource
-8. [Génération Bicep](architecture/bicep-generation.md) — Moteur de génération Bicep, stratégie par type de ressource, assembleur mono-repo
-9. [Génération Pipeline](architecture/pipeline-generation.md) — Moteur de génération de pipelines Azure DevOps
+7. [Lecture des ressources projet et views SQL](architecture/project-resource-queries.md) — Flux `GET /projects/{id}/resources`, read models keyless, rôle de `vw_ResourceEnvironmentEntries` et `vw_ChildToParentLinks`
+8. [Guide de navigation](architecture/getting-started.md) — Comment trouver du code, ajouter un nouveau type de ressource
+9. [Génération Bicep](architecture/bicep-generation.md) — Moteur de génération Bicep, stratégie par type de ressource, assembleur mono-repo
+10. [Génération Pipeline](architecture/pipeline-generation.md) — Moteur de génération de pipelines Azure DevOps
 
 ---
 

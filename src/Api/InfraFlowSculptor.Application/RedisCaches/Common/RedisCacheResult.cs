@@ -14,5 +14,8 @@ public record RedisCacheResult(
     string? MinimumTlsVersion,
     bool DisableAccessKeyAuthentication,
     bool EnableAadAuth,
-    IReadOnlyList<RedisCacheEnvironmentConfigData> EnvironmentSettings
+    IReadOnlyList<RedisCacheEnvironmentConfigData> EnvironmentSettings,
+
+    bool IsExisting = false
+
 );

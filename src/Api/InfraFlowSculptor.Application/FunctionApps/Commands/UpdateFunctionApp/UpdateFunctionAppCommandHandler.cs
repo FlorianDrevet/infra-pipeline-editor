@@ -53,7 +53,11 @@ public sealed class UpdateFunctionAppCommandHandler(
             ? new AzureResourceId(request.ContainerRegistryId.Value)
             : (AzureResourceId?)null;
 
-        functionApp.Update(request.Name, request.Location, appServicePlanId, runtimeStack, request.RuntimeVersion, request.HttpsOnly, deploymentMode, containerRegistryId, request.DockerImageName, request.DockerfilePath, request.SourceCodePath, request.BuildCommand, request.ApplicationName);
+        functionApp.Update(request.Name, request.Location, appServicePlanId, runtimeStack, request.RuntimeVersion, request.HttpsOnly, deploymentMode, containerRegistryId,
+            !string.IsNullOrWhiteSpace(request.AcrAuthMode)
+                ? new AcrAuthMode(Enum.Parse<AcrAuthMode.AcrAuthModeType>(request.AcrAuthMode))
+                : null,
+            request.DockerImageName, request.DockerfilePath, request.SourceCodePath, request.BuildCommand, request.ApplicationName);
 
         if (request.EnvironmentSettings is not null)
             functionApp.SetAllEnvironmentSettings(

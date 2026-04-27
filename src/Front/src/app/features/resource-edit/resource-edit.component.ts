@@ -1,21 +1,19 @@
-import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { EMPTY, Subscription, catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { TranslateModule } from '@ngx-translate/core';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { KeyVaultService } from '../../shared/services/key-vault.service';
 import { RedisCacheService } from '../../shared/services/redis-cache.service';
@@ -38,7 +36,9 @@ import { LogAnalyticsWorkspaceResponse, LogAnalyticsWorkspaceEnvironmentConfigEn
 import { ApplicationInsightsResponse, ApplicationInsightsEnvironmentConfigEntry } from '../../shared/interfaces/application-insights.interface';
 import { CosmosDbResponse, CosmosDbEnvironmentConfigEntry } from '../../shared/interfaces/cosmos-db.interface';
 import { ServiceBusNamespaceResponse, ServiceBusNamespaceEnvironmentConfigEntry } from '../../shared/interfaces/service-bus-namespace.interface';
-import { ContainerRegistryResponse, ContainerRegistryEnvironmentConfigEntry } from '../../shared/interfaces/container-registry.interface';
+import { AcrAuthMode, ContainerRegistryResponse, ContainerRegistryEnvironmentConfigEntry } from '../../shared/interfaces/container-registry.interface';
+import { SqlServerResponse, SqlServerEnvironmentConfigEntry } from '../../shared/interfaces/sql-server.interface';
+import { SqlDatabaseResponse, SqlDatabaseEnvironmentConfigEntry } from '../../shared/interfaces/sql-database.interface';
 import { UserAssignedIdentityResponse } from '../../shared/interfaces/user-assigned-identity.interface';
 import { AppServicePlanService } from '../../shared/services/app-service-plan.service';
 import { WebAppService } from '../../shared/services/web-app.service';
@@ -51,9 +51,13 @@ import { ApplicationInsightsService } from '../../shared/services/application-in
 import { CosmosDbService } from '../../shared/services/cosmos-db.service';
 import { ServiceBusNamespaceService } from '../../shared/services/service-bus-namespace.service';
 import { ContainerRegistryService } from '../../shared/services/container-registry.service';
+import { SqlServerService } from '../../shared/services/sql-server.service';
+import { SqlDatabaseService } from '../../shared/services/sql-database.service';
 import { UserAssignedIdentityService } from '../../shared/services/user-assigned-identity.service';
+import { NameAvailabilityService } from '../../shared/services/name-availability.service';
+import { EnvironmentNameAvailabilityResponseItem } from '../../shared/interfaces/name-availability.interface';
 import { InfrastructureConfigResponse, EnvironmentDefinitionResponse } from '../../shared/interfaces/infra-config.interface';
-import { ProjectResponse } from '../../shared/interfaces/project.interface';
+import { ProjectResponse, ProjectPipelineVariableGroupResponse } from '../../shared/interfaces/project.interface';
 import { RoleAssignmentResponse, AzureRoleDefinitionResponse, IdentityRoleAssignmentResponse, RoleAssignmentImpactResponse, ACR_PULL_ROLE_DEFINITION_ID } from '../../shared/interfaces/role-assignment.interface';
 import { AzureResourceResponse } from '../../shared/interfaces/resource-group.interface';
 import { RESOURCE_TYPE_ICONS } from '../config-detail/enums/resource-type.enum';
@@ -66,14 +70,22 @@ import { AddRoleAssignmentDialogComponent, AddRoleAssignmentDialogData, AddRoleA
 import { AddAppSettingDialogComponent, AddAppSettingDialogData } from './add-app-setting-dialog/add-app-setting-dialog.component';
 import { EditStaticAppSettingDialogComponent, EditStaticAppSettingDialogData } from './edit-static-app-setting-dialog/edit-static-app-setting-dialog.component';
 import { AppSettingService } from '../../shared/services/app-setting.service';
+import { SecureParameterMappingService } from '../../shared/services/secure-parameter-mapping.service';
+import { SecureParameterMappingResponse } from '../../shared/interfaces/secure-parameter-mapping.interface';
 import { AppSettingResponse } from '../../shared/interfaces/app-setting.interface';
 import { AppConfigurationKeyService } from './services/app-configuration-key.service';
 import { AppConfigurationKeyResponse } from './models/app-configuration-key.interface';
 import { AddAppConfigKeyDialogComponent, AddAppConfigKeyDialogData } from './add-app-config-key-dialog/add-app-config-key-dialog.component';
 import { RoleAssignmentImpactDialogComponent, RoleAssignmentImpactDialogData } from './role-assignment-impact-dialog/role-assignment-impact-dialog.component';
 import { CreateUaiDialogComponent, CreateUaiDialogData } from './create-uai-dialog/create-uai-dialog.component';
+import { CustomDomainService } from '../../shared/services/custom-domain.service';
+import { CustomDomainResponse, AddCustomDomainRequest } from '../../shared/interfaces/custom-domain.interface';
+import { AddCustomDomainDialogComponent, AddCustomDomainDialogData } from './add-custom-domain-dialog/add-custom-domain-dialog.component';
 import { CompactSelectComponent } from '../../shared/components/compact-select/compact-select.component';
 import { DeploymentConfigComponent } from '../../shared/components/deployment-config/deployment-config.component';
+import { ToggleSectionCardComponent } from '../../shared/components/toggle-section-card/toggle-section-card.component';
+import { DsButtonComponent, DsTextFieldComponent, DsSelectComponent, DsSelectOption, DsToggleComponent } from '../../shared/components/ds';
+import { DockerfilePickerComponent } from '../../shared/components/dockerfile-picker/dockerfile-picker.component';
 
 /** Key Vault missing role entry for the KV access warning banner */
 interface KvMissingRoleEntry {
@@ -89,7 +101,7 @@ interface KvMissingRoleEntry {
 }
 
 /** Union type for any loaded resource */
-type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse;
+type ResourceData = KeyVaultResponse | RedisCacheResponse | StorageAccountResponse | AppServicePlanResponse | WebAppResponse | FunctionAppResponse | UserAssignedIdentityResponse | AppConfigurationResponse | ContainerAppEnvironmentResponse | ContainerAppResponse | LogAnalyticsWorkspaceResponse | ApplicationInsightsResponse | CosmosDbResponse | ServiceBusNamespaceResponse | ContainerRegistryResponse | SqlServerResponse | SqlDatabaseResponse;
 
 type CorsServiceKey = 'blob' | 'table';
 type CorsListField = 'allowedOrigins' | 'allowedHeaders' | 'exposedHeaders';
@@ -271,6 +283,16 @@ const ACR_PUBLIC_NETWORK_OPTIONS = [
   { label: 'Disabled', value: 'Disabled' },
 ];
 
+const SQL_SERVER_VERSION_OPTIONS = [
+  { label: '12.0', value: 'V12' },
+];
+
+const SQL_MIN_TLS_OPTIONS = [
+  { label: 'TLS 1.0', value: '1.0' },
+  { label: 'TLS 1.1', value: '1.1' },
+  { label: 'TLS 1.2', value: '1.2' },
+];
+
 const WEBAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
   DotNet: ['10', '9', '8'],
   Node: ['22-lts', '20-lts'],
@@ -293,22 +315,26 @@ const FUNCTIONAPP_RUNTIME_VERSION_MAP: Record<string, string[]> = {
   imports: [
     TranslateModule,
     RouterLink,
+    FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatDialogModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
-    MatOptionModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
-    MatSlideToggleModule,
+    MatRadioModule,
+    DsToggleComponent,
     MatTabsModule,
     MatTooltipModule,
     MatMenuModule,
     MatButtonToggleModule,
+    MatExpansionModule,
     CompactSelectComponent,
     DeploymentConfigComponent,
+    ToggleSectionCardComponent,
+    DsButtonComponent,
+    DsTextFieldComponent,
+    DockerfilePickerComponent,
+    DsSelectComponent,
   ],
   templateUrl: './resource-edit.component.html',
   styleUrl: './resource-edit.component.scss',
@@ -332,6 +358,8 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly cosmosDbService = inject(CosmosDbService);
   private readonly serviceBusNamespaceService = inject(ServiceBusNamespaceService);
   private readonly containerRegistryService = inject(ContainerRegistryService);
+  private readonly sqlServerService = inject(SqlServerService);
+  private readonly sqlDatabaseService = inject(SqlDatabaseService);
   private readonly userAssignedIdentityService = inject(UserAssignedIdentityService);
   private readonly infraConfigService = inject(InfraConfigService);
   private readonly projectService = inject(ProjectService);
@@ -339,7 +367,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   private readonly roleAssignmentService = inject(RoleAssignmentService);
   private readonly resourceGroupService = inject(ResourceGroupService);
   private readonly appSettingService = inject(AppSettingService);
+  private readonly secureParamMappingService = inject(SecureParameterMappingService);
   private readonly configKeyService = inject(AppConfigurationKeyService);
+  private readonly nameAvailabilityService = inject(NameAvailabilityService);
+  private readonly customDomainService = inject(CustomDomainService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   // ─── Route params ───
   protected configId = '';
@@ -372,6 +405,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
 
   protected readonly isStorageAccount = computed(() => this.resourceType === 'StorageAccount');
   protected readonly isUserAssignedIdentity = computed(() => this.resourceType === 'UserAssignedIdentity');
+  protected readonly isExistingResource = computed(() => (this.resource() as { isExisting?: boolean } | null)?.isExisting === true);
 
   // ─── App Pipeline ───
 
@@ -472,12 +506,63 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly acrRoleAssigning = signal(false);
 
   protected readonly selectedContainerRegistryId = signal<string | null>(null);
+  protected readonly acrAuthMode = signal<AcrAuthMode | null>(null);
 
   // UAI state for ACR flow
   protected readonly acrAssignedUaiId = signal<string | null>(null);
   protected readonly acrAssignedUaiName = signal<string | null>(null);
   protected readonly acrHasUai = signal(false);
   protected readonly acrSelectedUaiId = signal<string | null>(null);
+
+  // ─── Name Availability (live Azure check) ───
+  protected readonly nameAvailabilityChecking = signal(false);
+  protected readonly nameAvailabilityResults = signal<EnvironmentNameAvailabilityResponseItem[]>([]);
+  protected readonly nameAvailabilitySupported = signal<boolean | null>(null);
+
+  /** Resource types where backend can run the Azure ARM name availability check. */
+  private static readonly NAME_AVAILABILITY_TYPES = new Set([
+    'ContainerRegistry',
+    'StorageAccount',
+    'KeyVault',
+    'RedisCache',
+    'AppConfiguration',
+    'ServiceBusNamespace',
+    'EventHubNamespace',
+    'WebApp',
+    'FunctionApp',
+    'SqlServer',
+  ]);
+
+  /** True only for resource types where backend may run the Azure ARM check. */
+  protected readonly isNameAvailabilityCheckEnabled = computed(
+    () => ResourceEditComponent.NAME_AVAILABILITY_TYPES.has(this.resourceType) && !this.isExistingResource(),
+  );
+
+  /** Aggregated badge state derived from per-env results. */
+  protected readonly nameAvailabilityOverallState = computed<'idle' | 'checking' | 'all-ok' | 'has-unavailable' | 'has-invalid' | 'all-current' | 'unknown'>(() => {
+    if (this.nameAvailabilityChecking()) return 'checking';
+    const items = this.nameAvailabilityResults();
+    if (items.length === 0) return 'idle';
+    if (items.some(i => i.status === 'invalid')) return 'has-invalid';
+    if (items.some(i => i.status === 'unavailable')) return 'has-unavailable';
+    if (items.every(i => i.status === 'available' || i.status === 'current')) {
+      return items.every(i => i.status === 'current') ? 'all-current' : 'all-ok';
+    }
+    return 'unknown';
+  });
+
+  /** User explicitly confirmed that the unavailable name is theirs. Reset on every new check. */
+  protected readonly nameAvailabilityOverridden = signal(false);
+
+  /** True when name availability blocks saving (unavailable/invalid/checking and not overridden). */
+  protected readonly isSaveBlockedByNameAvailability = computed(() => {
+    if (!this.isNameAvailabilityCheckEnabled()) return false;
+    const state = this.nameAvailabilityOverallState();
+    if (state === 'has-unavailable' || state === 'has-invalid') {
+      return !this.nameAvailabilityOverridden();
+    }
+    return state === 'checking';
+  });
 
   /** UI state machine for ACR/UAI flow: idle | checking | ok | uai-missing-role | no-uai */
   protected readonly acrUaiState = computed(() => {
@@ -496,12 +581,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   );
 
   protected readonly isSaveBlockedByAcr = computed(() => {
-    if (!this.isAcrEnabled()) return false;
+    if (!this.isAcrEnabled() || this.acrAuthMode() !== 'ManagedIdentity') return false;
     return this.acrAccessChecking() || this.acrHasAccess() === false;
   });
 
   // ─── Tab Warning Badges ───
-  protected readonly generalTabHasWarning = computed(() => this.isSaveBlockedByAcr());
+  protected readonly generalTabHasWarning = computed(() => this.isSaveBlockedByAcr() || this.isSaveBlockedByNameAvailability());
 
   protected readonly appSettingsTabHasWarning = computed(() => this.kvMissingRoleEntries().length > 0);
 
@@ -603,6 +688,17 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly supportsAppSettings = computed(() =>
     ['WebApp', 'FunctionApp', 'ContainerApp'].includes(this.resourceType)
   );
+
+  // ─── Custom Domains ───
+  protected readonly customDomains = signal<CustomDomainResponse[]>([]);
+  protected readonly customDomainsLoading = signal(false);
+  protected readonly customDomainsError = signal('');
+  protected readonly supportsCustomDomains = computed(() =>
+    ['WebApp', 'FunctionApp', 'ContainerApp'].includes(this.resourceType)
+  );
+  protected customDomainsForEnv(envName: string): CustomDomainResponse[] {
+    return this.customDomains().filter(d => d.environmentName === envName);
+  }
 
   /** App settings grouped by category for sectioned display */
   protected readonly appSettingsGrouped = computed(() => {
@@ -711,7 +807,85 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected readonly cosmosBackupPolicyOptions = COSMOS_BACKUP_POLICY_OPTIONS;
   protected readonly acrSkuOptions = ACR_SKU_OPTIONS;
   protected readonly acrPublicNetworkOptions = ACR_PUBLIC_NETWORK_OPTIONS;
+  protected readonly sqlServerVersionOptions = SQL_SERVER_VERSION_OPTIONS;
+  protected readonly sqlMinTlsOptions = SQL_MIN_TLS_OPTIONS;
   protected readonly runtimeVersionOptions = signal<string[]>([]);
+
+  /** ServiceBus SKU options (used inline in env tab) */
+  protected readonly serviceBusSkuOptions: DsSelectOption[] = [
+    { label: 'Basic', value: 'Basic' },
+    { label: 'Standard', value: 'Standard' },
+    { label: 'Premium', value: 'Premium' },
+  ];
+
+  /** ServiceBus minimum TLS options (used inline in env tab) */
+  protected readonly serviceBusMinTlsOptions: DsSelectOption[] = [
+    { label: 'TLS 1.0', value: '1.0' },
+    { label: 'TLS 1.1', value: '1.1' },
+    { label: 'TLS 1.2', value: '1.2' },
+  ];
+
+  /** Translated public access options for the DS select */
+  protected readonly publicAccessSelectOptions = computed<DsSelectOption[]>(() =>
+    this.publicAccessOptions.map(o => ({ value: o.value, label: this.translate.instant(o.label) })),
+  );
+
+  /** SQL Server options computed from allResources for SqlDatabase picker */
+  protected readonly sqlServerOptionsForSelect = computed<DsSelectOption[]>(() =>
+    this.allResources()
+      .filter(r => r.resourceType === 'SqlServer')
+      .map(r => ({ value: r.id, label: r.name })),
+  );
+
+  /** Log Analytics Workspace options with explicit None entry */
+  protected readonly lawOptionsForSelect = computed<DsSelectOption[]>(() => [
+    { value: null, label: this.translate.instant('RESOURCE_EDIT.GENERAL.NONE') },
+    ...this.availableLogAnalyticsWorkspaces().map(law => ({ value: law.id, label: law.name })),
+  ]);
+
+  /** Variable Group options for the SQL password selector, with a sentinel "create new" entry. */
+  protected readonly passwordVgSelectOptions = computed<DsSelectOption[]>(() => [
+    ...this.passwordVgOptions().map(vg => ({ value: vg.id, label: vg.groupName })),
+    { value: '__create_new__', label: this.translate.instant('RESOURCE_EDIT.SECURE_PARAM.CREATE_NEW_GROUP') },
+  ]);
+
+  // ─── Secure Parameter Mappings (SqlServer password config) ───
+  protected readonly secureParamMappings = signal<SecureParameterMappingResponse[]>([]);
+  protected readonly passwordMode = signal<'random' | 'variableGroup'>('random');
+  protected readonly passwordVgOptions = signal<ProjectPipelineVariableGroupResponse[]>([]);
+  protected readonly passwordVgLoading = signal(false);
+  protected readonly passwordSelectedVgId = signal<string | null>(null);
+  protected readonly passwordNewGroupName = signal('');
+  protected readonly passwordIsCreatingNewGroup = signal(false);
+  protected readonly passwordNewGroupScope = signal<'project' | 'configuration'>('project');
+  protected readonly passwordPipelineVariableName = signal('');
+  protected readonly passwordSaving = signal(false);
+  protected readonly passwordSaveSuccess = signal(false);
+
+  /** Snapshot of the last saved (or loaded) state, used to detect unsaved changes. */
+  private readonly passwordSavedState = signal<{ mode: 'random' | 'variableGroup'; variableGroupId: string | null; pipelineVariableName: string | null }>({
+    mode: 'random', variableGroupId: null, pipelineVariableName: null,
+  });
+
+  protected readonly hasPasswordConfigChanged = computed(() => {
+    const saved = this.passwordSavedState();
+    if (this.passwordMode() !== saved.mode) return true;
+    if (this.passwordMode() === 'variableGroup') {
+      if (this.passwordIsCreatingNewGroup()) return true;
+      if (this.passwordSelectedVgId() !== saved.variableGroupId) return true;
+      if (this.passwordPipelineVariableName() !== (saved.pipelineVariableName ?? '')) return true;
+    }
+    return false;
+  });
+
+  protected readonly canSavePasswordConfig = computed(() => {
+    if (this.passwordSaving()) return false;
+    if (this.passwordMode() === 'random') return true;
+    const hasVg = this.passwordIsCreatingNewGroup()
+      ? this.passwordNewGroupName().trim().length > 0
+      : !!this.passwordSelectedVgId();
+    return hasVg && this.passwordPipelineVariableName().trim().length > 0;
+  });
 
   // ─── Forms ───
   protected generalForm!: FormGroup;
@@ -817,11 +991,17 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       if (this.supportsAppSettings()) {
         this.loadAppSettings();
       }
+      if (this.supportsCustomDomains()) {
+        this.loadCustomDomains();
+      }
       if (this.supportsConfigKeys()) {
         this.loadConfigKeys();
       }
       if (this.isUserAssignedIdentity()) {
         this.loadIdentityRoleAssignments();
+      }
+      if (this.resourceType === 'SqlServer') {
+        this.loadSecureParamMappings();
       }
     } catch {
       this.loadError.set('RESOURCE_EDIT.ERROR.LOAD_FAILED');
@@ -862,6 +1042,10 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         return this.serviceBusNamespaceService.getById(this.resourceId);
       case 'ContainerRegistry':
         return this.containerRegistryService.getById(this.resourceId);
+      case 'SqlServer':
+        return this.sqlServerService.getById(this.resourceId);
+      case 'SqlDatabase':
+        return this.sqlDatabaseService.getById(this.resourceId);
       default:
         throw new Error(`Unknown resource type: ${this.resourceType}`);
     }
@@ -872,6 +1056,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       name: [resource.name, [Validators.required, Validators.maxLength(80)]],
       location: [resource.location, [Validators.required]],
     };
+
+    this.acrAccessChecking.set(false);
+    this.resetAcrPullAccessState();
+    this.selectedContainerRegistryId.set(null);
+    this.acrAuthMode.set(null);
 
     if (this.resourceType === 'KeyVault') {
       const kv = resource as KeyVaultResponse;
@@ -886,9 +1075,11 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['osType'] = [asp.osType, [Validators.required]];
     } else if (this.resourceType === 'WebApp') {
       const wa = resource as WebAppResponse;
+      const resolvedAcrAuthMode = this.resolveAcrAuthMode(wa.containerRegistryId ?? null, wa.acrAuthMode ?? null);
       base['appServicePlanId'] = [wa.appServicePlanId];
       base['deploymentMode'] = [wa.deploymentMode || 'Code'];
       base['containerRegistryId'] = [wa.containerRegistryId ?? null];
+      base['acrAuthMode'] = [resolvedAcrAuthMode];
       base['dockerImageName'] = [wa.dockerImageName ?? null];
       base['runtimeStack'] = [wa.runtimeStack, [Validators.required]];
       base['runtimeVersion'] = [wa.runtimeVersion];
@@ -900,11 +1091,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['applicationName'] = [wa.applicationName ?? ''];
       this.deploymentMode.set((wa.deploymentMode as 'Code' | 'Container') || 'Code');
       this.selectedContainerRegistryId.set(wa.containerRegistryId ?? null);
+      this.acrAuthMode.set(resolvedAcrAuthMode);
     } else if (this.resourceType === 'FunctionApp') {
       const fa = resource as FunctionAppResponse;
+      const resolvedAcrAuthMode = this.resolveAcrAuthMode(fa.containerRegistryId ?? null, fa.acrAuthMode ?? null);
       base['appServicePlanId'] = [fa.appServicePlanId];
       base['deploymentMode'] = [fa.deploymentMode || 'Code'];
       base['containerRegistryId'] = [fa.containerRegistryId ?? null];
+      base['acrAuthMode'] = [resolvedAcrAuthMode];
       base['dockerImageName'] = [fa.dockerImageName ?? null];
       base['runtimeStack'] = [fa.runtimeStack, [Validators.required]];
       base['runtimeVersion'] = [fa.runtimeVersion];
@@ -915,6 +1109,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['applicationName'] = [fa.applicationName ?? ''];
       this.deploymentMode.set((fa.deploymentMode as 'Code' | 'Container') || 'Code');
       this.selectedContainerRegistryId.set(fa.containerRegistryId ?? null);
+      this.acrAuthMode.set(resolvedAcrAuthMode);
     } else if (this.resourceType === 'StorageAccount') {
       const sa = resource as StorageAccountResponse;
       base['kind'] = [sa.kind, [Validators.required]];
@@ -943,12 +1138,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       })));
     } else if (this.resourceType === 'ContainerApp') {
       const ca = resource as ContainerAppResponse;
+      const resolvedAcrAuthMode = this.resolveAcrAuthMode(ca.containerRegistryId ?? null, ca.acrAuthMode ?? null);
       base['containerAppEnvironmentId'] = [ca.containerAppEnvironmentId];
       base['containerRegistryId'] = [ca.containerRegistryId ?? null];
+      base['acrAuthMode'] = [resolvedAcrAuthMode];
       base['dockerImageName'] = [ca.dockerImageName ?? null];
       base['dockerfilePath'] = [ca.dockerfilePath ?? ''];
       base['applicationName'] = [ca.applicationName ?? ''];
       this.selectedContainerRegistryId.set(ca.containerRegistryId ?? null);
+      this.acrAuthMode.set(resolvedAcrAuthMode);
     } else if (this.resourceType === 'ContainerAppEnvironment') {
       const cae = resource as ContainerAppEnvironmentResponse;
       base['logAnalyticsWorkspaceId'] = [cae.logAnalyticsWorkspaceId ?? null];
@@ -962,6 +1160,14 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       base['minimumTlsVersion'] = [rc.minimumTlsVersion, [Validators.required]];
       base['disableAccessKeyAuthentication'] = [rc.disableAccessKeyAuthentication];
       base['enableAadAuth'] = [rc.enableAadAuth];
+    } else if (this.resourceType === 'SqlServer') {
+      const sql = resource as SqlServerResponse;
+      base['version'] = [sql.version, [Validators.required]];
+      base['administratorLogin'] = [sql.administratorLogin, [Validators.required]];
+    } else if (this.resourceType === 'SqlDatabase') {
+      const db = resource as SqlDatabaseResponse;
+      base['sqlServerId'] = [db.sqlServerId, [Validators.required]];
+      base['collation'] = [db.collation];
     }
 
     this.generalForm = this.fb.group(base);
@@ -988,6 +1194,22 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
     }
 
     this.envForms.set(forms);
+  }
+
+  protected onProbeToggle(envIndex: number, probeType: 'readiness' | 'liveness' | 'startup', enabled: boolean): void {
+    const envForm = this.envForms()[envIndex]?.form;
+    if (!envForm) return;
+    const defaults: Record<string, { path: string; port: number }> = {
+      readiness: { path: '/healthz/ready', port: 8080 },
+      liveness: { path: '/healthz/live', port: 8080 },
+      startup: { path: '/healthz/startup', port: 8080 },
+    };
+
+    envForm.patchValue({
+      [`${probeType}ProbeEnabled`]: enabled,
+      [`${probeType}ProbePath`]: enabled ? defaults[probeType].path : null,
+      [`${probeType}ProbePort`]: enabled ? defaults[probeType].port : null,
+    });
   }
 
   private buildSingleEnvForm(resource: ResourceData, envName: string): FormGroup {
@@ -1076,6 +1298,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           ingressTargetPort: [settings?.ingressTargetPort ?? null],
           ingressExternal: [settings?.ingressExternal ?? null],
           transportMethod: [settings?.transportMethod ?? null],
+          readinessProbeEnabled: [!!(settings?.readinessProbePath)],
+          readinessProbePath: [settings?.readinessProbePath ?? null],
+          readinessProbePort: [settings?.readinessProbePort ?? null],
+          livenessProbeEnabled: [!!(settings?.livenessProbePath)],
+          livenessProbePath: [settings?.livenessProbePath ?? null],
+          livenessProbePort: [settings?.livenessProbePort ?? null],
+          startupProbeEnabled: [!!(settings?.startupProbePath)],
+          startupProbePath: [settings?.startupProbePath ?? null],
+          startupProbePort: [settings?.startupProbePort ?? null],
         });
       }
       case 'LogAnalyticsWorkspace': {
@@ -1133,11 +1364,59 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           zoneRedundancy: [settings?.zoneRedundancy ?? null],
         });
       }
+      case 'SqlServer': {
+        const sql = resource as SqlServerResponse;
+        const settings = sql.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          minimalTlsVersion: [settings?.minimalTlsVersion ?? null],
+        });
+      }
+      case 'SqlDatabase': {
+        const db = resource as SqlDatabaseResponse;
+        const settings = db.environmentSettings?.find(s => s.environmentName === envName);
+        return this.fb.group({
+          sku: [settings?.sku ?? null],
+          maxSizeGb: [settings?.maxSizeGb ?? null],
+          zoneRedundant: [settings?.zoneRedundant ?? null],
+        });
+      }
     }
   }
 
+  /** User confirms the unavailable name is theirs and overrides the save block. */
+  protected overrideNameAvailability(): void {
+    this.nameAvailabilityOverridden.set(true);
+  }
+
+  private resolveAcrAuthMode(containerRegistryId: string | null | undefined, acrAuthMode: AcrAuthMode | null | undefined): AcrAuthMode | null {
+    if (!containerRegistryId) {
+      return null;
+    }
+
+    return acrAuthMode ?? 'ManagedIdentity';
+  }
+
+  private setAcrAuthMode(acrAuthMode: AcrAuthMode | null, emitEvent = false): void {
+    this.acrAuthMode.set(acrAuthMode);
+
+    const acrAuthModeControl = this.generalForm.get('acrAuthMode');
+    if (acrAuthModeControl) {
+      acrAuthModeControl.setValue(acrAuthMode, { emitEvent });
+    }
+  }
+
+  private resetAcrPullAccessState(): void {
+    this.acrHasAccess.set(null);
+    this.acrMissingRoleName.set(null);
+    this.acrMissingRoleDefinitionId.set(null);
+    this.acrAssignedUaiId.set(null);
+    this.acrAssignedUaiName.set(null);
+    this.acrHasUai.set(false);
+    this.acrSelectedUaiId.set(null);
+  }
+
   protected async onSave(): Promise<void> {
-    if (this.generalForm.invalid || this.isSaving() || this.isSaveBlockedByAcr()) return;
+    if (this.generalForm.invalid || this.isSaving() || this.isSaveBlockedByAcr() || this.isSaveBlockedByNameAvailability()) return;
 
     this.isSaving.set(true);
     this.saveError.set('');
@@ -1201,13 +1480,18 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: this.buildAppServicePlanEnvSettings(),
           });
           break;
-        case 'WebApp':
+        case 'WebApp': {
+          const acrAuthMode = general.deploymentMode === 'Container'
+            ? this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined)
+            : null;
+
           await this.webAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             appServicePlanId: general.appServicePlanId,
             deploymentMode: general.deploymentMode || 'Code',
             containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
+            acrAuthMode,
             dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
             dockerfilePath: general.dockerfilePath || null,
             sourceCodePath: general.sourceCodePath || null,
@@ -1220,13 +1504,19 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: this.buildWebAppEnvSettings(),
           });
           break;
-        case 'FunctionApp':
+        }
+        case 'FunctionApp': {
+          const acrAuthMode = general.deploymentMode === 'Container'
+            ? this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined)
+            : null;
+
           await this.functionAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             appServicePlanId: general.appServicePlanId,
             deploymentMode: general.deploymentMode || 'Code',
             containerRegistryId: general.deploymentMode === 'Container' ? (general.containerRegistryId || null) : null,
+            acrAuthMode,
             dockerImageName: general.deploymentMode === 'Container' ? (general.dockerImageName || null) : null,
             dockerfilePath: general.dockerfilePath || null,
             sourceCodePath: general.sourceCodePath || null,
@@ -1238,6 +1528,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: this.buildFunctionAppEnvSettings(),
           });
           break;
+        }
         case 'UserAssignedIdentity':
           await this.userAssignedIdentityService.update(this.resourceId, {
             name: general.name,
@@ -1259,18 +1550,22 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: this.buildContainerAppEnvironmentEnvSettings(),
           });
           break;
-        case 'ContainerApp':
+        case 'ContainerApp': {
+          const acrAuthMode = this.resolveAcrAuthMode(general.containerRegistryId || null, general.acrAuthMode as AcrAuthMode | null | undefined);
+
           await this.containerAppService.update(this.resourceId, {
             name: general.name,
             location: general.location,
             containerAppEnvironmentId: general.containerAppEnvironmentId,
             containerRegistryId: general.containerRegistryId || null,
+            acrAuthMode,
             dockerImageName: general.dockerImageName || null,
             dockerfilePath: general.dockerfilePath || null,
             applicationName: general.applicationName || null,
             environmentSettings: this.buildContainerAppEnvSettings(),
           });
           break;
+        }
         case 'LogAnalyticsWorkspace':
           await this.logAnalyticsWorkspaceService.update(this.resourceId, {
             name: general.name,
@@ -1307,6 +1602,24 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
             environmentSettings: this.buildContainerRegistryEnvSettings(),
           });
           break;
+        case 'SqlServer':
+          await this.sqlServerService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            version: general.version,
+            administratorLogin: general.administratorLogin,
+            environmentSettings: this.buildSqlServerEnvSettings(),
+          });
+          break;
+        case 'SqlDatabase':
+          await this.sqlDatabaseService.update(this.resourceId, {
+            name: general.name,
+            location: general.location,
+            sqlServerId: general.sqlServerId,
+            collation: general.collation ?? 'SQL_Latin1_General_CP1_CI_AS',
+            environmentSettings: this.buildSqlDatabaseEnvSettings(),
+          });
+          break;
       }
 
       // Reload to reflect saved state
@@ -1337,6 +1650,59 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         ef.form.valueChanges.subscribe(() => this.formsDirty.set(true))
       );
     }
+
+    this.wireNameAvailabilityCheck();
+  }
+
+  private wireNameAvailabilityCheck(): void {
+    if (!this.isNameAvailabilityCheckEnabled()) return;
+
+    const ctrl = this.generalForm.get('name');
+    if (!ctrl) return;
+
+    // Reset previous state on rebuild
+    this.nameAvailabilityChecking.set(false);
+    this.nameAvailabilityResults.set([]);
+    this.nameAvailabilitySupported.set(null);
+
+    const sub = ctrl.valueChanges
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        debounceTime(500),
+        distinctUntilChanged(),
+        filter((v): v is string => typeof v === 'string' && v.trim().length > 0),
+        tap(() => {
+          this.nameAvailabilityChecking.set(true);
+          this.nameAvailabilityResults.set([]);
+          this.nameAvailabilityOverridden.set(false);
+        }),
+        switchMap(name => {
+          const projectId = this.config()?.projectId;
+          if (!projectId) return EMPTY;
+          return this.nameAvailabilityService
+            .check$(this.resourceType, {
+              projectId,
+              configId: this.configId,
+              name: name.trim(),
+              currentPersistedName: this.resource()?.name ?? null,
+            })
+            .pipe(
+              catchError(() => {
+                this.nameAvailabilityChecking.set(false);
+                this.nameAvailabilityResults.set([]);
+                this.nameAvailabilitySupported.set(null);
+                return EMPTY;
+              }),
+            );
+        }),
+      )
+      .subscribe(res => {
+        this.nameAvailabilityChecking.set(false);
+        this.nameAvailabilityResults.set(res.environments ?? []);
+        this.nameAvailabilitySupported.set(res.supported);
+      });
+
+    this.formSubscriptions.push(sub);
   }
 
   protected discardChanges(): void {
@@ -1356,12 +1722,18 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   protected async onDeploymentModeChange(mode: 'Code' | 'Container'): Promise<void> {
     this.deploymentMode.set(mode);
     this.generalForm.patchValue({ deploymentMode: mode });
+    const currentRegistryId = this.selectedContainerRegistryId() ?? this.generalForm.get('containerRegistryId')?.value ?? null;
+    const nextAcrAuthMode = mode === 'Container'
+      ? this.resolveAcrAuthMode(currentRegistryId, this.acrAuthMode() ?? (this.generalForm.get('acrAuthMode')?.value as AcrAuthMode | null | undefined))
+      : null;
+
+    this.acrAccessChecking.set(false);
+    this.resetAcrPullAccessState();
+    this.setAcrAuthMode(nextAcrAuthMode, true);
     this.formsDirty.set(true);
 
-    if (mode === 'Container' && this.selectedContainerRegistryId()) {
-      await this.checkAcrPullAccess();
-    } else if (mode === 'Code') {
-      this.acrHasAccess.set(null);
+    if (mode === 'Container' && currentRegistryId && nextAcrAuthMode === 'ManagedIdentity') {
+      await this.checkAcrPullAccess(currentRegistryId, nextAcrAuthMode);
     }
   }
 
@@ -1378,39 +1750,53 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   protected async onContainerRegistryChange(acrId: string | null): Promise<void> {
+    const nextAcrAuthMode = this.resolveAcrAuthMode(acrId, this.acrAuthMode() ?? (this.generalForm.get('acrAuthMode')?.value as AcrAuthMode | null | undefined));
+
     this.selectedContainerRegistryId.set(acrId);
     this.generalForm.patchValue({ containerRegistryId: acrId });
-    this.acrHasAccess.set(null);
-    this.acrMissingRoleName.set(null);
-    this.acrMissingRoleDefinitionId.set(null);
-    this.acrAssignedUaiId.set(null);
-    this.acrAssignedUaiName.set(null);
-    this.acrHasUai.set(false);
-    this.acrSelectedUaiId.set(null);
-    if (!acrId) return;
-    await this.checkAcrPullAccess(acrId);
+    this.acrAccessChecking.set(false);
+    this.resetAcrPullAccessState();
+    this.setAcrAuthMode(nextAcrAuthMode, true);
+    if (!acrId || nextAcrAuthMode !== 'ManagedIdentity') return;
+    await this.checkAcrPullAccess(acrId, nextAcrAuthMode);
   }
 
-  protected async checkAcrPullAccess(acrId?: string): Promise<void> {
-    const registryId = acrId ?? this.generalForm.get('containerRegistryId')?.value;
-    if (!registryId) return;
+  protected async onAcrAuthModeChange(mode: AcrAuthMode): Promise<void> {
+    const currentRegistryId = this.selectedContainerRegistryId() ?? this.generalForm.get('containerRegistryId')?.value ?? null;
+    const nextAcrAuthMode = this.resolveAcrAuthMode(currentRegistryId, mode);
 
+    this.acrAccessChecking.set(false);
+    this.resetAcrPullAccessState();
+    this.setAcrAuthMode(nextAcrAuthMode, true);
+    if (!currentRegistryId || nextAcrAuthMode !== 'ManagedIdentity') return;
+    await this.checkAcrPullAccess(currentRegistryId, nextAcrAuthMode);
+  }
+
+  protected async checkAcrPullAccess(acrId?: string, acrAuthMode?: AcrAuthMode | null): Promise<void> {
+    const registryId = acrId ?? this.generalForm.get('containerRegistryId')?.value;
+    const requestedAcrAuthMode = this.resolveAcrAuthMode(registryId, acrAuthMode ?? this.acrAuthMode());
+    if (!registryId || requestedAcrAuthMode !== 'ManagedIdentity') {
+      this.resetAcrPullAccessState();
+      return;
+    }
+
+    this.acrAuthMode.set(requestedAcrAuthMode);
     this.acrAccessChecking.set(true);
-    this.acrHasAccess.set(null);
-    this.acrMissingRoleName.set(null);
-    this.acrMissingRoleDefinitionId.set(null);
-    this.acrAssignedUaiId.set(null);
-    this.acrAssignedUaiName.set(null);
-    this.acrHasUai.set(false);
+    this.resetAcrPullAccessState();
 
     try {
-      const result = await this.containerRegistryService.checkAcrPullAccess(this.resourceId, registryId);
+      const result = await this.containerRegistryService.checkAcrPullAccess(this.resourceId, registryId, requestedAcrAuthMode);
+      if (this.selectedContainerRegistryId() !== registryId || this.acrAuthMode() !== requestedAcrAuthMode) {
+        return;
+      }
+
       this.acrHasAccess.set(result.hasAccess);
       this.acrMissingRoleName.set(result.missingRoleName ?? null);
       this.acrMissingRoleDefinitionId.set(result.missingRoleDefinitionId ?? null);
       this.acrAssignedUaiId.set(result.assignedUserAssignedIdentityId ?? null);
       this.acrAssignedUaiName.set(result.assignedUserAssignedIdentityName ?? null);
       this.acrHasUai.set(result.hasUserAssignedIdentity);
+      this.acrAuthMode.set(this.resolveAcrAuthMode(registryId, result.acrAuthMode ?? requestedAcrAuthMode));
       // Pre-select the assigned UAI if one exists
       if (result.assignedUserAssignedIdentityId) {
         this.acrSelectedUaiId.set(result.assignedUserAssignedIdentityId);
@@ -1535,6 +1921,15 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
           break;
         case 'ServiceBusNamespace':
           await this.serviceBusNamespaceService.delete(this.resourceId);
+          break;
+        case 'ContainerRegistry':
+          await this.containerRegistryService.delete(this.resourceId);
+          break;
+        case 'SqlServer':
+          await this.sqlServerService.delete(this.resourceId);
+          break;
+        case 'SqlDatabase':
+          await this.sqlDatabaseService.delete(this.resourceId);
           break;
       }
       this.router.navigate(['/config', this.configId]);
@@ -3011,6 +3406,12 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         ingressTargetPort: raw.ingressTargetPort != null ? Number(raw.ingressTargetPort) : null,
         ingressExternal: raw.ingressExternal ?? null,
         transportMethod: raw.transportMethod || null,
+        readinessProbePath: raw.readinessProbePath || null,
+        readinessProbePort: raw.readinessProbePort != null ? Number(raw.readinessProbePort) : null,
+        livenessProbePath: raw.livenessProbePath || null,
+        livenessProbePort: raw.livenessProbePort != null ? Number(raw.livenessProbePort) : null,
+        startupProbePath: raw.startupProbePath || null,
+        startupProbePort: raw.startupProbePort != null ? Number(raw.startupProbePort) : null,
       };
     });
   }
@@ -3082,6 +3483,184 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
         publicNetworkAccess: raw.publicNetworkAccess || null,
         zoneRedundancy: raw.zoneRedundancy ?? null,
       };
+    });
+  }
+
+  private buildSqlServerEnvSettings(): SqlServerEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        minimalTlsVersion: raw.minimalTlsVersion || null,
+      };
+    });
+  }
+
+  private buildSqlDatabaseEnvSettings(): SqlDatabaseEnvironmentConfigEntry[] {
+    return this.envForms().map(ef => {
+      const raw = ef.form.getRawValue();
+      return {
+        environmentName: ef.envName,
+        sku: raw.sku || null,
+        maxSizeGb: raw.maxSizeGb != null ? Number(raw.maxSizeGb) : null,
+        zoneRedundant: raw.zoneRedundant ?? null,
+      };
+    });
+  }
+
+  // ─── Secure Parameter Mappings (SqlServer password config) ───
+
+  private async loadSecureParamMappings(): Promise<void> {
+    try {
+      const mappings = await this.secureParamMappingService.getByResourceId(this.resourceId);
+      this.secureParamMappings.set(mappings);
+      const pwdMapping = mappings.find(m => m.secureParameterName === 'administratorLoginPassword');
+      if (pwdMapping?.variableGroupId) {
+        this.passwordMode.set('variableGroup');
+        this.passwordSelectedVgId.set(pwdMapping.variableGroupId);
+        this.passwordPipelineVariableName.set(pwdMapping.pipelineVariableName ?? '');
+        this.passwordSavedState.set({ mode: 'variableGroup', variableGroupId: pwdMapping.variableGroupId, pipelineVariableName: pwdMapping.pipelineVariableName ?? null });
+      } else {
+        this.passwordMode.set('random');
+        this.passwordSavedState.set({ mode: 'random', variableGroupId: null, pipelineVariableName: null });
+      }
+      await this.loadPasswordVgOptions();
+    } catch {
+      // Non-blocking
+    }
+  }
+
+  private async loadPasswordVgOptions(): Promise<void> {
+    const projectId = this.config()?.projectId;
+    if (!projectId) return;
+    this.passwordVgLoading.set(true);
+    try {
+      const groups = await this.projectService.getPipelineVariableGroups(projectId);
+      this.passwordVgOptions.set(groups);
+    } catch {
+      this.passwordVgOptions.set([]);
+    } finally {
+      this.passwordVgLoading.set(false);
+    }
+  }
+
+  protected onPasswordVgSelectionChange(value: string): void {
+    if (value === '__create_new__') {
+      this.passwordIsCreatingNewGroup.set(true);
+      this.passwordSelectedVgId.set(null);
+      this.passwordNewGroupScope.set('project');
+    } else {
+      this.passwordIsCreatingNewGroup.set(false);
+      this.passwordSelectedVgId.set(value);
+      this.passwordNewGroupName.set('');
+    }
+  }
+
+  protected async savePasswordConfig(): Promise<void> {
+    this.passwordSaving.set(true);
+    this.passwordSaveSuccess.set(false);
+    try {
+      let variableGroupId: string | null = null;
+
+      if (this.passwordMode() === 'variableGroup') {
+        if (this.passwordIsCreatingNewGroup()) {
+          const projectId = this.config()?.projectId;
+          if (!projectId) return;
+          const newGroup = await this.projectService.addPipelineVariableGroup(
+            projectId, { groupName: this.passwordNewGroupName() });
+          variableGroupId = newGroup.id;
+          this.passwordVgOptions.update(groups => [...groups, newGroup]);
+          this.passwordSelectedVgId.set(newGroup.id);
+          this.passwordIsCreatingNewGroup.set(false);
+        } else {
+          variableGroupId = this.passwordSelectedVgId();
+        }
+      }
+
+      await this.secureParamMappingService.set(this.resourceId, {
+        secureParameterName: 'administratorLoginPassword',
+        variableGroupId: this.passwordMode() === 'variableGroup' ? variableGroupId : null,
+        pipelineVariableName: this.passwordMode() === 'variableGroup'
+          ? this.passwordPipelineVariableName()
+          : null,
+      });
+      this.passwordSavedState.set({
+        mode: this.passwordMode(),
+        variableGroupId: this.passwordMode() === 'variableGroup' ? (variableGroupId ?? this.passwordSelectedVgId()) : null,
+        pipelineVariableName: this.passwordMode() === 'variableGroup' ? this.passwordPipelineVariableName() : null,
+      });
+      this.passwordSaveSuccess.set(true);
+      setTimeout(() => this.passwordSaveSuccess.set(false), 3000);
+    } catch {
+      // Error handled silently
+    } finally {
+      this.passwordSaving.set(false);
+    }
+  }
+
+  // ─── Custom Domains ───
+
+  private async loadCustomDomains(): Promise<void> {
+    this.customDomainsLoading.set(true);
+    this.customDomainsError.set('');
+    try {
+      const domains = await this.customDomainService.getByResourceId(this.resourceId);
+      this.customDomains.set(domains);
+    } catch {
+      this.customDomainsError.set('RESOURCE_EDIT.CUSTOM_DOMAINS.LOAD_ERROR');
+    } finally {
+      this.customDomainsLoading.set(false);
+    }
+  }
+
+  protected openAddCustomDomainDialog(preselectedEnv?: string): void {
+    const environments = this.environments();
+    const data: AddCustomDomainDialogData = {
+      environments,
+      existingDomains: this.customDomains(),
+      preselectedEnvironment: preselectedEnv,
+    };
+    const dialogRef = this.dialog.open(AddCustomDomainDialogComponent, {
+      width: '520px',
+      data,
+    });
+    dialogRef.afterClosed().subscribe(async (result: AddCustomDomainRequest | null) => {
+      if (!result) return;
+      this.customDomainsLoading.set(true);
+      this.customDomainsError.set('');
+      try {
+        await this.customDomainService.add(this.resourceId, result);
+        await this.loadCustomDomains();
+      } catch {
+        this.customDomainsError.set('RESOURCE_EDIT.CUSTOM_DOMAINS.ADD_ERROR');
+      } finally {
+        this.customDomainsLoading.set(false);
+      }
+    });
+  }
+
+  protected removeCustomDomain(domain: CustomDomainResponse): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        titleKey: 'RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_CONFIRM_TITLE',
+        messageKey: 'RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_CONFIRM_MESSAGE',
+        messageParams: { domain: domain.domainName },
+        confirmKey: 'COMMON.DELETE',
+        cancelKey: 'COMMON.CANCEL',
+      } as ConfirmDialogData,
+    });
+    dialogRef.afterClosed().subscribe(async (confirmed?: boolean) => {
+      if (!confirmed) return;
+      this.customDomainsLoading.set(true);
+      this.customDomainsError.set('');
+      try {
+        await this.customDomainService.remove(this.resourceId, domain.id);
+        this.customDomains.update(list => list.filter(d => d.id !== domain.id));
+      } catch {
+        this.customDomainsError.set('RESOURCE_EDIT.CUSTOM_DOMAINS.REMOVE_ERROR');
+      } finally {
+        this.customDomainsLoading.set(false);
+      }
     });
   }
 

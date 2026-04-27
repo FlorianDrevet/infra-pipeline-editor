@@ -1,0 +1,155 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+}
+
+.picker-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(.picker-trigger--disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  &--disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.picker-panel {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  min-width: 320px;
+  max-width: 480px;
+
+  &__section {
+    &:not(:last-child) {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  &__label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 8px;
+  }
+
+  &__select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+
+    &:focus {
+      border-color: #0288d1;
+    }
+
+    option {
+      background: #1e293b;
+      color: #fff;
+    }
+  }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+    padding: 8px 0;
+  }
+
+  &__file-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__file-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    color: rgba(255, 255, 255, 0.85);
+
+    &:hover,
+    &:focus {
+      background: rgba(255, 255, 255, 0.08);
+      outline: none;
+    }
+  }
+
+  &__file-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #0288d1;
+    flex-shrink: 0;
+  }
+
+  &__file-path {
+    font-size: 13px;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    word-break: break-all;
+  }
+
+  &__empty,
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+    padding: 12px 0;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  &__error {
+    color: #ef5350;
+  }
+}
+
+::ng-deep .dockerfile-picker__backdrop {
+  background: transparent;
+}

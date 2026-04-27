@@ -13,7 +13,9 @@ public record ProjectResult(
     IReadOnlyList<ProjectEnvironmentDefinitionResult> EnvironmentDefinitions,
     string? DefaultNamingTemplate,
     IReadOnlyList<ProjectResourceNamingTemplateResult> ResourceNamingTemplates,
-    GitRepositoryConfigurationResult? GitRepositoryConfiguration,
-    string RepositoryMode,
+    IReadOnlyList<ProjectResourceAbbreviationResult> ResourceAbbreviations,
     IReadOnlyList<TagResult> Tags,
-    string? AgentPoolName = null);
+    string? AgentPoolName = null,
+    IReadOnlyList<string>? UsedResourceTypes = null,
+    IReadOnlyList<ProjectRepositoryResult>? Repositories = null,
+    string LayoutPreset = "MultiRepo");

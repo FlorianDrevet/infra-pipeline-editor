@@ -9,10 +9,15 @@ namespace InfraFlowSculptor.Application.InfrastructureConfig.Diagnostics;
 public sealed class ConfigDiagnosticService(IEnumerable<IDiagnosticRule> rules) : IConfigDiagnosticService
 {
     /// <inheritdoc />
-    public IReadOnlyList<ResourceDiagnosticItem> Evaluate(InfrastructureConfigReadModel config)
+    public async Task<IReadOnlyList<ResourceDiagnosticItem>> EvaluateAsync(
+        InfrastructureConfigReadModel config,
+        CancellationToken cancellationToken = default)
     {
-        return rules
-            .SelectMany(rule => rule.Evaluate(config))
+        var tasks = rules.Select(rule => rule.EvaluateAsync(config, cancellationToken));
+        var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+        return results
+            .SelectMany(items => items)
             .ToList();
     }
 }

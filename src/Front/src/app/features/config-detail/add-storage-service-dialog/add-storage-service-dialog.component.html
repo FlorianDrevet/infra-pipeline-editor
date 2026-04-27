@@ -46,23 +46,19 @@
         }
 
         <form [formGroup]="form" class="storage-dialog__form" (ngSubmit)="onSubmit()">
-          <mat-form-field appearance="outline" class="storage-dialog__field">
-            <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate }}</mat-label>
-            <input matInput formControlName="name" autocomplete="off" />
-            @if (form.get('name')?.hasError('duplicateName')) {
-              <mat-error>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.DUPLICATE_NAME_ERROR' | translate }}</mat-error>
-            }
-          </mat-form-field>
+          <app-ds-text-field
+            class="storage-dialog__field"
+            formControlName="name"
+            autocomplete="off"
+            [label]="'RESOURCE_EDIT.STORAGE_SERVICES.NAME_LABEL' | translate"
+            [error]="form.get('name')?.hasError('duplicateName') ? ('RESOURCE_EDIT.STORAGE_SERVICES.DUPLICATE_NAME_ERROR' | translate) : undefined" />
 
           @if (selectedType() === 'BlobContainer') {
-            <mat-form-field appearance="outline" class="storage-dialog__field">
-              <mat-label>{{ 'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_LABEL' | translate }}</mat-label>
-              <mat-select formControlName="publicAccess">
-                @for (opt of publicAccessOptions; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label | translate }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
+            <app-ds-select
+              class="storage-dialog__field"
+              formControlName="publicAccess"
+              [label]="'RESOURCE_EDIT.STORAGE_SERVICES.PUBLIC_ACCESS_LABEL' | translate"
+              [options]="publicAccessOptions" />
           }
         </form>
       </mat-dialog-content>
@@ -70,20 +66,17 @@
         <button mat-stroked-button (click)="goBack()" [disabled]="isSubmitting()">
           {{ 'RESOURCE_EDIT.ADD_ROLE_DIALOG.BACK' | translate }}
         </button>
-        <button
-          mat-raised-button
-          color="primary"
-          (click)="onSubmit()"
+        <app-ds-button
+          variant="primary"
+          (clicked)="onSubmit()"
+          [loading]="isSubmitting()"
           [disabled]="form.invalid || isSubmitting()">
-          @if (isSubmitting()) {
-            <mat-spinner diameter="18"></mat-spinner>
-          }
           @switch (selectedType()) {
             @case ('BlobContainer') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_BLOB' | translate }} }
             @case ('Queue') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_QUEUE' | translate }} }
             @case ('Table') { {{ 'RESOURCE_EDIT.STORAGE_SERVICES.ADD_TABLE' | translate }} }
           }
-        </button>
+        </app-ds-button>
       </mat-dialog-actions>
     }
   }

@@ -1,0 +1,61 @@
+<h2 mat-dialog-title>
+  {{ (isEditMode ? 'CONFIG_DETAIL.REPOSITORIES.DIALOG.TITLE_EDIT' : 'CONFIG_DETAIL.REPOSITORIES.DIALOG.TITLE_CREATE') | translate }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="repo-form" (ngSubmit)="onSubmit()">
+    <app-ds-text-field
+      formControlName="alias"
+      [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS' | translate"
+      [placeholder]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_PLACEHOLDER' | translate"
+      [hint]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_HINT' | translate"
+      [error]="form.controls.alias.hasError('pattern') && form.controls.alias.touched ? ('CONFIG_DETAIL.REPOSITORIES.DIALOG.ALIAS_PATTERN_ERROR' | translate) : undefined" />
+
+    <app-ds-select
+      formControlName="providerType"
+      [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.PROVIDER' | translate"
+      [options]="providerOptions" />
+
+    <app-ds-text-field
+      formControlName="repositoryUrl"
+      [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.REPO_URL' | translate"
+      [placeholder]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.REPO_URL_PLACEHOLDER' | translate" />
+
+    <app-ds-text-field
+      formControlName="defaultBranch"
+      [label]="'CONFIG_DETAIL.REPOSITORIES.DIALOG.DEFAULT_BRANCH' | translate"
+      placeholder="main" />
+
+    <div class="content-kinds">
+      <span class="content-kinds__label">{{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.CONTENT_KINDS' | translate }}</span>
+      <div class="content-kinds__list" formArrayName="contentKinds">
+        @for (kind of contentKinds; track kind; let i = $index) {
+          <mat-checkbox [formControlName]="i">
+            {{ 'PROJECT_DETAIL.LAYOUT.CONTENT_KIND.' + kind | translate }}
+            @if (isContentKindLocked(kind)) {
+              <span class="content-kinds__locked">
+                {{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.CONTENT_KIND_LOCKED' | translate }}
+              </span>
+            }
+          </mat-checkbox>
+        }
+      </div>
+      @if (contentKindsArray.hasError('required') && contentKindsArray.touched) {
+        <p class="content-kinds__error">{{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.CONTENT_KINDS_REQUIRED' | translate }}</p>
+      }
+    </div>
+
+    @if (errorKey()) {
+      <p class="dialog-error">{{ errorKey() | translate }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+    {{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.CANCEL' | translate }}
+  </button>
+  <app-ds-button variant="primary" [loading]="isSubmitting()" [disabled]="form.invalid" (clicked)="onSubmit()">
+    {{ 'CONFIG_DETAIL.REPOSITORIES.DIALOG.SAVE' | translate }}
+  </app-ds-button>
+</mat-dialog-actions>

@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using InfraFlowSculptor.BicepGeneration.Generators;
 using InfraFlowSculptor.BicepGeneration.Helpers;
 using InfraFlowSculptor.BicepGeneration.Models;
+using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.BicepGeneration;
 
@@ -18,8 +19,8 @@ public sealed class BicepGenerationEngine
 
     // ── Compiled regex patterns for whitespace-tolerant Bicep template matching ──
     private static readonly Regex ResourceSymbolPattern = new(@"resource\s+(\w+)\s+'", RegexOptions.Compiled);
-    private static readonly Regex IdentityBlockPattern = new(@"^\s+identity\s*:", RegexOptions.Multiline | RegexOptions.Compiled);
-    private static readonly Regex PropertiesBlockPattern = new(@"^\s+properties\s*:", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex IdentityBlockPattern = new(@"^  identity\s*:", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex PropertiesBlockPattern = new(@"^  properties\s*:", RegexOptions.Multiline | RegexOptions.Compiled);
     private static readonly Regex OutputPrincipalIdPattern = new(@"^output\s+principalId\b", RegexOptions.Multiline | RegexOptions.Compiled);
     private static readonly Regex ParamIdentityTypePattern = new(@"^param\s+identityType\b", RegexOptions.Multiline | RegexOptions.Compiled);
     private static readonly Regex ParamTagsPattern = new(@"^param\s+tags\b", RegexOptions.Multiline | RegexOptions.Compiled);
@@ -29,7 +30,7 @@ public sealed class BicepGenerationEngine
     private static readonly Regex AppSettingsArrayPattern = new(@"appSettings\s*:\s*\[", RegexOptions.Compiled);
     private static readonly Regex SiteConfigPattern = new(@"\bsiteConfig\s*:", RegexOptions.Compiled);
     private static readonly Regex EnvPropertyPattern = new(@"\benv\s*:", RegexOptions.Compiled);
-    private static readonly Regex MemoryPropertyPattern = new(@"\bmemory\s*:", RegexOptions.Compiled);
+    private static readonly Regex ContainerResourcesPattern = new(@"^\s+resources\s*:\s*\{", RegexOptions.Multiline | RegexOptions.Compiled);
 
     private readonly IEnumerable<IResourceTypeBicepGenerator> _generators;
 
@@ -70,7 +71,8 @@ public sealed class BicepGenerationEngine
             perConfigResults,
             request.NamingContext,
             request.Environments,
-            hasAnyRoleAssignments);
+            hasAnyRoleAssignments,
+            request.FlattenShared);
 
         PruneMonoRepoModuleOutputs(monoResult, perConfigResults);
 
@@ -156,10 +158,26 @@ public sealed class BicepGenerationEngine
             .Select(s => s.TargetResourceName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        // ── Build resource ID → logical name lookup for parent references ───
-        var resourceIdToName = request.Resources
+        // Determine which compute ARM types host at least one resource with app settings.
+        // When any instance of a compute type needs envVars/appSettings, every other instance
+        // of the same type must also receive the param declaration so all instances share a
+        // single module template (the param defaults to []; instances without app settings
+        // simply omit the argument in main.bicep).
+        var computeArmTypesWithAppSettings = request.Resources
+            .Where(r => ComputeResourceTypes.Contains(r.Type)
+                && targetResourcesWithAppSettings.Contains(r.Name))
+            .Select(r => r.Type)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // ── Build resource ID → (name, resource type name) lookup for parent references ──
+        var generatorByArmType = _generators.ToDictionary(g => g.ResourceType, g => g, StringComparer.OrdinalIgnoreCase);
+        var resourceIdToInfo = request.Resources
             .Where(r => r.ResourceId != Guid.Empty)
-            .ToDictionary(r => r.ResourceId, r => r.Name);
+            .ToDictionary(r => r.ResourceId, r =>
+            {
+                var typeName = generatorByArmType.TryGetValue(r.Type, out var gen) ? gen.ResourceTypeName : string.Empty;
+                return (Name: r.Name, ResourceTypeName: typeName);
+            });
 
         foreach (var resource in request.Resources)
         {
@@ -194,16 +212,11 @@ public sealed class BicepGenerationEngine
             if (isMixed)
             {
                 // Mixed ARM type: inject parameterized identity into the module template.
-                // This makes the module accept identityType + optional UAI params.
-                // All UAI param declarations referenced by ANY resource of this type are injected;
-                // each instance passes only the UAI ids it needs from main.bicep.
-                var allUaiIdsForType = sourceResourcesNeedingUserIdentity
-                    .Where(kv => kv.Key.SourceResourceType == resource.Type)
-                    .SelectMany(kv => kv.Value)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList();
+                // This makes the module accept identityType + optional generic UAI param.
+                var hasAnyUaiForType = sourceResourcesNeedingUserIdentity
+                    .Any(kv => kv.Key.SourceResourceType == resource.Type);
 
-                moduleBicepContent = InjectParameterizedIdentity(moduleBicepContent, allUaiIdsForType);
+                moduleBicepContent = InjectParameterizedIdentity(moduleBicepContent, hasAnyUaiForType);
             }
             else
             {
@@ -226,9 +239,12 @@ public sealed class BicepGenerationEngine
                 moduleBicepContent = InjectOutputDeclarations(moduleBicepContent, outputs);
             }
 
-            // Inject appSettings/env param for compute resources that have app settings
-            if (targetResourcesWithAppSettings.Contains(resource.Name)
-                && ComputeResourceTypes.Contains(resource.Type))
+            // Inject appSettings/env param for every compute resource of an ARM type that
+            // hosts at least one resource with app settings. Even resources without app settings
+            // get the param (default = []) so all instances of the same compute type share an
+            // identical module template.
+            if (ComputeResourceTypes.Contains(resource.Type)
+                && computeArmTypesWithAppSettings.Contains(resource.Type))
             {
                 moduleBicepContent = InjectAppSettingsParam(moduleBicepContent, resource.Type);
             }
@@ -237,39 +253,61 @@ public sealed class BicepGenerationEngine
             moduleBicepContent = InjectTagsParam(moduleBicepContent);
 
             // ── Resolve parent module references (FK cross-resource links) ──
-            var parentModuleIdRefs = new Dictionary<string, string>();
-            var parentModuleNameRefs = new Dictionary<string, string>();
+            var parentModuleIdRefs = new Dictionary<string, (string Name, string ResourceTypeName)>();
+            var parentModuleNameRefs = new Dictionary<string, (string Name, string ResourceTypeName)>();
+            var existingResourceIdRefs = new Dictionary<string, string>();
 
             // appServicePlanId: WebApp and FunctionApp → AppServicePlan module outputs.id
             if (resource.Properties.TryGetValue("appServicePlanId", out var aspIdStr)
                 && Guid.TryParse(aspIdStr, out var aspGuid)
-                && resourceIdToName.TryGetValue(aspGuid, out var aspName))
+                && resourceIdToInfo.TryGetValue(aspGuid, out var aspInfo))
             {
-                parentModuleIdRefs["appServicePlanId"] = aspName;
+                parentModuleIdRefs["appServicePlanId"] = aspInfo;
             }
 
             // containerAppEnvironmentId: ContainerApp → ContainerAppEnvironment module outputs.id
             if (resource.Properties.TryGetValue("containerAppEnvironmentId", out var caeIdStr)
                 && Guid.TryParse(caeIdStr, out var caeGuid)
-                && resourceIdToName.TryGetValue(caeGuid, out var caeName))
+                && resourceIdToInfo.TryGetValue(caeGuid, out var caeInfo))
             {
-                parentModuleIdRefs["containerAppEnvironmentId"] = caeName;
+                parentModuleIdRefs["containerAppEnvironmentId"] = caeInfo;
             }
 
-            // logAnalyticsWorkspaceId: ApplicationInsights → LogAnalyticsWorkspace module outputs.id
+            // logAnalyticsWorkspaceId: ApplicationInsights / ContainerAppEnvironment → LogAnalyticsWorkspace module outputs.id
             if (resource.Properties.TryGetValue("logAnalyticsWorkspaceId", out var lawIdStr)
                 && Guid.TryParse(lawIdStr, out var lawGuid)
-                && resourceIdToName.TryGetValue(lawGuid, out var lawName))
+                && resourceIdToInfo.TryGetValue(lawGuid, out var lawInfo))
             {
-                parentModuleIdRefs["logAnalyticsWorkspaceId"] = lawName;
+                parentModuleIdRefs["logAnalyticsWorkspaceId"] = lawInfo;
+            }
+            else if (resource.Type is "Microsoft.Insights/components" or "Microsoft.App/managedEnvironments"
+                && !parentModuleIdRefs.ContainsKey("logAnalyticsWorkspaceId"))
+            {
+                // Fallback: auto-detect LAW in the same config when the FK property isn't set.
+                var fallbackLaw = request.Resources.FirstOrDefault(r =>
+                    r.Type.Equals("Microsoft.OperationalInsights/workspaces", StringComparison.OrdinalIgnoreCase));
+                if (fallbackLaw is not null)
+                {
+                    parentModuleIdRefs["logAnalyticsWorkspaceId"] = (fallbackLaw.Name, AzureResourceTypes.LogAnalyticsWorkspace);
+                }
+                else
+                {
+                    // Second fallback: cross-configuration existing LAW reference
+                    var existingLaw = request.ExistingResourceReferences.FirstOrDefault(r =>
+                        r.ResourceType.Equals("Microsoft.OperationalInsights/workspaces", StringComparison.OrdinalIgnoreCase));
+                    if (existingLaw is not null)
+                    {
+                        existingResourceIdRefs["logAnalyticsWorkspaceId"] = existingLaw.ResourceName;
+                    }
+                }
             }
 
             // sqlServerId: SqlDatabase → SqlServer module computed name expression
             if (resource.Properties.TryGetValue("sqlServerId", out var sqlIdStr)
                 && Guid.TryParse(sqlIdStr, out var sqlGuid)
-                && resourceIdToName.TryGetValue(sqlGuid, out var sqlName))
+                && resourceIdToInfo.TryGetValue(sqlGuid, out var sqlInfo))
             {
-                parentModuleNameRefs["sqlServerName"] = sqlName;
+                parentModuleNameRefs["sqlServerName"] = sqlInfo;
             }
 
             modules.Add(module with
@@ -286,6 +324,7 @@ public sealed class BicepGenerationEngine
                     : module.ModuleTypesBicepContent,
                 ParentModuleIdReferences = parentModuleIdRefs,
                 ParentModuleNameReferences = parentModuleNameRefs,
+                ExistingResourceIdReferences = existingResourceIdRefs,
             });
         }
 
@@ -360,42 +399,29 @@ public sealed class BicepGenerationEngine
     /// Injects <c>identity: { type: 'UserAssigned', userAssignedIdentities: { ... } }</c>
     /// into the resource declaration. When the resource also has SystemAssigned identity,
     /// upgrades to <c>'SystemAssigned, UserAssigned'</c>.
-    /// Each UAI is referenced via a resource-id parameter.
+    /// Uses a single generic <c>userAssignedIdentityId</c> parameter so all instances of the
+    /// same ARM type share an identical module template (Azure Verified Modules style).
     /// </summary>
     private static string InjectUserAssignedIdentity(
         string moduleBicep,
         List<string> uaiIdentifiers,
         bool alsoHasSystemAssigned)
     {
-        // Build parameter declarations for each UAI resource ID
-        var paramDeclarations = new StringBuilder();
-        foreach (var uaiId in uaiIdentifiers)
+        // Single generic param — agnostic of the specific UAI name
+        if (!HasParam(moduleBicep, "userAssignedIdentityId"))
         {
-            var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-            if (HasParam(moduleBicep, paramName))
-                continue;
-            paramDeclarations.AppendLine($"@description('Resource ID of user-assigned identity: {uaiId}')");
-            paramDeclarations.AppendLine($"param {paramName} string");
-        }
+            var paramDeclarations = new StringBuilder();
+            paramDeclarations.AppendLine("@description('Resource ID of user-assigned managed identity')");
+            paramDeclarations.AppendLine("param userAssignedIdentityId string");
+            paramDeclarations.AppendLine();
 
-        // Insert params before the first 'var' or 'resource' line
-        if (paramDeclarations.Length > 0)
-        {
             var insertIdx = FindFirstLineIndex(moduleBicep, "var ");
             if (insertIdx < 0)
                 insertIdx = FindFirstLineIndex(moduleBicep, "resource ");
             if (insertIdx >= 0)
             {
-                moduleBicep = InsertAt(moduleBicep, insertIdx, paramDeclarations.ToString() + "\n");
+                moduleBicep = InsertAt(moduleBicep, insertIdx, paramDeclarations.ToString());
             }
-        }
-
-        // Build the userAssignedIdentities object entries
-        var uaiEntries = new StringBuilder();
-        foreach (var uaiId in uaiIdentifiers)
-        {
-            var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-            uaiEntries.AppendLine($"      '${{{paramName}}}': {{}}");
         }
 
         // Determine desired identity type
@@ -409,13 +435,13 @@ public sealed class BicepGenerationEngine
             // Replace type and add userAssignedIdentities.
             moduleBicep = moduleBicep.Replace(
                 "type: 'SystemAssigned'",
-                $"type: '{identityType}'\n    userAssignedIdentities: {{\n{uaiEntries}    }}");
+                $"type: '{identityType}'\n    userAssignedIdentities: {{\n      '${{userAssignedIdentityId}}': {{}}\n    }}");
         }
         else
         {
             // No identity block yet — inject before 'properties:' or before closing brace
             var identityBlock =
-                $"  identity: {{\n    type: '{identityType}'\n    userAssignedIdentities: {{\n{uaiEntries}    }}\n  }}\n";
+                $"  identity: {{\n    type: '{identityType}'\n    userAssignedIdentities: {{\n      '${{userAssignedIdentityId}}': {{}}\n    }}\n  }}\n";
 
             var propertiesMatch = PropertiesBlockPattern.Match(moduleBicep);
             if (propertiesMatch.Success)
@@ -492,12 +518,12 @@ public sealed class BicepGenerationEngine
     /// <summary>
     /// Injects a parameterized identity block into the module template.
     /// The module receives <c>param identityType ManagedIdentityType</c> (typed union from types.bicep)
-    /// and optional UAI resource ID params.
+    /// and an optional generic <c>userAssignedIdentityId</c> parameter.
     /// The identity section is built dynamically at deployment time.
     /// Also appends <c>ManagedIdentityType</c> to the module's <c>types.bicep</c> content
     /// and adds the import to the module template.
     /// </summary>
-    private static string InjectParameterizedIdentity(string moduleBicep, List<string> allUaiIds)
+    private static string InjectParameterizedIdentity(string moduleBicep, bool hasAnyUai)
     {
         var symbolMatch = ResourceSymbolPattern.Match(moduleBicep);
         if (!symbolMatch.Success) return moduleBicep;
@@ -515,21 +541,17 @@ public sealed class BicepGenerationEngine
         // Add ManagedIdentityType to the import line in the module template
         moduleBicep = AddTypeImport(moduleBicep, "ManagedIdentityType");
 
-        // Build param declarations
+        // Build param declarations — single generic UAI param
         var paramSb = new StringBuilder();
         paramSb.AppendLine("@description('Managed identity type for this resource')");
         paramSb.AppendLine("param identityType ManagedIdentityType = 'SystemAssigned'");
         paramSb.AppendLine();
 
-        foreach (var uaiId in allUaiIds)
+        if (hasAnyUai && !HasParam(moduleBicep, "userAssignedIdentityId"))
         {
-            var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-            if (!HasParam(moduleBicep, paramName))
-            {
-                paramSb.AppendLine($"@description('Resource ID of user-assigned identity: {uaiId} (empty when not applicable)')");
-                paramSb.AppendLine($"param {paramName} string = ''");
-                paramSb.AppendLine();
-            }
+            paramSb.AppendLine("@description('Resource ID of user-assigned managed identity (empty when not applicable)')");
+            paramSb.AppendLine("param userAssignedIdentityId string = ''");
+            paramSb.AppendLine();
         }
 
         // Insert params before the first 'var' or 'resource' line
@@ -541,36 +563,14 @@ public sealed class BicepGenerationEngine
             moduleBicep = InsertAt(moduleBicep, insertIdx, paramSb.ToString());
         }
 
-        // Build: var userAssignedIdentities = { '${uai1Id}': {}, '${uai2Id}': {} }
-        // Only included when identityType contains 'UserAssigned'
-        var hasUais = allUaiIds.Count > 0;
-        if (hasUais)
-        {
-            var varSb = new StringBuilder();
-            varSb.AppendLine("var userAssignedIdentityMap = {");
-            foreach (var uaiId in allUaiIds)
-            {
-                var paramName = $"userAssignedIdentity{Capitalize(uaiId)}Id";
-                varSb.AppendLine($"  '${{{paramName}}}': {{}}");
-            }
-            varSb.AppendLine("}");
-            varSb.AppendLine();
-
-            var resourceIdx = FindFirstLineIndex(moduleBicep, "resource ");
-            if (resourceIdx >= 0)
-            {
-                moduleBicep = InsertAt(moduleBicep, resourceIdx, varSb.ToString());
-            }
-        }
-
         // Build the identity block — always present (no 'None' case)
         string identityBlock;
-        if (hasUais)
+        if (hasAnyUai)
         {
             identityBlock = """
               identity: {
                 type: identityType
-                userAssignedIdentities: contains(identityType, 'UserAssigned') ? userAssignedIdentityMap : null
+                userAssignedIdentities: contains(identityType, 'UserAssigned') && !empty(userAssignedIdentityId) ? { '${userAssignedIdentityId}': {} } : null
               }
 
             """;
@@ -651,12 +651,25 @@ public sealed class BicepGenerationEngine
         string moduleBicep,
         List<(string OutputName, string BicepExpression, bool IsSecure)> outputs)
     {
+        // Collect all resource symbol names declared in the module (e.g. "sqlDatabase", "kv").
+        var declaredSymbols = new HashSet<string>(StringComparer.Ordinal);
+        foreach (Match match in ResourceSymbolPattern.Matches(moduleBicep))
+        {
+            declaredSymbols.Add(match.Groups[1].Value);
+        }
+
         var sb = new System.Text.StringBuilder(moduleBicep.TrimEnd());
 
         foreach (var (outputName, bicepExpression, isSecure) in outputs)
         {
             // Skip if output already declared (whitespace-tolerant)
             if (HasOutput(moduleBicep, outputName))
+                continue;
+
+            // Validate: the root symbol in the expression must exist in this module.
+            // Expression examples: "kv.properties.vaultUri", "'Server=tcp:${sqlServer.properties...}'"
+            var rootSymbol = ExtractRootSymbol(bicepExpression);
+            if (rootSymbol is not null && !declaredSymbols.Contains(rootSymbol))
                 continue;
 
             sb.AppendLine();
@@ -675,6 +688,39 @@ public sealed class BicepGenerationEngine
 
         sb.AppendLine();
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Extracts the root resource symbol from a Bicep expression.
+    /// For <c>"kv.properties.vaultUri"</c> returns <c>"kv"</c>.
+    /// For interpolated strings like <c>"'${sqlServer.properties.fqdn}'"</c> returns <c>"sqlServer"</c>.
+    /// Returns <c>null</c> when the expression is a literal or cannot be parsed.
+    /// </summary>
+    private static string? ExtractRootSymbol(string bicepExpression)
+    {
+        var expr = bicepExpression.Trim();
+
+        // Try direct identifier: "symbol.property..."
+        if (char.IsLetter(expr[0]) || expr[0] == '_')
+        {
+            var dotIndex = expr.IndexOf('.');
+            return dotIndex > 0 ? expr[..dotIndex] : null;
+        }
+
+        // Try interpolated string: "'...${symbol.property}...'"
+        var interpIdx = expr.IndexOf("${", StringComparison.Ordinal);
+        if (interpIdx >= 0)
+        {
+            var start = interpIdx + 2;
+            var rest = expr.AsSpan(start);
+            var dotPos = rest.IndexOf('.');
+            if (dotPos > 0)
+            {
+                return rest[..dotPos].ToString();
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -814,15 +860,13 @@ public sealed class BicepGenerationEngine
         // Add env property to the container spec if not already present (whitespace-tolerant)
         if (!EnvPropertyPattern.IsMatch(moduleBicep))
         {
-            // Find "resources:" in the container spec — insert env after the "memory:" line
-            var memoryMatch = MemoryPropertyPattern.Match(moduleBicep);
-            if (memoryMatch.Success)
+            // Find "resources: {" in the container spec — insert env BEFORE it (at container level, not inside resources)
+            var resourcesMatch = ContainerResourcesPattern.Match(moduleBicep);
+            if (resourcesMatch.Success)
             {
-                var endOfLine = moduleBicep.IndexOf('\n', memoryMatch.Index + memoryMatch.Length);
-                if (endOfLine >= 0)
-                {
-                    moduleBicep = InsertAt(moduleBicep, endOfLine + 1, "                  env: envVars\n");
-                }
+                // Determine indentation from the matched line and insert env on the preceding line
+                var indent = resourcesMatch.Value[..resourcesMatch.Value.IndexOf('r')];
+                moduleBicep = InsertAt(moduleBicep, resourcesMatch.Index, $"{indent}env: envVars\n");
             }
         }
 

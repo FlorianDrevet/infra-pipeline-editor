@@ -2,13 +2,13 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { DsButtonComponent, DsSelectComponent, DsSelectOption } from '../../../shared/components/ds';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserResponse } from '../../../shared/interfaces/infra-config.interface';
 import { ProjectResponse } from '../../../shared/interfaces/project.interface';
 import { ProjectService } from '../../../shared/services/project.service';
@@ -31,10 +31,11 @@ const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatSelectModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslateModule,
+    DsButtonComponent,
+    DsSelectComponent,
   ],
   templateUrl: './add-project-member-dialog.component.html',
   styleUrl: './add-project-member-dialog.component.scss',
@@ -44,6 +45,7 @@ export class AddProjectMemberDialogComponent {
   private readonly data: AddProjectMemberDialogData = inject(MAT_DIALOG_DATA);
   private readonly projectService = inject(ProjectService);
   private readonly fb = inject(FormBuilder);
+  private readonly translate = inject(TranslateService);
 
   private readonly eligibleUsers = this.data.availableUsers.filter(
     (u) => !this.data.existingUserIds.includes(u.id)
@@ -64,6 +66,10 @@ export class AddProjectMemberDialogComponent {
   });
 
   protected readonly roles = ROLES;
+  protected readonly roleOptions: DsSelectOption[] = ROLES.map((role) => ({
+    value: role,
+    label: this.translate.instant('PROJECT_DETAIL.MEMBERS.ROLE_' + role.toUpperCase()),
+  }));
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
 

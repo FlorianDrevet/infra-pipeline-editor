@@ -1,3 +1,5 @@
+import { AcrAuthMode } from './container-registry.interface';
+
 // ─── Environment Settings ────────────────────────────────────────────────────
 
 export interface ContainerAppEnvironmentConfigEntry {
@@ -10,6 +12,12 @@ export interface ContainerAppEnvironmentConfigEntry {
   ingressTargetPort?: number | null;
   ingressExternal?: boolean | null;
   transportMethod?: string | null;
+  readinessProbePath?: string | null;
+  readinessProbePort?: number | null;
+  livenessProbePath?: string | null;
+  livenessProbePort?: number | null;
+  startupProbePath?: string | null;
+  startupProbePort?: number | null;
 }
 
 export interface ContainerAppEnvironmentConfigResponse {
@@ -22,6 +30,13 @@ export interface ContainerAppEnvironmentConfigResponse {
   ingressTargetPort: number | null;
   ingressExternal: boolean | null;
   transportMethod: string | null;
+  readinessProbePath: string | null;
+  readinessProbePort: number | null;
+  livenessProbePath: string | null;
+  livenessProbePort: number | null;
+  startupProbePath: string | null;
+  startupProbePort: number | null;
+  isExisting?: boolean;
 }
 
 // ─── Responses ───────────────────────────────────────────────────────────────
@@ -33,10 +48,12 @@ export interface ContainerAppResponse {
   location: string;
   containerAppEnvironmentId: string;
   containerRegistryId: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName: string | null;
   dockerfilePath: string | null;
   applicationName: string | null;
   environmentSettings: ContainerAppEnvironmentConfigResponse[];
+  isExisting?: boolean;
 }
 
 // ─── Requests ────────────────────────────────────────────────────────────────
@@ -47,10 +64,12 @@ export interface CreateContainerAppRequest {
   location: string;
   containerAppEnvironmentId: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   applicationName?: string | null;
   environmentSettings?: ContainerAppEnvironmentConfigEntry[];
+  isExisting?: boolean;
 }
 
 export interface UpdateContainerAppRequest {
@@ -58,6 +77,7 @@ export interface UpdateContainerAppRequest {
   location: string;
   containerAppEnvironmentId: string;
   containerRegistryId?: string | null;
+  acrAuthMode?: AcrAuthMode | null;
   dockerImageName?: string | null;
   dockerfilePath?: string | null;
   applicationName?: string | null;

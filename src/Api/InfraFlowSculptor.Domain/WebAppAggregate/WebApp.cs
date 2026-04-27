@@ -38,6 +38,9 @@ public sealed class WebApp : AzureResource
     /// <summary>Gets the optional Container Registry identifier for container deployments.</summary>
     public AzureResourceId? ContainerRegistryId { get; private set; }
 
+    /// <summary>Gets the optional authentication mode used to pull images from Azure Container Registry.</summary>
+    public AcrAuthMode? AcrAuthMode { get; private set; }
+
     /// <summary>Gets the Docker image name for container deployments (e.g., "myapp/api").</summary>
     public string? DockerImageName { get; private set; }
 
@@ -71,6 +74,7 @@ public sealed class WebApp : AzureResource
         bool httpsOnly,
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
+        AcrAuthMode? acrAuthMode,
         string? dockerImageName,
         string? dockerfilePath,
         string? sourceCodePath,
@@ -79,6 +83,10 @@ public sealed class WebApp : AzureResource
     {
         Name = name;
         Location = location;
+
+        if (IsExisting)
+            return;
+
         AppServicePlanId = appServicePlanId;
         RuntimeStack = runtimeStack;
         RuntimeVersion = runtimeVersion;
@@ -86,6 +94,7 @@ public sealed class WebApp : AzureResource
         HttpsOnly = httpsOnly;
         DeploymentMode = deploymentMode;
         ContainerRegistryId = containerRegistryId;
+        AcrAuthMode = containerRegistryId is null ? null : acrAuthMode;
         DockerImageName = dockerImageName;
         DockerfilePath = dockerfilePath;
         SourceCodePath = sourceCodePath;
@@ -97,12 +106,15 @@ public sealed class WebApp : AzureResource
     /// Sets the per-environment settings for the given environment.
     /// Replaces existing settings if one already exists for this environment.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetEnvironmentSettings(
         string environmentName,
         bool? alwaysOn,
         bool? httpsOnly,
         string? dockerImageTag)
     {
+        if (IsExisting)
+            return;
         var existing = _environmentSettings.FirstOrDefault(
             es => es.EnvironmentName == environmentName);
 
@@ -120,9 +132,13 @@ public sealed class WebApp : AzureResource
     /// <summary>
     /// Sets all per-environment settings at once, replacing any existing entries.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the resource is an existing (pre-deployed) resource.</exception>
     public void SetAllEnvironmentSettings(
         IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)> settings)
     {
+        if (IsExisting)
+            return;
+
         _environmentSettings.Clear();
         foreach (var s in settings)
         {
@@ -132,6 +148,7 @@ public sealed class WebApp : AzureResource
     }
 
     /// <summary>Creates a new Web App with a generated identifier.</summary>
+    /// <param name="isExisting">When <c>true</c>, this resource already exists in Azure and is not deployed by this project.</param>
     public static WebApp Create(
         ResourceGroupId resourceGroupId,
         Name name,
@@ -143,12 +160,14 @@ public sealed class WebApp : AzureResource
         bool httpsOnly,
         DeploymentMode deploymentMode,
         AzureResourceId? containerRegistryId,
+        AcrAuthMode? acrAuthMode,
         string? dockerImageName,
         string? dockerfilePath = null,
         string? sourceCodePath = null,
         string? buildCommand = null,
         string? applicationName = null,
-        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)>? environmentSettings = null)
+        IReadOnlyList<(string EnvironmentName, bool? AlwaysOn, bool? HttpsOnly, string? DockerImageTag)>? environmentSettings = null,
+        bool isExisting = false)
     {
         var webApp = new WebApp
         {
@@ -156,6 +175,7 @@ public sealed class WebApp : AzureResource
             ResourceGroupId = resourceGroupId,
             Name = name,
             Location = location,
+            IsExisting = isExisting,
             AppServicePlanId = appServicePlanId,
             RuntimeStack = runtimeStack,
             RuntimeVersion = runtimeVersion,
@@ -163,6 +183,7 @@ public sealed class WebApp : AzureResource
             HttpsOnly = httpsOnly,
             DeploymentMode = deploymentMode,
             ContainerRegistryId = containerRegistryId,
+            AcrAuthMode = containerRegistryId is null ? null : acrAuthMode,
             DockerImageName = dockerImageName,
             DockerfilePath = dockerfilePath,
             SourceCodePath = sourceCodePath,
@@ -170,7 +191,7 @@ public sealed class WebApp : AzureResource
             ApplicationName = applicationName
         };
 
-        if (environmentSettings is not null)
+        if (!isExisting && environmentSettings is not null)
             webApp.SetAllEnvironmentSettings(environmentSettings);
 
         return webApp;

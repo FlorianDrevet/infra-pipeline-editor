@@ -17,9 +17,12 @@ public record WebAppResult(
     bool HttpsOnly,
     string DeploymentMode,
     Guid? ContainerRegistryId,
+    string? AcrAuthMode,
     string? DockerImageName,
     string? DockerfilePath,
     string? SourceCodePath,
     string? BuildCommand,
     string? ApplicationName,
-    IReadOnlyList<WebAppEnvironmentConfigData> EnvironmentSettings);
+    IReadOnlyList<WebAppEnvironmentConfigData> EnvironmentSettings,
+    bool IsExisting = false
+);

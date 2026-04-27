@@ -36,7 +36,8 @@ public sealed class CreateUserAssignedIdentityCommandHandler(
         var identity = UserAssignedIdentity.Create(
             request.ResourceGroupId,
             request.Name,
-            request.Location);
+            request.Location,
+            request.IsExisting);
 
         var saved = await userAssignedIdentityRepository.AddAsync(identity);
 
