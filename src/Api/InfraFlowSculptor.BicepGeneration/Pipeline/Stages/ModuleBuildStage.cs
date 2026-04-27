@@ -74,7 +74,7 @@ public sealed class ModuleBuildStage : IBicepGenerationStage
             context.WorkItems.Add(new ModuleWorkItem
             {
                 Resource = resource,
-                Spec = spec!,
+                Spec = spec,
                 Module = module with
                 {
                     ModuleName = moduleName,

@@ -91,12 +91,45 @@ internal static class AppSettingsTransformer
             "Environment variables for the container",
             DefaultValue: new BicepArrayExpression([])));
 
-        // Container App env injection is wired into the container spec via the resource body.
-        // The exact wiring depends on the generator's body structure, which will be handled
-        // during each generator's migration. For Phase 0, we just add the parameter.
+        // Wire envVars into properties.template.containers[0].env
+        var body = spec.Resource.Body.ToList();
+        var propsIdx = body.FindIndex(p => p.Key == "properties");
+
+        if (propsIdx >= 0 && body[propsIdx].Value is BicepObjectExpression propsObj)
+        {
+            var propsList = propsObj.Properties.ToList();
+            var templateIdx = propsList.FindIndex(p => p.Key == "template");
+
+            if (templateIdx >= 0 && propsList[templateIdx].Value is BicepObjectExpression templateObj)
+            {
+                var templateProps = templateObj.Properties.ToList();
+                var containersIdx = templateProps.FindIndex(p => p.Key == "containers");
+
+                if (containersIdx >= 0
+                    && templateProps[containersIdx].Value is BicepArrayExpression containersArr
+                    && containersArr.Items.Count > 0
+                    && containersArr.Items[0] is BicepObjectExpression firstContainer)
+                {
+                    var containerProps = firstContainer.Properties.ToList();
+                    containerProps.Add(new BicepPropertyAssignment("env", new BicepReference("envVars")));
+
+                    var newElements = containersArr.Items.ToList();
+                    newElements[0] = new BicepObjectExpression(containerProps);
+
+                    templateProps[containersIdx] = new BicepPropertyAssignment(
+                        "containers", new BicepArrayExpression(newElements));
+                }
+
+                propsList[templateIdx] = new BicepPropertyAssignment("template", new BicepObjectExpression(templateProps));
+            }
+
+            body[propsIdx] = new BicepPropertyAssignment("properties", new BicepObjectExpression(propsList));
+        }
+
         return spec with
         {
             Parameters = newParams,
+            Resource = spec.Resource with { Body = body },
         };
     }
 }

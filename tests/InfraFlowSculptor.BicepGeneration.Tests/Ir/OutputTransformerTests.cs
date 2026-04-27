@@ -99,4 +99,33 @@ public sealed class OutputTransformerTests
 
         result.Outputs.Should().HaveCount(2);
     }
+
+    [Fact]
+    public void Given_Spec_When_WithFunctionCallOutput_Then_OutputIsKept()
+    {
+        var spec = BaseSpec();
+        var outputs = new List<(string, string, bool)>
+        {
+            ("primaryConnectionString", "listKeys(kv.id, '2023-07-01').primaryConnectionString", false),
+        };
+
+        var result = spec.WithOutputs(outputs);
+
+        result.Outputs.Should().ContainSingle()
+            .Which.Name.Should().Be("primaryConnectionString");
+    }
+
+    [Fact]
+    public void Given_Spec_When_WithOutputFromDifferentSymbol_Then_OutputIsSkipped()
+    {
+        var spec = BaseSpec();
+        var outputs = new List<(string, string, bool)>
+        {
+            ("otherId", "otherResource.id", false),
+        };
+
+        var result = spec.WithOutputs(outputs);
+
+        result.Outputs.Should().BeEmpty();
+    }
 }

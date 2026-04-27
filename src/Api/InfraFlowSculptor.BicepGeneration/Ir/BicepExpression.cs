@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-
 namespace InfraFlowSculptor.BicepGeneration.Ir;
 
 /// <summary>

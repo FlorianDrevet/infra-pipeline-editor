@@ -40,7 +40,16 @@ public sealed class AppSettingsTransformerTests
             [
                 new BicepPropertyAssignment("name", new BicepReference("name")),
                 new BicepPropertyAssignment("location", new BicepReference("location")),
-                new BicepPropertyAssignment("properties", BicepObjectExpression.Empty),
+                new BicepPropertyAssignment("properties", new BicepObjectExpression([
+                    new BicepPropertyAssignment("template", new BicepObjectExpression([
+                        new BicepPropertyAssignment("containers", new BicepArrayExpression([
+                            new BicepObjectExpression([
+                                new BicepPropertyAssignment("name", new BicepReference("name")),
+                                new BicepPropertyAssignment("image", new BicepReference("containerRuntime.image")),
+                            ]),
+                        ])),
+                    ])),
+                ])),
             ],
         },
     };
@@ -84,5 +93,34 @@ public sealed class AppSettingsTransformerTests
         var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.WebApp);
 
         result.Parameters.Count(p => p.Name == "appSettings").Should().Be(1);
+    }
+
+    [Fact]
+    public void Given_ContainerAppSpec_When_WithAppSettings_Then_WiresEnvVarsIntoContainerBody()
+    {
+        var spec = ContainerAppSpec();
+
+        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.ContainerApp);
+
+        // Navigate: properties → template → containers[0] → env
+        var props = result.Resource.Body.First(p => p.Key == "properties").Value as BicepObjectExpression;
+        var template = props!.Properties.First(p => p.Key == "template").Value as BicepObjectExpression;
+        var containers = template!.Properties.First(p => p.Key == "containers").Value as BicepArrayExpression;
+        var firstContainer = containers!.Items[0] as BicepObjectExpression;
+
+        firstContainer!.Properties.Should().Contain(p => p.Key == "env");
+        var envValue = firstContainer.Properties.First(p => p.Key == "env").Value;
+        envValue.Should().BeOfType<BicepReference>()
+            .Which.Symbol.Should().Be("envVars");
+    }
+
+    [Fact]
+    public void Given_ContainerAppSpecWithExistingEnvVars_When_WithAppSettings_Then_DoesNotDuplicate()
+    {
+        var spec = ContainerAppSpec().WithAppSettings(AzureResourceTypes.ArmTypes.ContainerApp);
+
+        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.ContainerApp);
+
+        result.Parameters.Count(p => p.Name == "envVars").Should().Be(1);
     }
 }

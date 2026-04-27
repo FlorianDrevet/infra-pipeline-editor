@@ -302,7 +302,7 @@
 | 6.2 | Supprimer `TextManipulation/` (regex devenues inutiles) | ✅ | 5 injectors supprimés, `BicepOutputPruner` conservé (post-assembly) |
 | 6.3 | Nettoyer les tests legacy des TextManipulation | ✅ | 5 test files supprimés (61 tests), `BicepOutputPrunerTests` conservé |
 | 6.4 | Retirer le dual-mode des stages (IR only) | ✅ | Stages IR-only, `Spec` required, DI → `IResourceTypeBicepSpecGenerator`, App-layer updated |
-| 6.5 | Review finale de l'architecture IR | ⬜ | |
+| 6.5 | Review finale de l'architecture IR | ✅ | Review: 2 HIGH, 2 MEDIUM, 2 LOW — all fixed except HIGH-002 (tracked debt) |
 | 6.6 | Mise à jour mémoire projet | ✅ | Changelog + tracker mis à jour |
 
 ---
@@ -317,8 +317,8 @@
 | Phase 3 — Tier 3 (×6) | 48 | 48 | 100% |
 | Phase 4 — Tier 4 (×2) | 16 | 16 | 100% |
 | Phase 5 — Tier 5 (×2) | 16 | 16 | 100% |
-| Phase 6 — Finalisation | 6 | 4 | 67% |
-| **Total** | **159** | **157** | **99%** |
+| Phase 6 — Finalisation | 6 | 5 | 83% |
+| **Total** | **159** | **158** | **99%** |
 
 ---
 

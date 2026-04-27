@@ -48,7 +48,14 @@ internal static class OutputTransformer
 
         if (char.IsLetter(expr[0]) || expr[0] == '_')
         {
+            var parenIndex = expr.IndexOf('(');
             var dotIndex = expr.IndexOf('.');
+
+            // Function-call expressions like listKeys(kv.id, ...) reference the resource
+            // indirectly — skip root-symbol filtering so the output is always kept.
+            if (parenIndex >= 0 && (dotIndex < 0 || parenIndex < dotIndex))
+                return null;
+
             return dotIndex > 0 ? expr[..dotIndex] : null;
         }
 
