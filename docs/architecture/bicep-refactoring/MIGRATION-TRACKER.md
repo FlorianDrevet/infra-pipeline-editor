@@ -210,11 +210,11 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | 8 params, AAD config, types.bicep (SkuName, SkuFamily, TlsVersion) |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 117 LOC, static const template. 10 params (3 custom types: SkuName, SkuFamily, TlsVersion; 2 bool defaults). Dynamic Parameters dict (8 values from resource.Properties). Conditional ternary for `'aad-enabled'`. 4 outputs (2 string, 2 int — first generator with `BicepType.Int` outputs). 3 exported types |
+| Tests TDD écrits | ✅ | `tests/.../Generators/RedisCacheTypeBicepGeneratorTests.cs` — 43 tests |
+| Migration vers Builder | ✅ | Quoted property key `'aad-enabled'` (hyphen in key) passed as-is to builder. `BicepConditionalExpression` for bool→string conversion. `BicepType.Int` outputs for sslPort/port |
+| Parité d'émission vérifiée | ✅ | Conditional emits `aadEnabled ? 'true' : 'false'` correctly |
+| Branché dans le pipeline | ✅ | Auto-detected via `IResourceTypeBicepSpecGenerator` — no DI changes |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
 | Skill mis à jour avec retours | ⬜ | |

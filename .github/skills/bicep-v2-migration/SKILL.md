@@ -304,7 +304,15 @@ Tests à écrire pour chaque générateur :
 - **No dynamic properties** — Like SqlServer, the legacy `Generate()` has an empty Parameters dict. All param defaults are baked into the IR spec.
 - **Test count** — 40 tests covering 11 params (3 custom types, 3 bool, 2 int, 1 array), deeply nested properties, locations array structure, 3 outputs, 3 exported types, legacy compat, emission parity.
 
-### Migration #13 — (à compléter)
+### Migration #13 — RedisCache (Tier 3, 117 LOC)
+- **First generator with `BicepType.Int` outputs** — `sslPort` and `port` use `BicepType.Int` instead of `BicepType.String`. Emitter renders `output sslPort int = redis.properties.sslPort` correctly.
+- **Quoted property key `'aad-enabled'`** — Property keys containing hyphens must be single-quoted in Bicep. Pass the key as `'aad-enabled'` (with quotes) to the builder; the emitter outputs `prop.Key` as-is with no extra quoting. Works cleanly.
+- **Conditional bool→string in nested object** — `redisConfiguration` has `'aad-enabled': aadEnabled ? 'true' : 'false'`. Uses `BicepConditionalExpression(BicepReference("aadEnabled"), BicepStringLiteral("true"), BicepStringLiteral("false"))`. The conditional converts a bool param to a string value — a Redis-specific pattern.
+- **Dynamic Parameters dict** — Like KeyVault, the legacy `Generate()` reads 8 values from `resource.Properties.GetValueOrDefault()`. The IR spec has param defaults baked in; legacy Parameters dict preserved for backward compat.
+- **`BicepEmitter` is instance, not static** — Reminder: `EmitModule` and `EmitTypes` are instance methods. Tests must instantiate `new BicepEmitter()` before calling them.
+- **Test count** — 43 tests covering 10 params (3 custom types, 2 bool defaults), nested sku (3 props), redisConfiguration with quoted key + conditional, 4 outputs (2 string + 2 int), 3 exported types, legacy compat (defaults + overrides + invalid capacity), emission parity.
+
+### Migration #14 — (à compléter)
 
 ---
 
