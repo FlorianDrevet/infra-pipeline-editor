@@ -141,15 +141,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | types.bicep (SkuName, TlsVersion), auto-inflate. ⚠ PAS enregistré en DI actuellement |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
-| Enregistrement DI corrigé | ⬜ | Ajouter le singleton manquant |
+| Analyse du générateur legacy | ✅ | 97 LOC, 2 imports (SkuName, TlsVersion), 9 params (2 custom, 3 bool, 2 int), nested sku (name/tier reuse sku param, capacity), 5-prop properties with conditional `maximumThroughputUnits`, 2 outputs (id + nameOutput), 2 exported types, empty Parameters dict |
+| Tests TDD écrits | ✅ | `tests/.../Generators/EventHubNamespaceTypeBicepGeneratorTests.cs` — 31 tests |
+| Migration vers Builder | ✅ | `IResourceTypeBicepSpecGenerator`, `BicepConditionalExpression` for auto-inflate ternary, sku name+tier reusing same param |
+| Parité d'émission vérifiée | ✅ | Module + types emission verified |
+| Branché dans le pipeline | ✅ | No DI change needed — auto-detected by `ModuleBuildStage` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | |
 
 ---
 

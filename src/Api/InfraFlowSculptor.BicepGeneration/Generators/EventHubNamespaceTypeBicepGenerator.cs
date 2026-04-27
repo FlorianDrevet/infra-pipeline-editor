@@ -1,3 +1,5 @@
+using InfraFlowSculptor.BicepGeneration.Ir;
+using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
 
@@ -7,7 +9,7 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 /// Generates a Bicep module for Azure Event Hub Namespace (<c>Microsoft.EventHub/namespaces@2024-01-01</c>).
 /// </summary>
 public sealed class EventHubNamespaceTypeBicepGenerator
-    : IResourceTypeBicepGenerator
+    : IResourceTypeBicepSpecGenerator
 {
     /// <inheritdoc />
     public string ResourceType
@@ -15,6 +17,57 @@ public sealed class EventHubNamespaceTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.EventHubNamespace;
+
+    /// <inheritdoc />
+    public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
+    {
+        return new BicepModuleBuilder()
+            .Module("eventHubNamespace", "EventHubNamespace", ResourceTypeName)
+            .Import("./types.bicep", "SkuName", "TlsVersion")
+            .Param("location", BicepType.String, "Azure region for the Event Hub Namespace")
+            .Param("name", BicepType.String, "Name of the Event Hub Namespace")
+            .Param("sku", BicepType.Custom("SkuName"), "SKU name for the Event Hub Namespace",
+                defaultValue: new BicepStringLiteral("Standard"))
+            .Param("capacity", BicepType.Int, "Throughput or processing units capacity",
+                defaultValue: new BicepIntLiteral(1))
+            .Param("zoneRedundant", BicepType.Bool, "Whether zone redundancy is enabled",
+                defaultValue: new BicepBoolLiteral(false))
+            .Param("disableLocalAuth", BicepType.Bool, "Whether local (SAS key) authentication is disabled",
+                defaultValue: new BicepBoolLiteral(false))
+            .Param("minimumTlsVersion", BicepType.Custom("TlsVersion"), "Minimum TLS version",
+                defaultValue: new BicepStringLiteral("1.2"))
+            .Param("autoInflateEnabled", BicepType.Bool, "Whether auto-inflate is enabled",
+                defaultValue: new BicepBoolLiteral(false))
+            .Param("maxThroughputUnits", BicepType.Int, "Maximum throughput units when auto-inflate is enabled (0-40)",
+                defaultValue: new BicepIntLiteral(0))
+            .Resource("eventHubNamespace", "Microsoft.EventHub/namespaces@2024-01-01")
+            .Property("name", new BicepReference("name"))
+            .Property("location", new BicepReference("location"))
+            .Property("sku", sku => sku
+                .Property("name", new BicepReference("sku"))
+                .Property("tier", new BicepReference("sku"))
+                .Property("capacity", new BicepReference("capacity")))
+            .Property("properties", props => props
+                .Property("zoneRedundant", new BicepReference("zoneRedundant"))
+                .Property("disableLocalAuthentication", new BicepReference("disableLocalAuth"))
+                .Property("minimumTlsVersion", new BicepReference("minimumTlsVersion"))
+                .Property("isAutoInflateEnabled", new BicepReference("autoInflateEnabled"))
+                .Property("maximumThroughputUnits", new BicepConditionalExpression(
+                    new BicepReference("autoInflateEnabled"),
+                    new BicepReference("maxThroughputUnits"),
+                    new BicepIntLiteral(0))))
+            .Output("id", BicepType.String, new BicepRawExpression("eventHubNamespace.id"),
+                description: "The resource ID of the Event Hub Namespace")
+            .Output("nameOutput", BicepType.String, new BicepRawExpression("eventHubNamespace.name"),
+                description: "The name of the Event Hub Namespace")
+            .ExportedType("SkuName",
+                new BicepRawExpression("'Basic' | 'Standard' | 'Premium'"),
+                description: "SKU name for the Event Hub Namespace")
+            .ExportedType("TlsVersion",
+                new BicepRawExpression("'1.0' | '1.1' | '1.2'"),
+                description: "Minimum TLS version for the Event Hub Namespace")
+            .Build();
+    }
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

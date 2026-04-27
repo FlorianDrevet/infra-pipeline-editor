@@ -266,7 +266,15 @@ Tests à écrire pour chaque générateur :
 - **Param count off-by-one** — Initially wrote test expecting 7 params but generator has 8 (forgot `ingestionMode`). Always recount from the template.
 - **Test count** — 29 tests covering 8 params, `kind` literal, 7-prop `properties` with string literal + param refs, 3 outputs, 1 exported type, emission parity.
 
-### Migration #8 — (à compléter)
+### Migration #8 — EventHubNamespace (Tier 2, 97 LOC)
+- **Sku name+tier reusing same param** — Both `sku.name` and `sku.tier` reference the same `BicepReference("sku")`. Builder handles this naturally.
+- **Conditional `maximumThroughputUnits`** — `BicepConditionalExpression(autoInflateEnabled, maxThroughputUnits, 0)` emits `autoInflateEnabled ? maxThroughputUnits : 0`. Second generator (after ContainerRegistry) with an inline ternary.
+- **Property name vs param name mismatch** — `disableLocalAuthentication` (resource property) maps to `disableLocalAuth` (param), `isAutoInflateEnabled` maps to `autoInflateEnabled`. Builder key is the ARM property name, value is `BicepReference("paramName")`.
+- **`BicepReference.Symbol`** — Confirmed property name is `.Symbol` (not `.ReferenceName`). Tests initially used wrong name; fixed during build verification.
+- **Test count** — 31 tests covering 9 params (2 custom types, 3 bool, 2 int), sku reuse, conditional, 2 outputs, 2 exported types, emission parity.
+- **Tier 2 complete** — All 4 Tier 2 generators migrated (ServiceBusNamespace, AppConfiguration, ApplicationInsights, EventHubNamespace).
+
+### Migration #9 — (à compléter)
 
 ---
 
