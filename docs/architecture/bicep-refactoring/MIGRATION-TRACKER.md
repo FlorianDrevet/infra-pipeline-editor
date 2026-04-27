@@ -253,14 +253,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | Même pattern 3 variantes que WebApp + `FUNCTIONS_WORKER_RUNTIME`/`EXTENSION_VERSION` |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | Same 3-variant pattern as WebApp + `FUNCTIONS_WORKER_RUNTIME`/`EXTENSION_VERSION` in all variants, `workerRuntime` var in all variants, 3 exported types |
+| Tests TDD écrits | ✅ | 74 tests (8 Code params, 13 MI params, 12 Admin params, all 3 variants × resource/vars/outputs/types + emission + legacy compat) |
+| Migration vers Builder | ✅ | Same conditional branch pattern as WebApp, appSettings array in all variants (2 for Code/MI, 5 for Admin) |
+| Parité d'émission vérifiée | ✅ | ForLoop hostNameBindings, ModuleFileName per variant, secure acrPassword, kind always present |
+| Branché dans le pipeline | ✅ | `IResourceTypeBicepSpecGenerator` detected by `ModuleBuildStage` at runtime |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | Migration #16 added |
 
 ---
 

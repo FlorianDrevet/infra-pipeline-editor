@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-27 | dev | **Migration 4.2 — FunctionApp → Builder+IR.** Second Tier 4 variant-based generator. Same 3-variant pattern as WebApp but with `workerRuntime` var + `appSettings` (FUNCTIONS_WORKER_RUNTIME/EXTENSION_VERSION) in all variants, `kind` always present, 3 exported types. 74 new tests (746 total). **Tier 4 complete.** |
 | 2026-04-27 | dev | **Migration 4.1 — WebApp → Builder+IR.** First Tier 4 variant-based generator (3 deployment modes: Code/ContainerMI/ContainerAdmin). IR extended: `BicepForLoop` on resources, `ModuleFileName` on spec. ForLoop emitter for `[for x in xs: {...}]`. Conditional branches in single GenerateSpec. 71 new tests (672 total). |
 | 2026-04-27 | dev | **Migration 3.6 — ContainerAppEnvironment → Builder+IR.** IR extended: `Condition`/`Scope` on `BicepResourceDeclaration`, `AdditionalResources` on `BicepModuleSpec`, `AdditionalResource()` on builder, emitter rewrite for conditional resources with scope. Inline conditional with object/null, custom type import, workload profiles array. 44 new tests (601 total). **Tier 3 complete.** |
 | 2026-04-27 | dev | **Migration 3.5 — RedisCache → Builder+IR.** First generator with `BicepType.Int` outputs + quoted property key `'aad-enabled'`. Conditional bool→string pattern. 43 new tests (557 total). |

@@ -338,6 +338,25 @@ Tests à écrire pour chaque générateur :
 - **Param count pitfall:** `customDomains` (array, default `[]`) is added after variant-specific params — easy to miscount.
 - **71 tests total** (9 spec structure, ~20 Code variant, ~12 Container MI, ~10 Container Admin, 5 legacy compat, ~15 emission). **672 tests cumulative, 0 failures.**
 
+### Migration #16 — FunctionApp (Phase 4.2, Tier 4 — second variant-based generator)
+
+- **Same 3-variant pattern as WebApp** (Code / Container+MI / Container+Admin) — use WebApp as template.
+- **Key differences from WebApp:**
+  - `kind` is **always present**: `'functionapp'` for Code, `'functionapp,linux,container'` for Container (WebApp Code had no `kind`)
+  - **No `alwaysOn` param** — FunctionApp doesn't use it
+  - `workerRuntime` variable **in all 3 variants**, not just container: `toUpper(runtimeStack) == 'DOTNET' ? (contains(runtimeVersion, 'isolated') ? 'dotnet-isolated' : 'dotnet') : toLower(runtimeStack)`
+  - `appSettings` array **in all 3 variants** (WebApp Code had none): always includes `FUNCTIONS_WORKER_RUNTIME` (ref workerRuntime) and `FUNCTIONS_EXTENSION_VERSION` ('~4')
+  - Container Admin: 5 appSettings (2 functions + 3 Docker registry) vs WebApp's 3
+  - Container MI: appSettings (2 functions entries) + ACR MI props (WebApp MI had no appSettings)
+  - `RuntimeStack` default is `'DOTNET'` (vs WebApp's `'DOTNETCORE'`)
+  - 3 exported types: `RuntimeStack`, `WorkerRuntime`, `DeploymentMode` (WebApp has 2)
+  - Import `{ RuntimeStack, WorkerRuntime }` (WebApp imports only `RuntimeStack`)
+- **Param counts:** Code 8, Container MI 13, Container Admin 12
+- **Variable counts:** Code 2 (linuxFxVersion, workerRuntime), MI 2 (dockerImage, workerRuntime), Admin 3 (+acrUsername)
+- **siteConfig assembly trick:** Build `functionsAppSettings` list first, then conditionally append Docker registry entries for Admin. Add `appSettings` to `siteConfigProps` last, after ACR props.
+- **Legacy `Generate()` pitfall:** Was removed by initial replacement — must be preserved for `IResourceTypeBicepGenerator` compatibility.
+- **74 tests total.** **746 tests cumulative, 0 failures.** **Tier 4 complete.**
+
 ---
 
 ## Ordre de migration recommandé

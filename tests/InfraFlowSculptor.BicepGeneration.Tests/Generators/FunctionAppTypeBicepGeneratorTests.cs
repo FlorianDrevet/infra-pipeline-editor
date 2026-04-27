@@ -1,0 +1,929 @@
+using FluentAssertions;
+using InfraFlowSculptor.BicepGeneration.Generators;
+using InfraFlowSculptor.BicepGeneration.Ir;
+using InfraFlowSculptor.BicepGeneration.Ir.Emit;
+using InfraFlowSculptor.GenerationCore;
+using InfraFlowSculptor.GenerationCore.Models;
+
+namespace InfraFlowSculptor.BicepGeneration.Tests.Generators;
+
+public sealed class FunctionAppTypeBicepGeneratorTests
+{
+    private readonly FunctionAppTypeBicepGenerator _sut = new();
+
+    private static ResourceDefinition CreateCodeResource(
+        Dictionary<string, string>? properties = null)
+    {
+        var props = properties ?? new Dictionary<string, string>();
+        props.TryAdd("deploymentMode", "Code");
+        props.TryAdd("runtimeStack", "DOTNET");
+        props.TryAdd("runtimeVersion", "8.0");
+        props.TryAdd("httpsOnly", "true");
+        return new ResourceDefinition
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "my-func",
+            Type = AzureResourceTypes.ArmTypes.FunctionApp,
+            ResourceGroupName = "rg-test",
+            ResourceAbbreviation = "func",
+            Properties = props,
+        };
+    }
+
+    private static ResourceDefinition CreateContainerMiResource()
+    {
+        return CreateCodeResource(new Dictionary<string, string>
+        {
+            ["deploymentMode"] = "Container",
+            ["acrAuthMode"] = "ManagedIdentity",
+            ["runtimeStack"] = "DOTNET",
+            ["runtimeVersion"] = "8.0",
+            ["httpsOnly"] = "true",
+            ["dockerImageName"] = "myapp/functions",
+        });
+    }
+
+    private static ResourceDefinition CreateContainerAdminResource()
+    {
+        return CreateCodeResource(new Dictionary<string, string>
+        {
+            ["deploymentMode"] = "Container",
+            ["acrAuthMode"] = "AdminCredentials",
+            ["runtimeStack"] = "DOTNET",
+            ["runtimeVersion"] = "8.0",
+            ["httpsOnly"] = "true",
+            ["dockerImageName"] = "myapp/functions",
+        });
+    }
+
+    // ── Interface contracts ──
+
+    [Fact]
+    public void Given_Generator_Then_ImplementsIResourceTypeBicepSpecGenerator()
+    {
+        _sut.Should().BeAssignableTo<IResourceTypeBicepSpecGenerator>();
+    }
+
+    [Fact]
+    public void Given_Generator_Then_ResourceTypeIsCorrectArmType()
+    {
+        _sut.ResourceType.Should().Be(AzureResourceTypes.ArmTypes.FunctionApp);
+        _sut.ResourceTypeName.Should().Be(AzureResourceTypes.FunctionApp);
+    }
+
+    // ── Code variant: Module identity ──
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_ModuleIdentityIsCorrect()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+
+        spec.ModuleName.Should().Be("functionApp");
+        spec.ModuleFolderName.Should().Be("FunctionApp");
+        spec.ResourceTypeName.Should().Be(AzureResourceTypes.FunctionApp);
+        spec.ModuleFileName.Should().BeNull("Code variant uses default ModuleName");
+    }
+
+    // ── Code variant: Imports ──
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_ImportsRuntimeStackAndWorkerRuntimeFromTypes()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+
+        spec.Imports.Should().ContainSingle()
+            .Which.Should().Match<BicepImport>(i =>
+                i.Path == "./types.bicep" &&
+                i.Symbols != null &&
+                i.Symbols.Contains("RuntimeStack") &&
+                i.Symbols.Contains("WorkerRuntime"));
+    }
+
+    // ── Code variant: Params ──
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasEightParams()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Parameters.Should().HaveCount(8);
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasLocationParam()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Parameters.Should().Contain(p => p.Name == "location")
+            .Which.Type.Should().Be(BicepType.String);
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasNameParam()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Parameters.Should().Contain(p => p.Name == "name")
+            .Which.Type.Should().Be(BicepType.String);
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasAppServicePlanIdParam()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Parameters.Should().Contain(p => p.Name == "appServicePlanId")
+            .Which.Type.Should().Be(BicepType.String);
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasRuntimeStackParam()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var param = spec.Parameters.Should().Contain(p => p.Name == "runtimeStack").Which;
+
+        param.Type.Should().BeOfType<BicepCustomType>()
+            .Which.Name.Should().Be("RuntimeStack");
+        param.DefaultValue.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("DOTNET");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasRuntimeVersionParam()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Parameters.Should().Contain(p => p.Name == "runtimeVersion")
+            .Which.Type.Should().Be(BicepType.String);
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasHttpsOnlyParam()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Parameters.Should().Contain(p => p.Name == "httpsOnly")
+            .Which.Type.Should().Be(BicepType.Bool);
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasDeploymentModeParam()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var param = spec.Parameters.Should().Contain(p => p.Name == "deploymentMode").Which;
+
+        param.Type.Should().Be(BicepType.String);
+        param.DefaultValue.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("Code");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasCustomDomainsParam()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var param = spec.Parameters.Should().Contain(p => p.Name == "customDomains").Which;
+
+        param.Type.Should().Be(BicepType.Array);
+        param.DefaultValue.Should().BeOfType<BicepArrayExpression>()
+            .Which.Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasNoAlwaysOnParam()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Parameters.Should().NotContain(p => p.Name == "alwaysOn");
+    }
+
+    // ── Code variant: Variables ──
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasLinuxFxVersionAndWorkerRuntimeVars()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Variables.Should().HaveCount(2);
+        spec.Variables.Should().Contain(v => v.Name == "linuxFxVersion");
+        spec.Variables.Should().Contain(v => v.Name == "workerRuntime");
+    }
+
+    // ── Code variant: Primary resource ──
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_ResourceHasCorrectSymbolAndArmType()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+
+        spec.Resource.Symbol.Should().Be("functionApp");
+        spec.Resource.ArmTypeWithApiVersion.Should().Be("Microsoft.Web/sites@2023-12-01");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_ResourceHasNameAndLocation()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+
+        spec.Resource.Body.Should().Contain(p => p.Key == "name")
+            .Which.Value.Should().BeOfType<BicepReference>()
+            .Which.Symbol.Should().Be("name");
+
+        spec.Resource.Body.Should().Contain(p => p.Key == "location")
+            .Which.Value.Should().BeOfType<BicepReference>()
+            .Which.Symbol.Should().Be("location");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_ResourceHasKindFunctionApp()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Resource.Body.Should().Contain(p => p.Key == "kind")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("functionapp");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_PropertiesHasServerFarmId()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+
+        var properties = spec.Resource.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        properties.Properties.Should().Contain(p => p.Key == "serverFarmId")
+            .Which.Value.Should().BeOfType<BicepReference>()
+            .Which.Symbol.Should().Be("appServicePlanId");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_SiteConfigHasLinuxFxVersionRef()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+
+        var properties = spec.Resource.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var siteConfig = properties.Properties.Should().Contain(p => p.Key == "siteConfig")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        siteConfig.Properties.Should().Contain(p => p.Key == "linuxFxVersion")
+            .Which.Value.Should().BeOfType<BicepReference>()
+            .Which.Symbol.Should().Be("linuxFxVersion");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_SiteConfigHasFtpsAndTls()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+
+        var properties = spec.Resource.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var siteConfig = properties.Properties.Should().Contain(p => p.Key == "siteConfig")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        siteConfig.Properties.Should().Contain(p => p.Key == "ftpsState")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("Disabled");
+
+        siteConfig.Properties.Should().Contain(p => p.Key == "minTlsVersion")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("1.2");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_SiteConfigHasFunctionsAppSettings()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+
+        var properties = spec.Resource.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var siteConfig = properties.Properties.Should().Contain(p => p.Key == "siteConfig")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var appSettings = siteConfig.Properties.Should().Contain(p => p.Key == "appSettings")
+            .Which.Value.Should().BeOfType<BicepArrayExpression>().Subject;
+
+        appSettings.Items.Should().HaveCount(2);
+
+        var workerRuntimeSetting = appSettings.Items[0].Should().BeOfType<BicepObjectExpression>().Subject;
+        workerRuntimeSetting.Properties.Should().Contain(p => p.Key == "name")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("FUNCTIONS_WORKER_RUNTIME");
+        workerRuntimeSetting.Properties.Should().Contain(p => p.Key == "value")
+            .Which.Value.Should().BeOfType<BicepReference>()
+            .Which.Symbol.Should().Be("workerRuntime");
+
+        var extensionVersionSetting = appSettings.Items[1].Should().BeOfType<BicepObjectExpression>().Subject;
+        extensionVersionSetting.Properties.Should().Contain(p => p.Key == "name")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("FUNCTIONS_EXTENSION_VERSION");
+        extensionVersionSetting.Properties.Should().Contain(p => p.Key == "value")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("~4");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_CodeVariantHasNoAcrProps()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+
+        var properties = spec.Resource.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var siteConfig = properties.Properties.Should().Contain(p => p.Key == "siteConfig")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        siteConfig.Properties.Should().NotContain(p => p.Key == "acrUseManagedIdentityCreds");
+        siteConfig.Properties.Should().NotContain(p => p.Key == "acrUserManagedIdentityID");
+    }
+
+    // ── Code variant: hostNameBindings ──
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasHostNameBindingsAdditionalResource()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.AdditionalResources.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HostNameBindingsHasForLoop()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var hostBindings = spec.AdditionalResources[0];
+
+        hostBindings.Symbol.Should().Be("hostNameBindings");
+        hostBindings.ArmTypeWithApiVersion.Should().Be("Microsoft.Web/sites/hostNameBindings@2023-12-01");
+
+        hostBindings.ForLoop.Should().NotBeNull();
+        hostBindings.ForLoop!.IteratorName.Should().Be("domain");
+        hostBindings.ForLoop.Collection.Should().BeOfType<BicepReference>()
+            .Which.Symbol.Should().Be("customDomains");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HostNameBindingsHasParent()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.AdditionalResources[0].ParentSymbol.Should().Be("functionApp");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HostNameBindingsSslStateIsConditional()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var hostBindings = spec.AdditionalResources[0];
+
+        var props = hostBindings.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var sslState = props.Properties.Should().Contain(p => p.Key == "sslState")
+            .Which.Value.Should().BeOfType<BicepConditionalExpression>().Subject;
+
+        sslState.Condition.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("domain.bindingType == 'SniEnabled'");
+        sslState.Consequent.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("SniEnabled");
+        sslState.Alternate.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("Disabled");
+    }
+
+    // ── Code variant: Outputs ──
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasFourOutputs()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Outputs.Should().HaveCount(4);
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasIdOutput()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Outputs.Should().Contain(o => o.Name == "id")
+            .Which.Expression.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("functionApp.id");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasDefaultHostNameOutput()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Outputs.Should().Contain(o => o.Name == "defaultHostName")
+            .Which.Expression.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("functionApp.properties.defaultHostName");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasPrincipalIdOutput()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Outputs.Should().Contain(o => o.Name == "principalId")
+            .Which.Expression.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("functionApp.identity.principalId");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasCustomDomainVerificationIdOutput()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.Outputs.Should().Contain(o => o.Name == "customDomainVerificationId")
+            .Which.Expression.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("functionApp.properties.customDomainVerificationId");
+    }
+
+    // ── Code variant: Exported types ──
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasThreeExportedTypes()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.ExportedTypes.Should().HaveCount(3);
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasRuntimeStackExportedType()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.ExportedTypes.Should().Contain(t => t.Name == "RuntimeStack")
+            .Which.Body.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("'DOTNET' | 'NODE' | 'PYTHON' | 'JAVA' | 'POWERSHELL'");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasWorkerRuntimeExportedType()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.ExportedTypes.Should().Contain(t => t.Name == "WorkerRuntime")
+            .Which.Body.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("'dotnet' | 'dotnet-isolated' | 'node' | 'python' | 'java' | 'powershell'");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_GenerateSpec_Then_HasDeploymentModeExportedType()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        spec.ExportedTypes.Should().Contain(t => t.Name == "DeploymentMode")
+            .Which.Body.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("'Code' | 'Container'");
+    }
+
+    // ── Container MI variant: Module identity ──
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_ModuleFileNameIsContainerMi()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+
+        spec.ModuleName.Should().Be("functionApp");
+        spec.ModuleFileName.Should().Be("functionAppContainerManagedIdentity");
+    }
+
+    // ── Container MI variant: Params ──
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_HasThirteenParams()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+        spec.Parameters.Should().HaveCount(13);
+    }
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_HasDockerImageNameParam()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+        spec.Parameters.Should().Contain(p => p.Name == "dockerImageName")
+            .Which.Type.Should().Be(BicepType.String);
+    }
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_HasDockerImageTagParam()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+        var param = spec.Parameters.Should().Contain(p => p.Name == "dockerImageTag").Which;
+        param.Type.Should().Be(BicepType.String);
+        param.DefaultValue.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("latest");
+    }
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_HasAcrLoginServerParam()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+        spec.Parameters.Should().Contain(p => p.Name == "acrLoginServer")
+            .Which.Type.Should().Be(BicepType.String);
+    }
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_HasAcrManagedIdentityParams()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+
+        var acrUseMi = spec.Parameters.Should().Contain(p => p.Name == "acrUseManagedIdentityCreds").Which;
+        acrUseMi.Type.Should().Be(BicepType.Bool);
+        acrUseMi.DefaultValue.Should().BeOfType<BicepBoolLiteral>()
+            .Which.Value.Should().BeTrue();
+
+        var acrUaiId = spec.Parameters.Should().Contain(p => p.Name == "acrUserManagedIdentityId").Which;
+        acrUaiId.Type.Should().Be(BicepType.String);
+        acrUaiId.DefaultValue.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_DeploymentModeDefaultIsContainer()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+        spec.Parameters.Should().Contain(p => p.Name == "deploymentMode")
+            .Which.DefaultValue.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("Container");
+    }
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_HasNoSecureParams()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+        spec.Parameters.Should().NotContain(p => p.IsSecure);
+    }
+
+    // ── Container MI variant: Variables ──
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_HasDockerImageAndWorkerRuntimeVars()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+        spec.Variables.Should().HaveCount(2);
+        spec.Variables.Should().Contain(v => v.Name == "dockerImage");
+        spec.Variables.Should().Contain(v => v.Name == "workerRuntime");
+    }
+
+    // ── Container MI variant: Resource ──
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_ResourceHasKind()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+        spec.Resource.Body.Should().Contain(p => p.Key == "kind")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("functionapp,linux,container");
+    }
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_SiteConfigHasAcrMiProps()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+
+        var properties = spec.Resource.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var siteConfig = properties.Properties.Should().Contain(p => p.Key == "siteConfig")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        siteConfig.Properties.Should().Contain(p => p.Key == "acrUseManagedIdentityCreds")
+            .Which.Value.Should().BeOfType<BicepReference>()
+            .Which.Symbol.Should().Be("acrUseManagedIdentityCreds");
+
+        siteConfig.Properties.Should().Contain(p => p.Key == "acrUserManagedIdentityID");
+    }
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_AcrUserManagedIdentityIdIsConditional()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+
+        var properties = spec.Resource.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var siteConfig = properties.Properties.Should().Contain(p => p.Key == "siteConfig")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var acrUaiId = siteConfig.Properties.Should().Contain(p => p.Key == "acrUserManagedIdentityID")
+            .Which.Value.Should().BeOfType<BicepConditionalExpression>().Subject;
+
+        acrUaiId.Condition.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("!empty(acrUserManagedIdentityId)");
+    }
+
+    [Fact]
+    public void Given_ContainerMiResource_When_GenerateSpec_Then_SiteConfigHasFunctionsAppSettings()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+
+        var properties = spec.Resource.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var siteConfig = properties.Properties.Should().Contain(p => p.Key == "siteConfig")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var appSettings = siteConfig.Properties.Should().Contain(p => p.Key == "appSettings")
+            .Which.Value.Should().BeOfType<BicepArrayExpression>().Subject;
+
+        appSettings.Items.Should().HaveCount(2);
+
+        var workerRuntimeSetting = appSettings.Items[0].Should().BeOfType<BicepObjectExpression>().Subject;
+        workerRuntimeSetting.Properties.Should().Contain(p => p.Key == "name")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("FUNCTIONS_WORKER_RUNTIME");
+    }
+
+    // ── Container Admin variant: Module identity ──
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_GenerateSpec_Then_ModuleFileNameIsContainerAdmin()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerAdminResource());
+
+        spec.ModuleName.Should().Be("functionApp");
+        spec.ModuleFileName.Should().Be("functionAppContainerAdminCredentials");
+    }
+
+    // ── Container Admin variant: Params ──
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_GenerateSpec_Then_HasTwelveParams()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerAdminResource());
+        spec.Parameters.Should().HaveCount(12);
+    }
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_GenerateSpec_Then_HasSecureAcrPasswordParam()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerAdminResource());
+        var param = spec.Parameters.Should().Contain(p => p.Name == "acrPassword").Which;
+
+        param.IsSecure.Should().BeTrue();
+        param.Type.Should().Be(BicepType.String);
+    }
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_GenerateSpec_Then_HasNoManagedIdentityParams()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerAdminResource());
+        spec.Parameters.Should().NotContain(p => p.Name == "acrUseManagedIdentityCreds");
+        spec.Parameters.Should().NotContain(p => p.Name == "acrUserManagedIdentityId");
+    }
+
+    // ── Container Admin variant: Variables ──
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_GenerateSpec_Then_HasDockerImageWorkerRuntimeAndAcrUsernameVars()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerAdminResource());
+        spec.Variables.Should().HaveCount(3);
+        spec.Variables.Should().Contain(v => v.Name == "dockerImage");
+        spec.Variables.Should().Contain(v => v.Name == "workerRuntime");
+        spec.Variables.Should().Contain(v => v.Name == "acrUsername");
+    }
+
+    // ── Container Admin variant: Resource ──
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_GenerateSpec_Then_SiteConfigHasAcrUseManagedIdentityCredsFalse()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerAdminResource());
+
+        var properties = spec.Resource.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var siteConfig = properties.Properties.Should().Contain(p => p.Key == "siteConfig")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        siteConfig.Properties.Should().Contain(p => p.Key == "acrUseManagedIdentityCreds")
+            .Which.Value.Should().BeOfType<BicepBoolLiteral>()
+            .Which.Value.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_GenerateSpec_Then_SiteConfigHasFiveAppSettings()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerAdminResource());
+
+        var properties = spec.Resource.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var siteConfig = properties.Properties.Should().Contain(p => p.Key == "siteConfig")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var appSettings = siteConfig.Properties.Should().Contain(p => p.Key == "appSettings")
+            .Which.Value.Should().BeOfType<BicepArrayExpression>().Subject;
+
+        appSettings.Items.Should().HaveCount(5);
+    }
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_GenerateSpec_Then_AppSettingsHasFunctionsAndDockerRegistryEntries()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerAdminResource());
+
+        var properties = spec.Resource.Body.Should().Contain(p => p.Key == "properties")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var siteConfig = properties.Properties.Should().Contain(p => p.Key == "siteConfig")
+            .Which.Value.Should().BeOfType<BicepObjectExpression>().Subject;
+
+        var appSettings = siteConfig.Properties.Should().Contain(p => p.Key == "appSettings")
+            .Which.Value.Should().BeOfType<BicepArrayExpression>().Subject;
+
+        // First two: Functions settings
+        var workerRuntime = appSettings.Items[0].Should().BeOfType<BicepObjectExpression>().Subject;
+        workerRuntime.Properties.Should().Contain(p => p.Key == "name")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("FUNCTIONS_WORKER_RUNTIME");
+
+        var extensionVersion = appSettings.Items[1].Should().BeOfType<BicepObjectExpression>().Subject;
+        extensionVersion.Properties.Should().Contain(p => p.Key == "name")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("FUNCTIONS_EXTENSION_VERSION");
+
+        // Last three: Docker registry settings
+        var registryUrl = appSettings.Items[2].Should().BeOfType<BicepObjectExpression>().Subject;
+        registryUrl.Properties.Should().Contain(p => p.Key == "name")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("DOCKER_REGISTRY_SERVER_URL");
+
+        var registryUsername = appSettings.Items[3].Should().BeOfType<BicepObjectExpression>().Subject;
+        registryUsername.Properties.Should().Contain(p => p.Key == "name")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("DOCKER_REGISTRY_SERVER_USERNAME");
+
+        var registryPassword = appSettings.Items[4].Should().BeOfType<BicepObjectExpression>().Subject;
+        registryPassword.Properties.Should().Contain(p => p.Key == "name")
+            .Which.Value.Should().BeOfType<BicepStringLiteral>()
+            .Which.Value.Should().Be("DOCKER_REGISTRY_SERVER_PASSWORD");
+    }
+
+    // ── Legacy compatibility ──
+
+    [Fact]
+    public void Given_Generator_Then_AlsoImplementsIResourceTypeBicepGenerator()
+    {
+        _sut.Should().BeAssignableTo<IResourceTypeBicepGenerator>();
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_LegacyGenerate_Then_ModuleFileNameIsFunctionApp()
+    {
+        var module = _sut.Generate(CreateCodeResource());
+        module.ModuleFileName.Should().Be("functionApp.module.bicep");
+    }
+
+    [Fact]
+    public void Given_ContainerMiResource_When_LegacyGenerate_Then_ModuleFileNameIsContainerMi()
+    {
+        var module = _sut.Generate(CreateContainerMiResource());
+        module.ModuleFileName.Should().Be("functionAppContainerManagedIdentity.module.bicep");
+    }
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_LegacyGenerate_Then_ModuleFileNameIsContainerAdmin()
+    {
+        var module = _sut.Generate(CreateContainerAdminResource());
+        module.ModuleFileName.Should().Be("functionAppContainerAdminCredentials.module.bicep");
+    }
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_LegacyGenerate_Then_AcrPasswordIsSecure()
+    {
+        var module = _sut.Generate(CreateContainerAdminResource());
+        module.SecureParameters.Should().Contain("acrPassword");
+    }
+
+    // ── Emission: Code variant ──
+
+    [Fact]
+    public void Given_CodeResource_When_EmitModule_Then_ContainsImport()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var bicep = new BicepEmitter().EmitModule(spec);
+
+        bicep.Should().Contain("import { RuntimeStack, WorkerRuntime } from './types.bicep'");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_EmitModule_Then_ContainsAllParams()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var bicep = new BicepEmitter().EmitModule(spec);
+
+        bicep.Should().Contain("param location string");
+        bicep.Should().Contain("param name string");
+        bicep.Should().Contain("param appServicePlanId string");
+        bicep.Should().Contain("param runtimeStack RuntimeStack = 'DOTNET'");
+        bicep.Should().Contain("param runtimeVersion string");
+        bicep.Should().Contain("param httpsOnly bool");
+        bicep.Should().Contain("param deploymentMode string = 'Code'");
+        bicep.Should().Contain("param customDomains array = []");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_EmitModule_Then_ContainsLinuxFxVersionAndWorkerRuntimeVars()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var bicep = new BicepEmitter().EmitModule(spec);
+
+        bicep.Should().Contain("var linuxFxVersion =");
+        bicep.Should().Contain("var workerRuntime =");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_EmitModule_Then_ContainsResourceWithKindFunctionApp()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var bicep = new BicepEmitter().EmitModule(spec);
+
+        bicep.Should().Contain("resource functionApp 'Microsoft.Web/sites@2023-12-01' = {");
+        bicep.Should().Contain("kind: 'functionapp'");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_EmitModule_Then_ContainsFunctionsAppSettings()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var bicep = new BicepEmitter().EmitModule(spec);
+
+        bicep.Should().Contain("FUNCTIONS_WORKER_RUNTIME");
+        bicep.Should().Contain("FUNCTIONS_EXTENSION_VERSION");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_EmitModule_Then_ContainsHostNameBindingsForLoop()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var bicep = new BicepEmitter().EmitModule(spec);
+
+        bicep.Should().Contain("resource hostNameBindings 'Microsoft.Web/sites/hostNameBindings@2023-12-01' = [for domain in customDomains: {");
+        bicep.Should().Contain("parent: functionApp");
+        bicep.Should().Contain("}]");
+    }
+
+    [Fact]
+    public void Given_CodeResource_When_EmitModule_Then_ContainsAllOutputs()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var bicep = new BicepEmitter().EmitModule(spec);
+
+        bicep.Should().Contain("output id string = functionApp.id");
+        bicep.Should().Contain("output defaultHostName string = functionApp.properties.defaultHostName");
+        bicep.Should().Contain("output principalId string = functionApp.identity.principalId");
+        bicep.Should().Contain("output customDomainVerificationId string = functionApp.properties.customDomainVerificationId");
+    }
+
+    // ── Emission: Container MI variant ──
+
+    [Fact]
+    public void Given_ContainerMiResource_When_EmitModule_Then_ContainsContainerParams()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+        var bicep = new BicepEmitter().EmitModule(spec);
+
+        bicep.Should().Contain("param dockerImageName string");
+        bicep.Should().Contain("param dockerImageTag string = 'latest'");
+        bicep.Should().Contain("param acrLoginServer string");
+        bicep.Should().Contain("param acrUseManagedIdentityCreds bool = true");
+        bicep.Should().Contain("param acrUserManagedIdentityId string = ''");
+        bicep.Should().Contain("param deploymentMode string = 'Container'");
+    }
+
+    [Fact]
+    public void Given_ContainerMiResource_When_EmitModule_Then_ContainsContainerKind()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerMiResource());
+        var bicep = new BicepEmitter().EmitModule(spec);
+
+        bicep.Should().Contain("kind: 'functionapp,linux,container'");
+    }
+
+    // ── Emission: Container Admin variant ──
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_EmitModule_Then_ContainsSecureAcrPassword()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerAdminResource());
+        var bicep = new BicepEmitter().EmitModule(spec);
+
+        bicep.Should().Contain("@secure()");
+        bicep.Should().Contain("param acrPassword string");
+    }
+
+    [Fact]
+    public void Given_ContainerAdminResource_When_EmitModule_Then_ContainsAllFiveAppSettings()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerAdminResource());
+        var bicep = new BicepEmitter().EmitModule(spec);
+
+        bicep.Should().Contain("FUNCTIONS_WORKER_RUNTIME");
+        bicep.Should().Contain("FUNCTIONS_EXTENSION_VERSION");
+        bicep.Should().Contain("DOCKER_REGISTRY_SERVER_URL");
+        bicep.Should().Contain("DOCKER_REGISTRY_SERVER_USERNAME");
+        bicep.Should().Contain("DOCKER_REGISTRY_SERVER_PASSWORD");
+    }
+
+    // ── Emission: Types ──
+
+    [Fact]
+    public void Given_Resource_When_EmitTypes_Then_ContainsAllThreeTypes()
+    {
+        var spec = _sut.GenerateSpec(CreateCodeResource());
+        var types = new BicepEmitter().EmitTypes(spec);
+
+        types.Should().Contain("type RuntimeStack = 'DOTNET' | 'NODE' | 'PYTHON' | 'JAVA' | 'POWERSHELL'");
+        types.Should().Contain("type WorkerRuntime = 'dotnet' | 'dotnet-isolated' | 'node' | 'python' | 'java' | 'powershell'");
+        types.Should().Contain("type DeploymentMode = 'Code' | 'Container'");
+    }
+}
