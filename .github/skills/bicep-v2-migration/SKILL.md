@@ -218,7 +218,12 @@ Tests à écrire pour chaque générateur :
 - **Test count** : 18 tests covering spec structure, params, resource, outputs, interface contracts, emission content, and legacy backward compat.
 - **Règle** : For simple generators with no types/companions, the migration is mechanical: translate the `const string` template into `BicepModuleBuilder` calls. Zero surprises.
 
-### Migration #2 — (à compléter)
+### Migration #2 — LogAnalyticsWorkspace (Tier 1, 77 LOC)
+- **First generator with types.bicep** — `ExportedType()` on builder works; emitter `EmitTypes()` produces `@export()` + `@description()` + `type Name = ...` correctly.
+- **Custom param type** — `BicepType.Custom("SkuName")` creates a `BicepCustomType`. The `LegacyTextModuleAdapter.CreateSkeletonModule` automatically populates `ParameterTypeOverrides` from `BicepCustomType` params.
+- **Nested objects** — `Property("properties", props => props.Property("sku", sku => sku.Property(...)))` works cleanly for 2-level nesting. Emitter indentation is correct.
+- **Default values** — `BicepStringLiteral("PerGB2018")` and `BicepIntLiteral(30)` / `BicepIntLiteral(-1)` emit as `= 'PerGB2018'` / `= 30` / `= -1`.
+- **Règle** — For generators with types.bicep: use `ExportedType()` on the same builder, and `Import()` for the module template. The emitter handles both `EmitModule()` and `EmitTypes()` from the same spec.
 
 ### Migration #3 — (à compléter)
 

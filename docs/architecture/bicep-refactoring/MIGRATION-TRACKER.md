@@ -59,14 +59,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | types.bicep (SkuName) |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 77 LOC, 1 import (SkuName), types.bicep, nested properties, 5 params (2 with defaults), 2 outputs |
+| Tests TDD écrits | ✅ | `tests/.../Generators/LogAnalyticsWorkspaceTypeBicepGeneratorTests.cs` — 22 tests |
+| Migration vers Builder | ✅ | Implements `IResourceTypeBicepSpecGenerator`, nested `Property()` lambdas for properties/sku/workspaceCapping |
+| Parité d'émission vérifiée | ✅ | Module + types emission verified |
+| Branché dans le pipeline | ✅ | No DI change needed — auto-detected by `ModuleBuildStage` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | |
 
 ### 1.3 — AppServicePlan (80 LOC)
 
