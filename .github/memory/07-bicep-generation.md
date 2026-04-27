@@ -195,6 +195,11 @@ All typed per-env parameters (cpuCores, memoryGi, minReplicas, maxReplicas, ingr
 - The `differingUaiArmTypes` pre-computation was removed — no longer needed since all instances naturally produce identical module content with the generic param.
 - When `InjectParameterizedIdentity` is used (mixed identity kinds), the module template includes: `userAssignedIdentities: contains(identityType, 'UserAssigned') && !empty(userAssignedIdentityId) ? { '${userAssignedIdentityId}': {} } : null`.
 
+## Main.Bicep Type Import Collisions [2026-04-27]
+- `MainBicepAssembler` must alias colliding exported type names imported from different module folders in `main.bicep`. The rule is: keep unique imported names as-is, but rewrite collisions to `<ModuleFolderName><TypeName>` and emit `import { TypeName as Alias }`.
+- The same alias must be reused in parameter declarations (`param ... Alias`), otherwise Bicep import-closure analysis can fail before regular diagnostics with `An element with the same key but a different value already exists` on common exported names such as `SkuName` or `TlsVersion`.
+- The regression was reproduced from generated artifacts under `C:\Users\flori\RiderProjects\ifs\Infra-Flow-Sculptor\main.bicep`, where `SqlDatabase`, `StorageAccount`, `KeyVault`, and `SqlServer` all contributed colliding exported type names through `../Common/modules/*/types.bicep`.
+
 ## Compute Module Variant Files [2026-04-23]
  - `ContainerApp`, `WebApp`, and `FunctionApp` variants with incompatible parameter surfaces must use distinct `GeneratedTypeModule.ModuleFileName` values (for example base vs ACR-managed-identity vs ACR-admin-credentials). `BicepAssembler` deduplicates emitted module files by file name, so sharing one file name across variants can make `main.bicep` pass params that the surviving module file does not declare, leading to BCP037.
  - `MainBicepAssembler` must import naming functions referenced only by cross-config existing resources or role-assignment targets, and must declare `existing_{resourceGroup}` scopes for cross-config role assignments even when no `ExistingResourceReference` directly targets that resource group. This prevents BCP057 on missing symbols such as `BuildContainerRegistryName` or undeclared RG identifiers.

@@ -64,16 +64,22 @@ internal static class MainBicepAssembler
         }
 
         // Module-level type imports (for structured parameter types)
+        var importedModuleTypeNames = BuildImportedModuleTypeNames(modules);
         var moduleTypeImports = modules
             .Where(m => m.ParameterTypeOverrides.Count > 0)
-            .GroupBy(m => m.ModuleFolderName)
+            .SelectMany(module => module.ParameterTypeOverrides.Values
+                .Distinct(StringComparer.Ordinal)
+                .Select(typeName => (module.ModuleFolderName, TypeName: typeName)))
+            .Distinct()
+            .GroupBy(x => x.ModuleFolderName)
             .ToList();
         foreach (var group in moduleTypeImports)
         {
             var typeNames = group
-                .SelectMany(m => m.ParameterTypeOverrides.Values)
-                .Distinct()
-                .OrderBy(t => t);
+                .OrderBy(x => x.TypeName, StringComparer.Ordinal)
+                .Select(x => FormatImportedTypeSymbol(
+                    x.TypeName,
+                    importedModuleTypeNames[BuildModuleTypeImportKey(x.ModuleFolderName, x.TypeName)]));
             sb.Append("import { ");
             sb.AppendJoin(", ", typeNames);
             sb.AppendLine($" }} from './modules/{group.Key}/types.bicep'");
@@ -92,7 +98,7 @@ internal static class MainBicepAssembler
             foreach (var (key, value) in module.Parameters)
             {
                 var bicepType = module.ParameterTypeOverrides.TryGetValue(key, out var customType)
-                    ? customType
+                    ? ResolveImportedTypeName(importedModuleTypeNames, module.ModuleFolderName, customType)
                     : BicepFormattingHelper.InferBicepType(value);
                 sb.AppendLine($"param {module.ModuleName}{BicepFormattingHelper.Capitalize(key)} {bicepType}");
             }
@@ -597,6 +603,52 @@ internal static class MainBicepAssembler
         }
 
         return new MainBicepEmissionResult(sb.ToString(), tracker.Build());
+
+        static IReadOnlyDictionary<string, string> BuildImportedModuleTypeNames(IReadOnlyCollection<GeneratedTypeModule> generatedModules)
+        {
+            var moduleTypeImports = generatedModules
+                .Where(m => m.ParameterTypeOverrides.Count > 0)
+                .SelectMany(module => module.ParameterTypeOverrides.Values
+                    .Distinct(StringComparer.Ordinal)
+                    .Select(typeName => (module.ModuleFolderName, TypeName: typeName)))
+                .Distinct()
+                .ToList();
+
+            var collidingTypeNames = moduleTypeImports
+                .GroupBy(x => x.TypeName, StringComparer.Ordinal)
+                .Where(group => group.Select(x => x.ModuleFolderName).Distinct(StringComparer.OrdinalIgnoreCase).Count() > 1)
+                .Select(group => group.Key)
+                .ToHashSet(StringComparer.Ordinal);
+
+            return moduleTypeImports.ToDictionary(
+                x => BuildModuleTypeImportKey(x.ModuleFolderName, x.TypeName),
+                x => collidingTypeNames.Contains(x.TypeName)
+                    ? $"{x.ModuleFolderName}{x.TypeName}"
+                    : x.TypeName,
+                StringComparer.OrdinalIgnoreCase);
+        }
+
+        static string ResolveImportedTypeName(
+            IReadOnlyDictionary<string, string> importedTypeNames,
+            string moduleFolderName,
+            string typeName)
+        {
+            return importedTypeNames.TryGetValue(BuildModuleTypeImportKey(moduleFolderName, typeName), out var importedTypeName)
+                ? importedTypeName
+                : typeName;
+        }
+
+        static string FormatImportedTypeSymbol(string typeName, string importedTypeName)
+        {
+            return string.Equals(typeName, importedTypeName, StringComparison.Ordinal)
+                ? typeName
+                : $"{typeName} as {importedTypeName}";
+        }
+
+        static string BuildModuleTypeImportKey(string moduleFolderName, string typeName)
+        {
+            return $"{moduleFolderName}|{typeName}";
+        }
 
         void AddNamingImport(string resourceTypeName)
         {
