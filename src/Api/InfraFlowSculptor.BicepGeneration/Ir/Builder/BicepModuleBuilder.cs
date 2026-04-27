@@ -7,6 +7,7 @@ namespace InfraFlowSculptor.BicepGeneration.Ir.Builder;
 public sealed class BicepModuleBuilder
 {
     private string? _moduleName;
+    private string? _moduleFileName;
     private string? _folderName;
     private string? _resourceTypeName;
     private string? _resourceSymbol;
@@ -28,6 +29,13 @@ public sealed class BicepModuleBuilder
         _moduleName = name;
         _folderName = folder;
         _resourceTypeName = resourceTypeName;
+        return this;
+    }
+
+    /// <summary>Sets an explicit module file name (when different from module name, e.g. for variant generators).</summary>
+    public BicepModuleBuilder ModuleFileName(string fileName)
+    {
+        _moduleFileName = fileName;
         return this;
     }
 
@@ -114,10 +122,11 @@ public sealed class BicepModuleBuilder
     }
 
     /// <summary>
-    /// Adds an additional resource declaration to the module (e.g. diagnostic settings, role assignments).
+    /// Adds an additional resource declaration to the module (e.g. diagnostic settings, role assignments, for-loop child resources).
     /// </summary>
     public BicepModuleBuilder AdditionalResource(string symbol, string armTypeWithApiVersion,
         BicepExpression? condition = null, string? scope = null,
+        BicepForLoop? forLoop = null, string? parentSymbol = null,
         Action<BicepObjectBuilder>? bodyBuilder = null)
     {
         var body = new BicepObjectBuilder();
@@ -128,6 +137,8 @@ public sealed class BicepModuleBuilder
             ArmTypeWithApiVersion = armTypeWithApiVersion,
             Condition = condition,
             Scope = scope,
+            ForLoop = forLoop,
+            ParentSymbol = parentSymbol,
             Body = body.Build().Properties,
         });
         return this;
@@ -148,6 +159,7 @@ public sealed class BicepModuleBuilder
         return new BicepModuleSpec
         {
             ModuleName = _moduleName,
+            ModuleFileName = _moduleFileName,
             ModuleFolderName = _folderName,
             ResourceTypeName = _resourceTypeName,
             Imports = _imports.ToList(),

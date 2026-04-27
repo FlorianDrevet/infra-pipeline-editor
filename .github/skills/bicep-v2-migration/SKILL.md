@@ -324,7 +324,19 @@ Tests à écrire pour chaque générateur :
 - **Test count** — 44 tests covering 6 params (1 custom type, 2 bool defaults, 1 string default `''`), primary resource (name, location, nested properties with zoneRedundant, vnetConfiguration, conditional appLogsConfiguration, workloadProfiles array), additional resource diagnosticSettings (condition, scope, body with workspaceId + logs array), 3 outputs, 1 exported type, legacy compat, emission parity.
 - **Tier 3 complete** — All 6 generators migrated (KeyVault, SqlServer, SqlDatabase, CosmosDb, RedisCache, ContainerAppEnvironment). Total: 601 tests, 0 failures.
 
-### Migration #15 — (à compléter)
+### Migration #15 — WebApp (Phase 4.1, Tier 4 — first variant-based generator)
+
+- **IR extensions required:** `BicepForLoop(IteratorName, Collection)` on `BicepResourceDeclaration` for `[for x in xs: {...}]` syntax. `BicepModuleSpec.ModuleFileName` (nullable) for variant-specific file names. Emitter renders `= [for iter in collection: {` with `}]` closing.
+- **3 variants in a single `GenerateSpec()`:** Read `deploymentMode` and `acrAuthMode` from `resource.Properties`, use conditional branches — do NOT create 3 separate builders.
+  - **Code:** 9 params, 1 var (linuxFxVersion), no `kind` property
+  - **Container + ManagedIdentity:** 14 params (+dockerImageName, dockerImageTag, acrLoginServer, acrUseManagedIdentityCreds, acrUserManagedIdentityId), 1 var (dockerImage), `kind: 'app,linux,container'`, `acrUserManagedIdentityID` conditional with `!empty()` check
+  - **Container + AdminCredentials:** 13 params (+dockerImageName, dockerImageTag, acrLoginServer, `@secure` acrPassword), 2 vars (dockerImage, acrUsername from `split()`), `kind`, `acrUseManagedIdentityCreds: false`, `appSettings` array with 3 Docker registry entries
+- **`ModuleFileName` per variant:** Code variant leaves null (falls back to `ModuleName`), MI variant sets `"webAppContainerManagedIdentity"`, Admin variant sets `"webAppContainerAdminCredentials"`. `LegacyTextModuleAdapter` uses `ModuleFileName ?? ModuleName`.
+- **For-loop additional resource:** `hostNameBindings` uses `BicepForLoop("domain", BicepReference("customDomains"))` with `parentSymbol: "webApp"`. Body has conditional `sslState` via `BicepConditionalExpression`.
+- **Builder `.AdditionalResource()` now accepts `forLoop` and `parentSymbol`** parameters.
+- **`GeneratedTypeModule.ModuleFileName` normalizes** — auto-appends `.module.bicep` via `NormalizePrimaryModuleFileName`. Legacy tests must expect the normalized form.
+- **Param count pitfall:** `customDomains` (array, default `[]`) is added after variant-specific params — easy to miscount.
+- **71 tests total** (9 spec structure, ~20 Code variant, ~12 Container MI, ~10 Container Admin, 5 legacy compat, ~15 emission). **672 tests cumulative, 0 failures.**
 
 ---
 

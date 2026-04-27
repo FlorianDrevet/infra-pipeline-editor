@@ -30,6 +30,11 @@ public sealed record BicepResourceDeclaration
     public string? Scope { get; init; }
 
     /// <summary>
+    /// Optional for-loop. When set, emits <c>= [for iterator in collection: { ... }]</c> instead of <c>= { ... }</c>.
+    /// </summary>
+    public BicepForLoop? ForLoop { get; init; }
+
+    /// <summary>
     /// Ordered list of top-level properties in the resource body (name, location, sku, identity, properties, tags, etc.).
     /// Property order is preserved for deterministic emission matching legacy templates.
     /// </summary>

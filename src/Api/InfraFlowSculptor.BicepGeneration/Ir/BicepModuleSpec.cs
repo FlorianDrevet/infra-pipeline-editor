@@ -16,6 +16,12 @@ public sealed record BicepModuleSpec
     /// <summary>Friendly resource type name used for naming template lookups (e.g. <c>KeyVault</c>).</summary>
     public required string ResourceTypeName { get; init; }
 
+    /// <summary>
+    /// File name for the module (without extension). When <c>null</c>, defaults to <see cref="ModuleName"/>.
+    /// Used for variant generators (e.g. <c>webAppContainerManagedIdentity</c> vs <c>webApp</c>).
+    /// </summary>
+    public string? ModuleFileName { get; init; }
+
     /// <summary>Import statements at the top of the module (e.g. from <c>./types.bicep</c>).</summary>
     public IReadOnlyList<BicepImport> Imports { get; init; } = [];
 

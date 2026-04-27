@@ -19,7 +19,7 @@ internal static class LegacyTextModuleAdapter
         return new GeneratedTypeModule
         {
             ModuleName = spec.ModuleName,
-            ModuleFileName = spec.ModuleName,
+            ModuleFileName = spec.ModuleFileName ?? spec.ModuleName,
             ModuleFolderName = spec.ModuleFolderName,
             ResourceTypeName = spec.ResourceTypeName,
             SecureParameters = spec.Parameters

@@ -56,3 +56,8 @@ public sealed record BicepRawExpression(string RawBicep) : BicepExpression;
 
 /// <summary>A single key-value property assignment inside a <see cref="BicepObjectExpression"/>.</summary>
 public sealed record BicepPropertyAssignment(string Key, BicepExpression Value);
+
+/// <summary>
+/// Describes a <c>[for iterator in collection: { ... }]</c> loop on a resource declaration.
+/// </summary>
+public sealed record BicepForLoop(string IteratorName, BicepExpression Collection);

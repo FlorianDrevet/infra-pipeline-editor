@@ -133,7 +133,12 @@ public sealed class BicepEmitter
     {
         sb.Append("resource ").Append(resource.Symbol).Append(" '").Append(resource.ArmTypeWithApiVersion).Append("'");
 
-        if (resource.Condition is not null)
+        if (resource.ForLoop is not null)
+        {
+            sb.Append(" = [for ").Append(resource.ForLoop.IteratorName).Append(" in ")
+                .Append(EmitExpression(resource.ForLoop.Collection, 0)).AppendLine(": {");
+        }
+        else if (resource.Condition is not null)
         {
             sb.Append(" = if (").Append(EmitExpression(resource.Condition, 0)).AppendLine(") {");
         }
@@ -157,7 +162,7 @@ public sealed class BicepEmitter
             EmitPropertyAssignment(sb, prop, indent: 2);
         }
 
-        sb.AppendLine("}");
+        sb.AppendLine(resource.ForLoop is not null ? "}]" : "}");
     }
 
     private static void EmitAdditionalResources(StringBuilder sb, IReadOnlyList<BicepResourceDeclaration> resources)

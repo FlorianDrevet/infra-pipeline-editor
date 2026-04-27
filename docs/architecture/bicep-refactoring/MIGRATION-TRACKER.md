@@ -240,14 +240,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | 3 variantes ACR (Code / Container+MI / Container+Admin), `@secure()` acrPassword, parent ref `appServicePlanId`, custom domains |
-| Tests TDD écrits | ⬜ | 1 test par variante + edge cases |
-| Migration vers Builder | ⬜ | Branches conditionnelles dans un seul Builder |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 3 variantes ACR (Code / Container+MI / Container+Admin), `@secure()` acrPassword, parent ref `appServicePlanId`, custom domains |
+| Tests TDD écrits | ✅ | 71 tests (9 Code params, 14 MI params, 13 Admin params, 3 variants × resource/vars/outputs/types + emission + legacy compat) |
+| Migration vers Builder | ✅ | Conditional branches in single `GenerateSpec()` based on `deploymentMode`/`acrAuthMode` |
+| Parité d'émission vérifiée | ✅ | ForLoop hostNameBindings, ModuleFileName per variant, secure acrPassword |
+| Branché dans le pipeline | ✅ | `IResourceTypeBicepSpecGenerator` detected by `ModuleBuildStage` at runtime |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | Migration #15 added |
 
 ### 4.2 — FunctionApp (384 LOC)
 

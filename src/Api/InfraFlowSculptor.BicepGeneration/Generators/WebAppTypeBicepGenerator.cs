@@ -1,3 +1,5 @@
+using InfraFlowSculptor.BicepGeneration.Ir;
+using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
 
@@ -5,7 +7,7 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 
 /// <summary>Generates Bicep modules for Azure Web App resources with Code or Container deployment modes.</summary>
 public sealed class WebAppTypeBicepGenerator
-    : IResourceTypeBicepGenerator
+    : IResourceTypeBicepSpecGenerator
 {
   private const string ManagedIdentityAcrAuthMode = "ManagedIdentity";
   private const string AdminCredentialsAcrAuthMode = "AdminCredentials";
@@ -15,6 +17,174 @@ public sealed class WebAppTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.WebApp;
+
+    /// <inheritdoc />
+    public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
+    {
+        var deploymentMode = resource.Properties.GetValueOrDefault("deploymentMode", "Code");
+        var isContainer = string.Equals(deploymentMode, "Container", StringComparison.OrdinalIgnoreCase);
+        var acrAuthMode = GetAcrAuthMode(resource.Properties);
+        var useAdminCredentials = isContainer
+            && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
+
+        var builder = new BicepModuleBuilder()
+            .Module("webApp", "WebApp", ResourceTypeName)
+            .Import("./types.bicep", "RuntimeStack")
+            .Param("location", BicepType.String, "Azure region for the Web App")
+            .Param("name", BicepType.String, "Name of the Web App")
+            .Param("appServicePlanId", BicepType.String, "Resource ID of the App Service Plan")
+            .Param("runtimeStack", BicepType.Custom("RuntimeStack"), "Runtime stack of the Web App",
+                defaultValue: new BicepStringLiteral("DOTNETCORE"))
+            .Param("runtimeVersion", BicepType.String, "Runtime version (e.g. 8.0, 18)")
+            .Param("alwaysOn", BicepType.Bool, "Whether the app is always on")
+            .Param("httpsOnly", BicepType.Bool, "Whether HTTPS only is enforced")
+            .Param("deploymentMode", BicepType.String, "Deployment mode",
+                defaultValue: new BicepStringLiteral(isContainer ? "Container" : "Code"));
+
+        // Container-specific params
+        if (isContainer)
+        {
+            builder
+                .Param("dockerImageName", BicepType.String, "Docker image name (e.g. myapp/api)")
+                .Param("dockerImageTag", BicepType.String, "Docker image tag (e.g. latest, v1.2.3)",
+                    defaultValue: new BicepStringLiteral("latest"))
+                .Param("acrLoginServer", BicepType.String, "ACR login server (e.g. myregistry.azurecr.io)");
+
+            if (useAdminCredentials)
+            {
+                builder.Param("acrPassword", BicepType.String,
+                    "Admin password for the Container Registry", secure: true);
+            }
+            else
+            {
+                builder
+                    .Param("acrUseManagedIdentityCreds", BicepType.Bool,
+                        "Whether to use managed identity credentials for ACR",
+                        defaultValue: new BicepBoolLiteral(true))
+                    .Param("acrUserManagedIdentityId", BicepType.String,
+                        "Client ID of the user-assigned managed identity for ACR pull",
+                        defaultValue: new BicepStringLiteral(""));
+            }
+        }
+
+        builder.Param("customDomains", BicepType.Array, "Custom domain bindings for this Web App",
+            defaultValue: new BicepArrayExpression([]));
+
+        // Variables
+        if (isContainer)
+        {
+            builder.Var("dockerImage", new BicepRawExpression("'${acrLoginServer}/${dockerImageName}:${dockerImageTag}'"));
+            if (useAdminCredentials)
+            {
+                builder.Var("acrUsername", new BicepRawExpression("split(acrLoginServer, '.')[0]"));
+            }
+
+            // Module file name for container variants
+            builder.ModuleFileName(useAdminCredentials
+                ? "webAppContainerAdminCredentials"
+                : "webAppContainerManagedIdentity");
+        }
+        else
+        {
+            builder.Var("linuxFxVersion", new BicepRawExpression("'${toUpper(runtimeStack)}|${runtimeVersion}'"));
+        }
+
+        // Primary resource
+        builder.Resource("webApp", "Microsoft.Web/sites@2023-12-01")
+            .Property("name", new BicepReference("name"))
+            .Property("location", new BicepReference("location"));
+
+        if (isContainer)
+        {
+            builder.Property("kind", new BicepStringLiteral("app,linux,container"));
+        }
+
+        // Build siteConfig properties
+        var siteConfigProps = new List<BicepPropertyAssignment>
+        {
+            new("linuxFxVersion", isContainer
+                ? new BicepRawExpression("'DOCKER|${dockerImage}'")
+                : new BicepReference("linuxFxVersion")),
+            new("alwaysOn", new BicepReference("alwaysOn")),
+            new("ftpsState", new BicepStringLiteral("Disabled")),
+            new("minTlsVersion", new BicepStringLiteral("1.2")),
+        };
+
+        if (isContainer && !useAdminCredentials)
+        {
+            siteConfigProps.Add(new BicepPropertyAssignment("acrUseManagedIdentityCreds",
+                new BicepReference("acrUseManagedIdentityCreds")));
+            siteConfigProps.Add(new BicepPropertyAssignment("acrUserManagedIdentityID",
+                new BicepConditionalExpression(
+                    new BicepRawExpression("!empty(acrUserManagedIdentityId)"),
+                    new BicepReference("acrUserManagedIdentityId"),
+                    new BicepRawExpression("null"))));
+        }
+        else if (isContainer && useAdminCredentials)
+        {
+            siteConfigProps.Add(new BicepPropertyAssignment("acrUseManagedIdentityCreds",
+                new BicepBoolLiteral(false)));
+            siteConfigProps.Add(new BicepPropertyAssignment("appSettings",
+                new BicepArrayExpression([
+                    new BicepObjectExpression([
+                        new BicepPropertyAssignment("name", new BicepStringLiteral("DOCKER_REGISTRY_SERVER_URL")),
+                        new BicepPropertyAssignment("value", new BicepRawExpression("'https://${acrLoginServer}'")),
+                    ]),
+                    new BicepObjectExpression([
+                        new BicepPropertyAssignment("name", new BicepStringLiteral("DOCKER_REGISTRY_SERVER_USERNAME")),
+                        new BicepPropertyAssignment("value", new BicepReference("acrUsername")),
+                    ]),
+                    new BicepObjectExpression([
+                        new BicepPropertyAssignment("name", new BicepStringLiteral("DOCKER_REGISTRY_SERVER_PASSWORD")),
+                        new BicepPropertyAssignment("value", new BicepReference("acrPassword")),
+                    ]),
+                ])));
+        }
+
+        builder.Property("properties", props => props
+            .Property("serverFarmId", new BicepReference("appServicePlanId"))
+            .Property("httpsOnly", new BicepReference("httpsOnly"))
+            .Property("siteConfig", new BicepObjectExpression(siteConfigProps)));
+
+        // hostNameBindings for-loop child resource
+        builder.AdditionalResource("hostNameBindings", "Microsoft.Web/sites/hostNameBindings@2023-12-01",
+            forLoop: new BicepForLoop("domain", new BicepReference("customDomains")),
+            parentSymbol: "webApp",
+            bodyBuilder: body => body
+                .Property("name", new BicepRawExpression("domain.domainName"))
+                .Property("properties", p => p
+                    .Property("siteName", new BicepRawExpression("webApp.name"))
+                    .Property("hostNameType", new BicepStringLiteral("Verified"))
+                    .Property("sslState", new BicepConditionalExpression(
+                        new BicepRawExpression("domain.bindingType == 'SniEnabled'"),
+                        new BicepStringLiteral("SniEnabled"),
+                        new BicepStringLiteral("Disabled")))));
+
+        // Outputs
+        builder
+            .Output("id", BicepType.String, new BicepRawExpression("webApp.id"),
+                description: "The resource ID of the Web App")
+            .Output("defaultHostName", BicepType.String,
+                new BicepRawExpression("webApp.properties.defaultHostName"),
+                description: "The default host name of the Web App")
+            .Output("principalId", BicepType.String,
+                new BicepRawExpression("webApp.identity.principalId"),
+                description: "The principal ID of the system-assigned managed identity")
+            .Output("customDomainVerificationId", BicepType.String,
+                new BicepRawExpression("webApp.properties.customDomainVerificationId"),
+                description: "The custom domain verification ID");
+
+        // Exported types
+        builder
+            .ExportedType("RuntimeStack",
+                new BicepRawExpression("'DOTNETCORE' | 'NODE' | 'PYTHON' | 'JAVA' | 'PHP'"),
+                description: "Runtime stack for the Web App")
+            .ExportedType("DeploymentMode",
+                new BicepRawExpression("'Code' | 'Container'"),
+                description: "Deployment mode for the Web App");
+
+        return builder.Build();
+    }
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
