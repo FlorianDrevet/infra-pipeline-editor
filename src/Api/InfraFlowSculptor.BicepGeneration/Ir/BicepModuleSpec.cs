@@ -25,6 +25,9 @@ public sealed record BicepModuleSpec
     /// <summary>Variable declarations.</summary>
     public IReadOnlyList<BicepVar> Variables { get; init; } = [];
 
+    /// <summary>Existing resource references used by the primary resource (e.g. parent lookups).</summary>
+    public IReadOnlyList<BicepExistingResource> ExistingResources { get; init; } = [];
+
     /// <summary>The primary resource declaration for this module.</summary>
     public required BicepResourceDeclaration Resource { get; init; }
 

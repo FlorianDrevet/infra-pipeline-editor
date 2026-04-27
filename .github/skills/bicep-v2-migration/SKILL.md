@@ -289,7 +289,15 @@ Tests à écrire pour chaque générateur :
 - **`NormalizeSqlServerVersion()`** — Only used in legacy `Generate()` for the Parameters dict. The IR spec always has the default `'12.0'` — normalization is a deployment-time concern, not a Bicep template concern.
 - **Test count** — 30 tests covering 6 params (incl. secure), 5-prop properties, `publicNetworkAccess` literal, 2 outputs, 2 exported types, legacy V12 normalization, SecureParameters, emission parity.
 
-### Migration #11 — (à compléter)
+### Migration #11 — SqlDatabase (Tier 3, 91 LOC)
+- **First generator requiring IR extension** — SqlDatabase uses `existing` resource declarations and `parent:` references, which the IR did not support. Required adding: `BicepExistingResource` record, `BicepModuleSpec.ExistingResources` collection, `BicepResourceDeclaration.ParentSymbol`, `BicepEmitter.EmitExistingResources()`, `BicepModuleBuilder.ExistingResource()` and `.Parent()` methods.
+- **Existing resource pattern** — `ExistingResource("sqlServer", "Microsoft.Sql/servers@2023-08-01-preview", "sqlServerName")` adds to `ExistingResources` list. Emitter emits `resource sqlServer '...' existing = { name: sqlServerName }` block before the main resource.
+- **Parent reference** — `Parent("sqlServer")` sets `BicepResourceDeclaration.ParentSymbol`. Emitter emits `parent: sqlServer` as first line inside resource body, before regular `Body` properties.
+- **`BicepExistingResource` record** — `(string Symbol, string ArmTypeWithApiVersion, string NameExpression)`. `NameExpression` is raw text (e.g. param name) — not a `BicepExpression` to keep emission simple.
+- **Child resource ARM type** — Uses `Microsoft.Sql/servers/databases@...` (slash-delimited child path).
+- **Test count** — 33 tests covering 7 params (SkuName custom type), existing resource, parent ref, nested sku + properties, 1 output, 1 exported type, legacy GB→bytes conversion, emission parity.
+
+### Migration #12 — (à compléter)
 
 ---
 

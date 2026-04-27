@@ -13,6 +13,12 @@ public sealed record BicepResourceDeclaration
     public required string ArmTypeWithApiVersion { get; init; }
 
     /// <summary>
+    /// Optional parent resource symbol. When set, emits <c>parent: symbolName</c> as the first body property.
+    /// The parent must be declared as an existing resource in <see cref="BicepModuleSpec.ExistingResources"/>.
+    /// </summary>
+    public string? ParentSymbol { get; init; }
+
+    /// <summary>
     /// Ordered list of top-level properties in the resource body (name, location, sku, identity, properties, tags, etc.).
     /// Property order is preserved for deterministic emission matching legacy templates.
     /// </summary>

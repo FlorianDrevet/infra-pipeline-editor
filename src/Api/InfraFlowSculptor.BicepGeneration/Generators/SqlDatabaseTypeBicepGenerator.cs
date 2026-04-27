@@ -1,3 +1,5 @@
+using InfraFlowSculptor.BicepGeneration.Ir;
+using InfraFlowSculptor.BicepGeneration.Ir.Builder;
 using InfraFlowSculptor.BicepGeneration.Models;
 using InfraFlowSculptor.GenerationCore;
 
@@ -5,7 +7,7 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 
 /// <summary>Generates Bicep module for Azure SQL Database (<c>Microsoft.Sql/servers/databases@2023-08-01-preview</c>).</summary>
 public sealed class SqlDatabaseTypeBicepGenerator
-    : IResourceTypeBicepGenerator
+    : IResourceTypeBicepSpecGenerator
 {
     /// <inheritdoc />
     public string ResourceType
@@ -13,6 +15,39 @@ public sealed class SqlDatabaseTypeBicepGenerator
 
     /// <inheritdoc />
     public string ResourceTypeName => AzureResourceTypes.SqlDatabase;
+
+    /// <inheritdoc />
+    public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
+    {
+        return new BicepModuleBuilder()
+            .Module("sqlDatabase", "SqlDatabase", ResourceTypeName)
+            .Import("./types.bicep", "SkuName")
+            .Param("location", BicepType.String, "Azure region for the SQL Database")
+            .Param("name", BicepType.String, "Name of the SQL Database")
+            .Param("sqlServerName", BicepType.String, "Name of the parent SQL Server")
+            .Param("sku", BicepType.Custom("SkuName"), "SKU of the SQL Database",
+                defaultValue: new BicepStringLiteral("Basic"))
+            .Param("maxSizeBytes", BicepType.Int, "Maximum size of the database in bytes")
+            .Param("collation", BicepType.String, "Collation of the database")
+            .Param("zoneRedundant", BicepType.Bool, "Whether the database is zone redundant")
+            .ExistingResource("sqlServer", "Microsoft.Sql/servers@2023-08-01-preview", "sqlServerName")
+            .Resource("sqlDatabase", "Microsoft.Sql/servers/databases@2023-08-01-preview")
+            .Parent("sqlServer")
+            .Property("name", new BicepReference("name"))
+            .Property("location", new BicepReference("location"))
+            .Property("sku", sku => sku
+                .Property("name", new BicepReference("sku")))
+            .Property("properties", props => props
+                .Property("collation", new BicepReference("collation"))
+                .Property("maxSizeBytes", new BicepReference("maxSizeBytes"))
+                .Property("zoneRedundant", new BicepReference("zoneRedundant")))
+            .Output("id", BicepType.String, new BicepRawExpression("sqlDatabase.id"),
+                description: "The resource ID of the SQL Database")
+            .ExportedType("SkuName",
+                new BicepRawExpression("'Basic' | 'Standard' | 'Premium' | 'GeneralPurpose' | 'BusinessCritical' | 'Hyperscale'"),
+                description: "SKU name for the SQL Database")
+            .Build();
+    }
 
     /// <inheritdoc />
     public GeneratedTypeModule Generate(ResourceDefinition resource)

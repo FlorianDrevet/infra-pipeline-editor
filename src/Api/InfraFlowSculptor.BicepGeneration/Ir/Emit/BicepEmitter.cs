@@ -19,6 +19,7 @@ public sealed class BicepEmitter
         EmitImports(sb, spec.Imports);
         EmitParameters(sb, spec.Parameters);
         EmitVariables(sb, spec.Variables);
+        EmitExistingResources(sb, spec.ExistingResources);
         EmitResource(sb, spec.Resource);
         EmitOutputs(sb, spec.Outputs);
 
@@ -113,9 +114,28 @@ public sealed class BicepEmitter
         sb.AppendLine();
     }
 
+    private static void EmitExistingResources(StringBuilder sb, IReadOnlyList<BicepExistingResource> existingResources)
+    {
+        if (existingResources.Count == 0)
+            return;
+
+        foreach (var existing in existingResources)
+        {
+            sb.Append("resource ").Append(existing.Symbol).Append(" '").Append(existing.ArmTypeWithApiVersion).AppendLine("' existing = {");
+            sb.Append("  name: ").AppendLine(existing.NameExpression);
+            sb.AppendLine("}");
+            sb.AppendLine();
+        }
+    }
+
     private static void EmitResource(StringBuilder sb, BicepResourceDeclaration resource)
     {
         sb.Append("resource ").Append(resource.Symbol).Append(" '").Append(resource.ArmTypeWithApiVersion).AppendLine("' = {");
+
+        if (resource.ParentSymbol is not null)
+        {
+            sb.Append("  parent: ").AppendLine(resource.ParentSymbol);
+        }
 
         foreach (var prop in resource.Body)
         {

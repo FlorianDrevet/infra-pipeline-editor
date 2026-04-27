@@ -184,11 +184,11 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | Parent ref `sqlServerName` (existing resource pattern), size conversion GB→bytes |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | Parent ref `sqlServerName` (existing resource pattern), size conversion GB→bytes. First generator needing IR extension for existing resources + parent references |
+| Tests TDD écrits | ✅ | `tests/.../Generators/SqlDatabaseTypeBicepGeneratorTests.cs` — 33 tests |
+| Migration vers Builder | ✅ | `ExistingResource()` + `Parent()` builder methods. 1 import, 7 params (SkuName custom type), existing resource + parent ref, nested sku + properties, 1 output, 1 exported type |
+| Parité d'émission vérifiée | ✅ | `existing = {` block + `parent:` property emitted correctly |
+| Branché dans le pipeline | ✅ | Auto-detected via `IResourceTypeBicepSpecGenerator` — no DI changes |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
 | Skill mis à jour avec retours | ⬜ | |

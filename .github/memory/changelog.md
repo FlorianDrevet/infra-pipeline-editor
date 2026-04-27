@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-27 | dev | **Migration 3.3 — SqlDatabase → Builder+IR.** First generator requiring IR extension: added `BicepExistingResource`, `ExistingResources` on spec, `ParentSymbol` on resource declaration, emitter+builder support. Existing resource + parent ref pattern. 33 new tests (474 total). |
 | 2026-04-27 | dev | **Migration 3.2 — SqlServer → Builder+IR.** First generator with `@secure()` param, static const template, `publicNetworkAccess` string literal, `NormalizeSqlServerVersion()` in legacy only. 30 new tests (441 total). |
 | 2026-04-27 | dev | **Migration 3.1 — KeyVault → Builder+IR.** First generator with dynamic `resource.Properties` injection (6 booleans as `BicepBoolLiteral`), `subscription().tenantId` raw expression, nested sku inside properties. 29 new tests (411 total). |
 | 2026-04-27 | dev | **Migration 2.4 — EventHubNamespace → Builder+IR.** Sku name+tier reusing same param, conditional `maximumThroughputUnits` ternary, property-to-param name mismatches. 31 new tests (383 total). **Tier 2 complete (4/4).** |

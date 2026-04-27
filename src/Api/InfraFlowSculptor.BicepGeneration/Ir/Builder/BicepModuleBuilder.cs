@@ -11,6 +11,7 @@ public sealed class BicepModuleBuilder
     private string? _resourceTypeName;
     private string? _resourceSymbol;
     private string? _armType;
+    private string? _parentSymbol;
     private readonly List<BicepImport> _imports = [];
     private readonly List<BicepParam> _parameters = [];
     private readonly List<BicepVar> _variables = [];
@@ -18,6 +19,7 @@ public sealed class BicepModuleBuilder
     private readonly List<BicepOutput> _outputs = [];
     private readonly List<BicepTypeDefinition> _exportedTypes = [];
     private readonly List<BicepCompanionSpec> _companions = [];
+    private readonly List<BicepExistingResource> _existingResources = [];
 
     /// <summary>Sets the module identity (name, folder, resource type name).</summary>
     public BicepModuleBuilder Module(string name, string folder, string resourceTypeName)
@@ -55,6 +57,20 @@ public sealed class BicepModuleBuilder
     public BicepModuleBuilder Var(string name, BicepExpression expression)
     {
         _variables.Add(new BicepVar(name, expression));
+        return this;
+    }
+
+    /// <summary>Adds an existing resource reference (e.g. for parent lookups).</summary>
+    public BicepModuleBuilder ExistingResource(string symbol, string armTypeWithApiVersion, string nameExpression)
+    {
+        _existingResources.Add(new BicepExistingResource(symbol, armTypeWithApiVersion, nameExpression));
+        return this;
+    }
+
+    /// <summary>Sets the parent symbol for the primary resource (emits <c>parent: symbol</c>).</summary>
+    public BicepModuleBuilder Parent(string parentSymbol)
+    {
+        _parentSymbol = parentSymbol;
         return this;
     }
 
@@ -116,10 +132,12 @@ public sealed class BicepModuleBuilder
             Imports = _imports.ToList(),
             Parameters = _parameters.ToList(),
             Variables = _variables.ToList(),
+            ExistingResources = _existingResources.ToList(),
             Resource = new BicepResourceDeclaration
             {
                 Symbol = _resourceSymbol,
                 ArmTypeWithApiVersion = _armType,
+                ParentSymbol = _parentSymbol,
                 Body = _resourceBody.ToList(),
             },
             Outputs = _outputs.ToList(),
