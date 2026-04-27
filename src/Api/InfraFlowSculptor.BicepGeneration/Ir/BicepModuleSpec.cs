@@ -31,6 +31,9 @@ public sealed record BicepModuleSpec
     /// <summary>The primary resource declaration for this module.</summary>
     public required BicepResourceDeclaration Resource { get; init; }
 
+    /// <summary>Additional resource declarations emitted after the primary resource (e.g. diagnostic settings, role assignments).</summary>
+    public IReadOnlyList<BicepResourceDeclaration> AdditionalResources { get; init; } = [];
+
     /// <summary>Output declarations in declaration order.</summary>
     public IReadOnlyList<BicepOutput> Outputs { get; init; } = [];
 

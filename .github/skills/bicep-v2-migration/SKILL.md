@@ -312,7 +312,19 @@ Tests à écrire pour chaque générateur :
 - **`BicepEmitter` is instance, not static** — Reminder: `EmitModule` and `EmitTypes` are instance methods. Tests must instantiate `new BicepEmitter()` before calling them.
 - **Test count** — 43 tests covering 10 params (3 custom types, 2 bool defaults), nested sku (3 props), redisConfiguration with quoted key + conditional, 4 outputs (2 string + 2 int), 3 exported types, legacy compat (defaults + overrides + invalid capacity), emission parity.
 
-### Migration #14 — (à compléter)
+### Migration #14 — ContainerAppEnvironment (Tier 3, 104 LOC)
+- **IR extended for conditional secondary resources** — Three new IR properties: `BicepResourceDeclaration.Condition` (`BicepExpression?`) for `= if (condition) {`, `BicepResourceDeclaration.Scope` (`string?`) for `scope: symbolName`, `BicepModuleSpec.AdditionalResources` (`IReadOnlyList<BicepResourceDeclaration>`) for secondary resource blocks.
+- **Builder `AdditionalResource()` method** — `AdditionalResource(string symbol, string armTypeWithApiVersion, BicepExpression? condition, string? scope, Action<BicepObjectBuilder>? bodyBuilder)`. Builds body via `BicepObjectBuilder` and creates `BicepResourceDeclaration` with optional Condition and Scope.
+- **Emitter `EmitResource()` rewritten** — Handles `Condition` by emitting `= if (condition) {` instead of `= {`. Handles `Scope` by emitting `scope: symbolName` after parent, before body props. New `EmitAdditionalResources()` called between primary resource and outputs.
+- **Inline conditional with object consequent** — `appLogsConfiguration: logAnalyticsWorkspaceId != '' ? { destination: 'azure-monitor' } : null`. The emitter renders `BicepConditionalExpression` inline; when consequent is `BicepObjectExpression`, `EmitInlineObject` produces `{ destination: 'azure-monitor' }`. Cosmetically different from multi-line legacy but semantically identical (acceptable per skill).
+- **Null literal** — Use `BicepRawExpression("null")` — no dedicated `BicepNullLiteral` type needed.
+- **Custom type param with import** — `workloadProfileType` uses `BicepType.Custom("WorkloadProfileType")` with `Import("./types.bicep", "WorkloadProfileType")`. Default is `BicepStringLiteral("Consumption")`.
+- **Workload profiles array** — `BicepArrayExpression` with single `BicepObjectExpression` item. Both `name` and `workloadProfileType` properties reference the same `workloadProfileType` param.
+- **CS8122 pitfall** — FluentAssertions `.Match<T>(p => p.Value is SomeType s && ...)` triggers CS8122 in expression trees. Fix: use `.BeOfType<T>().Which` chain instead.
+- **Test count** — 44 tests covering 6 params (1 custom type, 2 bool defaults, 1 string default `''`), primary resource (name, location, nested properties with zoneRedundant, vnetConfiguration, conditional appLogsConfiguration, workloadProfiles array), additional resource diagnosticSettings (condition, scope, body with workspaceId + logs array), 3 outputs, 1 exported type, legacy compat, emission parity.
+- **Tier 3 complete** — All 6 generators migrated (KeyVault, SqlServer, SqlDatabase, CosmosDb, RedisCache, ContainerAppEnvironment). Total: 601 tests, 0 failures.
+
+### Migration #15 — (à compléter)
 
 ---
 

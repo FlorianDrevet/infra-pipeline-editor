@@ -21,6 +21,7 @@ public sealed class BicepEmitter
         EmitVariables(sb, spec.Variables);
         EmitExistingResources(sb, spec.ExistingResources);
         EmitResource(sb, spec.Resource);
+        EmitAdditionalResources(sb, spec.AdditionalResources);
         EmitOutputs(sb, spec.Outputs);
 
         return sb.ToString().TrimEnd('\n', '\r') + "\n";
@@ -130,11 +131,25 @@ public sealed class BicepEmitter
 
     private static void EmitResource(StringBuilder sb, BicepResourceDeclaration resource)
     {
-        sb.Append("resource ").Append(resource.Symbol).Append(" '").Append(resource.ArmTypeWithApiVersion).AppendLine("' = {");
+        sb.Append("resource ").Append(resource.Symbol).Append(" '").Append(resource.ArmTypeWithApiVersion).Append("'");
+
+        if (resource.Condition is not null)
+        {
+            sb.Append(" = if (").Append(EmitExpression(resource.Condition, 0)).AppendLine(") {");
+        }
+        else
+        {
+            sb.AppendLine(" = {");
+        }
 
         if (resource.ParentSymbol is not null)
         {
             sb.Append("  parent: ").AppendLine(resource.ParentSymbol);
+        }
+
+        if (resource.Scope is not null)
+        {
+            sb.Append("  scope: ").AppendLine(resource.Scope);
         }
 
         foreach (var prop in resource.Body)
@@ -143,6 +158,15 @@ public sealed class BicepEmitter
         }
 
         sb.AppendLine("}");
+    }
+
+    private static void EmitAdditionalResources(StringBuilder sb, IReadOnlyList<BicepResourceDeclaration> resources)
+    {
+        foreach (var resource in resources)
+        {
+            sb.AppendLine();
+            EmitResource(sb, resource);
+        }
     }
 
     private static void EmitOutputs(StringBuilder sb, IReadOnlyList<BicepOutput> outputs)

@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-27 | dev | **Migration 3.6 — ContainerAppEnvironment → Builder+IR.** IR extended: `Condition`/`Scope` on `BicepResourceDeclaration`, `AdditionalResources` on `BicepModuleSpec`, `AdditionalResource()` on builder, emitter rewrite for conditional resources with scope. Inline conditional with object/null, custom type import, workload profiles array. 44 new tests (601 total). **Tier 3 complete.** |
 | 2026-04-27 | dev | **Migration 3.5 — RedisCache → Builder+IR.** First generator with `BicepType.Int` outputs + quoted property key `'aad-enabled'`. Conditional bool→string pattern. 43 new tests (557 total). |
 | 2026-04-27 | dev | **Migration 3.4 — CosmosDb → Builder+IR.** First generator with `BicepType.Array` param + `BicepArrayExpression([])` default. Deeply nested properties (consistencyPolicy, backupPolicy, locations array with nested object). 40 new tests (514 total). |
 | 2026-04-27 | dev | **Migration 3.3 — SqlDatabase → Builder+IR.** First generator requiring IR extension: added `BicepExistingResource`, `ExistingResources` on spec, `ParentSymbol` on resource declaration, emitter+builder support. Existing resource + parent ref pattern. 33 new tests (474 total). |

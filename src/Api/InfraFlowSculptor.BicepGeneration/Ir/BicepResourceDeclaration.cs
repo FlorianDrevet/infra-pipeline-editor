@@ -19,6 +19,17 @@ public sealed record BicepResourceDeclaration
     public string? ParentSymbol { get; init; }
 
     /// <summary>
+    /// Optional condition expression. When set, emits <c>= if (condition) {</c> instead of <c>= {</c>.
+    /// </summary>
+    public BicepExpression? Condition { get; init; }
+
+    /// <summary>
+    /// Optional scope symbol. When set, emits <c>scope: symbolName</c> as the first body property (after parent).
+    /// Used for extension resources like <c>Microsoft.Insights/diagnosticSettings</c>.
+    /// </summary>
+    public string? Scope { get; init; }
+
+    /// <summary>
     /// Ordered list of top-level properties in the resource body (name, location, sku, identity, properties, tags, etc.).
     /// Property order is preserved for deterministic emission matching legacy templates.
     /// </summary>

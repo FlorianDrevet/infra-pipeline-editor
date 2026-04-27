@@ -20,6 +20,7 @@ public sealed class BicepModuleBuilder
     private readonly List<BicepTypeDefinition> _exportedTypes = [];
     private readonly List<BicepCompanionSpec> _companions = [];
     private readonly List<BicepExistingResource> _existingResources = [];
+    private readonly List<BicepResourceDeclaration> _additionalResources = [];
 
     /// <summary>Sets the module identity (name, folder, resource type name).</summary>
     public BicepModuleBuilder Module(string name, string folder, string resourceTypeName)
@@ -113,6 +114,26 @@ public sealed class BicepModuleBuilder
     }
 
     /// <summary>
+    /// Adds an additional resource declaration to the module (e.g. diagnostic settings, role assignments).
+    /// </summary>
+    public BicepModuleBuilder AdditionalResource(string symbol, string armTypeWithApiVersion,
+        BicepExpression? condition = null, string? scope = null,
+        Action<BicepObjectBuilder>? bodyBuilder = null)
+    {
+        var body = new BicepObjectBuilder();
+        bodyBuilder?.Invoke(body);
+        _additionalResources.Add(new BicepResourceDeclaration
+        {
+            Symbol = symbol,
+            ArmTypeWithApiVersion = armTypeWithApiVersion,
+            Condition = condition,
+            Scope = scope,
+            Body = body.Build().Properties,
+        });
+        return this;
+    }
+
+    /// <summary>
     /// Builds the immutable <see cref="BicepModuleSpec"/>.
     /// Throws <see cref="InvalidOperationException"/> when required properties are missing.
     /// </summary>
@@ -140,6 +161,7 @@ public sealed class BicepModuleBuilder
                 ParentSymbol = _parentSymbol,
                 Body = _resourceBody.ToList(),
             },
+            AdditionalResources = _additionalResources.ToList(),
             Outputs = _outputs.ToList(),
             ExportedTypes = _exportedTypes.ToList(),
             Companions = _companions.ToList(),

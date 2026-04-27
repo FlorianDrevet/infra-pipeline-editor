@@ -223,14 +223,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | types.bicep (WorkloadProfileType), diagnostic settings child resource, `logAnalyticsWorkspaceId` conditional |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | types.bicep (WorkloadProfileType), diagnostic settings child resource, `logAnalyticsWorkspaceId` conditional |
+| Tests TDD écrits | ✅ | 44 tests (interface, params, primary resource, additional resource diagnosticSettings, outputs, exported types, legacy compat, emission) |
+| Migration vers Builder | ✅ | IR extended: `Condition`, `Scope` on `BicepResourceDeclaration`, `AdditionalResources` on `BicepModuleSpec`, `AdditionalResource()` on builder |
+| Parité d'émission vérifiée | ✅ | Inline conditional `appLogsConfiguration` cosmetically different (single-line object) but semantically identical |
+| Branché dans le pipeline | ✅ | Auto-detected via `IResourceTypeBicepSpecGenerator` in `ModuleBuildStage` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | Migration #14 added to SKILL.md |
 
 ---
 
