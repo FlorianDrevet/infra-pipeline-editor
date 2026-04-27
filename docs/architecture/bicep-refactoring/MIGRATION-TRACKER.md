@@ -85,14 +85,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | types.bicep (SkuName, PublicNetworkAccess) |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 84 LOC, 2 imports (SkuName, PublicNetworkAccess), 6 params (2 custom types, 2 bool with defaults), inline ternary in resource body, 2 outputs with descriptions, 2 exported types |
+| Tests TDD écrits | ✅ | `tests/.../Generators/ContainerRegistryTypeBicepGeneratorTests.cs` — 27 tests |
+| Migration vers Builder | ✅ | Implements `IResourceTypeBicepSpecGenerator`, inline `BicepConditionalExpression` in resource body property |
+| Parité d'émission vérifiée | ✅ | Module + types emission verified |
+| Branché dans le pipeline | ✅ | No DI change needed — auto-detected by `ModuleBuildStage` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | |
 
 ---
 

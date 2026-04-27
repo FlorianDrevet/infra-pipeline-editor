@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-27 | dev | **Migration 1.4 — ContainerRegistry → Builder+IR.** Inline `BicepConditionalExpression` in resource body, `BicepBoolLiteral` defaults, 2 custom types. Tier 1 complete (4/4 generators). 27 new tests (268 total). |
 | 2026-04-27 | dev | **Migration 1.3 — AppServicePlan → Builder+IR.** First generator with variables (`Var()`), `BicepConditionalExpression`, 2 imports, 2 custom types. Fixed `ModuleBuildStage` to preserve `Parameters` dict from legacy `Generate()`. 27 new tests (241 total). |
 | 2026-04-27 | dev | **Migration 1.2 — LogAnalyticsWorkspace → Builder+IR.** First generator with `types.bicep` (SkuName exported type), custom param type, nested object properties, default values. 22 new tests (215 total). |
 | 2026-04-27 | dev | **Migration 1.1 — UserAssignedIdentity → Builder+IR.** Generator implements `IResourceTypeBicepSpecGenerator`, `GenerateSpec()` builds `BicepModuleSpec` via `BicepModuleBuilder`. Legacy `Generate()` kept for backward compat. 18 new tests (193 total). No DI change needed. |

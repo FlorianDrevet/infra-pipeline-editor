@@ -235,7 +235,15 @@ Tests à écrire pour chaque générateur :
 - **ExportedType API** — `ExportedType(name, body, description)` — no `isExported` param; it's always `true`.
 - **Test count** — 27 tests covering spec structure, imports, 5 params, 2 variables, resource body (5 top-level props + nested sku + nested properties), 1 output, 2 exported types, interface contracts, emission content, legacy backward compat.
 
-### Migration #4 — (à compléter)
+### Migration #4 — ContainerRegistry (Tier 1, 84 LOC)
+- **Inline ternary in resource body** — `BicepConditionalExpression` works directly inside a `Property()` lambda for nested properties: `.Property("zoneRedundancy", new BicepConditionalExpression(ref, lit1, lit2))`. No variable needed.
+- **Bool defaults** — `BicepBoolLiteral(false)` emits as `= false`. First usage of `BicepBoolLiteral` as param default.
+- **Empty Parameters dict** — Unlike AppServicePlan, this generator has no user-configured values from `resource.Properties`. The `ModuleBuildStage` fix from migration #3 handles both cases (empty and non-empty Parameters preserved).
+- **Mechanical migration** — No new IR features needed. Standard pattern: imports, params, resource with nested objects, outputs, exported types.
+- **Test count** — 27 tests covering spec structure, imports, 6 params (custom types + bool defaults), resource body (4 props + nested sku + 3-prop properties), inline ternary, 2 outputs with descriptions, 2 exported types, interface contracts, emission content, legacy backward compat.
+- **Tier 1 complete** — All 4 Tier 1 generators (UserAssignedIdentity, LogAnalyticsWorkspace, AppServicePlan, ContainerRegistry) migrated.
+
+### Migration #5 — (à compléter)
 
 ---
 
