@@ -102,14 +102,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | types.bicep (SkuName, TlsVersion), `listKeys()` output |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 89 LOC, 2 imports (SkuName, TlsVersion), 7 params (2 custom types, 2 bool, 1 int with defaults), nested sku with inline ternary for capacity, `listKeys()` output, 2 exported types |
+| Tests TDD écrits | ✅ | `tests/.../Generators/ServiceBusNamespaceTypeBicepGeneratorTests.cs` — 28 tests |
+| Migration vers Builder | ✅ | Implements `IResourceTypeBicepSpecGenerator`, `BicepRawExpression` for `listKeys()` output and `sku == 'Premium'` condition |
+| Parité d'émission vérifiée | ✅ | Module + types emission verified |
+| Branché dans le pipeline | ✅ | No DI change needed — auto-detected by `ModuleBuildStage` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | |
 
 ### 2.2 — AppConfiguration (91 LOC)
 

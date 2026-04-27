@@ -243,7 +243,15 @@ Tests à écrire pour chaque générateur :
 - **Test count** — 27 tests covering spec structure, imports, 6 params (custom types + bool defaults), resource body (4 props + nested sku + 3-prop properties), inline ternary, 2 outputs with descriptions, 2 exported types, interface contracts, emission content, legacy backward compat.
 - **Tier 1 complete** — All 4 Tier 1 generators (UserAssignedIdentity, LogAnalyticsWorkspace, AppServicePlan, ContainerRegistry) migrated.
 
-### Migration #5 — (à compléter)
+### Migration #5 — ServiceBusNamespace (Tier 2, 89 LOC)
+- **First Tier 2 generator** — Opens the "medium with types" tier. Patterns from Tier 1 apply directly; no new IR features needed.
+- **`listKeys()` output** — Complex expressions like `listKeys('${resource.id}/AuthorizationRules/...', resource.apiVersion).primaryConnectionString` use `BicepRawExpression` verbatim. The emitter outputs them as-is.
+- **`sku.tier: sku`** — Param reuse in nested objects: `.Property("tier", new BicepReference("sku"))` maps the same param to two different keys in the sku object.
+- **Inline ternary in nested object** — `BicepConditionalExpression` with `BicepRawExpression("sku == 'Premium'")` as condition works for equality-based conditional inside nested property builder.
+- **`BicepIntLiteral` as ternary alternate** — `new BicepIntLiteral(0)` as the `Alternate` in a conditional emits as `0` correctly.
+- **Test count** — 28 tests covering 7 params, sku with 3 props (name, tier, conditional capacity), properties with 3 props, 2 outputs (including listKeys), 2 exported types, emission parity.
+
+### Migration #6 — (à compléter)
 
 ---
 
