@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-27 | dev | **Migration 5.1 — ContainerApp → Builder+IR.** First Tier 5 generator. 3 variants (NoAcr/AcrMI/AcrAdmin), 6 exported types incl. 4 object types via multi-line `BicepRawExpression`, for-loop in `Var` via raw expression, `union()` probes block as static helper. 14 ParameterGroupMappings preserved in legacy `Generate()`. 54 new tests (800 total). |
 | 2026-04-27 | dev | **Migration 4.2 — FunctionApp → Builder+IR.** Second Tier 4 variant-based generator. Same 3-variant pattern as WebApp but with `workerRuntime` var + `appSettings` (FUNCTIONS_WORKER_RUNTIME/EXTENSION_VERSION) in all variants, `kind` always present, 3 exported types. 74 new tests (746 total). **Tier 4 complete.** |
 | 2026-04-27 | dev | **Migration 4.1 — WebApp → Builder+IR.** First Tier 4 variant-based generator (3 deployment modes: Code/ContainerMI/ContainerAdmin). IR extended: `BicepForLoop` on resources, `ModuleFileName` on spec. ForLoop emitter for `[for x in xs: {...}]`. Conditional branches in single GenerateSpec. 71 new tests (672 total). |
 | 2026-04-27 | dev | **Migration 3.6 — ContainerAppEnvironment → Builder+IR.** IR extended: `Condition`/`Scope` on `BicepResourceDeclaration`, `AdditionalResources` on `BicepModuleSpec`, `AdditionalResource()` on builder, emitter rewrite for conditional resources with scope. Inline conditional with object/null, custom type import, workload profiles array. 44 new tests (601 total). **Tier 3 complete.** |

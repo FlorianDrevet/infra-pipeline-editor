@@ -270,14 +270,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | 3 variantes ACR, 4 custom Bicep types, 12 ParameterGroupMappings, `@secure()`, health probes, custom domains |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 3 variants (NoAcr/MI/Admin), 6 exported types (4 object types), 14 ParameterGroupMappings preserved in legacy `Generate()` only, `@secure()`, health probes via raw `union()`, custom domains via raw for-loop var |
+| Tests TDD écrits | ✅ | 54 tests covering all 3 variants (params, vars, resource body, configuration sub-object, outputs, exported types) + legacy compat + emission |
+| Migration vers Builder | ✅ | Object exported types use multi-line `BicepRawExpression`. Probes block extracted as `BuildProbesUnion()` static helper. Custom domain bindings as raw for-loop in var. |
+| Parité d'émission vérifiée | ✅ | Conditional ingress + nested customDomains conditional emit inline (acceptable per skill) |
+| Branché dans le pipeline | ✅ | `IResourceTypeBicepSpecGenerator` detected at runtime |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | Migration #17 added |
 
 ### 5.2 — StorageAccount (417 LOC)
 

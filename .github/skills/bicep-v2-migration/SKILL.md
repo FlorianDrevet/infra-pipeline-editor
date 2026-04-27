@@ -359,6 +359,19 @@ Tests à écrire pour chaque générateur :
 
 ---
 
+### Migration #17 — ContainerApp (Phase 5.1, Tier 5 — first Tier 5 with object exported types)
+
+- **Object exported types via `BicepRawExpression`:** The IR has no first-class "object type definition" form (with `@description` decorators on each field, e.g. `type Config = { @description('...') field: string }`). Solution: pass the entire object type body as a multi-line `BicepRawExpression` to `ExportedType()`. The emitter passes raw text through verbatim. Used for `ContainerRuntimeConfig`, `ScalingConfig`, `IngressConfig`, `ProbeConfig`, `HealthProbeConfig`. Only `TransportMethod` (a union string type) uses the simple raw-string pattern.
+- **For-loop in a `Var` (not a resource):** ContainerApp uses `var customDomainBindings = [for domain in customDomains: { ... }]` — array comprehension at variable level. The IR's `BicepForLoop` is only for resource declarations. Solution: pass the entire `[for ...: { ... }]` as `BicepRawExpression` to `Var()`. Multi-line raw text supported.
+- **Complex inline `union(...)` with conditional array args:** `probes: union(cond1 ? [{...}] : [], cond2 ? [{...}] : [], cond3 ? [{...}] : [])` is too awkward to model with `BicepFunctionCall` + nested conditionals. Extracted as a static helper `BuildProbesUnion()` returning a multi-line raw string, then passed as `BicepRawExpression` to the `probes` property assignment.
+- **Variant detection key differs from WebApp/FunctionApp:** Uses `containerRegistryId` presence (not `deploymentMode`) to distinguish NoAcr from ACR variants. `acrAuthMode` then distinguishes MI from Admin within ACR variants.
+- **Param counts:** NoAcr 8, ACR MI 10, ACR Admin 10 (Admin replaces `acrManagedIdentityClientId` with `acrPassword`).
+- **Variable counts:** NoAcr 1 (customDomainBindings), MI 1, Admin 3 (+ `acrUsername` from `split()`, + `acrPasswordSecretName` literal).
+- **6 exported types:** `TransportMethod`, `ContainerRuntimeConfig`, `ScalingConfig`, `IngressConfig`, `ProbeConfig`, `HealthProbeConfig`. Imports only the 4 directly used (omit `TransportMethod` and `ProbeConfig` from imports — they're nested inside `IngressConfig` and `HealthProbeConfig`).
+- **`ParameterGroupMappings` preserved in legacy `Generate()` only:** 14 mappings (cpuCores, memoryGi, minReplicas, maxReplicas, ingressEnabled, ingressTargetPort, ingressExternal, transportMethod, readiness/liveness/startup path+port). The IR spec doesn't carry this metadata — it remains an assembler concern read from `GeneratedTypeModule`.
+- **Property dotted-path references:** `BicepReference("ingress.enabled")`, `BicepReference("scaling.minReplicas")`, `BicepReference("containerRuntime.image")` — `BicepReference.Symbol` accepts dotted paths verbatim. The emitter outputs them as-is.
+- **54 tests total.** **800 tests cumulative, 0 failures.**
+
 ## Ordre de migration recommandé
 
 Voir le fichier de suivi : `docs/architecture/bicep-refactoring/MIGRATION-TRACKER.md`
