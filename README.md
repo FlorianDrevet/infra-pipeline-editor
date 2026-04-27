@@ -183,4 +183,8 @@ Si l'objectif est d'évaluer la qualité du projet et la rigueur de l'implément
 
 ## Licence
 
-Ce projet est distribué sous licence [LICENSE](LICENSE).
+Ce projet est distribué sous licence PolyForm Noncommercial 1.0.0, disponible dans [LICENSE](LICENSE).
+
+Le code reste public pour consultation, apprentissage et évaluation technique, mais son usage est limité aux usages non commerciaux définis par cette licence.
+
+Tout usage commercial, intégration dans une offre payante, exploitation pour un client ou usage interne à finalité commerciale nécessite un accord de licence commercial séparé avec l'auteur.

@@ -92,6 +92,17 @@ public static class AzureResourceTypes
     ];
 
     /// <summary>
+    /// ARM resource types that support per-environment app settings or environment variables
+    /// (Web Apps, Function Apps, Container Apps).
+    /// </summary>
+    public static readonly IReadOnlySet<string> ComputeArmTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ArmTypes.WebApp,
+        ArmTypes.FunctionApp,
+        ArmTypes.ContainerApp,
+    };
+
+    /// <summary>
     /// Resolves the friendly type name from an ARM resource type string.
     /// Returns the original string if no mapping is found.
     /// </summary>

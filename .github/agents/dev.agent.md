@@ -155,6 +155,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Analyse d'impact / exploration structurelle avant modification | Charger le skill **`gitnexus-workflow`** | `.github/skills/gitnexus-workflow/SKILL.md` |
 | Audit technique complet du dépôt avec synchronisation GitHub | **`audit-expert`** + charger le skill `audit-workflow` | `.github/agents/audit-expert.agent.md` |
 | Revue de code pré-merge, review de diff contre `main`, gate qualité avant merge | **`review-expert`** | `.github/agents/review-expert.agent.md` |
+| Appliquer un backlog de correction issu d'une review pré-merge | **`review-remediator`** | `.github/agents/review-remediator.agent.md` |
 | Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` |
 | Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
 | Modifier/créer du code C#/.NET | **`dotnet-dev`** | `.github/agents/dotnet-dev.agent.md` |
@@ -190,6 +191,10 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 - **Code review / review pré-merge / revue d'un diff généré par des agents** :
   Déléguer à `review-expert`.
   Cet agent relit le diff destiné à `main`, priorise les findings par sévérité, explique le risque, puis produit un backlog de correction réutilisable.
+
+- **Correction d'un backlog issu de `review-expert`** :
+  Déléguer à `review-remediator`.
+  Cet agent consomme les findings acceptés, coordonne les correctifs via les agents experts, puis valide et trace ce qui a été réellement résolu.
 
 - **Tests unitaires .NET / xUnit** (création, correction de bug, couverture, snapshots) :
   Charger le skill `xunit-unit-testing`, puis déléguer à `dotnet-dev`.

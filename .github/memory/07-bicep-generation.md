@@ -1,5 +1,59 @@
 # Bicep Generation
 
+## Pipeline Architecture (Vague 1) [2026-04-27]
+
+The legacy 920-line `BicepGenerationEngine` God Object was decomposed into a thin facade (~85 LOC) over a staged pipeline. **Public surface preserved** — `BicepGenerationEngine.Generate(GenerationRequest)` and `GenerateMonoRepo(MonoRepoGenerationRequest)` keep the same signatures, so all handlers (`GenerateBicepCommandHandler`, etc.) are untouched.
+
+### Layout under `src/Api/InfraFlowSculptor.BicepGeneration/`
+
+- `BicepGenerationEngine.cs` — facade. Builds a `BicepGenerationContext`, runs the pipeline, applies post-assembly output pruning (single-config or mono-repo).
+- `Pipeline/`
+  - `IBicepGenerationStage.cs` — `int Order` + `void Execute(BicepGenerationContext)`. Stateless, idempotent, singleton-safe.
+  - `BicepGenerationContext.cs` — mutable per-generation state (`Request`, `WorkItems`, `Identity`, `AppSettings`, `ResourceIdToInfo`, `Result`). `ModuleWorkItem` holds the resource + the in-flight `GeneratedTypeModule` (record `with`-mutated by stages).
+  - `BicepGenerationPipeline.cs` — orchestrator; sorts injected stages by `Order` at construction.
+  - `Stages/` — 9 stages, ordered with spacing of 100 to allow future insertions:
+    1. `IdentityAnalysisStage` (100) — system/user identity sets + mixed-ARM-types set.
+    2. `AppSettingsAnalysisStage` (200) — outputs to inject per source resource + compute ARM types needing app-settings param.
+    3. `ModuleBuildStage` (300) — calls each `IResourceTypeBicepGenerator`, builds initial `WorkItem`. Throws `NotSupportedException` for unregistered ARM types.
+    4. `IdentityInjectionStage` (400) — applies system/user/parameterized identity blocks.
+    5. `OutputInjectionStage` (500) — appends `output` declarations referenced by app settings; secure outputs marked `@secure()`.
+    6. `AppSettingsInjectionStage` (600) — injects `appSettings` (Web/Function App) or `envVars` (Container App) param.
+    7. `TagsInjectionStage` (700) — injects `param tags object = {}` + `tags: tags`.
+    8. `ParentReferenceResolutionStage` (800) — resolves `appServicePlanId`, `containerAppEnvironmentId`, `logAnalyticsWorkspaceId` (with same-config / cross-config existing fallback for `Microsoft.Insights/components` and `Microsoft.App/managedEnvironments`), and `sqlServerId`.
+    9. `AssemblyStage` (900) — delegates to `BicepAssembler.Assemble`. Output pruning is **not** here — owned by the engine to support cross-config pruning in mono-repo.
+- `TextManipulation/` — pure static helpers extracted from the engine, **byte-for-byte parity** with the legacy implementation:
+  - `BicepTextManipulationHelpers` — 13 compiled regex (`ResourceSymbolPattern`, `IdentityBlockPattern`, etc.), `InsertAt`, `FindClosingBrace`, `FindFirstLineIndex`, `HasParam`, `HasOutput`, `Capitalize`, `AddTypeImport`.
+  - `BicepIdentityInjector` — `InjectSystemAssigned`, `InjectUserAssigned`, `InjectParameterized` + `ManagedIdentityTypeBicepType` const.
+  - `BicepOutputInjector` — `Inject(string, IReadOnlyCollection<ModuleOutputInjection>)`, `ExtractRootSymbol`.
+  - `BicepAppSettingsInjector` — `Inject(string, string armType)` routing to `InjectWebFunctionAppSettings` / `InjectContainerAppEnvVars`.
+  - `BicepTagsInjector` — `Inject(string)`.
+  - `BicepOutputPruner` — `PruneSingleConfig`, `PruneMonoRepo`, `CollectUsedOutputsByPath`.
+
+### DI registration
+
+In `src/Api/InfraFlowSculptor.Application/DependencyInjection.cs`, the 18 `IResourceTypeBicepGenerator` singletons are followed by 9 `IBicepGenerationStage` singletons + `BicepGenerationPipeline` + `BicepGenerationEngine`. Stage order is determined by `IBicepGenerationStage.Order`, **not** by DI registration order.
+
+### Magic strings removed
+
+Compute ARM identifiers were extracted into `AzureResourceTypes.ComputeArmTypes` (`IReadOnlySet<string>` containing `WebApp`, `FunctionApp`, `ContainerApp` ARM strings).
+
+### Testability
+
+Each stage and each `TextManipulation/*` helper is independently unit-testable. `InternalsVisibleTo` on the BicepGeneration csproj exposes `internal` helpers to the test assembly. Test project at `tests/InfraFlowSculptor.BicepGeneration.Tests/` with xUnit 2.9.3 + FluentAssertions 6.12.2 + NSubstitute 5.3.0:
+
+- **124 unit tests** covering:
+  - `TextManipulation/`: `BicepTextManipulationHelpers` (18), `BicepIdentityInjector` (12), `BicepOutputInjector` (11), `BicepAppSettingsInjector` (7), `BicepTagsInjector` (5), `BicepOutputPruner` (4)
+  - `Pipeline/`: `BicepGenerationPipeline` orchestration (4)
+  - `Pipeline/Stages/`: `IdentityAnalysis` (8), `AppSettingsAnalysis` (8), `ModuleBuild` (6), `IdentityInjection` (7), `OutputInjection` (4), `AppSettingsInjection` (4), `TagsInjection` (4), `ParentReferenceResolution` (9), `Assembly` (3)
+- Convention: `Given_When_Then` naming, AAA pattern, `_sut` for SUT, FluentAssertions, NSubstitute for `IBicepGenerationStage` / `IResourceTypeBicepGenerator` mocks
+- Pitfall: `BicepTagsInjector.Inject` regex requires `\n` before first `param`; test modules must include a `@description` or blank line above the first param
+
+### Constraints for future modifications
+
+- **Never** call `BicepOutputPruner.PruneSingleConfig` from a stage — pruning is engine-owned to keep the mono-repo cross-config pruning correct.
+- A new mutation stage that touches `ModuleBicepContent` must use `item.Module = item.Module with { ModuleBicepContent = ... }` to avoid losing fields set by earlier stages (identity kind, parameterized flag, etc.).
+- Adding a new helper to `TextManipulation/` requires keeping it `internal` or `public static` and **pure** (no DI, no shared state).
+
 ## Bootstrap split for SplitInfraCode [2026-04-25]
 - `BootstrapPipelineGenerationEngine` is mode-driven via `BootstrapMode` enum (`FullOwner` default, `ApplicationOnly` for code-side in SplitInfraCode). `FullOwner` keeps the historical 3-job structure (provision pipelines + environments + variable groups). `ApplicationOnly` emits a `ValidateSharedResources` job (env via REST, variable groups via `az pipelines variable-group list`) followed by a `ProvisionPipelineDefinitions` job with `dependsOn: ValidateSharedResources`. The validation step throws an actionable error listing missing items if the infra bootstrap was not run first.
 - `ArtifactKind.BootstrapApplication` was added next to `Bootstrap`. `RepositoryTargetResolver` routes `BootstrapApplication` (and `ApplicationPipeline`) to `RepositoryContentKindsEnum.ApplicationCode`.

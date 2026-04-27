@@ -8,6 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="InfraFlowSculptor.BicepGeneration.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\InfraFlowSculptor.GenerationCore\InfraFlowSculptor.GenerationCore.csproj" />
     </ItemGroup>
 

@@ -11,6 +11,8 @@ using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Application.RoleAssignments.Common;
 using InfraFlowSculptor.BicepGeneration;
 using InfraFlowSculptor.BicepGeneration.Generators;
+using InfraFlowSculptor.BicepGeneration.Pipeline;
+using InfraFlowSculptor.BicepGeneration.Pipeline.Stages;
 using InfraFlowSculptor.PipelineGeneration;
 using InfraFlowSculptor.PipelineGeneration.Generators;
 using InfraFlowSculptor.PipelineGeneration.Generators.App;
@@ -67,6 +69,19 @@ public static class DependencyInjection
         services.AddSingleton<IResourceTypeBicepGenerator, SqlDatabaseTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, ServiceBusNamespaceTypeBicepGenerator>();
         services.AddSingleton<IResourceTypeBicepGenerator, ContainerRegistryTypeBicepGenerator>();
+
+        // Bicep generation pipeline (Vague 1 — staged decomposition of the engine).
+        // Stages are ordered by IBicepGenerationStage.Order at pipeline construction.
+        services.AddSingleton<IBicepGenerationStage, IdentityAnalysisStage>();
+        services.AddSingleton<IBicepGenerationStage, AppSettingsAnalysisStage>();
+        services.AddSingleton<IBicepGenerationStage, ModuleBuildStage>();
+        services.AddSingleton<IBicepGenerationStage, IdentityInjectionStage>();
+        services.AddSingleton<IBicepGenerationStage, OutputInjectionStage>();
+        services.AddSingleton<IBicepGenerationStage, AppSettingsInjectionStage>();
+        services.AddSingleton<IBicepGenerationStage, TagsInjectionStage>();
+        services.AddSingleton<IBicepGenerationStage, ParentReferenceResolutionStage>();
+        services.AddSingleton<IBicepGenerationStage, AssemblyStage>();
+        services.AddSingleton<BicepGenerationPipeline>();
         services.AddSingleton<BicepGenerationEngine>();
 
         // Pipeline generation engine

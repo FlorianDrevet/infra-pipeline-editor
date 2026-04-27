@@ -10,6 +10,8 @@
 | `architect` | Analyse archi, challenge, plan d'implémentation (ne code pas) | `.github/agents/architect.agent.md` |
 | `aspire-debug` | Debug runtime Aspire, MCP diagnostics | `.github/agents/aspire-debug.agent.md` |
 | `audit-expert` | Audit technique expert, produit des rapports `audits/` et synchronise les issues GitHub d'audit | `.github/agents/audit-expert.agent.md` |
+| `review-expert` | Revue de code pré-merge sur le diff contre `main`, findings sévérisés et backlog de correction | `.github/agents/review-expert.agent.md` |
+| `review-remediator` | Remédiation disciplinée d'un backlog de review approuvé, avec validations et traçabilité des fixes | `.github/agents/review-remediator.agent.md` |
 | `pr-manager` | Conventions PR (titre, description, template) | `.github/agents/pr-manager.agent.md` |
 | `merge-main` | Fusion main sur branche courante | `.github/agents/merge-main.agent.md` |
 | `dream` | Consolidation mémoire (4 phases Dream) | `.github/agents/dream.agent.md` |
@@ -40,6 +42,19 @@
 - `dotnet-dev` must load `xunit-unit-testing` for any xUnit unit-test task (creation, review, bug reproduction, snapshots, coverage, mutation).
 - Unit test projects belong under `tests/<TargetAssembly>.Tests/` and target exactly one production assembly.
 - `tests/InfraFlowSculptor.GenerationParity.Tests/` is currently just a kept folder without an active `.csproj`; do not place ordinary unit tests there.
+
+## Pre-merge Review Routing [2026-04-27]
+
+- `review-expert` is the strict code-review gate for branch diffs intended for `main`.
+- Its review scope is the merge diff by default (`origin/main...HEAD`, fallback `main...HEAD`), not the full repository.
+- It must output severity-ranked findings first, then questions/assumptions, then a corrective backlog ready to delegate.
+- It should prioritize maintainability, security, scalability, architecture, and test gaps over speed of implementation.
+
+## Review Workflow [2026-04-27]
+
+- Workspace prompt `.github/prompts/review-main.prompt.md` standardizes strict pre-merge reviews against `origin/main` / `main`.
+- `review-remediator` consumes the approved corrective backlog from `review-expert` and applies only the requested fixes.
+- The expected sequence is: `review-main` prompt -> `review-expert` findings/backlog -> `review-remediator` fixes -> optional second `review-main` pass.
 
 ## Skill Concept
 A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when the task justifies it. No tools, composable, lightweight. Skills override pre-training with tested project-specific patterns.

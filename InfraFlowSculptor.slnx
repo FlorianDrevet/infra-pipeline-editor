@@ -22,5 +22,7 @@
     <Project Path="src/Api/InfraFlowSculptor.Domain/InfraFlowSculptor.Domain.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Infrastructure/InfraFlowSculptor.Infrastructure.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/InfraFlowSculptor.BicepGeneration.Tests/InfraFlowSculptor.BicepGeneration.Tests.csproj" />
+  </Folder>
 </Solution>
