@@ -1,5 +1,11 @@
 # Bicep Generation
 
+## Onboarding documentation refreshed [2026-04-27]
+
+- `docs/architecture/bicep-generation.md` was rewritten as a full onboarding and learning guide for the refactored Bicep generation engine.
+- The document now explains the end-to-end flow from Application handlers to blob upload, the staged pipeline, Builder + IR, assemblers, mono-repo behavior, architectural decisions, and a step-by-step reading path through the codebase.
+- It explicitly teaches how to navigate `InfraFlowSculptor.BicepGeneration.csproj`, the test csproj, and `Directory.Packages.props` to understand project boundaries and central package management.
+
 ## Pipeline Architecture (Vague 1) [2026-04-27]
 
 The legacy 920-line `BicepGenerationEngine` God Object was decomposed into a thin facade (~85 LOC) over a staged pipeline. **Public surface preserved** — `BicepGenerationEngine.Generate(GenerationRequest)` and `GenerateMonoRepo(MonoRepoGenerationRequest)` keep the same signatures, so all handlers (`GenerateBicepCommandHandler`, etc.) are untouched.
