@@ -225,7 +225,17 @@ Tests à écrire pour chaque générateur :
 - **Default values** — `BicepStringLiteral("PerGB2018")` and `BicepIntLiteral(30)` / `BicepIntLiteral(-1)` emit as `= 'PerGB2018'` / `= 30` / `= -1`.
 - **Règle** — For generators with types.bicep: use `ExportedType()` on the same builder, and `Import()` for the module template. The emitter handles both `EmitModule()` and `EmitTypes()` from the same spec.
 
-### Migration #3 — (à compléter)
+### Migration #3 — AppServicePlan (Tier 1, 80 LOC)
+- **First generator with variables** — `Var("isLinux", new BicepRawExpression("osType == 'Linux'"))` and `Var("kind", new BicepConditionalExpression(...))` emit correctly as `var isLinux = osType == 'Linux'` and `var kind = isLinux ? 'linux' : 'app'`.
+- **Equality comparisons** — No `BicepBinaryExpression` exists in the IR; use `BicepRawExpression("osType == 'Linux'")` for equality checks.
+- **BicepConditionalExpression** — Works for ternary: `new BicepConditionalExpression(condition, consequent, alternate)`.
+- **Two custom types** — Both `SkuName` and `OsType` imported via single `.Import("./types.bicep", "SkuName", "OsType")`.
+- **Parameters dict preservation** — Fixed `ModuleBuildStage`: `LegacyTextModuleAdapter.CreateSkeletonModule(spec)` returns `Parameters = new Dictionary<string, object>()` (empty), but AppServicePlan populates `Parameters` with user-configured values from `resource.Properties`. Fix: `skeleton with { Parameters = module.Parameters }`. This is backward-compatible with previous migrations (they had empty Parameters too).
+- **Builder API** — `.Resource(symbol, armType)` takes 2 args (no lambda). Properties added via `.Property()` on the builder itself, not a callback.
+- **ExportedType API** — `ExportedType(name, body, description)` — no `isExported` param; it's always `true`.
+- **Test count** — 27 tests covering spec structure, imports, 5 params, 2 variables, resource body (5 top-level props + nested sku + nested properties), 1 output, 2 exported types, interface contracts, emission content, legacy backward compat.
+
+### Migration #4 — (à compléter)
 
 ---
 

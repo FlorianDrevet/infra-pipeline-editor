@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-27 | dev | **Migration 1.3 — AppServicePlan → Builder+IR.** First generator with variables (`Var()`), `BicepConditionalExpression`, 2 imports, 2 custom types. Fixed `ModuleBuildStage` to preserve `Parameters` dict from legacy `Generate()`. 27 new tests (241 total). |
 | 2026-04-27 | dev | **Migration 1.2 — LogAnalyticsWorkspace → Builder+IR.** First generator with `types.bicep` (SkuName exported type), custom param type, nested object properties, default values. 22 new tests (215 total). |
 | 2026-04-27 | dev | **Migration 1.1 — UserAssignedIdentity → Builder+IR.** Generator implements `IResourceTypeBicepSpecGenerator`, `GenerateSpec()` builds `BicepModuleSpec` via `BicepModuleBuilder`. Legacy `Generate()` kept for backward compat. 18 new tests (193 total). No DI change needed. |
 | 2026-04-27 | dev | **Phase 0 IR infrastructure complete.** Created 19 new files: 9 IR model records, 2 builders, 1 emitter, 4 transformers, 1 adapter, 1 interface, 1 stage. Modified 6 existing files: `ModuleWorkItem.Spec`, `ModuleBuildStage` (IR detect), stages 400-700 (dual-mode), DI registration (SpecEmissionStage). 51 new unit tests (175 total). Tracker updated. |

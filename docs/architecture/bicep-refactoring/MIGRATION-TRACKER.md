@@ -72,14 +72,14 @@
 
 | Étape | Statut | Notes |
 |-------|--------|-------|
-| Analyse du générateur legacy | ⬜ | types.bicep (SkuName, OsType), sku/capacity/osType params |
-| Tests TDD écrits | ⬜ | |
-| Migration vers Builder | ⬜ | |
-| Parité d'émission vérifiée | ⬜ | |
-| Branché dans le pipeline | ⬜ | |
+| Analyse du générateur legacy | ✅ | 80 LOC, 2 imports (SkuName, OsType), 5 params (2 custom types), 2 variables (isLinux, kind), nested sku/properties, 1 output, 2 exported types |
+| Tests TDD écrits | ✅ | `tests/.../Generators/AppServicePlanTypeBicepGeneratorTests.cs` — 27 tests |
+| Migration vers Builder | ✅ | Implements `IResourceTypeBicepSpecGenerator`, first generator with `Var()` (conditional + raw expression) |
+| Parité d'émission vérifiée | ✅ | Module + types emission verified; variables emit correctly |
+| Branché dans le pipeline | ✅ | No DI change; fixed `ModuleBuildStage` to preserve `Parameters` dict from legacy `Generate()` |
 | Review de code | ⬜ | |
 | Corrections appliquées | ⬜ | |
-| Skill mis à jour avec retours | ⬜ | |
+| Skill mis à jour avec retours | ✅ | |
 
 ### 1.4 — ContainerRegistry (84 LOC)
 
