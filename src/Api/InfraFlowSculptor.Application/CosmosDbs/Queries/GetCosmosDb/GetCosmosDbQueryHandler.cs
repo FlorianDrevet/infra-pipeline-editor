@@ -35,7 +35,7 @@ public class GetCosmosDbQueryHandler(
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
-            return Errors.CosmosDb.NotFoundError(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<CosmosDbResult>(cosmosDb);
     }

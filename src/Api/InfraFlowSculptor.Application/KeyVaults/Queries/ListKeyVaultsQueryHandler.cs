@@ -23,7 +23,7 @@ public class ListKeyVaultsQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.ResourceGroup.NotFound(query.ResourceGroupId);
+            return authResult.Errors;
 
         var keyVaults = await keyVaultRepository.GetByResourceGroupIdAsync(query.ResourceGroupId, cancellationToken);
 

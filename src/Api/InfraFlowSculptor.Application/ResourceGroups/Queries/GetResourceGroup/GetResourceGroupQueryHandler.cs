@@ -23,7 +23,7 @@ public class GetResourceGroupQueryHandler(
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
 
         if (authResult.IsError)
-            return Errors.ResourceGroup.NotFound(query.Id);
+            return authResult.Errors;
 
         return mapper.Map<ResourceGroupResult>(resourceGroup);
     }

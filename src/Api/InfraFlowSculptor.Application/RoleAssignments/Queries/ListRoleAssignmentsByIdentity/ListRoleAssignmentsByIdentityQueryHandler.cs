@@ -39,7 +39,7 @@ public sealed class ListRoleAssignmentsByIdentityQueryHandler(
 
         var authResult = await accessService.VerifyReadAccessAsync(resourceGroup.InfraConfigId, cancellationToken);
         if (authResult.IsError)
-            return Errors.UserAssignedIdentity.NotFoundError(request.IdentityId);
+            return authResult.Errors;
 
         // Query all role assignments that reference this identity
         var roleAssignments = await azureResourceRepository.GetRoleAssignmentsByIdentityIdAsync(
