@@ -13,7 +13,8 @@
     "USER_DEFAULT_NAME": "Workspace member",
     "USER_DEFAULT_EMAIL": "Connected with Microsoft Entra ID",
     "LOGGING_OUT": "Signing out...",
-    "LOGOUT": "Sign out"
+    "LOGOUT": "Sign out",
+    "SETTINGS": "Settings"
   },
   "FOOTER": {
     "BRAND_DESCRIPTION": "Infrastructure as Data, Bicep as Code. Secure workspace for Azure platform teams.",
@@ -2129,5 +2130,49 @@
     "RESET_CONFIRM_YES": "Reset",
     "RESET_CONFIRM_CANCEL": "Cancel",
     "RESET_ERROR": "Unable to reset the abbreviation."
+  },
+  "SETTINGS": {
+    "TITLE": "Settings",
+    "SUBTITLE": "Manage your account settings",
+    "PAT_SECTION_TITLE": "Personal Access Tokens",
+    "PAT_SECTION_DESCRIPTION": "Personal access tokens are used to authenticate MCP (Model Context Protocol) clients. Create a token and configure it in your MCP client.",
+    "CREATE_TOKEN": "Create Token",
+    "NO_TOKENS": "No personal access tokens yet.",
+    "LOAD_ERROR": "Unable to load personal access tokens.",
+    "REVOKE_ERROR": "Unable to revoke the token.",
+    "TABLE": {
+      "NAME": "Name",
+      "PREFIX": "Token Prefix",
+      "CREATED": "Created",
+      "LAST_USED": "Last Used",
+      "EXPIRES": "Expires",
+      "STATUS": "Status",
+      "ACTIONS": "Actions",
+      "NEVER": "Never",
+      "NO_EXPIRY": "No expiry",
+      "ACTIVE": "Active",
+      "REVOKED": "Revoked",
+      "EXPIRED": "Expired"
+    },
+    "REVOKE": "Revoke",
+    "REVOKE_CONFIRM_TITLE": "Revoke Token",
+    "REVOKE_CONFIRM_MESSAGE": "Are you sure you want to revoke the token \"{{name}}\"? This action cannot be undone.",
+    "CREATE_DIALOG": {
+      "TITLE": "Create Personal Access Token",
+      "NAME_LABEL": "Token Name",
+      "NAME_PLACEHOLDER": "e.g. VS Code MCP",
+      "EXPIRY_LABEL": "Expiration Date",
+      "EXPIRY_HINT": "Leave empty for no expiration",
+      "CREATE": "Create",
+      "CANCEL": "Cancel",
+      "ERROR": "Unable to create the token. Please try again."
+    },
+    "TOKEN_CREATED": {
+      "TITLE": "Token Created Successfully",
+      "WARNING": "This token will only be shown once. Make sure to copy it now — you won't be able to see it again.",
+      "COPY": "Copy to Clipboard",
+      "COPIED": "Copied!",
+      "DONE": "I've Copied the Token"
+    }
   }
 }

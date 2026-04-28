@@ -27,6 +27,15 @@
         {{ 'NAV.PROJECTS' | translate }}
       </a>
 
+      <a
+        class="nav-link"
+        routerLink="/settings"
+        routerLinkActive="nav-link--active"
+        [routerLinkActiveOptions]="{ exact: true }">
+        <mat-icon class="nav-link__icon">settings</mat-icon>
+        {{ 'NAV.SETTINGS' | translate }}
+      </a>
+
       <div class="language-switch" role="group" [attr.aria-label]="'NAV.LANGUAGE_SELECTOR_ARIA' | translate">
         @for (language of availableLanguages; track language.code) {
           <button

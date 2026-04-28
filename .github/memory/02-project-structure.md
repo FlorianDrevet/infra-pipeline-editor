@@ -23,7 +23,7 @@ src/
 │   ├── src/environments                    API base URL and runtime environment config
 │   └── src/scss                            Global theming variables and style modules
 ├── Mcp/
-│   └── InfraFlowSculptor.Mcp              MCP server (stdio transport, ModelContextProtocol SDK v1.2.0)
+│   └── InfraFlowSculptor.Mcp              MCP server (HTTP transport under Aspire, ModelContextProtocol SDK v1.2.0)
 │       ├── Tools/                         DiscoveryTools, ProjectDraftTools, ProjectCreationTools, BicepGenerationTools, IacImportTools
 │       ├── Drafts/                        IProjectDraftService, ProjectDraftService, DraftOverrides, ProjectCreationDraft
 │       ├── Imports/                       IImportPreviewService, ImportPreviewService, canonical models, ImportPreviewResources
@@ -37,7 +37,7 @@ src/
 ## Documentation Artifacts
 
 - `docs/architecture/overview.md` provides the written architecture overview.
-- `docs/architecture/mcp-integration.md` is the MCP onboarding course for this repository: concepts, .NET integration model, local vs remote exposure, recommended tool surface, and review checklist for future generated MCP code.
+- `docs/architecture/mcp-integration.md` is the MCP onboarding course for this repository: concepts, .NET integration model, local vs remote exposure, recommended tool surface, and review checklist for future generated MCP code. The current workspace now runs MCP through HTTP under Aspire rather than workspace-local stdio.
 - `docs/architecture/mcp-v1-implementation-plan.md` is the MCP V1 implementation plan: 5 phases (scaffolding → discovery → creation → generation → import), exhaustive JSON contracts for 8 tools, 2 resources, 1 prompt, canonical import model (`ImportedProjectDefinition`), test strategy, and validation checklist.
 - `docs/architecture/infraflowsculptor-architecture.drawio` provides a visual Azure deployment diagram centered on deployed resources and interactions, with separate frontend/backend Azure Container Apps and surrounding Azure services.
 

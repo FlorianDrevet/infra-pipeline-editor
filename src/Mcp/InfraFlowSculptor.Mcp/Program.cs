@@ -35,15 +35,19 @@ builder.Services
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure(builder.Configuration, builder.Environment, includeAuthentication: false);
+    .AddInfrastructure(builder.Configuration, builder.Environment, includeAuthentication: false)
+    .AddPatAuthentication();
 
 var app = builder.Build();
 
-app.MapHealthChecks("/health");
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapHealthChecks("/health").AllowAnonymous();
 app.MapHealthChecks("/alive", new HealthCheckOptions
 {
     Predicate = registration => registration.Tags.Contains("live")
-});
+}).AllowAnonymous();
 app.MapMcp(McpRoute);
 
 await app.RunAsync();

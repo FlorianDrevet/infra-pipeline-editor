@@ -13,7 +13,8 @@
     "USER_DEFAULT_NAME": "Membre de l'espace",
     "USER_DEFAULT_EMAIL": "Connecte avec Microsoft Entra ID",
     "LOGGING_OUT": "Deconnexion...",
-    "LOGOUT": "Se deconnecter"
+    "LOGOUT": "Se deconnecter",
+    "SETTINGS": "Paramètres"
   },
   "FOOTER": {
     "BRAND_DESCRIPTION": "Infrastructure as Data, Bicep as Code. Espace securise pour les equipes plateforme Azure.",
@@ -2120,5 +2121,49 @@
     "RESET_CONFIRM_YES": "Réinitialiser",
     "RESET_CONFIRM_CANCEL": "Annuler",
     "RESET_ERROR": "Impossible de réinitialiser l'abréviation."
+  },
+  "SETTINGS": {
+    "TITLE": "Paramètres",
+    "SUBTITLE": "Gérer les paramètres de votre compte",
+    "PAT_SECTION_TITLE": "Jetons d'accès personnels",
+    "PAT_SECTION_DESCRIPTION": "Les jetons d'accès personnels sont utilisés pour authentifier les clients MCP (Model Context Protocol). Créez un jeton et configurez-le dans votre client MCP.",
+    "CREATE_TOKEN": "Créer un jeton",
+    "NO_TOKENS": "Aucun jeton d'accès personnel pour le moment.",
+    "LOAD_ERROR": "Impossible de charger les jetons d'accès personnels.",
+    "REVOKE_ERROR": "Impossible de révoquer le jeton.",
+    "TABLE": {
+      "NAME": "Nom",
+      "PREFIX": "Préfixe du jeton",
+      "CREATED": "Créé le",
+      "LAST_USED": "Dernière utilisation",
+      "EXPIRES": "Expire le",
+      "STATUS": "Statut",
+      "ACTIONS": "Actions",
+      "NEVER": "Jamais",
+      "NO_EXPIRY": "Pas d'expiration",
+      "ACTIVE": "Actif",
+      "REVOKED": "Révoqué",
+      "EXPIRED": "Expiré"
+    },
+    "REVOKE": "Révoquer",
+    "REVOKE_CONFIRM_TITLE": "Révoquer le jeton",
+    "REVOKE_CONFIRM_MESSAGE": "Êtes-vous sûr de vouloir révoquer le jeton \"{{name}}\" ? Cette action est irréversible.",
+    "CREATE_DIALOG": {
+      "TITLE": "Créer un jeton d'accès personnel",
+      "NAME_LABEL": "Nom du jeton",
+      "NAME_PLACEHOLDER": "ex. VS Code MCP",
+      "EXPIRY_LABEL": "Date d'expiration",
+      "EXPIRY_HINT": "Laisser vide pour aucune expiration",
+      "CREATE": "Créer",
+      "CANCEL": "Annuler",
+      "ERROR": "Impossible de créer le jeton. Veuillez réessayer."
+    },
+    "TOKEN_CREATED": {
+      "TITLE": "Jeton créé avec succès",
+      "WARNING": "Ce jeton ne sera affiché qu'une seule fois. Assurez-vous de le copier maintenant — vous ne pourrez plus le revoir.",
+      "COPY": "Copier dans le presse-papiers",
+      "COPIED": "Copié !",
+      "DONE": "J'ai copié le jeton"
+    }
   }
 }

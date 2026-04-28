@@ -2,6 +2,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using AzureKeyVaultEmulator.Aspire.Client;
 using InfraFlowSculptor.Application.Common.Interfaces;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
+using InfraFlowSculptor.Infrastructure.Auth;
 using InfraFlowSculptor.Infrastructure.Extensions;
 using InfraFlowSculptor.Infrastructure.Persistence;
 using InfraFlowSculptor.Infrastructure.Persistence.Repositories;
@@ -99,6 +101,7 @@ public static class DependencyInjection
         services.AddScoped<IContainerRegistryRepository, ContainerRegistryRepository>();
         services.AddScoped<IEventHubNamespaceRepository, EventHubNamespaceRepository>();
         services.AddScoped<IInfrastructureConfigReadRepository, InfrastructureConfigReadRepository>();
+        services.AddScoped<IPersonalAccessTokenRepository, PersonalAccessTokenRepository>();
 
         return services;
     }
@@ -138,6 +141,27 @@ public static class DependencyInjection
         services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builderConfiguration.GetSection("AzureAd"));
         
+        return services;
+    }
+
+    /// <summary>
+    /// Registers personal access token (PAT) authentication as the default scheme.
+    /// Used by the MCP host where interactive OAuth is not available.
+    /// </summary>
+    public static IServiceCollection AddPatAuthentication(this IServiceCollection services)
+    {
+        services.AddAuthentication(PersonalAccessTokenAuthenticationDefaults.AuthenticationScheme)
+            .AddScheme<AuthenticationSchemeOptions, PersonalAccessTokenAuthenticationHandler>(
+                PersonalAccessTokenAuthenticationDefaults.AuthenticationScheme,
+                _ => { });
+
+        services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
+
         return services;
     }
 

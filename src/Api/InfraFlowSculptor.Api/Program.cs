@@ -101,6 +101,7 @@ app.UseSqlDatabaseController();
 app.UseServiceBusNamespaceController();
 app.UseContainerRegistryController();
 app.UseEventHubNamespaceController();
+app.UsePersonalAccessTokenController();
 app.UseAppSettingController();
 app.UseSecureParameterMappingController();
 app.UseCustomDomainController();
