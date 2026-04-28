@@ -80,15 +80,23 @@ import { firstValueFrom } from 'rxjs';
 import { MultiRepoPushMode } from '../../shared/interfaces/multi-repo-push.interface';
 import {
   GeneratedArtifactArchiveSourceSpec,
-  tryResolveGeneratedArtifactEntryPath,
+  resolveGeneratedArtifactEntryPath,
 } from './project-generated-artifact-paths';
 
 const ROLES = ['Owner', 'Contributor', 'Reader'] as const;
 const ROLE_ORDER: Record<string, number> = { Owner: 0, Contributor: 1, Reader: 2 };
 const ROLE_ICONS: Record<string, string> = { Owner: 'shield', Contributor: 'edit', Reader: 'visibility' };
+const MAX_PROJECT_ARCHIVE_SOURCE_BYTES = 10 * 1024 * 1024;
+const MAX_PROJECT_ARCHIVE_ENTRY_COUNT = 500;
+const MAX_PROJECT_ARCHIVE_ENTRY_BYTES = 2 * 1024 * 1024;
+const MAX_PROJECT_ARCHIVE_TOTAL_BYTES = 25 * 1024 * 1024;
 
 interface CombinedArtifactArchiveSource extends GeneratedArtifactArchiveSourceSpec {
   archivePromise: Promise<Blob>;
+}
+
+interface CombinedProjectArchiveExtractionState {
+  totalExtractedBytes: number;
 }
 
 function ensureTreeFolderNode(
@@ -1260,6 +1268,9 @@ export class ProjectDetailComponent implements OnInit {
       ]);
 
       saveAs(blob, `${project.name ?? 'project'}-infra-artifacts.zip`);
+    } catch (error) {
+      console.error('Failed to assemble project infrastructure artifacts archive.', error);
+      this.showProjectActionError('PROJECT_DETAIL.SWITCHER.DOWNLOAD_ARCHIVE_ERROR');
     } finally {
       this.projectInfraArtifactsDownloading.set(false);
     }
@@ -1282,6 +1293,9 @@ export class ProjectDetailComponent implements OnInit {
       ]);
 
       saveAs(blob, `${project.name ?? 'project'}-code-artifacts.zip`);
+    } catch (error) {
+      console.error('Failed to assemble project code artifacts archive.', error);
+      this.showProjectActionError('PROJECT_DETAIL.SWITCHER.DOWNLOAD_ARCHIVE_ERROR');
     } finally {
       this.projectCodeArtifactsDownloading.set(false);
     }
@@ -1327,11 +1341,12 @@ export class ProjectDetailComponent implements OnInit {
 
   private async buildCombinedProjectArchive(sources: CombinedArtifactArchiveSource[]): Promise<Blob> {
     const archive = new JSZip();
+    const extractionState: CombinedProjectArchiveExtractionState = { totalExtractedBytes: 0 };
 
-    await Promise.all(sources.map(async (source) => {
+    for (const source of sources) {
       const sourceBlob = await source.archivePromise;
-      await this.appendArchiveEntries(archive, sourceBlob, source);
-    }));
+      await this.appendArchiveEntries(archive, sourceBlob, source, extractionState);
+    }
 
     return archive.generateAsync({ type: 'blob' });
   }
@@ -1340,20 +1355,64 @@ export class ProjectDetailComponent implements OnInit {
     targetArchive: JSZip,
     sourceArchiveBlob: Blob,
     source: CombinedArtifactArchiveSource,
+    extractionState: CombinedProjectArchiveExtractionState,
   ): Promise<void> {
-    const sourceArchive = await JSZip.loadAsync(sourceArchiveBlob);
+    this.ensureCombinedArchiveSourceSizeWithinLimits(sourceArchiveBlob);
 
-    for (const entry of Object.values(sourceArchive.files)) {
-      if (entry.dir) {
+    const sourceArchive = await JSZip.loadAsync(sourceArchiveBlob, { checkCRC32: true });
+    const fileEntries = Object.values(sourceArchive.files).filter((entry) => !entry.dir);
+    if (fileEntries.length > MAX_PROJECT_ARCHIVE_ENTRY_COUNT) {
+      throw new Error('Generated artifact archive contains too many files.');
+    }
+
+    for (const entry of fileEntries) {
+      const entryPathResolution = resolveGeneratedArtifactEntryPath(entry.name, source);
+      if (entryPathResolution.status === 'unsafe') {
+        throw new Error(`Generated artifact archive contains an unsafe path: ${entry.name}`);
+      }
+
+      if (entryPathResolution.status !== 'resolved') {
         continue;
       }
 
-      const entryPath = tryResolveGeneratedArtifactEntryPath(entry.name, source);
+      const entryPath = entryPathResolution.path;
       if (!entryPath) {
-        continue;
+        throw new Error(`Generated artifact archive resolved an empty target path for entry: ${entry.name}`);
       }
 
-      targetArchive.file(entryPath, await entry.async('uint8array'));
+      const expectedEntrySize = this.tryGetArchiveEntryUncompressedSize(entry);
+      if (expectedEntrySize !== null) {
+        this.ensureCombinedArchiveEntrySizeWithinLimits(expectedEntrySize, extractionState.totalExtractedBytes);
+      }
+
+      const entryBytes = await entry.async('uint8array');
+      this.ensureCombinedArchiveEntrySizeWithinLimits(entryBytes.byteLength, extractionState.totalExtractedBytes);
+
+      extractionState.totalExtractedBytes += entryBytes.byteLength;
+      targetArchive.file(entryPath, entryBytes);
+    }
+  }
+
+  private ensureCombinedArchiveSourceSizeWithinLimits(sourceArchiveBlob: Blob): void {
+    if (sourceArchiveBlob.size > MAX_PROJECT_ARCHIVE_SOURCE_BYTES) {
+      throw new Error('Generated artifact archive exceeds the maximum allowed compressed size.');
+    }
+  }
+
+  private tryGetArchiveEntryUncompressedSize(entry: object): number | null {
+    const uncompressedSize = (entry as { _data?: { uncompressedSize?: number } })._data?.uncompressedSize;
+    return typeof uncompressedSize === 'number' && Number.isFinite(uncompressedSize)
+      ? uncompressedSize
+      : null;
+  }
+
+  private ensureCombinedArchiveEntrySizeWithinLimits(entrySize: number, currentTotalExtractedBytes: number): void {
+    if (entrySize > MAX_PROJECT_ARCHIVE_ENTRY_BYTES) {
+      throw new Error('Generated artifact archive contains a file that exceeds the maximum allowed size.');
+    }
+
+    if (currentTotalExtractedBytes + entrySize > MAX_PROJECT_ARCHIVE_TOTAL_BYTES) {
+      throw new Error('Generated artifact archive exceeds the maximum allowed extracted size.');
     }
   }
 

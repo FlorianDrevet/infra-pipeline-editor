@@ -6,21 +6,41 @@ export interface GeneratedArtifactArchiveSourceSpec {
   filterPrefix?: GeneratedArtifactBucketPrefix;
 }
 
-export function tryResolveGeneratedArtifactEntryPath(
+export type GeneratedArtifactEntryPathResolutionStatus = 'resolved' | 'ignored' | 'unsafe';
+
+export interface GeneratedArtifactEntryPathResolution {
+  status: GeneratedArtifactEntryPathResolutionStatus;
+  path?: string;
+}
+
+export function resolveGeneratedArtifactEntryPath(
   entryPath: string,
   source: GeneratedArtifactArchiveSourceSpec,
-): string | null {
+): GeneratedArtifactEntryPathResolution {
   const sanitizedEntryPath = sanitizeGeneratedArtifactArchivePath(entryPath);
   if (!sanitizedEntryPath) {
-    return null;
+    return { status: 'unsafe' };
   }
 
   const bucketRelativePath = stripGeneratedArtifactBucketPrefix(sanitizedEntryPath, source.filterPrefix);
   if (!bucketRelativePath) {
-    return null;
+    return { status: 'ignored' };
   }
 
-  return normalizeGeneratedArtifactRepoRelativePath(bucketRelativePath, source.archiveKind);
+  const normalizedPath = normalizeGeneratedArtifactRepoRelativePath(bucketRelativePath, source.archiveKind);
+  return normalizedPath
+    ? { status: 'resolved', path: normalizedPath }
+    : { status: 'unsafe' };
+}
+
+export function tryResolveGeneratedArtifactEntryPath(
+  entryPath: string,
+  source: GeneratedArtifactArchiveSourceSpec,
+): string | null {
+  const resolution = resolveGeneratedArtifactEntryPath(entryPath, source);
+  return resolution.status === 'resolved'
+    ? resolution.path ?? null
+    : null;
 }
 
 export function normalizeGeneratedArtifactRepoRelativePath(

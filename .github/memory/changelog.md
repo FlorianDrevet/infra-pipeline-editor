@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-28 | dev | **Sonar hardening follow-up:** project combined ZIP downloads now enforce CRC + size/count/path guards with localized errors, and frontend Roboto/Material Icons stylesheets moved from Google Fonts links to local npm packages bundled by Angular. |
 | 2026-04-28 | dev | **Sonar quick wins:** backend regex timeouts bounded (250 ms) with new Contracts/Domain test projects, frontend local regex/bypass/archive-path hotspots hardened, Copilot setup actions pinned to full SHAs, and frontend Docker image tightened (explicit COPY, ignore-scripts, unprivileged nginx). |
 | 2026-04-27 | dev | **Pipeline refactor Vague 1 COMPLETE (1.0-1.3).** 3 engines decomposed into staged facades. Net -335 LOC dead code. 91/91 tests green (44 golden + 47 stage). Golden parity sentinels for 4 engines (83 golden files). Domain decoupled from PipelineGeneration. Plan at `docs/architecture/pipeline-refactoring/00-PLAN.md`. |
 | 2026-04-27 | dev | **Bicep V2 migration COMPLETE.** All 18 generators migrated legacy const string to Builder+IR (BicepModuleSpec). Phase 0 IR infra + Phases 1-5 generators by tier + Phase 6 legacy cleanup. IrOutputPruningStage + OutputUsageTracker replaced regex-based pruner. 842 tests total. |
