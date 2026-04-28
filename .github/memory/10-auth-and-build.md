@@ -92,3 +92,10 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 ## Sonar Quality Rules
 - **S1192** — Duplicate strings in migrations (accepted)
 - **new_duplicated_lines_density** — Quality gate threshold **3%**
+
+## Sonar Quick Wins [2026-04-28]
+
+- Backend regex hotspots now use explicit `TimeSpan.FromMilliseconds(250)` match timeouts in local helpers and validators (`BicepGeneration`, `Contracts`, `Domain`) instead of unbounded regex evaluation.
+- Two new focused .NET test projects were added: `tests/InfraFlowSculptor.Contracts.Tests/` and `tests/InfraFlowSculptor.Domain.Tests/`. They currently cover the touched Sonar remediation slices only; broader DTO/domain coverage remains tracked in `.github/test-debt.md`.
+- `.github/workflows/copilot-setup-steps.yml` now pins external actions to full commit SHAs and uses `npm ci --ignore-scripts` for the frontend setup step.
+- `src/Front/Dockerfile` now copies explicit build inputs instead of `COPY . .`, installs dependencies with `npm ci --ignore-scripts --no-audit --no-fund`, and runs on `nginxinc/nginx-unprivileged:1.29-alpine`. `src/Front/.dockerignore` excludes `.env*`, `.npmrc`, editor folders, coverage, and logs.

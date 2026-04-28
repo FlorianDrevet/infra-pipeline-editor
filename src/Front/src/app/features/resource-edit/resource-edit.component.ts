@@ -172,6 +172,7 @@ const STORAGE_CORS_METHOD_OPTIONS = ['DELETE', 'GET', 'HEAD', 'MERGE', 'OPTIONS'
 const STORAGE_CORS_ALLOWED_HEADER_SUGGESTIONS = ['authorization', 'content-type', 'x-ms-*', 'x-ms-meta*', 'x-ms-client-request-id'];
 const STORAGE_CORS_EXPOSED_HEADER_SUGGESTIONS = ['content-type', 'etag', 'x-ms-*', 'x-ms-meta*', 'x-ms-request-id'];
 const STORAGE_CORS_MAX_AGE_PRESETS = [300, 3600, 86400];
+const CORS_HEADER_SPECIAL_CHARACTERS = "!#$%&'*+.^_`|~-";
 
 const APP_CONFIGURATION_SKU_OPTIONS = [
   { label: 'Free', value: 'Free' },
@@ -3247,10 +3248,9 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       return '';
     }
 
-    const withoutTrailingSlash = normalized.replace(/\/+$/, '');
+    const withoutTrailingSlash = this.trimTrailingSlashes(normalized);
     if (withoutTrailingSlash.includes('*.')) {
-      const wildcardPattern = /^https?:\/\/\*\.[a-z0-9-]+(?:\.[a-z0-9-]+)*(?::\d{1,5})?$/i;
-      return wildcardPattern.test(withoutTrailingSlash)
+      return this.isValidWildcardCorsOrigin(withoutTrailingSlash)
         ? ''
         : 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_ORIGIN';
     }
@@ -3270,7 +3270,7 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
   }
 
   private normalizeCorsOrigin(value: string): string {
-    const normalized = value.trim().replace(/\/+$/, '');
+    const normalized = this.trimTrailingSlashes(value.trim());
     if (normalized === '*' || normalized.includes('*.')) {
       return normalized.toLowerCase();
     }
@@ -3293,13 +3293,125 @@ export class ResourceEditComponent implements OnInit, OnDestroy {
       return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_TOO_LONG';
     }
 
-    const headerPattern = /^[A-Za-z0-9!#$%&'*+.^_`|~-]+(?:-[A-Za-z0-9!#$%&'*+.^_`|~-]+)*\*?$/;
-    if (!headerPattern.test(normalized)) {
+    if (!this.isValidCorsHeaderValue(normalized)) {
       return 'RESOURCE_EDIT.STORAGE_SERVICES.CORS_COMMON.ERROR_INVALID_HEADER';
     }
 
     void field;
     return '';
+  }
+
+  private trimTrailingSlashes(value: string): string {
+    let endIndex = value.length;
+    while (endIndex > 0 && value[endIndex - 1] === '/') {
+      endIndex--;
+    }
+
+    return endIndex === value.length
+      ? value
+      : value.slice(0, endIndex);
+  }
+
+  private isValidWildcardCorsOrigin(value: string): boolean {
+    const schemeSeparatorIndex = value.indexOf('://');
+    if (schemeSeparatorIndex <= 0) {
+      return false;
+    }
+
+    const protocol = value.slice(0, schemeSeparatorIndex).toLowerCase();
+    if (protocol !== 'http' && protocol !== 'https') {
+      return false;
+    }
+
+    const hostAndPort = value.slice(schemeSeparatorIndex + 3);
+    if (!hostAndPort.startsWith('*.') || hostAndPort.includes('/') || hostAndPort.includes('?') || hostAndPort.includes('#')) {
+      return false;
+    }
+
+    const wildcardHostAndPort = hostAndPort.slice(2);
+    if (!wildcardHostAndPort || wildcardHostAndPort.includes('*')) {
+      return false;
+    }
+
+    const hostAndPortParts = this.splitCorsHostAndPort(wildcardHostAndPort);
+    if (!hostAndPortParts) {
+      return false;
+    }
+
+    return this.isValidCorsDomain(hostAndPortParts.host)
+      && (hostAndPortParts.port === null || this.isValidCorsPort(hostAndPortParts.port));
+  }
+
+  private splitCorsHostAndPort(value: string): { host: string; port: string | null } | null {
+    const firstSeparatorIndex = value.indexOf(':');
+    if (firstSeparatorIndex < 0) {
+      return { host: value, port: null };
+    }
+
+    if (firstSeparatorIndex !== value.lastIndexOf(':')) {
+      return null;
+    }
+
+    const host = value.slice(0, firstSeparatorIndex);
+    const port = value.slice(firstSeparatorIndex + 1);
+    if (!host || !port) {
+      return null;
+    }
+
+    return { host, port };
+  }
+
+  private isValidCorsPort(value: string): boolean {
+    if (value.length === 0 || value.length > 5) {
+      return false;
+    }
+
+    for (const character of value) {
+      if (character < '0' || character > '9') {
+        return false;
+      }
+    }
+
+    const portNumber = Number(value);
+    return Number.isInteger(portNumber) && portNumber >= 1 && portNumber <= 65535;
+  }
+
+  private isValidCorsDomain(value: string): boolean {
+    const labels = value.split('.');
+    return labels.length > 0
+      && labels.every((label) => label.length > 0 && this.isValidCorsDomainLabel(label));
+  }
+
+  private isValidCorsDomainLabel(value: string): boolean {
+    for (const character of value) {
+      if (!this.isAsciiAlphaNumericCharacter(character) && character !== '-') {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private isValidCorsHeaderValue(value: string): boolean {
+    for (const character of value) {
+      if (!this.isValidCorsHeaderCharacter(character)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private isValidCorsHeaderCharacter(character: string): boolean {
+    return this.isAsciiAlphaNumericCharacter(character)
+      || CORS_HEADER_SPECIAL_CHARACTERS.includes(character);
+  }
+
+  private isAsciiAlphaNumericCharacter(character: string): boolean {
+    const code = character.charCodeAt(0);
+    return (code >= 48 && code <= 57)
+      || (code >= 65 && code <= 90)
+      || (code >= 97 && code <= 122);
   }
 
   private normalizeCorsHeader(value: string): string {

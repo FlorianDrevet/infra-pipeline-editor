@@ -17,7 +17,10 @@ namespace InfraFlowSculptor.BicepGeneration;
 /// </summary>
 public static class MonoRepoBicepAssembler
 {
-    private static readonly Regex ModulePathPattern = new("'\\./(?<path>modules/[^']+)'", RegexOptions.Compiled);
+    private static readonly Regex ModulePathPattern = new(
+        "'\\./(?<path>modules/[^']+)'",
+        RegexOptions.Compiled,
+        TimeSpan.FromMilliseconds(250));
 
     /// <summary>
     /// Assembles the complete mono-repo Bicep output from per-config generation results.

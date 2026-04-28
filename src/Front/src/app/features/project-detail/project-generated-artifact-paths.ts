@@ -10,7 +10,12 @@ export function tryResolveGeneratedArtifactEntryPath(
   entryPath: string,
   source: GeneratedArtifactArchiveSourceSpec,
 ): string | null {
-  const bucketRelativePath = stripGeneratedArtifactBucketPrefix(entryPath, source.filterPrefix);
+  const sanitizedEntryPath = sanitizeGeneratedArtifactArchivePath(entryPath);
+  if (!sanitizedEntryPath) {
+    return null;
+  }
+
+  const bucketRelativePath = stripGeneratedArtifactBucketPrefix(sanitizedEntryPath, source.filterPrefix);
   if (!bucketRelativePath) {
     return null;
   }
@@ -21,8 +26,11 @@ export function tryResolveGeneratedArtifactEntryPath(
 export function normalizeGeneratedArtifactRepoRelativePath(
   relativePath: string,
   archiveKind: GeneratedArtifactArchiveKind,
-): string {
-  const normalizedPath = relativePath.replace(/^\/+/, '');
+): string | null {
+  const normalizedPath = sanitizeGeneratedArtifactArchivePath(relativePath);
+  if (!normalizedPath) {
+    return null;
+  }
 
   return archiveKind === 'bootstrap'
     ? toBootstrapRepoRelativePath(normalizedPath)
@@ -41,17 +49,68 @@ function stripGeneratedArtifactBucketPrefix(
   entryPath: string,
   filterPrefix?: GeneratedArtifactBucketPrefix,
 ): string | null {
-  const normalizedPath = entryPath.replace(/^\/+/, '');
-
   if (!filterPrefix) {
-    return normalizedPath;
+    return entryPath;
   }
 
   const bucketPrefix = `${filterPrefix}/`;
-  if (!normalizedPath.startsWith(bucketPrefix)) {
+  if (!entryPath.startsWith(bucketPrefix)) {
     return null;
   }
 
-  const strippedPath = normalizedPath.slice(bucketPrefix.length);
+  const strippedPath = entryPath.slice(bucketPrefix.length);
   return strippedPath.length > 0 ? strippedPath : null;
+}
+
+function sanitizeGeneratedArtifactArchivePath(path: string): string | null {
+  if (!path) {
+    return null;
+  }
+
+  const normalizedSeparators = path.split('\\').join('/');
+  if (normalizedSeparators.startsWith('/') || hasWindowsDrivePrefix(normalizedSeparators)) {
+    return null;
+  }
+
+  const sanitizedSegments: string[] = [];
+  for (const segment of normalizedSeparators.split('/')) {
+    if (!segment || segment === '.') {
+      continue;
+    }
+
+    if (segment === '..' || !isSafeGeneratedArtifactPathSegment(segment)) {
+      return null;
+    }
+
+    sanitizedSegments.push(segment);
+  }
+
+  return sanitizedSegments.length > 0 ? sanitizedSegments.join('/') : null;
+}
+
+function hasWindowsDrivePrefix(path: string): boolean {
+  return path.length >= 3
+    && isAsciiLetter(path[0])
+    && path[1] === ':'
+    && path[2] === '/';
+}
+
+function isAsciiLetter(character: string): boolean {
+  const code = character.charCodeAt(0);
+  return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+}
+
+function isSafeGeneratedArtifactPathSegment(segment: string): boolean {
+  if (segment.endsWith(' ') || segment.endsWith('.')) {
+    return false;
+  }
+
+  for (const character of segment) {
+    const code = character.charCodeAt(0);
+    if (code < 32 || code === 127 || character === ':') {
+      return false;
+    }
+  }
+
+  return true;
 }

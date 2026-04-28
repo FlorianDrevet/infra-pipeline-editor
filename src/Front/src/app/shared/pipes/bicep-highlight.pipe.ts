@@ -1,5 +1,4 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 const KEYWORDS = [
   'param', 'var', 'resource', 'module', 'output', 'targetScope',
@@ -54,10 +53,8 @@ function highlightBicep(code: string): string {
 
 @Pipe({ name: 'bicepHighlight', standalone: true })
 export class BicepHighlightPipe implements PipeTransform {
-  constructor(private readonly sanitizer: DomSanitizer) {}
-
-  transform(code: string | null): SafeHtml {
+  transform(code: string | null): string {
     if (!code) return '';
-    return this.sanitizer.bypassSecurityTrustHtml(highlightBicep(code));
+    return highlightBicep(code);
   }
 }

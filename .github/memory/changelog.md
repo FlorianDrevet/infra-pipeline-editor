@@ -4,6 +4,7 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-04-28 | dev | **Sonar quick wins:** backend regex timeouts bounded (250 ms) with new Contracts/Domain test projects, frontend local regex/bypass/archive-path hotspots hardened, Copilot setup actions pinned to full SHAs, and frontend Docker image tightened (explicit COPY, ignore-scripts, unprivileged nginx). |
 | 2026-04-27 | dev | **Pipeline refactor Vague 1 COMPLETE (1.0-1.3).** 3 engines decomposed into staged facades. Net -335 LOC dead code. 91/91 tests green (44 golden + 47 stage). Golden parity sentinels for 4 engines (83 golden files). Domain decoupled from PipelineGeneration. Plan at `docs/architecture/pipeline-refactoring/00-PLAN.md`. |
 | 2026-04-27 | dev | **Bicep V2 migration COMPLETE.** All 18 generators migrated legacy const string to Builder+IR (BicepModuleSpec). Phase 0 IR infra + Phases 1-5 generators by tier + Phase 6 legacy cleanup. IrOutputPruningStage + OutputUsageTracker replaced regex-based pruner. 842 tests total. |
 | 2026-04-27 | dev | **Tooling wave:** bicep-v2-migration skill + migration tracker. tdd-workflow skill (RED-GREEN-REFACTOR-VERIFY mandatory). review-expert + review-remediator agents + review-main prompt. Bicep onboarding guide rewritten. License changed to PolyForm Noncommercial 1.0.0. xunit-unit-testing skill added. GenerationParity.Tests csproj removed. |

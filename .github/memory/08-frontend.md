@@ -81,3 +81,8 @@
 - When a resource parameter moves between general and environment config, update all 3 creation-modal touchpoints: `createEnvFormGroup(type)`, `buildXxxEnvironmentSettings()`, and the HTML `@case (ResourceTypeEnum.Xxx)` block in the environments step
 - The generation panel collapse state is shared at the panel level, not per tab. Reset it to `false` when a new generation starts or when the panel is fully closed, otherwise a user can launch generation and keep the loading/result content hidden accidentally
 - Angular warning `NG8102` means a `??` fallback is redundant on a non-nullable expression; `TS-998113` means a standalone import remains in `imports` after the template stopped using it
+
+## Sonar Quick Wins [2026-04-28]
+- `project-generated-artifact-paths.ts` is the shared gate for combined ZIP recomposition. It now rejects absolute paths, drive-prefixed paths, `..` traversal segments, trailing-dot/space segments, backslash-based paths, and control characters before preview/download reuse the path.
+- `BicepHighlightPipe` no longer bypasses Angular sanitization. The pipe still escapes the raw Bicep content, injects only the highlight `<span>` wrappers, and returns a plain HTML string for normal `[innerHTML]` sanitization.
+- Local alias normalization and Storage CORS validation helpers were rewritten as bounded character-by-character parsing instead of regex-heavy transforms flagged by Sonar.

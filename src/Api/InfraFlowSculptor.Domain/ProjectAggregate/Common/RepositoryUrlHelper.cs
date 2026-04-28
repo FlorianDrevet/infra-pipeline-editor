@@ -10,11 +10,13 @@ namespace InfraFlowSculptor.Domain.ProjectAggregate.Common;
 /// </summary>
 internal static class RepositoryUrlHelper
 {
+    private static readonly TimeSpan RegexMatchTimeout = TimeSpan.FromMilliseconds(250);
+
     private static readonly Regex GitHubUrlRegex =
-        new(@"github\.com/(?<owner>[^/]+)/(?<repo>[^/]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        new(@"github\.com/(?<owner>[^/]+)/(?<repo>[^/]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled, RegexMatchTimeout);
 
     private static readonly Regex AzureDevOpsUrlRegex =
-        new(@"dev\.azure\.com/(?<org>[^/]+)/(?<project>[^/]+)/_git/(?<repo>[^/]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        new(@"dev\.azure\.com/(?<org>[^/]+)/(?<project>[^/]+)/_git/(?<repo>[^/]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled, RegexMatchTimeout);
 
     /// <summary>
     /// Extracts the owner (org/user or "org/project" for Azure DevOps) and repository name
