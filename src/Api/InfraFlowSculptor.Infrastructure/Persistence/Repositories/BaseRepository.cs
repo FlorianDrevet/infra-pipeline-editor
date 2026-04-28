@@ -39,6 +39,31 @@ public abstract class BaseRepository<TEntity, TContext> : IRepository<TEntity>
         return await Context.Set<TEntity>().FindAsync(cancellationToken: cancellationToken, keyValues: [id]);
     }
 
+    /// <inheritdoc />
+    public virtual async Task<TEntity?> GetByIdAsync(
+        ValueObject id,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
+        CancellationToken cancellationToken = default)
+    {
+        var query = queryBuilder(Context.Set<TEntity>());
+
+        var entityType = Context.Model.FindEntityType(typeof(TEntity))
+            ?? throw new InvalidOperationException(
+                $"Entity type {typeof(TEntity).Name} is not part of the EF Core model. Ensure it is registered in the DbContext configuration.");
+
+        var keyProperty = entityType.FindPrimaryKey()?.Properties.FirstOrDefault()
+            ?? throw new InvalidOperationException(
+                $"Entity type {typeof(TEntity).Name} has no primary key configured. Verify that the entity has a primary key defined via fluent configuration.");
+
+        var parameter = Expression.Parameter(typeof(TEntity), "e");
+        var property = Expression.Property(parameter, keyProperty.PropertyInfo!);
+        var constant = Expression.Constant(id, property.Type);
+        var body = Expression.Equal(property, constant);
+        var predicate = Expression.Lambda<Func<TEntity, bool>>(body, parameter);
+
+        return await query.FirstOrDefaultAsync(predicate, cancellationToken);
+    }
+
     public virtual async Task<IEnumerable<TEntity>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes)
     {
         IQueryable<TEntity> query = Context.Set<TEntity>();
