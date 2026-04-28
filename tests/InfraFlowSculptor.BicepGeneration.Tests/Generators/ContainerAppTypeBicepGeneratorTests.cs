@@ -41,6 +41,22 @@ public sealed class ContainerAppTypeBicepGeneratorTests
         };
     }
 
+    private static ResourceDefinition CreateAcrDefaultAuthResource()
+    {
+        return new ResourceDefinition
+        {
+            ResourceId = Guid.NewGuid(),
+            Name = "my-app",
+            Type = AzureResourceTypes.ArmTypes.ContainerApp,
+            ResourceGroupName = "rg-test",
+            ResourceAbbreviation = "ca",
+            Properties = new Dictionary<string, string>
+            {
+                ["containerRegistryId"] = "/subscriptions/.../registries/myacr",
+            },
+        };
+    }
+
     private static ResourceDefinition CreateAcrAdminResource()
     {
         return new ResourceDefinition
@@ -303,6 +319,16 @@ public sealed class ContainerAppTypeBicepGeneratorTests
             .Which.Name.Should().Be("customDomainBindings");
     }
 
+    [Fact]
+    public void Given_AcrResourceWithoutAuthMode_When_GenerateSpec_Then_DefaultsToManagedIdentityVariant()
+    {
+        var spec = _sut.GenerateSpec(CreateAcrDefaultAuthResource());
+
+        spec.ModuleFileName.Should().Be("containerAppAcrManagedIdentity");
+        spec.Parameters.Should().Contain(p => p.Name == "acrManagedIdentityClientId");
+        spec.Parameters.Should().NotContain(p => p.Name == "acrPassword");
+    }
+
     // ── ACR AdminCredentials variant ──
 
     [Fact]
@@ -423,6 +449,19 @@ public sealed class ContainerAppTypeBicepGeneratorTests
     {
         var module = _sut.Generate(CreateNoAcrResource());
         module.SecureParameters.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Given_NoAcrResource_When_Generate_Then_GroupedParameterTypeOverridesStayAligned()
+    {
+        var module = _sut.Generate(CreateNoAcrResource());
+
+        module.ParameterTypeOverrides.Should().Contain([
+            new KeyValuePair<string, string>("containerRuntime", "ContainerRuntimeConfig"),
+            new KeyValuePair<string, string>("scaling", "ScalingConfig"),
+            new KeyValuePair<string, string>("ingress", "IngressConfig"),
+            new KeyValuePair<string, string>("healthProbes", "HealthProbeConfig"),
+        ]);
     }
 
     // ── Emission ──

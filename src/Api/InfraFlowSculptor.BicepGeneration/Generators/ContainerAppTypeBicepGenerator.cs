@@ -12,8 +12,24 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class ContainerAppTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
-  private const string ManagedIdentityAcrAuthMode = "ManagedIdentity";
-  private const string AdminCredentialsAcrAuthMode = "AdminCredentials";
+    private const string ManagedIdentityAcrAuthMode = "ManagedIdentity";
+    private const string AdminCredentialsAcrAuthMode = "AdminCredentials";
+
+    private const string ModuleName = "containerApp";
+    private const string ModuleFolderName = "ContainerApp";
+    private const string ManagedIdentityModuleFileName = "containerAppAcrManagedIdentity";
+    private const string AdminCredentialsModuleFileName = "containerAppAcrAdminCredentials";
+    private const string ResourceSymbol = "containerApp";
+
+    private const string ContainerRuntimeParameterName = "containerRuntime";
+    private const string ScalingParameterName = "scaling";
+    private const string IngressParameterName = "ingress";
+    private const string HealthProbesParameterName = "healthProbes";
+
+    private const string ContainerRuntimeConfigTypeName = "ContainerRuntimeConfig";
+    private const string ScalingConfigTypeName = "ScalingConfig";
+    private const string IngressConfigTypeName = "IngressConfig";
+    private const string HealthProbeConfigTypeName = "HealthProbeConfig";
 
     /// <inheritdoc />
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
@@ -25,15 +41,19 @@ public sealed class ContainerAppTypeBicepGenerator
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
 
         var builder = new BicepModuleBuilder()
-            .Module("containerApp", "ContainerApp", ResourceTypeName)
-            .Import("./types.bicep", "ContainerRuntimeConfig", "ScalingConfig", "IngressConfig", "HealthProbeConfig")
+            .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import("./types.bicep",
+                ContainerRuntimeConfigTypeName,
+                ScalingConfigTypeName,
+                IngressConfigTypeName,
+                HealthProbeConfigTypeName)
             .Param("location", BicepType.String, "Azure region for the Container App")
             .Param("name", BicepType.String, "Name of the Container App")
             .Param("containerAppEnvironmentId", BicepType.String, "Resource ID of the Container App Environment")
-            .Param("containerRuntime", BicepType.Custom("ContainerRuntimeConfig"), "Container runtime configuration")
-            .Param("scaling", BicepType.Custom("ScalingConfig"), "Scaling configuration")
-            .Param("ingress", BicepType.Custom("IngressConfig"), "Ingress configuration")
-            .Param("healthProbes", BicepType.Custom("HealthProbeConfig"), "Health probe configuration");
+            .Param(ContainerRuntimeParameterName, BicepType.Custom(ContainerRuntimeConfigTypeName), "Container runtime configuration")
+            .Param(ScalingParameterName, BicepType.Custom(ScalingConfigTypeName), "Scaling configuration")
+            .Param(IngressParameterName, BicepType.Custom(IngressConfigTypeName), "Ingress configuration")
+            .Param(HealthProbesParameterName, BicepType.Custom(HealthProbeConfigTypeName), "Health probe configuration");
 
         if (hasAcr)
         {
@@ -69,12 +89,12 @@ public sealed class ContainerAppTypeBicepGenerator
         if (hasAcr)
         {
             builder.ModuleFileName(useAdminCredentials
-                ? "containerAppAcrAdminCredentials"
-                : "containerAppAcrManagedIdentity");
+                ? AdminCredentialsModuleFileName
+                : ManagedIdentityModuleFileName);
         }
 
         // ── Resource ──
-        builder.Resource("containerApp", "Microsoft.App/containerApps@2024-03-01")
+        builder.Resource(ResourceSymbol, "Microsoft.App/containerApps@2024-03-01")
             .Property("name", new BicepReference("name"))
             .Property("location", new BicepReference("location"));
 
@@ -111,11 +131,11 @@ public sealed class ContainerAppTypeBicepGenerator
         }
 
         configProps.Add(new BicepPropertyAssignment("ingress", new BicepConditionalExpression(
-            new BicepReference("ingress.enabled"),
+            new BicepReference($"{IngressParameterName}.enabled"),
             new BicepObjectExpression([
-                new BicepPropertyAssignment("external", new BicepReference("ingress.external")),
-                new BicepPropertyAssignment("targetPort", new BicepReference("ingress.targetPort")),
-                new BicepPropertyAssignment("transport", new BicepReference("ingress.transportMethod")),
+                new BicepPropertyAssignment("external", new BicepReference($"{IngressParameterName}.external")),
+                new BicepPropertyAssignment("targetPort", new BicepReference($"{IngressParameterName}.targetPort")),
+                new BicepPropertyAssignment("transport", new BicepReference($"{IngressParameterName}.transportMethod")),
                 new BicepPropertyAssignment("customDomains", new BicepConditionalExpression(
                     new BicepRawExpression("!empty(customDomains)"),
                     new BicepReference("customDomainBindings"),
@@ -128,17 +148,17 @@ public sealed class ContainerAppTypeBicepGenerator
             new BicepPropertyAssignment("containers", new BicepArrayExpression([
                 new BicepObjectExpression([
                     new BicepPropertyAssignment("name", new BicepReference("name")),
-                    new BicepPropertyAssignment("image", new BicepReference("containerRuntime.image")),
+                    new BicepPropertyAssignment("image", new BicepReference($"{ContainerRuntimeParameterName}.image")),
                     new BicepPropertyAssignment("resources", new BicepObjectExpression([
-                        new BicepPropertyAssignment("cpu", new BicepRawExpression("json(containerRuntime.cpuCores)")),
-                        new BicepPropertyAssignment("memory", new BicepReference("containerRuntime.memoryGi")),
+                        new BicepPropertyAssignment("cpu", new BicepRawExpression($"json({ContainerRuntimeParameterName}.cpuCores)")),
+                        new BicepPropertyAssignment("memory", new BicepReference($"{ContainerRuntimeParameterName}.memoryGi")),
                     ])),
                     new BicepPropertyAssignment("probes", new BicepRawExpression(BuildProbesUnion())),
                 ]),
             ])),
             new BicepPropertyAssignment("scale", new BicepObjectExpression([
-                new BicepPropertyAssignment("minReplicas", new BicepReference("scaling.minReplicas")),
-                new BicepPropertyAssignment("maxReplicas", new BicepReference("scaling.maxReplicas")),
+                new BicepPropertyAssignment("minReplicas", new BicepReference($"{ScalingParameterName}.minReplicas")),
+                new BicepPropertyAssignment("maxReplicas", new BicepReference($"{ScalingParameterName}.maxReplicas")),
             ])),
         ]);
 
@@ -149,13 +169,13 @@ public sealed class ContainerAppTypeBicepGenerator
 
         // ── Outputs ──
         builder
-            .Output("id", BicepType.String, new BicepRawExpression("containerApp.id"),
+            .Output("id", BicepType.String, new BicepRawExpression($"{ResourceSymbol}.id"),
                 description: "The resource ID of the Container App")
             .Output("fqdn", BicepType.String, new BicepRawExpression(
-                "containerApp.properties.configuration.ingress != null ? containerApp.properties.configuration.ingress.fqdn : ''"),
+                $"{ResourceSymbol}.properties.configuration.ingress != null ? {ResourceSymbol}.properties.configuration.ingress.fqdn : ''"),
                 description: "The FQDN of the Container App")
             .Output("latestRevisionFqdn", BicepType.String,
-                new BicepRawExpression("containerApp.properties.latestRevisionFqdn"),
+                new BicepRawExpression($"{ResourceSymbol}.properties.latestRevisionFqdn"),
                 description: "The latest revision FQDN of the Container App");
 
         // ── Exported types ──
@@ -163,19 +183,19 @@ public sealed class ContainerAppTypeBicepGenerator
             .ExportedType("TransportMethod",
                 new BicepRawExpression("'auto' | 'http' | 'http2' | 'tcp'"),
                 description: "Ingress transport method for the Container App")
-            .ExportedType("ContainerRuntimeConfig", new BicepRawExpression(
+            .ExportedType(ContainerRuntimeConfigTypeName, new BicepRawExpression(
                 "{\n  @description('Container image to deploy')\n  image: string\n  @description('CPU cores allocated to the container')\n  cpuCores: string\n  @description('Memory allocated to the container (e.g. 0.5Gi)')\n  memoryGi: string\n}"),
                 description: "Container runtime configuration (image, CPU, memory)")
-            .ExportedType("ScalingConfig", new BicepRawExpression(
+            .ExportedType(ScalingConfigTypeName, new BicepRawExpression(
                 "{\n  @description('Minimum number of replicas')\n  minReplicas: int\n  @description('Maximum number of replicas')\n  maxReplicas: int\n}"),
                 description: "Scaling configuration for the Container App")
-            .ExportedType("IngressConfig", new BicepRawExpression(
+            .ExportedType(IngressConfigTypeName, new BicepRawExpression(
                 "{\n  @description('Whether ingress is enabled')\n  enabled: bool\n  @description('Target port for ingress traffic')\n  targetPort: int\n  @description('Whether ingress is externally accessible')\n  external: bool\n  @description('Transport method for ingress')\n  transportMethod: TransportMethod\n}"),
                 description: "Ingress configuration for the Container App")
             .ExportedType("ProbeConfig", new BicepRawExpression(
                 "{\n  @description('HTTP path for the probe (empty to disable)')\n  path: string\n  @description('Port for the probe (0 to disable)')\n  port: int\n}"),
                 description: "Configuration for a single HTTP health probe")
-            .ExportedType("HealthProbeConfig", new BicepRawExpression(
+            .ExportedType(HealthProbeConfigTypeName, new BicepRawExpression(
                 "{\n  @description('Readiness probe configuration')\n  readiness: ProbeConfig\n  @description('Liveness probe configuration')\n  liveness: ProbeConfig\n  @description('Startup probe configuration')\n  startup: ProbeConfig\n}"),
                 description: "Health probe configuration for the Container App");
 
@@ -223,9 +243,9 @@ public sealed class ContainerAppTypeBicepGenerator
     {
         var containerRegistryId = resource.Properties.GetValueOrDefault("containerRegistryId", "");
         var hasAcr = !string.IsNullOrEmpty(containerRegistryId);
-      var acrAuthMode = GetAcrAuthMode(resource.Properties);
-      var useAdminCredentials = hasAcr
-        && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
+        var acrAuthMode = GetAcrAuthMode(resource.Properties);
+        var useAdminCredentials = hasAcr
+            && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
         var hasCustomDomains = resource.CustomDomains.Count > 0;
 
         var dockerImageName = resource.Properties.GetValueOrDefault("dockerImageName", "");
@@ -235,10 +255,10 @@ public sealed class ContainerAppTypeBicepGenerator
 
         var parameters = new Dictionary<string, object>
         {
-            ["containerRuntime"] = new { image = containerImage, cpuCores = "0.25", memoryGi = "0.5Gi" },
-            ["scaling"] = new { minReplicas = 0, maxReplicas = 1 },
-            ["ingress"] = new { enabled = true, targetPort = 80, external = true, transportMethod = "auto" },
-            ["healthProbes"] = new
+            [ContainerRuntimeParameterName] = new { image = containerImage, cpuCores = "0.25", memoryGi = "0.5Gi" },
+            [ScalingParameterName] = new { minReplicas = 0, maxReplicas = 1 },
+            [IngressParameterName] = new { enabled = true, targetPort = 80, external = true, transportMethod = "auto" },
+            [HealthProbesParameterName] = new
             {
                 readiness = new { path = "", port = 0 },
                 liveness = new { path = "", port = 0 },
@@ -261,59 +281,59 @@ public sealed class ContainerAppTypeBicepGenerator
         }
 
         var moduleFileName = hasAcr
-          ? useAdminCredentials
-            ? "containerAppAcrAdminCredentials"
-            : "containerAppAcrManagedIdentity"
-          : "containerApp";
+            ? useAdminCredentials
+                ? AdminCredentialsModuleFileName
+                : ManagedIdentityModuleFileName
+            : ModuleName;
 
         return new GeneratedTypeModule
         {
-            ModuleName = "containerApp",
-          ModuleFileName = moduleFileName,
-            ModuleFolderName = "ContainerApp",
-          ModuleBicepContent = hasAcr
-            ? useAdminCredentials
-              ? ContainerAppWithAcrAdminCredentialsModuleTemplate
-              : ContainerAppWithAcrManagedIdentityModuleTemplate
-            : ContainerAppModuleTemplate,
+            ModuleName = ModuleName,
+            ModuleFileName = moduleFileName,
+            ModuleFolderName = ModuleFolderName,
+            ModuleBicepContent = hasAcr
+                ? useAdminCredentials
+                    ? ContainerAppWithAcrAdminCredentialsModuleTemplate
+                    : ContainerAppWithAcrManagedIdentityModuleTemplate
+                : ContainerAppModuleTemplate,
             ModuleTypesBicepContent = ContainerAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = parameters,
-          SecureParameters = useAdminCredentials ? ["acrPassword"] : [],
+            SecureParameters = useAdminCredentials ? ["acrPassword"] : [],
             ParameterTypeOverrides = new Dictionary<string, string>
             {
-                ["containerRuntime"] = "ContainerRuntimeConfig",
-                ["scaling"] = "ScalingConfig",
-                ["ingress"] = "IngressConfig",
-                ["healthProbes"] = "HealthProbeConfig"
+                [ContainerRuntimeParameterName] = ContainerRuntimeConfigTypeName,
+                [ScalingParameterName] = ScalingConfigTypeName,
+                [IngressParameterName] = IngressConfigTypeName,
+                [HealthProbesParameterName] = HealthProbeConfigTypeName,
             },
             ParameterGroupMappings = new Dictionary<string, (string, string)>
             {
-                ["cpuCores"] = ("containerRuntime", "cpuCores"),
-                ["memoryGi"] = ("containerRuntime", "memoryGi"),
-                ["minReplicas"] = ("scaling", "minReplicas"),
-                ["maxReplicas"] = ("scaling", "maxReplicas"),
-                ["ingressEnabled"] = ("ingress", "enabled"),
-                ["ingressTargetPort"] = ("ingress", "targetPort"),
-                ["ingressExternal"] = ("ingress", "external"),
-                ["transportMethod"] = ("ingress", "transportMethod"),
-                ["readinessProbePath"] = ("healthProbes", "readiness.path"),
-                ["readinessProbePort"] = ("healthProbes", "readiness.port"),
-                ["livenessProbePath"] = ("healthProbes", "liveness.path"),
-                ["livenessProbePort"] = ("healthProbes", "liveness.port"),
-                ["startupProbePath"] = ("healthProbes", "startup.path"),
-                ["startupProbePort"] = ("healthProbes", "startup.port")
+                ["cpuCores"] = (ContainerRuntimeParameterName, "cpuCores"),
+                ["memoryGi"] = (ContainerRuntimeParameterName, "memoryGi"),
+                ["minReplicas"] = (ScalingParameterName, "minReplicas"),
+                ["maxReplicas"] = (ScalingParameterName, "maxReplicas"),
+                ["ingressEnabled"] = (IngressParameterName, "enabled"),
+                ["ingressTargetPort"] = (IngressParameterName, "targetPort"),
+                ["ingressExternal"] = (IngressParameterName, "external"),
+                ["transportMethod"] = (IngressParameterName, "transportMethod"),
+                ["readinessProbePath"] = (HealthProbesParameterName, "readiness.path"),
+                ["readinessProbePort"] = (HealthProbesParameterName, "readiness.port"),
+                ["livenessProbePath"] = (HealthProbesParameterName, "liveness.path"),
+                ["livenessProbePort"] = (HealthProbesParameterName, "liveness.port"),
+                ["startupProbePath"] = (HealthProbesParameterName, "startup.path"),
+                ["startupProbePort"] = (HealthProbesParameterName, "startup.port"),
             }
         };
     }
 
-          private static string GetAcrAuthMode(IReadOnlyDictionary<string, string> properties)
-          {
-            var acrAuthMode = properties.GetValueOrDefault("acrAuthMode", string.Empty);
-            return string.IsNullOrWhiteSpace(acrAuthMode)
-              ? ManagedIdentityAcrAuthMode
-              : acrAuthMode;
-          }
+    private static string GetAcrAuthMode(IReadOnlyDictionary<string, string> properties)
+    {
+        var acrAuthMode = properties.GetValueOrDefault("acrAuthMode", string.Empty);
+        return string.IsNullOrWhiteSpace(acrAuthMode)
+            ? ManagedIdentityAcrAuthMode
+            : acrAuthMode;
+    }
 
     private const string ContainerAppTypesTemplate = """
         @export()
