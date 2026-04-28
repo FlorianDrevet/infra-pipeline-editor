@@ -1,5 +1,6 @@
 using System.Text.Json;
 using ErrorOr;
+using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using FluentAssertions;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -67,7 +68,7 @@ public sealed class ProjectCreationToolsTests
                 ],
                 Repositories =
                 [
-                    new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "Application"] },
+                    new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "ApplicationCode"] },
                 ],
             },
         };
@@ -98,6 +99,14 @@ public sealed class ProjectCreationToolsTests
         doc.RootElement.GetProperty("status").GetString().Should().Be("created");
         doc.RootElement.GetProperty("projectId").GetString().Should().Be(projectId.Value.ToString());
         doc.RootElement.GetProperty("projectName").GetString().Should().Be("RetailApi");
+
+        await _mediator.Received(1).Send(
+            Arg.Is<CreateProjectWithSetupCommand>(command =>
+                command.Repositories.Count == 1
+                && command.Repositories[0].ContentKinds.Count == 2
+                && command.Repositories[0].ContentKinds[0] == "Infrastructure"
+                && command.Repositories[0].ContentKinds[1] == "ApplicationCode"),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -113,7 +122,7 @@ public sealed class ProjectCreationToolsTests
                 ProjectName = "RetailApi",
                 LayoutPreset = LayoutPresetEnum.AllInOne,
                 Environments = [new DraftEnvironmentIntent()],
-                Repositories = [new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "Application"] }],
+                Repositories = [new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "ApplicationCode"] }],
             },
         };
         _draftService.GetDraft("draft_abc12345").Returns(draft);

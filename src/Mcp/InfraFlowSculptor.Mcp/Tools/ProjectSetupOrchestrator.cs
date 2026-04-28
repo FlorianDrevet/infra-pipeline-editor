@@ -22,6 +22,7 @@ public static class ProjectSetupOrchestrator
         ISender mediator,
         Guid projectId,
         string projectName,
+        string location,
         CancellationToken ct = default)
     {
         var configCommand = new CreateInfrastructureConfigCommand(
@@ -35,7 +36,7 @@ public static class ProjectSetupOrchestrator
         var rgCommand = new CreateResourceGroupCommand(
             InfraConfigId: configResult.Value.Id,
             Name: new Name($"{projectName}-rg"),
-            Location: new Location(Location.LocationEnum.WestEurope));
+            Location: ParseLocation(location));
         var rgResult = await mediator.Send(rgCommand, ct);
 
         if (rgResult.IsError)
@@ -55,7 +56,8 @@ public static class ProjectSetupOrchestrator
     {
         var created = new List<CreatedResourceInfo>();
         var skipped = new List<SkippedResourceInfo>();
-        var createdIds = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        var createdIdsByType = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        var createdIdsByName = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
 
         var ordered = ResourceCommandFactory.OrderByDependency(
             resources.Select(r => (r.ResourceType, r.Name)));
@@ -66,14 +68,18 @@ public static class ProjectSetupOrchestrator
                 string.Equals(r.ResourceType, resourceType, StringComparison.OrdinalIgnoreCase)
                 && r.Name == name);
 
-            var location = new Location(Location.LocationEnum.WestEurope);
+            var location = ParseLocation(input?.Location);
             var command = ResourceCommandFactory.BuildCommand(
                 resourceType, resourceGroupId, new Name(name), location,
-                createdIds, input?.ExtractedProperties);
+                createdIdsByType, input?.ExtractedProperties, createdIdsByName, input?.DependencyResourceNames);
 
             if (command is null)
             {
-                var missing = ResourceCommandFactory.GetMissingDependency(resourceType, createdIds);
+                var missing = ResourceCommandFactory.GetMissingDependency(
+                    resourceType,
+                    createdIdsByType,
+                    createdIdsByName,
+                    input?.DependencyResourceNames);
                 skipped.Add(new SkippedResourceInfo
                 {
                     ResourceType = resourceType,
@@ -102,7 +108,8 @@ public static class ProjectSetupOrchestrator
                     continue;
                 }
 
-                createdIds[resourceType] = resourceId.Value;
+                createdIdsByType[resourceType] = resourceId.Value;
+                createdIdsByName[name] = resourceId.Value;
                 created.Add(new CreatedResourceInfo
                 {
                     ResourceType = resourceType,
@@ -122,6 +129,13 @@ public static class ProjectSetupOrchestrator
         }
 
         return (created, skipped);
+    }
+
+    private static Location ParseLocation(string? location)
+    {
+        return Enum.TryParse<Location.LocationEnum>(location, true, out var locationEnum)
+            ? new Location(locationEnum)
+            : new Location(Location.LocationEnum.WestEurope);
     }
 
     /// <summary>Extracts the AzureResourceId.Value from an <c>ErrorOr&lt;T&gt;</c> result using reflection.</summary>

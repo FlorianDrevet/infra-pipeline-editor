@@ -1,9 +1,14 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.ApplicationInsights.Commands.CreateApplicationInsights;
+using InfraFlowSculptor.Application.ApplicationInsights.Common;
 using FluentAssertions;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Common;
+using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAnalyticsWorkspace;
+using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Common;
 using InfraFlowSculptor.Application.ResourceGroups.Common;
+using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
 using InfraFlowSculptor.Application.StorageAccounts.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
@@ -53,12 +58,17 @@ public sealed class ProjectSetupOrchestratorTests
 
         // Act
         var result = await ProjectSetupOrchestrator.CreateInfrastructureAsync(
-            _mediator, projectId, "TestProject");
+            _mediator, projectId, "TestProject", "francecentral");
 
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.ConfigId.Should().Be(configId);
         result.Value.RgId.Should().Be(rgId);
+
+        await _mediator.Received(1).Send(
+            Arg.Is<IRequest<ErrorOr<ResourceGroupResult>>>(request =>
+                MatchesResourceGroupLocation(request, Location.LocationEnum.FranceCentral)),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -76,7 +86,7 @@ public sealed class ProjectSetupOrchestratorTests
 
         // Act
         var result = await ProjectSetupOrchestrator.CreateInfrastructureAsync(
-            _mediator, projectId, "TestProject");
+            _mediator, projectId, "TestProject", "francecentral");
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -108,7 +118,7 @@ public sealed class ProjectSetupOrchestratorTests
 
         // Act
         var result = await ProjectSetupOrchestrator.CreateInfrastructureAsync(
-            _mediator, projectId, "TestProject");
+            _mediator, projectId, "TestProject", "francecentral");
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -134,7 +144,7 @@ public sealed class ProjectSetupOrchestratorTests
 
         var resources = new List<ResourceInput>
         {
-            new() { ResourceType = AzureResourceTypes.KeyVault, Name = "test-kv" },
+            new() { ResourceType = AzureResourceTypes.KeyVault, Name = "test-kv", Location = "francecentral" },
         };
 
         // Act
@@ -147,6 +157,145 @@ public sealed class ProjectSetupOrchestratorTests
         created[0].ResourceId.Should().Be(kvId.Value.ToString());
         created[0].Name.Should().Be("test-kv");
         skipped.Should().BeEmpty();
+
+        await _mediator.Received(1).Send(
+            Arg.Is<IBaseRequest>(request =>
+                MatchesKeyVaultLocation(request, Location.LocationEnum.FranceCentral)),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateResourcesAsync_DistinctNamedDependencies_UsesMatchingDependencyIds()
+    {
+        // Arrange
+        var rgId = new ResourceGroupId(Guid.NewGuid());
+        var lawEastId = new AzureResourceId(Guid.NewGuid());
+        var lawWestId = new AzureResourceId(Guid.NewGuid());
+        var aiEastId = new AzureResourceId(Guid.NewGuid());
+        var aiWestId = new AzureResourceId(Guid.NewGuid());
+
+        var lawEastResult = new LogAnalyticsWorkspaceResult(
+            lawEastId,
+            rgId,
+            new Name("law-east"),
+            new Location(Location.LocationEnum.FranceCentral),
+            []);
+
+        var lawWestResult = new LogAnalyticsWorkspaceResult(
+            lawWestId,
+            rgId,
+            new Name("law-west"),
+            new Location(Location.LocationEnum.FranceCentral),
+            []);
+
+        var aiEastResult = new ApplicationInsightsResult(
+            aiEastId,
+            rgId,
+            new Name("ai-east"),
+            new Location(Location.LocationEnum.FranceCentral),
+            lawEastId.Value,
+            []);
+
+        var aiWestResult = new ApplicationInsightsResult(
+            aiWestId,
+            rgId,
+            new Name("ai-west"),
+            new Location(Location.LocationEnum.FranceCentral),
+            lawWestId.Value,
+            []);
+
+        _mediator.Send(
+                Arg.Any<IBaseRequest>(),
+                Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                var request = callInfo.Arg<IBaseRequest>();
+
+                return request switch
+                {
+                    CreateLogAnalyticsWorkspaceCommand command when command.Name.Value == "law-east"
+                        => Task.FromResult<object?>(lawEastResult),
+                    CreateLogAnalyticsWorkspaceCommand command when command.Name.Value == "law-west"
+                        => Task.FromResult<object?>(lawWestResult),
+                    CreateApplicationInsightsCommand command when command.Name.Value == "ai-east"
+                        => Task.FromResult<object?>(aiEastResult),
+                    CreateApplicationInsightsCommand command when command.Name.Value == "ai-west"
+                        => Task.FromResult<object?>(aiWestResult),
+                    _ => Task.FromResult<object?>(null),
+                };
+            });
+
+        var resources = new List<ResourceInput>
+        {
+            new() { ResourceType = AzureResourceTypes.LogAnalyticsWorkspace, Name = "law-east", Location = "francecentral" },
+            new() { ResourceType = AzureResourceTypes.LogAnalyticsWorkspace, Name = "law-west", Location = "francecentral" },
+            new()
+            {
+                ResourceType = AzureResourceTypes.ApplicationInsights,
+                Name = "ai-east",
+                Location = "francecentral",
+                DependencyResourceNames = ["law-east"],
+            },
+            new()
+            {
+                ResourceType = AzureResourceTypes.ApplicationInsights,
+                Name = "ai-west",
+                Location = "francecentral",
+                DependencyResourceNames = ["law-west"],
+            },
+        };
+
+        // Act
+        var (created, skipped) = await ProjectSetupOrchestrator.CreateResourcesAsync(
+            _mediator, rgId, resources);
+
+        // Assert
+        created.Should().HaveCount(4);
+        skipped.Should().BeEmpty();
+
+        await _mediator.Received(1).Send(
+            Arg.Is<IBaseRequest>(request =>
+                MatchesApplicationInsightsDependency(request, "ai-east", lawEastId.Value)),
+            Arg.Any<CancellationToken>());
+
+        await _mediator.Received(1).Send(
+            Arg.Is<IBaseRequest>(request =>
+                MatchesApplicationInsightsDependency(request, "ai-west", lawWestId.Value)),
+            Arg.Any<CancellationToken>());
+    }
+
+    private static bool MatchesResourceGroupLocation(
+        IRequest<ErrorOr<ResourceGroupResult>> request,
+        Location.LocationEnum expectedLocation)
+    {
+        var command = request as CreateResourceGroupCommand;
+        return command is not null && command.Location.Value == expectedLocation;
+    }
+
+    private static bool MatchesKeyVaultLocation(IBaseRequest request, Location.LocationEnum expectedLocation)
+    {
+        var command = request as CreateKeyVaultCommand;
+        return command is not null && command.Location.Value == expectedLocation;
+    }
+
+    private static bool MatchesLogAnalyticsWorkspaceName(IBaseRequest request, string expectedName)
+    {
+        var command = request as CreateLogAnalyticsWorkspaceCommand;
+        return command is not null && command.Name.Value == expectedName;
+    }
+
+    private static bool MatchesApplicationInsightsName(IBaseRequest request, string expectedName)
+    {
+        var command = request as CreateApplicationInsightsCommand;
+        return command is not null && command.Name.Value == expectedName;
+    }
+
+    private static bool MatchesApplicationInsightsDependency(IBaseRequest request, string expectedName, Guid expectedWorkspaceId)
+    {
+        var command = request as CreateApplicationInsightsCommand;
+        return command is not null
+               && command.Name.Value == expectedName
+               && command.LogAnalyticsWorkspaceId == expectedWorkspaceId;
     }
 
     [Fact]

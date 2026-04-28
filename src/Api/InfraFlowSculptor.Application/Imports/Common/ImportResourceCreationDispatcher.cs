@@ -43,6 +43,7 @@ internal static class ImportResourceCreationDispatcher
         ISender mediator,
         Guid projectId,
         string projectName,
+        string location,
         CancellationToken cancellationToken)
     {
         var configCommand = new CreateInfrastructureConfigCommand(
@@ -56,7 +57,7 @@ internal static class ImportResourceCreationDispatcher
         var resourceGroupCommand = new CreateResourceGroupCommand(
             InfraConfigId: configResult.Value.Id,
             Name: new Name($"{projectName}-rg"),
-            Location: new Location(Location.LocationEnum.WestEurope));
+            Location: ParseLocation(location));
         var resourceGroupResult = await mediator.Send(resourceGroupCommand, cancellationToken).ConfigureAwait(false);
 
         if (resourceGroupResult.IsError)
@@ -75,7 +76,8 @@ internal static class ImportResourceCreationDispatcher
     {
         var created = new List<ApplyImportPreviewCreatedResourceResult>();
         var skipped = new List<ApplyImportPreviewSkippedResourceResult>();
-        var createdIds = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        var createdIdsByType = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        var createdIdsByName = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
 
         var ordered = OrderByDependency(resources.Select(resource => (resource.ResourceType, resource.Name)));
 
@@ -85,17 +87,25 @@ internal static class ImportResourceCreationDispatcher
                 string.Equals(resource.ResourceType, resourceType, StringComparison.OrdinalIgnoreCase)
                 && string.Equals(resource.Name, name, StringComparison.Ordinal));
 
+            var location = ParseLocation(input?.Location);
+
             var command = BuildCommand(
                 resourceType,
                 resourceGroupId,
                 new Name(name),
-                new Location(Location.LocationEnum.WestEurope),
-                createdIds,
+                location,
+                createdIdsByType,
+                createdIdsByName,
+                input?.DependencyResourceNames,
                 input?.ExtractedProperties);
 
             if (command is null)
             {
-                var missingDependency = GetMissingDependency(resourceType, createdIds);
+                var missingDependency = GetMissingDependency(
+                    resourceType,
+                    createdIdsByType,
+                    createdIdsByName,
+                    input?.DependencyResourceNames);
                 skipped.Add(new ApplyImportPreviewSkippedResourceResult(
                     resourceType,
                     name,
@@ -119,7 +129,8 @@ internal static class ImportResourceCreationDispatcher
                     continue;
                 }
 
-                createdIds[resourceType] = resourceId.Value;
+                createdIdsByType[resourceType] = resourceId.Value;
+                createdIdsByName[name] = resourceId.Value;
                 created.Add(new ApplyImportPreviewCreatedResourceResult(
                     resourceType,
                     resourceId.Value.ToString(),
@@ -163,10 +174,22 @@ internal static class ImportResourceCreationDispatcher
 
     internal static string? GetMissingDependency(
         string resourceType,
-        IReadOnlyDictionary<string, Guid> createdResources)
+        IReadOnlyDictionary<string, Guid> createdResourcesByType,
+        IReadOnlyDictionary<string, Guid>? createdResourcesByName = null,
+        IReadOnlyList<string>? dependencyResourceNames = null)
     {
-        return ResourceDependencies.TryGetValue(resourceType, out var dependency)
-               && !createdResources.ContainsKey(dependency)
+        if (!ResourceDependencies.TryGetValue(resourceType, out var dependency))
+            return null;
+
+        if (dependencyResourceNames is { Count: > 0 })
+        {
+            var missingDependencyName = dependencyResourceNames.FirstOrDefault(name =>
+                createdResourcesByName is null || !createdResourcesByName.ContainsKey(name));
+
+            return missingDependencyName;
+        }
+
+        return !createdResourcesByType.ContainsKey(dependency)
             ? dependency
             : null;
     }
@@ -176,7 +199,9 @@ internal static class ImportResourceCreationDispatcher
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyDictionary<string, Guid> createdResources,
+        IReadOnlyDictionary<string, Guid> createdResourcesByType,
+        IReadOnlyDictionary<string, Guid> createdResourcesByName,
+        IReadOnlyList<string>? dependencyResourceNames,
         IReadOnlyDictionary<string, object?>? extractedProperties)
     {
         return resourceType switch
@@ -196,10 +221,10 @@ internal static class ImportResourceCreationDispatcher
                 name,
                 location,
                 OsType: GetStringProp(extractedProperties, "osType", "Linux")),
-            AzureResourceTypes.WebApp => BuildWebAppCommand(resourceGroupId, name, location, createdResources, extractedProperties),
-            AzureResourceTypes.FunctionApp => BuildFunctionAppCommand(resourceGroupId, name, location, createdResources, extractedProperties),
+            AzureResourceTypes.WebApp => BuildWebAppCommand(resourceGroupId, name, location, createdResourcesByType, createdResourcesByName, dependencyResourceNames, extractedProperties),
+            AzureResourceTypes.FunctionApp => BuildFunctionAppCommand(resourceGroupId, name, location, createdResourcesByType, createdResourcesByName, dependencyResourceNames, extractedProperties),
             AzureResourceTypes.ContainerAppEnvironment => new CreateContainerAppEnvironmentCommand(resourceGroupId, name, location),
-            AzureResourceTypes.ContainerApp => BuildContainerAppCommand(resourceGroupId, name, location, createdResources),
+            AzureResourceTypes.ContainerApp => BuildContainerAppCommand(resourceGroupId, name, location, createdResourcesByType, createdResourcesByName, dependencyResourceNames),
             AzureResourceTypes.RedisCache => new CreateRedisCacheCommand(
                 resourceGroupId,
                 name,
@@ -212,7 +237,7 @@ internal static class ImportResourceCreationDispatcher
             AzureResourceTypes.UserAssignedIdentity => new CreateUserAssignedIdentityCommand(resourceGroupId, name, location),
             AzureResourceTypes.AppConfiguration => new CreateAppConfigurationCommand(resourceGroupId, name, location),
             AzureResourceTypes.LogAnalyticsWorkspace => new CreateLogAnalyticsWorkspaceCommand(resourceGroupId, name, location),
-            AzureResourceTypes.ApplicationInsights => BuildApplicationInsightsCommand(resourceGroupId, name, location, createdResources),
+            AzureResourceTypes.ApplicationInsights => BuildApplicationInsightsCommand(resourceGroupId, name, location, createdResourcesByType, createdResourcesByName, dependencyResourceNames),
             AzureResourceTypes.CosmosDb => new CreateCosmosDbCommand(resourceGroupId, name, location),
             AzureResourceTypes.SqlServer => new CreateSqlServerCommand(
                 resourceGroupId,
@@ -220,7 +245,7 @@ internal static class ImportResourceCreationDispatcher
                 location,
                 Version: "12.0",
                 AdministratorLogin: "sqladmin"),
-            AzureResourceTypes.SqlDatabase => BuildSqlDatabaseCommand(resourceGroupId, name, location, createdResources),
+            AzureResourceTypes.SqlDatabase => BuildSqlDatabaseCommand(resourceGroupId, name, location, createdResourcesByType, createdResourcesByName, dependencyResourceNames),
             AzureResourceTypes.ServiceBusNamespace => new CreateServiceBusNamespaceCommand(resourceGroupId, name, location),
             AzureResourceTypes.ContainerRegistry => new CreateContainerRegistryCommand(resourceGroupId, name, location),
             AzureResourceTypes.EventHubNamespace => new CreateEventHubNamespaceCommand(resourceGroupId, name, location),
@@ -232,17 +257,25 @@ internal static class ImportResourceCreationDispatcher
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyDictionary<string, Guid> createdResources,
+        IReadOnlyDictionary<string, Guid> createdResourcesByType,
+        IReadOnlyDictionary<string, Guid> createdResourcesByName,
+        IReadOnlyList<string>? dependencyResourceNames,
         IReadOnlyDictionary<string, object?>? extractedProperties)
     {
-        if (!createdResources.TryGetValue(AzureResourceTypes.AppServicePlan, out var appServicePlanId))
+        var appServicePlanId = ResolveDependencyId(
+            AzureResourceTypes.AppServicePlan,
+            createdResourcesByType,
+            createdResourcesByName,
+            dependencyResourceNames);
+
+        if (appServicePlanId is null)
             return null;
 
         return new CreateWebAppCommand(
             resourceGroupId,
             name,
             location,
-            AppServicePlanId: appServicePlanId,
+            AppServicePlanId: appServicePlanId.Value,
             RuntimeStack: GetStringProp(extractedProperties, "runtimeStack", "DOTNETCORE"),
             RuntimeVersion: GetStringProp(extractedProperties, "runtimeVersion", "8.0"),
             AlwaysOn: false,
@@ -257,17 +290,25 @@ internal static class ImportResourceCreationDispatcher
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyDictionary<string, Guid> createdResources,
+        IReadOnlyDictionary<string, Guid> createdResourcesByType,
+        IReadOnlyDictionary<string, Guid> createdResourcesByName,
+        IReadOnlyList<string>? dependencyResourceNames,
         IReadOnlyDictionary<string, object?>? extractedProperties)
     {
-        if (!createdResources.TryGetValue(AzureResourceTypes.AppServicePlan, out var appServicePlanId))
+        var appServicePlanId = ResolveDependencyId(
+            AzureResourceTypes.AppServicePlan,
+            createdResourcesByType,
+            createdResourcesByName,
+            dependencyResourceNames);
+
+        if (appServicePlanId is null)
             return null;
 
         return new CreateFunctionAppCommand(
             resourceGroupId,
             name,
             location,
-            AppServicePlanId: appServicePlanId,
+            AppServicePlanId: appServicePlanId.Value,
             RuntimeStack: GetStringProp(extractedProperties, "runtimeStack", "DOTNET-ISOLATED"),
             RuntimeVersion: GetStringProp(extractedProperties, "runtimeVersion", "8.0"),
             HttpsOnly: true,
@@ -281,16 +322,24 @@ internal static class ImportResourceCreationDispatcher
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyDictionary<string, Guid> createdResources)
+        IReadOnlyDictionary<string, Guid> createdResourcesByType,
+        IReadOnlyDictionary<string, Guid> createdResourcesByName,
+        IReadOnlyList<string>? dependencyResourceNames)
     {
-        if (!createdResources.TryGetValue(AzureResourceTypes.ContainerAppEnvironment, out var containerAppEnvironmentId))
+        var containerAppEnvironmentId = ResolveDependencyId(
+            AzureResourceTypes.ContainerAppEnvironment,
+            createdResourcesByType,
+            createdResourcesByName,
+            dependencyResourceNames);
+
+        if (containerAppEnvironmentId is null)
             return null;
 
         return new CreateContainerAppCommand(
             resourceGroupId,
             name,
             location,
-            ContainerAppEnvironmentId: containerAppEnvironmentId,
+            ContainerAppEnvironmentId: containerAppEnvironmentId.Value,
             ContainerRegistryId: null);
     }
 
@@ -298,33 +347,80 @@ internal static class ImportResourceCreationDispatcher
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyDictionary<string, Guid> createdResources)
+        IReadOnlyDictionary<string, Guid> createdResourcesByType,
+        IReadOnlyDictionary<string, Guid> createdResourcesByName,
+        IReadOnlyList<string>? dependencyResourceNames)
     {
-        if (!createdResources.TryGetValue(AzureResourceTypes.LogAnalyticsWorkspace, out var workspaceId))
+        var workspaceId = ResolveDependencyId(
+            AzureResourceTypes.LogAnalyticsWorkspace,
+            createdResourcesByType,
+            createdResourcesByName,
+            dependencyResourceNames);
+
+        if (workspaceId is null)
             return null;
 
         return new CreateApplicationInsightsCommand(
             resourceGroupId,
             name,
             location,
-            LogAnalyticsWorkspaceId: workspaceId);
+            LogAnalyticsWorkspaceId: workspaceId.Value);
     }
 
     private static IBaseRequest? BuildSqlDatabaseCommand(
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyDictionary<string, Guid> createdResources)
+        IReadOnlyDictionary<string, Guid> createdResourcesByType,
+        IReadOnlyDictionary<string, Guid> createdResourcesByName,
+        IReadOnlyList<string>? dependencyResourceNames)
     {
-        if (!createdResources.TryGetValue(AzureResourceTypes.SqlServer, out var sqlServerId))
+        var sqlServerId = ResolveDependencyId(
+            AzureResourceTypes.SqlServer,
+            createdResourcesByType,
+            createdResourcesByName,
+            dependencyResourceNames);
+
+        if (sqlServerId is null)
             return null;
 
         return new CreateSqlDatabaseCommand(
             resourceGroupId,
             name,
             location,
-            SqlServerId: sqlServerId,
+            SqlServerId: sqlServerId.Value,
             Collation: "SQL_Latin1_General_CP1_CI_AS");
+    }
+
+    private static Guid? ResolveDependencyId(
+        string dependencyType,
+        IReadOnlyDictionary<string, Guid> createdResourcesByType,
+        IReadOnlyDictionary<string, Guid> createdResourcesByName,
+        IReadOnlyList<string>? dependencyResourceNames)
+    {
+        if (dependencyResourceNames is { Count: > 0 })
+        {
+            foreach (var dependencyResourceName in dependencyResourceNames)
+            {
+                if (createdResourcesByName.TryGetValue(dependencyResourceName, out var dependencyId))
+                {
+                    return dependencyId;
+                }
+            }
+
+            return null;
+        }
+
+        return createdResourcesByType.TryGetValue(dependencyType, out var fallbackDependencyId)
+            ? fallbackDependencyId
+            : null;
+    }
+
+    private static Location ParseLocation(string? location)
+    {
+        return Enum.TryParse<Location.LocationEnum>(location, true, out var locationEnum)
+            ? new Location(locationEnum)
+            : new Location(Location.LocationEnum.WestEurope);
     }
 
     private static Guid? ExtractResourceId(object? result)

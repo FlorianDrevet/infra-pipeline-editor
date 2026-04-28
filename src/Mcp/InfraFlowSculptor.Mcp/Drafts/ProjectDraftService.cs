@@ -48,7 +48,7 @@ public sealed class ProjectDraftService : IProjectDraftService
         if (intent.Environments is null or { Count: 0 })
         {
             intent.Environments = [new DraftEnvironmentIntent()];
-            warnings.Add("No environments specified â€” defaulting to a single 'Development' environment.");
+            warnings.Add("No environments specified - defaulting to a single 'Development' environment.");
         }
 
         if (intent.LayoutPreset is not null)
@@ -281,12 +281,12 @@ public sealed class ProjectDraftService : IProjectDraftService
         {
             LayoutPresetEnum.AllInOne =>
             [
-                new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "Application"] },
+                new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "ApplicationCode"] },
             ],
             LayoutPresetEnum.SplitInfraCode =>
             [
                 new DraftRepositoryIntent { Alias = "infra", ContentKinds = ["Infrastructure"] },
-                new DraftRepositoryIntent { Alias = "app", ContentKinds = ["Application"] },
+                new DraftRepositoryIntent { Alias = "app", ContentKinds = ["ApplicationCode"] },
             ],
             LayoutPresetEnum.MultiRepo => [],
             _ => [],

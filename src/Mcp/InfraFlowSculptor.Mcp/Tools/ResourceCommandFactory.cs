@@ -81,7 +81,9 @@ public static class ResourceCommandFactory
         Name name,
         Location location,
         IReadOnlyDictionary<string, Guid> createdResources,
-        IReadOnlyDictionary<string, object?>? extractedProperties = null)
+        IReadOnlyDictionary<string, object?>? extractedProperties = null,
+        IReadOnlyDictionary<string, Guid>? createdResourcesByName = null,
+        IReadOnlyList<string>? dependencyResourceNames = null)
     {
         return resourceType switch
         {
@@ -101,16 +103,16 @@ public static class ResourceCommandFactory
                 OsType: GetStringProp(extractedProperties, "osType", "Linux")),
 
             AzureResourceTypes.WebApp => BuildWebAppCommand(
-                resourceGroupId, name, location, createdResources, extractedProperties),
+                resourceGroupId, name, location, createdResources, createdResourcesByName, dependencyResourceNames, extractedProperties),
 
             AzureResourceTypes.FunctionApp => BuildFunctionAppCommand(
-                resourceGroupId, name, location, createdResources, extractedProperties),
+                resourceGroupId, name, location, createdResources, createdResourcesByName, dependencyResourceNames, extractedProperties),
 
             AzureResourceTypes.ContainerAppEnvironment => new CreateContainerAppEnvironmentCommand(
                 resourceGroupId, name, location),
 
             AzureResourceTypes.ContainerApp => BuildContainerAppCommand(
-                resourceGroupId, name, location, createdResources),
+                resourceGroupId, name, location, createdResources, createdResourcesByName, dependencyResourceNames),
 
             AzureResourceTypes.RedisCache => new CreateRedisCacheCommand(
                 resourceGroupId, name, location,
@@ -130,7 +132,7 @@ public static class ResourceCommandFactory
                 resourceGroupId, name, location),
 
             AzureResourceTypes.ApplicationInsights => BuildApplicationInsightsCommand(
-                resourceGroupId, name, location, createdResources),
+                resourceGroupId, name, location, createdResources, createdResourcesByName, dependencyResourceNames),
 
             AzureResourceTypes.CosmosDb => new CreateCosmosDbCommand(
                 resourceGroupId, name, location),
@@ -141,7 +143,7 @@ public static class ResourceCommandFactory
                 AdministratorLogin: "sqladmin"),
 
             AzureResourceTypes.SqlDatabase => BuildSqlDatabaseCommand(
-                resourceGroupId, name, location, createdResources),
+                resourceGroupId, name, location, createdResources, createdResourcesByName, dependencyResourceNames),
 
             AzureResourceTypes.ServiceBusNamespace => new CreateServiceBusNamespaceCommand(
                 resourceGroupId, name, location),
@@ -160,28 +162,44 @@ public static class ResourceCommandFactory
     /// Checks whether a resource type requires a dependency that is not yet created.
     /// </summary>
     public static string? GetMissingDependency(
-        string resourceType, IReadOnlyDictionary<string, Guid> createdResources)
+        string resourceType,
+        IReadOnlyDictionary<string, Guid> createdResources,
+        IReadOnlyDictionary<string, Guid>? createdResourcesByName = null,
+        IReadOnlyList<string>? dependencyResourceNames = null)
     {
-        if (ResourceDependencies.TryGetValue(resourceType, out var dep)
-            && !createdResources.ContainsKey(dep))
+        if (!ResourceDependencies.TryGetValue(resourceType, out var dep))
+            return null;
+
+        if (dependencyResourceNames is { Count: > 0 })
         {
-            return dep;
+            return dependencyResourceNames.FirstOrDefault(name =>
+                createdResourcesByName is null || !createdResourcesByName.ContainsKey(name));
         }
 
-        return null;
+        return !createdResources.ContainsKey(dep)
+            ? dep
+            : null;
     }
 
     private static IBaseRequest? BuildWebAppCommand(
         ResourceGroupId rgId, Name name, Location location,
         IReadOnlyDictionary<string, Guid> created,
+        IReadOnlyDictionary<string, Guid>? createdByName,
+        IReadOnlyList<string>? dependencyResourceNames,
         IReadOnlyDictionary<string, object?>? props)
     {
-        if (!created.TryGetValue(AzureResourceTypes.AppServicePlan, out var aspId))
+        var aspId = ResolveDependencyId(
+            AzureResourceTypes.AppServicePlan,
+            created,
+            createdByName,
+            dependencyResourceNames);
+
+        if (aspId is null)
             return null;
 
         return new CreateWebAppCommand(
             rgId, name, location,
-            AppServicePlanId: aspId,
+            AppServicePlanId: aspId.Value,
             RuntimeStack: GetStringProp(props, "runtimeStack", "DOTNETCORE"),
             RuntimeVersion: GetStringProp(props, "runtimeVersion", "8.0"),
             AlwaysOn: false,
@@ -195,14 +213,22 @@ public static class ResourceCommandFactory
     private static IBaseRequest? BuildFunctionAppCommand(
         ResourceGroupId rgId, Name name, Location location,
         IReadOnlyDictionary<string, Guid> created,
+        IReadOnlyDictionary<string, Guid>? createdByName,
+        IReadOnlyList<string>? dependencyResourceNames,
         IReadOnlyDictionary<string, object?>? props)
     {
-        if (!created.TryGetValue(AzureResourceTypes.AppServicePlan, out var aspId))
+        var aspId = ResolveDependencyId(
+            AzureResourceTypes.AppServicePlan,
+            created,
+            createdByName,
+            dependencyResourceNames);
+
+        if (aspId is null)
             return null;
 
         return new CreateFunctionAppCommand(
             rgId, name, location,
-            AppServicePlanId: aspId,
+            AppServicePlanId: aspId.Value,
             RuntimeStack: GetStringProp(props, "runtimeStack", "DOTNET-ISOLATED"),
             RuntimeVersion: GetStringProp(props, "runtimeVersion", "8.0"),
             HttpsOnly: true,
@@ -214,40 +240,91 @@ public static class ResourceCommandFactory
 
     private static IBaseRequest? BuildContainerAppCommand(
         ResourceGroupId rgId, Name name, Location location,
-        IReadOnlyDictionary<string, Guid> created)
+        IReadOnlyDictionary<string, Guid> created,
+        IReadOnlyDictionary<string, Guid>? createdByName,
+        IReadOnlyList<string>? dependencyResourceNames)
     {
-        if (!created.TryGetValue(AzureResourceTypes.ContainerAppEnvironment, out var caeId))
+        var caeId = ResolveDependencyId(
+            AzureResourceTypes.ContainerAppEnvironment,
+            created,
+            createdByName,
+            dependencyResourceNames);
+
+        if (caeId is null)
             return null;
 
         return new CreateContainerAppCommand(
             rgId, name, location,
-            ContainerAppEnvironmentId: caeId,
+            ContainerAppEnvironmentId: caeId.Value,
             ContainerRegistryId: null);
     }
 
     private static IBaseRequest? BuildApplicationInsightsCommand(
         ResourceGroupId rgId, Name name, Location location,
-        IReadOnlyDictionary<string, Guid> created)
+        IReadOnlyDictionary<string, Guid> created,
+        IReadOnlyDictionary<string, Guid>? createdByName,
+        IReadOnlyList<string>? dependencyResourceNames)
     {
-        if (!created.TryGetValue(AzureResourceTypes.LogAnalyticsWorkspace, out var lawId))
+        var lawId = ResolveDependencyId(
+            AzureResourceTypes.LogAnalyticsWorkspace,
+            created,
+            createdByName,
+            dependencyResourceNames);
+
+        if (lawId is null)
             return null;
 
         return new CreateApplicationInsightsCommand(
             rgId, name, location,
-            LogAnalyticsWorkspaceId: lawId);
+            LogAnalyticsWorkspaceId: lawId.Value);
     }
 
     private static IBaseRequest? BuildSqlDatabaseCommand(
         ResourceGroupId rgId, Name name, Location location,
-        IReadOnlyDictionary<string, Guid> created)
+        IReadOnlyDictionary<string, Guid> created,
+        IReadOnlyDictionary<string, Guid>? createdByName,
+        IReadOnlyList<string>? dependencyResourceNames)
     {
-        if (!created.TryGetValue(AzureResourceTypes.SqlServer, out var sqlServerId))
+        var sqlServerId = ResolveDependencyId(
+            AzureResourceTypes.SqlServer,
+            created,
+            createdByName,
+            dependencyResourceNames);
+
+        if (sqlServerId is null)
             return null;
 
         return new CreateSqlDatabaseCommand(
             rgId, name, location,
-            SqlServerId: sqlServerId,
+            SqlServerId: sqlServerId.Value,
             Collation: "SQL_Latin1_General_CP1_CI_AS");
+    }
+
+    private static Guid? ResolveDependencyId(
+        string dependencyType,
+        IReadOnlyDictionary<string, Guid> createdByType,
+        IReadOnlyDictionary<string, Guid>? createdByName,
+        IReadOnlyList<string>? dependencyResourceNames)
+    {
+        if (dependencyResourceNames is { Count: > 0 })
+        {
+            if (createdByName is null)
+                return null;
+
+            foreach (var dependencyResourceName in dependencyResourceNames)
+            {
+                if (createdByName.TryGetValue(dependencyResourceName, out var dependencyId))
+                {
+                    return dependencyId;
+                }
+            }
+
+            return null;
+        }
+
+        return createdByType.TryGetValue(dependencyType, out var dependencyIdByType)
+            ? dependencyIdByType
+            : null;
     }
 
     private static string GetStringProp(

@@ -50,6 +50,7 @@ public sealed class ProjectCreationTools
 
         var projectId = result.Value.Id.Value;
         var projectName = result.Value.Name.Value;
+        var primaryLocation = draft.Intent.Environments?.FirstOrDefault()?.Location ?? "westeurope";
 
         // Create infrastructure config + resource group + resources if the draft has resources.
         var resourceInputs = (draft.Intent.Resources ?? [])
@@ -58,13 +59,14 @@ public sealed class ProjectCreationTools
             {
                 ResourceType = r.ResourceType,
                 Name = r.Name ?? $"{projectName}-{r.ResourceType.ToLowerInvariant()}",
+                Location = primaryLocation,
             })
             .ToList();
 
         if (resourceInputs.Count > 0)
         {
             var infraResult = await ProjectSetupOrchestrator.CreateInfrastructureAsync(
-                mediator, projectId, projectName);
+                mediator, projectId, projectName, primaryLocation);
 
             if (infraResult.IsError)
             {
@@ -150,7 +152,7 @@ public sealed class ProjectCreationTools
 
         var repositories = intent.Repositories?.Select(r => new RepositorySetupItem(
             r.Alias,
-            r.ContentKinds,
+            NormalizeContentKinds(r.ContentKinds),
             r.ProviderType,
             r.RepositoryUrl,
             r.DefaultBranch
@@ -163,6 +165,15 @@ public sealed class ProjectCreationTools
             Environments: environments,
             Repositories: repositories
         );
+    }
+
+    private static IReadOnlyList<string> NormalizeContentKinds(IReadOnlyList<string> contentKinds)
+    {
+        return contentKinds
+            .Select(contentKind => string.Equals(contentKind, "Application", StringComparison.OrdinalIgnoreCase)
+                ? "ApplicationCode"
+                : contentKind)
+            .ToList();
     }
 
     private static string[] BuildNextActions(int createdCount, int skippedCount)

@@ -1,4 +1,6 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.ApplicationInsights.Commands.CreateApplicationInsights;
+using InfraFlowSculptor.Application.ApplicationInsights.Common;
 using FluentAssertions;
 using InfraFlowSculptor.Application.AppServicePlans.Commands.CreateAppServicePlan;
 using InfraFlowSculptor.Application.AppServicePlans.Common;
@@ -8,6 +10,8 @@ using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraCon
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
 using InfraFlowSculptor.Application.KeyVaults.Common;
+using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAnalyticsWorkspace;
+using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Common;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
@@ -62,6 +66,18 @@ public sealed class ApplyImportPreviewCommandHandlerTests
                     sourceType: "Microsoft.KeyVault/vaults",
                     sourceName: "myKeyVault",
                     mappedResourceType: AzureResourceTypes.KeyVault),
+            ],
+            environments:
+            [
+                new EnvironmentSetupItem(
+                    "Development",
+                    "dev",
+                    string.Empty,
+                    string.Empty,
+                    "francecentral",
+                    Guid.Empty,
+                    0,
+                    false),
             ]);
 
         // Act
@@ -90,7 +106,101 @@ public sealed class ApplyImportPreviewCommandHandlerTests
                 && request.Environments[0].Name == "Development"
                 && request.Environments[0].ShortName == "dev"
                 && request.Repositories.Count == 1
-                && request.Repositories[0].Alias == "main"),
+                && request.Repositories[0].Alias == "main"
+                && request.Repositories[0].ContentKinds.Count == 2
+                && request.Repositories[0].ContentKinds[0] == "Infrastructure"
+                && request.Repositories[0].ContentKinds[1] == "ApplicationCode"),
+            Arg.Any<CancellationToken>());
+
+        await _mediator.Received(1).Send(
+            Arg.Is<CreateResourceGroupCommand>(request =>
+                request.Location.Value == Location.LocationEnum.FranceCentral),
+            Arg.Any<CancellationToken>());
+
+        await _mediator.Received(1).Send(
+            Arg.Is<CreateKeyVaultCommand>(request =>
+                request.Location.Value == Location.LocationEnum.FranceCentral),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Given_DistinctNamedDependencies_When_Handle_Then_UsesMatchingDependencyIdsAsync()
+    {
+        // Arrange
+        var projectId = new ProjectId(Guid.NewGuid());
+        var infrastructureConfigId = new InfrastructureConfigId(Guid.NewGuid());
+        var resourceGroupId = new ResourceGroupId(Guid.NewGuid());
+        var lawEastId = new AzureResourceId(Guid.NewGuid());
+        var lawWestId = new AzureResourceId(Guid.NewGuid());
+        var aiEastId = new AzureResourceId(Guid.NewGuid());
+        var aiWestId = new AzureResourceId(Guid.NewGuid());
+
+        _mediator.Send(Arg.Any<CreateProjectWithSetupCommand>(), Arg.Any<CancellationToken>())
+            .Returns(CreateProjectResult(projectId, "MyProject"));
+        _mediator.Send(Arg.Any<CreateInfrastructureConfigCommand>(), Arg.Any<CancellationToken>())
+            .Returns(CreateInfrastructureConfigResult(infrastructureConfigId, projectId));
+        _mediator.Send(Arg.Any<CreateResourceGroupCommand>(), Arg.Any<CancellationToken>())
+            .Returns(CreateResourceGroupResult(resourceGroupId, infrastructureConfigId));
+        _mediator.Send(
+                Arg.Is<CreateLogAnalyticsWorkspaceCommand>(command => command.Name.Value == "law-east"),
+                Arg.Any<CancellationToken>())
+            .Returns(CreateLogAnalyticsWorkspaceResult(lawEastId, resourceGroupId, "law-east"));
+        _mediator.Send(
+                Arg.Is<CreateLogAnalyticsWorkspaceCommand>(command => command.Name.Value == "law-west"),
+                Arg.Any<CancellationToken>())
+            .Returns(CreateLogAnalyticsWorkspaceResult(lawWestId, resourceGroupId, "law-west"));
+        _mediator.Send(
+                Arg.Is<CreateApplicationInsightsCommand>(command => command.Name.Value == "ai-east"),
+                Arg.Any<CancellationToken>())
+            .Returns(CreateApplicationInsightsResult(aiEastId, resourceGroupId, "ai-east", lawEastId.Value));
+        _mediator.Send(
+                Arg.Is<CreateApplicationInsightsCommand>(command => command.Name.Value == "ai-west"),
+                Arg.Any<CancellationToken>())
+            .Returns(CreateApplicationInsightsResult(aiWestId, resourceGroupId, "ai-west", lawWestId.Value));
+
+        var command = CreateCommand(
+            resources:
+            [
+                CreateMappedResource(
+                    sourceType: "Microsoft.OperationalInsights/workspaces",
+                    sourceName: "law-east",
+                    mappedResourceType: AzureResourceTypes.LogAnalyticsWorkspace),
+                CreateMappedResource(
+                    sourceType: "Microsoft.OperationalInsights/workspaces",
+                    sourceName: "law-west",
+                    mappedResourceType: AzureResourceTypes.LogAnalyticsWorkspace),
+                CreateMappedResource(
+                    sourceType: "Microsoft.Insights/components",
+                    sourceName: "ai-east",
+                    mappedResourceType: AzureResourceTypes.ApplicationInsights),
+                CreateMappedResource(
+                    sourceType: "Microsoft.Insights/components",
+                    sourceName: "ai-west",
+                    mappedResourceType: AzureResourceTypes.ApplicationInsights),
+            ],
+            dependencies:
+            [
+                CreateDependency("ai-east", "law-east"),
+                CreateDependency("ai-west", "law-west"),
+            ]);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.CreatedResources.Should().HaveCount(4);
+
+        await _mediator.Received(1).Send(
+            Arg.Is<CreateApplicationInsightsCommand>(request =>
+                request.Name.Value == "ai-east"
+                && request.LogAnalyticsWorkspaceId == lawEastId.Value),
+            Arg.Any<CancellationToken>());
+
+        await _mediator.Received(1).Send(
+            Arg.Is<CreateApplicationInsightsCommand>(request =>
+                request.Name.Value == "ai-west"
+                && request.LogAnalyticsWorkspaceId == lawWestId.Value),
             Arg.Any<CancellationToken>());
     }
 
@@ -267,6 +377,7 @@ public sealed class ApplyImportPreviewCommandHandlerTests
 
     private static ApplyImportPreviewCommand CreateCommand(
         IReadOnlyList<ImportedResourceAnalysisResult> resources,
+        IReadOnlyList<ImportedDependencyAnalysisResult>? dependencies = null,
         IReadOnlyList<string>? resourceFilter = null,
         IReadOnlyList<EnvironmentSetupItem>? environments = null)
     {
@@ -277,7 +388,7 @@ public sealed class ApplyImportPreviewCommandHandlerTests
             {
                 SourceFormat = "arm-json",
                 Resources = resources,
-                Dependencies = [],
+                Dependencies = dependencies ?? [],
                 Metadata = new Dictionary<string, string>(),
                 Gaps = [],
                 UnsupportedResources = [],
@@ -302,6 +413,11 @@ public sealed class ApplyImportPreviewCommandHandlerTests
             ExtractedProperties = new Dictionary<string, object?>(),
             UnmappedProperties = [],
         };
+    }
+
+    private static ImportedDependencyAnalysisResult CreateDependency(string fromResourceName, string toResourceName)
+    {
+        return new ImportedDependencyAnalysisResult(fromResourceName, toResourceName, "dependsOn");
     }
 
     private static Task<ErrorOr<ProjectResult>> CreateProjectResult(ProjectId projectId, string projectName)
@@ -397,5 +513,35 @@ public sealed class ApplyImportPreviewCommandHandlerTests
                 Tables: [],
                 EnvironmentSettings: [],
                 LifecycleRules: []));
+    }
+
+    private static Task<ErrorOr<LogAnalyticsWorkspaceResult>> CreateLogAnalyticsWorkspaceResult(
+        AzureResourceId resourceId,
+        ResourceGroupId resourceGroupId,
+        string resourceName)
+    {
+        return Task.FromResult<ErrorOr<LogAnalyticsWorkspaceResult>>(
+            new LogAnalyticsWorkspaceResult(
+                resourceId,
+                resourceGroupId,
+                new Name(resourceName),
+                new Location(Location.LocationEnum.WestEurope),
+                []));
+    }
+
+    private static Task<ErrorOr<ApplicationInsightsResult>> CreateApplicationInsightsResult(
+        AzureResourceId resourceId,
+        ResourceGroupId resourceGroupId,
+        string resourceName,
+        Guid logAnalyticsWorkspaceId)
+    {
+        return Task.FromResult<ErrorOr<ApplicationInsightsResult>>(
+            new ApplicationInsightsResult(
+                resourceId,
+                resourceGroupId,
+                new Name(resourceName),
+                new Location(Location.LocationEnum.WestEurope),
+                logAnalyticsWorkspaceId,
+                []));
     }
 }

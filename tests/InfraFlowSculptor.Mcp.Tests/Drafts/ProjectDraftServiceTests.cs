@@ -79,6 +79,7 @@ public sealed class ProjectDraftServiceTests
     {
         // Arrange
         const string prompt = "Crée-moi un projet TestApp en mono repo";
+        const string expectedWarning = "No environments specified - defaulting to a single 'Development' environment.";
 
         // Act
         var draft = _sut.CreateDraftFromPrompt(prompt);
@@ -86,7 +87,7 @@ public sealed class ProjectDraftServiceTests
         // Assert
         draft.Intent.Environments.Should().ContainSingle();
         draft.Intent.Environments![0].Name.Should().Be("Development");
-        draft.Warnings.Should().Contain(w => w.Contains("Development"));
+        draft.Warnings.Should().Contain(expectedWarning);
     }
 
     [Fact]
@@ -127,7 +128,7 @@ public sealed class ProjectDraftServiceTests
         // Assert
         draft.Intent.Repositories.Should().ContainSingle();
         draft.Intent.Repositories![0].Alias.Should().Be("main");
-        draft.Intent.Repositories[0].ContentKinds.Should().BeEquivalentTo(["Infrastructure", "Application"]);
+        draft.Intent.Repositories[0].ContentKinds.Should().BeEquivalentTo(["Infrastructure", "ApplicationCode"]);
     }
 
     [Fact]
@@ -142,7 +143,7 @@ public sealed class ProjectDraftServiceTests
         // Assert
         draft.Intent.Repositories.Should().HaveCount(2);
         draft.Intent.Repositories![0].ContentKinds.Should().Contain("Infrastructure");
-        draft.Intent.Repositories[1].ContentKinds.Should().Contain("Application");
+        draft.Intent.Repositories[1].ContentKinds.Should().Contain("ApplicationCode");
     }
 
     // ── ValidateAndUpdate ──────────────────────────────────────────────
