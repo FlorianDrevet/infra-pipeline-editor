@@ -1,5 +1,14 @@
 {
 	"servers": {
+		"infraflowsculptor-mcp": {
+			"type": "stdio",
+			"command": "dotnet",
+			"args": [
+				"run",
+				"--project",
+				"src/Mcp/InfraFlowSculptor.Mcp/InfraFlowSculptor.Mcp.csproj"
+			]
+		},
 		"com.postman/postman-mcp-server": {
 			"type": "stdio",
 			"command": "npx",

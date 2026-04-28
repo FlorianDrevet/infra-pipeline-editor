@@ -23,10 +23,14 @@
     <Project Path="src/Api/InfraFlowSculptor.Domain/InfraFlowSculptor.Domain.csproj" />
     <Project Path="src/Api/InfraFlowSculptor.Infrastructure/InfraFlowSculptor.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Mcp/">
+    <Project Path="src/Mcp/InfraFlowSculptor.Mcp/InfraFlowSculptor.Mcp.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/InfraFlowSculptor.BicepGeneration.Tests/InfraFlowSculptor.BicepGeneration.Tests.csproj" />
     <Project Path="tests/InfraFlowSculptor.Contracts.Tests/InfraFlowSculptor.Contracts.Tests.csproj" />
     <Project Path="tests/InfraFlowSculptor.Domain.Tests/InfraFlowSculptor.Domain.Tests.csproj" />
     <Project Path="tests/InfraFlowSculptor.PipelineGeneration.Tests/InfraFlowSculptor.PipelineGeneration.Tests.csproj" />
+    <Project Path="tests/InfraFlowSculptor.Mcp.Tests/InfraFlowSculptor.Mcp.Tests.csproj" />
   </Folder>
 </Solution>

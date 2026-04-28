@@ -50,6 +50,7 @@
 - **Aspire runtime debugging** — Any runtime/AppHost investigation (resource failures, logs/traces, startup issues) MUST use the `aspire-debug` agent (`.github/agents/aspire-debug.agent.md`).
 - **Memory consolidation (Dream)** — The `dream` agent (`.github/agents/dream.agent.md`) performs periodic memory consolidation (4 phases: Orient → Gather → Consolidate → Prune). Triggered automatically by `@dev` when time gate (≥24h) AND session gate (≥5 sessions) are both satisfied and an exclusive Dream lock at `$env:TEMP\infra-pipeline-editor-dream-lock` can be acquired. Dream state tracked in `.github/memory/dream-state.md`.
 - **CQRS feature generation** — Load the `cqrs-feature` skill (`.github/skills/cqrs-feature/SKILL.md`) for any new aggregate or CQRS feature.
+- **MCP / Model Context Protocol** — Load the `mcp-dotnet-server` skill (`.github/skills/mcp-dotnet-server/SKILL.md`) for any MCP server design or implementation in C#/.NET, VS Code `.vscode/mcp.json` exposure, transport/auth choices, conversational project creation from prompts, mandatory clarification workflows, IaC import tooling, or long-term MCP integration planning.
 - **UI/UX frontend design quality** — Load the `ui-ux-front-saas` skill (`.github/skills/ui-ux-front-saas/SKILL.md`) for any UI-facing frontend task (pages, components, layouts, styles, UX states).
 - **Pull Requests** — Use the `pr-manager` agent (`.github/agents/pr-manager.agent.md`) for PR title/description conventions.
 
@@ -65,6 +66,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 | Skill | When to load | File |
 |-------|-------------|------|
 | `cqrs-feature` | Generating a new aggregate, new CQRS commands/queries/handlers, full feature scaffolding | `.github/skills/cqrs-feature/SKILL.md` |
+| `mcp-dotnet-server` | Designing, planning, or implementing a Model Context Protocol server in C#/.NET for InfraFlowSculptor, including VS Code exposure, transport selection, security, conversational project creation from prompts, clarification/elicitation flows, IaC import/migration flows, and long-term integration strategy | `.github/skills/mcp-dotnet-server/SKILL.md` |
 | `ui-ux-front-saas` | Any frontend UI/UX work: page design, component visuals, layout, styling, UX states, handoff specs | `.github/skills/ui-ux-front-saas/SKILL.md` |
 | `new-azure-resource` | Adding a new Azure resource type end-to-end (Domain→App→Infra→Contracts→API→Bicep→Frontend→i18n) | `.github/skills/new-azure-resource/SKILL.md` |
 | `gitnexus-workflow` | Code exploration via knowledge graph, impact analysis before modifications, post-change validation, safe refactoring | `.github/skills/gitnexus-workflow/SKILL.md` |

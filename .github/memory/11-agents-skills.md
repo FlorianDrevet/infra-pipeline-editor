@@ -28,6 +28,7 @@
 | Skill | When to load | File |
 |---|---|---|
 | `cqrs-feature` | New aggregate, CQRS feature scaffolding | `.github/skills/cqrs-feature/SKILL.md` |
+| `mcp-dotnet-server` | Design, planning, and implementation guidance for a C#/.NET MCP server integrated with InfraFlowSculptor, including VS Code exposure, transport selection, IaC import/migration workflows, and long-term evolution strategy | `.github/skills/mcp-dotnet-server/SKILL.md` |
 | `ui-ux-front-saas` | Any frontend UI/UX work | `.github/skills/ui-ux-front-saas/SKILL.md` |
 | `new-azure-resource` | New Azure resource type end-to-end | `.github/skills/new-azure-resource/SKILL.md` |
 | `gitnexus-workflow` | Code exploration via knowledge graph, impact analysis before modifications, post-change validation, safe refactoring | `.github/skills/gitnexus-workflow/SKILL.md` |
@@ -67,3 +68,12 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 ## GitHub Operations
 - Default GitHub repository for this project is `FlorianDrevet/infra-pipeline-editor` unless the user explicitly names another repository.
 - Audit issue workflows use reports under `audits/` (for example `audits/audit-14-04-2026`) together with `scripts/sync-audit-issues.ps1`; on 2026-04-15, 66 findings were recreated as GitHub issues and the `phase:*` / `severity:*` label mojibake was cleaned up.
+
+## MCP Skill [2026-04-28]
+
+- New skill: `mcp-dotnet-server`.
+- Scope: official MCP + C# SDK baseline, `stdio` vs Streamable HTTP, `.vscode/mcp.json`, auth/authorization, tasks, observability, testing, and project-specific integration rules.
+- Project stance: MCP must stay an adapter layer over `Application`/generation services; import/migration logic should be reusable outside MCP via canonical import services and contracts.
+- Recommended first increment: workspace-local `stdio` server under `src/Mcp/InfraFlowSculptor.Mcp`, then HTTP only if shared/remote usage becomes necessary.
+- Conversational creation rule: a prompt like "create a project with a Key Vault" must first go through a draft/clarification step; repository topology (`MonoRepo`, `SplitInfraCode`, etc.) must not be guessed by a mutating tool.
+- The skill now also documents a first recommended tool surface and the dual connection model for VS Code: local `stdio` for development, remote `http` for deployed environments via `.vscode/mcp.json` or user-profile `mcp.json`.

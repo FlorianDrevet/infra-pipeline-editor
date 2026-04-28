@@ -157,6 +157,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Revue de code pré-merge, review de diff contre `main`, gate qualité avant merge | **`review-expert`** | `.github/agents/review-expert.agent.md` |
 | Appliquer un backlog de correction issu d'une review pré-merge | **`review-remediator`** | `.github/agents/review-remediator.agent.md` |
 | Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` |
+| Concevoir, planifier ou implémenter un serveur MCP .NET / exposition VS Code / import IaC | Charger le skill **`mcp-dotnet-server`**, puis déléguer à **`architect`** pour le plan et à **`dotnet-dev`** pour l'implémentation | `.github/skills/mcp-dotnet-server/SKILL.md` |
 | Générer une feature CQRS complète (nouvel agrégat) | **`dev`** (toi-même) + charger le skill `cqrs-feature` | `.github/skills/cqrs-feature/SKILL.md` |
 | Modifier/créer du code C#/.NET | **`dotnet-dev`** + charger les skills `tdd-workflow` + `xunit-unit-testing` | `.github/agents/dotnet-dev.agent.md` |
 | Rédiger ou corriger des tests unitaires .NET/xUnit | **`dotnet-dev`** + charger le skill `xunit-unit-testing` | `.github/skills/xunit-unit-testing/SKILL.md` |
@@ -259,6 +260,11 @@ Un skill est **différent d'un agent** :
 - **Quand le charger :** dès que tu génères un nouvel agrégat, une nouvelle feature CQRS, ou que tu modifies la structure d'un agrégat existant
 - **Fichier :** `.github/skills/cqrs-feature/SKILL.md`
 - **Contenu :** les 9 étapes pour générer un agrégat DDD complet (Domain → Application → Infrastructure → Contracts → API → Migration), les patterns de code avec exemples, la checklist de validation
+
+#### `mcp-dotnet-server`
+- **Quand le charger :** dès qu'une tâche porte sur la conception, le plan, ou l'implémentation d'un serveur MCP / Model Context Protocol en C#/.NET, l'exposition dans VS Code via `.vscode/mcp.json`, l'import d'IaC/diagrammes, ou la stratégie d'intégration long terme avec InfraFlowSculptor
+- **Fichier :** `.github/skills/mcp-dotnet-server/SKILL.md`
+- **Contenu :** baseline officielle du SDK C#, choix de transport `stdio`/HTTP, architecture cible pour ce dépôt, pipeline d'import canonique, mapping tools/resources/prompts, sécurité, tests, pièges, et feuille de route d'adoption
 
 #### `ui-ux-front-saas`
 - **Quand le charger :** dès qu'une tâche frontend modifie une interface (page, composant, layout, styles, états UX)
