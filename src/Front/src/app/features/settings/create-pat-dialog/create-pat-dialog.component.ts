@@ -9,6 +9,7 @@ import {
   DsButtonComponent,
   DsTextFieldComponent,
   DsAlertComponent,
+  DsDatePickerComponent,
 } from '../../../shared/components/ds';
 import { PersonalAccessTokenService } from '../../../shared/services/personal-access-token.service';
 
@@ -23,6 +24,7 @@ import { PersonalAccessTokenService } from '../../../shared/services/personal-ac
     MatIconModule,
     DsButtonComponent,
     DsTextFieldComponent,
+    DsDatePickerComponent,
     DsAlertComponent,
   ],
   templateUrl: './create-pat-dialog.component.html',

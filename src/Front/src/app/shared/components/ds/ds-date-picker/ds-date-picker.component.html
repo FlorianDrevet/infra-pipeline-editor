@@ -1,0 +1,111 @@
+<div
+  class="ds-field"
+  [class.ds-field--invalid]="!!error()"
+  [class.ds-field--disabled]="disabledState()"
+  [class.ds-field--focused]="isOpen()"
+>
+  @if (label()) {
+    <label class="ds-field__label" [for]="inputId">
+      {{ label() }}
+      @if (required()) {
+        <span class="ds-field__required">*</span>
+      }
+    </label>
+  }
+  <button
+    #trigger
+    cdkOverlayOrigin
+    type="button"
+    class="ds-field__control ds-date-picker__trigger"
+    [id]="inputId"
+    [disabled]="disabledState()"
+    (click)="toggleOpen()"
+  >
+    <span
+      class="ds-date-picker__value"
+      [class.ds-date-picker__value--placeholder]="!displayValue()"
+    >
+      {{ displayValue() || placeholder() }}
+    </span>
+    @if (clearable() && value() && !disabledState()) {
+      <button
+        type="button"
+        class="ds-field__clear"
+        (click)="clear($event)"
+        tabindex="-1"
+        aria-label="Clear"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+    <mat-icon class="ds-date-picker__calendar-icon">calendar_today</mat-icon>
+  </button>
+
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="trigger"
+    [cdkConnectedOverlayOpen]="isOpen()"
+    [cdkConnectedOverlayPositions]="overlayPositions"
+    [cdkConnectedOverlayWidth]="overlayWidth()"
+    [cdkConnectedOverlayViewportMargin]="12"
+    [cdkConnectedOverlayPush]="true"
+    [cdkConnectedOverlayHasBackdrop]="true"
+    cdkConnectedOverlayBackdropClass="ds-date-picker__backdrop"
+    (backdropClick)="close()"
+    (detach)="close()"
+  >
+    <div class="ds-date-picker__panel" role="dialog" aria-modal="true">
+      <!-- Header -->
+      <div class="ds-date-picker__header">
+        <button
+          type="button"
+          class="ds-date-picker__nav"
+          (click)="prevMonth()"
+          aria-label="Previous month"
+        >
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span class="ds-date-picker__month-label">{{ monthLabel() }}</span>
+        <button
+          type="button"
+          class="ds-date-picker__nav"
+          (click)="nextMonth()"
+          aria-label="Next month"
+        >
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+
+      <!-- Weekday headers -->
+      <div class="ds-date-picker__weekdays">
+        @for (wd of weekdays(); track wd) {
+          <span class="ds-date-picker__weekday">{{ wd }}</span>
+        }
+      </div>
+
+      <!-- Day grid -->
+      <div class="ds-date-picker__grid">
+        @for (day of calendarDays(); track day.date.getTime()) {
+          <button
+            type="button"
+            class="ds-date-picker__day"
+            [class.ds-date-picker__day--today]="day.isToday"
+            [class.ds-date-picker__day--selected]="day.isSelected"
+            [class.ds-date-picker__day--disabled]="day.isDisabled"
+            [class.ds-date-picker__day--outside]="!day.isCurrentMonth"
+            [disabled]="day.isDisabled || !day.isCurrentMonth"
+            (click)="selectDay(day)"
+          >
+            {{ day.day }}
+          </button>
+        }
+      </div>
+    </div>
+  </ng-template>
+
+  @if (error()) {
+    <span class="ds-field__message ds-field__message--error">{{ error() }}</span>
+  } @else if (hint()) {
+    <span class="ds-field__message ds-field__message--hint">{{ hint() }}</span>
+  }
+</div>

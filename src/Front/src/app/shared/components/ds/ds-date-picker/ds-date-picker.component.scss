@@ -1,0 +1,271 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+// ── Field wrapper (mirrors ds-text-field) ──────────────────────────────
+
+.ds-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  position: relative;
+}
+
+.ds-field__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: $ifs-brand-blue;
+  letter-spacing: 0.01em;
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.ds-field__required {
+  color: $ifs-error-strong;
+  font-weight: 700;
+}
+
+.ds-field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.85rem;
+  height: 2.6rem;
+  background: $ifs-surface-0;
+  border: 1.5px solid $ifs-border-strong;
+  border-radius: $ifs-radius-md;
+  transition: all $ifs-duration-fast $ifs-ease-out;
+  width: 100%;
+}
+
+.ds-field--focused .ds-field__control {
+  border-color: $ifs-brand-blue;
+  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15), inset 0 0 0 0.5px $ifs-brand-blue;
+  background: #fff;
+}
+
+.ds-field--invalid .ds-field__control {
+  border-color: $ifs-error-strong;
+  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.12);
+}
+
+.ds-field--disabled .ds-field__control {
+  background: $ifs-surface-100;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.ds-field__clear {
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: $ifs-ink-400;
+  border-radius: 50%;
+  padding: 0;
+
+  &:hover {
+    background: $ifs-surface-100;
+    color: $ifs-error-strong;
+  }
+
+  mat-icon {
+    font-size: 0.9rem;
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+}
+
+.ds-field__message {
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.ds-field__message--hint {
+  color: $ifs-ink-500;
+}
+
+.ds-field__message--error {
+  color: $ifs-error-strong;
+  font-weight: 500;
+}
+
+// ── Trigger button ─────────────────────────────────────────────────────
+
+.ds-date-picker__trigger {
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.ds-date-picker__value {
+  flex: 1;
+  @include ifs-truncate;
+  font-size: 0.95rem;
+  color: $ifs-ink-700;
+
+  &--placeholder {
+    color: $ifs-ink-400;
+  }
+}
+
+.ds-date-picker__calendar-icon {
+  color: $ifs-brand-blue;
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+}
+
+// ── Backdrop ───────────────────────────────────────────────────────────
+
+.ds-date-picker__backdrop {
+  background: transparent;
+}
+
+// ── Panel ──────────────────────────────────────────────────────────────
+
+.ds-date-picker__panel {
+  z-index: $ifs-z-popover;
+  background: $ifs-surface-0;
+  border: 1px solid $ifs-border-medium;
+  border-radius: $ifs-radius-lg;
+  box-shadow: $ifs-shadow-lg;
+  overflow: hidden;
+  animation: ifs-slide-in-down $ifs-duration-fast $ifs-ease-out;
+}
+
+// ── Header ─────────────────────────────────────────────────────────────
+
+.ds-date-picker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.75rem;
+  background: $ifs-gradient-brand;
+  color: #fff;
+}
+
+.ds-date-picker__month-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
+}
+
+.ds-date-picker__nav {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-radius: $ifs-radius-sm;
+  cursor: pointer;
+  transition: background $ifs-duration-fast $ifs-ease-out;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  @include ifs-focus-visible;
+
+  mat-icon {
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+}
+
+// ── Weekday row ────────────────────────────────────────────────────────
+
+.ds-date-picker__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 0.5rem 0.75rem 0.25rem;
+}
+
+.ds-date-picker__weekday {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $ifs-ink-500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+// ── Day grid ───────────────────────────────────────────────────────────
+
+.ds-date-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 0.25rem 0.75rem 0.75rem;
+}
+
+.ds-date-picker__day {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  border-radius: $ifs-radius-sm;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: $ifs-ink-700;
+  cursor: pointer;
+  transition:
+    background $ifs-duration-fast $ifs-ease-out,
+    color $ifs-duration-fast $ifs-ease-out,
+    box-shadow $ifs-duration-fast $ifs-ease-out;
+  margin: 0 auto;
+
+  &:hover:not(:disabled) {
+    background: $ifs-info-soft;
+  }
+
+  @include ifs-focus-visible;
+
+  &--today:not(&--selected) {
+    border: 1.5px dashed $ifs-brand-blue;
+    color: $ifs-brand-blue;
+    font-weight: 600;
+  }
+
+  &--selected {
+    background: $ifs-brand-blue;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: $ifs-shadow-sm;
+
+    &:hover:not(:disabled) {
+      background: $ifs-brand-dark-blue;
+    }
+  }
+
+  &--disabled,
+  &:disabled {
+    color: $ifs-ink-300;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &--outside {
+    visibility: hidden;
+  }
+}

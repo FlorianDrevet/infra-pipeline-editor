@@ -19,15 +19,16 @@
       </div>
 
       <div class="create-pat-dialog__field">
-        <app-ds-text-field
-          type="date"
+        <app-ds-date-picker
           [label]="'SETTINGS.CREATE_DIALOG.EXPIRY_LABEL' | translate"
           [hint]="'SETTINGS.CREATE_DIALOG.EXPIRY_HINT' | translate"
+          [placeholder]="'SETTINGS.CREATE_DIALOG.EXPIRY_PLACEHOLDER' | translate"
           [ngModel]="expiresAt()"
           (ngModelChange)="expiresAt.set($event)"
           [ngModelOptions]="{ standalone: true }"
-          min="2026-04-29">
-        </app-ds-text-field>
+          min="2026-04-29"
+          [clearable]="true">
+        </app-ds-date-picker>
       </div>
 
       @if (errorKey()) {
