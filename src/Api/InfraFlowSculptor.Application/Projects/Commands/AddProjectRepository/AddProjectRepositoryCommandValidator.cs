@@ -1,4 +1,5 @@
 using FluentValidation;
+using InfraFlowSculptor.Application.Common.Validation;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.AddProjectRepository;
 
@@ -19,35 +20,10 @@ public sealed class AddProjectRepositoryCommandValidator
             .Matches(AliasPattern).WithMessage("Alias must contain only lowercase letters, digits and hyphens.");
 
         // Connection details are optional, but when provided they must be valid and consistent.
-        RuleFor(x => x.ProviderType)
-            .Must(v => v is null or "GitHub" or "AzureDevOps")
-            .WithMessage("ProviderType must be 'GitHub' or 'AzureDevOps'.");
-
-        When(x => !string.IsNullOrWhiteSpace(x.RepositoryUrl), () =>
-        {
-            RuleFor(x => x.RepositoryUrl!)
-                .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
-                .WithMessage("RepositoryUrl must be a valid absolute URL.");
-        });
-
-        RuleFor(x => x.DefaultBranch)
-            .MaximumLength(200).WithMessage("DefaultBranch must not exceed 200 characters.");
-
-        // All-or-nothing: connection details must be either fully provided or fully empty.
-        RuleFor(x => x).Custom((cmd, ctx) =>
-        {
-            var hasUrl = !string.IsNullOrWhiteSpace(cmd.RepositoryUrl);
-            var hasBranch = !string.IsNullOrWhiteSpace(cmd.DefaultBranch);
-            var hasProvider = !string.IsNullOrWhiteSpace(cmd.ProviderType);
-            var anySet = hasUrl || hasBranch || hasProvider;
-            var allSet = hasUrl && hasBranch && hasProvider;
-            if (anySet && !allSet)
-            {
-                ctx.AddFailure(
-                    "ConnectionDetails",
-                    "ProviderType, RepositoryUrl and DefaultBranch must be either all provided or all empty.");
-            }
-        });
+        RepositoryConnectionValidationRules.Apply(this,
+            cmd => cmd.ProviderType,
+            x => x.RepositoryUrl,
+            x => x.DefaultBranch);
 
         RuleFor(x => x.ContentKinds)
             .NotNull().WithMessage("ContentKinds is required.")

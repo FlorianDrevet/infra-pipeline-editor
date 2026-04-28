@@ -20,6 +20,7 @@ internal static class NamingTemplateTranslator
         ["suffix"] = "${env.envSuffix}",
         ["prefix"] = "${env.envPrefix}",
         ["env"] = "${env.envName}",
+        ["envShort"] = "${env.envShort}",
         ["location"] = "${env.location}",
     };
 

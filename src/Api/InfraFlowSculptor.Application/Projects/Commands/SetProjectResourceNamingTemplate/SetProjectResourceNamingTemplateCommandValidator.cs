@@ -1,5 +1,5 @@
 using FluentValidation;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.Application.Common.Validation;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.SetProjectResourceNamingTemplate;
 
@@ -12,26 +12,9 @@ public sealed class SetProjectResourceNamingTemplateCommandValidator
     {
         RuleFor(x => x.ResourceType).NotEmpty().MaximumLength(100);
 
-        RuleFor(x => x.Template)
-            .NotEmpty()
-            .MaximumLength(500)
-            .Must(t => NamingTemplateValidator.GetUnknownPlaceholders(t).Count == 0)
-            .WithMessage(t =>
-            {
-                var unknown = NamingTemplateValidator.GetUnknownPlaceholders(t.Template);
-                return $"Unknown placeholder(s): {string.Join(", ", unknown.Select(p => $"{{{p}}}"))}. " +
-                       $"Allowed placeholders are: {string.Join(", ", NamingTemplateValidator.AllowedPlaceholders.Select(p => $"{{{p}}}"))}";
-            });
+        NamingTemplateValidationRules.ApplyTemplateRules(RuleFor(x => x.Template));
 
-        RuleFor(x => x)
-            .Must(cmd => NamingTemplateValidator.HasValidStaticCharsForResourceType(cmd.Template, cmd.ResourceType))
-            .WithMessage(cmd =>
-            {
-                var description = NamingTemplateValidator.GetAllowedCharsDescription(cmd.ResourceType);
-                return description is not null
-                    ? $"The template contains characters not allowed for {cmd.ResourceType}. Allowed: {description}."
-                    : "The template contains invalid characters. Only alphanumeric characters, hyphens, and underscores are allowed outside placeholders.";
-            })
-            .When(cmd => !string.IsNullOrEmpty(cmd.Template));
+        NamingTemplateValidationRules.ApplyStaticCharsRule(this,
+            cmd => cmd.Template, cmd => cmd.ResourceType);
     }
 }

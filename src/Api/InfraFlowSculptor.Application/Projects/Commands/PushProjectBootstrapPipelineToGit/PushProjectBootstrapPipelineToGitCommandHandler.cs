@@ -1,5 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.GitRouting;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -57,10 +58,13 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
         // In SplitInfraCode layout, only the infra/ bucket is pushed here — the app/ bucket
         // is pushed by PushProjectArtifactsToMultiRepoCommandHandler to the code repo.
         var isSplit = project.LayoutPreset.Value == LayoutPresetEnum.SplitInfraCode;
-        var filesResult = await GetLatestBootstrapFilesAsync(
-            command.ProjectId.Value,
-            bucketPrefix: isSplit ? "infra/" : null,
-            cancellationToken);
+        var filesResult = await BlobDownloadHelper.GetLatestBlobFilesAsync(
+            blobService,
+            blobPrefix: $"bootstrap/project/{command.ProjectId.Value}/",
+            prefixSegmentCount: 4,
+            notFoundErrorFactory: Errors.Project.BootstrapFilesNotFoundError,
+            entityId: command.ProjectId.Value,
+            subPrefix: isSplit ? "infra/" : null);
         if (filesResult.IsError)
             return filesResult.Errors;
 
@@ -77,44 +81,5 @@ public sealed class PushProjectBootstrapPipelineToGitCommandHandler(
             BasePath = target.PipelineBasePath,
             Files = filesResult.Value,
         }, cancellationToken);
-    }
-
-    private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> GetLatestBootstrapFilesAsync(
-        Guid projectId, string? bucketPrefix, CancellationToken cancellationToken)
-    {
-        var prefix = $"bootstrap/project/{projectId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
-
-        if (allBlobs.Count == 0)
-            return Errors.Project.BootstrapFilesNotFoundError(projectId);
-
-        var latestPrefix = allBlobs
-            .Select(b => string.Join('/', b.Split('/').Take(4)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var bucketBlobPrefix = string.IsNullOrEmpty(bucketPrefix)
-            ? latestPrefix + "/"
-            : $"{latestPrefix}/{bucketPrefix.TrimEnd('/')}/";
-
-        var latestBlobs = allBlobs
-            .Where(b => b.StartsWith(bucketBlobPrefix, StringComparison.Ordinal))
-            .ToList();
-
-        var files = new Dictionary<string, string>();
-        foreach (var blobName in latestBlobs)
-        {
-            var content = await blobService.DownloadContentAsync(blobName);
-            if (content is null) continue;
-
-            var relativePath = blobName[bucketBlobPrefix.Length..];
-            files[relativePath] = content;
-        }
-
-        if (files.Count == 0)
-            return Errors.Project.BootstrapFilesNotFoundError(projectId);
-
-        return files;
     }
 }
