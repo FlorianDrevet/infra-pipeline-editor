@@ -60,7 +60,7 @@ public sealed class ProjectCreationToolsTests
             Intent = new DraftProjectIntent
             {
                 ProjectName = "RetailApi",
-                LayoutPreset = "AllInOne",
+                LayoutPreset = LayoutPresetEnum.AllInOne,
                 Environments =
                 [
                     new DraftEnvironmentIntent { Name = "Development", ShortName = "dev" },
@@ -111,7 +111,7 @@ public sealed class ProjectCreationToolsTests
             Intent = new DraftProjectIntent
             {
                 ProjectName = "RetailApi",
-                LayoutPreset = "AllInOne",
+                LayoutPreset = LayoutPresetEnum.AllInOne,
                 Environments = [new DraftEnvironmentIntent()],
                 Repositories = [new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "Application"] }],
             },

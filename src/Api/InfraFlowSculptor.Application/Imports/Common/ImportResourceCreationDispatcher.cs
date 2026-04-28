@@ -39,15 +39,6 @@ internal static class ImportResourceCreationDispatcher
         [AzureResourceTypes.SqlDatabase] = AzureResourceTypes.SqlServer,
     };
 
-    internal sealed class ResourceInput
-    {
-        public required string ResourceType { get; init; }
-
-        public required string Name { get; init; }
-
-        public IReadOnlyDictionary<string, object?>? ExtractedProperties { get; init; }
-    }
-
     internal static async Task<ErrorOr<(InfrastructureConfigId ConfigId, ResourceGroupId ResourceGroupId)>> CreateInfrastructureAsync(
         ISender mediator,
         Guid projectId,
@@ -79,7 +70,7 @@ internal static class ImportResourceCreationDispatcher
         List<ApplyImportPreviewSkippedResourceResult> Skipped)> CreateResourcesAsync(
         ISender mediator,
         ResourceGroupId resourceGroupId,
-        IReadOnlyList<ResourceInput> resources,
+        IReadOnlyList<ImportResourceInput> resources,
         CancellationToken cancellationToken)
     {
         var created = new List<ApplyImportPreviewCreatedResourceResult>();

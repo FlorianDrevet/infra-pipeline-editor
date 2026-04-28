@@ -50,25 +50,3 @@ public sealed record ApplyImportPreviewResult
     /// </summary>
     public IReadOnlyList<string> NextSuggestedActions { get; init; } = [];
 }
-
-/// <summary>
-/// Represents a resource created from the import preview.
-/// </summary>
-/// <param name="ResourceType">The created resource type.</param>
-/// <param name="ResourceId">The created resource identifier.</param>
-/// <param name="Name">The created resource name.</param>
-public sealed record ApplyImportPreviewCreatedResourceResult(
-    string ResourceType,
-    string ResourceId,
-    string Name);
-
-/// <summary>
-/// Represents a resource skipped during the import apply flow.
-/// </summary>
-/// <param name="ResourceType">The skipped resource type.</param>
-/// <param name="Name">The skipped resource name.</param>
-/// <param name="Reason">The reason why automatic creation was skipped.</param>
-public sealed record ApplyImportPreviewSkippedResourceResult(
-    string ResourceType,
-    string Name,
-    string Reason);

@@ -1,8 +1,5 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ErrorOr;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
-using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
@@ -18,40 +15,6 @@ namespace InfraFlowSculptor.Mcp.Tools;
 /// </summary>
 public static class ProjectSetupOrchestrator
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
-
-    /// <summary>Result of the full project setup orchestration.</summary>
-    public sealed class SetupResult
-    {
-        public required string ProjectId { get; init; }
-        public required string ProjectName { get; init; }
-        public required string InfraConfigId { get; init; }
-        public required string ResourceGroupId { get; init; }
-        public List<CreatedResourceInfo> CreatedResources { get; init; } = [];
-        public List<SkippedResourceInfo> SkippedResources { get; init; } = [];
-    }
-
-    /// <summary>Info about a successfully created resource.</summary>
-    public sealed class CreatedResourceInfo
-    {
-        public required string ResourceType { get; init; }
-        public required string ResourceId { get; init; }
-        public required string Name { get; init; }
-    }
-
-    /// <summary>Info about a resource that was skipped.</summary>
-    public sealed class SkippedResourceInfo
-    {
-        public required string ResourceType { get; init; }
-        public required string Name { get; init; }
-        public required string Reason { get; init; }
-    }
-
     /// <summary>
     /// Creates the infrastructure config and default resource group for a project.
     /// </summary>
@@ -82,7 +45,7 @@ public static class ProjectSetupOrchestrator
     }
 
     /// <summary>
-    /// Creates resources from a list of (type, name) pairs, resolving dependencies.
+    /// Creates resources from a list of inputs, resolving dependencies.
     /// </summary>
     public static async Task<(List<CreatedResourceInfo> Created, List<SkippedResourceInfo> Skipped)> CreateResourcesAsync(
         ISender mediator,
@@ -169,7 +132,6 @@ public static class ProjectSetupOrchestrator
 
         var resultType = result.GetType();
 
-        // ErrorOr<T> has IsError and Value properties
         var isErrorProp = resultType.GetProperty("IsError");
         if (isErrorProp is not null && isErrorProp.GetValue(result) is true)
             return null;
@@ -179,7 +141,6 @@ public static class ProjectSetupOrchestrator
         if (value is null)
             return null;
 
-        // All resource results have an Id property with a Value (Guid) property
         var idProp = value.GetType().GetProperty("Id");
         var id = idProp?.GetValue(value);
         if (id is null)
@@ -201,13 +162,5 @@ public static class ProjectSetupOrchestrator
             return null;
 
         return string.Join("; ", errors.Select(e => e.Description));
-    }
-
-    /// <summary>Input for resource creation.</summary>
-    public sealed class ResourceInput
-    {
-        public required string ResourceType { get; init; }
-        public required string Name { get; init; }
-        public IReadOnlyDictionary<string, object?>? ExtractedProperties { get; init; }
     }
 }

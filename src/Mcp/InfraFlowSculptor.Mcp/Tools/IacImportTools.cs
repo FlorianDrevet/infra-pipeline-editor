@@ -1,9 +1,8 @@
 using System.ComponentModel;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using InfraFlowSculptor.Application.Imports.Commands.ApplyImportPreview;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
-using InfraFlowSculptor.Mcp.Drafts;
+using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Imports;
 using MediatR;
 using ModelContextProtocol.Server;
@@ -16,12 +15,6 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class IacImportTools
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
 
     /// <summary>
     /// Analyzes an IaC source (ARM JSON for V1) and produces a preview showing
@@ -34,7 +27,7 @@ public sealed class IacImportTools
         [Description("Source format. V1 supports: 'arm-json'.")] string sourceFormat,
         [Description("The raw content of the IaC source file.")] string sourceContent)
     {
-        if (!string.Equals(sourceFormat, "arm-json", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(sourceFormat, IacSourceFormat.ArmJson, StringComparison.OrdinalIgnoreCase))
         {
             return JsonSerializer.Serialize(new
             {
@@ -45,8 +38,8 @@ public sealed class IacImportTools
                 gaps = Array.Empty<object>(),
                 unsupportedResources = Array.Empty<object>(),
                 suggestedProjectStructure = (object?)null,
-                summary = $"Source format '{sourceFormat}' is not supported in V1. Supported formats: arm-json.",
-            }, JsonOptions);
+                summary = $"Source format '{sourceFormat}' is not supported in V1. Supported formats: {IacSourceFormat.ArmJson}.",
+            }, McpJsonDefaults.SerializerOptions);
         }
 
         try
@@ -68,7 +61,6 @@ public sealed class IacImportTools
     [Description("Applies a validated import preview to create a new project with the imported resources.")]
     public static async Task<string> ApplyImportPreview(
         IImportPreviewService previewService,
-        IProjectDraftService draftService,
         ISender mediator,
         [Description("The preview ID from preview_iac_import.")] string previewId,
         [Description("Project name for the new project.")] string projectName,
@@ -122,7 +114,7 @@ public sealed class IacImportTools
                 resource.Reason,
             }),
             nextSuggestedActions = result.Value.NextSuggestedActions,
-        }, JsonOptions);
+        }, McpJsonDefaults.SerializerOptions);
     }
 
     private static string SerializePreview(Imports.Models.ImportPreview preview)
@@ -166,7 +158,7 @@ public sealed class IacImportTools
             metadata = preview.Analysis.Metadata,
             summary = $"Parsed {preview.Analysis.Resources.Count} resource(s): " +
                       $"{mapped.Count} mapped, {preview.Analysis.UnsupportedResources.Count} unsupported.",
-        }, JsonOptions);
+        }, McpJsonDefaults.SerializerOptions);
     }
 
     private static IReadOnlyList<EnvironmentSetupItem> ParseEnvironments(string? environments)
@@ -230,7 +222,7 @@ public sealed class IacImportTools
 
         try
         {
-            var names = JsonSerializer.Deserialize<string[]>(resourceFilter, JsonOptions);
+            var names = JsonSerializer.Deserialize<string[]>(resourceFilter, McpJsonDefaults.SerializerOptions);
             return names is not null ? new HashSet<string>(names, StringComparer.OrdinalIgnoreCase) : null;
         }
         catch (JsonException)
@@ -240,5 +232,5 @@ public sealed class IacImportTools
     }
 
     private static string JsonError(string code, string message) =>
-        JsonSerializer.Serialize(new { error = code, message }, JsonOptions);
+        McpJsonDefaults.Error(code, message);
 }

@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
+using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Drafts;
 using MediatR;
 using ModelContextProtocol.Server;
@@ -15,12 +15,6 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class ProjectCreationTools
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
 
     /// <summary>
     /// Creates a project in Infra Flow Sculptor from a completed and validated draft.
@@ -60,7 +54,7 @@ public sealed class ProjectCreationTools
         // Create infrastructure config + resource group + resources if the draft has resources.
         var resourceInputs = (draft.Intent.Resources ?? [])
             .Where(r => !string.IsNullOrWhiteSpace(r.ResourceType))
-            .Select(r => new ProjectSetupOrchestrator.ResourceInput
+            .Select(r => new ResourceInput
             {
                 ResourceType = r.ResourceType,
                 Name = r.Name ?? $"{projectName}-{r.ResourceType.ToLowerInvariant()}",
@@ -88,7 +82,7 @@ public sealed class ProjectCreationTools
                         "Create an infrastructure configuration manually via the API or frontend.",
                         "Add resources to the project once the infrastructure configuration is set up.",
                     },
-                }, JsonOptions);
+                }, McpJsonDefaults.SerializerOptions);
             }
 
             var (configId, rgId) = infraResult.Value;
@@ -101,7 +95,7 @@ public sealed class ProjectCreationTools
                 status = "created",
                 projectId = projectId.ToString(),
                 projectName,
-                layoutPreset = draft.Intent.LayoutPreset,
+                layoutPreset = draft.Intent.LayoutPreset?.ToString(),
                 environmentCount = draft.Intent.Environments?.Count ?? 0,
                 repositoryCount = draft.Intent.Repositories?.Count ?? 0,
                 infrastructureConfigId = configId.Value.ToString(),
@@ -119,7 +113,7 @@ public sealed class ProjectCreationTools
                     r.Reason,
                 }),
                 nextSuggestedActions = BuildNextActions(created.Count, skipped.Count),
-            }, JsonOptions);
+            }, McpJsonDefaults.SerializerOptions);
         }
 
         return JsonSerializer.Serialize(new
@@ -127,7 +121,7 @@ public sealed class ProjectCreationTools
             status = "created",
             projectId = projectId.ToString(),
             projectName,
-            layoutPreset = draft.Intent.LayoutPreset,
+            layoutPreset = draft.Intent.LayoutPreset?.ToString(),
             environmentCount = draft.Intent.Environments?.Count ?? 0,
             repositoryCount = draft.Intent.Repositories?.Count ?? 0,
             createdResources = Array.Empty<object>(),
@@ -138,7 +132,7 @@ public sealed class ProjectCreationTools
                 "Configure environment-specific settings for each resource.",
                 "Generate Bicep files using 'generate_project_bicep' once resources are added.",
             },
-        }, JsonOptions);
+        }, McpJsonDefaults.SerializerOptions);
     }
 
     private static CreateProjectWithSetupCommand BuildCommand(DraftProjectIntent intent)
@@ -165,7 +159,7 @@ public sealed class ProjectCreationTools
         return new CreateProjectWithSetupCommand(
             Name: intent.ProjectName!,
             Description: intent.Description,
-            LayoutPreset: intent.LayoutPreset!,
+            LayoutPreset: intent.LayoutPreset?.ToString() ?? nameof(Domain.ProjectAggregate.ValueObjects.LayoutPresetEnum.MultiRepo),
             Environments: environments,
             Repositories: repositories
         );
@@ -184,8 +178,6 @@ public sealed class ProjectCreationTools
         return actions.ToArray();
     }
 
-    private static string JsonError(string error, string message)
-    {
-        return JsonSerializer.Serialize(new { error, message }, JsonOptions);
-    }
+    private static string JsonError(string error, string message) =>
+        McpJsonDefaults.Error(error, message);
 }

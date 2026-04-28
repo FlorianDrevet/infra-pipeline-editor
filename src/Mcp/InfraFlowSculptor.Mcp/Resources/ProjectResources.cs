@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using InfraFlowSculptor.Application.Projects.Queries.GetProject;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
+using InfraFlowSculptor.Mcp.Common;
 using MediatR;
 using ModelContextProtocol.Server;
 
@@ -14,12 +14,6 @@ namespace InfraFlowSculptor.Mcp.Resources;
 [McpServerResourceType]
 public sealed class ProjectResources
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
 
     /// <summary>
     /// Returns a structured summary of a project including its name, layout, environments, and resource types.
@@ -62,9 +56,9 @@ public sealed class ProjectResources
             repositoryCount = project.Repositories?.Count ?? 0,
             usedResourceTypes = project.UsedResourceTypes ?? [],
             agentPoolName = project.AgentPoolName,
-        }, JsonOptions);
+        }, McpJsonDefaults.SerializerOptions);
     }
 
     private static string JsonError(string code, string message) =>
-        JsonSerializer.Serialize(new { error = code, message }, JsonOptions);
+        McpJsonDefaults.Error(code, message);
 }

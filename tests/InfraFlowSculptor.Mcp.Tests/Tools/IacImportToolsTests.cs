@@ -3,16 +3,6 @@ using ErrorOr;
 using FluentAssertions;
 using InfraFlowSculptor.Application.Imports.Commands.ApplyImportPreview;
 using InfraFlowSculptor.Application.Imports.Common;
-using InfraFlowSculptor.Application.InfrastructureConfig.Common;
-using InfraFlowSculptor.Application.KeyVaults.Common;
-using InfraFlowSculptor.Application.Projects.Common;
-using InfraFlowSculptor.Application.ResourceGroups.Common;
-using InfraFlowSculptor.Domain.Common.ValueObjects;
-using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
-using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
-using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Imports;
 using InfraFlowSculptor.Mcp.Imports.Models;
 using InfraFlowSculptor.Mcp.Tools;
@@ -24,7 +14,6 @@ namespace InfraFlowSculptor.Mcp.Tests.Tools;
 public sealed class IacImportToolsTests
 {
     private readonly IImportPreviewService _previewService = Substitute.For<IImportPreviewService>();
-    private readonly IProjectDraftService _draftService = Substitute.For<IProjectDraftService>();
     private readonly ISender _mediator = Substitute.For<ISender>();
 
     private const string ValidKeyVaultArm = """
@@ -123,7 +112,7 @@ public sealed class IacImportToolsTests
 
         // Act
         var json = await IacImportTools.ApplyImportPreview(
-            _previewService, _draftService, _mediator,
+            _previewService, _mediator,
             "preview_unknown", "MyProject", "AllInOne");
 
         // Assert
@@ -183,7 +172,7 @@ public sealed class IacImportToolsTests
 
         // Act
         var json = await IacImportTools.ApplyImportPreview(
-            _previewService, _draftService, _mediator,
+            _previewService, _mediator,
             "preview_abc12345", "MyProject", "AllInOne", resourceFilter: "[\"myKeyVault\"]");
 
         // Assert
@@ -229,7 +218,7 @@ public sealed class IacImportToolsTests
 
         // Act
         var json = await IacImportTools.ApplyImportPreview(
-            _previewService, _draftService, _mediator,
+            _previewService, _mediator,
             "preview_abc12345", "MyProject", "AllInOne");
 
         // Assert

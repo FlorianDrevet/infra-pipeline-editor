@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using InfraFlowSculptor.Mcp.Common;
 using ModelContextProtocol.Server;
 
 namespace InfraFlowSculptor.Mcp.Imports.Resources;
@@ -11,12 +11,6 @@ namespace InfraFlowSculptor.Mcp.Imports.Resources;
 [McpServerResourceType]
 public sealed class ImportPreviewResources
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
 
     /// <summary>
     /// Returns the full content of a stored import preview.
@@ -35,9 +29,9 @@ public sealed class ImportPreviewResources
             return JsonError("preview_not_found", $"Import preview '{previewId}' not found.");
         }
 
-        return JsonSerializer.Serialize(preview, JsonOptions);
+        return JsonSerializer.Serialize(preview, McpJsonDefaults.SerializerOptions);
     }
 
     private static string JsonError(string code, string message) =>
-        JsonSerializer.Serialize(new { error = code, message }, JsonOptions);
+        McpJsonDefaults.Error(code, message);
 }

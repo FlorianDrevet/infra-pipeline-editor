@@ -90,7 +90,7 @@ public sealed class ApplyImportPreviewCommandHandler(ISender mediator)
         };
     }
 
-    private static IReadOnlyList<ImportResourceCreationDispatcher.ResourceInput> BuildResourceInputs(
+    private static IReadOnlyList<ImportResourceInput> BuildResourceInputs(
         ImportPreviewAnalysisResult preview,
         IReadOnlyList<string>? resourceFilter)
     {
@@ -101,7 +101,7 @@ public sealed class ApplyImportPreviewCommandHandler(ISender mediator)
         return preview.Resources
             .Where(resource => !string.IsNullOrWhiteSpace(resource.MappedResourceType))
             .Where(resource => filter is null || filter.Contains(resource.SourceName))
-            .Select(resource => new ImportResourceCreationDispatcher.ResourceInput
+            .Select(resource => new ImportResourceInput
             {
                 ResourceType = resource.MappedResourceType!,
                 Name = resource.MappedName ?? resource.SourceName,

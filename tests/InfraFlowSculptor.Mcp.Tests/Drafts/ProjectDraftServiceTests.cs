@@ -1,4 +1,5 @@
 using FluentAssertions;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Mcp.Drafts;
 
 namespace InfraFlowSculptor.Mcp.Tests.Drafts;
@@ -22,7 +23,7 @@ public sealed class ProjectDraftServiceTests
         draft.Status.Should().Be(DraftStatus.ReadyToCreate);
         draft.DraftId.Should().StartWith("draft_");
         draft.Intent.ProjectName.Should().Be("RetailApi");
-        draft.Intent.LayoutPreset.Should().Be("AllInOne");
+        draft.Intent.LayoutPreset.Should().Be(LayoutPresetEnum.AllInOne);
         draft.Intent.Resources.Should().ContainSingle(r => r.ResourceType == "KeyVault");
         draft.MissingFields.Should().BeEmpty();
     }
@@ -156,7 +157,7 @@ public sealed class ProjectDraftServiceTests
         var overrides = new DraftOverrides
         {
             ProjectName = "RetailApi",
-            LayoutPreset = "AllInOne",
+            LayoutPreset = LayoutPresetEnum.AllInOne,
         };
 
         // Act
@@ -166,7 +167,7 @@ public sealed class ProjectDraftServiceTests
         updated.Should().NotBeNull();
         updated!.Status.Should().Be(DraftStatus.ReadyToCreate);
         updated.Intent.ProjectName.Should().Be("RetailApi");
-        updated.Intent.LayoutPreset.Should().Be("AllInOne");
+        updated.Intent.LayoutPreset.Should().Be(LayoutPresetEnum.AllInOne);
         updated.MissingFields.Should().BeEmpty();
         updated.Errors.Should().BeEmpty();
     }

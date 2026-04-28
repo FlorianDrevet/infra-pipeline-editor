@@ -1,5 +1,6 @@
 using System.Text.Json;
 using FluentAssertions;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Tools;
 using NSubstitute;
@@ -23,7 +24,7 @@ public sealed class ProjectDraftToolsTests
         {
             DraftId = "draft_abc12345",
             Status = DraftStatus.ReadyToCreate,
-            Intent = new DraftProjectIntent { ProjectName = "TestApp", LayoutPreset = "AllInOne" },
+            Intent = new DraftProjectIntent { ProjectName = "TestApp", LayoutPreset = LayoutPresetEnum.AllInOne },
         };
         _draftService.CreateDraftFromPrompt("create project TestApp mono repo")
             .Returns(expectedDraft);
@@ -46,7 +47,7 @@ public sealed class ProjectDraftToolsTests
         {
             DraftId = "draft_abc12345",
             Status = DraftStatus.ReadyToCreate,
-            Intent = new DraftProjectIntent { ProjectName = "RetailApi", LayoutPreset = "AllInOne" },
+            Intent = new DraftProjectIntent { ProjectName = "RetailApi", LayoutPreset = LayoutPresetEnum.AllInOne },
         };
         _draftService.ValidateAndUpdate("draft_abc12345", Arg.Any<DraftOverrides>())
             .Returns(updatedDraft);

@@ -1,5 +1,6 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.Mcp.Drafts;
@@ -13,11 +14,6 @@ public sealed class ProjectDraftService : IProjectDraftService
     {
         "avec", "en", "de", "du", "le", "la", "les", "un", "une", "des", "pour", "dans", "qui", "que",
         "the", "a", "an", "with", "in", "for", "and", "or", "from", "to", "that", "this",
-    };
-
-    private static readonly HashSet<string> ValidLayoutPresets = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "AllInOne", "SplitInfraCode", "MultiRepo",
     };
 
     private static readonly Dictionary<string, string> ResourceTypeAliases = BuildResourceTypeAliases();
@@ -36,17 +32,7 @@ public sealed class ProjectDraftService : IProjectDraftService
         if (intent.LayoutPreset is null)
         {
             missingFields.Add(DraftFieldNames.LayoutPreset);
-            clarificationQuestions.Add(new DraftClarificationQuestion
-            {
-                Field = DraftFieldNames.LayoutPreset,
-                Message = "Which repository topology would you like to use?",
-                Options =
-                [
-                    new DraftOption { Value = "AllInOne", Label = "All-in-One (Mono Repo)", Description = "One single repository for infrastructure and application code." },
-                    new DraftOption { Value = "SplitInfraCode", Label = "Split Infra / Code", Description = "Two repositories: one for infrastructure, one for application code." },
-                    new DraftOption { Value = "MultiRepo", Label = "Multi-Repo", Description = "Repositories are declared per infrastructure configuration." },
-                ],
-            });
+            clarificationQuestions.Add(BuildLayoutPresetQuestion());
         }
 
         if (intent.ProjectName is null)
@@ -62,12 +48,12 @@ public sealed class ProjectDraftService : IProjectDraftService
         if (intent.Environments is null or { Count: 0 })
         {
             intent.Environments = [new DraftEnvironmentIntent()];
-            warnings.Add("No environments specified — defaulting to a single 'Development' environment.");
+            warnings.Add("No environments specified â€” defaulting to a single 'Development' environment.");
         }
 
         if (intent.LayoutPreset is not null)
         {
-            intent.Repositories = BuildDefaultRepositories(intent.LayoutPreset);
+            intent.Repositories = BuildDefaultRepositories(intent.LayoutPreset.Value);
         }
 
         if (intent.Environments.Any(e => e.SubscriptionId == Guid.Empty))
@@ -114,7 +100,7 @@ public sealed class ProjectDraftService : IProjectDraftService
 
         if (overrides.LayoutPreset is not null)
         {
-            draft.Intent.Repositories = BuildDefaultRepositories(draft.Intent.LayoutPreset!);
+            draft.Intent.Repositories = BuildDefaultRepositories(draft.Intent.LayoutPreset!.Value);
         }
 
         Revalidate(draft);
@@ -178,28 +164,10 @@ public sealed class ProjectDraftService : IProjectDraftService
             });
         }
 
-        if (string.IsNullOrWhiteSpace(draft.Intent.LayoutPreset))
+        if (draft.Intent.LayoutPreset is null)
         {
             missingFields.Add(DraftFieldNames.LayoutPreset);
-            clarificationQuestions.Add(new DraftClarificationQuestion
-            {
-                Field = DraftFieldNames.LayoutPreset,
-                Message = "Which repository topology would you like to use?",
-                Options =
-                [
-                    new DraftOption { Value = "AllInOne", Label = "All-in-One (Mono Repo)", Description = "One single repository for infrastructure and application code." },
-                    new DraftOption { Value = "SplitInfraCode", Label = "Split Infra / Code", Description = "Two repositories: one for infrastructure, one for application code." },
-                    new DraftOption { Value = "MultiRepo", Label = "Multi-Repo", Description = "Repositories are declared per infrastructure configuration." },
-                ],
-            });
-        }
-        else if (!ValidLayoutPresets.Contains(draft.Intent.LayoutPreset))
-        {
-            errors.Add(new DraftValidationError
-            {
-                Field = DraftFieldNames.LayoutPreset,
-                Message = $"Layout preset must be one of: AllInOne, SplitInfraCode, MultiRepo. Got '{draft.Intent.LayoutPreset}'.",
-            });
+            clarificationQuestions.Add(BuildLayoutPresetQuestion());
         }
 
         if (draft.Intent.Environments is null or { Count: 0 })
@@ -232,14 +200,12 @@ public sealed class ProjectDraftService : IProjectDraftService
 
     private static string? ExtractProjectName(string prompt)
     {
-        // Check quoted strings first
         var quotedMatch = Regex.Match(prompt, """["']([^"']+)["']""", RegexOptions.None, RegexTimeout);
         if (quotedMatch.Success)
         {
             return quotedMatch.Groups[1].Value;
         }
 
-        // Check for a word after "projet" or "project" that is not a stop word
         var nameMatch = Regex.Match(prompt, @"\b(?:projet|project)\s+(\w+)", RegexOptions.IgnoreCase, RegexTimeout);
         if (nameMatch.Success)
         {
@@ -253,23 +219,23 @@ public sealed class ProjectDraftService : IProjectDraftService
         return null;
     }
 
-    private static string? ExtractLayoutPreset(string prompt)
+    private static LayoutPresetEnum? ExtractLayoutPreset(string prompt)
     {
         var lower = prompt.ToLowerInvariant();
 
         if (lower.Contains("mono") || lower.Contains("all in one") || lower.Contains("all-in-one") || lower.Contains("allinone"))
         {
-            return "AllInOne";
+            return LayoutPresetEnum.AllInOne;
         }
 
         if (lower.Contains("split"))
         {
-            return "SplitInfraCode";
+            return LayoutPresetEnum.SplitInfraCode;
         }
 
         if (lower.Contains("multi"))
         {
-            return "MultiRepo";
+            return LayoutPresetEnum.MultiRepo;
         }
 
         return null;
@@ -309,23 +275,51 @@ public sealed class ProjectDraftService : IProjectDraftService
         return null;
     }
 
-    private static List<DraftRepositoryIntent> BuildDefaultRepositories(string layoutPreset)
+    private static List<DraftRepositoryIntent> BuildDefaultRepositories(LayoutPresetEnum layoutPreset)
     {
         return layoutPreset switch
         {
-            "AllInOne" =>
+            LayoutPresetEnum.AllInOne =>
             [
                 new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "Application"] },
             ],
-            "SplitInfraCode" =>
+            LayoutPresetEnum.SplitInfraCode =>
             [
                 new DraftRepositoryIntent { Alias = "infra", ContentKinds = ["Infrastructure"] },
                 new DraftRepositoryIntent { Alias = "app", ContentKinds = ["Application"] },
             ],
-            "MultiRepo" => [],
+            LayoutPresetEnum.MultiRepo => [],
             _ => [],
         };
     }
+
+    private static DraftClarificationQuestion BuildLayoutPresetQuestion() =>
+        new()
+        {
+            Field = DraftFieldNames.LayoutPreset,
+            Message = "Which repository topology would you like to use?",
+            Options =
+            [
+                new DraftOption
+                {
+                    Value = nameof(LayoutPresetEnum.AllInOne),
+                    Label = "All-in-One (Mono Repo)",
+                    Description = "One single repository for infrastructure and application code.",
+                },
+                new DraftOption
+                {
+                    Value = nameof(LayoutPresetEnum.SplitInfraCode),
+                    Label = "Split Infra / Code",
+                    Description = "Two repositories: one for infrastructure, one for application code.",
+                },
+                new DraftOption
+                {
+                    Value = nameof(LayoutPresetEnum.MultiRepo),
+                    Label = "Multi-Repo",
+                    Description = "Repositories are declared per infrastructure configuration.",
+                },
+            ],
+        };
 
     private static Dictionary<string, string> BuildResourceTypeAliases()
     {
@@ -333,10 +327,8 @@ public sealed class ProjectDraftService : IProjectDraftService
 
         foreach (var resourceType in AzureResourceTypes.All)
         {
-            // Add the PascalCase name as-is (lowered for matching)
             aliases.TryAdd(resourceType.ToLowerInvariant(), resourceType);
 
-            // Add space-separated variant (e.g. "KeyVault" → "key vault")
             var spaced = Regex.Replace(resourceType, "(?<=[a-z])([A-Z])", " $1", RegexOptions.None, RegexTimeout)
                 .ToLowerInvariant();
 

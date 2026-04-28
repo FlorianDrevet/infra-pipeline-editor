@@ -1,3 +1,5 @@
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
+
 namespace InfraFlowSculptor.Mcp.Drafts;
 
 /// <summary>Override values to apply to an existing draft during validation.</summary>
@@ -7,7 +9,7 @@ public sealed class DraftOverrides
     public string? ProjectName { get; init; }
 
     /// <summary>Override for the layout preset.</summary>
-    public string? LayoutPreset { get; init; }
+    public LayoutPresetEnum? LayoutPreset { get; init; }
 
     /// <summary>Override for the project description.</summary>
     public string? Description { get; init; }

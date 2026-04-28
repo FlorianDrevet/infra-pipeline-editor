@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using InfraFlowSculptor.Application.Projects.Commands.GenerateProjectBicep;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
+using InfraFlowSculptor.Mcp.Common;
 using MediatR;
 using ModelContextProtocol.Server;
 
@@ -14,12 +14,6 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class BicepGenerationTools
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
 
     /// <summary>
     /// Generates Bicep infrastructure-as-code files for an existing project.
@@ -57,9 +51,9 @@ public sealed class BicepGenerationTools
             commonFiles,
             configFiles,
             totalFileCount = commonFiles.Count + configFiles.Values.Sum(v => v.Count),
-        }, JsonOptions);
+        }, McpJsonDefaults.SerializerOptions);
     }
 
     private static string JsonError(string code, string message) =>
-        JsonSerializer.Serialize(new { error = code, message }, JsonOptions);
+        McpJsonDefaults.Error(code, message);
 }

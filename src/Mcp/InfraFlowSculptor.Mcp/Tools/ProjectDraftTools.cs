@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Drafts;
 using ModelContextProtocol.Server;
 
@@ -13,12 +13,6 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class ProjectDraftTools
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
 
     /// <summary>
     /// Transforms a free-form user prompt into a structured project creation draft.
@@ -50,7 +44,14 @@ public sealed class ProjectDraftTools
 
         if (overrides is not null)
         {
-            parsedOverrides = JsonSerializer.Deserialize<DraftOverrides>(overrides, JsonOptions);
+            try
+            {
+                parsedOverrides = JsonSerializer.Deserialize<DraftOverrides>(overrides, McpJsonDefaults.SerializerOptions);
+            }
+            catch (JsonException ex)
+            {
+                return McpJsonDefaults.Error("invalid_overrides", $"Failed to parse overrides: {ex.Message}");
+            }
         }
 
         var draft = draftService.ValidateAndUpdate(draftId, parsedOverrides ?? new DraftOverrides());
@@ -59,7 +60,7 @@ public sealed class ProjectDraftTools
         {
             return JsonSerializer.Serialize(
                 new { error = "draft_not_found", message = $"No draft with id '{draftId}' was found." },
-                JsonOptions);
+                McpJsonDefaults.SerializerOptions);
         }
 
         return SerializeDraft(draft);
@@ -67,6 +68,6 @@ public sealed class ProjectDraftTools
 
     private static string SerializeDraft(ProjectCreationDraft draft)
     {
-        return JsonSerializer.Serialize(draft, JsonOptions);
+        return JsonSerializer.Serialize(draft, McpJsonDefaults.SerializerOptions);
     }
 }

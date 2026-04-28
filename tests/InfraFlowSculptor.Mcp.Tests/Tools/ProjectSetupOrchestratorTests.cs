@@ -132,7 +132,7 @@ public sealed class ProjectSetupOrchestratorTests
             .Returns(Task.FromResult<object?>(
                 (ErrorOr<KeyVaultResult>)kvResult));
 
-        var resources = new List<ProjectSetupOrchestrator.ResourceInput>
+        var resources = new List<ResourceInput>
         {
             new() { ResourceType = AzureResourceTypes.KeyVault, Name = "test-kv" },
         };
@@ -154,7 +154,7 @@ public sealed class ProjectSetupOrchestratorTests
     {
         // Arrange
         var rgId = new ResourceGroupId(Guid.NewGuid());
-        var resources = new List<ProjectSetupOrchestrator.ResourceInput>
+        var resources = new List<ResourceInput>
         {
             new() { ResourceType = "VirtualMachine", Name = "test-vm" },
         };
@@ -175,7 +175,7 @@ public sealed class ProjectSetupOrchestratorTests
     {
         // Arrange — WebApp without AppServicePlan
         var rgId = new ResourceGroupId(Guid.NewGuid());
-        var resources = new List<ProjectSetupOrchestrator.ResourceInput>
+        var resources = new List<ResourceInput>
         {
             new() { ResourceType = AzureResourceTypes.WebApp, Name = "test-webapp" },
         };
@@ -222,7 +222,7 @@ public sealed class ProjectSetupOrchestratorTests
                     return Task.FromResult<object?>(null);
                 });
 
-        var resources = new List<ProjectSetupOrchestrator.ResourceInput>
+        var resources = new List<ResourceInput>
         {
             new() { ResourceType = AzureResourceTypes.KeyVault, Name = "test-kv" },
             new() { ResourceType = AzureResourceTypes.StorageAccount, Name = "test-sa" },
