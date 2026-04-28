@@ -9,8 +9,20 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class WebAppTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
-  private const string ManagedIdentityAcrAuthMode = "ManagedIdentity";
-  private const string AdminCredentialsAcrAuthMode = "AdminCredentials";
+    private const string ManagedIdentityAcrAuthMode = "ManagedIdentity";
+    private const string AdminCredentialsAcrAuthMode = "AdminCredentials";
+
+    private const string CodeDeploymentMode = "Code";
+    private const string ContainerDeploymentMode = "Container";
+    private const string DefaultRuntimeStack = "DOTNETCORE";
+    private const string ContainerKind = "app,linux,container";
+
+    private const string ManagedIdentityModuleFileName = "webAppContainerManagedIdentity";
+    private const string AdminCredentialsModuleFileName = "webAppContainerAdminCredentials";
+
+    private const string DockerRegistryServerUrlSettingName = "DOCKER_REGISTRY_SERVER_URL";
+    private const string DockerRegistryServerUsernameSettingName = "DOCKER_REGISTRY_SERVER_USERNAME";
+    private const string DockerRegistryServerPasswordSettingName = "DOCKER_REGISTRY_SERVER_PASSWORD";
 
     public string ResourceType
         => AzureResourceTypes.ArmTypes.WebApp;
@@ -21,8 +33,8 @@ public sealed class WebAppTypeBicepGenerator
     /// <inheritdoc />
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
-        var deploymentMode = resource.Properties.GetValueOrDefault("deploymentMode", "Code");
-        var isContainer = string.Equals(deploymentMode, "Container", StringComparison.OrdinalIgnoreCase);
+        var deploymentMode = resource.Properties.GetValueOrDefault("deploymentMode", CodeDeploymentMode);
+        var isContainer = string.Equals(deploymentMode, ContainerDeploymentMode, StringComparison.OrdinalIgnoreCase);
         var acrAuthMode = GetAcrAuthMode(resource.Properties);
         var useAdminCredentials = isContainer
             && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
@@ -34,12 +46,12 @@ public sealed class WebAppTypeBicepGenerator
             .Param("name", BicepType.String, "Name of the Web App")
             .Param("appServicePlanId", BicepType.String, "Resource ID of the App Service Plan")
             .Param("runtimeStack", BicepType.Custom("RuntimeStack"), "Runtime stack of the Web App",
-                defaultValue: new BicepStringLiteral("DOTNETCORE"))
+                defaultValue: new BicepStringLiteral(DefaultRuntimeStack))
             .Param("runtimeVersion", BicepType.String, "Runtime version (e.g. 8.0, 18)")
             .Param("alwaysOn", BicepType.Bool, "Whether the app is always on")
             .Param("httpsOnly", BicepType.Bool, "Whether HTTPS only is enforced")
             .Param("deploymentMode", BicepType.String, "Deployment mode",
-                defaultValue: new BicepStringLiteral(isContainer ? "Container" : "Code"));
+                defaultValue: new BicepStringLiteral(isContainer ? ContainerDeploymentMode : CodeDeploymentMode));
 
         // Container-specific params
         if (isContainer)
@@ -81,8 +93,8 @@ public sealed class WebAppTypeBicepGenerator
 
             // Module file name for container variants
             builder.ModuleFileName(useAdminCredentials
-                ? "webAppContainerAdminCredentials"
-                : "webAppContainerManagedIdentity");
+                ? AdminCredentialsModuleFileName
+                : ManagedIdentityModuleFileName);
         }
         else
         {
@@ -96,7 +108,7 @@ public sealed class WebAppTypeBicepGenerator
 
         if (isContainer)
         {
-            builder.Property("kind", new BicepStringLiteral("app,linux,container"));
+            builder.Property("kind", new BicepStringLiteral(ContainerKind));
         }
 
         // Build siteConfig properties
@@ -127,15 +139,15 @@ public sealed class WebAppTypeBicepGenerator
             siteConfigProps.Add(new BicepPropertyAssignment("appSettings",
                 new BicepArrayExpression([
                     new BicepObjectExpression([
-                        new BicepPropertyAssignment("name", new BicepStringLiteral("DOCKER_REGISTRY_SERVER_URL")),
+                        new BicepPropertyAssignment("name", new BicepStringLiteral(DockerRegistryServerUrlSettingName)),
                         new BicepPropertyAssignment("value", new BicepRawExpression("'https://${acrLoginServer}'")),
                     ]),
                     new BicepObjectExpression([
-                        new BicepPropertyAssignment("name", new BicepStringLiteral("DOCKER_REGISTRY_SERVER_USERNAME")),
+                        new BicepPropertyAssignment("name", new BicepStringLiteral(DockerRegistryServerUsernameSettingName)),
                         new BicepPropertyAssignment("value", new BicepReference("acrUsername")),
                     ]),
                     new BicepObjectExpression([
-                        new BicepPropertyAssignment("name", new BicepStringLiteral("DOCKER_REGISTRY_SERVER_PASSWORD")),
+                        new BicepPropertyAssignment("name", new BicepStringLiteral(DockerRegistryServerPasswordSettingName)),
                         new BicepPropertyAssignment("value", new BicepReference("acrPassword")),
                     ]),
                 ])));
@@ -188,13 +200,13 @@ public sealed class WebAppTypeBicepGenerator
 
     public GeneratedTypeModule Generate(ResourceDefinition resource)
     {
-        var deploymentMode = resource.Properties.GetValueOrDefault("deploymentMode", "Code");
-        var isContainer = string.Equals(deploymentMode, "Container", StringComparison.OrdinalIgnoreCase);
-      var acrAuthMode = GetAcrAuthMode(resource.Properties);
-      var useAdminCredentials = isContainer
-        && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
+        var deploymentMode = resource.Properties.GetValueOrDefault("deploymentMode", CodeDeploymentMode);
+        var isContainer = string.Equals(deploymentMode, ContainerDeploymentMode, StringComparison.OrdinalIgnoreCase);
+        var acrAuthMode = GetAcrAuthMode(resource.Properties);
+        var useAdminCredentials = isContainer
+            && string.Equals(acrAuthMode, AdminCredentialsAcrAuthMode, StringComparison.OrdinalIgnoreCase);
 
-        var runtimeStack = resource.Properties.GetValueOrDefault("runtimeStack", "DOTNETCORE");
+        var runtimeStack = resource.Properties.GetValueOrDefault("runtimeStack", DefaultRuntimeStack);
         var runtimeVersion = resource.Properties.GetValueOrDefault("runtimeVersion", "8.0");
         var alwaysOn = resource.Properties.GetValueOrDefault("alwaysOn", "true") == "true";
         var httpsOnly = resource.Properties.GetValueOrDefault("httpsOnly", "true") == "true";
@@ -216,43 +228,43 @@ public sealed class WebAppTypeBicepGenerator
             parameters["dockerImageTag"] = "latest";
             parameters["acrLoginServer"] = "";
 
-          if (!useAdminCredentials)
-          {
-            parameters["acrUseManagedIdentityCreds"] = true;
-            parameters["acrUserManagedIdentityId"] = "";
-          }
+            if (!useAdminCredentials)
+            {
+                parameters["acrUseManagedIdentityCreds"] = true;
+                parameters["acrUserManagedIdentityId"] = "";
+            }
         }
 
         var moduleFileName = isContainer
-          ? useAdminCredentials
-            ? "webAppContainerAdminCredentials"
-            : "webAppContainerManagedIdentity"
-          : "webApp";
+            ? useAdminCredentials
+                ? AdminCredentialsModuleFileName
+                : ManagedIdentityModuleFileName
+            : "webApp";
 
         return new GeneratedTypeModule
         {
             ModuleName = "webApp",
-          ModuleFileName = moduleFileName,
+            ModuleFileName = moduleFileName,
             ModuleFolderName = "WebApp",
-          ModuleBicepContent = isContainer
-            ? useAdminCredentials
-              ? WebAppContainerAdminCredentialsModuleTemplate
-              : WebAppContainerManagedIdentityModuleTemplate
-            : WebAppCodeModuleTemplate,
+            ModuleBicepContent = isContainer
+                ? useAdminCredentials
+                    ? WebAppContainerAdminCredentialsModuleTemplate
+                    : WebAppContainerManagedIdentityModuleTemplate
+                : WebAppCodeModuleTemplate,
             ModuleTypesBicepContent = WebAppTypesTemplate,
             ResourceTypeName = ResourceTypeName,
-          Parameters = parameters,
-          SecureParameters = isContainer && useAdminCredentials ? ["acrPassword"] : []
+            Parameters = parameters,
+            SecureParameters = isContainer && useAdminCredentials ? ["acrPassword"] : [],
         };
     }
 
-      private static string GetAcrAuthMode(IReadOnlyDictionary<string, string> properties)
-      {
+    private static string GetAcrAuthMode(IReadOnlyDictionary<string, string> properties)
+    {
         var acrAuthMode = properties.GetValueOrDefault("acrAuthMode", string.Empty);
         return string.IsNullOrWhiteSpace(acrAuthMode)
-          ? ManagedIdentityAcrAuthMode
-          : acrAuthMode;
-      }
+            ? ManagedIdentityAcrAuthMode
+            : acrAuthMode;
+    }
 
     private const string WebAppTypesTemplate = """
         @export()

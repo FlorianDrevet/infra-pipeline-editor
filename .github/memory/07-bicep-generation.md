@@ -27,6 +27,7 @@ Legacy 920-line `BicepGenerationEngine` → thin facade (~85 LOC) + `BicepGenera
 
 ### Tests
 `tests/InfraFlowSculptor.BicepGeneration.Tests/`: 842+ tests (xUnit + FluentAssertions + NSubstitute). Covers TextManipulation, Pipeline stages, IR emitter/builder/transformers, and all 18 migrated generators. Convention: `Given_When_Then`, AAA, `_sut`.
+- **Sonar generator cleanup [2026-04-28]:** `ContainerAppTypeBicepGenerator`, `RedisCacheTypeBicepGenerator`, and `WebAppTypeBicepGenerator` now use targeted semantic constants for repeated module/type/parameter identifiers to reduce S1192 noise without turning the Bicep DSL into generic constant wrappers. Focused generator tests lock the touched identifiers/variant names.
 
 ### Constraints
 - **Never** call `BicepOutputPruner` from a stage — pruning is engine-owned (mono-repo cross-config).

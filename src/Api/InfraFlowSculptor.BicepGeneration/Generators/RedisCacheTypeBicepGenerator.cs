@@ -11,6 +11,20 @@ namespace InfraFlowSculptor.BicepGeneration.Generators;
 public sealed class RedisCacheTypeBicepGenerator
     : IResourceTypeBicepSpecGenerator
 {
+    private const string ModuleName = "redisCache";
+    private const string ModuleFolderName = "RedisCache";
+    private const string ResourceSymbol = "redis";
+    private const string SkuNameTypeName = "SkuName";
+    private const string SkuFamilyTypeName = "SkuFamily";
+    private const string TlsVersionTypeName = "TlsVersion";
+    private const string SkuNameParameterName = "skuName";
+    private const string SkuFamilyParameterName = "skuFamily";
+    private const string RedisVersionParameterName = "redisVersion";
+    private const string EnableNonSslPortParameterName = "enableNonSslPort";
+    private const string MinimumTlsVersionParameterName = "minimumTlsVersion";
+    private const string DisableAccessKeyAuthenticationParameterName = "disableAccessKeyAuthentication";
+    private const string AadEnabledParameterName = "aadEnabled";
+
     /// <inheritdoc />
     public string ResourceType
         => AzureResourceTypes.ArmTypes.RedisCache;
@@ -22,55 +36,55 @@ public sealed class RedisCacheTypeBicepGenerator
     public BicepModuleSpec GenerateSpec(ResourceDefinition resource)
     {
         return new BicepModuleBuilder()
-            .Module("redisCache", "RedisCache", ResourceTypeName)
-            .Import("./types.bicep", "SkuName", "SkuFamily", "TlsVersion")
+            .Module(ModuleName, ModuleFolderName, ResourceTypeName)
+            .Import("./types.bicep", SkuNameTypeName, SkuFamilyTypeName, TlsVersionTypeName)
             .Param("location", BicepType.String, "Azure region for the Redis Cache")
             .Param("name", BicepType.String, "Name of the Redis Cache")
-            .Param("skuName", BicepType.Custom("SkuName"), "SKU name of the Redis Cache",
+            .Param(SkuNameParameterName, BicepType.Custom(SkuNameTypeName), "SKU name of the Redis Cache",
                 defaultValue: new BicepStringLiteral("Basic"))
-            .Param("skuFamily", BicepType.Custom("SkuFamily"), "SKU family of the Redis Cache",
+            .Param(SkuFamilyParameterName, BicepType.Custom(SkuFamilyTypeName), "SKU family of the Redis Cache",
                 defaultValue: new BicepStringLiteral("C"))
             .Param("capacity", BicepType.Int, "Cache capacity (number of shards for Basic/Standard, shard count for Premium)")
-            .Param("redisVersion", BicepType.String, "Redis server version")
-            .Param("enableNonSslPort", BicepType.Bool, "Whether the non-SSL port (6379) is enabled")
-            .Param("minimumTlsVersion", BicepType.Custom("TlsVersion"), "Minimum TLS version for client connections",
+            .Param(RedisVersionParameterName, BicepType.String, "Redis server version")
+            .Param(EnableNonSslPortParameterName, BicepType.Bool, "Whether the non-SSL port (6379) is enabled")
+            .Param(MinimumTlsVersionParameterName, BicepType.Custom(TlsVersionTypeName), "Minimum TLS version for client connections",
                 defaultValue: new BicepStringLiteral("1.2"))
-            .Param("disableAccessKeyAuthentication", BicepType.Bool, "Whether access key authentication is disabled",
+            .Param(DisableAccessKeyAuthenticationParameterName, BicepType.Bool, "Whether access key authentication is disabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Param("aadEnabled", BicepType.Bool, "Whether Microsoft Entra ID (AAD) authentication is enabled",
+            .Param(AadEnabledParameterName, BicepType.Bool, "Whether Microsoft Entra ID (AAD) authentication is enabled",
                 defaultValue: new BicepBoolLiteral(false))
-            .Resource("redis", "Microsoft.Cache/Redis@2023-08-01")
+            .Resource(ResourceSymbol, "Microsoft.Cache/Redis@2023-08-01")
             .Property("name", new BicepReference("name"))
             .Property("location", new BicepReference("location"))
             .Property("properties", props => props
                 .Property("sku", sku => sku
-                    .Property("name", new BicepReference("skuName"))
-                    .Property("family", new BicepReference("skuFamily"))
+                    .Property("name", new BicepReference(SkuNameParameterName))
+                    .Property("family", new BicepReference(SkuFamilyParameterName))
                     .Property("capacity", new BicepReference("capacity")))
-                .Property("redisVersion", new BicepReference("redisVersion"))
-                .Property("enableNonSslPort", new BicepReference("enableNonSslPort"))
-                .Property("minimumTlsVersion", new BicepReference("minimumTlsVersion"))
-                .Property("disableAccessKeyAuthentication", new BicepReference("disableAccessKeyAuthentication"))
+                .Property("redisVersion", new BicepReference(RedisVersionParameterName))
+                .Property("enableNonSslPort", new BicepReference(EnableNonSslPortParameterName))
+                .Property("minimumTlsVersion", new BicepReference(MinimumTlsVersionParameterName))
+                .Property("disableAccessKeyAuthentication", new BicepReference(DisableAccessKeyAuthenticationParameterName))
                 .Property("redisConfiguration", rc => rc
                     .Property("'aad-enabled'", new BicepConditionalExpression(
-                        new BicepReference("aadEnabled"),
+                        new BicepReference(AadEnabledParameterName),
                         new BicepStringLiteral("true"),
                         new BicepStringLiteral("false")))))
-            .Output("id", BicepType.String, new BicepRawExpression("redis.id"),
+            .Output("id", BicepType.String, new BicepRawExpression($"{ResourceSymbol}.id"),
                 description: "The resource ID of the Redis Cache")
-            .Output("hostName", BicepType.String, new BicepRawExpression("redis.properties.hostName"),
+            .Output("hostName", BicepType.String, new BicepRawExpression($"{ResourceSymbol}.properties.hostName"),
                 description: "The host name of the Redis Cache")
-            .Output("sslPort", BicepType.Int, new BicepRawExpression("redis.properties.sslPort"),
+            .Output("sslPort", BicepType.Int, new BicepRawExpression($"{ResourceSymbol}.properties.sslPort"),
                 description: "The SSL port of the Redis Cache")
-            .Output("port", BicepType.Int, new BicepRawExpression("redis.properties.port"),
+            .Output("port", BicepType.Int, new BicepRawExpression($"{ResourceSymbol}.properties.port"),
                 description: "The non-SSL port of the Redis Cache")
-            .ExportedType("SkuName",
+            .ExportedType(SkuNameTypeName,
                 new BicepRawExpression("'Basic' | 'Standard' | 'Premium'"),
                 description: "SKU name for the Redis Cache")
-            .ExportedType("SkuFamily",
+            .ExportedType(SkuFamilyTypeName,
                 new BicepRawExpression("'C' | 'P'"),
                 description: "SKU family for the Redis Cache (C for Basic/Standard, P for Premium)")
-            .ExportedType("TlsVersion",
+            .ExportedType(TlsVersionTypeName,
                 new BicepRawExpression("'1.0' | '1.1' | '1.2'"),
                 description: "Minimum TLS version for Redis Cache connections")
             .Build();
@@ -81,22 +95,22 @@ public sealed class RedisCacheTypeBicepGenerator
     {
         return new GeneratedTypeModule
         {
-            ModuleName = "redisCache",
-            ModuleFileName = "redisCache",
-            ModuleFolderName = "RedisCache",
+            ModuleName = ModuleName,
+            ModuleFileName = ModuleName,
+            ModuleFolderName = ModuleFolderName,
             ModuleBicepContent = RedisCacheModuleTemplate,
             ModuleTypesBicepContent = RedisCacheTypesTemplate,
             ResourceTypeName = ResourceTypeName,
             Parameters = new Dictionary<string, object>
             {
-                ["skuName"] = resource.Properties.GetValueOrDefault("skuName", "Basic"),
-                ["skuFamily"] = resource.Properties.GetValueOrDefault("skuFamily", "C"),
+                [SkuNameParameterName] = resource.Properties.GetValueOrDefault(SkuNameParameterName, "Basic"),
+                [SkuFamilyParameterName] = resource.Properties.GetValueOrDefault(SkuFamilyParameterName, "C"),
                 ["capacity"] = int.TryParse(resource.Properties.GetValueOrDefault("capacity", "1"), out var cap) ? cap : 1,
-                ["redisVersion"] = resource.Properties.GetValueOrDefault("redisVersion", "6"),
-                ["enableNonSslPort"] = resource.Properties.GetValueOrDefault("enableNonSslPort", "false") == "true",
-                ["minimumTlsVersion"] = resource.Properties.GetValueOrDefault("minimumTlsVersion", "1.2"),
-                ["disableAccessKeyAuthentication"] = resource.Properties.GetValueOrDefault("disableAccessKeyAuthentication", "false") == "true",
-                ["aadEnabled"] = resource.Properties.GetValueOrDefault("aadEnabled", "false") == "true",
+                [RedisVersionParameterName] = resource.Properties.GetValueOrDefault(RedisVersionParameterName, "6"),
+                [EnableNonSslPortParameterName] = resource.Properties.GetValueOrDefault(EnableNonSslPortParameterName, "false") == "true",
+                [MinimumTlsVersionParameterName] = resource.Properties.GetValueOrDefault(MinimumTlsVersionParameterName, "1.2"),
+                [DisableAccessKeyAuthenticationParameterName] = resource.Properties.GetValueOrDefault(DisableAccessKeyAuthenticationParameterName, "false") == "true",
+                [AadEnabledParameterName] = resource.Properties.GetValueOrDefault(AadEnabledParameterName, "false") == "true",
             }
         };
     }

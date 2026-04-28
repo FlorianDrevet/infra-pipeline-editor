@@ -43,6 +43,20 @@ public sealed class BicepEmitterTests
     }
 
     [Fact]
+    public void Given_MinimalSpec_When_EmitModule_Then_ReturnsExpectedDocument()
+    {
+        var spec = MinimalSpec();
+
+        var result = _sut.EmitModule(spec);
+
+        result.Should().Be(
+            "resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {\n" +
+            "  name: name\n" +
+            "  location: location\n" +
+            "}\n");
+    }
+
+    [Fact]
     public void Given_SpecWithParam_When_EmitModule_Then_EmitsParamWithDescription()
     {
         var spec = MinimalSpec() with

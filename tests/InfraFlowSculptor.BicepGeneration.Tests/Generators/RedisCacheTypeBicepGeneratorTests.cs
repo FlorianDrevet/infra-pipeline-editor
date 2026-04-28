@@ -65,6 +65,28 @@ public sealed class RedisCacheTypeBicepGeneratorTests
                 i.Symbols.Contains("TlsVersion"));
     }
 
+    [Fact]
+    public void Given_Resource_When_GenerateSpec_Then_CustomTypeParametersStayAlignedWithImportedAndExportedTypes()
+    {
+        var spec = _sut.GenerateSpec(CreateResource());
+        var importedSymbols = spec.Imports.Should().ContainSingle().Subject.Symbols;
+
+        importedSymbols.Should().NotBeNull();
+        importedSymbols.Should().ContainInOrder("SkuName", "SkuFamily", "TlsVersion");
+        spec.Parameters.Should().Contain(p => p.Name == "skuName")
+            .Which.Type.Should().BeOfType<BicepCustomType>()
+            .Which.Name.Should().Be("SkuName");
+        spec.Parameters.Should().Contain(p => p.Name == "skuFamily")
+            .Which.Type.Should().BeOfType<BicepCustomType>()
+            .Which.Name.Should().Be("SkuFamily");
+        spec.Parameters.Should().Contain(p => p.Name == "minimumTlsVersion")
+            .Which.Type.Should().BeOfType<BicepCustomType>()
+            .Which.Name.Should().Be("TlsVersion");
+        spec.ExportedTypes.Should().Contain(t => t.Name == "SkuName");
+        spec.ExportedTypes.Should().Contain(t => t.Name == "SkuFamily");
+        spec.ExportedTypes.Should().Contain(t => t.Name == "TlsVersion");
+    }
+
     // ── Parameters ──
 
     [Fact]
