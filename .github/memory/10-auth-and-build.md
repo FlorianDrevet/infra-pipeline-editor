@@ -38,7 +38,11 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 ```
 
 - Active .NET test projects currently checked in:
+	- `tests/InfraFlowSculptor.Application.Tests/`
 	- `tests/InfraFlowSculptor.BicepGeneration.Tests/`
+	- `tests/InfraFlowSculptor.Contracts.Tests/`
+	- `tests/InfraFlowSculptor.Domain.Tests/`
+	- `tests/InfraFlowSculptor.Mcp.Tests/`
 	- `tests/InfraFlowSculptor.PipelineGeneration.Tests/`
 - All .NET test projects live under `tests/`.
 - Unit test projects follow `<TargetAssembly>.Tests` and reference a single production assembly.

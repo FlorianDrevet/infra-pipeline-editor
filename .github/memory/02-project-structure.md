@@ -24,9 +24,10 @@ src/
 │   └── src/scss                            Global theming variables and style modules
 ├── Mcp/
 │   └── InfraFlowSculptor.Mcp              MCP server (HTTP transport under Aspire, ModelContextProtocol SDK v1.2.0)
-│       ├── Tools/                         DiscoveryTools, ProjectDraftTools, ProjectCreationTools, BicepGenerationTools, IacImportTools
-│       ├── Drafts/                        IProjectDraftService, ProjectDraftService, DraftOverrides, ProjectCreationDraft
-│       ├── Imports/                       MCP-local preview storage (`IImportPreviewService`, `ImportPreviewService`) + `ImportPreviewResources`; ARM analysis itself was extracted on 2026-04-28 to `Application/Imports`
+│       ├── Common/                        McpJsonDefaults, IacSourceFormat, LayoutPresetEnum
+│       ├── Tools/                         DiscoveryTools, ProjectDraftTools, ProjectCreationTools, BicepGenerationTools, IacImportTools, ResourceCommandFactory, ProjectSetupOrchestrator
+│       ├── Drafts/                        IProjectDraftService, ProjectDraftService, DraftOverrides, DraftProjectIntent (one-class-per-file)
+│       ├── Imports/                       MCP-local preview storage (IImportPreviewService, ImportPreviewService) + ImportPreviewResources; ARM analysis extracted to Application/Imports
 │       ├── Prompts/                       ProjectCreationPrompts
 │       └── Resources/                     ProjectResources
 └── Aspire/

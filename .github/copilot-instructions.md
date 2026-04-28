@@ -43,6 +43,7 @@
 - **Architecture review & planning** — Use the `architect` agent (`.github/agents/architect.agent.md`) for any architecture analysis, feasibility check, implementation planning, or challenge of a feature request against the existing codebase. The architect never codes — it produces structured implementation plans for expert agents to follow.
 - **Expert code audits** — Use the `audit-expert` agent (`.github/agents/audit-expert.agent.md`) for repository audits that must produce a report in `audits/` and reconcile GitHub audit issues and labels on `FlorianDrevet/infra-pipeline-editor`.
 - **Pre-merge code review** — Use the `review-expert` agent (`.github/agents/review-expert.agent.md`) for strict review of the code that will be merged from the current branch to `main`, with severity-ranked findings and a corrective backlog.
+- **Anti-vibe coding review** — Use the `vibe-coding-refractaire` agent (`.github/agents/vibe-coding-refractaire.agent.md`) as a second-pass reviewer for generated or suspicious code, with a senior hater lens focused on unnecessary abstractions, copy-paste, weak tests, architecture drift, and other vibe-coding smells.
 - **Review remediation** — Use the `review-remediator` agent (`.github/agents/review-remediator.agent.md`) to consume the corrective backlog produced by `review-expert`, implement only the accepted fixes, and validate them before a new review pass.
 - **Backend C#/.NET** — Any C# code generation or modification MUST follow `.github/agents/dotnet-dev.agent.md` conventions (XML docs, no magic strings, SOLID, async/await, EF Core, FluentValidation, sealed, guard clauses, no code smells).
 - **.NET unit testing** — Load the `xunit-unit-testing` skill (`.github/skills/xunit-unit-testing/SKILL.md`) for any xUnit unit-test creation, bug reproduction, snapshot test, coverage, or mutation-testing task.
@@ -97,5 +98,5 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 
 ## Pull Request conventions
 
-Full details in `.github/agents/pr-manager.agent.md`. Title format: `type(scope): description`. Use `.github/PULL_REQUEST_TEMPLATE.md` for description.
+Full details in `.github/agents/pr-manager.agent.md`. Title format: `type(scope): description`. Use `.github/PULL_REQUEST_TEMPLATE.md` for description. Before creating or submitting a PR, run the mandatory technical review gate: `review-main` / `review-expert` plus `vibe-coding-refractaire`.
 

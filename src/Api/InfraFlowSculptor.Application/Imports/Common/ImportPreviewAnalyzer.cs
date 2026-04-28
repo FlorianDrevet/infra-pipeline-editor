@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using InfraFlowSculptor.Application.Imports.Common.Arm;
 using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.Application.Imports.Common;
@@ -10,26 +12,31 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
 {
     private const string ArmJsonSourceFormat = "arm-json";
 
+    private static readonly JsonSerializerOptions ArmSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
+
     /// <inheritdoc />
     public ImportPreviewAnalysisResult AnalyzeArmTemplate(string sourceContent)
     {
         ArgumentNullException.ThrowIfNull(sourceContent);
 
-        using var doc = JsonDocument.Parse(sourceContent);
-        var root = doc.RootElement;
+        var template = JsonSerializer.Deserialize<ArmTemplateDocument>(sourceContent, ArmSerializerOptions)
+                       ?? throw new JsonException("ARM template deserialization returned null.");
 
         var resources = new List<ImportedResourceAnalysisResult>();
         var dependencies = new List<ImportedDependencyAnalysisResult>();
         var gaps = new List<ImportPreviewGapResult>();
         var unsupported = new List<string>();
-        var metadata = ExtractMetadata(root);
+        var metadata = ExtractMetadata(template);
 
-        if (root.TryGetProperty("resources", out var resourcesArray)
-            && resourcesArray.ValueKind == JsonValueKind.Array)
+        if (template.Resources is not null)
         {
-            foreach (var resourceElement in resourcesArray.EnumerateArray())
+            foreach (var armResource in template.Resources)
             {
-                AnalyzeResourceElement(resourceElement, resources, dependencies, gaps, unsupported);
+                AnalyzeResource(armResource, resources, dependencies, gaps, unsupported);
             }
         }
 
@@ -47,44 +54,39 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
         };
     }
 
-    private static Dictionary<string, string> ExtractMetadata(JsonElement root)
+    private static Dictionary<string, string> ExtractMetadata(ArmTemplateDocument template)
     {
         var metadata = new Dictionary<string, string>();
 
-        if (root.TryGetProperty("$schema", out var schema))
+        if (template.Schema is not null)
         {
-            metadata["schema"] = schema.GetString() ?? string.Empty;
+            metadata["schema"] = template.Schema;
         }
 
-        if (root.TryGetProperty("contentVersion", out var contentVersion))
+        if (template.ContentVersion is not null)
         {
-            metadata["contentVersion"] = contentVersion.GetString() ?? string.Empty;
+            metadata["contentVersion"] = template.ContentVersion;
         }
 
         return metadata;
     }
 
-    private static void AnalyzeResourceElement(
-        JsonElement resourceElement,
+    private static void AnalyzeResource(
+        ArmResource armResource,
         List<ImportedResourceAnalysisResult> resources,
         List<ImportedDependencyAnalysisResult> dependencies,
         List<ImportPreviewGapResult> gaps,
         List<string> unsupported)
     {
-        var sourceType = resourceElement.TryGetProperty("type", out var typeProp)
-            ? typeProp.GetString() ?? string.Empty
-            : string.Empty;
-
-        var sourceName = resourceElement.TryGetProperty("name", out var nameProp)
-            ? StripArmExpression(nameProp.GetString() ?? string.Empty)
-            : string.Empty;
+        var sourceType = armResource.Type ?? string.Empty;
+        var sourceName = StripArmExpression(armResource.Name ?? string.Empty);
 
         var isMapped = AzureResourceTypes.ArmTypeToFriendlyName.TryGetValue(sourceType, out var friendlyName);
 
         var extractedProperties = new Dictionary<string, object?>();
         var unmappedProperties = new List<string>();
 
-        ExtractProperties(resourceElement, friendlyName, extractedProperties, unmappedProperties);
+        ExtractProperties(armResource, friendlyName, extractedProperties, unmappedProperties);
 
         if (!isMapped)
         {
@@ -111,7 +113,7 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
             UnmappedProperties = unmappedProperties,
         });
 
-        ExtractDependencies(resourceElement, sourceName, dependencies);
+        ExtractDependencies(armResource, sourceName, dependencies);
     }
 
     private static void AddUnmappedPropertyGaps(
@@ -132,19 +134,17 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
     }
 
     private static void ExtractDependencies(
-        JsonElement resourceElement,
+        ArmResource armResource,
         string sourceName,
         List<ImportedDependencyAnalysisResult> dependencies)
     {
-        if (!resourceElement.TryGetProperty("dependsOn", out var dependsOn)
-            || dependsOn.ValueKind != JsonValueKind.Array)
+        if (armResource.DependsOn is null)
         {
             return;
         }
 
-        foreach (var dependencyElement in dependsOn.EnumerateArray())
+        foreach (var dependencyValue in armResource.DependsOn)
         {
-            var dependencyValue = dependencyElement.GetString() ?? string.Empty;
             var targetName = ExtractResourceNameFromDependsOn(dependencyValue);
 
             dependencies.Add(new ImportedDependencyAnalysisResult(
@@ -192,13 +192,12 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
     }
 
     private static void ExtractProperties(
-        JsonElement resourceElement,
+        ArmResource armResource,
         string? friendlyName,
         Dictionary<string, object?> extractedProperties,
         List<string> unmappedProperties)
     {
-        if (!resourceElement.TryGetProperty("properties", out var propertiesElement)
-            || propertiesElement.ValueKind != JsonValueKind.Object)
+        if (armResource.Properties is not { ValueKind: JsonValueKind.Object } propertiesElement)
         {
             return;
         }
@@ -210,7 +209,7 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
                 break;
 
             case AzureResourceTypes.StorageAccount:
-                ExtractStorageAccountProperties(resourceElement, propertiesElement, extractedProperties, unmappedProperties);
+                ExtractStorageAccountProperties(armResource, propertiesElement, extractedProperties, unmappedProperties);
                 break;
 
             default:
@@ -241,20 +240,19 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
     }
 
     private static void ExtractStorageAccountProperties(
-        JsonElement resourceElement,
+        ArmResource armResource,
         JsonElement properties,
         Dictionary<string, object?> extractedProperties,
         List<string> unmappedProperties)
     {
-        if (resourceElement.TryGetProperty("sku", out var sku)
-            && sku.TryGetProperty("name", out var skuName))
+        if (armResource.Sku?.Name is not null)
         {
-            extractedProperties["skuName"] = skuName.GetString();
+            extractedProperties["skuName"] = armResource.Sku.Name;
         }
 
-        if (resourceElement.TryGetProperty("kind", out var kind))
+        if (armResource.Kind is not null)
         {
-            extractedProperties["kind"] = kind.GetString();
+            extractedProperties["kind"] = armResource.Kind;
         }
 
         foreach (var property in properties.EnumerateObject())

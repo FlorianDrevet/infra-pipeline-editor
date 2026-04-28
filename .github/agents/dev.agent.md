@@ -155,6 +155,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Analyse d'impact / exploration structurelle avant modification | Charger le skill **`gitnexus-workflow`** | `.github/skills/gitnexus-workflow/SKILL.md` |
 | Audit technique complet du dépôt avec synchronisation GitHub | **`audit-expert`** + charger le skill `audit-workflow` | `.github/agents/audit-expert.agent.md` |
 | Revue de code pré-merge, review de diff contre `main`, gate qualité avant merge | **`review-expert`** | `.github/agents/review-expert.agent.md` |
+| Revue technique anti-vibe coding, chasse aux smells de code généré et dette structurelle cachée | **`vibe-coding-refractaire`** | `.github/agents/vibe-coding-refractaire.agent.md` |
 | Appliquer un backlog de correction issu d'une review pré-merge | **`review-remediator`** | `.github/agents/review-remediator.agent.md` |
 | Analyser une feature / challenger une demande / plan d'implémentation | **`architect`** | `.github/agents/architect.agent.md` |
 | Concevoir, planifier ou implémenter un serveur MCP .NET / exposition VS Code / import IaC | Charger le skill **`mcp-dotnet-server`**, puis déléguer à **`architect`** pour le plan et à **`dotnet-dev`** pour l'implémentation | `.github/skills/mcp-dotnet-server/SKILL.md` |
@@ -198,8 +199,8 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
   Déléguer directement à `dotnet-dev` — il a toutes les règles de qualité .NET.
 
 - **Code review / review pré-merge / revue d'un diff généré par des agents** :
-  Déléguer à `review-expert`.
-  Cet agent relit le diff destiné à `main`, priorise les findings par sévérité, explique le risque, puis produit un backlog de correction réutilisable.
+  Déléguer d'abord à `review-expert`, puis à `vibe-coding-refractaire`.
+  `review-expert` couvre la merge-readiness, la sécurité et l'architecture; `vibe-coding-refractaire` ajoute une seconde passe hater du vibe coding pour remonter les abstractions bidon, duplications paresseuses, tests théâtre et autres signaux de code faible.
 
 - **Correction d'un backlog issu de `review-expert`** :
   Déléguer à `review-remediator`.

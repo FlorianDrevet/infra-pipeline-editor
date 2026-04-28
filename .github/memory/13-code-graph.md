@@ -8,10 +8,8 @@
 ## Index status
 
 - **Repo indexé :** `infra-pipeline-editor`
-- **Session context [2026-04-26] :** GitNexus expose le repo avec ~15 241 nodes, ~56 667 relations, ~810 communities, et 300 flows (index freshness à vérifier si outil rapporte stale).
-- **Spot-check [2026-04-25] :** les requêtes GitNexus résolvent désormais `CustomDomain` et `BootstrapPipelineGenerationEngine`; l'ancienne alerte sur les symboles récents non résolus est obsolète.
-- **Règle pratique [2026-04-25] :** pour les noms partagés entre entités métier et classes d'erreur, fournir `file_path` à `gitnexus_context()` pour obtenir le bon symbole du premier coup.
-- **Obsolete cached stats removed:** the earlier 2026-04-03 counts (`9 569` nodes / `41 834` edges / `667` clusters) no longer represent the current index surface.
+- **Session context [2026-04-29] :** 18 743 symbols, 71 402 relationships, 300 execution flows (per AGENTS.md).
+- **Règle pratique :** pour les noms partagés entre entités métier et classes d'erreur, fournir `file_path` à `gitnexus_context()` pour obtenir le bon symbole du premier coup.
 
 ## Symboles à haut risque (beaucoup de dépendants upstream)
 
@@ -50,6 +48,8 @@
 | Queries | ~51 | Files ending `Query.cs` in Application layer |
 | Bicep generation tests | 842+ | `tests/InfraFlowSculptor.BicepGeneration.Tests/` |
 | Pipeline generation tests | 91 | `tests/InfraFlowSculptor.PipelineGeneration.Tests/` (44 golden + 47 stage) |
+| MCP tests | 104 | `tests/InfraFlowSculptor.Mcp.Tests/` |
+| Total solution tests | ~940 | `dotnet test .\InfraFlowSculptor.slnx` |
 
 ## Clusters fonctionnels principaux
 
@@ -60,4 +60,4 @@
 
 ---
 
-*Dernière mise à jour : 2026-04-28 — Dream consolidation*
+*Dernière mise à jour : 2026-04-29 — Dream consolidation*

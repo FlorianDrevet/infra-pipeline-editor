@@ -11,6 +11,7 @@
 | `aspire-debug` | Debug runtime Aspire, MCP diagnostics | `.github/agents/aspire-debug.agent.md` |
 | `audit-expert` | Audit technique expert, produit des rapports `audits/` et synchronise les issues GitHub d'audit | `.github/agents/audit-expert.agent.md` |
 | `review-expert` | Revue de code pré-merge sur le diff contre `main`, findings sévérisés et backlog de correction | `.github/agents/review-expert.agent.md` |
+| `vibe-coding-refractaire` | Seconde passe de revue PR anti-vibe coding, traque les abstractions bidon, duplications masquées, tests creux et code généré fragile | `.github/agents/vibe-coding-refractaire.agent.md` |
 | `review-remediator` | Remédiation disciplinée d'un backlog de review approuvé, avec validations et traçabilité des fixes | `.github/agents/review-remediator.agent.md` |
 | `pr-manager` | Conventions PR (titre, description, template) | `.github/agents/pr-manager.agent.md` |
 | `merge-main` | Fusion main sur branche courante | `.github/agents/merge-main.agent.md` |
@@ -56,11 +57,18 @@
 - It must output severity-ranked findings first, then questions/assumptions, then a corrective backlog ready to delegate.
 - It should prioritize maintainability, security, scalability, architecture, and test gaps over speed of implementation.
 
+## Anti-vibe Review Routing [2026-04-29]
+
+- `vibe-coding-refractaire` is the mandatory second-pass reviewer for generated or suspicious diffs that may hide vibe-coding smells.
+- It focuses on unnecessary abstractions, hidden duplication, copy-paste adaptation, weak or theatrical tests, guessed design, and repository-convention drift.
+- It complements `review-expert` rather than replacing it: merge-readiness first, anti-vibe pass second.
+
 ## Review Workflow [2026-04-27]
 
 - Workspace prompt `.github/prompts/review-main.prompt.md` standardizes strict pre-merge reviews against `origin/main` / `main`.
+- PR creation via `pr-manager` now requires the double technical gate: `review-main` / `review-expert` plus `vibe-coding-refractaire` before submission.
 - `review-remediator` consumes the approved corrective backlog from `review-expert` and applies only the requested fixes.
-- The expected sequence is: `review-main` prompt -> `review-expert` findings/backlog -> `review-remediator` fixes -> optional second `review-main` pass.
+- The expected sequence is: `review-main` prompt -> `review-expert` findings/backlog -> `vibe-coding-refractaire` anti-vibe findings/backlog -> `review-remediator` fixes -> optional second `review-main` pass.
 
 ## Skill Concept
 A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when the task justifies it. No tools, composable, lightweight. Skills override pre-training with tested project-specific patterns.
@@ -69,11 +77,11 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - Default GitHub repository for this project is `FlorianDrevet/infra-pipeline-editor` unless the user explicitly names another repository.
 - Audit issue workflows use reports under `audits/` (for example `audits/audit-14-04-2026`) together with `scripts/sync-audit-issues.ps1`; on 2026-04-15, 66 findings were recreated as GitHub issues and the `phase:*` / `severity:*` label mojibake was cleaned up.
 
-## MCP Skill [2026-04-28]
+## MCP Skill [2026-04-29]
 
 - New skill: `mcp-dotnet-server`.
 - Scope: official MCP + C# SDK baseline, `stdio` vs Streamable HTTP, `.vscode/mcp.json`, auth/authorization, tasks, observability, testing, and project-specific integration rules.
 - Project stance: MCP must stay an adapter layer over `Application`/generation services; import/migration logic should be reusable outside MCP via canonical import services and contracts.
-- Recommended first increment: workspace-local `stdio` server under `src/Mcp/InfraFlowSculptor.Mcp`, then HTTP only if shared/remote usage becomes necessary.
+- **Current state [2026-04-29]:** MCP runs as ASP.NET Core HTTP host (`/mcp`, port 5258) under Aspire, secured with PAT auth. Import preview/apply logic extracted to `Application/Imports/` for shared API+MCP use. `ResourceCommandFactory` + `ProjectSetupOrchestrator` wire end-to-end resource creation. One-class-per-file enforced, `LayoutPresetEnum` replaces magic strings.
 - Conversational creation rule: a prompt like "create a project with a Key Vault" must first go through a draft/clarification step; repository topology (`MonoRepo`, `SplitInfraCode`, etc.) must not be guessed by a mutating tool.
-- The skill now also documents a first recommended tool surface and the dual connection model for VS Code: local `stdio` for development, remote `http` for deployed environments via `.vscode/mcp.json` or user-profile `mcp.json`.
+- VS Code connection: `.vscode/mcp.json` points to `http://127.0.0.1:5258/mcp` with `Authorization: Bearer ${input:ifs_pat}` header.
