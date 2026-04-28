@@ -25,6 +25,8 @@ public sealed class ProjectCreationTools
     /// <summary>
     /// Creates a project in Infra Flow Sculptor from a completed and validated draft.
     /// The draft must have status <see cref="DraftStatus.ReadyToCreate"/>.
+    /// Also creates an infrastructure config, a default resource group, and all resources
+    /// declared in the draft intent.
     /// </summary>
     [McpServerTool(Name = "create_project_from_draft")]
     [Description("Creates a project in Infra Flow Sculptor from a completed and validated draft. The draft must have status 'ReadyToCreate'.")]
@@ -52,11 +54,84 @@ public sealed class ProjectCreationTools
             return JsonError("creation_failed", string.Join("; ", result.Errors.Select(e => e.Description)));
         }
 
+        var projectId = result.Value.Id.Value;
+        var projectName = result.Value.Name.Value;
+
+        // Create infrastructure config + resource group + resources if the draft has resources.
+        var resourceInputs = (draft.Intent.Resources ?? [])
+            .Where(r => !string.IsNullOrWhiteSpace(r.ResourceType))
+            .Select(r => new ProjectSetupOrchestrator.ResourceInput
+            {
+                ResourceType = r.ResourceType,
+                Name = r.Name ?? $"{projectName}-{r.ResourceType.ToLowerInvariant()}",
+            })
+            .ToList();
+
+        if (resourceInputs.Count > 0)
+        {
+            var infraResult = await ProjectSetupOrchestrator.CreateInfrastructureAsync(
+                mediator, projectId, projectName);
+
+            if (infraResult.IsError)
+            {
+                // Project was created but infrastructure setup failed — return partial success.
+                return JsonSerializer.Serialize(new
+                {
+                    status = "created",
+                    projectId = projectId.ToString(),
+                    projectName,
+                    infrastructureError = string.Join("; ", infraResult.Errors.Select(e => e.Description)),
+                    createdResources = Array.Empty<object>(),
+                    skippedResources = Array.Empty<object>(),
+                    nextSuggestedActions = new[]
+                    {
+                        "Create an infrastructure configuration manually via the API or frontend.",
+                        "Add resources to the project once the infrastructure configuration is set up.",
+                    },
+                }, JsonOptions);
+            }
+
+            var (configId, rgId) = infraResult.Value;
+            var (created, skipped) = await ProjectSetupOrchestrator.CreateResourcesAsync(
+                mediator, rgId, resourceInputs);
+
+            draftService.GetDraft(draftId); // keep draft accessible for reference
+            return JsonSerializer.Serialize(new
+            {
+                status = "created",
+                projectId = projectId.ToString(),
+                projectName,
+                infrastructureConfigId = configId.Value.ToString(),
+                resourceGroupId = rgId.Value.ToString(),
+                createdResources = created.Select(r => new
+                {
+                    r.ResourceType,
+                    r.ResourceId,
+                    r.Name,
+                }),
+                skippedResources = skipped.Select(r => new
+                {
+                    r.ResourceType,
+                    r.Name,
+                    r.Reason,
+                }),
+                nextSuggestedActions = BuildNextActions(created.Count, skipped.Count),
+            }, JsonOptions);
+        }
+
         return JsonSerializer.Serialize(new
         {
             status = "created",
-            projectId = result.Value.Id.Value.ToString(),
-            projectName = result.Value.Name.Value,
+            projectId = projectId.ToString(),
+            projectName,
+            createdResources = Array.Empty<object>(),
+            skippedResources = Array.Empty<object>(),
+            nextSuggestedActions = new[]
+            {
+                "Add resources to the project via the API or frontend.",
+                "Configure environment-specific settings for each resource.",
+                "Generate Bicep files using 'generate_project_bicep' once resources are added.",
+            },
         }, JsonOptions);
     }
 
@@ -88,6 +163,19 @@ public sealed class ProjectCreationTools
             Environments: environments,
             Repositories: repositories
         );
+    }
+
+    private static string[] BuildNextActions(int createdCount, int skippedCount)
+    {
+        var actions = new List<string>();
+        if (skippedCount > 0)
+            actions.Add($"{skippedCount} resource(s) could not be auto-created. Add them manually via the API or frontend.");
+        actions.Add("Configure environment-specific settings for each resource.");
+        if (createdCount > 0)
+            actions.Add("Generate Bicep files using 'generate_project_bicep'.");
+        else
+            actions.Add("Add resources to the project, then generate Bicep files using 'generate_project_bicep'.");
+        return actions.ToArray();
     }
 
     private static string JsonError(string error, string message)

@@ -1,9 +1,15 @@
 using System.Text.Json;
 using ErrorOr;
 using FluentAssertions;
+using InfraFlowSculptor.Application.InfrastructureConfig.Common;
+using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Application.Projects.Common;
+using InfraFlowSculptor.Application.ResourceGroups.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
+using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
+using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Imports;
 using InfraFlowSculptor.Mcp.Imports.Models;
@@ -159,6 +165,22 @@ public sealed class IacImportToolsTests
             LayoutPreset: "AllInOne");
         _mediator.Send(Arg.Any<IRequest<ErrorOr<ProjectResult>>>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<ErrorOr<ProjectResult>>(projectResult));
+
+        var infraConfigId = new InfrastructureConfigId(Guid.NewGuid());
+        var configResult = new GetInfrastructureConfigResult(
+            infraConfigId, new Name("MyProject-config"), projectId,
+            null, false, [], [], [], 0, 0, 0, null, null);
+        _mediator.Send(Arg.Any<IRequest<ErrorOr<GetInfrastructureConfigResult>>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<GetInfrastructureConfigResult>>(configResult));
+
+        var rgId = new ResourceGroupId(Guid.NewGuid());
+        var rgResult = new ResourceGroupResult(rgId, infraConfigId, new Location(Location.LocationEnum.WestEurope), new Name("MyProject-rg"), []);
+        _mediator.Send(Arg.Any<IRequest<ErrorOr<ResourceGroupResult>>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<ResourceGroupResult>>(rgResult));
+
+        var kvResult = new KeyVaultResult(new AzureResourceId(Guid.NewGuid()), rgId, new Name("myKeyVault"), new Location(Location.LocationEnum.WestEurope), false, false, false, false, false, false, []);
+        _mediator.Send(Arg.Any<IRequest<ErrorOr<KeyVaultResult>>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<KeyVaultResult>>(kvResult));
 
         // Act
         var json = await IacImportTools.ApplyImportPreview(

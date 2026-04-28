@@ -62,7 +62,7 @@ public sealed class IacImportTools
 
     /// <summary>
     /// Applies a validated import preview to create a new project with the imported resources.
-    /// For V1, creates the project skeleton; resources must be added separately via API or frontend.
+    /// Creates the project, infrastructure config, resource group, and all mapped resources.
     /// </summary>
     [McpServerTool(Name = "apply_import_preview")]
     [Description("Applies a validated import preview to create a new project with the imported resources.")]
@@ -99,25 +99,89 @@ public sealed class IacImportTools
             return JsonError("creation_failed", string.Join("; ", result.Errors.Select(e => e.Description)));
         }
 
-        previewService.RemovePreview(previewId);
+        var projectId = result.Value.Id.Value;
+        var createdProjectName = result.Value.Name.Value;
 
-        var mappedResources = preview.ProjectDefinition.Resources
+        // Build resource inputs from the import preview (only mapped resources).
+        var filterSet = ParseResourceFilter(resourceFilter);
+        var resourceInputs = preview.ProjectDefinition.Resources
             .Where(r => r.MappedResourceType is not null)
-            .Select(r => new { r.SourceName, r.MappedResourceType, r.MappedName })
+            .Where(r => filterSet is null || filterSet.Contains(r.SourceName))
+            .Select(r => new ProjectSetupOrchestrator.ResourceInput
+            {
+                ResourceType = r.MappedResourceType!,
+                Name = r.MappedName ?? r.SourceName,
+                ExtractedProperties = r.ExtractedProperties,
+            })
             .ToList();
+
+        if (resourceInputs.Count > 0)
+        {
+            var infraResult = await ProjectSetupOrchestrator.CreateInfrastructureAsync(
+                mediator, projectId, createdProjectName);
+
+            if (infraResult.IsError)
+            {
+                previewService.RemovePreview(previewId);
+                return JsonSerializer.Serialize(new
+                {
+                    status = "created",
+                    projectId = projectId.ToString(),
+                    projectName = createdProjectName,
+                    importedResourceCount = 0,
+                    infrastructureError = string.Join("; ", infraResult.Errors.Select(e => e.Description)),
+                    createdResources = Array.Empty<object>(),
+                    skippedResources = Array.Empty<object>(),
+                    nextSuggestedActions = new[]
+                    {
+                        "Create an infrastructure configuration manually, then add the imported resources.",
+                    },
+                }, JsonOptions);
+            }
+
+            var (_, rgId) = infraResult.Value;
+            var (created, skipped) = await ProjectSetupOrchestrator.CreateResourcesAsync(
+                mediator, rgId, resourceInputs);
+
+            previewService.RemovePreview(previewId);
+
+            return JsonSerializer.Serialize(new
+            {
+                status = "created",
+                projectId = projectId.ToString(),
+                projectName = createdProjectName,
+                importedResourceCount = created.Count,
+                createdResources = created.Select(r => new
+                {
+                    r.ResourceType,
+                    r.ResourceId,
+                    r.Name,
+                }),
+                skippedResources = skipped.Select(r => new
+                {
+                    r.ResourceType,
+                    r.Name,
+                    r.Reason,
+                }),
+                nextSuggestedActions = BuildImportNextActions(created.Count, skipped.Count),
+            }, JsonOptions);
+        }
+
+        previewService.RemovePreview(previewId);
 
         return JsonSerializer.Serialize(new
         {
             status = "created",
-            projectId = result.Value.Id.Value.ToString(),
-            projectName = result.Value.Name.Value,
-            importedResourceCount = mappedResources.Count,
-            mappedResources,
+            projectId = projectId.ToString(),
+            projectName = createdProjectName,
+            importedResourceCount = 0,
+            createdResources = Array.Empty<object>(),
+            skippedResources = Array.Empty<object>(),
             nextSuggestedActions = new[]
             {
-                "Add the detected resources to the project via the API or frontend.",
-                "Configure environment-specific settings for each resource.",
-                "Generate Bicep files using 'generate_project_bicep' once resources are added.",
+                "No mapped resources found in the import preview.",
+                "Add resources manually via the API or frontend.",
+                "Generate Bicep with 'generate_project_bicep' once resources are added.",
             },
         }, JsonOptions);
     }
@@ -218,6 +282,34 @@ public sealed class IacImportTools
                     "westeurope", Guid.Empty, 0, false),
             ];
         }
+    }
+
+    private static HashSet<string>? ParseResourceFilter(string? resourceFilter)
+    {
+        if (string.IsNullOrWhiteSpace(resourceFilter))
+            return null;
+
+        try
+        {
+            var names = JsonSerializer.Deserialize<string[]>(resourceFilter, JsonOptions);
+            return names is not null ? new HashSet<string>(names, StringComparer.OrdinalIgnoreCase) : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static string[] BuildImportNextActions(int createdCount, int skippedCount)
+    {
+        var actions = new List<string>();
+        if (skippedCount > 0)
+            actions.Add($"{skippedCount} resource(s) could not be auto-created. Add them manually via the API or frontend.");
+        actions.Add("Review imported resource configurations.");
+        actions.Add("Configure environment-specific settings.");
+        if (createdCount > 0)
+            actions.Add("Generate Bicep with 'generate_project_bicep'.");
+        return actions.ToArray();
     }
 
     private static IReadOnlyList<RepositorySetupItem> BuildRepositoriesForLayout(string layoutPreset)
