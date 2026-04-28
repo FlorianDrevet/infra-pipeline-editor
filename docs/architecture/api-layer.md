@@ -23,7 +23,7 @@ Fichier : src/Api/InfraFlowSculptor.Api/Controllers/KeyVaultController.cs
 ```csharp
 public static class KeyVaultController
 {
-    public static IApplicationBuilder UseKeyVaultControllerController(
+    public static IApplicationBuilder UseKeyVaultController(
         this IApplicationBuilder builder)
     {
         return builder.UseEndpoints(endpoints =>
@@ -77,7 +77,7 @@ public static class KeyVaultController
 
 Les endpoints sont ensuite enregistrés dans `Program.cs` :
 ```csharp
-app.UseKeyVaultControllerController();
+app.UseKeyVaultController();
 app.UseResourceGroupController();
 app.UseRedisCacheController();
 // ... un appel par contrôleur
