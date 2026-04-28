@@ -33,14 +33,24 @@ namespace InfraFlowSculptor.Infrastructure;
 
 public static class DependencyInjection
 {
+    private const string ExperimentalMcpTelemetryName = "Experimental.ModelContextProtocol";
+    private const string McpTelemetryName = "ModelContextProtocol";
+    private const string McpCoreTelemetryName = "ModelContextProtocol.Core";
+
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         ConfigurationManager builderConfiguration,
-        IHostEnvironment hostEnvironment)
+        IHostEnvironment hostEnvironment,
+        bool includeAuthentication = true)
     {
+        services.AddPersistence(builderConfiguration);
+
+        if (includeAuthentication)
+        {
+            services.AddAuth(builderConfiguration);
+        }
+
         services
-            .AddPersistence(builderConfiguration)
-            .AddAuth(builderConfiguration)
             .AddAzureServices(builderConfiguration)
             .AddBlob(builderConfiguration)
             .AddRepositories()
@@ -203,13 +213,19 @@ public static class DependencyInjection
         services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
-                metrics.AddAspNetCoreInstrumentation()
+                metrics.AddMeter(ExperimentalMcpTelemetryName)
+                    .AddMeter(McpTelemetryName)
+                    .AddMeter(McpCoreTelemetryName)
+                    .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation();
             })
             .WithTracing(tracing =>
             {
                 tracing.AddSource(environment.ApplicationName)
+                    .AddSource(ExperimentalMcpTelemetryName)
+                    .AddSource(McpTelemetryName)
+                    .AddSource(McpCoreTelemetryName)
                     .AddAspNetCoreInstrumentation(options =>
                         options.Filter = context =>
                             !context.Request.Path.StartsWithSegments("/health")

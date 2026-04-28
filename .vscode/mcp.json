@@ -1,13 +1,8 @@
 {
 	"servers": {
 		"infraflowsculptor-mcp": {
-			"type": "stdio",
-			"command": "dotnet",
-			"args": [
-				"run",
-				"--project",
-				"src/Mcp/InfraFlowSculptor.Mcp/InfraFlowSculptor.Mcp.csproj"
-			]
+			"type": "http",
+			"url": "http://127.0.0.1:5258/mcp"
 		},
 		"com.postman/postman-mcp-server": {
 			"type": "stdio",

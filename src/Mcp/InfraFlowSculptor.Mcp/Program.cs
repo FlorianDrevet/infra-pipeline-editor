@@ -6,23 +6,24 @@ using InfraFlowSculptor.Mcp.Imports.Resources;
 using InfraFlowSculptor.Mcp.Prompts;
 using InfraFlowSculptor.Mcp.Resources;
 using InfraFlowSculptor.Mcp.Tools;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
-var builder = Host.CreateApplicationBuilder(args);
+const string McpHttpUrl = "http://127.0.0.1:5258";
+const string McpRoute = "/mcp";
 
-builder.Logging.AddConsole(options =>
-{
-    options.LogToStandardErrorThreshold = LogLevel.Trace;
-});
+var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.UseUrls(McpHttpUrl);
 
 builder.Services.AddSingleton<IProjectDraftService, ProjectDraftService>();
 builder.Services.AddSingleton<IImportPreviewService, ImportPreviewService>();
 
 builder.Services
     .AddMcpServer()
-    .WithStdioServerTransport()
+    .WithHttpTransport(options =>
+    {
+        options.Stateless = true;
+    })
     .WithTools<DiscoveryTools>()
     .WithTools<ProjectDraftTools>()
     .WithTools<ProjectCreationTools>()
@@ -34,7 +35,15 @@ builder.Services
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure(builder.Configuration, builder.Environment);
+    .AddInfrastructure(builder.Configuration, builder.Environment, includeAuthentication: false);
 
 var app = builder.Build();
+
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/alive", new HealthCheckOptions
+{
+    Predicate = registration => registration.Tags.Contains("live")
+});
+app.MapMcp(McpRoute);
+
 await app.RunAsync();
