@@ -214,13 +214,13 @@ public sealed class ProjectSetupOrchestratorTests
                 return request switch
                 {
                     CreateLogAnalyticsWorkspaceCommand command when command.Name.Value == "law-east"
-                        => Task.FromResult<object?>(lawEastResult),
+                        => Task.FromResult<object?>((ErrorOr<LogAnalyticsWorkspaceResult>)lawEastResult),
                     CreateLogAnalyticsWorkspaceCommand command when command.Name.Value == "law-west"
-                        => Task.FromResult<object?>(lawWestResult),
+                        => Task.FromResult<object?>((ErrorOr<LogAnalyticsWorkspaceResult>)lawWestResult),
                     CreateApplicationInsightsCommand command when command.Name.Value == "ai-east"
-                        => Task.FromResult<object?>(aiEastResult),
+                        => Task.FromResult<object?>((ErrorOr<ApplicationInsightsResult>)aiEastResult),
                     CreateApplicationInsightsCommand command when command.Name.Value == "ai-west"
-                        => Task.FromResult<object?>(aiWestResult),
+                        => Task.FromResult<object?>((ErrorOr<ApplicationInsightsResult>)aiWestResult),
                     _ => Task.FromResult<object?>(null),
                 };
             });
