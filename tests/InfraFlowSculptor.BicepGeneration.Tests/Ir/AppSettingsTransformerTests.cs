@@ -123,4 +123,40 @@ public sealed class AppSettingsTransformerTests
 
         result.Parameters.Count(p => p.Name == "envVars").Should().Be(1);
     }
+
+    [Fact]
+    public void Given_WebAppSpecWithExistingAppSettings_When_WithAppSettings_Then_ConcatenatesExistingAndInjectedSettings()
+    {
+        var spec = WebAppSpec() with
+        {
+            Resource = new BicepResourceDeclaration
+            {
+                Symbol = "app",
+                ArmTypeWithApiVersion = "Microsoft.Web/sites@2023-12-01",
+                Body =
+                [
+                    new BicepPropertyAssignment("name", new BicepReference("name")),
+                    new BicepPropertyAssignment("location", new BicepReference("location")),
+                    new BicepPropertyAssignment("properties", new BicepObjectExpression([
+                        new BicepPropertyAssignment("siteConfig", new BicepObjectExpression([
+                            new BicepPropertyAssignment("appSettings", new BicepReference("existingAppSettings")),
+                        ])),
+                    ])),
+                ],
+            },
+        };
+
+        var result = spec.WithAppSettings(AzureResourceTypes.ArmTypes.WebApp);
+
+        var properties = (BicepObjectExpression)result.Resource.Body.First(property => property.Key == "properties").Value;
+        var siteConfig = (BicepObjectExpression)properties.Properties.First(property => property.Key == "siteConfig").Value;
+        var appSettings = siteConfig.Properties.First(property => property.Key == "appSettings").Value;
+
+        appSettings.Should().BeOfType<BicepFunctionCall>();
+        var concatCall = (BicepFunctionCall)appSettings;
+        concatCall.Name.Should().Be("concat");
+        concatCall.Arguments.Should().HaveCount(2);
+        concatCall.Arguments[0].Should().BeEquivalentTo(new BicepReference("existingAppSettings"));
+        concatCall.Arguments[1].Should().BeEquivalentTo(new BicepReference("appSettings"));
+    }
 }

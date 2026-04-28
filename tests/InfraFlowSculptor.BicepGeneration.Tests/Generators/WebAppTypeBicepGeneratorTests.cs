@@ -45,6 +45,19 @@ public sealed class WebAppTypeBicepGeneratorTests
         });
     }
 
+    private static ResourceDefinition CreateContainerDefaultAcrAuthResource()
+    {
+        return CreateCodeResource(new Dictionary<string, string>
+        {
+            ["deploymentMode"] = "Container",
+            ["runtimeStack"] = "DOTNETCORE",
+            ["runtimeVersion"] = "8.0",
+            ["alwaysOn"] = "true",
+            ["httpsOnly"] = "true",
+            ["dockerImageName"] = "myapp/api",
+        });
+    }
+
     private static ResourceDefinition CreateContainerAdminResource()
     {
         return CreateCodeResource(new Dictionary<string, string>
@@ -517,6 +530,16 @@ public sealed class WebAppTypeBicepGeneratorTests
         spec.Parameters.Should().Contain(p => p.Name == "deploymentMode")
             .Which.DefaultValue.Should().BeOfType<BicepStringLiteral>()
             .Which.Value.Should().Be("Container");
+    }
+
+    [Fact]
+    public void Given_ContainerResourceWithoutAuthMode_When_GenerateSpec_Then_DefaultsToManagedIdentityVariant()
+    {
+        var spec = _sut.GenerateSpec(CreateContainerDefaultAcrAuthResource());
+
+        spec.ModuleFileName.Should().Be("webAppContainerManagedIdentity");
+        spec.Parameters.Should().Contain(p => p.Name == "acrUseManagedIdentityCreds");
+        spec.Parameters.Should().NotContain(p => p.Name == "acrPassword");
     }
 
     [Fact]
