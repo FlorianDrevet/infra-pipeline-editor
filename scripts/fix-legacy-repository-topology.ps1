@@ -19,11 +19,6 @@ if (-not $ContainerId) {
     $ContainerId = ($matches[0] -split ' ')[0]
 }
 
-$password = docker exec $ContainerId sh -lc "printenv POSTGRES_PASSWORD"
-if ([string]::IsNullOrWhiteSpace($password)) {
-    throw "Could not read POSTGRES_PASSWORD from container '$ContainerId'."
-}
-
 $sql = @'
 BEGIN;
 
@@ -76,4 +71,4 @@ LEFT JOIN "ProjectRepositories" r ON r."ProjectId" = p."Id"
 ORDER BY p."Name", r."Alias";
 '@
 
-$sql | docker exec -i -e "PGPASSWORD=$password" $ContainerId psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -U postgres -d $Database
+$sql | docker exec -i -u postgres $ContainerId psql -v ON_ERROR_STOP=1 -d $Database
