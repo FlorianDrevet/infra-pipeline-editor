@@ -19,15 +19,15 @@
       </div>
 
       <div class="create-pat-dialog__field">
-        <label class="create-pat-dialog__label">{{ 'SETTINGS.CREATE_DIALOG.EXPIRY_LABEL' | translate }}</label>
-        <input
+        <app-ds-text-field
           type="date"
-          class="create-pat-dialog__date-input"
+          [label]="'SETTINGS.CREATE_DIALOG.EXPIRY_LABEL' | translate"
+          [hint]="'SETTINGS.CREATE_DIALOG.EXPIRY_HINT' | translate"
           [ngModel]="expiresAt()"
           (ngModelChange)="expiresAt.set($event)"
           [ngModelOptions]="{ standalone: true }"
-          [min]="'2026-04-29'" />
-        <span class="create-pat-dialog__hint">{{ 'SETTINGS.CREATE_DIALOG.EXPIRY_HINT' | translate }}</span>
+          min="2026-04-29">
+        </app-ds-text-field>
       </div>
 
       @if (errorKey()) {

@@ -125,10 +125,10 @@ public sealed class IacImportTools
                 previewService.RemovePreview(previewId);
                 return JsonSerializer.Serialize(new
                 {
-                    status = "created",
+                    status = "applied",
+                    previewId,
                     projectId = projectId.ToString(),
                     projectName = createdProjectName,
-                    importedResourceCount = 0,
                     infrastructureError = string.Join("; ", infraResult.Errors.Select(e => e.Description)),
                     createdResources = Array.Empty<object>(),
                     skippedResources = Array.Empty<object>(),
@@ -147,10 +147,10 @@ public sealed class IacImportTools
 
             return JsonSerializer.Serialize(new
             {
-                status = "created",
+                status = "applied",
+                previewId,
                 projectId = projectId.ToString(),
                 projectName = createdProjectName,
-                importedResourceCount = created.Count,
                 createdResources = created.Select(r => new
                 {
                     r.ResourceType,
@@ -171,10 +171,10 @@ public sealed class IacImportTools
 
         return JsonSerializer.Serialize(new
         {
-            status = "created",
+            status = "applied",
+            previewId,
             projectId = projectId.ToString(),
             projectName = createdProjectName,
-            importedResourceCount = 0,
             createdResources = Array.Empty<object>(),
             skippedResources = Array.Empty<object>(),
             nextSuggestedActions = new[]

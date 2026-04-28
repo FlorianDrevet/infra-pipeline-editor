@@ -34,11 +34,12 @@ let dsTextFieldUid = 0;
 export class DsTextFieldComponent implements ControlValueAccessor {
   public readonly label = input<string | undefined>(undefined);
   public readonly placeholder = input<string>('');
-  public readonly type = input<'text' | 'email' | 'password' | 'number' | 'tel' | 'url'>('text');
+  public readonly type = input<'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'date'>('text');
   public readonly hint = input<string | undefined>(undefined);
   public readonly error = input<string | undefined>(undefined);
   public readonly disabled = input<boolean>(false);
   public readonly required = input<boolean>(false);
+  public readonly min = input<string | undefined>(undefined);
   public readonly prefixIcon = input<string | undefined>(undefined);
   public readonly suffixIcon = input<string | undefined>(undefined);
   public readonly clearable = input<boolean>(false);

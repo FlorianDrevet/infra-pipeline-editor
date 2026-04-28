@@ -2,93 +2,106 @@
   <app-ds-page-header
     [title]="'SETTINGS.TITLE' | translate"
     [subtitle]="'SETTINGS.SUBTITLE' | translate"
-    icon="settings">
+    icon="settings"
+    variant="gradient">
   </app-ds-page-header>
 
-  <div class="settings-page__content">
-    @if (errorKey()) {
-      <app-ds-alert severity="error" [dismissible]="true" (dismissed)="errorKey.set('')">
-        {{ errorKey() | translate }}
-      </app-ds-alert>
-    }
+  @if (errorKey()) {
+    <app-ds-alert severity="error" [dismissible]="true" (dismissed)="errorKey.set('')">
+      {{ errorKey() | translate }}
+    </app-ds-alert>
+  }
 
-    <app-ds-card>
-      <app-ds-section-header
-        [title]="'SETTINGS.PAT_SECTION_TITLE' | translate"
-        [subtitle]="'SETTINGS.PAT_SECTION_DESCRIPTION' | translate"
-        icon="key">
-        <div ds-section-action>
-          <app-ds-button variant="primary" icon="add" (clicked)="openCreateDialog()">
-            {{ 'SETTINGS.CREATE_TOKEN' | translate }}
-          </app-ds-button>
-        </div>
-      </app-ds-section-header>
-
-      <div class="pat-section">
-        @if (isLoading()) {
-          <div class="pat-section__loading">
-            <mat-icon class="pat-section__spinner">hourglass_empty</mat-icon>
-          </div>
-        } @else if (!hasTokens()) {
-          <div class="pat-section__empty">
-            <mat-icon class="pat-section__empty-icon">vpn_key_off</mat-icon>
-            <p>{{ 'SETTINGS.NO_TOKENS' | translate }}</p>
-          </div>
-        } @else {
-          <div class="pat-table">
-            <div class="pat-table__header">
-              <span class="pat-table__col pat-table__col--name">{{ 'SETTINGS.TABLE.NAME' | translate }}</span>
-              <span class="pat-table__col pat-table__col--prefix">{{ 'SETTINGS.TABLE.PREFIX' | translate }}</span>
-              <span class="pat-table__col pat-table__col--date">{{ 'SETTINGS.TABLE.CREATED' | translate }}</span>
-              <span class="pat-table__col pat-table__col--date">{{ 'SETTINGS.TABLE.LAST_USED' | translate }}</span>
-              <span class="pat-table__col pat-table__col--date">{{ 'SETTINGS.TABLE.EXPIRES' | translate }}</span>
-              <span class="pat-table__col pat-table__col--status">{{ 'SETTINGS.TABLE.STATUS' | translate }}</span>
-              <span class="pat-table__col pat-table__col--actions">{{ 'SETTINGS.TABLE.ACTIONS' | translate }}</span>
-            </div>
-
-            @for (token of tokens(); track token.id) {
-              <div class="pat-table__row">
-                <span class="pat-table__col pat-table__col--name">
-                  <mat-icon class="pat-table__token-icon">vpn_key</mat-icon>
-                  {{ token.name }}
-                </span>
-                <span class="pat-table__col pat-table__col--prefix">
-                  <code class="pat-table__prefix-code">{{ token.tokenPrefix }}...</code>
-                </span>
-                <span class="pat-table__col pat-table__col--date">
-                  {{ formatDate(token.createdAt) }}
-                </span>
-                <span class="pat-table__col pat-table__col--date">
-                  @if (token.lastUsedAt) {
-                    {{ formatDate(token.lastUsedAt) }}
-                  } @else {
-                    <span class="pat-table__muted">{{ 'SETTINGS.TABLE.NEVER' | translate }}</span>
-                  }
-                </span>
-                <span class="pat-table__col pat-table__col--date">
-                  @if (token.expiresAt) {
-                    {{ formatDate(token.expiresAt) }}
-                  } @else {
-                    <span class="pat-table__muted">{{ 'SETTINGS.TABLE.NO_EXPIRY' | translate }}</span>
-                  }
-                </span>
-                <span class="pat-table__col pat-table__col--status">
-                  <span class="pat-table__status pat-table__status--{{ getTokenStatus(token) }}">
-                    {{ getStatusKey(token) | translate }}
-                  </span>
-                </span>
-                <span class="pat-table__col pat-table__col--actions">
-                  @if (getTokenStatus(token) === 'active') {
-                    <app-ds-button variant="danger" size="sm" (clicked)="openRevokeDialog(token)">
-                      {{ 'SETTINGS.REVOKE' | translate }}
-                    </app-ds-button>
-                  }
-                </span>
-              </div>
-            }
-          </div>
-        }
+  <app-ds-card>
+    <app-ds-section-header
+      [title]="'SETTINGS.PAT_SECTION_TITLE' | translate"
+      [subtitle]="'SETTINGS.PAT_SECTION_DESCRIPTION' | translate"
+      icon="key">
+      <div ds-section-action>
+        <app-ds-button variant="primary" icon="add" (clicked)="openCreateDialog()">
+          {{ 'SETTINGS.CREATE_TOKEN' | translate }}
+        </app-ds-button>
       </div>
-    </app-ds-card>
-  </div>
+    </app-ds-section-header>
+
+    <div class="pat-section">
+      @if (isLoading()) {
+        <div class="pat-section__loading">
+          <mat-icon class="pat-section__spinner">hourglass_empty</mat-icon>
+        </div>
+      } @else if (!hasTokens()) {
+        <div class="pat-section__empty">
+          <mat-icon class="pat-section__empty-icon">vpn_key_off</mat-icon>
+          <p>{{ 'SETTINGS.NO_TOKENS' | translate }}</p>
+        </div>
+      } @else {
+        <div class="pat-table">
+          <div class="ifs-table__header">
+            <span class="ifs-table__col pat-col--name">{{ 'SETTINGS.TABLE.NAME' | translate }}</span>
+            <span class="ifs-table__col pat-col--prefix">{{ 'SETTINGS.TABLE.PREFIX' | translate }}</span>
+            <span class="ifs-table__col pat-col--date">{{ 'SETTINGS.TABLE.CREATED' | translate }}</span>
+            <span class="ifs-table__col pat-col--date">{{ 'SETTINGS.TABLE.LAST_USED' | translate }}</span>
+            <span class="ifs-table__col pat-col--date">{{ 'SETTINGS.TABLE.EXPIRES' | translate }}</span>
+            <span class="ifs-table__col pat-col--status">{{ 'SETTINGS.TABLE.STATUS' | translate }}</span>
+            <span class="ifs-table__col pat-col--actions">{{ 'SETTINGS.TABLE.ACTIONS' | translate }}</span>
+          </div>
+
+          @for (token of tokens(); track token.id) {
+            <div class="ifs-table__row">
+              <span class="ifs-table__col pat-col--name">
+                <mat-icon class="pat-token-icon">vpn_key</mat-icon>
+                {{ token.name }}
+              </span>
+              <span class="ifs-table__col pat-col--prefix">
+                <code class="ifs-table__mono">{{ token.tokenPrefix }}...</code>
+              </span>
+              <span class="ifs-table__col pat-col--date">
+                {{ formatDate(token.createdAt) }}
+              </span>
+              <span class="ifs-table__col pat-col--date">
+                @if (token.lastUsedAt) {
+                  {{ formatDate(token.lastUsedAt) }}
+                } @else {
+                  <span class="ifs-table__muted">{{ 'SETTINGS.TABLE.NEVER' | translate }}</span>
+                }
+              </span>
+              <span class="ifs-table__col pat-col--date">
+                @if (token.expiresAt) {
+                  {{ formatDate(token.expiresAt) }}
+                } @else {
+                  <span class="ifs-table__muted">{{ 'SETTINGS.TABLE.NO_EXPIRY' | translate }}</span>
+                }
+              </span>
+              <span class="ifs-table__col pat-col--status">
+                @switch (getTokenStatus(token)) {
+                  @case ('active') {
+                    <app-ds-chip variant="success" size="sm" icon="check_circle">
+                      {{ getStatusKey(token) | translate }}
+                    </app-ds-chip>
+                  }
+                  @case ('revoked') {
+                    <app-ds-chip variant="error" size="sm" icon="block">
+                      {{ getStatusKey(token) | translate }}
+                    </app-ds-chip>
+                  }
+                  @case ('expired') {
+                    <app-ds-chip variant="warning" size="sm" icon="schedule">
+                      {{ getStatusKey(token) | translate }}
+                    </app-ds-chip>
+                  }
+                }
+              </span>
+              <span class="ifs-table__col pat-col--actions">
+                @if (getTokenStatus(token) === 'active') {
+                  <app-ds-button variant="danger" size="sm" (clicked)="openRevokeDialog(token)">
+                    {{ 'SETTINGS.REVOKE' | translate }}
+                  </app-ds-button>
+                }
+              </span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </app-ds-card>
 </div>

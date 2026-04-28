@@ -11,6 +11,7 @@ import {
   DsCardComponent,
   DsButtonComponent,
   DsAlertComponent,
+  DsChipComponent,
 } from '../../shared/components/ds';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PersonalAccessTokenService } from '../../shared/services/personal-access-token.service';
@@ -30,6 +31,7 @@ import { CreatePatDialogComponent } from './create-pat-dialog/create-pat-dialog.
     DsCardComponent,
     DsButtonComponent,
     DsAlertComponent,
+    DsChipComponent,
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',

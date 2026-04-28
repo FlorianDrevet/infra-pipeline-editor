@@ -93,6 +93,7 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 9. **OpenAPI 401:** All protected endpoints must include `.ProducesProblem(401)`
 10. **GitNexus:** Before modifying a shared symbol, run `gitnexus_impact()` to assess blast radius
 11. **TDD obligatoire:** Never write production code without tests first — load `tdd-workflow` skill, follow RED→GREEN→REFACTOR→VERIFY, track debt in `.github/test-debt.md`
+12. **DS obligatoire (Frontend):** Tout composant UI doit utiliser les `app-ds-*` existants. Si un pattern n'a pas de DS component, en créer un réutilisable dans `shared/components/ds/` avant usage.
 
 ## Pull Request conventions
 

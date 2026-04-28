@@ -101,6 +101,9 @@ public sealed class ProjectCreationTools
                 status = "created",
                 projectId = projectId.ToString(),
                 projectName,
+                layoutPreset = draft.Intent.LayoutPreset,
+                environmentCount = draft.Intent.Environments?.Count ?? 0,
+                repositoryCount = draft.Intent.Repositories?.Count ?? 0,
                 infrastructureConfigId = configId.Value.ToString(),
                 resourceGroupId = rgId.Value.ToString(),
                 createdResources = created.Select(r => new
@@ -124,6 +127,9 @@ public sealed class ProjectCreationTools
             status = "created",
             projectId = projectId.ToString(),
             projectName,
+            layoutPreset = draft.Intent.LayoutPreset,
+            environmentCount = draft.Intent.Environments?.Count ?? 0,
+            repositoryCount = draft.Intent.Repositories?.Count ?? 0,
             createdResources = Array.Empty<object>(),
             skippedResources = Array.Empty<object>(),
             nextSuggestedActions = new[]

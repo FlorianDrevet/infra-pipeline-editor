@@ -1,17 +1,16 @@
+@use "scss/main" as *;
+
+:host {
+  display: block;
+}
+
 .settings-page {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-
-  &__content {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    max-width: 1100px;
-    margin: 0 auto;
-    width: 100%;
-    padding: 0 1.5rem 2rem;
-  }
 }
 
 .pat-section {
@@ -25,7 +24,7 @@
 
   &__spinner {
     animation: spin 1.2s linear infinite;
-    color: var(--ds-color-primary);
+    color: $ifs-brand-blue;
   }
 
   &__empty {
@@ -34,7 +33,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 2.5rem 1rem;
-    color: var(--ds-color-text-secondary, #6b7280);
+    color: $ifs-ink-500;
   }
 
   &__empty-icon {
@@ -46,115 +45,38 @@
 }
 
 .pat-table {
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid var(--ds-color-border, #e5e7eb);
+  @include ifs-data-table;
+}
 
-  &__header {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    background-color: var(--ds-color-surface-secondary, #f9fafb);
-    border-bottom: 1px solid var(--ds-color-border, #e5e7eb);
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--ds-color-text-secondary, #6b7280);
-  }
-
-  &__row {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--ds-color-border, #e5e7eb);
-    font-size: 0.875rem;
-    transition: background-color 0.15s;
-
-    &:hover {
-      background-color: var(--ds-color-surface-secondary, #f9fafb);
-    }
-
-    &:last-child {
-      border-bottom: none;
-    }
-  }
-
-  &__col {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    &--name {
-      flex: 2;
-      font-weight: 500;
-    }
-
-    &--prefix {
-      flex: 1.5;
-    }
-
-    &--date {
-      flex: 1.2;
-    }
-
-    &--status {
-      flex: 0.8;
-    }
-
-    &--actions {
-      flex: 0.8;
-      justify-content: flex-end;
-    }
-  }
-
-  &__token-icon {
-    font-size: 1.125rem;
-    width: 1.125rem;
-    height: 1.125rem;
-    color: var(--ds-color-primary, #3b82f6);
-  }
-
-  &__prefix-code {
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 0.8125rem;
-    background-color: var(--ds-color-surface-secondary, #f3f4f6);
-    padding: 0.125rem 0.5rem;
-    border-radius: 4px;
-    color: var(--ds-color-text-secondary, #6b7280);
-  }
-
-  &__muted {
-    color: var(--ds-color-text-secondary, #9ca3af);
-    font-style: italic;
-  }
-
-  &__status {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.125rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
+.pat-col {
+  &--name {
+    flex: 2;
     font-weight: 500;
-
-    &--active {
-      background-color: rgba(34, 197, 94, 0.1);
-      color: #16a34a;
-    }
-
-    &--revoked {
-      background-color: rgba(239, 68, 68, 0.1);
-      color: #dc2626;
-    }
-
-    &--expired {
-      background-color: rgba(245, 158, 11, 0.1);
-      color: #d97706;
-    }
   }
+
+  &--prefix {
+    flex: 1.5;
+  }
+
+  &--date {
+    flex: 1.2;
+  }
+
+  &--status {
+    flex: 0.8;
+  }
+
+  &--actions {
+    flex: 0.8;
+    justify-content: flex-end;
+  }
+}
+
+.pat-token-icon {
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: $ifs-brand-blue;
 }
 
 @keyframes spin {

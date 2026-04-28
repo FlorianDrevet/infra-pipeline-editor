@@ -189,8 +189,9 @@ public sealed class IacImportToolsTests
 
         // Assert
         var doc = JsonDocument.Parse(json);
-        doc.RootElement.GetProperty("status").GetString().Should().Be("created");
+        doc.RootElement.GetProperty("status").GetString().Should().Be("applied");
         doc.RootElement.GetProperty("projectId").GetString().Should().Be(projectId.Value.ToString());
+        doc.RootElement.GetProperty("previewId").GetString().Should().Be("preview_abc12345");
         _previewService.Received(1).RemovePreview("preview_abc12345");
     }
 

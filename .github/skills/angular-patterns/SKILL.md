@@ -446,6 +446,38 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 Ne pas dupliquer les couleurs ou tailles en dur dans le SCSS. Utiliser les variables CSS du thème Angular Material et les classes Tailwind. Si un style est spécifique à un composant, le définir dans le `.scss` scopé avec `:host {}`.
 
+### Design System — Intégration obligatoire
+
+**Règle absolue :** Tout composant d'interface (écran, dialog, formulaire) **doit** utiliser les composants DS existants (`app-ds-*`) plutôt que de recréer des styles custom. Si un pattern UI n'a pas encore de composant DS, **créer un composant DS réutilisable** dans `src/Front/src/app/shared/components/ds/` **avant** de l'utiliser dans l'écran.
+
+**Composants DS disponibles :**
+- `app-ds-button` — boutons (primary, secondary, ghost, danger, success)
+- `app-ds-card` — cartes (elevated, outlined, glass)
+- `app-ds-page-header` — en-tête de page hero (gradient, plain)
+- `app-ds-section-header` — en-tête de section avec action slot
+- `app-ds-alert` — alertes inline (info, success, warning, error)
+- `app-ds-text-field` — champ texte (text, email, password, number, tel, url, date)
+- `app-ds-textarea` — zone de texte
+- `app-ds-select` — sélecteur
+- `app-ds-toggle` — toggle switch
+- `app-ds-checkbox` — case à cocher
+- `app-ds-radio-group` — groupe de boutons radio
+- `app-ds-chip` — badge/étiquette sémantique (info, success, warning, error)
+- `app-ds-icon-button` — bouton icône
+- `app-ds-panel-action-button` — bouton d'action panneau
+
+**Mixins SCSS réutilisables :**
+- `@include ifs-data-table` — tableau de données flex avec tokens DS (dans `scss/_tables.scss`)
+- `@include ifs-card-surface(...)` — surface carte avec radius et shadow
+- `@include ifs-hover-lift` — effet de survol avec élévation
+- `@include ifs-focus-visible` — outline d'accessibilité
+
+**Interdit :**
+- Hardcoder des couleurs RGB/hex dans les composants — utiliser `$ifs-*` tokens
+- Créer un `.status-badge` custom quand `app-ds-chip` existe
+- Utiliser un `<input type="date">` brut quand `app-ds-text-field type="date"` existe
+- Utiliser `mat-stroked-button` pour un bouton annuler quand `app-ds-button variant="secondary"` existe
+
 ---
 
 ## Pattern de chargement asynchrone — Smart Component
