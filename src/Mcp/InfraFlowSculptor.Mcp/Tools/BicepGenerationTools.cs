@@ -14,6 +14,7 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class BicepGenerationTools
 {
+    private BicepGenerationTools() { }
 
     /// <summary>
     /// Generates Bicep infrastructure-as-code files for an existing project.

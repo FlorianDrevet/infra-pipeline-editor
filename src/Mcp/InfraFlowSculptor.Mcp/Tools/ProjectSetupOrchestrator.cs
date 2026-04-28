@@ -69,9 +69,11 @@ public static class ProjectSetupOrchestrator
                 && r.Name == name);
 
             var location = ParseLocation(input?.Location);
+            var context = new ResourceCreationContext(
+                createdIdsByType, input?.ExtractedProperties, createdIdsByName, input?.DependencyResourceNames);
             var command = ResourceCommandFactory.BuildCommand(
                 resourceType, resourceGroupId, new Name(name), location,
-                createdIdsByType, input?.ExtractedProperties, createdIdsByName, input?.DependencyResourceNames);
+                context);
 
             if (command is null)
             {

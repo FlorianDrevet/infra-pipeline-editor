@@ -22,86 +22,14 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
         var dependencies = new List<ImportedDependencyAnalysisResult>();
         var gaps = new List<ImportPreviewGapResult>();
         var unsupported = new List<string>();
-        var metadata = new Dictionary<string, string>();
-
-        if (root.TryGetProperty("$schema", out var schema))
-        {
-            metadata["schema"] = schema.GetString() ?? string.Empty;
-        }
-
-        if (root.TryGetProperty("contentVersion", out var contentVersion))
-        {
-            metadata["contentVersion"] = contentVersion.GetString() ?? string.Empty;
-        }
+        var metadata = ExtractMetadata(root);
 
         if (root.TryGetProperty("resources", out var resourcesArray)
             && resourcesArray.ValueKind == JsonValueKind.Array)
         {
             foreach (var resourceElement in resourcesArray.EnumerateArray())
             {
-                var sourceType = resourceElement.TryGetProperty("type", out var typeProp)
-                    ? typeProp.GetString() ?? string.Empty
-                    : string.Empty;
-
-                var sourceName = resourceElement.TryGetProperty("name", out var nameProp)
-                    ? StripArmExpression(nameProp.GetString() ?? string.Empty)
-                    : string.Empty;
-
-                var isMapped = AzureResourceTypes.ArmTypeToFriendlyName.TryGetValue(sourceType, out var friendlyName);
-
-                var extractedProperties = new Dictionary<string, object?>();
-                var unmappedProperties = new List<string>();
-
-                ExtractProperties(resourceElement, friendlyName, extractedProperties, unmappedProperties);
-
-                if (!isMapped)
-                {
-                    unsupported.Add(sourceName);
-                    gaps.Add(new ImportPreviewGapResult
-                    {
-                        Severity = ImportPreviewGapSeverity.Warning,
-                        Category = "unsupported_resource",
-                        Message = $"Resource type '{sourceType}' is not supported by InfraFlowSculptor.",
-                        SourceResourceName = sourceName,
-                    });
-                }
-
-                foreach (var unmappedProperty in unmappedProperties)
-                {
-                    gaps.Add(new ImportPreviewGapResult
-                    {
-                        Severity = ImportPreviewGapSeverity.Info,
-                        Category = "unmapped_property",
-                        Message = $"Property '{unmappedProperty}' on '{sourceName}' is auto-managed by InfraFlowSculptor.",
-                        SourceResourceName = sourceName,
-                    });
-                }
-
-                resources.Add(new ImportedResourceAnalysisResult
-                {
-                    SourceType = sourceType,
-                    SourceName = sourceName,
-                    MappedResourceType = isMapped ? friendlyName : null,
-                    MappedName = isMapped ? sourceName : null,
-                    Confidence = isMapped ? ImportPreviewMappingConfidence.High : ImportPreviewMappingConfidence.Low,
-                    ExtractedProperties = extractedProperties,
-                    UnmappedProperties = unmappedProperties,
-                });
-
-                if (resourceElement.TryGetProperty("dependsOn", out var dependsOn)
-                    && dependsOn.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var dependencyElement in dependsOn.EnumerateArray())
-                    {
-                        var dependencyValue = dependencyElement.GetString() ?? string.Empty;
-                        var targetName = ExtractResourceNameFromDependsOn(dependencyValue);
-
-                        dependencies.Add(new ImportedDependencyAnalysisResult(
-                            sourceName,
-                            targetName,
-                            "dependsOn"));
-                    }
-                }
+                AnalyzeResourceElement(resourceElement, resources, dependencies, gaps, unsupported);
             }
         }
 
@@ -117,6 +45,113 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
             UnsupportedResources = unsupported,
             Summary = BuildSummary(resources.Count, mappedCount, unsupported.Count),
         };
+    }
+
+    private static Dictionary<string, string> ExtractMetadata(JsonElement root)
+    {
+        var metadata = new Dictionary<string, string>();
+
+        if (root.TryGetProperty("$schema", out var schema))
+        {
+            metadata["schema"] = schema.GetString() ?? string.Empty;
+        }
+
+        if (root.TryGetProperty("contentVersion", out var contentVersion))
+        {
+            metadata["contentVersion"] = contentVersion.GetString() ?? string.Empty;
+        }
+
+        return metadata;
+    }
+
+    private static void AnalyzeResourceElement(
+        JsonElement resourceElement,
+        List<ImportedResourceAnalysisResult> resources,
+        List<ImportedDependencyAnalysisResult> dependencies,
+        List<ImportPreviewGapResult> gaps,
+        List<string> unsupported)
+    {
+        var sourceType = resourceElement.TryGetProperty("type", out var typeProp)
+            ? typeProp.GetString() ?? string.Empty
+            : string.Empty;
+
+        var sourceName = resourceElement.TryGetProperty("name", out var nameProp)
+            ? StripArmExpression(nameProp.GetString() ?? string.Empty)
+            : string.Empty;
+
+        var isMapped = AzureResourceTypes.ArmTypeToFriendlyName.TryGetValue(sourceType, out var friendlyName);
+
+        var extractedProperties = new Dictionary<string, object?>();
+        var unmappedProperties = new List<string>();
+
+        ExtractProperties(resourceElement, friendlyName, extractedProperties, unmappedProperties);
+
+        if (!isMapped)
+        {
+            unsupported.Add(sourceName);
+            gaps.Add(new ImportPreviewGapResult
+            {
+                Severity = ImportPreviewGapSeverity.Warning,
+                Category = "unsupported_resource",
+                Message = $"Resource type '{sourceType}' is not supported by InfraFlowSculptor.",
+                SourceResourceName = sourceName,
+            });
+        }
+
+        AddUnmappedPropertyGaps(sourceName, unmappedProperties, gaps);
+
+        resources.Add(new ImportedResourceAnalysisResult
+        {
+            SourceType = sourceType,
+            SourceName = sourceName,
+            MappedResourceType = isMapped ? friendlyName : null,
+            MappedName = isMapped ? sourceName : null,
+            Confidence = isMapped ? ImportPreviewMappingConfidence.High : ImportPreviewMappingConfidence.Low,
+            ExtractedProperties = extractedProperties,
+            UnmappedProperties = unmappedProperties,
+        });
+
+        ExtractDependencies(resourceElement, sourceName, dependencies);
+    }
+
+    private static void AddUnmappedPropertyGaps(
+        string sourceName,
+        List<string> unmappedProperties,
+        List<ImportPreviewGapResult> gaps)
+    {
+        foreach (var unmappedProperty in unmappedProperties)
+        {
+            gaps.Add(new ImportPreviewGapResult
+            {
+                Severity = ImportPreviewGapSeverity.Info,
+                Category = "unmapped_property",
+                Message = $"Property '{unmappedProperty}' on '{sourceName}' is auto-managed by InfraFlowSculptor.",
+                SourceResourceName = sourceName,
+            });
+        }
+    }
+
+    private static void ExtractDependencies(
+        JsonElement resourceElement,
+        string sourceName,
+        List<ImportedDependencyAnalysisResult> dependencies)
+    {
+        if (!resourceElement.TryGetProperty("dependsOn", out var dependsOn)
+            || dependsOn.ValueKind != JsonValueKind.Array)
+        {
+            return;
+        }
+
+        foreach (var dependencyElement in dependsOn.EnumerateArray())
+        {
+            var dependencyValue = dependencyElement.GetString() ?? string.Empty;
+            var targetName = ExtractResourceNameFromDependsOn(dependencyValue);
+
+            dependencies.Add(new ImportedDependencyAnalysisResult(
+                sourceName,
+                targetName,
+                "dependsOn"));
+        }
     }
 
     private static string BuildSummary(int parsedResourceCount, int mappedResourceCount, int unsupportedCount)
@@ -199,13 +234,10 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
             extractedProperties["skuName"] = skuName.GetString();
         }
 
-        foreach (var property in properties.EnumerateObject())
-        {
-            if (property.Name is not "sku")
-            {
-                unmappedProperties.Add(property.Name);
-            }
-        }
+        unmappedProperties.AddRange(
+            properties.EnumerateObject()
+                .Where(property => property.Name is not "sku")
+                .Select(property => property.Name));
     }
 
     private static void ExtractStorageAccountProperties(

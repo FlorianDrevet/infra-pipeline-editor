@@ -13,6 +13,7 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class DiscoveryTools
 {
+    private DiscoveryTools() { }
 
     // ── list_repository_topologies ──────────────────────────────────────
 
@@ -68,23 +69,31 @@ public sealed class DiscoveryTools
 
     private static readonly ResourceTypeInfo[] ResourceTypes =
     [
-        new("KeyVault",                "Microsoft.KeyVault/vaults",                           "Azure Key Vault",                    "Security"),
-        new("RedisCache",              "Microsoft.Cache/Redis",                                "Azure Cache for Redis",              "Data"),
-        new("StorageAccount",          "Microsoft.Storage/storageAccounts",                    "Azure Storage Account",              "Storage"),
-        new("AppServicePlan",          "Microsoft.Web/serverfarms",                            "App Service Plan",                   "Compute"),
-        new("WebApp",                  "Microsoft.Web/sites",                                  "Web App",                            "Compute"),
-        new("FunctionApp",             "Microsoft.Web/sites/functionapp",                      "Function App",                       "Compute"),
-        new("ContainerAppEnvironment", "Microsoft.App/managedEnvironments",                    "Container App Environment",          "Compute"),
-        new("ContainerApp",            "Microsoft.App/containerApps",                          "Container App",                      "Compute"),
-        new("ContainerRegistry",       "Microsoft.ContainerRegistry/registries",               "Container Registry",                 "Compute"),
-        new("UserAssignedIdentity",    "Microsoft.ManagedIdentity/userAssignedIdentities",     "User Assigned Managed Identity",     "Security"),
-        new("AppConfiguration",        "Microsoft.AppConfiguration/configurationStores",       "App Configuration",                  "Configuration"),
-        new("LogAnalyticsWorkspace",   "Microsoft.OperationalInsights/workspaces",             "Log Analytics Workspace",            "Monitoring"),
-        new("ApplicationInsights",     "Microsoft.Insights/components",                        "Application Insights",               "Monitoring"),
-        new("CosmosDb",                "Microsoft.DocumentDB/databaseAccounts",                "Azure Cosmos DB",                    "Data"),
-        new("SqlServer",               "Microsoft.Sql/servers",                                "SQL Server",                         "Data"),
-        new("SqlDatabase",             "Microsoft.Sql/servers/databases",                      "SQL Database",                       "Data"),
-        new("ServiceBusNamespace",     "Microsoft.ServiceBus/namespaces",                      "Service Bus Namespace",              "Messaging"),
-        new("EventHubNamespace",       "Microsoft.EventHub/namespaces",                        "Event Hubs Namespace",               "Messaging"),
+        new("KeyVault",                "Microsoft.KeyVault/vaults",                           "Azure Key Vault",                    CategorySecurity),
+        new("RedisCache",              "Microsoft.Cache/Redis",                                "Azure Cache for Redis",              CategoryData),
+        new("StorageAccount",          "Microsoft.Storage/storageAccounts",                    "Azure Storage Account",              CategoryStorage),
+        new("AppServicePlan",          "Microsoft.Web/serverfarms",                            "App Service Plan",                   CategoryCompute),
+        new("WebApp",                  "Microsoft.Web/sites",                                  "Web App",                            CategoryCompute),
+        new("FunctionApp",             "Microsoft.Web/sites/functionapp",                      "Function App",                       CategoryCompute),
+        new("ContainerAppEnvironment", "Microsoft.App/managedEnvironments",                    "Container App Environment",          CategoryCompute),
+        new("ContainerApp",            "Microsoft.App/containerApps",                          "Container App",                      CategoryCompute),
+        new("ContainerRegistry",       "Microsoft.ContainerRegistry/registries",               "Container Registry",                 CategoryCompute),
+        new("UserAssignedIdentity",    "Microsoft.ManagedIdentity/userAssignedIdentities",     "User Assigned Managed Identity",     CategorySecurity),
+        new("AppConfiguration",        "Microsoft.AppConfiguration/configurationStores",       "App Configuration",                  CategoryConfiguration),
+        new("LogAnalyticsWorkspace",   "Microsoft.OperationalInsights/workspaces",             "Log Analytics Workspace",            CategoryMonitoring),
+        new("ApplicationInsights",     "Microsoft.Insights/components",                        "Application Insights",               CategoryMonitoring),
+        new("CosmosDb",                "Microsoft.DocumentDB/databaseAccounts",                "Azure Cosmos DB",                    CategoryData),
+        new("SqlServer",               "Microsoft.Sql/servers",                                "SQL Server",                         CategoryData),
+        new("SqlDatabase",             "Microsoft.Sql/servers/databases",                      "SQL Database",                       CategoryData),
+        new("ServiceBusNamespace",     "Microsoft.ServiceBus/namespaces",                      "Service Bus Namespace",              CategoryMessaging),
+        new("EventHubNamespace",       "Microsoft.EventHub/namespaces",                        "Event Hubs Namespace",               CategoryMessaging),
     ];
+
+    private const string CategoryCompute = "Compute";
+    private const string CategorySecurity = "Security";
+    private const string CategoryData = "Data";
+    private const string CategoryStorage = "Storage";
+    private const string CategoryConfiguration = "Configuration";
+    private const string CategoryMonitoring = "Monitoring";
+    private const string CategoryMessaging = "Messaging";
 }

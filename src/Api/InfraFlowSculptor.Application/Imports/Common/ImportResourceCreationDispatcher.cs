@@ -94,10 +94,11 @@ internal static class ImportResourceCreationDispatcher
                 resourceGroupId,
                 new Name(name),
                 location,
-                createdIdsByType,
-                createdIdsByName,
-                input?.DependencyResourceNames,
-                input?.ExtractedProperties);
+                new CommandBuildContext(
+                    createdIdsByType,
+                    createdIdsByName,
+                    input?.DependencyResourceNames,
+                    input?.ExtractedProperties));
 
             if (command is null)
             {
@@ -194,15 +195,18 @@ internal static class ImportResourceCreationDispatcher
             : null;
     }
 
+    private sealed record CommandBuildContext(
+        IReadOnlyDictionary<string, Guid> CreatedResourcesByType,
+        IReadOnlyDictionary<string, Guid> CreatedResourcesByName,
+        IReadOnlyList<string>? DependencyResourceNames,
+        IReadOnlyDictionary<string, object?>? ExtractedProperties);
+
     private static IBaseRequest? BuildCommand(
         string resourceType,
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyDictionary<string, Guid> createdResourcesByType,
-        IReadOnlyDictionary<string, Guid> createdResourcesByName,
-        IReadOnlyList<string>? dependencyResourceNames,
-        IReadOnlyDictionary<string, object?>? extractedProperties)
+        CommandBuildContext ctx)
     {
         return resourceType switch
         {
@@ -211,8 +215,8 @@ internal static class ImportResourceCreationDispatcher
                 resourceGroupId,
                 name,
                 location,
-                Kind: GetStringProp(extractedProperties, "kind", "StorageV2"),
-                AccessTier: GetStringProp(extractedProperties, "accessTier", "Hot"),
+                Kind: GetStringProp(ctx.ExtractedProperties, "kind", "StorageV2"),
+                AccessTier: GetStringProp(ctx.ExtractedProperties, "accessTier", "Hot"),
                 AllowBlobPublicAccess: false,
                 EnableHttpsTrafficOnly: true,
                 MinimumTlsVersion: "TLS1_2"),
@@ -220,11 +224,11 @@ internal static class ImportResourceCreationDispatcher
                 resourceGroupId,
                 name,
                 location,
-                OsType: GetStringProp(extractedProperties, "osType", "Linux")),
-            AzureResourceTypes.WebApp => BuildWebAppCommand(resourceGroupId, name, location, createdResourcesByType, createdResourcesByName, dependencyResourceNames, extractedProperties),
-            AzureResourceTypes.FunctionApp => BuildFunctionAppCommand(resourceGroupId, name, location, createdResourcesByType, createdResourcesByName, dependencyResourceNames, extractedProperties),
+                OsType: GetStringProp(ctx.ExtractedProperties, "osType", "Linux")),
+            AzureResourceTypes.WebApp => BuildWebAppCommand(resourceGroupId, name, location, ctx.CreatedResourcesByType, ctx.CreatedResourcesByName, ctx.DependencyResourceNames, ctx.ExtractedProperties),
+            AzureResourceTypes.FunctionApp => BuildFunctionAppCommand(resourceGroupId, name, location, ctx.CreatedResourcesByType, ctx.CreatedResourcesByName, ctx.DependencyResourceNames, ctx.ExtractedProperties),
             AzureResourceTypes.ContainerAppEnvironment => new CreateContainerAppEnvironmentCommand(resourceGroupId, name, location),
-            AzureResourceTypes.ContainerApp => BuildContainerAppCommand(resourceGroupId, name, location, createdResourcesByType, createdResourcesByName, dependencyResourceNames),
+            AzureResourceTypes.ContainerApp => BuildContainerAppCommand(resourceGroupId, name, location, ctx.CreatedResourcesByType, ctx.CreatedResourcesByName, ctx.DependencyResourceNames),
             AzureResourceTypes.RedisCache => new CreateRedisCacheCommand(
                 resourceGroupId,
                 name,
@@ -237,7 +241,7 @@ internal static class ImportResourceCreationDispatcher
             AzureResourceTypes.UserAssignedIdentity => new CreateUserAssignedIdentityCommand(resourceGroupId, name, location),
             AzureResourceTypes.AppConfiguration => new CreateAppConfigurationCommand(resourceGroupId, name, location),
             AzureResourceTypes.LogAnalyticsWorkspace => new CreateLogAnalyticsWorkspaceCommand(resourceGroupId, name, location),
-            AzureResourceTypes.ApplicationInsights => BuildApplicationInsightsCommand(resourceGroupId, name, location, createdResourcesByType, createdResourcesByName, dependencyResourceNames),
+            AzureResourceTypes.ApplicationInsights => BuildApplicationInsightsCommand(resourceGroupId, name, location, ctx.CreatedResourcesByType, ctx.CreatedResourcesByName, ctx.DependencyResourceNames),
             AzureResourceTypes.CosmosDb => new CreateCosmosDbCommand(resourceGroupId, name, location),
             AzureResourceTypes.SqlServer => new CreateSqlServerCommand(
                 resourceGroupId,
@@ -245,7 +249,7 @@ internal static class ImportResourceCreationDispatcher
                 location,
                 Version: "12.0",
                 AdministratorLogin: "sqladmin"),
-            AzureResourceTypes.SqlDatabase => BuildSqlDatabaseCommand(resourceGroupId, name, location, createdResourcesByType, createdResourcesByName, dependencyResourceNames),
+            AzureResourceTypes.SqlDatabase => BuildSqlDatabaseCommand(resourceGroupId, name, location, ctx.CreatedResourcesByType, ctx.CreatedResourcesByName, ctx.DependencyResourceNames),
             AzureResourceTypes.ServiceBusNamespace => new CreateServiceBusNamespaceCommand(resourceGroupId, name, location),
             AzureResourceTypes.ContainerRegistry => new CreateContainerRegistryCommand(resourceGroupId, name, location),
             AzureResourceTypes.EventHubNamespace => new CreateEventHubNamespaceCommand(resourceGroupId, name, location),
@@ -476,6 +480,10 @@ internal static class ImportResourceCreationDispatcher
             : defaultValue;
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Major Code Smell",
+        "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields",
+        Justification = "Required to invoke the generic SendTypedCommandAsync<TResponse> at runtime for dynamic MediatR command dispatch.")]
     private static async Task<object?> SendResourceCommandAsync(
         ISender mediator,
         IBaseRequest command,

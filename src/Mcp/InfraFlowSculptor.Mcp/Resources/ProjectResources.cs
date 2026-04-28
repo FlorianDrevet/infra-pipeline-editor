@@ -14,6 +14,7 @@ namespace InfraFlowSculptor.Mcp.Resources;
 [McpServerResourceType]
 public sealed class ProjectResources
 {
+    private ProjectResources() { }
 
     /// <summary>
     /// Returns a structured summary of a project including its name, layout, environments, and resource types.

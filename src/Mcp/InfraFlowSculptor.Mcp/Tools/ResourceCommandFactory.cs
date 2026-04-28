@@ -73,17 +73,13 @@ public static class ResourceCommandFactory
     /// <param name="resourceGroupId">Parent resource group.</param>
     /// <param name="name">Resource display name.</param>
     /// <param name="location">Azure region.</param>
-    /// <param name="createdResources">Previously created resources (type → ID) for dependency resolution.</param>
-    /// <param name="extractedProperties">Optional extracted properties (from import) for overriding defaults.</param>
+    /// <param name="context">Resolution context for dependency and property lookups.</param>
     public static IBaseRequest? BuildCommand(
         string resourceType,
         ResourceGroupId resourceGroupId,
         Name name,
         Location location,
-        IReadOnlyDictionary<string, Guid> createdResources,
-        IReadOnlyDictionary<string, object?>? extractedProperties = null,
-        IReadOnlyDictionary<string, Guid>? createdResourcesByName = null,
-        IReadOnlyList<string>? dependencyResourceNames = null)
+        ResourceCreationContext context)
     {
         return resourceType switch
         {
@@ -92,27 +88,27 @@ public static class ResourceCommandFactory
 
             AzureResourceTypes.StorageAccount => new CreateStorageAccountCommand(
                 resourceGroupId, name, location,
-                Kind: GetStringProp(extractedProperties, "kind", "StorageV2"),
-                AccessTier: GetStringProp(extractedProperties, "accessTier", "Hot"),
+                Kind: GetStringProp(context.ExtractedProperties, "kind", "StorageV2"),
+                AccessTier: GetStringProp(context.ExtractedProperties, "accessTier", "Hot"),
                 AllowBlobPublicAccess: false,
                 EnableHttpsTrafficOnly: true,
                 MinimumTlsVersion: "TLS1_2"),
 
             AzureResourceTypes.AppServicePlan => new CreateAppServicePlanCommand(
                 resourceGroupId, name, location,
-                OsType: GetStringProp(extractedProperties, "osType", "Linux")),
+                OsType: GetStringProp(context.ExtractedProperties, "osType", "Linux")),
 
             AzureResourceTypes.WebApp => BuildWebAppCommand(
-                resourceGroupId, name, location, createdResources, createdResourcesByName, dependencyResourceNames, extractedProperties),
+                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.ExtractedProperties),
 
             AzureResourceTypes.FunctionApp => BuildFunctionAppCommand(
-                resourceGroupId, name, location, createdResources, createdResourcesByName, dependencyResourceNames, extractedProperties),
+                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.ExtractedProperties),
 
             AzureResourceTypes.ContainerAppEnvironment => new CreateContainerAppEnvironmentCommand(
                 resourceGroupId, name, location),
 
             AzureResourceTypes.ContainerApp => BuildContainerAppCommand(
-                resourceGroupId, name, location, createdResources, createdResourcesByName, dependencyResourceNames),
+                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
 
             AzureResourceTypes.RedisCache => new CreateRedisCacheCommand(
                 resourceGroupId, name, location,
@@ -132,7 +128,7 @@ public static class ResourceCommandFactory
                 resourceGroupId, name, location),
 
             AzureResourceTypes.ApplicationInsights => BuildApplicationInsightsCommand(
-                resourceGroupId, name, location, createdResources, createdResourcesByName, dependencyResourceNames),
+                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
 
             AzureResourceTypes.CosmosDb => new CreateCosmosDbCommand(
                 resourceGroupId, name, location),
@@ -143,7 +139,7 @@ public static class ResourceCommandFactory
                 AdministratorLogin: "sqladmin"),
 
             AzureResourceTypes.SqlDatabase => BuildSqlDatabaseCommand(
-                resourceGroupId, name, location, createdResources, createdResourcesByName, dependencyResourceNames),
+                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
 
             AzureResourceTypes.ServiceBusNamespace => new CreateServiceBusNamespaceCommand(
                 resourceGroupId, name, location),
@@ -338,3 +334,12 @@ public static class ResourceCommandFactory
             : defaultValue;
     }
 }
+
+/// <summary>
+/// Groups dependency resolution context for resource creation commands.
+/// </summary>
+public sealed record ResourceCreationContext(
+    IReadOnlyDictionary<string, Guid> CreatedResourcesByType,
+    IReadOnlyDictionary<string, object?>? ExtractedProperties = null,
+    IReadOnlyDictionary<string, Guid>? CreatedResourcesByName = null,
+    IReadOnlyList<string>? DependencyResourceNames = null);

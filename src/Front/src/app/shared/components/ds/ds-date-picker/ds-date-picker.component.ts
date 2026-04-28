@@ -91,7 +91,7 @@ export class DsDatePickerComponent implements ControlValueAccessor {
     if (!iso) return '';
     const parts = iso.split('-');
     const d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
-    if (isNaN(d.getTime())) return '';
+    if (Number.isNaN(d.getTime())) return '';
     return new Intl.DateTimeFormat(navigator.language, {
       day: 'numeric',
       month: 'short',

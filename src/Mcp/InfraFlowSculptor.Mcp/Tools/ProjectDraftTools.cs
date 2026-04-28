@@ -13,6 +13,7 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class ProjectDraftTools
 {
+    private ProjectDraftTools() { }
 
     /// <summary>
     /// Transforms a free-form user prompt into a structured project creation draft.

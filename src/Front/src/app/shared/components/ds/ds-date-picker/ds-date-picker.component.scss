@@ -146,6 +146,10 @@
   box-shadow: $ifs-shadow-lg;
   overflow: hidden;
   animation: ifs-slide-in-down $ifs-duration-fast $ifs-ease-out;
+  padding: 0;
+  margin: 0;
+  max-width: none;
+  max-height: none;
 }
 
 // ── Header ─────────────────────────────────────────────────────────────
@@ -207,7 +211,7 @@
   height: 2rem;
   border: none;
   background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  color: inherit;
   border-radius: $ifs-radius-sm;
   cursor: pointer;
   transition: background $ifs-duration-fast $ifs-ease-out;
@@ -291,7 +295,7 @@
   }
 
   &--selected {
-    background: linear-gradient(135deg, rgba(13, 101, 192, 0.96), rgba(0, 188, 212, 0.92));
+    background: linear-gradient(135deg, rgb(13, 101, 192), rgb(0, 120, 140));
     border-color: transparent;
     color: #fff;
     box-shadow: 0 10px 22px rgba(13, 101, 192, 0.24);

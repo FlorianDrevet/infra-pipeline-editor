@@ -54,7 +54,7 @@
     (backdropClick)="close()"
     (detach)="close()"
   >
-    <div class="ds-date-picker__panel" role="dialog" aria-modal="true">
+    <dialog class="ds-date-picker__panel" open aria-modal="true">
       <div class="ds-date-picker__header">
         <button
           type="button"
@@ -131,7 +131,7 @@
           }
         </div>
       }
-    </div>
+    </dialog>
   </ng-template>
 
   @if (error()) {

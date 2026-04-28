@@ -15,6 +15,7 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class ProjectCreationTools
 {
+    private ProjectCreationTools() { }
 
     /// <summary>
     /// Creates a project in Infra Flow Sculptor from a completed and validated draft.

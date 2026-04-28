@@ -8,12 +8,12 @@ using InfraFlowSculptor.Mcp.Resources;
 using InfraFlowSculptor.Mcp.Tools;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
-const string McpHttpUrl = "http://127.0.0.1:5258";
 const string McpRoute = "/mcp";
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls(McpHttpUrl);
+var mcpUrl = builder.Configuration["Mcp:ListenUrl"] ?? "http://127.0.0.1:5258";
+builder.WebHost.UseUrls(mcpUrl);
 
 builder.Services.AddSingleton<IProjectDraftService, ProjectDraftService>();
 builder.Services.AddSingleton<IImportPreviewService, ImportPreviewService>();

@@ -49,7 +49,7 @@ public sealed class ResourceCommandFactoryTests
     {
         // Act
         var command = ResourceCommandFactory.BuildCommand(
-            resourceType, TestRgId, TestName, TestLocation, EmptyCreated);
+            resourceType, TestRgId, TestName, TestLocation, new ResourceCreationContext(EmptyCreated));
 
         // Assert
         command.Should().NotBeNull();
@@ -68,7 +68,7 @@ public sealed class ResourceCommandFactoryTests
     {
         // Act
         var command = ResourceCommandFactory.BuildCommand(
-            resourceType, TestRgId, TestName, TestLocation, EmptyCreated);
+            resourceType, TestRgId, TestName, TestLocation, new ResourceCreationContext(EmptyCreated));
 
         // Assert
         command.Should().BeNull();
@@ -87,7 +87,7 @@ public sealed class ResourceCommandFactoryTests
 
         // Act
         var command = ResourceCommandFactory.BuildCommand(
-            AzureResourceTypes.WebApp, TestRgId, TestName, TestLocation, created);
+            AzureResourceTypes.WebApp, TestRgId, TestName, TestLocation, new ResourceCreationContext(created));
 
         // Assert
         command.Should().BeOfType<CreateWebAppCommand>();
@@ -106,7 +106,7 @@ public sealed class ResourceCommandFactoryTests
 
         // Act
         var command = ResourceCommandFactory.BuildCommand(
-            AzureResourceTypes.ContainerApp, TestRgId, TestName, TestLocation, created);
+            AzureResourceTypes.ContainerApp, TestRgId, TestName, TestLocation, new ResourceCreationContext(created));
 
         // Assert
         command.Should().BeOfType<CreateContainerAppCommand>();
@@ -123,7 +123,7 @@ public sealed class ResourceCommandFactoryTests
 
         // Act
         var command = ResourceCommandFactory.BuildCommand(
-            AzureResourceTypes.ApplicationInsights, TestRgId, TestName, TestLocation, created);
+            AzureResourceTypes.ApplicationInsights, TestRgId, TestName, TestLocation, new ResourceCreationContext(created));
 
         // Assert
         command.Should().BeOfType<CreateApplicationInsightsCommand>();
@@ -135,7 +135,7 @@ public sealed class ResourceCommandFactoryTests
     public void BuildCommand_UnknownResourceType_ReturnsNull()
     {
         var command = ResourceCommandFactory.BuildCommand(
-            "UnknownType", TestRgId, TestName, TestLocation, EmptyCreated);
+            "UnknownType", TestRgId, TestName, TestLocation, new ResourceCreationContext(EmptyCreated));
 
         command.Should().BeNull();
     }
@@ -154,7 +154,8 @@ public sealed class ResourceCommandFactoryTests
 
         // Act
         var command = ResourceCommandFactory.BuildCommand(
-            AzureResourceTypes.StorageAccount, TestRgId, TestName, TestLocation, EmptyCreated, props);
+            AzureResourceTypes.StorageAccount, TestRgId, TestName, TestLocation,
+            new ResourceCreationContext(EmptyCreated, ExtractedProperties: props));
 
         // Assert
         var sa = command.Should().BeOfType<CreateStorageAccountCommand>().Subject;

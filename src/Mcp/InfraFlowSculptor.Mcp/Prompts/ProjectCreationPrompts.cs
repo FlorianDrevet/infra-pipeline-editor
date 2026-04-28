@@ -10,6 +10,7 @@ namespace InfraFlowSculptor.Mcp.Prompts;
 [McpServerPromptType]
 public sealed class ProjectCreationPrompts
 {
+    private ProjectCreationPrompts() { }
     /// <summary>
     /// Returns instructional guidance for creating a new Infra Flow Sculptor project through natural language.
     /// </summary>

@@ -15,6 +15,7 @@ namespace InfraFlowSculptor.Mcp.Tools;
 [McpServerToolType]
 public sealed class IacImportTools
 {
+    private IacImportTools() { }
 
     /// <summary>
     /// Analyzes an IaC source (ARM JSON for V1) and produces a preview showing
@@ -161,17 +162,17 @@ public sealed class IacImportTools
         }, McpJsonDefaults.SerializerOptions);
     }
 
+    private const string DefaultLocation = "westeurope";
+
+    private static readonly IReadOnlyList<EnvironmentSetupItem> DefaultEnvironments =
+    [
+        new EnvironmentSetupItem("Development", "dev", string.Empty, string.Empty, DefaultLocation, Guid.Empty, 0, false),
+    ];
+
     private static IReadOnlyList<EnvironmentSetupItem> ParseEnvironments(string? environments)
     {
         if (string.IsNullOrWhiteSpace(environments))
-        {
-            return
-            [
-                new EnvironmentSetupItem(
-                    "Development", "dev", string.Empty, string.Empty,
-                    "westeurope", Guid.Empty, 0, false),
-            ];
-        }
+            return DefaultEnvironments;
 
         try
         {
@@ -181,38 +182,31 @@ public sealed class IacImportTools
 
             foreach (var env in doc.RootElement.EnumerateArray())
             {
-                items.Add(new EnvironmentSetupItem(
-                    Name: env.TryGetProperty("name", out var n) ? n.GetString() ?? "Environment" : "Environment",
-                    ShortName: env.TryGetProperty("shortName", out var sn) ? sn.GetString() ?? "env" : "env",
-                    Prefix: env.TryGetProperty("prefix", out var p) ? p.GetString() ?? string.Empty : string.Empty,
-                    Suffix: env.TryGetProperty("suffix", out var s) ? s.GetString() ?? string.Empty : string.Empty,
-                    Location: env.TryGetProperty("location", out var l) ? l.GetString() ?? "westeurope" : "westeurope",
-                    SubscriptionId: env.TryGetProperty("subscriptionId", out var sub)
-                        && Guid.TryParse(sub.GetString(), out var subGuid)
-                            ? subGuid
-                            : Guid.Empty,
-                    Order: order++,
-                    RequiresApproval: env.TryGetProperty("requiresApproval", out var ra) && ra.GetBoolean()));
+                items.Add(ParseEnvironmentItem(env, ref order));
             }
 
-            return items.Count > 0
-                ? items
-                :
-                [
-                    new EnvironmentSetupItem(
-                        "Development", "dev", string.Empty, string.Empty,
-                        "westeurope", Guid.Empty, 0, false),
-                ];
+            return items.Count > 0 ? items : DefaultEnvironments;
         }
         catch (JsonException)
         {
-            return
-            [
-                new EnvironmentSetupItem(
-                    "Development", "dev", string.Empty, string.Empty,
-                    "westeurope", Guid.Empty, 0, false),
-            ];
+            return DefaultEnvironments;
         }
+    }
+
+    private static EnvironmentSetupItem ParseEnvironmentItem(JsonElement env, ref int order)
+    {
+        return new EnvironmentSetupItem(
+            Name: env.TryGetProperty("name", out var n) ? n.GetString() ?? "Environment" : "Environment",
+            ShortName: env.TryGetProperty("shortName", out var sn) ? sn.GetString() ?? "env" : "env",
+            Prefix: env.TryGetProperty("prefix", out var p) ? p.GetString() ?? string.Empty : string.Empty,
+            Suffix: env.TryGetProperty("suffix", out var s) ? s.GetString() ?? string.Empty : string.Empty,
+            Location: env.TryGetProperty("location", out var l) ? l.GetString() ?? DefaultLocation : DefaultLocation,
+            SubscriptionId: env.TryGetProperty("subscriptionId", out var sub)
+                && Guid.TryParse(sub.GetString(), out var subGuid)
+                    ? subGuid
+                    : Guid.Empty,
+            Order: order++,
+            RequiresApproval: env.TryGetProperty("requiresApproval", out var ra) && ra.GetBoolean());
     }
 
     private static HashSet<string>? ParseResourceFilter(string? resourceFilter)

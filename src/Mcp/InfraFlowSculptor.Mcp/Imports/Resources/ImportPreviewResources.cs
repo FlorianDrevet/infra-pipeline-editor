@@ -11,6 +11,7 @@ namespace InfraFlowSculptor.Mcp.Imports.Resources;
 [McpServerResourceType]
 public sealed class ImportPreviewResources
 {
+    private ImportPreviewResources() { }
 
     /// <summary>
     /// Returns the full content of a stored import preview.
