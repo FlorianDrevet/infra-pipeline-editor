@@ -105,6 +105,7 @@ app.UsePersonalAccessTokenController();
 app.UseAppSettingController();
 app.UseSecureParameterMappingController();
 app.UseCustomDomainController();
+app.UseImportController();
 app.UseBicepGenerationController();
 app.UsePipelineGenerationController();
 

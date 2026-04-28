@@ -166,6 +166,40 @@
   text-transform: capitalize;
 }
 
+.ds-date-picker__month-label-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  border: none;
+  background: transparent;
+  color: #fff;
+  border-radius: $ifs-radius-sm;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+  transition: background $ifs-duration-fast $ifs-ease-out;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  @include ifs-focus-visible;
+}
+
+.ds-date-picker__year-range-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ds-date-picker__header-hint {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.82;
+}
+
 .ds-date-picker__nav {
   display: grid;
   place-items: center;
@@ -215,6 +249,63 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
   padding: 0.25rem 0.75rem 0.75rem;
+}
+
+.ds-date-picker__year-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding: 0.9rem 0.75rem 0.85rem;
+}
+
+.ds-date-picker__year {
+  min-height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(13, 101, 192, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  color: $ifs-ink-700;
+  border-radius: $ifs-radius-md;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform $ifs-duration-fast $ifs-ease-out,
+    background $ifs-duration-fast $ifs-ease-out,
+    border-color $ifs-duration-fast $ifs-ease-out,
+    box-shadow $ifs-duration-fast $ifs-ease-out,
+    color $ifs-duration-fast $ifs-ease-out;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: rgba(13, 101, 192, 0.08);
+    border-color: rgba(13, 101, 192, 0.22);
+  }
+
+  @include ifs-focus-visible;
+
+  &--current:not(&--selected) {
+    border-color: rgba(0, 188, 212, 0.52);
+    color: $ifs-brand-blue;
+    box-shadow: inset 0 0 0 1px rgba(0, 188, 212, 0.28);
+  }
+
+  &--selected {
+    background: linear-gradient(135deg, rgba(13, 101, 192, 0.96), rgba(0, 188, 212, 0.92));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(13, 101, 192, 0.24);
+  }
+
+  &--disabled,
+  &:disabled {
+    background: rgba(245, 247, 251, 0.92);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: $ifs-ink-300;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
 }
 
 .ds-date-picker__day {

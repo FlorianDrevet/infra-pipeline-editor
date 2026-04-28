@@ -1,212 +1,128 @@
-using System.Text.Json;
 using FluentAssertions;
+using InfraFlowSculptor.Application.Imports.Common;
 using InfraFlowSculptor.Mcp.Imports;
-using InfraFlowSculptor.Mcp.Imports.Models;
+using NSubstitute;
 
 namespace InfraFlowSculptor.Mcp.Tests.Imports;
 
 public sealed class ImportPreviewServiceTests
 {
-    private readonly ImportPreviewService _sut = new();
+  private const string SourceContent = "arm content";
 
-    private const string SingleKeyVaultArm = """
-        {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "contentVersion": "1.0.0.0",
-          "resources": [
-            {
-              "type": "Microsoft.KeyVault/vaults",
-              "apiVersion": "2023-07-01",
-              "name": "myKeyVault",
-              "location": "[resourceGroup().location]",
-              "properties": {
-                "sku": {
-                  "family": "A",
-                  "name": "standard"
-                },
-                "tenantId": "[subscription().tenantId]"
-              }
-            }
-          ]
-        }
-        """;
+  private readonly IImportPreviewAnalyzer _analyzer;
+  private readonly ImportPreviewService _sut;
 
-    private const string MultiResourceArm = """
-        {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "contentVersion": "1.0.0.0",
-          "resources": [
-            {
-              "type": "Microsoft.KeyVault/vaults",
-              "apiVersion": "2023-07-01",
-              "name": "myKeyVault",
-              "location": "[resourceGroup().location]",
-              "properties": {
-                "sku": { "family": "A", "name": "standard" },
-                "tenantId": "[subscription().tenantId]"
-              }
-            },
-            {
-              "type": "Microsoft.Storage/storageAccounts",
-              "apiVersion": "2023-01-01",
-              "name": "mystorageaccount",
-              "location": "[resourceGroup().location]",
-              "kind": "StorageV2",
-              "sku": { "name": "Standard_LRS" },
-              "properties": {},
-              "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', 'myKeyVault')]"]
-            }
-          ]
-        }
-        """;
+  public ImportPreviewServiceTests()
+  {
+    _analyzer = Substitute.For<IImportPreviewAnalyzer>();
+    _sut = new ImportPreviewService(_analyzer);
+  }
 
     [Fact]
-    public void CreatePreviewFromArm_ValidTemplate_ParsesResources()
+  public void Given_AnalyzerResult_When_CreatePreviewFromArm_Then_StoresPreviewWithGeneratedId()
     {
+    // Arrange
+    var analysis = CreateAnalysisResult();
+    _analyzer.AnalyzeArmTemplate(SourceContent).Returns(analysis);
+
         // Act
-        var preview = _sut.CreatePreviewFromArm(SingleKeyVaultArm);
+    var preview = _sut.CreatePreviewFromArm(SourceContent);
 
         // Assert
-        preview.Should().NotBeNull();
         preview.PreviewId.Should().StartWith("preview_");
         preview.ProjectDefinition.SourceFormat.Should().Be("arm-json");
         preview.ProjectDefinition.Resources.Should().HaveCount(1);
+    preview.ProjectDefinition.Dependencies.Should().ContainSingle();
+    preview.ProjectDefinition.Metadata["schema"].Should().Be("https://example/schema");
+    preview.Gaps.Should().ContainSingle();
+    preview.UnsupportedResources.Should().ContainSingle().Which.Should().Be("legacyNetwork");
+
+    var storedPreview = _sut.GetPreview(preview.PreviewId);
+    storedPreview.Should().BeEquivalentTo(preview);
 
         var resource = preview.ProjectDefinition.Resources[0];
         resource.SourceType.Should().Be("Microsoft.KeyVault/vaults");
         resource.SourceName.Should().Be("myKeyVault");
         resource.MappedResourceType.Should().Be("KeyVault");
-        resource.Confidence.Should().Be(MappingConfidence.High);
+    resource.Confidence.Should().Be(MappingConfidence.High);
+    _analyzer.Received(1).AnalyzeArmTemplate(SourceContent);
     }
 
     [Fact]
-    public void CreatePreviewFromArm_UnsupportedResourceType_MarkedAsUnsupported()
+  public void Given_MissingPreviewId_When_GetPreview_Then_ReturnsNull()
     {
-        // Arrange
-        var arm = """
-            {
-              "resources": [
-                {
-                  "type": "Microsoft.FakeProvider/fakeResources",
-                  "apiVersion": "2023-01-01",
-                  "name": "fakeResource",
-                  "location": "westeurope",
-                  "properties": {}
-                }
-              ]
-            }
-            """;
-
         // Act
-        var preview = _sut.CreatePreviewFromArm(arm);
+    var preview = _sut.GetPreview("preview_missing");
 
         // Assert
-        preview.ProjectDefinition.Resources.Should().HaveCount(1);
-        var resource = preview.ProjectDefinition.Resources[0];
-        resource.MappedResourceType.Should().BeNull();
-        preview.UnsupportedResources.Should().Contain("fakeResource");
-        preview.Gaps.Should().Contain(g =>
-            g.Category == "unsupported_resource" &&
-            g.Severity == ImportGapSeverity.Warning);
+    preview.Should().BeNull();
     }
 
     [Fact]
-    public void CreatePreviewFromArm_ExtractsKeyVaultSku()
+  public void Given_StoredPreview_When_RemovePreview_Then_RemovesItFromMemory()
     {
+    // Arrange
+    _analyzer.AnalyzeArmTemplate(SourceContent).Returns(CreateAnalysisResult());
+    var preview = _sut.CreatePreviewFromArm(SourceContent);
+
         // Act
-        var preview = _sut.CreatePreviewFromArm(SingleKeyVaultArm);
+    var removed = _sut.RemovePreview(preview.PreviewId);
 
         // Assert
-        var resource = preview.ProjectDefinition.Resources[0];
-        resource.ExtractedProperties.Should().ContainKey("skuName");
-        resource.ExtractedProperties["skuName"].Should().Be("standard");
+    removed.Should().BeTrue();
+    _sut.GetPreview(preview.PreviewId).Should().BeNull();
     }
 
     [Fact]
-    public void CreatePreviewFromArm_MultipleResources_AllParsed()
+  public void Given_MissingPreviewId_When_RemovePreview_Then_ReturnsFalse()
     {
         // Act
-        var preview = _sut.CreatePreviewFromArm(MultiResourceArm);
+    var removed = _sut.RemovePreview("preview_missing");
 
         // Assert
-        preview.ProjectDefinition.Resources.Should().HaveCount(2);
-        preview.ProjectDefinition.Resources.Should().Contain(r => r.MappedResourceType == "KeyVault");
-        preview.ProjectDefinition.Resources.Should().Contain(r => r.MappedResourceType == "StorageAccount");
+    removed.Should().BeFalse();
     }
 
-    [Fact]
-    public void CreatePreviewFromArm_InvalidJson_ThrowsJsonException()
+  private static ImportPreviewAnalysisResult CreateAnalysisResult()
     {
-        // Act
-        var act = () => _sut.CreatePreviewFromArm("not valid json {{{");
-
-        // Assert
-        act.Should().Throw<JsonException>();
-    }
-
-    [Fact]
-    public void CreatePreviewFromArm_NoResourcesArray_HandlesGracefully()
+    return new ImportPreviewAnalysisResult
     {
-        // Arrange
-        var arm = """{ "parameters": {} }""";
-
-        // Act
-        var preview = _sut.CreatePreviewFromArm(arm);
-
-        // Assert
-        preview.ProjectDefinition.Resources.Should().BeEmpty();
-        preview.UnsupportedResources.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void CreatePreviewFromArm_DependsOn_CreatesDependencies()
-    {
-        // Act
-        var preview = _sut.CreatePreviewFromArm(MultiResourceArm);
-
-        // Assert
-        preview.ProjectDefinition.Dependencies.Should().HaveCount(1);
-        var dep = preview.ProjectDefinition.Dependencies[0];
-        dep.FromResourceName.Should().Be("mystorageaccount");
-        dep.ToResourceName.Should().Contain("myKeyVault");
-        dep.DependencyType.Should().Be("dependsOn");
-    }
-
-    [Fact]
-    public void GetPreview_ExistingId_ReturnsPreview()
-    {
-        // Arrange
-        var preview = _sut.CreatePreviewFromArm(SingleKeyVaultArm);
-
-        // Act
-        var retrieved = _sut.GetPreview(preview.PreviewId);
-
-        // Assert
-        retrieved.Should().NotBeNull();
-        retrieved!.PreviewId.Should().Be(preview.PreviewId);
-    }
-
-    [Fact]
-    public void GetPreview_NonExistentId_ReturnsNull()
-    {
-        // Act
-        var retrieved = _sut.GetPreview("preview_nonexistent");
-
-        // Assert
-        retrieved.Should().BeNull();
-    }
-
-    [Fact]
-    public void RemovePreview_ExistingId_ReturnsTrue()
-    {
-        // Arrange
-        var preview = _sut.CreatePreviewFromArm(SingleKeyVaultArm);
-
-        // Act
-        var removed = _sut.RemovePreview(preview.PreviewId);
-
-        // Assert
-        removed.Should().BeTrue();
-        _sut.GetPreview(preview.PreviewId).Should().BeNull();
+      SourceFormat = "arm-json",
+      Resources =
+      [
+        new ImportedResourceAnalysisResult
+        {
+          SourceType = "Microsoft.KeyVault/vaults",
+          SourceName = "myKeyVault",
+          MappedResourceType = "KeyVault",
+          MappedName = "myKeyVault",
+          Confidence = ImportPreviewMappingConfidence.High,
+          ExtractedProperties = new Dictionary<string, object?>
+          {
+            ["skuName"] = "standard",
+          },
+        },
+      ],
+      Dependencies =
+      [
+        new ImportedDependencyAnalysisResult("myKeyVault", "sharedIdentity", "dependsOn"),
+      ],
+      Metadata = new Dictionary<string, string>
+      {
+        ["schema"] = "https://example/schema",
+      },
+      Gaps =
+      [
+        new ImportPreviewGapResult
+        {
+          Severity = ImportPreviewGapSeverity.Warning,
+          Category = "unsupported_resource",
+          Message = "Resource type 'Microsoft.Network/virtualNetworks' is not supported by InfraFlowSculptor.",
+          SourceResourceName = "legacyNetwork",
+        },
+      ],
+      UnsupportedResources = ["legacyNetwork"],
+      Summary = "Parsed 1 resource(s): 1 mapped, 1 unsupported.",
+    };
     }
 }

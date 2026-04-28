@@ -23,7 +23,16 @@ export interface CalendarDay {
   isDisabled: boolean;
 }
 
+interface CalendarYear {
+  year: number;
+  isCurrent: boolean;
+  isSelected: boolean;
+  isDisabled: boolean;
+}
+
 let dsDatePickerUid = 0;
+const YEAR_PAGE_SIZE = 12;
+const YEAR_PAGE_OFFSET = 5;
 
 /**
  * Design system date picker. Custom calendar dropdown with month navigation.
@@ -59,6 +68,8 @@ export class DsDatePickerComponent implements ControlValueAccessor {
   protected readonly value = signal<string>('');
   protected readonly isOpen = signal(false);
   protected readonly viewDate = signal(new Date());
+  protected readonly viewMode = signal<'days' | 'years'>('days');
+  protected readonly yearPageStart = signal(this.getYearPageStart(new Date().getFullYear()));
   private readonly internalDisabled = signal(false);
   private readonly triggerRef = viewChild<ElementRef<HTMLButtonElement>>('trigger');
 
@@ -94,6 +105,28 @@ export class DsDatePickerComponent implements ControlValueAccessor {
       month: 'long',
       year: 'numeric',
     }).format(d);
+  });
+
+  protected readonly yearRangeLabel = computed(() => {
+    const start = this.yearPageStart();
+    return `${start} - ${start + YEAR_PAGE_SIZE - 1}`;
+  });
+
+  protected readonly yearOptions = computed<CalendarYear[]>(() => {
+    const selectedDate = this.parseIsoDate(this.value());
+    const selectedYear = selectedDate?.getFullYear();
+    const currentYear = new Date().getFullYear();
+    const start = this.yearPageStart();
+
+    return Array.from({ length: YEAR_PAGE_SIZE }, (_, index) => {
+      const year = start + index;
+      return {
+        year,
+        isCurrent: year === currentYear,
+        isSelected: year === selectedYear,
+        isDisabled: this.isYearDisabled(year),
+      };
+    });
   });
 
   protected readonly weekdays = computed(() => {
@@ -152,9 +185,9 @@ export class DsDatePickerComponent implements ControlValueAccessor {
 
   public writeValue(v: string | null): void {
     this.value.set(v ?? '');
-    if (v) {
-      const parts = v.split('-');
-      this.viewDate.set(new Date(+parts[0], +parts[1] - 1, 1));
+    const valueDate = this.parseIsoDate(v);
+    if (valueDate) {
+      this.setViewDate(valueDate);
     }
   }
 
@@ -172,25 +205,41 @@ export class DsDatePickerComponent implements ControlValueAccessor {
 
   protected toggleOpen(): void {
     if (this.disabledState()) return;
-    if (!this.isOpen()) {
-      // Reset viewDate to selected value or today
-      const v = this.value();
-      if (v) {
-        const parts = v.split('-');
-        this.viewDate.set(new Date(+parts[0], +parts[1] - 1, 1));
-      } else {
-        const now = new Date();
-        this.viewDate.set(new Date(now.getFullYear(), now.getMonth(), 1));
-      }
+
+    if (this.isOpen()) {
+      this.close();
+      return;
     }
-    this.isOpen.update((o) => !o);
+
+    this.resetVisibleDate();
+    this.viewMode.set('days');
+    this.isOpen.set(true);
   }
 
   protected close(): void {
     if (this.isOpen()) {
       this.isOpen.set(false);
+      this.viewMode.set('days');
       this.onTouchedFn();
     }
+  }
+
+  protected toggleViewMode(): void {
+    if (this.viewMode() === 'days') {
+      this.yearPageStart.set(this.getYearPageStart(this.viewDate().getFullYear()));
+      this.viewMode.set('years');
+      return;
+    }
+
+    this.viewMode.set('days');
+  }
+
+  protected showPreviousYearRange(): void {
+    this.yearPageStart.update((year) => year - YEAR_PAGE_SIZE);
+  }
+
+  protected showNextYearRange(): void {
+    this.yearPageStart.update((year) => year + YEAR_PAGE_SIZE);
   }
 
   protected prevMonth(): void {
@@ -201,6 +250,16 @@ export class DsDatePickerComponent implements ControlValueAccessor {
   protected nextMonth(): void {
     const d = this.viewDate();
     this.viewDate.set(new Date(d.getFullYear(), d.getMonth() + 1, 1));
+  }
+
+  protected selectYear(year: number): void {
+    if (this.isYearDisabled(year)) {
+      return;
+    }
+
+    const visibleDate = this.viewDate();
+    this.setViewDate(new Date(year, visibleDate.getMonth(), 1));
+    this.viewMode.set('days');
   }
 
   protected selectDay(day: CalendarDay): void {
@@ -220,6 +279,59 @@ export class DsDatePickerComponent implements ControlValueAccessor {
   @HostListener('document:keydown.escape')
   protected onEscape(): void {
     this.close();
+  }
+
+  private resetVisibleDate(): void {
+    const valueDate = this.parseIsoDate(this.value());
+    if (valueDate) {
+      this.setViewDate(valueDate);
+      return;
+    }
+
+    const now = new Date();
+    this.setViewDate(now);
+  }
+
+  private setViewDate(date: Date): void {
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), 1);
+    this.viewDate.set(normalizedDate);
+    this.yearPageStart.set(this.getYearPageStart(normalizedDate.getFullYear()));
+  }
+
+  private getYearPageStart(year: number): number {
+    return year - YEAR_PAGE_OFFSET;
+  }
+
+  private isYearDisabled(year: number): boolean {
+    const minDate = this.parseIsoDate(this.min());
+    const maxDate = this.parseIsoDate(this.max());
+    const yearStart = new Date(year, 0, 1);
+    const yearEnd = new Date(year, 11, 31);
+
+    if (minDate && yearEnd < minDate) {
+      return true;
+    }
+
+    return !!maxDate && yearStart > maxDate;
+  }
+
+  private parseIsoDate(value: string | null | undefined): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const [yearValue, monthValue, dayValue] = value.split('-');
+    const year = Number(yearValue);
+    const month = Number(monthValue);
+    const day = Number(dayValue);
+
+    if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+      return null;
+    }
+
+    const date = new Date(year, month - 1, day);
+
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   private toIso(d: Date): string {

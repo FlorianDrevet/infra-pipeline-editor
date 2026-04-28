@@ -2163,6 +2163,7 @@
       "NAME_PLACEHOLDER": "e.g. VS Code MCP",
       "EXPIRY_LABEL": "Expiration Date",
       "EXPIRY_HINT": "Leave empty for no expiration",
+      "EXPIRY_PLACEHOLDER": "Select a date",
       "CREATE": "Create",
       "CANCEL": "Cancel",
       "ERROR": "Unable to create the token. Please try again."

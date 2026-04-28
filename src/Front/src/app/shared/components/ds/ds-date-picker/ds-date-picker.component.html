@@ -55,51 +55,82 @@
     (detach)="close()"
   >
     <div class="ds-date-picker__panel" role="dialog" aria-modal="true">
-      <!-- Header -->
       <div class="ds-date-picker__header">
         <button
           type="button"
           class="ds-date-picker__nav"
-          (click)="prevMonth()"
-          aria-label="Previous month"
+          (click)="viewMode() === 'days' ? prevMonth() : showPreviousYearRange()"
+          [attr.aria-label]="viewMode() === 'days' ? 'Previous month' : 'Previous year range'"
         >
           <mat-icon>chevron_left</mat-icon>
         </button>
-        <span class="ds-date-picker__month-label">{{ monthLabel() }}</span>
+        <button
+          type="button"
+          class="ds-date-picker__month-label-button"
+          (click)="toggleViewMode()"
+          [attr.aria-label]="viewMode() === 'days' ? 'Open year selection' : 'Return to calendar days'"
+          [attr.aria-pressed]="viewMode() === 'years'"
+        >
+          @if (viewMode() === 'days') {
+            <span class="ds-date-picker__month-label">{{ monthLabel() }}</span>
+          } @else {
+            <span class="ds-date-picker__year-range-label">{{ yearRangeLabel() }}</span>
+            <span class="ds-date-picker__header-hint">Select year</span>
+          }
+        </button>
         <button
           type="button"
           class="ds-date-picker__nav"
-          (click)="nextMonth()"
-          aria-label="Next month"
+          (click)="viewMode() === 'days' ? nextMonth() : showNextYearRange()"
+          [attr.aria-label]="viewMode() === 'days' ? 'Next month' : 'Next year range'"
         >
           <mat-icon>chevron_right</mat-icon>
         </button>
       </div>
 
-      <!-- Weekday headers -->
-      <div class="ds-date-picker__weekdays">
-        @for (wd of weekdays(); track wd) {
-          <span class="ds-date-picker__weekday">{{ wd }}</span>
-        }
-      </div>
+      @if (viewMode() === 'days') {
+        <div class="ds-date-picker__weekdays">
+          @for (wd of weekdays(); track wd) {
+            <span class="ds-date-picker__weekday">{{ wd }}</span>
+          }
+        </div>
 
-      <!-- Day grid -->
-      <div class="ds-date-picker__grid">
-        @for (day of calendarDays(); track day.date.getTime()) {
-          <button
-            type="button"
-            class="ds-date-picker__day"
-            [class.ds-date-picker__day--today]="day.isToday"
-            [class.ds-date-picker__day--selected]="day.isSelected"
-            [class.ds-date-picker__day--disabled]="day.isDisabled"
-            [class.ds-date-picker__day--outside]="!day.isCurrentMonth"
-            [disabled]="day.isDisabled || !day.isCurrentMonth"
-            (click)="selectDay(day)"
-          >
-            {{ day.day }}
-          </button>
-        }
-      </div>
+        <div class="ds-date-picker__grid">
+          @for (day of calendarDays(); track day.date.getTime()) {
+            <button
+              type="button"
+              class="ds-date-picker__day"
+              [class.ds-date-picker__day--today]="day.isToday"
+              [class.ds-date-picker__day--selected]="day.isSelected"
+              [class.ds-date-picker__day--disabled]="day.isDisabled"
+              [class.ds-date-picker__day--outside]="!day.isCurrentMonth"
+              [disabled]="day.isDisabled || !day.isCurrentMonth"
+              (click)="selectDay(day)"
+            >
+              {{ day.day }}
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="ds-date-picker__year-grid" aria-label="Year selection">
+          @for (yearOption of yearOptions(); track yearOption.year) {
+            <button
+              type="button"
+              class="ds-date-picker__year"
+              [class.ds-date-picker__year--current]="yearOption.isCurrent"
+              [class.ds-date-picker__year--selected]="yearOption.isSelected"
+              [class.ds-date-picker__year--disabled]="yearOption.isDisabled"
+              [disabled]="yearOption.isDisabled"
+              [attr.aria-label]="'Choose year ' + yearOption.year"
+              [attr.aria-current]="yearOption.isCurrent ? 'date' : null"
+              [attr.aria-pressed]="yearOption.isSelected"
+              (click)="selectYear(yearOption.year)"
+            >
+              {{ yearOption.year }}
+            </button>
+          }
+        </div>
+      }
     </div>
   </ng-template>
 

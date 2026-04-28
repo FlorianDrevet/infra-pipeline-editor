@@ -464,6 +464,7 @@ Ne pas dupliquer les couleurs ou tailles en dur dans le SCSS. Utiliser les varia
 - `app-ds-radio-group` — groupe de boutons radio
 - `app-ds-chip` — badge/étiquette sémantique (info, success, warning, error)
 - `app-ds-icon-button` — bouton icône
+- `app-ds-date-picker` — sélecteur de date avec calendrier custom (CDK overlay, min/max, CVA, locale-aware)
 - `app-ds-panel-action-button` — bouton d'action panneau
 
 **Mixins SCSS réutilisables :**

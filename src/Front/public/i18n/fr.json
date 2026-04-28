@@ -2154,6 +2154,7 @@
       "NAME_PLACEHOLDER": "ex. VS Code MCP",
       "EXPIRY_LABEL": "Date d'expiration",
       "EXPIRY_HINT": "Laisser vide pour aucune expiration",
+      "EXPIRY_PLACEHOLDER": "Sélectionner une date",
       "CREATE": "Créer",
       "CANCEL": "Annuler",
       "ERROR": "Impossible de créer le jeton. Veuillez réessayer."
