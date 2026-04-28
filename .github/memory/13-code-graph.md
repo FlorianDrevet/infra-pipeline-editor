@@ -48,6 +48,8 @@
 | AzureResourceTypes.All | 18 entries | In `GenerationCore/AzureResourceTypes.cs` |
 | Commands | ~110 | Files ending `Command.cs` in Application layer |
 | Queries | ~51 | Files ending `Query.cs` in Application layer |
+| Bicep generation tests | 842+ | `tests/InfraFlowSculptor.BicepGeneration.Tests/` |
+| Pipeline generation tests | 91 | `tests/InfraFlowSculptor.PipelineGeneration.Tests/` (44 golden + 47 stage) |
 
 ## Clusters fonctionnels principaux
 
@@ -58,4 +60,4 @@
 
 ---
 
-*Dernière mise à jour : 2026-04-26 — Dream consolidation (dream cycle)*
+*Dernière mise à jour : 2026-04-28 — Dream consolidation*
