@@ -874,6 +874,7 @@
       "INFRA_TAB": "Infra",
       "CODE_TAB": "Code",
       "FILES_COUNT": "{{count}} fichier(s)",
+      "DOWNLOAD_ARCHIVE_ERROR": "Impossible de preparer l'archive a telecharger. Verifiez les artefacts generes puis reessayez.",
       "BOOTSTRAP_INFO": "Le bootstrap est séparé : le dépôt infra est propriétaire des environnements et variable groups ; le dépôt code se contente de les valider et de provisionner ses propres pipelines applicatifs.",
       "BOOTSTRAP_APP_INFO": "Ce pipeline de bootstrap s'exécute dans le dépôt code. Il NE crée PAS d'environnements ni de variable groups (qui appartiennent au bootstrap infra). Il vérifie qu'ils existent puis crée les définitions de pipelines applicatifs.",
       "BOOTSTRAP_APP_GUIDE_TITLE": "Mise en place du bootstrap code",

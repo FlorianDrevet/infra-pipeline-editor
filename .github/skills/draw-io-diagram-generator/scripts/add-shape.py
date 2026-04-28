@@ -15,9 +15,9 @@ Examples:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import sys
 import time
+import uuid
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -46,9 +46,9 @@ def _indent_xml(elem: ET.Element, level: int = 0) -> None:
 
 
 def _generate_id(label: str, x: int, y: int) -> str:
-    """Generate a short deterministic-ish id based on label + position + time."""
-    seed = f"{label}:{x}:{y}:{time.time_ns()}"
-    return "auto_" + hashlib.sha1(seed.encode()).hexdigest()[:8]
+    """Generate a short unique id for a newly inserted shape."""
+    _ = (label, x, y, time.time_ns())
+    return "auto_" + uuid.uuid4().hex[:8]
 
 
 def add_shape(

@@ -8,6 +8,8 @@ namespace InfraFlowSculptor.Contracts.StorageAccounts.Requests;
 
 public class CorsRuleEntry : IValidatableObject
 {
+    private static readonly TimeSpan RegexMatchTimeout = TimeSpan.FromMilliseconds(250);
+
     private static readonly HashSet<string> SupportedMethods =
     [
         "DELETE",
@@ -22,7 +24,13 @@ public class CorsRuleEntry : IValidatableObject
 
     private static readonly Regex HeaderPattern = new(
         @"^[A-Za-z0-9!#$%&'*+.^_`|~-]+(?:-[A-Za-z0-9!#$%&'*+.^_`|~-]+)*\*?$",
-        RegexOptions.Compiled);
+        RegexOptions.Compiled,
+        RegexMatchTimeout);
+
+    private static readonly Regex WildcardOriginPattern = new(
+        @"^https?://\*\.[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*(?::\d{1,5})?$",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase,
+        RegexMatchTimeout);
 
     [Required]
     public required List<string> AllowedOrigins { get; init; }
@@ -171,10 +179,7 @@ public class CorsRuleEntry : IValidatableObject
         var normalized = value.Trim().TrimEnd('/');
         if (normalized.Contains("*.", StringComparison.Ordinal))
         {
-            var wildcardOriginPattern = new Regex(
-                @"^https?://\*\.[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*(?::\d{1,5})?$",
-                RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            return wildcardOriginPattern.IsMatch(normalized);
+            return WildcardOriginPattern.IsMatch(normalized);
         }
 
         if (!Uri.TryCreate(normalized, UriKind.Absolute, out var uri))

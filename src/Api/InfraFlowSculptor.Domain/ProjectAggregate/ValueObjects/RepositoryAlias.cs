@@ -12,7 +12,10 @@ namespace InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 public sealed class RepositoryAlias : ValueObject
 {
     private const int MaxLength = 50;
-    private static readonly Regex AliasRegex = new("^[a-z0-9-]+$", RegexOptions.Compiled);
+    private static readonly Regex AliasRegex = new(
+        "^[a-z0-9-]+$",
+        RegexOptions.Compiled,
+        TimeSpan.FromMilliseconds(250));
 
     /// <summary>Gets the underlying slug string.</summary>
     public string Value { get; private set; } = null!;

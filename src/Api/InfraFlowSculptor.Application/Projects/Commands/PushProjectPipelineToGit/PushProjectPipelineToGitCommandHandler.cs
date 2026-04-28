@@ -54,7 +54,13 @@ public sealed class PushProjectPipelineToGitCommandHandler(
             return secretResult.Errors;
 
         // 5. Retrieve latest generated pipeline files from Blob Storage (project-level)
-        var filesResult = await GetLatestProjectPipelineFilesAsync(command.ProjectId.Value, cancellationToken);
+        var filesResult = await BlobDownloadHelper.GetLatestBlobFilesAsync(
+            blobService,
+            blobPrefix: $"pipeline/project/{command.ProjectId.Value}/",
+            prefixSegmentCount: 4,
+            notFoundErrorFactory: Errors.Project.PipelineFilesNotFoundError,
+            entityId: command.ProjectId.Value,
+            postProcess: GeneratedPipelinePathNormalizer.Normalize);
         if (filesResult.IsError)
             return filesResult.Errors;
 
@@ -71,42 +77,5 @@ public sealed class PushProjectPipelineToGitCommandHandler(
             BasePath = target.PipelineBasePath,
             Files = filesResult.Value,
         }, cancellationToken);
-    }
-
-    private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> GetLatestProjectPipelineFilesAsync(
-        Guid projectId, CancellationToken cancellationToken)
-    {
-        var prefix = $"pipeline/project/{projectId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
-
-        if (allBlobs.Count == 0)
-            return Errors.Project.PipelineFilesNotFoundError(projectId);
-
-        // Find the latest timestamp folder (format: pipeline/project/{projectId}/{yyyyMMddHHmmss}/...)
-        var latestPrefix = allBlobs
-            .Select(b => string.Join('/', b.Split('/').Take(4)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var latestBlobs = allBlobs
-            .Where(b => b.StartsWith(latestPrefix, StringComparison.Ordinal))
-            .ToList();
-
-        var files = new Dictionary<string, string>();
-        foreach (var blobName in latestBlobs)
-        {
-            var content = await blobService.DownloadContentAsync(blobName);
-            if (content is null) continue;
-
-            // Strip the prefix to get relative path: ConfigName/azure-pipelines.yml, etc.
-            var relativePath = blobName[(latestPrefix.Length + 1)..];
-            files[relativePath] = content;
-        }
-
-        if (files.Count == 0)
-            return Errors.Project.PipelineFilesNotFoundError(projectId);
-
-        return GeneratedPipelinePathNormalizer.Normalize(files);
     }
 }

@@ -1,6 +1,5 @@
-using System.IO.Compression;
-using System.Text;
 using ErrorOr;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
 using InfraFlowSculptor.Domain.Common.Errors;
@@ -23,39 +22,18 @@ public sealed class DownloadProjectPipelineCommandHandler(
         if (accessResult.IsError)
             return accessResult.Errors;
 
-        var prefix = $"pipeline/project/{command.ProjectId.Value}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
+        var result = await BlobDownloadHelper.DownloadLatestBlobsAsZipAsync(
+            blobService,
+            blobPrefix: $"pipeline/project/{command.ProjectId.Value}/",
+            prefixSegmentCount: 4,
+            fileNameSuffix: "pipeline",
+            notFoundErrorFactory: Errors.Project.PipelineFilesNotFoundError,
+            entityId: command.ProjectId.Value,
+            cancellationToken);
 
-        if (allBlobs.Count == 0)
-            return Errors.Project.PipelineFilesNotFoundError(command.ProjectId.Value);
+        if (result.IsError)
+            return result.Errors;
 
-        var latestPrefix = allBlobs
-            .Select(blobName => string.Join('/', blobName.Split('/').Take(4)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var latestBlobs = allBlobs
-            .Where(blobName => blobName.StartsWith(latestPrefix, StringComparison.Ordinal))
-            .ToList();
-
-        using var memoryStream = new MemoryStream();
-        using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, leaveOpen: true))
-        {
-            foreach (var blobName in latestBlobs)
-            {
-                var content = await blobService.DownloadContentAsync(blobName);
-                if (content is null)
-                    continue;
-
-                var relativePath = blobName[(latestPrefix.Length + 1)..];
-                var entry = archive.CreateEntry(relativePath, CompressionLevel.Optimal);
-                await using var entryStream = entry.Open();
-                await entryStream.WriteAsync(Encoding.UTF8.GetBytes(content), cancellationToken);
-            }
-        }
-
-        var fileName = $"project-pipeline-{command.ProjectId.Value:N}.zip";
-        return new DownloadProjectPipelineResult(memoryStream.ToArray(), fileName);
+        return new DownloadProjectPipelineResult(result.Value.Data, result.Value.FileName);
     }
 }

@@ -157,9 +157,33 @@ export class AddCrossConfigReferenceDialogComponent implements OnInit {
   }
 
   private toCamelCase(str: string): string {
-    return str
-      .replace(/[^a-zA-Z0-9]+(.)/g, (_, char: string) => char.toUpperCase())
-      .replace(/^[A-Z]/, (c) => c.toLowerCase())
-      .replace(/[^a-zA-Z0-9]/g, '');
+    let camelCaseValue = '';
+    let shouldUppercaseNextCharacter = false;
+
+    for (const character of str) {
+      if (!this.isAsciiAlphaNumericCharacter(character)) {
+        shouldUppercaseNextCharacter = camelCaseValue.length > 0;
+        continue;
+      }
+
+      if (camelCaseValue.length === 0) {
+        camelCaseValue += character.toLowerCase();
+      } else if (shouldUppercaseNextCharacter) {
+        camelCaseValue += character.toUpperCase();
+      } else {
+        camelCaseValue += character;
+      }
+
+      shouldUppercaseNextCharacter = false;
+    }
+
+    return camelCaseValue;
+  }
+
+  private isAsciiAlphaNumericCharacter(character: string): boolean {
+    const code = character.charCodeAt(0);
+    return (code >= 48 && code <= 57)
+      || (code >= 65 && code <= 90)
+      || (code >= 97 && code <= 122);
   }
 }

@@ -6,3 +6,10 @@ npm-debug.log
 .gitignore
 Dockerfile*
 README.md
+.env
+.env.*
+.npmrc
+.vscode/
+.idea/
+coverage/
+*.log

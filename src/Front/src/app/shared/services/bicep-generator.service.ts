@@ -1,44 +1,17 @@
 import { Injectable } from '@angular/core';
-import axios from 'axios';
 import {
   GenerateBicepRequest,
   GenerateBicepResponse,
   PushBicepToGitRequest,
   PushBicepToGitResponse,
 } from '../interfaces/bicep-generator.interface';
+import { BaseGeneratorService } from './base-generator.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class BicepGeneratorService {
-  async generate(request: GenerateBicepRequest): Promise<GenerateBicepResponse> {
-    const response = await axios.post<GenerateBicepResponse>(
-      '/generate-bicep',
-      request,
-    );
-    return response.data;
-  }
-
-  async downloadZip(configId: string): Promise<Blob> {
-    const response = await axios.get(
-      `/generate-bicep/${configId}/download`,
-      { responseType: 'blob' },
-    );
-    return response.data as Blob;
-  }
-
-  async getFileContent(configId: string, filePath: string): Promise<string> {
-    const response = await axios.get<{ content: string }>(
-      `/generate-bicep/${configId}/files/${filePath}`,
-    );
-    return response.data.content;
-  }
-
-  async pushToGit(configId: string, request: PushBicepToGitRequest): Promise<PushBicepToGitResponse> {
-    const response = await axios.post<PushBicepToGitResponse>(
-      `/generate-bicep/${configId}/push-to-git`,
-      request,
-    );
-    return response.data;
-  }
+export class BicepGeneratorService extends BaseGeneratorService<
+  GenerateBicepRequest, GenerateBicepResponse, PushBicepToGitRequest, PushBicepToGitResponse
+> {
+  protected readonly basePath = '/generate-bicep';
 }

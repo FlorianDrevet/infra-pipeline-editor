@@ -892,6 +892,7 @@
       "INFRA_TAB": "Infra",
       "CODE_TAB": "Code",
       "FILES_COUNT": "{{count}} file(s)",
+      "DOWNLOAD_ARCHIVE_ERROR": "Unable to prepare the download archive. Check the generated artifacts and try again.",
       "BOOTSTRAP_INFO": "Bootstrap is split: the infra repo owns environments and variable groups; the code repo only validates them and provisions its own application pipelines.",
       "BOOTSTRAP_APP_INFO": "This bootstrap pipeline runs in the code repository. It does NOT create environments or variable groups (those belong to the infra bootstrap). It validates that they exist, then provisions the application pipeline definitions.",
       "BOOTSTRAP_APP_GUIDE_TITLE": "Code bootstrap setup",

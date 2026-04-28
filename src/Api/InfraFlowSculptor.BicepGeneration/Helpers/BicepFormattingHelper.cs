@@ -9,6 +9,11 @@ namespace InfraFlowSculptor.BicepGeneration.Helpers;
 /// </summary>
 internal static class BicepFormattingHelper
 {
+    private static readonly Regex ObjectKeyPattern = new(
+        "^[a-zA-Z_][a-zA-Z0-9_]*$",
+        RegexOptions.Compiled,
+        TimeSpan.FromMilliseconds(250));
+
     /// <summary>
     /// Sanitizes a string for use as a Bicep object key, following the same camelCase convention
     /// as <see cref="BicepIdentifierHelper.ToBicepIdentifier"/>. Hyphens, underscores, and
@@ -44,7 +49,7 @@ internal static class BicepFormattingHelper
     /// or wraps it in single quotes otherwise (e.g. when it contains hyphens or spaces).
     /// </summary>
     internal static string FormatBicepObjectKey(string key) =>
-        Regex.IsMatch(key, @"^[a-zA-Z_][a-zA-Z0-9_]*$")
+        ObjectKeyPattern.IsMatch(key)
             ? key
             : $"'{EscapeBicepString(key)}'";
 

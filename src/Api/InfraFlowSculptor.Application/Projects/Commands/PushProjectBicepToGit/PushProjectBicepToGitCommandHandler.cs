@@ -1,5 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.GitRouting;
+using InfraFlowSculptor.Application.Common.Helpers;
 using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Application.Common.Interfaces.Services;
@@ -54,7 +55,12 @@ public sealed class PushProjectBicepToGitCommandHandler(
             return secretResult.Errors;
 
         // 5. Retrieve latest generated Bicep files from Blob Storage (project-level)
-        var filesResult = await GetLatestProjectBicepFilesAsync(command.ProjectId.Value, cancellationToken);
+        var filesResult = await BlobDownloadHelper.GetLatestBlobFilesAsync(
+            blobService,
+            blobPrefix: $"bicep/project/{command.ProjectId.Value}/",
+            prefixSegmentCount: 4,
+            notFoundErrorFactory: Errors.Project.BicepFilesNotFoundError,
+            entityId: command.ProjectId.Value);
         if (filesResult.IsError)
             return filesResult.Errors;
 
@@ -71,42 +77,5 @@ public sealed class PushProjectBicepToGitCommandHandler(
             BasePath = target.BasePath,
             Files = filesResult.Value,
         }, cancellationToken);
-    }
-
-    private async Task<ErrorOr<IReadOnlyDictionary<string, string>>> GetLatestProjectBicepFilesAsync(
-        Guid projectId, CancellationToken cancellationToken)
-    {
-        var prefix = $"bicep/project/{projectId}/";
-        var allBlobs = await blobService.ListBlobsAsync(prefix);
-
-        if (allBlobs.Count == 0)
-            return Errors.Project.BicepFilesNotFoundError(projectId);
-
-        // Find the latest timestamp folder (format: bicep/project/{projectId}/{yyyyMMddHHmmss}/...)
-        var latestPrefix = allBlobs
-            .Select(b => string.Join('/', b.Split('/').Take(4)))
-            .Distinct()
-            .OrderDescending()
-            .First();
-
-        var latestBlobs = allBlobs
-            .Where(b => b.StartsWith(latestPrefix, StringComparison.Ordinal))
-            .ToList();
-
-        var files = new Dictionary<string, string>();
-        foreach (var blobName in latestBlobs)
-        {
-            var content = await blobService.DownloadContentAsync(blobName);
-            if (content is null) continue;
-
-            // Strip the prefix to get relative path: Common/types.bicep, ConfigName/main.bicep, etc.
-            var relativePath = blobName[(latestPrefix.Length + 1)..];
-            files[relativePath] = content;
-        }
-
-        if (files.Count == 0)
-            return Errors.Project.BicepFilesNotFoundError(projectId);
-
-        return files;
     }
 }
