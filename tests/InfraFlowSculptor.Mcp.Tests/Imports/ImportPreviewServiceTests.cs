@@ -1,6 +1,7 @@
 using FluentAssertions;
 using InfraFlowSculptor.Application.Imports.Common;
 using InfraFlowSculptor.Mcp.Imports;
+using InfraFlowSculptor.Mcp.Imports.Models;
 using NSubstitute;
 
 namespace InfraFlowSculptor.Mcp.Tests.Imports;

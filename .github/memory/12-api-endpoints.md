@@ -106,6 +106,12 @@ Note [2026-04-26]: the create-project wizard submit path depends on an explicit 
 | `/personal-access-tokens` | POST | `` | `CreatePersonalAccessTokenCommand` → returns one-time plaintext token |
 | `/personal-access-tokens` | DELETE | `/{id:guid}` | `RevokePersonalAccessTokenCommand` |
 
+## Import Preview [2026-04-28]
+
+| Group | Method | Route | Command/Query |
+|---|---|---|---|
+| `/imports` | POST | `/preview` | `PreviewIacImportQuery` (read-only ARM import analysis; returns mapped resources, gaps, dependencies, metadata, summary; currently supports `arm-json` only) |
+
 ## Generation Controllers
 
 | Group | Method | Route | Command/Query |
