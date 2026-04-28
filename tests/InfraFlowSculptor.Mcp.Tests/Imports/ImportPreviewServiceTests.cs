@@ -31,21 +31,21 @@ public sealed class ImportPreviewServiceTests
 
         // Assert
         preview.PreviewId.Should().StartWith("preview_");
-        preview.ProjectDefinition.SourceFormat.Should().Be("arm-json");
-        preview.ProjectDefinition.Resources.Should().HaveCount(1);
-    preview.ProjectDefinition.Dependencies.Should().ContainSingle();
-    preview.ProjectDefinition.Metadata["schema"].Should().Be("https://example/schema");
-    preview.Gaps.Should().ContainSingle();
-    preview.UnsupportedResources.Should().ContainSingle().Which.Should().Be("legacyNetwork");
+        preview.Analysis.SourceFormat.Should().Be("arm-json");
+        preview.Analysis.Resources.Should().HaveCount(1);
+      preview.Analysis.Dependencies.Should().ContainSingle();
+      preview.Analysis.Metadata["schema"].Should().Be("https://example/schema");
+      preview.Analysis.Gaps.Should().ContainSingle();
+      preview.Analysis.UnsupportedResources.Should().ContainSingle().Which.Should().Be("legacyNetwork");
 
     var storedPreview = _sut.GetPreview(preview.PreviewId);
     storedPreview.Should().BeEquivalentTo(preview);
 
-        var resource = preview.ProjectDefinition.Resources[0];
+        var resource = preview.Analysis.Resources[0];
         resource.SourceType.Should().Be("Microsoft.KeyVault/vaults");
         resource.SourceName.Should().Be("myKeyVault");
         resource.MappedResourceType.Should().Be("KeyVault");
-    resource.Confidence.Should().Be(MappingConfidence.High);
+      resource.Confidence.Should().Be(ImportPreviewMappingConfidence.High);
     _analyzer.Received(1).AnalyzeArmTemplate(SourceContent);
     }
 

@@ -1,6 +1,8 @@
 using System.Text.Json;
 using ErrorOr;
 using FluentAssertions;
+using InfraFlowSculptor.Application.Imports.Commands.ApplyImportPreview;
+using InfraFlowSculptor.Application.Imports.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.Common;
 using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Application.Projects.Common;
@@ -63,23 +65,28 @@ public sealed class IacImportToolsTests
         var preview = new ImportPreview
         {
             PreviewId = "preview_abc12345",
-            ProjectDefinition = new ImportedProjectDefinition
+            Analysis = new ImportPreviewAnalysisResult
             {
                 SourceFormat = "arm-json",
                 Resources =
                 [
-                    new ImportedResourceDefinition
+                    new ImportedResourceAnalysisResult
                     {
                         SourceType = "Microsoft.KeyVault/vaults",
                         SourceName = "myKeyVault",
                         MappedResourceType = "KeyVault",
                         MappedName = "myKeyVault",
-                        Confidence = MappingConfidence.High,
+                        Confidence = ImportPreviewMappingConfidence.High,
+                        ExtractedProperties = new Dictionary<string, object?>(),
+                        UnmappedProperties = [],
                     },
                 ],
+                Dependencies = [],
+                Metadata = new Dictionary<string, string>(),
+                Gaps = [],
+                UnsupportedResources = [],
+                Summary = "summary",
             },
-            Gaps = [],
-            UnsupportedResources = [],
         };
         _previewService.CreatePreviewFromArm(ValidKeyVaultArm).Returns(preview);
 
@@ -125,74 +132,76 @@ public sealed class IacImportToolsTests
     }
 
     [Fact]
-    public async Task ApplyImportPreview_ValidPreview_CreatesProjectViaMediatR()
+    public async Task ApplyImportPreview_ValidPreview_DelegatesToSharedCommand()
     {
         // Arrange
         var preview = new ImportPreview
         {
             PreviewId = "preview_abc12345",
-            ProjectDefinition = new ImportedProjectDefinition
+            Analysis = new ImportPreviewAnalysisResult
             {
                 SourceFormat = "arm-json",
                 Resources =
                 [
-                    new ImportedResourceDefinition
+                    new ImportedResourceAnalysisResult
                     {
                         SourceType = "Microsoft.KeyVault/vaults",
                         SourceName = "myKeyVault",
                         MappedResourceType = "KeyVault",
                         MappedName = "myKeyVault",
-                        Confidence = MappingConfidence.High,
+                        Confidence = ImportPreviewMappingConfidence.High,
+                        ExtractedProperties = new Dictionary<string, object?>(),
+                        UnmappedProperties = [],
                     },
                 ],
+                Dependencies = [],
+                Metadata = new Dictionary<string, string>(),
+                Gaps = [],
+                UnsupportedResources = [],
+                Summary = "summary",
             },
-            Gaps = [],
-            UnsupportedResources = [],
         };
         _previewService.GetPreview("preview_abc12345").Returns(preview);
 
-        var projectId = new ProjectId(Guid.NewGuid());
-        var projectResult = new ProjectResult(
-            projectId,
-            new Name("MyProject"),
-            Description: null,
-            Members: [],
-            EnvironmentDefinitions: [],
-            DefaultNamingTemplate: null,
-            ResourceNamingTemplates: [],
-            ResourceAbbreviations: [],
-            Tags: [],
-            LayoutPreset: "AllInOne");
-        _mediator.Send(Arg.Any<IRequest<ErrorOr<ProjectResult>>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<ErrorOr<ProjectResult>>(projectResult));
-
-        var infraConfigId = new InfrastructureConfigId(Guid.NewGuid());
-        var configResult = new GetInfrastructureConfigResult(
-            infraConfigId, new Name("MyProject-config"), projectId,
-            null, false, [], [], [], 0, 0, 0, null, null);
-        _mediator.Send(Arg.Any<IRequest<ErrorOr<GetInfrastructureConfigResult>>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<ErrorOr<GetInfrastructureConfigResult>>(configResult));
-
-        var rgId = new ResourceGroupId(Guid.NewGuid());
-        var rgResult = new ResourceGroupResult(rgId, infraConfigId, new Location(Location.LocationEnum.WestEurope), new Name("MyProject-rg"), []);
-        _mediator.Send(Arg.Any<IRequest<ErrorOr<ResourceGroupResult>>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<ErrorOr<ResourceGroupResult>>(rgResult));
-
-        var kvResult = new KeyVaultResult(new AzureResourceId(Guid.NewGuid()), rgId, new Name("myKeyVault"), new Location(Location.LocationEnum.WestEurope), false, false, false, false, false, false, []);
-        _mediator.Send(Arg.Any<IRequest<ErrorOr<KeyVaultResult>>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<ErrorOr<KeyVaultResult>>(kvResult));
+        var projectId = Guid.NewGuid().ToString();
+        _mediator.Send(Arg.Any<ApplyImportPreviewCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<ApplyImportPreviewResult>>(
+                new ApplyImportPreviewResult
+                {
+                    Status = "applied",
+                    ProjectId = projectId,
+                    ProjectName = "MyProject",
+                    InfrastructureConfigId = Guid.NewGuid().ToString(),
+                    ResourceGroupId = Guid.NewGuid().ToString(),
+                    CreatedResources =
+                    [
+                        new ApplyImportPreviewCreatedResourceResult("KeyVault", Guid.NewGuid().ToString(), "myKeyVault"),
+                    ],
+                    SkippedResources = [],
+                    NextSuggestedActions = ["Generate Bicep with 'generate_project_bicep'."],
+                }));
 
         // Act
         var json = await IacImportTools.ApplyImportPreview(
             _previewService, _draftService, _mediator,
-            "preview_abc12345", "MyProject", "AllInOne");
+            "preview_abc12345", "MyProject", "AllInOne", resourceFilter: "[\"myKeyVault\"]");
 
         // Assert
         var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("status").GetString().Should().Be("applied");
-        doc.RootElement.GetProperty("projectId").GetString().Should().Be(projectId.Value.ToString());
+        doc.RootElement.GetProperty("projectId").GetString().Should().Be(projectId);
         doc.RootElement.GetProperty("previewId").GetString().Should().Be("preview_abc12345");
+        doc.RootElement.GetProperty("createdResources").GetArrayLength().Should().Be(1);
         _previewService.Received(1).RemovePreview("preview_abc12345");
+        await _mediator.Received(1).Send(
+            Arg.Is<ApplyImportPreviewCommand>(command =>
+                command.ProjectName == "MyProject"
+                && command.LayoutPreset == "AllInOne"
+                && command.Preview.SourceFormat == "arm-json"
+                && command.ResourceFilter != null
+                && command.ResourceFilter.Count == 1
+                && command.ResourceFilter[0] == "myKeyVault"),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -202,18 +211,21 @@ public sealed class IacImportToolsTests
         var preview = new ImportPreview
         {
             PreviewId = "preview_abc12345",
-            ProjectDefinition = new ImportedProjectDefinition
+            Analysis = new ImportPreviewAnalysisResult
             {
                 SourceFormat = "arm-json",
                 Resources = [],
+                Dependencies = [],
+                Metadata = new Dictionary<string, string>(),
+                Gaps = [],
+                UnsupportedResources = [],
+                Summary = "summary",
             },
-            Gaps = [],
-            UnsupportedResources = [],
         };
         _previewService.GetPreview("preview_abc12345").Returns(preview);
 
-        _mediator.Send(Arg.Any<IRequest<ErrorOr<ProjectResult>>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<ErrorOr<ProjectResult>>(Error.Failure(description: "Validation failed")));
+        _mediator.Send(Arg.Any<ApplyImportPreviewCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<ApplyImportPreviewResult>>(Error.Failure(description: "Validation failed")));
 
         // Act
         var json = await IacImportTools.ApplyImportPreview(
@@ -223,5 +235,6 @@ public sealed class IacImportToolsTests
         // Assert
         var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("error").GetString().Should().Be("creation_failed");
+        _previewService.DidNotReceive().RemovePreview("preview_abc12345");
     }
 }

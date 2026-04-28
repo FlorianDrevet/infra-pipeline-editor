@@ -27,6 +27,7 @@
     <Project Path="src/Mcp/InfraFlowSculptor.Mcp/InfraFlowSculptor.Mcp.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/InfraFlowSculptor.Application.Tests/InfraFlowSculptor.Application.Tests.csproj" />
     <Project Path="tests/InfraFlowSculptor.BicepGeneration.Tests/InfraFlowSculptor.BicepGeneration.Tests.csproj" />
     <Project Path="tests/InfraFlowSculptor.Contracts.Tests/InfraFlowSculptor.Contracts.Tests.csproj" />
     <Project Path="tests/InfraFlowSculptor.Domain.Tests/InfraFlowSculptor.Domain.Tests.csproj" />
