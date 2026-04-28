@@ -88,7 +88,7 @@ When adding cross-resource FKs (e.g. `SourceResourceId`, `KeyVaultResourceId`, `
     - removes the legacy `Pipelines` token from both `ProjectRepositories.ContentKinds` and `InfraConfigRepositories.ContentKinds`;
     - upgrades one-repo `AllInOne` rows to `Infrastructure,ApplicationCode` when needed;
     - upgrades pseudo-two-repo `AllInOne` rows to `SplitInfraCode` when the persisted topology is really infra repo + app repo.
-- It auto-detects the local Aspire `postgres:17.6` container, reads `POSTGRES_PASSWORD`, and patches `infraDb` through `psql`.
+- It auto-detects the local Aspire `postgres:17.6` container and patches `infraDb` through `psql` executed as the container `postgres` user (no password extraction in the script).
 
 ## Duplicate Role Assignment Guard [2026-04-23]
 

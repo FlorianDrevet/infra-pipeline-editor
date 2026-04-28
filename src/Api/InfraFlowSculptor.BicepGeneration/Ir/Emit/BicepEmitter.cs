@@ -9,6 +9,8 @@ namespace InfraFlowSculptor.BicepGeneration.Ir.Emit;
 /// </summary>
 public sealed class BicepEmitter
 {
+    private readonly char[] _trailingLineEndingCharacters = ['\n', '\r'];
+
     /// <summary>
     /// Emits the primary module content (<c>*.module.bicep</c>) from the given spec.
     /// </summary>
@@ -24,7 +26,7 @@ public sealed class BicepEmitter
         EmitAdditionalResources(sb, spec.AdditionalResources);
         EmitOutputs(sb, spec.Outputs);
 
-        return sb.ToString().TrimEnd('\n', '\r') + "\n";
+        return EnsureTrailingNewline(sb.ToString());
     }
 
     /// <summary>
@@ -53,7 +55,7 @@ public sealed class BicepEmitter
             sb.Append("type ").Append(typeDef.Name).Append(" = ").AppendLine(EmitExpression(typeDef.Body, indent: 0));
         }
 
-        return sb.ToString().TrimEnd('\n', '\r') + "\n";
+        return EnsureTrailingNewline(sb.ToString());
     }
 
     private static void EmitImports(StringBuilder sb, IReadOnlyList<BicepImport> imports)
@@ -182,7 +184,6 @@ public sealed class BicepEmitter
         for (var i = 0; i < outputs.Count; i++)
         {
             var output = outputs[i];
-            var hasDecorator = output.IsSecure || output.Description is not null;
 
             // Blank line before output (separator from resource or previous output)
             sb.AppendLine();
@@ -308,6 +309,9 @@ public sealed class BicepEmitter
         BicepCustomType c => c.Name,
         _ => throw new NotSupportedException($"Unsupported Bicep type: {type.GetType().Name}"),
     };
+
+    private string EnsureTrailingNewline(string value)
+        => value.TrimEnd(_trailingLineEndingCharacters) + "\n";
 
     private static string EscapeBicepString(string value)
         => value.Replace("\\", "\\\\").Replace("'", "\\'");

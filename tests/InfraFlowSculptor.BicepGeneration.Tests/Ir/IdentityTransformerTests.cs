@@ -110,4 +110,17 @@ public sealed class IdentityTransformerTests
 
         result.ExportedTypes.Should().Contain(t => t.Name == "ManagedIdentityType");
     }
+
+    [Fact]
+    public void Given_Spec_When_WithParameterizedIdentity_Then_UsesExpectedPrincipalIdExpression()
+    {
+        var spec = BaseSpec();
+
+        var result = spec.WithParameterizedIdentity(hasAnyUai: false);
+
+        result.Outputs.Should().ContainSingle(output => output.Name == "principalId");
+        result.Outputs.Single(output => output.Name == "principalId")
+            .Expression.Should().BeOfType<BicepRawExpression>()
+            .Which.RawBicep.Should().Be("contains(identityType, 'SystemAssigned') ? app.identity.principalId : ''");
+    }
 }

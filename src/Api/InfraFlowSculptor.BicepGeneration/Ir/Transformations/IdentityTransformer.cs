@@ -6,25 +6,33 @@ namespace InfraFlowSculptor.BicepGeneration.Ir.Transformations;
 /// </summary>
 internal static class IdentityTransformer
 {
+    private const string IdentityPropertyName = "identity";
+    private const string IdentityTypeParameterName = "identityType";
+    private const string ManagedIdentityTypeName = "ManagedIdentityType";
+    private const string PrincipalIdOutputName = "principalId";
+    private const string PropertiesPropertyName = "properties";
+    private const string TypesImportPath = "./types.bicep";
+    private const string UserAssignedIdentityIdParameterName = "userAssignedIdentityId";
+
     /// <summary>
     /// Adds a hard-coded <c>identity: { type: 'SystemAssigned' }</c> block and a
     /// <c>principalId</c> output to the spec. No-op when an identity property already exists.
     /// </summary>
     internal static BicepModuleSpec WithSystemAssignedIdentity(this BicepModuleSpec spec)
     {
-        if (spec.Resource.Body.Any(p => p.Key == "identity"))
+        if (spec.Resource.Body.Any(p => p.Key == IdentityPropertyName))
             return spec;
 
-        if (spec.Outputs.Any(o => o.Name == "principalId"))
+        if (spec.Outputs.Any(o => o.Name == PrincipalIdOutputName))
             return spec;
 
-        var identityBlock = new BicepPropertyAssignment("identity", new BicepObjectExpression(
+        var identityBlock = new BicepPropertyAssignment(IdentityPropertyName, new BicepObjectExpression(
         [
             new BicepPropertyAssignment("type", new BicepStringLiteral("SystemAssigned")),
         ]));
 
         var principalIdOutput = new BicepOutput(
-            "principalId",
+            PrincipalIdOutputName,
             BicepType.String,
             new BicepReference($"{spec.Resource.Symbol}.identity.principalId"));
 
@@ -32,7 +40,7 @@ internal static class IdentityTransformer
         {
             Resource = spec.Resource with
             {
-                Body = InsertBodyPropertyBefore(spec.Resource.Body, "properties", identityBlock),
+                Body = InsertBodyPropertyBefore(spec.Resource.Body, PropertiesPropertyName, identityBlock),
             },
             Outputs = [.. spec.Outputs, principalIdOutput],
         };
@@ -52,10 +60,10 @@ internal static class IdentityTransformer
             : "UserAssigned";
 
         var newParams = spec.Parameters.ToList();
-        if (!spec.Parameters.Any(p => p.Name == "userAssignedIdentityId"))
+        if (!spec.Parameters.Any(p => p.Name == UserAssignedIdentityIdParameterName))
         {
             newParams.Add(new BicepParam(
-                "userAssignedIdentityId",
+                UserAssignedIdentityIdParameterName,
                 BicepType.String,
                 "Resource ID of user-assigned managed identity"));
         }
@@ -70,18 +78,18 @@ internal static class IdentityTransformer
         ]);
 
         var body = spec.Resource.Body.ToList();
-        var existingIdx = body.FindIndex(p => p.Key == "identity");
+        var existingIdx = body.FindIndex(p => p.Key == IdentityPropertyName);
         if (existingIdx >= 0)
         {
-            body[existingIdx] = new BicepPropertyAssignment("identity", identityBody);
+            body[existingIdx] = new BicepPropertyAssignment(IdentityPropertyName, identityBody);
         }
         else
         {
-            var insertIdx = body.FindIndex(p => p.Key == "properties");
+            var insertIdx = body.FindIndex(p => p.Key == PropertiesPropertyName);
             if (insertIdx >= 0)
-                body.Insert(insertIdx, new BicepPropertyAssignment("identity", identityBody));
+                body.Insert(insertIdx, new BicepPropertyAssignment(IdentityPropertyName, identityBody));
             else
-                body.Add(new BicepPropertyAssignment("identity", identityBody));
+                body.Add(new BicepPropertyAssignment(IdentityPropertyName, identityBody));
         }
 
         return spec with
@@ -98,23 +106,23 @@ internal static class IdentityTransformer
     /// </summary>
     internal static BicepModuleSpec WithParameterizedIdentity(this BicepModuleSpec spec, bool hasAnyUai)
     {
-        if (spec.Resource.Body.Any(p => p.Key == "identity"))
+        if (spec.Resource.Body.Any(p => p.Key == IdentityPropertyName))
             return spec;
 
-        if (spec.Parameters.Any(p => p.Name == "identityType"))
+        if (spec.Parameters.Any(p => p.Name == IdentityTypeParameterName))
             return spec;
 
         var newParams = spec.Parameters.ToList();
         newParams.Add(new BicepParam(
-            "identityType",
-            BicepType.Custom("ManagedIdentityType"),
+            IdentityTypeParameterName,
+            BicepType.Custom(ManagedIdentityTypeName),
             "Managed identity type for this resource",
             DefaultValue: new BicepStringLiteral("SystemAssigned")));
 
-        if (hasAnyUai && !spec.Parameters.Any(p => p.Name == "userAssignedIdentityId"))
+        if (hasAnyUai && !spec.Parameters.Any(p => p.Name == UserAssignedIdentityIdParameterName))
         {
             newParams.Add(new BicepParam(
-                "userAssignedIdentityId",
+                UserAssignedIdentityIdParameterName,
                 BicepType.String,
                 "Resource ID of user-assigned managed identity (empty when not applicable)",
                 DefaultValue: new BicepStringLiteral("")));
@@ -145,36 +153,36 @@ internal static class IdentityTransformer
         }
 
         var newImports = spec.Imports.ToList();
-        var typesImport = newImports.FindIndex(i => i.Path == "./types.bicep");
+        var typesImport = newImports.FindIndex(i => i.Path == TypesImportPath);
         if (typesImport >= 0)
         {
             var existing = newImports[typesImport];
             var symbols = existing.Symbols?.ToList() ?? [];
-            if (!symbols.Contains("ManagedIdentityType"))
+            if (!symbols.Contains(ManagedIdentityTypeName))
             {
-                symbols.Add("ManagedIdentityType");
+                symbols.Add(ManagedIdentityTypeName);
                 newImports[typesImport] = existing with { Symbols = symbols };
             }
         }
         else
         {
-            newImports.Insert(0, new BicepImport("./types.bicep", ["ManagedIdentityType"]));
+            newImports.Insert(0, new BicepImport(TypesImportPath, [ManagedIdentityTypeName]));
         }
 
         var newOutputs = spec.Outputs.ToList();
-        if (!spec.Outputs.Any(o => o.Name == "principalId"))
+        if (!spec.Outputs.Any(o => o.Name == PrincipalIdOutputName))
         {
             newOutputs.Add(new BicepOutput(
-                "principalId",
+                PrincipalIdOutputName,
                 BicepType.String,
                 new BicepRawExpression($"contains(identityType, 'SystemAssigned') ? {spec.Resource.Symbol}.identity.principalId : ''")));
         }
 
         var newTypes = spec.ExportedTypes.ToList();
-        if (!newTypes.Any(t => t.Name == "ManagedIdentityType"))
+        if (!newTypes.Any(t => t.Name == ManagedIdentityTypeName))
         {
             newTypes.Add(new BicepTypeDefinition(
-                "ManagedIdentityType",
+                ManagedIdentityTypeName,
                 new BicepRawExpression("'SystemAssigned' | 'UserAssigned' | 'SystemAssigned, UserAssigned'"),
                 IsExported: true,
                 "Managed identity type for Azure resources"));
@@ -186,8 +194,8 @@ internal static class IdentityTransformer
             Parameters = newParams,
             Resource = spec.Resource with
             {
-                Body = InsertBodyPropertyBefore(spec.Resource.Body, "properties",
-                    new BicepPropertyAssignment("identity", identityBody)),
+                Body = InsertBodyPropertyBefore(spec.Resource.Body, PropertiesPropertyName,
+                    new BicepPropertyAssignment(IdentityPropertyName, identityBody)),
             },
             Outputs = newOutputs,
             ExportedTypes = newTypes,
