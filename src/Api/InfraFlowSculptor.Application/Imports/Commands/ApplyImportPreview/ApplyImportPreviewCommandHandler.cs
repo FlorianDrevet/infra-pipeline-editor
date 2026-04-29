@@ -28,7 +28,7 @@ public sealed class ApplyImportPreviewCommandHandler(ISender mediator)
             Description: $"Imported from ARM template ({command.Preview.Resources.Count} resources detected)",
             LayoutPreset: command.LayoutPreset,
             Environments: environments,
-            Repositories: BuildRepositoriesForLayout(command.LayoutPreset));
+            Repositories: ProjectSetupDefaults.BuildRepositoriesForLayout(command.LayoutPreset));
 
         var projectResult = await mediator.Send(createProjectCommand, cancellationToken).ConfigureAwait(false);
         if (projectResult.IsError)
@@ -136,39 +136,7 @@ public sealed class ApplyImportPreviewCommandHandler(ISender mediator)
         if (environments is { Count: > 0 })
             return environments;
 
-        return
-        [
-            new EnvironmentSetupItem(
-                "Development",
-                "dev",
-                string.Empty,
-                string.Empty,
-                "westeurope",
-                Guid.Empty,
-                0,
-                false),
-        ];
-    }
-
-    private static IReadOnlyList<RepositorySetupItem> BuildRepositoriesForLayout(string layoutPreset)
-    {
-        return layoutPreset switch
-        {
-            "AllInOne" =>
-            [
-                new RepositorySetupItem("main", ["Infrastructure", "ApplicationCode"], null, null, null),
-            ],
-            "SplitInfraCode" =>
-            [
-                new RepositorySetupItem("infra", ["Infrastructure"], null, null, null),
-                new RepositorySetupItem("app", ["ApplicationCode"], null, null, null),
-            ],
-            "MultiRepo" => [],
-            _ =>
-            [
-                new RepositorySetupItem("main", ["Infrastructure", "ApplicationCode"], null, null, null),
-            ],
-        };
+        return [ProjectSetupDefaults.CreateDefaultEnvironment()];
     }
 
     private static IReadOnlyList<string> BuildNextSuggestedActions(int createdCount, int skippedCount)

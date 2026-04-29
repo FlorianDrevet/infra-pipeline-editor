@@ -103,15 +103,15 @@ public sealed class ApplyImportPreviewCommandHandlerTests
         await _mediator.Received(1).Send(
             Arg.Is<CreateProjectWithSetupCommand>(request =>
                 request.Name == "MyProject"
-                && request.LayoutPreset == "AllInOne"
+                && request.LayoutPreset == nameof(LayoutPresetEnum.AllInOne)
                 && request.Environments.Count == 1
                 && request.Environments[0].Name == "Development"
                 && request.Environments[0].ShortName == "dev"
                 && request.Repositories.Count == 1
-                && request.Repositories[0].Alias == "main"
+                && request.Repositories[0].Alias == ProjectSetupDefaults.RepoAliasMain
                 && request.Repositories[0].ContentKinds.Count == 2
-                && request.Repositories[0].ContentKinds[0] == "Infrastructure"
-                && request.Repositories[0].ContentKinds[1] == "ApplicationCode"),
+                && request.Repositories[0].ContentKinds[0] == nameof(RepositoryContentKindsEnum.Infrastructure)
+                && request.Repositories[0].ContentKinds[1] == nameof(RepositoryContentKindsEnum.ApplicationCode)),
             Arg.Any<CancellationToken>());
 
         await _mediator.Received(1).Send(
@@ -385,7 +385,7 @@ public sealed class ApplyImportPreviewCommandHandlerTests
     {
         return new ApplyImportPreviewCommand(
             ProjectName: "MyProject",
-            LayoutPreset: "AllInOne",
+            LayoutPreset: nameof(LayoutPresetEnum.AllInOne),
             Preview: new ImportPreviewAnalysisResult
             {
                 SourceFormat = "arm-json",
@@ -435,7 +435,7 @@ public sealed class ApplyImportPreviewCommandHandlerTests
                 ResourceNamingTemplates: [],
                 ResourceAbbreviations: [],
                 Tags: [],
-                LayoutPreset: "AllInOne"));
+                LayoutPreset: nameof(LayoutPresetEnum.AllInOne)));
     }
 
     private static Task<ErrorOr<GetInfrastructureConfigResult>> CreateInfrastructureConfigResult(

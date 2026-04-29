@@ -48,6 +48,7 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 - All .NET test projects live under `tests/`.
 - Unit test projects follow `<TargetAssembly>.Tests` and reference a single production assembly.
 - `tests/InfraFlowSculptor.GenerationParity.Tests/` is currently an empty placeholder folder with no `.csproj`.
+- `tmp/test-output-mcp/` is currently not covered by root `.gitignore`; generated MCP test/runtime artifacts under that folder can appear in `origin/main...HEAD` branch diffs if produced locally.
 
 ## API Runtime Hardening [2026-04-23]
 

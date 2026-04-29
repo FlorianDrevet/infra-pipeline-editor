@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
+using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 
@@ -283,12 +284,12 @@ public sealed class ProjectDraftService : IProjectDraftService
         {
             LayoutPresetEnum.AllInOne =>
             [
-                new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "ApplicationCode"] },
+                new DraftRepositoryIntent { Alias = ProjectSetupDefaults.RepoAliasMain, ContentKinds = [nameof(RepositoryContentKindsEnum.Infrastructure), nameof(RepositoryContentKindsEnum.ApplicationCode)] },
             ],
             LayoutPresetEnum.SplitInfraCode =>
             [
-                new DraftRepositoryIntent { Alias = "infra", ContentKinds = ["Infrastructure"] },
-                new DraftRepositoryIntent { Alias = "app", ContentKinds = ["ApplicationCode"] },
+                new DraftRepositoryIntent { Alias = ProjectSetupDefaults.RepoAliasInfra, ContentKinds = [nameof(RepositoryContentKindsEnum.Infrastructure)] },
+                new DraftRepositoryIntent { Alias = ProjectSetupDefaults.RepoAliasApp, ContentKinds = [nameof(RepositoryContentKindsEnum.ApplicationCode)] },
             ],
             LayoutPresetEnum.MultiRepo => [],
             _ => [],

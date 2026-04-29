@@ -163,17 +163,10 @@ public sealed class IacImportTools
         }, McpJsonDefaults.SerializerOptions);
     }
 
-    private const string DefaultLocation = "westeurope";
-
-    private static readonly IReadOnlyList<EnvironmentSetupItem> DefaultEnvironments =
-    [
-        new EnvironmentSetupItem("Development", "dev", string.Empty, string.Empty, DefaultLocation, Guid.Empty, 0, false),
-    ];
-
     private static IReadOnlyList<EnvironmentSetupItem> ParseEnvironments(string? environments)
     {
         if (string.IsNullOrWhiteSpace(environments))
-            return DefaultEnvironments;
+            return [ProjectSetupDefaults.CreateDefaultEnvironment()];
 
         try
         {
@@ -186,11 +179,11 @@ public sealed class IacImportTools
                 items.Add(ParseEnvironmentItem(env, ref order));
             }
 
-            return items.Count > 0 ? items : DefaultEnvironments;
+            return items.Count > 0 ? items : [ProjectSetupDefaults.CreateDefaultEnvironment()];
         }
         catch (JsonException)
         {
-            return DefaultEnvironments;
+            return [ProjectSetupDefaults.CreateDefaultEnvironment()];
         }
     }
 
@@ -201,7 +194,7 @@ public sealed class IacImportTools
             ShortName: env.TryGetProperty("shortName", out var sn) ? sn.GetString() ?? "env" : "env",
             Prefix: env.TryGetProperty("prefix", out var p) ? p.GetString() ?? string.Empty : string.Empty,
             Suffix: env.TryGetProperty("suffix", out var s) ? s.GetString() ?? string.Empty : string.Empty,
-            Location: env.TryGetProperty("location", out var l) ? l.GetString() ?? DefaultLocation : DefaultLocation,
+            Location: env.TryGetProperty("location", out var l) ? l.GetString() ?? ProjectSetupDefaults.DefaultLocation : ProjectSetupDefaults.DefaultLocation,
             SubscriptionId: env.TryGetProperty("subscriptionId", out var sub)
                 && Guid.TryParse(sub.GetString(), out var subGuid)
                     ? subGuid

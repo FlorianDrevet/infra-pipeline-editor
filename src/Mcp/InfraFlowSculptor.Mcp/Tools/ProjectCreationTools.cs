@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
+using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Drafts.Models;
@@ -171,11 +172,13 @@ public sealed class ProjectCreationTools
         );
     }
 
+    private const string ApplicationContentKindAlias = "Application";
+
     private static IReadOnlyList<string> NormalizeContentKinds(IReadOnlyList<string> contentKinds)
     {
         return contentKinds
-            .Select(contentKind => string.Equals(contentKind, "Application", StringComparison.OrdinalIgnoreCase)
-                ? "ApplicationCode"
+            .Select(contentKind => string.Equals(contentKind, ApplicationContentKindAlias, StringComparison.OrdinalIgnoreCase)
+                ? nameof(RepositoryContentKindsEnum.ApplicationCode)
                 : contentKind)
             .ToList();
     }
