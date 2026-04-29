@@ -156,21 +156,27 @@
 
 .ds-date-picker__header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.65rem;
+  flex-direction: column;
+  gap: 0.35rem;
   padding: 0.65rem 0.75rem;
   background: $ifs-gradient-brand;
   color: #fff;
 }
 
-.ds-date-picker__header-center {
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+.ds-date-picker__header-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) 2rem;
   align-items: center;
-  gap: 0.2rem;
+  column-gap: 0.45rem;
+}
+
+.ds-date-picker__header-cell {
+  min-width: 0;
+}
+
+.ds-date-picker__header-cell--center {
+  display: flex;
+  justify-content: center;
 }
 
 .ds-date-picker__month-label {
@@ -178,12 +184,7 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   text-transform: capitalize;
-}
-
-.ds-date-picker__year-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
+  text-align: center;
 }
 
 .ds-date-picker__month-label-button,
@@ -208,7 +209,8 @@
 }
 
 .ds-date-picker__year-label-button {
-  min-width: 4.35rem;
+  width: 100%;
+  justify-content: center;
   padding-inline: 0.7rem;
   font-size: 0.92rem;
   font-weight: 700;
@@ -257,8 +259,8 @@
 .ds-date-picker__year-nav-button {
   display: grid;
   place-items: center;
-  width: 1.8rem;
-  height: 1.8rem;
+  width: 2rem;
+  height: 2rem;
   border: none;
   background: rgba(255, 255, 255, 0.12);
   color: inherit;

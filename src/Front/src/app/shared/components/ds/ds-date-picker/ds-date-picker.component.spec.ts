@@ -73,6 +73,22 @@ describe('DsDatePickerComponent', () => {
     expect((component as any).viewDate().getFullYear()).toBe(2033);
   });
 
+  it('renders distinct aligned header rows for year and month navigation in day mode', async () => {
+    await openPicker();
+
+    const yearRow = overlayElement.querySelector<HTMLElement>('.ds-date-picker__header-row--year');
+    const monthRow = overlayElement.querySelector<HTMLElement>('.ds-date-picker__header-row--month');
+
+    expect(yearRow).withContext('year navigation row should exist').not.toBeNull();
+    expect(monthRow).withContext('month navigation row should exist').not.toBeNull();
+    expect(yearRow?.querySelector('.ds-date-picker__year-nav-button--previous')).not.toBeNull();
+    expect(yearRow?.querySelector('.ds-date-picker__year-label-button')).not.toBeNull();
+    expect(yearRow?.querySelector('.ds-date-picker__year-nav-button--next')).not.toBeNull();
+    expect(monthRow?.querySelector('.ds-date-picker__month-nav-button--previous')).not.toBeNull();
+    expect(monthRow?.querySelector('.ds-date-picker__month-label')).not.toBeNull();
+    expect(monthRow?.querySelector('.ds-date-picker__month-nav-button--next')).not.toBeNull();
+  });
+
   it('disables next year navigation when the target month is after the configured max date', async () => {
     fixture.componentRef.setInput('max', '2032-12-31');
     fixture.detectChanges();

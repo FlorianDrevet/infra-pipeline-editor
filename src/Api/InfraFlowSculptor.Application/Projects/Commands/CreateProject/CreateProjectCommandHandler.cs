@@ -5,7 +5,6 @@ using InfraFlowSculptor.Application.Projects.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
-using MapsterMapper;
 using MediatR;
 
 namespace InfraFlowSculptor.Application.Projects.Commands.CreateProject;
@@ -13,8 +12,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.CreateProject;
 /// <summary>Handles the <see cref="CreateProjectCommand"/>.</summary>
 public sealed class CreateProjectCommandHandler(
     IProjectRepository repository,
-    ICurrentUser currentUser,
-    IMapper mapper)
+    ICurrentUser currentUser)
     : ICommandHandler<CreateProjectCommand, ProjectResult>
 {
     /// <summary>Default naming template applied to every new project.</summary>
@@ -46,6 +44,6 @@ public sealed class CreateProjectCommandHandler(
 
         var saved = await repository.AddAsync(project);
 
-        return mapper.Map<ProjectResult>(saved);
+        return ProjectResultMapper.ToProjectResult(saved);
     }
 }

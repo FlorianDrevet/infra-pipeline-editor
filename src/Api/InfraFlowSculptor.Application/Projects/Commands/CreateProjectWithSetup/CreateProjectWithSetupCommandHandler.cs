@@ -7,7 +7,6 @@ using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.InfrastructureConfigAggregate.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
-using MapsterMapper;
 using Location = InfraFlowSculptor.Domain.Common.ValueObjects.Location;
 using Name = InfraFlowSculptor.Domain.Common.ValueObjects.Name;
 
@@ -21,8 +20,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup
 /// </remarks>
 public sealed class CreateProjectWithSetupCommandHandler(
     IProjectRepository repository,
-    ICurrentUser currentUser,
-    IMapper mapper)
+    ICurrentUser currentUser)
     : ICommandHandler<CreateProjectWithSetupCommand, ProjectResult>
 {
     /// <summary>Default naming template applied to every new project.</summary>
@@ -108,7 +106,7 @@ public sealed class CreateProjectWithSetupCommandHandler(
         }
 
         var saved = await repository.AddAsync(project);
-        return mapper.Map<ProjectResult>(saved);
+        return ProjectResultMapper.ToProjectResult(saved);
     }
 
     private static ErrorOr<RepositoryContentKinds> ParseContentKinds(IReadOnlyList<string> kinds)
