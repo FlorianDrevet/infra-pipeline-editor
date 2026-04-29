@@ -1,4 +1,5 @@
 using InfraFlowSculptor.Application;
+using InfraFlowSculptor.Mcp.DependencyInjection;
 using InfraFlowSculptor.Infrastructure;
 using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Drafts;
@@ -34,6 +35,7 @@ builder.Services
     .WithPrompts<ProjectCreationPrompts>();
 
 builder.Services
+    .AddMcpMappings()
     .AddApplication()
     .AddInfrastructure(builder.Configuration, builder.Environment, includeAuthentication: false)
     .AddPatAuthentication();

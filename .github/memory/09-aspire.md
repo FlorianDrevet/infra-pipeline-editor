@@ -21,6 +21,12 @@
 - `AddInfrastructure(...)` now also registers MCP OpenTelemetry sources/meters (`Experimental.ModelContextProtocol`, `ModelContextProtocol`, `ModelContextProtocol.Core`) so Aspire can surface MCP calls as traces beyond a generic `POST /mcp` request.
 - Workspace clients now connect through `.vscode/mcp.json` with `type: "http"` and `url: "http://127.0.0.1:5258/mcp"`.
 
+## MCP Mapping Pitfall [2026-04-29]
+- `create_project_from_draft` can still traverse Application handlers that require `MapsterMapper.IMapper` after the initial project aggregate is created, notably `CreateInfrastructureConfigCommandHandler` via `ProjectSetupOrchestrator.CreateInfrastructureAsync(...)`.
+- If the MCP host only registers `AddApplication()` + `AddInfrastructure(...)` + `AddPatAuthentication()`, Aspire logs show `Unable to resolve service for type 'MapsterMapper.IMapper'` while the MCP resource itself remains `Running` / `Healthy`.
+- `src/Mcp/InfraFlowSculptor.Mcp/Program.cs` now fixes this by calling `AddMcpMappings()` before `AddApplication()`. `AddMcpMappings()` lives in `src/Mcp/InfraFlowSculptor.Mcp/DependencyInjection/McpMappingServiceCollectionExtensions.cs` and reuses API `AddMapping()` registration from `InfraFlowSculptor.Api.Common.Mapping`.
+- Regression test: `tests/InfraFlowSculptor.Mcp.Tests/DependencyInjection/McpMappingServiceCollectionExtensionsTests.cs`.
+
 ## Frontend in Aspire [2026-03-18]
 ```csharp
 builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")

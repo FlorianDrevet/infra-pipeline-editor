@@ -23,8 +23,9 @@
 			"type": "stdio",
 			"command": "aspire",
 			"args": [
+				"agent",
 				"mcp",
-				"start"
+				"--non-interactive"
 			]
 		},
 		"io.github.github/github-mcp-server": {
