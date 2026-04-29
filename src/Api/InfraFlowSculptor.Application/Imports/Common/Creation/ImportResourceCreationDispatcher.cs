@@ -55,6 +55,11 @@ internal static class ImportResourceCreationDispatcher
         var createdIdsByType = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
         var createdIdsByName = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
 
+        // Pre-compute dependency-type counts to detect ambiguous same-type dependencies.
+        var typeCount = resources
+            .GroupBy(r => r.ResourceType, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
+
         var ordered = ResourceCommandFactory.OrderByDependency(
             resources.Select(resource => (resource.ResourceType, resource.Name)));
 
@@ -63,6 +68,21 @@ internal static class ImportResourceCreationDispatcher
             var input = resources.FirstOrDefault(resource =>
                 string.Equals(resource.ResourceType, resourceType, StringComparison.OrdinalIgnoreCase)
                 && string.Equals(resource.Name, name, StringComparison.Ordinal));
+
+            // Reject ambiguous dependency resolution: if the resource has a dependency,
+            // no explicit DependencyResourceNames are provided, and multiple resources of
+            // the same dependency type exist in the input list, skip with a clear message.
+            var requiredDep = ResourceCommandFactory.GetRequiredDependencyType(resourceType);
+            if (requiredDep is not null
+                && (input?.DependencyResourceNames is null or { Count: 0 })
+                && typeCount.TryGetValue(requiredDep, out var depCount) && depCount > 1)
+            {
+                skipped.Add(new ApplyImportPreviewSkippedResourceResult(
+                    resourceType,
+                    name,
+                    $"Ambiguous dependency: {depCount} resources of type '{requiredDep}' exist but no explicit dependency name was provided."));
+                continue;
+            }
 
             var location = ParseLocation(input?.Location);
 
@@ -121,12 +141,12 @@ internal static class ImportResourceCreationDispatcher
             {
                 throw;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 skipped.Add(new ApplyImportPreviewSkippedResourceResult(
                     resourceType,
                     name,
-                    $"Unexpected error: {ex.Message}"));
+                    "An unexpected error occurred during resource creation."));
             }
         }
 

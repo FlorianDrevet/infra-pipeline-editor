@@ -64,32 +64,13 @@ public static class ResourceCommandFactory
         [AzureResourceTypes.SqlDatabase] = AzureResourceTypes.SqlServer,
     };
 
-    private static readonly HashSet<string> SupportedResourceTypes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        AzureResourceTypes.KeyVault,
-        AzureResourceTypes.StorageAccount,
-        AzureResourceTypes.AppServicePlan,
-        AzureResourceTypes.WebApp,
-        AzureResourceTypes.FunctionApp,
-        AzureResourceTypes.ContainerAppEnvironment,
-        AzureResourceTypes.ContainerApp,
-        AzureResourceTypes.RedisCache,
-        AzureResourceTypes.UserAssignedIdentity,
-        AzureResourceTypes.AppConfiguration,
-        AzureResourceTypes.LogAnalyticsWorkspace,
-        AzureResourceTypes.ApplicationInsights,
-        AzureResourceTypes.CosmosDb,
-        AzureResourceTypes.SqlServer,
-        AzureResourceTypes.SqlDatabase,
-        AzureResourceTypes.ServiceBusNamespace,
-        AzureResourceTypes.ContainerRegistry,
-        AzureResourceTypes.EventHubNamespace,
-    };
-
     /// <summary>
-    /// Returns whether the given resource type identifier is dispatchable by <see cref="CreateResourceAsync"/>.
+    /// Returns the required dependency type for a given resource type, or <c>null</c> if it has no dependency.
     /// </summary>
-    public static bool IsSupported(string resourceType) => SupportedResourceTypes.Contains(resourceType);
+    public static string? GetRequiredDependencyType(string resourceType)
+    {
+        return ResourceDependencies.TryGetValue(resourceType, out var dep) ? dep : null;
+    }
 
     /// <summary>
     /// Sorts resource type/name pairs so that direct and transitive dependencies are created before their dependents.

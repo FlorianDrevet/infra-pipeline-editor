@@ -57,6 +57,44 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
     private static readonly Name TestName = new("test-resource");
     private static readonly Location TestLocation = new(Location.LocationEnum.WestEurope);
 
+    /// <summary>
+    /// Configures the mediator substitute to return an error for a given command type,
+    /// so tests can properly await the dispatch and assert the async flow completes.
+    /// </summary>
+    private static void ConfigureErrorReturn<TCommand, TResult>(ISender mediator)
+        where TCommand : IRequest<ErrorOr<TResult>>
+    {
+        mediator.Send(Arg.Any<TCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<TResult>>(
+                Error.Unexpected("test.mock", $"Mock dispatch for {typeof(TCommand).Name}")));
+    }
+
+    private static ISender CreateConfiguredMediator()
+    {
+        var mediator = Substitute.For<ISender>();
+
+        ConfigureErrorReturn<CreateKeyVaultCommand, KeyVaultResult>(mediator);
+        ConfigureErrorReturn<CreateStorageAccountCommand, StorageAccountResult>(mediator);
+        ConfigureErrorReturn<CreateAppServicePlanCommand, AppServicePlanResult>(mediator);
+        ConfigureErrorReturn<CreateRedisCacheCommand, RedisCacheResult>(mediator);
+        ConfigureErrorReturn<CreateUserAssignedIdentityCommand, UserAssignedIdentityResult>(mediator);
+        ConfigureErrorReturn<CreateAppConfigurationCommand, AppConfigurationResult>(mediator);
+        ConfigureErrorReturn<CreateLogAnalyticsWorkspaceCommand, LogAnalyticsWorkspaceResult>(mediator);
+        ConfigureErrorReturn<CreateCosmosDbCommand, CosmosDbResult>(mediator);
+        ConfigureErrorReturn<CreateSqlServerCommand, SqlServerResult>(mediator);
+        ConfigureErrorReturn<CreateServiceBusNamespaceCommand, ServiceBusNamespaceResult>(mediator);
+        ConfigureErrorReturn<CreateContainerRegistryCommand, ContainerRegistryResult>(mediator);
+        ConfigureErrorReturn<CreateEventHubNamespaceCommand, EventHubNamespaceResult>(mediator);
+        ConfigureErrorReturn<CreateContainerAppEnvironmentCommand, ContainerAppEnvironmentResult>(mediator);
+        ConfigureErrorReturn<CreateWebAppCommand, WebAppResult>(mediator);
+        ConfigureErrorReturn<CreateFunctionAppCommand, FunctionAppResult>(mediator);
+        ConfigureErrorReturn<CreateContainerAppCommand, ContainerAppResult>(mediator);
+        ConfigureErrorReturn<CreateApplicationInsightsCommand, ApplicationInsightsResult>(mediator);
+        ConfigureErrorReturn<CreateSqlDatabaseCommand, SqlDatabaseResult>(mediator);
+
+        return mediator;
+    }
+
     public static TheoryData<string, Type> IndependentResourceTypes() => new()
     {
         { AzureResourceTypes.KeyVault, typeof(CreateKeyVaultCommand) },
@@ -76,11 +114,11 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
 
     [Theory]
     [MemberData(nameof(IndependentResourceTypes))]
-    public void Given_IndependentResourceType_When_CreateResourceAsync_Then_DispatchesExpectedCommand(
+    public async Task Given_IndependentResourceType_When_CreateResourceAsync_Then_DispatchesExpectedCommand(
         string resourceType, Type expectedCommandType)
     {
         // Arrange
-        var mediator = Substitute.For<ISender>();
+        var mediator = CreateConfiguredMediator();
         var context = new ResourceCreationContext(new Dictionary<string, Guid>());
 
         // Act
@@ -89,6 +127,8 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
 
         // Assert
         task.Should().NotBeNull();
+        var result = await task!;
+        result.IsError.Should().BeTrue("mediator is configured to return errors for mapping verification");
         mediator.ReceivedCalls()
             .Should().Contain(call => call.GetArguments()[0]!.GetType() == expectedCommandType);
     }
@@ -120,11 +160,11 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
     [InlineData(AzureResourceTypes.ContainerApp, AzureResourceTypes.ContainerAppEnvironment, typeof(CreateContainerAppCommand))]
     [InlineData(AzureResourceTypes.ApplicationInsights, AzureResourceTypes.LogAnalyticsWorkspace, typeof(CreateApplicationInsightsCommand))]
     [InlineData(AzureResourceTypes.SqlDatabase, AzureResourceTypes.SqlServer, typeof(CreateSqlDatabaseCommand))]
-    public void Given_DependentTypeWithDependency_When_CreateResourceAsync_Then_DispatchesExpectedCommand(
+    public async Task Given_DependentTypeWithDependency_When_CreateResourceAsync_Then_DispatchesExpectedCommand(
         string resourceType, string dependencyType, Type expectedCommandType)
     {
         // Arrange
-        var mediator = Substitute.For<ISender>();
+        var mediator = CreateConfiguredMediator();
         var context = new ResourceCreationContext(new Dictionary<string, Guid>
         {
             [dependencyType] = Guid.NewGuid(),
@@ -136,23 +176,29 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
 
         // Assert
         task.Should().NotBeNull();
+        var result = await task!;
+        result.IsError.Should().BeTrue("mediator is configured to return errors for mapping verification");
         mediator.ReceivedCalls()
             .Should().Contain(call => call.GetArguments()[0]!.GetType() == expectedCommandType);
     }
 
     [Fact]
-    public void Given_StorageAccountExtractedProperties_When_CreateResourceAsync_Then_DispatchesCommandWithExtractedKind()
+    public async Task Given_StorageAccountExtractedProperties_When_CreateResourceAsync_Then_DispatchesCommandWithExtractedKind()
     {
         // Arrange
-        var mediator = Substitute.For<ISender>();
+        var mediator = CreateConfiguredMediator();
         var props = new StorageAccountExtractedProperties("Standard_LRS", "BlobStorage", []);
         var context = new ResourceCreationContext(new Dictionary<string, Guid>(), TypedProperties: props);
 
         // Act
-        ResourceCommandFactory.CreateResourceAsync(
+        var task = ResourceCommandFactory.CreateResourceAsync(
             mediator, AzureResourceTypes.StorageAccount, TestRgId, TestName, TestLocation, context, CancellationToken.None);
 
         // Assert
+        task.Should().NotBeNull();
+        var result = await task!;
+        result.IsError.Should().BeTrue("mediator is configured to return errors for mapping verification");
+
         var call = mediator.ReceivedCalls()
             .Single(c => c.GetArguments()[0] is CreateStorageAccountCommand);
         var command = (CreateStorageAccountCommand)call.GetArguments()[0]!;
@@ -176,18 +222,6 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
     }
 
     [Fact]
-    public void Given_KnownResourceType_When_IsSupported_Then_ReturnsTrue()
-    {
-        ResourceCommandFactory.IsSupported(AzureResourceTypes.KeyVault).Should().BeTrue();
-    }
-
-    [Fact]
-    public void Given_UnknownResourceType_When_IsSupported_Then_ReturnsFalse()
-    {
-        ResourceCommandFactory.IsSupported("UnknownType").Should().BeFalse();
-    }
-
-    [Fact]
     public void Given_DependentTypeWithoutDependency_When_GetMissingDependency_Then_ReturnsDependencyType()
     {
         var missing = ResourceCommandFactory.GetMissingDependency(
@@ -203,5 +237,50 @@ public sealed class ResourceCommandFactoryDispatchMappingTests
             AzureResourceTypes.KeyVault, new Dictionary<string, Guid>());
 
         missing.Should().BeNull();
+    }
+
+    [Fact]
+    public void Given_AllAzureResourceTypes_When_ComparedToTestCoverage_Then_AllTypesAreCovered()
+    {
+        // ResourceGroup is a container type, not dispatched by the factory.
+        var excludedTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { AzureResourceTypes.ResourceGroup };
+
+        var allTypes = typeof(AzureResourceTypes)
+            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.FlattenHierarchy)
+            .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string))
+            .Select(f => (string)f.GetRawConstantValue()!)
+            .Where(t => !excludedTypes.Contains(t))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var testedTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var row in IndependentResourceTypes())
+            testedTypes.Add((string)row[0]);
+
+        testedTypes.Add(AzureResourceTypes.WebApp);
+        testedTypes.Add(AzureResourceTypes.FunctionApp);
+        testedTypes.Add(AzureResourceTypes.ContainerApp);
+        testedTypes.Add(AzureResourceTypes.ApplicationInsights);
+        testedTypes.Add(AzureResourceTypes.SqlDatabase);
+
+        testedTypes.Should().BeEquivalentTo(allTypes, "every AzureResourceTypes constant must have dispatch test coverage");
+    }
+
+    [Theory]
+    [InlineData(AzureResourceTypes.WebApp, AzureResourceTypes.AppServicePlan)]
+    [InlineData(AzureResourceTypes.FunctionApp, AzureResourceTypes.AppServicePlan)]
+    [InlineData(AzureResourceTypes.ContainerApp, AzureResourceTypes.ContainerAppEnvironment)]
+    [InlineData(AzureResourceTypes.ApplicationInsights, AzureResourceTypes.LogAnalyticsWorkspace)]
+    [InlineData(AzureResourceTypes.SqlDatabase, AzureResourceTypes.SqlServer)]
+    public void Given_DependentType_When_GetRequiredDependencyType_Then_ReturnsDependencyType(
+        string resourceType, string expectedDependencyType)
+    {
+        ResourceCommandFactory.GetRequiredDependencyType(resourceType).Should().Be(expectedDependencyType);
+    }
+
+    [Fact]
+    public void Given_IndependentType_When_GetRequiredDependencyType_Then_ReturnsNull()
+    {
+        ResourceCommandFactory.GetRequiredDependencyType(AzureResourceTypes.KeyVault).Should().BeNull();
     }
 }

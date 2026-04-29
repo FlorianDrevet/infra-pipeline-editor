@@ -63,6 +63,11 @@ public static class ProjectSetupOrchestrator
         var createdIdsByType = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
         var createdIdsByName = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
 
+        // Pre-compute dependency-type counts to detect ambiguous same-type dependencies.
+        var typeCount = resources
+            .GroupBy(r => r.ResourceType, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
+
         var ordered = ResourceCommandFactory.OrderByDependency(
             resources.Select(r => (r.ResourceType, r.Name)));
 
@@ -71,6 +76,23 @@ public static class ProjectSetupOrchestrator
             var input = resources.FirstOrDefault(r =>
                 string.Equals(r.ResourceType, resourceType, StringComparison.OrdinalIgnoreCase)
                 && r.Name == name);
+
+            // Reject ambiguous dependency resolution: if the resource has a dependency,
+            // no explicit DependencyResourceNames are provided, and multiple resources of
+            // the same dependency type exist in the input list, skip with a clear message.
+            var requiredDep = ResourceCommandFactory.GetRequiredDependencyType(resourceType);
+            if (requiredDep is not null
+                && (input?.DependencyResourceNames is null or { Count: 0 })
+                && typeCount.TryGetValue(requiredDep, out var depCount) && depCount > 1)
+            {
+                skipped.Add(new SkippedResourceInfo
+                {
+                    ResourceType = resourceType,
+                    Name = name,
+                    Reason = $"Ambiguous dependency: {depCount} resources of type '{requiredDep}' exist but no explicit dependency name was provided.",
+                });
+                continue;
+            }
 
             var location = ParseLocation(input?.Location);
             var context = new ResourceCreationContext(
@@ -129,13 +151,13 @@ public static class ProjectSetupOrchestrator
             {
                 throw;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 skipped.Add(new SkippedResourceInfo
                 {
                     ResourceType = resourceType,
                     Name = name,
-                    Reason = $"Unexpected error: {ex.Message}",
+                    Reason = "An unexpected error occurred during resource creation.",
                 });
             }
         }
