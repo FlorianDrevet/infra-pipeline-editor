@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Api.Common.Mapping;
 using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
 using InfraFlowSculptor.Mcp.Common;
@@ -36,7 +37,8 @@ builder.Services
 builder.Services
     .AddApplication()
     .AddInfrastructure(builder.Configuration, builder.Environment, includeAuthentication: false)
-    .AddPatAuthentication();
+    .AddPatAuthentication()
+    .AddMapping();
 
 var app = builder.Build();
 

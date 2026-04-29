@@ -26,7 +26,8 @@
           [ngModel]="expiresAt()"
           (ngModelChange)="expiresAt.set($event)"
           [ngModelOptions]="{ standalone: true }"
-          min="2026-04-29"
+          [min]="minExpiryDate"
+          [max]="maxExpiryDate"
           [clearable]="true">
         </app-ds-date-picker>
       </div>

@@ -72,6 +72,8 @@ export class DsDatePickerComponent implements ControlValueAccessor {
   protected readonly yearPageStart = signal(this.getYearPageStart(new Date().getFullYear()));
   private readonly internalDisabled = signal(false);
   private readonly triggerRef = viewChild<ElementRef<HTMLButtonElement>>('trigger');
+  private readonly minDateValue = computed(() => this.parseIsoDate(this.min()));
+  private readonly maxDateValue = computed(() => this.parseIsoDate(this.max()));
 
   protected readonly inputId = `ds-date-picker-${++dsDatePickerUid}`;
 
@@ -100,12 +102,14 @@ export class DsDatePickerComponent implements ControlValueAccessor {
   });
 
   protected readonly monthLabel = computed(() => {
-    const d = this.viewDate();
     return new Intl.DateTimeFormat(navigator.language, {
       month: 'long',
-      year: 'numeric',
-    }).format(d);
+    }).format(this.viewDate());
   });
+
+  protected readonly yearLabel = computed(() => this.viewDate().getFullYear().toString());
+  protected readonly canNavigateToPreviousYear = computed(() => this.canNavigateToYear(-1));
+  protected readonly canNavigateToNextYear = computed(() => this.canNavigateToYear(1));
 
   protected readonly yearRangeLabel = computed(() => {
     const start = this.yearPageStart();
@@ -242,6 +246,14 @@ export class DsDatePickerComponent implements ControlValueAccessor {
     this.yearPageStart.update((year) => year + YEAR_PAGE_SIZE);
   }
 
+  protected showPreviousYear(): void {
+    this.navigateYear(-1);
+  }
+
+  protected showNextYear(): void {
+    this.navigateYear(1);
+  }
+
   protected prevMonth(): void {
     const d = this.viewDate();
     this.viewDate.set(new Date(d.getFullYear(), d.getMonth() - 1, 1));
@@ -302,9 +314,38 @@ export class DsDatePickerComponent implements ControlValueAccessor {
     return year - YEAR_PAGE_OFFSET;
   }
 
+  private navigateYear(offset: number): void {
+    const visibleDate = this.viewDate();
+    const targetDate = new Date(visibleDate.getFullYear() + offset, visibleDate.getMonth(), 1);
+
+    if (!this.canViewMonth(targetDate)) {
+      return;
+    }
+
+    this.setViewDate(targetDate);
+  }
+
+  private canNavigateToYear(offset: number): boolean {
+    const visibleDate = this.viewDate();
+    return this.canViewMonth(new Date(visibleDate.getFullYear() + offset, visibleDate.getMonth(), 1));
+  }
+
+  private canViewMonth(date: Date): boolean {
+    const minDate = this.minDateValue();
+    const maxDate = this.maxDateValue();
+    const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+    if (minDate && monthEnd < minDate) {
+      return false;
+    }
+
+    return !maxDate || monthStart <= maxDate;
+  }
+
   private isYearDisabled(year: number): boolean {
-    const minDate = this.parseIsoDate(this.min());
-    const maxDate = this.parseIsoDate(this.max());
+    const minDate = this.minDateValue();
+    const maxDate = this.maxDateValue();
     const yearStart = new Date(year, 0, 1);
     const yearEnd = new Date(year, 11, 31);
 

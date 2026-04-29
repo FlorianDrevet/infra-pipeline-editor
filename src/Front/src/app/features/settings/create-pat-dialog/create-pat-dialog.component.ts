@@ -13,6 +13,8 @@ import {
 } from '../../../shared/components/ds';
 import { PersonalAccessTokenService } from '../../../shared/services/personal-access-token.service';
 
+const PAT_EXPIRY_MAX_YEARS = 1;
+
 @Component({
   selector: 'app-create-pat-dialog',
   standalone: true,
@@ -33,11 +35,14 @@ import { PersonalAccessTokenService } from '../../../shared/services/personal-ac
 export class CreatePatDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<CreatePatDialogComponent>);
   private readonly patService = inject(PersonalAccessTokenService);
+  private readonly today = new Date();
 
   protected readonly tokenName = signal('');
   protected readonly expiresAt = signal('');
   protected readonly isSubmitting = signal(false);
   protected readonly errorKey = signal('');
+  protected readonly minExpiryDate = this.toIsoDate(this.today);
+  protected readonly maxExpiryDate = this.toIsoDate(this.addYears(this.today, PAT_EXPIRY_MAX_YEARS));
 
   protected readonly createdToken = signal('');
   protected readonly tokenCreated = signal(false);
@@ -82,5 +87,18 @@ export class CreatePatDialogComponent {
 
   protected onCancel(): void {
     this.dialogRef.close(false);
+  }
+
+  private addYears(date: Date, years: number): Date {
+    const result = new Date(date);
+    result.setFullYear(result.getFullYear() + years);
+    return result;
+  }
+
+  private toIsoDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

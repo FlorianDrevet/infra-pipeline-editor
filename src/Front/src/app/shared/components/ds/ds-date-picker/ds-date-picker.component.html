@@ -64,20 +64,54 @@
         >
           <mat-icon>chevron_left</mat-icon>
         </button>
-        <button
-          type="button"
-          class="ds-date-picker__month-label-button"
-          (click)="toggleViewMode()"
-          [attr.aria-label]="viewMode() === 'days' ? 'Open year selection' : 'Return to calendar days'"
-          [attr.aria-pressed]="viewMode() === 'years'"
-        >
+        <div class="ds-date-picker__header-center">
           @if (viewMode() === 'days') {
             <span class="ds-date-picker__month-label">{{ monthLabel() }}</span>
+
+            <div class="ds-date-picker__year-controls">
+              <button
+                type="button"
+                class="ds-date-picker__year-nav-button ds-date-picker__year-nav-button--previous"
+                [disabled]="!canNavigateToPreviousYear()"
+                aria-label="Previous year"
+                (click)="showPreviousYear()"
+              >
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+
+              <button
+                type="button"
+                class="ds-date-picker__year-label-button"
+                (click)="toggleViewMode()"
+                aria-label="Open year selection"
+                [attr.aria-pressed]="false"
+              >
+                {{ yearLabel() }}
+              </button>
+
+              <button
+                type="button"
+                class="ds-date-picker__year-nav-button ds-date-picker__year-nav-button--next"
+                [disabled]="!canNavigateToNextYear()"
+                aria-label="Next year"
+                (click)="showNextYear()"
+              >
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+            </div>
           } @else {
+            <button
+              type="button"
+              class="ds-date-picker__month-label-button"
+              (click)="toggleViewMode()"
+              aria-label="Return to calendar days"
+              [attr.aria-pressed]="true"
+            >
             <span class="ds-date-picker__year-range-label">{{ yearRangeLabel() }}</span>
             <span class="ds-date-picker__header-hint">Select year</span>
+            </button>
           }
-        </button>
+        </div>
         <button
           type="button"
           class="ds-date-picker__nav"

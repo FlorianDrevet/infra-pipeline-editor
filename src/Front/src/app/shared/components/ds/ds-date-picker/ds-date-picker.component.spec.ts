@@ -27,10 +27,10 @@ describe('DsDatePickerComponent', () => {
     overlayContainer.ngOnDestroy();
   });
 
-  it('renders year options when toggling year mode from the header label', async () => {
+  it('renders year options when toggling year mode from the header year label', async () => {
     await openPicker();
 
-    getOverlayButton('.ds-date-picker__month-label-button').click();
+    getOverlayButton('.ds-date-picker__year-label-button').click();
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -43,7 +43,7 @@ describe('DsDatePickerComponent', () => {
   it('updates the visible year and returns to day mode when a year is selected', async () => {
     await openPicker();
 
-    getOverlayButton('.ds-date-picker__month-label-button').click();
+    getOverlayButton('.ds-date-picker__year-label-button').click();
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -58,6 +58,28 @@ describe('DsDatePickerComponent', () => {
 
     expect((component as any).viewDate().getFullYear()).toBe(2035);
     expect((component as any).viewMode()).toBe('days');
+  });
+
+  it('updates the visible year from the day header year navigation', async () => {
+    await openPicker();
+
+    expect(getOverlayButton('.ds-date-picker__year-label-button').textContent?.trim()).toBe('2032');
+
+    getOverlayButton('.ds-date-picker__year-nav-button--next').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(getOverlayButton('.ds-date-picker__year-label-button').textContent?.trim()).toBe('2033');
+    expect((component as any).viewDate().getFullYear()).toBe(2033);
+  });
+
+  it('disables next year navigation when the target month is after the configured max date', async () => {
+    fixture.componentRef.setInput('max', '2032-12-31');
+    fixture.detectChanges();
+
+    await openPicker();
+
+    expect(getOverlayButton('.ds-date-picker__year-nav-button--next').disabled).toBeTrue();
   });
 
   async function openPicker(): Promise<void> {
