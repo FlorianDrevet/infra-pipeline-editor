@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using System.Text.Json;
+using InfraFlowSculptor.Application.Imports.Common.Creation;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
+using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Drafts.Models;
@@ -58,15 +60,7 @@ public sealed class ProjectCreationTools
         var warnings = ProjectDraftWarnings.Build(draft.Intent.Environments, includeDefaultEnvironmentWarning: false).ToArray();
 
         // Create infrastructure config + resource group + resources if the draft has resources.
-        var resourceInputs = (draft.Intent.Resources ?? [])
-            .Where(r => !string.IsNullOrWhiteSpace(r.ResourceType))
-            .Select(r => new ResourceInput
-            {
-                ResourceType = r.ResourceType,
-                Name = r.Name ?? $"{projectName}-{r.ResourceType.ToLowerInvariant()}",
-                Location = primaryLocation,
-            })
-            .ToList();
+        var resourceInputs = BuildResourceInputs(projectName, primaryLocation, draft.Intent.Resources);
 
         if (resourceInputs.Count > 0)
         {
@@ -198,6 +192,57 @@ public sealed class ProjectCreationTools
         else
             actions.Add("Add resources to the project, then generate Bicep files using 'generate_project_bicep'.");
         return actions.ToArray();
+    }
+
+    private static List<ResourceInput> BuildResourceInputs(
+        string projectName,
+        string primaryLocation,
+        IReadOnlyList<DraftResourceIntent>? resources)
+    {
+        var resourceInputs = (resources ?? [])
+            .Where(resource => !string.IsNullOrWhiteSpace(resource.ResourceType))
+            .Select(resource => new ResourceInput
+            {
+                ResourceType = resource.ResourceType,
+                Name = resource.Name ?? BuildDefaultResourceName(projectName, resource.ResourceType),
+                Location = primaryLocation,
+            })
+            .ToList();
+
+        return ExpandMissingDependencies(projectName, primaryLocation, resourceInputs);
+    }
+
+    private static List<ResourceInput> ExpandMissingDependencies(
+        string projectName,
+        string primaryLocation,
+        List<ResourceInput> resourceInputs)
+    {
+        var resourceTypes = new HashSet<string>(
+            resourceInputs.Select(resource => resource.ResourceType),
+            StringComparer.OrdinalIgnoreCase);
+
+        for (var index = 0; index < resourceInputs.Count; index++)
+        {
+            var requiredDependencyType = ResourceCommandFactory.GetRequiredDependencyType(resourceInputs[index].ResourceType);
+            if (requiredDependencyType is null || !resourceTypes.Add(requiredDependencyType))
+            {
+                continue;
+            }
+
+            resourceInputs.Add(new ResourceInput
+            {
+                ResourceType = requiredDependencyType,
+                Name = BuildDefaultResourceName(projectName, requiredDependencyType),
+                Location = primaryLocation,
+            });
+        }
+
+        return resourceInputs;
+    }
+
+    private static string BuildDefaultResourceName(string projectName, string resourceType)
+    {
+        return $"{projectName}-{resourceType.ToLowerInvariant()}";
     }
 
     private static string JsonError(string error, string message) =>
