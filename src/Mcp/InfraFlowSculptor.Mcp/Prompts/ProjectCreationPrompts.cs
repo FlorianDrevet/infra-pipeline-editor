@@ -37,7 +37,8 @@ public sealed class ProjectCreationPrompts
             - NEVER create a project without explicit user confirmation.
             - A project name is always required.
             - At least one environment is required (Development is the default).
-            - Subscription IDs and locations can be defaulted but should be flagged as warnings.
+            - Subscription IDs are optional when creating environments. Missing values must never block draft validation or project creation; keep them as warnings and configure them later.
+            - Locations can be defaulted but should be flagged as warnings.
             """);
     }
 }

@@ -50,7 +50,7 @@ public sealed class ResourceCreationCoordinatorTests
 
         // Act
         var result = await ResourceCreationCoordinator.CreateInfrastructureAsync(
-            mediator, Guid.NewGuid(), "my-project", "WestEurope", CancellationToken.None);
+            mediator, Guid.NewGuid(), "my-project", nameof(Location.LocationEnum.WestEurope), CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -68,7 +68,7 @@ public sealed class ResourceCreationCoordinatorTests
 
         // Act
         var result = await ResourceCreationCoordinator.CreateInfrastructureAsync(
-            mediator, Guid.NewGuid(), "my-project", "WestEurope", CancellationToken.None);
+            mediator, Guid.NewGuid(), "my-project", nameof(Location.LocationEnum.WestEurope), CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeTrue();

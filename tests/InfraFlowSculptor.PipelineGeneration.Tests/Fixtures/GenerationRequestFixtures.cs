@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.GenerationCore.Models;
 
 namespace InfraFlowSculptor.PipelineGeneration.Tests.Fixtures;
@@ -37,7 +38,7 @@ internal static class GenerationRequestFixtures
             new ResourceGroupDefinition
             {
                 Name = "core",
-                Location = "westeurope",
+                Location = Location.DefaultAzureRegionKey,
                 ResourceAbbreviation = "rg",
             },
         ],
@@ -57,7 +58,7 @@ internal static class GenerationRequestFixtures
             new ResourceGroupDefinition
             {
                 Name = "core",
-                Location = "westeurope",
+                Location = Location.DefaultAzureRegionKey,
                 ResourceAbbreviation = "rg",
             },
         ],
@@ -97,7 +98,7 @@ internal static class GenerationRequestFixtures
     {
         Name = name,
         ShortName = name,
-        Location = "westeurope",
+        Location = Location.DefaultAzureRegionKey,
         Prefix = name,
         Suffix = name,
         AzureResourceManagerConnection = $"sc-{name}",

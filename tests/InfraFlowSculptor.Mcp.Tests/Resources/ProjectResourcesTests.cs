@@ -72,7 +72,7 @@ public sealed class ProjectResourcesTests
                     ShortName: "dev",
                     Prefix: "",
                     Suffix: "",
-                    Location: "westeurope",
+                    Location: Location.DefaultAzureRegionKey,
                     SubscriptionId: Guid.NewGuid(),
                     Order: 1,
                     RequiresApproval: false,
@@ -108,7 +108,7 @@ public sealed class ProjectResourcesTests
         environments.GetArrayLength().Should().Be(1);
         environments[0].GetProperty("name").GetString().Should().Be("Development");
         environments[0].GetProperty("shortName").GetString().Should().Be("dev");
-        environments[0].GetProperty("location").GetString().Should().Be("westeurope");
+        environments[0].GetProperty("location").GetString().Should().Be(Location.DefaultAzureRegionKey);
 
         var resourceTypes = doc.RootElement.GetProperty("usedResourceTypes");
         resourceTypes.GetArrayLength().Should().Be(1);

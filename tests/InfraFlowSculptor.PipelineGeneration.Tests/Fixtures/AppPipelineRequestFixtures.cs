@@ -1,3 +1,4 @@
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using InfraFlowSculptor.GenerationCore.Models;
 
@@ -118,7 +119,7 @@ internal static class AppPipelineRequestFixtures
     {
         Name = name,
         ShortName = name,
-        Location = "westeurope",
+        Location = Location.DefaultAzureRegionKey,
         Prefix = name,
         Suffix = name,
         AzureResourceManagerConnection = $"sc-{name}",

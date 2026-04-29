@@ -98,6 +98,7 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - Project stance: MCP must stay an adapter layer over `Application`/generation services; import/migration logic should be reusable outside MCP via canonical import services and contracts.
 - **Current state [2026-04-29]:** MCP runs as ASP.NET Core HTTP host (`/mcp`, port 5258) under Aspire, secured with PAT auth. Import preview/apply logic extracted to `Application/Imports/` for shared API+MCP use. `ResourceCommandFactory` + `ProjectSetupOrchestrator` wire end-to-end resource creation. One-class-per-file enforced, `LayoutPresetEnum` replaces magic strings.
 - Conversational creation rule: a prompt like "create a project with a Key Vault" must first go through a draft/clarification step; repository topology (`MonoRepo`, `SplitInfraCode`, etc.) must not be guessed by a mutating tool.
+- Environment subscription rule: missing environment subscription IDs are optional during MCP draft/project creation. They must remain non-blocking warnings, warnings must be recomputed from the current draft state on revalidation, and `create_project_from_draft` should echo them in the success payload so the caller knows the subscription can be configured later.
 - VS Code connection: `.vscode/mcp.json` points to `http://127.0.0.1:5258/mcp` with `Authorization: Bearer ${input:ifs_pat}` header.
 - The skill now explicitly requires typed import models instead of weak `Dictionary<string, object>` / `JsonDocument` propagation, one public top-level type per file, and deliberate pattern selection.
 

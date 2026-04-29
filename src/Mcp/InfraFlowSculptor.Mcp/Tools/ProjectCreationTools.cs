@@ -55,6 +55,7 @@ public sealed class ProjectCreationTools
         var projectId = result.Value.Id.Value;
         var projectName = result.Value.Name.Value;
         var primaryLocation = draft.Intent.Environments?.FirstOrDefault()?.Location ?? ProjectSetupDefaults.DefaultLocation;
+        var warnings = ProjectDraftWarnings.Build(draft.Intent.Environments, includeDefaultEnvironmentWarning: false).ToArray();
 
         // Create infrastructure config + resource group + resources if the draft has resources.
         var resourceInputs = (draft.Intent.Resources ?? [])
@@ -80,6 +81,7 @@ public sealed class ProjectCreationTools
                     status = "created",
                     projectId = projectId.ToString(),
                     projectName,
+                    warnings,
                     infrastructureError = string.Join("; ", infraResult.Errors.Select(e => e.Description)),
                     createdResources = Array.Empty<object>(),
                     skippedResources = Array.Empty<object>(),
@@ -104,6 +106,7 @@ public sealed class ProjectCreationTools
                 layoutPreset = draft.Intent.LayoutPreset?.ToString(),
                 environmentCount = draft.Intent.Environments?.Count ?? 0,
                 repositoryCount = draft.Intent.Repositories?.Count ?? 0,
+                warnings,
                 infrastructureConfigId = configId.Value.ToString(),
                 resourceGroupId = rgId.Value.ToString(),
                 createdResources = created.Select(r => new
@@ -131,6 +134,7 @@ public sealed class ProjectCreationTools
             layoutPreset = draft.Intent.LayoutPreset?.ToString(),
             environmentCount = draft.Intent.Environments?.Count ?? 0,
             repositoryCount = draft.Intent.Repositories?.Count ?? 0,
+            warnings,
             createdResources = Array.Empty<object>(),
             skippedResources = Array.Empty<object>(),
             nextSuggestedActions = new[]

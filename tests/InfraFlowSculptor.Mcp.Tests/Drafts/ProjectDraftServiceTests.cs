@@ -94,6 +94,22 @@ public sealed class ProjectDraftServiceTests
     }
 
     [Fact]
+    public void CreateDraftFromPrompt_MissingSubscriptionId_WarningExplainsItCanBeConfiguredLater()
+    {
+        // Arrange
+        const string prompt = "Crée-moi un projet TestApp en mono repo";
+
+        // Act
+        var draft = _sut.CreateDraftFromPrompt(prompt);
+
+        // Assert
+        draft.Warnings.Should().Contain(warning =>
+            warning.Contains("subscription", StringComparison.OrdinalIgnoreCase)
+            && warning.Contains("allowed", StringComparison.OrdinalIgnoreCase)
+            && warning.Contains("later", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void CreateDraftFromPrompt_PricingIntent_ExtractsCheapest()
     {
         // Arrange

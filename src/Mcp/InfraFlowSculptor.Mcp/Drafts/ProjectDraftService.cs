@@ -31,7 +31,7 @@ public sealed class ProjectDraftService : IProjectDraftService
         var intent = ParsePromptIntent(userPrompt);
         var missingFields = new List<string>();
         var clarificationQuestions = new List<DraftClarificationQuestion>();
-        var warnings = new List<string>();
+        var defaultEnvironmentAdded = false;
 
         if (intent.LayoutPreset is null)
         {
@@ -52,7 +52,7 @@ public sealed class ProjectDraftService : IProjectDraftService
         if (intent.Environments is null or { Count: 0 })
         {
             intent.Environments = [new DraftEnvironmentIntent()];
-            warnings.Add("No environments specified - defaulting to a single 'Development' environment.");
+            defaultEnvironmentAdded = true;
         }
 
         if (intent.LayoutPreset is not null)
@@ -60,15 +60,7 @@ public sealed class ProjectDraftService : IProjectDraftService
             intent.Repositories = BuildDefaultRepositories(intent.LayoutPreset.Value);
         }
 
-        if (intent.Environments.Any(e => e.SubscriptionId == Guid.Empty))
-        {
-            warnings.Add("One or more environments have no subscription ID configured.");
-        }
-
-        if (intent.Environments.Any(e => string.Equals(e.Location, Location.DefaultAzureRegionKey, StringComparison.OrdinalIgnoreCase)))
-        {
-            warnings.Add($"Default Azure region is '{Location.DefaultAzureRegionKey}'. You can change this later.");
-        }
+        var warnings = ProjectDraftWarnings.Build(intent.Environments, defaultEnvironmentAdded);
 
         var status = missingFields.Count == 0 ? DraftStatus.ReadyToCreate : DraftStatus.RequiresClarification;
 
@@ -186,6 +178,7 @@ public sealed class ProjectDraftService : IProjectDraftService
         draft.MissingFields = missingFields;
         draft.Errors = errors;
         draft.ClarificationQuestions = clarificationQuestions;
+        draft.Warnings = ProjectDraftWarnings.Build(draft.Intent.Environments, includeDefaultEnvironmentWarning: false);
         draft.Status = missingFields.Count == 0 && errors.Count == 0
             ? DraftStatus.ReadyToCreate
             : DraftStatus.RequiresClarification;
@@ -372,5 +365,42 @@ public sealed class ProjectDraftService : IProjectDraftService
             _drafts.TryRemove(key, out _);
 
         return expired.Count;
+    }
+}
+
+internal static class ProjectDraftWarnings
+{
+    internal const string DefaultEnvironmentWarning = "No environments specified - defaulting to a single 'Development' environment.";
+
+    internal const string MissingSubscriptionWarning =
+        "One or more environments have no subscription ID configured. This is allowed during project creation and can be configured later.";
+
+    internal static List<string> Build(
+        IReadOnlyCollection<DraftEnvironmentIntent>? environments,
+        bool includeDefaultEnvironmentWarning)
+    {
+        var warnings = new List<string>();
+
+        if (includeDefaultEnvironmentWarning)
+        {
+            warnings.Add(DefaultEnvironmentWarning);
+        }
+
+        if (environments is null || environments.Count == 0)
+        {
+            return warnings;
+        }
+
+        if (environments.Any(environment => environment.SubscriptionId == Guid.Empty))
+        {
+            warnings.Add(MissingSubscriptionWarning);
+        }
+
+        if (environments.Any(environment => string.Equals(environment.Location, Location.DefaultAzureRegionKey, StringComparison.OrdinalIgnoreCase)))
+        {
+            warnings.Add($"Default Azure region is '{Location.DefaultAzureRegionKey}'. You can change this later.");
+        }
+
+        return warnings;
     }
 }

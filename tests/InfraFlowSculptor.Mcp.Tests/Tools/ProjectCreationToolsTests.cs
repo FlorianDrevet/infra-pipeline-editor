@@ -140,4 +140,58 @@ public sealed class ProjectCreationToolsTests
         doc.RootElement.GetProperty("error").GetString().Should().Be("creation_failed");
         doc.RootElement.GetProperty("message").GetString().Should().Contain("already exists");
     }
+
+    [Fact]
+    public async Task CreateProjectFromDraft_ReadyDraftWithoutSubscription_ReturnsDeferredConfigurationWarning()
+    {
+        // Arrange
+        var draft = new ProjectCreationDraft
+        {
+            DraftId = "draft_abc12345",
+            Status = DraftStatus.ReadyToCreate,
+            Intent = new DraftProjectIntent
+            {
+                ProjectName = "RetailApi",
+                LayoutPreset = LayoutPresetEnum.AllInOne,
+                Environments =
+                [
+                    new DraftEnvironmentIntent { Name = "Development", ShortName = "dev", SubscriptionId = Guid.Empty },
+                ],
+                Repositories =
+                [
+                    new DraftRepositoryIntent { Alias = "main", ContentKinds = ["Infrastructure", "ApplicationCode"] },
+                ],
+            },
+        };
+        _draftService.GetDraft("draft_abc12345").Returns(draft);
+
+        var projectId = new ProjectId(Guid.NewGuid());
+        var projectName = new Name("RetailApi");
+        var projectResult = new ProjectResult(
+            projectId,
+            projectName,
+            Description: null,
+            Members: [],
+            EnvironmentDefinitions: [],
+            DefaultNamingTemplate: null,
+            ResourceNamingTemplates: [],
+            ResourceAbbreviations: [],
+            Tags: [],
+            LayoutPreset: "AllInOne");
+
+        _mediator.Send(Arg.Any<IRequest<ErrorOr<ProjectResult>>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<ProjectResult>>(projectResult));
+
+        // Act
+        var json = await ProjectCreationTools.CreateProjectFromDraft(_draftService, _mediator, "draft_abc12345");
+
+        // Assert
+        var doc = JsonDocument.Parse(json);
+        doc.RootElement.GetProperty("status").GetString().Should().Be("created");
+        doc.RootElement.GetProperty("warnings").EnumerateArray()
+            .Select(item => item.GetString())
+            .Should().Contain(message => message != null
+                && message.Contains("subscription", StringComparison.OrdinalIgnoreCase)
+                && message.Contains("later", StringComparison.OrdinalIgnoreCase));
+    }
 }

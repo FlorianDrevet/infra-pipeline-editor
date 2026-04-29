@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Api\InfraFlowSculptor.Domain\InfraFlowSculptor.Domain.csproj" />
     <ProjectReference Include="..\..\src\Api\InfraFlowSculptor.PipelineGeneration\InfraFlowSculptor.PipelineGeneration.csproj" />
   </ItemGroup>
 

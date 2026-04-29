@@ -59,7 +59,7 @@ public sealed class ProjectSetupOrchestratorTests
 
         // Act
         var result = await ProjectSetupOrchestrator.CreateInfrastructureAsync(
-            _mediator, projectId, "TestProject", "francecentral");
+            _mediator, projectId, "TestProject", Location.ToAzureRegionKey(Location.LocationEnum.FranceCentral));
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -87,7 +87,7 @@ public sealed class ProjectSetupOrchestratorTests
 
         // Act
         var result = await ProjectSetupOrchestrator.CreateInfrastructureAsync(
-            _mediator, projectId, "TestProject", "francecentral");
+            _mediator, projectId, "TestProject", Location.ToAzureRegionKey(Location.LocationEnum.FranceCentral));
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -119,7 +119,7 @@ public sealed class ProjectSetupOrchestratorTests
 
         // Act
         var result = await ProjectSetupOrchestrator.CreateInfrastructureAsync(
-            _mediator, projectId, "TestProject", "francecentral");
+            _mediator, projectId, "TestProject", Location.ToAzureRegionKey(Location.LocationEnum.FranceCentral));
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -144,7 +144,7 @@ public sealed class ProjectSetupOrchestratorTests
 
         var resources = new List<ResourceInput>
         {
-            new() { ResourceType = AzureResourceTypes.KeyVault, Name = "test-kv", Location = "francecentral" },
+            new() { ResourceType = AzureResourceTypes.KeyVault, Name = "test-kv", Location = Location.ToAzureRegionKey(Location.LocationEnum.FranceCentral) },
         };
 
         // Act
@@ -234,20 +234,20 @@ public sealed class ProjectSetupOrchestratorTests
 
         var resources = new List<ResourceInput>
         {
-            new() { ResourceType = AzureResourceTypes.LogAnalyticsWorkspace, Name = "law-east", Location = "francecentral" },
-            new() { ResourceType = AzureResourceTypes.LogAnalyticsWorkspace, Name = "law-west", Location = "francecentral" },
+            new() { ResourceType = AzureResourceTypes.LogAnalyticsWorkspace, Name = "law-east", Location = Location.ToAzureRegionKey(Location.LocationEnum.FranceCentral) },
+            new() { ResourceType = AzureResourceTypes.LogAnalyticsWorkspace, Name = "law-west", Location = Location.ToAzureRegionKey(Location.LocationEnum.FranceCentral) },
             new()
             {
                 ResourceType = AzureResourceTypes.ApplicationInsights,
                 Name = "ai-east",
-                Location = "francecentral",
+                Location = Location.ToAzureRegionKey(Location.LocationEnum.FranceCentral),
                 DependencyResourceNames = ["law-east"],
             },
             new()
             {
                 ResourceType = AzureResourceTypes.ApplicationInsights,
                 Name = "ai-west",
-                Location = "francecentral",
+                Location = Location.ToAzureRegionKey(Location.LocationEnum.FranceCentral),
                 DependencyResourceNames = ["law-west"],
             },
         };
