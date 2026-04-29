@@ -112,7 +112,7 @@ public static class ResourceCommandFactory
                 resourceGroupId, name, location,
                 RedisVersion: null,
                 EnableNonSslPort: false,
-                MinimumTlsVersion: "1.2",
+                MinimumTlsVersion: AzureResourceDefaults.MinimumTlsVersion,
                 DisableAccessKeyAuthentication: false,
                 EnableAadAuth: true),
 
@@ -133,8 +133,8 @@ public static class ResourceCommandFactory
 
             AzureResourceTypes.SqlServer => new CreateSqlServerCommand(
                 resourceGroupId, name, location,
-                Version: "12.0",
-                AdministratorLogin: "sqladmin"),
+                Version: AzureResourceDefaults.SqlServerVersion,
+                AdministratorLogin: AzureResourceDefaults.SqlServerAdministratorLogin),
 
             AzureResourceTypes.SqlDatabase => BuildSqlDatabaseCommand(
                 resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),

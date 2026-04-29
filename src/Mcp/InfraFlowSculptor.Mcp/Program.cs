@@ -9,12 +9,10 @@ using InfraFlowSculptor.Mcp.Resources;
 using InfraFlowSculptor.Mcp.Tools;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
-const string McpRoute = "/mcp";
-
 var builder = WebApplication.CreateBuilder(args);
 
-var mcpUrl = builder.Configuration["Mcp:ListenUrl"] ?? "http://127.0.0.1:5258";
-builder.WebHost.UseUrls(mcpUrl);
+var mcpOptions = builder.Configuration.GetSection(McpOptions.SectionName).Get<McpOptions>() ?? new McpOptions();
+builder.WebHost.UseUrls(mcpOptions.ListenUrl);
 
 builder.Services.AddSingleton<IProjectDraftService, ProjectDraftService>();
 builder.Services.AddSingleton<IImportPreviewService, ImportPreviewService>();
@@ -50,6 +48,6 @@ app.MapHealthChecks("/alive", new HealthCheckOptions
 {
     Predicate = registration => registration.Tags.Contains("live")
 }).AllowAnonymous();
-app.MapMcp(McpRoute).RequireAuthorization();
+app.MapMcp(mcpOptions.Route).RequireAuthorization();
 
 await app.RunAsync();
