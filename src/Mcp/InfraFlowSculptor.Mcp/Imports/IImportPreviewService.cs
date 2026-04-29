@@ -19,4 +19,9 @@ public interface IImportPreviewService
     /// <param name="previewId">The unique preview identifier.</param>
     /// <returns><c>true</c> if the preview was found and removed; otherwise <c>false</c>.</returns>
     bool RemovePreview(string previewId);
+
+    /// <summary>Removes all entries older than the specified TTL.</summary>
+    /// <param name="maxAge">Maximum age before eviction.</param>
+    /// <returns>The number of evicted entries.</returns>
+    int EvictExpired(TimeSpan maxAge);
 }

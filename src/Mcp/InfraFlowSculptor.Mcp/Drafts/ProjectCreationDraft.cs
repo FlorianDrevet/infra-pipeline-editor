@@ -23,4 +23,7 @@ public sealed class ProjectCreationDraft
 
     /// <summary>Blocking validation errors (set during validate).</summary>
     public List<DraftValidationError> Errors { get; set; } = [];
+
+    /// <summary>UTC timestamp when this draft was created. Used for TTL-based cleanup.</summary>
+    public DateTime CreatedAtUtc { get; init; } = DateTime.UtcNow;
 }

@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Imports.Common;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -12,6 +13,7 @@ namespace InfraFlowSculptor.Mcp.Tools;
 /// <summary>
 /// Orchestrates the creation of a project with its infrastructure config, resource group, and resources.
 /// Shared between <see cref="ProjectCreationTools"/> and <see cref="IacImportTools"/>.
+/// Delegates command building and dispatch to <see cref="ResourceCommandFactory"/>.
 /// </summary>
 public static class ProjectSetupOrchestrator
 {
@@ -95,12 +97,12 @@ public static class ProjectSetupOrchestrator
 
             try
             {
-                var result = await mediator.Send(command, ct);
-                var resourceId = ExtractResourceId(result);
+                var result = await ResourceCommandFactory.SendCommandAsync(mediator, command, ct);
+                var resourceId = ResourceCommandFactory.ExtractResourceId(result);
 
                 if (resourceId is null)
                 {
-                    var errors = ExtractErrors(result);
+                    var errors = ResourceCommandFactory.ExtractErrors(result);
                     skipped.Add(new SkippedResourceInfo
                     {
                         ResourceType = resourceType,
@@ -118,6 +120,10 @@ public static class ProjectSetupOrchestrator
                     ResourceId = resourceId.Value.ToString(),
                     Name = name,
                 });
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -138,45 +144,5 @@ public static class ProjectSetupOrchestrator
         return Enum.TryParse<Location.LocationEnum>(location, true, out var locationEnum)
             ? new Location(locationEnum)
             : new Location(Location.LocationEnum.WestEurope);
-    }
-
-    /// <summary>Extracts the AzureResourceId.Value from an <c>ErrorOr&lt;T&gt;</c> result using reflection.</summary>
-    private static Guid? ExtractResourceId(object? result)
-    {
-        if (result is null)
-            return null;
-
-        var resultType = result.GetType();
-
-        var isErrorProp = resultType.GetProperty("IsError");
-        if (isErrorProp is not null && isErrorProp.GetValue(result) is true)
-            return null;
-
-        var valueProp = resultType.GetProperty("Value");
-        var value = valueProp?.GetValue(result);
-        if (value is null)
-            return null;
-
-        var idProp = value.GetType().GetProperty("Id");
-        var id = idProp?.GetValue(value);
-        if (id is null)
-            return null;
-
-        var guidProp = id.GetType().GetProperty("Value");
-        return guidProp?.GetValue(id) as Guid?;
-    }
-
-    /// <summary>Extracts error descriptions from an <c>ErrorOr&lt;T&gt;</c> result using reflection.</summary>
-    private static string? ExtractErrors(object? result)
-    {
-        if (result is null)
-            return null;
-
-        var resultType = result.GetType();
-        var errorsProp = resultType.GetProperty("Errors");
-        if (errorsProp?.GetValue(result) is not IEnumerable<Error> errors)
-            return null;
-
-        return string.Join("; ", errors.Select(e => e.Description));
     }
 }

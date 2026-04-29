@@ -10,8 +10,6 @@ namespace InfraFlowSculptor.Application.Imports.Queries.PreviewIacImport;
 public sealed class PreviewIacImportQueryHandler(IImportPreviewAnalyzer analyzer)
     : IQueryHandler<PreviewIacImportQuery, ImportPreviewAnalysisResult>
 {
-    private const string ArmJsonSourceFormat = "arm-json";
-
     /// <inheritdoc />
     public Task<ErrorOr<ImportPreviewAnalysisResult>> Handle(
         PreviewIacImportQuery query,
@@ -19,12 +17,12 @@ public sealed class PreviewIacImportQueryHandler(IImportPreviewAnalyzer analyzer
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        if (!string.Equals(query.SourceFormat, ArmJsonSourceFormat, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(query.SourceFormat, IacSourceFormat.ArmJson, StringComparison.OrdinalIgnoreCase))
         {
             return Task.FromResult<ErrorOr<ImportPreviewAnalysisResult>>(new ImportPreviewAnalysisResult
             {
                 SourceFormat = query.SourceFormat,
-                Summary = $"Source format '{query.SourceFormat}' is not supported in V1. Supported formats: arm-json.",
+                Summary = $"Source format '{query.SourceFormat}' is not supported in V1. Supported formats: {IacSourceFormat.ArmJson}.",
             });
         }
 

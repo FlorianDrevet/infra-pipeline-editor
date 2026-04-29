@@ -106,7 +106,7 @@ public sealed class GoldenArmTemplateTests
 
         // tenantId and enableSoftDelete on KeyVault should be reported as unmapped
         preview.Gaps.Should().Contain(g =>
-            g.Category == "unmapped_property"
+            g.Category == ImportPreviewGapCategory.UnmappedProperty
             && g.SourceResourceName == "myKeyVault"
             && g.Message.Contains("tenantId"));
     }
@@ -357,7 +357,7 @@ public sealed class GoldenArmTemplateTests
     {
       var preview = _sut.AnalyzeArmTemplate(SimpleTemplate);
 
-      preview.SourceFormat.Should().Be("arm-json");
+      preview.SourceFormat.Should().Be(IacSourceFormat.ArmJson);
       preview.Resources.Should().HaveCount(2);
       preview.Summary.Should().Be("Parsed 2 resource(s): 2 mapped, 0 unsupported.");
     }

@@ -22,7 +22,7 @@ public sealed class PreviewIacImportQueryHandlerTests
         // Arrange
         var expected = new ImportPreviewAnalysisResult
         {
-            SourceFormat = "arm-json",
+            SourceFormat = IacSourceFormat.ArmJson,
             Resources =
             [
                 new ImportedResourceAnalysisResult
@@ -40,7 +40,7 @@ public sealed class PreviewIacImportQueryHandlerTests
 
         // Act
         var result = await _sut.Handle(
-            new PreviewIacImportQuery("arm-json", "arm content"),
+            new PreviewIacImportQuery(IacSourceFormat.ArmJson, "arm content"),
             CancellationToken.None);
 
         // Assert

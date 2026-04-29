@@ -28,7 +28,7 @@ public sealed class ListPersonalAccessTokensQueryHandler(
                 t.Id,
                 t.UserId,
                 t.Name,
-                t.TokenPrefix_,
+                t.TokenPrefix,
                 t.ExpiresAt,
                 t.CreatedAt,
                 t.LastUsedAt,

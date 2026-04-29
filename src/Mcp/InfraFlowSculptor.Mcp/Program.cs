@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application;
 using InfraFlowSculptor.Infrastructure;
+using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Imports;
 using InfraFlowSculptor.Mcp.Imports.Resources;
@@ -17,6 +18,7 @@ builder.WebHost.UseUrls(mcpUrl);
 
 builder.Services.AddSingleton<IProjectDraftService, ProjectDraftService>();
 builder.Services.AddSingleton<IImportPreviewService, ImportPreviewService>();
+builder.Services.AddHostedService<InMemoryCleanupService>();
 
 builder.Services
     .AddMcpServer()
@@ -48,6 +50,6 @@ app.MapHealthChecks("/alive", new HealthCheckOptions
 {
     Predicate = registration => registration.Tags.Contains("live")
 }).AllowAnonymous();
-app.MapMcp(McpRoute);
+app.MapMcp(McpRoute).RequireAuthorization();
 
 await app.RunAsync();

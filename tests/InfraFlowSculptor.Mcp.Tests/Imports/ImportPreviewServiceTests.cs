@@ -31,7 +31,7 @@ public sealed class ImportPreviewServiceTests
 
         // Assert
         preview.PreviewId.Should().StartWith("preview_");
-        preview.Analysis.SourceFormat.Should().Be("arm-json");
+        preview.Analysis.SourceFormat.Should().Be(IacSourceFormat.ArmJson);
         preview.Analysis.Resources.Should().HaveCount(1);
       preview.Analysis.Dependencies.Should().ContainSingle();
       preview.Analysis.Metadata["schema"].Should().Be("https://example/schema");
@@ -88,7 +88,7 @@ public sealed class ImportPreviewServiceTests
     {
     return new ImportPreviewAnalysisResult
     {
-      SourceFormat = "arm-json",
+      SourceFormat = IacSourceFormat.ArmJson,
       Resources =
       [
         new ImportedResourceAnalysisResult
@@ -106,7 +106,7 @@ public sealed class ImportPreviewServiceTests
       ],
       Dependencies =
       [
-        new ImportedDependencyAnalysisResult("myKeyVault", "sharedIdentity", "dependsOn"),
+        new ImportedDependencyAnalysisResult("myKeyVault", "sharedIdentity", ImportDependencyType.DependsOn),
       ],
       Metadata = new Dictionary<string, string>
       {
@@ -117,7 +117,7 @@ public sealed class ImportPreviewServiceTests
         new ImportPreviewGapResult
         {
           Severity = ImportPreviewGapSeverity.Warning,
-          Category = "unsupported_resource",
+          Category = ImportPreviewGapCategory.UnsupportedResource,
           Message = "Resource type 'Microsoft.Network/virtualNetworks' is not supported by InfraFlowSculptor.",
           SourceResourceName = "legacyNetwork",
         },

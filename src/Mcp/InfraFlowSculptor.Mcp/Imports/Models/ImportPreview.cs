@@ -10,4 +10,7 @@ public sealed class ImportPreview
 
     /// <summary>The shared analysis payload for the preview.</summary>
     public required ImportPreviewAnalysisResult Analysis { get; init; }
+
+    /// <summary>UTC timestamp when this preview was created. Used for TTL-based cleanup.</summary>
+    public DateTime CreatedAtUtc { get; init; } = DateTime.UtcNow;
 }

@@ -348,4 +348,25 @@ public sealed class ProjectDraftService : IProjectDraftService
         internal const string LayoutPreset = "layoutPreset";
         internal const string Environments = "environments";
     }
+
+    /// <inheritdoc />
+    public bool RemoveDraft(string draftId)
+    {
+        return _drafts.TryRemove(draftId, out _);
+    }
+
+    /// <inheritdoc />
+    public int EvictExpired(TimeSpan maxAge)
+    {
+        var cutoff = DateTime.UtcNow - maxAge;
+        var expired = _drafts
+            .Where(kvp => kvp.Value.CreatedAtUtc < cutoff)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        foreach (var key in expired)
+            _drafts.TryRemove(key, out _);
+
+        return expired.Count;
+    }
 }

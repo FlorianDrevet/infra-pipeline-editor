@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using InfraFlowSculptor.Application.Imports.Commands.ApplyImportPreview;
+using InfraFlowSculptor.Application.Imports.Common;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Imports;

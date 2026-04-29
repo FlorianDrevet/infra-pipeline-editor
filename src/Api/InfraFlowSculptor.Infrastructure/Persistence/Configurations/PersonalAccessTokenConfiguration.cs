@@ -42,8 +42,7 @@ public sealed class PersonalAccessTokenConfiguration : IEntityTypeConfiguration<
         builder.HasIndex(t => t.TokenHash)
             .IsUnique();
 
-        builder.Property(t => t.TokenPrefix_)
-            .HasColumnName("TokenPrefix")
+        builder.Property(t => t.TokenPrefix)
             .HasMaxLength(MaxTokenPrefixLength)
             .IsRequired();
 

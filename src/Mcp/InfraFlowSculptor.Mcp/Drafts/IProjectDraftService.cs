@@ -18,4 +18,14 @@ public interface IProjectDraftService
     /// <param name="overrides">Override values to apply.</param>
     /// <returns>The updated draft if found; otherwise <c>null</c>.</returns>
     ProjectCreationDraft? ValidateAndUpdate(string draftId, DraftOverrides overrides);
+
+    /// <summary>Removes a draft by its identifier.</summary>
+    /// <param name="draftId">The unique draft identifier.</param>
+    /// <returns><c>true</c> if the draft was found and removed; otherwise <c>false</c>.</returns>
+    bool RemoveDraft(string draftId);
+
+    /// <summary>Removes all entries older than the specified TTL.</summary>
+    /// <param name="maxAge">Maximum age before eviction.</param>
+    /// <returns>The number of evicted entries.</returns>
+    int EvictExpired(TimeSpan maxAge);
 }

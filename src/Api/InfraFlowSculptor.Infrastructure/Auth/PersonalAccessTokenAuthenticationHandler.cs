@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using InfraFlowSculptor.Application.Common.Interfaces.Persistence;
 using InfraFlowSculptor.Domain.PersonalAccessTokenAggregate.ValueObjects;
+using InfraFlowSculptor.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -19,7 +20,8 @@ public sealed class PersonalAccessTokenAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    IPersonalAccessTokenRepository repository)
+    IPersonalAccessTokenRepository repository,
+    ProjectDbContext dbContext)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     /// <summary>Key used by <c>CurrentUser</c> to resolve the authenticated user.</summary>
@@ -48,9 +50,10 @@ public sealed class PersonalAccessTokenAuthenticationHandler(
         if (!pat.IsValid(DateTime.UtcNow))
             return AuthenticateResult.Fail("Personal access token is revoked or expired.");
 
-        // Record usage (fire-and-forget; will be persisted by UnitOfWork if within a command scope,
-        // or on next request if read-only). We intentionally do not SaveChanges here.
+        // Record usage and persist immediately — UnitOfWork only flushes for commands,
+        // so without an explicit save the LastUsedAt update is lost on read-only requests.
         pat.RecordUsage();
+        await dbContext.SaveChangesAsync(Context.RequestAborted);
 
         // Populate HttpContext.Items so ICurrentUser resolves the user transparently.
         Context.Items[UserIdItemKey] = pat.UserId;

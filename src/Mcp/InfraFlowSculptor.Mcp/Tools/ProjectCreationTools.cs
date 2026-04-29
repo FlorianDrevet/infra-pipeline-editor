@@ -92,7 +92,7 @@ public sealed class ProjectCreationTools
             var (created, skipped) = await ProjectSetupOrchestrator.CreateResourcesAsync(
                 mediator, rgId, resourceInputs);
 
-            draftService.GetDraft(draftId); // keep draft accessible for reference
+            draftService.RemoveDraft(draftId);
             return JsonSerializer.Serialize(new
             {
                 status = "created",
@@ -119,6 +119,7 @@ public sealed class ProjectCreationTools
             }, McpJsonDefaults.SerializerOptions);
         }
 
+        draftService.RemoveDraft(draftId);
         return JsonSerializer.Serialize(new
         {
             status = "created",

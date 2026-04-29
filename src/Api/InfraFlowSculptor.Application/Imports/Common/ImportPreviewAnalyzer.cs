@@ -10,8 +10,6 @@ namespace InfraFlowSculptor.Application.Imports.Common;
 /// </summary>
 public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
 {
-    private const string ArmJsonSourceFormat = "arm-json";
-
     private static readonly JsonSerializerOptions ArmSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -44,7 +42,7 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
 
         return new ImportPreviewAnalysisResult
         {
-            SourceFormat = ArmJsonSourceFormat,
+            SourceFormat = IacSourceFormat.ArmJson,
             Resources = resources,
             Dependencies = dependencies,
             Metadata = metadata,
@@ -94,7 +92,7 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
             gaps.Add(new ImportPreviewGapResult
             {
                 Severity = ImportPreviewGapSeverity.Warning,
-                Category = "unsupported_resource",
+                Category = ImportPreviewGapCategory.UnsupportedResource,
                 Message = $"Resource type '{sourceType}' is not supported by InfraFlowSculptor.",
                 SourceResourceName = sourceName,
             });
@@ -126,7 +124,7 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
             gaps.Add(new ImportPreviewGapResult
             {
                 Severity = ImportPreviewGapSeverity.Info,
-                Category = "unmapped_property",
+                Category = ImportPreviewGapCategory.UnmappedProperty,
                 Message = $"Property '{unmappedProperty}' on '{sourceName}' is auto-managed by InfraFlowSculptor.",
                 SourceResourceName = sourceName,
             });
@@ -150,7 +148,7 @@ public sealed class ImportPreviewAnalyzer : IImportPreviewAnalyzer
             dependencies.Add(new ImportedDependencyAnalysisResult(
                 sourceName,
                 targetName,
-                "dependsOn"));
+                ImportDependencyType.DependsOn));
         }
     }
 

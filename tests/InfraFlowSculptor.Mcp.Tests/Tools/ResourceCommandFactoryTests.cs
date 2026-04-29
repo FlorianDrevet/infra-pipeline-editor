@@ -18,7 +18,7 @@ using InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
-using InfraFlowSculptor.Mcp.Tools;
+using InfraFlowSculptor.Application.Imports.Common;
 
 namespace InfraFlowSculptor.Mcp.Tests.Tools;
 

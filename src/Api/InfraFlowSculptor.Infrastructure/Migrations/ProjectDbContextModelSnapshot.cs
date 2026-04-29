@@ -1078,11 +1078,10 @@ namespace InfraFlowSculptor.Infrastructure.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<string>("TokenPrefix_")
+                    b.Property<string>("TokenPrefix")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("TokenPrefix");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");

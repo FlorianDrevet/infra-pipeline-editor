@@ -66,7 +66,7 @@ public sealed class ImportPreviewAnalyzerTests
         var result = _sut.AnalyzeArmTemplate(SingleKeyVaultArm);
 
         // Assert
-        result.SourceFormat.Should().Be("arm-json");
+        result.SourceFormat.Should().Be(IacSourceFormat.ArmJson);
         result.Resources.Should().HaveCount(1);
         result.UnsupportedResources.Should().BeEmpty();
 
@@ -104,7 +104,7 @@ public sealed class ImportPreviewAnalyzerTests
         result.Resources[0].MappedResourceType.Should().BeNull();
         result.UnsupportedResources.Should().Contain("fakeResource");
         result.Gaps.Should().Contain(gap =>
-            gap.Category == "unsupported_resource" &&
+            gap.Category == ImportPreviewGapCategory.UnsupportedResource &&
             gap.Severity == ImportPreviewGapSeverity.Warning &&
             gap.SourceResourceName == "fakeResource");
     }
@@ -143,6 +143,6 @@ public sealed class ImportPreviewAnalyzerTests
         var dependency = result.Dependencies[0];
         dependency.FromResourceName.Should().Be("mystorageaccount");
         dependency.ToResourceName.Should().Be("myKeyVault");
-        dependency.DependencyType.Should().Be("dependsOn");
+        dependency.DependencyType.Should().Be(ImportDependencyType.DependsOn);
     }
 }

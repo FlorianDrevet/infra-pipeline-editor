@@ -33,7 +33,7 @@ public sealed class CreatePersonalAccessTokenCommandHandler(
             token.Id,
             token.UserId,
             token.Name,
-            token.TokenPrefix_,
+            token.TokenPrefix,
             token.ExpiresAt,
             token.CreatedAt,
             token.LastUsedAt,

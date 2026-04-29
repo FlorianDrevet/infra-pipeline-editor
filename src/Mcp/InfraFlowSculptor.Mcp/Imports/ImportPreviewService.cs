@@ -47,6 +47,21 @@ public sealed class ImportPreviewService : IImportPreviewService
         return _previews.TryRemove(previewId, out _);
     }
 
+    /// <inheritdoc />
+    public int EvictExpired(TimeSpan maxAge)
+    {
+        var cutoff = DateTime.UtcNow - maxAge;
+        var expired = _previews
+            .Where(kvp => kvp.Value.CreatedAtUtc < cutoff)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        foreach (var key in expired)
+            _previews.TryRemove(key, out _);
+
+        return expired.Count;
+    }
+
     private static string GeneratePreviewId() =>
         "preview_" + Guid.NewGuid().ToString("N")[..8];
 }

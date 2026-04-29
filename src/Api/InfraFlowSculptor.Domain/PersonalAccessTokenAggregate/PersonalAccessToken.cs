@@ -14,7 +14,7 @@ namespace InfraFlowSculptor.Domain.PersonalAccessTokenAggregate;
 public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
 {
     /// <summary>Prefix prepended to every generated token for quick identification.</summary>
-    private const string TokenPrefix = "ifs_";
+    private const string TokenPrefixLiteral = "ifs_";
 
     /// <summary>Number of random bytes used to generate the token entropy.</summary>
     private const int TokenEntropyBytes = 32;
@@ -29,7 +29,7 @@ public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
     public required TokenHash TokenHash { get; init; }
 
     /// <summary>Gets the truncated prefix of the token shown for identification (e.g. "ifs_abc1").</summary>
-    public required string TokenPrefix_ { get; init; }
+    public required string TokenPrefix { get; init; }
 
     /// <summary>Gets the optional UTC expiration date. <c>null</c> means the token never expires.</summary>
     public DateTime? ExpiresAt { get; private set; }
@@ -57,7 +57,7 @@ public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
         UserId = userId;
         Name = name;
         TokenHash = tokenHash;
-        TokenPrefix_ = tokenPrefix;
+        TokenPrefix = tokenPrefix;
         ExpiresAt = expiresAt;
         CreatedAt = createdAt;
         IsRevoked = false;
@@ -126,6 +126,6 @@ public sealed class PersonalAccessToken : AggregateRoot<PersonalAccessTokenId>
             .TrimEnd('=')
             .Replace('+', '-')
             .Replace('/', '_');
-        return $"{TokenPrefix}{encoded}";
+        return $"{TokenPrefixLiteral}{encoded}";
     }
 }

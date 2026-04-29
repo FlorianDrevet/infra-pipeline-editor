@@ -56,7 +56,7 @@ public sealed class IacImportToolsTests
             PreviewId = "preview_abc12345",
             Analysis = new ImportPreviewAnalysisResult
             {
-                SourceFormat = "arm-json",
+                SourceFormat = IacSourceFormat.ArmJson,
                 Resources =
                 [
                     new ImportedResourceAnalysisResult
@@ -80,7 +80,7 @@ public sealed class IacImportToolsTests
         _previewService.CreatePreviewFromArm(ValidKeyVaultArm).Returns(preview);
 
         // Act
-        var json = IacImportTools.PreviewIacImport(_previewService, "arm-json", ValidKeyVaultArm);
+        var json = IacImportTools.PreviewIacImport(_previewService, IacSourceFormat.ArmJson, ValidKeyVaultArm);
 
         // Assert
         var doc = JsonDocument.Parse(json);
@@ -97,7 +97,7 @@ public sealed class IacImportToolsTests
             .Returns(_ => throw new JsonException("Invalid JSON"));
 
         // Act
-        var json = IacImportTools.PreviewIacImport(_previewService, "arm-json", "not json");
+        var json = IacImportTools.PreviewIacImport(_previewService, IacSourceFormat.ArmJson, "not json");
 
         // Assert
         var doc = JsonDocument.Parse(json);
@@ -129,7 +129,7 @@ public sealed class IacImportToolsTests
             PreviewId = "preview_abc12345",
             Analysis = new ImportPreviewAnalysisResult
             {
-                SourceFormat = "arm-json",
+                SourceFormat = IacSourceFormat.ArmJson,
                 Resources =
                 [
                     new ImportedResourceAnalysisResult
@@ -186,7 +186,7 @@ public sealed class IacImportToolsTests
             Arg.Is<ApplyImportPreviewCommand>(command =>
                 command.ProjectName == "MyProject"
                 && command.LayoutPreset == "AllInOne"
-                && command.Preview.SourceFormat == "arm-json"
+                && command.Preview.SourceFormat == IacSourceFormat.ArmJson
                 && command.ResourceFilter != null
                 && command.ResourceFilter.Count == 1
                 && command.ResourceFilter[0] == "myKeyVault"),
@@ -202,7 +202,7 @@ public sealed class IacImportToolsTests
             PreviewId = "preview_abc12345",
             Analysis = new ImportPreviewAnalysisResult
             {
-                SourceFormat = "arm-json",
+                SourceFormat = IacSourceFormat.ArmJson,
                 Resources = [],
                 Dependencies = [],
                 Metadata = new Dictionary<string, string>(),

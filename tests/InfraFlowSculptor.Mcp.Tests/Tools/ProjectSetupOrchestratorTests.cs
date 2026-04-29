@@ -138,9 +138,8 @@ public sealed class ProjectSetupOrchestratorTests
             new Location(Location.LocationEnum.WestEurope),
             false, false, false, false, false, false, []);
 
-        _mediator.Send(Arg.Any<IBaseRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<object?>(
-                (ErrorOr<KeyVaultResult>)kvResult));
+        _mediator.Send(Arg.Any<CreateKeyVaultCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<KeyVaultResult>>(kvResult));
 
         var resources = new List<ResourceInput>
         {
@@ -159,8 +158,8 @@ public sealed class ProjectSetupOrchestratorTests
         skipped.Should().BeEmpty();
 
         await _mediator.Received(1).Send(
-            Arg.Is<IBaseRequest>(request =>
-                MatchesKeyVaultLocation(request, Location.LocationEnum.FranceCentral)),
+            Arg.Is<CreateKeyVaultCommand>(request =>
+                request.Location == new Location(Location.LocationEnum.FranceCentral)),
             Arg.Any<CancellationToken>());
     }
 
@@ -205,23 +204,30 @@ public sealed class ProjectSetupOrchestratorTests
             []);
 
         _mediator.Send(
-                Arg.Any<IBaseRequest>(),
+                Arg.Any<CreateLogAnalyticsWorkspaceCommand>(),
                 Arg.Any<CancellationToken>())
             .Returns(callInfo =>
             {
-                var request = callInfo.Arg<IBaseRequest>();
-
-                return request switch
+                var command = callInfo.Arg<CreateLogAnalyticsWorkspaceCommand>();
+                return command.Name.Value switch
                 {
-                    CreateLogAnalyticsWorkspaceCommand command when command.Name.Value == "law-east"
-                        => Task.FromResult<object?>((ErrorOr<LogAnalyticsWorkspaceResult>)lawEastResult),
-                    CreateLogAnalyticsWorkspaceCommand command when command.Name.Value == "law-west"
-                        => Task.FromResult<object?>((ErrorOr<LogAnalyticsWorkspaceResult>)lawWestResult),
-                    CreateApplicationInsightsCommand command when command.Name.Value == "ai-east"
-                        => Task.FromResult<object?>((ErrorOr<ApplicationInsightsResult>)aiEastResult),
-                    CreateApplicationInsightsCommand command when command.Name.Value == "ai-west"
-                        => Task.FromResult<object?>((ErrorOr<ApplicationInsightsResult>)aiWestResult),
-                    _ => Task.FromResult<object?>(null),
+                    "law-east" => (ErrorOr<LogAnalyticsWorkspaceResult>)lawEastResult,
+                    "law-west" => (ErrorOr<LogAnalyticsWorkspaceResult>)lawWestResult,
+                    _ => throw new InvalidOperationException($"Unexpected LAW name: {command.Name.Value}"),
+                };
+            });
+
+        _mediator.Send(
+                Arg.Any<CreateApplicationInsightsCommand>(),
+                Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                var command = callInfo.Arg<CreateApplicationInsightsCommand>();
+                return command.Name.Value switch
+                {
+                    "ai-east" => (ErrorOr<ApplicationInsightsResult>)aiEastResult,
+                    "ai-west" => (ErrorOr<ApplicationInsightsResult>)aiWestResult,
+                    _ => throw new InvalidOperationException($"Unexpected AI name: {command.Name.Value}"),
                 };
             });
 
@@ -254,13 +260,13 @@ public sealed class ProjectSetupOrchestratorTests
         skipped.Should().BeEmpty();
 
         await _mediator.Received(1).Send(
-            Arg.Is<IBaseRequest>(request =>
-                MatchesApplicationInsightsDependency(request, "ai-east", lawEastId.Value)),
+            Arg.Is<CreateApplicationInsightsCommand>(cmd =>
+                cmd.Name.Value == "ai-east" && cmd.LogAnalyticsWorkspaceId == lawEastId.Value),
             Arg.Any<CancellationToken>());
 
         await _mediator.Received(1).Send(
-            Arg.Is<IBaseRequest>(request =>
-                MatchesApplicationInsightsDependency(request, "ai-west", lawWestId.Value)),
+            Arg.Is<CreateApplicationInsightsCommand>(cmd =>
+                cmd.Name.Value == "ai-west" && cmd.LogAnalyticsWorkspaceId == lawWestId.Value),
             Arg.Any<CancellationToken>());
     }
 
@@ -270,32 +276,6 @@ public sealed class ProjectSetupOrchestratorTests
     {
         var command = request as CreateResourceGroupCommand;
         return command is not null && command.Location.Value == expectedLocation;
-    }
-
-    private static bool MatchesKeyVaultLocation(IBaseRequest request, Location.LocationEnum expectedLocation)
-    {
-        var command = request as CreateKeyVaultCommand;
-        return command is not null && command.Location.Value == expectedLocation;
-    }
-
-    private static bool MatchesLogAnalyticsWorkspaceName(IBaseRequest request, string expectedName)
-    {
-        var command = request as CreateLogAnalyticsWorkspaceCommand;
-        return command is not null && command.Name.Value == expectedName;
-    }
-
-    private static bool MatchesApplicationInsightsName(IBaseRequest request, string expectedName)
-    {
-        var command = request as CreateApplicationInsightsCommand;
-        return command is not null && command.Name.Value == expectedName;
-    }
-
-    private static bool MatchesApplicationInsightsDependency(IBaseRequest request, string expectedName, Guid expectedWorkspaceId)
-    {
-        var command = request as CreateApplicationInsightsCommand;
-        return command is not null
-               && command.Name.Value == expectedName
-               && command.LogAnalyticsWorkspaceId == expectedWorkspaceId;
     }
 
     [Fact]
@@ -357,19 +337,11 @@ public sealed class ProjectSetupOrchestratorTests
             new Location(Location.LocationEnum.WestEurope),
             "StorageV2", "Hot", false, true, "TLS1_2", [], [], [], [], [], [], []);
 
-        _mediator.Send(Arg.Any<IBaseRequest>(), Arg.Any<CancellationToken>())
-            .Returns(
-                callInfo =>
-                {
-                    var cmd = callInfo.Arg<IBaseRequest>();
-                    if (cmd is CreateKeyVaultCommand)
-                        return Task.FromResult<object?>(
-                            (ErrorOr<KeyVaultResult>)kvResult);
-                    if (cmd is CreateStorageAccountCommand)
-                        return Task.FromResult<object?>(
-                            (ErrorOr<StorageAccountResult>)saResult);
-                    return Task.FromResult<object?>(null);
-                });
+        _mediator.Send(Arg.Any<CreateKeyVaultCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<KeyVaultResult>>(kvResult));
+
+        _mediator.Send(Arg.Any<CreateStorageAccountCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ErrorOr<StorageAccountResult>>(saResult));
 
         var resources = new List<ResourceInput>
         {

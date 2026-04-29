@@ -1,4 +1,3 @@
-using ErrorOr;
 using InfraFlowSculptor.Application.AppConfigurations.Commands.CreateAppConfiguration;
 using InfraFlowSculptor.Application.ApplicationInsights.Commands.CreateApplicationInsights;
 using InfraFlowSculptor.Application.AppServicePlans.Commands.CreateAppServicePlan;
@@ -22,11 +21,12 @@ using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 using MediatR;
 
-namespace InfraFlowSculptor.Mcp.Tools;
+namespace InfraFlowSculptor.Application.Imports.Common;
 
 /// <summary>
 /// Creates MediatR commands for Azure resource types using sensible defaults.
 /// Handles dependency ordering between resource types.
+/// Shared by both the import apply flow and the MCP project setup orchestrator.
 /// </summary>
 public static class ResourceCommandFactory
 {
@@ -177,6 +177,118 @@ public static class ResourceCommandFactory
             : null;
     }
 
+    /// <summary>
+    /// Sends a dynamically-typed <see cref="IBaseRequest"/> command via MediatR with proper generic dispatch.
+    /// Resolves the generic <c>IRequest&lt;TResponse&gt;</c> argument at runtime and invokes the typed overload.
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Major Code Smell",
+        "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields",
+        Justification = "Required to invoke the generic SendTypedCommandAsync<TResponse> at runtime for dynamic MediatR command dispatch.")]
+    public static async Task<object?> SendCommandAsync(
+        ISender mediator,
+        IBaseRequest command,
+        CancellationToken cancellationToken)
+    {
+        var requestInterface = command.GetType().GetInterfaces()
+            .FirstOrDefault(type => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IRequest<>));
+
+        if (requestInterface is null)
+            return null;
+
+        var responseType = requestInterface.GetGenericArguments()[0];
+        var sendMethod = typeof(ResourceCommandFactory)
+            .GetMethod(nameof(SendTypedCommandAsync), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        var genericMethod = sendMethod.MakeGenericMethod(responseType);
+        var task = (Task)genericMethod.Invoke(null, [mediator, command, cancellationToken])!;
+        await task.ConfigureAwait(false);
+
+        return task.GetType().GetProperty("Result")?.GetValue(task);
+    }
+
+    /// <summary>Extracts the AzureResourceId.Value from an <c>ErrorOr&lt;T&gt;</c> result using reflection.</summary>
+    public static Guid? ExtractResourceId(object? result)
+    {
+        if (result is null)
+            return null;
+
+        var resultType = result.GetType();
+        var isErrorProp = resultType.GetProperty("IsError");
+        if (isErrorProp is not null && isErrorProp.GetValue(result) is true)
+            return null;
+
+        var valueProp = resultType.GetProperty("Value");
+        var value = valueProp?.GetValue(result);
+        if (value is null)
+            return null;
+
+        var idProp = value.GetType().GetProperty("Id");
+        var id = idProp?.GetValue(value);
+        if (id is null)
+            return null;
+
+        var guidProp = id.GetType().GetProperty("Value");
+        return guidProp?.GetValue(id) as Guid?;
+    }
+
+    /// <summary>Extracts error descriptions from an <c>ErrorOr&lt;T&gt;</c> result using reflection.</summary>
+    public static string? ExtractErrors(object? result)
+    {
+        if (result is null)
+            return null;
+
+        var resultType = result.GetType();
+        var errorsProp = resultType.GetProperty("Errors");
+        if (errorsProp?.GetValue(result) is not IEnumerable<ErrorOr.Error> errors)
+            return null;
+
+        return string.Join("; ", errors.Select(e => e.Description));
+    }
+
+    private static async Task<TResponse> SendTypedCommandAsync<TResponse>(
+        ISender mediator,
+        IRequest<TResponse> command,
+        CancellationToken cancellationToken)
+    {
+        return await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static string GetStringProp(
+        IReadOnlyDictionary<string, object?>? props, string key, string defaultValue)
+    {
+        if (props is null)
+            return defaultValue;
+
+        return props.TryGetValue(key, out var val) && val is string s && !string.IsNullOrWhiteSpace(s)
+            ? s
+            : defaultValue;
+    }
+
+    private static Guid? ResolveDependencyId(
+        string dependencyType,
+        IReadOnlyDictionary<string, Guid> createdByType,
+        IReadOnlyDictionary<string, Guid>? createdByName,
+        IReadOnlyList<string>? dependencyResourceNames)
+    {
+        if (dependencyResourceNames is { Count: > 0 })
+        {
+            if (createdByName is null)
+                return null;
+
+            foreach (var dependencyResourceName in dependencyResourceNames)
+            {
+                if (createdByName.TryGetValue(dependencyResourceName, out var dependencyId))
+                    return dependencyId;
+            }
+
+            return null;
+        }
+
+        return createdByType.TryGetValue(dependencyType, out var dependencyIdByType)
+            ? dependencyIdByType
+            : null;
+    }
+
     private static IBaseRequest? BuildWebAppCommand(
         ResourceGroupId rgId, Name name, Location location,
         IReadOnlyDictionary<string, Guid> created,
@@ -185,13 +297,9 @@ public static class ResourceCommandFactory
         IReadOnlyDictionary<string, object?>? props)
     {
         var aspId = ResolveDependencyId(
-            AzureResourceTypes.AppServicePlan,
-            created,
-            createdByName,
-            dependencyResourceNames);
+            AzureResourceTypes.AppServicePlan, created, createdByName, dependencyResourceNames);
 
-        if (aspId is null)
-            return null;
+        if (aspId is null) return null;
 
         return new CreateWebAppCommand(
             rgId, name, location,
@@ -214,13 +322,9 @@ public static class ResourceCommandFactory
         IReadOnlyDictionary<string, object?>? props)
     {
         var aspId = ResolveDependencyId(
-            AzureResourceTypes.AppServicePlan,
-            created,
-            createdByName,
-            dependencyResourceNames);
+            AzureResourceTypes.AppServicePlan, created, createdByName, dependencyResourceNames);
 
-        if (aspId is null)
-            return null;
+        if (aspId is null) return null;
 
         return new CreateFunctionAppCommand(
             rgId, name, location,
@@ -241,13 +345,9 @@ public static class ResourceCommandFactory
         IReadOnlyList<string>? dependencyResourceNames)
     {
         var caeId = ResolveDependencyId(
-            AzureResourceTypes.ContainerAppEnvironment,
-            created,
-            createdByName,
-            dependencyResourceNames);
+            AzureResourceTypes.ContainerAppEnvironment, created, createdByName, dependencyResourceNames);
 
-        if (caeId is null)
-            return null;
+        if (caeId is null) return null;
 
         return new CreateContainerAppCommand(
             rgId, name, location,
@@ -262,13 +362,9 @@ public static class ResourceCommandFactory
         IReadOnlyList<string>? dependencyResourceNames)
     {
         var lawId = ResolveDependencyId(
-            AzureResourceTypes.LogAnalyticsWorkspace,
-            created,
-            createdByName,
-            dependencyResourceNames);
+            AzureResourceTypes.LogAnalyticsWorkspace, created, createdByName, dependencyResourceNames);
 
-        if (lawId is null)
-            return null;
+        if (lawId is null) return null;
 
         return new CreateApplicationInsightsCommand(
             rgId, name, location,
@@ -282,56 +378,14 @@ public static class ResourceCommandFactory
         IReadOnlyList<string>? dependencyResourceNames)
     {
         var sqlServerId = ResolveDependencyId(
-            AzureResourceTypes.SqlServer,
-            created,
-            createdByName,
-            dependencyResourceNames);
+            AzureResourceTypes.SqlServer, created, createdByName, dependencyResourceNames);
 
-        if (sqlServerId is null)
-            return null;
+        if (sqlServerId is null) return null;
 
         return new CreateSqlDatabaseCommand(
             rgId, name, location,
             SqlServerId: sqlServerId.Value,
             Collation: "SQL_Latin1_General_CP1_CI_AS");
-    }
-
-    private static Guid? ResolveDependencyId(
-        string dependencyType,
-        IReadOnlyDictionary<string, Guid> createdByType,
-        IReadOnlyDictionary<string, Guid>? createdByName,
-        IReadOnlyList<string>? dependencyResourceNames)
-    {
-        if (dependencyResourceNames is { Count: > 0 })
-        {
-            if (createdByName is null)
-                return null;
-
-            foreach (var dependencyResourceName in dependencyResourceNames)
-            {
-                if (createdByName.TryGetValue(dependencyResourceName, out var dependencyId))
-                {
-                    return dependencyId;
-                }
-            }
-
-            return null;
-        }
-
-        return createdByType.TryGetValue(dependencyType, out var dependencyIdByType)
-            ? dependencyIdByType
-            : null;
-    }
-
-    private static string GetStringProp(
-        IReadOnlyDictionary<string, object?>? props, string key, string defaultValue)
-    {
-        if (props is null)
-            return defaultValue;
-
-        return props.TryGetValue(key, out var val) && val is string s && !string.IsNullOrWhiteSpace(s)
-            ? s
-            : defaultValue;
     }
 }
 
