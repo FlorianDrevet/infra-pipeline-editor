@@ -45,14 +45,15 @@ using MediatR;
 namespace InfraFlowSculptor.Application.Imports.Common.Creation;
 
 /// <summary>
-/// Creates MediatR commands for Azure resource types using sensible defaults.
-/// Handles dependency ordering between resource types.
+/// Creates and dispatches MediatR commands for Azure resource types using sensible defaults.
+/// Owns the resource-type → command mapping and the dependency graph used to order creations.
 /// Shared by both the import apply flow and the MCP project setup orchestrator.
 /// </summary>
 public static class ResourceCommandFactory
 {
     /// <summary>
-    /// Dependencies between resource types. Key = dependent, Value = required dependency type.
+    /// Direct dependencies between resource types. Key = dependent type, Value = required dependency type.
+    /// Single source of truth used by both topological ordering and missing-dependency detection.
     /// </summary>
     private static readonly Dictionary<string, string> ResourceDependencies = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -63,117 +64,112 @@ public static class ResourceCommandFactory
         [AzureResourceTypes.SqlDatabase] = AzureResourceTypes.SqlServer,
     };
 
+    private static readonly HashSet<string> SupportedResourceTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        AzureResourceTypes.KeyVault,
+        AzureResourceTypes.StorageAccount,
+        AzureResourceTypes.AppServicePlan,
+        AzureResourceTypes.WebApp,
+        AzureResourceTypes.FunctionApp,
+        AzureResourceTypes.ContainerAppEnvironment,
+        AzureResourceTypes.ContainerApp,
+        AzureResourceTypes.RedisCache,
+        AzureResourceTypes.UserAssignedIdentity,
+        AzureResourceTypes.AppConfiguration,
+        AzureResourceTypes.LogAnalyticsWorkspace,
+        AzureResourceTypes.ApplicationInsights,
+        AzureResourceTypes.CosmosDb,
+        AzureResourceTypes.SqlServer,
+        AzureResourceTypes.SqlDatabase,
+        AzureResourceTypes.ServiceBusNamespace,
+        AzureResourceTypes.ContainerRegistry,
+        AzureResourceTypes.EventHubNamespace,
+    };
+
     /// <summary>
-    /// Sorts resource type/name pairs so that dependencies are created before dependents.
+    /// Returns whether the given resource type identifier is dispatchable by <see cref="CreateResourceAsync"/>.
+    /// </summary>
+    public static bool IsSupported(string resourceType) => SupportedResourceTypes.Contains(resourceType);
+
+    /// <summary>
+    /// Sorts resource type/name pairs so that direct and transitive dependencies are created before their dependents.
+    /// Implementation: Kahn's topological sort. Resources whose declared dependency is not present in the input
+    /// list are treated as roots (no edge added) so the import flow can decide later whether to fail.
+    /// Stable: input order is preserved for nodes with the same in-degree.
     /// </summary>
     public static IReadOnlyList<(string ResourceType, string Name)> OrderByDependency(
         IEnumerable<(string ResourceType, string Name)> resources)
     {
-        var list = resources.ToList();
-        var typeSet = new HashSet<string>(list.Select(r => r.ResourceType), StringComparer.OrdinalIgnoreCase);
-        var independent = new List<(string, string)>();
-        var dependent = new List<(string, string)>();
+        var nodes = resources.ToList();
+        if (nodes.Count <= 1)
+            return nodes;
 
-        foreach (var item in list)
+        var typesPresent = new HashSet<string>(
+            nodes.Select(n => n.ResourceType),
+            StringComparer.OrdinalIgnoreCase);
+
+        var inDegree = new int[nodes.Count];
+        var adjacency = new List<List<int>>(nodes.Count);
+        for (var i = 0; i < nodes.Count; i++)
+            adjacency.Add([]);
+
+        for (var dependentIndex = 0; dependentIndex < nodes.Count; dependentIndex++)
         {
-            if (ResourceDependencies.TryGetValue(item.ResourceType, out var dep) && typeSet.Contains(dep))
-                dependent.Add(item);
-            else
-                independent.Add(item);
+            if (!ResourceDependencies.TryGetValue(nodes[dependentIndex].ResourceType, out var requiredType))
+                continue;
+
+            if (!typesPresent.Contains(requiredType))
+                continue;
+
+            for (var sourceIndex = 0; sourceIndex < nodes.Count; sourceIndex++)
+            {
+                if (sourceIndex == dependentIndex)
+                    continue;
+
+                if (!string.Equals(nodes[sourceIndex].ResourceType, requiredType, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                adjacency[sourceIndex].Add(dependentIndex);
+                inDegree[dependentIndex]++;
+            }
         }
 
-        independent.AddRange(dependent);
-        return independent;
-    }
-
-    /// <summary>
-    /// Builds a MediatR command to create a resource with sensible defaults.
-    /// Returns <c>null</c> if the resource type is not recognized.
-    /// </summary>
-    /// <param name="resourceType">Resource type identifier (e.g. <c>KeyVault</c>).</param>
-    /// <param name="resourceGroupId">Parent resource group.</param>
-    /// <param name="name">Resource display name.</param>
-    /// <param name="location">Azure region.</param>
-    /// <param name="context">Resolution context for dependency and property lookups.</param>
-    public static IBaseRequest? BuildCommand(
-        string resourceType,
-        ResourceGroupId resourceGroupId,
-        Name name,
-        Location location,
-        ResourceCreationContext context)
-    {
-        return resourceType switch
+        var ordered = new List<(string, string)>(nodes.Count);
+        var ready = new Queue<int>();
+        for (var i = 0; i < nodes.Count; i++)
         {
-            AzureResourceTypes.KeyVault => new CreateKeyVaultCommand(
-                resourceGroupId, name, location),
+            if (inDegree[i] == 0)
+                ready.Enqueue(i);
+        }
 
-            AzureResourceTypes.StorageAccount => BuildStorageAccountCommand(
-                resourceGroupId, name, location, context.TypedProperties),
+        while (ready.Count > 0)
+        {
+            var index = ready.Dequeue();
+            ordered.Add(nodes[index]);
 
-            AzureResourceTypes.AppServicePlan => new CreateAppServicePlanCommand(
-                resourceGroupId, name, location,
-                OsType: context.TypedProperties is AppServicePlanExtractedProperties asp
-                    ? asp.OsType
-                    : AppServicePlanExtractedProperties.DefaultOsType),
+            foreach (var next in adjacency[index])
+            {
+                if (--inDegree[next] == 0)
+                    ready.Enqueue(next);
+            }
+        }
 
-            AzureResourceTypes.WebApp => BuildWebAppCommand(
-                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.TypedProperties),
+        // Defensive cycle fallback: keep remaining nodes so callers never lose data.
+        if (ordered.Count != nodes.Count)
+        {
+            for (var i = 0; i < nodes.Count; i++)
+            {
+                if (inDegree[i] > 0)
+                    ordered.Add(nodes[i]);
+            }
+        }
 
-            AzureResourceTypes.FunctionApp => BuildFunctionAppCommand(
-                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.TypedProperties),
-
-            AzureResourceTypes.ContainerAppEnvironment => new CreateContainerAppEnvironmentCommand(
-                resourceGroupId, name, location),
-
-            AzureResourceTypes.ContainerApp => BuildContainerAppCommand(
-                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
-
-            AzureResourceTypes.RedisCache => new CreateRedisCacheCommand(
-                resourceGroupId, name, location,
-                RedisVersion: null,
-                EnableNonSslPort: false,
-                MinimumTlsVersion: AzureResourceDefaults.MinimumTlsVersion,
-                DisableAccessKeyAuthentication: false,
-                EnableAadAuth: true),
-
-            AzureResourceTypes.UserAssignedIdentity => new CreateUserAssignedIdentityCommand(
-                resourceGroupId, name, location),
-
-            AzureResourceTypes.AppConfiguration => new CreateAppConfigurationCommand(
-                resourceGroupId, name, location),
-
-            AzureResourceTypes.LogAnalyticsWorkspace => new CreateLogAnalyticsWorkspaceCommand(
-                resourceGroupId, name, location),
-
-            AzureResourceTypes.ApplicationInsights => BuildApplicationInsightsCommand(
-                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
-
-            AzureResourceTypes.CosmosDb => new CreateCosmosDbCommand(
-                resourceGroupId, name, location),
-
-            AzureResourceTypes.SqlServer => new CreateSqlServerCommand(
-                resourceGroupId, name, location,
-                Version: AzureResourceDefaults.SqlServerVersion,
-                AdministratorLogin: AzureResourceDefaults.SqlServerAdministratorLogin),
-
-            AzureResourceTypes.SqlDatabase => BuildSqlDatabaseCommand(
-                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
-
-            AzureResourceTypes.ServiceBusNamespace => new CreateServiceBusNamespaceCommand(
-                resourceGroupId, name, location),
-
-            AzureResourceTypes.ContainerRegistry => new CreateContainerRegistryCommand(
-                resourceGroupId, name, location),
-
-            AzureResourceTypes.EventHubNamespace => new CreateEventHubNamespaceCommand(
-                resourceGroupId, name, location),
-
-            _ => null,
-        };
+        return ordered;
     }
 
     /// <summary>
     /// Checks whether a resource type requires a dependency that is not yet created.
+    /// Returns the missing dependency name (or type) if any, otherwise <c>null</c>.
     /// </summary>
     public static string? GetMissingDependency(
         string resourceType,
@@ -197,7 +193,7 @@ public static class ResourceCommandFactory
 
     /// <summary>
     /// Builds, sends, and extracts the resource ID for a given resource type in a single strongly-typed dispatch.
-    /// Returns the created resource's GUID on success, or an <see cref="ErrorOr"/> error.
+    /// Returns the created resource's GUID on success, or an <see cref="ErrorOr"/> error on failure.
     /// Returns <c>null</c> when the resource type is unsupported or a required dependency is missing
     /// (callers should check <see cref="GetMissingDependency"/> to distinguish the two cases).
     /// </summary>
@@ -236,13 +232,13 @@ public static class ResourceCommandFactory
 
             AzureResourceTypes.WebApp => CreateDependentResourceAsync<CreateWebAppCommand, WebAppResult>(
                 mediator,
-                BuildWebAppCommand(resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.TypedProperties),
+                BuildWebAppCommand(resourceGroupId, name, location, context),
                 static (WebAppResult r) => r.Id.Value,
                 cancellationToken),
 
             AzureResourceTypes.FunctionApp => CreateDependentResourceAsync<CreateFunctionAppCommand, FunctionAppResult>(
                 mediator,
-                BuildFunctionAppCommand(resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.TypedProperties),
+                BuildFunctionAppCommand(resourceGroupId, name, location, context),
                 static (FunctionAppResult r) => r.Id.Value,
                 cancellationToken),
 
@@ -254,7 +250,7 @@ public static class ResourceCommandFactory
 
             AzureResourceTypes.ContainerApp => CreateDependentResourceAsync<CreateContainerAppCommand, ContainerAppResult>(
                 mediator,
-                BuildContainerAppCommand(resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
+                BuildContainerAppCommand(resourceGroupId, name, location, context),
                 static (ContainerAppResult r) => r.Id.Value,
                 cancellationToken),
 
@@ -290,7 +286,7 @@ public static class ResourceCommandFactory
 
             AzureResourceTypes.ApplicationInsights => CreateDependentResourceAsync<CreateApplicationInsightsCommand, ApplicationInsightsResult>(
                 mediator,
-                BuildApplicationInsightsCommand(resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
+                BuildApplicationInsightsCommand(resourceGroupId, name, location, context),
                 static (ApplicationInsightsResult r) => r.Id.Value,
                 cancellationToken),
 
@@ -311,7 +307,7 @@ public static class ResourceCommandFactory
 
             AzureResourceTypes.SqlDatabase => CreateDependentResourceAsync<CreateSqlDatabaseCommand, SqlDatabaseResult>(
                 mediator,
-                BuildSqlDatabaseCommand(resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
+                BuildSqlDatabaseCommand(resourceGroupId, name, location, context),
                 static (SqlDatabaseResult r) => r.Id.Value,
                 cancellationToken),
 
@@ -374,29 +370,23 @@ public static class ResourceCommandFactory
             : null;
     }
 
-
-
-    private static Guid? ResolveDependencyId(
-        string dependencyType,
-        IReadOnlyDictionary<string, Guid> createdByType,
-        IReadOnlyDictionary<string, Guid>? createdByName,
-        IReadOnlyList<string>? dependencyResourceNames)
+    private static Guid? ResolveDependencyId(string dependencyType, ResourceCreationContext context)
     {
-        if (dependencyResourceNames is { Count: > 0 })
+        if (context.DependencyResourceNames is { Count: > 0 })
         {
-            if (createdByName is null)
+            if (context.CreatedResourcesByName is null)
                 return null;
 
-            foreach (var dependencyResourceName in dependencyResourceNames)
+            foreach (var dependencyResourceName in context.DependencyResourceNames)
             {
-                if (createdByName.TryGetValue(dependencyResourceName, out var dependencyId))
+                if (context.CreatedResourcesByName.TryGetValue(dependencyResourceName, out var dependencyId))
                     return dependencyId;
             }
 
             return null;
         }
 
-        return createdByType.TryGetValue(dependencyType, out var dependencyIdByType)
+        return context.CreatedResourcesByType.TryGetValue(dependencyType, out var dependencyIdByType)
             ? dependencyIdByType
             : null;
     }
@@ -408,26 +398,20 @@ public static class ResourceCommandFactory
         var sa = props as StorageAccountExtractedProperties;
         return new CreateStorageAccountCommand(
             rgId, name, location,
-            Kind: sa?.KindOrDefault ?? "StorageV2",
-            AccessTier: "Hot",
+            Kind: sa?.KindOrDefault ?? AzureResourceDefaults.StorageAccountKind,
+            AccessTier: AzureResourceDefaults.StorageAccountAccessTier,
             AllowBlobPublicAccess: false,
             EnableHttpsTrafficOnly: true,
-            MinimumTlsVersion: "TLS1_2");
+            MinimumTlsVersion: AzureResourceDefaults.MinimumTlsVersionLabel);
     }
 
     private static IBaseRequest? BuildWebAppCommand(
-        ResourceGroupId rgId, Name name, Location location,
-        IReadOnlyDictionary<string, Guid> created,
-        IReadOnlyDictionary<string, Guid>? createdByName,
-        IReadOnlyList<string>? dependencyResourceNames,
-        IExtractedResourceProperties? props)
+        ResourceGroupId rgId, Name name, Location location, ResourceCreationContext context)
     {
-        var aspId = ResolveDependencyId(
-            AzureResourceTypes.AppServicePlan, created, createdByName, dependencyResourceNames);
-
+        var aspId = ResolveDependencyId(AzureResourceTypes.AppServicePlan, context);
         if (aspId is null) return null;
 
-        var wa = props as WebAppExtractedProperties;
+        var wa = context.TypedProperties as WebAppExtractedProperties;
         return new CreateWebAppCommand(
             rgId, name, location,
             AppServicePlanId: aspId.Value,
@@ -435,46 +419,35 @@ public static class ResourceCommandFactory
             RuntimeVersion: wa?.RuntimeVersion ?? WebAppExtractedProperties.DefaultRuntimeVersion,
             AlwaysOn: false,
             HttpsOnly: true,
-            DeploymentMode: "Zip",
+            DeploymentMode: AzureResourceDefaults.AppServiceDeploymentMode,
             ContainerRegistryId: null,
             AcrAuthMode: null,
             DockerImageName: null);
     }
 
     private static IBaseRequest? BuildFunctionAppCommand(
-        ResourceGroupId rgId, Name name, Location location,
-        IReadOnlyDictionary<string, Guid> created,
-        IReadOnlyDictionary<string, Guid>? createdByName,
-        IReadOnlyList<string>? dependencyResourceNames,
-        IExtractedResourceProperties? props)
+        ResourceGroupId rgId, Name name, Location location, ResourceCreationContext context)
     {
-        var aspId = ResolveDependencyId(
-            AzureResourceTypes.AppServicePlan, created, createdByName, dependencyResourceNames);
-
+        var aspId = ResolveDependencyId(AzureResourceTypes.AppServicePlan, context);
         if (aspId is null) return null;
 
-        var fa = props as FunctionAppExtractedProperties;
+        var fa = context.TypedProperties as FunctionAppExtractedProperties;
         return new CreateFunctionAppCommand(
             rgId, name, location,
             AppServicePlanId: aspId.Value,
             RuntimeStack: fa?.RuntimeStack ?? FunctionAppExtractedProperties.DefaultRuntimeStack,
             RuntimeVersion: fa?.RuntimeVersion ?? FunctionAppExtractedProperties.DefaultRuntimeVersion,
             HttpsOnly: true,
-            DeploymentMode: "Zip",
+            DeploymentMode: AzureResourceDefaults.AppServiceDeploymentMode,
             ContainerRegistryId: null,
             AcrAuthMode: null,
             DockerImageName: null);
     }
 
     private static IBaseRequest? BuildContainerAppCommand(
-        ResourceGroupId rgId, Name name, Location location,
-        IReadOnlyDictionary<string, Guid> created,
-        IReadOnlyDictionary<string, Guid>? createdByName,
-        IReadOnlyList<string>? dependencyResourceNames)
+        ResourceGroupId rgId, Name name, Location location, ResourceCreationContext context)
     {
-        var caeId = ResolveDependencyId(
-            AzureResourceTypes.ContainerAppEnvironment, created, createdByName, dependencyResourceNames);
-
+        var caeId = ResolveDependencyId(AzureResourceTypes.ContainerAppEnvironment, context);
         if (caeId is null) return null;
 
         return new CreateContainerAppCommand(
@@ -484,14 +457,9 @@ public static class ResourceCommandFactory
     }
 
     private static IBaseRequest? BuildApplicationInsightsCommand(
-        ResourceGroupId rgId, Name name, Location location,
-        IReadOnlyDictionary<string, Guid> created,
-        IReadOnlyDictionary<string, Guid>? createdByName,
-        IReadOnlyList<string>? dependencyResourceNames)
+        ResourceGroupId rgId, Name name, Location location, ResourceCreationContext context)
     {
-        var lawId = ResolveDependencyId(
-            AzureResourceTypes.LogAnalyticsWorkspace, created, createdByName, dependencyResourceNames);
-
+        var lawId = ResolveDependencyId(AzureResourceTypes.LogAnalyticsWorkspace, context);
         if (lawId is null) return null;
 
         return new CreateApplicationInsightsCommand(
@@ -500,28 +468,14 @@ public static class ResourceCommandFactory
     }
 
     private static IBaseRequest? BuildSqlDatabaseCommand(
-        ResourceGroupId rgId, Name name, Location location,
-        IReadOnlyDictionary<string, Guid> created,
-        IReadOnlyDictionary<string, Guid>? createdByName,
-        IReadOnlyList<string>? dependencyResourceNames)
+        ResourceGroupId rgId, Name name, Location location, ResourceCreationContext context)
     {
-        var sqlServerId = ResolveDependencyId(
-            AzureResourceTypes.SqlServer, created, createdByName, dependencyResourceNames);
-
+        var sqlServerId = ResolveDependencyId(AzureResourceTypes.SqlServer, context);
         if (sqlServerId is null) return null;
 
         return new CreateSqlDatabaseCommand(
             rgId, name, location,
             SqlServerId: sqlServerId.Value,
-            Collation: "SQL_Latin1_General_CP1_CI_AS");
+            Collation: AzureResourceDefaults.SqlDatabaseCollation);
     }
 }
-
-/// <summary>
-/// Groups dependency resolution context for resource creation commands.
-/// </summary>
-public sealed record ResourceCreationContext(
-    IReadOnlyDictionary<string, Guid> CreatedResourcesByType,
-    IExtractedResourceProperties? TypedProperties = null,
-    IReadOnlyDictionary<string, Guid>? CreatedResourcesByName = null,
-    IReadOnlyList<string>? DependencyResourceNames = null);

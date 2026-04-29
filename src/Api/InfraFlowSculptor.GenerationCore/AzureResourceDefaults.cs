@@ -13,4 +13,19 @@ public static class AzureResourceDefaults
 
     /// <summary>Default SQL Server administrator login name.</summary>
     public const string SqlServerAdministratorLogin = "sqladmin";
+
+    /// <summary>Default Storage Account kind.</summary>
+    public const string StorageAccountKind = "StorageV2";
+
+    /// <summary>Default Storage Account access tier.</summary>
+    public const string StorageAccountAccessTier = "Hot";
+
+    /// <summary>Default minimum TLS version label used by Storage Account / Web App API surfaces (uses underscore-prefixed form).</summary>
+    public const string MinimumTlsVersionLabel = "TLS1_2";
+
+    /// <summary>Default deployment mode for Web App and Function App container/code deployments.</summary>
+    public const string AppServiceDeploymentMode = "Zip";
+
+    /// <summary>Default SQL Database collation.</summary>
+    public const string SqlDatabaseCollation = "SQL_Latin1_General_CP1_CI_AS";
 }
