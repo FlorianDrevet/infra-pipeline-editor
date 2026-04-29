@@ -111,6 +111,8 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - Verified query command: `python -m graphify query "bicep generation" --graph .\graphify-out\graph.json` works against the generated graph.
 - Verified `graphify.serve` requires a separate `mcp` Python package (`python -m pip install --user mcp`).
 - Verified large-repo caveat: `graphify-out/graph.json` and `GRAPH_REPORT.md` are generated successfully on this repo, but `graph.html` may fail with "Graph has ... nodes - too large for HTML viz"; agents should treat HTML output as optional.
+- Controlled VS Code integration rule: prefer `python -m graphify copilot install` over `graphify vscode install` for this repository. `vscode install` appends a generic `## graphify` section to `.github/copilot-instructions.md`, while this repo already has a stronger custom orchestration for memory, GitNexus, Graphify, and agents.
+- 2026-04-29 validation: the Graphify user skill is installed at `%USERPROFILE%\.copilot\skills\graphify\SKILL.md`, and the Python user Scripts directory is now present on the user PATH so `graphify --help` works directly in terminal.
 
 ## CQRS Skill [2026-04-29]
 

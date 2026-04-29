@@ -107,3 +107,9 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 
 Full details in `.github/agents/pr-manager.agent.md`. Title format: `type(scope): description`. Use `.github/PULL_REQUEST_TEMPLATE.md` for description. Before creating or submitting a PR, run the mandatory technical review gate: `review-main` / `review-expert` plus `vibe-coding-refractaire`.
 
+## Graphify VS Code integration
+
+- Do **not** run `graphify vscode install` blindly in this repository. It appends a generic `## graphify` section to `.github/copilot-instructions.md`, while this repository already has a stronger repo-specific orchestration for memory, GitNexus, Graphify, and agents.
+- For a controlled VS Code integration, prefer `python -m graphify copilot install`. This installs the user-level Graphify skill in `~/.copilot/skills/graphify/SKILL.md` without modifying the repository instructions.
+- Use `/graphify` explicitly for corpus-level semantic work. Keep the repo rule unchanged: GitNexus for code structure/impact, Graphify for corpus/doc/audit/diagram links.
+

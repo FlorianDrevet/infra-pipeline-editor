@@ -49,6 +49,30 @@ Ce dépôt utilise **deux graphes de connaissance complémentaires** :
 
 ---
 
+## Intégration VS Code contrôlée
+
+Pour **ce dépôt**, ne pas lancer `graphify vscode install` de manière automatique.
+
+Pourquoi :
+
+- `graphify vscode install` ajoute une section `## graphify` à `.github/copilot-instructions.md`
+- ce dépôt possède déjà une orchestration repo-specific plus riche (`dev`, mémoire projet, GitNexus, skill `graphify-corpus`)
+- ajouter la section Graphify officielle en mode aveugle crée une deuxième couche always-on moins précise que les instructions du dépôt
+
+Mode contrôlé recommandé :
+
+1. Installer **uniquement** le skill utilisateur Copilot avec `python -m graphify copilot install`
+2. Garder `.github/copilot-instructions.md` du dépôt comme source de vérité
+3. Utiliser `/graphify` explicitement quand une tâche justifie la couche corpus/semantics
+4. Si un jour tu veux la section officielle Graphify dans le repo, la fusionner manuellement au lieu d'exécuter `graphify vscode install`
+
+Conséquence pratique :
+
+- le slash command `/graphify` est disponible côté Copilot utilisateur
+- le dépôt conserve ses règles de priorité : mémoire -> GitNexus -> Graphify -> Explore
+
+---
+
 ## Quand utiliser Graphify vs GitNexus
 
 ### Utiliser GitNexus quand :
@@ -77,6 +101,91 @@ Ce dépôt utilise **deux graphes de connaissance complémentaires** :
 - **Audit technique** : Graphify pour relier les audits précédents aux zones de code, GitNexus pour vérifier les impacts
 - **Onboarding approfondi** : Graphify pour la carte mentale globale, GitNexus pour les flux d'exécution précis
 - **Planification de refactoring** : Graphify pour identifier les communautés et god nodes concernés, GitNexus pour le blast radius exact
+
+---
+
+## Workflows ciblés pour ce dépôt
+
+Le plein potentiel de Graphify sur InfraFlowSculptor ne consiste pas à lancer un graphe sémantique géant sur tout le repo à chaque fois. Il consiste à cibler le bon corpus selon la question.
+
+### 1. Architecture / onboarding
+
+Quand : nouveau contributeur, vue d'ensemble, lecture transversale code+docs.
+
+Corpus conseillé :
+
+- `docs/architecture`
+- `README.md`
+- `src/Api`
+- `src/Mcp`
+
+Utilisation :
+
+- `/graphify docs/architecture`
+- lire `graphify-out/GRAPH_REPORT.md`
+- compléter avec GitNexus sur les handlers et flows critiques repérés
+
+### 2. Audit / review transverse
+
+Quand : relier findings, docs, diagrammes, zones de code.
+
+Corpus conseillé :
+
+- `audits`
+- `docs`
+- la slice de code concernée (`src/Api`, `src/Mcp`, `src/Front`)
+
+Utilisation :
+
+- `/graphify audits`
+- `python -m graphify query "what connects PAT auth to MCP tools?" --graph .\graphify-out\graph.json`
+- compléter avec GitNexus pour confirmer impact et blast radius
+
+### 3. MCP / IA tooling
+
+Quand : comprendre les tools MCP, leur documentation, leurs prompts, et leur rattachement au produit.
+
+Corpus conseillé :
+
+- `docs/architecture/mcp-integration.md`
+- `src/Mcp`
+- `src/Api/InfraFlowSculptor.Application`
+
+Utilisation :
+
+- Graphify pour doc ↔ tool ↔ concept métier
+- GitNexus pour le flux précis `Tool -> Handler -> Service -> Repository`
+
+### 4. Génération Bicep / pipeline
+
+Quand : questions de design, rationale, dette d'architecture, lecture transversale.
+
+Corpus conseillé :
+
+- `docs/architecture/bicep-generation.md`
+- `docs/architecture/pipeline-generation.md`
+- `src/Api/InfraFlowSculptor.BicepGeneration`
+- `src/Api/InfraFlowSculptor.PipelineGeneration`
+
+Utilisation :
+
+- Graphify pour les communautés, god nodes, liens entre docs et moteurs
+- GitNexus pour `BicepGenerationEngine`, `BicepAssembler`, `AppPipelineGenerationEngine`, `MonoRepoPipelineAssembler`
+
+### 5. Frontend / UX / design system
+
+Quand : relier les docs UX, conventions DS, écrans et composants.
+
+Corpus conseillé :
+
+- `src/Front/src`
+- `.github/memory/14-frontend-design-system.md`
+- `docs`
+
+Utilisation :
+
+- Graphify pour les patterns transverses, la cohérence de vocabulaire, les connexions entre écrans et composants
+- GitNexus uniquement si une question structurelle code TS devient nécessaire
 
 ---
 
