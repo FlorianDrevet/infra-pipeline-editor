@@ -1,3 +1,8 @@
+---
+name: cqrs-feature
+description: 'Generate or extend a CQRS feature in InfraFlowSculptor. Use for aggregates, commands, queries, handlers, validators, repositories, contracts, and API endpoints with strong typing and one-type-per-file conventions.'
+---
+
 # Skill : cqrs-feature — Génération d'une feature CQRS complète
 
 > **Charger ce skill avec `read_file` AVANT de générer tout artefact CQRS.**
@@ -15,6 +20,16 @@
    - Agrégat **existant à étendre** ou **nouveau agrégat** ?
 
 Appliquer toutes les règles de l'agent `dotnet-dev` pour la qualité du code C# généré (nommage, XML docs, no magic strings, sealed, guard clauses, etc.).
+
+## Garde-fous transverses obligatoires
+
+- Un seul type public top-level par fichier. Ne jamais créer un fichier poubelle qui regroupe des dizaines de DTOs, responses, requests, handlers, ou helpers.
+- Aucun magic string quand un enum, une constante dédiée, un ValueObject, ou `nameof()` suffit.
+- Préférer des contrats, read models, entities, value objects, options, et DTOs fortement typés. Ne pas utiliser `object`, `dynamic`, `Dictionary<string, object>`, `JsonDocument`, ou des blobs JSON si le schéma est connu.
+- Si une structure faible est imposée par une frontière externe, la mapper immédiatement vers un modèle applicatif explicite.
+- Avant d'introduire une abstraction structurelle (`Factory`, `Strategy`, `Builder`, `Specification`, etc.), comparer au moins 2 options plausibles et garder la plus lisible, maintenable, et scalable. Pas de pattern décoratif.
+
+---
 
 ---
 
@@ -120,6 +135,8 @@ src/Api/InfraFlowSculptor.Application/{AggregateName}s/
 └── Common/
     └── {AggregateName}Result.cs
 ```
+
+Chaque commande, handler, validator, query, result DTO, response contract, repository interface, configuration EF, et endpoint mapper garde son propre fichier. Le skill ne tolère pas de regroupement artificiel de types publics.
 
 ### Commande
 

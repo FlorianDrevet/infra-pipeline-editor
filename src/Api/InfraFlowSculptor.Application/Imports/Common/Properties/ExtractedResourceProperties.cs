@@ -102,7 +102,7 @@ public sealed record StorageAccountExtractedProperties(
     public string KindOrDefault => Kind ?? "StorageV2";
 
     /// <summary>Parses StorageAccount properties from an ARM resource.</summary>
-    public static StorageAccountExtractedProperties FromArm(ArmResource armResource, JsonElement properties)
+    internal static StorageAccountExtractedProperties FromArm(ArmResource armResource, JsonElement properties)
     {
         var skuName = armResource.Sku?.Name;
         var kind = armResource.Kind;

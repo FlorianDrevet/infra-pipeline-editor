@@ -3,6 +3,8 @@ using System.Text.Json;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Drafts;
+using InfraFlowSculptor.Mcp.Drafts.Models;
+using InfraFlowSculptor.Mcp.Tools.Models;
 using MediatR;
 using ModelContextProtocol.Server;
 

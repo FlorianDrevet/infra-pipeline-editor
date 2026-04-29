@@ -46,9 +46,9 @@
 - **Pre-merge code review** — Use the `review-expert` agent (`.github/agents/review-expert.agent.md`) for strict review of the code that will be merged from the current branch to `main`, with severity-ranked findings and a corrective backlog.
 - **Anti-vibe coding review** — Use the `vibe-coding-refractaire` agent (`.github/agents/vibe-coding-refractaire.agent.md`) as a second-pass reviewer for generated or suspicious code, with a senior hater lens focused on unnecessary abstractions, copy-paste, weak tests, architecture drift, and other vibe-coding smells.
 - **Review remediation** — Use the `review-remediator` agent (`.github/agents/review-remediator.agent.md`) to consume the corrective backlog produced by `review-expert`, implement only the accepted fixes, and validate them before a new review pass.
-- **Backend C#/.NET** — Any C# code generation or modification MUST follow `.github/agents/dotnet-dev.agent.md` conventions (XML docs, no magic strings, SOLID, async/await, EF Core, FluentValidation, sealed, guard clauses, no code smells).
+- **Backend C#/.NET** — Any C# code generation or modification MUST follow `.github/agents/dotnet-dev.agent.md` conventions (XML docs, no magic strings, one public top-level type per file, explicit design-pattern selection, strong typing over weak `object`/dictionary/JSON structures, SOLID, async/await, EF Core, FluentValidation, sealed, guard clauses, no code smells).
 - **.NET unit testing** — Load the `xunit-unit-testing` skill (`.github/skills/xunit-unit-testing/SKILL.md`) for any xUnit unit-test creation, bug reproduction, snapshot test, coverage, or mutation-testing task.
-- **Frontend Angular** — Any work in `src\Front` MUST use the `angular-front` agent (`.github/agents/angular-front.agent.md`).
+- **Frontend Angular** — Any work in `src\Front` MUST use the `angular-front` agent (`.github/agents/angular-front.agent.md`) and keep TypeScript strongly typed, with extracted enums/constants for repeated literals and one Angular class per file.
 - **Aspire runtime debugging** — Any runtime/AppHost investigation (resource failures, logs/traces, startup issues) MUST use the `aspire-debug` agent (`.github/agents/aspire-debug.agent.md`).
 - **Memory consolidation (Dream)** — The `dream` agent (`.github/agents/dream.agent.md`) performs periodic memory consolidation (4 phases: Orient → Gather → Consolidate → Prune). Triggered automatically by `@dev` when time gate (≥24h) AND session gate (≥5 sessions) are both satisfied and an exclusive Dream lock at `$env:TEMP\infra-pipeline-editor-dream-lock` can be acquired. Dream state tracked in `.github/memory/dream-state.md`.
 - **CQRS feature generation** — Load the `cqrs-feature` skill (`.github/skills/cqrs-feature/SKILL.md`) for any new aggregate or CQRS feature.
@@ -96,6 +96,10 @@ They differ from agents: no tools, pure structured knowledge, reusable across mu
 10. **GitNexus:** Before modifying a shared symbol, run `gitnexus_impact()` to assess blast radius
 11. **TDD obligatoire:** Never write production code without tests first — load `tdd-workflow` skill, follow RED→GREEN→REFACTOR→VERIFY, track debt in `.github/test-debt.md`
 12. **DS obligatoire (Frontend):** Tout composant UI doit utiliser les `app-ds-*` existants. Si un pattern n'a pas de DS component, en créer un réutilisable dans `shared/components/ds/` avant usage.
+13. **Une classe par fichier:** En code de production, ne pas créer de fichiers poubelles qui regroupent des dizaines de DTOs, models, requests, responses, ou helpers.
+14. **Typage fort d'abord:** Éviter `object`, `Dictionary<,>`, `JsonDocument`, `JsonNode`, et les blobs JSON en base quand le schéma est connu côté code et persistance.
+15. **Patterns avec levier:** Comparer les options plausibles et retenir la plus simple qui améliore lisibilité, maintenabilité, et scalabilité ; ne pas ajouter d'abstraction décorative.
+16. **Organisation des fichiers:** Ne pas accumuler des fichiers à plat dans un même dossier quand ils ont des responsabilités différentes (DTOs, logique métier, constantes, enums). Créer des sous-dossiers thématiques (Models/, Constants/, Analysis/, etc.) et aligner les namespaces sur le chemin physique.
 
 ## Pull Request conventions
 

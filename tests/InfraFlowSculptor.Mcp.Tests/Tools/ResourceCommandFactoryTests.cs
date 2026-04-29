@@ -18,7 +18,8 @@ using InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
-using InfraFlowSculptor.Application.Imports.Common;
+using InfraFlowSculptor.Application.Imports.Common.Creation;
+using InfraFlowSculptor.Application.Imports.Common.Properties;
 
 namespace InfraFlowSculptor.Mcp.Tests.Tools;
 
@@ -146,21 +147,16 @@ public sealed class ResourceCommandFactoryTests
     public void BuildCommand_StorageAccount_UsesExtractedProperties()
     {
         // Arrange
-        var props = new Dictionary<string, object?>
-        {
-            ["kind"] = "BlobStorage",
-            ["accessTier"] = "Cool",
-        };
+        var props = new StorageAccountExtractedProperties("Standard_LRS", "BlobStorage", []);
 
         // Act
         var command = ResourceCommandFactory.BuildCommand(
             AzureResourceTypes.StorageAccount, TestRgId, TestName, TestLocation,
-            new ResourceCreationContext(EmptyCreated, ExtractedProperties: props));
+            new ResourceCreationContext(EmptyCreated, TypedProperties: props));
 
         // Assert
         var sa = command.Should().BeOfType<CreateStorageAccountCommand>().Subject;
         sa.Kind.Should().Be("BlobStorage");
-        sa.AccessTier.Should().Be("Cool");
     }
 
     // ── OrderByDependency ──────────────────────────────────────────────

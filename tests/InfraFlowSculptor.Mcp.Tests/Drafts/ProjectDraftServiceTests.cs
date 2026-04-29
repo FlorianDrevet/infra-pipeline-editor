@@ -1,6 +1,7 @@
 using FluentAssertions;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Mcp.Drafts;
+using InfraFlowSculptor.Mcp.Drafts.Models;
 
 namespace InfraFlowSculptor.Mcp.Tests.Drafts;
 

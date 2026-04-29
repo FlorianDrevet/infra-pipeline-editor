@@ -42,6 +42,12 @@
 | `angular-patterns` | Angular frontend patterns for ce repo : Signals, standalone components, forms, Axios, routing, Material+Tailwind, i18n | `.github/skills/angular-patterns/SKILL.md` |
 | `bicep-v2-migration` | Migrating an IResourceTypeBicepGenerator from legacy string template to Builder + IR (Vague 2), including TDD tests, emitter parity, review cycle, and skill feedback loop | `.github/skills/bicep-v2-migration/SKILL.md` |
 
+## Code Generation Guardrails [2026-04-29]
+
+- New workspace instruction: `.github/instructions/code-quality-guardrails.instructions.md` auto-attaches on C# and Angular source edits.
+- Guardrails now repeated across `dev`, `architect`, `dotnet-dev`, `angular-front`, `vibe-coding-refractaire`, `dotnet-patterns`, and `angular-patterns`.
+- Mandatory rules: no magic strings, one public top-level type/class per file, strongly typed contracts/models/persistence before `object` / `Dictionary` / `JsonDocument` / weak JSON, and explicit design-pattern choice based on readability, maintainability, and scalability.
+
 ## Unit Test Routing [2026-04-27]
 
 - `dotnet-dev` must load `tdd-workflow` + `xunit-unit-testing` for any code modification task (not just test-only tasks).
@@ -57,6 +63,7 @@
 - Its review scope is the merge diff by default (`origin/main...HEAD`, fallback `main...HEAD`), not the full repository.
 - It must output severity-ranked findings first, then questions/assumptions, then a corrective backlog ready to delegate.
 - It should prioritize maintainability, security, scalability, architecture, and test gaps over speed of implementation.
+- It must explicitly flag weak typing, dump files with multiple public top-level types, magic strings in structural code, and decorative patterns as real findings rather than style nits.
 
 ## Anti-vibe Review Routing [2026-04-29]
 
@@ -92,3 +99,8 @@ A Skill is a `SKILL.md` file of pure knowledge, lazy-loaded via `read_file` when
 - **Current state [2026-04-29]:** MCP runs as ASP.NET Core HTTP host (`/mcp`, port 5258) under Aspire, secured with PAT auth. Import preview/apply logic extracted to `Application/Imports/` for shared API+MCP use. `ResourceCommandFactory` + `ProjectSetupOrchestrator` wire end-to-end resource creation. One-class-per-file enforced, `LayoutPresetEnum` replaces magic strings.
 - Conversational creation rule: a prompt like "create a project with a Key Vault" must first go through a draft/clarification step; repository topology (`MonoRepo`, `SplitInfraCode`, etc.) must not be guessed by a mutating tool.
 - VS Code connection: `.vscode/mcp.json` points to `http://127.0.0.1:5258/mcp` with `Authorization: Bearer ${input:ifs_pat}` header.
+- The skill now explicitly requires typed import models instead of weak `Dictionary<string, object>` / `JsonDocument` propagation, one public top-level type per file, and deliberate pattern selection.
+
+## CQRS Skill [2026-04-29]
+
+- `cqrs-feature` now has valid skill frontmatter and explicitly enforces one public top-level type per file, no magic strings, strong typing over weak objects/dictionaries/JSON, and deliberate pattern selection before introducing abstractions.

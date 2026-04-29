@@ -1,4 +1,4 @@
-using InfraFlowSculptor.Application.Imports.Common;
+using InfraFlowSculptor.Application.Imports.Common.Analysis;
 
 namespace InfraFlowSculptor.Mcp.Imports.Models;
 

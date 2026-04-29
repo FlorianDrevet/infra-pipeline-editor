@@ -190,6 +190,13 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 > - Enregistrer la dette de tests détectée dans `.github/test-debt.md`
 > - Vérifier `dotnet test .\InfraFlowSculptor.slnx` en fin de tâche
 
+> **RÈGLE DE GARDE-FOUS STRUCTURELS — Toute délégation de code DOIT rappeler explicitement :**
+> - pas de magic strings ; utiliser enums, constantes dédiées, ou `nameof()`
+> - un seul type public top-level par fichier ; aucun fichier poubelle `Dtos.cs`, `Models.cs`, `Responses.cs`, `Helpers.cs`
+> - pas de `object`, `dynamic`, `Dictionary<string, object>`, `JsonDocument`, `any`, ou `Record<string, unknown>` si un contrat typé est possible
+> - si une forme faible est inévitable à une frontière externe, la mapper immédiatement vers un modèle typé et ne pas la propager
+> - ne pas introduire un pattern par réflexe ; comparer les options plausibles et garder la plus lisible, maintenable, et scalable
+
 - **Nouvelle feature, demande complexe, ou changement architectural significatif** :
   Déléguer d'abord à `architect` pour obtenir un plan d'implémentation validé. L'architecte challenge la demande, vérifie la cohérence avec l'existant, et produit un plan étape par étape attribuant chaque action à l'agent expert approprié. Une fois le plan reçu, `dev` coordonne l'exécution en suivant le plan à la lettre.
 

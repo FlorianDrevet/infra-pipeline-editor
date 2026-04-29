@@ -77,6 +77,8 @@ Le serveur MCP ne doit **pas** :
 - reimplementer la logique de creation de projet ou de generation Bicep
 - exposer les agrégats Domain comme des pseudo-outils generiques
 - parser les formats IaC avec du regex ad hoc ou de la logique LLM opaque
+- propager des structures faibles (`object`, `Dictionary<string, object>`, `JsonDocument`, blobs JSON) au-dela d'un adapter source si un modele explicite est possible
+- regrouper des dizaines de DTOs/contracts/tools dans un seul fichier poubelle
 
 Le serveur MCP doit :
 
@@ -84,6 +86,8 @@ Le serveur MCP doit :
 - appeler la couche `Application` / services de generation existants
 - reutiliser les validateurs, policies d'acces, DTOs, et services deja presents
 - s'appuyer sur un **modele canonique d'import** commun a tous les formats sources
+- convertir les payloads externes vers des contrats typés des que le schema est connu
+- garder un type public top-level par fichier pour les tools, resources, prompts, contracts et modeles d'import
 
 ### Decoupage cible recommande
 
@@ -120,6 +124,8 @@ src/
 
 **Ne transforme jamais directement un ARM/Terraform/diagramme en commandes d'ecriture finales sans etape intermediaire.**
 
+**Ne laisse jamais un format source faiblement type devenir le contrat interne durable.** Les formes faibles ne vivent qu'a la frontiere d'import, puis sont mappees vers des modeles explicites.
+
 Il faut une chaine en 4 etapes :
 
 1. **Parse source**
@@ -148,6 +154,13 @@ Source IaC / diagramme
 | Terraform | **Preferer `terraform plan/show -json` ou state JSON** plutot que parser directement le HCL brut. Ne pas utiliser de regex. |
 | Diagramme d'architecture | Preferer un format structure exportable (`.drawio`, Mermaid, PlantUML, JSON de design) avant toute extraction vision/OCR. |
 | Autre IaC | Ajouter un `ISourceImportAdapter` dedie branche sur le meme modele canonique. |
+
+### Guardrails de modelisation
+
+- Si les donnees importees ont un schema connu, creer des `record`/`class`/`enum` dedies plutot qu'un `Dictionary<string, object>` ou un `JsonDocument` transversal.
+- Les enums, constantes, et types de contrat partages doivent etre extraits dans des fichiers dedies ; pas de magic strings disperses dans les tools.
+- Les dictionnaires ne sont legitimes que pour de vrais cas de cles dynamiques ou de lookup, pas comme substitut a un contrat d'import.
+- Si plusieurs patterns sont plausibles (`simple service`, `Strategy`, `Factory`, `Builder`), retenir le plus simple qui garde l'orchestration MCP lisible et maintenable. Pas de pattern decoratif.
 
 ### Anti-pattern critique
 
@@ -186,6 +199,7 @@ Source IaC / diagramme
 - Les tools ne doivent pas renvoyer des blobs massifs inutiles.
 - Si le resultat est long (preview detaille, gros Bicep, rapport de migration), stocke ou recompose le resultat et renvoie un identifiant / URI / resume.
 - Les `resources` sont plus adaptees que les `tools` pour exposer un contenu volumineux a relire plusieurs fois.
+- Les outputs MCP doivent rester fortement typés et stables ; ne pas rebasculer sur des sacs de proprietes faibles si le schema de sortie est connu.
 
 ### Premiere surface de tools recommandee
 

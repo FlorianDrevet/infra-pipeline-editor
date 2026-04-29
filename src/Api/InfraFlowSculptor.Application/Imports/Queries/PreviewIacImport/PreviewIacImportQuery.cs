@@ -1,6 +1,6 @@
 using ErrorOr;
 using InfraFlowSculptor.Application.Common.Interfaces;
-using InfraFlowSculptor.Application.Imports.Common;
+using InfraFlowSculptor.Application.Imports.Common.Analysis;
 
 namespace InfraFlowSculptor.Application.Imports.Queries.PreviewIacImport;
 

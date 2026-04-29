@@ -1,3 +1,8 @@
+---
+name: angular-patterns
+description: 'Angular frontend project conventions. Use when generating or reviewing Angular code for signals, standalone components, strong typing, one-class-per-file, enums/constants, routing, services, and i18n.'
+---
+
 # Skill : angular-patterns — Conventions Angular 19 du projet
 
 > **Chargé automatiquement par l'agent `angular-front`.**
@@ -69,6 +74,14 @@ export class MyComponent {
   private loadData(): void { }
 }
 ```
+
+### 5. Typage fort et littéraux partagés
+
+- Les composants, services, et facades exposent des modèles TypeScript explicites ; éviter `any`, `unknown`, `Record<string, unknown>`, et les objets faibles si le contrat est connu.
+- Les interfaces frontend doivent coller aux DTOs backend, ou à un view model local clairement nommé quand une adaptation UI est nécessaire.
+- Les statuts, actions, modes, et autres littéraux métier répétés doivent être extraits dans des `enum`, `as const`, ou constantes exportées dédiées plutôt que dispersés dans le code.
+- Une seule classe Angular top-level par fichier. Les types auxiliaires réutilisables vivent dans des fichiers dédiés (`shared/interfaces`, `shared/enums`, ou fichier local ciblé), pas dans un fourre-tout.
+- Si une API externe renvoie une forme dynamique, la conversion vers un modèle typé doit être faite dans le service d'accès, pas dans le composant.
 
 ---
 

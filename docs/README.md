@@ -28,8 +28,8 @@ Ce dossier contient la documentation technique du projet **Infra Flow Sculptor**
 8. [Guide de navigation](architecture/getting-started.md) — Comment trouver du code, ajouter un nouveau type de ressource
 9. [Génération Bicep](architecture/bicep-generation.md) — Guide complet d’onboarding : flux de génération, pipeline, IR, choix d’architecture, navigation pas à pas dans le code
 10. [Génération Pipeline](architecture/pipeline-generation.md) — Moteur de génération de pipelines Azure DevOps
-11. [Intégration MCP](architecture/mcp-integration.md) — Cours d'onboarding sur MCP : concepts, intégration .NET, exposition locale/distante, architecture cible dans Infra Flow Sculptor, checklist de revue du code
-12. [Plan d'implémentation MCP V1](architecture/mcp-v1-implementation-plan.md) — Phases d'implémentation, contrats JSON exhaustifs des 8 tools V1, modèle canonique d'import, structure cible du code, stratégie de tests
+11. [Intégration MCP](architecture/mcp-integration.md) — Cours d'onboarding sur l'implémentation actuelle : serveur HTTP `/mcp`, authentification PAT, inventaire exact des tools/resources/prompts, guide de connexion VS Code et ordre de lecture du code
+12. [Plan d'implémentation MCP V1](architecture/mcp-v1-implementation-plan.md) — Document de design initial : contrats JSON, découpage par phases, structure cible et stratégie de tests pour la V1
 
 ---
 

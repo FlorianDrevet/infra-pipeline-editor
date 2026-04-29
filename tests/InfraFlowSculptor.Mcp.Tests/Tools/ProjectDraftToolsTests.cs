@@ -2,6 +2,7 @@ using System.Text.Json;
 using FluentAssertions;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Mcp.Drafts;
+using InfraFlowSculptor.Mcp.Drafts.Models;
 using InfraFlowSculptor.Mcp.Tools;
 using NSubstitute;
 

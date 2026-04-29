@@ -1,5 +1,6 @@
 using FluentAssertions;
-using InfraFlowSculptor.Application.Imports.Common;
+using InfraFlowSculptor.Application.Imports.Common.Analysis;
+using InfraFlowSculptor.Application.Imports.Common.Constants;
 using InfraFlowSculptor.Mcp.Imports;
 using InfraFlowSculptor.Mcp.Imports.Models;
 using NSubstitute;

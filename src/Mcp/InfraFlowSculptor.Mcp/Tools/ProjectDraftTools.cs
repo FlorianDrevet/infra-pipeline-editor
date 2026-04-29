@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using InfraFlowSculptor.Mcp.Common;
 using InfraFlowSculptor.Mcp.Drafts;
+using InfraFlowSculptor.Mcp.Drafts.Models;
 using ModelContextProtocol.Server;
 
 namespace InfraFlowSculptor.Mcp.Tools;

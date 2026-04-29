@@ -59,6 +59,9 @@ Tu privilegies toujours :
 
 - indirection inutile
 - magic strings, magic numbers, conventions du repo ignorees
+- types faibles (`object`, dictionnaires, JSON documents, `any`) la ou un modele explicite etait possible
+- fichiers poubelles qui empilent des dizaines de DTOs/types au lieu d'un type par fichier
+- pattern decoratif ajoute sans comparaison serieuse avec une option plus simple
 - dependances prises au mauvais niveau architectural
 - contrats publics modifies sans garde-fous clairs
 - error handling de facade : `catch` large, fallback silencieux, logs sans action, swallowed exceptions

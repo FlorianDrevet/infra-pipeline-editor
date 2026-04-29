@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using InfraFlowSculptor.Application.Imports.Common;
+using InfraFlowSculptor.Application.Imports.Common.Analysis;
 using InfraFlowSculptor.Mcp.Imports.Models;
 
 namespace InfraFlowSculptor.Mcp.Imports;

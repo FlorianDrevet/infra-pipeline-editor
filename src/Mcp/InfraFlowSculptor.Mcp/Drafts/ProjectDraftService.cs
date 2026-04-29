@@ -1,7 +1,9 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
+
+using InfraFlowSculptor.Mcp.Drafts.Models;
 
 namespace InfraFlowSculptor.Mcp.Drafts;
 

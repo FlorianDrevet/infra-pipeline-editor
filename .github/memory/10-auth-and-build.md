@@ -16,6 +16,7 @@
 - **Registration:** `AddPatAuthentication()` in `DependencyInjection.cs`
 - **Domain:** `PersonalAccessToken` aggregate in `PersonalAccessTokenAggregate/`
 - **Frontend:** Settings page at `/settings` with PAT management (create dialog with one-time token display, list, revoke)
+- **Primary onboarding doc:** `docs/architecture/mcp-integration.md` now documents the real MCP runtime (`/mcp` over HTTP), the PAT flow, and the exact exposed surface (8 tools, 2 resources, 1 prompt)
 
 ## Build & Run Commands
 

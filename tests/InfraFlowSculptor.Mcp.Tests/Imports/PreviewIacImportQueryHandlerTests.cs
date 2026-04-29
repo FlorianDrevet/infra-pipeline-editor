@@ -1,5 +1,6 @@
 using FluentAssertions;
-using InfraFlowSculptor.Application.Imports.Common;
+using InfraFlowSculptor.Application.Imports.Common.Analysis;
+using InfraFlowSculptor.Application.Imports.Common.Constants;
 using InfraFlowSculptor.Application.Imports.Queries.PreviewIacImport;
 using NSubstitute;
 

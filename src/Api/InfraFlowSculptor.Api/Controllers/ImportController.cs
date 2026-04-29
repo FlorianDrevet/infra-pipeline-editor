@@ -1,6 +1,8 @@
 using InfraFlowSculptor.Api.Errors;
 using InfraFlowSculptor.Application.Imports.Commands.ApplyImportPreview;
-using InfraFlowSculptor.Application.Imports.Common;
+using InfraFlowSculptor.Application.Imports.Common.Analysis;
+using InfraFlowSculptor.Application.Imports.Common.Constants;
+using InfraFlowSculptor.Application.Imports.Common.Creation;
 using InfraFlowSculptor.Application.Imports.Queries.PreviewIacImport;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 using InfraFlowSculptor.Contracts.Imports.Requests;

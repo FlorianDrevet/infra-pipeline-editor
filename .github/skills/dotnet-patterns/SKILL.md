@@ -1,3 +1,8 @@
+---
+name: dotnet-patterns
+description: 'C#/.NET project conventions. Use when generating or reviewing backend code for naming, XML docs, one-type-per-file, no magic strings, strong typing, and design-pattern selection.'
+---
+
 # Skill : dotnet-patterns — Conventions C# .NET 10 du projet
 
 > **Chargé automatiquement par l'agent `dotnet-dev`.**
@@ -29,6 +34,16 @@
 - **Suffixes sémantiques** : `Async` pour toute méthode `Task`-retournante, `Repository` pour les repos, `Handler` pour les handlers MediatR, `Validator` pour FluentValidation, `Configuration` pour les configs EF Core.
 - **Pluriel pour les collections** : `Members` pas `MemberList`, `Items` pas `ItemCollection`.
 - **Pas de préfixe hongrois** : jamais `strName`, `intCount`.
+
+## 1bis. Granularité des fichiers — Une classe publique par fichier
+
+Pour tout code de production non-test :
+
+- Un seul type public top-level par fichier (`class`, `record`, `struct`, `interface`, `enum`).
+- Le nom du fichier doit correspondre exactement au type public principal.
+- Les fichiers poubelles `Dtos.cs`, `Models.cs`, `Requests.cs`, `Responses.cs`, et `Helpers.cs` sont interdits s'ils accumulent plusieurs types sans raison locale forte.
+- Les types `private` ou `file` strictement locaux peuvent rester imbriqués ; dès qu'un type est réutilisé ailleurs, il doit être extrait dans son propre fichier.
+- Les DTOs, records, résultats, commandes, réponses, options, et enums ne sont pas une exception : chacun mérite son propre fichier si son schéma est explicite.
 
 ---
 
@@ -126,6 +141,24 @@ public sealed class KeyVaultConfiguration : IEntityTypeConfiguration<KeyVault>
 }
 ```
 
+### Règles complémentaires
+
+- Quand le domaine expose un ensemble fini de valeurs, préférer `enum`, constante centralisée, ou ValueObject plutôt qu'un littéral répété.
+- Les codes d'erreur, noms de policy, claims, routes nommées, noms de table, noms de colonne, et clés de configuration ne doivent pas être dispersés en dur.
+- Les constantes doivent vivre au niveau le plus proche de leur responsabilité, mais rester réutilisables.
+
+---
+
+## 3bis. Typage fort — Modéliser le schéma, pas le contour
+
+Quand la forme des données est connue, elle doit être modélisée explicitement.
+
+- Préférer `record`, `class`, `enum`, `ValueObject`, options typées, ou read models dédiés.
+- Éviter `object`, `dynamic`, `Dictionary<string, object>`, `IDictionary<string, object>`, `JsonDocument`, `JsonNode`, `JObject`, `ExpandoObject`, et les blobs JSON génériques en base quand un schéma stable est connu.
+- Les dictionnaires restent autorisés pour de vrais cas de lookup, d'indexation, ou de clés réellement dynamiques. Ils ne doivent pas servir à masquer un contrat métier ou applicatif.
+- Si une frontière externe impose une forme faible (payload tiers, input libre, métadonnées dynamiques), l'isoler dans l'adapter, valider, puis mapper immédiatement vers un modèle canonique fortement typé. Le reste de l'application ne doit jamais dépendre de cette forme faible.
+- En persistance, préférer des colonnes explicites, owned types, converters, tables dédiées, ou read models typés avant de stocker un JSON non structuré.
+
 ---
 
 ## 4. Code propre — Principes SOLID et Clean Code
@@ -162,6 +195,31 @@ Application → définit IRepository<T>, ICurrentUser, IInfraConfigAccessService
 Infrastructure → implémente ces interfaces
 API → orchestre via DI
 ```
+
+## 4bis. Choix des design patterns — Abstraction avec levier uniquement
+
+Avant d'introduire une abstraction structurelle, comparer explicitement les options plausibles :
+
+- aucune abstraction supplémentaire / composition directe
+- `Strategy`
+- `Factory`
+- `Builder`
+- `Specification`
+- `Policy`
+- autre pattern déjà établi dans le repo
+
+Critères de choix obligatoires :
+
+- lisibilité immédiate pour un lecteur du dépôt
+- maintenabilité à moyen terme
+- scalabilité du comportement attendu
+- cohérence avec les patterns déjà présents
+
+Règles :
+
+- Si une méthode, un service simple, ou un `switch` explicite est plus clair, il faut le préférer au pattern.
+- Un pattern n'est justifié que s'il simplifie les call sites, réduit la duplication structurelle, ou rend l'évolution future crédible.
+- Refuser les abstractions génériques sans responsabilité nette (`Helper`, `Manager`, `Processor`) si elles ne portent pas une intention métier ou technique stable.
 
 ---
 

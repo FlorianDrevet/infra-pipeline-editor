@@ -1,5 +1,6 @@
 using InfraFlowSculptor.Application.Common.Interfaces;
-using InfraFlowSculptor.Application.Imports.Common;
+using InfraFlowSculptor.Application.Imports.Common.Analysis;
+using InfraFlowSculptor.Application.Imports.Common.Creation;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
 
 namespace InfraFlowSculptor.Application.Imports.Commands.ApplyImportPreview;

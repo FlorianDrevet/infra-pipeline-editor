@@ -2,17 +2,26 @@
 
 ## Objectif de ce document
 
-Ce document est un **cours d'onboarding** sur le Model Context Protocol (MCP) applique a **Infra Flow Sculptor**.
+Ce document est le **cours d'onboarding complet** sur la partie MCP du projet, avec un second objectif tres concret : t'expliquer **de bout en bout** comment fonctionne l'authentification par **PAT** dans cette implementation.
 
-Son but est de te permettre de :
+Il doit te permettre de :
 
-1. comprendre **ce qu'est MCP** et ce qu'il n'est pas
-2. comprendre **comment un serveur MCP s'integre dans un projet .NET**
-3. comprendre **comment l'exposer** localement et une fois deploye
-4. comprendre **l'architecture cible** envisagee pour ce depot
-5. etre capable de **challenger le code genere** plus tard
+1. comprendre ce qu'est MCP et a quoi servent ses `tools`, `resources` et `prompts`
+2. comprendre **l'implementation actuelle** du serveur MCP dans ce depot
+3. comprendre ce qu'est un **PAT** et pourquoi le projet s'en sert pour securiser `/mcp`
+4. savoir **creer**, **utiliser**, **revoquer** et **connecter** un PAT dans VS Code
+5. connaitre l'inventaire exact des capacites MCP exposees aujourd'hui
+6. savoir dans quel ordre lire le code pour verifier chaque explication
 
-Ce document ne remplace pas la documentation officielle MCP. Il sert de pont entre la theorie et **la facon correcte de l'integrer dans ce projet**.
+Ce document ne remplace pas la documentation officielle MCP. Il sert de pont entre la theorie et **la facon dont MCP est vraiment implemente ici**.
+
+> **Etat actuel a retenir tout de suite**
+>
+> - le serveur MCP du projet est aujourd'hui un **serveur HTTP stateless**
+> - il expose la route **`/mcp`**
+> - il est protege par une authentification **Bearer PAT**
+> - la configuration VS Code partagee du depot est [../../.vscode/mcp.json](../../.vscode/mcp.json)
+> - la surface MCP actuelle expose **8 tools**, **2 resources** et **1 prompt**
 
 ---
 
@@ -22,707 +31,661 @@ Ce document ne remplace pas la documentation officielle MCP. Il sert de pont ent
 
 MCP, pour **Model Context Protocol**, est un protocole standard qui permet a un client IA de se connecter a un serveur qui expose :
 
-- des **tools** : actions que l'IA peut appeler
-- des **resources** : donnees lisibles et reutilisables comme contexte
-- des **prompts** : templates ou workflows predefinis
+- des **tools** : des actions executables
+- des **resources** : des donnees lisibles comme contexte
+- des **prompts** : des consignes ou workflows predefinis
 
 ### Image mentale utile
 
-Pense MCP comme une **prise normalisee** entre un client IA et ton systeme.
+Pense MCP comme une **prise standard** entre un agent IA et ton systeme.
 
 Sans MCP :
 
-- l'agent connait du texte, mais ne sait pas vraiment agir sur ton systeme
+- l'agent lit du texte, mais il ne sait pas agir proprement sur ton application
 
 Avec MCP :
 
-- l'agent voit une liste d'actions autorisees
-- il peut appeler ces actions de maniere structuree
-- il recupere des resultats standardises
+- l'agent voit une liste de capacites nommees
+- il sait quels parametres fournir
+- il recoit des resultats structurels et reutilisables
 
 ### Ce que MCP n'est pas
 
 MCP n'est pas :
 
-- un agent magique qui comprend tout sans travail de conception
+- un agent magique qui devine tout sans travail de conception
 - un remplacement de ton API metier
-- un backend parallele qui doit dupliquer toute la logique existante
-- un parseur IaC en soi
+- une excuse pour dupliquer la logique existante dans un nouveau backend parallele
+- un format de securite a lui seul
 
-Dans un bon design, **MCP est une couche d'adaptation** au-dessus de la logique metier existante.
+Dans un bon design, **MCP est une couche d'adaptation** au-dessus de la logique applicative deja en place.
 
 ---
 
 ## 2. Le vocabulaire minimal a connaitre
 
-### Client MCP / Host MCP
+### Host MCP
 
-Le **client** ou **host** MCP est l'application qui consomme le serveur MCP.
+Le **host MCP** est le client qui consomme le serveur MCP.
 
 Exemples :
 
-- VS Code / GitHub Copilot Chat
+- VS Code / Copilot Chat
 - Claude Desktop
-- ChatGPT s'il supporte MCP
-- un autre client custom
+- un autre client compatible MCP
 
 Le host :
 
-- demarre ou contacte le serveur MCP
+- se connecte au serveur MCP
 - decouvre les tools/resources/prompts
-- laisse l'agent choisir quoi appeler
+- laisse ensuite l'agent choisir quoi appeler
 
 ### Serveur MCP
 
-Le **serveur MCP** est ton application qui expose des capacites.
+Le **serveur MCP** est l'application qui expose des capacites au host.
 
-Dans ton cas, il exposera par exemple :
+Dans ce projet, le serveur MCP peut par exemple :
 
-- creation guidee de projet
-- import d'un ARM ou d'un plan Terraform
-- ajout de ressources dans un projet
-- generation du Bicep d'un projet
+- transformer un prompt libre en draft de projet
+- valider ce draft
+- creer un projet a partir du draft valide
+- analyser un template ARM
+- appliquer un import
+- lancer la generation Bicep
 
-### Tools
+### Tool
 
 Un **tool** est une action executable.
 
-Exemples :
+Exemples actuels du projet :
 
 - `draft_project_from_prompt`
 - `create_project_from_draft`
 - `preview_iac_import`
 - `generate_project_bicep`
 
-Un tool doit avoir :
+### Resource
 
-- un nom clair
-- des parametres explicites
-- un contrat de sortie stable
+Une **resource** expose un contenu lisible comme contexte.
 
-### Resources
-
-Une **resource** sert a exposer des donnees lisibles comme contexte.
-
-Exemples :
-
-- resume d'un projet
-- resultat d'un preview d'import
-- catalogue des topologies supportees
-
-### Prompts
-
-Un **prompt MCP** est un template ou un mini-workflow guide.
-
-Exemples :
-
-- questions de clarification pour la creation de projet
-- guide de migration depuis un diagramme
-
----
-
-## 3. Pourquoi MCP est pertinent pour Infra Flow Sculptor
-
-Infra Flow Sculptor manipule deja un domaine structurant :
-
-- projet
-- topologie de depot
-- configurations d'infrastructure
-- ressources Azure
-- generation Bicep
-- generation de pipelines
-
-MCP est pertinent ici car il permet d'ouvrir cette logique a des interactions naturelles du type :
-
-- "cree-moi un projet mono repo avec un Key Vault"
-- "importe ce Terraform et cree un projet IFS equivalent"
-- "a partir de ce diagramme, propose une configuration projet"
-- "genere le Bicep du projet X"
-
-La vraie valeur n'est pas "MCP" en soi. La valeur est de **rendre ton moteur de modelisation et de generation utilisable conversationnellement**.
-
----
-
-## 4. Comment MCP s'integre dans un projet
-
-### Le mauvais reflexe
-
-Le mauvais reflexe consiste a faire :
-
-```text
-Prompt utilisateur
--> tool MCP
--> logique metier recodee dans le projet MCP
--> base de donnees / generation
-```
-
-Pourquoi c'est mauvais :
-
-- duplication de logique
-- validations inconsistantes
-- autorisation contournee
-- dette de maintenance
-
-### Le bon reflexe
-
-Le bon design consiste a faire :
-
-```text
-Prompt utilisateur
--> serveur MCP
--> mapping / adaptation d'entree
--> Application / services existants
--> Domain / Infrastructure / Generation
--> resultat structure
-```
-
-Autrement dit :
-
-- le serveur MCP **traduit l'intention**
-- la logique metier reste dans les couches du projet
-
-### Application a ce depot
-
-Dans **Infra Flow Sculptor**, le serveur MCP ne doit pas :
-
-- parler directement au `DbContext`
-- recrire la logique de creation de projet
-- recrire la logique de generation Bicep
-
-Il doit :
-
-- appeler la couche `Application`
-- reutiliser les validateurs et services metier
-- deleguer la persistance a `Infrastructure`
-- deleguer la generation au moteur Bicep/Pipeline existant
-
----
-
-## 5. Architecture cible pour ce depot
-
-### Structure recommandee
-
-```text
-src/
-├── Mcp/
-│   └── InfraFlowSculptor.Mcp/
-│       ├── Program.cs
-│       ├── Tools/
-│       ├── Resources/
-│       ├── Prompts/
-│       ├── Contracts/
-│       └── DependencyInjection/
-└── Api/
-    ├── InfraFlowSculptor.Application/
-    │   └── Imports/
-    ├── InfraFlowSculptor.Contracts/
-    │   └── Imports/
-    └── InfraFlowSculptor.Infrastructure/
-        └── Imports/
-```
-
-### Repartition des responsabilites
-
-#### Projet `InfraFlowSculptor.Mcp`
-
-Contient :
-
-- le host MCP
-- la configuration du transport
-- les tools/resources/prompts
-- les contrats d'entree/sortie MCP
-
-Ne contient pas :
-
-- la logique metier profonde
-- les regles de domaine principales
-- la persistance metier directe
-
-#### Couche `Application`
-
-Doit contenir :
-
-- les cas d'usage reutilisables par MCP
-- les commandes/queries ou services applicatifs dedies a l'import
-- les validations fonctionnelles
-
-#### Couche `Infrastructure`
-
-Doit contenir :
-
-- les adaptateurs techniques d'import
-- les parseurs / connecteurs / persistance necessaire
-
-#### Couche de generation
-
-Doit rester responsable de :
-
-- la generation Bicep
-- la generation de pipelines
-
----
-
-## 6. Le flux complet d'une requete MCP
-
-Prenons un exemple simple :
-
-> "Cree-moi un projet `RetailApi` avec un Key Vault"
-
-### Flux recommande
-
-```text
-1. Le host MCP envoie la demande
-2. L'agent choisit le tool `draft_project_from_prompt`
-3. Le serveur MCP transforme la demande libre en draft structure
-4. Le draft indique qu'il manque `repositoryTopology`
-5. L'agent demande une clarification a l'utilisateur
-6. L'utilisateur repond `MonoRepo`
-7. L'agent appelle `create_project_from_draft`
-8. Le serveur MCP appelle la logique applicative de creation
-9. Le projet est cree dans Infra Flow Sculptor
-10. L'agent peut ensuite appeler `generate_project_bicep`
-```
-
-### Point architectural critique
-
-Le serveur MCP **ne doit pas deviner** un choix structurant comme la topologie du depot si le prompt ne la precise pas.
-
-Il doit :
-
-- extraire l'intention
-- detecter les champs manquants
-- refuser la mutation tant que le draft est incomplet
-
----
-
-## 7. Les deux grandes manieres d'exposer un serveur MCP
-
-Il existe deux modes d'exposition qui t'interessent directement.
-
-### Mode 1 : `stdio`
-
-Le host demarre le serveur comme un process local sur la machine du developpeur.
-
-#### Quand l'utiliser
-
-- developpement local
-- spike rapide
-- test en local depuis VS Code
-
-#### Avantages
-
-- simple a mettre en place
-- pas besoin d'infrastructure HTTP au debut
-- parfait pour la V1 locale
-
-#### Limites
-
-- ne marche pas pour un service deja deploye distant
-- tourne sur le poste de l'utilisateur
-
-### Mode 2 : `http`
-
-Le host se connecte a un endpoint MCP accessible sur le reseau.
-
-#### Quand l'utiliser
-
-- environnement partage
-- service de recette / preprod / prod
-- utilisateurs qui veulent connecter VS Code a ton site deja deploye
-
-#### Avantages
-
-- utilisable a distance
-- auth et observabilite plus standard
-- plus naturel pour une plateforme partagee
-
-#### Limites
-
-- plus d'infra
-- besoin de securiser l'exposition
-
-### La regle simple a retenir
-
-```text
-stdio = local
-http = deploye / distant
-```
-
----
-
-## 8. Comment on configure VS Code
-
-### Fichier `mcp.json`
-
-VS Code utilise un fichier `mcp.json` pour declarer les serveurs MCP.
-
-Ce fichier peut etre :
-
-- dans le workspace : `.vscode/mcp.json`
-- dans le profil utilisateur VS Code : configuration globale utilisateur
-
-### Exemple local `stdio`
-
-```json
-{
-  "servers": {
-    "infraflowsculptorMcp": {
-      "type": "stdio",
-      "command": "dotnet",
-      "args": [
-        "run",
-        "--project",
-        "${workspaceFolder}/src/Mcp/InfraFlowSculptor.Mcp/InfraFlowSculptor.Mcp.csproj"
-      ]
-    }
-  }
-}
-```
-
-### Exemple distant `http`
-
-```json
-{
-  "inputs": [
-    {
-      "type": "promptString",
-      "id": "ifs-prod-token",
-      "description": "InfraFlowSculptor MCP production token",
-      "password": true
-    }
-  ],
-  "servers": {
-    "infraFlowSculptorProd": {
-      "type": "http",
-      "url": "https://api.ton-domaine.com/mcp",
-      "headers": {
-        "Authorization": "Bearer ${input:ifs-prod-token}"
-      }
-    }
-  }
-}
-```
-
-### Ce qu'il faut retenir
-
-- ne jamais mettre de secret en dur dans `mcp.json`
-- utiliser `inputs` ou un `envFile`
-- un serveur distant MCP doit exposer une URL HTTP dediee
-
----
-
-## 9. Comment implementer un serveur MCP .NET
-
-### Packages principaux
-
-Pour .NET, les packages de reference sont :
-
-- `ModelContextProtocol`
-- `ModelContextProtocol.AspNetCore` si tu exposes en HTTP
-
-### Exemple minimal local
-
-```csharp
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using ModelContextProtocol.Server;
-
-var builder = Host.CreateApplicationBuilder(args);
-
-builder.Logging.AddConsole(options =>
-{
-    options.LogToStandardErrorThreshold = LogLevel.Information;
-});
-
-builder.Services
-    .AddMcpServer()
-    .WithStdioServerTransport()
-    .WithTools<ProjectTools>()
-    .WithResources<ProjectResources>()
-    .WithPrompts<ProjectPrompts>();
-
-await builder.Build().RunAsync();
-```
-
-### Exemple minimal HTTP
-
-```csharp
-using ModelContextProtocol.Server;
-
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services
-    .AddMcpServer()
-    .WithHttpTransport(options =>
-    {
-        options.Stateless = true;
-    })
-    .AddAuthorizationFilters()
-    .WithTools<ProjectTools>()
-    .WithResources<ProjectResources>()
-    .WithPrompts<ProjectPrompts>();
-
-var app = builder.Build();
-
-app.MapMcp();
-
-app.Run();
-```
-
-### Pourquoi ces lignes sont importantes
-
-- `AddMcpServer()` initialise le serveur MCP
-- `WithStdioServerTransport()` ou `WithHttpTransport(...)` choisit le mode d'exposition
-- `WithTools<T>()` enregistre les tools
-- `WithResources<T>()` enregistre les resources
-- `WithPrompts<T>()` enregistre les prompts
-- `MapMcp()` expose l'endpoint HTTP MCP
-
-### Bon point de revue
-
-Si plus tard du code genere utilise directement `DbContext` dans un tool MCP, c'est un mauvais signal.
-
----
-
-## 10. Comment concevoir correctement les tools
-
-### Regle 1 : un tool = une responsabilite claire
-
-Mauvais :
-
-- `create_project_from_everything_and_generate_and_push`
-
-Bon :
-
-- `draft_project_from_prompt`
-- `create_project_from_draft`
-- `generate_project_bicep`
-
-### Regle 2 : les tools mutateurs doivent etre prudents
-
-Un tool qui cree ou modifie des donnees doit :
-
-- valider ses entrees
-- refuser les drafts incomplets
-- retourner des erreurs ou demandes de clarification exploitables
-
-### Regle 3 : les resources servent au contexte
-
-Si le resultat est gros ou doit etre relu plusieurs fois, prefere une resource.
-
-Exemples :
+Exemples actuels du projet :
 
 - `ifs://projects/{projectId}/summary`
 - `ifs://imports/{previewId}`
 
-### Regle 4 : les prompts ne remplacent pas la logique
+### Prompt
 
-Un prompt sert a guider, pas a porter la logique metier.
+Un **prompt MCP** est une consigne preemballee fournie au host pour guider le comportement de l'agent.
+
+Exemple actuel du projet :
+
+- `project_creation_guide`
 
 ---
 
-## 11. Surface de tools recommandee pour Infra Flow Sculptor
+## 3. PAT, explique simplement
 
-### Tools de base
+### Definition courte
 
-Pour une V1 raisonnable, le coeur peut etre :
+Un **PAT** est un **Personal Access Token**.
+
+Concretement, c'est une **chaine secrete** qui remplace un mot de passe dans un usage programme-a-programme.
+
+Au lieu de dire :
+
+- "voici mon login et mon mot de passe"
+
+on dit :
+
+- "voici un token dedie a cet usage, que je peux expirier ou revoquer sans toucher a mon compte principal"
+
+### Pourquoi c'est utile
+
+Un PAT permet de :
+
+- ne pas reutiliser le mot de passe utilisateur
+- limiter un usage a une integration precise
+- revoquer un acces sans casser tout le reste
+- tracer une derniere date d'utilisation
+- donner une duree de vie optionnelle au secret
+
+### Ce PAT n'est pas le PAT GitHub ou Azure DevOps
+
+Dans ce depot, il faut distinguer **deux familles de PAT** :
+
+1. les **PAT externes** pour GitHub / Azure DevOps, par exemple dans [../features/push-bicep-to-git.md](../features/push-bicep-to-git.md)
+2. le **PAT interne Infra Flow Sculptor**, utilise pour authentifier un client MCP contre **ton propre serveur `/mcp`**
+
+Le document que tu lis ici parle surtout du **PAT interne** du serveur MCP.
+
+### Le point cle a retenir
+
+Le PAT Infra Flow Sculptor n'est pas juste un token arbitraire colle dans un header. C'est un vrai petit sous-systeme du produit :
+
+- creation cote domaine / application / API
+- stockage securise en base sous forme de hash
+- validation a chaque appel MCP
+- revocation et expiration
+- suivi de `LastUsedAt`
+
+---
+
+## 4. Pourquoi ce projet utilise un PAT pour MCP
+
+Le serveur MCP tourne aujourd'hui comme un **endpoint HTTP** que VS Code peut appeler via [../../.vscode/mcp.json](../../.vscode/mcp.json).
+
+Dans ce contexte, il faut une authentification qui soit :
+
+- simple a utiliser depuis un client MCP
+- compatible avec un appel HTTP standard
+- independante d'un parcours interactif de login navigateur
+- revocable facilement
+- exploitable cote serveur pour resoudre un `CurrentUser`
+
+Le PAT repond bien a ce besoin.
+
+### Pourquoi ne pas utiliser directement l'auth interactive web ?
+
+Parce qu'un client MCP n'a pas toujours un flux d'authentification navigateur aussi naturel qu'une SPA classique.
+
+Pour un premier niveau d'integration robuste :
+
+- **Bearer PAT** dans un header HTTP est plus simple
+- le serveur sait a quel utilisateur rattacher l'appel
+- l'agent peut se reconnecter sans redemarrer un flux complet d'auth web
+
+---
+
+## 5. Architecture actuelle MCP + PAT dans le depot
+
+### Vue d'ensemble
+
+Le point d'entree principal est [../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs).
+
+Le serveur :
+
+- cree un host ASP.NET Core
+- ecoute par defaut sur `http://127.0.0.1:5258`
+- expose MCP sur `/mcp`
+- enregistre tools, resources et prompts explicitement
+- branche `Application` + `Infrastructure`
+- remplace l'auth interactive par une auth PAT dediee
+
+### Le schema mental du runtime
+
+```text
+VS Code / Copilot
+-> lit .vscode/mcp.json
+-> demande un PAT a l'utilisateur
+-> envoie Authorization: Bearer ifs_...
+-> POST/HTTP sur /mcp
+-> PersonalAccessTokenAuthenticationHandler
+-> resolution du user courant
+-> tool/resource/prompt MCP
+-> Application / Infrastructure / Generation
+```
+
+### Fichiers clefs de l'implementation
+
+| Fichier | Role |
+|---|---|
+| [../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs) | Host MCP HTTP, registration des capacites, route `/mcp`, auth requise |
+| [../../src/Api/InfraFlowSculptor.Infrastructure/DependencyInjection.cs](../../src/Api/InfraFlowSculptor.Infrastructure/DependencyInjection.cs) | `AddPatAuthentication()` enregistre le scheme PAT par defaut |
+| [../../src/Api/InfraFlowSculptor.Infrastructure/Auth/PersonalAccessTokenAuthenticationHandler.cs](../../src/Api/InfraFlowSculptor.Infrastructure/Auth/PersonalAccessTokenAuthenticationHandler.cs) | Verifie le Bearer PAT, resout l'utilisateur, enregistre `LastUsedAt` |
+| [../../src/Api/InfraFlowSculptor.Domain/PersonalAccessTokenAggregate/PersonalAccessToken.cs](../../src/Api/InfraFlowSculptor.Domain/PersonalAccessTokenAggregate/PersonalAccessToken.cs) | Aggregate racine PAT : creation, prefixe, expiration, revocation, usage |
+| [../../src/Api/InfraFlowSculptor.Api/Controllers/PersonalAccessTokenController.cs](../../src/Api/InfraFlowSculptor.Api/Controllers/PersonalAccessTokenController.cs) | Endpoints de gestion des PAT |
+| [../../src/Front/src/app/features/settings/settings.component.ts](../../src/Front/src/app/features/settings/settings.component.ts) | Page frontend qui liste et revoque les PAT |
+| [../../src/Front/src/app/features/settings/create-pat-dialog/create-pat-dialog.component.ts](../../src/Front/src/app/features/settings/create-pat-dialog/create-pat-dialog.component.ts) | Dialogue frontend de creation et affichage one-shot du token |
+| [../../.vscode/mcp.json](../../.vscode/mcp.json) | Configuration VS Code partagee pour la connexion MCP |
+
+### Un detail important : le serveur est stateless
+
+Dans [../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs), le transport HTTP MCP est configure avec `options.Stateless = true;`.
+
+Cela veut dire que le serveur ne depend pas d'une session HTTP serveur complexe pour fonctionner.
+
+En revanche, certains objets temporaires existent en memoire cote application pour stocker :
+
+- les drafts de creation de projet
+- les previews d'import
+
+Ces objets sont geres par :
+
+- `IProjectDraftService`
+- `IImportPreviewService`
+- `InMemoryCleanupService`
+
+Le modele a retenir est donc :
+
+- **stateless pour le protocole HTTP**
+- **avec stockage temporaire applicatif** pour les drafts et previews
+
+---
+
+## 6. Comment un PAT est implemente dans ce projet
+
+## 6.1. Generation du token
+
+La logique de generation vit dans [../../src/Api/InfraFlowSculptor.Domain/PersonalAccessTokenAggregate/PersonalAccessToken.cs](../../src/Api/InfraFlowSculptor.Domain/PersonalAccessTokenAggregate/PersonalAccessToken.cs).
+
+Lorsqu'on cree un PAT :
+
+1. le domaine genere **32 octets aleatoires** cryptographiquement forts
+2. ces octets sont encodes en **Base64 URL-safe**
+3. le prefixe fixe `ifs_` est ajoute
+4. un hash SHA-256 du token plaintext est calcule
+5. **seul le hash** est persiste
+6. le plaintext n'est renvoye qu'une seule fois au moment de la creation
+
+### Ce que cela veut dire en pratique
+
+Si tu perds le PAT plaintext :
+
+- tu ne peux pas le relire depuis la base
+- tu dois en creer un nouveau
+
+C'est exactement ce qu'on veut pour un secret.
+
+## 6.2. Proprietes suivies par le domaine
+
+Le PAT garde notamment :
+
+- `UserId`
+- `Name`
+- `TokenHash`
+- `TokenPrefix`
+- `ExpiresAt`
+- `CreatedAt`
+- `LastUsedAt`
+- `IsRevoked`
+
+Le `TokenPrefix` sert a afficher un identifiant reconnaissable en UI sans redivulguer le secret complet.
+
+## 6.3. Creation via Application et API
+
+La creation passe par :
+
+- [../../src/Api/InfraFlowSculptor.Application/PersonalAccessTokens/Commands/CreatePersonalAccessToken/CreatePersonalAccessTokenCommandHandler.cs](../../src/Api/InfraFlowSculptor.Application/PersonalAccessTokens/Commands/CreatePersonalAccessToken/CreatePersonalAccessTokenCommandHandler.cs)
+- [../../src/Api/InfraFlowSculptor.Api/Controllers/PersonalAccessTokenController.cs](../../src/Api/InfraFlowSculptor.Api/Controllers/PersonalAccessTokenController.cs)
+
+Les endpoints exposes sont :
+
+- `GET /personal-access-tokens` : liste les tokens du user courant, sans leur valeur plaintext
+- `POST /personal-access-tokens` : cree un token et retourne la valeur plaintext **une seule fois**
+- `DELETE /personal-access-tokens/{id}` : revoque un token
+
+Le contrat de creation retourne :
+
+- les metadonnees du token
+- `plainTextToken`
+
+### Regle de securite a retenir
+
+La phrase cle du systeme est : **"displayed only once at creation"**.
+
+Le PAT doit etre copie et stocke au bon moment, sinon il faudra en recreer un.
+
+## 6.4. Validation a l'authentification
+
+La validation du token HTTP est faite par [../../src/Api/InfraFlowSculptor.Infrastructure/Auth/PersonalAccessTokenAuthenticationHandler.cs](../../src/Api/InfraFlowSculptor.Infrastructure/Auth/PersonalAccessTokenAuthenticationHandler.cs).
+
+Le handler fait exactement ceci :
+
+1. lit le header `Authorization`
+2. verifie qu'il commence par `Bearer `
+3. extrait la valeur du token
+4. verifie que le token commence par `ifs_`
+5. hash le token recu
+6. cherche ce hash en base via `IPersonalAccessTokenRepository`
+7. refuse si le token n'existe pas
+8. refuse si le token est revoque ou expire
+9. appelle `RecordUsage()`
+10. persiste tout de suite `LastUsedAt`
+11. injecte le `UserId` dans `HttpContext.Items`
+12. cree un `ClaimsPrincipal` authentifie
+
+### Pourquoi l'etape 10 est importante
+
+Le commentaire du handler l'explique bien : comme il s'agit d'une requete de lecture cote auth, le `UnitOfWork` applicatif ne suffit pas a flusher `LastUsedAt` tout seul.
+
+Sans `SaveChangesAsync()`, la date de derniere utilisation serait perdue.
+
+## 6.5. Comment `CurrentUser` est resolu ensuite
+
+Une fois le PAT valide :
+
+- le serveur sait quel `UserId` est authentifie
+- les handlers applicatifs MCP reutilisent ensuite le meme mecanisme `ICurrentUser` que le reste du backend
+
+Autrement dit :
+
+- le MCP n'invente pas un modele utilisateur parallele
+- il se branche sur le pipeline existant
+
+---
+
+## 7. Comment creer et utiliser un PAT dans la vraie vie
+
+### Methode recommandee : via le frontend
+
+La partie UI est visible dans :
+
+- [../../src/Front/src/app/features/settings/settings.component.ts](../../src/Front/src/app/features/settings/settings.component.ts)
+- [../../src/Front/src/app/features/settings/create-pat-dialog/create-pat-dialog.component.ts](../../src/Front/src/app/features/settings/create-pat-dialog/create-pat-dialog.component.ts)
+
+Le parcours utilisateur est :
+
+1. ouvrir la page **Settings**
+2. aller a la section **Personal Access Tokens**
+3. cliquer sur **Create token**
+4. donner un nom au token
+5. definir une expiration optionnelle
+6. creer le token
+7. copier immediatement la valeur affichee
+
+### Ce qui se passe ensuite
+
+Le frontend :
+
+- appelle `POST /personal-access-tokens`
+- recoit `plainTextToken`
+- l'affiche une fois dans le dialogue
+- permet de le copier via le presse-papier
+
+### Si tu fermes le dialogue sans copier
+
+Le token est deja cree, mais sa valeur complete ne sera plus relue.
+
+La bonne reaction est alors :
+
+1. revoquer ce token
+2. en recreer un nouveau
+
+### La bonne hygiene d'usage
+
+- donne un nom explicite au token, par exemple `VS Code MCP local`
+- mets une expiration si tu peux
+- revoque les tokens inutiles
+- ne le committe jamais dans un fichier
+- ne l'envoie jamais dans un log ou une issue
+
+---
+
+## 8. Comment VS Code se connecte au serveur MCP
+
+La configuration partagee du depot est [../../.vscode/mcp.json](../../.vscode/mcp.json).
+
+La partie importante pour Infra Flow Sculptor est :
+
+```json
+{
+  "servers": {
+    "infraflowsculptor-mcp": {
+      "type": "http",
+      "url": "http://127.0.0.1:5258/mcp",
+      "headers": {
+        "Authorization": "Bearer ${input:ifs_pat}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "id": "ifs_pat",
+      "type": "promptString",
+      "description": "InfraFlowSculptor personal access token (generate from Settings > Personal Access Tokens).",
+      "password": true
+    }
+  ]
+}
+```
+
+### Ce qu'il faut comprendre ligne par ligne
+
+- `type: "http"` : le host se connecte a un serveur MCP HTTP deja lance
+- `url: "http://127.0.0.1:5258/mcp"` : route MCP reelle du projet
+- `Authorization: "Bearer ${input:ifs_pat}"` : VS Code injecte le PAT saisi par l'utilisateur
+- `password: true` : la valeur du prompt reste masquee dans l'UI
+
+### Pourquoi cette config est propre
+
+Parce que :
+
+- le secret n'est pas committe dans le fichier
+- la connexion est explicite
+- le serveur MCP d'Infra Flow Sculptor est facilement partageable a toute l'equipe
+
+### Ce qu'un agent doit faire conceptuellement
+
+1. le host se connecte au serveur MCP
+2. il s'authentifie avec le PAT
+3. il decouvre tools/resources/prompts
+4. il choisit quoi appeler selon la demande utilisateur
+
+---
+
+## 9. Surface MCP actuelle exposee par le projet
+
+L'enregistrement des capacites est fait dans [../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs).
+
+Aujourd'hui, la surface reelle est :
+
+- **8 tools**
+- **2 resources**
+- **1 prompt**
+
+## 9.1. Tools
+
+| Tool | Classe source | Type | Role |
+|---|---|---|---|
+| `list_repository_topologies` | [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/DiscoveryTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/DiscoveryTools.cs) | lecture | Retourne les topologies de depot supportees |
+| `list_supported_resource_types` | [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/DiscoveryTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/DiscoveryTools.cs) | lecture | Retourne le catalogue des types de ressources Azure supportes |
+| `draft_project_from_prompt` | [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectDraftTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectDraftTools.cs) | lecture | Transforme une demande libre en draft structure sans effet de bord |
+| `validate_project_draft` | [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectDraftTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectDraftTools.cs) | lecture | Verifie les champs manquants, erreurs et warnings d'un draft |
+| `create_project_from_draft` | [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectCreationTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectCreationTools.cs) | mutation | Cree le projet, l'infrastructure de base et les ressources du draft valide |
+| `preview_iac_import` | [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/IacImportTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/IacImportTools.cs) | lecture | Analyse une source IaC et produit un preview |
+| `apply_import_preview` | [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/IacImportTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/IacImportTools.cs) | mutation | Applique un preview valide pour creer un projet importe |
+| `generate_project_bicep` | [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/BicepGenerationTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/BicepGenerationTools.cs) | mutation semi-lourde | Lance la generation Bicep pour un projet existant |
+
+### Notes importantes sur les tools
+
+- `preview_iac_import` supporte actuellement **`arm-json`** en V1
+- `create_project_from_draft` et `apply_import_preview` sont les tools mutateurs critiques
+- `draft_project_from_prompt` et `validate_project_draft` existent justement pour **eviter de muter trop tot**
+
+## 9.2. Resources
+
+| Resource | Classe source | Role |
+|---|---|---|
+| `ifs://projects/{projectId}/summary` | [../../src/Mcp/InfraFlowSculptor.Mcp/Resources/ProjectResources.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Resources/ProjectResources.cs) | Retourne un resume structure d'un projet |
+| `ifs://imports/{previewId}` | [../../src/Mcp/InfraFlowSculptor.Mcp/Imports/Resources/ImportPreviewResources.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Imports/Resources/ImportPreviewResources.cs) | Retourne le contenu complet d'un preview d'import stocke |
+
+### Pourquoi ces resources existent
+
+Parce qu'un agent a parfois besoin de **relire** un resultat sans repasser par le tool qui l'a calcule.
+
+Exemple :
+
+- `preview_iac_import` renvoie un resume compact
+- `ifs://imports/{previewId}` permet de relire le preview detaille
+
+## 9.3. Prompt
+
+| Prompt | Classe source | Role |
+|---|---|---|
+| `project_creation_guide` | [../../src/Mcp/InfraFlowSculptor.Mcp/Prompts/ProjectCreationPrompts.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Prompts/ProjectCreationPrompts.cs) | Guide l'agent sur le bon workflow de creation de projet |
+
+Le point cle de ce prompt est qu'il rappelle a l'agent :
+
+- d'appeler d'abord les tools de discovery
+- de passer par le draft
+- de ne **jamais deviner** la topologie du depot
+- de demander confirmation avant creation
+
+---
+
+## 10. Comment un agent doit utiliser ce serveur MCP
+
+### Regle generale
+
+Un agent n'est pas cense appeler les tools au hasard.
+
+Il doit suivre la logique suivante :
+
+1. se connecter au serveur MCP
+2. identifier si la demande est de la **discovery**, de la **clarification**, de la **mutation** ou de la **lecture**
+3. appeler les tools/resources/prompts dans le bon ordre
+4. demander confirmation avant les mutations irreversibles
+
+## 10.1. Workflow type : creation de projet par langage naturel
+
+Sequence recommandee :
 
 1. `list_repository_topologies`
 2. `list_supported_resource_types`
 3. `draft_project_from_prompt`
-4. `validate_project_draft`
-5. `create_project_from_draft`
-6. `preview_iac_import`
-7. `apply_import_preview`
-8. `generate_project_bicep`
+4. si `RequiresClarification`, poser les questions manquantes
+5. `validate_project_draft`
+6. quand le draft est `ReadyToCreate`, montrer un resume a l'utilisateur
+7. demander confirmation
+8. `create_project_from_draft`
+9. si besoin ensuite : `generate_project_bicep`
 
-### Tools additionnels utiles ensuite
+### Pourquoi cet ordre est bon
 
-9. `add_resource_to_project`
-10. `update_resource_configuration`
-11. `upsert_project_secrets`
-12. `recommend_low_cost_defaults`
-13. `preview_diagram_import`
-14. `explain_import_gaps`
-15. `generate_project_pipelines`
-16. `get_project_summary`
+Parce qu'il separe clairement :
 
-### Pourquoi cet ordre
+- l'intention utilisateur
+- la clarification
+- la validation
+- la mutation effective
 
-Parce qu'il couvre deja :
+## 10.2. Workflow type : import IaC
 
-- creation guidee
-- clarification
-- import IaC
-- generation Bicep
+Sequence recommandee :
 
-Sans ouvrir trop tot une surface de maintenance trop large.
+1. `preview_iac_import`
+2. relire au besoin `ifs://imports/{previewId}`
+3. expliquer les gaps a l'utilisateur
+4. choisir les environments et filtres de ressources si necessaire
+5. `apply_import_preview`
+6. si besoin : `generate_project_bicep`
 
----
+### Le point critique ici
 
-## 12. L'exemple le plus important : creation de projet par prompt
+L'import est en **deux etapes** pour une bonne raison :
 
-### Cas 1 : prompt complet
+- preview d'abord
+- mutation ensuite
 
-Prompt utilisateur :
+## 10.3. Workflow type : lecture d'un projet existant
 
-> Cree-moi un projet `RetailApi` en `MonoRepo` avec un Key Vault le moins cher possible et ajoute ces secrets.
+Sequence recommandee :
 
-Comportement attendu :
-
-1. `draft_project_from_prompt`
-2. draft complet ou presque complet
-3. validation
-4. `create_project_from_draft`
-5. eventuellement `upsert_project_secrets`
-6. eventuellement `generate_project_bicep`
-
-### Cas 2 : prompt incomplet
-
-Prompt utilisateur :
-
-> Cree un projet avec un Key Vault.
-
-Comportement attendu :
-
-1. `draft_project_from_prompt`
-2. le draft retourne `requires_clarification`
-3. il manque au moins `repositoryTopology`
-4. l'agent demande :
-   - `MonoRepo`
-   - `SplitInfraCode`
-
-### Pourquoi c'est important
-
-Parce que si le code genere cree un projet sans poser cette question, alors il :
-
-- prend une decision structurante sans mandat explicite
-- risque de produire un mauvais projet
-- viole la regle d'or de ton design MCP
+1. lire `ifs://projects/{projectId}/summary`
+2. expliquer ce que le projet contient
+3. proposer ensuite une generation ou un import si la demande le justifie
 
 ---
 
-## 13. Comment challenger le code genere plus tard
+## 11. Guide de lecture du code
 
-Quand on generera le code MCP, voici les questions que tu devras te poser.
+Si tu veux comprendre le systeme sans te perdre, ouvre les fichiers dans cet ordre.
 
-### Architecture
+1. [../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs)
+Ce fichier te montre le runtime reel : transport HTTP, route `/mcp`, auth obligatoire, registration des tools/resources/prompts.
 
-1. Est-ce que le projet MCP est bien un **adaptateur** et non un second backend ?
-2. Est-ce que les tools appellent la couche `Application` plutot que `DbContext` ?
-3. Est-ce que l'import IaC passe bien par un **modele canonique intermediaire** ?
+2. [../../.vscode/mcp.json](../../.vscode/mcp.json)
+Tu vois immediatement comment VS Code se connecte au serveur et injecte le PAT.
 
-### Design des tools
+3. [../../src/Mcp/InfraFlowSculptor.Mcp/Prompts/ProjectCreationPrompts.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Prompts/ProjectCreationPrompts.cs)
+Tres bon point d'entree pour comprendre **comment un agent est suppose utiliser les tools**.
 
-4. Les tools ont-ils une responsabilite claire ?
-5. Les tools mutateurs refusent-ils les entrees incompletes ?
-6. Les gros resultats sont-ils exposes comme resources plutot que renvoyes en texte brut ?
+4. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/DiscoveryTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/DiscoveryTools.cs)
+Tu vois les metadata statiques exposees au host.
 
-### Creation conversationnelle
+5. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectDraftTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectDraftTools.cs)
+Le coeur du pattern conversationnel se trouve ici : on extrait l'intention avant toute creation.
 
-7. Le code detecte-t-il correctement les champs manquants ?
-8. Est-ce qu'il refuse de deviner `MonoRepo` vs `SplitInfraCode` ?
-9. Les contrats de sortie des drafts sont-ils exploitables par un agent ?
+6. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectCreationTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectCreationTools.cs)
+Lis-le pour comprendre ce qui se passe quand on cree vraiment un projet.
 
-### Exposition
+7. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/IacImportTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/IacImportTools.cs)
+Tres utile pour comprendre la difference entre preview et apply.
 
-10. Le mode local est-il bien en `stdio` ?
-11. Le mode deploye est-il bien en `http` ?
-12. L'endpoint `/mcp` est-il expose cote API ou service dedie, et pas dans le frontend ?
+8. [../../src/Mcp/InfraFlowSculptor.Mcp/Resources/ProjectResources.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Resources/ProjectResources.cs)
+Montre comment le projet expose des resources de lecture propres.
 
-### Securite
+9. [../../src/Mcp/InfraFlowSculptor.Mcp/Imports/Resources/ImportPreviewResources.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Imports/Resources/ImportPreviewResources.cs)
+Montre comment un preview stocke est relu via resource.
 
-13. Les secrets sont-ils absents du code et de `mcp.json` ?
-14. L'authentification est-elle active sur le serveur deploye ?
-15. Les tools mutateurs sont-ils journalises et proteges ?
+10. [../../src/Api/InfraFlowSculptor.Api/Controllers/PersonalAccessTokenController.cs](../../src/Api/InfraFlowSculptor.Api/Controllers/PersonalAccessTokenController.cs)
+Point d'entree API pour creer, lister et revoquer les PAT.
 
-### Qualite technique
+11. [../../src/Api/InfraFlowSculptor.Application/PersonalAccessTokens/Commands/CreatePersonalAccessToken/CreatePersonalAccessTokenCommandHandler.cs](../../src/Api/InfraFlowSculptor.Application/PersonalAccessTokens/Commands/CreatePersonalAccessToken/CreatePersonalAccessTokenCommandHandler.cs)
+Montre comment le use case applicatif cree un PAT pour l'utilisateur courant.
 
-16. Les logs `stdio` vont-ils bien sur stderr ?
-17. Les tests couvrent-ils les tools, les drafts incomplets et les imports ?
-18. Les operations longues ont-elles une strategie claire ?
+12. [../../src/Api/InfraFlowSculptor.Domain/PersonalAccessTokenAggregate/PersonalAccessToken.cs](../../src/Api/InfraFlowSculptor.Domain/PersonalAccessTokenAggregate/PersonalAccessToken.cs)
+Lis ce fichier pour comprendre la verite de domaine : generation, hash, prefixe, expiration, revocation, usage.
 
----
+13. [../../src/Api/InfraFlowSculptor.Infrastructure/Auth/PersonalAccessTokenAuthenticationHandler.cs](../../src/Api/InfraFlowSculptor.Infrastructure/Auth/PersonalAccessTokenAuthenticationHandler.cs)
+Ici, tu comprends comment le Bearer token devient un utilisateur authentifie pour MCP.
 
-## 14. Les pieges classiques a eviter
-
-1. Faire du MCP un backend parallele
-2. Parser Terraform ou un diagramme avec des regex fragiles
-3. Fusionner draft, creation, generation et push dans un seul tool
-4. Exposer trop de tools trop tot
-5. Ecrire sur stdout en mode `stdio`
-6. Exposer un serveur deploye en `stdio` alors qu'il faut du `http`
-7. Deviner des choix structurants absents du prompt
-8. Mettre les secrets en dur dans `mcp.json`
-9. Oublier l'autorisation des actions mutatrices
-10. Coupler trop fortement le MCP a l'UI frontend
+14. [../../src/Front/src/app/features/settings/settings.component.ts](../../src/Front/src/app/features/settings/settings.component.ts) et [../../src/Front/src/app/features/settings/create-pat-dialog/create-pat-dialog.component.ts](../../src/Front/src/app/features/settings/create-pat-dialog/create-pat-dialog.component.ts)
+Ces fichiers te montrent l'experience utilisateur reelle pour creer et gerer les PAT.
 
 ---
 
-## 15. Strategie de mise en oeuvre pour ce projet
+## 12. Les pieges a eviter
 
-### Etape 1
-
-Creer un serveur MCP local `stdio` avec une toute petite surface :
-
-- `list_repository_topologies`
-- `draft_project_from_prompt`
-- `validate_project_draft`
-
-Objectif : prouver le flux conversationnel sans side effect irreversibles.
-
-### Etape 2
-
-Ajouter :
-
-- `create_project_from_draft`
-- `generate_project_bicep`
-
-Objectif : couvrir un scenario bout en bout simple.
-
-### Etape 3
-
-Ajouter l'import IaC :
-
-- `preview_iac_import`
-- `apply_import_preview`
-
-Objectif : activer les migrations.
-
-### Etape 4
-
-Exposer un endpoint HTTP deploye sous `/mcp`.
-
-Objectif : permettre a VS Code de se connecter au service distant via `mcp.json`.
+1. Ne pas confondre le **PAT interne MCP** avec les PAT GitHub / Azure DevOps documentes ailleurs.
+2. Ne jamais stocker le token plaintext dans le depot ou dans `mcp.json`.
+3. Ne pas oublier que la valeur du PAT n'est visible **qu'une seule fois** a la creation.
+4. Ne pas appeler `create_project_from_draft` si le draft n'est pas pret.
+5. Ne pas deviner une topologie de depot absente du prompt.
+6. Ne pas oublier que `/mcp` est protege, alors que `/health` et `/alive` sont anonymes.
+7. Ne pas oublier que l'import IaC V1 supporte actuellement **ARM JSON** et pas n'importe quel format.
+8. Ne pas transformer MCP en backend parallele qui parle directement au `DbContext`.
 
 ---
 
-## 16. Ce qu'il faut absolument retenir
+## 13. Questions de review utiles
+
+Quand tu relis ou fais evoluer cette partie du projet, pose-toi au minimum ces questions :
+
+1. Est-ce que le serveur MCP reste un adaptateur et non un second backend metier ?
+2. Est-ce que les tools mutateurs restent prudents et explicites ?
+3. Est-ce que le PAT est toujours hash avant persistence ?
+4. Est-ce que la valeur plaintext reste one-shot uniquement ?
+5. Est-ce que `LastUsedAt` est bien persiste apres authentification reussie ?
+6. Est-ce que le host VS Code peut se connecter sans secret committe ?
+7. Est-ce que la surface MCP exposee est bien celle attendue : tools, resources, prompts ?
+8. Est-ce que les nouveaux tools ont une responsabilite claire ?
+
+---
+
+## 14. Ce qu'il faut absolument retenir
 
 Si tu ne retiens que 10 idees, retiens celles-ci :
 
-1. MCP est une **interface standard** entre une IA et ton systeme.
-2. Un serveur MCP expose des **tools**, **resources** et **prompts**.
-3. MCP ne remplace pas ton API metier; il s'y branche.
-4. Dans ce projet, MCP doit etre une **couche d'adaptation** au-dessus de `Application`.
-5. `stdio` sert au **local**.
-6. `http` sert au **deploiement distant**.
-7. Les tools mutateurs ne doivent pas deviner des choix structurants.
-8. La creation par prompt doit passer par un **draft** puis une **validation**.
-9. L'import IaC doit passer par un **modele canonique intermediaire**.
-10. Un bon code MCP se challenge comme n'importe quel code critique : architecture, securite, responsabilites, tests.
+1. MCP est une interface standard entre un agent IA et ton systeme.
+2. Dans ce projet, MCP est implemente comme un **serveur HTTP ASP.NET Core**.
+3. La route MCP reelle est `/mcp`.
+4. L'acces a `/mcp` est protege par un **Bearer PAT**.
+5. Le PAT interne du projet n'est pas le meme sujet que les PAT GitHub / Azure DevOps.
+6. La valeur complete d'un PAT n'est affichee qu'une seule fois a la creation.
+7. Le serveur ne persiste que le **hash** du token, pas sa valeur brute.
+8. La surface MCP actuelle expose 8 tools, 2 resources et 1 prompt.
+9. Le bon workflow agent passe par la discovery, la clarification, puis seulement la mutation.
+10. Si tu ouvres les fichiers dans l'ordre propose, tu comprendras le systeme sans te perdre.
 
 ---
 
-## 17. Ordre de lecture recommande apres ce cours
+## 15. Pour aller plus loin
 
-Pour continuer :
+Pour continuer dans le bon ordre :
 
-1. lire [overview.md](overview.md) pour la vue d'ensemble du projet
-2. relire [bicep-generation.md](bicep-generation.md) pour comprendre le moteur de generation
-3. relire le skill MCP dans `.github/skills/mcp-dotnet-server/SKILL.md`
-4. lire le [plan d'implementation MCP V1](mcp-v1-implementation-plan.md) pour les contrats exacts des tools et le decoupage par phase
-5. ensuite seulement regarder le code genere
-
-Avec cet ordre, tu peux passer de la comprehension generale a la relecture critique du code.
+1. lire [overview.md](overview.md) pour replacer MCP dans l'architecture globale
+2. lire [cqrs-patterns.md](cqrs-patterns.md) pour mieux comprendre les handlers reutilises par les tools
+3. lire [mcp-v1-implementation-plan.md](mcp-v1-implementation-plan.md) comme **document de design initial**, pas comme photographie parfaite du runtime actuel
+4. lire [../features/push-bicep-to-git.md](../features/push-bicep-to-git.md) si tu veux comparer le PAT interne MCP avec les PAT externes GitHub / Azure DevOps
+5. relire le skill projet [../../.github/skills/mcp-dotnet-server/SKILL.md](../../.github/skills/mcp-dotnet-server/SKILL.md)

@@ -1,3 +1,5 @@
+using InfraFlowSculptor.Mcp.Drafts.Models;
+
 namespace InfraFlowSculptor.Mcp.Drafts;
 
 /// <summary>Manages in-memory project creation drafts for the MCP session.</summary>

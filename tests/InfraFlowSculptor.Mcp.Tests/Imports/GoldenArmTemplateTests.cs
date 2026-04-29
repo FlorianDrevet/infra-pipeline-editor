@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FluentAssertions;
-using InfraFlowSculptor.Application.Imports.Common;
+using InfraFlowSculptor.Application.Imports.Common.Analysis;
+using InfraFlowSculptor.Application.Imports.Common.Constants;
 using InfraFlowSculptor.GenerationCore;
 
 namespace InfraFlowSculptor.Mcp.Tests.Imports;

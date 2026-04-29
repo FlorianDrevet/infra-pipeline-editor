@@ -1,5 +1,7 @@
 using ErrorOr;
-using InfraFlowSculptor.Application.Imports.Common;
+using InfraFlowSculptor.Application.Imports.Common.Creation;
+using InfraFlowSculptor.Mcp.Tools.Models;
+using InfraFlowSculptor.Application.Imports.Common.Properties;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -72,7 +74,10 @@ public static class ProjectSetupOrchestrator
 
             var location = ParseLocation(input?.Location);
             var context = new ResourceCreationContext(
-                createdIdsByType, input?.ExtractedProperties, createdIdsByName, input?.DependencyResourceNames);
+                createdIdsByType,
+                ExtractedPropertiesResolver.FromDictionary(resourceType, input?.ExtractedProperties),
+                createdIdsByName,
+                input?.DependencyResourceNames);
             var command = ResourceCommandFactory.BuildCommand(
                 resourceType, resourceGroupId, new Name(name), location,
                 context);
