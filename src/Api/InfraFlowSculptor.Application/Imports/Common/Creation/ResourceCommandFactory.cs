@@ -176,32 +176,36 @@ public static class ResourceCommandFactory
     }
 
     /// <summary>
-    /// Sends a dynamically-typed <see cref="IBaseRequest"/> command via MediatR with proper generic dispatch.
-    /// Resolves the generic <c>IRequest&lt;TResponse&gt;</c> argument at runtime and invokes the typed overload.
+    /// Sends a dynamically-typed <see cref="IBaseRequest"/> command via MediatR using typed dispatch.
+    /// Each command type is matched explicitly to call the correct generic <c>Send&lt;TResponse&gt;</c> overload.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(
-        "Major Code Smell",
-        "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields",
-        Justification = "Required to invoke the generic SendTypedCommandAsync<TResponse> at runtime for dynamic MediatR command dispatch.")]
     public static async Task<object?> SendCommandAsync(
         ISender mediator,
         IBaseRequest command,
         CancellationToken cancellationToken)
     {
-        var requestInterface = command.GetType().GetInterfaces()
-            .FirstOrDefault(type => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IRequest<>));
-
-        if (requestInterface is null)
-            return null;
-
-        var responseType = requestInterface.GetGenericArguments()[0];
-        var sendMethod = typeof(ResourceCommandFactory)
-            .GetMethod(nameof(SendTypedCommandAsync), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
-        var genericMethod = sendMethod.MakeGenericMethod(responseType);
-        var task = (Task)genericMethod.Invoke(null, [mediator, command, cancellationToken])!;
-        await task.ConfigureAwait(false);
-
-        return task.GetType().GetProperty("Result")?.GetValue(task);
+        return command switch
+        {
+            CreateKeyVaultCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateStorageAccountCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateAppServicePlanCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateWebAppCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateFunctionAppCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateContainerAppEnvironmentCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateContainerAppCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateRedisCacheCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateUserAssignedIdentityCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateAppConfigurationCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateLogAnalyticsWorkspaceCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateApplicationInsightsCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateCosmosDbCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateSqlServerCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateSqlDatabaseCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateServiceBusNamespaceCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateContainerRegistryCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            CreateEventHubNamespaceCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            _ => null,
+        };
     }
 
     /// <summary>Extracts the AzureResourceId.Value from an <c>ErrorOr&lt;T&gt;</c> result using reflection.</summary>
@@ -241,14 +245,6 @@ public static class ResourceCommandFactory
             return null;
 
         return string.Join("; ", errors.Select(e => e.Description));
-    }
-
-    private static async Task<TResponse> SendTypedCommandAsync<TResponse>(
-        ISender mediator,
-        IRequest<TResponse> command,
-        CancellationToken cancellationToken)
-    {
-        return await mediator.Send(command, cancellationToken).ConfigureAwait(false);
     }
 
 
