@@ -16,7 +16,7 @@ public sealed class DraftEnvironmentIntent
     public string Suffix { get; set; } = "-dev";
 
     /// <summary>Azure region key.</summary>
-    public string Location { get; set; } = "westeurope";
+    public string Location { get; set; } = InfraFlowSculptor.Domain.Common.ValueObjects.Location.DefaultAzureRegionKey;
 
     /// <summary>Azure subscription identifier; <see cref="Guid.Empty"/> means to configure later.</summary>
     public Guid SubscriptionId { get; set; } = Guid.Empty;

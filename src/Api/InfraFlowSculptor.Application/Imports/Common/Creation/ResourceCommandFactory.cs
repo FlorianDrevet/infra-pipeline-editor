@@ -51,6 +51,14 @@ namespace InfraFlowSculptor.Application.Imports.Common.Creation;
 /// </summary>
 public static class ResourceCommandFactory
 {
+    private delegate Task<ErrorOr<Guid>>? ResourceCreationDispatcher(
+        ISender mediator,
+        ResourceGroupId resourceGroupId,
+        Name name,
+        Location location,
+        ResourceCreationContext context,
+        CancellationToken cancellationToken);
+
     /// <summary>
     /// Direct dependencies between resource types. Key = dependent type, Value = required dependency type.
     /// Single source of truth used by both topological ordering and missing-dependency detection.
@@ -62,6 +70,154 @@ public static class ResourceCommandFactory
         [AzureResourceTypes.ContainerApp] = AzureResourceTypes.ContainerAppEnvironment,
         [AzureResourceTypes.ApplicationInsights] = AzureResourceTypes.LogAnalyticsWorkspace,
         [AzureResourceTypes.SqlDatabase] = AzureResourceTypes.SqlServer,
+    };
+
+    private static readonly Dictionary<string, ResourceCreationDispatcher> ResourceCreationDispatchers = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [AzureResourceTypes.KeyVault] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateKeyVaultCommand(resourceGroupId, name, location),
+                static (KeyVaultResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.StorageAccount] = static (mediator, resourceGroupId, name, location, context, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                BuildStorageAccountCommand(resourceGroupId, name, location, context.TypedProperties),
+                static (StorageAccountResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.AppServicePlan] = static (mediator, resourceGroupId, name, location, context, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateAppServicePlanCommand(
+                    resourceGroupId,
+                    name,
+                    location,
+                    OsType: context.TypedProperties is AppServicePlanExtractedProperties appServicePlan
+                        ? appServicePlan.OsType
+                        : AppServicePlanExtractedProperties.DefaultOsType),
+                static (AppServicePlanResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.WebApp] = static (mediator, resourceGroupId, name, location, context, cancellationToken) =>
+            CreateDependentResourceAsync<CreateWebAppCommand, WebAppResult>(
+                mediator,
+                BuildWebAppCommand(resourceGroupId, name, location, context),
+                static (WebAppResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.FunctionApp] = static (mediator, resourceGroupId, name, location, context, cancellationToken) =>
+            CreateDependentResourceAsync<CreateFunctionAppCommand, FunctionAppResult>(
+                mediator,
+                BuildFunctionAppCommand(resourceGroupId, name, location, context),
+                static (FunctionAppResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.ContainerAppEnvironment] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateContainerAppEnvironmentCommand(resourceGroupId, name, location),
+                static (ContainerAppEnvironmentResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.ContainerApp] = static (mediator, resourceGroupId, name, location, context, cancellationToken) =>
+            CreateDependentResourceAsync<CreateContainerAppCommand, ContainerAppResult>(
+                mediator,
+                BuildContainerAppCommand(resourceGroupId, name, location, context),
+                static (ContainerAppResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.RedisCache] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateRedisCacheCommand(
+                    resourceGroupId,
+                    name,
+                    location,
+                    RedisVersion: null,
+                    EnableNonSslPort: false,
+                    MinimumTlsVersion: AzureResourceDefaults.MinimumTlsVersion,
+                    DisableAccessKeyAuthentication: false,
+                    EnableAadAuth: true),
+                static (RedisCacheResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.UserAssignedIdentity] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateUserAssignedIdentityCommand(resourceGroupId, name, location),
+                static (UserAssignedIdentityResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.AppConfiguration] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateAppConfigurationCommand(resourceGroupId, name, location),
+                static (AppConfigurationResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.LogAnalyticsWorkspace] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateLogAnalyticsWorkspaceCommand(resourceGroupId, name, location),
+                static (LogAnalyticsWorkspaceResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.ApplicationInsights] = static (mediator, resourceGroupId, name, location, context, cancellationToken) =>
+            CreateDependentResourceAsync<CreateApplicationInsightsCommand, ApplicationInsightsResult>(
+                mediator,
+                BuildApplicationInsightsCommand(resourceGroupId, name, location, context),
+                static (ApplicationInsightsResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.CosmosDb] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateCosmosDbCommand(resourceGroupId, name, location),
+                static (CosmosDbResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.SqlServer] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateSqlServerCommand(
+                    resourceGroupId,
+                    name,
+                    location,
+                    Version: AzureResourceDefaults.SqlServerVersion,
+                    AdministratorLogin: AzureResourceDefaults.SqlServerAdministratorLogin),
+                static (SqlServerResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.SqlDatabase] = static (mediator, resourceGroupId, name, location, context, cancellationToken) =>
+            CreateDependentResourceAsync<CreateSqlDatabaseCommand, SqlDatabaseResult>(
+                mediator,
+                BuildSqlDatabaseCommand(resourceGroupId, name, location, context),
+                static (SqlDatabaseResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.ServiceBusNamespace] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateServiceBusNamespaceCommand(resourceGroupId, name, location),
+                static (ServiceBusNamespaceResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.ContainerRegistry] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateContainerRegistryCommand(resourceGroupId, name, location),
+                static (ContainerRegistryResult result) => result.Id.Value,
+                cancellationToken),
+
+        [AzureResourceTypes.EventHubNamespace] = static (mediator, resourceGroupId, name, location, _, cancellationToken) =>
+            SendAndExtractIdAsync(
+                mediator,
+                new CreateEventHubNamespaceCommand(resourceGroupId, name, location),
+                static (EventHubNamespaceResult result) => result.Id.Value,
+                cancellationToken),
     };
 
     /// <summary>
@@ -85,67 +241,129 @@ public static class ResourceCommandFactory
         if (nodes.Count <= 1)
             return nodes;
 
-        var typesPresent = new HashSet<string>(
-            nodes.Select(n => n.ResourceType),
-            StringComparer.OrdinalIgnoreCase);
+        var (inDegree, adjacency) = BuildDependencyGraph(nodes);
+        var ordered = TopologicallySortNodes(nodes, adjacency, inDegree);
+        AppendRemainingNodes(nodes, inDegree, ordered);
 
+        return ordered;
+    }
+
+    private static (int[] InDegree, List<List<int>> Adjacency) BuildDependencyGraph(
+        IReadOnlyList<(string ResourceType, string Name)> nodes)
+    {
+        var typesPresent = new HashSet<string>(
+            nodes.Select(node => node.ResourceType),
+            StringComparer.OrdinalIgnoreCase);
         var inDegree = new int[nodes.Count];
-        var adjacency = new List<List<int>>(nodes.Count);
-        for (var i = 0; i < nodes.Count; i++)
-            adjacency.Add([]);
+        var adjacency = CreateAdjacency(nodes.Count);
 
         for (var dependentIndex = 0; dependentIndex < nodes.Count; dependentIndex++)
         {
-            if (!ResourceDependencies.TryGetValue(nodes[dependentIndex].ResourceType, out var requiredType))
+            var requiredType = GetPresentRequiredDependencyType(nodes[dependentIndex].ResourceType, typesPresent);
+            if (requiredType is null)
                 continue;
 
-            if (!typesPresent.Contains(requiredType))
-                continue;
-
-            for (var sourceIndex = 0; sourceIndex < nodes.Count; sourceIndex++)
-            {
-                if (sourceIndex == dependentIndex)
-                    continue;
-
-                if (!string.Equals(nodes[sourceIndex].ResourceType, requiredType, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                adjacency[sourceIndex].Add(dependentIndex);
-                inDegree[dependentIndex]++;
-            }
+            AddDependencyEdges(nodes, adjacency, inDegree, dependentIndex, requiredType);
         }
 
-        var ordered = new List<(string, string)>(nodes.Count);
-        var ready = new Queue<int>();
-        for (var i = 0; i < nodes.Count; i++)
+        return (inDegree, adjacency);
+    }
+
+    private static List<List<int>> CreateAdjacency(int nodeCount)
+    {
+        var adjacency = new List<List<int>>(nodeCount);
+        for (var index = 0; index < nodeCount; index++)
+            adjacency.Add([]);
+
+        return adjacency;
+    }
+
+    private static string? GetPresentRequiredDependencyType(
+        string resourceType,
+        IReadOnlySet<string> typesPresent)
+    {
+        return ResourceDependencies.TryGetValue(resourceType, out var requiredType)
+               && typesPresent.Contains(requiredType)
+            ? requiredType
+            : null;
+    }
+
+    private static void AddDependencyEdges(
+        IReadOnlyList<(string ResourceType, string Name)> nodes,
+        IReadOnlyList<List<int>> adjacency,
+        int[] inDegree,
+        int dependentIndex,
+        string requiredType)
+    {
+        for (var sourceIndex = 0; sourceIndex < nodes.Count; sourceIndex++)
         {
-            if (inDegree[i] == 0)
-                ready.Enqueue(i);
+            if (sourceIndex == dependentIndex)
+                continue;
+
+            if (!string.Equals(nodes[sourceIndex].ResourceType, requiredType, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            adjacency[sourceIndex].Add(dependentIndex);
+            inDegree[dependentIndex]++;
         }
+    }
+
+    private static List<(string ResourceType, string Name)> TopologicallySortNodes(
+        IReadOnlyList<(string ResourceType, string Name)> nodes,
+        IReadOnlyList<List<int>> adjacency,
+        int[] inDegree)
+    {
+        var ordered = new List<(string ResourceType, string Name)>(nodes.Count);
+        var ready = CreateReadyQueue(inDegree);
 
         while (ready.Count > 0)
         {
             var index = ready.Dequeue();
             ordered.Add(nodes[index]);
-
-            foreach (var next in adjacency[index])
-            {
-                if (--inDegree[next] == 0)
-                    ready.Enqueue(next);
-            }
-        }
-
-        // Defensive cycle fallback: keep remaining nodes so callers never lose data.
-        if (ordered.Count != nodes.Count)
-        {
-            for (var i = 0; i < nodes.Count; i++)
-            {
-                if (inDegree[i] > 0)
-                    ordered.Add(nodes[i]);
-            }
+            ReleaseReadyDependents(adjacency[index], inDegree, ready);
         }
 
         return ordered;
+    }
+
+    private static Queue<int> CreateReadyQueue(IReadOnlyList<int> inDegree)
+    {
+        var ready = new Queue<int>();
+        for (var index = 0; index < inDegree.Count; index++)
+        {
+            if (inDegree[index] == 0)
+                ready.Enqueue(index);
+        }
+
+        return ready;
+    }
+
+    private static void ReleaseReadyDependents(
+        IReadOnlyList<int> dependentIndexes,
+        int[] inDegree,
+        Queue<int> ready)
+    {
+        foreach (var dependentIndex in dependentIndexes)
+        {
+            if (--inDegree[dependentIndex] == 0)
+                ready.Enqueue(dependentIndex);
+        }
+    }
+
+    private static void AppendRemainingNodes(
+        IReadOnlyList<(string ResourceType, string Name)> nodes,
+        IReadOnlyList<int> inDegree,
+        ICollection<(string ResourceType, string Name)> ordered)
+    {
+        // Defensive cycle fallback: keep remaining nodes so callers never lose data.
+        if (ordered.Count == nodes.Count)
+            return;
+
+        for (var index = 0; index < nodes.Count; index++)
+        {
+            if (inDegree[index] > 0)
+                ordered.Add(nodes[index]);
+        }
     }
 
     /// <summary>
@@ -187,131 +405,9 @@ public static class ResourceCommandFactory
         ResourceCreationContext context,
         CancellationToken cancellationToken)
     {
-        return resourceType switch
-        {
-            AzureResourceTypes.KeyVault => SendAndExtractIdAsync(
-                mediator,
-                new CreateKeyVaultCommand(resourceGroupId, name, location),
-                static (KeyVaultResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.StorageAccount => SendAndExtractIdAsync(
-                mediator,
-                BuildStorageAccountCommand(resourceGroupId, name, location, context.TypedProperties),
-                static (StorageAccountResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.AppServicePlan => SendAndExtractIdAsync(
-                mediator,
-                new CreateAppServicePlanCommand(
-                    resourceGroupId, name, location,
-                    OsType: context.TypedProperties is AppServicePlanExtractedProperties asp
-                        ? asp.OsType
-                        : AppServicePlanExtractedProperties.DefaultOsType),
-                static (AppServicePlanResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.WebApp => CreateDependentResourceAsync<CreateWebAppCommand, WebAppResult>(
-                mediator,
-                BuildWebAppCommand(resourceGroupId, name, location, context),
-                static (WebAppResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.FunctionApp => CreateDependentResourceAsync<CreateFunctionAppCommand, FunctionAppResult>(
-                mediator,
-                BuildFunctionAppCommand(resourceGroupId, name, location, context),
-                static (FunctionAppResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.ContainerAppEnvironment => SendAndExtractIdAsync(
-                mediator,
-                new CreateContainerAppEnvironmentCommand(resourceGroupId, name, location),
-                static (ContainerAppEnvironmentResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.ContainerApp => CreateDependentResourceAsync<CreateContainerAppCommand, ContainerAppResult>(
-                mediator,
-                BuildContainerAppCommand(resourceGroupId, name, location, context),
-                static (ContainerAppResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.RedisCache => SendAndExtractIdAsync(
-                mediator,
-                new CreateRedisCacheCommand(
-                    resourceGroupId, name, location,
-                    RedisVersion: null,
-                    EnableNonSslPort: false,
-                    MinimumTlsVersion: AzureResourceDefaults.MinimumTlsVersion,
-                    DisableAccessKeyAuthentication: false,
-                    EnableAadAuth: true),
-                static (RedisCacheResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.UserAssignedIdentity => SendAndExtractIdAsync(
-                mediator,
-                new CreateUserAssignedIdentityCommand(resourceGroupId, name, location),
-                static (UserAssignedIdentityResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.AppConfiguration => SendAndExtractIdAsync(
-                mediator,
-                new CreateAppConfigurationCommand(resourceGroupId, name, location),
-                static (AppConfigurationResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.LogAnalyticsWorkspace => SendAndExtractIdAsync(
-                mediator,
-                new CreateLogAnalyticsWorkspaceCommand(resourceGroupId, name, location),
-                static (LogAnalyticsWorkspaceResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.ApplicationInsights => CreateDependentResourceAsync<CreateApplicationInsightsCommand, ApplicationInsightsResult>(
-                mediator,
-                BuildApplicationInsightsCommand(resourceGroupId, name, location, context),
-                static (ApplicationInsightsResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.CosmosDb => SendAndExtractIdAsync(
-                mediator,
-                new CreateCosmosDbCommand(resourceGroupId, name, location),
-                static (CosmosDbResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.SqlServer => SendAndExtractIdAsync(
-                mediator,
-                new CreateSqlServerCommand(
-                    resourceGroupId, name, location,
-                    Version: AzureResourceDefaults.SqlServerVersion,
-                    AdministratorLogin: AzureResourceDefaults.SqlServerAdministratorLogin),
-                static (SqlServerResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.SqlDatabase => CreateDependentResourceAsync<CreateSqlDatabaseCommand, SqlDatabaseResult>(
-                mediator,
-                BuildSqlDatabaseCommand(resourceGroupId, name, location, context),
-                static (SqlDatabaseResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.ServiceBusNamespace => SendAndExtractIdAsync(
-                mediator,
-                new CreateServiceBusNamespaceCommand(resourceGroupId, name, location),
-                static (ServiceBusNamespaceResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.ContainerRegistry => SendAndExtractIdAsync(
-                mediator,
-                new CreateContainerRegistryCommand(resourceGroupId, name, location),
-                static (ContainerRegistryResult r) => r.Id.Value,
-                cancellationToken),
-
-            AzureResourceTypes.EventHubNamespace => SendAndExtractIdAsync(
-                mediator,
-                new CreateEventHubNamespaceCommand(resourceGroupId, name, location),
-                static (EventHubNamespaceResult r) => r.Id.Value,
-                cancellationToken),
-
-            _ => null,
-        };
+        return ResourceCreationDispatchers.TryGetValue(resourceType, out var dispatcher)
+            ? dispatcher(mediator, resourceGroupId, name, location, context, cancellationToken)
+            : null;
     }
 
     /// <summary>

@@ -18,9 +18,9 @@ Ce document ne remplace pas la documentation officielle MCP. Il sert de pont ent
 > **Etat actuel a retenir tout de suite**
 >
 > - le serveur MCP du projet est aujourd'hui un **serveur HTTP stateless**
-> - il expose la route **`/mcp`**
+> - il expose par defaut la route **`/mcp`**
 > - il est protege par une authentification **Bearer PAT**
-> - la configuration VS Code partagee du depot est [../../.vscode/mcp.json](../../.vscode/mcp.json)
+> - la configuration VS Code partagee du depot est [../../.vscode/mcp.json](../../.vscode/mcp.json), dans une entree dediee a `infraflowsculptor-mcp`
 > - la surface MCP actuelle expose **8 tools**, **2 resources** et **1 prompt**
 
 ---
@@ -206,16 +206,22 @@ Le serveur :
 
 - cree un host ASP.NET Core
 - ecoute par defaut sur `http://127.0.0.1:5258`
-- expose MCP sur `/mcp`
+- monte MCP par defaut sur `/mcp`
 - enregistre tools, resources et prompts explicitement
 - branche `Application` + `Infrastructure`
 - remplace l'auth interactive par une auth PAT dediee
+
+Ces deux valeurs sont centralisees dans [../../src/Mcp/InfraFlowSculptor.Mcp/Common/McpOptions.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Common/McpOptions.cs) :
+
+- `ListenUrl` est surchargeable via `Mcp:ListenUrl` ou `MCP__LISTENURL`
+- `Route` est surchargeable via `Mcp:Route`
 
 ### Le schema mental du runtime
 
 ```text
 VS Code / Copilot
 -> lit .vscode/mcp.json
+-> cible l'entree infraflowsculptor-mcp
 -> demande un PAT a l'utilisateur
 -> envoie Authorization: Bearer ifs_...
 -> POST/HTTP sur /mcp
@@ -230,6 +236,7 @@ VS Code / Copilot
 | Fichier | Role |
 |---|---|
 | [../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs) | Host MCP HTTP, registration des capacites, route `/mcp`, auth requise |
+| [../../src/Mcp/InfraFlowSculptor.Mcp/Common/McpOptions.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Common/McpOptions.cs) | Valeurs par defaut et surcharges de `ListenUrl` / `Route` |
 | [../../src/Api/InfraFlowSculptor.Infrastructure/DependencyInjection.cs](../../src/Api/InfraFlowSculptor.Infrastructure/DependencyInjection.cs) | `AddPatAuthentication()` enregistre le scheme PAT par defaut |
 | [../../src/Api/InfraFlowSculptor.Infrastructure/Auth/PersonalAccessTokenAuthenticationHandler.cs](../../src/Api/InfraFlowSculptor.Infrastructure/Auth/PersonalAccessTokenAuthenticationHandler.cs) | Verifie le Bearer PAT, resout l'utilisateur, enregistre `LastUsedAt` |
 | [../../src/Api/InfraFlowSculptor.Domain/PersonalAccessTokenAggregate/PersonalAccessToken.cs](../../src/Api/InfraFlowSculptor.Domain/PersonalAccessTokenAggregate/PersonalAccessToken.cs) | Aggregate racine PAT : creation, prefixe, expiration, revocation, usage |
@@ -415,6 +422,8 @@ La bonne reaction est alors :
 
 La configuration partagee du depot est [../../.vscode/mcp.json](../../.vscode/mcp.json).
 
+Le fichier complet est maintenant un **fichier MCP multi-serveurs** pour le workspace. Le bloc ci-dessous est donc volontairement **un extrait cible** sur l'entree `infraflowsculptor-mcp`.
+
 La partie importante pour Infra Flow Sculptor est :
 
 ```json
@@ -442,7 +451,7 @@ La partie importante pour Infra Flow Sculptor est :
 ### Ce qu'il faut comprendre ligne par ligne
 
 - `type: "http"` : le host se connecte a un serveur MCP HTTP deja lance
-- `url: "http://127.0.0.1:5258/mcp"` : route MCP reelle du projet
+- `url: "http://127.0.0.1:5258/mcp"` : URL par defaut du serveur MCP dans ce repo, composee du `ListenUrl` et de la `Route` par defaut
 - `Authorization: "Bearer ${input:ifs_pat}"` : VS Code injecte le PAT saisi par l'utilisateur
 - `password: true` : la valeur du prompt reste masquee dans l'UI
 
@@ -592,30 +601,33 @@ Sequence recommandee :
 Si tu veux comprendre le systeme sans te perdre, ouvre les fichiers dans cet ordre.
 
 1. [../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Program.cs)
-Ce fichier te montre le runtime reel : transport HTTP, route `/mcp`, auth obligatoire, registration des tools/resources/prompts.
+Ce fichier te montre le runtime reel : transport HTTP, auth obligatoire, registration des tools/resources/prompts, puis mapping du endpoint MCP avec les options chargees.
 
-2. [../../.vscode/mcp.json](../../.vscode/mcp.json)
-Tu vois immediatement comment VS Code se connecte au serveur et injecte le PAT.
+2. [../../src/Mcp/InfraFlowSculptor.Mcp/Common/McpOptions.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Common/McpOptions.cs)
+Lis-le juste apres `Program.cs` pour voir quelles valeurs sont des **defaults** (`http://127.0.0.1:5258` et `/mcp`) et quelles valeurs sont configurables.
 
-3. [../../src/Mcp/InfraFlowSculptor.Mcp/Prompts/ProjectCreationPrompts.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Prompts/ProjectCreationPrompts.cs)
+3. [../../.vscode/mcp.json](../../.vscode/mcp.json)
+Tu vois comment VS Code se connecte au serveur et injecte le PAT, mais il faut se concentrer sur l'entree `infraflowsculptor-mcp` parmi les autres serveurs du workspace.
+
+4. [../../src/Mcp/InfraFlowSculptor.Mcp/Prompts/ProjectCreationPrompts.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Prompts/ProjectCreationPrompts.cs)
 Tres bon point d'entree pour comprendre **comment un agent est suppose utiliser les tools**.
 
-4. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/DiscoveryTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/DiscoveryTools.cs)
+5. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/DiscoveryTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/DiscoveryTools.cs)
 Tu vois les metadata statiques exposees au host.
 
-5. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectDraftTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectDraftTools.cs)
+6. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectDraftTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectDraftTools.cs)
 Le coeur du pattern conversationnel se trouve ici : on extrait l'intention avant toute creation.
 
-6. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectCreationTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectCreationTools.cs)
+7. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectCreationTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/ProjectCreationTools.cs)
 Lis-le pour comprendre ce qui se passe quand on cree vraiment un projet.
 
-7. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/IacImportTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/IacImportTools.cs)
+8. [../../src/Mcp/InfraFlowSculptor.Mcp/Tools/IacImportTools.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Tools/IacImportTools.cs)
 Tres utile pour comprendre la difference entre preview et apply.
 
-8. [../../src/Mcp/InfraFlowSculptor.Mcp/Resources/ProjectResources.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Resources/ProjectResources.cs)
+9. [../../src/Mcp/InfraFlowSculptor.Mcp/Resources/ProjectResources.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Resources/ProjectResources.cs)
 Montre comment le projet expose des resources de lecture propres.
 
-9. [../../src/Mcp/InfraFlowSculptor.Mcp/Imports/Resources/ImportPreviewResources.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Imports/Resources/ImportPreviewResources.cs)
+10. [../../src/Mcp/InfraFlowSculptor.Mcp/Imports/Resources/ImportPreviewResources.cs](../../src/Mcp/InfraFlowSculptor.Mcp/Imports/Resources/ImportPreviewResources.cs)
 Montre comment un preview stocke est relu via resource.
 
 10. [../../src/Api/InfraFlowSculptor.Api/Controllers/PersonalAccessTokenController.cs](../../src/Api/InfraFlowSculptor.Api/Controllers/PersonalAccessTokenController.cs)

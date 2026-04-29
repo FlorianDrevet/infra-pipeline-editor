@@ -13,6 +13,8 @@
 - **Flow:** MCP HTTP request → `Authorization: Bearer ifs_...` → handler computes hash → DB lookup → validates not revoked/expired → sets `HttpContext.Items["ProvisionedUserId"]` → `ICurrentUser` resolves transparently
 - **API endpoints:** `GET /personal-access-tokens` (list), `POST /personal-access-tokens` (create, returns one-time plaintext), `DELETE /personal-access-tokens/{id}` (revoke)
 - **VS Code:** `.vscode/mcp.json` includes `Authorization: Bearer ${input:ifs_pat}` header with password input
+- **Workspace MCP file:** `.vscode/mcp.json` is now multi-server; InfraFlowSculptor uses the `infraflowsculptor-mcp` HTTP entry inside that file
+- **MCP endpoint config:** defaults come from `McpOptions` (`http://127.0.0.1:5258` + `/mcp`) and can be overridden via `Mcp:ListenUrl`, `MCP__LISTENURL`, and `Mcp:Route`
 - **Registration:** `AddPatAuthentication()` in `DependencyInjection.cs`
 - **Domain:** `PersonalAccessToken` aggregate in `PersonalAccessTokenAggregate/`
 - **Frontend:** Settings page at `/settings` with PAT management (create dialog with one-time token display, list, revoke)
@@ -112,6 +114,7 @@ dotnet test .\tests\<TargetAssembly>.Tests\<TargetAssembly>.Tests.csproj
 
 ## Sonar Quick Wins [2026-04-28]
 
+- PR #324 branch remediation: `Application/Imports/Common/Creation/ResourceCommandFactory` now reduces cognitive complexity in two hot spots. `CreateResourceAsync` dispatches through a typed static handler table instead of a giant switch body, and `OrderByDependency` keeps the same Kahn topological sort behavior while delegating graph construction / queue draining / cycle fallback to small private helpers. Focused `InfraFlowSculptor.Application.Tests` factory dispatch + mapping + ordering tests validate the behavior.
 - Backend regex hotspots now use explicit `TimeSpan.FromMilliseconds(250)` match timeouts in local helpers and validators (`BicepGeneration`, `Contracts`, `Domain`) instead of unbounded regex evaluation.
 - Two new focused .NET test projects were added: `tests/InfraFlowSculptor.Contracts.Tests/` and `tests/InfraFlowSculptor.Domain.Tests/`. They currently cover the touched Sonar remediation slices only; broader DTO/domain coverage remains tracked in `.github/test-debt.md`.
 - `.github/workflows/copilot-setup-steps.yml` now pins external actions to full commit SHAs and uses `npm ci --ignore-scripts` for the frontend setup step.

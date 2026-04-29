@@ -1,4 +1,5 @@
 using FluentAssertions;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.Mcp.Drafts;
 using InfraFlowSculptor.Mcp.Drafts.Models;
@@ -88,6 +89,7 @@ public sealed class ProjectDraftServiceTests
         // Assert
         draft.Intent.Environments.Should().ContainSingle();
         draft.Intent.Environments![0].Name.Should().Be("Development");
+        draft.Intent.Environments[0].Location.Should().Be(Location.DefaultAzureRegionKey);
         draft.Warnings.Should().Contain(expectedWarning);
     }
 

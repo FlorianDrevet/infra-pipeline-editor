@@ -11,7 +11,7 @@ namespace InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup
 public static class ProjectSetupDefaults
 {
     /// <summary>Default Azure region applied to environments when none is specified.</summary>
-    public const string DefaultLocation = nameof(Location.LocationEnum.WestEurope);
+    public static string DefaultLocation => Location.DefaultAzureRegionKey;
 
     /// <summary>Alias of the single repository used in <see cref="LayoutPresetEnum.AllInOne"/> layout.</summary>
     public const string RepoAliasMain = "main";

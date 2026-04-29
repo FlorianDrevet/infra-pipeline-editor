@@ -54,7 +54,7 @@ public sealed class ProjectCreationTools
 
         var projectId = result.Value.Id.Value;
         var projectName = result.Value.Name.Value;
-        var primaryLocation = draft.Intent.Environments?.FirstOrDefault()?.Location ?? "westeurope";
+        var primaryLocation = draft.Intent.Environments?.FirstOrDefault()?.Location ?? ProjectSetupDefaults.DefaultLocation;
 
         // Create infrastructure config + resource group + resources if the draft has resources.
         var resourceInputs = (draft.Intent.Resources ?? [])

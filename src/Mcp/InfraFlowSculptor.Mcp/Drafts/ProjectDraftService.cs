@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using InfraFlowSculptor.Application.Projects.Commands.CreateProjectWithSetup;
+using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ProjectAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
 
@@ -64,9 +65,9 @@ public sealed class ProjectDraftService : IProjectDraftService
             warnings.Add("One or more environments have no subscription ID configured.");
         }
 
-        if (intent.Environments.Any(e => string.Equals(e.Location, "westeurope", StringComparison.OrdinalIgnoreCase)))
+        if (intent.Environments.Any(e => string.Equals(e.Location, Location.DefaultAzureRegionKey, StringComparison.OrdinalIgnoreCase)))
         {
-            warnings.Add("Default Azure region is 'westeurope'. You can change this later.");
+            warnings.Add($"Default Azure region is '{Location.DefaultAzureRegionKey}'. You can change this later.");
         }
 
         var status = missingFields.Count == 0 ? DraftStatus.ReadyToCreate : DraftStatus.RequiresClarification;
