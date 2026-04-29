@@ -31,6 +31,7 @@
     <Project Path="tests/InfraFlowSculptor.BicepGeneration.Tests/InfraFlowSculptor.BicepGeneration.Tests.csproj" />
     <Project Path="tests/InfraFlowSculptor.Contracts.Tests/InfraFlowSculptor.Contracts.Tests.csproj" />
     <Project Path="tests/InfraFlowSculptor.Domain.Tests/InfraFlowSculptor.Domain.Tests.csproj" />
+    <Project Path="tests/InfraFlowSculptor.Infrastructure.Tests/InfraFlowSculptor.Infrastructure.Tests.csproj" />
     <Project Path="tests/InfraFlowSculptor.PipelineGeneration.Tests/InfraFlowSculptor.PipelineGeneration.Tests.csproj" />
     <Project Path="tests/InfraFlowSculptor.Mcp.Tests/InfraFlowSculptor.Mcp.Tests.csproj" />
   </Folder>

@@ -63,3 +63,15 @@ builder.AddJavaScriptApp("angular-frontend", "../../Front", "start:aspire")
 - Aspire MCP tooling in this environment explicitly reports that tools require `aspire run` from the AppHost project directory; a plain `dotnet run --project .\src\Aspire\InfraFlowSculptor.AppHost\InfraFlowSculptor.AppHost.csproj` can start the dashboard and AppHost process without becoming MCP-detectable.
 - Observed locally with Aspire CLI `13.1.3` and repo Aspire packages `13.2.0`: `aspire run` starts `InfraFlowSculptor.AppHost` and the dashboard, but MCP `list_apphosts` / `list_resources` may still report `No Aspire AppHost is currently running`.
 - When that happens, treat it as an environment/tooling compatibility issue first: verify the local Aspire CLI / VS Code Aspire MCP tooling version against the repo Aspire package version before changing application code.
+
+## VS Code Agent Config And Dev Certs [2026-04-29]
+- Aspire doctor now expects the VS Code `aspire` server entry in `.vscode/mcp.json` to use `aspire agent mcp` instead of the deprecated `aspire mcp start` command.
+- Adding `--non-interactive` to that server args list is compatible with this environment and avoids interactive assumptions when the stdio server is spawned by tooling.
+- On this machine, `aspire agent init --non-interactive` still crashed while prompting for the workspace root, so the CLI migration path suggested by doctor was not usable and the config had to be patched manually.
+- `aspire certs trust --non-interactive` successfully promoted the local HTTPS development certificate to full trust and cleared the Aspire doctor certificate warning.
+
+## MCP Blob Artifact Config Pitfall [2026-04-29]
+- `GenerateProjectBicepCommandHandler` resolves `IBlobService` even when the MCP host is running outside the API process, so it can hit Infrastructure blob settings that are present in API `appsettings*.json` but absent from `src/Mcp/InfraFlowSculptor.Mcp` configuration.
+- Before the fix, live MCP generation for project `479602ce-4b7d-4fa3-b4b7-2f37a690f78c` (`mariage-edwige-henri`) crashed with `System.NullReferenceException` in `Azure.Storage.Blobs.BlobServiceClient.GetBlobContainerClient(...)` from `InfraFlowSculptor.Infrastructure.Services.BlobService.BlobService` because `BlobSettings.ContainerName` was null.
+- `BlobSettings` now provides the default container name `bicep-output`, and `BlobService` resolves the configured container name defensively through `BlobSettings.ResolveContainerName(...)` instead of trusting configuration to be present in every host.
+- Validation: focused Infrastructure tests for BlobService container resolution are green, and a live MCP call to `generate_project_bicep` now returns `status: generated` with 8 emitted files for `mariage-edwige-henri`.

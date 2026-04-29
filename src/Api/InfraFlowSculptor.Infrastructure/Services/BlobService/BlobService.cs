@@ -15,7 +15,11 @@ public sealed class BlobService : IBlobService
         BlobServiceClient blobServiceClient,
         IOptions<BlobSettings> blobStorageSettings)
     {
-        _blobContainerClient = blobServiceClient.GetBlobContainerClient(blobStorageSettings.Value.ContainerName);
+        ArgumentNullException.ThrowIfNull(blobServiceClient);
+        ArgumentNullException.ThrowIfNull(blobStorageSettings);
+
+        var containerName = BlobSettings.ResolveContainerName(blobStorageSettings.Value.ContainerName);
+        _blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
     }
 
     public async Task<Uri> UploadFileAsync(IFormFile formFile)
