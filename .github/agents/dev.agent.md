@@ -154,6 +154,7 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 | Explorer le codebase (fichiers, patterns, conventions) avant délégation | **`Explore`** | sous-agent built-in, aucun fichier agent |
 | Analyse d'impact / exploration structurelle avant modification | Charger le skill **`gitnexus-workflow`** | `.github/skills/gitnexus-workflow/SKILL.md` |
 | Audit technique complet du dépôt avec synchronisation GitHub | **`audit-expert`** + charger le skill `audit-workflow` | `.github/agents/audit-expert.agent.md` |
+| Rediger ou refondre de la documentation technique, un cours d'onboarding, un guide de lecture du code, ou une explication de patterns du projet | **`documentation-professor`** | `.github/agents/documentation-professor.agent.md` |
 | Revue de code pré-merge, review de diff contre `main`, gate qualité avant merge | **`review-expert`** | `.github/agents/review-expert.agent.md` |
 | Revue technique anti-vibe coding, chasse aux smells de code généré et dette structurelle cachée | **`vibe-coding-refractaire`** | `.github/agents/vibe-coding-refractaire.agent.md` |
 | Appliquer un backlog de correction issu d'une review pré-merge | **`review-remediator`** | `.github/agents/review-remediator.agent.md` |
@@ -201,6 +202,10 @@ Utiliser les outils disponibles. Déléguer aux agents spécialisés si la tâch
 - **Code review / review pré-merge / revue d'un diff généré par des agents** :
   Déléguer d'abord à `review-expert`, puis à `vibe-coding-refractaire`.
   `review-expert` couvre la merge-readiness, la sécurité et l'architecture; `vibe-coding-refractaire` ajoute une seconde passe hater du vibe coding pour remonter les abstractions bidon, duplications paresseuses, tests théâtre et autres signaux de code faible.
+
+- **Documentation technique / onboarding / pédagogie projet** :
+  Déléguer à `documentation-professor`.
+  Cet agent doit expliquer les notions et patterns a partir du code reel, guider l'ordre de lecture des fichiers, et produire une documentation qui sert autant de reference que de support d'apprentissage.
 
 - **Correction d'un backlog issu de `review-expert`** :
   Déléguer à `review-remediator`.

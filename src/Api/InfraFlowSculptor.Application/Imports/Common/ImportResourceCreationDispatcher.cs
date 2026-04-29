@@ -1,4 +1,5 @@
 using ErrorOr;
+using InfraFlowSculptor.Application.Imports.Common.Properties;
 using InfraFlowSculptor.Application.InfrastructureConfig.Commands.CreateInfraConfig;
 using InfraFlowSculptor.Application.ResourceGroup.Commands.CreateResourceGroup;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
@@ -67,7 +68,7 @@ internal static class ImportResourceCreationDispatcher
 
             var context = new ResourceCreationContext(
                 createdIdsByType,
-                input?.ExtractedProperties,
+                ExtractedPropertiesResolver.FromDictionary(resourceType, input?.ExtractedProperties),
                 createdIdsByName,
                 input?.DependencyResourceNames);
 

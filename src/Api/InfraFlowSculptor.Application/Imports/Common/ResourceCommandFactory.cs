@@ -16,6 +16,7 @@ using InfraFlowSculptor.Application.SqlServers.Commands.CreateSqlServer;
 using InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
 using InfraFlowSculptor.Application.UserAssignedIdentities.Commands.CreateUserAssignedIdentity;
 using InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
+using InfraFlowSculptor.Application.Imports.Common.Properties;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
@@ -86,23 +87,20 @@ public static class ResourceCommandFactory
             AzureResourceTypes.KeyVault => new CreateKeyVaultCommand(
                 resourceGroupId, name, location),
 
-            AzureResourceTypes.StorageAccount => new CreateStorageAccountCommand(
-                resourceGroupId, name, location,
-                Kind: GetStringProp(context.ExtractedProperties, "kind", "StorageV2"),
-                AccessTier: GetStringProp(context.ExtractedProperties, "accessTier", "Hot"),
-                AllowBlobPublicAccess: false,
-                EnableHttpsTrafficOnly: true,
-                MinimumTlsVersion: "TLS1_2"),
+            AzureResourceTypes.StorageAccount => BuildStorageAccountCommand(
+                resourceGroupId, name, location, context.TypedProperties),
 
             AzureResourceTypes.AppServicePlan => new CreateAppServicePlanCommand(
                 resourceGroupId, name, location,
-                OsType: GetStringProp(context.ExtractedProperties, "osType", "Linux")),
+                OsType: context.TypedProperties is AppServicePlanExtractedProperties asp
+                    ? asp.OsType
+                    : AppServicePlanExtractedProperties.DefaultOsType),
 
             AzureResourceTypes.WebApp => BuildWebAppCommand(
-                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.ExtractedProperties),
+                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.TypedProperties),
 
             AzureResourceTypes.FunctionApp => BuildFunctionAppCommand(
-                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.ExtractedProperties),
+                resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.TypedProperties),
 
             AzureResourceTypes.ContainerAppEnvironment => new CreateContainerAppEnvironmentCommand(
                 resourceGroupId, name, location),
@@ -253,16 +251,7 @@ public static class ResourceCommandFactory
         return await mediator.Send(command, cancellationToken).ConfigureAwait(false);
     }
 
-    internal static string GetStringProp(
-        IReadOnlyDictionary<string, object?>? props, string key, string defaultValue)
-    {
-        if (props is null)
-            return defaultValue;
 
-        return props.TryGetValue(key, out var val) && val is string s && !string.IsNullOrWhiteSpace(s)
-            ? s
-            : defaultValue;
-    }
 
     private static Guid? ResolveDependencyId(
         string dependencyType,
@@ -289,23 +278,38 @@ public static class ResourceCommandFactory
             : null;
     }
 
+    private static CreateStorageAccountCommand BuildStorageAccountCommand(
+        ResourceGroupId rgId, Name name, Location location,
+        IExtractedResourceProperties? props)
+    {
+        var sa = props as StorageAccountExtractedProperties;
+        return new CreateStorageAccountCommand(
+            rgId, name, location,
+            Kind: sa?.KindOrDefault ?? "StorageV2",
+            AccessTier: "Hot",
+            AllowBlobPublicAccess: false,
+            EnableHttpsTrafficOnly: true,
+            MinimumTlsVersion: "TLS1_2");
+    }
+
     private static IBaseRequest? BuildWebAppCommand(
         ResourceGroupId rgId, Name name, Location location,
         IReadOnlyDictionary<string, Guid> created,
         IReadOnlyDictionary<string, Guid>? createdByName,
         IReadOnlyList<string>? dependencyResourceNames,
-        IReadOnlyDictionary<string, object?>? props)
+        IExtractedResourceProperties? props)
     {
         var aspId = ResolveDependencyId(
             AzureResourceTypes.AppServicePlan, created, createdByName, dependencyResourceNames);
 
         if (aspId is null) return null;
 
+        var wa = props as WebAppExtractedProperties;
         return new CreateWebAppCommand(
             rgId, name, location,
             AppServicePlanId: aspId.Value,
-            RuntimeStack: GetStringProp(props, "runtimeStack", "DOTNETCORE"),
-            RuntimeVersion: GetStringProp(props, "runtimeVersion", "8.0"),
+            RuntimeStack: wa?.RuntimeStack ?? WebAppExtractedProperties.DefaultRuntimeStack,
+            RuntimeVersion: wa?.RuntimeVersion ?? WebAppExtractedProperties.DefaultRuntimeVersion,
             AlwaysOn: false,
             HttpsOnly: true,
             DeploymentMode: "Zip",
@@ -319,18 +323,19 @@ public static class ResourceCommandFactory
         IReadOnlyDictionary<string, Guid> created,
         IReadOnlyDictionary<string, Guid>? createdByName,
         IReadOnlyList<string>? dependencyResourceNames,
-        IReadOnlyDictionary<string, object?>? props)
+        IExtractedResourceProperties? props)
     {
         var aspId = ResolveDependencyId(
             AzureResourceTypes.AppServicePlan, created, createdByName, dependencyResourceNames);
 
         if (aspId is null) return null;
 
+        var fa = props as FunctionAppExtractedProperties;
         return new CreateFunctionAppCommand(
             rgId, name, location,
             AppServicePlanId: aspId.Value,
-            RuntimeStack: GetStringProp(props, "runtimeStack", "DOTNET-ISOLATED"),
-            RuntimeVersion: GetStringProp(props, "runtimeVersion", "8.0"),
+            RuntimeStack: fa?.RuntimeStack ?? FunctionAppExtractedProperties.DefaultRuntimeStack,
+            RuntimeVersion: fa?.RuntimeVersion ?? FunctionAppExtractedProperties.DefaultRuntimeVersion,
             HttpsOnly: true,
             DeploymentMode: "Zip",
             ContainerRegistryId: null,
@@ -394,6 +399,6 @@ public static class ResourceCommandFactory
 /// </summary>
 public sealed record ResourceCreationContext(
     IReadOnlyDictionary<string, Guid> CreatedResourcesByType,
-    IReadOnlyDictionary<string, object?>? ExtractedProperties = null,
+    IExtractedResourceProperties? TypedProperties = null,
     IReadOnlyDictionary<string, Guid>? CreatedResourcesByName = null,
     IReadOnlyList<string>? DependencyResourceNames = null);

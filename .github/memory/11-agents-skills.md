@@ -8,6 +8,7 @@
 | `dotnet-dev` | Expert C#/.NET 10 | `.github/agents/dotnet-dev.agent.md` |
 | `angular-front` | Expert frontend Angular standalone, tout travail `src/Front` (repo en Angular 21) | `.github/agents/angular-front.agent.md` |
 | `architect` | Analyse archi, challenge, plan d'implémentation (ne code pas) | `.github/agents/architect.agent.md` |
+| `documentation-professor` | Rédaction technique pédagogique, onboarding, explication des patterns et guide de lecture du code | `.github/agents/documentation-professor.agent.md` |
 | `aspire-debug` | Debug runtime Aspire, MCP diagnostics | `.github/agents/aspire-debug.agent.md` |
 | `audit-expert` | Audit technique expert, produit des rapports `audits/` et synchronise les issues GitHub d'audit | `.github/agents/audit-expert.agent.md` |
 | `review-expert` | Revue de code pré-merge sur le diff contre `main`, findings sévérisés et backlog de correction | `.github/agents/review-expert.agent.md` |
@@ -62,6 +63,12 @@
 - `vibe-coding-refractaire` is the mandatory second-pass reviewer for generated or suspicious diffs that may hide vibe-coding smells.
 - It focuses on unnecessary abstractions, hidden duplication, copy-paste adaptation, weak or theatrical tests, guessed design, and repository-convention drift.
 - It complements `review-expert` rather than replacing it: merge-readiness first, anti-vibe pass second.
+
+## Documentation Routing [2026-04-29]
+
+- `documentation-professor` is the dedicated agent for technical documentation, onboarding guides, code-reading guides, and pedagogy-oriented explanations of project patterns.
+- It must ground explanations in the real codebase and connect theory to actual files, layers, and execution flows instead of producing generic framework prose.
+- It should keep documentation aligned with repository conventions from `docs/README.md`: concepts and architecture in `docs/architecture/`, feature docs in `docs/features/`, Azure docs in `docs/azure/`.
 
 ## Review Workflow [2026-04-27]
 
