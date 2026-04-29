@@ -1,22 +1,42 @@
+using ErrorOr;
 using InfraFlowSculptor.Application.AppConfigurations.Commands.CreateAppConfiguration;
+using InfraFlowSculptor.Application.AppConfigurations.Common;
 using InfraFlowSculptor.Application.ApplicationInsights.Commands.CreateApplicationInsights;
+using InfraFlowSculptor.Application.ApplicationInsights.Common;
 using InfraFlowSculptor.Application.AppServicePlans.Commands.CreateAppServicePlan;
+using InfraFlowSculptor.Application.AppServicePlans.Common;
+using InfraFlowSculptor.Application.Common.Interfaces;
 using InfraFlowSculptor.Application.ContainerAppEnvironments.Commands.CreateContainerAppEnvironment;
+using InfraFlowSculptor.Application.ContainerAppEnvironments.Common;
 using InfraFlowSculptor.Application.ContainerApps.Commands.CreateContainerApp;
+using InfraFlowSculptor.Application.ContainerApps.Common;
 using InfraFlowSculptor.Application.ContainerRegistries.Commands.CreateContainerRegistry;
+using InfraFlowSculptor.Application.ContainerRegistries.Common;
 using InfraFlowSculptor.Application.CosmosDbs.Commands.CreateCosmosDb;
+using InfraFlowSculptor.Application.CosmosDbs.Common;
 using InfraFlowSculptor.Application.EventHubNamespaces.Commands.CreateEventHubNamespace;
+using InfraFlowSculptor.Application.EventHubNamespaces.Common;
 using InfraFlowSculptor.Application.FunctionApps.Commands.CreateFunctionApp;
-using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
-using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAnalyticsWorkspace;
-using InfraFlowSculptor.Application.RedisCaches.Commands.CreateRedisCache;
-using InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.CreateServiceBusNamespace;
-using InfraFlowSculptor.Application.SqlDatabases.Commands.CreateSqlDatabase;
-using InfraFlowSculptor.Application.SqlServers.Commands.CreateSqlServer;
-using InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
-using InfraFlowSculptor.Application.UserAssignedIdentities.Commands.CreateUserAssignedIdentity;
-using InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
+using InfraFlowSculptor.Application.FunctionApps.Common;
 using InfraFlowSculptor.Application.Imports.Common.Properties;
+using InfraFlowSculptor.Application.KeyVaults.Commands.CreateKeyVault;
+using InfraFlowSculptor.Application.KeyVaults.Common;
+using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Commands.CreateLogAnalyticsWorkspace;
+using InfraFlowSculptor.Application.LogAnalyticsWorkspaces.Common;
+using InfraFlowSculptor.Application.RedisCaches.Commands.CreateRedisCache;
+using InfraFlowSculptor.Application.RedisCaches.Common;
+using InfraFlowSculptor.Application.ServiceBusNamespaces.Commands.CreateServiceBusNamespace;
+using InfraFlowSculptor.Application.ServiceBusNamespaces.Common;
+using InfraFlowSculptor.Application.SqlDatabases.Commands.CreateSqlDatabase;
+using InfraFlowSculptor.Application.SqlDatabases.Common;
+using InfraFlowSculptor.Application.SqlServers.Commands.CreateSqlServer;
+using InfraFlowSculptor.Application.SqlServers.Common;
+using InfraFlowSculptor.Application.StorageAccounts.Commands.CreateStorageAccount;
+using InfraFlowSculptor.Application.StorageAccounts.Common;
+using InfraFlowSculptor.Application.UserAssignedIdentities.Commands.CreateUserAssignedIdentity;
+using InfraFlowSculptor.Application.UserAssignedIdentities.Common;
+using InfraFlowSculptor.Application.WebApps.Commands.CreateWebApp;
+using InfraFlowSculptor.Application.WebApps.Common;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
 using InfraFlowSculptor.GenerationCore;
@@ -176,75 +196,182 @@ public static class ResourceCommandFactory
     }
 
     /// <summary>
-    /// Sends a dynamically-typed <see cref="IBaseRequest"/> command via MediatR using typed dispatch.
-    /// Each command type is matched explicitly to call the correct generic <c>Send&lt;TResponse&gt;</c> overload.
+    /// Builds, sends, and extracts the resource ID for a given resource type in a single strongly-typed dispatch.
+    /// Returns the created resource's GUID on success, or an <see cref="ErrorOr"/> error.
+    /// Returns <c>null</c> when the resource type is unsupported or a required dependency is missing
+    /// (callers should check <see cref="GetMissingDependency"/> to distinguish the two cases).
     /// </summary>
-    public static async Task<object?> SendCommandAsync(
+    public static Task<ErrorOr<Guid>>? CreateResourceAsync(
         ISender mediator,
-        IBaseRequest command,
+        string resourceType,
+        ResourceGroupId resourceGroupId,
+        Name name,
+        Location location,
+        ResourceCreationContext context,
         CancellationToken cancellationToken)
     {
-        return command switch
+        return resourceType switch
         {
-            CreateKeyVaultCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateStorageAccountCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateAppServicePlanCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateWebAppCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateFunctionAppCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateContainerAppEnvironmentCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateContainerAppCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateRedisCacheCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateUserAssignedIdentityCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateAppConfigurationCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateLogAnalyticsWorkspaceCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateApplicationInsightsCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateCosmosDbCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateSqlServerCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateSqlDatabaseCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateServiceBusNamespaceCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateContainerRegistryCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
-            CreateEventHubNamespaceCommand cmd => await mediator.Send(cmd, cancellationToken).ConfigureAwait(false),
+            AzureResourceTypes.KeyVault => SendAndExtractIdAsync(
+                mediator,
+                new CreateKeyVaultCommand(resourceGroupId, name, location),
+                static (KeyVaultResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.StorageAccount => SendAndExtractIdAsync(
+                mediator,
+                BuildStorageAccountCommand(resourceGroupId, name, location, context.TypedProperties),
+                static (StorageAccountResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.AppServicePlan => SendAndExtractIdAsync(
+                mediator,
+                new CreateAppServicePlanCommand(
+                    resourceGroupId, name, location,
+                    OsType: context.TypedProperties is AppServicePlanExtractedProperties asp
+                        ? asp.OsType
+                        : AppServicePlanExtractedProperties.DefaultOsType),
+                static (AppServicePlanResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.WebApp => CreateDependentResourceAsync<CreateWebAppCommand, WebAppResult>(
+                mediator,
+                BuildWebAppCommand(resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.TypedProperties),
+                static (WebAppResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.FunctionApp => CreateDependentResourceAsync<CreateFunctionAppCommand, FunctionAppResult>(
+                mediator,
+                BuildFunctionAppCommand(resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames, context.TypedProperties),
+                static (FunctionAppResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.ContainerAppEnvironment => SendAndExtractIdAsync(
+                mediator,
+                new CreateContainerAppEnvironmentCommand(resourceGroupId, name, location),
+                static (ContainerAppEnvironmentResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.ContainerApp => CreateDependentResourceAsync<CreateContainerAppCommand, ContainerAppResult>(
+                mediator,
+                BuildContainerAppCommand(resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
+                static (ContainerAppResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.RedisCache => SendAndExtractIdAsync(
+                mediator,
+                new CreateRedisCacheCommand(
+                    resourceGroupId, name, location,
+                    RedisVersion: null,
+                    EnableNonSslPort: false,
+                    MinimumTlsVersion: AzureResourceDefaults.MinimumTlsVersion,
+                    DisableAccessKeyAuthentication: false,
+                    EnableAadAuth: true),
+                static (RedisCacheResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.UserAssignedIdentity => SendAndExtractIdAsync(
+                mediator,
+                new CreateUserAssignedIdentityCommand(resourceGroupId, name, location),
+                static (UserAssignedIdentityResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.AppConfiguration => SendAndExtractIdAsync(
+                mediator,
+                new CreateAppConfigurationCommand(resourceGroupId, name, location),
+                static (AppConfigurationResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.LogAnalyticsWorkspace => SendAndExtractIdAsync(
+                mediator,
+                new CreateLogAnalyticsWorkspaceCommand(resourceGroupId, name, location),
+                static (LogAnalyticsWorkspaceResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.ApplicationInsights => CreateDependentResourceAsync<CreateApplicationInsightsCommand, ApplicationInsightsResult>(
+                mediator,
+                BuildApplicationInsightsCommand(resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
+                static (ApplicationInsightsResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.CosmosDb => SendAndExtractIdAsync(
+                mediator,
+                new CreateCosmosDbCommand(resourceGroupId, name, location),
+                static (CosmosDbResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.SqlServer => SendAndExtractIdAsync(
+                mediator,
+                new CreateSqlServerCommand(
+                    resourceGroupId, name, location,
+                    Version: AzureResourceDefaults.SqlServerVersion,
+                    AdministratorLogin: AzureResourceDefaults.SqlServerAdministratorLogin),
+                static (SqlServerResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.SqlDatabase => CreateDependentResourceAsync<CreateSqlDatabaseCommand, SqlDatabaseResult>(
+                mediator,
+                BuildSqlDatabaseCommand(resourceGroupId, name, location, context.CreatedResourcesByType, context.CreatedResourcesByName, context.DependencyResourceNames),
+                static (SqlDatabaseResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.ServiceBusNamespace => SendAndExtractIdAsync(
+                mediator,
+                new CreateServiceBusNamespaceCommand(resourceGroupId, name, location),
+                static (ServiceBusNamespaceResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.ContainerRegistry => SendAndExtractIdAsync(
+                mediator,
+                new CreateContainerRegistryCommand(resourceGroupId, name, location),
+                static (ContainerRegistryResult r) => r.Id.Value,
+                cancellationToken),
+
+            AzureResourceTypes.EventHubNamespace => SendAndExtractIdAsync(
+                mediator,
+                new CreateEventHubNamespaceCommand(resourceGroupId, name, location),
+                static (EventHubNamespaceResult r) => r.Id.Value,
+                cancellationToken),
+
             _ => null,
         };
     }
 
-    /// <summary>Extracts the AzureResourceId.Value from an <c>ErrorOr&lt;T&gt;</c> result using reflection.</summary>
-    public static Guid? ExtractResourceId(object? result)
+    /// <summary>
+    /// Formats a resource creation failure into a readable message.
+    /// </summary>
+    public static string FormatErrors(IReadOnlyList<Error> errors)
     {
-        if (result is null)
-            return null;
-
-        var resultType = result.GetType();
-        var isErrorProp = resultType.GetProperty("IsError");
-        if (isErrorProp is not null && isErrorProp.GetValue(result) is true)
-            return null;
-
-        var valueProp = resultType.GetProperty("Value");
-        var value = valueProp?.GetValue(result);
-        if (value is null)
-            return null;
-
-        var idProp = value.GetType().GetProperty("Id");
-        var id = idProp?.GetValue(value);
-        if (id is null)
-            return null;
-
-        var guidProp = id.GetType().GetProperty("Value");
-        return guidProp?.GetValue(id) as Guid?;
+        return string.Join("; ", errors.Select(e => e.Description));
     }
 
-    /// <summary>Extracts error descriptions from an <c>ErrorOr&lt;T&gt;</c> result using reflection.</summary>
-    public static string? ExtractErrors(object? result)
+    private static async Task<ErrorOr<Guid>> SendAndExtractIdAsync<TCommand, TResult>(
+        ISender mediator,
+        TCommand command,
+        Func<TResult, Guid> idSelector,
+        CancellationToken cancellationToken)
+        where TCommand : ICommand<TResult>
     {
-        if (result is null)
-            return null;
+        var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
-        var resultType = result.GetType();
-        var errorsProp = resultType.GetProperty("Errors");
-        if (errorsProp?.GetValue(result) is not IEnumerable<ErrorOr.Error> errors)
-            return null;
+        return result.IsError
+            ? result.Errors
+            : idSelector(result.Value);
+    }
 
-        return string.Join("; ", errors.Select(e => e.Description));
+    /// <summary>
+    /// Handles dependent resource types whose Build* helper returns <c>null</c> when the dependency is missing.
+    /// </summary>
+    private static Task<ErrorOr<Guid>>? CreateDependentResourceAsync<TCommand, TResult>(
+        ISender mediator,
+        IBaseRequest? command,
+        Func<TResult, Guid> idSelector,
+        CancellationToken cancellationToken)
+        where TCommand : IBaseRequest, ICommand<TResult>
+    {
+        return command is TCommand typedCommand
+            ? SendAndExtractIdAsync(mediator, typedCommand, idSelector, cancellationToken)
+            : null;
     }
 
 

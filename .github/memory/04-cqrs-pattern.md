@@ -33,6 +33,12 @@ public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, Err
 
 **Convention:** never use `IRequest<ErrorOr<T>>` or `IRequestHandler<,>` directly.
 
+## Typed Dynamic Dispatch [2026-04-29]
+
+- For heterogeneous resource-creation flows (`Application/Imports/Common/Creation/ResourceCommandFactory`), keep the dynamic selection at the command-building boundary, but dispatch concrete creation commands through explicit `ICommand<TResult>` cases.
+- Canonical shape: resource type + typed context in, typed switch on concrete `Create*Command`, generic helper constrained to `ICommand<TResult>`, and `ErrorOr<Guid>` out.
+- Do not reintroduce `IMediator.Send((object)...)`, reflection over `ErrorOr<T>`, or `object`-based post-processing to recover `Id`/errors.
+
 ## Unit of Work [2026-03-30]
 
 - `IUnitOfWork` / `UnitOfWork` wraps `ProjectDbContext.SaveChangesAsync`

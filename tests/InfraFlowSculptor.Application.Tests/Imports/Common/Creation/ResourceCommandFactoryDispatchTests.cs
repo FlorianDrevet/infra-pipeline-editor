@@ -6,6 +6,7 @@ using InfraFlowSculptor.Application.KeyVaults.Common;
 using InfraFlowSculptor.Domain.Common.BaseModels.ValueObjects;
 using InfraFlowSculptor.Domain.Common.ValueObjects;
 using InfraFlowSculptor.Domain.ResourceGroupAggregate.ValueObjects;
+using InfraFlowSculptor.GenerationCore;
 using MediatR;
 using NSubstitute;
 
@@ -13,29 +14,31 @@ namespace InfraFlowSculptor.Application.Tests.Imports.Common.Creation;
 
 public sealed class ResourceCommandFactoryDispatchTests
 {
-    private readonly IMediator _mediator;
+    private readonly ISender _mediator;
+    private readonly ResourceGroupId _resourceGroupId;
+    private readonly Name _resourceName;
+    private readonly Location _location;
+    private readonly ResourceCreationContext _context;
 
     public ResourceCommandFactoryDispatchTests()
     {
-        _mediator = Substitute.For<IMediator>();
+        _mediator = Substitute.For<ISender>();
+        _resourceGroupId = new ResourceGroupId(Guid.NewGuid());
+        _resourceName = new Name("test-kv");
+        _location = new Location(Location.LocationEnum.WestEurope);
+        _context = new ResourceCreationContext(new Dictionary<string, Guid>());
     }
 
     [Fact]
-    public async Task Given_SupportedCreateCommand_When_ExecuteCommandAsync_Then_ReturnsCreatedResourceIdAsync()
+    public async Task Given_SupportedResourceType_When_CreateResourceAsync_Then_ReturnsCreatedResourceIdAsync()
     {
         // Arrange
-        var resourceGroupId = new ResourceGroupId(Guid.NewGuid());
         var resourceId = new AzureResourceId(Guid.NewGuid());
-        var command = new CreateKeyVaultCommand(
-            resourceGroupId,
-            new Name("test-kv"),
-            new Location(Location.LocationEnum.WestEurope));
-
         var result = new KeyVaultResult(
             resourceId,
-            resourceGroupId,
-            new Name("test-kv"),
-            new Location(Location.LocationEnum.WestEurope),
+            _resourceGroupId,
+            _resourceName,
+            _location,
             false,
             false,
             false,
@@ -44,42 +47,66 @@ public sealed class ResourceCommandFactoryDispatchTests
             false,
             []);
 
-        _mediator.Send(command, Arg.Any<CancellationToken>())
+        _mediator.Send(Arg.Any<CreateKeyVaultCommand>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<ErrorOr<KeyVaultResult>>(result));
 
         // Act
-        var dispatchResult = await ResourceCommandFactory.ExecuteCommandAsync(
+        var createTask = ResourceCommandFactory.CreateResourceAsync(
             _mediator,
-            command,
+            AzureResourceTypes.KeyVault,
+            _resourceGroupId,
+            _resourceName,
+            _location,
+            _context,
             CancellationToken.None);
 
         // Assert
+        createTask.Should().NotBeNull();
+        var dispatchResult = await createTask!;
         dispatchResult.IsError.Should().BeFalse();
         dispatchResult.Value.Should().Be(resourceId.Value);
     }
 
     [Fact]
-    public async Task Given_CommandErrors_When_ExecuteCommandAsync_Then_ReturnsErrorsAsync()
+    public async Task Given_CommandErrors_When_CreateResourceAsync_Then_ReturnsErrorsAsync()
     {
         // Arrange
-        var command = new CreateKeyVaultCommand(
-            new ResourceGroupId(Guid.NewGuid()),
-            new Name("test-kv"),
-            new Location(Location.LocationEnum.WestEurope));
-
         var error = Error.Failure("KeyVault.CreateFailed", "Key Vault creation failed.");
 
-        _mediator.Send(command, Arg.Any<CancellationToken>())
+        _mediator.Send(Arg.Any<CreateKeyVaultCommand>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<ErrorOr<KeyVaultResult>>(error));
 
         // Act
-        var dispatchResult = await ResourceCommandFactory.ExecuteCommandAsync(
+        var createTask = ResourceCommandFactory.CreateResourceAsync(
             _mediator,
-            command,
+            AzureResourceTypes.KeyVault,
+            _resourceGroupId,
+            _resourceName,
+            _location,
+            _context,
             CancellationToken.None);
 
         // Assert
+        createTask.Should().NotBeNull();
+        var dispatchResult = await createTask!;
         dispatchResult.IsError.Should().BeTrue();
         dispatchResult.Errors.Should().ContainSingle(e => e.Description == "Key Vault creation failed.");
+    }
+
+    [Fact]
+    public void Given_UnknownResourceType_When_CreateResourceAsync_Then_ReturnsNull()
+    {
+        // Act
+        var createTask = ResourceCommandFactory.CreateResourceAsync(
+            _mediator,
+            "UnknownType",
+            _resourceGroupId,
+            _resourceName,
+            _location,
+            _context,
+            CancellationToken.None);
+
+        // Assert
+        createTask.Should().BeNull();
     }
 }

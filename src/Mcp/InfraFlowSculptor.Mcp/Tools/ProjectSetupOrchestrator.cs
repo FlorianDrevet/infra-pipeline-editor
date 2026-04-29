@@ -78,11 +78,12 @@ public static class ProjectSetupOrchestrator
                 ExtractedPropertiesResolver.FromDictionary(resourceType, input?.ExtractedProperties),
                 createdIdsByName,
                 input?.DependencyResourceNames);
-            var command = ResourceCommandFactory.BuildCommand(
-                resourceType, resourceGroupId, new Name(name), location,
-                context);
 
-            if (command is null)
+            var createTask = ResourceCommandFactory.CreateResourceAsync(
+                mediator, resourceType, resourceGroupId, new Name(name), location,
+                context, ct);
+
+            if (createTask is null)
             {
                 var missing = ResourceCommandFactory.GetMissingDependency(
                     resourceType,
@@ -102,27 +103,25 @@ public static class ProjectSetupOrchestrator
 
             try
             {
-                var result = await ResourceCommandFactory.SendCommandAsync(mediator, command, ct);
-                var resourceId = ResourceCommandFactory.ExtractResourceId(result);
+                var result = await createTask;
 
-                if (resourceId is null)
+                if (result.IsError)
                 {
-                    var errors = ResourceCommandFactory.ExtractErrors(result);
                     skipped.Add(new SkippedResourceInfo
                     {
                         ResourceType = resourceType,
                         Name = name,
-                        Reason = errors ?? "Creation failed.",
+                        Reason = ResourceCommandFactory.FormatErrors(result.Errors),
                     });
                     continue;
                 }
 
-                createdIdsByType[resourceType] = resourceId.Value;
-                createdIdsByName[name] = resourceId.Value;
+                createdIdsByType[resourceType] = result.Value;
+                createdIdsByName[name] = result.Value;
                 created.Add(new CreatedResourceInfo
                 {
                     ResourceType = resourceType,
-                    ResourceId = resourceId.Value.ToString(),
+                    ResourceId = result.Value.ToString(),
                     Name = name,
                 });
             }

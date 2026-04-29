@@ -72,14 +72,16 @@ internal static class ImportResourceCreationDispatcher
                 createdIdsByName,
                 input?.DependencyResourceNames);
 
-            var command = ResourceCommandFactory.BuildCommand(
+            var createTask = ResourceCommandFactory.CreateResourceAsync(
+                mediator,
                 resourceType,
                 resourceGroupId,
                 new Name(name),
                 location,
-                context);
+                context,
+                cancellationToken);
 
-            if (command is null)
+            if (createTask is null)
             {
                 var missingDependency = ResourceCommandFactory.GetMissingDependency(
                     resourceType,
@@ -97,23 +99,22 @@ internal static class ImportResourceCreationDispatcher
 
             try
             {
-                var result = await ResourceCommandFactory.SendCommandAsync(mediator, command, cancellationToken).ConfigureAwait(false);
-                var resourceId = ResourceCommandFactory.ExtractResourceId(result);
+                var result = await createTask.ConfigureAwait(false);
 
-                if (resourceId is null)
+                if (result.IsError)
                 {
                     skipped.Add(new ApplyImportPreviewSkippedResourceResult(
                         resourceType,
                         name,
-                        ResourceCommandFactory.ExtractErrors(result) ?? "Creation failed."));
+                        ResourceCommandFactory.FormatErrors(result.Errors)));
                     continue;
                 }
 
-                createdIdsByType[resourceType] = resourceId.Value;
-                createdIdsByName[name] = resourceId.Value;
+                createdIdsByType[resourceType] = result.Value;
+                createdIdsByName[name] = result.Value;
                 created.Add(new ApplyImportPreviewCreatedResourceResult(
                     resourceType,
-                    resourceId.Value.ToString(),
+                    result.Value.ToString(),
                     name));
             }
             catch (OperationCanceledException)
